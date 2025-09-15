@@ -1,0 +1,23 @@
+import { isValidElement, ReactNode } from 'react';
+import FancyBaseCard, { FancyBaseCardProps } from './FancyBaseCard';
+import { ActionButton, FancyActionButtons } from './FancyCardActionButtons';
+import { View } from 'react-native';
+
+export type FancyCardSimpleProps = {
+  letter?: string;
+  actionButtons?: ActionButton | ActionButton[] | ReactNode;
+} & Pick<
+  FancyBaseCardProps,
+  'title' | 'subtitle' | 'additionalData1' | 'additionalData2' | 'content' | 'containerStyle' | 'contentContainerStyle' | 'isCollapsable'
+>;
+
+export default function FancyCardSimple(props: FancyCardSimpleProps) {
+  return (
+    <FancyBaseCard
+      {...props}
+      containerStyle={[props.containerStyle, { paddingLeft: 22 }]}
+      leftItem={<View style={{ width: 0 }} />}
+      rightItem={isValidElement(props.actionButtons) ? props.actionButtons : <FancyActionButtons actions={props.actionButtons} />}
+    />
+  );
+}

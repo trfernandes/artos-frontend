@@ -1,0 +1,148 @@
+import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
+import FancyText, { FancyTextProps } from '../../FancyText';
+import { Pallete } from '../../../constants/colors';
+import FancyButton from '../../buttons/FancyButton';
+import { isValidElement, ReactNode, useState } from 'react';
+
+export type FancyBaseCardProps = {
+  title?: string | ReactNode;
+  subtitle?: string | ReactNode;
+  additionalData1?: string | ReactNode;
+  additionalData2?: string | ReactNode;
+  content?: React.ReactNode;
+  leftItem?: React.ReactNode;
+  rightItem?: React.ReactNode;
+  containerStyle?: StyleProp<ViewStyle>;
+  contentContainerStyle?: StyleProp<ViewStyle>;
+  titleProps?: FancyTextProps;
+  subtitleProps?: FancyTextProps;
+  isCollapsable?: boolean;
+};
+
+export default function FancyBaseCard({ isCollapsable = false, ...props }: FancyBaseCardProps) {
+  const [collapsed, setCollapsed] = useState(true);
+  return (
+    <View
+      style={[
+        styles.container,
+        ((isCollapsable && !collapsed) || !isCollapsable) && { borderRadius: 30 },
+        props.containerStyle,
+      ]}
+    >
+      <View style={[styles.innerContainer, props.contentContainerStyle]}>
+        <View style={styles.headerContainer}>
+          {props.leftItem && <View style={styles.leftContainer}>{props.leftItem}</View>}
+          <View style={styles.centerContainer}>
+            {props.title && (
+              <FancyText size={'small'} type="semiBold" numberOfLines={2} {...props.titleProps}>
+                {props.title}
+              </FancyText>
+            )}
+            {props.subtitle &&
+              (isValidElement(props.subtitle) ? (
+                props.subtitle
+              ) : (
+                <FancyText
+                  size={'extraSmall'}
+                  type="medium"
+                  color={Pallete.fonts.inactive}
+                  numberOfLines={2}
+                  {...props.subtitleProps}
+                >
+                  {props.subtitle}
+                </FancyText>
+              ))}
+            {props.additionalData1 &&
+              (isValidElement(props.additionalData1) ? (
+                props.additionalData1
+              ) : (
+                <FancyText size={'extraSmall'} type="medium" color={Pallete.fonts.inactive}>
+                  {props.additionalData1}
+                </FancyText>
+              ))}
+            {props.additionalData2 &&
+              (isValidElement(props.additionalData2) ? (
+                props.additionalData2
+              ) : (
+                <FancyText size={'extraSmall'} type="medium" color={Pallete.fonts.inactive}>
+                  {props.additionalData2}
+                </FancyText>
+              ))}
+          </View>
+          {props.rightItem && (
+            <View style={styles.rightContainer}>
+              {props.rightItem}
+              {isCollapsable && props.content && (
+                <FancyButton
+                  type="text"
+                  mode="icon"
+                  icon={{
+                    name: !collapsed ? 'chevron-up' : 'chevron-down',
+                    library: 'Entypo',
+                    size: 22,
+                    color: Pallete.fonts.dark,
+                  }}
+                  iconStyle={{ borderWidth: 0, paddingTop: 0, borderColor: 'blue' }}
+                  onPress={() => setCollapsed(!collapsed)}
+                  containerStyle={{
+                    minHeight: 25,
+                    minWidth: 30,
+                    borderRadius: 100,
+                    padding: 0,
+                    justifyContent: 'center',
+                  }}
+                />
+              )}
+            </View>
+          )}
+        </View>
+        {((isCollapsable && !collapsed) || !isCollapsable) && props.content && props.content}
+      </View>
+    </View>
+  );
+}
+
+const DESIGN_MODE = 0;
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: Pallete.backgroundColor2,
+    borderRadius: 40,
+    borderWidth: DESIGN_MODE,
+    padding: DESIGN_MODE,
+    paddingVertical: 10,
+  },
+  innerContainer: {
+    borderWidth: DESIGN_MODE,
+    padding: DESIGN_MODE,
+    borderColor: 'blueviolet',
+    paddingHorizontal: 15,
+    paddingVertical: 2,
+    gap: 8,
+  },
+  leftContainer: {
+    borderWidth: DESIGN_MODE,
+    padding: DESIGN_MODE,
+    borderColor: 'forestgreen',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  centerContainer: {
+    flex: 1,
+    borderWidth: DESIGN_MODE,
+    padding: DESIGN_MODE,
+    borderColor: 'gold',
+    gap: 3,
+    justifyContent: 'center',
+  },
+  rightContainer: {
+    borderWidth: DESIGN_MODE,
+    padding: DESIGN_MODE,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  headerContainer: { flexDirection: 'row', borderWidth: DESIGN_MODE, padding: DESIGN_MODE, gap: 12 },
+});

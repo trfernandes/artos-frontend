@@ -1,0 +1,64 @@
+export const Pallete = {
+  primary: '#3B82F6',
+  secondary: '#8E44AD',
+  terciary: '#F67E3B',
+  warning: '#F5A623',
+  error: '#E74C3C',
+  confirm: '#228B22',
+  disabled: '#f6f6f6ff',
+  disabled2: '#AABBD5',
+  disabled3: '#F4F4F4',
+  selected: '#E4EEFF',
+  buttons: {
+    active: '#3B82F6',
+    inactive: '#e3e3e3ff',
+  },
+  fonts: {
+    dark: '#3E3E3E',
+    light: '#FFFFFF',
+    inactive: '#8d8d8dff',
+    inactive2: '#C7C7CC',
+  },
+  icons: {
+    dark: '#3E3E3E',
+    light: '#FFFFFF',
+    inactive: '#8E8E93',
+    inactive2: '#C7C7CC',
+  },
+  border: '#B4B4B4',
+  backgroundColor: '#FFFFFF',
+  backgroundColor2: '#F2F2F7',
+  backgroundColor3: '#f6f6f6ff',
+  shadows: {
+    100: {
+      shadowColor: 'gray',
+      elevation: 1,
+      shadowOffset: {
+        width: 1,
+        height: 1,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 1,
+    },
+    200: {
+      shadowColor: 'gray',
+      elevation: 2,
+      shadowOffset: {
+        width: 2,
+        height: 2,
+      },
+      shadowOpacity: 0.2,
+      shadowRadius: 2,
+    },
+    300: {
+      shadowColor: 'gray',
+      elevation: 3,
+      shadowOffset: {
+        width: 3,
+        height: 3,
+      },
+      shadowOpacity: 0.2,
+      shadowRadius: 3,
+    },
+  },
+};

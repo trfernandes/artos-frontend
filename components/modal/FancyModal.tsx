@@ -1,0 +1,43 @@
+import { Modal, ModalProps, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+
+export type FancyModalProps = {
+  modalProps?: ModalProps;
+  top?: React.ReactNode;
+  center?: React.ReactNode;
+  bottom?: React.ReactNode;
+  containerStyle?: StyleProp<ViewStyle>;
+};
+
+export default function FancyModal({ modalProps, center, top, bottom, ...props }: FancyModalProps) {
+  // const ref = useClickOutside<View>(() => {
+  //   modalProps?.onRequestClose?.({} as unknown as NativeSyntheticEvent<any>);
+  // });
+
+  return (
+    <Modal animationType="fade" transparent {...modalProps}>
+      <View style={[styles.centeredView, modalProps?.style]}>
+        <View style={[styles.modalView, props.containerStyle]}>
+          {top}
+          {center}
+          {bottom}
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  modalView: {
+    width: '85%',
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 20,
+    alignItems: 'center',
+  },
+});
