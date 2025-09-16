@@ -7,13 +7,13 @@ import {
   LayoutChangeEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  RefreshControl,
   StyleProp,
   StyleSheet,
   View,
   ViewStyle,
 } from 'react-native';
 import FancyListEmpty from './FancyListEmpty';
-import { RefreshControl } from 'react-native-gesture-handler';
 
 export const FADE = { colors: { dark: 'rgba(255,255,255,0)', light: 'rgba(255,255,255,0.6)' }, height: 20 };
 
@@ -66,22 +66,12 @@ export default function FancyList<ItemT>(props: FancyListProps<ItemT>) {
               contentContainerStyle={[styles.list_content, props.contentContainerStyle]}
               onScroll={handleScroll}
               scrollEventThrottle={16}
-              refreshControl={
-                <RefreshControl
-                  size={100}
-                  refreshing={props.refreshing || false}
-                  onRefresh={props.onRefresh || undefined}
-                />
-              }
+              refreshControl={<RefreshControl refreshing={props.refreshing || false} onRefresh={props.onRefresh || undefined} />}
               {...props}
             />
           )}
           {showTopFade && (
-            <LinearGradient
-              colors={[FADE.colors.light, FADE.colors.dark]}
-              style={[styles.fade, { top: 0 }]}
-              pointerEvents="none"
-            />
+            <LinearGradient colors={[FADE.colors.light, FADE.colors.dark]} style={[styles.fade, { top: 0 }]} pointerEvents="none" />
           )}
 
           {showBottomFade && (

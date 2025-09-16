@@ -1,7 +1,6 @@
 {
   "expo": {
     "name": "artos_frontend",
-    "main": "expo-router/entry",
     "slug": "artos_frontend",
     "version": "1.0.0",
     "scheme": "artos",
@@ -22,11 +21,60 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.anonymous.artos_frontend"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-router", "expo-font"]
+    "plugins": [
+      "expo-router",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/fonts/montserrat/Montserrat-Black.ttf",
+            "./assets/fonts/fonts/montserrat/Montserrat-BlackItalic.ttf",
+            "./assets/fonts/fonts/montserrat/Montserrat-Bold.ttf",
+            "./assets/fonts/fonts/montserrat/Montserrat-BoldItalic.ttf",
+            "./assets/fonts/fonts/montserrat/Montserrat-ExtraBold.ttf",
+            "./assets/fonts/fonts/montserrat/Montserrat-ExtraBoldItalic.ttf",
+            "./assets/fonts/fonts/montserrat/Montserrat-ExtraLight.ttf",
+            "./assets/fonts/fonts/montserrat/Montserrat-ExtraLightItalic.ttf",
+            "./assets/fonts/fonts/montserrat/Montserrat-Italic.ttf",
+            "./assets/fonts/fonts/montserrat/Montserrat-Light.ttf",
+            "./assets/fonts/fonts/montserrat/Montserrat-LightItalic.ttf",
+            "./assets/fonts/fonts/montserrat/Montserrat-Medium.ttf",
+            "./assets/fonts/fonts/montserrat/Montserrat-MediumItalic.ttf",
+            "./assets/fonts/fonts/montserrat/Montserrat-Regular.ttf",
+            "./assets/fonts/fonts/montserrat/Montserrat-SemiBold.ttf",
+            "./assets/fonts/fonts/montserrat/Montserrat-SemiBoldItalic.ttf",
+            "./assets/fonts/fonts/montserrat/Montserrat-Thin.ttf",
+            "./assets/fonts/fonts/montserrat/Montserrat-ThinItalic.ttf"
+          ],
+          "android": {
+            "fonts": [
+              {
+                "fontFamily": "Inter",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/Inter-BoldItalic.ttf",
+                    "weight": 700,
+                    "style": "italic"
+                  },
+                  {
+                    "path": "./assets/fonts/Inter-Bold.ttf",
+                    "weight": 700
+                  }
+                ]
+              }
+            ]
+          },
+          "ios": {
+            "fonts": ["./assets/fonts/Inter-Bold.ttf", "./assets/fonts/Inter-BoldItalic.ttf"]
+          }
+        }
+      ]
+    ]
   }
 }
