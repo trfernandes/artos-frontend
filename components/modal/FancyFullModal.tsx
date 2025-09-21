@@ -1,4 +1,4 @@
-import { View, Modal, StyleSheet, ModalProps, NativeSyntheticEvent } from 'react-native';
+import { View, Modal, StyleSheet, ModalProps, NativeSyntheticEvent, Platform } from 'react-native';
 import { MenuProvider } from 'react-native-popup-menu';
 import { Pallete } from '../../constants/colors';
 import FancyText from '../FancyText';
@@ -16,7 +16,7 @@ export default function FancyFullModal({ modalProps, children }: FancyFullModalP
       <MenuProvider skipInstanceCheck={true}>
         <View
           style={{
-            paddingTop: insets.top - 3,
+            paddingTop: Platform.OS === 'ios' ? insets.top - 3 : 0,
             paddingBottom: insets.bottom,
             paddingLeft: insets.left,
             paddingRight: insets.right,

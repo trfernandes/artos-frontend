@@ -87,11 +87,6 @@ const LEADER_MENU: DrawerItemData[] = [
         icon: { name: 'file-document-outline', library: 'MaterialCommunityIcons', size: 20 },
         onPress: () => router.replace('/ministerios/templates_equipe'),
       },
-      // {
-      //   label: 'Configurações',
-      //   icon: { ...DefaultIconsNames.options, size: 18 },
-      //   onPress: () => router.replace('/ministerios/configuracoes'),
-      // },
     ],
   },
 ];

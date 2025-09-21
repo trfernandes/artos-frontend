@@ -2,7 +2,7 @@ import { Identifiable } from './Indentifiable';
 
 export interface Evento extends Identifiable {
   nome: string;
-  descricao: string;
+  descricao?: string;
   dataInicio: Date;
   dataTermino: Date;
   local?: string;
@@ -14,13 +14,13 @@ export interface Evento extends Identifiable {
 }
 
 export enum RecorrenciaDiaSemanaEnum {
-  domingo = 0,
-  segunda = 1,
-  terca = 2,
-  quarta = 3,
-  quinta = 4,
-  sexta = 5,
-  sabado = 6,
+  domingo = 1,
+  segunda = 2,
+  terca = 3,
+  quarta = 4,
+  quinta = 5,
+  sexta = 6,
+  sabado = 7,
 }
 
 export const RecorrenciaDiaSemanaEnumMap: Record<number, RecorrenciaDiaSemanaEnum> = {
@@ -33,7 +33,10 @@ export const RecorrenciaDiaSemanaEnumMap: Record<number, RecorrenciaDiaSemanaEnu
   6: RecorrenciaDiaSemanaEnum.sabado,
 };
 
-export const RecorrenciaDiaSemanaEnumLabel: Record<RecorrenciaDiaSemanaEnum, { extenso: string; abreviado: string }> = {
+export const RecorrenciaDiaSemanaEnumLabel: Record<
+  RecorrenciaDiaSemanaEnum,
+  { extenso: string; abreviado: string }
+> = {
   [RecorrenciaDiaSemanaEnum.domingo]: { extenso: 'Domingo', abreviado: 'Dom' },
   [RecorrenciaDiaSemanaEnum.segunda]: { extenso: 'Segunda-Feira', abreviado: 'Seg' },
   [RecorrenciaDiaSemanaEnum.terca]: { extenso: 'Terça-Feira', abreviado: 'Ter' },
@@ -62,11 +65,11 @@ export const RecorrenciaEnumLabel: Record<RecorrenciaEnum, string> = {
 };
 
 export enum RecorrenciaSemanaMesEnum {
-  Primeira = 0,
-  Segunda = 1,
-  Terceira = 2,
-  Quarta = 3,
-  Quinta = 4,
+  Primeira = 1,
+  Segunda = 2,
+  Terceira = 3,
+  Quarta = 4,
+  Quinta = 5,
 }
 
 export const RecorrenciaSemanaMesEnumMap: Record<number, RecorrenciaSemanaMesEnum> = {
@@ -77,10 +80,13 @@ export const RecorrenciaSemanaMesEnumMap: Record<number, RecorrenciaSemanaMesEnu
   4: RecorrenciaSemanaMesEnum.Quinta,
 };
 
-export const RecorrenciaSemanaMesEnumLabel: Record<RecorrenciaSemanaMesEnum, string> = {
-  [RecorrenciaSemanaMesEnum.Primeira]: 'Primeira semana',
-  [RecorrenciaSemanaMesEnum.Segunda]: 'Segunda semana',
-  [RecorrenciaSemanaMesEnum.Terceira]: 'Terceira semana',
-  [RecorrenciaSemanaMesEnum.Quarta]: 'Quarta semana',
-  [RecorrenciaSemanaMesEnum.Quinta]: 'Quinta semana',
+export const RecorrenciaSemanaMesEnumLabel: Record<
+  RecorrenciaSemanaMesEnum,
+  { extenso: string; abreviado: string }
+> = {
+  [RecorrenciaSemanaMesEnum.Primeira]: { extenso: 'Primeira semana', abreviado: '1ª sem' },
+  [RecorrenciaSemanaMesEnum.Segunda]: { extenso: 'Segunda semana', abreviado: '2ª sem' },
+  [RecorrenciaSemanaMesEnum.Terceira]: { extenso: 'Terceira semana', abreviado: '3ª sem' },
+  [RecorrenciaSemanaMesEnum.Quarta]: { extenso: 'Quarta semana', abreviado: '4ª sem' },
+  [RecorrenciaSemanaMesEnum.Quinta]: { extenso: 'Quinta semana', abreviado: '5ª sem' },
 };

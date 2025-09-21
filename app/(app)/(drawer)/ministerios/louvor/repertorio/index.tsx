@@ -1,13 +1,13 @@
 import { router } from 'expo-router';
 import { FancyCard } from '../../../../../../components/cards/Horizontal/FancyCard';
 import { MUSIC_LIST } from '../../../../../../components/pages/admin/eventos/EventosSetListForm';
-import FancyBaseListPage from '../../../../../../components/pages/base/FancyBaseListPage';
+import FancyListPage from '../../../../../../components/pages/base/FancyBaseListPage';
 import { Pallete } from '../../../../../../constants/colors';
 import { DefaultIconsNames } from '../../../../../../constants/icons';
 
 export default function MinisterioLouvorRepertorioIndexPage() {
   return (
-    <FancyBaseListPage
+    <FancyListPage
       listProps={{
         data: MUSIC_LIST,
         renderItem: ({ item }) => (

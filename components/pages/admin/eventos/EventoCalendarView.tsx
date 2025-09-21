@@ -1,32 +1,73 @@
-import { StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import FancyCalendar, { FancyCalendarProps } from '../../../calendar/FancyCalendar';
+import FancySeparator from '../../../FancySeparator';
+import { useEffect, useState } from 'react';
+import { Evento } from '../../../../domain/models/Evento';
+import { useEventos } from '../../../../hooks/useEventos';
+import { Conjunction, Operator, ValueType } from '../../../../domain/utils/query_utils';
+import FancyList from '../../../list/FancyList';
+import { router } from 'expo-router';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import { FancyCard } from '../../../cards/Horizontal/FancyCard';
-import FancyList from '../../../list/FancyList';
-import FancySeparator from '../../../FancySeparator';
-import { useState } from 'react';
-import DateUtils from '../../../../utils/data_utils';
-import { router } from 'expo-router';
-import { Evento } from '../../../../domain/models/Evento';
+import FancyLoading from '../../../FancyLoading';
+import { Pallete } from '../../../../constants/colors';
 
-export type EventoCalendarViewProps = { items: Evento[]; calendarProps?: FancyCalendarProps };
+export type EventoCalendarViewProps = {
+  items: Evento[];
+  calendarProps?: FancyCalendarProps;
+  onDeleteItem: (item: Evento) => void;
+};
 
 export default function EventoCalendarView(props: EventoCalendarViewProps) {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const selectedEvents = selectedDate
-    ? props.items.filter(item => {
-        return DateUtils.compareOnlyDate(item.dataInicio, selectedDate!);
-      })
-    : [];
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
-  const hasEvents = props.items.map(item => item.dataInicio);
+  const { data: eventosData, setSearchParams, isLoading } = useEventos();
+
+  useEffect(() => {
+    setSearchParams({
+      where: {
+        conjunction: Conjunction.AND,
+        conditions: [
+          {
+            path: 'dataInicio',
+            operator: Operator.GTE,
+            value: {
+              type: ValueType.LITERAL,
+              value: new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1).toDateString(),
+            },
+          },
+          {
+            path: 'dataTermino',
+            operator: Operator.LTE,
+            value: {
+              type: ValueType.LITERAL,
+              value: new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0).toDateString(),
+            },
+          },
+        ],
+      },
+    });
+  }, [selectedDate]);
 
   return (
-    <View style={styles.container}>
-      <View style={{ borderWidth: DESIGN_MODE, borderColor: 'pink', height: 335 }}>
+    <View style={[styles.container]}>
+      <View style={{ borderWidth: DESIGN_MODE, borderColor: 'pink', height: 335, opacity: 1 }}>
+        {isLoading && (
+          <View style={{ position: 'absolute', zIndex: 1000, height: '100%', width: '100%', backgroundColor: 'chocolate' }}>
+            <FancyLoading label="Carregando eventos..." />
+          </View>
+        )}
         <FancyCalendar
-          markedDates={hasEvents}
-          onChangeDate={date => setSelectedDate(date)}
+          markedDates={
+            eventosData
+              ? eventosData.map(ev => ({
+                  date: new Date(ev.dataInicio),
+                  color: ev.cor,
+                }))
+              : []
+          }
+          onChangeSelectedDate={setSelectedDate}
+          onChangeMonthVisualization={setSelectedDate}
           value={selectedDate}
           {...props.calendarProps}
           containerStyle={[styles.calendar, props.calendarProps?.containerStyle]}
@@ -35,7 +76,13 @@ export default function EventoCalendarView(props: EventoCalendarViewProps) {
       <FancySeparator />
       <View style={{ borderWidth: DESIGN_MODE, borderColor: 'blue', flex: 1 }}>
         <FancyList
-          data={selectedEvents}
+          data={eventosData.filter(ev => {
+            const date = new Date(ev.dataInicio);
+            return (
+              new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate()).getTime() ===
+              new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()
+            );
+          })}
           style={styles.listContainer}
           contentContainerStyle={styles.listContent}
           renderItem={({ item, index }) => (
@@ -43,9 +90,9 @@ export default function EventoCalendarView(props: EventoCalendarViewProps) {
               key={index}
               title={item.nome}
               subtitle={
-                item.dataInicio.toLocaleDateString('pt-BR') +
+                new Date(item.dataInicio).toLocaleDateString('pt-BR') +
                 ' - ' +
-                item.dataInicio.toLocaleTimeString('pt-BR', {
+                new Date(item.dataInicio).toLocaleTimeString('pt-BR', {
                   hour: '2-digit',
                   minute: '2-digit',
                   hour12: false,
@@ -54,9 +101,38 @@ export default function EventoCalendarView(props: EventoCalendarViewProps) {
               color={item.cor || 'blue'}
               actionButtons={[
                 {
-                  icon: { library: DefaultIconsNames['chevron-right'].library, name: DefaultIconsNames['chevron-right'].name, size: 18 },
+                  icon: {
+                    library: DefaultIconsNames.edit.library,
+                    name: DefaultIconsNames.edit.name,
+                    size: 18,
+                  },
                   onPress: () => {
-                    router.push(`admin/eventos/edit`);
+                    router.push({
+                      pathname: '/admin/eventos/edit',
+                      params: {
+                        id: item.id,
+                      },
+                    });
+                  },
+                },
+                {
+                  icon: {
+                    library: DefaultIconsNames.delete.library,
+                    name: DefaultIconsNames.delete.name,
+                    size: 18,
+                    backgroundColor: Pallete.error,
+                  },
+                  onPress: () => {
+                    Alert.alert('Exclusão', `Tem certeza que deseja remover o ministério "${item.nome}?"`, [
+                      { text: 'Cancelar', style: 'cancel' },
+                      {
+                        text: 'Remover',
+                        style: 'destructive',
+                        onPress: () => {
+                          props.onDeleteItem?.(item);
+                        },
+                      },
+                    ]);
                   },
                 },
               ]}
@@ -72,8 +148,8 @@ const DESIGN_MODE = 0;
 
 const styles = StyleSheet.create({
   container: { gap: 15, borderWidth: DESIGN_MODE, borderColor: 'red', flex: 1 },
-  eventsList: { paddingHorizontal: 15, borderWidth: DESIGN_MODE, borderColor: 'magenta' },
-  listContent: { gap: 10, borderWidth: DESIGN_MODE, borderColor: 'gold', paddingHorizontal: 15, flex: 1 },
+  eventsList: { paddingHorizontal: 0, borderWidth: DESIGN_MODE, borderColor: 'magenta' },
+  listContent: { gap: 10, borderWidth: DESIGN_MODE, borderColor: 'gold', paddingHorizontal:0, flex: 1 },
   listContainer: { height: '100%' },
   calendar: { height: 'auto' },
 });

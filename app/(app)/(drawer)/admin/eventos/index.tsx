@@ -1,18 +1,19 @@
 import { StyleSheet, View } from 'react-native';
-import FancyPageView from '../../../../../components/containers/FancyPageView';
-import FancySearchBar from '../../../../../components/FancySearchBar';
 import { router, useNavigation } from 'expo-router';
 import { useLayoutEffect, useState } from 'react';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import FancyHeaderButton from '../../../../../components/header/FancyHeaderButton';
-import FancyFab from '../../../../../components/buttons/FancyFab';
 import EventoCalendarView from '../../../../../components/pages/admin/eventos/EventoCalendarView';
-import EventosList from '../../../../../components/pages/admin/eventos/EventosList';
+import EventosListView from '../../../../../components/pages/admin/eventos/EventosListView';
 import MainHeaderButtons from '../../../../../components/header/MainHeaderButtons';
 import { useEventos } from '../../../../../hooks/useEventos';
+import FancyLoading from '../../../../../components/FancyLoading';
+import FancyBasePage from '../../../../../components/pages/base/FancyBasePage';
+import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
 
 export default function EventosIndexPage() {
   const navigation = useNavigation();
+  const [searchText, setSearchText] = useState('');
   const [mode, setMode] = useState<'list' | 'calendar'>('list');
 
   useLayoutEffect(() => {
@@ -30,34 +31,52 @@ export default function EventosIndexPage() {
     });
   }, [navigation, mode]);
 
-  const { data: eventosData } = useEventos({ autoFetch: false, initialParams: {} });
+  const {
+    data: eventosData,
+    isLoading,
+    setSearchParams,
+    remove,
+    isLoadingMutation: isLoadingRemove,
+  } = useEventos({ autoFetch: false, initialParams: {} });
+
+  if (isLoading) {
+    return <FancyLoading label="Carregando..." />;
+  }
+
+  if (isLoadingRemove) {
+    return <FancyLoading label="Processando..." />;
+  }
 
   return (
-    <FancyPageView style={styles.container}>
-      {mode === 'list' && <FancySearchBar containerStyle={styles.searchbar} />}
-      <View style={styles.contentContainer}>
-        {mode === 'list' ? (
-          <EventosList items={eventosData} listProps={{ style: styles.list }} onPressItem={_ => router.push(`admin/eventos/edit`)} />
-        ) : (
-          <EventoCalendarView items={eventosData} calendarProps={{ containerStyle: styles.calendar }} />
-        )}
-      </View>
-
-      <FancyFab
-        onPress={() => {
-          router.push('admin/eventos/add');
-        }}
-      />
-    </FancyPageView>
+    <FancyBasePage
+      fabProps={{ onPress: () => router.push('admin/eventos/add') }}
+      showSearchBar={mode === 'list'}
+      searchBarProps={{
+        value: searchText,
+        onSearch: text => {
+          console.log(text);
+          setSearchText(text.trim());
+          if (text && text.trim() !== '') {
+            setSearchParams({
+              where: {
+                conditions: [{ path: 'nome', operator: Operator.ILIKE, value: { type: ValueType.LITERAL, value: text.trim() } }],
+              },
+            });
+          } else {
+            setSearchParams({});
+          }
+        },
+      }}
+    >
+      {mode === 'list' ? (
+        <EventosListView items={eventosData} listProps={{ style: styles.list }} onDeleteItem={event => remove(event.id!)} />
+      ) : (
+        <EventoCalendarView items={eventosData} onDeleteItem={event => remove(event.id!)} />
+      )}
+    </FancyBasePage>
   );
 }
 
-const DESIGN_MODE = 0;
-
 const styles = StyleSheet.create({
-  container: { gap: 10, paddingVertical: 10, flex: 1 },
-  searchbar: { marginHorizontal: 20, borderWidth: DESIGN_MODE },
-  contentContainer: { borderWidth: DESIGN_MODE, flex: 1 },
-  list: { paddingHorizontal: 20, paddingTop: 5, borderWidth: DESIGN_MODE },
-  calendar: { borderWidth: DESIGN_MODE, paddingHorizontal: 20 },
+  list: { paddingTop: 5 },
 });

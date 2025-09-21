@@ -3,12 +3,12 @@ import { DefaultIconsNames } from '../../../../../constants/icons';
 import { Pallete } from '../../../../../constants/colors';
 import { useState } from 'react';
 import FormModal from '../../../../../components/pages/ministerios/funcoes/FormModal';
-import FancyBaseListPage from '../../../../../components/pages/base/FancyBaseListPage';
+import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
 
 export default function MinisterioFuncoesIndex() {
   const [formVisible, setFormVisible] = useState(false);
   return (
-    <FancyBaseListPage
+    <FancyListPage
       listProps={{
         data: [
           { nome: 'Guitarrista' },
@@ -44,6 +44,6 @@ export default function MinisterioFuncoesIndex() {
           onConfirm={() => setFormVisible(false)}
         />
       )}
-    </FancyBaseListPage>
+    </FancyListPage>
   );
 }

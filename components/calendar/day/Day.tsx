@@ -9,6 +9,7 @@ export type DayProps = {
   type?: 'actual' | 'inactive' | 'default';
   showMarker?: boolean;
   markerType?: 'bottomPoint' | 'SurroundCircle';
+  markerColor?: string;
 };
 
 export default function Day({ type = 'default', selected = false, showMarker = false, ...props }: DayProps) {
@@ -30,7 +31,7 @@ export default function Day({ type = 'default', selected = false, showMarker = f
       <FancyText size="small" type={selected || type === 'actual' ? 'bold' : 'medium'} color={fontColor}>
         {props.day}
       </FancyText>
-      {showMarker && <View style={[styles.marked, showMarker && { backgroundColor: Pallete.warning }]} />}
+      {showMarker && <View style={[styles.marked, showMarker && { backgroundColor: props.markerColor || Pallete.warning }]} />}
     </Pressable>
   );
 }

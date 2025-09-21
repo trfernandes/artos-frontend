@@ -29,52 +29,7 @@
     },
     "plugins": [
       "expo-router",
-      [
-        "expo-font",
-        {
-          "fonts": [
-            "./assets/fonts/montserrat/Montserrat-Black.ttf",
-            "./assets/fonts/montserrat/Montserrat-BlackItalic.ttf",
-            "./assets/fonts/montserrat/Montserrat-Bold.ttf",
-            "./assets/fonts/montserrat/Montserrat-BoldItalic.ttf",
-            "./assets/fonts/montserrat/Montserrat-ExtraBold.ttf",
-            "./assets/fonts/montserrat/Montserrat-ExtraBoldItalic.ttf",
-            "./assets/fonts/montserrat/Montserrat-ExtraLight.ttf",
-            "./assets/fonts/montserrat/Montserrat-ExtraLightItalic.ttf",
-            "./assets/fonts/montserrat/Montserrat-Italic.ttf",
-            "./assets/fonts/montserrat/Montserrat-Light.ttf",
-            "./assets/fonts/montserrat/Montserrat-LightItalic.ttf",
-            "./assets/fonts/montserrat/Montserrat-Medium.ttf",
-            "./assets/fonts/montserrat/Montserrat-MediumItalic.ttf",
-            "./assets/fonts/montserrat/Montserrat-Regular.ttf",
-            "./assets/fonts/montserrat/Montserrat-SemiBold.ttf",
-            "./assets/fonts/montserrat/Montserrat-SemiBoldItalic.ttf",
-            "./assets/fonts/montserrat/Montserrat-Thin.ttf",
-            "./assets/fonts/montserrat/Montserrat-ThinItalic.ttf"
-          ],
-          "android": {
-            "fonts": [
-              {
-                "fontFamily": "Inter",
-                "fontDefinitions": [
-                  {
-                    "path": "./assets/fonts/Inter-BoldItalic.ttf",
-                    "weight": 700,
-                    "style": "italic"
-                  },
-                  {
-                    "path": "./assets/fonts/Inter-Bold.ttf",
-                    "weight": 700
-                  }
-                ]
-              }
-            ]
-          },
-          "ios": {
-            "fonts": ["./assets/fonts/Inter-Bold.ttf", "./assets/fonts/Inter-BoldItalic.ttf"]
-          }
-        }
-      ]
+      "expo-font"
     ]
   }
 }

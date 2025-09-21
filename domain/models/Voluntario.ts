@@ -1,6 +1,11 @@
 import { Identifiable } from './Indentifiable';
 import { MinisterioVoluntario } from './MinisterioVoluntario';
 
+export enum VoluntarioPapelEnum {
+  Admin = 0,
+  Usuario = 1,
+}
+
 export interface Voluntario extends Identifiable {
   nome: string;
   email: string;
@@ -10,4 +15,6 @@ export interface Voluntario extends Identifiable {
   sexo: 'M' | 'F';
   foto: string;
   ministerios?: MinisterioVoluntario[];
+  senha: string;
+  papel: VoluntarioPapelEnum;
 }

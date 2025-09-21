@@ -1,58 +1,92 @@
-import { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import apiClient from '../domain/api/api-client';
 
 interface AuthContextData {
-  user: { name: string } | null;
+  user: any;
+  token: string | null;
   loading: boolean;
-  signIn: () => Promise<void>;
+  signIn: (email: string, senha: string) => Promise<void>;
   signOut: () => Promise<void>;
+  forgotPassword: (email: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<{ name: string } | null>(null);
-  const [loading, setLoading] = useState(true); 
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<any>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadUserFromStorage() {
+    const loadStorage = async () => {
       try {
-        const storedUser = await AsyncStorage.getItem('@user');
-        if (storedUser) {
-          const parsedUser = JSON.parse(storedUser);
-          setUser(parsedUser);
-        } else {
+        const storedToken = await AsyncStorage.getItem('token');
+        const storedUser = await AsyncStorage.getItem('user');
+
+        if (storedToken) {
+          setToken(storedToken);
+          apiClient.defaults.headers.Authorization = `Bearer ${storedToken}`;
         }
+
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
+      } catch (error) {
+        console.error('Erro ao carregar storage:', error);
       } finally {
         setLoading(false);
       }
-    }
+    };
 
-    loadUserFromStorage();
+    loadStorage();
   }, []);
 
-  useEffect(() => {}, [user, loading]);
+  // Login
+  const signIn = async (email: string, senha: string) => {
+    const response = await apiClient.post('/auth/login', { email, senha });
 
-  const signIn = async () => {
-    const fakeUser = { name: 'John Doe' };
-    setUser(fakeUser); 
+    const token = response.data?.data?.access_token;
+    if (!token) throw new Error('Token não retornado pelo servidor');
 
-    await AsyncStorage.setItem('@user', JSON.stringify(fakeUser));
+    setToken(token);
+    apiClient.defaults.headers.Authorization = `Bearer ${token}`;
+    await AsyncStorage.setItem('token', token);
+
+    const user = response.data?.data?.user;
+    if (!user) throw new Error('Dados de Usuário não retornado pelo servidor');
+    setUser(user);
+    if (user) {
+      await AsyncStorage.setItem('user', JSON.stringify(user));
+    } else {
+      await AsyncStorage.removeItem('user');
+    }
   };
 
+  // Logout
   const signOut = async () => {
+    setToken(null);
     setUser(null);
+    delete apiClient.defaults.headers.Authorization;
 
-    await AsyncStorage.removeItem('@user');
+    await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('user');
   };
 
-  return <AuthContext.Provider value={{ user, loading, signIn, signOut }}>{children}</AuthContext.Provider>;
-}
+  const forgotPassword = async (email: string) => {
+    try {
+      await apiClient.post('/auth/forgot-password', { email });
+      return true;
+    } catch {
+      return false;
+    }
+  };
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-}
+  return (
+    <AuthContext.Provider value={{ user, token, loading, signIn, signOut, forgotPassword }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => useContext(AuthContext);

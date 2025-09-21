@@ -31,7 +31,7 @@ export type FancyTextInputProps = {
   leftContainer?: Button | Button[] | ReactNode;
   rightContainer?: Button | Button[] | ReactNode;
   onPress?: () => void;
-  inputProps?: TextInputProps;
+  inputProps?: Omit<TextInputProps, 'value'>;
   readonly?: boolean;
 };
 

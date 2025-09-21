@@ -2,12 +2,10 @@ import { Identifiable } from '../models/Indentifiable';
 import { DynamicQuery } from '../utils/query_utils';
 import apiClient from './api-client';
 
-// O tipo genérico 'T' agora é restrito a tipos que estendem 'Identifiable'
 export class BaseApi<T extends Identifiable> {
   private resourceName: string;
 
   constructor(resourceName: string) {
-    console.log(`Criando BaseApi para ${resourceName}`);
     this.resourceName = resourceName;
   }
 
@@ -23,7 +21,6 @@ export class BaseApi<T extends Identifiable> {
 
   async getById(id: string): Promise<T> {
     try {
-      // Retorna a propriedade 'data' do objeto de resposta do backend
       const response = await apiClient.get(`/${this.resourceName}/${id}`);
       return response.data.data;
     } catch (error) {
@@ -44,7 +41,6 @@ export class BaseApi<T extends Identifiable> {
 
   async create(data: Omit<T, 'id' | 'createdAt' | 'updatedAt'>): Promise<T> {
     try {
-      // Retorna a propriedade 'data' do objeto de resposta do backend
       const response = await apiClient.post(`/${this.resourceName}`, data);
       return response.data.data;
     } catch (error) {
@@ -55,7 +51,6 @@ export class BaseApi<T extends Identifiable> {
 
   async update(id: string, data: Partial<Omit<T, 'id' | 'createdAt' | 'updatedAt'>>): Promise<T> {
     try {
-      // Retorna a propriedade 'data' do objeto de resposta do backend
       const response = await apiClient.put(`/${this.resourceName}/${id}`, data);
       return response.data.data;
     } catch (error) {

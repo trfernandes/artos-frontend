@@ -30,10 +30,11 @@ export enum CalendarVisualization {
 export type FancyCalendarProps = {
   maximumDate?: Date;
   minimumDate?: Date;
-  markedDates?: Date[];
+  markedDates?: { date: Date; color?: string }[];
   containerStyle?: StyleProp<ViewStyle>;
   canChangeMonthsOnSwiple?: boolean;
-  onChangeDate?: (date: Date) => void;
+  onChangeSelectedDate?: (date: Date) => void;
+  onChangeMonthVisualization?: (date: Date) => void;
   border?: boolean;
   value?: Date;
 };
@@ -56,11 +57,15 @@ export default function FancyCalendar({ canChangeMonthsOnSwiple = true, ...props
   const maxDate: Date = props.maximumDate || defaultMaxDate;
 
   const handleSwipeLeftDayView = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+    setCurrentDate(newDate);
+    props.onChangeMonthVisualization?.(newDate);
   };
 
   const handleSwipeRightDayView = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+    setCurrentDate(newDate);
+    props.onChangeMonthVisualization?.(newDate);
   };
 
   const flingGestureLeft = Gesture.Fling()
@@ -91,12 +96,14 @@ export default function FancyCalendar({ canChangeMonthsOnSwiple = true, ...props
           onChangeVisualization={setVisualization}
           onGoToToday={() => setCurrentDate(new Date())}
           onNextMonth={() => {
-            const newDate = new Date(currentDate!.setMonth(currentDate!.getMonth() + 1));
+            const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
             setCurrentDate(newDate);
+            props.onChangeMonthVisualization?.(newDate);
           }}
           onPreviousMonth={() => {
-            const newDate = new Date(currentDate!.setMonth(currentDate!.getMonth() - 1));
+            const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
             if (newDate >= minDate) setCurrentDate(newDate);
+            props.onChangeMonthVisualization?.(newDate);
           }}
         />
       </View>
@@ -110,7 +117,7 @@ export default function FancyCalendar({ canChangeMonthsOnSwiple = true, ...props
                 markedDates={props.markedDates}
                 onSelectDate={date => {
                   setSelectedDate(date);
-                  props.onChangeDate?.(date);
+                  props.onChangeSelectedDate?.(date);
                 }}
               />
             )}

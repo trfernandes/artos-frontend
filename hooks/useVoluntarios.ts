@@ -1,18 +1,48 @@
 import { useCrudForm } from './useCrudForm';
 import { DynamicQuery, Operator, ValueType } from '../domain/utils/query_utils';
 import { VoluntariosRepository } from '../domain/services/VoluntariosRepository';
+import { z } from 'zod';
 
 interface UseVoluntariosOptions {
   autoFetch?: boolean;
   initialParams?: DynamicQuery | string;
 }
 
+export const createAccountSchema = z
+  .object({
+    nome: z
+      .string('Campo obrigatório')
+      .min(3, { message: 'O nome deve ter pelo menos 3 caracteres' })
+      .max(255, { message: 'O nome pode ter no máximo 255 caracteres' }),
+
+    email: z
+      .string()
+      .min(1, 'Campo obrigatório')
+      .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'E-mail inválido'),
+
+    senha: z
+      .string('Campo obrigatório')
+      .min(6, { message: 'A senha deve ter pelo menos 6 caracteres' })
+      .max(100, { message: 'A senha pode ter no máximo 100 caracteres' }),
+
+    confirmarSenha: z.string('Campo obrigatório'),
+  })
+  .superRefine((data, ctx) => {
+    if (data.senha !== data.confirmarSenha) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['confirmarSenha'],
+        message: 'As senhas não coincidem',
+      });
+    }
+  });
+
 export function useVoluntarios(options?: UseVoluntariosOptions) {
   return useCrudForm({
     queryKey: 'voluntarios',
     autoFetch: options?.autoFetch ?? true,
     initialParams: options?.initialParams,
-    fetchAll: () => VoluntariosRepository.search({ relations: ['ministerios.ministerio'] }),
+    fetchAll: () => VoluntariosRepository.getAll(),
     search: query => VoluntariosRepository.search(query),
     fetchOne: async id => {
       const result = await VoluntariosRepository.search({
@@ -34,5 +64,8 @@ export function useVoluntarios(options?: UseVoluntariosOptions) {
       return VoluntariosRepository.update(id, data);
     },
     remove: id => VoluntariosRepository.remove(id),
+    messages:{
+      successCreate: 'Usuário criado com sucesso',
+    }
   });
 }

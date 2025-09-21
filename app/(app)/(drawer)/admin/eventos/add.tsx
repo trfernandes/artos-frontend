@@ -3,10 +3,12 @@ import FancyPageView from '../../../../../components/containers/FancyPageView';
 import FancyButton from '../../../../../components/buttons/FancyButton';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { FormProvider, useForm } from 'react-hook-form';
-import { EventoFormData, eventoSchema } from '../../../../../hooks/useEventos';
+import { eventoSchema, useEventos } from '../../../../../hooks/useEventos';
 import { zodResolver } from '@hookform/resolvers/zod';
 import EventosDadosForm from '../../../../../components/pages/admin/eventos/EventosDadosForm';
-import { RecorrenciaEnum } from '../../../../../domain/models/Evento';
+import { Evento, RecorrenciaEnum } from '../../../../../domain/models/Evento';
+import { strfyObj } from '../../../../../utils/text_utils';
+import { router } from 'expo-router';
 
 export function getDefaultEventoTimes() {
   const now = new Date();
@@ -30,23 +32,40 @@ export function getDefaultEventoTimes() {
 export default function EventosAddPage() {
   const { dataInicio, dataTermino } = getDefaultEventoTimes();
 
-  const form = useForm<EventoFormData>({
+  const form = useForm({
     resolver: zodResolver(eventoSchema),
     defaultValues: {
       recorrencia: RecorrenciaEnum.Nunca,
-      // recorrenciaSemanaDias: [],
+      cor: '#FF8C00',
       dataInicio: dataInicio,
       dataTermino: dataTermino,
     },
   });
 
-  const onSubmit = (data: any) => {
-    console.log('HandleSubmit --- Data', data);
+  const { add, isError, isLoading } = useEventos();
+
+  const handleSubmit = async () => {
+    console.log('Submitting form...', strfyObj(form.getValues()));
+    form.handleSubmit(
+      async data => {
+        const newEvento: Evento = {
+          ...data,
+          id: undefined,
+        };
+        await add(newEvento);
+        router.back();
+      },
+      error => console.log(error)
+    )();
   };
 
-  const onError = (errors: any) => {
-    console.log('HandleSubmit Errors', errors);
-  };
+  if (isError) {
+    return <FancyPageView>Erro ao carregar dados.</FancyPageView>;
+  }
+
+  if (isLoading) {
+    return <FancyPageView>Carregando...</FancyPageView>;
+  }
 
   return (
     <FancyPageView style={styles.container}>
@@ -56,9 +75,7 @@ export default function EventosAddPage() {
           label="Salvar"
           icon={{ ...DefaultIconsNames.save, size: 16 }}
           type="contained"
-          onPress={() => {
-            form.handleSubmit(onSubmit, onError)();
-          }}
+          onPress={handleSubmit}
         />
       </FormProvider>
     </FancyPageView>

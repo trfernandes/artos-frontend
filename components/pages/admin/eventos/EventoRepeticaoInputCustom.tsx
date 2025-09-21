@@ -6,20 +6,86 @@ import EventoRepeticaoInputCustomSemana from './EventoRepeticaoInputCustomSemana
 import FancyFullModal from '../../../modal/FancyFullModal';
 import FancyButton from '../../../buttons/FancyButton';
 import { DefaultIconsNames } from '../../../../constants/icons';
-import { Controller, useFormContext } from 'react-hook-form';
+import { Controller, FormProvider, useForm, useFormContext } from 'react-hook-form';
 import { EventoFormData } from '../../../../hooks/useEventos';
-import { RecorrenciaEnum, RecorrenciaEnumLabel } from '../../../../domain/models/Evento';
+import {
+  RecorrenciaDiaSemanaEnum,
+  RecorrenciaEnum,
+  RecorrenciaEnumLabel,
+  RecorrenciaSemanaMesEnum,
+} from '../../../../domain/models/Evento';
 import EventoRepeticaoInputCustomMensal from './EventoRepeticaoInputCustomMensal';
+import { strfyObj } from '../../../../utils/text_utils';
+import z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+export const schema = z
+  .object({
+    recorrencia: z.enum(RecorrenciaEnum),
+    recorrenciaSemanaDias: z.array(z.enum(RecorrenciaDiaSemanaEnum)).optional(),
+    recorrenciaACadaMeses: z.coerce
+      .number()
+      .int('Informe um número inteiro')
+      .min(1, 'O número de meses deve ser maior que 1')
+      .max(12, 'O número de meses deve ser menor igual a 12'),
+    recorrenciaSemanasMes: z.array(z.enum(RecorrenciaSemanaMesEnum)).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.recorrencia === RecorrenciaEnum.Mensal) {
+      if (!data.recorrenciaSemanaDias || data.recorrenciaSemanaDias.length < 1) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['recorrenciaSemanaDias'],
+          message: 'Selecione ao menos um dia da semana',
+        });
+      }
+      if (!data.recorrenciaACadaMeses) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['recorrenciaACadaMeses'],
+          message: 'Informe o número de meses',
+        });
+      }
+      if (!data.recorrenciaSemanasMes || data.recorrenciaSemanasMes.length < 1) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['recorrenciaSemanasMes'],
+          message: 'Selecione ao menos uma semana do mês',
+        });
+      }
+    } else if (data.recorrencia === RecorrenciaEnum.Semanal) {
+      if (!data.recorrenciaSemanaDias || data.recorrenciaSemanaDias.length < 1) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['recorrenciaSemanaDias'],
+          message: 'Selecione ao menos um dia da semana',
+        });
+      }
+    }
+  });
+
+export type EventoRepeticaoSchemaData = z.infer<typeof schema>;
 
 export default function EventoRepeticaoInputCustom({ modalProps }: { modalProps?: ModalProps }) {
-  const { control, getValues, trigger, formState } = useFormContext<EventoFormData>();
+  const eventoForm = useFormContext<EventoFormData>();
+  const recorrenciaForm = useForm({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      recorrencia: eventoForm.getValues('recorrencia') || RecorrenciaEnum.Semanal,
+      recorrenciaACadaMeses: eventoForm.getValues('recorrenciaACadaMeses') || 1,
+      recorrenciaSemanaDias: eventoForm.getValues('recorrenciaSemanaDias') || [],
+      recorrenciaSemanasMes: eventoForm.getValues('recorrenciaSemanasMes') || [],
+    },
+  });
+
+  const recorrencia = recorrenciaForm.watch('recorrencia');
 
   return (
     <FancyFullModal modalProps={modalProps}>
       <FancyScrollView style={{ flex: 1, borderWidth: 0, borderColor: 'coral' }}>
         <View style={styles.body}>
           <Controller
-            control={control}
+            control={recorrenciaForm.control}
             name="recorrencia"
             render={({ field: { value, onChange } }) => (
               <FancySettingItem
@@ -29,12 +95,20 @@ export default function EventoRepeticaoInputCustom({ modalProps }: { modalProps?
                   {
                     label: RecorrenciaEnumLabel[RecorrenciaEnum.Semanal],
                     onPress: () => {
+                      recorrenciaForm.setValue('recorrencia', RecorrenciaEnum.Semanal);
+                      recorrenciaForm.resetField('recorrenciaACadaMeses', { defaultValue: '' });
+                      recorrenciaForm.resetField('recorrenciaSemanaDias', { defaultValue: [] });
+                      recorrenciaForm.resetField('recorrenciaSemanasMes', { defaultValue: [] });
                       onChange(RecorrenciaEnum.Semanal);
                     },
                   },
                   {
                     label: RecorrenciaEnumLabel[RecorrenciaEnum.Mensal],
                     onPress: () => {
+                      recorrenciaForm.setValue('recorrencia', RecorrenciaEnum.Mensal);
+                      recorrenciaForm.resetField('recorrenciaACadaMeses', { defaultValue: '1' });
+                      recorrenciaForm.resetField('recorrenciaSemanaDias', { defaultValue: [] });
+                      recorrenciaForm.resetField('recorrenciaSemanasMes', { defaultValue: [] });
                       onChange(RecorrenciaEnum.Mensal);
                     },
                   },
@@ -43,11 +117,13 @@ export default function EventoRepeticaoInputCustom({ modalProps }: { modalProps?
             )}
           />
 
-          {/* SEMANAL */}
-          {getValues('recorrencia') === RecorrenciaEnum.Semanal && <EventoRepeticaoInputCustomSemana />}
+          <FormProvider {...recorrenciaForm}>
+            {/* SEMANAL */}
+            {recorrencia === RecorrenciaEnum.Semanal && <EventoRepeticaoInputCustomSemana />}
 
-          {/* MENSALMENTE */}
-          {getValues('recorrencia') === RecorrenciaEnum.Mensal && <EventoRepeticaoInputCustomMensal />}
+            {/* MENSALMENTE */}
+            {recorrencia === RecorrenciaEnum.Mensal && <EventoRepeticaoInputCustomMensal />}
+          </FormProvider>
         </View>
       </FancyScrollView>
       <FancyButton
@@ -55,10 +131,16 @@ export default function EventoRepeticaoInputCustom({ modalProps }: { modalProps?
         icon={{ ...DefaultIconsNames.confirm, size: 16 }}
         containerStyle={styles.confirmarButton}
         onPress={async e => {
-          await trigger(['recorrencia', 'recorrenciaSemanaDias']);
-          if (!formState.errors.recorrenciaSemanaDias) {
-            modalProps?.onRequestClose?.(e);
-          }
+          await recorrenciaForm.handleSubmit(
+            data => {
+              eventoForm.reset({
+                ...eventoForm.getValues(),
+                ...(recorrenciaForm.getValues() as EventoRepeticaoSchemaData),
+              });
+              modalProps?.onRequestClose?.(e);
+            },
+            errors => console.log(strfyObj(errors))
+          )();
         }}
       />
     </FancyFullModal>

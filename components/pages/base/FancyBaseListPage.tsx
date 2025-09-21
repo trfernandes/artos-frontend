@@ -1,35 +1,17 @@
-import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
-import FancySearchBar, { FancySearchBarProps } from '../../FancySearchBar';
-import FancyFab, { FABProps } from '../../buttons/FancyFab';
+import { StyleSheet } from 'react-native';
 import FancyList, { FancyListProps } from '../../list/FancyList';
-import FancyPageView from '../../containers/FancyPageView';
+import FancyBasePage, { FancyBasePageProps } from './FancyBasePage';
 
-interface Props<ItemT> {
-  showSearchBar?: boolean;
-  showFab?: boolean;
-  searchBarProps?: FancySearchBarProps;
-  fabProps?: FABProps;
+type FancyBaseListPageProps<ItemT> = {
   listProps: FancyListProps<ItemT>;
-  children?: React.ReactNode;
-  containerStyle?: StyleProp<ViewStyle>;
-}
+};
 
-export default function FancyBaseListPage<ItemT>({
-  showFab = true,
-  showSearchBar = true,
-  fabProps,
-  listProps,
-  searchBarProps,
-  children,
-  containerStyle,
-}: Props<ItemT>) {
+export default function FancyListPage<ItemT>(props: FancyBasePageProps & FancyBaseListPageProps<ItemT>) {
   return (
-    <FancyPageView style={[styles.container, containerStyle]}>
-      {showSearchBar && <FancySearchBar {...searchBarProps} />}
-      <FancyList {...listProps} contentContainerStyle={{ flex: 1, gap: 10 }} containerStyle={{ flex: 1 }} />
-      {showFab && <FancyFab {...fabProps} />}
-      {children}
-    </FancyPageView>
+    <FancyBasePage
+      {...props}
+      children={<FancyList {...props.listProps} contentContainerStyle={{ flex: 1, gap: 10 }} containerStyle={{ flex: 1 }} />}
+    />
   );
 }
 

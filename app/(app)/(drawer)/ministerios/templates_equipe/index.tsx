@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
-import FancyBaseListPage from '../../../../../components/pages/base/FancyBaseListPage';
+import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
 import { Pallete } from '../../../../../constants/colors';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 
@@ -13,7 +13,7 @@ const DATA: { nome: string; tipo: string }[] = [
 
 export default function MinisterioTemplateEquipeIndex() {
   return (
-    <FancyBaseListPage
+    <FancyListPage
       listProps={{
         data: DATA,
         renderItem: ({ item }) => (

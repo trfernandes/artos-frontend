@@ -1,7 +1,8 @@
 import { Control, Controller, FieldValues, Path } from 'react-hook-form';
-import FancyTextInput, { FancyTextInputProps } from '../fields/FancyTextInput';
+import { FancyTextInputProps } from '../fields/FancyTextInput';
 import { TextInputProps, View } from 'react-native';
 import FancyErrorText from './FancyErrorText';
+import FancyPasswordInput from '../fields/FancyPasswordInput';
 
 interface ControlledFancyTextInputProps<FormData extends FieldValues>
   extends Pick<FancyTextInputProps, 'label' | 'inputContainerStyle' | 'inputProps'>,
@@ -11,7 +12,7 @@ interface ControlledFancyTextInputProps<FormData extends FieldValues>
   showErrorMessage?: boolean;
 }
 
-export default function ControlledTextInput<FormData extends FieldValues>({
+export default function ControlledPasswordInput<FormData extends FieldValues>({
   control,
   name,
   showErrorMessage = true,
@@ -23,17 +24,14 @@ export default function ControlledTextInput<FormData extends FieldValues>({
       name={name}
       render={({ field: { onChange, onBlur, value, disabled }, fieldState: { error } }) => (
         <View style={{ gap: 5 }}>
-          <FancyTextInput
+          <FancyPasswordInput
             disabled={disabled}
             {...rest}
             value={value}
             inputProps={{
               ...rest.inputProps,
               onBlur,
-              onChangeText: text => {
-                text;
-                onChange(text);
-              },
+              onChangeText: onChange,
             }}
           />
           {showErrorMessage && error && <FancyErrorText message={error.message!} />}

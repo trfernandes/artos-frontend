@@ -9,12 +9,7 @@ import { router } from 'expo-router';
 export default function FancyDrawerHeader() {
   const auth = useAuth();
   return (
-    <LinearGradient
-      colors={['#3B82F6', '#234C90']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0.9, y: 1 }}
-      style={styles.container}
-    >
+    <LinearGradient colors={['#3B82F6', '#234C90']} start={{ x: 0, y: 0 }} end={{ x: 0.9, y: 1 }} style={styles.container}>
       <View style={styles.contentContainer}>
         <View style={styles.dataContainer}>
           <View style={styles.infoContainer}>
@@ -22,10 +17,10 @@ export default function FancyDrawerHeader() {
               Olá,
             </FancyText>
             <FancyText size={'medium'} type="bold" color={Pallete.fonts.light}>
-              Juliana Fernandes
+              {auth.user?.nome}
             </FancyText>
             <FancyText size={'small'} type="semiBold" color={Pallete.fonts.light}>
-              julliks@outlook.com
+              {auth.user?.email}
             </FancyText>
           </View>
           <View style={styles.avatarContainer}>

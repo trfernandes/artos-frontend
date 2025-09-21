@@ -14,7 +14,12 @@ export type CrudFormMessages = {
   errorDelete?: string;
 };
 
-export interface UseCrudFormOptions<T, TForm extends FieldValues, CreateDto = Partial<T>, UpdateDto = Partial<T>> {
+export interface UseCrudFormOptions<
+  T,
+  TForm extends FieldValues,
+  CreateDto = Partial<T>,
+  UpdateDto = Partial<T>
+> {
   queryKey: string;
   fetchAll: () => Promise<T[]>;
   fetchOne?: (id: string) => Promise<T>;
@@ -135,7 +140,8 @@ export function useCrudForm<
     update: updateMutation.mutateAsync,
     remove: removeMutation.mutateAsync,
     handleSubmit,
-    isLoading: dataQuery.isLoading || createMutation.isPending || updateMutation.isPending || removeMutation.isPending,
+    isLoading: dataQuery.isLoading,
+    isLoadingMutation: createMutation.isPending || updateMutation.isPending || removeMutation.isPending,
     isRefetching: dataQuery.isRefetching,
     isError: dataQuery.isError,
     error: dataQuery.error || createMutation.error || updateMutation.error || removeMutation.error,

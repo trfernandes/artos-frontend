@@ -9,7 +9,7 @@ export default function FancyPasswordInput(props: FancyTextInputProps) {
   return (
     <FancyTextInput
       {...props}
-      inputProps={{ secureTextEntry: !showPassword }}
+      inputProps={{ ...props.inputProps, secureTextEntry: !showPassword }}
       rightContainer={
         <FancyButton
           mode="icon"
@@ -24,13 +24,6 @@ export default function FancyPasswordInput(props: FancyTextInputProps) {
           }}
           onPress={() => setShowPassword(!showPassword)}
         />
-        // <DefaultIcons.Custom
-        //   library="Feather"
-        //   name={showPassword ? 'eye-off' : 'eye'}
-        //   size={18}
-        //   style={{ marginRight: 10, marginTop: 2 }}
-        //   color={Pallete.icons.inactive}
-        // />
       }
     />
   );

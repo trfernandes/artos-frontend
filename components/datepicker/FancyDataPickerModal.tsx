@@ -43,7 +43,7 @@ export default function FancyDatePickerModal({
             setVisible(false);
           }}
         >
-          <FancyDatePicker calendarProps={{ value: date, onChangeDate: date => setDate(date) }} />
+          <FancyDatePicker calendarProps={{ value: date, onChangeSelectedDate: date => setDate(date) }} />
         </FancyModalDialog>
       )}
     </View>

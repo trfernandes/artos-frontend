@@ -1,9 +1,10 @@
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, ViewStyle, StyleProp } from 'react-native';
 import { Pallete } from '../constants/colors';
 import FancyText from './FancyText';
 
 export interface FancyLoadingProps {
   label?: string;
+  containerSyle?: StyleProp<ViewStyle>;
 }
 
 export default function FancyLoading({ label = 'Carregando...' }: FancyLoadingProps) {

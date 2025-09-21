@@ -46,7 +46,7 @@ export type DayViewProps = {
   selectedDate?: Date;
   currentDate: Date;
   markedDatesType?: 'bottomPoint' | 'SurroundCircle';
-  markedDates?: Date[];
+  markedDates?: { date: Date; color?: string }[];
   containerStyle?: StyleProp<ViewStyle>;
   onSelectDate: (date: Date) => void;
   showOtherMonthDays?: boolean;
@@ -77,15 +77,20 @@ export function DayView({ markedDatesType = 'bottomPoint', showOtherMonthDays = 
                 newDate.getMonth() === new Date().getMonth() &&
                 newDate.getFullYear() === new Date().getFullYear();
               const marked =
-                (isCurrentMonthDay && props.markedDates?.some(d => DateUtils.compareOnlyDate(d, newDate))) ||
+                (isCurrentMonthDay && props.markedDates?.some(d => DateUtils.compareOnlyDate(d.date, newDate))) ||
                 (isPrevMonthDay &&
                   props.markedDates?.some(
-                    d => d.getTime() == new Date(props.currentDate!.getFullYear(), props.currentDate!.getMonth() - 1, day).getTime()
+                    d =>
+                      d.date.getTime() ==
+                      new Date(props.currentDate!.getFullYear(), props.currentDate!.getMonth() - 1, day).getTime()
                   )) ||
                 (isNextMonthDay &&
                   props.markedDates?.some(
-                    d => d.getTime() == new Date(props.currentDate!.getFullYear(), props.currentDate!.getMonth() + 1, day).getTime()
+                    d =>
+                      d.date.getTime() ==
+                      new Date(props.currentDate!.getFullYear(), props.currentDate!.getMonth() + 1, day).getTime()
                   ));
+
               return ((isNextMonthDay || isPrevMonthDay) && showOtherMonthDays) || isCurrentMonthDay ? (
                 <Day
                   key={j}
@@ -93,6 +98,13 @@ export function DayView({ markedDatesType = 'bottomPoint', showOtherMonthDays = 
                   selected={isSelected || (marked && markedDatesType === 'SurroundCircle')}
                   showMarker={marked && markedDatesType === 'bottomPoint'}
                   markerType={markedDatesType}
+                  markerColor={
+                    marked
+                      ? props.markedDates?.find(
+                          d => new Date(d.date.getFullYear(), d.date.getMonth(), d.date.getDate()).getTime() === newDate.getTime()
+                        )?.color
+                      : undefined
+                  }
                   type={isCurrentMonthDay ? (today ? 'actual' : 'default') : 'inactive'}
                   onPress={() => {
                     const date = new Date(

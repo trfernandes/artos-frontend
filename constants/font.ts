@@ -1,11 +1,11 @@
-export const REGULAR_FONT = 'MontSerrat-Regular';
-export const BOLD_FONT = 'MontSerrat-Bold';
-export const SEMI_BOLD_FONT = 'MontSerrat-SemiBold';
-export const MEDIUM_FONT = 'MontSerrat-Medium';
-export const ITALIC_FONT = 'Montserrat-Italic';
-export const ITALIC_BOLD_FONT = 'Montserrat-BoldItalic';
-export const ITALIC_SEMI_BOLD_FONT = 'Montserrat-SemiBoldItalic';
-export const ITALIC_MEDIUM_FONT = 'Montserrat-MediumItalic';
+export const REGULAR_FONT = 'MontserratRegular';
+export const BOLD_FONT = 'MontserratBold';
+export const SEMI_BOLD_FONT = 'MontserratSemiBold';
+export const MEDIUM_FONT = 'MontserratMedium';
+export const ITALIC_FONT = 'MontserratItalic';
+export const ITALIC_BOLD_FONT = 'MontserratBoldItalic';
+export const ITALIC_SEMI_BOLD_FONT = 'MontserratSemiBoldItalic';
+export const ITALIC_MEDIUM_FONT = 'MontserratMediumItalic';
 
 export const EXTRA_SMALL_SIZE_FONT = 10;
 export const SMALL_SIZE_FONT = 11;

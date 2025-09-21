@@ -1,4 +1,4 @@
-import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { Alert, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import FancyList, { FancyListProps } from '../../../list/FancyList';
 import FancyText from '../../../FancyText';
 import DateUtils from '../../../../utils/data_utils';
@@ -6,6 +6,8 @@ import { Pallete } from '../../../../constants/colors';
 import { FancyCard } from '../../../cards/Horizontal/FancyCard';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import { Evento } from '../../../../domain/models/Evento';
+import { format } from 'date-fns';
+import { router } from 'expo-router';
 
 export type EventoGroup = {
   month: number;
@@ -18,15 +20,21 @@ export type EventosListProps = {
   listProps?: Omit<FancyListProps<EventoGroup>, 'data' | 'renderItem'>;
   containerStyle?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
-  onPressItem?: (item: Evento) => void;
+  onDeleteItem?: (item: Evento) => void;
 };
 
-export default function EventosList({ items, listProps, containerStyle, contentContainerStyle, onPressItem }: EventosListProps) {
+export default function EventosListView({
+  items,
+  listProps,
+  containerStyle,
+  contentContainerStyle,
+  onDeleteItem,
+}: EventosListProps) {
   let data: { month: number; year: number; events: Evento[] }[] = [];
 
   items.forEach(item => {
-    const month = item.dataInicio.getMonth();
-    const year = item.dataInicio.getFullYear();
+    const month = new Date(item.dataInicio)?.getMonth();
+    const year = new Date(item.dataInicio)?.getFullYear();
 
     const existing = data.find(d => d.month === month && d.year === year);
     if (existing) {
@@ -64,24 +72,48 @@ export default function EventosList({ items, listProps, containerStyle, contentC
                 <FancyCard.Color
                   key={index}
                   title={event.nome}
-                  subtitle={
-                    event.dataInicio.toLocaleDateString('pt-BR') +
-                    ' - ' +
-                    event.dataInicio.toLocaleTimeString('pt-BR', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      hour12: false,
-                    })
-                  }
+                  subtitle={format(new Date(event.dataInicio), 'dd/MM/yyyy HH:mm')}
+                  additionalData1={format(new Date(event.dataTermino), 'dd/MM/yyyy HH:mm')}
                   color={event.cor || 'blue'}
                   actionButtons={[
                     {
                       icon: {
-                        library: DefaultIconsNames['chevron-right'].library,
-                        name: DefaultIconsNames['chevron-right'].name,
+                        library: DefaultIconsNames.edit.library,
+                        name: DefaultIconsNames.edit.name,
                         size: 18,
                       },
-                      onPress: () => onPressItem?.(event),
+                      onPress: () => {
+                        router.push({
+                          pathname: '/admin/eventos/edit',
+                          params: {
+                            id: event.id,
+                          },
+                        });
+                      },
+                    },
+                    {
+                      icon: {
+                        library: DefaultIconsNames.delete.library,
+                        name: DefaultIconsNames.delete.name,
+                        size: 18,
+                        backgroundColor: Pallete.error,
+                      },
+                      onPress: () => {
+                        Alert.alert(
+                          'Exclusão',
+                          `Tem certeza que deseja remover o ministério "${event.nome}?"`,
+                          [
+                            { text: 'Cancelar', style: 'cancel' },
+                            {
+                              text: 'Remover',
+                              style: 'destructive',
+                              onPress: () => {
+                                onDeleteItem?.(event);
+                              },
+                            },
+                          ]
+                        );
+                      },
                     },
                   ]}
                 />

@@ -5,7 +5,7 @@ import { DefaultIconsNames } from '../../../../../constants/icons';
 import { StyleSheet } from 'react-native';
 import FancyScreenErrorHandler from '../../../../../components/error/FancyScreenErrorHandler';
 import { useState } from 'react';
-import FancyBaseListPage from '../../../../../components/pages/base/FancyBaseListPage';
+import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
 import { Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
 import { useVoluntarios } from '../../../../../hooks/useVoluntarios';
 
@@ -23,7 +23,7 @@ export default function VoluntariosIndexPage() {
   }
 
   return (
-    <FancyBaseListPage
+    <FancyListPage
       searchBarProps={{
         value: searchText,
         onSearch: text => {
@@ -81,7 +81,7 @@ export default function VoluntariosIndexPage() {
           />
         ),
       }}
-    ></FancyBaseListPage>
+    ></FancyListPage>
   );
 }
 

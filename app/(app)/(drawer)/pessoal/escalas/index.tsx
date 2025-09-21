@@ -124,7 +124,7 @@ export default function EscalasIndexPage() {
       <FancyCalendar
         value={selectedDate}
         markedDates={DATA.map(item => item.evento.dataInicio)}
-        onChangeDate={handleChangeDate}
+        onChangeSelectedDate={handleChangeDate}
         containerStyle={{ height: 300 }}
       />
       <FancySeparator style={{ paddingVertical: 5 }} />

@@ -1,85 +1,82 @@
+import { useNavigation } from 'expo-router';
+import { useState, useLayoutEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
-import FancyBaseListPage from '../../../../../components/pages/base/FancyBaseListPage';
-import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
+import FancyLoading from '../../../../../components/FancyLoading';
+import FancyHeaderButton from '../../../../../components/header/FancyHeaderButton';
+import MainHeaderButtons from '../../../../../components/header/MainHeaderButtons';
+import EventoCalendarView from '../../../../../components/pages/admin/eventos/EventoCalendarView';
+import EventosListView from '../../../../../components/pages/admin/eventos/EventosListView';
+import FancyBasePage from '../../../../../components/pages/base/FancyBasePage';
 import { DefaultIconsNames } from '../../../../../constants/icons';
-import FancyText from '../../../../../components/FancyText';
-import { router } from 'expo-router';
-
-const DATA: { startDate: Date; endDate: Date; status: 'Pendente' | 'Finalizada' }[] = [
-  {
-    startDate: new Date(),
-    endDate: new Date(),
-    status: 'Pendente',
-  },
-];
+import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
+import { useEventos } from '../../../../../hooks/useEventos';
 
 export default function MinisterioEscalasIndex() {
+  const navigation = useNavigation();
+  const [searchText, setSearchText] = useState('');
+  const [mode, setMode] = useState<'list' | 'calendar'>('list');
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={{ flexDirection: 'row' }}>
+          <FancyHeaderButton
+            icon={mode === 'calendar' ? { ...DefaultIconsNames.list } : { ...DefaultIconsNames['calendar-month'] }}
+            onPress={() => setMode(mode === 'list' ? 'calendar' : 'list')}
+            buttonProps={{ containerStyle: { marginRight: 8, borderWidth: 0 } }}
+          />
+          <MainHeaderButtons />
+        </View>
+      ),
+    });
+  }, [navigation, mode]);
+
+  const {
+    data: eventosData,
+    isLoading,
+    setSearchParams,
+    remove,
+    isLoadingMutation: isLoadingRemove,
+  } = useEventos({ autoFetch: false, initialParams: {} });
+
+  if (isLoading) {
+    return <FancyLoading label="Carregando..." />;
+  }
+
+  if (isLoadingRemove) {
+    return <FancyLoading label="Processando..." />;
+  }
+
   return (
-    <FancyBaseListPage
-      containerStyle={{ paddingTop: 0 }}
-      showSearchBar={false}
-      fabProps={{
-        icon: { library: 'MaterialCommunityIcons', name: 'timetable', size: 26 },
-        onPress: () => {
-          router.push('ministerios/escalas/add');
+    <FancyBasePage
+      showFab={false}
+      showSearchBar={mode === 'list'}
+      searchBarProps={{
+        value: searchText,
+        onSearch: text => {
+          console.log(text);
+          setSearchText(text.trim());
+          if (text && text.trim() !== '') {
+            setSearchParams({
+              where: {
+                conditions: [{ path: 'nome', operator: Operator.ILIKE, value: { type: ValueType.LITERAL, value: text.trim() } }],
+              },
+            });
+          } else {
+            setSearchParams({});
+          }
         },
       }}
-      listProps={{
-        data: DATA,
-        renderItem: ({ item }) => (
-          <FancyCard.Icon
-            subtitle={
-              <View style={{ gap: 5 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                  <FancyText size={'small'} type="bold">
-                    De:
-                  </FancyText>
-                  <FancyText size={'small'} type="medium">
-                    {item.startDate.toLocaleDateString()}
-                  </FancyText>
-                </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                  <FancyText size={'small'} type="bold">
-                    Até:
-                  </FancyText>
-                  <FancyText size={'small'} type="medium">
-                    {item.endDate.toLocaleDateString()}
-                  </FancyText>
-                </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                  <FancyText size={'small'} type="bold">
-                    Status:
-                  </FancyText>
-                  <FancyText size={'small'} type="medium">
-                    {item.status}
-                  </FancyText>
-                </View>
-              </View>
-            }
-            cardIcon={{ ...DefaultIconsNames['calendar-month'], size: 18 }}
-            actionButtons={[
-              {
-                icon: { ...DefaultIconsNames['chevron-right'], size: 18 },
-                onPress: () => {
-                  router.push('ministerios/escalas/details');
-                },
-              },
-            ]}
-          />
-        ),
-      }}
-    />
+    >
+      {mode === 'list' ? (
+        <EventosListView items={eventosData} listProps={{ style: styles.list }} onDeleteItem={event => remove(event.id!)} />
+      ) : (
+        <EventoCalendarView items={eventosData} onDeleteItem={event => remove(event.id!)} />
+      )}
+    </FancyBasePage>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    borderWidth: 0,
-    borderColor: 'hotpink',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 5,
-    paddingBottom: 15,
-  },
+  list: { paddingTop: 5 },
 });

@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
-import FancyBaseListPage from '../../../../../components/pages/base/FancyBaseListPage';
+import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
 import { Pallete } from '../../../../../constants/colors';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import FancyText from '../../../../../components/FancyText';
@@ -30,7 +30,7 @@ const DATA: {
 export default function MinisterioSolicitacoesIndex() {
   const [visualizarModal, setVisualizarModal] = useState(false);
   return (
-    <FancyBaseListPage
+    <FancyListPage
       showFab={false}
       listProps={{
         data: DATA,
@@ -82,6 +82,6 @@ export default function MinisterioSolicitacoesIndex() {
           onConfirm={() => setVisualizarModal(false)}
         />
       )}
-    </FancyBaseListPage>
+    </FancyListPage>
   );
 }

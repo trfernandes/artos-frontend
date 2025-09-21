@@ -2,7 +2,7 @@ import { View } from 'react-native';
 import { PEOPLE_DATA } from '../../../../../components/pages/admin/eventos/EventosEscalaEquipe';
 import { useState } from 'react';
 import AdicionarModal from '../../../../../components/pages/ministerios/integrantes/AdicionarModal';
-import FancyBaseListPage from '../../../../../components/pages/base/FancyBaseListPage';
+import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
 import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
 import DefaultIcons from '../../../../../components/FancyIcons';
 import FancyText from '../../../../../components/FancyText';
@@ -12,7 +12,7 @@ import { DefaultIconsNames } from '../../../../../constants/icons';
 export default function MinisterioIntegrantesIndex() {
   const [addModalVisible, setAddModalVisible] = useState(false);
   return (
-    <FancyBaseListPage
+    <FancyListPage
       listProps={{
         data: PEOPLE_DATA,
         renderItem: ({ item }) =>
@@ -81,6 +81,6 @@ export default function MinisterioIntegrantesIndex() {
           onConfirm={() => setAddModalVisible(false)}
         />
       )}
-    </FancyBaseListPage>
+    </FancyListPage>
   );
 }
