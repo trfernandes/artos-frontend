@@ -1,9 +1,9 @@
 import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import FancyCalendarHeader from './FancyCalendarHeader';
-import DayView from './day/DayView';
-import { useEffect, useState } from 'react';
+import DayView, { DayViewProps } from './day/DayView';
 import MonthView from './month/MonthView';
 import YearView from './year/YearView';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Gesture, Directions, GestureDetector } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
 import { Pallete } from '../../constants/colors';
@@ -22,11 +22,13 @@ export const MONTH_NAMES = [
   'Novembro',
   'Dezembro',
 ];
+
 export enum CalendarVisualization {
   Day,
   Month,
   Year,
 }
+
 export type FancyCalendarProps = {
   maximumDate?: Date;
   minimumDate?: Date;
@@ -37,134 +39,248 @@ export type FancyCalendarProps = {
   onChangeMonthVisualization?: (date: Date) => void;
   border?: boolean;
   value?: Date;
+  dayViewProps?: Partial<DayViewProps>;
 };
 
-export default function FancyCalendar({ canChangeMonthsOnSwiple = true, ...props }: FancyCalendarProps) {
-  const [visualization, setVisualization] = useState<CalendarVisualization>(CalendarVisualization.Day);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(props.value);
-  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+export default function FancyCalendar({
+  canChangeMonthsOnSwiple = true,
+  markedDates,
+  containerStyle,
+  border,
+  value,
+  onChangeSelectedDate,
+  onChangeMonthVisualization,
+  minimumDate,
+  maximumDate,
+  dayViewProps,
+}: FancyCalendarProps) {
+  const dayViewMaximum = dayViewProps?.maximumDate;
 
-  //Atualiza o dia selecionado conforme passado pelo pai
+  const [visualization, setVisualization] = useState(CalendarVisualization.Day);
+
+  const isControlled = value !== undefined;
+  const [internalDate, setInternalDate] = useState<Date | undefined>(value);
+  const selectedDate = isControlled ? value : internalDate;
+
   useEffect(() => {
-    setSelectedDate(props.value);
-  }, [props.value]);
+    if (isControlled) setInternalDate(value);
+  }, [isControlled, value]);
 
-  const defaultMinDate = new Date();
-  const defaultMaxDate = new Date();
-  defaultMinDate.setFullYear(1900);
-  defaultMaxDate.setFullYear(defaultMaxDate.getFullYear() + 50);
-  const minDate: Date = props.minimumDate || defaultMinDate;
-  const maxDate: Date = props.maximumDate || defaultMaxDate;
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
 
-  const handleSwipeLeftDayView = () => {
-    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
-    setCurrentDate(newDate);
-    props.onChangeMonthVisualization?.(newDate);
-  };
+  const normalizedMinimum = useMemo(() => {
+    if (!minimumDate) return undefined;
+    const d = new Date(minimumDate);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, [minimumDate]);
 
-  const handleSwipeRightDayView = () => {
-    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
-    setCurrentDate(newDate);
-    props.onChangeMonthVisualization?.(newDate);
-  };
+  const minDate = useMemo(() => {
+    if (!normalizedMinimum) return today;
+    return normalizedMinimum < today ? today : normalizedMinimum;
+  }, [normalizedMinimum, today]);
 
-  const flingGestureLeft = Gesture.Fling()
-    .direction(Directions.LEFT)
-    .onEnd(() => {
-      if (!canChangeMonthsOnSwiple) return;
-      if (visualization === CalendarVisualization.Day) {
-        runOnJS(handleSwipeRightDayView)();
-      }
+  const maxDate = useMemo(() => {
+    const source = maximumDate ?? dayViewMaximum;
+
+    let candidate: Date;
+    if (!source) {
+      candidate = new Date();
+      candidate.setHours(0, 0, 0, 0);
+      candidate.setFullYear(candidate.getFullYear() + 50);
+    } else {
+      candidate = new Date(source);
+      candidate.setHours(0, 0, 0, 0);
+    }
+
+    if (candidate < minDate) {
+      return new Date(minDate);
+    }
+
+    return candidate;
+  }, [maximumDate, dayViewMaximum, minDate]);
+
+  const initialCurrentDate = useMemo(() => {
+    if (selectedDate) {
+      const normalized = new Date(selectedDate);
+      normalized.setHours(0, 0, 0, 0);
+      if (normalized < minDate) return new Date(minDate);
+      if (normalized > maxDate) return new Date(maxDate);
+      return normalized;
+    }
+
+    return new Date(minDate);
+  }, [selectedDate, minDate, maxDate]);
+
+  const [currentDate, setCurrentDate] = useState<Date>(initialCurrentDate);
+
+  useEffect(() => {
+    setCurrentDate(prev => {
+      const monthStart = new Date(prev.getFullYear(), prev.getMonth(), 1);
+      const minMonth = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+      const maxMonth = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
+
+      if (monthStart < minMonth) return new Date(minDate);
+      if (monthStart > maxMonth) return new Date(maxDate);
+      return prev;
     });
+  }, [minDate, maxDate]);
 
-  const flingGestureRight = Gesture.Fling()
-    .direction(Directions.RIGHT)
-    .onEnd(a => {
-      if (!canChangeMonthsOnSwiple) return;
-      if (visualization === CalendarVisualization.Day) {
-        runOnJS(handleSwipeLeftDayView)(); // 🔐 chamada segura para setState
+  useEffect(() => {
+    if (!selectedDate) return;
+
+    const normalized = new Date(selectedDate);
+    normalized.setHours(0, 0, 0, 0);
+    const safeDate = normalized < minDate ? minDate : normalized > maxDate ? maxDate : normalized;
+
+    setCurrentDate(prev => {
+      const sameMonth = prev.getFullYear() === safeDate.getFullYear() && prev.getMonth() === safeDate.getMonth();
+      if (sameMonth) {
+        return prev;
       }
+
+      return new Date(safeDate);
     });
+  }, [selectedDate, minDate, maxDate]);
+
+  const changeMonth = useCallback(
+    (offset: number) => {
+      const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + offset, 1);
+
+      const minMonth = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+      if (newDate < minMonth) return;
+
+      const maxMonth = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
+      if (newDate > maxMonth) return;
+
+      setCurrentDate(newDate);
+      onChangeMonthVisualization?.(newDate);
+    },
+    [currentDate, onChangeMonthVisualization, minDate, maxDate]
+  );
+
+  const handleSelectDate = useCallback(
+    (date: Date) => {
+      if (!isControlled) setInternalDate(date);
+      onChangeSelectedDate?.(date);
+      setVisualization(CalendarVisualization.Day);
+    },
+    [isControlled, onChangeSelectedDate]
+  );
+
+  const flingGestures = Gesture.Simultaneous(
+    Gesture.Fling()
+      .direction(Directions.LEFT)
+      .onEnd(() => {
+        if (canChangeMonthsOnSwiple && visualization === CalendarVisualization.Day) {
+          runOnJS(changeMonth)(+1);
+        }
+      }),
+    Gesture.Fling()
+      .direction(Directions.RIGHT)
+      .onEnd(() => {
+        if (canChangeMonthsOnSwiple && visualization === CalendarVisualization.Day) {
+          runOnJS(changeMonth)(-1);
+        }
+      })
+  );
 
   return (
-    <View style={[styles.container, props.containerStyle, props.border && styles.border]}>
+    <View style={[styles.container, containerStyle, border && styles.border]}>
       <View style={styles.headerContainer}>
         <FancyCalendarHeader
-          calendarProps={props}
           visualization={visualization}
           currentDate={currentDate}
+          selectedDate={selectedDate}
           onChangeVisualization={setVisualization}
-          onGoToToday={() => setCurrentDate(new Date())}
-          onNextMonth={() => {
-            const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
-            setCurrentDate(newDate);
-            props.onChangeMonthVisualization?.(newDate);
+          onGoToToday={() => {
+            const todayDate = new Date(minDate);
+            setCurrentDate(todayDate);
+            onChangeMonthVisualization?.(todayDate);
           }}
-          onPreviousMonth={() => {
-            const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
-            if (newDate >= minDate) setCurrentDate(newDate);
-            props.onChangeMonthVisualization?.(newDate);
-          }}
+          onNextMonth={() => changeMonth(+1)}
+          onPreviousMonth={() => changeMonth(-1)}
+          calendarProps={{ minimumDate: minDate, maximumDate: maxDate }}
         />
       </View>
-      <GestureDetector gesture={flingGestureLeft}>
-        <GestureDetector gesture={flingGestureRight}>
-          <View style={styles.contentContainer}>
-            {visualization === CalendarVisualization.Day && (
-              <DayView
-                currentDate={currentDate}
-                selectedDate={selectedDate}
-                markedDates={props.markedDates}
-                onSelectDate={date => {
-                  setSelectedDate(date);
-                  props.onChangeSelectedDate?.(date);
-                }}
-              />
-            )}
-            {visualization === CalendarVisualization.Month && (
-              <MonthView
-                selectedDate={selectedDate}
-                currentDate={currentDate}
-                onSelectMonth={month => {
-                  setCurrentDate(new Date(currentDate.getFullYear(), month, 1));
-                  setVisualization(CalendarVisualization.Day);
-                }}
-              />
-            )}
-            {visualization === CalendarVisualization.Year && (
-              <YearView
-                minimumDate={minDate}
-                maximumDate={maxDate}
-                onSelectYear={year => {
-                  setCurrentDate(new Date(year, currentDate.getMonth(), 1));
-                  setVisualization(CalendarVisualization.Month);
-                }}
-                currentDate={currentDate}
-              />
-            )}
-          </View>
-        </GestureDetector>
+
+      <GestureDetector gesture={flingGestures}>
+        <View style={styles.contentContainer}>
+          {visualization === CalendarVisualization.Day && (
+            <DayView
+              currentDate={currentDate}
+              selectedDate={selectedDate}
+              markedDates={markedDates}
+              onSelectDate={handleSelectDate}
+              minimumDate={minDate}
+              maximumDate={maxDate}
+              {...dayViewProps}
+            />
+          )}
+          {visualization === CalendarVisualization.Month && (
+            <MonthView
+              selectedDate={selectedDate}
+              currentDate={currentDate}
+              minimumDate={minDate}
+              maximumDate={maxDate}
+              onSelectMonth={month => {
+                const candidate = new Date(currentDate.getFullYear(), month, 1);
+                const minMonth = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+                const maxMonth = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
+
+                let nextDate = candidate;
+                if (candidate < minMonth) {
+                  nextDate = new Date(minDate);
+                } else if (candidate > maxMonth) {
+                  nextDate = new Date(maxDate);
+                }
+
+                setCurrentDate(nextDate);
+                onChangeMonthVisualization?.(nextDate);
+                setVisualization(CalendarVisualization.Day);
+              }}
+            />
+          )}
+          {visualization === CalendarVisualization.Year && (
+            <YearView
+              minimumDate={minDate}
+              maximumDate={maxDate}
+              currentDate={currentDate}
+              onSelectYear={year => {
+                const candidate = new Date(year, currentDate.getMonth(), 1);
+                const minMonth = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+                const maxMonth = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
+
+                let nextDate = candidate;
+                if (candidate < minMonth) {
+                  nextDate = new Date(minDate);
+                } else if (candidate > maxMonth) {
+                  nextDate = new Date(maxDate);
+                }
+
+                setCurrentDate(nextDate);
+                onChangeMonthVisualization?.(nextDate);
+                setVisualization(CalendarVisualization.Month);
+              }}
+            />
+          )}
+        </View>
       </GestureDetector>
     </View>
   );
 }
 
-const DESIGN_MODE = 0;
-
 const styles = StyleSheet.create({
-  container: {
-    minHeight: 290,
-    borderWidth: DESIGN_MODE,
-    borderColor: 'blueviolet',
-    backgroundColor: 'white',
-  },
-  headerContainer: { borderWidth: DESIGN_MODE },
+  container: { minHeight: 290, backgroundColor: 'white' },
+  headerContainer: {},
   contentContainer: {
-    borderWidth: DESIGN_MODE,
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    borderColor: 'lightgreen',
     paddingTop: 20,
     paddingBottom: 5,
   },

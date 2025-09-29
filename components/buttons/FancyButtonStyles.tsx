@@ -13,28 +13,28 @@ const containedStyles = StyleSheet.create({
 const outlinedStyles = StyleSheet.create({
   container: { backgroundColor: 'transparent', borderWidth: 2, borderColor: Pallete.primary },
   text: { color: Pallete.primary },
-  disabled: { backgroundColor: 'transparent', borderWidth: 2, borderColor: Pallete.primary },
-  disabledText: { color: Pallete.fonts.dark },
+  disabled: { backgroundColor: 'transparent', borderWidth: 2, borderColor: Pallete.disabled2 },
+  disabledText: { color: Pallete.fonts.inactive },
   icon: { color: Pallete.primary },
-  disabledIcon: { color: Pallete.fonts.dark },
+  disabledIcon: { color: Pallete.fonts.inactive },
 });
 
 const textStyles = StyleSheet.create({
   container: {},
   text: { color: Pallete.primary },
   disabled: {},
-  disabledText: { color: Pallete.fonts.dark },
+  disabledText: { color: Pallete.fonts.inactive },
   icon: { color: Pallete.primary },
-  disabledIcon: { color: Pallete.fonts.dark },
+  disabledIcon: { color: Pallete.fonts.inactive },
 });
 
 const lightStyles = StyleSheet.create({
   container: { backgroundColor: 'rgba(59, 130, 246, 0.16)', borderWidth: 2, borderColor: Pallete.primary },
   text: { color: Pallete.primary },
   disabled: { backgroundColor: 'rgba(233, 233, 233, 0.16)', borderWidth: 2, borderColor: Pallete.primary },
-  disabledText: { color: Pallete.fonts.dark },
+  disabledText: { color: Pallete.fonts.inactive },
   icon: { color: Pallete.primary },
-  disabledIcon: { color: Pallete.fonts.dark },
+  disabledIcon: { color: Pallete.fonts.inactive },
 });
 
 type ButtonParamters = {
@@ -83,3 +83,4 @@ const lightParameters: ButtonParamters = {
 };
 
 export { containedParameters, outlinedParameters, textParameters, lightParameters };
+

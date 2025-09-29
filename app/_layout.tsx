@@ -4,6 +4,7 @@ import { useFonts } from 'expo-font';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 import { toastConfig } from '../utils/toast_config';
+import { FancyAlertConnector, FancyAlertProvider } from '../components/modal/FancyAlert';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -44,24 +45,20 @@ function RootLayoutNav() {
     MontserratThinItalic: require('../assets/fonts/montserrat/Montserrat-ThinItalic.ttf'),
   });
 
-  // Só aqui podemos usar o hook que pode navegar
-  // useProtectedRoute();
-
-  // Se fontes ou Auth ainda estão carregando → não renderiza nada
   if (!fontsLoaded || loading) {
     return null;
   }
 
-  // Esconde splash
   SplashScreen.hideAsync();
 
   return (
-    <>
+    <FancyAlertProvider>
       <Stack>
         <Stack.Screen name="(app)" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       </Stack>
       <Toast config={toastConfig} position="bottom" visibilityTime={3000} />
-    </>
+      <FancyAlertConnector />
+    </FancyAlertProvider>
   );
 }

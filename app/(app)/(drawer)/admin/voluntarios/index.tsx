@@ -6,16 +6,17 @@ import { StyleSheet } from 'react-native';
 import FancyScreenErrorHandler from '../../../../../components/error/FancyScreenErrorHandler';
 import { useState } from 'react';
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
-import { Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
+import { Conjunction, Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
 import { useVoluntarios } from '../../../../../hooks/useVoluntarios';
+import { useAuth } from '../../../../../contexts/AuthContext';
 
 const phoneRegex = /^\(?[1-9]{2}\)?\s?(?:9[1-9]\d{3}-?\d{4}|\d{4}-?\d{4})$/;
 
 export default function VoluntariosIndexPage() {
   const [searchText, setSearchText] = useState('');
+  const { user } = useAuth();
   const { data, setSearchParams, isLoading, error, refetch, isRefetching, isError } = useVoluntarios({
     autoFetch: false,
-    initialParams: { orderBy: [{ path: 'nome', direction: OrderDirection.ASC }] },
   });
 
   if (isError) {
@@ -24,6 +25,7 @@ export default function VoluntariosIndexPage() {
 
   return (
     <FancyListPage
+      showFab={false}
       searchBarProps={{
         value: searchText,
         onSearch: text => {
@@ -33,11 +35,20 @@ export default function VoluntariosIndexPage() {
               where: {
                 conditions: [
                   { path: 'nome', operator: Operator.ILIKE, value: { type: ValueType.LITERAL, value: text.trim() } },
+                  { path: 'id', operator: Operator.NOT_EQUALS, value: { type: ValueType.LITERAL, value: user?.id } },
+                ],
+                conjunction: Conjunction.AND,
+              },
+              orderBy: [{ path: 'nome', direction: OrderDirection.ASC }],
+            });
+          } else {
+            setSearchParams({
+              where: {
+                conditions: [
+                  { path: 'id', operator: Operator.NOT_EQUALS, value: { type: ValueType.LITERAL, value: user?.id } },
                 ],
               },
             });
-          } else {
-            setSearchParams({});
           }
         },
       }}

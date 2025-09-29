@@ -6,7 +6,7 @@ import { DefaultIconsNames } from '../../constants/icons';
 import { Pallete } from '../../constants/colors';
 import FancyText from '../../components/FancyText';
 import FancySeparator from '../../components/FancySeparator';
-import DateUtils from '../../utils/data_utils';
+import DateUtils from '../../utils/date_utils';
 import { router } from 'expo-router';
 import FancyHeaderButton from '../../components/header/FancyHeaderButton';
 import FancyListEmpty from '../../components/list/FancyListEmpty';

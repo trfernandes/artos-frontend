@@ -1,7 +1,7 @@
 import { Alert, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import FancyList, { FancyListProps } from '../../../list/FancyList';
 import FancyText from '../../../FancyText';
-import DateUtils from '../../../../utils/data_utils';
+import DateUtils from '../../../../utils/date_utils';
 import { Pallete } from '../../../../constants/colors';
 import { FancyCard } from '../../../cards/Horizontal/FancyCard';
 import { DefaultIconsNames } from '../../../../constants/icons';

@@ -1,7 +1,8 @@
-import { StyleSheet, StyleProp, ViewStyle, SafeAreaView } from 'react-native';
+import { StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import React from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Pallete } from '../../../constants/colors';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function LoginBase({
   children,
@@ -12,12 +13,7 @@ export default function LoginBase({
 }) {
   return (
     <SafeAreaView style={[styles.backgroundContainer, containerStyle]}>
-      <LinearGradient
-        colors={['#3B82F6', '#234C90']}
-        style={styles.gradient}
-        start={{ x: 1, y: 0 }}
-        end={{ x: 0, y: 1 }}
-      />
+      <LinearGradient colors={['#3B82F6', '#234C90']} style={styles.gradient} start={{ x: 1, y: 0 }} end={{ x: 0, y: 1 }} />
       {children}
     </SafeAreaView>
   );
@@ -38,7 +34,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: '100%',
     height: '100%',
-    transform: [{ skewY: '140deg' }, { translateY: -320 }],
+    transform: [{ skewY: '140deg' }, { translateY: -240 }],
     borderRadius: 10,
   },
   container: {

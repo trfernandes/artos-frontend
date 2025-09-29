@@ -1,7 +1,7 @@
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import FancyDataPanel, { FancyDataPanelProps } from '../FancyDataPanel';
-import DateUtils from '../../utils/data_utils';
+import DateUtils from '../../utils/date_utils';
 import FancyDatePicker from './FancyDatePicker';
 import FancyModalDialog from '../modal/FancyModalDialog';
 
@@ -25,6 +25,13 @@ export default function FancyDatePickerModal({
   const [visible, setVisible] = useState(false);
   const [date, setDate] = useState(value || new Date());
 
+  // ✅ garante que o estado interno acompanha props.value
+  useEffect(() => {
+    if (value) {
+      setDate(value);
+    }
+  }, [value]);
+
   return (
     <View style={[containerStyle]}>
       <FancyDataPanel
@@ -43,7 +50,12 @@ export default function FancyDatePickerModal({
             setVisible(false);
           }}
         >
-          <FancyDatePicker calendarProps={{ value: date, onChangeSelectedDate: date => setDate(date) }} />
+          <FancyDatePicker
+            calendarProps={{
+              value: date,
+              onChangeSelectedDate: d => setDate(d),
+            }}
+          />
         </FancyModalDialog>
       )}
     </View>

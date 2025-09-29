@@ -1,7 +1,9 @@
-import { ModalProps, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { ModalProps, StyleProp, StyleSheet, TouchableOpacity, View, ViewStyle } from 'react-native';
 import FancyText from '../FancyText';
 import FancyModal, { FancyModalProps } from './FancyModal';
 import FancyButton, { FancyButtonProps } from '../buttons/FancyButton';
+import DefaultIcons, { CustomIconProps } from '../FancyIcons';
+import { Pallete } from '../../constants/colors';
 
 export type FancyModalDialogProps = {
   title?: string;
@@ -14,43 +16,86 @@ export type FancyModalDialogProps = {
   buttonContainerStyle?: StyleProp<ViewStyle>;
   centerContainerStyle?: StyleProp<ViewStyle>;
   modalProps?: Omit<ModalProps, 'onRequestClose'>;
+  showCloseButton?: boolean;
+  closeButtonIconProps?: CustomIconProps;
+  closeButtonAccessibilityLabel?: string;
 } & Omit<FancyModalProps, 'top' | 'bottom' | 'center' | 'modalProps'>;
 
-export default function FancyModalDialog(props: FancyModalDialogProps) {
+export default function FancyModalDialog({
+  title,
+  children,
+  onClose,
+  onConfirm,
+  buttonContainerComponenet,
+  button1,
+  button2,
+  buttonContainerStyle,
+  centerContainerStyle,
+  modalProps,
+  showCloseButton,
+  closeButtonIconProps,
+  closeButtonAccessibilityLabel,
+  containerStyle,
+  ...fancyModalProps
+}: FancyModalDialogProps) {
+  const shouldRenderCloseButton = Boolean(showCloseButton && onClose);
+
+  const closeIconProps: CustomIconProps = {
+    library: closeButtonIconProps?.library ?? 'MaterialIcons',
+    name: closeButtonIconProps?.name ?? 'close',
+    size: closeButtonIconProps?.size ?? 20,
+    color: closeButtonIconProps?.color ?? Pallete.fonts.dark,
+    style: closeButtonIconProps?.style,
+  };
+
+  const mergedModalProps = onClose
+    ? ({ ...(modalProps ?? {}), onRequestClose: onClose } as ModalProps)
+    : (modalProps as ModalProps | undefined);
+
   return (
     <FancyModal
+      {...fancyModalProps}
       top={
-        props.title && (
+        title && (
           <View style={styles.titleContainer}>
-            {/* <FancyButton
-              icon={{ ...DefaultIconsNames['calendar-day'], size: 14, color: Pallete.fonts.dark }}
-              size={30}
-              containerStyle={{ backgroundColor: Pallete.backgroundColor3 }}
-            /> */}
-            <FancyText size="medium" type="bold">
-              {props.title}
+            <FancyText size="medium" type="bold" style={styles.titleText}>
+              {title}
             </FancyText>
+            {shouldRenderCloseButton && (
+              <TouchableOpacity
+                onPress={onClose}
+                style={styles.closeButton}
+                accessibilityRole="button"
+                accessibilityLabel={closeButtonAccessibilityLabel ?? 'Fechar'}
+              >
+                {DefaultIcons.Custom(closeIconProps)}
+              </TouchableOpacity>
+            )}
           </View>
         )
       }
-      center={<View style={[styles.contentContainer, props.centerContainerStyle]}>{props.children}</View>}
+      center={<View style={[styles.contentContainer, centerContainerStyle]}>{children}</View>}
       bottom={
-        props.buttonContainerComponenet || (
-          <View style={[styles.buttonsContainer, props.buttonContainerStyle]}>
+        buttonContainerComponenet || (
+          <View style={[styles.buttonsContainer, buttonContainerStyle]}>
             <FancyButton
               label="Cancelar"
               type="outlined"
-              containerStyle={styles.button}
-              onPress={props.onClose}
-              {...props.button1}
+              onPress={onClose}
+              {...button1}
+              containerStyle={[button1?.containerStyle, styles.button]}
             />
-            <FancyButton label="Confirmar" containerStyle={styles.button} onPress={props.onConfirm} {...props.button2} />
+            <FancyButton
+              label="Confirmar"
+              onPress={onConfirm}
+              {...button2}
+              containerStyle={[button2?.containerStyle, styles.button]}
+            />
           </View>
         )
       }
-      containerStyle={styles.container}
-      {...props}
-      modalProps={{ onRequestClose: props.onClose }}
+      containerStyle={[styles.container, containerStyle]}
+      modalProps={mergedModalProps}
     />
   );
 }
@@ -59,8 +104,24 @@ const styles = StyleSheet.create({
   container: {
     gap: 20,
   },
-  titleContainer: { width: '100%', alignItems: 'center', flexDirection: 'row', gap: 10 },
+  titleContainer: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    flexDirection: 'row',
+    position: 'relative',
+  },
+  titleText: {
+    lineHeight: 16,
+    textAlign: 'center',
+    flexShrink: 1,
+  },
+  closeButton: {
+    position: 'absolute',
+    right: 0,
+    // padding: 6,
+  },
   contentContainer: { width: '100%' },
   buttonsContainer: { flexDirection: 'row', gap: 10 },
-  button: { flex: 1 },
+  button: { flex: 1, height: 36 },
 });

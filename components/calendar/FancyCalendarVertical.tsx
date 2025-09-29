@@ -1,154 +1,172 @@
 import { StyleProp, StyleSheet, View, ViewStyle, FlatList } from 'react-native';
+import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import DayView from './day/DayView';
 import { Pallete } from '../../constants/colors';
 import FancyText from '../FancyText';
-import DateUtils from '../../utils/data_utils';
+import DateUtils from '../../utils/date_utils';
 import FancyList, { FancyListProps } from '../list/FancyList';
-import { useRef, useEffect, useState } from 'react';
+import { DayProps } from './day/Day';
 
 interface YearData {
   year: number;
   months: number[];
 }
 
-interface FancyCalendarVerticalProps {
-  startDate: Date;
-  endDate: Date;
-  markedDates?: Date[];
-  selectedDate?: Date;
-  onSelectDate: (date: Date) => void;
-  containerStyle?: StyleProp<ViewStyle>;
-  listProps?: Omit<FancyListProps<YearData>, 'data' | 'renderItem'>;
+export interface MarkedData<T extends string, A> {
+  date: Date;
+  T?: A;
 }
 
-export default function FancyCalendarVertical(props: FancyCalendarVerticalProps) {
+interface FancyCalendarVerticalProps<T extends string, A> {
+  startDate: Date;
+  endDate: Date;
+  markedDates?: MarkedData<T, A>[];
+  selectedDate?: Date;
+  highlightCurrentMonth?: boolean;
+  onSelectDate: (marked: MarkedData<T, A>) => void;
+  containerStyle?: StyleProp<ViewStyle>;
+  listProps?: Omit<FancyListProps<YearData>, 'data' | 'renderItem'>;
+  onLayout?: () => void;
+  daysProps?: Pick<DayProps, 'markerColor'>;
+  disablePastDates?: boolean;
+}
+
+const monthKey = (y: number, m: number) => `${y}-${m}`;
+
+export default function FancyCalendarVertical<T extends string, A>({
+  startDate,
+  endDate,
+  markedDates = [],
+  selectedDate,
+  highlightCurrentMonth,
+  onSelectDate,
+  containerStyle,
+  listProps,
+  daysProps,
+  disablePastDates = false,
+}: FancyCalendarVerticalProps<T, A>) {
+  // console.log('FancyCalendarVertical render', daysProps);
+
   const [monthsList, setMonthsList] = useState<YearData[]>([]);
   const flatListRef = useRef<FlatList<YearData>>(null);
 
-  // Usa useEffect para gerar a lista apenas uma vez
   useEffect(() => {
-    let list: YearData[] = [];
-    const inicio = new Date(props.startDate);
-    const fim = new Date(props.endDate);
-    inicio.setDate(1);
-    fim.setDate(1);
-    const dataAtual = new Date(inicio.getFullYear(), inicio.getMonth(), 1);
+    const list: YearData[] = [];
+    const inicio = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+    const fim = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+    const ptr = new Date(inicio);
 
-    while (dataAtual <= fim) {
-      const year = list.find(y => y.year === dataAtual.getFullYear());
-      if (year) {
-        year.months.push(dataAtual.getMonth());
-      } else {
-        list.push({
-          year: dataAtual.getFullYear(),
-          months: [dataAtual.getMonth()],
-        });
-      }
-      dataAtual.setMonth(dataAtual.getMonth() + 1);
+    while (ptr <= fim) {
+      const y = ptr.getFullYear();
+      const m = ptr.getMonth();
+      const found = list.find(it => it.year === y);
+      if (found) found.months.push(m);
+      else list.push({ year: y, months: [m] });
+      ptr.setMonth(ptr.getMonth() + 1);
     }
     setMonthsList(list);
-  }, [props.startDate, props.endDate]);
+  }, [startDate, endDate]);
 
-  const today = new Date();
-  const initialIndex = monthsList.findIndex(item => item.year === today.getFullYear());
-
-  const scrollToCurrentMonth = () => {
-    if (flatListRef.current && initialIndex !== -1) {
-      flatListRef.current?.scrollToIndex({
-        index: initialIndex,
-        animated: false,
-        viewPosition: 0.7,
-        viewOffset: -42, // Rola 10 pixels para baixo
-      });
+  // ✅ Normaliza marcados e particiona por mês (reduz payload pro DayView)
+  const markedByMonth = useMemo(() => {
+    const map: Record<string, { date: Date; T?: A }[]> = {};
+    for (const md of markedDates) {
+      const d = new Date(md.date.getFullYear(), md.date.getMonth(), md.date.getDate()); // data limpa
+      const k = monthKey(d.getFullYear(), d.getMonth());
+      (map[k] ||= []).push({ date: d, T: md.T });
     }
-  };
+    return map;
+  }, [markedDates]);
 
-  useEffect(() => {
-    if (monthsList.length > 0) {
-      const timer = setTimeout(() => {
-        scrollToCurrentMonth();
-      }, 500); // Atraso de 500ms para dar tempo ao componente de renderizar
+  // ✅ Índice inicial: ano que contém o mês atual
+  const today = useMemo(() => new Date(), []);
+  const initialIndex = useMemo(() => {
+    const idx = monthsList.findIndex(it => it.year === today.getFullYear() && it.months.includes(today.getMonth()));
+    return idx < 0 ? 0 : idx;
+  }, [monthsList, today]);
 
-      return () => clearTimeout(timer);
-    }
-  }, [monthsList]);
-
-  const onScrollToIndexFailed = (info: { index: number; highestMeasuredFrameIndex: number; averageItemLength: number }) => {
-    const wait = new Promise(resolve => setTimeout(resolve, 500));
-    wait.then(() => {
-      flatListRef.current?.scrollToIndex({
-        index: info.index,
-        animated: false,
-      });
-    });
-  };
+  // ✅ Callback estável
+  const handleSelectDate = useCallback((date: Date) => onSelectDate({ date: new Date(date) }), [onSelectDate]);
 
   return (
     <FancyList
       ref={flatListRef}
       data={monthsList}
-      contentContainerStyle={[styles.container, props.containerStyle]}
-      onScrollToIndexFailed={onScrollToIndexFailed}
+      keyExtractor={item => String(item.year)}
+      initialScrollIndex={initialIndex} // posiciona direto
+      onScrollToIndexFailed={({ index }) => {
+        setTimeout(() => {
+          flatListRef.current?.scrollToIndex({ index, animated: false });
+        }, 250);
+      }}
+      contentContainerStyle={[styles.container, containerStyle]}
       renderItem={({ item, index: i }) => (
         <View key={i}>
           {i > 0 && (
-            <View
-              style={{
-                borderWidth: 0,
-                paddingHorizontal: 5,
-                gap: 20,
-                alignItems: 'center',
-                flexDirection: 'row',
-                paddingVertical: 20,
-                justifyContent: 'center',
-              }}
-            >
-              <View style={{ height: 0, borderWidth: 0.5, borderColor: Pallete.border, flex: 1 }} />
-              <FancyText size={'extraLarge'} type="bold" style={{ borderWidth: 0 }} color={Pallete.fonts.inactive2}>
+            <View style={styles.yearSeparator}>
+              <View style={styles.yearLine} />
+              <FancyText size="extraLarge" type="bold" color={Pallete.fonts.inactive2}>
                 {item.year}
               </FancyText>
-              <View style={{ height: 0, borderWidth: 0.5, borderColor: Pallete.border, flex: 1 }} />
+              <View style={styles.yearLine} />
             </View>
           )}
+
           <View style={{ gap: 25 }}>
-            {item.months.map((month, index) => (
-              <View key={index} style={{ gap: 10 }}>
-                <View style={styles.header}>
-                  <FancyText size={'medium'} type="bold">
-                    {DateUtils.getMonthName(month)}
-                  </FancyText>
-                  <FancyText size={'medium'} type="bold" color={Pallete.fonts.inactive2}>
-                    {item.year}
-                  </FancyText>
+            {item.months.map((month, idx) => {
+              const highlight = !!highlightCurrentMonth && item.year === today.getFullYear() && month === today.getMonth();
+
+              const md = markedByMonth[monthKey(item.year, month)] ?? [];
+
+              return (
+                <View key={idx} style={{ gap: 10 }}>
+                  <View style={styles.header}>
+                    <FancyText size="large" type="bold" color={highlight ? Pallete.terciary : undefined}>
+                      {DateUtils.getMonthName(month)}
+                    </FancyText>
+                    <FancyText size="medium" type="bold" color={Pallete.fonts.inactive2}>
+                      {item.year}
+                    </FancyText>
+                  </View>
+
+                  <DayView
+                    containerStyle={styles.calendar}
+                    markedDatesType="SurroundCircle"
+                    markedDates={md}
+                    selectedDate={selectedDate}
+                    currentDate={new Date(item.year, month, 1)}
+                    onSelectDate={handleSelectDate}
+                    daysProps={daysProps}
+                    disablePastDates={disablePastDates}
+                  />
                 </View>
-                <DayView
-                  containerStyle={styles.calendar}
-                  markedDatesType="SurroundCircle"
-                  markedDates={props.markedDates}
-                  selectedDate={props.selectedDate}
-                  currentDate={new Date(item.year, month, 1)}
-                  onSelectDate={props.onSelectDate}
-                />
-              </View>
-            ))}
+              );
+            })}
           </View>
         </View>
       )}
-      {...props.listProps}
+      {...listProps}
     />
   );
 }
 
 const styles = StyleSheet.create({
   container: { gap: 15 },
-  calendar: { borderWidth: 0, flex: 1 },
+  calendar: { flex: 1 },
   header: {
-    borderWidth: 0,
-    borderColor: 'hotpink',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 5,
     paddingBottom: 15,
   },
+  yearSeparator: {
+    paddingHorizontal: 5,
+    gap: 20,
+    alignItems: 'center',
+    flexDirection: 'row',
+    paddingVertical: 20,
+    justifyContent: 'center',
+  },
+  yearLine: { height: 0, borderWidth: 0.5, borderColor: Pallete.border, flex: 1 },
 });

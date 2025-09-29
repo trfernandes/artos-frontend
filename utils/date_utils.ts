@@ -1,27 +1,10 @@
 const DateUtils = {
   getMonthName(monthIndex: number): string {
-    const monthNames = [
-      'Janeiro',
-      'Fevereiro',
-      'Março',
-      'Abril',
-      'Maio',
-      'Junho',
-      'Julho',
-      'Agosto',
-      'Setembro',
-      'Outubro',
-      'Novembro',
-      'Dezembro',
-    ];
+    const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
     return monthNames[monthIndex];
   },
   compareOnlyDate(data1: Date, data2: Date): boolean {
-    return (
-      data1.getFullYear() === data2.getFullYear() &&
-      data1.getMonth() === data2.getMonth() &&
-      data1.getDate() === data2.getDate()
-    );
+    return data1.getFullYear?.() === data2.getFullYear?.() && data1.getMonth?.() === data2.getMonth?.() && data1.getDate?.() === data2.getDate?.();
   },
   formatHour(hour: number, minute: number): string {
     const pad = (n: number) => n.toString().padStart(2, '0');
@@ -67,6 +50,26 @@ const DateUtils = {
     const years = Math.floor(months / 12);
     // Mais de 1 ano
     return `${years} ano${years === 1 ? '' : 's'} atrás`;
+  },
+  generateDatesBetween(start: Date, end: Date): Date[] {
+    const result: Date[] = [];
+    const cur = new Date(start);
+
+    // zera horas para evitar problemas de fuso
+    cur.setHours(0, 0, 0, 0);
+    const endDate = new Date(end);
+    endDate.setHours(0, 0, 0, 0);
+
+    while (cur <= endDate) {
+      result.push(new Date(cur));
+      cur.setDate(cur.getDate() + 1);
+    }
+
+    return result;
+  },
+  isSameDay(a?: Date, b?: Date) {
+    if (!a || !b) return false;
+    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
   },
 };
 

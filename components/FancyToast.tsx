@@ -52,7 +52,7 @@ export default function FancyToast(props: FancyToastProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { marginTop: 25, width: '90%' },
+  container: { marginTop: 25, width: '90%', zIndex: 1000000 },
   content: {
     ...Pallete.shadows[200],
     borderRadius: 10,

@@ -9,6 +9,10 @@ export default function PerfilLayout() {
       }}
     >
       <Stack.Screen name="index" options={{ title: 'Meu Perfil' }} />
+      <Stack.Screen
+        name="edit"
+        options={{ title: 'Editar Perfil', header: props => <FancyHeader leftButton="back" {...props} /> }}
+      />
     </Stack>
   );
 }

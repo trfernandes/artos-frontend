@@ -1,5 +1,4 @@
 import { router } from 'expo-router';
-import FancyFab from '../../../../../components/buttons/FancyFab';
 import { FancyCard, IconType, ImageType } from '../../../../../components/cards/Horizontal/FancyCard';
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
 import FancyScreenErrorHandler from '../../../../../components/error/FancyScreenErrorHandler';
@@ -31,6 +30,7 @@ export default function MinisteriosIndex() {
 
   return (
     <FancyListPage
+      fabProps={{ onPress: () => router.push('/admin/ministerios/add') }}
       searchBarProps={{
         value: searchText,
         onSearch: text => {
@@ -141,7 +141,7 @@ export default function MinisteriosIndex() {
         },
       }}
     >
-      <FancyFab onPress={() => router.push('/admin/ministerios/add')} />
+      {/* <FancyFab onPress={() => router.push('/admin/ministerios/add')} /> */}
     </FancyListPage>
   );
 }

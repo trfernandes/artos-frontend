@@ -4,7 +4,7 @@ import FancyImage from '../../../images/FancyImage';
 import FancyScrollView from '../../../FancyScrollView';
 import FancyToggle from '../../../fields/FancyToggle';
 import { Voluntario } from '../../../../domain/models/Voluntario';
-import DateUtils from '../../../../utils/data_utils';
+import DateUtils from '../../../../utils/date_utils';
 
 export default function VoluntarioDadosTab(props: { voluntario: Voluntario }) {
   // console.log('VoluntarioDadosTab', strfyObj(props.voluntario));

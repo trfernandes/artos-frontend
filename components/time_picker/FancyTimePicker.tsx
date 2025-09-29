@@ -68,6 +68,11 @@ export default function FancyTimePicker({ value, onChange, containerStyle }: Fan
             alignItems: 'center',
           }}
           onMomentumScrollEnd={onHourScrollEnd}
+          onLayout={() => {
+            if (value) {
+              hourRef.current?.scrollTo({ y: value.hour * ITEM_HEIGHT, animated: false });
+            }
+          }}
         >
           {[...Array(24)].map((_, i) => (
             <View key={i} style={styles.item}>

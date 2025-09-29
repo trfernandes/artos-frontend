@@ -9,6 +9,7 @@ import FancySettingItem from '../../../FancySettingItem';
 import { Controller, useFormContext } from 'react-hook-form';
 import { EventoFormData } from '../../../../hooks/useEventos';
 import { RecorrenciaEnum } from '../../../../domain/models/Evento';
+import FancyErrorText from '../../../forms/FancyErrorText';
 
 export type RecorrenciaValue = { type: 'Nunca' } | { type: 'Personalizado' };
 export type EventoRepeticaoInputProps = {
@@ -37,7 +38,13 @@ export default function EventoRepeticaoInput({ disabled = false }: EventoRepetic
   // const [recorrenciaValue, setRecorrenciaValue] = useState<RecorrenciaValue>(value || { type: 'Nunca' });
   const [modalVisible, setModalVisible] = useState(false);
 
-  const { setValue, getValues, watch, control } = useFormContext<EventoFormData>();
+  const {
+    setValue,
+    getValues,
+    watch,
+    control,
+    formState: { errors },
+  } = useFormContext<EventoFormData>();
 
   const recorrencia = watch('recorrencia');
 
@@ -86,9 +93,7 @@ export default function EventoRepeticaoInput({ disabled = false }: EventoRepetic
         } else if (semanasAbreviadas.length === 2) {
           result += `Nas ${semanasAbreviadas[0]} e ${semanasAbreviadas[1]} semanas do mês`;
         } else {
-          result += `Nas ${semanasAbreviadas.slice(0, -1).join(', ')} e ${
-            semanasAbreviadas.slice(-1)[0]
-          } semanas do mês`;
+          result += `Nas ${semanasAbreviadas.slice(0, -1).join(', ')} e ${semanasAbreviadas.slice(-1)[0]} semanas do mês`;
         }
       }
 
@@ -120,63 +125,73 @@ export default function EventoRepeticaoInput({ disabled = false }: EventoRepetic
   };
 
   return (
-    <Controller
-      control={control}
-      name="recorrencia"
-      render={({ field: { value, onChange: controllerOnChange } }) => (
-        <FancySettingItem
-          disabled={disabled}
-          icon={{ library: 'Feather', name: 'repeat', size: 14 }}
-          label={'Recorrência'}
-          value={
-            recorrencia && [RecorrenciaEnum.Semanal, RecorrenciaEnum.Mensal].includes(recorrencia)
-              ? 'Personalizado'
-              : 'Nunca'
-          }
-          options={[
-            {
-              label: 'Nunca',
-              onPress: () => {
-                setValue('recorrencia', RecorrenciaEnum.Nunca);
+    <>
+      <Controller
+        control={control}
+        name="recorrencia"
+        render={({ field: { value, onChange: controllerOnChange } }) => (
+          <FancySettingItem
+            disabled={disabled}
+            icon={{ library: 'Feather', name: 'repeat', size: 14 }}
+            label={'Recorrência'}
+            value={
+              recorrencia && [RecorrenciaEnum.Semanal, RecorrenciaEnum.Mensal].includes(recorrencia)
+                ? 'Personalizado'
+                : 'Nunca'
+            }
+            options={[
+              {
+                label: 'Nunca',
+                onPress: () => {
+                  setValue('recorrencia', RecorrenciaEnum.Nunca);
+                },
               },
-            },
-            {
-              label: 'Personalizado',
-              onPress: () => {
-                setValue('recorrencia', RecorrenciaEnum.Semanal);
-                setModalVisible(true);
+              {
+                label: 'Personalizado',
+                onPress: () => {
+                  setValue('recorrencia', RecorrenciaEnum.Semanal);
+                  setModalVisible(true);
+                },
               },
-            },
-          ]}
-        >
-          {recorrencia && [RecorrenciaEnum.Semanal, RecorrenciaEnum.Mensal].includes(recorrencia) && (
-            <>
-              <TouchableOpacity style={styles.personalizadoContainer} onPress={() => setModalVisible(true)}>
-                <FancyText
-                  size={'extraSmall'}
-                  type="medium"
-                  style={{ lineHeight: 16, flex: 1, borderWidth: 0 }}
-                >
-                  {generateDescription()}
-                </FancyText>
-                <DefaultIcons.Custom
-                  library={DefaultIconsNames['chevron-right'].library}
-                  name={DefaultIconsNames['chevron-right'].name}
-                  size={18}
-                  color={Pallete.icons.inactive}
+            ]}
+          >
+            {recorrencia && [RecorrenciaEnum.Semanal, RecorrenciaEnum.Mensal].includes(recorrencia) && (
+              <>
+                <TouchableOpacity style={styles.personalizadoContainer} onPress={() => setModalVisible(true)}>
+                  <FancyText size={'extraSmall'} type="medium" style={{ lineHeight: 16, flex: 1, borderWidth: 0 }}>
+                    {generateDescription()}
+                  </FancyText>
+                  <DefaultIcons.Custom
+                    library={DefaultIconsNames['chevron-right'].library}
+                    name={DefaultIconsNames['chevron-right'].name}
+                    size={18}
+                    color={Pallete.icons.inactive}
+                  />
+                </TouchableOpacity>
+                <EventoRepeticaoInputCustom
+                  modalProps={{
+                    visible: modalVisible,
+                    onRequestClose: () => setModalVisible(false),
+                  }}
                 />
-              </TouchableOpacity>
-              <EventoRepeticaoInputCustom
-                modalProps={{
-                  visible: modalVisible,
-                  onRequestClose: () => setModalVisible(false),
-                }}
-              />
-            </>
-          )}
-        </FancySettingItem>
+              </>
+            )}
+          </FancySettingItem>
+        )}
+      />
+      {(errors.recorrencia ||
+        errors.recorrenciaACadaMeses ||
+        errors.recorrenciaSemanaDias ||
+        errors.recorrenciaSemanasMes) && (
+        <FancyErrorText
+          message={`${errors.recorrencia ? errors.recorrencia?.message + '\n' : ''} ${
+            errors.recorrenciaACadaMeses ? errors.recorrenciaACadaMeses?.message + '\n' : ''
+          } ${errors.recorrenciaSemanaDias ? errors.recorrenciaSemanaDias?.message + '\n' : ''} ${
+            errors.recorrenciaSemanasMes ? errors.recorrenciaSemanasMes?.message : ''
+          }`}
+        />
       )}
-    />
+    </>
   );
 }
 

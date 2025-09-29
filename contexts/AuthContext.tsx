@@ -9,6 +9,9 @@ interface AuthContextData {
   signIn: (email: string, senha: string) => Promise<void>;
   signOut: () => Promise<void>;
   forgotPassword: (email: string) => Promise<boolean>;
+  updateUser: (newUserData: any) => Promise<void>;
+  changePassword: (senhaAtual: string, novaSenha: string) => Promise<boolean>;
+  deleteAccount: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -74,16 +77,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const forgotPassword = async (email: string) => {
-    try {
-      await apiClient.post('/auth/forgot-password', { email });
-      return true;
-    } catch {
-      return false;
-    }
+    await apiClient.post('/auth/forgot-password', { email });
+    return true;
+  };
+
+  const updateUser = async (newUserData: any) => {
+    setUser(newUserData);
+    await AsyncStorage.setItem('user', JSON.stringify(newUserData));
+  };
+
+  const changePassword = async (senhaAtual: string, novaSenha: string) => {
+    await apiClient.put('/auth/change-password', {
+      senhaAtual,
+      novaSenha,
+    });
+    return true;
+  };
+
+  const deleteAccount = async () => {
+    await apiClient.delete('/auth/delete-account');
+    await signOut();
+    return true;
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, signIn, signOut, forgotPassword }}>
+    <AuthContext.Provider
+      value={{ user, token, loading, signIn, signOut, forgotPassword, updateUser, changePassword, deleteAccount }}
+    >
       {children}
     </AuthContext.Provider>
   );

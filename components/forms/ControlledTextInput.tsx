@@ -4,7 +4,7 @@ import { TextInputProps, View } from 'react-native';
 import FancyErrorText from './FancyErrorText';
 
 interface ControlledFancyTextInputProps<FormData extends FieldValues>
-  extends Pick<FancyTextInputProps, 'label' | 'inputContainerStyle' | 'inputProps'>,
+  extends Pick<FancyTextInputProps, 'label' | 'inputContainerStyle' | 'inputProps' | 'disabled'>,
     Pick<TextInputProps, 'keyboardType'> {
   control: Control<FormData>;
   name: Path<FormData>;

@@ -37,6 +37,20 @@ export const createAccountSchema = z
     }
   });
 
+export const updateProfileSchema = z.object({
+  nome: z.string('Campo Obrigatório'),
+  email: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'E-mail inválido'),
+  dataNascimento: z.date('Campo obrigatório'),
+  endereco: z.string().nullish(),
+  telefone: z.string().nullish(),
+  sexo: z.enum(['M', 'F']),
+  foto: z.string().nullable().optional(),
+  uploadFoto: z.string().nullable().optional(),
+});
+
 export function useVoluntarios(options?: UseVoluntariosOptions) {
   return useCrudForm({
     queryKey: 'voluntarios',
@@ -64,8 +78,9 @@ export function useVoluntarios(options?: UseVoluntariosOptions) {
       return VoluntariosRepository.update(id, data);
     },
     remove: id => VoluntariosRepository.remove(id),
-    messages:{
+    messages: {
       successCreate: 'Usuário criado com sucesso',
-    }
+      successUpdate: 'Perfil atualizado com sucesso',
+    },
   });
 }

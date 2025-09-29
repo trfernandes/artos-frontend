@@ -1,56 +1,108 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import React from 'react';
+import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import FancyText from '../../FancyText';
 import { Pallete } from '../../../constants/colors';
 
 export type DayProps = {
   day: number;
-  onPress: () => void;
+  onPress?: () => void;
   selected?: boolean;
   type?: 'actual' | 'inactive' | 'default';
   showMarker?: boolean;
   markerType?: 'bottomPoint' | 'SurroundCircle';
   markerColor?: string;
+  disabled?: boolean;
 };
 
-export default function Day({ type = 'default', selected = false, showMarker = false, ...props }: DayProps) {
+function DayComponent({
+  day,
+  onPress,
+  type = 'default',
+  selected = false,
+  showMarker = false,
+  markerType = 'bottomPoint',
+  markerColor,
+  disabled = false,
+}: DayProps) {
+  const isDisabled = disabled;
+  const isSelected = selected;
+
   let fontColor = Pallete.fonts.dark;
-  if (type === 'default')
-    if (selected) {
-      fontColor = Pallete.fonts.light;
-    } else {
-      fontColor = Pallete.fonts.dark;
-    }
-  if (type === 'actual') {
+  if (isSelected) {
+    fontColor = Pallete.fonts.light;
+  } else if (type === 'actual') {
     fontColor = Pallete.warning;
   } else if (type === 'inactive') {
     fontColor = Pallete.fonts.inactive2;
   }
 
+  const textType: 'bold' | 'semiBold' = isSelected ? 'bold' : 'semiBold';
+
+  const containerStyles: StyleProp<ViewStyle> = [styles.container];
+
+  if (isSelected && markerType !== 'SurroundCircle') {
+    containerStyles.push({ backgroundColor: markerColor ?? Pallete.primary });
+  }
+
+  const showCircle = markerType === 'SurroundCircle' && isSelected;
+  const circleStyles: StyleProp<ViewStyle> = [styles.circle];
+  if (showCircle && !isDisabled) {
+    circleStyles.push({ backgroundColor: markerColor ?? Pallete.primary });
+  }
+  if (showCircle && isDisabled) {
+    circleStyles.push(styles.circleDisabled);
+  }
+
+  const renderMarker = showMarker && markerType === 'bottomPoint';
+
+  const handlePress = () => {
+    if (isDisabled) return;
+    onPress?.();
+  };
+
   return (
-    <Pressable style={[styles.container, selected && styles.selected]} onPress={props.onPress}>
-      <FancyText size="small" type={selected || type === 'actual' ? 'bold' : 'medium'} color={fontColor}>
-        {props.day}
-      </FancyText>
-      {showMarker && <View style={[styles.marked, showMarker && { backgroundColor: props.markerColor || Pallete.warning }]} />}
+    <Pressable style={containerStyles} onPress={handlePress} disabled={isDisabled}>
+      {showCircle ? (
+        <View style={circleStyles}>
+          <FancyText size="medium" type="bold" color={isDisabled ? Pallete.fonts.inactive : Pallete.fonts.light}>
+            {day}
+          </FancyText>
+        </View>
+      ) : (
+        <FancyText size="medium" type={textType} color={fontColor}>
+          {day}
+        </FancyText>
+      )}
+      {renderMarker && <View style={[styles.marked, markerColor ? { backgroundColor: markerColor } : null]} />}
     </Pressable>
   );
 }
 
-const DESIGN_MODE = 0;
-
 const styles = StyleSheet.create({
   container: {
-    width: `${100 / 9}%`,
+    width: `${100 / 11}%`,
     aspectRatio: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 1,
-    borderRadius: 100,
-    borderWidth: DESIGN_MODE,
-    borderColor: 'fuchsia',
+    borderRadius: 999,
   },
-  selected: { backgroundColor: Pallete.primary },
-  marked: { height: 5, width: 5, borderRadius: 100 },
-  textActual: { color: Pallete.error },
-  textInactive: { color: Pallete.fonts.inactive },
+  circle: {
+    width: '90%',
+    height: '90%',
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  circleDisabled: {
+    backgroundColor: Pallete.disabled3,
+  },
+  marked: {
+    marginTop: 6,
+    height: 4,
+    width: 4,
+    borderRadius: 2,
+    backgroundColor: Pallete.warning,
+  },
 });
+
+export default React.memo(DayComponent);

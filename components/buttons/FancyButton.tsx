@@ -4,6 +4,8 @@ import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import { containedParameters, outlinedParameters, textParameters, lightParameters } from './FancyButtonStyles';
 import { Pallete } from '../../constants/colors';
 
+type FancyButtonSize = number | { w: number; h: number };
+
 export type FancyButtonProps = {
   label?: string;
   labelProps?: FancyTextProps;
@@ -16,7 +18,17 @@ export type FancyButtonProps = {
   containerStyle?: StyleProp<ViewStyle>;
   labelStyle?: StyleProp<TextStyle>;
   iconStyle?: StyleProp<TextStyle>;
-  size?: number | { w: number; h: number };
+  size?: FancyButtonSize;
+};
+
+const resolveSize = (size?: FancyButtonSize, fallback = 45) => {
+  if (!size) return fallback;
+  return typeof size === 'number' ? size : size.h;
+};
+
+const resolveMinWidth = (size?: FancyButtonSize, fallback = 45) => {
+  if (!size) return fallback;
+  return typeof size === 'number' ? size : size.w;
 };
 
 export default function FancyButton({
@@ -26,9 +38,8 @@ export default function FancyButton({
   iconPosition = 'left',
   ...props
 }: FancyButtonProps) {
-  const minWidth = !props.size ? 45 : typeof props.size !== 'number' ? props.size.w : props.size;
-  const height = !props.size ? 45 : typeof props.size !== 'number' ? props.size.h : props.size;
-  const lineHeight = height - 20;
+  const height = resolveSize(props.size);
+  const minWidth = resolveMinWidth(props.size);
 
   const parameters =
     type === 'contained'
@@ -38,6 +49,20 @@ export default function FancyButton({
       : type === 'text'
       ? textParameters
       : lightParameters;
+
+  const {
+    style: labelPropsStyle,
+    size: providedLabelSize,
+    numberOfLines: providedNumberOfLines,
+    adjustsFontSizeToFit: providedAdjustsFontSizeToFit,
+    minimumFontScale: providedMinimumFontScale,
+    ...restLabelProps
+  } = props.labelProps ?? {};
+
+  const labelSize = providedLabelSize;
+  const numberOfLines = providedNumberOfLines ?? 1;
+  const adjustsFontSizeToFit = providedAdjustsFontSizeToFit ?? true;
+  const minimumFontScale = providedMinimumFontScale ?? 0.85;
 
   return (
     <TouchableOpacity
@@ -73,18 +98,18 @@ export default function FancyButton({
         })}
       {props.label && mode === 'default' && (
         <FancyText
-          type="bold"
+          {...restLabelProps}
+          type={restLabelProps.type ?? 'semiBold'}
           size={'small'}
+          numberOfLines={numberOfLines}
+          adjustsFontSizeToFit={adjustsFontSizeToFit}
+          minimumFontScale={minimumFontScale}
           style={[
-            {
-              lineHeight: lineHeight,
-              // borderWidth: 1,
-            },
-            ,
+            { textAlign: 'center' },
             disabled ? parameters.disabledTextStyle : parameters.textStyle,
             props.labelStyle,
+            labelPropsStyle,
           ]}
-          {...props.labelProps}
         >
           {props.label}
         </FancyText>
@@ -98,8 +123,8 @@ const baseStyles = StyleSheet.create({
     borderRadius: 50,
     alignItems: 'center',
     justifyContent: 'center',
-
     gap: 10,
+    paddingHorizontal: 12,
   },
   mode_icon: { maxWidth: 45, minWidth: 45 },
 });

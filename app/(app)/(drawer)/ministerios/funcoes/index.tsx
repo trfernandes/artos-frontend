@@ -20,18 +20,21 @@ export default function MinisterioFuncoesIndex() {
           { nome: 'Backing-Vocal' },
         ],
         renderItem: ({ item }) => (
-          <FancyCard.Icon
-            title={item.nome}
-            cardIcon={{ library: 'FontAwesome6', name: 'person-rays', size: 16 }}
-            actionButtons={[
-              {
-                icon: { ...DefaultIconsNames.edit, size: 18 },
-                onPress: () => {
-                  setFormVisible(true);
+          <FancyCard.Image
+            type="icon"
+            props={{
+              title: item.nome,
+              cardIcon: { library: 'FontAwesome6', name: 'person-rays', size: 16 },
+              actionButtons: [
+                {
+                  icon: { ...DefaultIconsNames.edit, size: 18 },
+                  onPress: () => {
+                    setFormVisible(true);
+                  },
                 },
-              },
-              { icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error }, onPress: () => {} },
-            ]}
+                { icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error }, onPress: () => {} },
+              ],
+            }}
           />
         ),
       }}

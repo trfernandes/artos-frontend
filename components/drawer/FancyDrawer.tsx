@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 import FancyDrawerItem from './FancyDrawerItem';
 import FancyDrawerSeparator from './FancyDrawerSeparator';
 import FancyScrollView from '../FancyScrollView';
+import { useAuth } from '../../contexts/AuthContext';
 
 export type FancyDrawerProps = {} & DrawerContentComponentProps;
 
@@ -28,7 +29,7 @@ const BASE_MENU: DrawerItemData[] = [
     onPress: () => router.push('/pessoal/indisponibilidade'),
   },
   {
-    label: 'Escalas',
+    label: 'Minhas Escalas',
     icon: { name: 'calendar-today', library: 'MaterialCommunityIcons', size: 21 },
     onPress: () => router.push('/pessoal/escalas'),
   },
@@ -72,11 +73,11 @@ const LEADER_MENU: DrawerItemData[] = [
         icon: { library: 'FontAwesome6', name: 'person-rays', size: 18 },
         onPress: () => router.replace('/ministerios/funcoes'),
       },
-      {
-        label: 'Repertório',
-        icon: { name: 'playlist-music-outline', library: 'MaterialCommunityIcons', size: 20 },
-        onPress: () => router.replace('/ministerios/louvor/repertorio'),
-      },
+      // {
+      //   label: 'Repertório',
+      //   icon: { name: 'playlist-music-outline', library: 'MaterialCommunityIcons', size: 20 },
+      //   onPress: () => router.replace('/ministerios/louvor/repertorio'),
+      // },
       {
         label: 'Solicitações',
         icon: { name: 'file-send-outline', library: 'MaterialCommunityIcons', size: 20 },
@@ -92,6 +93,8 @@ const LEADER_MENU: DrawerItemData[] = [
 ];
 
 export default function FancyDrawer(props: FancyDrawerProps) {
+  const { signOut } = useAuth();
+
   return (
     <View style={styles.container}>
       <FancyDrawerHeader />
@@ -124,6 +127,13 @@ export default function FancyDrawer(props: FancyDrawerProps) {
           {ADMIN_MENU.map((item, index) => (
             <FancyDrawerItem key={index} {...item} />
           ))}
+
+          {/* <FancyDrawerSeparator /> */}
+          <FancyDrawerItem
+            label="Sair"
+            icon={{ name: 'logout', library: 'MaterialCommunityIcons', size: 20 }}
+            onPress={signOut}
+          />
         </FancyScrollView>
       </View>
     </View>

@@ -13,9 +13,7 @@ export const eventoSchema = z
       .min(3, 'O nome do evento deve ter pelo menos 3 caracteres')
       .max(255, 'O nome do evento pode ter no máximo 255 caracteres'),
     descricao: z.string().max(1000, 'A descrição pode ter no máximo 1000 caracteres').optional(),
-    dataInicio: z
-      .date()
-      .refine(d => d >= new Date('1900-01-01'), 'A data de início deve ser posterior a 01/01/1900'),
+    dataInicio: z.date().refine(d => d >= new Date('1900-01-01'), 'A data de início deve ser posterior a 01/01/1900'),
     dataTermino: z.date(),
     local: z.string().max(255, 'O local pode ter no máximo 255 caracteres').optional(),
     cor: z
@@ -28,7 +26,8 @@ export const eventoSchema = z
       .number()
       .int('Informe um número inteiro')
       .min(1, 'O número de meses deve ser maior que 1')
-      .max(12, 'O número de meses deve ser menor igual a 12').optional(),
+      .max(12, 'O número de meses deve ser menor igual a 12')
+      .optional(),
     recorrenciaSemanasMes: z.array(z.enum(RecorrenciaSemanaMesEnum)).optional(),
   })
   .superRefine((data, ctx) => {

@@ -4,12 +4,12 @@ import FancyText from './FancyText';
 
 export interface FancyLoadingProps {
   label?: string;
-  containerSyle?: StyleProp<ViewStyle>;
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
-export default function FancyLoading({ label = 'Carregando...' }: FancyLoadingProps) {
+export default function FancyLoading({ label = 'Carregando...', containerStyle }: FancyLoadingProps) {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, containerStyle]}>
       <ActivityIndicator size={'large'} />
       <FancyText size={'medium'} type="semiBold" color={Pallete.fonts.inactive}>
         {label}
@@ -21,6 +21,7 @@ export default function FancyLoading({ label = 'Carregando...' }: FancyLoadingPr
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    alignSelf: 'stretch',
     backgroundColor: Pallete.backgroundColor,
     alignItems: 'center',
     justifyContent: 'center',

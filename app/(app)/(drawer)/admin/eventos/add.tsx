@@ -72,7 +72,8 @@ export default function EventosAddPage() {
       <FormProvider {...form}>
         <EventosDadosForm />
         <FancyButton
-          label="Salvar"
+          label={isLoading ? "Salvando..." : "Salvar"}
+          disabled={isLoading}
           icon={{ ...DefaultIconsNames.save, size: 16 }}
           type="contained"
           onPress={handleSubmit}

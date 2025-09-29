@@ -19,15 +19,12 @@ export default function VoluntariosDetailsPage() {
   useEffect(() => {
     setSearchParams({
       where: {
-        conditions: [
-          { path: 'id', operator: Operator.EQUALS, value: { type: ValueType.LITERAL, value: parametros.id } },
-        ],
+        conditions: [{ path: 'id', operator: Operator.EQUALS, value: { type: ValueType.LITERAL, value: parametros.id } }],
+        
       },
       relations: ['ministerios.ministerio'],
     });
   }, []);
-
-  // console.log('VoluntariosDetailsPage', strfyObj(data));
 
   const TAB_DATA: TabItem[] = [
     {
@@ -38,7 +35,7 @@ export default function VoluntariosDetailsPage() {
     {
       title: 'Ministério',
       icon: { library: 'Feather', name: 'grid', size: 15 },
-      content: <VoluntarioMinisterioTab ministerios={data?.[0].ministerios} />,
+      content: <VoluntarioMinisterioTab ministerios={data?.[0]?.ministerios} />,
     },
   ];
 

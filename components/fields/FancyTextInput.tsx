@@ -1,15 +1,5 @@
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  ViewStyle,
-  StyleProp,
-  ViewProps,
-  TextInput,
-  TextInputProps,
-  Pressable,
-} from 'react-native';
-import FancyText from '../FancyText';
+import { View, StyleSheet, TouchableOpacity, ViewStyle, StyleProp, ViewProps, TextInput, TextInputProps, Pressable } from 'react-native';
+import FancyText, { FancyTextProps } from '../FancyText';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import { isValidElement, ReactNode } from 'react';
 import { MEDIUM_FONT, SMALL_SIZE_FONT } from '../../constants/font';
@@ -33,6 +23,7 @@ export type FancyTextInputProps = {
   onPress?: () => void;
   inputProps?: Omit<TextInputProps, 'value'>;
   readonly?: boolean;
+  labelProps?: FancyTextProps;
 };
 
 function generateButtonsComponent(buttons: Button[]) {
@@ -44,16 +35,31 @@ function generateButtonsComponent(buttons: Button[]) {
 }
 
 export default function FancyTextInput({ disabled = false, ...props }: FancyTextInputProps) {
+  const { style: rawInputStyle, multiline, ...remainingInputProps } = props.inputProps ?? {};
+  const isMultiline = Boolean(multiline);
+  const normalizedInputStyle = Array.isArray(rawInputStyle)
+    ? rawInputStyle
+    : rawInputStyle
+    ? [rawInputStyle]
+    : [];
+
   return (
     <Pressable {...props.inputContainerProps} style={[styles.container]} onPress={props.onPress}>
       {props.label && (
         <View style={styles.labelContainer}>
-          <FancyText size="extraSmall" type="semiBold" style={[styles.labelText, disabled && styles.labelDisabledText]}>
+          <FancyText size={'extraSmall'} type="semiBold" style={[styles.labelText, disabled && styles.labelDisabledText]} {...props.labelProps}>
             {props.label}
           </FancyText>
         </View>
       )}
-      <View style={[styles.inputContainer, disabled && styles.inputDisabledContainer, props.inputContainerStyle]}>
+      <View
+        style={[
+          styles.inputContainer,
+          disabled && styles.inputDisabledContainer,
+          isMultiline && styles.inputContainerMultiline,
+          props.inputContainerStyle,
+        ]}
+      >
         {props.leftContainer && (
           <View style={styles.leftContainer}>
             {isValidElement(props.leftContainer)
@@ -69,8 +75,14 @@ export default function FancyTextInput({ disabled = false, ...props }: FancyText
             readOnly={disabled || props.readonly}
             value={props.value}
             placeholderTextColor={Pallete.fonts.inactive}
-            {...props.inputProps}
-            style={[styles.valueText, disabled && styles.valueDisabledText, props.inputProps?.style]}
+            multiline={isMultiline}
+            {...remainingInputProps}
+            style={[
+              styles.valueText,
+              disabled && styles.valueDisabledText,
+              isMultiline && styles.valueTextMultiline,
+              ...normalizedInputStyle,
+            ]}
           />
         </View>
         {props.rightContainer && (
@@ -105,6 +117,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 5,
   },
+  inputContainerMultiline: {
+    alignItems: 'flex-start',
+    paddingVertical: 10,
+  },
   inputDisabledContainer: { backgroundColor: Pallete.disabled },
   labelContainer: { paddingLeft: 2 },
   labelText: { color: Pallete.fonts.inactive },
@@ -124,7 +140,15 @@ const styles = StyleSheet.create({
     fontFamily: MEDIUM_FONT,
     fontSize: SMALL_SIZE_FONT,
     color: Pallete.fonts.dark,
-    height: 40,
+    minHeight: 40,
+    paddingHorizontal: 14,
+  },
+  valueTextMultiline: {
+    height: undefined,
+    minHeight: 100,
+    textAlignVertical: 'top',
+    paddingTop: 10,
+    paddingBottom: 10,
     paddingHorizontal: 14,
   },
   valueDisabledText: { color: Pallete.fonts.inactive },
@@ -141,3 +165,6 @@ const styles = StyleSheet.create({
   placeholderText: { color: Pallete.fonts.inactive },
   placeholderDisabledText: { color: Pallete.fonts.inactive2 },
 });
+
+
+

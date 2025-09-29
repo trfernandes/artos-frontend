@@ -6,7 +6,6 @@ import * as FileSystem from 'expo-file-system';
 export async function base64ToFile(base64: string, filename: string = 'temp.jpg') {
   const path = FileSystem.cacheDirectory + filename;
 
-  // Remove o prefixo data:image/jpeg;base64, se tiver
   const base64Data = base64.includes('base64,') ? base64.split('base64,')[1] : base64;
 
   await FileSystem.writeAsStringAsync(path, base64Data, {
@@ -18,14 +17,6 @@ export async function base64ToFile(base64: string, filename: string = 'temp.jpg'
     name: filename,
     type: 'image/jpeg', // ajuste se precisar
   };
-}
-
-function isBase64(str: string) {
-  return str.startsWith('data:');
-}
-
-function isUri(str: string) {
-  return str.startsWith('file:') || str.startsWith('content:');
 }
 
 class MinisteriosApiClass extends BaseApi<Ministerio> {
