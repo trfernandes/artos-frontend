@@ -48,6 +48,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   optionSelectedContainer: {
+    backgroundColor: Pallete.backgroundColor,
     width: '55%',
     shadowColor: 'gray',
     elevation: 1,

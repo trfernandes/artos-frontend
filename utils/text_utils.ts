@@ -24,7 +24,7 @@ export function strfyObj(
 }
 
 export function shortenString(str: string, length: number = 10): string {
-  if (!str) return "";
+  if (!str) return '';
   if (str.length <= length * 2) return str; // Se for curta, retorna toda
 
   const start = str.slice(0, length);

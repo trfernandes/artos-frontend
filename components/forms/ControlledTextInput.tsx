@@ -26,12 +26,17 @@ export default function ControlledTextInput<FormData extends FieldValues>({
           <FancyTextInput
             disabled={disabled}
             {...rest}
-            value={value}
+            value={
+              value === undefined || value === null
+                ? ''
+                : typeof value === 'string'
+                ? value
+                : String(value)
+            }
             inputProps={{
               ...rest.inputProps,
               onBlur,
               onChangeText: text => {
-                text;
                 onChange(text);
               },
             }}

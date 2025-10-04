@@ -7,16 +7,16 @@ import FancyScreenErrorHandler from '../../../../../components/error/FancyScreen
 import { useState } from 'react';
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
 import { Conjunction, Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
-import { useVoluntarios } from '../../../../../hooks/useVoluntarios';
+import { useVoluntariosCrud } from '../../../../../hooks/useVoluntariosCrud';
 import { useAuth } from '../../../../../contexts/AuthContext';
 
-const phoneRegex = /^\(?[1-9]{2}\)?\s?(?:9[1-9]\d{3}-?\d{4}|\d{4}-?\d{4})$/;
-
 export default function VoluntariosIndexPage() {
+  console.log('VoluntariosIndexPage Rendered');
+
   const [searchText, setSearchText] = useState('');
   const { user } = useAuth();
-  const { data, setSearchParams, isLoading, error, refetch, isRefetching, isError } = useVoluntarios({
-    autoFetch: false,
+  const { data, setSearchParams, isLoading, error, refetch, isRefetching, isError } = useVoluntariosCrud({
+    autoFetch: true,
   });
 
   if (isError) {
@@ -34,8 +34,16 @@ export default function VoluntariosIndexPage() {
             setSearchParams({
               where: {
                 conditions: [
-                  { path: 'nome', operator: Operator.ILIKE, value: { type: ValueType.LITERAL, value: text.trim() } },
-                  { path: 'id', operator: Operator.NOT_EQUALS, value: { type: ValueType.LITERAL, value: user?.id } },
+                  {
+                    path: 'nome',
+                    operator: Operator.ILIKE,
+                    value: { type: ValueType.LITERAL, value: text.trim() },
+                  },
+                  {
+                    path: 'id',
+                    operator: Operator.NOT_EQUALS,
+                    value: { type: ValueType.LITERAL, value: user?.id! },
+                  },
                 ],
                 conjunction: Conjunction.AND,
               },
@@ -45,7 +53,11 @@ export default function VoluntariosIndexPage() {
             setSearchParams({
               where: {
                 conditions: [
-                  { path: 'id', operator: Operator.NOT_EQUALS, value: { type: ValueType.LITERAL, value: user?.id } },
+                  {
+                    path: 'id',
+                    operator: Operator.NOT_EQUALS,
+                    value: { type: ValueType.LITERAL, value: user?.id! },
+                  },
                 ],
               },
             });
@@ -63,7 +75,7 @@ export default function VoluntariosIndexPage() {
             props={{
               title: item.nome,
               subtitle: item.email,
-              source: item.foto,
+              source: item.foto || require('../../../../../assets/images/empty_profile_image.png'),
               actionButtons: [
                 {
                   icon: {
@@ -92,7 +104,7 @@ export default function VoluntariosIndexPage() {
           />
         ),
       }}
-    ></FancyListPage>
+    />
   );
 }
 

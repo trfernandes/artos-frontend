@@ -1,20 +1,40 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import FancyDrawerItemHeader from './FancyDrawerItemHeader';
 import { useState } from 'react';
-import { DrawerItemData } from './FancyDrawer';
+import { DrawerItemData } from './MenuData';
+import { router } from 'expo-router';
 
-export default function FancyDrawerItem(props: DrawerItemData) {
-  const [isCollapsed, setCollapsed] = useState(false);
+export default function FancyDrawerItem({
+  isDefaultCollapsed,
+  ...props
+}: DrawerItemData & { isDefaultCollapsed?: boolean }) {
+  const [isCollapsed, setCollapsed] = useState<boolean>(isDefaultCollapsed ?? true);
+
+  const handleOnItemPress = (item: DrawerItemData) => {
+    if (item.onPress) {
+      if (item.onPress.type === 'GoToRoute' && item.onPress.routeName) {
+        router.push(item.onPress.routeName);
+      } else if (item.onPress.type === 'RunMethod' && item.onPress.method) {
+        item.onPress.method();
+      }
+    }
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
-        <FancyDrawerItemHeader {...props} isCollapsed={isCollapsed} onCollapsePress={() => setCollapsed(!isCollapsed)} />
+        <FancyDrawerItemHeader
+          {...props}
+          isCollapsed={isCollapsed}
+          onCollapsePress={() => setCollapsed(!isCollapsed)}
+        />
       </View>
       {props.items && props.items.length > 0 && !isCollapsed && (
         <View style={styles.childrenContainer}>
           {props.items?.map((item, index) => (
-            <FancyDrawerItem key={index} {...item} />
+            <TouchableOpacity key={index} onPress={() => handleOnItemPress(item)}>
+              <FancyDrawerItem {...item} />
+            </TouchableOpacity>
           ))}
         </View>
       )}

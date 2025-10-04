@@ -9,8 +9,24 @@ export default function MinisterioTemplateEquipeLayout() {
         header: props => <FancyHeader {...props} />,
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Templates de Equipe', headerRight: () => <MainHeaderButtons /> }} />
-      <Stack.Screen name="form" options={{ header: props => <FancyHeader leftButton="back" {...props} /> }} />
+      <Stack.Screen
+        name="index"
+        options={{ title: 'Templates de Equipe', headerRight: () => <MainHeaderButtons /> }}
+      />
+      <Stack.Screen
+        name="add"
+        options={{
+          header: props => <FancyHeader leftButton="back" {...props} />,
+          title: 'Novo Template',
+        }}
+      />
+      <Stack.Screen
+        name="edit"
+        options={{
+          header: props => <FancyHeader leftButton="back" {...props} />,
+          title: 'Editar Template',
+        }}
+      />
     </Stack>
   );
 }

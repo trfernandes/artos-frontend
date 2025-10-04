@@ -1,0 +1,81 @@
+import z from 'zod';
+import { EscalaTemplateExperienciaEnum, EscalaTemplateTipoEnum } from '../models/EscalaTemplate';
+
+const UUID_REGEX =
+  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+
+export const escalaTemplateTipoSchema = z.union(
+  [z.literal(EscalaTemplateTipoEnum.Fixo), z.literal(EscalaTemplateTipoEnum.Funcoes)],
+  { message: 'Selecione um tipo válido' }
+);
+
+export const escalaTemplateExperienciaSchema = z.union(
+  [
+    z.literal(EscalaTemplateExperienciaEnum.Iniciante),
+    z.literal(EscalaTemplateExperienciaEnum.Intermediario),
+    z.literal(EscalaTemplateExperienciaEnum.Avancado),
+  ],
+  { message: 'Selecione um nível de experiência válido' }
+);
+
+const uuidField = z.string().regex(UUID_REGEX, { message: 'Identificador inválido' });
+
+export const escalaTemplateVoluntarioSchema = z.object({
+  id: uuidField.optional(),
+  voluntarioId: z.uuid({ error: 'Campo obrigatório' }),
+  funcaoId: z.uuid({ error: 'Campo obrigatório' }),
+});
+
+export const escalaTemplateFuncaoSchema = z.object({
+  id: uuidField.optional(),
+  funcaoId: z.uuid({ error: 'Campo obrigatório' }),
+  experiencia: escalaTemplateExperienciaSchema,
+  quantidade: z.coerce
+    .number<number>('Campo obrigatório')
+    .min(1, { message: 'A quantidade deve ser no mínimo 1' }),
+});
+
+export const escalaTemplateSchema = z
+  .object({
+    id: uuidField.optional(),
+    ministerioId: z.uuid({ error: 'Campo obrigatório' }),
+    nome: z
+      .string({ message: 'Nome obrigatório' })
+      .trim()
+      .min(1, { message: 'Nome obrigatório' })
+      .max(100, { message: 'O nome deve ter no máximo 100 caracteres' }),
+    tipo: escalaTemplateTipoSchema,
+    voluntarios: z.array(escalaTemplateVoluntarioSchema).optional(),
+    funcoes: z.array(escalaTemplateFuncaoSchema).optional(),
+    respSetListVoluntariosId: z.uuid().optional(),
+    respSetListFuncoesId: z.uuid().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.tipo === EscalaTemplateTipoEnum.Funcoes) {
+      const funcoes = data.funcoes ?? [];
+
+      if (funcoes.length === 0) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['funcoes'],
+          message: 'Adicione pelo menos uma função para templates por funções',
+        });
+      }
+
+      const seenFuncoes = new Set<string>();
+      funcoes.forEach((item, index) => {
+        if (seenFuncoes.has(item.funcaoId)) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['funcoes', index, 'funcaoId'],
+            message: 'Essa função já foi adicionada ao template',
+          });
+        }
+        seenFuncoes.add(item.funcaoId);
+      });
+    }
+  });
+
+export type EscalaTemplateFormData = z.infer<typeof escalaTemplateSchema>;
+export type EscalaTemplateVoluntarioFormData = z.infer<typeof escalaTemplateVoluntarioSchema>;
+export type EscalaTemplateFuncaoFormData = z.infer<typeof escalaTemplateFuncaoSchema>;

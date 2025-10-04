@@ -9,10 +9,6 @@ export type FancyModalProps = {
 };
 
 export default function FancyModal({ modalProps, center, top, bottom, ...props }: FancyModalProps) {
-  // const ref = useClickOutside<View>(() => {
-  //   modalProps?.onRequestClose?.({} as unknown as NativeSyntheticEvent<any>);
-  // });
-
   return (
     <Modal animationType="fade" transparent {...modalProps}>
       <View style={[styles.centeredView, modalProps?.style]}>

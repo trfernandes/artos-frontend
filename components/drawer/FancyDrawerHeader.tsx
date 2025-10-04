@@ -5,13 +5,37 @@ import { Pallete } from '../../constants/colors';
 import { useAuth } from '../../contexts/AuthContext';
 import DefaultIcons from '../FancyIcons';
 import { router } from 'expo-router';
-import { calculateProfileCompletion } from '../../domain/models/Voluntario';
 import FancyImage from '../images/FancyImage';
+import { useVoluntariosCrud } from '../../hooks/useVoluntariosCrud';
+import { Operator, ValueType } from '../../domain/utils/query_utils';
+import { useMemo } from 'react';
+import { calculateProfileCompletion } from '../../domain/models/Voluntario';
 
 export default function FancyDrawerHeader() {
   const auth = useAuth();
 
-  const profileCompletion = calculateProfileCompletion(auth.user!);
+  const params = useMemo(() => {
+    if (!auth.user?.id) return undefined;
+
+    return {
+      where: {
+        conditions: [
+          {
+            path: 'id',
+            operator: Operator.EQUALS,
+            value: { type: ValueType.LITERAL as const, value: auth.user.id },
+          },
+        ],
+      },
+    };
+  }, [auth.user?.id]);
+
+  const { data } = useVoluntariosCrud({
+    initialParams: params,
+    autoFetch: true,
+  });
+
+  const profileCompletion = data && data.length > 0 ? calculateProfileCompletion(data?.[0]) : 0;
 
   return (
     <LinearGradient colors={['#3B82F6', '#234C90']} start={{ x: 0, y: 0 }} end={{ x: 0.9, y: 1 }} style={styles.container}>

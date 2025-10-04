@@ -1,15 +1,35 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import apiClient from '../domain/api/api-client';
+import { VoluntarioPapelEnum } from '../domain/models/Voluntario';
+import { HierarquiaEnum } from '../domain/models/MinisterioVoluntario';
+import { MinisterioTipoEnum } from '../domain/models/Ministerio';
+
+export interface UserMinisterio {
+  id: string;
+  nome: string;
+  logo?: string;
+  tipo: MinisterioTipoEnum,
+  hierarquia?: HierarquiaEnum;
+}
+
+export interface UserLoginData {
+  id: string;
+  nome: string;
+  foto?: string;
+  email: string;
+  papel: VoluntarioPapelEnum;
+  ministerios: UserMinisterio[];
+}
 
 interface AuthContextData {
-  user: any;
+  user: UserLoginData | null;
   token: string | null;
   loading: boolean;
   signIn: (email: string, senha: string) => Promise<void>;
   signOut: () => Promise<void>;
   forgotPassword: (email: string) => Promise<boolean>;
-  updateUser: (newUserData: any) => Promise<void>;
+  updateUser: (newUserData: Partial<UserLoginData>) => Promise<void>;
   changePassword: (senhaAtual: string, novaSenha: string) => Promise<boolean>;
   deleteAccount: () => Promise<boolean>;
 }
@@ -17,7 +37,7 @@ interface AuthContextData {
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<UserLoginData | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -36,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(JSON.parse(storedUser));
         }
       } catch (error) {
-        console.error('Erro ao carregar storage:', error);
+        console.log('Erro ao carregar storage:', error);
       } finally {
         setLoading(false);
       }

@@ -13,7 +13,7 @@ export default function FancyScreenErrorHandler({
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError;
 
-    console.error(
+    console.log(
       'Erro ao carregar ministerios\n',
       strfyObj({
         isAxiosError: true,
@@ -28,6 +28,6 @@ export default function FancyScreenErrorHandler({
       return <FancyError.Connection onUpdate={onTryAgrainPress} />;
     }
   } else {
-    console.error('Erro ao carregar ministerios', error);
+    console.log('Erro ao carregar ministerios', error);
   }
 }

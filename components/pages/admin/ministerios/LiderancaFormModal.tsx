@@ -1,7 +1,7 @@
 import FancyModalDialog from '../../../modal/FancyModalDialog';
 import { UseFormReturn } from 'react-hook-form';
 import { HierarquiaEnum, HierarquiaEnumLabel, HierarquiaEnumMap } from '../../../../domain/models/MinisterioVoluntario';
-import ControlledFancyDropDown from '../../../forms/ControlledFancyDropDown';
+import ControlledDropDown from '../../../forms/ControlledDropDown';
 import { BaseLiderancaFormData } from './LiderancaTab';
 import { ZodObject } from 'zod';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
@@ -36,7 +36,7 @@ export default function LiderancaFormModal<Schema extends ZodObject>({
       onClose={onClose}
       onConfirm={handleSubmit}
     >
-      <ControlledFancyDropDown
+      <ControlledDropDown
         control={form.control}
         name="voluntarioId"
         label="Voluntário"
@@ -53,7 +53,7 @@ export default function LiderancaFormModal<Schema extends ZodObject>({
           await form.trigger('voluntarioId');
         }}
       />
-      <ControlledFancyDropDown
+      <ControlledDropDown
         control={form.control}
         name="hierarquia"
         label="Função"

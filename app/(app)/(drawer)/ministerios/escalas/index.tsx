@@ -9,7 +9,7 @@ import EventosListView from '../../../../../components/pages/admin/eventos/Event
 import FancyBasePage from '../../../../../components/pages/base/FancyBasePage';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
-import { useEventos } from '../../../../../hooks/useEventos';
+import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
 
 export default function MinisterioEscalasIndex() {
   const navigation = useNavigation();
@@ -37,7 +37,7 @@ export default function MinisterioEscalasIndex() {
     setSearchParams,
     remove,
     isLoadingMutation: isLoadingRemove,
-  } = useEventos({ autoFetch: false, initialParams: {} });
+  } = useEventosCrud({ autoFetch: false, initialParams: {} });
 
   if (isLoading) {
     return <FancyLoading label="Carregando..." />;

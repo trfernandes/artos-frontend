@@ -64,6 +64,8 @@ export default function FancyButton({
   const adjustsFontSizeToFit = providedAdjustsFontSizeToFit ?? true;
   const minimumFontScale = providedMinimumFontScale ?? 0.85;
 
+  const dimensionStyle = mode === 'icon' ? { width: minWidth, height } : { minWidth, height };
+
   return (
     <TouchableOpacity
       disabled={disabled}
@@ -72,7 +74,7 @@ export default function FancyButton({
         iconPosition === 'left' ? { flexDirection: 'row' } : { flexDirection: 'row-reverse' },
         mode === 'icon' && baseStyles.mode_icon,
         disabled ? parameters.disabledContainerStyle : parameters.containerStyle,
-        { minWidth, height },
+        dimensionStyle,
         props.containerStyle,
       ]}
       activeOpacity={disabled ? 1 : 0.7}
@@ -126,5 +128,5 @@ const baseStyles = StyleSheet.create({
     gap: 10,
     paddingHorizontal: 12,
   },
-  mode_icon: { maxWidth: 45, minWidth: 45 },
+  mode_icon: { paddingHorizontal: 0 },
 });

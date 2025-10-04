@@ -7,7 +7,7 @@ import { DefaultIconsNames } from '../../../../constants/icons';
 import EventoRepeticaoInputCustom from './EventoRepeticaoInputCustom';
 import FancySettingItem from '../../../FancySettingItem';
 import { Controller, useFormContext } from 'react-hook-form';
-import { EventoFormData } from '../../../../hooks/useEventos';
+import { EventoFormData } from '../../../../hooks/useEventosCrud';
 import { RecorrenciaEnum } from '../../../../domain/models/Evento';
 import FancyErrorText from '../../../forms/FancyErrorText';
 

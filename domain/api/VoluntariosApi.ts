@@ -37,7 +37,7 @@ class VoluntariosApiClass extends BaseApi<Voluntario> {
 
       return response.data.data;
     } catch (error) {
-      console.error(`Erro ao atualizar ${'voluntarios'} ${id}:`, error);
+      console.log(`Erro ao atualizar ${'voluntarios'} ${id}:`, error);
       throw error;
     }
   }

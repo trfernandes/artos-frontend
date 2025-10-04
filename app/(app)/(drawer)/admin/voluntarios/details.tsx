@@ -4,7 +4,7 @@ import VoluntarioDadosTab from '../../../../../components/pages/admin/voluntario
 import FancyTabs, { TabItem } from '../../../../../components/tabs/FancyTabs';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { useLocalSearchParams } from 'expo-router/build/hooks';
-import { useVoluntarios } from '../../../../../hooks/useVoluntarios';
+import { useVoluntariosCrud } from '../../../../../hooks/useVoluntariosCrud';
 import { useEffect } from 'react';
 import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import VoluntarioMinisterioTab from '../../../../../components/pages/admin/voluntarios/MinisterioTab';
@@ -14,7 +14,7 @@ export default function VoluntariosDetailsPage() {
     id: string;
   }>();
 
-  const { data, setSearchParams } = useVoluntarios();
+  const { data, setSearchParams } = useVoluntariosCrud();
 
   useEffect(() => {
     setSearchParams({

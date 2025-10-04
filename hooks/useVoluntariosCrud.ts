@@ -1,12 +1,7 @@
-import { useCrudForm } from './useCrudForm';
-import { DynamicQuery, Operator, ValueType } from '../domain/utils/query_utils';
+import { useCrud, UseCrudOptions } from './useCrud';
+import { Operator, ValueType } from '../domain/utils/query_utils';
 import { VoluntariosRepository } from '../domain/services/VoluntariosRepository';
 import { z } from 'zod';
-
-interface UseVoluntariosOptions {
-  autoFetch?: boolean;
-  initialParams?: DynamicQuery | string;
-}
 
 export const createAccountSchema = z
   .object({
@@ -47,12 +42,14 @@ export const updateProfileSchema = z.object({
   endereco: z.string().nullish(),
   telefone: z.string().nullish(),
   sexo: z.enum(['M', 'F']),
-  foto: z.string().nullable().optional(),
-  uploadFoto: z.string().nullable().optional(),
+  foto: z.string().optional(),
+  uploadFoto: z.string().optional(),
 });
 
-export function useVoluntarios(options?: UseVoluntariosOptions) {
-  return useCrudForm({
+export function useVoluntariosCrud(
+  options?: Pick<UseCrudOptions<any, any>, 'autoFetch' | 'initialParams' | 'messages'>
+) {
+  return useCrud({
     queryKey: 'voluntarios',
     autoFetch: options?.autoFetch ?? true,
     initialParams: options?.initialParams,

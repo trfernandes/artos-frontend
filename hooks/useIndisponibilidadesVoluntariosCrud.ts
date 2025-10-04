@@ -1,10 +1,10 @@
 import { IndisponibilidadesVoluntarioRepository } from '../domain/services/IndisponibilidadesVoluntariosRepository';
-import { useCrudForm, UseCrudFormOptions } from './useCrudForm';
+import { useCrud, UseCrudOptions } from './useCrud';
 
-export function useIndisponibilidadesVoluntariosForm(
-  props: Pick<UseCrudFormOptions<any, any>, 'autoFetch' | 'initialParams'> = {}
+export function useIndisponibilidadesVoluntariosCrud(
+  props: Pick<UseCrudOptions<any, any>, 'autoFetch' | 'initialParams'> = {}
 ) {
-  return useCrudForm({
+  return useCrud({
     ...props,
     queryKey: 'indisponibilidades-voluntarios',
     autoFetch: props.autoFetch || false,

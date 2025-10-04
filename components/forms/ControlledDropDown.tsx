@@ -4,28 +4,36 @@ import FancyDropDown, { FancyDropDownProps } from '../fields/FancyDropDown';
 import { View } from 'react-native';
 
 interface ControlledFancyDropDownProps<TFormValues extends FieldValues, TName extends Path<TFormValues>>
-  extends Pick<FancyDropDownProps<PathValue<TFormValues, TName>>, 'listItems' | 'label' | 'onChange' | 'disabled'> {
+  extends Pick<
+    FancyDropDownProps<PathValue<TFormValues, TName>>,
+    'listItems' | 'label' | 'onChange' | 'disabled' | 'showSelectedImage'
+  > {
   control: Control<TFormValues>;
   name: TName;
 }
 
-export default function ControlledFancyDropDown<
-  TFormValues extends FieldValues,
-  TName extends Path<TFormValues>
->({ control, name, ...rest }: ControlledFancyDropDownProps<TFormValues, TName>) {
+export default function ControlledDropDown<TFormValues extends FieldValues, TName extends Path<TFormValues>>({
+  control,
+  name,
+  ...rest
+}: ControlledFancyDropDownProps<TFormValues, TName>) {
+  const { listItems, onChange: externalOnChange, ...dropDownProps } = rest;
   return (
     <Controller
       control={control}
       name={name}
       render={({ field: { onChange, onBlur, value, disabled }, fieldState: { error } }) => (
         <View style={{ gap: 5 }}>
-          <FancyDropDown
-            listItems={rest.listItems}
+          <FancyDropDown<PathValue<TFormValues, TName>>
+            listItems={listItems}
             value={value as PathValue<TFormValues, TName>}
             onBlur={onBlur}
-            onChange={onChange}
+            onChange={selectedValue => {
+              onChange(selectedValue);
+              externalOnChange?.(selectedValue);
+            }}
             disabled={disabled}
-            {...rest}
+            {...dropDownProps}
           />
           {error && <FancyErrorText message={error.message!} />}
         </View>

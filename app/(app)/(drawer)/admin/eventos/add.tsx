@@ -3,7 +3,7 @@ import FancyPageView from '../../../../../components/containers/FancyPageView';
 import FancyButton from '../../../../../components/buttons/FancyButton';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { FormProvider, useForm } from 'react-hook-form';
-import { eventoSchema, useEventos } from '../../../../../hooks/useEventos';
+import { eventoSchema, useEventosCrud } from '../../../../../hooks/useEventosCrud';
 import { zodResolver } from '@hookform/resolvers/zod';
 import EventosDadosForm from '../../../../../components/pages/admin/eventos/EventosDadosForm';
 import { Evento, RecorrenciaEnum } from '../../../../../domain/models/Evento';
@@ -42,7 +42,7 @@ export default function EventosAddPage() {
     },
   });
 
-  const { add, isError, isLoading } = useEventos();
+  const { add, isError, isLoading } = useEventosCrud();
 
   const handleSubmit = async () => {
     console.log('Submitting form...', strfyObj(form.getValues()));

@@ -1,84 +1,136 @@
-import { View } from 'react-native';
-import { PEOPLE_DATA } from '../../../../../components/pages/admin/eventos/EventosEscalaEquipe';
-import { useState } from 'react';
-import AdicionarModal from '../../../../../components/pages/ministerios/integrantes/AdicionarModal';
+import { useCallback, useMemo, useState } from 'react';
+import AddIntegranteModal from '../../../../../components/pages/ministerios/integrantes/AddIntegranteModal';
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
 import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
-import DefaultIcons from '../../../../../components/FancyIcons';
-import FancyText from '../../../../../components/FancyText';
 import { Pallete } from '../../../../../constants/colors';
 import { DefaultIconsNames } from '../../../../../constants/icons';
+import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
+import { useLocalSearchParams } from 'expo-router';
+import {
+  Condition,
+  DynamicQuery,
+  Operator,
+  OrderDirection,
+  ValueType,
+} from '../../../../../domain/utils/query_utils';
+import { HierarquiaEnum } from '../../../../../domain/models/MinisterioVoluntario';
+import { FancyAlert } from '../../../../../components/modal/FancyAlert';
+import FancyLoading from '../../../../../components/FancyLoading';
+import { Voluntario } from '../../../../../domain/models/Voluntario';
 
 export default function MinisterioIntegrantesIndex() {
   const [addModalVisible, setAddModalVisible] = useState(false);
+
+  const { ministerioId } = useLocalSearchParams<{ ministerioId: string }>();
+
+  const [searchText, setSearchText] = useState('');
+
+  const params = useMemo(() => {
+    if (!ministerioId) return undefined;
+
+    const searchCondition: Condition | undefined =
+      searchText && searchText.trim() !== ''
+        ? {
+            path: 'voluntario.nome',
+            operator: Operator.ILIKE,
+            value: { type: ValueType.LITERAL, value: searchText },
+          }
+        : undefined;
+
+    return {
+      where: {
+        conditions: [
+          {
+            path: 'ministerio.id',
+            operator: Operator.EQUALS,
+            value: { type: ValueType.LITERAL as const, value: ministerioId },
+          },
+          {
+            path: 'hierarquia',
+            operator: Operator.EQUALS,
+            value: { type: ValueType.LITERAL, value: HierarquiaEnum.Voluntario },
+          },
+          ...(searchCondition ? [searchCondition] : []),
+        ],
+      },
+      relations: ['voluntario', 'ministerio'],
+      orderBy: [{ path: 'voluntario.nome', direction: OrderDirection.ASC }],
+    } as DynamicQuery;
+  }, [ministerioId, searchText]);
+
+  const {
+    data: integrantesData,
+    add: addIntegrante,
+    remove: removeIntegrante,
+    isLoading,
+    isLoadingMutation,
+  } = useMinisterioVoluntariosCrud({
+    autoFetch: true,
+    initialParams: params,
+  });
+
+  const handleConfirm = useCallback((data: Voluntario) => {
+    addIntegrante({
+      voluntarioId: data.id!,
+      ministerioId: ministerioId!,
+      hierarquia: HierarquiaEnum.Voluntario,
+    });
+    setAddModalVisible(false);
+  }, []);
+
+  if (isLoading || isLoadingMutation) return <FancyLoading />;
+
   return (
     <FancyListPage
+      showFab
+      fabProps={{ onPress: () => setAddModalVisible(true) }}
+      showSearchBar
+      searchBarProps={{
+        value: searchText,
+        onSearch: text => setSearchText(text.trim()),
+      }}
       listProps={{
-        data: PEOPLE_DATA,
-        renderItem: ({ item }) =>
-          item.type === 'escalado' ? (
-            <FancyCard.Image
-              type="image"
-              props={{
-                title: item.nome,
-                subtitle: `email@email.com`,
-                additionalData1: (
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 6,
-                      borderWidth: 0,
-                      paddingTop: 2,
-                    }}
-                  >
-                    <DefaultIcons.Custom
-                      library={'Octicons'}
-                      name={'dot-fill'}
-                      // color={item.status === 'ativo' ? 'forestgreen' : 'indianred'}
-                      color={'forestgreen'}
-                      size={12}
-                      style={{
-                        borderWidth: 0,
-                        height: 11,
-                        justifyContent: 'flex-start',
-                        lineHeight: 10.5,
-                      }}
-                    />
-                    <FancyText
-                      size={'extraSmall'}
-                      type="semiBold"
-                      color={Pallete.fonts.inactive}
-                      style={{ lineHeight: 10, borderWidth: 0, height: 11 }}
-                    >
-                      {/* {item.status === 'ativo' ? 'Ativo' : 'Inativo'} */}
-                      Ativo
-                    </FancyText>
-                  </View>
-                ),
-                source: item.image!,
-                actionButtons: [
-                  {
-                    icon: { ...DefaultIconsNames.edit, size: 18 },
-                    onPress: () => setAddModalVisible(true),
+        data: integrantesData,
+        renderItem: ({ item }) => (
+          <FancyCard.Image
+            type="image"
+            props={{
+              title: item.voluntario?.nome,
+              subtitle: item.voluntario?.email,
+              source:
+                item.voluntario?.foto ?? require('../../../../../assets/images/empty_profile_image.png'),
+              actionButtons: [
+                {
+                  icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error },
+                  onPress: () => {
+                    FancyAlert.alert(
+                      'Confirmação',
+                      `Deseja remover "${item.voluntario?.nome}" do ministério?`,
+                      [
+                        { text: 'Cancelar', style: 'default' },
+                        {
+                          text: 'Remover',
+                          style: 'destructive',
+                          onPress: async () => {
+                            await removeIntegrante(item.id!);
+                          },
+                        },
+                      ]
+                    );
                   },
-                  {
-                    icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error },
-                    onPress: () => {},
-                  },
-                ],
-              }}
-            />
-          ) : null,
+                },
+              ],
+            }}
+          />
+        ),
       }}
     >
       {addModalVisible && (
-        <AdicionarModal
+        <AddIntegranteModal
           title="Novo Integrante"
-          voluntarioList={PEOPLE_DATA.map(item => ({ foto: item.image, nome: item.nome }))}
-          modalProps={{ visible: addModalVisible }}
+          ministerioId={ministerioId}
           onClose={() => setAddModalVisible(false)}
-          onConfirm={() => setAddModalVisible(false)}
+          onConfirm={data => data && handleConfirm(data!)}
         />
       )}
     </FancyListPage>

@@ -15,7 +15,10 @@ export interface FancyContainerListProps<ItemT>
   showDivider?: boolean;
 }
 
-export default function FancyContainerList<ItemT>({ showDivider = false, ...props }: FancyContainerListProps<ItemT>) {
+export default function FancyContainerList<ItemT>({
+  showDivider = false,
+  ...props
+}: FancyContainerListProps<ItemT>) {
   return (
     <View style={[styles.container, props.containerStyle]}>
       <View style={styles.headerContainer}>
@@ -46,7 +49,9 @@ export default function FancyContainerList<ItemT>({ showDivider = false, ...prop
         <FancyList<ItemT>
           {...props}
           contentContainerStyle={[styles.listContentStyle, props.contentContainerStyle]}
-          ItemSeparatorComponent={() => showDivider && <FancySeparator style={{ marginTop: 10, borderWidth: 0 }} />}
+          ItemSeparatorComponent={() =>
+            showDivider && <FancySeparator style={{ marginTop: 10, borderWidth: 0 }} />
+          }
           containerStyle={[styles.listContainerStyle, props.containerStyle]}
         />
       </View>

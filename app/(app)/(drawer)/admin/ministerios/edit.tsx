@@ -8,147 +8,200 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { MinisterioFormData, ministerioSchema } from './add';
 import { router, useLocalSearchParams } from 'expo-router';
 import DadosTab from '../../../../../components/pages/admin/ministerios/DadosTab';
-import LiderancaTab, { baseLiderSchema } from '../../../../../components/pages/admin/ministerios/LiderancaTab';
-import { useEffect, useState } from 'react';
+import LiderancaTab, {
+  baseLiderSchema,
+} from '../../../../../components/pages/admin/ministerios/LiderancaTab';
+import { useEffect, useMemo, useCallback, useState } from 'react';
 import { strfyObj } from '../../../../../utils/text_utils';
 import { MinisterioStatusEnumMap, MinisterioTipoEnumMap } from '../../../../../domain/models/Ministerio';
-import { MinisterioVoluntario } from '../../../../../domain/models/MinisterioVoluntario';
+import { HierarquiaEnum, MinisterioVoluntario } from '../../../../../domain/models/MinisterioVoluntario';
 import FancyLoading from '../../../../../components/FancyLoading';
 import z from 'zod';
-import { useMinisterioVoluntarios } from '../../../../../hooks/useMinisterioVoluntarios';
-import { useMinisterios } from '../../../../../hooks/useMinisterios';
-import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
+import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
+import { useMinisteriosCrud } from '../../../../../hooks/useMinisteriosCrud';
+import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
+import { useAuth, UserMinisterio } from '../../../../../contexts/AuthContext';
 
 export const editLiderSchema = baseLiderSchema.extend({
   voluntarioId: z.uuidv4().optional(),
 });
 
 export default function MinisteriosEditPage() {
+  const params = useLocalSearchParams<{ id: string }>();
+
+  const ministerioSearchParams = useMemo<DynamicQuery>(
+    () => ({
+      where: {
+        conditions: [
+          {
+            path: 'id',
+            operator: Operator.EQUALS,
+            value: { type: ValueType.LITERAL, value: params.id },
+          },
+        ],
+      },
+      relations: ['voluntarios', 'voluntarios.voluntario'],
+    }),
+    [params.id]
+  );
+
   const {
     data: ministeriosData,
-    setSearchParams,
     isLoading: loadingMinisterio,
     update: updateMinisterio,
-  } = useMinisterios();
+  } = useMinisteriosCrud({ initialParams: ministerioSearchParams });
 
   const {
     add: addVoluntario,
     update: updateVoluntario,
     remove: removeVoluntario,
     isLoading: loadingVoluntarios,
-  } = useMinisterioVoluntarios();
+  } = useMinisterioVoluntariosCrud({ autoFetch: false });
 
-  const params = useLocalSearchParams<{ id: string }>();
+  const { user, updateUser } = useAuth();
+
   const [tabIndex, setTabIndex] = useState(0);
 
   const form = useForm<MinisterioFormData>({
     resolver: zodResolver(ministerioSchema),
   });
 
+  // ✅ Usa reset em vez de vários setValue
   useEffect(() => {
-    if (params.id) {
-      setSearchParams({
-        where: {
-          conditions: [{ path: 'id', operator: Operator.EQUALS, value: { type: ValueType.LITERAL, value: params.id } }],
-        },
-        relations: ['voluntarios', 'voluntarios.voluntario'],
+    if (!ministeriosData?.[0]) return;
+    const m = ministeriosData[0];
+
+    form.reset({
+      id: m.id!,
+      nome: m.nome!,
+      descricao: m.descricao ?? '',
+      logo: m.logo ?? '',
+      uploadLogo: m.logo ?? '',
+      tipo: MinisterioTipoEnumMap[m.tipo!],
+      status: MinisterioStatusEnumMap[m.status!],
+      voluntarios: (m.voluntarios ?? [])
+        .filter(v => v.voluntario && typeof v.voluntario.id === 'string')
+        .map(v => ({
+          id: v.id,
+          voluntarioId: v.voluntario?.id || v.voluntarioId,
+          voluntarioNome: v.voluntario?.nome!,
+          hierarquia: v.hierarquia,
+          foto: v.voluntario?.foto,
+        })),
+    });
+  }, [ministeriosData, form]);
+
+  if (loadingMinisterio || loadingVoluntarios) {
+    return <FancyLoading label="Processando..." />;
+  }
+
+  // ✅ Handlers estáveis
+  const handleAddLider = useCallback(
+    (data: { hierarquia: HierarquiaEnum; voluntarioId: string }) => {
+      addVoluntario({
+        hierarquia: data.hierarquia,
+        voluntarioId: data.voluntarioId,
+        ministerioId: params.id!,
       });
-    }
-  }, []);
+    },
+    [addVoluntario, params.id]
+  );
 
-  useEffect(() => {
-    if (ministeriosData && ministeriosData.length > 0) {
-      form.setValue('id', ministeriosData[0]?.id!);
-      form.setValue('nome', ministeriosData[0]?.nome!);
-      form.setValue('descricao', ministeriosData[0]?.descricao!);
-      form.setValue('logo', ministeriosData[0]?.logo || '');
-      form.setValue('uploadLogo', ministeriosData[0]?.logo || '');
-      form.setValue('tipo', MinisterioTipoEnumMap[ministeriosData[0]?.tipo!]);
-      if (ministeriosData[0]?.voluntarios && ministeriosData[0]?.voluntarios.length > 0) {
-        const formVoluntarios = (ministeriosData[0]?.voluntarios ?? [])
-          .filter(voluntario => voluntario.voluntario && typeof voluntario.voluntario.id === 'string')
-          .map(voluntario => ({
-            id: voluntario.id,
-            voluntarioId: voluntario.voluntario?.id || voluntario.voluntarioId,
-            voluntarioNome: voluntario.voluntario?.nome!,
-            hierarquia: voluntario.hierarquia,
-            foto: voluntario.voluntario?.foto,
-          }));
-        form.setValue('voluntarios', formVoluntarios);
-      }
-      form.setValue('status', MinisterioStatusEnumMap[ministeriosData[0]?.status!]);
-    }
-  }, [ministeriosData]);
+  const handleEditLider = useCallback(
+    (data: any) => {
+      updateVoluntario({
+        id: data.id!,
+        data: {
+          hierarquia: data.hierarquia,
+          voluntarioId: data.voluntarioId,
+          ministerioId: params.id!,
+        },
+      });
+    },
+    [updateVoluntario, params.id]
+  );
 
-  const tabsConfig: TabItem[] = [
-    {
-      title: 'Dados',
-      icon: {
-        library: DefaultIconsNames.info.library,
-        name: DefaultIconsNames.info.name,
-        size: 16,
+  const handleDeleteLider = useCallback(
+    (id: string) => {
+      removeVoluntario(id);
+    },
+    [removeVoluntario]
+  );
+
+  // ✅ Tabs memoizadas corretamente
+  const tabsConfig: TabItem[] = useMemo(
+    () => [
+      {
+        title: 'Dados',
+        icon: {
+          library: DefaultIconsNames.info.library,
+          name: DefaultIconsNames.info.name,
+          size: 16,
+        },
+        content: <DadosTab mode="edit" id={params.id} />,
       },
-      content: <DadosTab mode={'edit'} id={params.id} />,
-    },
-    {
-      title: 'Liderança',
-      icon: { library: 'Octicons', name: 'id-badge', size: 14 },
-      content: (
-        <LiderancaTab
-          validationSchema={editLiderSchema}
-          options={{ mode: 'edit', id: params.id }}
-          onAddLider={data => {
-            addVoluntario({ hierarquia: data.hierarquia, voluntarioId: data.voluntarioId, ministerioId: params?.id! });
-          }}
-          onEditLider={data => {
-            updateVoluntario({
-              id: data.id!,
-              data: { hierarquia: data.hierarquia, voluntarioId: data.voluntarioId, ministerioId: params?.id! },
-            });
-          }}
-          onDeleteLider={id => {
-            removeVoluntario(id);
-          }}
-        />
-      ),
-    },
-    // {
-    //   title: 'Permissões',
-    //   icon: { library: 'MaterialCommunityIcons', name: 'security', size: 14 },
-    //   content: <PermissoesTab />,
-    // },
-  ];
+      {
+        title: 'Liderança',
+        icon: { library: 'Octicons', name: 'id-badge', size: 14 },
+        content: (
+          <LiderancaTab
+            validationSchema={editLiderSchema}
+            options={{ mode: 'edit', id: params.id }}
+            onAddLider={handleAddLider}
+            onEditLider={handleEditLider}
+            onDeleteLider={handleDeleteLider}
+          />
+        ),
+      },
+    ],
+    [params.id, handleAddLider, handleEditLider, handleDeleteLider]
+  );
 
-  const handleSubmit = () => {
+  // ✅ Submit estável
+  const handleSubmit = useCallback(() => {
     form.handleSubmit(
-      data => {
-        console.log('HandleSubmit --- Data', strfyObj(data));
-        updateMinisterio({
+      async data => {
+        const editedMinisterio = await updateMinisterio({
           id: params.id,
           data: {
             ...data,
             descricao: data.descricao === null ? undefined : data.descricao,
             logo: data.logo === null ? undefined : data.logo,
             voluntarios: data.voluntarios.map(
-              voluntario =>
+              v =>
                 ({
-                  id: voluntario.id,
-                  voluntario: { id: voluntario.voluntarioId },
-                  hierarquia: voluntario.hierarquia,
+                  id: v.id,
+                  voluntario: { id: v.voluntarioId },
+                  hierarquia: v.hierarquia,
                 } as MinisterioVoluntario)
             ),
           },
         });
+
+        const ministeriosExistentes = user?.ministerios || [];
+
+        const novoMinisterio: UserMinisterio = {
+          id: editedMinisterio.id!,
+          nome: editedMinisterio.nome,
+          logo: editedMinisterio.logo,
+          tipo: editedMinisterio.tipo,
+          hierarquia: editedMinisterio.voluntarios?.find(v => v.voluntario?.id === user?.id)?.hierarquia,
+        };
+
+        // Atualiza se já existe, senão adiciona
+        const ministeriosAtualizados = [
+          ...ministeriosExistentes.filter(m => m.id !== novoMinisterio.id),
+          novoMinisterio,
+        ];
+
+        updateUser({ ...user, ministerios: ministeriosAtualizados });
+
         form.reset();
         router.back();
       },
       errors => console.log('HandleSubmit Errors', strfyObj(errors))
     )();
-  };
-
-  if (loadingMinisterio || loadingVoluntarios) {
-    return <FancyLoading label="Processando..." />;
-  }
+  }, [form, params.id, updateMinisterio, user, updateUser]);
 
   return (
     <FancyPageView style={styles.container}>
@@ -160,6 +213,7 @@ export default function MinisteriosEditPage() {
           contentContainerStyle={styles.tabContent}
         />
       </FormProvider>
+
       {tabIndex === 0 && (
         <View style={styles.buttonsContainer}>
           <FancyButton

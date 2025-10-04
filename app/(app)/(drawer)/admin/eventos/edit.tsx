@@ -5,7 +5,7 @@ import FancyPageView from '../../../../../components/containers/FancyPageView';
 import FancyButton from '../../../../../components/buttons/FancyButton';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormProvider, useForm } from 'react-hook-form';
-import { EventoFormData, eventoSchema, useEventos } from '../../../../../hooks/useEventos';
+import { EventoFormData, eventoSchema, useEventosCrud } from '../../../../../hooks/useEventosCrud';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
@@ -18,7 +18,7 @@ export default function EventosEditPage() {
     isLoading: isLoadingEvento,
     isLoadingMutation: isLoadingEventoMutation,
     update: updateEvento,
-  } = useEventos({
+  } = useEventosCrud({
     autoFetch: true,
     initialParams: {
       where: {

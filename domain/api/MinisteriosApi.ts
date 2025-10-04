@@ -54,7 +54,7 @@ class MinisteriosApiClass extends BaseApi<Ministerio> {
 
       return response.data.data;
     } catch (error) {
-      console.error(`Erro ao atualizar ${'ministerios'}: `, error);
+      console.log(`Erro ao atualizar ${'ministerios'}: `, error);
       throw error;
     }
   }
@@ -89,7 +89,7 @@ class MinisteriosApiClass extends BaseApi<Ministerio> {
 
       return response.data.data;
     } catch (error) {
-      console.error(`Erro ao atualizar ${'ministerios'} ${id}:`, error);
+      console.log(`Erro ao atualizar ${'ministerios'} ${id}:`, error);
       throw error;
     }
   }

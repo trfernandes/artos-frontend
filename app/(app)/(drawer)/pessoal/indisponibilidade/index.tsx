@@ -4,7 +4,7 @@ import FancyPageView from '../../../../../components/containers/FancyPageView';
 import FancyText from '../../../../../components/FancyText';
 import FancyCalendarVertical from '../../../../../components/calendar/FancyCalendarVertical';
 import DateAvailabilityAdjustmentModal from '../../../../../components/pages/pessoal/indisponibilidade/DateAvailabilityAdjustmentModal';
-import { useIndisponibilidadesVoluntariosForm } from '../../../../../hooks/useIndisponibilidadesVoluntariosForm';
+import { useIndisponibilidadesVoluntariosCrud } from '../../../../../hooks/useIndisponibilidadesVoluntariosCrud';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { Conjunction, Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import { IndisponibilidadeVoluntario } from '../../../../../domain/models/IndisponibilidadeVoluntario';
@@ -15,7 +15,12 @@ import FancyFab from '../../../../../components/buttons/FancyFab';
 import AddPeriodoModal from '../../../../../components/pages/pessoal/indisponibilidade/AddPeriodModal';
 import DateUtils from '../../../../../utils/date_utils';
 
-type ModalState = { visible: boolean; date?: Date; status?: 'available' | 'unavailable'; motivo?: string | null };
+type ModalState = {
+  visible: boolean;
+  date?: Date;
+  status?: 'available' | 'unavailable';
+  motivo?: string | null;
+};
 
 export default function IndisponibilidadeIndexPage() {
   const { user } = useAuth();
@@ -38,13 +43,25 @@ export default function IndisponibilidadeIndexPage() {
     data,
     remove: removeData,
     isLoading: isLoadingData,
-  } = useIndisponibilidadesVoluntariosForm({
+  } = useIndisponibilidadesVoluntariosCrud({
     initialParams: {
       where: {
         conditions: [
-          { path: 'voluntario', operator: Operator.EQUALS, value: { type: ValueType.LITERAL, value: user.id } },
-          { path: 'data', operator: Operator.GTE, value: { type: ValueType.LITERAL, value: startDate.toDateString() } },
-          { path: 'data', operator: Operator.LTE, value: { type: ValueType.LITERAL, value: endDate.toDateString() } },
+          {
+            path: 'voluntario',
+            operator: Operator.EQUALS,
+            value: { type: ValueType.LITERAL, value: user?.id! },
+          },
+          {
+            path: 'data',
+            operator: Operator.GTE,
+            value: { type: ValueType.LITERAL, value: startDate.toDateString() },
+          },
+          {
+            path: 'data',
+            operator: Operator.LTE,
+            value: { type: ValueType.LITERAL, value: endDate.toDateString() },
+          },
         ],
         conjunction: Conjunction.AND,
       },
@@ -61,7 +78,7 @@ export default function IndisponibilidadeIndexPage() {
     try {
       const dates = DateUtils.generateDatesBetween(inicio, fim);
       for (const d of dates) {
-        await addData({ data: d, voluntario: user.id, motivo } as IndisponibilidadeVoluntario);
+        await addData({ data: d, voluntarioId: user?.id, motivo } as IndisponibilidadeVoluntario);
       }
       Toast.show({ type: 'success', text1: 'Período registrado com sucesso' });
     } catch {
@@ -83,10 +100,13 @@ export default function IndisponibilidadeIndexPage() {
       try {
         if (mode === 'mark') {
           if (registro?.id) {
-            await updateData({ id: registro.id, data: { data: date, motivo: motivo ?? null } as IndisponibilidadeVoluntario });
+            await updateData({
+              id: registro.id,
+              data: { data: date, motivo: motivo ?? null } as IndisponibilidadeVoluntario,
+            });
             Toast.show({ type: 'success', text1: 'Motivo atualizado com sucesso!' });
           } else {
-            await addData({ data: date, voluntario: user.id, motivo } as IndisponibilidadeVoluntario);
+            await addData({ data: date, voluntarioId: user?.id!, motivo } as IndisponibilidadeVoluntario);
             Toast.show({ type: 'success', text1: 'Data marcada como indisponível!' });
           }
         } else if (registro?.id) {

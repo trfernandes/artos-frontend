@@ -61,7 +61,10 @@ export function FancyAlertProvider({ children }: { children: ReactNode }) {
                   key={i}
                   label={btn.text}
                   onPress={() => close(btn)}
-                  containerStyle={[styles.button, btn.style === 'destructive' ? { backgroundColor: Pallete.error } : {}]}
+                  containerStyle={[
+                    styles.button,
+                    btn.style === 'destructive' ? { backgroundColor: Pallete.error } : {},
+                  ]}
                   type={btn.style === 'default' ? 'outlined' : 'contained'}
                 />
               ))}
@@ -106,12 +109,11 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: 'white',
     padding: 20,
-    borderRadius: 12,
     width: '80%',
   },
   title: { marginBottom: 10 },
-  message: { marginBottom: 20 },
+  message: { marginBottom: 20, lineHeight: 16 },
   row: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10 },
-  button: { borderRadius: 8, flex: 1, height: 40 },
+  button: { flex: 1, height: 40 },
   btnText: { color: 'white' },
 });

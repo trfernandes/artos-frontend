@@ -3,7 +3,7 @@ import FancyCalendar, { FancyCalendarProps } from '../../../calendar/FancyCalend
 import FancySeparator from '../../../FancySeparator';
 import { useEffect, useState } from 'react';
 import { Evento } from '../../../../domain/models/Evento';
-import { useEventos } from '../../../../hooks/useEventos';
+import { useEventosCrud } from '../../../../hooks/useEventosCrud';
 import { Conjunction, Operator, ValueType } from '../../../../domain/utils/query_utils';
 import FancyList from '../../../list/FancyList';
 import { router } from 'expo-router';
@@ -21,7 +21,7 @@ export type EventoCalendarViewProps = {
 export default function EventoCalendarView(props: EventoCalendarViewProps) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
-  const { data: eventosData, setSearchParams, isLoading } = useEventos();
+  const { data: eventosData, setSearchParams, isLoading } = useEventosCrud();
 
   useEffect(() => {
     setSearchParams({

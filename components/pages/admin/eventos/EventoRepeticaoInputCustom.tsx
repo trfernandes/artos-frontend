@@ -7,7 +7,7 @@ import FancyFullModal from '../../../modal/FancyFullModal';
 import FancyButton from '../../../buttons/FancyButton';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import { Controller, FormProvider, useForm, useFormContext } from 'react-hook-form';
-import { EventoFormData } from '../../../../hooks/useEventos';
+import { EventoFormData } from '../../../../hooks/useEventosCrud';
 import {
   RecorrenciaDiaSemanaEnum,
   RecorrenciaEnum,

@@ -37,7 +37,7 @@ export default function FancyImagePicker({ value, size = 120, disabled, onChange
         onChange?.(result.assets[0]);
       }
     } catch (error) {
-      console.error('Erro ao selecionar imagem:', error);
+      console.log('Erro ao selecionar imagem:', error);
     }
   };
 

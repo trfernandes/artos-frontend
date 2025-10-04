@@ -4,13 +4,14 @@ import FancyVerticalImageCard from './FancyVerticalImageCard';
 import { CustomIconProps } from '../../FancyIcons';
 import FancyVerticalLetterCard from './FancyVerticalLetterCard';
 import FancyVerticalCheckboxCard from './FancyVerticalCheckboxCard';
+import FancyListEmpty from '../../list/FancyListEmpty';
 
-interface DataType {
+export interface DataType {
   title: string;
   subtitle?: string;
   selected?: boolean;
   topElement:
-    | { type: 'image'; imageUrl?: string }
+    | { type: 'image'; imageUrl?: string | number; size?: number }
     | { type: 'letter'; letter?: string }
     | { type: 'icon'; icon?: CustomIconProps }
     | { type: 'check'; checked: boolean; image: string };
@@ -20,7 +21,7 @@ interface DataType {
 export interface FancyVerticalContainerCardProps {
   data: DataType[];
   itemProps?: {
-    additionalData?: React.ReactNode;
+    additionalData?: React.ReactNode | ((params: { item: DataType; index: number }) => React.ReactNode);
     topLeftIcon?: { onPress?: (data: DataType) => void; customIcon?: CustomIconProps };
     topRightIcon?: { onPress?: (data: DataType) => void; customIcon?: CustomIconProps };
   };
@@ -46,78 +47,98 @@ export default function FancyVerticalContainerCard({
       contentContainerStyle={[styles.contentContainer, contentContainerStyle]}
       style={[{ borderWidth: 0 }, containerStyle]}
     >
-      {Array.from({ length: quantItensNecessarios }, (_, index) => index).map(index => {
-        if (index >= data.length)
-          return <View key={index} style={{ height: 160, width: `${100 / widthFactor}%` }}></View>;
-        else {
-          if (data[index].topElement.type === 'image')
-            return (
-              <FancyVerticalImageCard
-                selected={data[index].selected}
-                key={index}
-                title={data[index].title}
-                subtitle={data[index].subtitle}
-                url={data[index].topElement.imageUrl}
-                additionalElement={itemProps?.additionalData}
-                containerStyle={{ height: itemHeight || 160, width: `${100 / widthFactor}%` }}
-                topRightIcon={
-                  itemProps?.topRightIcon && {
-                    customIcon: itemProps?.topRightIcon?.customIcon,
-                    onPress:
-                      itemProps?.topRightIcon?.onPress && (() => itemProps?.topRightIcon?.onPress?.(data[index])),
+      {data.length === 0 ? (
+        <FancyListEmpty />
+      ) : (
+        Array.from({ length: quantItensNecessarios }, (_, index) => index).map(index => {
+          if (index >= data.length)
+            return <View key={index} style={{ height: 160, width: `${100 / widthFactor}%` }}></View>;
+          else {
+            if (data[index].topElement.type === 'image')
+              return (
+                <FancyVerticalImageCard
+                  selected={data[index].selected}
+                  key={index}
+                  title={data[index].title}
+                  subtitle={data[index].subtitle}
+                  url={data[index].topElement.imageUrl}
+                  imageSize={data[index].topElement.size}
+                  additionalElement={
+                    typeof itemProps?.additionalData === 'function'
+                      ? itemProps.additionalData({ item: data[index], index })
+                      : itemProps?.additionalData
                   }
-                }
-                topLeftIcon={
-                  itemProps?.topLeftIcon && {
-                    customIcon: itemProps?.topLeftIcon?.customIcon,
-                    onPress: itemProps?.topLeftIcon?.onPress && (() => itemProps?.topLeftIcon?.onPress?.(data[index])),
+                  containerStyle={{ height: itemHeight || 160, width: `${100 / widthFactor}%` }}
+                  topRightIcon={
+                    itemProps?.topRightIcon && {
+                      customIcon: itemProps?.topRightIcon?.customIcon,
+                      onPress:
+                        itemProps?.topRightIcon?.onPress &&
+                        (() => itemProps?.topRightIcon?.onPress?.(data[index])),
+                    }
                   }
-                }
-              />
-            );
+                  topLeftIcon={
+                    itemProps?.topLeftIcon && {
+                      customIcon: itemProps?.topLeftIcon?.customIcon,
+                      onPress:
+                        itemProps?.topLeftIcon?.onPress &&
+                        (() => itemProps?.topLeftIcon?.onPress?.(data[index])),
+                    }
+                  }
+                />
+              );
 
-          if (data[index].topElement.type === 'letter')
-            return (
-              <FancyVerticalLetterCard
-                key={index}
-                title={data[index].title}
-                subtitle={data[index].subtitle}
-                char={data[index].topElement.letter}
-                containerStyle={{ height: itemHeight || 160, width: `${100 / widthFactor}%` }}
-                topRightIcon={
-                  itemProps?.topRightIcon && {
-                    customIcon: itemProps?.topRightIcon?.customIcon,
-                    onPress:
-                      itemProps?.topRightIcon?.onPress && (() => itemProps?.topRightIcon?.onPress?.(data[index])),
+            if (data[index].topElement.type === 'letter')
+              return (
+                <FancyVerticalLetterCard
+                  key={index}
+                  title={data[index].title}
+                  subtitle={data[index].subtitle}
+                  char={data[index].topElement.letter}
+                  containerStyle={{ height: itemHeight || 160, width: `${100 / widthFactor}%` }}
+                  topRightIcon={
+                    itemProps?.topRightIcon && {
+                      customIcon: itemProps?.topRightIcon?.customIcon,
+                      onPress:
+                        itemProps?.topRightIcon?.onPress &&
+                        (() => itemProps?.topRightIcon?.onPress?.(data[index])),
+                    }
                   }
-                }
-                topLeftIcon={
-                  itemProps?.topLeftIcon && {
-                    customIcon: itemProps?.topLeftIcon?.customIcon,
-                    onPress: itemProps?.topLeftIcon?.onPress && (() => itemProps?.topLeftIcon?.onPress?.(data[index])),
+                  topLeftIcon={
+                    itemProps?.topLeftIcon && {
+                      customIcon: itemProps?.topLeftIcon?.customIcon,
+                      onPress:
+                        itemProps?.topLeftIcon?.onPress &&
+                        (() => itemProps?.topLeftIcon?.onPress?.(data[index])),
+                    }
                   }
-                }
-                additionalElement={itemProps?.additionalData}
-              />
-            );
+                  additionalElement={
+                    typeof itemProps?.additionalData === 'function'
+                      ? itemProps.additionalData({ item: data[index], index })
+                      : itemProps?.additionalData
+                  }
+                />
+              );
 
-          if (data[index].topElement.type === 'check')
-            return (
-              <FancyVerticalCheckboxCard
-                value={data[index].topElement.checked}
-                title={data[index].title}
-                image={data[index].topElement.image}
-                containerStyle={{ height: itemHeight || 160, width: `${100 / widthFactor}%` }}
-              />
-            );
-        }
-      })}
+            if (data[index].topElement.type === 'check')
+              return (
+                <FancyVerticalCheckboxCard
+                  value={data[index].topElement.checked}
+                  title={data[index].title}
+                  image={data[index].topElement.image}
+                  containerStyle={{ height: itemHeight || 160, width: `${100 / widthFactor}%` }}
+                />
+              );
+          }
+        })
+      )}
     </FancyScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   contentContainer: {
+    flex: 1,
     gap: 5,
     rowGap: 15,
     flexDirection: 'row',

@@ -11,19 +11,19 @@ export interface MinisterioVoluntario extends Identifiable {
 }
 
 export enum HierarquiaEnum {
-  Comun = 0,
+  Voluntario = 0,
   Lider = 1,
   Auxiliar = 2,
 }
 
 export const HierarquiaEnumLabel: Record<HierarquiaEnum, string> = {
-  [HierarquiaEnum.Comun]: 'Comum',
+  [HierarquiaEnum.Voluntario]: 'Comum',
   [HierarquiaEnum.Lider]: 'Líder',
   [HierarquiaEnum.Auxiliar]: 'Auxiliar',
 };
 
 export const HierarquiaEnumMap: Record<number, HierarquiaEnum> = {
-  0: HierarquiaEnum.Comun,
+  0: HierarquiaEnum.Voluntario,
   1: HierarquiaEnum.Lider,
   2: HierarquiaEnum.Auxiliar,
 };

@@ -1,5 +1,6 @@
 import * as FileSystem from 'expo-file-system';
 import z from 'zod';
+import { Buffer } from 'buffer';
 
 export const ImageUtils = {
   async uriToBase64(uri: string) {
@@ -31,7 +32,7 @@ export const ImageUtils = {
         reader.readAsDataURL(blob);
       });
     } catch (error) {
-      console.error('Falha na conversão da imagem para Base64:', error);
+      console.log('Falha na conversão da imagem para Base64:', error);
       throw error;
     }
   },
@@ -43,6 +44,21 @@ export const ImageUtils = {
       binary += String.fromCharCode(bytes[i]);
     }
     return window.btoa(binary);
+  },
+  rawToDataUri(raw: unknown): string | undefined {
+    if (typeof raw === 'string') {
+      return raw.trim().length > 0 ? raw : undefined;
+    }
+
+    if (raw && typeof raw === 'object') {
+      const maybeBuffer = raw as { type?: string; data?: unknown };
+      if (maybeBuffer.type === 'Buffer' && Array.isArray(maybeBuffer.data)) {
+        const base64String = Buffer.from(maybeBuffer.data as number[]).toString('base64');
+        return 'data:image/jpeg;base64,' + base64String;
+      }
+    }
+
+    return undefined;
   },
 };
 

@@ -20,7 +20,7 @@ export interface Voluntario extends Identifiable {
   uploadFoto: string | null;
 }
 
-export function calculateProfileCompletion(voluntario: Voluntario): number {
+export function calculateProfileCompletion(voluntario: Partial<Voluntario>): number {
   const requiredFields: (keyof Voluntario)[] = ['nome', 'telefone', 'foto', 'endereco', 'dataNascimento', 'sexo'];
 
   const filledCount = requiredFields.reduce((count, field) => {

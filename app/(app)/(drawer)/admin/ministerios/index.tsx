@@ -13,16 +13,17 @@ import DefaultIcons from '../../../../../components/FancyIcons';
 import FancyText from '../../../../../components/FancyText';
 import { Pallete } from '../../../../../constants/colors';
 import { DefaultIconsNames } from '../../../../../constants/icons';
-import { useMinisterios } from '../../../../../hooks/useMinisterios';
+import { useMinisteriosCrud } from '../../../../../hooks/useMinisteriosCrud';
 import { useState } from 'react';
 import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
 
 export default function MinisteriosIndex() {
   const [searchText, setSearchText] = useState('');
-  const { data, setSearchParams, isLoading, error, refetch, isRefetching, isError, remove } = useMinisterios({
-    autoFetch: false,
-    initialParams: {},
-  });
+  const { data, setSearchParams, isLoading, error, refetch, isRefetching, isError, remove } =
+    useMinisteriosCrud({
+      autoFetch: false,
+      initialParams: {},
+    });
 
   if (isError) {
     return <FancyScreenErrorHandler error={error!} onTryAgrainPress={refetch} />;
@@ -40,7 +41,11 @@ export default function MinisteriosIndex() {
             setSearchParams({
               where: {
                 conditions: [
-                  { path: 'nome', operator: Operator.ILIKE, value: { type: ValueType.LITERAL, value: text.trim() } },
+                  {
+                    path: 'nome',
+                    operator: Operator.ILIKE,
+                    value: { type: ValueType.LITERAL, value: text.trim() },
+                  },
                 ],
               },
             });

@@ -3,7 +3,7 @@ import FancyTimePickerModal from '../../../time_picker/FancyTimePickerModal';
 import FancyDatePickerModal from '../../../datepicker/FancyDataPickerModal';
 import FancySettingItem from '../../../FancySettingItem';
 import { Control, Controller, Path, useFormContext } from 'react-hook-form';
-import { EventoFormData } from '../../../../hooks/useEventos';
+import { EventoFormData } from '../../../../hooks/useEventosCrud';
 import { addHours, format } from 'date-fns';
 import FancyErrorText from '../../../forms/FancyErrorText';
 

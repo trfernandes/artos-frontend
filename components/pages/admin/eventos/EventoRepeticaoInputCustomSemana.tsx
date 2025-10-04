@@ -1,7 +1,10 @@
 import FancyAccordeon from '../../../FancyAccordeon';
 import FancyListSelection from '../../../FancyListSelection';
 import { Controller, useFormContext } from 'react-hook-form';
-import { RecorrenciaDiaSemanaEnum, RecorrenciaDiaSemanaEnumLabel } from '../../../../domain/models/Evento';
+import {
+  RecorrenciaDiaSemanaEnum,
+  RecorrenciaDiaSemanaEnumLabel,
+} from '../../../../domain/models/Evento';
 import { View } from 'react-native';
 import FancyErrorText from '../../../forms/FancyErrorText';
 import { EventoRepeticaoSchemaData } from './EventoRepeticaoInputCustom';
@@ -16,7 +19,9 @@ export default function EventoRepeticaoInputCustomSemana() {
         name="recorrenciaSemanaDias"
         render={({ field: { value, onChange }, fieldState: { error } }) => {
           const semanaDias = value || [];
-          const semanaEnumKeys = Object.keys(RecorrenciaDiaSemanaEnum).filter(item => isNaN(Number(item)));
+          const semanaEnumKeys = Object.keys(RecorrenciaDiaSemanaEnum).filter(item =>
+            isNaN(Number(item))
+          );
           let subtitle = '';
           if (semanaDias.length === 0) {
             subtitle = 'Nenhum';
@@ -41,7 +46,9 @@ export default function EventoRepeticaoInputCustomSemana() {
                       ].extenso,
                     checked: !!value
                       ?.map(item => Number(item))
-                      .includes(RecorrenciaDiaSemanaEnum[item as keyof typeof RecorrenciaDiaSemanaEnum]),
+                      .includes(
+                        RecorrenciaDiaSemanaEnum[item as keyof typeof RecorrenciaDiaSemanaEnum]
+                      ),
                   }))}
                   onPress={index => {
                     const item: RecorrenciaDiaSemanaEnum =

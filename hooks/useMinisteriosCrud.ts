@@ -3,7 +3,7 @@ import { addLiderSchema } from '../app/(app)/(drawer)/admin/ministerios/add';
 import { permissoesSchema } from '../components/pages/admin/ministerios/PermissoesTab';
 import { MinisterioTipoEnum, MinisterioStatusEnum } from '../domain/models/Ministerio';
 import { MinisteriosRepository } from '../domain/services/MinisteriosRepository';
-import { useCrudForm } from './useCrudForm';
+import { useCrud } from './useCrud';
 import { DynamicQuery, Operator, ValueType } from '../domain/utils/query_utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -44,8 +44,8 @@ interface UseMinisteriosOptions {
   initialParams?: DynamicQuery | string;
 }
 
-export function useMinisterios(options?: UseMinisteriosOptions) {
-  return useCrudForm({
+export function useMinisteriosCrud(options?: UseMinisteriosOptions) {
+  return useCrud({
     queryKey: 'ministerios',
     autoFetch: options?.autoFetch ?? true,
     initialParams: options?.initialParams,

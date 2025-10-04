@@ -1,9 +1,9 @@
 import { useForm } from 'react-hook-form';
 import FancyBasePage from '../../../../../components/pages/base/FancyBasePage';
-import { updateProfileSchema, useVoluntarios } from '../../../../../hooks/useVoluntarios';
+import { updateProfileSchema, useVoluntariosCrud } from '../../../../../hooks/useVoluntariosCrud';
 import { zodResolver } from '@hookform/resolvers/zod';
 import ControlledTextInput from '../../../../../components/forms/ControlledTextInput';
-import ControlledFancyToggle from '../../../../../components/forms/ControlledFancyToggle';
+import ControlledToggle from '../../../../../components/forms/ControlledFancyToggle';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import { useEffect } from 'react';
@@ -17,7 +17,6 @@ import { ControlledImagePicker } from '../../../../../components/forms/Controlle
 export default function EditProfilePage() {
   const { user, updateUser } = useAuth();
 
-
   const form = useForm({ resolver: zodResolver(updateProfileSchema), defaultValues: { sexo: 'M' } });
 
   const {
@@ -25,11 +24,11 @@ export default function EditProfilePage() {
     update: updateVoluntario,
     isLoadingMutation,
     isLoading,
-  } = useVoluntarios({
+  } = useVoluntariosCrud({
     autoFetch: true,
     initialParams: {
       where: {
-        conditions: [{ path: 'id', operator: Operator.EQUALS, value: { value: user?.id, type: ValueType.LITERAL } }],
+        conditions: [{ path: 'id', operator: Operator.EQUALS, value: { value: user?.id!, type: ValueType.LITERAL } }],
       },
     },
   });
@@ -47,7 +46,7 @@ export default function EditProfilePage() {
   const handleSubmit = () =>
     form.handleSubmit(async data => {
       await updateVoluntario({
-        id: user?.id,
+        id: user?.id!,
         data: {
           uploadFoto: data.uploadFoto,
           nome: data.nome,
@@ -78,7 +77,7 @@ export default function EditProfilePage() {
       <ControlledDateInput name="dataNascimento" control={form.control} label="Data de Nascimento" />
       <ControlledTextInput name="endereco" control={form.control} label="Endereço" />
       <ControlledTextInput name="telefone" control={form.control} label="Telefone" />
-      <ControlledFancyToggle
+      <ControlledToggle
         name="sexo"
         control={form.control}
         label="Sexo"
@@ -92,7 +91,6 @@ export default function EditProfilePage() {
         icon={{ ...DefaultIconsNames.save, size: 16 }}
         onPress={handleSubmit}
       />
-      
     </FancyBasePage>
   );
 }

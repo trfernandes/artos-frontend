@@ -2,12 +2,12 @@ import { StyleSheet } from 'react-native';
 import ControlledTextInput from '../../../forms/ControlledTextInput';
 import { useFormContext } from 'react-hook-form';
 import ControlledTextArea from '../../../forms/ControlledTextArea';
-import ControlledFancyDropDown from '../../../forms/ControlledFancyDropDown';
+import ControlledDropDown from '../../../forms/ControlledDropDown';
 import { MinisterioStatusEnum, MinisterioStatusLabel, MinisterioTipoEnum, MinisterioTipoLabel } from '../../../../domain/models/Ministerio';
 import FancyScrollView from '../../../FancyScrollView';
 import { MinisterioFormData } from '../../../../app/(app)/(drawer)/admin/ministerios/add';
 import { EnumUtils } from '../../../../utils/enum_utils';
-import ControlledFancyToggle from '../../../forms/ControlledFancyToggle';
+import ControlledToggle from '../../../forms/ControlledFancyToggle';
 import FancyImagePicker from '../../../images/FancyImagePicker';
 import { ImageUtils } from '../../../../utils/image_utils';
 
@@ -25,7 +25,7 @@ export default function DadosTab(props: { mode: 'add' } | { mode: 'edit'; id: st
         }}
       />
       <ControlledTextInput control={control} name="nome" label="Nome" />
-      <ControlledFancyDropDown
+      <ControlledDropDown
         control={control}
         name="tipo"
         label="Tipo"
@@ -33,7 +33,7 @@ export default function DadosTab(props: { mode: 'add' } | { mode: 'edit'; id: st
         listItems={EnumUtils.getDropDownItems(MinisterioTipoEnum, MinisterioTipoLabel)}
       />
       <ControlledTextArea control={control} name="descricao" label="Descrição" />
-      <ControlledFancyToggle
+      <ControlledToggle
         control={control}
         name="status"
         label="Status"

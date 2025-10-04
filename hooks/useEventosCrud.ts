@@ -1,4 +1,4 @@
-import { useCrudForm } from './useCrudForm';
+import { useCrud } from './useCrud';
 import { DynamicQuery, Operator, ValueType } from '../domain/utils/query_utils';
 import { EventosRepository } from '../domain/services/EventosRepository';
 import z from 'zod';
@@ -59,8 +59,8 @@ interface UseEventosOptions {
   initialParams?: DynamicQuery | string;
 }
 
-export function useEventos(options?: UseEventosOptions) {
-  return useCrudForm({
+export function useEventosCrud(options?: UseEventosOptions) {
+  return useCrud({
     queryKey: 'eventos',
     autoFetch: options?.autoFetch ?? true,
     initialParams: options?.initialParams,

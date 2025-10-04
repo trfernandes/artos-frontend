@@ -25,7 +25,21 @@ export default function FancyFab({
   size = 50,
 }: FABProps) {
   return (
-    <TouchableOpacity style={[styles.container, { top, left, right, bottom, width: size, height: size, backgroundColor: backgroundColor || Pallete.terciary }]} onPress={onPress}>
+    <TouchableOpacity
+      style={[
+        styles.container,
+        {
+          top,
+          left,
+          right,
+          bottom,
+          width: size,
+          height: size,
+          backgroundColor: backgroundColor || Pallete.terciary,
+        },
+      ]}
+      onPress={onPress}
+    >
       <DefaultIcons.Custom size={icon.size || size - 10} color={Pallete.fonts.light} {...icon} />
     </TouchableOpacity>
   );

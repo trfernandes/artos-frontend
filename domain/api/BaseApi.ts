@@ -14,7 +14,7 @@ export class BaseApi<T extends Identifiable> {
       const response = await apiClient.get(`/${this.resourceName}`, { params: query });
       return response.data.data;
     } catch (error) {
-      console.error(`Erro ao buscar ${this.resourceName}:`, error);
+      console.log(`Erro ao buscar ${this.resourceName}:`, error);
       throw error;
     }
   }
@@ -24,7 +24,7 @@ export class BaseApi<T extends Identifiable> {
       const response = await apiClient.get(`/${this.resourceName}/${id}`);
       return response.data.data;
     } catch (error) {
-      console.error(`Erro ao buscar ${this.resourceName} ${id}:`, error);
+      console.log(`Erro ao buscar ${this.resourceName} ${id}:`, error);
       throw error;
     }
   }
@@ -34,7 +34,7 @@ export class BaseApi<T extends Identifiable> {
       const response = await apiClient.post(`/${this.resourceName}/search`, query);
       return response.data.data;
     } catch (error) {
-      console.error(`Erro ao buscar ${this.resourceName} com query:`, error);
+      console.log(`Erro ao buscar ${this.resourceName} com query:`, error);
       throw error;
     }
   }
@@ -44,7 +44,7 @@ export class BaseApi<T extends Identifiable> {
       const response = await apiClient.post(`/${this.resourceName}`, data);
       return response.data.data;
     } catch (error) {
-      console.error(`Erro ao criar ${this.resourceName}:`, error);
+      console.log(`Erro ao criar ${this.resourceName}:`, error);
       throw error;
     }
   }
@@ -54,7 +54,7 @@ export class BaseApi<T extends Identifiable> {
       const response = await apiClient.put(`/${this.resourceName}/${id}`, data);
       return response.data.data;
     } catch (error) {
-      console.error(`Erro ao atualizar ${this.resourceName} ${id}:`, error);
+      console.log(`Erro ao atualizar ${this.resourceName} ${id}:`, error);
       throw error;
     }
   }
@@ -63,7 +63,7 @@ export class BaseApi<T extends Identifiable> {
     try {
       await apiClient.delete(`/${this.resourceName}/${id}`);
     } catch (error) {
-      console.error(`Erro ao excluir ${this.resourceName} ${id}:`, error);
+      console.log(`Erro ao excluir ${this.resourceName} ${id}:`, error);
       throw error;
     }
   }

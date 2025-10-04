@@ -5,11 +5,11 @@ import FancyButton, { FancyButtonProps } from '../buttons/FancyButton';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import { Pallete } from '../../constants/colors';
 
-export type FancyModalDialogProps = {
+export type FancyModalDialogProps<T> = {
   title?: string;
   children?: React.ReactNode;
   onClose?: () => void;
-  onConfirm?: () => void;
+  onConfirm?: (data: T | undefined) => void;
   buttonContainerComponenet?: React.ReactNode;
   button1?: FancyButtonProps;
   button2?: FancyButtonProps;
@@ -21,7 +21,7 @@ export type FancyModalDialogProps = {
   closeButtonAccessibilityLabel?: string;
 } & Omit<FancyModalProps, 'top' | 'bottom' | 'center' | 'modalProps'>;
 
-export default function FancyModalDialog({
+export default function FancyModalDialog<T = void>({
   title,
   children,
   onClose,
@@ -37,7 +37,7 @@ export default function FancyModalDialog({
   closeButtonAccessibilityLabel,
   containerStyle,
   ...fancyModalProps
-}: FancyModalDialogProps) {
+}: FancyModalDialogProps<T>) {
   const shouldRenderCloseButton = Boolean(showCloseButton && onClose);
 
   const closeIconProps: CustomIconProps = {
@@ -87,7 +87,7 @@ export default function FancyModalDialog({
             />
             <FancyButton
               label="Confirmar"
-              onPress={onConfirm}
+              onPress={() => onConfirm?.(undefined as T)}
               {...button2}
               containerStyle={[button2?.containerStyle, styles.button]}
             />

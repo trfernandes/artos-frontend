@@ -5,16 +5,21 @@ import { ImageComponent } from './FancyVerticalImageCard';
 
 export type FancyVerticalCheckboxCardProps = {
   value: boolean;
-  image?: string;
+  image?: string | number;
   onChangeValue?: (value: boolean) => void;
   containerStyle?: StyleProp<ViewStyle>;
 } & Pick<FancyVerticalCardProps, 'title' | 'subtitle'>;
 
-export default function FancyVerticalCheckboxCard({ ...props }: FancyVerticalCheckboxCardProps) {
+export default function FancyVerticalCheckboxCard({
+  image,
+  value,
+  onChangeValue,
+  ...props
+}: FancyVerticalCheckboxCardProps) {
   return (
     <FancyVerticalCard
-      topLeftElement={<CheckboxComponent value={props.value} />}
-      topElement={<ImageComponent url={props.image!} />}
+      topLeftElement={<CheckboxComponent value={value} onChangeValue={onChangeValue} />}
+      topElement={<ImageComponent source={image} />}
       {...props}
     />
   );

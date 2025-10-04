@@ -6,7 +6,7 @@ import FancyHeaderButton from '../../../../../components/header/FancyHeaderButto
 import EventoCalendarView from '../../../../../components/pages/admin/eventos/EventoCalendarView';
 import EventosListView from '../../../../../components/pages/admin/eventos/EventosListView';
 import MainHeaderButtons from '../../../../../components/header/MainHeaderButtons';
-import { useEventos } from '../../../../../hooks/useEventos';
+import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
 import FancyLoading from '../../../../../components/FancyLoading';
 import FancyBasePage from '../../../../../components/pages/base/FancyBasePage';
 import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
@@ -37,7 +37,7 @@ export default function EventosIndexPage() {
     setSearchParams,
     remove,
     isLoadingMutation: isLoadingRemove,
-  } = useEventos({ autoFetch: false, initialParams: {} });
+  } = useEventosCrud({ autoFetch: false, initialParams: {} });
 
   if (isLoading) {
     return <FancyLoading label="Carregando..." />;

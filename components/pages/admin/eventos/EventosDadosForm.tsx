@@ -2,7 +2,7 @@ import { View, StyleSheet } from 'react-native';
 import FancyScrollView from '../../../FancyScrollView';
 import EventoRepeticaoInput from './EventoRepeticaoInput';
 import { useFormContext } from 'react-hook-form';
-import { EventoFormData } from '../../../../hooks/useEventos';
+import { EventoFormData } from '../../../../hooks/useEventosCrud';
 import ControlledTextInput from '../../../forms/ControlledTextInput';
 import ControlledTextArea from '../../../forms/ControlledTextArea';
 import ControlledColorPicker from '../../../forms/ControlledColorPicker';

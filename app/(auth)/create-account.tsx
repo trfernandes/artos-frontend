@@ -4,7 +4,7 @@ import FancyButton from '../../components/buttons/FancyButton';
 import FancyText from '../../components/FancyText';
 import { Pallete } from '../../constants/colors';
 import { router } from 'expo-router';
-import { createAccountSchema, useVoluntarios } from '../../hooks/useVoluntarios';
+import { createAccountSchema, useVoluntariosCrud } from '../../hooks/useVoluntariosCrud';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import ControlledTextInput from '../../components/forms/ControlledTextInput';
@@ -18,7 +18,7 @@ import FancyVerticalSpacer from '../../components/FancyVerticalSpacer';
 import { DefaultIconsNames } from '../../constants/icons';
 
 export default function CreateAccountPage() {
-  const { add, isLoadingMutation } = useVoluntarios();
+  const { add, isLoadingMutation } = useVoluntariosCrud();
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   const createForm = useForm({
@@ -54,12 +54,12 @@ export default function CreateAccountPage() {
           text1: 'Não foi possível criar a conta',
           text2: error?.response?.data?.message || 'Ocorreu um erro ao criar a conta. Tente novamente mais tarde.',
         });
-        console.error('Erro ao criar conta:', strfyObj(error));
+        console.log('Erro ao criar conta:', strfyObj(error));
         return;
       }
       router.replace('/login');
     } catch (error) {
-      console.error(error);
+      console.log(error);
     }
   });
 
