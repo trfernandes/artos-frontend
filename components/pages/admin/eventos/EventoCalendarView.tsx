@@ -6,7 +6,6 @@ import { Evento } from '../../../../domain/models/Evento';
 import { useEventosCrud } from '../../../../hooks/useEventosCrud';
 import { Conjunction, Operator, ValueType } from '../../../../domain/utils/query_utils';
 import FancyList from '../../../list/FancyList';
-import { router } from 'expo-router';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import { FancyCard } from '../../../cards/Horizontal/FancyCard';
 import FancyLoading from '../../../FancyLoading';
@@ -16,6 +15,7 @@ export type EventoCalendarViewProps = {
   items: Evento[];
   calendarProps?: FancyCalendarProps;
   onDeleteItem: (item: Evento) => void;
+  onEditItem: (item: Evento) => void;
 };
 
 export default function EventoCalendarView(props: EventoCalendarViewProps) {
@@ -107,12 +107,7 @@ export default function EventoCalendarView(props: EventoCalendarViewProps) {
                     size: 18,
                   },
                   onPress: () => {
-                    router.push({
-                      pathname: '/admin/eventos/edit',
-                      params: {
-                        id: item.id,
-                      },
-                    });
+                    props.onEditItem(item);
                   },
                 },
                 {

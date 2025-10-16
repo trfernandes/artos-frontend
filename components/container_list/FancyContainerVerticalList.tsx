@@ -20,7 +20,7 @@ export default function FancyContainerVerticalList({ ...props }: FancyContainerV
     <View style={[styles.container, props.containerStyle]}>
       <View style={styles.headerContainer}>
         <View style={styles.headerTitleContainer}>
-          <FancyText size={'medium'} type="semiBold" style={styles.headerTitle}>
+          <FancyText size={'small'} type="semiBold" style={styles.headerTitle}>
             {props.title}
           </FancyText>
         </View>
@@ -34,7 +34,7 @@ export default function FancyContainerVerticalList({ ...props }: FancyContainerV
                 type="contained"
                 icon={{ ...button.icon, color: Pallete.icons.light }}
                 onPress={button.onPress}
-                containerStyle={{ minHeight: 25, height: 25, minWidth: 25, width: 25 }}
+                containerStyle={{ minHeight: 24, height: 24, minWidth: 24, width: 24 }}
                 iconStyle={button.icon.style}
               />
             ))}
@@ -53,7 +53,7 @@ const DESIGN_MODE = 0;
 
 const styles = StyleSheet.create({
   container: {
-    ...Pallete.shadows[100],
+    // ...Pallete.shadows[200],
     backgroundColor: Pallete.backgroundColor,
     borderWidth: 1,
     borderColor: Pallete.border,
@@ -61,8 +61,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerContainer: {
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+    paddingLeft:15,
+    paddingRight: 12,
+    paddingVertical: 8,
     borderWidth: DESIGN_MODE,
     borderColor: 'coral',
     gap: 10,

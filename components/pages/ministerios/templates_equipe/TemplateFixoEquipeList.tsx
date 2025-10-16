@@ -1,25 +1,23 @@
-import { useCallback, useMemo, useState } from 'react';
-import FancyContainerVerticalList from '../../../container_list/FancyContainerVerticalList';
-import { DataType } from '../../../cards/Vertical/FancyVerticalContainerCard';
+import { useCallback, useState } from 'react';
 import { DefaultIconsNames } from '../../../../constants/icons';
-import { ImageUtils } from '../../../../utils/image_utils';
-import FancyButton from '../../../buttons/FancyButton';
-import { View } from 'react-native';
 import TemplateFixoEquipeForm from './TemplateFixoEquipeForm';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import { FormProvider, useFieldArray, useForm, useFormContext } from 'react-hook-form';
-import {
-  EscalaTemplateFormData,
-  escalaTemplateVoluntarioSchema,
-} from '../../../../domain/schemas/escalaTemplateSchema';
+import { EscalaTemplateFormData, escalaTemplateVoluntarioSchema } from '../../../../domain/schemas/escalaTemplateSchema';
 import { Voluntario } from '../../../../domain/models/Voluntario';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Pallete } from '../../../../constants/colors';
 import { MinisterioFuncao } from '../../../../domain/models/MinisterioFuncao';
+import { FancyAlert } from '../../../modal/FancyAlert';
+import Toast from 'react-native-toast-message';
+import { EscalaTemplateVoluntario } from '../../../../domain/models/EscalaTemplate';
+import { FancyCard } from '../../../cards/Horizontal/FancyCard';
+import FancyContainerList from '../../../container_list/FancyContainerList';
 
 const EMPTY_PROFILE_IMAGE = require('../../../../assets/images/empty_profile_image.png');
 
 interface TemplateFixoEquipeListProps {
+  disabled?: boolean;
   voluntariosList: Voluntario[] | [];
   funcoesList: MinisterioFuncao[] | [];
   voluntariosDropDownList?: DropDownItemProps<string>[];
@@ -27,43 +25,45 @@ interface TemplateFixoEquipeListProps {
 }
 
 export default function TemplateFixoEquipeList({
+  disabled = false,
   voluntariosList = [] as Voluntario[],
   funcoesList = [] as MinisterioFuncao[],
   voluntariosDropDownList,
   funcoesDropDownList,
 }: TemplateFixoEquipeListProps) {
-  const { control, watch, setValue } = useFormContext<EscalaTemplateFormData>();
+  const { control, watch } = useFormContext<EscalaTemplateFormData>();
   const formAdd = useForm({ resolver: zodResolver(escalaTemplateVoluntarioSchema) });
   const { append, remove } = useFieldArray({
     control,
     name: 'voluntarios',
   });
 
-  const voluntariosData = watch('voluntarios') ?? [];
-  const respSetListVoluntarios = watch('respSetListVoluntarios') ?? [];
+  const voluntariosData = (watch('voluntarios') ?? []).slice().sort((a, b) => {
+    const voluntarioA = voluntariosList.find(v => v.id === a.voluntarioId);
+    const voluntarioB = voluntariosList.find(v => v.id === b.voluntarioId);
+    const nomeA = voluntarioA?.nome?.toLowerCase() || '';
+    const nomeB = voluntarioB?.nome?.toLowerCase() || '';
+    if (nomeA < nomeB) return -1;
+    if (nomeA > nomeB) return 1;
 
-  const convertedData: DataType[] = useMemo(() => {
-    return voluntariosData.map(item => {
-      const voluntario = voluntariosList.find(v => v.id === item.voluntarioId);
-      const funcaoNome = funcoesList.find(f => f.id === item.funcaoId)?.nome;
-      const fotoSource = ImageUtils.rawToDataUri(voluntario?.foto);
+    const funcaoA = funcoesList.find(f => f.id === a.funcaoId);
+    const funcaoB = funcoesList.find(f => f.id === b.funcaoId);
+    const funcaoNomeA = funcaoA?.nome?.toLowerCase() || '';
+    const funcaoNomeB = funcaoB?.nome?.toLowerCase() || '';
+    if (funcaoNomeA < funcaoNomeB) return -1;
+    if (funcaoNomeA > funcaoNomeB) return 1;
 
-      return {
-        title: voluntario?.nome || '',
-        subtitle: funcaoNome,
-        topElement: {
-          type: 'image',
-          imageUrl: fotoSource ?? EMPTY_PROFILE_IMAGE,
-        },
-      } as DataType;
-    });
-  }, [voluntariosData, voluntariosList, funcoesList]);
+    return 0;
+  });
 
-  const [formParams, setFormParams] = useState<{ visible: boolean }>();
+  const [formParams, setFormParams] = useState<{ visible: boolean; mode: 'add' | 'edit' }>();
 
   const handleConfirm = useCallback(() => {
+    if (disabled) {
+      return;
+    }
     formAdd.handleSubmit(data => {
-      const alreadyExists = voluntariosData.some(v => v.voluntarioId === data.voluntarioId);
+      const alreadyExists = voluntariosData.some(v => v.voluntarioId === data.voluntarioId && v.funcaoId === data.funcaoId);
 
       if (alreadyExists) {
         formAdd.setError('voluntarioId', { message: 'Voluntário já adicionado.' });
@@ -76,80 +76,89 @@ export default function TemplateFixoEquipeList({
       });
 
       formAdd.reset();
-      setFormParams({ visible: false });
+      setFormParams({ visible: false, mode: 'add' });
+
+      Toast.show({
+        type: 'success',
+        text1: 'Voluntário adicionado com sucesso!',
+      });
     })();
-  }, [append, formAdd, voluntariosData]);
+  }, [append, disabled, formAdd, voluntariosData]);
+
+  const handleOpen = useCallback(
+    (mode: 'add' | 'edit') => {
+      if (disabled) {
+        return;
+      }
+      formAdd.reset({ voluntarioId: undefined, funcaoId: undefined, id: undefined });
+      setFormParams({ visible: true, mode });
+    },
+    [disabled, formAdd]
+  );
 
   const handleRemove = useCallback(
     (index: number) => {
+      if (disabled) {
+        return;
+      }
       const entry = voluntariosData[index];
       if (!entry) {
         return;
       }
 
-      remove(index);
-      if (respSetListVoluntarios.includes(entry.voluntarioId)) {
-        const next = respSetListVoluntarios.filter(id => id !== entry.voluntarioId);
-        setValue('respSetListVoluntarios', next, { shouldDirty: true, shouldValidate: true });
-      }
+      FancyAlert.alert('Confirmar remoção', 'Tem certeza que deseja remover este voluntário?', [
+        { text: 'Não', style: 'destructive' },
+        {
+          text: 'Sim',
+          onPress: () => {
+            remove(index);
+            Toast.show({
+              type: 'success',
+              text1: 'Voluntário removido com sucesso!',
+            });
+          },
+        },
+      ]);
     },
-    [remove, setValue, respSetListVoluntarios, voluntariosData]
+    [disabled, remove, voluntariosData]
   );
 
   return (
     <>
-      <FancyContainerVerticalList
-        title={'Equipe'}
-        listProps={{
-          data: convertedData,
-          itemProps: {
-            additionalData: ({ index }) => {
-              const current = voluntariosData[index];
-              if (!current) {
-                return null;
-              }
-
-              return (
-                <View
-                  style={{
-                    width: '100%',
-                    gap: 10,
-                    marginVertical: 5,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <FancyButton
-                    mode="icon"
-                    icon={{ ...DefaultIconsNames.edit, size: 18 }}
-                    containerStyle={{ width: 32, height: 32 }}
-                    onPress={() => {}}
-                  />
-                  <FancyButton
-                    mode="icon"
-                    icon={{ ...DefaultIconsNames.delete, size: 18 }}
-                    containerStyle={{
-                      backgroundColor: Pallete.error,
-                      height: 32,
-                      width: 32,
-                    }}
-                    onPress={() => handleRemove(index)}
-                  />
-                </View>
-              );
-            },
-          },
-          itemHeight: 180,
+      <FancyContainerList
+        title={'Formação da Equipe'}
+        data={voluntariosData}
+        virtualized={false}
+        contentContainerStyle={{ paddingTop: 6 }}
+        disabled={disabled}
+        renderItem={({ item, index }: { item: EscalaTemplateVoluntario; index: number }) => {
+          const voluntarioInfo = voluntariosList.find(option => option.id === item.voluntarioId);
+          const funcaoInfo = funcoesList.find(option => option.id === item.funcaoId);
+          return (
+            <FancyCard.Image
+              type="image"
+              props={{
+                title: voluntarioInfo?.nome,
+                subtitle: funcaoInfo?.nome,
+                source: voluntarioInfo?.foto ? { uri: voluntarioInfo?.foto } : EMPTY_PROFILE_IMAGE,
+                actionButtons: [
+                  {
+                    icon: {
+                      ...DefaultIconsNames.delete,
+                      size: 16,
+                      backgroundColor: disabled ? Pallete.disabled : Pallete.error,
+                    },
+                    onPress: disabled ? undefined : () => handleRemove(index),
+                  },
+                ],
+              }}
+            />
+          );
         }}
-        containerStyle={{ flex: 1 }}
-        contentContainerStyle={{ flex: 1, paddingTop: 10 }}
         buttons={[
           {
             icon: { ...DefaultIconsNames.add, size: 20, style: { width: 20, height: 20 } },
-            onPress: () => {
-              setFormParams({ visible: true });
-            },
+            onPress: disabled ? undefined : () => handleOpen('add'),
           },
         ]}
       />
@@ -158,7 +167,7 @@ export default function TemplateFixoEquipeList({
           <TemplateFixoEquipeForm
             modalProps={{ visible: formParams.visible }}
             onClose={() => {
-              setFormParams({ visible: false });
+              setFormParams({ visible: false, mode: 'add' });
             }}
             onConfirm={handleConfirm}
             voluntarioList={voluntariosDropDownList}
@@ -169,3 +178,4 @@ export default function TemplateFixoEquipeList({
     </>
   );
 }
+

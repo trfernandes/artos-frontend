@@ -16,12 +16,7 @@ export type CrudFormMessages = {
 
 type CrudQueryKind = 'none' | 'query' | 'id';
 
-export interface UseCrudOptions<
-  T,
-  TForm extends FieldValues,
-  CreateDto = Partial<T>,
-  UpdateDto = Partial<T>
-> {
+export interface UseCrudOptions<T, TForm extends FieldValues, CreateDto = Partial<T>, UpdateDto = Partial<T>> {
   queryKey: string;
   fetchAll: () => Promise<T[]>;
   fetchOne?: (id: string) => Promise<T>;
@@ -209,6 +204,9 @@ export function useCrud<
   };
 
   return {
+    queryClient,
+    messages,
+    queryKey,
     form,
     data: dataQuery.data || [],
     currentItem,

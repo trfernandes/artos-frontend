@@ -52,6 +52,6 @@ const styles = StyleSheet.create({
     borderColor: 'red',
     backgroundColor: Pallete.backgroundColor,
   },
-  headerContainer: { paddingHorizontal: 20 },
+  headerContainer: { paddingHorizontal: 0 },
   contentContainer: { borderWidth: 0 },
 });

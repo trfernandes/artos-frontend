@@ -5,6 +5,7 @@ import ControlledDropDown from '../../../forms/ControlledDropDown';
 import { BaseLiderancaFormData } from './LiderancaTab';
 import { ZodObject } from 'zod';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
+import { ImageUtils } from '../../../../utils/image_utils';
 
 interface LiderFormModalProps<Schema extends ZodObject> {
   onClose: () => void;
@@ -32,18 +33,26 @@ export default function LiderancaFormModal<Schema extends ZodObject>({
     <FancyModalDialog
       centerContainerStyle={{ gap: 15 }}
       modalProps={{ visible: true }}
-      title={mode === 'edit' ? 'Editar Líder' : 'Novo Líder'}
+      title={mode === 'edit' ? 'Editar Lider' : 'Novo Lider'}
       onClose={onClose}
       onConfirm={handleSubmit}
     >
       <ControlledDropDown
         control={form.control}
         name="voluntarioId"
-        label="Voluntário"
+        label="Voluntario"
         disabled={mode === 'edit'}
         listItems={
           voluntarioList?.map(
-            item => ({ title: item.title, value: item.value, left: { type: 'image', source: item.foto } } as DropDownItemProps<string>)
+            item =>
+              ({
+                title: item.title,
+                value: item.value,
+                left: {
+                  type: 'image',
+                  source: item.foto ? ImageUtils.rawToDataUri(item.foto) ?? item.foto : undefined,
+                },
+              } as DropDownItemProps<string>)
           ) || []
         }
         onChange={async value => {
@@ -56,7 +65,7 @@ export default function LiderancaFormModal<Schema extends ZodObject>({
       <ControlledDropDown
         control={form.control}
         name="hierarquia"
-        label="Função"
+        label="Funcao"
         listItems={[
           { title: HierarquiaEnumLabel[HierarquiaEnum.Lider], value: HierarquiaEnum.Lider },
           { title: HierarquiaEnumLabel[HierarquiaEnum.Auxiliar], value: HierarquiaEnum.Auxiliar },

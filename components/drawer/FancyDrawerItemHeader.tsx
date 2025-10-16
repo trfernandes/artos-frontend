@@ -5,6 +5,7 @@ import DefaultIcons from '../FancyIcons';
 import { DrawerItemData } from './MenuData';
 import { router } from 'expo-router';
 import { Image } from 'expo-image';
+import { ImageUtils } from '../../utils/image_utils';
 
 export default function FancyDrawerItemHeader(props: { isCollapsed: boolean; onCollapsePress: () => void } & DrawerItemData) {
   const handleOnItemPress = () => {
@@ -36,7 +37,10 @@ export default function FancyDrawerItemHeader(props: { isCollapsed: boolean; onC
               />
             )}
             {props.logo.type === 'logo' && props.logo.value && (
-              <Image source={{ uri: props.logo.value }} style={{ width: 25, height: 25, borderRadius: 999 }} />
+              <Image
+                source={ImageUtils.normalizeImageSource(props.logo.value) ?? { uri: props.logo.value }}
+                style={{ width: 25, height: 25, borderRadius: 999 }}
+              />
             )}
           </View>
         )}

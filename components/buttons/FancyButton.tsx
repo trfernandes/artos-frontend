@@ -21,7 +21,7 @@ export type FancyButtonProps = {
   size?: FancyButtonSize;
 };
 
-const resolveSize = (size?: FancyButtonSize, fallback = 45) => {
+const resolveSize = (size?: FancyButtonSize, fallback = 40) => {
   if (!size) return fallback;
   return typeof size === 'number' ? size : size.h;
 };

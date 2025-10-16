@@ -12,6 +12,7 @@ import { Alert, View } from 'react-native';
 import DefaultIcons from '../../../../../components/FancyIcons';
 import FancyText from '../../../../../components/FancyText';
 import { Pallete } from '../../../../../constants/colors';
+import { ImageUtils } from '../../../../../utils/image_utils';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { useMinisteriosCrud } from '../../../../../hooks/useMinisteriosCrud';
 import { useState } from 'react';
@@ -133,8 +134,9 @@ export default function MinisteriosIndex() {
             ],
           };
 
-          const cardImageProps: ImageType | IconType = item.logo
-            ? { type: 'image', props: { source: item.logo, ...commonProps } }
+          const logoSource = item.logo ? ImageUtils.rawToDataUri(item.logo) ?? item.logo : undefined;
+          const cardImageProps: ImageType | IconType = logoSource
+            ? { type: 'image', props: { source: logoSource, ...commonProps } }
             : {
                 type: 'icon',
                 props: {
@@ -150,3 +152,4 @@ export default function MinisteriosIndex() {
     </FancyListPage>
   );
 }
+

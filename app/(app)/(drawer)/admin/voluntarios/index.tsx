@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
 import { Pallete } from '../../../../../constants/colors';
+import { ImageUtils } from '../../../../../utils/image_utils';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { StyleSheet } from 'react-native';
 import FancyScreenErrorHandler from '../../../../../components/error/FancyScreenErrorHandler';
@@ -75,7 +76,10 @@ export default function VoluntariosIndexPage() {
             props={{
               title: item.nome,
               subtitle: item.email,
-              source: item.foto || require('../../../../../assets/images/empty_profile_image.png'),
+              source:
+                item.foto
+                  ? ImageUtils.rawToDataUri(item.foto) ?? item.foto
+                  : require('../../../../../assets/images/empty_profile_image.png'),
               actionButtons: [
                 {
                   icon: {
@@ -113,3 +117,4 @@ const styles = StyleSheet.create({
   searchbar: { paddingHorizontal: 18 },
   list_content: { paddingHorizontal: 18, gap: 10 },
 });
+

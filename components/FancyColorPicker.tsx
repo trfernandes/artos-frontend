@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { View, TouchableOpacity, StyleSheet, ViewStyle, Dimensions, ScrollView, Animated } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Dimensions, ScrollView, Animated } from 'react-native';
 import FancyButton from './buttons/FancyButton';
 import { Pallete } from '../constants/colors';
 import FancyText from './FancyText';
+import DefaultIcons from './FancyIcons';
 
 export interface FancyColorPickerProps {
   value?: string;
@@ -12,6 +13,7 @@ export interface FancyColorPickerProps {
   selectedColor?: string;
   horizontal?: boolean;
   label?: string;
+  disabled?: boolean;
 }
 
 export default function FancyColorPicker({
@@ -38,6 +40,7 @@ export default function FancyColorPicker({
   selectedColor,
   horizontal = false,
   label,
+  disabled = false,
 }: FancyColorPickerProps) {
   // const [current, setCurrent] = useState<string>(selectedColor || colors[0]);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
@@ -74,6 +77,7 @@ export default function FancyColorPicker({
   }, [isArrowVisible, fadeAnim]);
 
   const handleSelect = (color: string) => {
+    if (disabled) return;
     // setCurrent(color);
     onSelectColor?.(color);
   };
@@ -90,32 +94,68 @@ export default function FancyColorPicker({
     setShowRightArrow(scrollX < maxScroll - 10);
   };
 
-  const renderCircles = () =>
-    colors.map(color => {
-      const isSelected = color === value;
-      const baseStyle: ViewStyle = {
-        width: circleSize - (isSelected ? 8 : 0),
-        height: circleSize - (isSelected ? 8 : 0),
-        borderRadius: (circleSize - (isSelected ? 8 : 0)) / 2,
-        backgroundColor: color,
-      };
+  useEffect(() => {
+    if (disabled) {
+      setShowLeftArrow(false);
+      setShowRightArrow(false);
+    }
+  }, [disabled]);
+
+  const currentColor = value ?? selectedColor;
+  const enlargedMultiplier = 1.2;
+
+  const renderCircles = () => {
+    const orderedColors =
+      disabled && currentColor
+        ? [currentColor, ...colors.filter(colorItem => colorItem !== currentColor)]
+        : colors;
+
+    return orderedColors.map(color => {
+      const isSelected = color === currentColor;
+      const displaySize = isSelected ? circleSize * enlargedMultiplier : circleSize;
+      const displayColor = disabled && !isSelected ? Pallete.disabled2 : color;
 
       return (
-        <TouchableOpacity key={color} onPress={() => handleSelect(color)} activeOpacity={0.8} style={styles.touchable}>
+        <TouchableOpacity
+          key={color}
+          onPress={() => handleSelect(color)}
+          activeOpacity={disabled ? 1 : 0.8}
+          style={styles.touchable}
+          disabled={disabled}
+        >
           <View
             style={[
+              styles.circleOutline,
               isSelected && {
-                padding: 2,
                 borderColor: color,
-                borderRadius: 100,
               },
             ]}
           >
-            <View style={baseStyle} />
+            <View
+              style={[
+                styles.circle,
+                {
+                  width: displaySize,
+                  height: displaySize,
+                  borderRadius: displaySize / 2,
+                  backgroundColor: displayColor,
+                },
+              ]}
+            >
+              {isSelected && (
+                <DefaultIcons.Custom
+                  library="FontAwesome"
+                  name="check"
+                  size={25}
+                  color={Pallete.fonts.light}
+                />
+              )}
+            </View>
           </View>
         </TouchableOpacity>
       );
     });
+  };
 
   if (!horizontal) {
     return (
@@ -133,7 +173,7 @@ export default function FancyColorPicker({
         </FancyText>
       )}
       <View style={styles.colorContainer}>
-        {showLeftArrow && (
+        {!disabled && showLeftArrow && (
           <Animated.View style={[styles.arrowContainer, { left: 0, opacity: fadeAnim }]}>
             <FancyButton
               mode="icon"
@@ -167,12 +207,13 @@ export default function FancyColorPicker({
           scrollEventThrottle={16}
           showsHorizontalScrollIndicator
           contentContainerStyle={styles.scrollContainer}
-          onScroll={onScroll}
+          onScroll={disabled ? undefined : onScroll}
+          scrollEnabled={!disabled}
           ref={scrollRef}
         >
           {renderCircles()}
         </ScrollView>
-        {showRightArrow && (
+        {!disabled && showRightArrow && (
           <Animated.View style={[styles.arrowContainer, { right: 0, opacity: fadeAnim }]}>
             <FancyButton
               mode="icon"
@@ -227,6 +268,18 @@ const styles = StyleSheet.create({
   },
   touchable: {
     margin: 6,
+  },
+  circleOutline: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 3,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    borderRadius: 999,
+  },
+  circle: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   arrowContainer: {
     position: 'absolute',

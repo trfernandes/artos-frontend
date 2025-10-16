@@ -57,7 +57,7 @@ function RootLayoutNav() {
         <Stack.Screen name="(app)" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       </Stack>
-      <Toast config={toastConfig} position="bottom" visibilityTime={3000} />
+      <Toast config={toastConfig} position="bottom" visibilityTime={4000} />
       <FancyAlertConnector />
     </FancyAlertProvider>
   );

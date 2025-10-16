@@ -6,6 +6,7 @@ import { Pallete } from '../../constants/colors';
 import { DefaultIconsNames } from '../../constants/icons';
 import FancySeparator from '../FancySeparator';
 import { Image } from 'expo-image';
+import { ImageUtils } from '../../utils/image_utils';
 
 const EMPTY_PROFILE_IMAGE = require('../../assets/images/empty_profile_image.png');
 
@@ -28,23 +29,19 @@ export default function FancyDropDown<ValueItem>(props: FancyDropDownProps<Value
   const isDisabled = Boolean(textInputProps.disabled);
   type LeftDisplay = { type?: string; source?: string | ImageSourcePropType };
 
-  const selectedImageSource = useMemo(() => {
+  const selectedImageSource = useMemo<ImageSourcePropType | undefined>(() => {
     if (!showSelectedImage) {
       return undefined;
     }
 
     const left = selectedItem?.left as LeftDisplay | undefined;
 
-    if (!left) {
-      return undefined;
-    }
-
-    if (left.type === 'icon') {
+    if (!left || left.type === 'icon') {
       return undefined;
     }
 
     if (left.source) {
-      return left.source;
+      return ImageUtils.normalizeImageSource(left.source) ?? (typeof left.source === 'string' ? { uri: left.source } : left.source);
     }
 
     if (left.type === 'image') {
@@ -83,14 +80,7 @@ export default function FancyDropDown<ValueItem>(props: FancyDropDownProps<Value
         onPress={toggleList}
         leftContainer={
           selectedImageSource ? (
-            <Image
-              source={
-                typeof selectedImageSource === 'string'
-                  ? { uri: selectedImageSource }
-                  : selectedImageSource
-              }
-              style={{ width: 25, height: 25, borderRadius: 100 }}
-            />
+            <Image source={selectedImageSource} style={{ width: 25, height: 25, borderRadius: 100 }} />
           ) : undefined
         }
         inputProps={{ readOnly: true, onBlur, onPress: toggleList }}
@@ -174,4 +164,3 @@ const styles = StyleSheet.create({
     zIndex: 10000,
   },
 });
-

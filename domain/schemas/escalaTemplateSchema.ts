@@ -1,13 +1,11 @@
 import z from 'zod';
 import { EscalaTemplateExperienciaEnum, EscalaTemplateTipoEnum } from '../models/EscalaTemplate';
 
-const UUID_REGEX =
-  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+const UUID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
 
-export const escalaTemplateTipoSchema = z.union(
-  [z.literal(EscalaTemplateTipoEnum.Fixo), z.literal(EscalaTemplateTipoEnum.Funcoes)],
-  { message: 'Selecione um tipo válido' }
-);
+export const escalaTemplateTipoSchema = z.union([z.literal(EscalaTemplateTipoEnum.Fixo), z.literal(EscalaTemplateTipoEnum.Funcoes)], {
+  message: 'Selecione um tipo válido',
+});
 
 export const escalaTemplateExperienciaSchema = z.union(
   [
@@ -30,9 +28,7 @@ export const escalaTemplateFuncaoSchema = z.object({
   id: uuidField.optional(),
   funcaoId: z.uuid({ error: 'Campo obrigatório' }),
   experiencia: escalaTemplateExperienciaSchema,
-  quantidade: z.coerce
-    .number<number>('Campo obrigatório')
-    .min(1, { message: 'A quantidade deve ser no mínimo 1' }),
+  quantidade: z.coerce.number<number>('Campo obrigatório').min(1, { message: 'A quantidade deve ser no mínimo 1' }),
 });
 
 export const escalaTemplateSchema = z
@@ -61,18 +57,16 @@ export const escalaTemplateSchema = z
           message: 'Adicione pelo menos uma função para templates por funções',
         });
       }
+    } else if (data.tipo === EscalaTemplateTipoEnum.Fixo) {
+      const voluntarios = data.voluntarios ?? [];
 
-      const seenFuncoes = new Set<string>();
-      funcoes.forEach((item, index) => {
-        if (seenFuncoes.has(item.funcaoId)) {
-          ctx.addIssue({
-            code: 'custom',
-            path: ['funcoes', index, 'funcaoId'],
-            message: 'Essa função já foi adicionada ao template',
-          });
-        }
-        seenFuncoes.add(item.funcaoId);
-      });
+      if (voluntarios.length === 0) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['voluntarios'],
+          message: 'Adicione pelo menos um voluntário para templates fixos',
+        });
+      }
     }
   });
 

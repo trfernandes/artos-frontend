@@ -7,7 +7,6 @@ import { FancyCard } from '../../../cards/Horizontal/FancyCard';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import { Evento } from '../../../../domain/models/Evento';
 import { format } from 'date-fns';
-import { router } from 'expo-router';
 
 export type EventoGroup = {
   month: number;
@@ -20,7 +19,8 @@ export type EventosListProps = {
   listProps?: Omit<FancyListProps<EventoGroup>, 'data' | 'renderItem'>;
   containerStyle?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
-  onDeleteItem?: (item: Evento) => void;
+  onEditItem: (item: Evento) => void;
+  onDeleteItem: (item: Evento) => void;
 };
 
 export default function EventosListView({
@@ -29,6 +29,7 @@ export default function EventosListView({
   containerStyle,
   contentContainerStyle,
   onDeleteItem,
+  onEditItem,
 }: EventosListProps) {
   let data: { month: number; year: number; events: Evento[] }[] = [];
 
@@ -68,13 +69,13 @@ export default function EventosListView({
             </View>
 
             <View style={styles.eventList}>
-              {item.events.map((event, index) => (
+              {item.events.map((item, index) => (
                 <FancyCard.Color
                   key={index}
-                  title={event.nome}
-                  subtitle={format(new Date(event.dataInicio), 'dd/MM/yyyy HH:mm')}
-                  additionalData1={format(new Date(event.dataTermino), 'dd/MM/yyyy HH:mm')}
-                  color={event.cor || 'blue'}
+                  title={item.nome}
+                  subtitle={format(new Date(item.dataInicio), 'dd/MM/yyyy HH:mm')}
+                  additionalData1={format(new Date(item.dataTermino), 'dd/MM/yyyy HH:mm')}
+                  color={item.cor || 'blue'}
                   actionButtons={[
                     {
                       icon: {
@@ -82,14 +83,7 @@ export default function EventosListView({
                         name: DefaultIconsNames.edit.name,
                         size: 18,
                       },
-                      onPress: () => {
-                        router.push({
-                          pathname: '/admin/eventos/edit',
-                          params: {
-                            id: event.id,
-                          },
-                        });
-                      },
+                      onPress: () => onEditItem?.(item),
                     },
                     {
                       icon: {
@@ -99,20 +93,16 @@ export default function EventosListView({
                         backgroundColor: Pallete.error,
                       },
                       onPress: () => {
-                        Alert.alert(
-                          'Exclusão',
-                          `Tem certeza que deseja remover o ministério "${event.nome}?"`,
-                          [
-                            { text: 'Cancelar', style: 'cancel' },
-                            {
-                              text: 'Remover',
-                              style: 'destructive',
-                              onPress: () => {
-                                onDeleteItem?.(event);
-                              },
+                        Alert.alert('Exclusão', `Tem certeza que deseja remover o ministério "${item.nome}?"`, [
+                          { text: 'Cancelar', style: 'cancel' },
+                          {
+                            text: 'Remover',
+                            style: 'destructive',
+                            onPress: () => {
+                              onDeleteItem?.(item);
                             },
-                          ]
-                        );
+                          },
+                        ]);
                       },
                     },
                   ]}

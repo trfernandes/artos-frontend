@@ -1,15 +1,17 @@
-import { useNavigation } from 'expo-router';
-import { useState, useLayoutEffect } from 'react';
+import { router, useNavigation } from 'expo-router';
+import { useState, useLayoutEffect, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
-import FancyLoading from '../../../../../components/FancyLoading';
 import FancyHeaderButton from '../../../../../components/header/FancyHeaderButton';
 import MainHeaderButtons from '../../../../../components/header/MainHeaderButtons';
-import EventoCalendarView from '../../../../../components/pages/admin/eventos/EventoCalendarView';
-import EventosListView from '../../../../../components/pages/admin/eventos/EventosListView';
-import FancyBasePage from '../../../../../components/pages/base/FancyBasePage';
 import { DefaultIconsNames } from '../../../../../constants/icons';
-import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
+import FancyBasePage from '../../../../../components/pages/base/FancyBasePage';
+import EventosListView from '../../../../../components/pages/admin/eventos/EventosListView';
+import EventoCalendarView from '../../../../../components/pages/admin/eventos/EventoCalendarView';
+import FancyLoading from '../../../../../components/FancyLoading';
 import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
+import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
+import { Evento } from '../../../../../domain/models/Evento';
+import { Pallete } from '../../../../../constants/colors';
 
 export default function MinisterioEscalasIndex() {
   const navigation = useNavigation();
@@ -39,6 +41,15 @@ export default function MinisterioEscalasIndex() {
     isLoadingMutation: isLoadingRemove,
   } = useEventosCrud({ autoFetch: false, initialParams: {} });
 
+  const handleEditItem = useCallback((evento: Evento) => {
+    router.push({
+      pathname: '/ministerios/escalas/edit',
+      params: {
+        id: evento.id,
+      },
+    });
+  }, []);
+
   if (isLoading) {
     return <FancyLoading label="Carregando..." />;
   }
@@ -49,17 +60,22 @@ export default function MinisterioEscalasIndex() {
 
   return (
     <FancyBasePage
-      showFab={false}
+      fabProps={{
+        icon: { library: 'MaterialCommunityIcons', name: 'calendar-arrow-right', size: 30 },
+        backgroundColor: Pallete.secondary,
+        onPress: () => router.push('/ministerios/escalas/assistant'),
+      }}
       showSearchBar={mode === 'list'}
       searchBarProps={{
         value: searchText,
         onSearch: text => {
-          console.log(text);
           setSearchText(text.trim());
           if (text && text.trim() !== '') {
             setSearchParams({
               where: {
-                conditions: [{ path: 'nome', operator: Operator.ILIKE, value: { type: ValueType.LITERAL, value: text.trim() } }],
+                conditions: [
+                  { path: 'nome', operator: Operator.ILIKE, value: { type: ValueType.LITERAL, value: text.trim() } },
+                ],
               },
             });
           } else {
@@ -69,9 +85,14 @@ export default function MinisterioEscalasIndex() {
       }}
     >
       {mode === 'list' ? (
-        <EventosListView items={eventosData} listProps={{ style: styles.list }} onDeleteItem={event => remove(event.id!)} />
+        <EventosListView
+          onEditItem={handleEditItem}
+          items={eventosData}
+          listProps={{ style: styles.list }}
+          onDeleteItem={event => remove(event.id!)}
+        />
       ) : (
-        <EventoCalendarView items={eventosData} onDeleteItem={event => remove(event.id!)} />
+        <EventoCalendarView onEditItem={handleEditItem} items={eventosData} onDeleteItem={event => remove(event.id!)} />
       )}
     </FancyBasePage>
   );

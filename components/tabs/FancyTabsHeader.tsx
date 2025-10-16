@@ -25,5 +25,5 @@ export default function FancyTabsHeader(props: FancyTabsHeaderProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { flexDirection: 'row', gap: 10, flexWrap: 'wrap', borderWidth: 0 },
+  container: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
 });

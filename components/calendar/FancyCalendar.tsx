@@ -40,6 +40,8 @@ export type FancyCalendarProps = {
   border?: boolean;
   value?: Date;
   dayViewProps?: Partial<DayViewProps>;
+  selectDateOnPress?: boolean;
+  markedDatesType?: DayViewProps['markedDatesType'];
 };
 
 export default function FancyCalendar({
@@ -53,6 +55,8 @@ export default function FancyCalendar({
   minimumDate,
   maximumDate,
   dayViewProps,
+  selectDateOnPress = true,
+  markedDatesType = 'bottomPoint',
 }: FancyCalendarProps) {
   const dayViewMaximum = dayViewProps?.maximumDate;
 
@@ -60,7 +64,18 @@ export default function FancyCalendar({
 
   const isControlled = value !== undefined;
   const [internalDate, setInternalDate] = useState<Date | undefined>(value);
-  const selectedDate = isControlled ? value : internalDate;
+  const selectedDate = isControlled
+    ? value
+    : selectDateOnPress
+    ? internalDate
+    : undefined;
+
+  const mergedDayViewProps = useMemo(() => {
+    return {
+      ...dayViewProps,
+      markedDatesType: dayViewProps?.markedDatesType ?? markedDatesType,
+    };
+  }, [dayViewProps, markedDatesType]);
 
   useEffect(() => {
     if (isControlled) setInternalDate(value);
@@ -165,11 +180,13 @@ export default function FancyCalendar({
 
   const handleSelectDate = useCallback(
     (date: Date) => {
-      if (!isControlled) setInternalDate(date);
+      if (!isControlled && selectDateOnPress) {
+        setInternalDate(date);
+      }
       onChangeSelectedDate?.(date);
       setVisualization(CalendarVisualization.Day);
     },
-    [isControlled, onChangeSelectedDate]
+    [isControlled, onChangeSelectedDate, selectDateOnPress]
   );
 
   const flingGestures = Gesture.Simultaneous(
@@ -218,7 +235,7 @@ export default function FancyCalendar({
               onSelectDate={handleSelectDate}
               minimumDate={minDate}
               maximumDate={maxDate}
-              {...dayViewProps}
+              {...mergedDayViewProps}
             />
           )}
           {visualization === CalendarVisualization.Month && (

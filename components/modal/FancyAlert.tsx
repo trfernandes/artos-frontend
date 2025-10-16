@@ -61,10 +61,7 @@ export function FancyAlertProvider({ children }: { children: ReactNode }) {
                   key={i}
                   label={btn.text}
                   onPress={() => close(btn)}
-                  containerStyle={[
-                    styles.button,
-                    btn.style === 'destructive' ? { backgroundColor: Pallete.error } : {},
-                  ]}
+                  containerStyle={[styles.button, btn.style === 'destructive' ? { backgroundColor: Pallete.error } : {}]}
                   type={btn.style === 'default' ? 'outlined' : 'contained'}
                 />
               ))}
@@ -110,6 +107,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     padding: 20,
     width: '80%',
+    borderRadius: 10,
   },
   title: { marginBottom: 10 },
   message: { marginBottom: 20, lineHeight: 16 },

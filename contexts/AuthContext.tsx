@@ -4,6 +4,7 @@ import apiClient from '../domain/api/api-client';
 import { VoluntarioPapelEnum } from '../domain/models/Voluntario';
 import { HierarquiaEnum } from '../domain/models/MinisterioVoluntario';
 import { MinisterioTipoEnum } from '../domain/models/Ministerio';
+import { ImageUtils } from '../utils/image_utils';
 
 export interface UserMinisterio {
   id: string;
@@ -21,6 +22,21 @@ export interface UserLoginData {
   papel: VoluntarioPapelEnum;
   ministerios: UserMinisterio[];
 }
+
+const normalizeUserImages = (user: UserLoginData | null): UserLoginData | null => {
+  if (!user) {
+    return null;
+  }
+
+  return {
+    ...user,
+    foto: user.foto ? ImageUtils.rawToDataUri(user.foto) ?? user.foto : undefined,
+    ministerios: (user.ministerios ?? []).map(ministerio => ({
+      ...ministerio,
+      logo: ministerio.logo ? ImageUtils.rawToDataUri(ministerio.logo) ?? ministerio.logo : undefined,
+    })),
+  };
+};
 
 interface AuthContextData {
   user: UserLoginData | null;
@@ -53,7 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         if (storedUser) {
-          setUser(JSON.parse(storedUser));
+          setUser(normalizeUserImages(JSON.parse(storedUser)));
         }
       } catch (error) {
         console.log('Erro ao carregar storage:', error);
@@ -76,11 +92,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     apiClient.defaults.headers.Authorization = `Bearer ${token}`;
     await AsyncStorage.setItem('token', token);
 
-    const user = response.data?.data?.user;
-    if (!user) throw new Error('Dados de Usuário não retornado pelo servidor');
-    setUser(user);
-    if (user) {
-      await AsyncStorage.setItem('user', JSON.stringify(user));
+    const userResponse = response.data?.data?.user;
+    if (!userResponse) throw new Error('Dados de Usuario nao retornado pelo servidor');
+    const normalizedUser = normalizeUserImages(userResponse);
+    setUser(normalizedUser);
+    if (normalizedUser) {
+      await AsyncStorage.setItem('user', JSON.stringify(normalizedUser));
     } else {
       await AsyncStorage.removeItem('user');
     }
@@ -101,9 +118,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return true;
   };
 
-  const updateUser = async (newUserData: any) => {
-    setUser(newUserData);
-    await AsyncStorage.setItem('user', JSON.stringify(newUserData));
+  const updateUser = async (newUserData: Partial<UserLoginData>) => {
+    const mergedUser = user ? { ...user, ...newUserData } : (newUserData as UserLoginData);
+    const normalizedUser = normalizeUserImages(mergedUser)!;
+    setUser(normalizedUser);
+    if (normalizedUser) {
+      await AsyncStorage.setItem('user', JSON.stringify(normalizedUser));
+    } else {
+      await AsyncStorage.removeItem('user');
+    }
   };
 
   const changePassword = async (senhaAtual: string, novaSenha: string) => {

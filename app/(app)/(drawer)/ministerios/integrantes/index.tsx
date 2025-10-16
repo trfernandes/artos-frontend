@@ -1,11 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
-import AddIntegranteModal from '../../../../../components/pages/ministerios/integrantes/AddIntegranteModal';
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
 import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
 import { Pallete } from '../../../../../constants/colors';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import {
   Condition,
   DynamicQuery,
@@ -13,14 +12,15 @@ import {
   OrderDirection,
   ValueType,
 } from '../../../../../domain/utils/query_utils';
-import { HierarquiaEnum } from '../../../../../domain/models/MinisterioVoluntario';
+import {
+  HierarquiaEnum,
+  HierarquiaEnumLabel,
+} from '../../../../../domain/models/MinisterioVoluntario';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import FancyLoading from '../../../../../components/FancyLoading';
 import { Voluntario } from '../../../../../domain/models/Voluntario';
 
 export default function MinisterioIntegrantesIndex() {
-  const [addModalVisible, setAddModalVisible] = useState(false);
-
   const { ministerioId } = useLocalSearchParams<{ ministerioId: string }>();
 
   const [searchText, setSearchText] = useState('');
@@ -45,11 +45,11 @@ export default function MinisterioIntegrantesIndex() {
             operator: Operator.EQUALS,
             value: { type: ValueType.LITERAL as const, value: ministerioId },
           },
-          {
-            path: 'hierarquia',
-            operator: Operator.EQUALS,
-            value: { type: ValueType.LITERAL, value: HierarquiaEnum.Voluntario },
-          },
+          // {
+          //   path: 'hierarquia',
+          //   operator: Operator.EQUALS,
+          //   value: { type: ValueType.LITERAL, value: HierarquiaEnum.Voluntario },
+          // },
           ...(searchCondition ? [searchCondition] : []),
         ],
       },
@@ -75,7 +75,6 @@ export default function MinisterioIntegrantesIndex() {
       ministerioId: ministerioId!,
       hierarquia: HierarquiaEnum.Voluntario,
     });
-    setAddModalVisible(false);
   }, []);
 
   if (isLoading || isLoadingMutation) return <FancyLoading />;
@@ -83,7 +82,10 @@ export default function MinisterioIntegrantesIndex() {
   return (
     <FancyListPage
       showFab
-      fabProps={{ onPress: () => setAddModalVisible(true) }}
+      fabProps={{
+        onPress: () =>
+          router.push({ pathname: '/ministerios/integrantes/add', params: { ministerioId } }),
+      }}
       showSearchBar
       searchBarProps={{
         value: searchText,
@@ -97,9 +99,24 @@ export default function MinisterioIntegrantesIndex() {
             props={{
               title: item.voluntario?.nome,
               subtitle: item.voluntario?.email,
+              additionalData1: HierarquiaEnumLabel[item.hierarquia],
               source:
-                item.voluntario?.foto ?? require('../../../../../assets/images/empty_profile_image.png'),
+                item.voluntario?.foto ??
+                require('../../../../../assets/images/empty_profile_image.png'),
               actionButtons: [
+                {
+                  icon: { ...DefaultIconsNames.edit, size: 17 },
+                  onPress: () => {
+                    router.push({
+                      pathname: '/ministerios/integrantes/edit',
+                      params: {
+                        ministerioId: ministerioId,
+                        ministerioVoluntarioId: item.id,
+                        voluntarioId: item.voluntarioId || item.voluntario?.id!,
+                      },
+                    });
+                  },
+                },
                 {
                   icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error },
                   onPress: () => {
@@ -125,14 +142,14 @@ export default function MinisterioIntegrantesIndex() {
         ),
       }}
     >
-      {addModalVisible && (
+      {/* {formModalVisible.visible && (
         <AddIntegranteModal
           title="Novo Integrante"
           ministerioId={ministerioId}
-          onClose={() => setAddModalVisible(false)}
+          onClose={() => setFormModalVisible({ ...formModalVisible, visible: false })}
           onConfirm={data => data && handleConfirm(data!)}
         />
-      )}
+      )} */}
     </FancyListPage>
   );
 }

@@ -25,7 +25,6 @@ export type IconLibrary =
   | 'Entypo'
   | 'Feather'
   | 'AntDesign'
-  | 'Foundation'
   | 'MaterialCommunityIcons'
   | 'Octicons'
   | 'Fontisto';

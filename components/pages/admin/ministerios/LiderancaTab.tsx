@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useFieldArray, useForm, useFormContext } from 'react-hook-form';
 import FancyList from '../../../list/FancyList';
 import { Pallete } from '../../../../constants/colors';
+import { ImageUtils } from '../../../../utils/image_utils';
 import { FancyCard } from '../../../cards/Horizontal/FancyCard';
 import { FancyActionButtons } from '../../../cards/Horizontal/FancyCardActionButtons';
 import { HierarquiaEnum, HierarquiaEnumLabel } from '../../../../domain/models/MinisterioVoluntario';
@@ -114,7 +115,7 @@ export default function LiderancaTab(props: {
       .map(item => ({
         title: item.nome,
         value: item.id!,
-        foto: item.foto,
+        foto: item.foto ? ImageUtils.rawToDataUri(item.foto) ?? item.foto : undefined,
       }));
   };
 
@@ -127,7 +128,10 @@ export default function LiderancaTab(props: {
           contentContainerStyle={styles.contentList}
           renderItem={({ item, index }) => {
             const commonProps = {
-              source: item.foto ?? require('../../../../assets/images/empty_profile_image.png'),
+              source:
+                item.foto
+                  ? ImageUtils.rawToDataUri(item.foto) ?? item.foto
+                  : require('../../../../assets/images/empty_profile_image.png'),
               title: item.voluntarioNome,
               subtitle: HierarquiaEnumLabel[item.hierarquia],
               actionButtons: (
@@ -210,3 +214,6 @@ const styles = StyleSheet.create({
   containerList: { height: '100%' },
   contentList: { gap: 10 },
 });
+
+
+

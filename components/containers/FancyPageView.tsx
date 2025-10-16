@@ -1,4 +1,4 @@
-import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
+import { View, StyleSheet, ViewStyle, StyleProp, ViewProps } from 'react-native';
 import { Pallete } from '../../constants/colors';
 
 interface FancyPageViewProps {
@@ -6,8 +6,12 @@ interface FancyPageViewProps {
   style?: StyleProp<ViewStyle>;
 }
 
-export default function FancyPageView(props: FancyPageViewProps) {
-  return <View style={[styles.container, props.style]}>{props.children}</View>;
+export default function FancyPageView(props: FancyPageViewProps & ViewProps) {
+  return (
+    <View {...props} style={[styles.container, props.style]} >
+      {props.children}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({

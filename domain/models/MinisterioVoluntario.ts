@@ -17,7 +17,7 @@ export enum HierarquiaEnum {
 }
 
 export const HierarquiaEnumLabel: Record<HierarquiaEnum, string> = {
-  [HierarquiaEnum.Voluntario]: 'Comum',
+  [HierarquiaEnum.Voluntario]: 'Voluntário',
   [HierarquiaEnum.Lider]: 'Líder',
   [HierarquiaEnum.Auxiliar]: 'Auxiliar',
 };

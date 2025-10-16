@@ -6,6 +6,8 @@ import z from 'zod';
 import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
 import ControlledTextArea from '../../../forms/ControlledTextArea';
 import ControlledDateInput from '../../../forms/ControlledDateInput';
+import { differenceInDays } from 'date-fns';
+import { FancyAlert } from '../../../modal/FancyAlert';
 
 const schema = z
   .object({
@@ -26,7 +28,7 @@ const schema = z
 
 export type AddPeriodoModalProps = {
   visible: boolean;
-  modalProps?: FancyModalDialogProps;
+  modalProps?: FancyModalDialogProps<any>;
   onConfirm: (inicio: Date, fim: Date, motivo: string) => void;
 };
 
@@ -60,7 +62,17 @@ export default function AddPeriodoModal({ visible, modalProps, onConfirm }: AddP
       {...modalProps}
       title="Adicionar Período de Indisponibilidade"
       button1={{ label: 'Cancelar' }}
-      button2={{ label: 'Salvar', onPress: handleSubmit(submit) }}
+      button2={{
+        label: 'Salvar',
+        onPress: () => {
+          if (differenceInDays(dataTermino || new Date(), dataInicio || new Date()) > 31) {
+            FancyAlert.alert('Erro', 'O período não pode ser maior que 31 dias.');
+            return;
+          }
+
+          handleSubmit(submit)();
+        },
+      }}
     >
       <View style={{ gap: 16 }}>
         <ControlledDateInput

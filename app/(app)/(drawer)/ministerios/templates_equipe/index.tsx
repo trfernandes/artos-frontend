@@ -5,17 +5,9 @@ import { Pallete } from '../../../../../constants/colors';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { useCallback, useMemo, useState } from 'react';
 import { useEscalaTemplatesCrud } from '../../../../../useEscalaTemplatesCrud';
-import {
-  DynamicQuery,
-  Operator,
-  OrderDirection,
-  ValueType,
-} from '../../../../../domain/utils/query_utils';
+import { DynamicQuery, Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
-import {
-  EscalaTemplateTipoEnum,
-  EscalaTemplateTipoLabel,
-} from '../../../../../domain/models/EscalaTemplate';
+import { EscalaTemplateTipoEnum, EscalaTemplateTipoEnumMap, EscalaTemplateTipoLabel } from '../../../../../domain/models/EscalaTemplate';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 
 export default function MinisterioTemplateEquipeIndex() {
@@ -24,30 +16,37 @@ export default function MinisterioTemplateEquipeIndex() {
   const { ministerioId } = useLocalSearchParams<{ ministerioId: string }>();
 
   const searchParams = useMemo(() => {
-    if (!searchText) return undefined;
+    if (!ministerioId) return undefined;
+
+    const normalizedSearch = searchText.trim();
+
+    const conditions = [
+      {
+        path: 'ministerio.id',
+        operator: Operator.EQUALS,
+        value: { type: ValueType.LITERAL, value: ministerioId },
+      },
+    ];
+
+    if (normalizedSearch) {
+      conditions.push({
+        path: 'nome',
+        operator: Operator.ILIKE,
+        value: {
+          type: ValueType.LITERAL,
+          value: normalizedSearch,
+        },
+      });
+    }
 
     return {
       where: {
-        conditions: [
-          {
-            path: 'ministerio.id',
-            operator: Operator.EQUALS,
-            value: { type: ValueType.LITERAL, value: ministerioId },
-          },
-          {
-            path: 'nome',
-            operator: Operator.ILIKE,
-            value: {
-              type: ValueType.LITERAL,
-              value: searchText,
-            },
-          },
-        ],
+        conditions,
       },
       relations: ['voluntarios', 'funcoes'],
       orderBy: [{ path: 'nome', direction: OrderDirection.ASC }],
     } as DynamicQuery;
-  }, [searchText]);
+  }, [ministerioId, searchText]);
 
   const {
     data: templatesData,
@@ -55,13 +54,20 @@ export default function MinisterioTemplateEquipeIndex() {
     isLoading,
     isLoadingMutation,
   } = useEscalaTemplatesCrud({
-    autoFetch: true,
+    autoFetch: Boolean(ministerioId),
     initialParams: searchParams,
   });
 
-  const handleEdit = useCallback((id: string) => {
-    router.push({ pathname: 'ministerios/templates_equipe/edit', params: { id } });
+  const handleSearch = useCallback((value: string) => {
+    setSearchText(value.trim());
   }, []);
+
+  const handleEdit = useCallback((id: string) => {
+    router.push({
+      pathname: 'ministerios/templates_equipe/edit',
+      params: { ministerioId, templateId: id },
+    });
+  }, [ministerioId]);
 
   const handleDelete = useCallback((id: string) => {
     FancyAlert.alert('Confirmação', 'Deseja realmente excluir este template?', [
@@ -77,7 +83,7 @@ export default function MinisterioTemplateEquipeIndex() {
         },
       },
     ]);
-  }, []);
+  }, [removeTemplate]);
 
   if (isLoading || isLoadingMutation) return <FancyLoading />;
 
@@ -85,25 +91,22 @@ export default function MinisterioTemplateEquipeIndex() {
     <FancyListPage
       showFab
       fabProps={{
-        onPress: () =>
-          router.push({ pathname: 'ministerios/templates_equipe/add', params: { ministerioId } }),
+        onPress: () => router.push({ pathname: 'ministerios/templates_equipe/add', params: { ministerioId } }),
       }}
       showSearchBar
-      searchBarProps={{ value: searchText, onSearch: setSearchText }}
+      searchBarProps={{ value: searchText, onSearch: handleSearch }}
       listProps={{
         data: templatesData,
         renderItem: ({ item }) => {
           const tipoLabel = EscalaTemplateTipoLabel[item.tipo];
           const dimensaoEquipe =
-            item.tipo === EscalaTemplateTipoEnum.Fixo
-              ? item.voluntarios?.length
-              : item.funcoes?.length;
+            EscalaTemplateTipoEnumMap[item.tipo] === EscalaTemplateTipoEnum.Fixo ? item.voluntarios?.length : item.funcoes?.length;
           return (
             <FancyCard.Image
               type="icon"
               props={{
                 title: item.nome,
-                subtitle: tipoLabel,
+                subtitle: `Tipo: ${tipoLabel}`,
                 additionalData1: `Dimensão equipe: ${dimensaoEquipe ?? 0}`,
                 cardIcon: { ...DefaultIconsNames.group, size: 18, style: { marginTop: -2.5 } },
                 actionButtons: [

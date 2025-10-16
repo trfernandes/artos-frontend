@@ -9,16 +9,10 @@ export type FancyTabHeaderItemProps = {
   onPress?: () => void;
 } & TabItem;
 
-export default function FancyTabHeaderItem({
-  status = 'active',
-  ...props
-}: FancyTabHeaderItemProps) {
+export default function FancyTabHeaderItem({ status = 'active', ...props }: FancyTabHeaderItemProps) {
   return (
     <TouchableOpacity
-      style={[
-        styles.container,
-        status === 'active' ? styles.containerActive : styles.containerInactive,
-      ]}
+      style={[styles.container, status === 'active' ? styles.containerActive : styles.containerInactive]}
       onPress={props.onPress}
     >
       <View
@@ -33,11 +27,7 @@ export default function FancyTabHeaderItem({
             <DefaultIcons.Custom
               {...props.icon}
               size={props.icon.size || 18}
-              color={
-                props.icon.color || status === 'active'
-                  ? Pallete.fonts.light
-                  : Pallete.fonts.inactive
-              }
+              color={props.icon.color || status === 'active' ? Pallete.fonts.light : Pallete.fonts.inactive}
             />
           </View>
         )}

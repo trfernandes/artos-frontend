@@ -1,6 +1,7 @@
 import { StyleSheet, ImageSourcePropType, ImageStyle, StyleProp } from 'react-native';
 import { Pallete } from '../../constants/colors';
 import { Image } from 'expo-image';
+import { ImageUtils } from '../../utils/image_utils';
 
 export default function FancyImage({
   source,
@@ -13,13 +14,15 @@ export default function FancyImage({
   size?: number;
   style?: StyleProp<ImageStyle>;
 }) {
+  const resolvedSource = ImageUtils.normalizeImageSource(source) ?? source;
+
   return (
     <Image
-      source={source}
+      source={resolvedSource}
       style={[
         style,
         { width: size, height: size, borderRadius: size / 2, ...Pallete.shadows[200] },
-        disabled && source !== undefined && styles.blackAndWhiteFilter,
+        disabled && resolvedSource !== undefined && styles.blackAndWhiteFilter,
       ]}
     />
   );

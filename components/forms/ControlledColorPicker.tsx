@@ -12,13 +12,24 @@ export default function ControlledColorPicker<TFormValues extends FieldValues, T
   name,
   ...rest
 }: ControlledColorPickerProps<TFormValues, TName>) {
+  const { disabled: restDisabled, ...pickerProps } = rest;
+
   return (
     <Controller
       control={control}
       name={name}
-      render={({ field: { onChange, onBlur, value, disabled }, fieldState: { error } }) => (
-        <FancyColorPicker value={value} onSelectColor={onChange} {...rest} />
-      )}
+      render={({ field: { onChange, onBlur, value, disabled }, fieldState: { error } }) => {
+        const effectiveDisabled = (disabled ?? false) || Boolean(restDisabled);
+
+        return (
+          <FancyColorPicker
+            {...pickerProps}
+            value={value}
+            onSelectColor={onChange}
+            disabled={effectiveDisabled}
+          />
+        );
+      }}
     />
   );
 }

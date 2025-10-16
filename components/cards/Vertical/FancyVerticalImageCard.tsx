@@ -1,9 +1,10 @@
-import { StyleSheet, View, TouchableOpacity, LayoutChangeEvent, StyleProp, ImageStyle } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, LayoutChangeEvent, StyleProp, ImageStyle, ImageSourcePropType } from 'react-native';
 import { useCallback, useMemo, useState } from 'react';
 import FancyVerticalCard, { FancyVerticalCardProps } from './FancyVerticalCard';
 import DefaultIcons, { CustomIconProps } from '../../FancyIcons';
 import { Pallete } from '../../../constants/colors';
 import { Image } from 'expo-image';
+import { ImageUtils } from '../../../utils/image_utils';
 
 const AUTO_IMAGE_SCALE = 0.68;
 const MIN_AUTO_IMAGE_SIZE = 60;
@@ -161,3 +162,4 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
   } as ImageStyle,
 });
+

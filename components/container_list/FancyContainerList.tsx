@@ -1,3 +1,4 @@
+import React from 'react';
 import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { CustomIconProps } from '../FancyIcons';
 import { Pallete } from '../../constants/colors';
@@ -5,6 +6,7 @@ import FancyText from '../FancyText';
 import FancyButton from '../buttons/FancyButton';
 import FancyList, { FancyListProps } from '../list/FancyList';
 import FancySeparator from '../FancySeparator';
+import FancyListEmpty from '../list/FancyListEmpty';
 
 export interface FancyContainerListProps<ItemT>
   extends Pick<FancyListProps<ItemT>, 'data' | 'renderItem' | 'containerStyle' | 'contentContainerStyle'> {
@@ -13,24 +15,36 @@ export interface FancyContainerListProps<ItemT>
   containerStyle?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
   showDivider?: boolean;
+  virtualized?: boolean;
+  disabled?: boolean;
 }
 
 export default function FancyContainerList<ItemT>({
   showDivider = false,
-  ...props
+  virtualized = true,
+  title,
+  buttons,
+  data,
+  disabled = false,
+  renderItem,
+  containerStyle,
+  contentContainerStyle,
 }: FancyContainerListProps<ItemT>) {
+  const items = Array.from(data ?? []);
+  const hasItems = items.length > 0;
+
   return (
-    <View style={[styles.container, props.containerStyle]}>
+    <View style={[styles.container, containerStyle, disabled ? { opacity: 0.6, pointerEvents: 'none' } : {  pointerEvents: 'auto' }]}>
       <View style={styles.headerContainer}>
         <View style={styles.headerTitleContainer}>
-          <FancyText size={'medium'} type="semiBold" style={styles.headerTitle}>
-            {props.title}
+          <FancyText size={'small'} type="semiBold" style={styles.headerTitle}>
+            {title}
           </FancyText>
         </View>
 
-        {props.buttons && (
+        {buttons && (
           <View style={styles.headerButtonsContainer}>
-            {props.buttons.map((button, index) => (
+            {buttons.map((button, index) => (
               <FancyButton
                 key={index}
                 mode="icon"
@@ -45,15 +59,34 @@ export default function FancyContainerList<ItemT>({
         )}
       </View>
       <View style={styles.divider} />
-      <View style={[styles.contentContainer, props.contentContainerStyle]}>
-        <FancyList<ItemT>
-          {...props}
-          contentContainerStyle={[styles.listContentStyle, props.contentContainerStyle]}
-          ItemSeparatorComponent={() =>
-            showDivider && <FancySeparator style={{ marginTop: 10, borderWidth: 0 }} />
-          }
-          containerStyle={[styles.listContainerStyle, props.containerStyle]}
-        />
+      <View style={[styles.contentContainer, contentContainerStyle]}>
+        {virtualized ? (
+          <FancyList<ItemT>
+            data={items}
+            renderItem={renderItem}
+            contentContainerStyle={[styles.listContentStyle, contentContainerStyle]}
+            containerStyle={[styles.listContainerStyle, containerStyle]}
+            ItemSeparatorComponent={() =>
+              showDivider && <FancySeparator style={{ marginTop: 10, borderWidth: 0 }} />
+            }
+          />
+        ) : hasItems ? (
+          <View style={[styles.listContainerStyle, containerStyle]}>
+            <View style={[styles.listContentStyle, contentContainerStyle]}>
+              {items.map((item, index) => (
+                <React.Fragment key={index}>
+                  {renderItem ? renderItem({ item, index } as any) : null}
+                  {showDivider && index < items.length - 1 ? (
+                    <FancySeparator style={{ marginTop: 10, borderWidth: 0 }} />
+                  ) : null}
+                </React.Fragment>
+              ))}
+              <View style={{ height: 40 }} />
+            </View>
+          </View>
+        ) : (
+          <FancyListEmpty />
+        )}
       </View>
     </View>
   );

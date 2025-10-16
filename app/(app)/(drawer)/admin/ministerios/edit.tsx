@@ -15,6 +15,7 @@ import { useEffect, useMemo, useCallback, useState } from 'react';
 import { strfyObj } from '../../../../../utils/text_utils';
 import { MinisterioStatusEnumMap, MinisterioTipoEnumMap } from '../../../../../domain/models/Ministerio';
 import { HierarquiaEnum, MinisterioVoluntario } from '../../../../../domain/models/MinisterioVoluntario';
+import { ImageUtils } from '../../../../../utils/image_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
 import z from 'zod';
 import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
@@ -75,7 +76,7 @@ export default function MinisteriosEditPage() {
       id: m.id!,
       nome: m.nome!,
       descricao: m.descricao ?? '',
-      logo: m.logo ?? '',
+      logo: m.logo ? ImageUtils.rawToDataUri(m.logo) ?? m.logo : '',
       uploadLogo: m.logo ?? '',
       tipo: MinisterioTipoEnumMap[m.tipo!],
       status: MinisterioStatusEnumMap[m.status!],
@@ -86,7 +87,7 @@ export default function MinisteriosEditPage() {
           voluntarioId: v.voluntario?.id || v.voluntarioId,
           voluntarioNome: v.voluntario?.nome!,
           hierarquia: v.hierarquia,
-          foto: v.voluntario?.foto,
+          foto: v.voluntario?.foto ? ImageUtils.rawToDataUri(v.voluntario?.foto) ?? v.voluntario?.foto : undefined,
         })),
     });
   }, [ministeriosData, form]);
@@ -238,3 +239,9 @@ const styles = StyleSheet.create({
   tabContent: { flex: 1, paddingHorizontal: 20, paddingTop: 5 },
   buttonsContainer: { flexDirection: 'column', gap: 10, paddingHorizontal: 25 },
 });
+
+
+
+
+
+

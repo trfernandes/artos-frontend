@@ -84,7 +84,6 @@ export default function FancyScrollView(props: FancyScrollViewProps) {
   return (
     <View style={{ flex: 1 }}>
       <KeyboardAwareScrollView
-        {...props}
         style={[{ flex: 1 }, props.style]}
         contentContainerStyle={[{ paddingBottom: 40 }, props.contentContainerStyle]}
         resetScrollToCoords={{ x: 0, y: 0 }}
@@ -93,6 +92,7 @@ export default function FancyScrollView(props: FancyScrollViewProps) {
         onLayout={handleLayout}
         onContentSizeChange={handleContentSizeChange}
         scrollEventThrottle={16}
+        {...props}
       >
         {props.children}
       </KeyboardAwareScrollView>

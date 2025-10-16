@@ -4,13 +4,13 @@ import { MinisterioFuncao } from './MinisterioFuncao';
 import { Voluntario } from './Voluntario';
 
 export enum EscalaTemplateTipoEnum {
-  Fixo = 0,
-  Funcoes = 1,
+  Fixo = '0',
+  Funcoes = '1',
 }
 
 export const EscalaTemplateTipoEnumMap: Record<number, EscalaTemplateTipoEnum> = {
-  0: EscalaTemplateTipoEnum.Fixo,
-  1: EscalaTemplateTipoEnum.Funcoes,
+  '0': EscalaTemplateTipoEnum.Fixo,
+  '1': EscalaTemplateTipoEnum.Funcoes,
 };
 
 export const EscalaTemplateTipoLabel: Record<EscalaTemplateTipoEnum, string> = {

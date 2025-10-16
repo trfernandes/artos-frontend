@@ -43,6 +43,7 @@ export default function IndisponibilidadeIndexPage() {
     data,
     remove: removeData,
     isLoading: isLoadingData,
+    upsertMany,
   } = useIndisponibilidadesVoluntariosCrud({
     initialParams: {
       where: {
@@ -72,21 +73,25 @@ export default function IndisponibilidadeIndexPage() {
   const [showPeriodoModal, setShowPeriodoModal] = useState(false);
   const isBusy = isLoadingData || !isCalendarReady || isMutating || isPending;
 
-  const handleAddPeriodo = async (inicio: Date, fim: Date, motivo: string) => {
-    setShowPeriodoModal(false);
-    setIsMutating(true);
-    try {
-      const dates = DateUtils.generateDatesBetween(inicio, fim);
-      for (const d of dates) {
-        await addData({ data: d, voluntarioId: user?.id, motivo } as IndisponibilidadeVoluntario);
-      }
-      Toast.show({ type: 'success', text1: 'Período registrado com sucesso' });
-    } catch {
-      Toast.show({ type: 'error', text1: 'Erro ao registrar período' });
-    } finally {
-      setIsMutating(false);
-    }
-  };
+  const handleAddPeriodo = async (inicio: Date, fim: Date, motivo: string) => {
+    setShowPeriodoModal(false);
+    setIsMutating(true);
+    try {
+      const dates = DateUtils.generateDatesBetween(inicio, fim);
+      await upsertMany({
+        voluntarioId: user?.id!,
+        indisponibilidades: dates.map(d => ({
+          data: d.toISOString().split('T')[0],
+          motivo: motivo?.trim() || undefined,
+        })),
+      });
+      Toast.show({ type: 'success', text1: 'Período registrado com sucesso' });
+    } catch {
+      Toast.show({ type: 'error', text1: 'Erro ao registrar período' });
+    } finally {
+      setIsMutating(false);
+    }
+  };
 
   const closeModal = () => setModalState(s => ({ ...s, visible: false }));
 
@@ -107,11 +112,11 @@ export default function IndisponibilidadeIndexPage() {
             Toast.show({ type: 'success', text1: 'Motivo atualizado com sucesso!' });
           } else {
             await addData({ data: date, voluntarioId: user?.id!, motivo } as IndisponibilidadeVoluntario);
-            Toast.show({ type: 'success', text1: 'Data marcada como indisponível!' });
+            Toast.show({ type: 'success', text1: 'Data marcada como indispon├¡vel!' });
           }
         } else if (registro?.id) {
           await removeData(registro.id);
-          Toast.show({ type: 'info', text1: 'Data disponível novamente!!' });
+          Toast.show({ type: 'info', text1: 'Data dispon├¡vel novamente!!' });
         }
       } catch {
         Toast.show({ type: 'error', text1: 'Erro ao atualizar data!' });
@@ -151,7 +156,7 @@ export default function IndisponibilidadeIndexPage() {
         <View style={styles.legend}>
           <View style={styles.legendCircle} />
           <FancyText type="mediumItalic" size="small">
-            Data Indisponível
+            Data Indispon├¡vel
           </FancyText>
         </View>
 

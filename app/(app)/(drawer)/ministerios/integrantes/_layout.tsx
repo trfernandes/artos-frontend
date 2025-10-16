@@ -9,7 +9,21 @@ export default function MinisterioIntegrantesLayout() {
         header: props => <FancyHeader {...props} />,
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Integrantes', headerRight: () => <MainHeaderButtons />  }} />
+      <Stack.Screen name="index" options={{ title: 'Integrantes', headerRight: () => <MainHeaderButtons /> }} />
+      <Stack.Screen
+        name="add"
+        options={{
+          header: props => <FancyHeader leftButton="back" {...props} />,
+          title: 'Adicionar Integrante',
+        }}
+      />
+      <Stack.Screen
+        name="edit"
+        options={{
+          header: props => <FancyHeader leftButton="back" {...props} />,
+          title: 'Editar Integrante',
+        }}
+      />
     </Stack>
   );
 }

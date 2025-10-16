@@ -4,10 +4,7 @@ import FancyDropDown, { FancyDropDownProps } from '../fields/FancyDropDown';
 import { View } from 'react-native';
 
 interface ControlledFancyDropDownProps<TFormValues extends FieldValues, TName extends Path<TFormValues>>
-  extends Pick<
-    FancyDropDownProps<PathValue<TFormValues, TName>>,
-    'listItems' | 'label' | 'onChange' | 'disabled' | 'showSelectedImage'
-  > {
+  extends Pick<FancyDropDownProps<PathValue<TFormValues, TName>>, 'listItems' | 'label' | 'onChange' | 'disabled' | 'showSelectedImage'> {
   control: Control<TFormValues>;
   name: TName;
 }

@@ -4,6 +4,7 @@ import FancyBaseCard, { FancyBaseCardProps } from './FancyBaseCard';
 import { ActionButton, FancyActionButtons } from './FancyCardActionButtons';
 import { Pallete } from '../../../constants/colors';
 import { Image } from 'expo-image';
+import { ImageUtils } from '../../../utils/image_utils';
 
 export type FancyCardImageProps = {
   source: string | ImageSourcePropType;
@@ -24,9 +25,11 @@ export default function FancyCardImage(props: FancyCardImageProps) {
 }
 
 function CardImage({ url: source }: { url: string | ImageSourcePropType }) {
+  const resolvedSource = ImageUtils.normalizeImageSource(source) ?? source;
+
   return (
     <View style={styles.imageContainer}>
-      <Image source={typeof source === 'string' ? { uri: source } : source} style={styles.letter} onLoadStart={() => {}} />
+      <Image source={resolvedSource} style={styles.letter} onLoadStart={() => {}} />
     </View>
   );
 }

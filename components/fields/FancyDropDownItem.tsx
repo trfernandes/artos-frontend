@@ -3,6 +3,7 @@ import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import FancyText from '../FancyText';
 import { Pallete } from '../../constants/colors';
 import { Image } from 'expo-image';
+import { ImageUtils } from '../../utils/image_utils';
 
 export interface DropDownItemProps<ValueType> {
   title: string;
@@ -21,7 +22,10 @@ export default function FancyDropDownItem<ValueItem>(props: DropDownItemProps<Va
           <DefaultIcons.Custom color={Pallete.fonts.dark} {...(props.left.icon as CustomIconProps)} />
         ) : props.left?.source ? (
           <Image
-            source={typeof props.left?.source === 'string' ? { uri: props.left?.source } : props.left?.source}
+            source={
+              ImageUtils.normalizeImageSource(props.left?.source) ??
+              (typeof props.left?.source === 'string' ? { uri: props.left?.source } : props.left?.source)
+            }
             style={{ width: 30, height: 30, borderRadius: 100 }}
           />
         ) : (

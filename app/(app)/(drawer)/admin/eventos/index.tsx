@@ -10,6 +10,7 @@ import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
 import FancyLoading from '../../../../../components/FancyLoading';
 import FancyBasePage from '../../../../../components/pages/base/FancyBasePage';
 import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
+import { Evento } from '../../../../../domain/models/Evento';
 
 export default function EventosIndexPage() {
   const navigation = useNavigation();
@@ -47,6 +48,15 @@ export default function EventosIndexPage() {
     return <FancyLoading label="Processando..." />;
   }
 
+  const handleEditItem = (evento: Evento) => {
+    router.push({
+      pathname: '/admin/eventos/edit',
+      params: {
+        id: evento.id,
+      },
+    });
+  };
+
   return (
     <FancyBasePage
       fabProps={{ onPress: () => router.push('admin/eventos/add') }}
@@ -59,7 +69,9 @@ export default function EventosIndexPage() {
           if (text && text.trim() !== '') {
             setSearchParams({
               where: {
-                conditions: [{ path: 'nome', operator: Operator.ILIKE, value: { type: ValueType.LITERAL, value: text.trim() } }],
+                conditions: [
+                  { path: 'nome', operator: Operator.ILIKE, value: { type: ValueType.LITERAL, value: text.trim() } },
+                ],
               },
             });
           } else {
@@ -69,9 +81,14 @@ export default function EventosIndexPage() {
       }}
     >
       {mode === 'list' ? (
-        <EventosListView items={eventosData} listProps={{ style: styles.list }} onDeleteItem={event => remove(event.id!)} />
+        <EventosListView
+          onEditItem={handleEditItem}
+          items={eventosData}
+          listProps={{ style: styles.list }}
+          onDeleteItem={event => remove(event.id!)}
+        />
       ) : (
-        <EventoCalendarView items={eventosData} onDeleteItem={event => remove(event.id!)} />
+        <EventoCalendarView onEditItem={handleEditItem} items={eventosData} onDeleteItem={event => remove(event.id!)} />
       )}
     </FancyBasePage>
   );

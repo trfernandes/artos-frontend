@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { FormProvider, useFieldArray, useForm, useFormContext } from 'react-hook-form';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import {
@@ -15,11 +15,13 @@ import FancyContainerList from '../../../container_list/FancyContainerList';
 import { zodResolver } from '@hookform/resolvers/zod';
 import TemplateFuncoesForm from './TemplateFuncoesForm';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
-import { StyleSheet } from 'react-native';
 import { Pallete } from '../../../../constants/colors';
 import { FancyCard } from '../../../cards/Horizontal/FancyCard';
+import Toast from 'react-native-toast-message';
+import { FancyAlert } from '../../../modal/FancyAlert';
 
 interface TemplateFuncoesListProps {
+  disabled?: boolean;
   funcoesList?: DropDownItemProps<string>[];
 }
 
@@ -29,89 +31,157 @@ const FORM_DEFAULT_VALUES: Partial<EscalaTemplateFuncaoFormData> = {
 };
 
 export default function TemplateFuncoesList({
+  disabled = false,
   funcoesList = [] as DropDownItemProps<string>[],
 }: TemplateFuncoesListProps) {
   const { control, watch, setValue } = useFormContext<EscalaTemplateFormData>();
-  const { append, remove } = useFieldArray({ control, name: 'funcoes' });
+  const { append: addFuncao, update: updateFuncao, remove: removeFuncao } = useFieldArray({ control, name: 'funcoes' });
   const funcoesData = watch('funcoes') ?? [];
-  const respSetListFuncoes = watch('respSetListFuncoes') ?? [];
 
-  const [formParams, setFormParams] = useState<{ visible: boolean }>();
+  const [formParams, setFormParams] = useState<{ visible: boolean; mode: 'add' | 'edit' }>();
   const formAdd = useForm<EscalaTemplateFuncaoFormData>({
     resolver: zodResolver(escalaTemplateFuncaoSchema),
     defaultValues: FORM_DEFAULT_VALUES,
   });
 
-  const handleOpen = useCallback(() => {
-    formAdd.reset(FORM_DEFAULT_VALUES);
-    setFormParams({ visible: true });
-  }, [formAdd]);
-
-  const handleConfirm = useCallback(() => {
-    formAdd.handleSubmit(data => {
-      const alreadyExists = funcoesData.some(item => item.funcaoId === data.funcaoId);
-      if (alreadyExists) {
-        formAdd.setError('funcaoId', { message: 'Essa função já foi adicionada.' });
+  const handleOpen = useCallback(
+    (mode: 'add' | 'edit') => {
+      if (disabled) {
         return;
       }
-
-      append({ ...data });
-      setFormParams({ visible: false });
       formAdd.reset(FORM_DEFAULT_VALUES);
-    })();
-  }, [append, formAdd, funcoesData]);
+      setFormParams({ visible: true, mode });
+    },
+    [disabled, formAdd]
+  );
 
-  const handleRemove = useCallback(
+  const handleConfirm = useCallback(
+    (mode: 'add' | 'edit') => {
+      if (disabled) {
+        return;
+      }
+      formAdd.handleSubmit(data => {
+        if (mode === 'add') {
+          const alreadyExists = funcoesData.some(
+            item => item.funcaoId === data.funcaoId && item.experiencia === data.experiencia
+          );
+          if (alreadyExists) {
+            formAdd.setError('funcaoId', { message: 'Função/Experiência já adicionada.' });
+            return;
+          }
+
+          addFuncao({
+            id: data.id,
+            funcaoId: data.funcaoId,
+            experiencia: data.experiencia,
+            quantidade: data.quantidade,
+          });
+
+          Toast.show({
+            type: 'success',
+            text1: 'Função adicionada com sucesso!',
+          });
+        } else if (mode === 'edit') {
+          const index = funcoesData.findIndex(item => item.funcaoId === data.funcaoId);
+          if (index !== -1) {
+            setValue(`funcoes.${index}`, data);
+          }
+          updateFuncao(index, { ...data });
+
+          Toast.show({
+            type: 'success',
+            text1: 'Função atualizada com sucesso!',
+          });
+        }
+
+        setFormParams({ visible: false, mode: 'add' });
+        formAdd.reset(FORM_DEFAULT_VALUES);
+      })();
+    },
+    [addFuncao, disabled, formAdd, funcoesData, setValue, updateFuncao]
+  );
+
+  const handleEdit = useCallback(
     (index: number) => {
+      if (disabled) {
+        return;
+      }
       const entry = funcoesData[index];
       if (!entry) {
         return;
       }
 
-      remove(index);
-      if (respSetListFuncoes.includes(entry.funcaoId)) {
-        const next = respSetListFuncoes.filter(id => id !== entry.funcaoId);
-        setValue('respSetListFuncoes', next, { shouldDirty: true, shouldValidate: true });
-      }
+      formAdd.reset({ ...entry });
+      setFormParams({ visible: true, mode: 'edit' });
     },
-    [remove, setValue, respSetListFuncoes, funcoesData]
+    [disabled, formAdd, funcoesData]
   );
 
-  const listData = useMemo(() => funcoesData, [funcoesData]);
+  const handleRemove = useCallback(
+    (index: number) => {
+      if (disabled) {
+        return;
+      }
+      const entry = funcoesData[index];
+      if (!entry) {
+        return;
+      }
+
+      FancyAlert.alert('Confirmar remoção', `Tem certeza que deseja remover a função?`, [
+        { text: 'Não', style: 'destructive' },
+        {
+          text: 'Sim',
+          onPress: () => {
+            removeFuncao(index);
+            Toast.show({
+              type: 'success',
+              text1: 'Função removida com sucesso!',
+            });
+          },
+        },
+      ]);
+
+      setFormParams({ visible: false, mode: 'edit' });
+    },
+    [disabled, removeFuncao]
+  );
 
   return (
     <>
       <FancyContainerList
         title={'Formação da Equipe'}
-        data={listData}
+        data={funcoesData}
+        virtualized={false}
         contentContainerStyle={{ paddingTop: 6 }}
+        disabled={disabled}
         renderItem={({ item, index }: { item: EscalaTemplateFuncao; index: number }) => {
           const matchedOption = funcoesList.find(option => option.value === item.funcaoId);
-          const funcaoNome = matchedOption?.title || item.funcao?.nome || 'Função não encontrada';
+          const funcaoNome = matchedOption?.title || item.funcao?.nome || 'Fun��o n�o encontrada';
           const experienciaLabel = EscalaTemplateExperienciaLabel[item.experiencia];
           return (
             <FancyCard.Image
               type="letter"
               props={{
                 title: funcaoNome,
-                subtitle: `Experiência mínima: ${experienciaLabel}`,
+                subtitle: `Exp. mínima: ${experienciaLabel}`,
                 additionalData1: `Quantidade: ${item.quantidade}`,
                 letter: funcaoNome.charAt(0),
                 actionButtons: [
                   {
                     icon: {
                       ...DefaultIconsNames.edit,
+                      backgroundColor: disabled ? Pallete.disabled : Pallete.primary,
                       size: 16,
                     },
-                    onPress: () => handleRemove(index),
+                    onPress: disabled ? undefined : () => handleEdit(index),
                   },
                   {
                     icon: {
                       ...DefaultIconsNames.delete,
                       size: 16,
-                      backgroundColor: Pallete.error,
+                      backgroundColor: disabled ? Pallete.disabled : Pallete.error,
                     },
-                    onPress: () => handleRemove(index),
+                    onPress: disabled ? undefined : () => handleRemove(index),
                   },
                 ],
               }}
@@ -121,19 +191,20 @@ export default function TemplateFuncoesList({
         buttons={[
           {
             icon: { ...DefaultIconsNames.add, size: 20, style: { width: 20, height: 20 } },
-            onPress: handleOpen,
+            onPress: disabled ? undefined : () => handleOpen('add'),
           },
         ]}
       />
       <FormProvider {...formAdd}>
         {formParams?.visible && (
           <TemplateFuncoesForm
+            mode={formParams.mode}
             modalProps={{ visible: formParams.visible }}
             onClose={() => {
               formAdd.reset(FORM_DEFAULT_VALUES);
-              setFormParams({ visible: false });
+              setFormParams({ visible: false, mode: 'add' });
             }}
-            onConfirm={handleConfirm}
+            onConfirm={() => handleConfirm(formParams.mode)}
             funcoesList={funcoesList}
           />
         )}
@@ -141,30 +212,3 @@ export default function TemplateFuncoesList({
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 10,
-    borderWidth: 0,
-  },
-  info: {
-    flex: 1,
-    gap: 4,
-  },
-  quantityContainer: {
-    minWidth: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Pallete.backgroundColor2,
-    borderWidth: 1,
-    borderColor: Pallete.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 8,
-  },
-});
