@@ -3,7 +3,7 @@ import { DynamicQuery } from '../utils/query_utils';
 import apiClient from './api-client';
 
 export class BaseApi<T extends Identifiable> {
-  private resourceName: string;
+  protected resourceName: string;
 
   constructor(resourceName: string) {
     this.resourceName = resourceName;

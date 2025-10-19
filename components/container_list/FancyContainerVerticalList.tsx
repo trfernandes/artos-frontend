@@ -12,7 +12,7 @@ export interface FancyContainerVerticalListProps {
   buttons?: { icon: CustomIconProps; onPress?: () => void }[];
   containerStyle?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
-  listProps?: FancyVerticalContainerCardProps;
+  listProps?: FancyVerticalContainerCardProps<any>;
 }
 
 export default function FancyContainerVerticalList({ ...props }: FancyContainerVerticalListProps) {

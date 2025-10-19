@@ -75,6 +75,25 @@ const getMenuForMinisterio = (ministerio: UserMinisterio): DrawerItemData[] => {
   const routeParams = `?ministerioId=${ministerio.id}`;
   const logoValue = ministerio.logo ? ImageUtils.rawToDataUri(ministerio.logo) ?? ministerio.logo : undefined;
 
+  const baseItems: DrawerItemData[] = [
+    {
+      title: 'Escalas',
+      logo: {
+        type: 'icon',
+        value: { name: 'calendar-account', library: 'MaterialCommunityIcons', size: 21 },
+      },
+      onPress: { type: 'GoToRoute', routeName: `/ministerios/escalas${routeParams}` },
+    },
+    {
+      title: 'Eventos',
+      logo: {
+        type: 'icon',
+        value: { name: 'calendar-month', library: 'MaterialCommunityIcons', size: 21 },
+      },
+      onPress: { type: 'GoToRoute', routeName: `/ministerios/eventos${routeParams}` },
+    },
+  ];
+
   switch (ministerioTipo) {
     case MinisterioTipoEnum.Louvor:
       return [
@@ -83,14 +102,7 @@ const getMenuForMinisterio = (ministerio: UserMinisterio): DrawerItemData[] => {
           title: ministerio.nome ?? 'Ministerio',
           subtitle: ministerio.hierarquia ? HierarquiaEnum[ministerio.hierarquia!] : '',
           items: [
-            {
-              title: 'Escalas',
-              logo: {
-                type: 'icon',
-                value: { name: 'calendar-month', library: 'MaterialCommunityIcons', size: 21 },
-              },
-              onPress: { type: 'GoToRoute', routeName: `/ministerios/escalas${routeParams}` },
-            },
+            ...baseItems,
             {
               title: 'Indisponibilidades',
               logo: {
@@ -155,14 +167,7 @@ const getMenuForMinisterio = (ministerio: UserMinisterio): DrawerItemData[] => {
           title: ministerio.nome ?? 'Ministerio',
           subtitle: ministerio.hierarquia ? HierarquiaEnum[ministerio.hierarquia!] : '',
           items: [
-            {
-              title: 'Escalas',
-              logo: {
-                type: 'icon',
-                value: { name: 'calendar-month', library: 'MaterialCommunityIcons', size: 21 },
-              },
-              onPress: { type: 'GoToRoute', routeName: `/ministerios/escalas${routeParams}` },
-            },
+            ...baseItems,
             {
               title: 'Funções',
               logo: {

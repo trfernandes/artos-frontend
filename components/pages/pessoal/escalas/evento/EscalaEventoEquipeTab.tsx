@@ -6,12 +6,12 @@ export default function EscalaEventoEquipeTab() {
   return (
     <View style={styles.container}>
       <FancyVerticalContainerCard
+        topElementType="image"
         data={PEOPLE_DATA.map(item => ({
           title: item.nome,
           selected: item.nome === 'Thiago Rodrigo Fernandes',
           subtitle: item.funcao || '',
-          type: item.type === 'escalado' ? 'image' : 'letter',
-          topElement: { type: 'image', imageUrl: item.image },
+          imageUrl: item.image,
         }))}
       />
     </View>

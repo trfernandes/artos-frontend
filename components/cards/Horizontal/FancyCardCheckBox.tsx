@@ -6,7 +6,9 @@ import FancyBaseCard, { FancyBaseCardProps } from './FancyBaseCard';
 
 export type FancyCardCheckboxProps = {
   value: boolean;
+  onChangeValue: (value: boolean) => void;
   actionButtons?: ActionButton | ActionButton[] | ReactNode;
+  checkboxColor?: string;
 } & Pick<
   FancyBaseCardProps,
   | 'title'
@@ -15,23 +17,30 @@ export type FancyCardCheckboxProps = {
   | 'additionalData2'
   | 'content'
   | 'containerStyle'
-  | 'contentContainerStyle'  | 'isCollapsable' 
+  | 'contentContainerStyle'
+  | 'isCollapsable'
 >;
 
-export default function FancyCardCheckBox(props: FancyCardCheckboxProps) {
+export default function FancyCardCheckBox({ checkboxColor, value, onChangeValue, actionButtons, ...props }: FancyCardCheckboxProps) {
   return (
     <FancyBaseCard
       {...props}
       leftItem={
         <View style={styles.checkboxContainer}>
-          <FancyCheckbox value={props.value} size={30} iconSize={16} />
+          <FancyCheckbox
+            value={value}
+            color={checkboxColor}
+            size={30}
+            iconSize={16}
+            onChangeValue={onChangeValue}
+          />
         </View>
       }
       rightItem={
-        isValidElement(props.actionButtons) ? (
-          props.actionButtons
+        isValidElement(actionButtons) ? (
+          actionButtons
         ) : (
-          <FancyActionButtons actions={props.actionButtons} />
+          <FancyActionButtons actions={actionButtons} />
         )
       }
     />

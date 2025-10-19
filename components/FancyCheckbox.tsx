@@ -11,9 +11,27 @@ export type FancyCheckboxProps = {
   iconSize?: number;
   onChangeValue?: (value: boolean) => void;
   disabled?: boolean;
+  color?: string;
 };
 
 export default function FancyCheckbox(props: FancyCheckboxProps) {
+  const accentColor = props.color ?? Pallete.primary;
+
+  const checkboxStateStyle = (() => {
+    if (props.value) {
+      if (props.disabled) {
+        return [styles.disabledChecked];
+      }
+      return [styles.checked, { backgroundColor: accentColor }];
+    }
+
+    if (props.disabled) {
+      return [styles.disabledUnchecked];
+    }
+
+    return [styles.unchecked, { borderColor: accentColor }];
+  })();
+
   return (
     <TouchableOpacity style={styles.container} onPress={() => props.onChangeValue?.(!props.value)}>
       <View style={styles.checkboxContainer}>
@@ -21,13 +39,7 @@ export default function FancyCheckbox(props: FancyCheckboxProps) {
           style={[
             styles.checkbox,
             { width: props.size || 20, height: props.size || 20 },
-            props.value
-              ? props.disabled
-                ? styles.disabledChecked
-                : styles.checked
-              : props.disabled
-              ? styles.disabledUnchecked
-              : styles.unchecked,
+            ...checkboxStateStyle,
           ]}
         >
           <DefaultIcons.Custom {...DefaultIconsNames.confirm} size={props.iconSize || 12} color="white" />

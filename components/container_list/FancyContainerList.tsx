@@ -96,7 +96,7 @@ const DESIGN_MODE = 0;
 
 const styles = StyleSheet.create({
   container: {
-    ...Pallete.shadows[100],
+    // ...Pallete.shadows[100],
     backgroundColor: Pallete.backgroundColor,
     borderWidth: 1,
     borderColor: Pallete.border,

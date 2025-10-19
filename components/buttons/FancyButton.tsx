@@ -18,6 +18,7 @@ export type FancyButtonProps = {
   containerStyle?: StyleProp<ViewStyle>;
   labelStyle?: StyleProp<TextStyle>;
   iconStyle?: StyleProp<TextStyle>;
+  textProps?: FancyTextProps;
   size?: FancyButtonSize;
 };
 
@@ -36,6 +37,7 @@ export default function FancyButton({
   disabled = false,
   mode = 'default',
   iconPosition = 'left',
+  textProps,
   ...props
 }: FancyButtonProps) {
   const height = resolveSize(props.size);
@@ -59,7 +61,6 @@ export default function FancyButton({
     ...restLabelProps
   } = props.labelProps ?? {};
 
-  const labelSize = providedLabelSize;
   const numberOfLines = providedNumberOfLines ?? 1;
   const adjustsFontSizeToFit = providedAdjustsFontSizeToFit ?? true;
   const minimumFontScale = providedMinimumFontScale ?? 0.85;
@@ -112,6 +113,7 @@ export default function FancyButton({
             props.labelStyle,
             labelPropsStyle,
           ]}
+          {...textProps}
         >
           {props.label}
         </FancyText>

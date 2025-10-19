@@ -53,10 +53,11 @@ export default function EventosEscalaEquipe(props: Omit<FancyModalDialogProps, '
   return (
     <FancyFullModal {...props}>
       <FancyVerticalContainerCard
+        topElementType="letter"
         data={data.map(item => ({
           title: item.nome,
           subtitle: item.funcao || '',
-          topElement: item.type === 'vazio' ? { type: 'image', imageUrl: '' } : { type: 'letter', letter: item.nome[0] },
+          letter: item.type === 'vazio' ? '' : item.nome[0],
         }))}
         itemProps={{
           topRightIcon: { customIcon: { ...DefaultIconsNames.add, color: Pallete.icons.inactive } },

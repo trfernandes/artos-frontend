@@ -19,7 +19,9 @@ export default function FancySteps(props: FancyStepsProps) {
   return (
     <View style={[styles.container, props.containerStyle]}>
       <FancyStepsHeader {...props} {...props.headerProps} />
-      <View style={[{ flex: 1 }, props.content?.containerStyle]}>{props.config.steps[props.index].content}</View>
+      <View style={[{ flex: 1 }, props.content?.containerStyle]}>
+        {props.config.steps[props.index].content}
+      </View>
       <FancyStepsNavigation
         stepIndex={props.index}
         setStepIndex={props.setIndex}

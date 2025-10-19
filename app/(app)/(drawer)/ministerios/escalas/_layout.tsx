@@ -9,14 +9,16 @@ export default function MinisterioEscalasLayout() {
         header: props => <FancyHeader {...props} />,
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Escalas', headerRight: () => <MainHeaderButtons /> }} />     
       <Stack.Screen
-        name="edit"
-        options={{ title: 'Editar Evento', header: props => <FancyHeader leftButton="back" {...props} /> }}
+        name="index"
+        options={{ title: 'Escalas', headerRight: () => <MainHeaderButtons /> }}
       />
       <Stack.Screen
         name="assistant"
-        options={{ title: 'Assistente de Escala', header: props => <FancyHeader leftButton="back" {...props} /> }}
+        options={{
+          header: props => <FancyHeader leftButton="back" {...props} />,
+          title: 'Assistente de Escalas',
+        }}
       />
     </Stack>
   );

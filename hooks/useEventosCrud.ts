@@ -1,9 +1,14 @@
+import { useCallback, useState } from 'react';
 import { useCrud } from './useCrud';
 import { DynamicQuery, Operator, ValueType } from '../domain/utils/query_utils';
-import { EventosRepository } from '../domain/services/EventosRepository';
+import { EventosRepository, EventosIntervaloParams } from '../domain/services/EventosRepository';
 import z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { RecorrenciaDiaSemanaEnum, RecorrenciaEnum, RecorrenciaSemanaMesEnum } from '../domain/models/Evento';
+import {
+  RecorrenciaDiaSemanaEnum,
+  RecorrenciaEnum,
+  RecorrenciaSemanaMesEnum,
+} from '../domain/models/Evento';
 
 export const eventoSchema = z
   .object({
@@ -13,7 +18,9 @@ export const eventoSchema = z
       .min(3, 'O nome do evento deve ter pelo menos 3 caracteres')
       .max(255, 'O nome do evento pode ter no máximo 255 caracteres'),
     descricao: z.string().max(1000, 'A descrição pode ter no máximo 1000 caracteres').optional(),
-    dataInicio: z.date().refine(d => d >= new Date('1900-01-01'), 'A data de início deve ser posterior a 01/01/1900'),
+    dataInicio: z
+      .date()
+      .refine(d => d >= new Date('1900-01-01'), 'A data de início deve ser posterior a 01/01/1900'),
     dataTermino: z.date(),
     local: z.string().max(255, 'O local pode ter no máximo 255 caracteres').optional(),
     cor: z
@@ -60,7 +67,7 @@ interface UseEventosOptions {
 }
 
 export function useEventosCrud(options?: UseEventosOptions) {
-  return useCrud({
+  const crud = useCrud({
     queryKey: 'eventos',
     autoFetch: options?.autoFetch ?? true,
     initialParams: options?.initialParams,
@@ -87,4 +94,25 @@ export function useEventosCrud(options?: UseEventosOptions) {
     remove: id => EventosRepository.remove(id),
     resolver: zodResolver(eventoSchema),
   });
+
+  const [isLoadingIntervalo, setIsLoadingIntervalo] = useState(false);
+
+  const buscarPorIntervalo = useCallback(
+    async (params: EventosIntervaloParams) => {
+      setIsLoadingIntervalo(true);
+      try {
+        return await EventosRepository.buscarPorIntervalo(params);
+      } finally {
+        setIsLoadingIntervalo(false);
+      }
+    },
+    []
+  );
+
+  return {
+    ...crud,
+    isLoading: crud.isLoading || isLoadingIntervalo,
+    isLoadingIntervalo,
+    buscarPorIntervalo,
+  };
 }

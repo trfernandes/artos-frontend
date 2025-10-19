@@ -9,7 +9,12 @@ export interface FancyStepsNavigationProps {
   containerStyle?: StyleProp<ViewStyle>;
 }
 
-export default function FancyStepsNavigation({ config, stepIndex, setStepIndex, containerStyle }: FancyStepsNavigationProps) {
+export default function FancyStepsNavigation({
+  config,
+  stepIndex,
+  setStepIndex,
+  containerStyle,
+}: FancyStepsNavigationProps) {
   return (
     <View style={[styles.container, containerStyle]}>
       {config.steps[stepIndex]?.actions?.map(({ enabled = true, ...action }, actionIndex) => (
