@@ -1,4 +1,13 @@
-import { ImageSourcePropType, ScrollView, StyleProp, StyleSheet, TextInputProps, View, ViewStyle } from 'react-native';
+import {
+  ActivityIndicator,
+  ImageSourcePropType,
+  ScrollView,
+  StyleProp,
+  StyleSheet,
+  TextInputProps,
+  View,
+  ViewStyle,
+} from 'react-native';
 import FancyTextInput, { FancyTextInputProps } from './FancyTextInput';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import FancyDropDownItem, { DropDownItemProps } from './FancyDropDownItem';
@@ -18,6 +27,7 @@ export interface FancyDropDownProps<T>
   value?: T;
   onChange?: (value: T) => void;
   showSelectedImage?: boolean;
+  isLoading?: boolean;
 }
 
 export default function FancyDropDown<ValueItem>(props: FancyDropDownProps<ValueItem>) {
@@ -41,7 +51,10 @@ export default function FancyDropDown<ValueItem>(props: FancyDropDownProps<Value
     }
 
     if (left.source) {
-      return ImageUtils.normalizeImageSource(left.source) ?? (typeof left.source === 'string' ? { uri: left.source } : left.source);
+      return (
+        ImageUtils.normalizeImageSource(left.source) ??
+        (typeof left.source === 'string' ? { uri: left.source } : left.source)
+      );
     }
 
     if (left.type === 'image') {
@@ -96,21 +109,30 @@ export default function FancyDropDown<ValueItem>(props: FancyDropDownProps<Value
             borderBottomLeftRadius: 2,
             borderBottomRightRadius: 2,
             borderBottomWidth: 0,
+            height: 40,
           },
-          { gap: 0 },
+          { gap: 0, height: 40 },
         ]}
-        rightContainer={[
-          {
-            icon: {
-              library: showList ? DefaultIconsNames['chevron-up'].library : DefaultIconsNames['chevron-down'].library,
-              size: 24,
-              color: isDisabled ? Pallete.icons.inactive2 : Pallete.icons.inactive,
-              name: showList ? DefaultIconsNames['chevron-up'].name : DefaultIconsNames['chevron-down'].name,
-              style: { paddingTop: 1, borderWidth: 0, marginRight: 8 },
-            },
-            onPress: toggleList,
-          },
-        ]}
+        rightContainer={
+          !props.isLoading ? (
+            [
+              {
+                icon: {
+                  library: showList
+                    ? DefaultIconsNames['chevron-up'].library
+                    : DefaultIconsNames['chevron-down'].library,
+                  size: 20,
+                  color: isDisabled ? Pallete.icons.inactive2 : Pallete.icons.inactive,
+                  name: showList ? DefaultIconsNames['chevron-up'].name : DefaultIconsNames['chevron-down'].name,
+                  style: { paddingTop: 1, borderWidth: 0, marginRight: 8 },
+                },
+                onPress: toggleList,
+              },
+            ]
+          ) : (
+            <ActivityIndicator color={Pallete.primary} style={{ marginRight: 10 }} />
+          )
+        }
       />
       {showList && (
         <View style={[styles.listContainer, Pallete.shadows[100], { top: listTopOffset }]}>
@@ -128,8 +150,8 @@ export default function FancyDropDown<ValueItem>(props: FancyDropDownProps<Value
                 <Fragment key={key}>
                   <FancyDropDownItem
                     onPress={() => {
-                      setSelectedItem(item);
                       onChange?.(item.value);
+                      setSelectedItem(item);
                       setShowList(false);
                     }}
                     selected={item.value === selectedItem?.value}
@@ -147,7 +169,10 @@ export default function FancyDropDown<ValueItem>(props: FancyDropDownProps<Value
 }
 
 const styles = StyleSheet.create({
-  container: {},
+  container: {
+    // height: 40,
+    // borderWidth: 1,
+  },
   listContainer: {
     position: 'absolute',
     backgroundColor: 'white',

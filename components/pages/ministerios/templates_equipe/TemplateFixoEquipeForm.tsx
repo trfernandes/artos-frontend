@@ -19,7 +19,7 @@ export default function TemplateFixoEquipeForm({
   const { control } = useFormContext<EscalaTemplateVoluntarioFormData>();
 
   return (
-    <FancyModalDialog {...props} title="Adicionar Voluntário" onConfirm={props.onConfirm}>
+    <FancyModalDialog {...props} title="Adicionar Voluntário" OnButton2Press={props.OnButton2Press}>
       <View style={{ gap: 15 }}>
         <ControlledDropDown
           control={control}

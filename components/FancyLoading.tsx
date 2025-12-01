@@ -10,7 +10,7 @@ export interface FancyLoadingProps {
 export default function FancyLoading({ label = 'Carregando...', containerStyle }: FancyLoadingProps) {
   return (
     <View style={[styles.container, containerStyle]}>
-      <ActivityIndicator size={'large'} />
+      <ActivityIndicator size={'large'} color={Pallete.primary} />
       <FancyText size={'medium'} type="semiBold" color={Pallete.fonts.inactive}>
         {label}
       </FancyText>

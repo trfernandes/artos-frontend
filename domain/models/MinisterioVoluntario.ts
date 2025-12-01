@@ -1,5 +1,6 @@
 import { Identifiable } from './Indentifiable';
 import { Ministerio } from './Ministerio';
+import { MinisterioVoluntarioFuncao } from './MinisterioVoluntarioFuncao';
 import { Voluntario } from './Voluntario';
 
 export interface MinisterioVoluntario extends Identifiable {
@@ -8,6 +9,7 @@ export interface MinisterioVoluntario extends Identifiable {
   voluntario?: Voluntario;
   voluntarioId: string;
   hierarquia: HierarquiaEnum;
+  funcoes?: MinisterioVoluntarioFuncao[];
 }
 
 export enum HierarquiaEnum {

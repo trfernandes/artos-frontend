@@ -35,8 +35,14 @@ export default function FancyHeader({ navigation, back, options, ...props }: Fan
 }
 
 const HeaderMenuButton = (props: { title?: string; onPress?: () => void }) => (
-  <View style={[styles.buttonContainer, { position: 'absolute', left: 18, gap: 10 }]}>
-    <FancyHeaderButton icon={{ ...DefaultIconsNames.menu, size: 24 }} onPress={props.onPress!} />
+  <View style={[styles.buttonContainer, { position: 'absolute', left: 18, gap: 2 }]}>
+    <FancyHeaderButton
+      icon={{ ...DefaultIconsNames.menu, size: 24 }}
+      onPress={props.onPress!}
+      buttonProps={{ containerStyle: {
+        marginLeft: -6,
+      } }}
+    />
     {props.title && (
       <FancyText size="medium" type="bold" color={Pallete.fonts.dark} style={styles.headerTitle}>
         {props.title}

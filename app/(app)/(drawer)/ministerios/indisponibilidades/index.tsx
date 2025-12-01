@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 import ControlledDropDown from '../../../../../components/forms/ControlledDropDown';
-import { useVoluntariosDoMinisterio } from '../../../../../hooks/useVoluntariosDoMinisterio';
+import { useVoluntariosDoMinisterioCrud } from '../../../../../hooks/useVoluntariosDoMinisterioCrud';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useIndisponibilidadesVoluntariosCrud } from '../../../../../hooks/useIndisponibilidadesVoluntariosCrud';
 import { useMemo, useState } from 'react';
@@ -42,7 +42,7 @@ export default function MinisterioIndisponibilidadesIndex() {
     voluntariosList,
     voluntariosDropDownList,
     isLoading: isLoadingVoluntarios,
-  } = useVoluntariosDoMinisterio(ministerioId);
+  } = useVoluntariosDoMinisterioCrud(ministerioId);
 
   const { control, watch } = useForm({
     resolver: zodResolver(schema),
@@ -188,7 +188,7 @@ export default function MinisterioIndisponibilidadesIndex() {
       {modalState.visible && modalState.date && modalState.status && (
         <DateAvailabilityAdjustmentModal
           data={{ date: modalState.date, status: modalState.status, motivo: modalState.motivo ?? undefined }}
-          modalProps={{ onClose: closeModal }}
+          modalProps={{ onButton1Press: closeModal }}
           onConfirm={handleConfirm}
         />
       )}
@@ -196,7 +196,7 @@ export default function MinisterioIndisponibilidadesIndex() {
       {showPeriodoModal && (
         <AddPeriodoModal
           visible={showPeriodoModal}
-          modalProps={{ onClose: () => setShowPeriodoModal(false) }}
+          modalProps={{ onButton1Press: () => setShowPeriodoModal(false) }}
           onConfirm={handleAddPeriodo}
         />
       )}

@@ -2,12 +2,7 @@ import { router } from 'expo-router';
 import { FancyCard, IconType, ImageType } from '../../../../../components/cards/Horizontal/FancyCard';
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
 import FancyScreenErrorHandler from '../../../../../components/error/FancyScreenErrorHandler';
-import {
-  MinisterioStatusEnum,
-  MinisterioStatusEnumMap,
-  MinisterioStatusLabel,
-  MinisterioTipoLabel,
-} from '../../../../../domain/models/Ministerio';
+import { MinisterioStatusEnum, MinisterioStatusEnumMap, MinisterioStatusLabel, MinisterioTipoLabel } from '../../../../../domain/models/Ministerio';
 import { Alert, View } from 'react-native';
 import DefaultIcons from '../../../../../components/FancyIcons';
 import FancyText from '../../../../../components/FancyText';
@@ -20,11 +15,10 @@ import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
 
 export default function MinisteriosIndex() {
   const [searchText, setSearchText] = useState('');
-  const { data, setSearchParams, isLoading, error, refetch, isRefetching, isError, remove } =
-    useMinisteriosCrud({
-      autoFetch: false,
-      initialParams: {},
-    });
+  const { data, setSearchParams, isLoading, error, refetch, isRefetching, isError, remove } = useMinisteriosCrud({
+    autoFetch: false,
+    initialParams: {},
+  });
 
   if (isError) {
     return <FancyScreenErrorHandler error={error!} onTryAgrainPress={refetch} />;
@@ -58,7 +52,7 @@ export default function MinisteriosIndex() {
       listProps={{
         refreshing: isLoading || isRefetching,
         onRefresh: refetch,
-        data: data?.sort((a, b) => a.nome.localeCompare(b.nome)) || [],
+        data: data?.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' })) || [],
         renderItem: ({ item }) => {
           const commonProps = {
             title: item.nome,
@@ -85,12 +79,7 @@ export default function MinisteriosIndex() {
                     lineHeight: 10.5,
                   }}
                 />
-                <FancyText
-                  size={'extraSmall'}
-                  type="semiBold"
-                  color={Pallete.fonts.inactive}
-                  style={{ lineHeight: 10, borderWidth: 0, height: 11 }}
-                >
+                <FancyText size={'extraSmall'} type="semiBold" color={Pallete.fonts.inactive} style={{ lineHeight: 10, borderWidth: 0, height: 11 }}>
                   {MinisterioStatusLabel[MinisterioStatusEnumMap[item.status]]}
                 </FancyText>
               </View>
@@ -152,4 +141,3 @@ export default function MinisteriosIndex() {
     </FancyListPage>
   );
 }
-

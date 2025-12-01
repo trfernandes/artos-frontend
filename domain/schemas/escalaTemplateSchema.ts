@@ -27,7 +27,7 @@ export const escalaTemplateVoluntarioSchema = z.object({
 export const escalaTemplateFuncaoSchema = z.object({
   id: uuidField.optional(),
   funcaoId: z.uuid({ error: 'Campo obrigatório' }),
-  experiencia: escalaTemplateExperienciaSchema,
+  experiencia: z.enum(EscalaTemplateExperienciaEnum),
   quantidade: z.coerce.number<number>('Campo obrigatório').min(1, { message: 'A quantidade deve ser no mínimo 1' }),
 });
 

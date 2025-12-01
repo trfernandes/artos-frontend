@@ -3,7 +3,7 @@ import { View, StyleSheet, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Pallete } from '../../constants/colors';
 import FancyButton from '../buttons/FancyButton';
-import FancyImage from './FancyImage';
+import FancyAvatarImage from './FancyImage';
 import DefaultIcons from '../FancyIcons';
 
 export interface FancyImagePickerProps {
@@ -61,7 +61,7 @@ export default function FancyImagePicker({ value, size = 120, disabled, onChange
         }}
       >
         {value ? (
-          <FancyImage source={{ uri: value }} size={size} />
+          <FancyAvatarImage source={{ uri: value }} size={size} />
         ) : (
           <DefaultIcons.Custom library="Feather" name="camera-off" color={Pallete.icons.inactive} size={45} />
         )}

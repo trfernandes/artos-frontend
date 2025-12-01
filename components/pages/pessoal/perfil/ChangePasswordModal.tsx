@@ -60,7 +60,7 @@ export default function ChangePasswordModal(props: FancyModalDialogProps) {
       {...props}
       centerContainerStyle={{ gap: 15 }}
       title="Alterar Senha"
-      onConfirm={handleConfirm}
+      OnButton2Press={handleConfirm}
       button2={{
         disabled: !isValid || isSubmitting, // 👈 botão só habilita quando válido
         label: isSubmitting ? 'Alterando...' : 'Confirmar',

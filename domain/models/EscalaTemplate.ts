@@ -1,6 +1,7 @@
 import { Identifiable } from './Indentifiable';
 import { Ministerio } from './Ministerio';
 import { MinisterioFuncao } from './MinisterioFuncao';
+import { MinisterioVoluntario } from './MinisterioVoluntario';
 import { Voluntario } from './Voluntario';
 
 export enum EscalaTemplateTipoEnum {
@@ -19,15 +20,15 @@ export const EscalaTemplateTipoLabel: Record<EscalaTemplateTipoEnum, string> = {
 };
 
 export enum EscalaTemplateExperienciaEnum {
-  Iniciante = 0,
-  Intermediario = 1,
-  Avancado = 2,
+  Iniciante = '0',
+  Intermediario = '1',
+  Avancado = '2',
 }
 
 export const EscalaTemplateExperienciaEnumMap: Record<number, EscalaTemplateExperienciaEnum> = {
-  0: EscalaTemplateExperienciaEnum.Iniciante,
-  1: EscalaTemplateExperienciaEnum.Intermediario,
-  2: EscalaTemplateExperienciaEnum.Avancado,
+  '0': EscalaTemplateExperienciaEnum.Iniciante,
+  '1': EscalaTemplateExperienciaEnum.Intermediario,
+  '2': EscalaTemplateExperienciaEnum.Avancado,
 };
 
 export const EscalaTemplateExperienciaLabel: Record<EscalaTemplateExperienciaEnum, string> = {
@@ -38,7 +39,7 @@ export const EscalaTemplateExperienciaLabel: Record<EscalaTemplateExperienciaEnu
 
 export interface EscalaTemplateVoluntario extends Identifiable {
   voluntarioId: string;
-  voluntario?: Voluntario;
+  voluntario?: MinisterioVoluntario;
   funcaoId: string;
   funcao?: MinisterioFuncao;
 }
@@ -60,7 +61,5 @@ export interface EscalaTemplate extends Identifiable {
   respSetListVoluntarios?: Voluntario;
   respSetListVoluntariosId?: string;
   respSetListFuncoes?: MinisterioFuncao;
-  respSetListFuncoesId?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  respSetListFuncoesId?: string;  
 }

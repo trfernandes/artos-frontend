@@ -7,22 +7,16 @@ import { StyleSheet } from 'react-native';
 import FancyScreenErrorHandler from '../../../../../components/error/FancyScreenErrorHandler';
 import { useState } from 'react';
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
-import {
-  Conjunction,
-  Operator,
-  OrderDirection,
-  ValueType,
-} from '../../../../../domain/utils/query_utils';
+import { Conjunction, Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
 import { useVoluntariosCrud } from '../../../../../hooks/useVoluntariosCrud';
 import { useAuth } from '../../../../../contexts/AuthContext';
 
 export default function VoluntariosIndexPage() {
   const [searchText, setSearchText] = useState('');
   const { user } = useAuth();
-  const { data, setSearchParams, isLoading, error, refetch, isRefetching, isError } =
-    useVoluntariosCrud({
-      autoFetch: true,
-    });
+  const { data, setSearchParams, isLoading, error, refetch, isRefetching, isError } = useVoluntariosCrud({
+    autoFetch: true,
+  });
 
   if (isError) {
     return <FancyScreenErrorHandler error={error!} onTryAgrainPress={refetch} />;
@@ -72,7 +66,7 @@ export default function VoluntariosIndexPage() {
       listProps={{
         refreshing: isLoading || isRefetching,
         onRefresh: refetch,
-        data: data?.sort((a, b) => a.nome.localeCompare(b.nome)) || [],
+        data: data?.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' })) || [],
         renderItem: ({ item, index }) => (
           <FancyCard.Image
             key={index}
@@ -80,9 +74,7 @@ export default function VoluntariosIndexPage() {
             props={{
               title: item.nome,
               subtitle: item.email,
-              source: item.foto
-                ? ImageUtils.rawToDataUri(item.foto) ?? item.foto
-                : require('../../../../../assets/images/empty_profile_image.png'),
+              source: item.foto ? ImageUtils.rawToDataUri(item.foto) ?? item.foto : require('../../../../../assets/images/empty_profile_image.png'),
               actionButtons: [
                 {
                   icon: {

@@ -57,10 +57,10 @@ export default function ControlledDateInput<FormData extends FieldValues>({
           {showErrorMessage && error && <FancyErrorText message={error.message!} />}
           {showModal && (
             <FancyModalDialog
-              containerStyle={{ gap: 20 }}
+              containerStyle={{ gap: 20, }}
               modalProps={{ visible: showModal }}
-              onClose={() => setShowModal(false)}
-              onConfirm={() => {
+              onButton1Press={() => setShowModal(false)}
+              OnButton2Press={() => {
                 onChange?.(value);
                 setShowModal(false);
               }}

@@ -1,5 +1,5 @@
 import { isValidElement, ReactNode } from 'react';
-import { ActionButton, FancyActionButtons } from './FancyCardActionButtons';
+import { ActionButtonProps, FancyActionButtons } from './FancyCardActionButtons';
 import { StyleSheet, View } from 'react-native';
 import FancyCheckbox from '../../FancyCheckbox';
 import FancyBaseCard, { FancyBaseCardProps } from './FancyBaseCard';
@@ -7,7 +7,7 @@ import FancyBaseCard, { FancyBaseCardProps } from './FancyBaseCard';
 export type FancyCardCheckboxProps = {
   value: boolean;
   onChangeValue: (value: boolean) => void;
-  actionButtons?: ActionButton | ActionButton[] | ReactNode;
+  actionButtons?: ActionButtonProps | ActionButtonProps[] | ReactNode;
   checkboxColor?: string;
 } & Pick<
   FancyBaseCardProps,

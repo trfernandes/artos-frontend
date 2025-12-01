@@ -10,6 +10,107 @@ import {
   RecorrenciaSemanaMesEnum,
 } from '../domain/models/Evento';
 
+const DIAS_SEMANA: Record<number, { artigo: string; plural: string }> = {
+  1: { artigo: 'o', plural: 'Domingos' },
+  2: { artigo: 'a', plural: 'Segundas-feiras' },
+  3: { artigo: 'a', plural: 'Terças-feiras' },
+  4: { artigo: 'a', plural: 'Quartas-feiras' },
+  5: { artigo: 'a', plural: 'Quintas-feiras' },
+  6: { artigo: 'a', plural: 'Sextas-feiras' },
+  7: { artigo: 'o', plural: 'Sábados' },
+};
+
+const SEMANAS_MES: Record<number, { abreviado: string }> = {
+  1: { abreviado: '1ª' },
+  2: { abreviado: '2ª' },
+  3: { abreviado: '3ª' },
+  4: { abreviado: '4ª' },
+  5: { abreviado: '5ª' },
+};
+
+export function generateRecorrenciaDescription(
+  recorrencia: RecorrenciaEnum,
+  semanaDias: RecorrenciaDiaSemanaEnum[],
+  aCadaMeses: number,
+  semanasMes: RecorrenciaSemanaMesEnum[]
+) {
+  // const recorrencia = getValues('recorrencia');
+  let result = '';
+
+  if (recorrencia === RecorrenciaEnum.Semanal) {
+    const diasSemana = semanaDias || [];
+    if (diasSemana.length === 0) {
+      result = 'Nenhum dia';
+    } else if (diasSemana.length === 7) {
+      result = 'Todos os dias';
+    } else {
+      // Ordena os dias para garantir a ordem correta
+      const diasOrdenados = diasSemana.slice().sort((a, b) => a - b);
+      const dias = diasOrdenados.map(item => DIAS_SEMANA[item]);
+      if (dias.length === 1) {
+        result = `N${dias[dias.length - 1].artigo}s ${dias[0].plural.toLowerCase()}`;
+      } else if (dias.length === 2) {
+        result = `N${dias[dias.length - 1].artigo}s ${dias[0].plural} e ${dias[1].plural.toLowerCase()}`;
+      } else {
+        result = `N${dias[dias.length - 1].artigo}s ${dias
+          .slice(0, -1)
+          .map(d => d.plural)
+          .join(', ')} e ${dias[dias.length - 1].plural.toLowerCase()}`;
+      }
+    }
+  } else if (recorrencia === RecorrenciaEnum.Mensal) {
+    const aCadaMes = aCadaMeses || 0;
+    const semanasDoMes = semanasMes || [];
+    const diasSemana = semanaDias || [];
+
+    result = `A cada (${aCadaMes}) Mês(es)\n`;
+
+    // SEMANAS DO MÊS
+    if (semanasDoMes.length === 0) {
+      result += 'Em nenhuma semana';
+    } else if (semanasDoMes.length === Object.keys(SEMANAS_MES).length) {
+      result += 'Em todas as semanas do mês';
+    } else {
+      const semanasValidas = semanasDoMes.filter(item => SEMANAS_MES[item]).sort((a, b) => a - b);
+      const semanasAbreviadas = semanasValidas.map(item => SEMANAS_MES[item].abreviado);
+      if (semanasAbreviadas.length === 1) {
+        result += `Na ${semanasAbreviadas[0]} semana do mês`;
+      } else if (semanasAbreviadas.length === 2) {
+        result += `Nas ${semanasAbreviadas[0]} e ${semanasAbreviadas[1]} semanas do mês`;
+      } else {
+        result += `Nas ${semanasAbreviadas.slice(0, -1).join(', ')} e ${
+          semanasAbreviadas.slice(-1)[0]
+        } semanas do mês`;
+      }
+    }
+
+    result += '\n';
+
+    // DIAS DA SEMANA
+    if (diasSemana.length === 0) {
+      result += 'Em nenhum dia da semana';
+    } else if (diasSemana.length === 7) {
+      result += 'Em todos os dias';
+    } else {
+      // Ordena os dias para garantir a ordem correta
+      const diasOrdenados = diasSemana.slice().sort((a, b) => a - b);
+      const dias = diasOrdenados.map(item => DIAS_SEMANA[item]);
+      if (dias.length === 1) {
+        result += `N${dias[0].artigo}s ${dias[0].plural}`;
+      } else if (dias.length === 2) {
+        result += `N${dias[0].artigo}s ${dias[0].plural} e ${dias[1].plural}`;
+      } else {
+        result += `N${dias[0].artigo}s ${dias
+          .slice(0, -1)
+          .map(d => d.plural)
+          .join(', ')} e ${dias[dias.length - 1].plural}`;
+      }
+    }
+  }
+
+  return result;
+}
+
 export const eventoSchema = z
   .object({
     id: z.uuid().optional(),
@@ -97,17 +198,14 @@ export function useEventosCrud(options?: UseEventosOptions) {
 
   const [isLoadingIntervalo, setIsLoadingIntervalo] = useState(false);
 
-  const buscarPorIntervalo = useCallback(
-    async (params: EventosIntervaloParams) => {
-      setIsLoadingIntervalo(true);
-      try {
-        return await EventosRepository.buscarPorIntervalo(params);
-      } finally {
-        setIsLoadingIntervalo(false);
-      }
-    },
-    []
-  );
+  const buscarPorIntervalo = useCallback(async (params: EventosIntervaloParams) => {
+    setIsLoadingIntervalo(true);
+    try {
+      return await EventosRepository.buscarPorIntervalo(params);
+    } finally {
+      setIsLoadingIntervalo(false);
+    }
+  }, []);
 
   return {
     ...crud,

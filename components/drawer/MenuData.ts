@@ -13,7 +13,9 @@ const normalizeMinisterioTipo = (tipo: UserMinisterio['tipo']): MinisterioTipoEn
     return viaKey;
   }
 
-  return (Object.values(MinisterioTipoEnum) as string[]).includes(rawTipo) ? (rawTipo as MinisterioTipoEnum) : MinisterioTipoEnum.Outros;
+  return (Object.values(MinisterioTipoEnum) as string[]).includes(rawTipo)
+    ? (rawTipo as MinisterioTipoEnum)
+    : MinisterioTipoEnum.Outros;
 };
 
 export type DrawerItemData = {
@@ -32,7 +34,7 @@ const BASE_MENU: DrawerItemData[] = [
     onPress: { type: 'GoToRoute', routeName: '/' },
   },
   {
-    title: 'Indisponibilidade',
+    title: 'Minhas Indisponibilidades',
     logo: {
       type: 'icon',
       value: { name: 'calendar-times', library: 'FontAwesome6', size: 18 },
@@ -60,12 +62,12 @@ const ADMIN_MENU: DrawerItemData[] = [
   },
   {
     logo: { type: 'icon', value: { name: 'grid', library: 'Feather', size: 18 } },
-    title: 'Ministerios',
+    title: 'Ministérios',
     onPress: { type: 'GoToRoute', routeName: '/admin/ministerios' },
   },
   {
     logo: { type: 'icon', value: { name: 'people', library: 'Octicons', size: 18 } },
-    title: 'Voluntarios',
+    title: 'Voluntários',
     onPress: { type: 'GoToRoute', routeName: '/admin/voluntarios' },
   },
 ];
@@ -77,6 +79,14 @@ const getMenuForMinisterio = (ministerio: UserMinisterio): DrawerItemData[] => {
 
   const baseItems: DrawerItemData[] = [
     {
+      title: 'Agenda',
+      logo: {
+        type: 'icon',
+        value: { name: 'calendar-month', library: 'MaterialCommunityIcons', size: 21 },
+      },
+      onPress: { type: 'GoToRoute', routeName: `/ministerios/agenda${routeParams}` },
+    },
+    {
       title: 'Escalas',
       logo: {
         type: 'icon',
@@ -84,21 +94,15 @@ const getMenuForMinisterio = (ministerio: UserMinisterio): DrawerItemData[] => {
       },
       onPress: { type: 'GoToRoute', routeName: `/ministerios/escalas${routeParams}` },
     },
-    {
-      title: 'Eventos',
-      logo: {
-        type: 'icon',
-        value: { name: 'calendar-month', library: 'MaterialCommunityIcons', size: 21 },
-      },
-      onPress: { type: 'GoToRoute', routeName: `/ministerios/eventos${routeParams}` },
-    },
   ];
 
   switch (ministerioTipo) {
     case MinisterioTipoEnum.Louvor:
       return [
         {
-          logo: logoValue ? { type: 'logo', value: logoValue } : { type: 'icon', value: { name: 'music', library: 'Feather', size: 18 } },
+          logo: logoValue
+            ? { type: 'logo', value: logoValue }
+            : { type: 'icon', value: { name: 'music', library: 'Feather', size: 18 } },
           title: ministerio.nome ?? 'Ministerio',
           subtitle: ministerio.hierarquia ? HierarquiaEnum[ministerio.hierarquia!] : '',
           items: [
@@ -127,21 +131,21 @@ const getMenuForMinisterio = (ministerio: UserMinisterio): DrawerItemData[] => {
               },
               onPress: { type: 'GoToRoute', routeName: `/ministerios/funcoes${routeParams}` },
             },
-            {
-              title: 'Substituicoes',
-              logo: {
-                type: 'icon',
-                value: {
-                  name: 'file-send-outline',
-                  library: 'MaterialCommunityIcons',
-                  size: 20,
-                },
-              },
-              onPress: {
-                type: 'GoToRoute',
-                routeName: `/ministerios/substituicoes${routeParams}`,
-              },
-            },
+            // {
+            //   title: 'Substituicoes',
+            //   logo: {
+            //     type: 'icon',
+            //     value: {
+            //       name: 'file-send-outline',
+            //       library: 'MaterialCommunityIcons',
+            //       size: 20,
+            //     },
+            //   },
+            //   onPress: {
+            //     type: 'GoToRoute',
+            //     routeName: `/ministerios/substituicoes${routeParams}`,
+            //   },
+            // },
             {
               title: 'Templates de Equipe',
               logo: {
@@ -163,7 +167,9 @@ const getMenuForMinisterio = (ministerio: UserMinisterio): DrawerItemData[] => {
     case MinisterioTipoEnum.Outros:
       return [
         {
-          logo: logoValue ? { type: 'logo', value: logoValue } : { type: 'icon', value: { name: 'grid', library: 'Feather', size: 18 } },
+          logo: logoValue
+            ? { type: 'logo', value: logoValue }
+            : { type: 'icon', value: { name: 'grid', library: 'Feather', size: 18 } },
           title: ministerio.nome ?? 'Ministerio',
           subtitle: ministerio.hierarquia ? HierarquiaEnum[ministerio.hierarquia!] : '',
           items: [
@@ -207,7 +213,8 @@ export function getMenuForUser(user: UserLoginData): { section: string; items: D
 
   if (user?.ministerios?.length >= 1) {
     const ministeriosMenus = user?.ministerios
-      .sort((a, b) => (a.nome ?? '').localeCompare(b.nome ?? ''))
+      .sort((a, b) => (a.nome ?? '').localeCompare(b.nome ?? '', 'pt-BR',
+        { sensitivity: 'base' }))
       .map(ministerio => getMenuForMinisterio(ministerio));
     sections.push({ section: 'Ministerios', items: ministeriosMenus.flat() });
   }

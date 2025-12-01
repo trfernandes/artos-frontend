@@ -6,7 +6,7 @@ export default function DayViewHeader() {
   return (
     <View style={styles.container}>
       {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((d, i) => (
-        <FancyText size={'medium'} type="bold" key={i} color={Pallete.fonts.inactive} style={styles.dayHeader}>
+        <FancyText key={i} size="medium" type="bold" color={Pallete.fonts.inactive} style={styles.dayHeader}>
           {d}
         </FancyText>
       ))}
@@ -15,6 +15,13 @@ export default function DayViewHeader() {
 }
 
 const styles = StyleSheet.create({
-  container: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  dayHeader: { width: `${100 / 11}%`, textAlign: 'center' },
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dayHeader: {
+    width: `${100 / 9}%`, // 7 colunas, igual aos dias
+    textAlign: 'center',
+  },
 });

@@ -4,7 +4,6 @@ import { DefaultIconsNames } from '../../../../constants/icons';
 import { EscalaTemplateTipoEnum, EscalaTemplateTipoEnumMap } from '../../../../domain/models/EscalaTemplate';
 import FancyButton from '../../../buttons/FancyButton';
 import FancyPageView from '../../../containers/FancyPageView';
-import FancyScrollView from '../../../FancyScrollView';
 import ControlledDropDown from '../../../forms/ControlledDropDown';
 import ControlledTextInput from '../../../forms/ControlledTextInput';
 import FancyErrorText from '../../../forms/FancyErrorText';
@@ -15,8 +14,8 @@ import { Operator, ValueType, DynamicQuery } from '../../../../domain/utils/quer
 import { useMinisterioFuncoesCrud } from '../../../../hooks/useMinisterioFuncoesCrud';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import { EscalaTemplateFormData } from '../../../../domain/schemas/escalaTemplateSchema';
-import { StyleSheet } from 'react-native';
-import { useVoluntariosDoMinisterio } from '../../../../hooks/useVoluntariosDoMinisterio';
+import { StyleSheet, View } from 'react-native';
+import { useVoluntariosDoMinisterioCrud } from '../../../../hooks/useVoluntariosDoMinisterioCrud';
 
 export interface TemplateFormProps {
   mode: 'add' | 'edit';
@@ -31,7 +30,11 @@ export default function TemplateForm({ mode = 'add', ministerioId, onSave, isLoa
   const funcoesWatch = form.watch('funcoes');
   const voluntariosWatch = form.watch('voluntarios');
 
-  const { voluntariosDropDownList, voluntariosList, isLoading: isVoluntariosLoading } = useVoluntariosDoMinisterio(ministerioId);
+  const {
+    ministerioVoluntariosDropDownList,
+    ministerioVoluntariosList,
+    isLoading: isVoluntariosLoading,
+  } = useVoluntariosDoMinisterioCrud(ministerioId);
 
   //Buscar Funções
   const funcoesGetParams = useMemo(() => {
@@ -78,70 +81,72 @@ export default function TemplateForm({ mode = 'add', ministerioId, onSave, isLoa
   }, [funcoesDropDownList]);
 
   const respSetListVoluntariosDropDownList = useMemo(() => {
-    const filteredVoluntarios = voluntariosDropDownList.filter(v => voluntariosWatch?.some((vw: any) => vw.voluntarioId === v.value));
+    const filteredVoluntarios = ministerioVoluntariosDropDownList.filter(v =>
+      voluntariosWatch?.some((vw: any) => vw.voluntarioId === v.value)
+    );
     return [{ title: 'Nenhum', value: undefined }, ...filteredVoluntarios];
-  }, [voluntariosDropDownList]);
+  }, [ministerioVoluntariosDropDownList]);
 
   const isFormDisabled = isLoading || isFuncoesLoading || isVoluntariosLoading;
 
   return (
     <FancyPageView style={[styles.container, { pointerEvents: isFormDisabled ? 'none' : 'auto' }]}>
-      <FancyScrollView nestedScrollEnabled contentContainerStyle={{ flex: 1, paddingBottom: 0, paddingHorizontal: 20, gap: 15 }}>
-        <ControlledTextInput control={form.control} name={'nome'} label="Nome" disabled={isFormDisabled} />
-        <ControlledDropDown
-          showSelectedImage
-          control={form.control}
-          name={'tipo'}
-          label="Tipo"
-          disabled={isFormDisabled}
-          listItems={[
-            { title: 'Fixo', value: EscalaTemplateTipoEnum.Fixo },
-            { title: 'Funções', value: EscalaTemplateTipoEnum.Funcoes },
-          ]}
-        />
-        <FormProvider {...form}>
-          {EscalaTemplateTipoEnumMap[tipoWatch] === EscalaTemplateTipoEnum.Funcoes && (
-            <>
-              <ControlledDropDown
-                control={form.control}
-                name={'respSetListFuncoesId'}
-                label="Responsável pelo setlist"
-                listItems={respSetListFuncoesDropDownList}
-                disabled={isFormDisabled}
-              />
-              <TemplateFuncoesList funcoesList={funcoesDropDownList} disabled={isFormDisabled} />
-              <FancyErrorText message={form.formState.errors.funcoes?.message!} />
-            </>
-          )}
-          {EscalaTemplateTipoEnumMap[tipoWatch] === EscalaTemplateTipoEnum.Fixo && (
-            <>
-              <ControlledDropDown
-                control={form.control}
-                name={'respSetListVoluntariosId'}
-                label="Responsável pelo setlist"
-                showSelectedImage
-                disabled={isFormDisabled}
-                listItems={respSetListVoluntariosDropDownList}
-              />
-              <TemplateFixoEquipeList
-                disabled={isFormDisabled}
-                voluntariosList={voluntariosList}
-                funcoesList={funcoesList}
-                voluntariosDropDownList={voluntariosDropDownList}
-                funcoesDropDownList={funcoesDropDownList}
-              />
-              <FancyErrorText message={form.formState.errors.voluntarios?.message!} />
-            </>
-          )}
-        </FormProvider>
-      </FancyScrollView>
+      <ControlledTextInput control={form.control} name={'nome'} label="Nome" disabled={isFormDisabled} />
+      <ControlledDropDown
+        showSelectedImage
+        control={form.control}
+        name={'tipo'}
+        label="Tipo"
+        disabled={isFormDisabled}
+        listItems={[
+          { title: 'Fixo', value: EscalaTemplateTipoEnum.Fixo },
+          { title: 'Funções', value: EscalaTemplateTipoEnum.Funcoes },
+        ]}
+      />
+      <FormProvider {...form}>
+        {EscalaTemplateTipoEnumMap[tipoWatch] === EscalaTemplateTipoEnum.Funcoes && (
+          <>
+            <ControlledDropDown
+              control={form.control}
+              name={'respSetListFuncoesId'}
+              label="Responsável pelo setlist"
+              listItems={respSetListFuncoesDropDownList}
+              disabled={isFormDisabled}
+            />
+            <TemplateFuncoesList funcoesList={funcoesDropDownList} disabled={isFormDisabled} />
+            <FancyErrorText message={form.formState.errors.funcoes?.message!} />
+          </>
+        )}
+        {EscalaTemplateTipoEnumMap[tipoWatch] === EscalaTemplateTipoEnum.Fixo && (
+          <>
+            <ControlledDropDown
+              control={form.control}
+              name={'respSetListVoluntariosId'}
+              label="Responsável pelo setlist"
+              showSelectedImage
+              disabled={isFormDisabled}
+              listItems={respSetListVoluntariosDropDownList}
+            />
+            <TemplateFixoEquipeList
+              disabled={isFormDisabled}
+              voluntariosList={ministerioVoluntariosList}
+              funcoesList={funcoesList}
+              voluntariosDropDownList={ministerioVoluntariosDropDownList}
+              funcoesDropDownList={funcoesDropDownList}
+            />
+            <FancyErrorText message={form.formState.errors.voluntarios?.message!} />
+          </>
+        )}
+      </FormProvider>
+
+      {/* Para dar mais espaçamento */}
+      <View />
 
       {/* BOT�O SALVAR */}
       <FancyButton
         label={!isLoading ? 'Salvar' : 'Salvando...'}
         disabled={isFormDisabled}
         icon={{ ...DefaultIconsNames.save, size: 20 }}
-        containerStyle={{ marginHorizontal: 20 }}
         onPress={onSave}
       />
     </FancyPageView>
@@ -149,5 +154,5 @@ export default function TemplateForm({ mode = 'add', ministerioId, onSave, isLoa
 }
 
 const styles = StyleSheet.create({
-  container: { paddingTop: 10, gap: 20 },
+  container: { paddingTop: 10, gap: 15, paddingHorizontal: 20, paddingBottom: 15 },
 });

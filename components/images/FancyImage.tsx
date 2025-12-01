@@ -18,10 +18,14 @@ export default function FancyImage({
 
   return (
     <Image
+      contentFit="cover"
+      transition={100}
+      priority="low"
+      cachePolicy="memory-disk"
       source={resolvedSource}
       style={[
-        style,
         { width: size, height: size, borderRadius: size / 2, ...Pallete.shadows[200] },
+        style,
         disabled && resolvedSource !== undefined && styles.blackAndWhiteFilter,
       ]}
     />

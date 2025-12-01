@@ -1,29 +1,38 @@
-import { EscalaEquipe } from './EscalaEquipe';
-import { EscalaEvento } from './EscalaEvento';
-import { EscalaTemplate } from './EscalaTemplate';
-import { EscalaVoluntario } from './EscalaVoluntario';
-import { Evento } from './Evento';
+import { EscalaResultado } from './EscalaResultado';
 import { Identifiable } from './Indentifiable';
 import { Ministerio } from './Ministerio';
-import { Voluntario } from './Voluntario';
+
+export enum EscalaStatusEnum {
+  Gerada = '1',
+  Publicada = '2',
+  Concluida = '3',
+}
+
+export const EscalaStatusEnumLabel: Record<EscalaStatusEnum, string> = {
+  [EscalaStatusEnum.Gerada]: 'Gerada',
+  [EscalaStatusEnum.Publicada]: 'Publicada',
+  [EscalaStatusEnum.Concluida]: 'Concluída',
+};
 
 export interface Escala extends Identifiable {
-  nome: string;
+  ministerio: Ministerio;
   dataInicio: Date;
   dataTermino: Date;
-  status: string;
-  ministerio?: Ministerio;
-  ministerioId: string;
-  criadoPor?: Voluntario;
-  criadoPorId: string;
-  template?: EscalaTemplate;
-  templateId: string;
-  evento?: Evento;
-  eventoId: string;
-  dataGeracao: Date;
-  dataConsolidacao?: Date;
-  dataPublicacao?: Date;
-  eventos?: EscalaEvento[];
-  equipe?: EscalaEquipe[];
-  voluntarios?: EscalaVoluntario[];
+  nome: string;
+  status: EscalaStatusEnum;
+  parametrizacao: {
+    eventos: Array<{
+      id: string;
+      date: string;
+      name: string;
+      equipe: {
+        id: string;
+        tipo: string;
+        funcoes: Array<{ id: string; nome: string; expMinima: string }>;
+        fixos: Array<{ voluntarioId: string; funcaoId: string }>;
+      };
+    }>;
+    participantes: Array<{ id: string; name: string }>;
+  };
+  resultado: EscalaResultado[];
 }

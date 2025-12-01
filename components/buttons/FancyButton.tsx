@@ -105,7 +105,7 @@ export default function FancyButton({
           type={restLabelProps.type ?? 'semiBold'}
           size={'small'}
           numberOfLines={numberOfLines}
-          adjustsFontSizeToFit={adjustsFontSizeToFit}
+          // adjustsFontSizeToFit={adjustsFontSizeToFit}
           minimumFontScale={minimumFontScale}
           style={[
             { textAlign: 'center' },

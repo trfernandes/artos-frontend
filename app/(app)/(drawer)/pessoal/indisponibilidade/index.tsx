@@ -1,5 +1,5 @@
-import { useMemo, useState, useTransition } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { InteractionManager, StyleSheet, View } from 'react-native';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
 import FancyText from '../../../../../components/FancyText';
 import FancyCalendarVertical from '../../../../../components/calendar/FancyCalendarVertical';
@@ -10,10 +10,10 @@ import { Conjunction, Operator, ValueType } from '../../../../../domain/utils/qu
 import { IndisponibilidadeVoluntario } from '../../../../../domain/models/IndisponibilidadeVoluntario';
 import Toast from 'react-native-toast-message';
 import { Pallete } from '../../../../../constants/colors';
-import FancyLoading from '../../../../../components/FancyLoading';
 import FancyFab from '../../../../../components/buttons/FancyFab';
 import AddPeriodoModal from '../../../../../components/pages/pessoal/indisponibilidade/AddPeriodModal';
 import DateUtils from '../../../../../utils/date_utils';
+import FancyLoading from '../../../../../components/FancyLoading';
 
 type ModalState = {
   visible: boolean;
@@ -24,16 +24,40 @@ type ModalState = {
 
 export default function IndisponibilidadeIndexPage() {
   const { user } = useAuth();
-  const [modalState, setModalState] = useState<ModalState>({ visible: false, status: 'available' });
-  const [isMutating, setIsMutating] = useState(false);
-  const [isPending, startTransition] = useTransition();
-  const [isCalendarReady, setIsCalendarReady] = useState(false);
+  const userId = user?.id;
 
-  const { startDate, endDate } = useMemo(() => {
+  const [modalState, setModalState] = useState<ModalState>({ visible: false, status: 'available' });
+  const [showPeriodoModal, setShowPeriodoModal] = useState(false);
+  // ✅ estado para saber se a UI já "assentou" depois do loading
+  const [hasSettled, setHasSettled] = useState(false);
+
+  if (!userId) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <FancyText>Não foi possível carregar suas indisponibilidades.</FancyText>
+      </View>
+    );
+  }
+
+  const { queryStartDate, queryEndDate, calendarStartDate, calendarEndDate } = useMemo(() => {
     const now = new Date();
+
+    const qStart = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()); // 1 mês antes
+    const qEnd = new Date(now.getFullYear(), now.getMonth() + 2, now.getDate()); // +2 meses
+
+    const cStart = new Date(now.getFullYear(), now.getMonth(), 1); // mês ATUAL, dia 1
+    const cEnd = new Date(qEnd);
+
+    qStart.setHours(0, 0, 0, 0);
+    qEnd.setHours(0, 0, 0, 0);
+    cStart.setHours(0, 0, 0, 0);
+    cEnd.setHours(0, 0, 0, 0);
+
     return {
-      startDate: new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()),
-      endDate: new Date(now.getFullYear(), now.getMonth() + 6, now.getDate()),
+      queryStartDate: qStart,
+      queryEndDate: qEnd,
+      calendarStartDate: cStart,
+      calendarEndDate: cEnd,
     };
   }, []);
 
@@ -43,108 +67,160 @@ export default function IndisponibilidadeIndexPage() {
     data,
     remove: removeData,
     isLoading: isLoadingData,
+    isLoadingMutation: isLoadingMutating,
+    isRefetching,
     upsertMany,
   } = useIndisponibilidadesVoluntariosCrud({
     initialParams: {
       where: {
         conditions: [
           {
-            path: 'voluntario',
+            path: 'voluntario.id',
             operator: Operator.EQUALS,
-            value: { type: ValueType.LITERAL, value: user?.id! },
+            value: { type: ValueType.LITERAL, value: userId },
           },
           {
             path: 'data',
             operator: Operator.GTE,
-            value: { type: ValueType.LITERAL, value: startDate.toDateString() },
+            value: { type: ValueType.LITERAL, value: queryStartDate.toDateString() },
           },
           {
             path: 'data',
             operator: Operator.LTE,
-            value: { type: ValueType.LITERAL, value: endDate.toDateString() },
+            value: { type: ValueType.LITERAL, value: queryEndDate.toDateString() },
           },
         ],
         conjunction: Conjunction.AND,
       },
     },
     autoFetch: true,
+    messages: {},
   });
 
-  const [showPeriodoModal, setShowPeriodoModal] = useState(false);
-  const isBusy = isLoadingData || !isCalendarReady || isMutating || isPending;
+  const loadingFlags = isLoadingData || isLoadingMutating || isRefetching;
 
-  const handleAddPeriodo = async (inicio: Date, fim: Date, motivo: string) => {
-    setShowPeriodoModal(false);
-    setIsMutating(true);
-    try {
-      const dates = DateUtils.generateDatesBetween(inicio, fim);
-      await upsertMany({
-        voluntarioId: user?.id!,
-        indisponibilidades: dates.map(d => ({
-          data: d.toISOString().split('T')[0],
-          motivo: motivo?.trim() || undefined,
-        })),
-      });
-      Toast.show({ type: 'success', text1: 'Período registrado com sucesso' });
-    } catch {
-      Toast.show({ type: 'error', text1: 'Erro ao registrar período' });
-    } finally {
-      setIsMutating(false);
-    }
-  };
+  useEffect(() => {
+    if (loadingFlags) {
+      setHasSettled(false);
+      return;
+    }
 
-  const closeModal = () => setModalState(s => ({ ...s, visible: false }));
+    const task = InteractionManager.runAfterInteractions(() => {
+      setHasSettled(true);
+    });
 
-  const handleConfirm = (mode: 'mark' | 'unmark', date: Date, motivo?: string) => {
-    const registro = data.find(d => new Date(d.data).getTime() === date.getTime());
+    return () => task.cancel();
+  }, [loadingFlags]);
+
+  const isBusy = loadingFlags || !hasSettled;
+
+  //TOASTS
+  const [lazyToastOptions, setLazyToastOptions] = useState<{
+    message: string;
+    type: 'success' | 'error' | 'info';
+    show: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!isBusy && lazyToastOptions) {
+      Toast.show({ type: lazyToastOptions.type, text1: lazyToastOptions.message });
+      setLazyToastOptions(null);
+    }
+  }, [isBusy, lazyToastOptions]);
+  //END TOASTS
+
+  const markedDates = useMemo(
+    () =>
+      data.map(d => ({
+        date: new Date(d.data),
+        T: d.id,
+        color: Pallete.error,
+      })),
+    [data]
+  );
+
+  const handleConfirmAddPeriodo = async (inicio: Date, fim: Date, motivo: string) => {
+    setShowPeriodoModal(false);
+
+    try {
+      const datesBetweenPeriod = DateUtils.generateDatesBetween(inicio, fim);
+
+      const indisponibilidades = datesBetweenPeriod.map(d => {
+        const normalizedDate = new Date(d);
+        normalizedDate.setHours(0, 0, 0, 0);
+        return {
+          data: normalizedDate.toDateString(),
+          motivo: motivo?.trim() || undefined,
+        };
+      });
+
+      await upsertMany({
+        voluntarioId: userId,
+        indisponibilidades: indisponibilidades,
+      });
+
+      setLazyToastOptions({ type: 'info', message: 'Período registrado com sucesso', show: true });
+    } catch (error) {
+      console.error('Erro ao registrar período:', error);
+      setLazyToastOptions({ type: 'error', message: 'Erro ao registrar período', show: true });
+    }
+  };
+
+  const closeModal = () => setModalState(prev => ({ ...prev, visible: false }));
+
+  const handleConfirm = async (mode: 'mark' | 'unmark', date: Date, motivo?: string) => {
+    const normalizedDate = new Date(date);
+    normalizedDate.setHours(0, 0, 0, 0);
+
+    const registro = data.find(d => DateUtils.equal(new Date(d.data), normalizedDate));
 
     closeModal();
 
-    setIsMutating(true);
-    (async () => {
-      try {
-        if (mode === 'mark') {
-          if (registro?.id) {
-            await updateData({
-              id: registro.id,
-              data: { data: date, motivo: motivo ?? null } as IndisponibilidadeVoluntario,
-            });
-            Toast.show({ type: 'success', text1: 'Motivo atualizado com sucesso!' });
-          } else {
-            await addData({ data: date, voluntarioId: user?.id!, motivo } as IndisponibilidadeVoluntario);
-            Toast.show({ type: 'success', text1: 'Data marcada como indispon├¡vel!' });
-          }
-        } else if (registro?.id) {
-          await removeData(registro.id);
-          Toast.show({ type: 'info', text1: 'Data dispon├¡vel novamente!!' });
+    try {
+      if (mode === 'mark') {
+        if (registro?.id) {
+          await updateData({
+            id: registro.id,
+            data: { data: normalizedDate, motivo: motivo ?? null } as IndisponibilidadeVoluntario,
+          });
+          setLazyToastOptions({ type: 'success', message: 'Motivo atualizado com sucesso!', show: true });
+        } else {
+          await addData({
+            data: normalizedDate,
+            voluntarioId: userId,
+            motivo,
+          } as IndisponibilidadeVoluntario);
+          setLazyToastOptions({ type: 'info', message: 'Data marcada como indisponível!', show: true });
         }
-      } catch {
-        Toast.show({ type: 'error', text1: 'Erro ao atualizar data!' });
-      } finally {
-        setIsMutating(false);
+      } else if (registro?.id) {
+        await removeData(registro.id);
+        setLazyToastOptions({ type: 'info', message: 'Data disponível novamente!', show: true });
       }
-    })();
+    } catch (error) {
+      console.error('Erro ao atualizar data:', error);
+      setLazyToastOptions({ type: 'error', message: 'Erro ao atualizar data!', show: true });
+    }
   };
 
   return (
-    <View style={{ flex: 1 }} onLayout={() => setIsCalendarReady(true)}>
-      <FancyPageView style={styles.container}>
+    <View style={{ flex: 1 }}>
+      <FancyPageView style={[styles.container, { opacity: isBusy ? 0 : 1 }]}>
         <FancyCalendarVertical<'id', string>
           highlightCurrentMonth
           disablePastDates
-          containerStyle={{ paddingHorizontal: 18 }}
-          startDate={startDate}
-          endDate={endDate}
-          markedDates={data.map(d => ({ date: new Date(d.data), T: d.id }))}
+          contentContainerStyle={{ paddingHorizontal: 20 }}
+          startDate={calendarStartDate}
+          endDate={calendarEndDate}
+          markedDates={markedDates}
           onSelectDate={({ date }) => {
-            if (isBusy) {
-              return;
-            }
+            const normalizedDate = new Date(date);
+            normalizedDate.setHours(0, 0, 0, 0);
 
-            const registro = data.find(d => new Date(d.data).getTime() === date.getTime());
+            const registro = data.find(d => DateUtils.equal(new Date(d.data), normalizedDate));
+
             setModalState({
               visible: true,
-              date,
+              date: normalizedDate,
               status: registro ? 'unavailable' : 'available',
               motivo: registro?.motivo ?? null,
             });
@@ -155,18 +231,28 @@ export default function IndisponibilidadeIndexPage() {
 
         <View style={styles.legend}>
           <View style={styles.legendCircle} />
-          <FancyText type="mediumItalic" size="small">
-            Data Indispon├¡vel
+          <FancyText type="bold" size="extraSmall">
+            Datas indisponíveis
           </FancyText>
         </View>
 
-        <FancyFab onPress={() => setShowPeriodoModal(true)} />
+        <FancyFab onPress={() => setShowPeriodoModal(true)} bottom={5} />
       </FancyPageView>
 
-      {modalState.visible && modalState.date && modalState.status && (
+      {isBusy && (
+        <View style={styles.loadingOverlay}>
+          <FancyLoading />
+        </View>
+      )}
+
+      {modalState.visible && (
         <DateAvailabilityAdjustmentModal
-          data={{ date: modalState.date, status: modalState.status, motivo: modalState.motivo ?? undefined }}
-          modalProps={{ onClose: closeModal }}
+          data={{
+            date: modalState.date!,
+            status: modalState.status!,
+            motivo: modalState.motivo ?? undefined,
+          }}
+          modalProps={{ onButton1Press: closeModal }}
           onConfirm={handleConfirm}
         />
       )}
@@ -174,22 +260,16 @@ export default function IndisponibilidadeIndexPage() {
       {showPeriodoModal && (
         <AddPeriodoModal
           visible={showPeriodoModal}
-          modalProps={{ onClose: () => setShowPeriodoModal(false) }}
-          onConfirm={handleAddPeriodo}
+          modalProps={{ onButton1Press: () => setShowPeriodoModal(false) }}
+          onConfirm={handleConfirmAddPeriodo}
         />
-      )}
-
-      {isBusy && (
-        <View style={styles.loadingOverlay}>
-          <FancyLoading />
-        </View>
       )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { paddingBottom: 50, gap: 30 },
+  container: { paddingBottom: 50, gap: 30, paddingTop: 5 },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.35)',

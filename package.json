@@ -11,6 +11,7 @@
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
     "@hookform/resolvers": "^5.2.1",
+    "@legendapp/list": "^2.0.14",
     "@react-native-async-storage/async-storage": "2.1.2",
     "@react-navigation/drawer": "^7.3.9",
     "@tanstack/react-query": "^5.85.3",
@@ -42,7 +43,8 @@
     "react-native-screens": "~4.11.1",
     "react-native-toast-message": "^2.3.3",
     "react-native-ui-datepicker": "^3.1.2",
-    "zod": "^4.0.17"
+    "zod": "^4.0.17",
+    "expo-clipboard": "~7.1.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

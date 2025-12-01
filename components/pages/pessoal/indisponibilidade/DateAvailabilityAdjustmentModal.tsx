@@ -27,12 +27,16 @@ export type DateAvailabilityAdjustmentModalProps = {
     status: 'available' | 'unavailable';
     motivo?: string | null;
   };
-  modalProps?: FancyModalDialogProps;
+  modalProps?: FancyModalDialogProps<any>;
   onConfirm: (mode: 'mark' | 'unmark', date: Date, motivo?: string) => void;
 };
 
-export default function DateAvailabilityAdjustmentModal({ data, modalProps, onConfirm }: DateAvailabilityAdjustmentModalProps) {
-  const { onClose: externalOnClose, ...forwardedModalProps } = modalProps ?? {};
+export default function DateAvailabilityAdjustmentModal({
+  data,
+  modalProps,
+  onConfirm,
+}: DateAvailabilityAdjustmentModalProps) {
+  // console.log('DateAvailabilityAdjustmentModal render for date:', data.date);
 
   const [selectedStatus, setSelectedStatus] = useState<'available' | 'unavailable'>(data.status);
 
@@ -76,16 +80,16 @@ export default function DateAvailabilityAdjustmentModal({ data, modalProps, onCo
   const handleModalClose = () => {
     reset({ motivo: data.motivo ?? '' });
     setSelectedStatus(data.status);
-    externalOnClose?.();
+    modalProps?.onButton1Press?.();
   };
 
   return (
     <FancyModalDialog
-      {...forwardedModalProps}
-      onClose={handleModalClose}
+      {...modalProps}
+      onButton1Press={handleModalClose}
       showCloseButton={false}
       title="Detalhes da data"
-      onConfirm={handleConfirmPress}
+      OnButton2Press={handleConfirmPress}
       button2={{ disabled: !canSubmit }}
     >
       <View style={styles.content}>
@@ -108,7 +112,7 @@ export default function DateAvailabilityAdjustmentModal({ data, modalProps, onCo
           />
         </View>
 
-        <FancyTextInput label="Data" value={data.date.toLocaleDateString()} inputProps={{ editable: false }} />
+        <FancyTextInput label="Data" value={data.date.toLocaleDateString()} readonly disabled />
 
         {shouldShowMotivoForm && (
           <ControlledTextArea control={control} name="motivo" label="Motivo" placeholder="Descreva o motivo" />

@@ -1,13 +1,13 @@
 import { StyleSheet, View } from 'react-native';
 import FancyBaseCard, { FancyBaseCardProps } from './FancyBaseCard';
 import { isValidElement, ReactNode } from 'react';
-import { ActionButton, FancyActionButtons } from './FancyCardActionButtons';
+import { ActionButtonProps, FancyActionButtons } from './FancyCardActionButtons';
 import { Pallete } from '../../../constants/colors';
 import DefaultIcons, { CustomIconProps } from '../../FancyIcons';
 
 export type FancyCardIconProps = {
   cardIcon?: CustomIconProps;
-  actionButtons?: ActionButton | ActionButton[] | ReactNode;
+  actionButtons?: ActionButtonProps | ActionButtonProps[] | ReactNode;
 } & Pick<
   FancyBaseCardProps,
   | 'title'
@@ -18,6 +18,7 @@ export type FancyCardIconProps = {
   | 'containerStyle'
   | 'contentContainerStyle'
   | 'isCollapsable'
+    | 'centerContainerStyle'
 >;
 
 export default function FancyCardIcon(props: FancyCardIconProps) {
@@ -38,7 +39,7 @@ function CardIcon(icon: CustomIconProps) {
     <View
       style={[
         styles.iconContainer,
-        { width: icon.size ? icon.size + 18 : 35, height: icon.size ? icon.size + 18 : 35 },
+        { width: icon.size ? icon.size + 15 : 35, height: icon.size ? icon.size + 15 : 35 },
       ]}
     >
       <DefaultIcons.Custom

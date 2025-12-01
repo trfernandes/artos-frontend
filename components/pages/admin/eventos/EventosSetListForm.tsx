@@ -82,8 +82,8 @@ export default function EventosSetListForm() {
         <FancyModalDialog
           title={musicFormParams.mode === 'add' ? 'Adicionar música' : 'Editar música'}
           modalProps={{ visible: musicFormParams.visible }}
-          onClose={() => setMusicFormParams(prev => ({ ...prev, visible: false }))}
-          onConfirm={() => setMusicFormParams(prev => ({ ...prev, visible: false }))}
+          onButton1Press={() => setMusicFormParams(prev => ({ ...prev, visible: false }))}
+          OnButton2Press={() => setMusicFormParams(prev => ({ ...prev, visible: false }))}
           centerContainerStyle={{ gap: 15 }}
         >
           <FancyDropDown

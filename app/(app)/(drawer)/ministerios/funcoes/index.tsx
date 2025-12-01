@@ -6,13 +6,7 @@ import FuncaoFormModal from '../../../../../components/pages/ministerios/funcoes
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
 import { useMinisterioFuncoesCrud } from '../../../../../hooks/useMinisterioFuncoesCrud';
 import { useLocalSearchParams } from 'expo-router';
-import {
-  Condition,
-  DynamicQuery,
-  Operator,
-  OrderDirection,
-  ValueType,
-} from '../../../../../domain/utils/query_utils';
+import { Condition, DynamicQuery, Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
 import {
   MinisterioFuncao,
   MinisterioFuncaoStatusEnum,
@@ -161,8 +155,8 @@ export default function MinisterioFuncoesIndex() {
           editValues={funcaoFormModalParams.editValues!}
           ministerioId={ministerioId!}
           modalProps={{ visible: funcaoFormModalParams.visible ?? true }}
-          onClose={() => setFuncaoFormModalParams({ visible: false })}
-          onConfirm={data => {
+          onButton1Press={() => setFuncaoFormModalParams({ visible: false })}
+          OnButton2Press={data => {
             handleConfirm(data!);
           }}
         />

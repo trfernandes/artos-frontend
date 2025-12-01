@@ -15,15 +15,29 @@ export type FancyCalendarHeaderProps = {
   calendarProps?: FancyCalendarProps;
 };
 
-export default function FancyCalendarHeader({ visualization = CalendarVisualization.Day, selectedDate, ...props }: FancyCalendarHeaderProps) {
+export default function FancyCalendarHeader({
+  visualization = CalendarVisualization.Day,
+  selectedDate,
+  ...props
+}: FancyCalendarHeaderProps) {
+  const minimumDate = props.calendarProps?.minimumDate
+    ? new Date(props.calendarProps.minimumDate.getFullYear(), props.calendarProps.minimumDate.getMonth(), 1)
+    : undefined;
+
+  const maximumDate = props.calendarProps?.maximumDate
+    ? new Date(props.calendarProps.maximumDate.getFullYear(), props.calendarProps.maximumDate.getMonth(), 1)
+    : undefined;
+
   const canGoToPreviousMonth = (): boolean => {
-    if (!props.calendarProps?.minimumDate) return true;
-    const prevMonthEnd = new Date(props.currentDate.getFullYear(), props.currentDate.getMonth(), 0);
-    return prevMonthEnd >= props.calendarProps.minimumDate;
+    if (!minimumDate) return true;
+    const previousMonth = new Date(props.currentDate.getFullYear(), props.currentDate.getMonth() - 1, 1);
+    return previousMonth >= minimumDate;
   };
+
   const canGoToNextMonth = (): boolean => {
-    const nextMonthDate = new Date(props.currentDate.getFullYear(), props.currentDate.getMonth() + 1, 1);
-    return !props.calendarProps?.maximumDate || nextMonthDate <= props.calendarProps.maximumDate;
+    if (!maximumDate) return true;
+    const nextMonth = new Date(props.currentDate.getFullYear(), props.currentDate.getMonth() + 1, 1);
+    return nextMonth <= maximumDate;
   };
 
   // Exibe mes/ano atual conforme navegacao
@@ -35,7 +49,8 @@ export default function FancyCalendarHeader({ visualization = CalendarVisualizat
         style={styles.actualDateContainer}
         onPress={() => {
           if (visualization === CalendarVisualization.Day) props.onChangeVisualization(CalendarVisualization.Month);
-          else if (visualization === CalendarVisualization.Month) props.onChangeVisualization(CalendarVisualization.Year);
+          else if (visualization === CalendarVisualization.Month)
+            props.onChangeVisualization(CalendarVisualization.Year);
         }}
       >
         <FancyText size="large" type="bold" color={Pallete.fonts.inactive}>
@@ -49,14 +64,22 @@ export default function FancyCalendarHeader({ visualization = CalendarVisualizat
         <FancyButton
           disabled={!canGoToPreviousMonth()}
           size={30}
-          icon={{ library: 'Entypo', name: 'chevron-left', color: Pallete.icons.dark }}
+          icon={{
+            library: 'Entypo',
+            name: 'chevron-left',
+            color: canGoToPreviousMonth() ? Pallete.icons.dark : Pallete.icons.inactive,
+          }}
           onPress={props.onPreviousMonth}
           containerStyle={{ backgroundColor: Pallete.backgroundColor3 }}
         />
         <FancyButton
           disabled={!canGoToNextMonth()}
           size={30}
-          icon={{ library: 'Entypo', name: 'chevron-right', color: Pallete.icons.dark }}
+          icon={{
+            library: 'Entypo',
+            name: 'chevron-right',
+            color: canGoToNextMonth() ? Pallete.icons.dark : Pallete.icons.inactive,
+          }}
           onPress={props.onNextMonth}
           containerStyle={{ backgroundColor: Pallete.backgroundColor3 }}
         />

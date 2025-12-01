@@ -1,12 +1,12 @@
 import { isValidElement, ReactNode } from 'react';
 import { View, StyleSheet } from 'react-native';
 import FancyBaseCard, { FancyBaseCardProps } from './FancyBaseCard';
-import { ActionButton, FancyActionButtons } from './FancyCardActionButtons';
+import { ActionButtonProps, FancyActionButtons } from './FancyCardActionButtons';
 import { Pallete } from '../../../constants/colors';
 
 export type FancyCardColorProps = {
   color: string;
-  actionButtons?: ActionButton | ActionButton[] | ReactNode;
+  actionButtons?: ActionButtonProps | ActionButtonProps[] | ReactNode;
 } & Pick<
   FancyBaseCardProps,
   'title' | 'subtitle' | 'additionalData1' | 'additionalData2' | 'content' | 'containerStyle' | 'contentContainerStyle' | 'isCollapsable'
@@ -25,10 +25,8 @@ export default function FancyCardColor(props: FancyCardColorProps) {
 const styles = StyleSheet.create({
   colorContainer: {
     borderRadius: 100,
-    // marginLeft: 15,
-    marginRight: 5,
-    width: 30,
-    height: 30,
+    width: 26,
+    height: 26,
     justifyContent: 'center',
     alignItems: 'center',
   },

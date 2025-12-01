@@ -109,8 +109,8 @@ export default function EventosEscalaParametrizacao(props: Omit<FancyModalDialog
             modalProps={{
               visible: modalEditFuncaoParams.visible,
             }}
-            onClose={() => setModalEditFuncaoParams(prev => ({ ...prev, visible: false }))}
-            onConfirm={() => setModalEditFuncaoParams(prev => ({ ...prev, visible: false }))}
+            onButton1Press={() => setModalEditFuncaoParams(prev => ({ ...prev, visible: false }))}
+            OnButton2Press={() => setModalEditFuncaoParams(prev => ({ ...prev, visible: false }))}
             centerContainerStyle={{ gap: 15 }}
           >
             {modalEditFuncaoParams.mode === 'add' && (

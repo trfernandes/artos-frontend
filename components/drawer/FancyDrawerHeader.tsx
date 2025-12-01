@@ -5,7 +5,7 @@ import { Pallete } from '../../constants/colors';
 import { useAuth } from '../../contexts/AuthContext';
 import DefaultIcons from '../FancyIcons';
 import { router } from 'expo-router';
-import FancyImage from '../images/FancyImage';
+import FancyAvatarImage from '../images/FancyImage';
 import { useVoluntariosCrud } from '../../hooks/useVoluntariosCrud';
 import { Operator, ValueType } from '../../domain/utils/query_utils';
 import { useMemo } from 'react';
@@ -53,7 +53,7 @@ export default function FancyDrawerHeader() {
             </FancyText>
           </View>
           <View style={styles.avatarContainer}>
-            <FancyImage
+            <FancyAvatarImage
               source={auth.user?.foto ? { uri: auth.user?.foto } : require('../../assets/images/empty_profile_image.png')}
               size={50}
               style={styles.avatar as StyleProp<ImageStyle>}

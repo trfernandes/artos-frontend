@@ -8,11 +8,7 @@ interface ControlledFancyTextAreaProps extends FancyTextAreaProps {
   name: string;
 }
 
-export default function ControlledTextArea({
-  control,
-  name,
-  ...rest
-}: ControlledFancyTextAreaProps) {
+export default function ControlledTextArea({ control, name, ...rest }: ControlledFancyTextAreaProps) {
   return (
     <Controller
       control={control}
@@ -22,9 +18,11 @@ export default function ControlledTextArea({
           <FancyTextArea
             inputProps={{
               onBlur,
-              onChangeText: onChange,
-              value,
+              onChangeText: text => {
+                onChange(text);
+              },
             }}
+            value={value}
             disabled={disabled}
             {...rest}
           />

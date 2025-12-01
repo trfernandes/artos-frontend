@@ -4,7 +4,7 @@ import { Voluntario } from '../domain/models/Voluntario';
 import { Operator, ValueType, DynamicQuery, OrderDirection } from '../domain/utils/query_utils';
 import { useMinisterioVoluntariosCrud } from './useMinisterioVoluntariosCrud';
 
-export function useVoluntariosDoMinisterio(ministerioId?: string) {
+export function useVoluntariosDoMinisterioCrud(ministerioId?: string) {
   const initialParams = useMemo(() => {
     if (!ministerioId) return undefined;
 

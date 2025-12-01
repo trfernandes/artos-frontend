@@ -12,6 +12,7 @@ export type FancyDrawerProps = {} & DrawerContentComponentProps;
 
 export default function FancyDrawer(props: FancyDrawerProps) {
   const { user, signOut } = useAuth();
+  const { navigation } = props;
 
   const menuSections = useMemo(() => getMenuForUser(user!), [user]);
 
@@ -31,6 +32,28 @@ export default function FancyDrawer(props: FancyDrawerProps) {
 
   let itemRunningIndex = -1;
 
+  const sections = useMemo(() => {
+    return menuSections.map((section, sectionIndex) => (
+      <View key={sectionIndex}>
+        <FancyDrawerSeparator label={section.section} />
+        {section.items.map((item, itemIndex) => {
+          itemRunningIndex += 1;
+          const isExpandable = Boolean(item.items && item.items.length);
+          const defaultCollapsed = isExpandable ? itemRunningIndex != firstExpandableIndex : undefined;
+
+          return (
+            <FancyDrawerItem
+              key={`${sectionIndex}-${itemIndex}`}
+              {...item}
+              isDefaultCollapsed={defaultCollapsed}
+              onNavigate={() => navigation.closeDrawer?.()}
+            />
+          );
+        })}
+      </View>
+    ));
+  }, [menuSections, firstExpandableIndex, navigation, itemRunningIndex]);
+
   return (
     <View style={styles.container}>
       <FancyDrawerHeader />
@@ -49,26 +72,7 @@ export default function FancyDrawer(props: FancyDrawerProps) {
           style={styles.menuContainer}
           contentContainerStyle={{ borderRadius: 15, paddingHorizontal: 8, paddingTop: 10 }}
         >
-          {menuSections.map((section, sectionIndex) => (
-            <View key={sectionIndex}>
-              <FancyDrawerSeparator label={section.section} />
-              {section.items.map((item, itemIndex) => {
-                itemRunningIndex += 1;
-                const isExpandable = Boolean(item.items && item.items.length);
-                const defaultCollapsed = isExpandable
-                  ? itemRunningIndex != firstExpandableIndex
-                  : undefined;
-
-                return (
-                  <FancyDrawerItem
-                    key={`${sectionIndex}-${itemIndex}`}
-                    {...item}
-                    isDefaultCollapsed={defaultCollapsed}
-                  />
-                );
-              })}
-            </View>
-          ))}
+          {sections}
 
           <FancyDrawerSeparator label={'Outros'} />
           <FancyDrawerItem
@@ -78,6 +82,7 @@ export default function FancyDrawer(props: FancyDrawerProps) {
               value: { name: 'logout', library: 'MaterialCommunityIcons', size: 20 },
             }}
             onPress={{ type: 'RunMethod', method: signOut }}
+            onNavigate={() => navigation.closeDrawer?.()}
           />
         </FancyScrollView>
       </View>

@@ -42,7 +42,7 @@ export default function FuncaoFormModal(
   const handleConfirm = useMemo(
     () =>
       handleSubmit(async data => {
-        props.onConfirm?.({
+        props.OnButton2Press?.({
           mode: props.mode,
           data: {
             ...data,
@@ -55,7 +55,7 @@ export default function FuncaoFormModal(
   );
 
   return (
-    <FancyModalDialog {...props} onConfirm={handleConfirm}>
+    <FancyModalDialog {...props} OnButton2Press={handleConfirm}>
       <View style={{ gap: 15 }}>
         <ControlledTextInput control={control} name="nome" label="Nome" />
         <ControlledTextArea control={control} name="descricao" label="Descrição" />

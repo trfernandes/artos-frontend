@@ -121,17 +121,16 @@ export default function LiderancaTab(props: {
 
   return (
     <View style={styles.container}>
-      {ministerioForm.getValues('voluntarios')?.sort((a, b) => a.voluntarioNome.localeCompare(b.voluntarioNome)).length > 0 ? (
+      {ministerioForm.getValues('voluntarios')?.sort((a, b) => a.voluntarioNome.localeCompare(b.voluntarioNome, 'pt-BR', { sensitivity: 'base' }))
+        .length > 0 ? (
         <FancyList
-          data={fields.sort((a, b) => a.voluntarioNome.localeCompare(b.voluntarioNome))}
+          data={fields.sort((a, b) => a.voluntarioNome.localeCompare(b.voluntarioNome, 'pt-BR',
+        { sensitivity: 'base' }))}
           style={styles.containerList}
           contentContainerStyle={styles.contentList}
           renderItem={({ item, index }) => {
             const commonProps = {
-              source:
-                item.foto
-                  ? ImageUtils.rawToDataUri(item.foto) ?? item.foto
-                  : require('../../../../assets/images/empty_profile_image.png'),
+              source: item.foto ? ImageUtils.rawToDataUri(item.foto) ?? item.foto : require('../../../../assets/images/empty_profile_image.png'),
               title: item.voluntarioNome,
               subtitle: HierarquiaEnumLabel[item.hierarquia],
               actionButtons: (
@@ -214,6 +213,3 @@ const styles = StyleSheet.create({
   containerList: { height: '100%' },
   contentList: { gap: 10 },
 });
-
-
-

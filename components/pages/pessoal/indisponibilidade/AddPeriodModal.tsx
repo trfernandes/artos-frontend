@@ -8,6 +8,7 @@ import ControlledTextArea from '../../../forms/ControlledTextArea';
 import ControlledDateInput from '../../../forms/ControlledDateInput';
 import { differenceInDays } from 'date-fns';
 import { FancyAlert } from '../../../modal/FancyAlert';
+import FancyText from '../../../FancyText';
 
 const schema = z
   .object({
@@ -55,7 +56,7 @@ export default function AddPeriodoModal({ visible, modalProps, onConfirm }: AddP
   };
 
   const currentDate = new Date();
-  const maxDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 7, 0);
+  const maxDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 4, 0);
 
   return (
     <FancyModalDialog
@@ -75,6 +76,8 @@ export default function AddPeriodoModal({ visible, modalProps, onConfirm }: AddP
       }}
     >
       <View style={{ gap: 16 }}>
+        <FancyText>{dataInicio?.toLocaleDateString()}</FancyText>
+        <FancyText>{dataTermino?.toLocaleDateString()}</FancyText>
         <ControlledDateInput
           control={control}
           name="dataInicio"
@@ -86,7 +89,17 @@ export default function AddPeriodoModal({ visible, modalProps, onConfirm }: AddP
             },
           }}
         />
-        <ControlledDateInput control={control} name="dataTermino" label="Data Fim" />
+        <ControlledDateInput
+          control={control}
+          name="dataTermino"
+          label="Data Fim"
+          calendarProps={{
+            dayViewProps: {
+              disablePastDates: true,
+              maximumDate: maxDate,
+            },
+          }}
+        />
         <ControlledTextArea control={control} name="motivo" label="Motivo" />
       </View>
     </FancyModalDialog>

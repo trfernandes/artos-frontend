@@ -17,6 +17,7 @@ export type FancyBaseCardProps = {
   titleProps?: FancyTextProps;
   subtitleProps?: FancyTextProps;
   isCollapsable?: boolean;
+  centerContainerStyle?: StyleProp<ViewStyle>;
 };
 
 export default function FancyBaseCard({ isCollapsable = false, ...props }: FancyBaseCardProps) {
@@ -32,7 +33,7 @@ export default function FancyBaseCard({ isCollapsable = false, ...props }: Fancy
       <View style={[styles.innerContainer, props.contentContainerStyle]}>
         <View style={styles.headerContainer}>
           {props.leftItem && <View style={styles.leftContainer}>{props.leftItem}</View>}
-          <View style={styles.centerContainer}>
+          <View style={[styles.centerContainer, props.centerContainerStyle]}>
             {props.title && (
               <FancyText size={'small'} type="semiBold" numberOfLines={2} {...props.titleProps}>
                 {props.title}

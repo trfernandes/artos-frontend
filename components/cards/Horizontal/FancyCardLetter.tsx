@@ -1,13 +1,13 @@
 import { StyleSheet, View } from 'react-native';
 import FancyBaseCard, { FancyBaseCardProps } from './FancyBaseCard';
-import { ActionButton, FancyActionButtons } from './FancyCardActionButtons';
+import { ActionButtonProps, FancyActionButtons } from './FancyCardActionButtons';
 import { isValidElement, ReactNode } from 'react';
 import { Pallete } from '../../../constants/colors';
 import FancyText from '../../FancyText';
 
 export type FancyCardLetterProps = {
   letter?: string;
-  actionButtons?: ActionButton | ActionButton[] | ReactNode;
+  actionButtons?: ActionButtonProps | ActionButtonProps[] | ReactNode;
 } & Pick<
   FancyBaseCardProps,
   | 'title'
@@ -18,7 +18,9 @@ export type FancyCardLetterProps = {
   | 'containerStyle'
   | 'contentContainerStyle'
   | 'titleProps'
-  | 'subtitleProps'  | 'isCollapsable' 
+  | 'subtitleProps'
+  | 'isCollapsable'
+  | 'centerContainerStyle'
 >;
 
 export default function FancyCardLetter({ letter = 'A', ...props }: FancyCardLetterProps) {

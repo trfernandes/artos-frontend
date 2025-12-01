@@ -29,10 +29,15 @@ export enum CalendarVisualization {
   Year,
 }
 
+export interface MarkedDate {
+  date: Date;
+  color?: string;
+}
+
 export type FancyCalendarProps = {
   maximumDate?: Date;
   minimumDate?: Date;
-  markedDates?: { date: Date; color?: string }[];
+  markedDates?: MarkedDate[];
   containerStyle?: StyleProp<ViewStyle>;
   canChangeMonthsOnSwiple?: boolean;
   onChangeSelectedDate?: (date: Date) => void;
@@ -64,11 +69,7 @@ export default function FancyCalendar({
 
   const isControlled = value !== undefined;
   const [internalDate, setInternalDate] = useState<Date | undefined>(value);
-  const selectedDate = isControlled
-    ? value
-    : selectDateOnPress
-    ? internalDate
-    : undefined;
+  const selectedDate = isControlled ? value : selectDateOnPress ? internalDate : undefined;
 
   const mergedDayViewProps = useMemo(() => {
     return {

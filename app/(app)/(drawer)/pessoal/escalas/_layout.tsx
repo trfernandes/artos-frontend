@@ -9,7 +9,7 @@ export default function EscalasLayout() {
         header: props => <FancyHeader {...props} />,
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Escalas', headerRight: () => <MainHeaderButtons /> }} />
+      <Stack.Screen name="index" options={{ title: 'Minhas Escalas', headerRight: () => <MainHeaderButtons /> }} />
       <Stack.Screen
         name="evento"
         options={{ title: 'Visualizar Evento', header: props => <FancyHeader leftButton="back" {...props} /> }}

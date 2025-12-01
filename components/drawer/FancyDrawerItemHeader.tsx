@@ -7,7 +7,9 @@ import { router } from 'expo-router';
 import { Image } from 'expo-image';
 import { ImageUtils } from '../../utils/image_utils';
 
-export default function FancyDrawerItemHeader(props: { isCollapsed: boolean; onCollapsePress: () => void } & DrawerItemData) {
+export default function FancyDrawerItemHeader(
+  props: { isCollapsed: boolean; onCollapsePress: () => void; onNavigate?: () => void } & DrawerItemData,
+) {
   const handleOnItemPress = () => {
     if (props.onPress) {
       if (props.onPress.type === 'GoToRoute' && props.onPress.routeName) {
@@ -16,6 +18,8 @@ export default function FancyDrawerItemHeader(props: { isCollapsed: boolean; onC
         props.onPress.method();
       }
     }
+
+    props.onNavigate?.();
   };
 
   return (

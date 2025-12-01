@@ -38,11 +38,11 @@ export default function FancyCheckbox(props: FancyCheckboxProps) {
         <View
           style={[
             styles.checkbox,
-            { width: props.size || 20, height: props.size || 20 },
+            { width: props.size || 16, height: props.size || 16 },
             ...checkboxStateStyle,
           ]}
         >
-          <DefaultIcons.Custom {...DefaultIconsNames.confirm} size={props.iconSize || 12} color="white" />
+          <DefaultIcons.Custom {...DefaultIconsNames.confirm} size={props.iconSize || 9} color="white" />
         </View>
       </View>
       {props.label && (

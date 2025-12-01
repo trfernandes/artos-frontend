@@ -1,7 +1,5 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import React, { useRef, useState, useEffect } from 'react';
 import {
-  View,
   ScrollViewProps,
   StyleSheet,
   LayoutChangeEvent,
@@ -13,6 +11,7 @@ import {
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { FADE } from './list/FancyList';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export type FancyScrollViewProps = ScrollViewProps & {
   children?: React.ReactNode;
@@ -82,9 +81,9 @@ export default function FancyScrollView(props: FancyScrollViewProps) {
   }, [layoutReady]);
 
   return (
-    <View style={{ flex: 1 }}>
+    <>
       <KeyboardAwareScrollView
-        style={[{ flex: 1 }, props.style]}
+        style={[{}, props.style]}
         contentContainerStyle={[{ paddingBottom: 40 }, props.contentContainerStyle]}
         resetScrollToCoords={{ x: 0, y: 0 }}
         scrollEnabled={true}
@@ -92,6 +91,8 @@ export default function FancyScrollView(props: FancyScrollViewProps) {
         onLayout={handleLayout}
         onContentSizeChange={handleContentSizeChange}
         scrollEventThrottle={16}
+        persistentScrollbar={true}
+        showsVerticalScrollIndicator={true}
         {...props}
       >
         {props.children}
@@ -100,7 +101,10 @@ export default function FancyScrollView(props: FancyScrollViewProps) {
       {(!props.topFade ||
         (props.topFade && props.topFade!.active === undefined) ||
         (props.topFade && props.topFade!.active === true)) && (
-        <Animated.View pointerEvents="none" style={[styles.fade, { top: 0 }, { opacity: topFadeAnim }]}>
+        <Animated.View
+          pointerEvents="none"
+          style={[styles.fade, { top: 0 }, { opacity: topFadeAnim }]}
+        >
           <LinearGradient
             colors={[FADE.colors.light, FADE.colors.dark]}
             style={[StyleSheet.absoluteFill, props.topFade?.style]}
@@ -111,14 +115,17 @@ export default function FancyScrollView(props: FancyScrollViewProps) {
       {(!props.bottomFade ||
         (props.bottomFade && props.bottomFade!.active === undefined) ||
         (props.bottomFade && props.bottomFade!.active === true)) && (
-        <Animated.View pointerEvents="none" style={[styles.fade, { bottom: 0 }, { opacity: bottomFadeAnim }]}>
+        <Animated.View
+          pointerEvents="none"
+          style={[styles.fade, { bottom: 0 }, { opacity: bottomFadeAnim }]}
+        >
           <LinearGradient
             colors={[FADE.colors.dark, FADE.colors.light]}
             style={[StyleSheet.absoluteFill, props.bottomFade?.style]}
           />
         </Animated.View>
       )}
-    </View>
+    </>
   );
 }
 

@@ -4,14 +4,14 @@ import { EscalaTemplateFuncaoFormData } from '../../../../domain/schemas/escalaT
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import ControlledDropDown from '../../../forms/ControlledDropDown';
 import FancyModalDialog, {
-  FancyModalDialogProps,
+    FancyModalDialogProps,
 } from '../../../modal/FancyModalDialog';
 import ControlledTextInput from '../../../forms/ControlledTextInput';
 import { useCallback, useMemo } from 'react';
 import { EnumUtils } from '../../../../utils/enum_utils';
 import {
-  EscalaTemplateExperienciaEnum,
-  EscalaTemplateExperienciaLabel,
+    EscalaTemplateExperienciaEnum,
+    EscalaTemplateExperienciaLabel,
 } from '../../../../domain/models/EscalaTemplate';
 
 type TemplateFuncoesFormProps = FancyModalDialogProps<void> & {
@@ -44,7 +44,7 @@ export default function TemplateFuncoesForm({
   const handleConfirm = useCallback(
     handleSubmit(
       _ => {
-        props.onConfirm?.();
+        props.OnButton2Press?.();
       },
       errors => console.log('Erros do Funcoes Form', JSON.stringify(errors))
     ),
@@ -55,7 +55,7 @@ export default function TemplateFuncoesForm({
     <FancyModalDialog
       {...props}
       title={mode === 'add' ? 'Adicionar Função' : 'Editar Função'}
-      onConfirm={handleConfirm}
+      OnButton2Press={handleConfirm}
     >
       <View style={{ gap: 15 }}>
         <ControlledDropDown

@@ -1,17 +1,25 @@
 import { isValidElement, ReactNode } from 'react';
 import { StyleSheet, View, ImageSourcePropType } from 'react-native';
 import FancyBaseCard, { FancyBaseCardProps } from './FancyBaseCard';
-import { ActionButton, FancyActionButtons } from './FancyCardActionButtons';
+import { ActionButtonProps, FancyActionButtons } from './FancyCardActionButtons';
 import { Pallete } from '../../../constants/colors';
 import { Image } from 'expo-image';
 import { ImageUtils } from '../../../utils/image_utils';
 
 export type FancyCardImageProps = {
   source: string | ImageSourcePropType;
-  actionButtons?: ActionButton | ActionButton[] | ReactNode;
+  actionButtons?: ActionButtonProps | ActionButtonProps[] | ReactNode;
 } & Pick<
   FancyBaseCardProps,
-  'title' | 'subtitle' | 'additionalData1' | 'additionalData2' | 'content' | 'containerStyle' | 'contentContainerStyle' | 'isCollapsable'
+  | 'title'
+  | 'subtitle'
+  | 'additionalData1'
+  | 'additionalData2'
+  | 'content'
+  | 'containerStyle'
+  | 'contentContainerStyle'
+  | 'isCollapsable'
+  | 'centerContainerStyle'
 >;
 
 export default function FancyCardImage(props: FancyCardImageProps) {
@@ -19,7 +27,9 @@ export default function FancyCardImage(props: FancyCardImageProps) {
     <FancyBaseCard
       {...props}
       leftItem={<CardImage url={props.source!} />}
-      rightItem={isValidElement(props.actionButtons) ? props.actionButtons : <FancyActionButtons actions={props.actionButtons} />}
+      rightItem={
+        isValidElement(props.actionButtons) ? props.actionButtons : <FancyActionButtons actions={props.actionButtons} />
+      }
     />
   );
 }
@@ -34,7 +44,7 @@ function CardImage({ url: source }: { url: string | ImageSourcePropType }) {
   );
 }
 
-const HEIGHT = 40;
+const HEIGHT = 35;
 
 const styles = StyleSheet.create({
   imageContainer: {

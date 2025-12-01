@@ -8,11 +8,11 @@ import { Pallete } from '../../constants/colors';
 export type FancyModalDialogProps<T> = {
   title?: string;
   children?: React.ReactNode;
-  onClose?: () => void;
-  onConfirm?: (data: T | undefined) => void;
+  onButton1Press?: () => void;
+  OnButton2Press?: (data: T | undefined) => void;
   buttonContainerComponenet?: React.ReactNode;
-  button1?: FancyButtonProps;
-  button2?: FancyButtonProps;
+  button1?: FancyButtonProps & { visible?: boolean };
+  button2?: FancyButtonProps & { visible?: boolean };
   buttonContainerStyle?: StyleProp<ViewStyle>;
   centerContainerStyle?: StyleProp<ViewStyle>;
   modalProps?: Omit<ModalProps, 'onRequestClose'>;
@@ -24,11 +24,11 @@ export type FancyModalDialogProps<T> = {
 export default function FancyModalDialog<T = void>({
   title,
   children,
-  onClose,
-  onConfirm,
-  buttonContainerComponenet,
-  button1,
-  button2,
+  onButton1Press,
+  OnButton2Press,
+  buttonContainerComponenet: buttonContainerComponent,
+  button1 = { visible: true },
+  button2 = { visible: true },
   buttonContainerStyle,
   centerContainerStyle,
   modalProps,
@@ -38,19 +38,22 @@ export default function FancyModalDialog<T = void>({
   containerStyle,
   ...fancyModalProps
 }: FancyModalDialogProps<T>) {
-  const shouldRenderCloseButton = Boolean(showCloseButton && onClose);
+  const shouldRenderCloseButton = Boolean(showCloseButton && onButton1Press);
 
   const closeIconProps: CustomIconProps = {
-    library: closeButtonIconProps?.library ?? 'MaterialIcons',
-    name: closeButtonIconProps?.name ?? 'close',
-    size: closeButtonIconProps?.size ?? 20,
+    library: closeButtonIconProps?.library ?? 'Ionicons',
+    name: closeButtonIconProps?.name ?? 'close-circle-outline',
+    size: closeButtonIconProps?.size ?? 24,
     color: closeButtonIconProps?.color ?? Pallete.fonts.dark,
     style: closeButtonIconProps?.style,
   };
 
-  const mergedModalProps = onClose
-    ? ({ ...(modalProps ?? {}), onRequestClose: onClose } as ModalProps)
+  const mergedModalProps = onButton1Press
+    ? ({ ...(modalProps ?? {}), onRequestClose: onButton1Press } as ModalProps)
     : (modalProps as ModalProps | undefined);
+
+  const shouldShowButton1 = button1?.visible !== false;
+  const shouldShowButton2 = button2?.visible !== false;
 
   return (
     <FancyModal
@@ -63,7 +66,7 @@ export default function FancyModalDialog<T = void>({
             </FancyText>
             {shouldRenderCloseButton && (
               <TouchableOpacity
-                onPress={onClose}
+                onPress={onButton1Press}
                 style={styles.closeButton}
                 accessibilityRole="button"
                 accessibilityLabel={closeButtonAccessibilityLabel ?? 'Fechar'}
@@ -76,21 +79,27 @@ export default function FancyModalDialog<T = void>({
       }
       center={<View style={[styles.contentContainer, centerContainerStyle]}>{children}</View>}
       bottom={
-        buttonContainerComponenet || (
+        buttonContainerComponent || (
           <View style={[styles.buttonsContainer, buttonContainerStyle]}>
-            <FancyButton
-              label="Cancelar"
-              type="outlined"
-              onPress={onClose}
-              {...button1}
-              containerStyle={[button1?.containerStyle, styles.button]}
-            />
-            <FancyButton
-              label="Confirmar"
-              onPress={() => onConfirm?.(undefined as T)}
-              {...button2}
-              containerStyle={[button2?.containerStyle, styles.button]}
-            />
+            {shouldShowButton1 && (
+              <FancyButton
+                label={button1.label ?? 'Cancelar'}
+                type="outlined"
+                onPress={onButton1Press}
+                disabled={false}
+                {...button1}
+                containerStyle={[button1?.containerStyle, styles.button]}
+              />
+            )}
+            {shouldShowButton2 && (
+              <FancyButton
+                label={button2.label ?? 'Confirmar'}
+                onPress={() => OnButton2Press?.(undefined as T)}
+                disabled={false}
+                {...button2}
+                containerStyle={[button2?.containerStyle, styles.button]}
+              />
+            )}
           </View>
         )
       }

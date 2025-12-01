@@ -17,6 +17,8 @@ import { MinisterioFuncao } from '../../../../domain/models/MinisterioFuncao';
 import { Pallete } from '../../../../constants/colors';
 import { EscalaTemplateExperienciaLabel } from '../../../../domain/models/EscalaTemplate';
 import { FancyAlert } from '../../../modal/FancyAlert';
+import FancyImage from '../../../images/FancyImage';
+import FancyText from '../../../FancyText';
 
 export interface IntegranteFormFieldsProps {
   mode: 'add' | 'edit';
@@ -39,7 +41,7 @@ export default function IntegranteFormFields({
     mode: 'add',
   });
 
-  const { control, getValues, watch } = useFormContext<MinVoluntarioFormData>();
+  const { control, getValues } = useFormContext<MinVoluntarioFormData>();
 
   const {
     fields: fieldsFuncao,
@@ -110,19 +112,27 @@ export default function IntegranteFormFields({
     return [...fieldsFuncao].sort((a, b) => {
       const nomeA = a.nome?.toUpperCase() || '';
       const nomeB = b.nome?.toUpperCase() || '';
-      return nomeA.localeCompare(nomeB);
+      return nomeA.localeCompare(nomeB, 'pt-BR', { sensitivity: 'base' });
     });
   }, [fieldsFuncao]);
 
   return (
-    <View style={{ flex: 1, gap: 25 }}>
-      <ControlledDropDown
-        control={control}
-        name="voluntarioId"
-        label="Voluntário"
-        listItems={voluntariosDropDownList}
-        disabled={mode === 'edit'}
-      />
+    <View style={{ flex: 1, gap: 20 }}>
+      {mode === 'add' ? (
+        <ControlledDropDown control={control} name="voluntarioId" label="Voluntário" listItems={voluntariosDropDownList} />
+      ) : (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+          <FancyImage source={{ uri: getValues('voluntarioFoto') }} size={40} />
+          <View style={{ gap: 2 }}>
+            <FancyText size="large" type="bold" style={{ opacity: 0.8 }}>
+              {getValues('voluntarioNome')}
+            </FancyText>
+            <FancyText size="small" type="medium" style={{ opacity: 0.8 }}>
+              {getValues('voluntarioEmail')}
+            </FancyText>
+          </View>
+        </View>
+      )}
 
       <FancyContainerList
         title="Funções"
@@ -174,8 +184,8 @@ export default function IntegranteFormFields({
             mode={formModalOptions.mode}
             title={formModalOptions.mode === 'add' ? 'Adicionar Função' : 'Editar Função'}
             funcoesDropDownList={notUsedFuncoesList}
-            onConfirm={() => handleSave()}
-            onClose={() => {
+            OnButton2Press={() => handleSave()}
+            onButton1Press={() => {
               setFormModalOptions({ visible: false, mode: 'add' });
             }}
           />

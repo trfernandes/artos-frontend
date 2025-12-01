@@ -21,7 +21,7 @@ export default function DeleteAccountModal(props: FancyModalDialogProps) {
     <FancyModalDialog
       {...props}
       title="Excluir Conta"
-      onConfirm={handleConfirm}
+      OnButton2Press={handleConfirm}
       button1={{
         label: 'Cancelar',
       }}

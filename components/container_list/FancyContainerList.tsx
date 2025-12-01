@@ -9,7 +9,7 @@ import FancySeparator from '../FancySeparator';
 import FancyListEmpty from '../list/FancyListEmpty';
 
 export interface FancyContainerListProps<ItemT>
-  extends Pick<FancyListProps<ItemT>, 'data' | 'renderItem' | 'containerStyle' | 'contentContainerStyle'> {
+  extends Pick<FancyListProps<ItemT>, 'data' | 'renderItem' | 'containerStyle' | 'contentContainerStyle' | 'keyExtractor'> {
   title: string;
   buttons?: { icon: CustomIconProps; onPress?: () => void }[];
   containerStyle?: StyleProp<ViewStyle>;
@@ -34,7 +34,7 @@ export default function FancyContainerList<ItemT>({
   const hasItems = items.length > 0;
 
   return (
-    <View style={[styles.container, containerStyle, disabled ? { opacity: 0.6, pointerEvents: 'none' } : {  pointerEvents: 'auto' }]}>
+    <View style={[styles.container, containerStyle, disabled ? { opacity: 0.6, pointerEvents: 'none' } : { pointerEvents: 'auto' }]}>
       <View style={styles.headerContainer}>
         <View style={styles.headerTitleContainer}>
           <FancyText size={'small'} type="semiBold" style={styles.headerTitle}>
@@ -66,19 +66,15 @@ export default function FancyContainerList<ItemT>({
             renderItem={renderItem}
             contentContainerStyle={[styles.listContentStyle, contentContainerStyle]}
             containerStyle={[styles.listContainerStyle, containerStyle]}
-            ItemSeparatorComponent={() =>
-              showDivider && <FancySeparator style={{ marginTop: 10, borderWidth: 0 }} />
-            }
+            ItemSeparatorComponent={() => showDivider && <FancySeparator style={{ marginTop: 10, borderWidth: 0 }} />}
           />
         ) : hasItems ? (
           <View style={[styles.listContainerStyle, containerStyle]}>
             <View style={[styles.listContentStyle, contentContainerStyle]}>
               {items.map((item, index) => (
                 <React.Fragment key={index}>
-                  {renderItem ? renderItem({ item, index } as any) : null}
-                  {showDivider && index < items.length - 1 ? (
-                    <FancySeparator style={{ marginTop: 10, borderWidth: 0 }} />
-                  ) : null}
+                  {renderItem ? React.createElement(renderItem as any, { item, index }) : null}
+                  {showDivider && index < items.length - 1 ? <FancySeparator style={{ marginTop: 10, borderWidth: 0 }} /> : null}
                 </React.Fragment>
               ))}
               <View style={{ height: 40 }} />
@@ -111,7 +107,12 @@ const styles = StyleSheet.create({
     gap: 10,
     flexDirection: 'row',
   },
-  headerTitleContainer: { flex: 1, borderWidth: DESIGN_MODE, borderColor: 'pink', justifyContent: 'center' },
+  headerTitleContainer: {
+    flex: 1,
+    borderWidth: DESIGN_MODE,
+    borderColor: 'pink',
+    justifyContent: 'center',
+  },
   headerTitle: { borderWidth: 0, borderColor: 'red' },
   headerButtonsContainer: {
     gap: 5,
@@ -123,11 +124,11 @@ const styles = StyleSheet.create({
   contentContainer: {
     borderWidth: DESIGN_MODE,
     borderColor: 'greenyellow',
-    paddingHorizontal: 10,
+
     gap: 10,
     flex: 1,
   },
-  listContentStyle: { gap: 10, borderWidth: 0, borderColor: 'magenta', paddingBottom: 10 },
+  listContentStyle: { gap: 10, borderWidth: 0, borderColor: 'magenta', paddingBottom: 10, paddingHorizontal: 10 },
   listContainerStyle: { borderWidth: 0, borderColor: 'gold', flex: 1 },
   divider: { height: 0.3, borderTopWidth: 1, borderColor: Pallete.border },
 });

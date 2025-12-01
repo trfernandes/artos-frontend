@@ -10,24 +10,38 @@ export type FancyVerticalCheckboxCardProps = {
   containerStyle?: StyleProp<ViewStyle>;
 } & Pick<FancyVerticalCardProps, 'title' | 'subtitle'>;
 
-export default function FancyVerticalCheckboxCard({ image, value, onChangeValue, ...props }: FancyVerticalCheckboxCardProps) {
+export default function FancyVerticalCheckboxCard({
+  image,
+  value,
+  onChangeValue,
+  ...props
+}: FancyVerticalCheckboxCardProps) {
   return (
-    <FancyVerticalCard
-      topLeftElement={<CheckboxComponent value={value} onChangeValue={onChangeValue} />}
-      topElement={<ImageComponent source={image} />}
-      {...props}
-    />
+    <TouchableOpacity onPress={() => onChangeValue?.(!value)}>
+      <FancyVerticalCard
+        cardHeight={100}
+        topLeftElement={<CheckboxComponent value={value} />}
+        topElement={<ImageComponent source={image} />}
+        {...props}
+      />
+    </TouchableOpacity>
   );
 }
 
-function CheckboxComponent({ value, onChangeValue }: { value: boolean; onChangeValue?: (value: boolean) => void }) {
+function CheckboxComponent({
+  value,
+  onChangeValue,
+}: {
+  value: boolean;
+  onChangeValue?: (value: boolean) => void;
+}) {
   return (
     <TouchableOpacity style={styles.checkboxContainer}>
-      <FancyCheckbox value={value} size={16} iconSize={10} onChangeValue={() => onChangeValue?.(!value)} />
+      <FancyCheckbox value={value} size={13} iconSize={8} onChangeValue={() => onChangeValue?.(!value)} />
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  checkboxContainer: { padding: 5 },
+  checkboxContainer: {},
 });

@@ -5,7 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
 export function useIndisponibilidadesVoluntariosCrud(
-  props: Pick<UseCrudOptions<any, any>, 'autoFetch' | 'initialParams'> = {}
+  props: Pick<UseCrudOptions<any, any>, 'autoFetch' | 'initialParams' | 'messages'> = {}
 ) {
   const crud = useCrud({
     ...props,
@@ -20,7 +20,7 @@ export function useIndisponibilidadesVoluntariosCrud(
       return IndisponibilidadesVoluntarioRepository.update(id, data);
     },
     remove: id => IndisponibilidadesVoluntarioRepository.remove(id),
-    messages: {
+    messages: props.messages || {
       successDelete: 'Indisponibilidade removida com sucesso.',
       successCreate: 'Indisponibilidade criada com sucesso.',
       errorDelete: 'Erro ao remover a indisponibilidade.',
@@ -33,11 +33,13 @@ export function useIndisponibilidadesVoluntariosCrud(
     mutationFn: (payload: UpsertIndisponibilidadesVoluntarioPayload) =>
       IndisponibilidadesVoluntarioRepository.upsertMany(payload),
     onSuccess: () => {
-      Toast.show({ type: 'success', text1: crud.messages?.successUpdate || 'Item atualizado com sucesso!' });
+      crud.messages?.successUpdate &&
+        Toast.show({ type: 'success', text1: crud.messages?.successUpdate || 'Item atualizado com sucesso!' });
       crud.queryClient.invalidateQueries({ queryKey: [crud.queryKey] });
     },
     onError: error => {
-      Toast.show({ type: 'error', text1: crud.messages?.errorUpdate || 'Erro ao atualizar item.' });
+      crud.messages?.errorUpdate &&
+        Toast.show({ type: 'error', text1: crud.messages?.errorUpdate || 'Erro ao atualizar item.' });
       console.log(error);
     },
   });

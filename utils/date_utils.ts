@@ -67,10 +67,10 @@ const DateUtils = {
 
     return result;
   },
-  isSameDay(a?: Date, b?: Date) {
+  equal(a?: Date, b?: Date) {
     if (!a || !b) return false;
     return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-  },
+  }, 
 };
 
 export default DateUtils;

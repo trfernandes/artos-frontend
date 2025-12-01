@@ -69,8 +69,8 @@ export default function EventosEscalaEquipe(props: Omit<FancyModalDialogProps, '
           title="Adicionar Voluntário"
           centerContainerStyle={{ gap: 15 }}
           modalProps={modalFormIntegrante}
-          onClose={() => setModalFormIntegrante({ visible: false })}
-          onConfirm={() => setModalFormIntegrante({ visible: false })}
+          onButton1Press={() => setModalFormIntegrante({ visible: false })}
+          OnButton2Press={() => setModalFormIntegrante({ visible: false })}
         >
           <FancyDropDown
             label="Disponibilidade"

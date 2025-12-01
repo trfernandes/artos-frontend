@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 import FancyTextInput from '../../../fields/FancyTextInput';
-import FancyImage from '../../../images/FancyImage';
+import FancyAvatarImage from '../../../images/FancyImage';
 import FancyScrollView from '../../../FancyScrollView';
 import FancyToggle from '../../../fields/FancyToggle';
 import { Voluntario } from '../../../../domain/models/Voluntario';
@@ -15,7 +15,7 @@ export default function VoluntarioDadosTab(props: { voluntario: Voluntario }) {
 
   return (
     <FancyScrollView contentContainerStyle={styles.container}>
-      <FancyImage
+      <FancyAvatarImage
         source={
           props.voluntario.foto
             ? { uri: props.voluntario.foto }

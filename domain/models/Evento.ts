@@ -1,3 +1,4 @@
+import { EscalaTemplate } from './EscalaTemplate';
 import { Identifiable } from './Indentifiable';
 
 export interface Evento extends Identifiable {
@@ -11,6 +12,8 @@ export interface Evento extends Identifiable {
   recorrenciaSemanaDias?: RecorrenciaDiaSemanaEnum[];
   recorrenciaACadaMeses?: number;
   recorrenciaSemanasMes?: RecorrenciaSemanaMesEnum[];
+  templatePadrao?: EscalaTemplate;
+  templatePadraoId?: string;
 }
 
 export enum RecorrenciaDiaSemanaEnum {

@@ -7,7 +7,7 @@ import { router } from 'expo-router';
 export default function FancyDrawerItem({
   isDefaultCollapsed,
   ...props
-}: DrawerItemData & { isDefaultCollapsed?: boolean }) {
+}: DrawerItemData & { isDefaultCollapsed?: boolean; onNavigate?: () => void }) {
   const [isCollapsed, setCollapsed] = useState<boolean>(isDefaultCollapsed ?? true);
 
   const handleOnItemPress = (item: DrawerItemData) => {
@@ -18,6 +18,8 @@ export default function FancyDrawerItem({
         item.onPress.method();
       }
     }
+
+    props.onNavigate?.();
   };
 
   return (
@@ -27,13 +29,14 @@ export default function FancyDrawerItem({
           {...props}
           isCollapsed={isCollapsed}
           onCollapsePress={() => setCollapsed(!isCollapsed)}
+          onNavigate={props.onNavigate}
         />
       </View>
       {props.items && props.items.length > 0 && !isCollapsed && (
         <View style={styles.childrenContainer}>
           {props.items?.map((item, index) => (
             <TouchableOpacity key={index} onPress={() => handleOnItemPress(item)}>
-              <FancyDrawerItem {...item} />
+              <FancyDrawerItem {...item} onNavigate={props.onNavigate} />
             </TouchableOpacity>
           ))}
         </View>

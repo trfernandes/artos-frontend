@@ -7,7 +7,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useMinisterioVoluntarioFuncoesCrud } from '../../../../../hooks/useMinisterioVoluntarioFuncoesCrud';
 import { useEffect, useMemo } from 'react';
 import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
-import { useVoluntariosDoMinisterio } from '../../../../../hooks/useVoluntariosDoMinisterio';
+import { useVoluntariosDoMinisterioCrud } from '../../../../../hooks/useVoluntariosDoMinisterioCrud';
 import { useFuncoesDoMinisterio } from '../../../../../hooks/useFuncoesDoMinisterio';
 import FancyLoading from '../../../../../components/FancyLoading';
 import IntegranteFormFields from '../../../../../components/pages/ministerios/integrantes/FormFields';
@@ -15,21 +15,27 @@ import {
   MinisterioVoluntarioFuncaoStatusEnum,
   MinisterioVoluntarioFuncaoStatusEnumMap,
 } from '../../../../../domain/models/MinisterioVoluntarioFuncao';
-import {
-  EscalaTemplateExperienciaEnum,
-  EscalaTemplateExperienciaEnumMap,
-} from '../../../../../domain/models/EscalaTemplate';
+import { EscalaTemplateExperienciaEnum, EscalaTemplateExperienciaEnumMap } from '../../../../../domain/models/EscalaTemplate';
 import Toast from 'react-native-toast-message';
 import { UpdateFuncaoDataDto } from '../../../../../domain/services/MinisterioVoluntarioFuncoesRepository';
+import { DefaultIconsNames } from '../../../../../constants/icons';
 
 export default function MinisterioIntegrantesEditPage() {
-  const { ministerioId, ministerioVoluntarioId, voluntarioId } = useLocalSearchParams<{
+  const { ministerioId, ministerioVoluntarioId, voluntario } = useLocalSearchParams<{
     ministerioId: string;
     ministerioVoluntarioId: string;
-    voluntarioId: string;
+    voluntario: string;
   }>();
 
-  const { voluntariosDropDownList, isLoading: isLoadingVoluntarios } = useVoluntariosDoMinisterio(ministerioId);
+  const voluntarioObj = useMemo(() => {
+    try {
+      return JSON.parse(decodeURIComponent(voluntario));
+    } catch {
+      return null;
+    }
+  }, [voluntario]);
+
+  const { voluntariosDropDownList, isLoading: isLoadingVoluntarios } = useVoluntariosDoMinisterioCrud(ministerioId);
 
   const { funcoesList, funcoesDropDownList, isLoading: isLoadingFuncoes } = useFuncoesDoMinisterio(ministerioId);
 
@@ -68,7 +74,10 @@ export default function MinisterioIntegrantesEditPage() {
 
   useEffect(() => {
     form.reset({
-      voluntarioId: voluntarioId || '',
+      voluntarioId: voluntarioObj?.id || '',
+      voluntarioFoto: voluntarioObj?.foto || '',
+      voluntarioNome: voluntarioObj?.nome || '',
+      voluntarioEmail: voluntarioObj?.email || '',
       funcoes: minVolFuncoesData.map(f => ({
         id: f.funcao?.id || f.funcaoId,
         nome: f.funcao?.nome || '',
@@ -98,11 +107,10 @@ export default function MinisterioIntegrantesEditPage() {
     errors => console.log('errors', errors)
   );
 
-  if (isLoadingVoluntarios || isLoadingFuncoes || isLoadingVoluntarioFuncoes || isUpdatingFuncoes)
-    return <FancyLoading />;
+  if (isLoadingVoluntarios || isLoadingFuncoes || isLoadingVoluntarioFuncoes || isUpdatingFuncoes) return <FancyLoading />;
 
   return (
-    <FancyPageView style={{ flex: 1, paddingHorizontal: 20, paddingVertical: 10, gap: 40 }}>
+    <FancyPageView style={{ flex: 1, paddingHorizontal: 20, paddingVertical: 10, gap: 20 }}>
       <FormProvider {...form}>
         <IntegranteFormFields
           mode="edit"
@@ -112,6 +120,7 @@ export default function MinisterioIntegrantesEditPage() {
         />
       </FormProvider>
       <FancyButton
+        icon={{ ...DefaultIconsNames.save, size: 14 }}
         label={isUpdatingFuncoes ? 'Salvando...' : 'Salvar'}
         disabled={isUpdatingFuncoes}
         onPress={handleSave}

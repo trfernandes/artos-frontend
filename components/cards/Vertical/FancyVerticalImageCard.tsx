@@ -1,13 +1,8 @@
-import { StyleSheet, View, TouchableOpacity, LayoutChangeEvent, StyleProp, ImageStyle, ImageSourcePropType } from 'react-native';
-import { useCallback, useMemo, useState } from 'react';
+import { StyleSheet, TouchableOpacity, ImageStyle, View } from 'react-native';
 import FancyVerticalCard, { FancyVerticalCardProps } from './FancyVerticalCard';
 import DefaultIcons, { CustomIconProps } from '../../FancyIcons';
 import { Pallete } from '../../../constants/colors';
-import { Image } from 'expo-image';
-import { ImageUtils } from '../../../utils/image_utils';
-
-const AUTO_IMAGE_SCALE = 0.68;
-const MIN_AUTO_IMAGE_SIZE = 60;
+import FancyImage from '../../images/FancyImage';
 
 export type FancyVerticalImageCardProps = {
   url?: string | number;
@@ -28,26 +23,19 @@ export default function FancyVerticalImageCard({
 }: FancyVerticalImageCardProps) {
   return (
     <FancyVerticalCard
-      topElement={<ImageComponent source={url} size={imageSize} />}
-      topRightElement={
-        topRightIcon && (
-          <TopRightMenuButton customIcon={topRightIcon?.customIcon} onPress={topRightIcon?.onPress} />
-        )
-      }
-      topLeftElement={
-        topLeftIcon && (
-          <TopLeftMenuButton customIcon={topLeftIcon?.customIcon} onPress={topLeftIcon?.onPress} />
-        )
-      }
+      cardHeight={80}
+      topElement={<ImageComponent source={url} />}
+      topElementStyle={{ marginBottom: 12 }}
+      bottomElementStyle={{
+        justifyContent: 'center',
+      }}
       {...props}
       containerStyle={[containerStyle, selected && styles.selected]}
     />
   );
 }
 
-export function ImageComponent({ source, size }: { source?: string | number; size?: number }) {
-  const [autoSize, setAutoSize] = useState<number>();
-
+export function ImageComponent({ source }: { source?: string | number }) {
   const resolvedSource =
     typeof source === 'number'
       ? source
@@ -55,39 +43,20 @@ export function ImageComponent({ source, size }: { source?: string | number; siz
       ? source
       : undefined;
 
-  const handleLayout = useCallback(
-    (event: LayoutChangeEvent) => {
-      if (size) return;
-
-      const { width, height } = event.nativeEvent.layout;
-      if (!width || !height) return;
-
-      const base = Math.min(width, height) * AUTO_IMAGE_SCALE;
-      const nextSize = Math.max(base, MIN_AUTO_IMAGE_SIZE);
-      if (!autoSize || Math.abs(nextSize - autoSize) > 1) {
-        setAutoSize(nextSize);
-      }
-    },
-    [size, autoSize]
-  );
-
-  const effectiveSize = size ?? autoSize;
-  const imageStyle: StyleProp<ImageStyle> = useMemo(() => {
-    const stylesArray = [styles.image];
-    if (effectiveSize) {
-      stylesArray.push({
-        width: effectiveSize,
-        height: effectiveSize,
-        borderRadius: effectiveSize / 2,
-        aspectRatio: undefined,
-      });
-    }
-    return stylesArray;
-  }, [effectiveSize]);
-
   return (
-    <View style={styles.imageContainer} onLayout={handleLayout}>
-      {resolvedSource ? <Image source={resolvedSource} style={imageStyle} resizeMode="cover" /> : null}
+    <View
+      style={{
+        // borderWidth: 1,
+        width: '100%',
+        height: '100%',
+        paddingVertical: '8%',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {resolvedSource ? (
+        <FancyImage source={{ uri: resolvedSource as string }} style={styles.image} />
+      ) : null}
     </View>
   );
 }
@@ -151,15 +120,10 @@ export function TopRightMenuButton({
 
 const styles = StyleSheet.create({
   selected: { backgroundColor: Pallete.selected },
-  imageContainer: {
-    alignItems: 'center',
-    width: '100%',
-    justifyContent: 'center',
-  },
   image: {
-    width: '100%',
     borderRadius: 9999,
     aspectRatio: 1,
+    flex: 1,
+    resizeMode: 'cover',
   } as ImageStyle,
 });
-

@@ -1,20 +1,17 @@
 import { StyleSheet, View } from 'react-native';
 import { useAuth } from '../../../../contexts/AuthContext';
 import FancyText from '../../../FancyText';
-import FancyImage from '../../../images/FancyImage';
+import FancyAvatarImage from '../../../images/FancyImage';
 import { Pallete } from '../../../../constants/colors';
-import { strfyObj } from '../../../../utils/text_utils';
 
 export default function DadosTab() {
   const { user } = useAuth();
-
-  console.log('User data in DadosTab:', strfyObj(user));
 
   return (
     <View style={styles.container}>
       <View style={{ paddingTop: 20, gap: 30, flex: 1 }}>
         <View style={styles.center}>
-          <FancyImage
+          <FancyAvatarImage
             source={user?.foto ? { uri: user?.foto } : require('../../../../assets/images/empty_profile_image.png')}
             size={120}
             style={{ backgroundColor: 'white', borderRadius: 100 }}

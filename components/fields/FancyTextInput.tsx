@@ -1,4 +1,14 @@
-import { View, StyleSheet, TouchableOpacity, ViewStyle, StyleProp, ViewProps, TextInput, TextInputProps, Pressable } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  ViewStyle,
+  StyleProp,
+  ViewProps,
+  TextInput,
+  TextInputProps,
+  Pressable,
+} from 'react-native';
 import FancyText, { FancyTextProps } from '../FancyText';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import { isValidElement, ReactNode } from 'react';
@@ -17,6 +27,7 @@ export type FancyTextInputProps = {
   placeholder?: string;
   disabled?: boolean;
   inputContainerStyle?: StyleProp<ViewStyle>;
+  containerStyle?: StyleProp<ViewStyle>;
   inputContainerProps?: ViewProps;
   leftContainer?: Button | Button[] | ReactNode;
   rightContainer?: Button | Button[] | ReactNode;
@@ -37,17 +48,18 @@ function generateButtonsComponent(buttons: Button[]) {
 export default function FancyTextInput({ disabled = false, ...props }: FancyTextInputProps) {
   const { style: rawInputStyle, multiline, ...remainingInputProps } = props.inputProps ?? {};
   const isMultiline = Boolean(multiline);
-  const normalizedInputStyle = Array.isArray(rawInputStyle)
-    ? rawInputStyle
-    : rawInputStyle
-    ? [rawInputStyle]
-    : [];
+  const normalizedInputStyle = Array.isArray(rawInputStyle) ? rawInputStyle : rawInputStyle ? [rawInputStyle] : [];
 
   return (
-    <Pressable {...props.inputContainerProps} style={[styles.container]} onPress={props.onPress}>
+    <Pressable {...props.inputContainerProps} style={[styles.container, props.containerStyle]} onPress={props.onPress}>
       {props.label && (
         <View style={styles.labelContainer}>
-          <FancyText size={'extraSmall'} type="semiBold" style={[styles.labelText, disabled && styles.labelDisabledText]} {...props.labelProps}>
+          <FancyText
+            size={'extraSmall'}
+            type="semiBold"
+            style={[styles.labelText, disabled && styles.labelDisabledText]}
+            {...props.labelProps}
+          >
             {props.label}
           </FancyText>
         </View>
@@ -165,6 +177,3 @@ const styles = StyleSheet.create({
   placeholderText: { color: Pallete.fonts.inactive },
   placeholderDisabledText: { color: Pallete.fonts.inactive2 },
 });
-
-
-

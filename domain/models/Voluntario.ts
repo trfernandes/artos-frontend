@@ -1,4 +1,5 @@
 import { Identifiable } from './Indentifiable';
+import { IndisponibilidadeVoluntario } from './IndisponibilidadeVoluntario';
 import { MinisterioVoluntario } from './MinisterioVoluntario';
 
 export enum VoluntarioPapelEnum {
@@ -18,6 +19,7 @@ export interface Voluntario extends Identifiable {
   senha: string;
   papel: VoluntarioPapelEnum;
   uploadFoto: string | null;
+  indisponibilidades?: IndisponibilidadeVoluntario[];
 }
 
 export function calculateProfileCompletion(voluntario: Partial<Voluntario>): number {

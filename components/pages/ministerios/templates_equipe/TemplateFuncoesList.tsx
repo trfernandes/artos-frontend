@@ -151,7 +151,7 @@ export default function TemplateFuncoesList({
       <FancyContainerList
         title={'Formação da Equipe'}
         data={funcoesData}
-        virtualized={false}
+        // virtualized={false}
         contentContainerStyle={{ paddingTop: 6 }}
         disabled={disabled}
         renderItem={({ item, index }: { item: EscalaTemplateFuncao; index: number }) => {
@@ -200,11 +200,11 @@ export default function TemplateFuncoesList({
           <TemplateFuncoesForm
             mode={formParams.mode}
             modalProps={{ visible: formParams.visible }}
-            onClose={() => {
+            onButton1Press={() => {
               formAdd.reset(FORM_DEFAULT_VALUES);
               setFormParams({ visible: false, mode: 'add' });
             }}
-            onConfirm={() => handleConfirm(formParams.mode)}
+            OnButton2Press={() => handleConfirm(formParams.mode)}
             funcoesList={funcoesList}
           />
         )}

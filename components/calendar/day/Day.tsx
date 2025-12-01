@@ -1,5 +1,5 @@
-import React from 'react';
-import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import React, { useMemo } from 'react';
+import { StyleProp, StyleSheet, TouchableOpacity, View, ViewStyle } from 'react-native';
 import FancyText from '../../FancyText';
 import { Pallete } from '../../../constants/colors';
 
@@ -10,8 +10,8 @@ export type DayProps = {
   type?: 'actual' | 'inactive' | 'default';
   showMarker?: boolean;
   markerType?: 'bottomPoint' | 'SurroundCircle';
-  markerColor?: string;
   disabled?: boolean;
+  markerColor?: string | string[];
 };
 
 function DayComponent({
@@ -26,42 +26,62 @@ function DayComponent({
 }: DayProps) {
   const isDisabled = disabled;
   const isSelected = selected;
+  const isToday = type === 'actual';
+  const isInactive = type === 'inactive';
 
-  let fontColor = Pallete.fonts.dark;
-  if (isSelected) {
-    fontColor = Pallete.fonts.light;
-  } else if (type === 'actual') {
-    fontColor = Pallete.warning;
-  } else if (type === 'inactive') {
-    fontColor = Pallete.fonts.inactive2;
-  }
+  const textColor = useMemo(() => {
+    if (isSelected && markerType !== 'SurroundCircle') return Pallete.fonts.light;
+    if (isToday) return Pallete.warning;
+    if (isInactive) return Pallete.fonts.inactive2;
+    return Pallete.fonts.dark;
+  }, [isSelected, isToday, isInactive, markerType]);
 
-  const textType: 'bold' | 'semiBold' = isSelected ? 'bold' : 'semiBold';
+  const textWeight: 'bold' | 'semiBold' = isSelected ? 'bold' : 'semiBold';
 
-  const containerStyles: StyleProp<ViewStyle> = [styles.container];
+  const containerStyles: StyleProp<ViewStyle> = [
+    styles.container,
+    isSelected && markerType !== 'SurroundCircle' && { backgroundColor: Pallete.primary },
+  ];
 
-  if (isSelected && markerType !== 'SurroundCircle') {
-    containerStyles.push({ backgroundColor: markerColor ?? Pallete.primary });
-  }
+  // 👇 pega a cor vinda das markedDates (string ou primeiro item do array)
+  const resolvedMarkerColor = useMemo(() => {
+    if (Array.isArray(markerColor)) return markerColor[0];
+    return markerColor;
+  }, [markerColor]);
 
   const showCircle = markerType === 'SurroundCircle' && isSelected;
-  const circleStyles: StyleProp<ViewStyle> = [styles.circle];
-  if (showCircle && !isDisabled) {
-    circleStyles.push({ backgroundColor: markerColor ?? Pallete.primary });
-  }
-  if (showCircle && isDisabled) {
-    circleStyles.push(styles.circleDisabled);
-  }
 
-  const renderMarker = showMarker && markerType === 'bottomPoint';
+  const circleStyles: StyleProp<ViewStyle> = [
+    styles.circle,
+    showCircle &&
+      !isDisabled && {
+        backgroundColor: resolvedMarkerColor || Pallete.primary,
+      },
+    showCircle && isDisabled && styles.circleDisabled,
+  ];
+
+  const shouldRenderBottomMarker = showMarker && markerType === 'bottomPoint';
 
   const handlePress = () => {
     if (isDisabled) return;
     onPress?.();
   };
 
+  const renderMarkers = () => {
+    if (!shouldRenderBottomMarker) return null;
+
+    if (Array.isArray(markerColor)) {
+      return markerColor.map((c, index) => (
+        <View key={`marker-${index}`} style={[styles.marked, c ? { backgroundColor: c } : null]} />
+      ));
+    }
+
+    return <View style={[styles.marked, markerColor ? { backgroundColor: markerColor } : null]} />;
+  };
+  
+
   return (
-    <Pressable style={containerStyles} onPress={handlePress} disabled={isDisabled}>
+    <TouchableOpacity style={containerStyles} onPress={handlePress} disabled={isDisabled}>
       {showCircle ? (
         <View style={circleStyles}>
           <FancyText size="medium" type="bold" color={isDisabled ? Pallete.fonts.inactive : Pallete.fonts.light}>
@@ -69,38 +89,50 @@ function DayComponent({
           </FancyText>
         </View>
       ) : (
-        <FancyText size="medium" type={textType} color={fontColor}>
+        <FancyText size="medium" type={textWeight} color={textColor}>
           {day}
         </FancyText>
       )}
-      {renderMarker && <View style={[styles.marked, markerColor ? { backgroundColor: markerColor } : null]} />}
-    </Pressable>
+
+      {showMarker && <View style={styles.markerContainer}>{renderMarkers()}</View>}
+    </TouchableOpacity>
   );
 }
 
+const DAY_WIDTH = `${100 / 9}%`; // mantém alinhado com o header (do jeito que você definiu)
+
 const styles = StyleSheet.create({
   container: {
-    width: `${100 / 11}%`,
+    width: DAY_WIDTH,
     aspectRatio: 1,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 999,
+    // borderWidth: 1,
   },
   circle: {
-    width: '90%',
-    height: '90%',
+    width: '80%',
+    height: '80%',
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  markerContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 2,
+    paddingBottom: 2,
+    marginHorizontal: 6,
   },
   circleDisabled: {
     backgroundColor: Pallete.disabled3,
   },
   marked: {
-    marginTop: 6,
-    height: 4,
-    width: 4,
-    borderRadius: 2,
+    marginTop: 1,
+    height: 3,
+    width: 3,
+    borderRadius: 1.5,
     backgroundColor: Pallete.warning,
   },
 });

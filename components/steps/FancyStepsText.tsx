@@ -24,7 +24,7 @@ export default function FancyStepsText({ position = 'center', ...props }: FancyS
         adjustsFontSizeToFit
         numberOfLines={1}
         maxFontSizeMultiplier={1}
-        size="small"
+        size="extraSmall"
         type="semiBold"
         color={props.textColor}
         style={{

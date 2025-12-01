@@ -2,6 +2,7 @@ import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import DayViewHeader from './DayHeader';
 import Day, { DayProps } from './Day';
 import React, { useMemo, useCallback } from 'react';
+import DateUtils from '../../../utils/date_utils';
 
 const generateDays = (year: number, month: number): number[][] => {
   const matrix: number[][] = [];
@@ -35,11 +36,6 @@ const generateDays = (year: number, month: number): number[][] => {
   return matrix;
 };
 
-const isSameDay = (a?: Date, b?: Date) => {
-  if (!a || !b) return false;
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-};
-
 export type DayViewProps = {
   selectedDate?: Date;
   currentDate: Date;
@@ -62,7 +58,10 @@ export function DayView({
   disablePastDates = false,
   ...props
 }: DayViewProps) {
-  const daysMatrix = useMemo(() => generateDays(props.currentDate.getFullYear(), props.currentDate.getMonth()), [props.currentDate]);
+  const daysMatrix = useMemo(
+    () => generateDays(props.currentDate.getFullYear(), props.currentDate.getMonth()),
+    [props.currentDate]
+  );
 
   const today = useMemo(() => {
     const d = new Date();
@@ -103,12 +102,17 @@ export function DayView({
               const isNextMonthDay = rowIndex >= 4 && day < 15;
               const isCurrentMonthDay = !isPrevMonthDay && !isNextMonthDay;
 
-              const cellDate = new Date(props.currentDate.getFullYear(), props.currentDate.getMonth(), day);
+              const baseYear = props.currentDate.getFullYear();
+              const baseMonth = props.currentDate.getMonth();
+
+              let targetMonth = baseMonth;
               if (isPrevMonthDay) {
-                cellDate.setMonth(cellDate.getMonth() - 1);
+                targetMonth -= 1;
               } else if (isNextMonthDay) {
-                cellDate.setMonth(cellDate.getMonth() + 1);
+                targetMonth += 1;
               }
+
+              const cellDate = new Date(baseYear, targetMonth, day);
               cellDate.setHours(0, 0, 0, 0);
 
               const beforeMinimum = normalizedMinimum ? cellDate < normalizedMinimum : false;
@@ -116,26 +120,39 @@ export function DayView({
               const isPastDate = disablePastDates ? cellDate < today : false;
 
               const outsideMonth = !isCurrentMonthDay;
+
               if (outsideMonth && !showOtherMonthDays) {
-                return <View key={`empty-${rowIndex}-${columnIndex}`} style={{ width: `${100 / 8}%` }} />;
+                return (
+                  <View key={`empty-${rowIndex}-${columnIndex}`} style={{ width: `${100 / 7}%`, aspectRatio: 1 }} />
+                );
               }
 
               const isDisabled = outsideMonth || beforeMinimum || afterMaximum || isPastDate;
-              const isToday = isSameDay(cellDate, today);
-              const isSelected = props.selectedDate ? isSameDay(cellDate, props.selectedDate) : false;
+              const isToday = DateUtils.equal(cellDate, today);
+              const isSelected = props.selectedDate ? DateUtils.equal(cellDate, props.selectedDate) : false;
 
-              const markedEntry = props.markedDates?.find(d => isSameDay(d.date, cellDate));
-              const isMarked = !!markedEntry;
+              const markedEntries = props.markedDates?.filter(d => DateUtils.equal(d.date, cellDate)) ?? [];
 
-              const highlight =
-                markedDatesType === 'SurroundCircle'
-                  ? isMarked || isSelected
-                  : isSelected;
+              const isMarked = markedEntries.length > 0;
+
+              const highlight = markedDatesType === 'SurroundCircle' ? isMarked || isSelected : isSelected;
 
               const showMarker = markedDatesType === 'bottomPoint' && isMarked;
-              const markerColor = markedEntry?.color ?? props.daysProps?.markerColor;
 
               const dayType: DayProps['type'] = isDisabled ? 'inactive' : isToday ? 'actual' : 'default';
+
+              // monta cores dos marcadores (um ou vários)
+              const markerColorsFromMarks = markedEntries.map(m => m.color).filter((c): c is string => !!c);
+
+              let markerColor: DayProps['markerColor'] | undefined;
+
+              if (markerColorsFromMarks.length === 1) {
+                markerColor = markerColorsFromMarks[0];
+              } else if (markerColorsFromMarks.length > 1) {
+                markerColor = markerColorsFromMarks;
+              } else {
+                markerColor = props.daysProps?.markerColor;
+              }
 
               return (
                 <Day
@@ -160,16 +177,12 @@ export function DayView({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    gap:10
+    gap: 6,
+    width: '100%',
   },
   weekContainer: {
-    flex: 1,
-    justifyContent: 'space-between',
-    gap:8
   },
   weekRow: {
-    width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between',
   },

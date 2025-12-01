@@ -13,7 +13,8 @@ class EventosRepositoryClass extends BaseRepository<Evento> {
   }
 
   async buscarPorIntervalo(params: EventosIntervaloParams): Promise<Evento[]> {
-    const formatDate = (value: Date | string) => (value instanceof Date ? value.toISOString() : value);
+    const formatDate = (value: Date | string) =>
+      value instanceof Date ? value.toISOString() : value;
 
     return EventosApi.buscarPorIntervalo({
       dataInicio: formatDate(params.dataInicio),

@@ -1,8 +1,8 @@
 import { useFormContext } from 'react-hook-form';
 import { StyleSheet, View } from 'react-native';
-import { EscalaFormData } from '../../../../domain/schemas/escalaSchema';
-import ControlledDateInput from '../../../forms/ControlledDateInput';
-import ControlledTextInput from '../../../forms/ControlledTextInput';
+import { EscalaFormData } from '../../../../../domain/schemas/escalaSchema';
+import ControlledDateInput from '../../../../forms/ControlledDateInput';
+import ControlledTextInput from '../../../../forms/ControlledTextInput';
 
 export default function AssistenteParametrosStep() {
   const form = useFormContext<EscalaFormData>();

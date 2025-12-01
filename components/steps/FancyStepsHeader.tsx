@@ -81,7 +81,7 @@ export default function FancyStepsHeader({ config, containerStyle, ...props }: F
                 stepNumber={(index + 1).toString()}
                 stepLabel={items.title}
                 containerWidth={width}
-                circleWidth={40}
+                circleWidth={35}
                 color={index === props.index ? Pallete.primary : Pallete.disabled2}
                 leftBackgroundColor={isFirst ? 'white' : 'transparent'}
                 rightBackgroundColor={isLast ? 'white' : 'transparent'}

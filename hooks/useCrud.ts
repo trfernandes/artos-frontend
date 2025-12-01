@@ -162,11 +162,12 @@ export function useCrud<
   const createMutation = useMutation({
     mutationFn: add,
     onSuccess: () => {
-      Toast.show({ type: 'success', text1: messages?.successCreate || 'Item criado com sucesso!' });
+      messages?.successCreate &&
+        Toast.show({ type: 'success', text1: messages?.successCreate || 'Item criado com sucesso!' });
       queryClient.invalidateQueries({ queryKey: [queryKey] });
     },
     onError: error => {
-      Toast.show({ type: 'error', text1: messages?.errorCreate || 'Erro ao criar item.' });
+      messages?.errorCreate && Toast.show({ type: 'error', text1: messages?.errorCreate || 'Erro ao criar item.' });
       console.log(error);
     },
   });
@@ -174,11 +175,12 @@ export function useCrud<
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateDto }) => update(id, data),
     onSuccess: () => {
-      Toast.show({ type: 'success', text1: messages?.successUpdate || 'Item atualizado com sucesso!' });
+      messages?.successUpdate &&
+        Toast.show({ type: 'success', text1: messages?.successUpdate || 'Item atualizado com sucesso!' });
       queryClient.invalidateQueries({ queryKey: [queryKey] });
     },
     onError: error => {
-      Toast.show({ type: 'error', text1: messages?.errorUpdate || 'Erro ao atualizar item.' });
+      messages?.errorUpdate && Toast.show({ type: 'error', text1: messages?.errorUpdate || 'Erro ao atualizar item.' });
       console.log(error);
     },
   });
@@ -186,11 +188,12 @@ export function useCrud<
   const removeMutation = useMutation({
     mutationFn: remove,
     onSuccess: () => {
-      Toast.show({ type: 'success', text1: messages?.successDelete || 'Item removido com sucesso!' });
+      messages?.successDelete &&
+        Toast.show({ type: 'success', text1: messages?.successDelete || 'Item removido com sucesso!' });
       queryClient.invalidateQueries({ queryKey: [queryKey] });
     },
     onError: error => {
-      Toast.show({ type: 'error', text1: messages?.errorDelete || 'Erro ao remover item.' });
+      messages?.errorDelete && Toast.show({ type: 'error', text1: messages?.errorDelete || 'Erro ao remover item.' });
       console.log(error);
     },
   });

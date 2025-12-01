@@ -9,7 +9,7 @@ export default function IndisponibilidadeLayout() {
         header: props => <FancyHeader {...props} />,
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Indisponibilidade',headerRight: () => <MainHeaderButtons /> }} />
+      <Stack.Screen name="index" options={{ title: 'Minhas Indisponibilidades',headerRight: () => <MainHeaderButtons /> }} />
     </Stack>
   );
 }

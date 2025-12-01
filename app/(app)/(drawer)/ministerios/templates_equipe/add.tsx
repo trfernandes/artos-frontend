@@ -7,6 +7,7 @@ import { EscalaTemplate, EscalaTemplateTipoEnum } from '../../../../../domain/mo
 import { EscalaTemplateFormData, escalaTemplateSchema } from '../../../../../domain/schemas/escalaTemplateSchema';
 import { AxiosError } from 'axios';
 import TemplateForm from '../../../../../components/pages/ministerios/templates_equipe/TemplateForm';
+import { strfyObj } from '../../../../../utils/text_utils';
 
 export default function MinisterioTemplatesAddPage() {
   const { ministerioId } = useLocalSearchParams<{ ministerioId: string }>();
@@ -24,21 +25,29 @@ export default function MinisterioTemplatesAddPage() {
   const { add: addTemplate, isLoadingMutation } = useEscalaTemplatesCrud();
 
   const handleOnSave = useCallback(
-    form.handleSubmit(data => {
-      addTemplate(data as EscalaTemplate)
-        .then(() => {
-          router.back();
-        })
-        .catch((error: AxiosError<any, any>) => {
-          const errorMessage = error.response?.data?.message;
-          if (errorMessage && errorMessage.trim() === 'Ja existe um template com esse nome para o ministerio informado.') {
-            form.setError('nome', {
-              type: 'custom',
-              message: 'O nome já está sendo utilizado',
-            });
-          }
-        });
-    }),
+    form.handleSubmit(
+      data => {
+        addTemplate(data as EscalaTemplate)
+          .then(() => {
+            router.back();
+          })
+          .catch((error: AxiosError<any, any>) => {
+            const errorMessage = error.response?.data?.message;
+            if (
+              errorMessage &&
+              errorMessage.trim() === 'Ja existe um template com esse nome para o ministerio informado.'
+            ) {
+              form.setError('nome', {
+                type: 'custom',
+                message: 'O nome já está sendo utilizado',
+              });
+            }
+          });
+      },
+      errors => {
+        console.log('Erro ao adicionar template\n', strfyObj(errors));
+      }
+    ),
     [form.handleSubmit]
   );
 

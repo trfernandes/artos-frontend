@@ -9,6 +9,9 @@ export const minVoluntarioFuncaoSchema = z.object({
 
 export const minVoluntarioSchema = z.object({
   voluntarioId: z.uuid('Campo obrigatório'),
+  voluntarioFoto: z.string(),
+  voluntarioNome: z.string(),
+  voluntarioEmail: z.string(),
   funcoes: z.array(minVoluntarioFuncaoSchema).optional(),
 });
 

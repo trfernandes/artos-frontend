@@ -1,6 +1,6 @@
 export function strfyObj(
   obj: Record<string, any>, // Tipo genérico para objetos
-  maxLength: number = 30,
+  maxLength: number = 50,
   space: number = 2
 ): string {
   function processValue(value: any): any {
@@ -30,4 +30,34 @@ export function shortenString(str: string, length: number = 10): string {
   const start = str.slice(0, length);
   const end = str.slice(-length);
   return `${start}...${end}`;
+}
+
+export function Log(title: string, data: any, options?: { indent?: number; width?: number }): void {
+  const indent = options?.indent ?? 2;
+  const width = options?.width ?? 100;
+  const line = '─'.repeat(width);
+
+  let formattedData: string;
+
+  if (typeof data === 'string') {
+    formattedData = data;
+  } else if (Array.isArray(data)) {
+    formattedData = data
+      .map((item, i) => ` ${' '.repeat(indent)}${i + 1}. ${strfyObj(item)}`)
+      .join('\n');
+  } else if (typeof data === 'object' && data !== null) {
+    formattedData = strfyObj(data);
+  } else {
+    formattedData = String(data);
+  }
+
+  console.log(
+    [
+      `\n${'═'.repeat(width)}`,
+      `🧩 ${title.toUpperCase()}`,
+      `${line}`,
+      formattedData,
+      `${'═'.repeat(width)}\n`,
+    ].join('\n')
+  );
 }

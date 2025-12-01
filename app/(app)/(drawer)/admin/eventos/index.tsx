@@ -64,7 +64,6 @@ export default function EventosIndexPage() {
       searchBarProps={{
         value: searchText,
         onSearch: text => {
-          console.log(text);
           setSearchText(text.trim());
           if (text && text.trim() !== '') {
             setSearchParams({

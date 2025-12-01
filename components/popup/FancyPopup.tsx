@@ -4,6 +4,7 @@ import { Menu, MenuOption, MenuOptions, MenuProps, MenuTrigger } from 'react-nat
 import { StyleSheet, View } from 'react-native';
 import { Pallete } from '../../constants/colors';
 import FancyText from '../FancyText';
+import FancySeparator from '../FancySeparator';
 
 type Item = {
   icon?: CustomIconProps;
@@ -36,33 +37,55 @@ export default function FancyPopup({
               key={index}
               style={{
                 borderColor: Pallete.disabled,
-                borderBottomWidth: showSeparator && index < items.length - 1 ? 0.2 : 0,
               }}
             >
               <MenuOption
                 key={index}
                 onSelect={item.onPress}
-                customStyles={{ optionWrapper: { borderWidth: 0, paddingVertical: 8 } }}
+                customStyles={{ optionWrapper: { borderWidth: 0, paddingVertical: 0 } }}
               >
                 <View
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
                     paddingHorizontal: 10,
+                    gap: 12,
                   }}
                 >
-                  {item.icon && (
-                    <DefaultIcons.Custom
-                      {...item.icon}
-                      size={item.icon.size || 20}
-                      color={item.icon.color || Pallete.fonts.dark}
-                    />
-                  )}
-                  <FancyText size={'small'} type={'medium'} style={styles.optionText}>
-                    {item.label}
-                  </FancyText>
+                  <View style={{ flex: 1, borderWidth: 0 }}>
+                    <FancyText
+                      size={'small'}
+                      type={'medium'}
+                      style={styles.optionText}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                    >
+                      {item.label}
+                    </FancyText>
+                  </View>
+                  <View style={{ width: 20, borderWidth: 0, justifyContent: 'flex-end' }}>
+                    {item.icon && (
+                      <DefaultIcons.Custom
+                        {...item.icon}
+                        size={item.icon.size || 20}
+                        color={item.icon.color || Pallete.fonts.dark}
+                        style={[
+                          {
+                            width: 20,
+                            height: 20,
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            textAlign: 'center',
+                            lineHeight: 18,
+                          },
+                          item.icon.style,
+                        ]}
+                      />
+                    )}
+                  </View>
                 </View>
               </MenuOption>
+              {showSeparator && index < items.length - 1 && <FancySeparator style={{ paddingVertical: 8 }} />}
             </View>
           ))}
         </View>
@@ -73,12 +96,12 @@ export default function FancyPopup({
 
 const styles = StyleSheet.create({
   menuContainer: {
-    paddingVertical: 6,
+    paddingVertical: 10,
     borderRadius: 10,
     borderWidth: 0.5,
     borderColor: Pallete.border,
     ...Pallete.shadows[200],
   },
   menuOption: {},
-  optionText: { borderWidth: 0, lineHeight: 15 },
+  optionText: { borderWidth: 0, lineHeight: 15, flex: 1 },
 });
