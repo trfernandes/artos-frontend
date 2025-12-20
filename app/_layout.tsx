@@ -8,10 +8,30 @@ import { FancyAlertConnector, FancyAlertProvider } from '../components/modal/Fan
 import { useEffect } from 'react';
 import { registerForPushNotificationsAsync } from '../services/notifications';
 import { NotificationsManager } from '../components/Notification_manager';
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: 'https://b65799084d172913463973ef37b937b0@o4510567624409088.ingest.us.sentry.io/4510567678279680',
+
+  // Adds more context data to events (IP address, cookies, user, etc.)
+  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+  sendDefaultPii: true,
+
+  // Enable Logs
+  enableLogs: true,
+
+  // Configure Session Replay
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1,
+  integrations: [Sentry.mobileReplayIntegration()],
+
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+  // spotlight: __DEV__,
+});
 
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
+export default Sentry.wrap(function RootLayout() {
   const queryClient = new QueryClient();
 
   return (
@@ -21,7 +41,7 @@ export default function RootLayout() {
       </QueryClientProvider>
     </AuthProvider>
   );
-}
+});
 
 function RootLayoutNav() {
   const { user, loading } = useAuth();

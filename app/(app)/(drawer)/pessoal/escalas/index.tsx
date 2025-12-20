@@ -72,9 +72,9 @@ export default function MinhasEscalasIndexPage() {
       ],
     },
     relations: [
-      'escalaItens',
-      'escalaItens.evento',
-      'escalaItens.funcao',
+      'escalaItem',
+      'escalaItem.evento',
+      'escalaItem.funcao',
       'solicitante',
       'solicitante.voluntario',
       'substituto',
