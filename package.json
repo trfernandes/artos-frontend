@@ -48,13 +48,21 @@
     "react-native-toast-message": "^2.3.3",
     "react-native-ui-datepicker": "^3.1.2",
     "react-native-worklets": "0.5.1",
-    "zod": "^4.0.17"
+    "zod": "^4.0.17",
+    "expo": "~54.0.30"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~19.1.10",
     "expo": "54.0.30",
     "typescript": "5.9.3"
+  },
+  "expo": {
+    "doctor": {
+      "appConfigFieldsNotSyncedCheck": {
+        "enabled": false
+      }
+    }
   },
   "private": true
 }
