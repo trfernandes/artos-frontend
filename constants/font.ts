@@ -10,5 +10,6 @@ export const ITALIC_MEDIUM_FONT = 'MontserratMediumItalic';
 export const EXTRA_SMALL_SIZE_FONT = 10;
 export const SMALL_SIZE_FONT = 11;
 export const MEDIUM_SIZE_FONT = 12;
+export const LARGE_MEDIUM_SIZE_FONT = 14;
 export const LARGE_SIZE_FONT = 16;
 export const EXTRA_LARGE_SIZE_FONT = 24;

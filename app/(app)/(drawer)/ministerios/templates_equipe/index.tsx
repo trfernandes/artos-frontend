@@ -102,7 +102,7 @@ export default function MinisterioTemplateEquipeIndex() {
           const dimensaoEquipe =
             EscalaTemplateTipoEnumMap[item.tipo] === EscalaTemplateTipoEnum.Fixo ? item.voluntarios?.length : item.funcoes?.length;
           return (
-            <FancyCard.Image
+            <FancyCard.Image 
               type="icon"
               props={{
                 title: item.nome,

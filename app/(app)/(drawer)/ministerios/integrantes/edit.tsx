@@ -16,9 +16,9 @@ import {
   MinisterioVoluntarioFuncaoStatusEnumMap,
 } from '../../../../../domain/models/MinisterioVoluntarioFuncao';
 import { EscalaTemplateExperienciaEnum, EscalaTemplateExperienciaEnumMap } from '../../../../../domain/models/EscalaTemplate';
-import Toast from 'react-native-toast-message';
 import { UpdateFuncaoDataDto } from '../../../../../domain/services/MinisterioVoluntarioFuncoesRepository';
 import { DefaultIconsNames } from '../../../../../constants/icons';
+import { MinisterioVoluntarioStatusEnum } from '../../../../../domain/models/MinisterioVoluntario';
 
 export default function MinisterioIntegrantesEditPage() {
   const { ministerioId, ministerioVoluntarioId, voluntario } = useLocalSearchParams<{
@@ -62,6 +62,10 @@ export default function MinisterioIntegrantesEditPage() {
   } = useMinisterioVoluntarioFuncoesCrud({
     autoFetch: true,
     initialParams: funcoesInitialParams,
+    messages:{
+      successUpdate: 'Voluntário atualizado com sucesso!',
+      errorUpdate: 'Erro ao atualizar o voluntário.',
+    }
   });
 
   const form = useForm<MinVoluntarioFormData>({
@@ -75,9 +79,10 @@ export default function MinisterioIntegrantesEditPage() {
   useEffect(() => {
     form.reset({
       voluntarioId: voluntarioObj?.id || '',
-      voluntarioFoto: voluntarioObj?.foto || '',
-      voluntarioNome: voluntarioObj?.nome || '',
-      voluntarioEmail: voluntarioObj?.email || '',
+      voluntarioFoto: voluntarioObj?.voluntario?.foto || '',
+      voluntarioNome: voluntarioObj?.voluntario?.nome || '',
+      voluntarioEmail: voluntarioObj?.voluntario?.email || '',
+      voluntarioStatus: voluntarioObj?.status || MinisterioVoluntarioStatusEnum.Ativo,
       funcoes: minVolFuncoesData.map(f => ({
         id: f.funcao?.id || f.funcaoId,
         nome: f.funcao?.nome || '',
@@ -95,11 +100,6 @@ export default function MinisterioIntegrantesEditPage() {
           status: MinisterioVoluntarioFuncaoStatusEnum.Ativo,
           experiencia: f.experiencia || EscalaTemplateExperienciaEnum.Iniciante,
         })) as UpdateFuncaoDataDto[],
-      });
-
-      Toast.show({
-        type: 'success',
-        text1: 'Integrante adicionado com sucesso!',
       });
 
       router.back();

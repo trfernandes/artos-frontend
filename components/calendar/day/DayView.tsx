@@ -122,9 +122,7 @@ export function DayView({
               const outsideMonth = !isCurrentMonthDay;
 
               if (outsideMonth && !showOtherMonthDays) {
-                return (
-                  <View key={`empty-${rowIndex}-${columnIndex}`} style={{ width: `${100 / 7}%`, aspectRatio: 1 }} />
-                );
+                return <View key={`empty-${rowIndex}-${columnIndex}`} style={{ width: `${100 / 7}%`, aspectRatio: 1 }} />;
               }
 
               const isDisabled = outsideMonth || beforeMinimum || afterMaximum || isPastDate;
@@ -180,8 +178,7 @@ const styles = StyleSheet.create({
     gap: 6,
     width: '100%',
   },
-  weekContainer: {
-  },
+  weekContainer: {},
   weekRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

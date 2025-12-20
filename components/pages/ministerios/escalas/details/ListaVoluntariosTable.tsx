@@ -1,25 +1,54 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import { ResultadoEquipeType } from '../../../../../app/(app)/(drawer)/ministerios/escalas/details';
+import { EscalItemEquipeType } from '../../../../../app/(app)/(drawer)/ministerios/escalas/details';
 import FancyText from '../../../../FancyText';
 import { BOLD_FONT, EXTRA_SMALL_SIZE_FONT, SEMI_BOLD_FONT, SMALL_SIZE_FONT } from '../../../../../constants/font';
 import FancyAvatarImage from '../../../../images/FancyImage';
 import FancySeparator from '../../../../FancySeparator';
 import FancyVerticalSpacer from '../../../../FancyVerticalSpacer';
-import { EscalaResultadoStatusEnumLabel } from '../../../../../domain/models/EscalaResultado';
+import { EscalaItemStatusEnum, EscalaItemStatusEnumLabel } from '../../../../../domain/models/EscalaItem';
 import DefaultIcons from '../../../../FancyIcons';
 import { Pallete } from '../../../../../constants/colors';
 import { useVoluntariosCrud } from '../../../../../hooks/useVoluntariosCrud';
 import { useState } from 'react';
 import VoluntarioDetailsModal from './VoluntarioDetailsModal';
 import { useLoading } from '../../../../../contexts/LoadingContext';
+import FancyChips from '../../../../FancyChips';
+
+export const VoluntarioStatusChipParams = {
+  [EscalaItemStatusEnum.Pendente]: {
+    label: 'Pendente',
+    color: '#B45309', // Laranja escuro
+    background: '#FEF3C7', // Laranja claro (Amber 100)
+  },
+  [EscalaItemStatusEnum.Ausente]: {
+    label: 'Ausente',
+    color: '#B91C1C', // Vermelho escuro (error)
+    background: '#FEE2E2', // Vermelho claro (Red 100)
+  },
+  [EscalaItemStatusEnum.Confirmado]: {
+    label: 'Confirmado',
+    color: '#166534', // Verde escuro (success)
+    background: '#DCFCE7', // Verde claro (Green 100)
+  },
+  [EscalaItemStatusEnum.Substituido]: {
+    label: 'Substituído',
+    color: '#1D4ED8', // Azul escuro
+    background: '#DBEAFE', // Azul claro (Blue 100)
+  },
+  [EscalaItemStatusEnum.SubstituicaoSolicitada]: {
+    label: 'Substituído',
+    color: '#1D4ED8', // Azul escuro
+    background: '#DBEAFE', // Azul claro (Blue 100)
+  },
+} as const;
 
 export default function ListaVoluntariosTable({
   data,
   onSubstituicaoButtonPressed,
   viewMode,
 }: {
-  data: ResultadoEquipeType[];
-  onSubstituicaoButtonPressed?: (data: ResultadoEquipeType) => void;
+  data: EscalItemEquipeType[];
+  onSubstituicaoButtonPressed?: (data: EscalItemEquipeType) => void;
   viewMode?: 'view' | 'edit';
 }) {
   const { data: voluntariosData } = useVoluntariosCrud({ autoFetch: true });
@@ -38,14 +67,7 @@ export default function ListaVoluntariosTable({
           <FancyText style={[styles.headerItem, styles.column1]}>Função</FancyText>
           <FancyText style={[styles.headerItem, styles.column2]}>Voluntário</FancyText>
           <FancyText style={[styles.headerItem, styles.column3]}>Status</FancyText>
-          {!viewMode ||
-            (viewMode === 'edit' && (
-              <View style={styles.column4}>
-                <FancyText style={[styles.headerItem, { textAlign: 'center' }]} adjustsFontSizeToFit numberOfLines={1}>
-                  Substituir
-                </FancyText>
-              </View>
-            ))}
+          {!viewMode || (viewMode === 'edit' && <View style={styles.column4}></View>)}
         </View>
         <FancyVerticalSpacer height={7} />
         <FancySeparator />
@@ -85,7 +107,12 @@ export default function ListaVoluntariosTable({
                     </FancyText>
                   </TouchableOpacity>
                   <FancyText style={[styles.valueItem, styles.column3]} ellipsizeMode="tail" numberOfLines={2}>
-                    {EscalaResultadoStatusEnumLabel[equipeItem.status]}
+                    <FancyChips
+                      label={EscalaItemStatusEnumLabel[equipeItem.status]}
+                      color={VoluntarioStatusChipParams[equipeItem.status].color}
+                      backgroundColor={VoluntarioStatusChipParams[equipeItem.status].background}
+                      size="small"
+                    />
                   </FancyText>
                   {!viewMode ||
                     (viewMode === 'edit' && (
@@ -106,14 +133,8 @@ export default function ListaVoluntariosTable({
                           }}
                           onPress={() => onSubstituicaoButtonPressed?.(equipeItem)}
                         >
-                          <DefaultIcons.Custom
-                            library="FontAwesome5"
-                            name="exchange-alt"
-                            size={12}
-                            color={Pallete.icons.light}
-                          />
+                          <DefaultIcons.Custom library="FontAwesome5" name="exchange-alt" size={12} color={Pallete.icons.light} />
                         </TouchableOpacity>
-                        {/* <EscaladoMenuPopup /> */}
                       </View>
                     ))}
                 </View>
@@ -137,10 +158,10 @@ export default function ListaVoluntariosTable({
 }
 
 const styles = StyleSheet.create({
-  column1: { flex: 3 },
-  column2: { flex: 6 },
-  column3: { flex: 3 },
-  column4: { flex: 3 },
+  column1: { flex: 3, borderWidth: 0 },
+  column2: { flex: 6, borderWidth: 0 },
+  column3: { flex: 4, borderWidth: 0 },
+  column4: { flex: 1.5, borderWidth: 0 },
   container: {},
   headerItem: {
     fontFamily: BOLD_FONT,
@@ -149,8 +170,9 @@ const styles = StyleSheet.create({
   valueItem: {
     fontFamily: SEMI_BOLD_FONT,
     fontSize: EXTRA_SMALL_SIZE_FONT,
+    lineHeight: EXTRA_SMALL_SIZE_FONT + 2,
     flexShrink: 1,
   },
   valuesContainer: { gap: 10 },
-  rowContainer: { flexDirection: 'row', paddingHorizontal: 15, gap: 15 },
+  rowContainer: { flexDirection: 'row', paddingHorizontal: 15, gap: 6 },
 });

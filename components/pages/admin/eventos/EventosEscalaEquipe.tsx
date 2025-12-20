@@ -70,7 +70,7 @@ export default function EventosEscalaEquipe(props: Omit<FancyModalDialogProps, '
           centerContainerStyle={{ gap: 15 }}
           modalProps={modalFormIntegrante}
           onButton1Press={() => setModalFormIntegrante({ visible: false })}
-          OnButton2Press={() => setModalFormIntegrante({ visible: false })}
+          onButton2Press={() => setModalFormIntegrante({ visible: false })}
         >
           <FancyDropDown
             label="Disponibilidade"

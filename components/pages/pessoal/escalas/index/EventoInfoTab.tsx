@@ -2,55 +2,71 @@ import { StyleSheet, View } from 'react-native';
 import FancyText from '../../../../FancyText';
 import { format } from 'date-fns';
 import FancySeparator from '../../../../FancySeparator';
-import { EscalaResultado } from '../../../../../domain/models/EscalaResultado';
 import DefaultIcons, { CustomIconProps } from '../../../../FancyIcons';
 import { Pallete } from '../../../../../constants/colors';
 import FancyImage from '../../../../images/FancyImage';
+import { EscalaItem } from '../../../../../domain/models/EscalaItem';
 
-export default function EventoInfoTab({ data }: { data: EscalaResultado }) {
-  if (data.evento)
-    return (
-      <View style={styles.container}>
-        <View style={styles.title}>
-          {data.voluntario.ministerio?.logo && <FancyImage source={{ uri: data.voluntario.ministerio.logo }} size={80} />}
-          <FancyText size="large" type="bold" color={Pallete.fonts.inactive}>
-            {data.voluntario.ministerio?.nome}
-          </FancyText>
-        </View>
-        <View style={styles.lines}>
-          <FancyValueLineDisplay
-            icon={{ library: 'MaterialCommunityIcons', name: 'format-text', size: 14, color: Pallete.icons.inactive }}
-            title="Nome"
-            value={data.evento.nome}
-          />
-          {data.evento.descricao && <FancyValueLineDisplay title="Descrição" value={data.evento.descricao} />}
-          <FancyValueLineDisplay
-            icon={{ library: 'MaterialCommunityIcons', name: 'calendar-today', size: 14, color: Pallete.icons.inactive }}
-            title="Data/Hora"
-            value={data.dataOcorrencia ? format(data.dataOcorrencia, 'dd/MM/yyyy HH:mm') : '(Vazio)'}
-            showBottomLine={true}
-          />
-          <FancyValueLineDisplay
-            icon={{ library: 'MaterialCommunityIcons', name: 'map-marker', size: 14, color: Pallete.icons.inactive }}
-            title="Local"
-            value={data.evento.local || '(Nenhum)'}
-            showBottomLine={true}
-          />
-          <FancyValueLineDisplay
-            icon={{ library: 'MaterialCommunityIcons', name: 'tools', size: 13, color: Pallete.icons.inactive }}
-            title="Função"
-            value={data.funcao?.nome || '(Vazio)'}
-            showBottomLine={false}
-          />
-        </View>
+export interface EventoInfoTabProps {
+  ministerioNome: string;
+  ministerioLogo: string;
+  eventoNome: string;
+  eventoDescricao?: string;
+  dataOcorrencia: Date;
+  local: string;
+  funcoes: EscalaItem[];
+}
+
+export default function EventoInfoTab({
+  ministerioNome,
+  ministerioLogo,
+  eventoNome,
+  eventoDescricao,
+  dataOcorrencia,
+  local,
+  funcoes,
+}: EventoInfoTabProps) {
+  return (
+    <View style={styles.container}>
+      <View style={styles.title}>
+        {ministerioLogo && <FancyImage source={{ uri: ministerioLogo }} size={80} />}
+        <FancyText size="large" type="bold" color={Pallete.fonts.inactive}>
+          {ministerioNome}
+        </FancyText>
       </View>
-    );
-  else
-    return (
-      <View>
-        <FancyText>Nenhum evento selecionado.</FancyText>
+      <View style={styles.lines}>
+        <FancyValueLineDisplay
+          icon={{ library: 'MaterialCommunityIcons', name: 'format-text', size: 14, color: Pallete.icons.inactive }}
+          title="Nome"
+          value={eventoNome}
+        />
+        {eventoDescricao && <FancyValueLineDisplay title="Descrição" value={eventoDescricao} />}
+        <FancyValueLineDisplay
+          icon={{ library: 'MaterialCommunityIcons', name: 'calendar-today', size: 14, color: Pallete.icons.inactive }}
+          title="Data/Hora"
+          value={dataOcorrencia ? format(dataOcorrencia, 'dd/MM/yyyy HH:mm') : '(Vazio)'}
+          showBottomLine={true}
+        />
+        <FancyValueLineDisplay
+          icon={{ library: 'MaterialCommunityIcons', name: 'map-marker', size: 14, color: Pallete.icons.inactive }}
+          title="Local"
+          value={local || '(Nenhum)'}
+          showBottomLine={true}
+        />
+        <FancyValueLineDisplay
+          icon={{ library: 'MaterialCommunityIcons', name: 'tools', size: 13, color: Pallete.icons.inactive }}
+          title="Função"
+          value={
+            funcoes
+              .map(f => f.funcao.nome)
+              .sort((a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }))
+              .join(', ') || '(Vazio)'
+          }
+          showBottomLine={false}
+        />
       </View>
-    );
+    </View>
+  );
 }
 
 function FancyValueLineDisplay({
@@ -69,7 +85,7 @@ function FancyValueLineDisplay({
       <View style={styles.displayContainer}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           {icon && <DefaultIcons.Custom {...icon} style={{ borderWidth: 0 }} color={Pallete.icons.inactive2} />}
-          <FancyText size="small" type="bold" style={{opacity:0.8}}>
+          <FancyText size="small" type="bold" style={{ opacity: 0.8 }}>
             {title}
           </FancyText>
         </View>

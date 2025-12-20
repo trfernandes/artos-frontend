@@ -1,4 +1,4 @@
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
 import { Pallete } from '../constants/colors';
 import DefaultIcons, { CustomIconProps } from './FancyIcons';
 import FancyText from './FancyText';
@@ -12,6 +12,7 @@ export type SettingItemProps = {
   rightComponent?: React.ReactNode;
   options: { label: string; onPress?: () => void }[];
   disabled?: boolean;
+  containerStyle?: StyleProp<ViewStyle>;
 };
 
 export default function FancySettingItem({
@@ -22,9 +23,10 @@ export default function FancySettingItem({
   value,
   rightComponent,
   disabled = false,
+  containerStyle,
 }: SettingItemProps) {
   return (
-    <View style={[styles.container, disabled && styles.containerDisabled]}>
+    <View style={[styles.container, disabled && styles.containerDisabled, containerStyle]}>
       <View style={styles.header}>
         <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
           {icon && <DefaultIcons.Custom size={16} color={Pallete.fonts.inactive} {...icon} />}

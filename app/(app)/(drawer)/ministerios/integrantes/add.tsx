@@ -11,7 +11,7 @@ import { useMinisterioVoluntarioFuncoesCrud } from '../../../../../hooks/useMini
 import { MinisterioVoluntarioFuncaoStatusEnum } from '../../../../../domain/models/MinisterioVoluntarioFuncao';
 import { EscalaTemplateExperienciaEnum } from '../../../../../domain/models/EscalaTemplate';
 import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
-import { HierarquiaEnum } from '../../../../../domain/models/MinisterioVoluntario';
+import { HierarquiaEnum, MinisterioVoluntarioStatusEnum } from '../../../../../domain/models/MinisterioVoluntario';
 import Toast from 'react-native-toast-message';
 import { useVoluntariosCrud } from '../../../../../hooks/useVoluntariosCrud';
 import { useMemo } from 'react';
@@ -49,11 +49,7 @@ export default function MinisterioIntegrantesAddPage() {
       })) as DropDownItemProps<string>[];
   }, [voluntariosData, ministerioId]);
 
-  const {
-    funcoesList,
-    funcoesDropDownList,
-    isLoading: isLoadingFuncoes,
-  } = useFuncoesDoMinisterio(ministerioId);
+  const { funcoesList, funcoesDropDownList, isLoading: isLoadingFuncoes } = useFuncoesDoMinisterio(ministerioId);
 
   const { add: addVoluntario } = useMinisterioVoluntariosCrud();
   const { add: addFuncaoVoluntario } = useMinisterioVoluntarioFuncoesCrud();
@@ -68,9 +64,9 @@ export default function MinisterioIntegrantesAddPage() {
           ministerioId: ministerioId,
           voluntarioId: data.voluntarioId,
           hierarquia: HierarquiaEnum.Voluntario,
+          status: MinisterioVoluntarioStatusEnum.Ativo,
+          dataInicio: new Date(),
         });
-
-        console.log('adding voluntario', voluntario);
 
         await addFuncaoVoluntario({
           ministerioVoluntarioId: voluntario?.id!,

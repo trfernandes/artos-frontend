@@ -7,7 +7,6 @@ import { eventoSchema, useEventosCrud } from '../../../../../hooks/useEventosCru
 import { zodResolver } from '@hookform/resolvers/zod';
 import EventosDadosForm from '../../../../../components/pages/admin/eventos/EventosDadosForm';
 import { Evento, RecorrenciaEnum } from '../../../../../domain/models/Evento';
-import { strfyObj } from '../../../../../utils/text_utils';
 import { router } from 'expo-router';
 
 export function getDefaultEventoTimes() {
@@ -45,11 +44,11 @@ export default function EventosAddPage() {
   const { add, isError, isLoading } = useEventosCrud();
 
   const handleSubmit = async () => {
-    console.log('Submitting form...', strfyObj(form.getValues()));
     form.handleSubmit(
       async data => {
         const newEvento: Evento = {
           ...data,
+          dataTermino: data.dataTermino,
           id: undefined,
         };
         await add(newEvento);
@@ -72,7 +71,7 @@ export default function EventosAddPage() {
       <FormProvider {...form}>
         <EventosDadosForm />
         <FancyButton
-          label={isLoading ? "Salvando..." : "Salvar"}
+          label={isLoading ? 'Salvando...' : 'Salvar'}
           disabled={isLoading}
           icon={{ ...DefaultIconsNames.save, size: 16 }}
           type="contained"

@@ -10,11 +10,9 @@ export function useMinisterioFuncoesCrud(
     fetchAll: () => MinisterioFuncoesRepository.getAll(),
     search: query => MinisterioFuncoesRepository.search(query),
     add: data => {
-      console.log('add', data);
       return MinisterioFuncoesRepository.add(data);
     },
     update: (id, data) => {
-      console.log('update', id, data);
       return MinisterioFuncoesRepository.update(id, data);
     },
     remove: id => MinisterioFuncoesRepository.remove(id),

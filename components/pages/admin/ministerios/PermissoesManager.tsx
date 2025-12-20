@@ -69,7 +69,6 @@ export default function PermissoesManager(props: {
                         permissao.recurso === Number(recurso) &&
                         permissao.permissoes?.includes(item)
                     )}
-                    onChangeValue={value => console.log('onChangeValue', value, recurso, item)}
                   />
                 </View>
               ))}

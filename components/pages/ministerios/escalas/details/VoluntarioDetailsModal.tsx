@@ -16,7 +16,7 @@ import { FancyTextDisplay } from '../../../../fields/FancyTextDisplay';
 import { addMonths, format, startOfToday } from 'date-fns';
 import { EscalaTemplateExperienciaLabel } from '../../../../../domain/models/EscalaTemplate';
 import { useEffect, useMemo, useState } from 'react';
-import { EscalaResultadosRepository } from '../../../../../domain/services/EscalaResultadosRepository';
+import { EscalaItensRepository } from '../../../../../domain/services/EscalaItensRepository';
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import FancySection from '../../../../FancySection';
 
@@ -103,7 +103,7 @@ export default function VoluntarioDetailsModal({
       setLoadingUltimaEscala(true);
       try {
         const result = (
-          await EscalaResultadosRepository.search({
+          await EscalaItensRepository.search({
             where: {
               conditions: [
                 {
@@ -173,7 +173,7 @@ export default function VoluntarioDetailsModal({
     (async () => {
       setLoadingProximas(true);
       try {
-        const results = await EscalaResultadosRepository.search({
+        const results = await EscalaItensRepository.search({
           where: {
             conditions: [
               {
@@ -239,7 +239,6 @@ export default function VoluntarioDetailsModal({
     hideLoading();
   }
 
-  // 🧱 Renderização principal
   return (
     <FancyModal
       {...props}

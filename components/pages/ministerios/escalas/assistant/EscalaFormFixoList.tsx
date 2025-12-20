@@ -1,7 +1,7 @@
 import { FieldArrayWithId, useFieldArray, useFormContext } from 'react-hook-form';
 import {
-    EscalaEventoTemplateFixoFormData,
-    EscalaEventoTemplateFormData,
+  EscalaEventoTemplateFixoFormData,
+  EscalaEventoTemplateFormData,
 } from '../../../../../domain/schemas/escalaSchema';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import React, { useCallback, useMemo, useState } from 'react';
@@ -172,7 +172,7 @@ export const EscalaFormFixoList = React.memo(function EscalaFormFixoList({
           funcoesSelectionList={funcoesDropDownList}
           modalProps={{
             onButton1Press: () => setModalProps({ visible: false, mode: undefined, data: undefined }),
-            OnButton2Press: data => {
+            onButton2Press: data => {
               if (!data) return;
 
               if (modalProps.mode === 'add') handleAdd(data);

@@ -1,191 +1,106 @@
-import {
-  ActivityIndicator,
-  ImageSourcePropType,
-  ScrollView,
-  StyleProp,
-  StyleSheet,
-  TextInputProps,
-  View,
-  ViewStyle,
-} from 'react-native';
-import FancyTextInput, { FancyTextInputProps } from './FancyTextInput';
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
-import FancyDropDownItem, { DropDownItemProps } from './FancyDropDownItem';
+import { ActivityIndicator, StyleProp, StyleSheet, TextInputProps, View, ViewStyle } from 'react-native';
+import { FancyTextInputProps } from './FancyTextInput';
+import { DropDownItemProps } from './FancyDropDownItem';
+import { Dropdown } from 'react-native-element-dropdown';
+import { BOLD_FONT, ITALIC_SEMI_BOLD_FONT, MEDIUM_FONT, SMALL_SIZE_FONT } from '../../constants/font';
 import { Pallete } from '../../constants/colors';
-import { DefaultIconsNames } from '../../constants/icons';
-import FancySeparator from '../FancySeparator';
-import { Image } from 'expo-image';
+import { useCallback } from 'react';
+import { ColorUtils } from '../../utils/color_utils';
+import FancyText from '../FancyText';
+import FancyImage from '../images/FancyImage';
 import { ImageUtils } from '../../utils/image_utils';
-
-const EMPTY_PROFILE_IMAGE = require('../../assets/images/empty_profile_image.png');
+import { DefaultIconsNames } from '../../constants/icons';
+import DefaultIcons from '../FancyIcons';
 
 export interface FancyDropDownProps<T>
   extends Pick<FancyTextInputProps, 'disabled' | 'label' | 'placeholder' | 'inputContainerStyle'>,
     Pick<TextInputProps, 'onBlur'> {
-  listItems?: DropDownItemProps<T>[];
+  listItems: DropDownItemProps<T>[] | undefined;
   containerStyle?: StyleProp<ViewStyle>;
   value?: T;
   onChange?: (value: T) => void;
-  showSelectedImage?: boolean;
   isLoading?: boolean;
 }
 
-export default function FancyDropDown<ValueItem>(props: FancyDropDownProps<ValueItem>) {
-  const { listItems, containerStyle, value, onChange, showSelectedImage, onBlur, ...textInputProps } = props;
-  const [showList, setShowList] = useState(false);
-  const [listTopOffset, setListTopOffset] = useState(0);
-  const [selectedItem, setSelectedItem] = useState<DropDownItemProps<ValueItem> | undefined>();
+export default function FancyDropDown<ValueItem>({
+  listItems,
+  placeholder,
+  isLoading,
+  disabled,
+  label,
+  value,
+  onChange,
+  containerStyle,
+}: FancyDropDownProps<ValueItem>) {
+  const activeColor = ColorUtils.lightenColor(Pallete.primary, 0.7);
 
-  const isDisabled = Boolean(textInputProps.disabled);
-  type LeftDisplay = { type?: string; source?: string | ImageSourcePropType };
+  const renderItem = useCallback((item: DropDownItemProps<ValueItem>, selected?: boolean) => {
+    return (
+      <View style={styles.itemContainer}>
+        {item.left && item.left.type === 'image' && item.left.source && (
+          <FancyImage
+            size={30}
+            source={
+              ImageUtils.normalizeImageSource(item.left?.source) ??
+              (typeof item.left?.source === 'string' ? { uri: item.left?.source } : item.left?.source)
+            }
+          />
+        )}
+        <FancyText style={styles.itemText}>{item.title}</FancyText>
+      </View>
+    );
+  }, []);
 
-  const selectedImageSource = useMemo<ImageSourcePropType | undefined>(() => {
-    if (!showSelectedImage) {
-      return undefined;
-    }
+  const renderRightIcon = useCallback(() => {
+    return isLoading ? (
+      <ActivityIndicator size={'small'} color={Pallete.primary} />
+    ) : (
+      <DefaultIcons.Custom
+        library={DefaultIconsNames['chevron-down'].library}
+        name={DefaultIconsNames['chevron-down'].name}
+        size={16}
+        color={Pallete.icons.inactive}
+      />
+    );
+  }, [isLoading]);
 
-    const left = selectedItem?.left as LeftDisplay | undefined;
+  const innerDisabled = disabled || isLoading || listItems?.length === 0;
 
-    if (!left || left.type === 'icon') {
-      return undefined;
-    }
-
-    if (left.source) {
-      return (
-        ImageUtils.normalizeImageSource(left.source) ??
-        (typeof left.source === 'string' ? { uri: left.source } : left.source)
-      );
-    }
-
-    if (left.type === 'image') {
-      return EMPTY_PROFILE_IMAGE;
-    }
-
-    return undefined;
-  }, [selectedItem, showSelectedImage]);
-
-  const items = listItems ?? [];
-
-  const toggleList = useCallback(() => {
-    if (isDisabled) {
-      return;
-    }
-
-    setShowList(prev => !prev);
-  }, [isDisabled]);
-
-  const isSameValue = (a: unknown, b: unknown) => {
-    if (Array.isArray(a) && Array.isArray(b)) {
-      if (a.length !== b.length) return false;
-      return a.every((item, index) => item === b[index]);
-    }
-
-    return a === b;
-  };
-
-  useEffect(() => {
-    setSelectedItem(items.find(item => isSameValue(item.value, value)));
-  }, [items, value]);
   return (
     <View style={[styles.container, containerStyle]}>
-      <FancyTextInput
-        {...textInputProps}
-        onPress={toggleList}
-        leftContainer={
-          selectedImageSource ? (
-            <Image source={selectedImageSource} style={{ width: 25, height: 25, borderRadius: 100 }} />
-          ) : undefined
-        }
-        inputProps={{ readOnly: true, onBlur, onPress: toggleList }}
-        value={selectedItem?.title}
-        inputContainerProps={{
-          onLayout: e => {
-            const height = e.nativeEvent.layout.height;
-            setListTopOffset(height);
-          },
-        }}
-        inputContainerStyle={[
-          showList && {
-            borderBottomLeftRadius: 2,
-            borderBottomRightRadius: 2,
-            borderBottomWidth: 0,
-            height: 40,
-          },
-          { gap: 0, height: 40 },
-        ]}
-        rightContainer={
-          !props.isLoading ? (
-            [
-              {
-                icon: {
-                  library: showList
-                    ? DefaultIconsNames['chevron-up'].library
-                    : DefaultIconsNames['chevron-down'].library,
-                  size: 20,
-                  color: isDisabled ? Pallete.icons.inactive2 : Pallete.icons.inactive,
-                  name: showList ? DefaultIconsNames['chevron-up'].name : DefaultIconsNames['chevron-down'].name,
-                  style: { paddingTop: 1, borderWidth: 0, marginRight: 8 },
-                },
-                onPress: toggleList,
-              },
-            ]
-          ) : (
-            <ActivityIndicator color={Pallete.primary} style={{ marginRight: 10 }} />
-          )
-        }
-      />
-      {showList && (
-        <View style={[styles.listContainer, Pallete.shadows[100], { top: listTopOffset }]}>
-          <ScrollView
-            nestedScrollEnabled
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={true}
-            persistentScrollbar={true}
-          >
-            {items.map((item, itemIdx) => {
-              const key =
-                typeof item.value === 'string' || typeof item.value === 'number' ? String(item.value) : `${itemIdx}`;
-
-              return (
-                <Fragment key={key}>
-                  <FancyDropDownItem
-                    onPress={() => {
-                      onChange?.(item.value);
-                      setSelectedItem(item);
-                      setShowList(false);
-                    }}
-                    selected={item.value === selectedItem?.value}
-                    {...item}
-                  />
-                  {itemIdx < items.length - 1 && <FancySeparator />}
-                </Fragment>
-              );
-            })}
-          </ScrollView>
-        </View>
+      {label && (
+        <FancyText size={'extraSmall'} type="semiBold" color={Pallete.fonts.inactive}>
+          {label}
+        </FancyText>
       )}
+      <Dropdown
+        data={listItems || []}
+        disable={innerDisabled}
+        onChange={({ value }) => onChange?.(value)}
+        labelField={'title'}
+        valueField={'value'}
+        renderItem={renderItem}
+        fontFamily={MEDIUM_FONT}
+        containerStyle={styles.listContainer}
+        style={[styles.inputContainer, innerDisabled && { backgroundColor: Pallete.disabled }]}
+        selectedTextStyle={[styles.selectedText, innerDisabled && { color: Pallete.fonts.inactive }]}
+        activeColor={activeColor}
+        keyboardAvoiding
+        value={value}
+        placeholder={placeholder || !innerDisabled ? 'Selecione...' : 'Nenhum item disponível'}
+        placeholderStyle={styles.placeholder}
+        renderRightIcon={renderRightIcon}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    // height: 40,
-    // borderWidth: 1,
-  },
-  listContainer: {
-    position: 'absolute',
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-    borderRadius: 5,
-    borderColor: Pallete.border,
-    left: 0,
-
-    width: '100%',
-    // paddingVertical: 5,
-    // height: 200,
-    zIndex: 10000,
-  },
+  container: { gap: 5 },
+  listContainer: { borderWidth: 1, borderColor: Pallete.border, borderRadius: 10 },
+  inputContainer: { borderWidth: 1, borderColor: Pallete.border, borderRadius: 10, padding: 10 },
+  itemText: { fontFamily: MEDIUM_FONT, fontSize: SMALL_SIZE_FONT, color: Pallete.fonts.dark },
+  itemContainer: { flexDirection: 'row', padding: 10, paddingHorizontal: 12, gap: 10, borderRadius: 10 },
+  placeholder: { fontFamily: ITALIC_SEMI_BOLD_FONT, fontSize: SMALL_SIZE_FONT, opacity: 0.8, color: Pallete.fonts.inactive },
+  selectedText: { fontFamily: BOLD_FONT, fontSize: SMALL_SIZE_FONT, color: Pallete.fonts.dark },
 });

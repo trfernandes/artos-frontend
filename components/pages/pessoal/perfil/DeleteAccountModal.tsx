@@ -4,14 +4,14 @@ import Toast from 'react-native-toast-message';
 import FancyText from '../../../FancyText';
 import { Pallete } from '../../../../constants/colors';
 
-export default function DeleteAccountModal(props: FancyModalDialogProps) {
+export default function DeleteAccountModal(props: FancyModalDialogProps<any>) {
   const { deleteAccount } = useAuth();
 
   const handleConfirm = async () => {
     const ok = await deleteAccount();
     if (ok) {
       Toast.show({ type: 'success', text1: 'Conta excluída com sucesso' });
-      props.onConfirm?.(); // fecha modal e volta tela inicial
+      props.onButton2Press?.(); // fecha modal e volta tela inicial
     } else {
       Toast.show({ type: 'error', text1: 'Erro ao excluir conta', text2: 'Tente novamente.' });
     }
@@ -21,7 +21,7 @@ export default function DeleteAccountModal(props: FancyModalDialogProps) {
     <FancyModalDialog
       {...props}
       title="Excluir Conta"
-      OnButton2Press={handleConfirm}
+      onButton2Press={handleConfirm}
       button1={{
         label: 'Cancelar',
       }}

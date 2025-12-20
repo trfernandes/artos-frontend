@@ -51,7 +51,7 @@ export default function EventoCalendarView(props: EventoCalendarViewProps) {
 
   return (
     <View style={[styles.container]}>
-      <View style={{ borderWidth: DESIGN_MODE, borderColor: 'pink', height: 335, opacity: 1 }}>
+      <View style={{ borderWidth: DESIGN_MODE, borderColor: 'pink', opacity: 1 }}>
         {isLoading && (
           <View style={{ position: 'absolute', zIndex: 1000, height: '100%', width: '100%', backgroundColor: 'chocolate' }}>
             <FancyLoading label="Carregando eventos..." />
@@ -144,7 +144,7 @@ const DESIGN_MODE = 0;
 const styles = StyleSheet.create({
   container: { gap: 15, borderWidth: DESIGN_MODE, borderColor: 'red', flex: 1 },
   eventsList: { paddingHorizontal: 0, borderWidth: DESIGN_MODE, borderColor: 'magenta' },
-  listContent: { gap: 10, borderWidth: DESIGN_MODE, borderColor: 'gold', paddingHorizontal:0, flex: 1 },
+  listContent: { gap: 10, borderWidth: DESIGN_MODE, borderColor: 'gold', paddingHorizontal: 0, flex: 1 },
   listContainer: { height: '100%' },
   calendar: { height: 'auto' },
 });

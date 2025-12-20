@@ -17,14 +17,18 @@ export default function EventosDadosForm({ onlyView = false, scrollViewProps }: 
   const { control } = useFormContext<EventoFormData>();
 
   return (
-    <View style={{ flex: 1 }}>
+    <View
+      style={{
+        flex: 1,
+      }}
+    >
       <FancyScrollView contentContainerStyle={styles.fields} {...scrollViewProps}>
         <ControlledTextInput control={control} name="nome" label="Nome" disabled={onlyView} />
         <EventoDatesInput disabled={onlyView} />
         <EventoRepeticaoInput disabled={onlyView} />
         <ControlledTextInput control={control} name="local" label="Local" disabled={onlyView} />
         <ControlledTextArea control={control} name="descricao" label="Descrição" disabled={onlyView} />
-        <ControlledColorPicker control={control} name="cor" horizontal label="Cor" disabled={onlyView} />
+        <ControlledColorPicker control={control} name="cor" horizontal disabled={onlyView} />
       </FancyScrollView>
     </View>
   );

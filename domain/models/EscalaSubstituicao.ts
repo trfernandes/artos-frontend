@@ -1,16 +1,16 @@
-import { EscalaResultado } from './EscalaResultado';
+import { EscalaItem } from './EscalaItem';
 import { Identifiable } from './Indentifiable';
 import { MinisterioVoluntario } from './MinisterioVoluntario';
 
 export interface EscalaSubstituicao extends Identifiable {
-  escalaResultadoId: string;
-  escalaResultado?: EscalaResultado;
-  fromVoluntarioId: string;
-  fromVoluntario?: MinisterioVoluntario;
-  toVoluntarioId: string;
-  toVoluntario?: MinisterioVoluntario;
+  escalaItemId: string;
+  escalaItem?: EscalaItem;
+  solicitanteId: string;
+  solicitante?: MinisterioVoluntario;
+  substitutoId: string;
+  substituto?: MinisterioVoluntario;
   dataSolicitacao: Date;
-  dataConfirmacao?: Date;
+  dataResposta?: Date;
   status?: EscalaSubstituicaoStatusEnum;
   motivo: string;
 }

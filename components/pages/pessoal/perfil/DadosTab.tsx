@@ -1,10 +1,18 @@
 import { StyleSheet, View } from 'react-native';
 import { useAuth } from '../../../../contexts/AuthContext';
-import FancyText from '../../../FancyText';
 import FancyAvatarImage from '../../../images/FancyImage';
+import FancyActionsList from '../../../list/FancyActionsList';
 import { Pallete } from '../../../../constants/colors';
+import FancyText from '../../../FancyText';
+import { router } from 'expo-router';
 
-export default function DadosTab() {
+export default function DadosTab({
+  onChangePasswordButtonPress,
+  onDeleteAccountButtonPress,
+}: {
+  onChangePasswordButtonPress?: () => void;
+  onDeleteAccountButtonPress?: () => void;
+}) {
   const { user } = useAuth();
 
   return (
@@ -18,44 +26,50 @@ export default function DadosTab() {
           />
           <View style={{ height: 5 }} />
           <FancyText type="semiBold" size="large">
-            {user.nome}
+            {user?.nome}
           </FancyText>
           <FancyText size="small" style={{ color: Pallete.fonts.inactive }}>
-            {user.email}
+            {user?.email}
           </FancyText>
         </View>
 
-        <View style={{ flex: 1 }}>
-          <View style={styles.row}>
-            <FancyText type="semiBold" size="medium" style={styles.label}>
-              Data de Nascimento
-            </FancyText>
-            <FancyText style={styles.value}>{user.dataNascimento || 'N/A'}</FancyText>
-          </View>
-
-          <View style={styles.row}>
-            <FancyText type="semiBold" size="medium" style={styles.label}>
-              Endereço
-            </FancyText>
-            <FancyText style={styles.value}>{user.endereco || 'N/A'}</FancyText>
-          </View>
-
-          <View style={styles.row}>
-            <FancyText type="semiBold" size="medium" style={styles.label}>
-              Telefone
-            </FancyText>
-            <FancyText style={styles.value}>{user.telefone || 'N/A'}</FancyText>
-          </View>
-
-          <View style={styles.row}>
-            <FancyText type="semiBold" size="medium" style={styles.label}>
-              Sexo
-            </FancyText>
-            <FancyText style={styles.value}>
-              {user.sexo === 'M' ? 'Masculino' : user.sexo === 'F' ? 'Feminino' : 'N/A'}
-            </FancyText>
-          </View>
-        </View>
+        <FancyActionsList
+          actions={[
+            {
+              icon: {
+                library: 'FontAwesome6',
+                name: 'user-pen',
+                size: 13,
+                color: Pallete.icons.dark,
+                style: { borderWidth: 0, marginTop: -1 },
+              },
+              label: 'Editar perfil',
+              onPress: () => router.push('/pessoal/perfil/edit'),
+            },
+            {
+              icon: {
+                library: 'FontAwesome6',
+                name: 'user-lock',
+                size: 13,
+                color: Pallete.icons.inactive,
+                style: { borderWidth: 0, marginTop: -1 },
+              },
+              label: 'Alterar senha',
+              onPress: onChangePasswordButtonPress,
+            },
+            {
+              icon: {
+                library: 'FontAwesome6',
+                name: 'user-xmark',
+                size: 13,
+                color: Pallete.icons.inactive,
+                style: { borderWidth: 0, marginTop: -1 },
+              },
+              label: 'Excluir conta',
+              onPress: onDeleteAccountButtonPress,
+            },
+          ]}
+        />
       </View>
     </View>
   );
@@ -68,22 +82,5 @@ const styles = StyleSheet.create({
   center: {
     alignItems: 'center',
     gap: 6,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 5,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: '#ccc',
-  },
-  label: {
-    flex: 2,
-    color: '#555',
-  },
-  value: {
-    flex: 3,
-    color: '#333',
-    textAlign: 'right',
   },
 });

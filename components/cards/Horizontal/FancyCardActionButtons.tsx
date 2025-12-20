@@ -12,17 +12,25 @@ interface FancyActionButtonsProps {
 
 export interface ActionButtonProps {
   icon: CustomIconProps & { backgroundColor?: string };
-  size?: number;
+  size?: 'small' | 'medium';
   onPress?: () => void;
   label?: string;
+  style?: StyleProp<ViewStyle>;
 }
+
+type SizeDefinition = { container: { width: number; height: number } };
+
+const sizeMapping: Record<'small' | 'medium', SizeDefinition> = {
+  small: { container: { width: 25, height: 25 } },
+  medium: { container: { width: 30, height: 30 } },
+};
 
 export function FancyActionButtons({ actions, actionButtonContainerStyle, containerStyle }: FancyActionButtonsProps): ReactNode {
   function generateButtonsComponent(buttons: ActionButtonProps[]): ReactNode {
     return buttons.map((item, idx) => {
-      const buttonSize = item.size || 30;
       const hasLabel = Boolean(item.label);
       const iconColor = item.icon.color || Pallete.fonts.light;
+      const sizeDefinitions = sizeMapping[item.size || 'medium'];
 
       return (
         <TouchableOpacity
@@ -31,22 +39,21 @@ export function FancyActionButtons({ actions, actionButtonContainerStyle, contai
           style={[
             styles.actionButton,
             {
-              minWidth: buttonSize,
-              height: buttonSize,
-              borderRadius: buttonSize / 2,
+              minWidth: sizeDefinitions.container.width,
+              height: sizeDefinitions.container.height,
+              borderRadius: 999,
               backgroundColor: item.icon.backgroundColor || Pallete.primary,
             },
             actionButtonContainerStyle,
           ]}
         >
-          <View style={[styles.actionButtonContent, { borderRadius: buttonSize / 2, paddingHorizontal: hasLabel ? 10 : 0 }]}>
+          <View style={[styles.actionButtonContent, { borderRadius: 999, paddingHorizontal: hasLabel ? 10 : 0 }, item.style]}>
             <DefaultIcons.Custom
               {...item.icon}
               style={[
                 {
                   borderWidth: 0,
                   textAlign: 'left',
-                  // width: (item.icon.size || 22) + (hasLabel ? 1 : 1),
                   lineHeight: item.icon.size || 22,
                   height: '100%',
                   textAlignVertical: 'center',

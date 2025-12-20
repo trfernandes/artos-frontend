@@ -142,5 +142,5 @@ export const DefaultIconsNames: Record<IconName, Icon> = {
     library: 'Feather',
     name: 'refresh-ccw',
   },
-  menu: { library: 'Feather', name: 'menu' },
+  menu: { library: 'MaterialCommunityIcons', name: 'menu' },
 };

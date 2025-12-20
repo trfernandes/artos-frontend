@@ -15,7 +15,7 @@ import {
 } from '../../../../../domain/models/MinisterioFuncao';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import FancyLoading from '../../../../../components/FancyLoading';
-import FancyStatusIndicator from '../../../../../components/FancyStatusIndicator';
+import FancyChips from '../../../../../components/FancyChips';
 
 export default function MinisterioFuncoesIndex() {
   const [funcaoFormModalParams, setFuncaoFormModalParams] = useState<
@@ -112,9 +112,14 @@ export default function MinisterioFuncoesIndex() {
               subtitle: item.descricao,
               cardIcon: { library: 'FontAwesome6', name: 'person-rays', size: 16 },
               additionalData1: (
-                <FancyStatusIndicator
-                  value={item.status === MinisterioFuncaoStatusEnum.Ativo}
+                <FancyChips
+                  style={{ marginTop: 3 }}
                   label={MinisterioFuncaoStatusEnumLabel[MinisterioFuncaoStatusEnumMap[item.status]]}
+                  color={
+                    MinisterioFuncaoStatusEnumMap[item.status] === MinisterioFuncaoStatusEnum.Ativo
+                      ? Pallete.primary
+                      : Pallete.error
+                  }
                 />
               ),
               actionButtons: [
@@ -156,7 +161,7 @@ export default function MinisterioFuncoesIndex() {
           ministerioId={ministerioId!}
           modalProps={{ visible: funcaoFormModalParams.visible ?? true }}
           onButton1Press={() => setFuncaoFormModalParams({ visible: false })}
-          OnButton2Press={data => {
+          onButton2Press={data => {
             handleConfirm(data!);
           }}
         />

@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import FancyText, { FancyTextProps } from '../FancyText';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import React from 'react';
@@ -9,15 +9,17 @@ export function FancyTextDisplay({
   value,
   valueStyle,
   icon,
+  containerStyle,
 }: {
   title: string;
   titleStyle?: Pick<FancyTextProps, 'size' | 'type' | 'color'>;
   value: string | React.ReactNode;
   valueStyle?: Pick<FancyTextProps, 'size' | 'type' | 'color' | 'style'>;
   icon?: CustomIconProps;
+  containerStyle?: StyleProp<ViewStyle>;
 }) {
   return (
-    <View style={styles.dataContainer}>
+    <View style={[styles.dataContainer, containerStyle]}>
       {icon && (
         <DefaultIcons.Custom
           {...icon}
@@ -49,6 +51,7 @@ const styles = StyleSheet.create({
   keyText: {
     lineHeight: 12,
     borderWidth: 0,
+    opacity: 0.9,
   },
   valueText: { lineHeight: 12, flexShrink: 1, borderWidth: 0 },
 });

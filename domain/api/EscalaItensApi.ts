@@ -1,15 +1,30 @@
 import axios from 'axios';
-import { EscalaResultado } from '../models/EscalaResultado';
+import { EscalaItem } from '../models/EscalaItem';
 import apiClient from './api-client';
 import { BaseApi } from './BaseApi';
 import { strfyObj } from '../../utils/text_utils';
+import { DynamicQuery } from '../utils/query_utils';
 
-class EscalaResultadosApiClass extends BaseApi<EscalaResultado> {
+class EscalaItensApiClass extends BaseApi<EscalaItem> {
   constructor() {
-    super('escalas/resultados');
+    super('escalas/itens');
   }
 
-  async getByVoluntarioId(voluntarioId: string): Promise<EscalaResultado[]> {
+  override async search(query: DynamicQuery, includeFotos: boolean = false): Promise<EscalaItem[]> {
+    try {
+      const response = await apiClient.post(`/${this.resourceName}/search`, query, { params: { includeFotos } });
+      return response.data.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.log('Erro ao buscar:', strfyObj(error, 300));
+      } else {
+        console.error('Erro inesperado:', error);
+      }
+      throw error;
+    }
+  }
+
+  async getByVoluntarioId(voluntarioId: string): Promise<EscalaItem[]> {
     try {
       const response = await apiClient.get(`/${this.resourceName}/voluntario/${voluntarioId}`);
       return response.data.data;
@@ -40,4 +55,4 @@ class EscalaResultadosApiClass extends BaseApi<EscalaResultado> {
   }
 }
 
-export const EscalaResultadosApi = new EscalaResultadosApiClass();
+export const EscalaItensApi = new EscalaItensApiClass();

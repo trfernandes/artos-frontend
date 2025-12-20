@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { View, TouchableOpacity, StyleSheet, Dimensions, ScrollView, Animated } from 'react-native';
 import FancyButton from './buttons/FancyButton';
 import { Pallete } from '../constants/colors';
-import FancyText from './FancyText';
 import DefaultIcons from './FancyIcons';
+import FancyGroup from './list/FancyGroup';
 
 export interface FancyColorPickerProps {
   value?: string;
@@ -12,7 +12,6 @@ export interface FancyColorPickerProps {
   onSelectColor?: (color: string) => void;
   selectedColor?: string;
   horizontal?: boolean;
-  label?: string;
   disabled?: boolean;
 }
 
@@ -35,14 +34,12 @@ export default function FancyColorPicker({
     '#10B981',
   ],
   value,
-  circleSize = 40,
+  circleSize = 35,
   onSelectColor,
   selectedColor,
   horizontal = false,
-  label,
   disabled = false,
 }: FancyColorPickerProps) {
-  // const [current, setCurrent] = useState<string>(selectedColor || colors[0]);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
 
@@ -78,7 +75,6 @@ export default function FancyColorPicker({
 
   const handleSelect = (color: string) => {
     if (disabled) return;
-    // setCurrent(color);
     onSelectColor?.(color);
   };
 
@@ -102,13 +98,10 @@ export default function FancyColorPicker({
   }, [disabled]);
 
   const currentColor = value ?? selectedColor;
-  const enlargedMultiplier = 1.2;
+  const enlargedMultiplier = 1.1;
 
   const renderCircles = () => {
-    const orderedColors =
-      disabled && currentColor
-        ? [currentColor, ...colors.filter(colorItem => colorItem !== currentColor)]
-        : colors;
+    const orderedColors = disabled && currentColor ? [currentColor, ...colors.filter(colorItem => colorItem !== currentColor)] : colors;
 
     return orderedColors.map(color => {
       const isSelected = color === currentColor;
@@ -142,14 +135,7 @@ export default function FancyColorPicker({
                 },
               ]}
             >
-              {isSelected && (
-                <DefaultIcons.Custom
-                  library="FontAwesome"
-                  name="check"
-                  size={25}
-                  color={Pallete.fonts.light}
-                />
-              )}
+              {isSelected && <DefaultIcons.Custom library="FontAwesome" name="check" size={25} color={Pallete.fonts.light} />}
             </View>
           </View>
         </TouchableOpacity>
@@ -166,12 +152,7 @@ export default function FancyColorPicker({
   }
 
   return (
-    <View style={{ gap: 3 }}>
-      {label && (
-        <FancyText size={'extraSmall'} type="semiBold" color={Pallete.fonts.inactive}>
-          {label}
-        </FancyText>
-      )}
+    <FancyGroup title="Cor" contentContainerStyle={{ padding: 0, paddingVertical: 0, paddingHorizontal: 0 }}>
       <View style={styles.colorContainer}>
         {!disabled && showLeftArrow && (
           <Animated.View style={[styles.arrowContainer, { left: 0, opacity: fadeAnim }]}>
@@ -190,22 +171,10 @@ export default function FancyColorPicker({
           </Animated.View>
         )}
 
-        {/* Gradiente de fade na extremidade esquerda, independente da animação das setas */}
-        {/* {showLeftArrow && (
-          <View style={[styles.fade, styles.fadeLeft]}>
-            <LinearGradient
-              colors={[Pallete.backgroundColor, 'transparent']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.fadeGradient}
-            />
-          </View>
-        )} */}
-
         <ScrollView
           horizontal
           scrollEventThrottle={16}
-          showsHorizontalScrollIndicator
+          showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.scrollContainer}
           onScroll={disabled ? undefined : onScroll}
           scrollEnabled={!disabled}
@@ -229,20 +198,8 @@ export default function FancyColorPicker({
             />
           </Animated.View>
         )}
-
-        {/* Gradiente de fade na extremidade direita, independente da animação das setas */}
-        {/* {showRightArrow && (
-          <View style={[styles.fade, styles.fadeRight]}>
-            <LinearGradient
-              colors={['transparent', Pallete.backgroundColor]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.fadeGradient}
-            />
-          </View>
-        )} */}
       </View>
-    </View>
+    </FancyGroup>
   );
 }
 
@@ -264,6 +221,7 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     paddingHorizontal: 6,
+    paddingVertical: 6,
     alignItems: 'center',
   },
   touchable: {

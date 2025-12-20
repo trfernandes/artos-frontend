@@ -108,6 +108,7 @@ export default function MinisterioEscalasIndexPage() {
                       params: {
                         ministerioId,
                         escalaId: item.id,
+                        viewMode: 'edit',
                       },
                     });
                   },

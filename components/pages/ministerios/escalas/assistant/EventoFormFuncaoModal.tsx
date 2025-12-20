@@ -22,17 +22,15 @@ export default function EventoFormFuncaoModal({ mode, data, modalProps, funcoesS
     defaultValues: data || { quantidade: 1 },
   });
 
-  console.log('data: ', strfyObj(data!));
-
   return (
     <FancyModalDialog
       {...modalProps}
       title={mode === 'add' ? 'Nova Função' : 'Editar Função'}
       centerContainerStyle={{ gap: 12, paddingBottom: 5, paddingHorizontal: 5 }}
-      OnButton2Press={() => {
+      onButton2Press={() => {
         form.handleSubmit(
           data => {
-            modalProps?.OnButton2Press?.(data);
+            modalProps?.onButton2Press?.(data);
           },
           errors => {
             console.log('Erro no formulário de adição de equipe', strfyObj(errors));

@@ -168,7 +168,7 @@ export default function TemplateFixoEquipeList({
             onButton1Press={() => {
               setFormParams({ visible: false, mode: 'add' });
             }}
-            OnButton2Press={handleConfirm}
+            onButton2Press={handleConfirm}
             voluntarioList={voluntariosDropDownList}
             funcoesList={funcoesDropDownList}
           />

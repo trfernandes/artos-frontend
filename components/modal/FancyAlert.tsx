@@ -61,6 +61,7 @@ export function FancyAlertProvider({ children }: { children: ReactNode }) {
                   key={i}
                   label={btn.text}
                   onPress={() => close(btn)}
+                  textProps={{ adjustsFontSizeToFit: true }}
                   containerStyle={[styles.button, btn.style === 'destructive' ? { backgroundColor: Pallete.error } : {}]}
                   type={btn.style === 'default' ? 'outlined' : 'contained'}
                 />
@@ -111,7 +112,7 @@ const styles = StyleSheet.create({
   },
   title: { marginBottom: 10 },
   message: { marginBottom: 20, lineHeight: 16 },
-  row: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10 },
+  row: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8 },
   button: { flex: 1, height: 40 },
   btnText: { color: 'white' },
 });

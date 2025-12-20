@@ -75,7 +75,6 @@ export class BaseApi<T extends Identifiable> {
     try {
       const start = Date.now();
       const response = await apiClient.post(`/${this.resourceName}/search`, query);
-      console.log(`${this.constructor.name}.Search => Tempo:`, `${Date.now() - start} ms`);
       return response.data.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {

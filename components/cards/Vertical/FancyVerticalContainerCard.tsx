@@ -1,9 +1,10 @@
-import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
+import { View, StyleSheet, StyleProp, ViewStyle, ImageSourcePropType } from 'react-native';
 import { useMemo, useState } from 'react';
 import FancyScrollView from '../../FancyScrollView';
 import { CustomIconProps } from '../../FancyIcons';
 import FancyVerticalCheckboxCard from './FancyVerticalCheckboxCard';
 import FancyListEmpty from '../../list/FancyListEmpty';
+import FancyVerticalImageCard from './FancyVerticalImageCard';
 
 export type TopElementType = 'image' | 'letter' | 'icon' | 'check';
 
@@ -16,13 +17,14 @@ type BaseDataType = {
 };
 
 type TopElementValueMap = {
-  image: { imageUrl?: string | number; size?: number };
+  image: { source?: string | ImageSourcePropType; size?: number, highlighted?: boolean };
   letter: { letter?: string };
   icon: { icon?: CustomIconProps };
   check: { checked: boolean; image: string };
 };
 
-export type DataType<T extends TopElementType = TopElementType> = BaseDataType & TopElementValueMap[T];
+export type DataType<T extends TopElementType = TopElementType> = BaseDataType &
+  TopElementValueMap[T];
 
 export interface FancyVerticalContainerCardProps<T extends TopElementType = TopElementType> {
   topElementType: T;
@@ -37,7 +39,9 @@ export interface FancyVerticalContainerCardProps<T extends TopElementType = TopE
   containerStyle?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
 
-  onChangeValue?: T extends 'check' ? (item: DataType<'check'>, value: boolean, index: number) => void : undefined;
+  onChangeValue?: T extends 'check'
+    ? (item: DataType<'check'>, value: boolean, index: number) => void
+    : undefined;
 }
 
 const DEFAULT_ITEM_HEIGHT = 160;
@@ -109,6 +113,7 @@ export default function FancyVerticalContainerCard<T extends TopElementType>({
     const style: ViewStyle = {
       width: computedItemWidth,
       height: computeHeight(card),
+      borderWidth: 0,
     };
 
     if (!card) return <View key={`empty-${index}`} style={style} />;
@@ -123,14 +128,28 @@ export default function FancyVerticalContainerCard<T extends TopElementType>({
           value={item.checked}
           title={card.title}
           subtitle={card.subtitle}
-          image={item.image}
+          source={item.image}
           containerStyle={style}
           onChangeValue={v => (onChangeValue as any)?.(item, v, index)}
         />
       );
     }
 
-    // outros tipos...
+    if (topElementType === 'image') {
+      const typed = data as DataType<'image'>[];
+      const item = typed[index];
+
+      return (
+        <FancyVerticalImageCard
+          key={card.key ?? card.title ?? index}
+          title={card.title}
+          source={item.source}
+          highlighted={item.highlighted}
+          subtitle={card.subtitle}
+          containerStyle={[style, {}]}
+        />
+      );
+    }
   };
 
   return data.length > 0 ? (

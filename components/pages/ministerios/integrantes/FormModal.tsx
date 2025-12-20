@@ -18,7 +18,7 @@ interface IntegranteFormModalProps {
 export default function IntegranteFormModal(
   props: IntegranteFormModalProps & FancyModalDialogProps<string>
 ) {
-  const { control, watch } = useFormContext<MinVoluntarioFuncaoFormData>();
+  const { control } = useFormContext<MinVoluntarioFuncaoFormData>();
 
   const experiencaList = useMemo<DropDownItemProps<EscalaTemplateExperienciaEnum>[]>(() => {
     return EnumUtils.getDropDownItems(

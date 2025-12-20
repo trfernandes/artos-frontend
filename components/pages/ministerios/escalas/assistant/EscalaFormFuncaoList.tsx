@@ -8,8 +8,8 @@ import EventoFormFuncaoModal from './EventoFormFuncaoModal';
 import { FieldArrayWithId, useFieldArray, useFormContext } from 'react-hook-form';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
 import {
-    EscalaEventoTemplateFormData,
-    EscalaEventoTemplateFuncaoFormData,
+  EscalaEventoTemplateFormData,
+  EscalaEventoTemplateFuncaoFormData,
 } from '../../../../../domain/schemas/escalaSchema';
 import { FancyAlert } from '../../../../modal/FancyAlert';
 import { MinisterioFuncao } from '../../../../../domain/models/MinisterioFuncao';
@@ -171,7 +171,7 @@ export const EscalaFormFuncaoList = React.memo(function EscalaFormFuncaoList({
           data={equipeFormModalProps.data}
           modalProps={{
             onButton1Press: () => setEquipeFormModalProps(null),
-            OnButton2Press: data => {
+            onButton2Press: data => {
               if (equipeFormModalProps.mode === 'add') handleAddFuncao(data!);
               else if (equipeFormModalProps.mode === 'edit') handleEditFuncao(data!);
               setEquipeFormModalProps(null);

@@ -15,25 +15,25 @@ export default function AssistenteResultadoStep() {
   const quantEventos = useMemo(() => {
     const set = new Set<string>();
 
-    for (const item of resultado.resultado) {
+    for (const item of resultado.itens) {
       const key = `${item.evento.id}-${new Date(item.dataOcorrencia).toISOString()}`;
       set.add(key);
     }
 
     return set.size;
-  }, [resultado.resultado]);
+  }, [resultado.itens]);
 
   const quantParticipantes = useMemo(() => {
     const set = new Set<string>();
 
-    for (const item of resultado.resultado) {
+    for (const item of resultado.itens) {
       if (!item.voluntario?.id) continue;
       const key = item.voluntario?.id;
       set.add(key);
     }
 
     return set.size;
-  }, [resultado.resultado]);
+  }, [resultado.itens]);
 
   return (
     <View style={{ alignItems: 'center', justifyContent: 'space-around', flex: 1, gap: 16 }}>

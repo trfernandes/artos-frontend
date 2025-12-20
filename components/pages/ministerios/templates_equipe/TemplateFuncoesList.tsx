@@ -204,7 +204,7 @@ export default function TemplateFuncoesList({
               formAdd.reset(FORM_DEFAULT_VALUES);
               setFormParams({ visible: false, mode: 'add' });
             }}
-            OnButton2Press={() => handleConfirm(formParams.mode)}
+            onButton2Press={() => handleConfirm(formParams.mode)}
             funcoesList={funcoesList}
           />
         )}

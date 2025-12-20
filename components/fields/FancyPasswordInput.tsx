@@ -20,8 +20,9 @@ export default function FancyPasswordInput(props: FancyTextInputProps) {
             name: showPassword ? 'eye-off' : 'eye',
             size: 18,
             color: Pallete.icons.inactive,
-            style: { marginRight: 10, marginTop: 1 },
+            style: { borderWidth: 0 },
           }}
+          containerStyle={{ marginRight: 10 }}
           onPress={() => setShowPassword(!showPassword)}
         />
       }

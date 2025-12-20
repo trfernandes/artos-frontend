@@ -216,11 +216,11 @@ export function getMenuForUser(user: UserLoginData): { section: string; items: D
       .sort((a, b) => (a.nome ?? '').localeCompare(b.nome ?? '', 'pt-BR',
         { sensitivity: 'base' }))
       .map(ministerio => getMenuForMinisterio(ministerio));
-    sections.push({ section: 'Ministerios', items: ministeriosMenus.flat() });
+    sections.push({ section: 'Ministérios', items: ministeriosMenus.flat() });
   }
 
   if (user?.papel === VoluntarioPapelEnum.Admin) {
-    sections.push({ section: 'Administracao', items: ADMIN_MENU });
+    sections.push({ section: 'Administração', items: ADMIN_MENU });
   }
 
   return sections;

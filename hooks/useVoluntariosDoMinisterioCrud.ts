@@ -3,8 +3,12 @@ import { DropDownItemProps } from '../components/fields/FancyDropDownItem';
 import { Voluntario } from '../domain/models/Voluntario';
 import { Operator, ValueType, DynamicQuery, OrderDirection } from '../domain/utils/query_utils';
 import { useMinisterioVoluntariosCrud } from './useMinisterioVoluntariosCrud';
+import { MinisterioVoluntarioStatusEnum } from '../domain/models/MinisterioVoluntario';
 
-export function useVoluntariosDoMinisterioCrud(ministerioId?: string) {
+export function useVoluntariosDoMinisterioCrud(
+  ministerioId?: string,
+  status: MinisterioVoluntarioStatusEnum = MinisterioVoluntarioStatusEnum.Ativo
+) {
   const initialParams = useMemo(() => {
     if (!ministerioId) return undefined;
 
@@ -15,6 +19,11 @@ export function useVoluntariosDoMinisterioCrud(ministerioId?: string) {
             path: 'ministerio.id',
             operator: Operator.EQUALS,
             value: { type: ValueType.LITERAL, value: ministerioId },
+          },
+          {
+            path: 'status',
+            operator: Operator.EQUALS,
+            value: { type: ValueType.LITERAL, value: status },
           },
         ],
       },

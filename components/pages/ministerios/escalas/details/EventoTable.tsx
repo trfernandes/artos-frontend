@@ -5,19 +5,19 @@ import { ColorUtils } from '../../../../../utils/color_utils';
 import FancyAccordeon from '../../../../FancyAccordeon';
 import FancyText from '../../../../FancyText';
 import ListaVoluntariosTable from './ListaVoluntariosTable';
-import { ResultadoDataType, ResultadoEquipeType } from '../../../../../app/(app)/(drawer)/ministerios/escalas/details';
+import { EscalaItemDataType, EscalItemEquipeType as EscalaItemEquipeType } from '../../../../../app/(app)/(drawer)/ministerios/escalas/details';
 import { useMemo, useState } from 'react';
 import SubstituirVoluntarioModal, { SubstituicaoConfirmDialog } from './SubstituirVoluntarioModal';
 
 export interface EventoTableProps {
-  data: ResultadoDataType;
+  data: EscalaItemDataType;
   viewMode?: 'view' | 'edit';
   ministerioId: string;
   onChangeVoluntario?: (data: SubstituicaoConfirmDialog) => Promise<boolean>;
 }
 
 export default function EventoTable({ data, viewMode, ministerioId, onChangeVoluntario }: EventoTableProps) {
-  const [substituicaoModalProps, setSubstituicaoModalProps] = useState<{ isOpen: boolean; data?: ResultadoEquipeType }>({
+  const [substituicaoModalProps, setSubstituicaoModalProps] = useState<{ isOpen: boolean; data?: EscalaItemEquipeType }>({
     isOpen: false,
   });
 
@@ -48,13 +48,10 @@ export default function EventoTable({ data, viewMode, ministerioId, onChangeVolu
             <FancyText type="bold" size="small">
               {data.evento.nome}
             </FancyText>
-            <FancyText type="medium" size="extraSmall" style={{}}>{`${format(
-              data.dataOcorrencia,
-              'dd/MM/yyyy'
-            )} - ${`${format(data.evento.dataInicio!, 'HH:mm')} à ${format(
-              data.evento.dataTermino!,
+            <FancyText type="medium" size="extraSmall" style={{}}>{`${format(data.dataOcorrencia, 'dd/MM/yyyy')} - ${`${format(
+              data.evento.dataInicio!,
               'HH:mm'
-            )}`}`}</FancyText>
+            )} à ${format(data.evento.dataTermino!, 'HH:mm')}`}`}</FancyText>
           </View>
         </View>
         contentContainerStyle={{ paddingHorizontal: 0, paddingTop: 15, borderWidth: 0, backgroundColor: 'white' }}
@@ -82,6 +79,7 @@ export default function EventoTable({ data, viewMode, ministerioId, onChangeVolu
       >
         <ListaVoluntariosTable
           data={data.equipe}
+          viewMode={viewMode}
           onSubstituicaoButtonPressed={data => {
             setSubstituicaoModalProps({ isOpen: true, data });
           }}
@@ -98,8 +96,9 @@ export default function EventoTable({ data, viewMode, ministerioId, onChangeVolu
               dataOcorrencia: data.dataOcorrencia,
             },
             ministerioId,
+            idEscalaItem: data.escalaItemId,
           }}
-          OnButton2Press={async data => {
+          onButton2Press={async data => {
             const result = await onChangeVoluntario?.(data);
             if (result) {
               setSubstituicaoModalProps({ isOpen: false });

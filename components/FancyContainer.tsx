@@ -5,7 +5,7 @@ import { ReactNode } from 'react';
 import DefaultIcons, { CustomIconProps } from './FancyIcons';
 
 export interface FancyContainerProps {
-  title: string;
+  title?: string | React.ReactNode;
   icon?: CustomIconProps;
   content: ReactNode;
   containerStyle?: StyleProp<ViewStyle>;
@@ -23,15 +23,18 @@ export default function FancyContainer({
 }: FancyContainerProps) {
   return (
     <View style={[styles.container, containerStyle]}>
-      <View style={[styles.headerContainer, headerContainerStyle]}>
-        {icon && <DefaultIcons.Custom {...icon} />}
-        <View style={styles.headerTitleContainer}>
-          <FancyText size={'small'} type="semiBold" style={[styles.headerTitle, titleStyle]}>
-            {title}
-          </FancyText>
+      {title && typeof title === 'string' ? (
+        <View style={[styles.headerContainer, headerContainerStyle]}>
+          {icon && <DefaultIcons.Custom {...icon} />}
+          <View style={styles.headerTitleContainer}>
+            <FancyText size={'medium'} type="bold" style={[styles.headerTitle, titleStyle]}>
+              {title}
+            </FancyText>
+          </View>
         </View>
-      </View>
-      <View style={styles.divider} />
+      ) : (
+        title
+      )}
       {content}
     </View>
   );
@@ -40,13 +43,14 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: Pallete.backgroundColor,
     borderWidth: 1,
-    borderColor: Pallete.border,
     borderRadius: 10,
-    elevation: 0.7,
+    ...Pallete.shadows[200],
+    borderColor: Pallete.borderCard,
+    paddingBottom: 16,
   },
   headerContainer: {
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
     borderColor: 'coral',
     gap: 6,
     flexDirection: 'row',
@@ -57,6 +61,5 @@ const styles = StyleSheet.create({
     borderColor: 'pink',
     justifyContent: 'center',
   },
-  headerTitle: { borderWidth: 0, borderColor: 'red' },
-  divider: { height: 0.3, borderTopWidth: 1, borderColor: Pallete.border },
+  headerTitle: { borderWidth: 0, borderColor: 'red', opacity: 0.8 },
 });

@@ -5,7 +5,13 @@ import DateUtils from '../../../../utils/date_utils';
 import { Pallete } from '../../../../constants/colors';
 import { FancyCard } from '../../../cards/Horizontal/FancyCard';
 import { DefaultIconsNames } from '../../../../constants/icons';
-import { Evento } from '../../../../domain/models/Evento';
+import {
+  Evento,
+  RecorrenciaDiaSemanaEnumMap,
+  RecorrenciaEnumMap,
+  RecorrenciaSemanaMesEnumMap,
+} from '../../../../domain/models/Evento';
+import { generateRecorrenciaDescription } from '../../../../hooks/useEventosCrud';
 import { format } from 'date-fns';
 
 export type EventoGroup = {
@@ -31,17 +37,25 @@ export default function EventosListView({
   onDeleteItem,
   onEditItem,
 }: EventosListProps) {
-  let data: { month: number; year: number; events: Evento[] }[] = [];
+  let data: {
+    month: number;
+    year: number;
+    events: Evento[];
+  }[] = [];
 
   items.forEach(item => {
-    const month = new Date(item.dataInicio)?.getMonth();
-    const year = new Date(item.dataInicio)?.getFullYear();
+    const month = item.dataInicio.getMonth();
+    const year = item.dataInicio.getFullYear();
 
     const existing = data.find(d => d.month === month && d.year === year);
     if (existing) {
       existing.events.push(item);
     } else {
-      data.push({ month, year, events: [item] });
+      data.push({
+        month,
+        year,
+        events: [item],
+      });
     }
   });
 
@@ -59,11 +73,18 @@ export default function EventosListView({
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         renderItem={({ item, index }: { item: EventoGroup; index: number }) => (
           <View key={index}>
-            <View style={styles.header}>
-              <FancyText size={'large'} type="bold">
+            <View
+              style={[
+                styles.header,
+                index > 0 && {
+                  marginTop: 10,
+                },
+              ]}
+            >
+              <FancyText size={'largeMedium'} type="bold" color={Pallete.fonts.inactive}>
                 {DateUtils.getMonthName(item.month)}
               </FancyText>
-              <FancyText size={'large'} type="bold" color={Pallete.fonts.inactive2}>
+              <FancyText size={'largeMedium'} type="bold" color={Pallete.fonts.inactive2}>
                 {item.year}
               </FancyText>
             </View>
@@ -73,8 +94,17 @@ export default function EventosListView({
                 <FancyCard.Color
                   key={index}
                   title={item.nome}
-                  subtitle={format(new Date(item.dataInicio), 'dd/MM/yyyy HH:mm')}
-                  additionalData1={format(new Date(item.dataTermino), 'dd/MM/yyyy HH:mm')}
+                  subtitle={
+                    format(item.dataInicio,'dd/MM/yyyy HH:mm') +
+                    ' - ' +
+                    (item.dataTermino ? format(item.dataTermino, 'dd/MM/yyyy HH:mm') : 'Sem término')
+                  }
+                  additionalData1={generateRecorrenciaDescription(
+                    RecorrenciaEnumMap[item.recorrencia!],
+                    item.recorrenciaSemanaDias?.map(i => RecorrenciaDiaSemanaEnumMap[i]) || [],
+                    item.recorrenciaACadaMeses!,
+                    item.recorrenciaSemanasMes?.map(i => RecorrenciaSemanaMesEnumMap[i]) || []
+                  )}
                   color={item.cor || 'blue'}
                   actionButtons={[
                     {
@@ -94,7 +124,10 @@ export default function EventosListView({
                       },
                       onPress: () => {
                         Alert.alert('Exclusão', `Tem certeza que deseja remover o ministério "${item.nome}?"`, [
-                          { text: 'Cancelar', style: 'cancel' },
+                          {
+                            text: 'Cancelar',
+                            style: 'cancel',
+                          },
                           {
                             text: 'Remover',
                             style: 'destructive',
@@ -120,7 +153,11 @@ export default function EventosListView({
 const DESIGN_MODE = 0;
 
 const styles = StyleSheet.create({
-  listContent: { gap: 10, borderWidth: DESIGN_MODE, borderColor: 'indigo' },
+  listContent: {
+    gap: 10,
+    borderWidth: DESIGN_MODE,
+    borderColor: 'indigo',
+  },
   header: {
     borderWidth: DESIGN_MODE,
     borderColor: 'hotpink',
@@ -130,6 +167,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingBottom: 15,
   },
-  eventList: { gap: 10, paddingHorizontal: 8 },
-  separator: { height: 15 },
+  eventList: {
+    gap: 10,
+    paddingHorizontal: 8,
+  },
+  separator: {
+    height: 15,
+  },
 });

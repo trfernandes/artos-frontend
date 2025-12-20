@@ -5,18 +5,26 @@ import FancyTabs, { TabItem } from '../../../../tabs/FancyTabs';
 import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import { Evento } from '../../../../../domain/models/Evento';
 import { DefaultIconsNames } from '../../../../../constants/icons';
-import EventoInfoTab from './EventoInfoTab';
+import EventoInfoTab, { EventoInfoTabProps } from './EventoInfoTab';
 import FancyLoading from '../../../../FancyLoading';
-import { EscalaResultado } from '../../../../../domain/models/EscalaResultado';
 
-export default function EventoDetails({ data, ...props }: { data: EscalaResultado } & FancyModalDialogProps<any>) {
+export interface EventoDetailsProps {
+  eventoId: string;
+  data: EventoInfoTabProps;
+}
+
+export default function EventoDetails({
+  eventoId,
+  data,
+  ...props
+}: EventoDetailsProps & FancyModalDialogProps<any>) {
   const initialParams = useMemo<DynamicQuery>(() => {
     return {
       where: {
-        conditions: [{ path: 'id', operator: Operator.EQUALS, value: { type: ValueType.LITERAL, value: data.evento.id! } }],
+        conditions: [{ path: 'id', operator: Operator.EQUALS, value: { type: ValueType.LITERAL, value: eventoId } }],
       },
     };
-  }, [data]);
+  }, [eventoId]);
 
   const { data: eventosList, isLoading: isLoadingEventos } = useEventosCrud({ autoFetch: true, initialParams });
 
@@ -31,7 +39,7 @@ export default function EventoDetails({ data, ...props }: { data: EscalaResultad
     {
       title: 'Informações',
       icon: { ...DefaultIconsNames.info, size: 14, style: { borderWidth: 0, marginTop: -0.5 } },
-      content: <EventoInfoTab data={data} />,
+      content: <EventoInfoTab {...data} />,
     },
     { title: 'Setlist', icon: { library: 'Fontisto', name: 'play-list', size: 10, style: { borderWidth: 0, marginTop: -1.5 } } },
   ];
@@ -39,18 +47,17 @@ export default function EventoDetails({ data, ...props }: { data: EscalaResultad
   return (
     <FancyModalDialog
       {...props}
-      // closeButtonIconProps={{ ...DefaultIconsNames.cancel, size: 18 }}
       showCloseButton
       button2={{ visible: false }}
       button1={{ visible: false }}
       title="Detalhes do Evento"
       containerStyle={{ height: '80%' }}
-      centerContainerStyle={{ flex: 1, borderWidth:0 }}
+      centerContainerStyle={{ flex: 1, borderWidth: 0 }}
     >
       {isLoadingEventos ? (
         <FancyLoading />
       ) : (
-        <FancyTabs items={TAB_CONFIG} contentContainerStyle={{ paddingRight: 0, paddingTop: 5, borderWidth:0 }} />
+        <FancyTabs items={TAB_CONFIG} contentContainerStyle={{ paddingRight: 0, paddingTop: 5, borderWidth: 0 }} />
       )}
     </FancyModalDialog>
   );

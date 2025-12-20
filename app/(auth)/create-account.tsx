@@ -9,7 +9,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import ControlledTextInput from '../../components/forms/ControlledTextInput';
 import ControlledPasswordInput from '../../components/forms/ControlledPasswordInput';
-import { strfyObj } from '../../utils/text_utils';
 import { AxiosError } from 'axios';
 import Toast from 'react-native-toast-message';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -54,7 +53,6 @@ export default function CreateAccountPage() {
           text1: 'Não foi possível criar a conta',
           text2: error?.response?.data?.message || 'Ocorreu um erro ao criar a conta. Tente novamente mais tarde.',
         });
-        console.log('Erro ao criar conta:', strfyObj(error));
         return;
       }
       router.replace('/login');

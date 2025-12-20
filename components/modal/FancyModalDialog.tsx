@@ -9,7 +9,7 @@ export type FancyModalDialogProps<T> = {
   title?: string;
   children?: React.ReactNode;
   onButton1Press?: () => void;
-  OnButton2Press?: (data: T | undefined) => void;
+  onButton2Press?: (data?: T | undefined) => void;
   buttonContainerComponenet?: React.ReactNode;
   button1?: FancyButtonProps & { visible?: boolean };
   button2?: FancyButtonProps & { visible?: boolean };
@@ -25,7 +25,7 @@ export default function FancyModalDialog<T = void>({
   title,
   children,
   onButton1Press,
-  OnButton2Press,
+  onButton2Press: OnButton2Press,
   buttonContainerComponenet: buttonContainerComponent,
   button1 = { visible: true },
   button2 = { visible: true },

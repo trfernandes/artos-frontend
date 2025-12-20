@@ -40,20 +40,23 @@ export default function MinisterioTemplatesEditPage() {
     isLoadingMutation,
   } = useEscalaTemplatesCrud({ autoFetch: true, initialParams: dataParams });
 
-  const template = templatesData?.[0];
-
   const form = useForm<EscalaTemplateFormData>({
     resolver: zodResolver(escalaTemplateSchema),
   });
 
   useEffect(() => {
+    const template = templatesData?.[0];
     if (template) {
       form.reset({
         ministerioId: ministerioId,
         id: template.id,
         nome: template.nome,
         funcoes: template.funcoes
-          ? template.funcoes.map(f => ({ funcaoId: f.funcaoId || f.funcao?.id, experiencia: f.experiencia, quantidade: f.quantidade }))
+          ? template.funcoes.map(f => ({
+              funcaoId: f.funcaoId || f.funcao?.id,
+              experiencia: f.experiencia,
+              quantidade: f.quantidade,
+            }))
           : [],
         voluntarios: template.voluntarios
           ? template.voluntarios?.map(v => ({
@@ -83,7 +86,8 @@ export default function MinisterioTemplatesEditPage() {
           router.back();
         });
       },
-      errors => console.log('Erro no submit do formulário\n', '=> Erros: ', strfyObj(errors), '\n=> Data: ', strfyObj(form.getValues()))
+      errors =>
+        console.log('Erro no submit do formulário\n', '=> Erros: ', strfyObj(errors), '\n=> Data: ', strfyObj(form.getValues()))
     ),
     [form.handleSubmit]
   );

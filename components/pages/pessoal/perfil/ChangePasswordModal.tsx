@@ -6,7 +6,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../../../../contexts/AuthContext';
 import Toast from 'react-native-toast-message';
 import { AxiosError } from 'axios';
-import { strfyObj } from '../../../../utils/text_utils';
 
 const schema = z
   .object({
@@ -21,7 +20,7 @@ const schema = z
 
 type FormData = z.infer<typeof schema>;
 
-export default function ChangePasswordModal(props: FancyModalDialogProps) {
+export default function ChangePasswordModal(props: FancyModalDialogProps<any>) {
   const { changePassword } = useAuth();
   const {
     control,
@@ -36,7 +35,7 @@ export default function ChangePasswordModal(props: FancyModalDialogProps) {
     try {
       const ok = await changePassword(data.senhaAtual, data.novaSenha);
       if (ok) {
-        props.onConfirm?.();
+        props.onButton2Press?.();
         Toast.show({ type: 'success', text1: 'Senha alterada com sucesso!' });
       } else {
         Toast.show({
@@ -51,7 +50,6 @@ export default function ChangePasswordModal(props: FancyModalDialogProps) {
         text1: 'Erro ao alterar a senha',
         text2: e?.response?.data?.message || 'Tente novamente.',
       });
-      console.log('ERRO CHANGE PASSWORD: \n', strfyObj(e));
     }
   });
 
@@ -60,7 +58,7 @@ export default function ChangePasswordModal(props: FancyModalDialogProps) {
       {...props}
       centerContainerStyle={{ gap: 15 }}
       title="Alterar Senha"
-      OnButton2Press={handleConfirm}
+      onButton2Press={handleConfirm}
       button2={{
         disabled: !isValid || isSubmitting, // 👈 botão só habilita quando válido
         label: isSubmitting ? 'Alterando...' : 'Confirmar',

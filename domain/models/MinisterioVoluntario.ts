@@ -1,6 +1,8 @@
 import { Identifiable } from './Indentifiable';
 import { Ministerio } from './Ministerio';
 import { MinisterioVoluntarioFuncao } from './MinisterioVoluntarioFuncao';
+import { MinisterioVoluntarioFuncaoHistorico } from './MinisterioVoluntarioFuncaoHistorico';
+import { MinisterioVoluntarioHistorico } from './MinisterioVoluntarioHistorico copy';
 import { Voluntario } from './Voluntario';
 
 export interface MinisterioVoluntario extends Identifiable {
@@ -10,7 +12,26 @@ export interface MinisterioVoluntario extends Identifiable {
   voluntarioId: string;
   hierarquia: HierarquiaEnum;
   funcoes?: MinisterioVoluntarioFuncao[];
+  status: MinisterioVoluntarioStatusEnum;
+  dataInicio: Date;
+  historico?: MinisterioVoluntarioHistorico[];
+  historicoFuncoes?: MinisterioVoluntarioFuncaoHistorico[];
 }
+
+export enum MinisterioVoluntarioStatusEnum {
+  Ativo = '0',
+  Inativo = '1',
+}
+
+export const MinisterioVoluntarioStatusEnumLabel: Record<MinisterioVoluntarioStatusEnum, string> = {
+  [MinisterioVoluntarioStatusEnum.Ativo]: 'Ativo',
+  [MinisterioVoluntarioStatusEnum.Inativo]: 'Inativo',
+};
+
+export const MinisterioVoluntarioStatusEnumMap: Record<string, MinisterioVoluntarioStatusEnum> = {
+  '0': MinisterioVoluntarioStatusEnum.Ativo,
+  '1': MinisterioVoluntarioStatusEnum.Inativo,
+};
 
 export enum HierarquiaEnum {
   Voluntario = 0,

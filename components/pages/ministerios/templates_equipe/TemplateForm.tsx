@@ -93,7 +93,6 @@ export default function TemplateForm({ mode = 'add', ministerioId, onSave, isLoa
     <FancyPageView style={[styles.container, { pointerEvents: isFormDisabled ? 'none' : 'auto' }]}>
       <ControlledTextInput control={form.control} name={'nome'} label="Nome" disabled={isFormDisabled} />
       <ControlledDropDown
-        showSelectedImage
         control={form.control}
         name={'tipo'}
         label="Tipo"
@@ -123,7 +122,6 @@ export default function TemplateForm({ mode = 'add', ministerioId, onSave, isLoa
               control={form.control}
               name={'respSetListVoluntariosId'}
               label="Responsável pelo setlist"
-              showSelectedImage
               disabled={isFormDisabled}
               listItems={respSetListVoluntariosDropDownList}
             />
@@ -142,11 +140,10 @@ export default function TemplateForm({ mode = 'add', ministerioId, onSave, isLoa
       {/* Para dar mais espaçamento */}
       <View />
 
-      {/* BOT�O SALVAR */}
       <FancyButton
         label={!isLoading ? 'Salvar' : 'Salvando...'}
         disabled={isFormDisabled}
-        icon={{ ...DefaultIconsNames.save, size: 20 }}
+        icon={{ ...DefaultIconsNames.save, size: 14 }}
         onPress={onSave}
       />
     </FancyPageView>
@@ -154,5 +151,5 @@ export default function TemplateForm({ mode = 'add', ministerioId, onSave, isLoa
 }
 
 const styles = StyleSheet.create({
-  container: { paddingTop: 10, gap: 15, paddingHorizontal: 20, paddingBottom: 15 },
+  container: { paddingTop: 10, gap: 12, paddingHorizontal: 20, paddingBottom: 15 },
 });

@@ -1,4 +1,4 @@
-import { ResultadoEquipeType } from '../../../../../app/(app)/(drawer)/ministerios/escalas/details';
+import { EscalItemEquipeType } from '../../../../../app/(app)/(drawer)/ministerios/escalas/details';
 import FancyModalDialog, { FancyModalDialogProps } from '../../../../modal/FancyModalDialog';
 import { StyleSheet, View } from 'react-native';
 import FancyText from '../../../../FancyText';
@@ -17,9 +17,9 @@ import FancyErrorText from '../../../../forms/FancyErrorText';
 import FancyGroup from '../../../../list/FancyGroup';
 
 export interface SubstituirVoluntarioModalProps {
-  data: ResultadoEquipeType & {
+  data: EscalItemEquipeType & {
     ministerioId: string;
-    idEscalaResultado: string;
+    idEscalaItem: string;
     evento: {
       dataOcorrencia: Date;
       dataInicio: Date;
@@ -29,7 +29,7 @@ export interface SubstituirVoluntarioModalProps {
 }
 
 export interface SubstituicaoConfirmDialog {
-  idEscalaResultado: string;
+  idEscalaItem: string;
   idVoluntario: string;
   idSubstituto: string;
 }
@@ -170,9 +170,9 @@ export default function SubstituirVoluntarioModal({
         style: 'destructive',
         onPress: () => {
           if (handleSubmit()) {
-            props.OnButton2Press &&
-              props.OnButton2Press({
-                idEscalaResultado: data.idEscalaResultado,
+            props.onButton2Press &&
+              props.onButton2Press({
+                idEscalaItem: data.idEscalaItem,
                 idVoluntario: data.voluntario.minVoluntarioId,
                 idSubstituto: selectedSubstituto!,
               });
@@ -187,7 +187,7 @@ export default function SubstituirVoluntarioModal({
       {...props}
       title="Substituição"
       centerContainerStyle={styles.container}
-      OnButton2Press={handleConfirm}
+      onButton2Press={handleConfirm}
       containerStyle={{ pointerEvents: isLoadingVoluntarios || isLoadingSubstitutos ? 'none' : 'auto' }}
     >
       <FancyGroup title="Evento:">
@@ -227,7 +227,6 @@ export default function SubstituirVoluntarioModal({
         <View style={{ flexDirection: 'column', gap: 5 }}>
           <FancyDropDown
             label="Substituto"
-            showSelectedImage
             value={selectedSubstituto}
             onChange={value => {
               setSelectedSubstituto(value);

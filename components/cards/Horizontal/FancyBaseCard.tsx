@@ -20,22 +20,48 @@ export type FancyBaseCardProps = {
   centerContainerStyle?: StyleProp<ViewStyle>;
 };
 
+export const titleTextProps: FancyTextProps = {
+  size: 'medium',
+  type: 'bold',
+  numberOfLines: 2,
+  style: { opacity: 0.7 },
+};
+
+export const subTitleTextProps: FancyTextProps = {
+  size: 'extraSmall',
+  type: 'medium',
+  color: Pallete.fonts.inactive,
+  numberOfLines: 2,
+};
+
+export const additionalData1TextProps: FancyTextProps = {
+  size: 'extraSmall',
+  type: 'medium',
+  color: Pallete.fonts.inactive,
+};
+
+export const additionalData2TextProps: FancyTextProps = {
+  size: 'extraSmall',
+  type: 'medium',
+  color: Pallete.fonts.inactive,
+};
+
 export default function FancyBaseCard({ isCollapsable = false, ...props }: FancyBaseCardProps) {
   const [collapsed, setCollapsed] = useState(true);
   return (
     <View
-      style={[
-        styles.container,
-        ((isCollapsable && !collapsed) || !isCollapsable) && { borderRadius: 30 },
-        props.containerStyle,
-      ]}
+      style={[styles.container, ((isCollapsable && !collapsed) || !isCollapsable) && { borderRadius: 30 }, props.containerStyle]}
     >
       <View style={[styles.innerContainer, props.contentContainerStyle]}>
         <View style={styles.headerContainer}>
           {props.leftItem && <View style={styles.leftContainer}>{props.leftItem}</View>}
           <View style={[styles.centerContainer, props.centerContainerStyle]}>
             {props.title && (
-              <FancyText size={'small'} type="semiBold" numberOfLines={2} {...props.titleProps}>
+              <FancyText
+                {...titleTextProps}
+                {...props.titleProps}
+                style={[titleTextProps.style, props.titleProps?.style]}
+              >
                 {props.title}
               </FancyText>
             )}
@@ -44,10 +70,7 @@ export default function FancyBaseCard({ isCollapsable = false, ...props }: Fancy
                 props.subtitle
               ) : (
                 <FancyText
-                  size={'extraSmall'}
-                  type="medium"
-                  color={Pallete.fonts.inactive}
-                  numberOfLines={2}
+                  {...subTitleTextProps}
                   {...props.subtitleProps}
                 >
                   {props.subtitle}
@@ -57,7 +80,7 @@ export default function FancyBaseCard({ isCollapsable = false, ...props }: Fancy
               (isValidElement(props.additionalData1) ? (
                 props.additionalData1
               ) : (
-                <FancyText size={'extraSmall'} type="medium" color={Pallete.fonts.inactive}>
+                <FancyText {...additionalData1TextProps}>
                   {props.additionalData1}
                 </FancyText>
               ))}
@@ -65,7 +88,7 @@ export default function FancyBaseCard({ isCollapsable = false, ...props }: Fancy
               (isValidElement(props.additionalData2) ? (
                 props.additionalData2
               ) : (
-                <FancyText size={'extraSmall'} type="medium" color={Pallete.fonts.inactive}>
+                <FancyText {...additionalData2TextProps}>
                   {props.additionalData2}
                 </FancyText>
               ))}
@@ -135,6 +158,7 @@ const styles = StyleSheet.create({
     borderColor: 'gold',
     gap: 3,
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   rightContainer: {
     borderWidth: DESIGN_MODE,

@@ -1,15 +1,16 @@
 import { StyleSheet, View } from 'react-native';
-import FancyBaseCard, { FancyBaseCardProps } from './FancyBaseCard';
-import { isValidElement, ReactNode } from 'react';
-import { ActionButtonProps, FancyActionButtons } from './FancyCardActionButtons';
+import FancyBaseCard from './FancyBaseCard';
+import { isValidElement } from 'react';
+import { FancyActionButtons } from './FancyCardActionButtons';
 import { Pallete } from '../../../constants/colors';
 import DefaultIcons, { CustomIconProps } from '../../FancyIcons';
+import { FancyCardImageBaseProps } from './FancyCard';
 
 export type FancyCardIconProps = {
-  cardIcon?: CustomIconProps;
-  actionButtons?: ActionButtonProps | ActionButtonProps[] | ReactNode;
+  cardIcon?: CustomIconProps & { backgroundColor?: string };
 } & Pick<
-  FancyBaseCardProps,
+  FancyCardImageBaseProps,
+  | 'actionButtons'
   | 'title'
   | 'subtitle'
   | 'additionalData1'
@@ -18,7 +19,7 @@ export type FancyCardIconProps = {
   | 'containerStyle'
   | 'contentContainerStyle'
   | 'isCollapsable'
-    | 'centerContainerStyle'
+  | 'centerContainerStyle'
 >;
 
 export default function FancyCardIcon(props: FancyCardIconProps) {
@@ -27,26 +28,24 @@ export default function FancyCardIcon(props: FancyCardIconProps) {
       {...props}
       containerStyle={[props.containerStyle, { paddingVertical: 10 }]}
       leftItem={props.cardIcon ? <CardIcon {...props.cardIcon} /> : undefined}
-      rightItem={
-        isValidElement(props.actionButtons) ? props.actionButtons : <FancyActionButtons actions={props.actionButtons} />
-      }
+      rightItem={isValidElement(props.actionButtons) ? props.actionButtons : <FancyActionButtons actions={props.actionButtons} />}
     />
   );
 }
 
-function CardIcon(icon: CustomIconProps) {
+function CardIcon(icon: CustomIconProps & { backgroundColor?: string }) {
   return (
     <View
       style={[
         styles.iconContainer,
-        { width: icon.size ? icon.size + 15 : 35, height: icon.size ? icon.size + 15 : 35 },
+        {
+          backgroundColor: icon.backgroundColor || Pallete.primary,
+          width: icon.size ? icon.size + 15 : 35,
+          height: icon.size ? icon.size + 15 : 35,
+        },
       ]}
     >
-      <DefaultIcons.Custom
-        size={icon.size || 25}
-        color={icon.color || Pallete.fonts.light}
-        {...(icon as CustomIconProps)}
-      />
+      <DefaultIcons.Custom size={icon.size || 25} color={icon.color || Pallete.fonts.light} {...(icon as CustomIconProps)} />
     </View>
   );
 }

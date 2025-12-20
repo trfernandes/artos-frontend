@@ -1,11 +1,11 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import {
-    EscalaEventoFormData,
-    EscalaEventoTemplateFixoFormData,
-    EscalaEventoTemplateFormData,
-    EscalaEventoTemplateFuncaoFormData,
-    EscalaFormData,
+  EscalaEventoFormData,
+  EscalaEventoTemplateFixoFormData,
+  EscalaEventoTemplateFormData,
+  EscalaEventoTemplateFuncaoFormData,
+  EscalaFormData,
 } from '../../../../../domain/schemas/escalaSchema';
 import FancyList from '../../../../list/FancyList';
 import { FancyCard } from '../../../../cards/Horizontal/FancyCard';
@@ -39,19 +39,15 @@ export default function AssistenteEventosStep() {
   const { showLoading, hideLoading } = useLoading();
 
   useEffect(() => {
-    console.log('useEffect', eventosArray.fields.filter(e => e.selected).length);
-
     let isMounted = true;
 
     const carregarEventos = async () => {
-      console.log('Carregando eventos para o intervalo:', dataInicio, dataTermino);
+      console.log('DATAS ===> ', { dataInicio: format(dataInicio, 'yyyy-MM-dd HH:mm:ss'), dataTermino: format(dataTermino, 'yyyy-MM-dd HH:mm:ss') });
 
       if (!dataInicio || !dataTermino) {
         if (isMounted) eventosArray.replace([]);
         return;
       }
-
-      showLoading('Carregando eventos...');
 
       try {
         const resultado = await buscarPorIntervalo({ dataInicio, dataTermino });
@@ -69,9 +65,7 @@ export default function AssistenteEventosStep() {
               data: ocorrencia.dataInicio,
               selected: true,
               template: {
-                tipo: ocorrencia.templatePadrao?.tipo
-                  ? ocorrencia.templatePadrao?.tipo!
-                  : EscalaTemplateTipoEnum.Funcoes,
+                tipo: ocorrencia.templatePadrao?.tipo ? ocorrencia.templatePadrao?.tipo! : EscalaTemplateTipoEnum.Funcoes,
                 templateBase: {
                   id: ocorrencia.templatePadrao?.id,
                   nome: ocorrencia.templatePadrao?.nome,
@@ -164,12 +158,7 @@ export default function AssistenteEventosStep() {
             executeMarkAll(!markAll);
           }}
         >
-          <DefaultIcons.Custom
-            library="Octicons"
-            name={markAll ? 'circle' : 'check-circle'}
-            size={15}
-            color={Pallete.primary}
-          />
+          <DefaultIcons.Custom library="Octicons" name={markAll ? 'circle' : 'check-circle'} size={15} color={Pallete.primary} />
           <FancyText size={'small'} type="semiBold" style={{ color: Pallete.primary }}>
             {!markAll ? 'Marcar todos' : 'Desmarcar todos'}
           </FancyText>
@@ -184,22 +173,38 @@ export default function AssistenteEventosStep() {
         extraData={eventosArray.fields}
         refreshing={isLoading}
         renderItem={({ item, index }) => {
-          if (item.selected)
-            console.log('Evento selecionado:', item.nome, format(item.data, 'dd/MM/yyyy - HH:mm'));
           const accentColor = item.cor ?? Pallete.primary;
           const dataValor = item.data instanceof Date ? item.data : new Date(item.data as unknown as string);
-          const dataFormatada = Number.isNaN(dataValor.getTime())
-            ? 'Data indisponivel'
-            : format(dataValor, 'dd/MM/yyyy - HH:mm');
-
+          const dataFormatada = Number.isNaN(dataValor.getTime()) ? 'Data indisponivel' : format(dataValor, 'dd/MM/yyyy - HH:mm');
+          const estruturaEquipe = item.template.templateBase.id
+            ? `Template - ${item.template.templateBase.nome}`
+            : (item.template.fixos && item.template.fixos?.length > 0) || (item.template.funcoes && item.template.funcoes?.length > 0)
+            ? 'Personalizada'
+            : 'Nenhuma';
           return (
             <FancyCard.CheckBox
               key={item.eventoId}
               title={item.nome}
               subtitle={dataFormatada}
-              additionalData1={`Estrutura de Equipe: ${
-                item.template.templateBase.id ? item.template.templateBase.nome : 'Personalizada'
-              }`}
+              additionalData1={
+                <View
+                  style={{
+                    width: '100%',
+                    flexDirection: 'row',
+                    gap: 5,
+                    alignItems: 'flex-start',
+                    flexShrink: 1,
+                    marginRight: 5,
+                  }}
+                >
+                  <FancyText size={'extraSmall'} type="medium" style={{ opacity: 0.9 }}>
+                    Equipe:
+                  </FancyText>
+                  <FancyText size={'extraSmall'} type="bold" style={{ opacity: 0.7, marginRight: 0, flexShrink: 1 }} numberOfLines={1} ellipsizeMode="tail">
+                    {estruturaEquipe}
+                  </FancyText>
+                </View>
+              }
               value={!!item.selected}
               checkboxColor={accentColor}
               onChangeValue={() => {
@@ -227,7 +232,7 @@ export default function AssistenteEventosStep() {
           data={eventoFormProps.data}
           modalProps={{
             onButton1Press: () => setEventoFormProps({ visible: false, data: undefined }),
-            OnButton2Press: data => {
+            onButton2Press: data => {
               if (!data) return;
               handleSaveTemplate(data);
             },

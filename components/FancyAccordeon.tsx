@@ -36,7 +36,8 @@ export default function FancyAccordeon({
 
   return (
     <View style={[styles.container, expanded ? containerExpandedContainerStyle : containerContainerStyle]}>
-      <View
+      <TouchableOpacity
+        onPress={toggleExpand}
         style={[
           styles.header,
           {
@@ -68,7 +69,7 @@ export default function FancyAccordeon({
         ) : (
           subtitle
         )}
-        <TouchableOpacity
+        <View
           style={{
             flexDirection: 'row',
             alignItems: 'center',
@@ -79,7 +80,6 @@ export default function FancyAccordeon({
             paddingTop: 15,
             paddingBottom: 13,
           }}
-          onPress={toggleExpand}
         >
           <DefaultIcons.Custom
             library={expanded ? DefaultIconsNames['chevron-up'].library : DefaultIconsNames['chevron-down'].library}
@@ -89,8 +89,8 @@ export default function FancyAccordeon({
             style={{}}
             {...iconProps}
           />
-        </TouchableOpacity>
-      </View>
+        </View>
+      </TouchableOpacity>
       {expanded && <View style={contentContainerStyle}>{children}</View>}
     </View>
   );

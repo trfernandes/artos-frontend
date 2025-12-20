@@ -8,13 +8,15 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { MinisterioFormData, ministerioSchema } from './add';
 import { router, useLocalSearchParams } from 'expo-router';
 import DadosTab from '../../../../../components/pages/admin/ministerios/DadosTab';
-import LiderancaTab, {
-  baseLiderSchema,
-} from '../../../../../components/pages/admin/ministerios/LiderancaTab';
+import LiderancaTab, { baseLiderSchema } from '../../../../../components/pages/admin/ministerios/LiderancaTab';
 import { useEffect, useMemo, useCallback, useState } from 'react';
 import { strfyObj } from '../../../../../utils/text_utils';
 import { MinisterioStatusEnumMap, MinisterioTipoEnumMap } from '../../../../../domain/models/Ministerio';
-import { HierarquiaEnum, MinisterioVoluntario } from '../../../../../domain/models/MinisterioVoluntario';
+import {
+  HierarquiaEnum,
+  MinisterioVoluntario,
+  MinisterioVoluntarioStatusEnum,
+} from '../../../../../domain/models/MinisterioVoluntario';
 import { ImageUtils } from '../../../../../utils/image_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
 import z from 'zod';
@@ -103,6 +105,8 @@ export default function MinisteriosEditPage() {
         hierarquia: data.hierarquia,
         voluntarioId: data.voluntarioId,
         ministerioId: params.id!,
+        status: MinisterioVoluntarioStatusEnum.Ativo,
+        dataInicio: new Date(),
       });
     },
     [addVoluntario, params.id]
@@ -190,10 +194,7 @@ export default function MinisteriosEditPage() {
         };
 
         // Atualiza se já existe, senão adiciona
-        const ministeriosAtualizados = [
-          ...ministeriosExistentes.filter(m => m.id !== novoMinisterio.id),
-          novoMinisterio,
-        ];
+        const ministeriosAtualizados = [...ministeriosExistentes.filter(m => m.id !== novoMinisterio.id), novoMinisterio];
 
         updateUser({ ...user, ministerios: ministeriosAtualizados });
 
@@ -239,9 +240,3 @@ const styles = StyleSheet.create({
   tabContent: { flex: 1, paddingHorizontal: 20, paddingTop: 5 },
   buttonsContainer: { flexDirection: 'column', gap: 10, paddingHorizontal: 25 },
 });
-
-
-
-
-
-

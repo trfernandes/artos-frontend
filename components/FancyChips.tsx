@@ -1,5 +1,5 @@
 import { TouchableOpacity, View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
-import FancyText from './FancyText';
+import FancyText, { FancyTextProps } from './FancyText';
 import { Pallete } from '../constants/colors';
 import DefaultIcons, { CustomIconProps } from './FancyIcons';
 import { BOLD_FONT, EXTRA_SMALL_SIZE_FONT, MEDIUM_SIZE_FONT, SMALL_SIZE_FONT } from '../constants/font';
@@ -13,6 +13,7 @@ export type FancyChipsProps = {
   outlined?: boolean;
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
+  labelProps?: FancyTextProps;
 };
 
 export default function FancyChips({
@@ -24,9 +25,8 @@ export default function FancyChips({
   outlined = false,
   onPress,
   style,
+  labelProps,
 }: FancyChipsProps) {
-  console.log('Rendering FancyChips with label:', label);
-
   const sizes = {
     small: { font: EXTRA_SMALL_SIZE_FONT, padV: 3, padH: 8, icon: 12 },
     medium: { font: SMALL_SIZE_FONT, padV: 5, padH: 10, icon: 14 },
@@ -64,11 +64,17 @@ export default function FancyChips({
         />
       )}
       <FancyText
-        style={{
-          color: baseTextColor,
-          fontSize: sizes.font,
-          fontFamily: BOLD_FONT,
-        }}
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        {...labelProps}
+        style={[
+          {
+            color: baseTextColor,
+            fontSize: sizes.font,
+            fontFamily: BOLD_FONT,
+          },
+          labelProps?.style,
+        ]}
       >
         {label}
       </FancyText>

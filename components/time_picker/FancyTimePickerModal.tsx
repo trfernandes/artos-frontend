@@ -44,7 +44,7 @@ export default function FancyTimePickerModal({
           modalProps={{ visible }}
           onButton1Press={() => setVisible(false)}
           title={'Selecionar Horário'}
-          OnButton2Press={() => {
+          onButton2Press={() => {
             onChange?.(time);
             setVisible(false);
           }}

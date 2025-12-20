@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderColor: Pallete.border,
     borderWidth: 1,
-    borderRadius: 20,
+    borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
@@ -152,7 +152,8 @@ const styles = StyleSheet.create({
     fontFamily: MEDIUM_FONT,
     fontSize: SMALL_SIZE_FONT,
     color: Pallete.fonts.dark,
-    minHeight: 40,
+    minHeight: 35,
+    alignItems: 'center',
     paddingHorizontal: 14,
   },
   valueTextMultiline: {

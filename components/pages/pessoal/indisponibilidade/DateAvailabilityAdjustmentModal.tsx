@@ -36,7 +36,6 @@ export default function DateAvailabilityAdjustmentModal({
   modalProps,
   onConfirm,
 }: DateAvailabilityAdjustmentModalProps) {
-  // console.log('DateAvailabilityAdjustmentModal render for date:', data.date);
 
   const [selectedStatus, setSelectedStatus] = useState<'available' | 'unavailable'>(data.status);
 
@@ -89,7 +88,7 @@ export default function DateAvailabilityAdjustmentModal({
       onButton1Press={handleModalClose}
       showCloseButton={false}
       title="Detalhes da data"
-      OnButton2Press={handleConfirmPress}
+      onButton2Press={handleConfirmPress}
       button2={{ disabled: !canSubmit }}
     >
       <View style={styles.content}>

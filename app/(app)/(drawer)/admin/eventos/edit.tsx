@@ -10,6 +10,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
 import { useEffect } from 'react';
+import { toZonedTime } from 'date-fns-tz';
 
 export default function EventosEditPage() {
   const params = useLocalSearchParams<{ id: string }>();
@@ -22,9 +23,7 @@ export default function EventosEditPage() {
     autoFetch: true,
     initialParams: {
       where: {
-        conditions: [
-          { path: 'id', operator: Operator.EQUALS, value: { type: ValueType.LITERAL, value: params.id } },
-        ],
+        conditions: [{ path: 'id', operator: Operator.EQUALS, value: { type: ValueType.LITERAL, value: params.id } }],
       },
     },
   });
@@ -39,19 +38,16 @@ export default function EventosEditPage() {
       eventoForm.setValue('nome', eventosData[0]?.nome ?? '');
       eventoForm.setValue('local', eventosData[0]?.local ?? '');
       eventoForm.setValue('cor', eventosData[0]?.cor ?? '#FF8C00');
-      eventoForm.setValue('dataInicio', new Date(eventosData[0]?.dataInicio));
-      eventoForm.setValue('dataTermino', new Date(eventosData[0]?.dataTermino));
+      eventoForm.setValue('dataInicio', toZonedTime(eventosData[0]?.dataInicio, 'America/Sao_Paulo'));
+      eventoForm.setValue(
+        'dataTermino',
+        eventosData[0]?.dataTermino ? toZonedTime(eventosData[0]?.dataTermino, 'America/Sao_Paulo') : null
+      );
       eventoForm.setValue('descricao', eventosData[0]?.descricao ?? '');
       eventoForm.setValue('recorrencia', eventosData[0]?.recorrencia);
-      eventoForm.setValue(
-        'recorrenciaSemanaDias',
-        eventosData[0]?.recorrenciaSemanaDias?.map(item => Number(item)) || []
-      );
+      eventoForm.setValue('recorrenciaSemanaDias', eventosData[0]?.recorrenciaSemanaDias?.map(item => item) || []);
       eventoForm.setValue('recorrenciaACadaMeses', eventosData[0]?.recorrenciaACadaMeses || 1);
-      eventoForm.setValue(
-        'recorrenciaSemanasMes',
-        eventosData[0]?.recorrenciaSemanasMes?.map(item => Number(item)) || []
-      );
+      eventoForm.setValue('recorrenciaSemanasMes', eventosData[0]?.recorrenciaSemanasMes?.map(item => item) || []);
     }
   }, [eventosData]);
 

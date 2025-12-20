@@ -1,15 +1,16 @@
 import { StyleSheet, View } from 'react-native';
-import FancyBaseCard, { FancyBaseCardProps } from './FancyBaseCard';
-import { ActionButtonProps, FancyActionButtons } from './FancyCardActionButtons';
-import { isValidElement, ReactNode } from 'react';
+import FancyBaseCard from './FancyBaseCard';
+import { FancyActionButtons } from './FancyCardActionButtons';
+import { isValidElement } from 'react';
 import { Pallete } from '../../../constants/colors';
 import FancyText from '../../FancyText';
+import { FancyCardImageBaseProps } from './FancyCard';
 
 export type FancyCardLetterProps = {
   letter?: string;
-  actionButtons?: ActionButtonProps | ActionButtonProps[] | ReactNode;
 } & Pick<
-  FancyBaseCardProps,
+  FancyCardImageBaseProps,
+  | 'actionButtons'
   | 'title'
   | 'subtitle'
   | 'additionalData1'
@@ -17,8 +18,6 @@ export type FancyCardLetterProps = {
   | 'content'
   | 'containerStyle'
   | 'contentContainerStyle'
-  | 'titleProps'
-  | 'subtitleProps'
   | 'isCollapsable'
   | 'centerContainerStyle'
 >;
@@ -28,9 +27,7 @@ export default function FancyCardLetter({ letter = 'A', ...props }: FancyCardLet
     <FancyBaseCard
       {...props}
       leftItem={<CardLetter letter={letter} />}
-      rightItem={
-        isValidElement(props.actionButtons) ? props.actionButtons : <FancyActionButtons actions={props.actionButtons} />
-      }
+      rightItem={isValidElement(props.actionButtons) ? props.actionButtons : <FancyActionButtons actions={props.actionButtons} />}
     />
   );
 }

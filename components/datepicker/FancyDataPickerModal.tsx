@@ -45,7 +45,7 @@ export default function FancyDatePickerModal({
           containerStyle={{ gap: 20 }}
           modalProps={{ visible }}
           onButton1Press={() => setVisible(false)}
-          OnButton2Press={() => {
+          onButton2Press={() => {
             onChange?.(date);
             setVisible(false);
           }}

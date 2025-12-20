@@ -79,12 +79,14 @@ export default function FancyList<ItemT>({ showFade = true, ...props }: FancyLis
               recycleItems={props.recycleItems ?? true}
               maintainVisibleContentPosition={props.maintainVisibleContentPosition ?? true}
               initialScrollIndex={props.initialScrollIndex}
-              ListFooterComponent={props.ListFooterComponent || <View style={{ height: props.bottomSpace || 20 }} />}
+              ListFooterComponent={props.ListFooterComponent || <View style={{ height: props.bottomSpace || 10 }} />}
               onContentSizeChange={handleContentSizeChange}
               contentContainerStyle={[styles.list_content, props.contentContainerStyle]}
               onScroll={handleScroll}
               scrollEventThrottle={16}
               keyExtractor={props.keyExtractor}
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}
               refreshControl={
                 <RefreshControl refreshing={props.refreshing || false} onRefresh={props.onRefresh || undefined} />
               }

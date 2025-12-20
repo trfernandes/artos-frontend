@@ -10,7 +10,7 @@ export interface UserMinisterio {
   id: string;
   nome: string;
   logo?: string;
-  tipo: MinisterioTipoEnum,
+  tipo: MinisterioTipoEnum;
   hierarquia?: HierarquiaEnum;
 }
 
@@ -80,6 +80,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     loadStorage();
   }, []);
+
+  // useEffect(() => {
+  //   if (user) {
+  //     console.log('Usuario Logado');
+  //     registerForPushNotificationsAsync(user?.id!).catch(error =>
+  //       console.log('erro ao registrar para notificações:', strfyObj(error))
+  //     );
+  //   } else {
+  //     console.log('Usuario não logado');
+  //   }
+  // }, [user]);
 
   // Login
   const signIn = async (email: string, senha: string) => {

@@ -164,7 +164,6 @@ function AssistenteWrapper() {
         const start = Date.now();
         const payload = mapEscalaFormToDto(ministerioId, user?.id!, values);
         const resultado = await generateEscala(payload);
-        console.log('resultado da geração da escala', strfyObj(resultado));
         const time = Date.now() - start;
         ('');
         setTempoGeracaoEscala?.(time);

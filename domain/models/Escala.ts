@@ -1,4 +1,4 @@
-import { EscalaResultado } from './EscalaResultado';
+import { EscalaItem } from './EscalaItem';
 import { Identifiable } from './Indentifiable';
 import { Ministerio } from './Ministerio';
 
@@ -34,5 +34,5 @@ export interface Escala extends Identifiable {
     }>;
     participantes: Array<{ id: string; name: string }>;
   };
-  resultado: EscalaResultado[];
+  itens: EscalaItem[];
 }

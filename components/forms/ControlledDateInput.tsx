@@ -60,7 +60,7 @@ export default function ControlledDateInput<FormData extends FieldValues>({
               containerStyle={{ gap: 20, }}
               modalProps={{ visible: showModal }}
               onButton1Press={() => setShowModal(false)}
-              OnButton2Press={() => {
+              onButton2Press={() => {
                 onChange?.(value);
                 setShowModal(false);
               }}

@@ -293,7 +293,7 @@ export default function FancyCalendar({
 }
 
 const styles = StyleSheet.create({
-  container: { minHeight: 290, backgroundColor: 'white' },
+  container: { minHeight: 275, backgroundColor: 'white' },
   headerContainer: {},
   contentContainer: {
     flex: 1,

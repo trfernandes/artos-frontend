@@ -4,28 +4,86 @@ import { DynamicQuery, Operator, ValueType } from '../domain/utils/query_utils';
 import { EventosRepository, EventosIntervaloParams } from '../domain/services/EventosRepository';
 import z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  RecorrenciaDiaSemanaEnum,
-  RecorrenciaEnum,
-  RecorrenciaSemanaMesEnum,
-} from '../domain/models/Evento';
+import { RecorrenciaDiaSemanaEnum, RecorrenciaEnum, RecorrenciaSemanaMesEnum } from '../domain/models/Evento';
 
-const DIAS_SEMANA: Record<number, { artigo: string; plural: string }> = {
-  1: { artigo: 'o', plural: 'Domingos' },
-  2: { artigo: 'a', plural: 'Segundas-feiras' },
-  3: { artigo: 'a', plural: 'Terças-feiras' },
-  4: { artigo: 'a', plural: 'Quartas-feiras' },
-  5: { artigo: 'a', plural: 'Quintas-feiras' },
-  6: { artigo: 'a', plural: 'Sextas-feiras' },
-  7: { artigo: 'o', plural: 'Sábados' },
+// Ordem lógica dos dias da semana (0 = domingo, 6 = sábado)
+const DIA_SEMANA_ORDER: RecorrenciaDiaSemanaEnum[] = [
+  RecorrenciaDiaSemanaEnum.domingo,
+  RecorrenciaDiaSemanaEnum.segunda,
+  RecorrenciaDiaSemanaEnum.terca,
+  RecorrenciaDiaSemanaEnum.quarta,
+  RecorrenciaDiaSemanaEnum.quinta,
+  RecorrenciaDiaSemanaEnum.sexta,
+  RecorrenciaDiaSemanaEnum.sabado,
+];
+
+const DIAS_SEMANA: Record<
+  RecorrenciaDiaSemanaEnum,
+  {
+    artigo: string;
+    plural: string;
+  }
+> = {
+  [RecorrenciaDiaSemanaEnum.domingo]: {
+    artigo: 'o',
+    plural: 'Domingos',
+  },
+  [RecorrenciaDiaSemanaEnum.segunda]: {
+    artigo: 'a',
+    plural: 'Segundas-feiras',
+  },
+  [RecorrenciaDiaSemanaEnum.terca]: {
+    artigo: 'a',
+    plural: 'Terças-feiras',
+  },
+  [RecorrenciaDiaSemanaEnum.quarta]: {
+    artigo: 'a',
+    plural: 'Quartas-feiras',
+  },
+  [RecorrenciaDiaSemanaEnum.quinta]: {
+    artigo: 'a',
+    plural: 'Quintas-feiras',
+  },
+  [RecorrenciaDiaSemanaEnum.sexta]: {
+    artigo: 'a',
+    plural: 'Sextas-feiras',
+  },
+  [RecorrenciaDiaSemanaEnum.sabado]: {
+    artigo: 'o',
+    plural: 'Sábados',
+  },
 };
 
-const SEMANAS_MES: Record<number, { abreviado: string }> = {
-  1: { abreviado: '1ª' },
-  2: { abreviado: '2ª' },
-  3: { abreviado: '3ª' },
-  4: { abreviado: '4ª' },
-  5: { abreviado: '5ª' },
+// Ordem lógica das semanas do mês
+const SEMANA_MES_ORDER: RecorrenciaSemanaMesEnum[] = [
+  RecorrenciaSemanaMesEnum.Primeira,
+  RecorrenciaSemanaMesEnum.Segunda,
+  RecorrenciaSemanaMesEnum.Terceira,
+  RecorrenciaSemanaMesEnum.Quarta,
+  RecorrenciaSemanaMesEnum.Quinta,
+];
+
+const SEMANAS_MES: Record<
+  RecorrenciaSemanaMesEnum,
+  {
+    abreviado: string;
+  }
+> = {
+  [RecorrenciaSemanaMesEnum.Primeira]: {
+    abreviado: '1ª',
+  },
+  [RecorrenciaSemanaMesEnum.Segunda]: {
+    abreviado: '2ª',
+  },
+  [RecorrenciaSemanaMesEnum.Terceira]: {
+    abreviado: '3ª',
+  },
+  [RecorrenciaSemanaMesEnum.Quarta]: {
+    abreviado: '4ª',
+  },
+  [RecorrenciaSemanaMesEnum.Quinta]: {
+    abreviado: '5ª',
+  },
 };
 
 export function generateRecorrenciaDescription(
@@ -34,25 +92,29 @@ export function generateRecorrenciaDescription(
   aCadaMeses: number,
   semanasMes: RecorrenciaSemanaMesEnum[]
 ) {
-  // const recorrencia = getValues('recorrencia');
   let result = '';
 
   if (recorrencia === RecorrenciaEnum.Semanal) {
     const diasSemana = semanaDias || [];
+
     if (diasSemana.length === 0) {
       result = 'Nenhum dia';
-    } else if (diasSemana.length === 7) {
+    } else if (diasSemana.length === DIA_SEMANA_ORDER.length) {
       result = 'Todos os dias';
     } else {
-      // Ordena os dias para garantir a ordem correta
-      const diasOrdenados = diasSemana.slice().sort((a, b) => a - b);
+      // Ordena os dias com base na ordem definida
+      const diasOrdenados = diasSemana
+        .slice()
+        .sort((a, b) => DIA_SEMANA_ORDER.indexOf(a) - DIA_SEMANA_ORDER.indexOf(b));
+
       const dias = diasOrdenados.map(item => DIAS_SEMANA[item]);
+
       if (dias.length === 1) {
-        result = `N${dias[dias.length - 1].artigo}s ${dias[0].plural.toLowerCase()}`;
+        result = `A${dias[dias.length - 1].artigo}s ${dias[0].plural.toLowerCase()}`;
       } else if (dias.length === 2) {
-        result = `N${dias[dias.length - 1].artigo}s ${dias[0].plural} e ${dias[1].plural.toLowerCase()}`;
+        result = `A${dias[dias.length - 1].artigo}s ${dias[0].plural} e ${dias[1].plural.toLowerCase()}`;
       } else {
-        result = `N${dias[dias.length - 1].artigo}s ${dias
+        result = `A${dias[dias.length - 1].artigo}s ${dias
           .slice(0, -1)
           .map(d => d.plural)
           .join(', ')} e ${dias[dias.length - 1].plural.toLowerCase()}`;
@@ -68,19 +130,23 @@ export function generateRecorrenciaDescription(
     // SEMANAS DO MÊS
     if (semanasDoMes.length === 0) {
       result += 'Em nenhuma semana';
-    } else if (semanasDoMes.length === Object.keys(SEMANAS_MES).length) {
+    } else if (semanasDoMes.length === SEMANA_MES_ORDER.length) {
       result += 'Em todas as semanas do mês';
     } else {
-      const semanasValidas = semanasDoMes.filter(item => SEMANAS_MES[item]).sort((a, b) => a - b);
-      const semanasAbreviadas = semanasValidas.map(item => SEMANAS_MES[item].abreviado);
+      const semanasValidas = semanasDoMes.filter(item => SEMANAS_MES[item]);
+
+      const semanasOrdenadas = semanasValidas
+        .slice()
+        .sort((a, b) => SEMANA_MES_ORDER.indexOf(a) - SEMANA_MES_ORDER.indexOf(b));
+
+      const semanasAbreviadas = semanasOrdenadas.map(item => SEMANAS_MES[item].abreviado);
+
       if (semanasAbreviadas.length === 1) {
         result += `Na ${semanasAbreviadas[0]} semana do mês`;
       } else if (semanasAbreviadas.length === 2) {
         result += `Nas ${semanasAbreviadas[0]} e ${semanasAbreviadas[1]} semanas do mês`;
       } else {
-        result += `Nas ${semanasAbreviadas.slice(0, -1).join(', ')} e ${
-          semanasAbreviadas.slice(-1)[0]
-        } semanas do mês`;
+        result += `Nas ${semanasAbreviadas.slice(0, -1).join(', ')} e ${semanasAbreviadas.slice(-1)[0]} semanas do mês`;
       }
     }
 
@@ -89,12 +155,16 @@ export function generateRecorrenciaDescription(
     // DIAS DA SEMANA
     if (diasSemana.length === 0) {
       result += 'Em nenhum dia da semana';
-    } else if (diasSemana.length === 7) {
+    } else if (diasSemana.length === DIA_SEMANA_ORDER.length) {
       result += 'Em todos os dias';
     } else {
-      // Ordena os dias para garantir a ordem correta
-      const diasOrdenados = diasSemana.slice().sort((a, b) => a - b);
+      // Ordena os dias com base na ordem definida
+      const diasOrdenados = diasSemana
+        .slice()
+        .sort((a, b) => DIA_SEMANA_ORDER.indexOf(a) - DIA_SEMANA_ORDER.indexOf(b));
+
       const dias = diasOrdenados.map(item => DIAS_SEMANA[item]);
+
       if (dias.length === 1) {
         result += `N${dias[0].artigo}s ${dias[0].plural}`;
       } else if (dias.length === 2) {
@@ -113,16 +183,14 @@ export function generateRecorrenciaDescription(
 
 export const eventoSchema = z
   .object({
-    id: z.uuid().optional(),
+    id: z.string().uuid().optional(),
     nome: z
       .string('Campo Obrigatório')
       .min(3, 'O nome do evento deve ter pelo menos 3 caracteres')
       .max(255, 'O nome do evento pode ter no máximo 255 caracteres'),
     descricao: z.string().max(1000, 'A descrição pode ter no máximo 1000 caracteres').optional(),
-    dataInicio: z
-      .date()
-      .refine(d => d >= new Date('1900-01-01'), 'A data de início deve ser posterior a 01/01/1900'),
-    dataTermino: z.date(),
+    dataInicio: z.date().refine(d => d >= new Date('1900-01-01'), 'A data de início deve ser posterior a 01/01/1900'),
+    dataTermino: z.date().nullable(),
     local: z.string().max(255, 'O local pode ter no máximo 255 caracteres').optional(),
     cor: z
       .string()
@@ -140,7 +208,7 @@ export const eventoSchema = z
   })
   .superRefine((data, ctx) => {
     // Data término > data início
-    if (data.dataTermino <= data.dataInicio) {
+    if (data.dataTermino && data.dataTermino <= data.dataInicio) {
       ctx.addIssue({
         code: 'custom',
         path: ['dataTermino'],
@@ -181,7 +249,10 @@ export function useEventosCrud(options?: UseEventosOptions) {
             {
               path: 'id',
               operator: Operator.EQUALS,
-              value: { type: ValueType.LITERAL, value: id },
+              value: {
+                type: ValueType.LITERAL,
+                value: id,
+              },
             },
           ],
         },

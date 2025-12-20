@@ -1,11 +1,9 @@
 import { StyleSheet, View } from 'react-native';
 import { ptBR } from 'date-fns/locale';
-import FancyText from '../../../FancyText';
 import { format } from 'date-fns';
 import { Evento } from '../../../../domain/models/Evento';
-import { FancyTextDisplay } from '../../../fields/FancyTextDisplay';
 import FancyContainer from '../../../FancyContainer';
-import { generateRecorrenciaDescription, useEventosCrud } from '../../../../hooks/useEventosCrud';
+import { useEventosCrud } from '../../../../hooks/useEventosCrud';
 import FancyDropDown from '../../../fields/FancyDropDown';
 import FancyButton from '../../../buttons/FancyButton';
 import { useEscalaTemplatesCrud } from '../../../../useEscalaTemplatesCrud';
@@ -14,18 +12,11 @@ import FancyLoading from '../../../FancyLoading';
 import { useCallback, useMemo, useState } from 'react';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import { EscalaTemplateTipoLabel } from '../../../../domain/models/EscalaTemplate';
-import DefaultIcons from '../../../FancyIcons';
-import { DefaultIconsNames } from '../../../../constants/icons';
 import Toast from 'react-native-toast-message';
-import { strfyObj } from '../../../../utils/text_utils';
+import EventoInfoCard from '../../common/EventoInfoCard';
+import { Pallete } from '../../../../constants/colors';
 
-export default function AgendaDetailsDadosTab(props: {
-  ministerioId: string;
-  dataOcorrencia: Date;
-  evento: Evento;
-}) {
-  console.log(strfyObj(props.evento));
-
+export default function AgendaDetailsDadosTab(props: { ministerioId: string; dataOcorrencia: Date; evento: Evento }) {
   const { data: templates, isLoading: isLoadingTemplates } = useEscalaTemplatesCrud({
     autoFetch: false,
     initialParams: {
@@ -63,7 +54,7 @@ export default function AgendaDetailsDadosTab(props: {
   const dataOcorrenciaExtenso = useCallback(() => {
     const texto = format(props.dataOcorrencia, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR });
     const horaInicio = format(props.evento.dataInicio, 'HH:mm', { locale: ptBR });
-    const horaFim = format(props.evento.dataTermino, 'HH:mm', { locale: ptBR });
+    const horaFim = props.evento.dataTermino && format(props.evento.dataTermino, 'HH:mm', { locale: ptBR });
 
     const resultado = `${texto}, das ${horaInicio} às ${horaFim}`;
     const formatado = resultado.charAt(0).toUpperCase() + resultado.slice(1);
@@ -78,7 +69,6 @@ export default function AgendaDetailsDadosTab(props: {
 
   const handleSaveTemplate = useCallback(async () => {
     if (!props.evento.id) return;
-    console.log('Salvando template padrão do evento:', templateId);
     await updateEventos({
       id: props.evento.id,
       data: { templatePadraoId: templateId } as Evento,
@@ -90,62 +80,27 @@ export default function AgendaDetailsDadosTab(props: {
 
   return (
     <View style={styles.container}>
-      <FancyContainer
-        icon={{ ...DefaultIconsNames['calendar-day'], size: 14 }}
-        title={'Evento'}
-        content={
-          <View style={styles.infoContainer}>
-            <View style={{ flexDirection: 'column', gap: 5, justifyContent: 'center' }}>
-              <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}>
-                <DefaultIcons.Custom
-                  library="MaterialCommunityIcons"
-                  name="octagon"
-                  size={14}
-                  color={props.evento.cor}
-                />
-                <FancyText size={'large'} type={'bold'}>
-                  {props.evento.nome}
-                </FancyText>
-              </View>
-
-              <FancyText size={'small'} type={'medium'}>
-                {dataOcorrenciaExtenso()}
-              </FancyText>
-            </View>
-            <View style={{ gap: 8 }}>
-              <FancyTextDisplay
-                title="Recorrência:"
-                value={
-                  props.evento.recorrencia
-                    ? generateRecorrenciaDescription(
-                        props.evento.recorrencia,
-                        props.evento.recorrenciaSemanaDias!,
-                        props.evento.recorrenciaACadaMeses!,
-                        props.evento.recorrenciaSemanasMes!
-                      )
-                    : 'Nenhum'
-                }
-              />
-              <FancyTextDisplay title="Descrição:" value={props.evento.descricao ?? ''} />
-              <FancyTextDisplay title="Local:" value={props.evento.local ?? ''} />
-            </View>
-          </View>
-        }
+      <EventoInfoCard
+        dataOcorrencia={props.dataOcorrencia}
+        eventoCor={props.evento.cor || Pallete.primary}
+        eventoNome={props.evento.nome}
+        descricao={props.evento.descricao}
+        local={props.evento.local}
       />
       <FancyContainer
-        icon={{ name: 'file-document-outline', library: 'MaterialCommunityIcons', size: 14 }}
-        title={'Template padrão do evento'}
+        title={'Parâmetros do Evento'}
         content={
           <View
             style={{
-              paddingHorizontal: 15,
+              paddingHorizontal: 22,
               flexDirection: 'row',
-              paddingVertical: 20,
+              // borderWidth: 1,
               gap: 10,
               alignItems: 'center',
             }}
           >
             <FancyDropDown
+              label="Template padrão"
               containerStyle={{ flex: 1 }}
               listItems={templatesList}
               value={templateId}
@@ -153,7 +108,7 @@ export default function AgendaDetailsDadosTab(props: {
             />
             <FancyButton
               label="Salvar"
-              containerStyle={{ width: '25%' }}
+              containerStyle={{ alignSelf: 'flex-end', width: '25%' }}
               onPress={handleSaveTemplate}
             />
           </View>

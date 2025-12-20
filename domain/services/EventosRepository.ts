@@ -1,3 +1,4 @@
+import { endOfDay, format } from 'date-fns';
 import { EventosApi } from '../api/EventosApi';
 import { Evento } from '../models/Evento';
 import { BaseRepository } from './BaseRepository';
@@ -13,12 +14,10 @@ class EventosRepositoryClass extends BaseRepository<Evento> {
   }
 
   async buscarPorIntervalo(params: EventosIntervaloParams): Promise<Evento[]> {
-    const formatDate = (value: Date | string) =>
-      value instanceof Date ? value.toISOString() : value;
 
     return EventosApi.buscarPorIntervalo({
-      dataInicio: formatDate(params.dataInicio),
-      dataTermino: formatDate(params.dataTermino),
+      dataInicio: format(params.dataInicio, "yyyy-MM-dd'T'HH:mm:ss"),
+      dataTermino: format(endOfDay(params.dataTermino), "yyyy-MM-dd'T'HH:mm:ss"),
     });
   }
 }

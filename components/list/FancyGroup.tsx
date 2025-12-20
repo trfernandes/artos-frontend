@@ -10,14 +10,16 @@ export interface FancyGroupProps {
   contentContainerStyle?: StyleProp<ViewStyle>;
 }
 
-export default function FancyGroup({ title, children, contentContainerStyle: containerStyle }: FancyGroupProps) {
+export default function FancyGroup({ title, children, contentContainerStyle }: FancyGroupProps) {
   return (
     <View>
-      <View style={styles.groupTitleContainer}>
-        <FancyText style={styles.groupTitleText}>{title}</FancyText>
-      </View>
+      {title && (
+        <View style={styles.groupTitleContainer}>
+          <FancyText style={styles.groupTitleText}>{title}</FancyText>
+        </View>
+      )}
 
-      <View style={[styles.groupContentContainer, { flexDirection: 'column' }, containerStyle]}>{children}</View>
+      <View style={[styles.groupContentContainer, { flexDirection: 'column' }, contentContainerStyle]}>{children}</View>
     </View>
   );
 }

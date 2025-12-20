@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import { router, useNavigation } from 'expo-router';
-import { useLayoutEffect, useState } from 'react';
+import { useLayoutEffect, useMemo, useState } from 'react';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import FancyHeaderButton from '../../../../../components/header/FancyHeaderButton';
 import EventoCalendarView from '../../../../../components/pages/admin/eventos/EventoCalendarView';
@@ -11,6 +11,7 @@ import FancyLoading from '../../../../../components/FancyLoading';
 import FancyBasePage from '../../../../../components/pages/base/FancyBasePage';
 import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import { Evento } from '../../../../../domain/models/Evento';
+import { toZonedTime } from 'date-fns-tz';
 
 export default function EventosIndexPage() {
   const navigation = useNavigation();
@@ -33,12 +34,22 @@ export default function EventosIndexPage() {
   }, [navigation, mode]);
 
   const {
-    data: eventosData,
+    data,
     isLoading,
     setSearchParams,
     remove,
     isLoadingMutation: isLoadingRemove,
   } = useEventosCrud({ autoFetch: false, initialParams: {} });
+
+  const eventosData = useMemo<Evento[]>(() => {
+    const a = data.map(evento => ({
+      ...evento,
+      dataInicio: toZonedTime(evento.dataInicio, 'America/Sao_Paulo'),
+      dataTermino: evento.dataTermino && toZonedTime(evento.dataTermino, 'America/Sao_Paulo'),
+    }));
+    // console.log('eventosData', strfyObj(a));
+    return a;
+  }, [data]);
 
   if (isLoading) {
     return <FancyLoading label="Carregando..." />;

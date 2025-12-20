@@ -11,7 +11,6 @@ import DateUtils from '../../../../../utils/date_utils';
 import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
 import { Pallete } from '../../../../../constants/colors';
 import { DefaultIconsNames } from '../../../../../constants/icons';
-import { strfyObj } from '../../../../../utils/text_utils';
 import FancySeparator from '../../../../../components/FancySeparator';
 import { router, useLocalSearchParams } from 'expo-router';
 
@@ -25,17 +24,15 @@ export default function MinisterioAgendaIndexPage() {
   const { buscarPorIntervalo, isLoading } = useEventosCrud({ autoFetch: false });
 
   useEffect(() => {
-    console.log('useEffect');
     buscarPorIntervalo({
       dataInicio: startOfMonth(currentMonth),
       dataTermino: lastDayOfMonth(currentMonth),
     }).then(data => {
-      console.log('Eventos:', strfyObj(data));
       setEventos(
         data.map(e => ({
           ...e,
           dataInicio: new Date(e.dataInicio),
-          dataTermino: new Date(e.dataTermino),
+          dataTermino: e.dataTermino && new Date(e.dataTermino),
         }))
       );
     });

@@ -34,10 +34,12 @@ export default function FancyContainerList<ItemT>({
   const hasItems = items.length > 0;
 
   return (
-    <View style={[styles.container, containerStyle, disabled ? { opacity: 0.6, pointerEvents: 'none' } : { pointerEvents: 'auto' }]}>
+    <View
+      style={[styles.container, containerStyle, disabled ? { opacity: 0.6, pointerEvents: 'none' } : { pointerEvents: 'auto' }]}
+    >
       <View style={styles.headerContainer}>
         <View style={styles.headerTitleContainer}>
-          <FancyText size={'small'} type="semiBold" style={styles.headerTitle}>
+          <FancyText size={'medium'} type="bold" style={[styles.headerTitle, { opacity: 0.6 }]}>
             {title}
           </FancyText>
         </View>
@@ -58,7 +60,7 @@ export default function FancyContainerList<ItemT>({
           </View>
         )}
       </View>
-      <View style={styles.divider} />
+      <FancySeparator style={{ marginVertical: 0 }} />
       <View style={[styles.contentContainer, contentContainerStyle]}>
         {virtualized ? (
           <FancyList<ItemT>
@@ -92,10 +94,9 @@ const DESIGN_MODE = 0;
 
 const styles = StyleSheet.create({
   container: {
-    // ...Pallete.shadows[100],
     backgroundColor: Pallete.backgroundColor,
-    borderWidth: 1,
     borderColor: Pallete.border,
+    ...Pallete.shadows[300],
     borderRadius: 10,
     flex: 1,
   },

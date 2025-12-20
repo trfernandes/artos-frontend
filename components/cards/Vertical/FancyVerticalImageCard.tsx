@@ -1,72 +1,68 @@
-import { StyleSheet, TouchableOpacity, ImageStyle, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, ImageSourcePropType } from 'react-native';
 import FancyVerticalCard, { FancyVerticalCardProps } from './FancyVerticalCard';
 import DefaultIcons, { CustomIconProps } from '../../FancyIcons';
 import { Pallete } from '../../../constants/colors';
-import FancyImage from '../../images/FancyImage';
+import { ImageUtils } from '../../../utils/image_utils';
+import { Image } from 'expo-image';
 
 export type FancyVerticalImageCardProps = {
-  url?: string | number;
+  source?: string | ImageSourcePropType;
   selected?: boolean;
   imageSize?: number;
+  highlighted?: boolean;
   topRightIcon?: { onPress?: () => void; customIcon?: CustomIconProps };
   topLeftIcon?: { onPress?: () => void; customIcon?: CustomIconProps };
 } & Pick<FancyVerticalCardProps, 'title' | 'subtitle' | 'containerStyle' | 'additionalElement'>;
 
 export default function FancyVerticalImageCard({
   selected = false,
-  url,
+  source,
   imageSize,
   topRightIcon,
   topLeftIcon,
   containerStyle,
+  highlighted = false,
   ...props
 }: FancyVerticalImageCardProps) {
   return (
     <FancyVerticalCard
-      cardHeight={80}
-      topElement={<ImageComponent source={url} />}
-      topElementStyle={{ marginBottom: 12 }}
-      bottomElementStyle={{
-        justifyContent: 'center',
-      }}
+      cardHeight={125}
+      topElement={source && <ImageComponent source={source} highlighted={highlighted} />}
+      contentContainerStyle={{}}
       {...props}
       containerStyle={[containerStyle, selected && styles.selected]}
     />
   );
 }
 
-export function ImageComponent({ source }: { source?: string | number }) {
-  const resolvedSource =
-    typeof source === 'number'
-      ? source
-      : typeof source === 'string' && source.trim().length > 0
-      ? source
-      : undefined;
+export function ImageComponent({
+  source,
+  highlighted = false,
+}: {
+  source: string | ImageSourcePropType;
+  highlighted?: boolean;
+}) {
+  const resolvedSource = ImageUtils.normalizeImageSource(source) ?? source;
 
   return (
     <View
       style={{
-        // borderWidth: 1,
-        width: '100%',
-        height: '100%',
-        paddingVertical: '8%',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
+        ...Pallete.shadows[100],
+        backgroundColor: Pallete.backgroundColor3,
+        borderRadius: 9999,
+        padding: 2,
+        borderColor: highlighted ? Pallete.primary : Pallete.warning,
+        borderWidth: 2.5,
       }}
     >
-      {resolvedSource ? (
-        <FancyImage source={{ uri: resolvedSource as string }} style={styles.image} />
-      ) : null}
+      {resolvedSource ? <Image source={resolvedSource} style={styles.image} contentFit="fill" /> : null}
     </View>
   );
 }
-export function TopLeftMenuButton({
-  customIcon,
-  onPress,
-}: {
-  customIcon?: CustomIconProps;
-  onPress?: () => void;
-}) {
+
+export function TopLeftMenuButton({ customIcon, onPress }: { customIcon?: CustomIconProps; onPress?: () => void }) {
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -89,13 +85,7 @@ export function TopLeftMenuButton({
   );
 }
 
-export function TopRightMenuButton({
-  customIcon,
-  onPress,
-}: {
-  customIcon?: CustomIconProps;
-  onPress?: () => void;
-}) {
+export function TopRightMenuButton({ customIcon, onPress }: { customIcon?: CustomIconProps; onPress?: () => void }) {
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -123,7 +113,6 @@ const styles = StyleSheet.create({
   image: {
     borderRadius: 9999,
     aspectRatio: 1,
-    flex: 1,
-    resizeMode: 'cover',
-  } as ImageStyle,
+    width: '60%',
+  },
 });

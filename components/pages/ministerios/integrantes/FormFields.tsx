@@ -19,6 +19,12 @@ import { EscalaTemplateExperienciaLabel } from '../../../../domain/models/Escala
 import { FancyAlert } from '../../../modal/FancyAlert';
 import FancyImage from '../../../images/FancyImage';
 import FancyText from '../../../FancyText';
+import {
+  MinisterioVoluntarioStatusEnum,
+  MinisterioVoluntarioStatusEnumLabel,
+  MinisterioVoluntarioStatusEnumMap,
+} from '../../../../domain/models/MinisterioVoluntario';
+import FancyChips from '../../../FancyChips';
 
 export interface IntegranteFormFieldsProps {
   mode: 'add' | 'edit';
@@ -121,22 +127,34 @@ export default function IntegranteFormFields({
       {mode === 'add' ? (
         <ControlledDropDown control={control} name="voluntarioId" label="Voluntário" listItems={voluntariosDropDownList} />
       ) : (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-          <FancyImage source={{ uri: getValues('voluntarioFoto') }} size={40} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
+          <FancyImage source={{ uri: getValues('voluntarioFoto') }} size={50} />
           <View style={{ gap: 2 }}>
-            <FancyText size="large" type="bold" style={{ opacity: 0.8 }}>
+            <FancyText size="largeMedium" type="bold" style={{ opacity: 0.8 }}>
               {getValues('voluntarioNome')}
             </FancyText>
             <FancyText size="small" type="medium" style={{ opacity: 0.8 }}>
               {getValues('voluntarioEmail')}
             </FancyText>
+            {getValues('voluntarioStatus') && (
+              <FancyChips
+                size="small"
+                style={{ marginTop: 3 }}
+                label={MinisterioVoluntarioStatusEnumLabel[MinisterioVoluntarioStatusEnumMap[getValues('voluntarioStatus')!]]}
+                color={
+                  MinisterioVoluntarioStatusEnumMap[getValues('voluntarioStatus')!] === MinisterioVoluntarioStatusEnum.Ativo
+                    ? Pallete.primary
+                    : Pallete.error
+                }
+              />
+            )}
           </View>
         </View>
       )}
 
       <FancyContainerList
         title="Funções"
-        contentContainerStyle={{ paddingTop: 5 }}
+        contentContainerStyle={{ paddingTop: 6 }}
         buttons={[
           {
             icon: { ...DefaultIconsNames.add, size: 19 },
@@ -183,8 +201,8 @@ export default function IntegranteFormFields({
           <IntegranteFormModal
             mode={formModalOptions.mode}
             title={formModalOptions.mode === 'add' ? 'Adicionar Função' : 'Editar Função'}
-            funcoesDropDownList={notUsedFuncoesList}
-            OnButton2Press={() => handleSave()}
+            funcoesDropDownList={formModalOptions.mode === 'add' ? notUsedFuncoesList : funcoesDropDownList}
+            onButton2Press={() => handleSave()}
             onButton1Press={() => {
               setFormModalOptions({ visible: false, mode: 'add' });
             }}

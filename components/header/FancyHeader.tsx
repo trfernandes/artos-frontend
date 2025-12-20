@@ -39,9 +39,11 @@ const HeaderMenuButton = (props: { title?: string; onPress?: () => void }) => (
     <FancyHeaderButton
       icon={{ ...DefaultIconsNames.menu, size: 24 }}
       onPress={props.onPress!}
-      buttonProps={{ containerStyle: {
-        marginLeft: -6,
-      } }}
+      buttonProps={{
+        containerStyle: {
+          marginLeft: -6,
+        },
+      }}
     />
     {props.title && (
       <FancyText size="medium" type="bold" color={Pallete.fonts.dark} style={styles.headerTitle}>
@@ -52,8 +54,16 @@ const HeaderMenuButton = (props: { title?: string; onPress?: () => void }) => (
 );
 
 const HeaderBackButton = (props: { title?: string; onPress: () => void }) => (
-  <View style={[styles.buttonContainer, { position: 'absolute', left: 20, gap: 10, marginLeft: -10 }]}>
-    <FancyHeaderButton icon={{ ...DefaultIconsNames['chevron-left'], size: 24 }} onPress={props.onPress} />
+  <View style={[styles.buttonContainer, { position: 'absolute', left: 20, gap: 4, marginLeft: -10 }]}>
+    <FancyHeaderButton
+      icon={{ library: 'MaterialCommunityIcons', name: 'arrow-left-thin', size: 28 }}
+      onPress={props.onPress}
+      buttonProps={{
+        containerStyle: {
+          width: 36,
+        },
+      }}
+    />
     {props.title && (
       <FancyText size="medium" type="bold" color={Pallete.fonts.dark} style={styles.headerTitle}>
         {props.title}

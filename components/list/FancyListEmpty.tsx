@@ -31,5 +31,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 20,
+    opacity: 0.4,
   },
 });

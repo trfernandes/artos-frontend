@@ -5,6 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Redirect, Stack } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingProvider } from '../../contexts/LoadingContext';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import FancyHeader from '../../components/header/FancyHeader';
 
 export default function RootLayout() {
   const { user, loading } = useAuth();
@@ -17,19 +19,36 @@ export default function RootLayout() {
 
   return (
     <>
-      <MenuProvider>
-        <ClickOutsideProvider>
-          <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
-            <StatusBar style={'dark'} />
-            <LoadingProvider>
-              <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
-                <Stack.Screen name="notifications" options={{ headerShown: false }} />
-              </Stack>
-            </LoadingProvider>
-          </SafeAreaView>
-        </ClickOutsideProvider>
-      </MenuProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <MenuProvider>
+          <ClickOutsideProvider>
+            <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+              <StatusBar style={'dark'} />
+              <LoadingProvider>
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
+                  <Stack.Screen
+                    name="notifications"
+                    options={{
+                      headerShown: true,
+                      header: headerParams => (
+                        <FancyHeader
+                          leftButton={'back'}
+                          {...headerParams}
+                          options={{
+                            title: 'Notificações',
+                            headerRight: options => headerParams.options.headerRight?.(options),
+                          }}
+                        />
+                      ),
+                    }}
+                  />
+                </Stack>
+              </LoadingProvider>
+            </SafeAreaView>
+          </ClickOutsideProvider>
+        </MenuProvider>
+      </GestureHandlerRootView>
     </>
   );
 }

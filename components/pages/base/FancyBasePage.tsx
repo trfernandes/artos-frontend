@@ -25,7 +25,7 @@ export default function FancyBasePage({
     <FancyPageView style={[styles.container, containerStyle]}>
       {showSearchBar && <FancySearchBar {...searchBarProps} />}
       {children}
-      {showFab && <FancyFab {...fabProps} />}
+      {showFab && <FancyFab {...fabProps} right={10} bottom={10} />}
     </FancyPageView>
   );
 }

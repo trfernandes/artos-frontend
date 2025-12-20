@@ -46,7 +46,7 @@ export default function FancyToggle<ValueType>({
   const isOption2Selected = (selectedOption && selectedOption.value === option2.value) || false;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { pointerEvents: disabled ? 'none' : 'auto' }]}>
       {label && (
         <FancyText size={'extraSmall'} type="semiBold" color={disabled ? Pallete.fonts.inactive2 : Pallete.fonts.inactive}>
           {label}

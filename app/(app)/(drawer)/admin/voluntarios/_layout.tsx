@@ -12,7 +12,7 @@ export default function VoluntariosLayout() {
       <Stack.Screen name="index" options={{ title: 'Voluntários', headerRight: () => <MainHeaderButtons /> }} />
       <Stack.Screen
         name="details"
-        options={{ title: '', header: props => <FancyHeader leftButton="back" {...props} /> }}
+        options={{ title: 'Detalhes', header: props => <FancyHeader leftButton="back" {...props} /> }}
       />
     </Stack>
   );

@@ -16,8 +16,6 @@ export function useProtectedRoute() {
   const pathname = usePathname();
   const navState = useRootNavigationState(); // só fica definido quando o Navigator montou
 
-  console.log('[GUARD]', { user: !!user, loading, pathname, navReady: !!navState?.key });
-
   useEffect(() => {
     // 1) ainda carregando user OU nav ainda não montou → não decide nada
     if (loading || !navState?.key) return;

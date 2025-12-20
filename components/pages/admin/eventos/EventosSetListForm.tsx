@@ -83,7 +83,7 @@ export default function EventosSetListForm() {
           title={musicFormParams.mode === 'add' ? 'Adicionar música' : 'Editar música'}
           modalProps={{ visible: musicFormParams.visible }}
           onButton1Press={() => setMusicFormParams(prev => ({ ...prev, visible: false }))}
-          OnButton2Press={() => setMusicFormParams(prev => ({ ...prev, visible: false }))}
+          onButton2Press={() => setMusicFormParams(prev => ({ ...prev, visible: false }))}
           centerContainerStyle={{ gap: 15 }}
         >
           <FancyDropDown

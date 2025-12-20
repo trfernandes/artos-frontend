@@ -18,6 +18,7 @@ export const Pallete = {
     light: '#FFFFFF',
     inactive: '#8d8d8dff',
     inactive2: '#C7C7CC',
+    link: '#1E88E5',
   },
   icons: {
     dark: '#3E3E3E',
@@ -26,12 +27,14 @@ export const Pallete = {
     inactive2: '#C7C7CC',
   },
   border: '#B4B4B4',
+  borderCard: '#c9c9c9ff',
   backgroundColor: '#FFFFFF',
   backgroundColor2: '#F2F2F7',
   backgroundColor3: '#f6f6f6ff',
+  backgroundColor4: '#f7faffff',
   shadows: {
     100: {
-      shadowColor: 'gray',
+      shadowColor: 'silver',
       elevation: 1,
       shadowOffset: {
         width: 1,

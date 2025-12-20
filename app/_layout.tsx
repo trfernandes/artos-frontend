@@ -5,6 +5,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 import { toastConfig } from '../utils/toast_config';
 import { FancyAlertConnector, FancyAlertProvider } from '../components/modal/FancyAlert';
+import { useEffect } from 'react';
+import { registerForPushNotificationsAsync } from '../services/notifications';
+import { NotificationsManager } from '../components/Notification_manager';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -21,9 +24,8 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const { loading } = useAuth();
+  const { user, loading } = useAuth();
 
-  // Carregar fontes
   const [fontsLoaded] = useFonts({
     MontserratBlack: require('../assets/fonts/montserrat/Montserrat-Black.ttf'),
     MontserratBlackItalic: require('../assets/fonts/montserrat/Montserrat-BlackItalic.ttf'),
@@ -45,14 +47,27 @@ function RootLayoutNav() {
     MontserratThinItalic: require('../assets/fonts/montserrat/Montserrat-ThinItalic.ttf'),
   });
 
+  // esconder splash quando tudo estiver pronto
+  useEffect(() => {
+    if (fontsLoaded && !loading) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, loading]);
+
+  // registrar notificações quando logar
+  useEffect(() => {
+    if (user?.id) {
+      registerForPushNotificationsAsync(user.id);
+    }
+  }, [user?.id]);
+
   if (!fontsLoaded || loading) {
     return null;
   }
 
-  SplashScreen.hideAsync();
-
   return (
     <FancyAlertProvider>
+      <NotificationsManager />
       <Stack>
         <Stack.Screen name="(app)" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />

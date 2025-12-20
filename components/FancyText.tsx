@@ -7,6 +7,7 @@ import {
   ITALIC_FONT,
   ITALIC_MEDIUM_FONT,
   ITALIC_SEMI_BOLD_FONT,
+  LARGE_MEDIUM_SIZE_FONT,
   LARGE_SIZE_FONT,
   MEDIUM_FONT,
   MEDIUM_SIZE_FONT,
@@ -19,16 +20,8 @@ import { Pallete } from '../constants/colors';
 
 export type FancyTextProps = {
   children?: React.ReactNode;
-  type?:
-    | 'normal'
-    | 'normalItalic'
-    | 'medium'
-    | 'mediumItalic'
-    | 'semiBold'
-    | 'semiBoldItalic'
-    | 'bold'
-    | 'boldItalic';
-  size?: 'extraSmall' | 'small' | 'medium' | 'large' | 'extraLarge' | number;
+  type?: 'normal' | 'normalItalic' | 'medium' | 'mediumItalic' | 'semiBold' | 'semiBoldItalic' | 'bold' | 'boldItalic';
+  size?: 'extraSmall' | 'small' | 'medium' | 'large' | 'largeMedium' | 'extraLarge' | number;
   color?: string;
   style?: StyleProp<TextStyle>;
 } & TextProps;
@@ -45,6 +38,8 @@ export default function FancyText(props: FancyTextProps) {
       ? MEDIUM_SIZE_FONT
       : size === 'large'
       ? LARGE_SIZE_FONT
+      : size === 'largeMedium'
+      ? LARGE_MEDIUM_SIZE_FONT
       : size === 'extraLarge'
       ? EXTRA_LARGE_SIZE_FONT
       : size;

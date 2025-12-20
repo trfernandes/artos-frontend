@@ -143,7 +143,7 @@ export default function AssistenteParticipantesStep() {
       </View>
       <FancyVerticalContainerCard
         contentContainerStyle={{ paddingHorizontal: 20 }}
-        numColumns={4}
+        numColumns={3}
         columnSpacing={8}
         rowSpacing={8}
         data={voluntariosList}

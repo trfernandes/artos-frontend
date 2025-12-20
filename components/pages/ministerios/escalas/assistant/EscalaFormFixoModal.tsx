@@ -33,12 +33,12 @@ export default function EscalaFormFixoModal({
       {...modalProps}
       title={mode === 'add' ? 'Novo Voluntário' : 'Editar Voluntário'}
       centerContainerStyle={{ gap: 12, paddingBottom: 5, paddingHorizontal: 5 }}
-      OnButton2Press={() => {
+      onButton2Press={() => {
         form.handleSubmit(
           data => {
             const isValid = validateUniqueFuncaoOnVoluntario(data);
             if (!isValid) form.setError('funcaoId', { message: 'Essa função já foi cadastrada para o usuário' });
-            else modalProps?.OnButton2Press?.(data);
+            else modalProps?.onButton2Press?.(data);
           },
           errors => {
             console.log('Erro no formulário de adição de equipe', strfyObj(errors));

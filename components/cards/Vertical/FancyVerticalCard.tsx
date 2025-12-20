@@ -33,9 +33,7 @@ export default function FancyVerticalCard({
   topLeftElement,
   topRightElement,
   additionalElement,
-
-  cardHeight, // <-- NOVA PROP
-
+  cardHeight,
   containerStyle,
   contentContainerStyle,
   topElementStyle,
@@ -43,11 +41,7 @@ export default function FancyVerticalCard({
 }: FancyVerticalCardProps) {
   return (
     <View
-      style={[
-        styles.container,
-        containerStyle,
-        cardHeight !== undefined && { height: cardHeight as DimensionValue },
-      ]}
+      style={[styles.container, containerStyle, cardHeight !== undefined && { height: cardHeight as DimensionValue }]}
     >
       {/* Camada absoluta de topo */}
       <View style={styles.topOverlay}>
@@ -69,13 +63,15 @@ export default function FancyVerticalCard({
               {title && (
                 <FancyText
                   size="extraSmall"
-                  type="semiBold"
-                  numberOfLines={2}
-                  ellipsizeMode="tail"
+                  type="bold"
+                  numberOfLines={1}
+                  ellipsizeMode="middle"
                   style={{
                     textAlign: 'center',
-                    lineHeight: EXTRA_SMALL_SIZE_FONT+3,
-                    height: (EXTRA_SMALL_SIZE_FONT * 2) + 6, // 🔥 altura exata para 2 linhas
+                    opacity: 0.8,
+                    // borderWidth: 1,
+                    lineHeight: EXTRA_SMALL_SIZE_FONT + 3,
+                    height: EXTRA_SMALL_SIZE_FONT + 2, // 🔥 altura exata para 2 linhas
                   }}
                 >
                   {title}
@@ -85,14 +81,15 @@ export default function FancyVerticalCard({
               {subtitle && (
                 <FancyText
                   size="extraSmall"
-                  type="medium"
+                  type="semiBold"
                   numberOfLines={1}
                   ellipsizeMode="tail"
                   color={Pallete.fonts.inactive}
                   style={{
-                    marginTop: 4,
+                    // marginTop: 4,
                     textAlign: 'center',
-                    lineHeight: EXTRA_SMALL_SIZE_FONT,
+                    // borderWidth: 1,
+                    lineHeight: EXTRA_SMALL_SIZE_FONT + 2,
                   }}
                 >
                   {subtitle}
@@ -144,25 +141,29 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     padding: 10,
+    gap: 6,
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    gap: '5%',
+    justifyContent: 'center',
     // borderWidth: 1,
+    borderColor: 'red',
   },
 
   centerContainer: {
-    flex: 1,
+    // flex: 1,
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
     // borderWidth: 1,
+    borderColor: 'blue',
   },
 
   bottomContainer: {
     width: '100%',
-    gap: 5,
-    justifyContent: 'center',
+    // height: '35%',
+    gap: 2,
+    justifyContent: 'flex-start',
     alignItems: 'center',
     // borderWidth: 1,
+    borderColor: 'green',
   },
 });

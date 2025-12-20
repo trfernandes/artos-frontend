@@ -1,5 +1,4 @@
 import { View } from 'react-native';
-import React from 'react';
 import { Pallete } from '../../../../../constants/colors';
 import DefaultIcons from '../../../../FancyIcons';
 import FancyPopup from '../../../../popup/FancyPopup';

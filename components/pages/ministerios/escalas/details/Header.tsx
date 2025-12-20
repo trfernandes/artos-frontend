@@ -100,7 +100,6 @@ export default function Header({
                 containerStyle={{
                   height: 30,
                   gap: 5,
-                  // flex: 1,
                   minWidth: 100,
                   backgroundColor: EscalaStatusConfig[EscalaStatusEnum.Publicada].color,
                 }}
@@ -119,7 +118,6 @@ export default function Header({
                 containerStyle={{
                   height: 30,
                   gap: 5,
-                  // flex: 1,
                   minWidth: 100,
                   backgroundColor: EscalaStatusConfig[EscalaStatusEnum.Concluida].color,
                 }}
@@ -138,7 +136,6 @@ export default function Header({
               containerStyle={{
                 minWidth: 100,
                 height: 30,
-                // flex: 1,
                 gap: 5,
                 backgroundColor: Pallete.error,
                 paddingRight: 12,

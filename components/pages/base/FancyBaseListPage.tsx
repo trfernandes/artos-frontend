@@ -13,11 +13,7 @@ export default function FancyListPage<ItemT>(props: FancyBasePageProps & FancyBa
       {...props}
       children={
         <>
-          <FancyList
-            {...props.listProps}
-            contentContainerStyle={{ flex: 1, gap: 10 }}
-            containerStyle={{ flex: 1 }}
-          />
+          <FancyList {...props.listProps} contentContainerStyle={{ gap: 10 }} containerStyle={{ flex: 1 }} bottomSpace={40} />
           {props.children}
         </>
       }
@@ -26,5 +22,5 @@ export default function FancyListPage<ItemT>(props: FancyBasePageProps & FancyBa
 }
 
 const styles = StyleSheet.create({
-  container: { paddingHorizontal: 20, paddingTop: 10, gap: 15, borderWidth: 0 },
+  container: { gap: 15, borderWidth: 0 },
 });

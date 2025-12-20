@@ -35,7 +35,7 @@ export default function LiderancaFormModal<Schema extends ZodObject>({
       modalProps={{ visible: true }}
       title={mode === 'edit' ? 'Editar Lider' : 'Novo Lider'}
       onButton1Press={onClose}
-      OnButton2Press={handleSubmit}
+      onButton2Press={handleSubmit}
     >
       <ControlledDropDown
         control={form.control}
