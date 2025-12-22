@@ -8,7 +8,6 @@ import ControlledTextArea from '../../../forms/ControlledTextArea';
 import ControlledDateInput from '../../../forms/ControlledDateInput';
 import { differenceInDays } from 'date-fns';
 import { FancyAlert } from '../../../modal/FancyAlert';
-import FancyText from '../../../FancyText';
 
 const schema = z
   .object({
@@ -76,8 +75,6 @@ export default function AddPeriodoModal({ visible, modalProps, onConfirm }: AddP
       }}
     >
       <View style={{ gap: 16 }}>
-        <FancyText>{dataInicio?.toLocaleDateString()}</FancyText>
-        <FancyText>{dataTermino?.toLocaleDateString()}</FancyText>
         <ControlledDateInput
           control={control}
           name="dataInicio"

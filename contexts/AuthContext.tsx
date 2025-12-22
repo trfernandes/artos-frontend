@@ -1,10 +1,13 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { router } from 'expo-router';
+import { ImageUtils } from '../utils/image_utils'; // ajuste
+import { AxiosError } from 'axios';
 import apiClient from '../domain/api/api-client';
-import { VoluntarioPapelEnum } from '../domain/models/Voluntario';
-import { HierarquiaEnum } from '../domain/models/MinisterioVoluntario';
 import { MinisterioTipoEnum } from '../domain/models/Ministerio';
-import { ImageUtils } from '../utils/image_utils';
+import { HierarquiaEnum } from '../domain/models/MinisterioVoluntario';
+import { VoluntarioPapelEnum } from '../domain/models/Voluntario';
 
 export interface UserMinisterio {
   id: string;
@@ -24,9 +27,7 @@ export interface UserLoginData {
 }
 
 const normalizeUserImages = (user: UserLoginData | null): UserLoginData | null => {
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   return {
     ...user,
@@ -38,12 +39,14 @@ const normalizeUserImages = (user: UserLoginData | null): UserLoginData | null =
   };
 };
 
+type SignOutReason = 'manual' | 'expired';
+
 interface AuthContextData {
   user: UserLoginData | null;
   token: string | null;
   loading: boolean;
   signIn: (email: string, senha: string) => Promise<void>;
-  signOut: () => Promise<void>;
+  signOut: (reason?: SignOutReason) => Promise<void>;
   forgotPassword: (email: string) => Promise<boolean>;
   updateUser: (newUserData: Partial<UserLoginData>) => Promise<void>;
   changePassword: (senhaAtual: string, novaSenha: string) => Promise<boolean>;
@@ -52,10 +55,18 @@ interface AuthContextData {
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+type AuthProviderProps = {
+  children: React.ReactNode;
+};
+
+export function AuthProvider({ children }: AuthProviderProps) {
+  const queryClient = useQueryClient();
+
   const [user, setUser] = useState<UserLoginData | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const isSigningOutRef = useRef(false);
 
   useEffect(() => {
     const loadStorage = async () => {
@@ -81,32 +92,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loadStorage();
   }, []);
 
-  // useEffect(() => {
-  //   if (user) {
-  //     console.log('Usuario Logado');
-  //     registerForPushNotificationsAsync(user?.id!).catch(error =>
-  //       console.log('erro ao registrar para notificações:', strfyObj(error))
-  //     );
-  //   } else {
-  //     console.log('Usuario não logado');
-  //   }
-  // }, [user]);
+  // Interceptor global para 401 (sessão expirada)
+  useEffect(() => {
+    const interceptorId = apiClient.interceptors.response.use(
+      (res: any) => res,
+      async (error: AxiosError) => {
+        const status = error?.response?.status;
 
-  // Login
+        if (status === 401 && !isSigningOutRef.current) {
+          await signOut('expired');
+        }
+
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      apiClient.interceptors.response.eject(interceptorId);
+    };
+  }, []);
+
   const signIn = async (email: string, senha: string) => {
     const response = await apiClient.post('/auth/login', { email, senha });
 
-    const token = response.data?.data?.access_token;
-    if (!token) throw new Error('Token não retornado pelo servidor');
+    const newToken = response.data?.data?.access_token;
+    if (!newToken) throw new Error('Token não retornado pelo servidor');
 
-    setToken(token);
-    apiClient.defaults.headers.Authorization = `Bearer ${token}`;
-    await AsyncStorage.setItem('token', token);
+    setToken(newToken);
+    apiClient.defaults.headers.Authorization = `Bearer ${newToken}`;
+    await AsyncStorage.setItem('token', newToken);
 
     const userResponse = response.data?.data?.user;
     if (!userResponse) throw new Error('Dados de Usuario nao retornado pelo servidor');
+
     const normalizedUser = normalizeUserImages(userResponse);
     setUser(normalizedUser);
+
     if (normalizedUser) {
       await AsyncStorage.setItem('user', JSON.stringify(normalizedUser));
     } else {
@@ -114,14 +135,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Logout
-  const signOut = async () => {
-    setToken(null);
-    setUser(null);
-    delete apiClient.defaults.headers.Authorization;
+  const signOut = async (reason: SignOutReason = 'manual') => {
+    if (isSigningOutRef.current) return;
+    isSigningOutRef.current = true;
 
-    await AsyncStorage.removeItem('token');
-    await AsyncStorage.removeItem('user');
+    try {
+      setToken(null);
+      setUser(null);
+
+      delete apiClient.defaults.headers.Authorization;
+
+      await AsyncStorage.removeItem('token');
+      await AsyncStorage.removeItem('user');
+
+      queryClient.clear();
+
+      router.replace('/(auth)');
+
+      // se quiser avisar:
+      // if (reason === 'expired') {
+      //   Toast.show({ type: 'info', text1: 'Sessão expirada. Faça login novamente.' });
+      // }
+    } finally {
+      isSigningOutRef.current = false;
+    }
   };
 
   const forgotPassword = async (email: string) => {
@@ -132,7 +169,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateUser = async (newUserData: Partial<UserLoginData>) => {
     const mergedUser = user ? { ...user, ...newUserData } : (newUserData as UserLoginData);
     const normalizedUser = normalizeUserImages(mergedUser)!;
+
     setUser(normalizedUser);
+
     if (normalizedUser) {
       await AsyncStorage.setItem('user', JSON.stringify(normalizedUser));
     } else {
@@ -141,26 +180,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const changePassword = async (senhaAtual: string, novaSenha: string) => {
-    await apiClient.put('/auth/change-password', {
-      senhaAtual,
-      novaSenha,
-    });
+    await apiClient.put('/auth/change-password', { senhaAtual, novaSenha });
     return true;
   };
 
   const deleteAccount = async () => {
     await apiClient.delete('/auth/delete-account');
-    await signOut();
+    await signOut('manual');
     return true;
   };
 
-  return (
-    <AuthContext.Provider
-      value={{ user, token, loading, signIn, signOut, forgotPassword, updateUser, changePassword, deleteAccount }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({
+      user,
+      token,
+      loading,
+      signIn,
+      signOut,
+      forgotPassword,
+      updateUser,
+      changePassword,
+      deleteAccount,
+    }),
+    [user, token, loading]
   );
-};
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
 
 export const useAuth = () => useContext(AuthContext);

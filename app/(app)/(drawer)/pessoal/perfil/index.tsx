@@ -53,7 +53,7 @@ export default function PerfilIndexPage() {
 }
 
 const styles = StyleSheet.create({
-  container: { paddingTop: 10 },
+  container: { paddingTop: 0 },
   footer: {
     padding: 20,
     borderTopWidth: StyleSheet.hairlineWidth,

@@ -7,7 +7,7 @@ import DateAvailabilityAdjustmentModal from '../../../../../components/pages/pes
 import { useIndisponibilidadesVoluntariosCrud } from '../../../../../hooks/useIndisponibilidadesVoluntariosCrud';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { Conjunction, Operator, ValueType } from '../../../../../domain/utils/query_utils';
-import { IndisponibilidadeVoluntario } from '../../../../../domain/models/IndisponibilidadeVoluntario';
+import { IndisponibilidadeVoluntario, UpsertIndisponibilidadeVoluntarioItem } from '../../../../../domain/models/IndisponibilidadeVoluntario';
 import Toast from 'react-native-toast-message';
 import { Pallete } from '../../../../../constants/colors';
 import FancyFab from '../../../../../components/buttons/FancyFab';
@@ -28,7 +28,6 @@ export default function IndisponibilidadeIndexPage() {
 
   const [modalState, setModalState] = useState<ModalState>({ visible: false, status: 'available' });
   const [showPeriodoModal, setShowPeriodoModal] = useState(false);
-  // ✅ estado para saber se a UI já "assentou" depois do loading
   const [hasSettled, setHasSettled] = useState(false);
 
   if (!userId) {
@@ -42,10 +41,10 @@ export default function IndisponibilidadeIndexPage() {
   const { queryStartDate, queryEndDate, calendarStartDate, calendarEndDate } = useMemo(() => {
     const now = new Date();
 
-    const qStart = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()); // 1 mês antes
-    const qEnd = new Date(now.getFullYear(), now.getMonth() + 2, now.getDate()); // +2 meses
+    const qStart = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+    const qEnd = new Date(now.getFullYear(), now.getMonth() + 2, now.getDate());
 
-    const cStart = new Date(now.getFullYear(), now.getMonth(), 1); // mês ATUAL, dia 1
+    const cStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const cEnd = new Date(qEnd);
 
     qStart.setHours(0, 0, 0, 0);
@@ -79,15 +78,18 @@ export default function IndisponibilidadeIndexPage() {
             operator: Operator.EQUALS,
             value: { type: ValueType.LITERAL, value: userId },
           },
+
+          // ⚠️ Se o backend compara timestamp, ok usar ISO.
+          // Se a coluna for DATE (recomendado), troque para dayKey(queryStartDate) e dayKey(queryEndDate).
           {
             path: 'data',
             operator: Operator.GTE,
-            value: { type: ValueType.LITERAL, value: queryStartDate.toDateString() },
+            value: { type: ValueType.LITERAL, value: queryStartDate.toISOString() },
           },
           {
             path: 'data',
             operator: Operator.LTE,
-            value: { type: ValueType.LITERAL, value: queryEndDate.toDateString() },
+            value: { type: ValueType.LITERAL, value: queryEndDate.toISOString() },
           },
         ],
         conjunction: Conjunction.AND,
@@ -114,7 +116,7 @@ export default function IndisponibilidadeIndexPage() {
 
   const isBusy = loadingFlags || !hasSettled;
 
-  //TOASTS
+  // TOASTS
   const [lazyToastOptions, setLazyToastOptions] = useState<{
     message: string;
     type: 'success' | 'error' | 'info';
@@ -127,15 +129,21 @@ export default function IndisponibilidadeIndexPage() {
       setLazyToastOptions(null);
     }
   }, [isBusy, lazyToastOptions]);
-  //END TOASTS
+  // END TOASTS
 
+  // ✅ marcações: normalize por dia no fuso
   const markedDates = useMemo(
     () =>
-      data.map(d => ({
-        date: new Date(d.data),
-        T: d.id,
-        color: Pallete.error,
-      })),
+      data.map(d => {
+        const raw = new Date(d.data as any); // garante Date mesmo se vier string
+        const localDay = DateUtils.normalizeLocalDay(raw);
+
+        return {
+          date: localDay,
+          T: d.id,
+          color: Pallete.error,
+        };
+      }),
     [data]
   );
 
@@ -145,18 +153,19 @@ export default function IndisponibilidadeIndexPage() {
     try {
       const datesBetweenPeriod = DateUtils.generateDatesBetween(inicio, fim);
 
-      const indisponibilidades = datesBetweenPeriod.map(d => {
-        const normalizedDate = new Date(d);
-        normalizedDate.setHours(0, 0, 0, 0);
+      const indisponibilidades: UpsertIndisponibilidadeVoluntarioItem[] = datesBetweenPeriod.map(d => {
+        // ✅ sempre "dia local" -> converte para UTC antes de enviar
+        const utcDate = DateUtils.localDayToUtcDate(d);
+
         return {
-          data: normalizedDate.toDateString(),
+          data: utcDate.toISOString(), // converte para string ISO
           motivo: motivo?.trim() || undefined,
         };
       });
 
       await upsertMany({
         voluntarioId: userId,
-        indisponibilidades: indisponibilidades,
+        indisponibilidades,
       });
 
       setLazyToastOptions({ type: 'info', message: 'Período registrado com sucesso', show: true });
@@ -169,24 +178,27 @@ export default function IndisponibilidadeIndexPage() {
   const closeModal = () => setModalState(prev => ({ ...prev, visible: false }));
 
   const handleConfirm = async (mode: 'mark' | 'unmark', date: Date, motivo?: string) => {
-    const normalizedDate = new Date(date);
-    normalizedDate.setHours(0, 0, 0, 0);
+    // ✅ normalize seleção
+    const selectedLocalDay = DateUtils.normalizeLocalDay(date);
 
-    const registro = data.find(d => DateUtils.equal(new Date(d.data), normalizedDate));
+    // ✅ achar registro por chave do dia
+    const registro = data.find(d => DateUtils.sameDay(new Date(d.data as any), selectedLocalDay));
 
     closeModal();
 
     try {
       if (mode === 'mark') {
+        const utcDateToSave = DateUtils.localDayToUtcDate(selectedLocalDay);
+
         if (registro?.id) {
           await updateData({
             id: registro.id,
-            data: { data: normalizedDate, motivo: motivo ?? null } as IndisponibilidadeVoluntario,
+            data: { data: utcDateToSave, motivo: motivo ?? null } as IndisponibilidadeVoluntario,
           });
           setLazyToastOptions({ type: 'success', message: 'Motivo atualizado com sucesso!', show: true });
         } else {
           await addData({
-            data: normalizedDate,
+            data: utcDateToSave,
             voluntarioId: userId,
             motivo,
           } as IndisponibilidadeVoluntario);
@@ -213,14 +225,15 @@ export default function IndisponibilidadeIndexPage() {
           endDate={calendarEndDate}
           markedDates={markedDates}
           onSelectDate={({ date }) => {
-            const normalizedDate = new Date(date);
-            normalizedDate.setHours(0, 0, 0, 0);
+            // ✅ normalize clique
+            const selectedLocalDay = DateUtils.normalizeLocalDay(new Date(date));
 
-            const registro = data.find(d => DateUtils.equal(new Date(d.data), normalizedDate));
+            // ✅ achar registro por chave do dia (sem bug de fuso)
+            const registro = data.find(d => DateUtils.sameDay(new Date(d.data as any), selectedLocalDay));
 
             setModalState({
               visible: true,
-              date: normalizedDate,
+              date: selectedLocalDay,
               status: registro ? 'unavailable' : 'available',
               motivo: registro?.motivo ?? null,
             });

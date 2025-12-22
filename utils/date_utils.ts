@@ -1,3 +1,6 @@
+import { startOfDay } from 'date-fns';
+import { formatInTimeZone, fromZonedTime, toZonedTime } from 'date-fns-tz';
+
 const DateUtils = {
   getMonthName(monthIndex: number): string {
     const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -70,7 +73,23 @@ const DateUtils = {
   equal(a?: Date, b?: Date) {
     if (!a || !b) return false;
     return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-  }, 
+  },
+  normalizeLocalDay(date: Date): Date {
+    const zoned = toZonedTime(date, APP_TZ); // UTC -> TZ (ou interpreta date como instante e "vê" na TZ)
+    return startOfDay(zoned);
+  },
+  localDayToUtcDate(date: Date): Date {
+    const localDay = this.normalizeLocalDay(date);
+    return fromZonedTime(localDay, APP_TZ); // TZ -> UTC
+  },
+  dayKey(date: Date): string {
+    return formatInTimeZone(date, APP_TZ, 'yyyy-MM-dd');
+  },
+  sameDay(a: Date, b: Date): boolean {
+    return this.dayKey(a) === this.dayKey(b);
+  },
 };
+
+export const APP_TZ = 'America/Sao_Paulo';
 
 export default DateUtils;

@@ -91,9 +91,7 @@ export default function LoginIndexPage() {
           </View>
         )}
 
-        <View
-          style={[styles.centerContainer, keyboardVisible ? { position: 'relative', flex: 1 } : { position: 'absolute' }]}
-        >
+        <View style={[styles.centerContainer, keyboardVisible ? { position: 'relative', flex: 1 } : { position: 'absolute' }]}>
           <View style={[styles.titleContainer, keyboardVisible ? { width: '100%' } : { width: '80%' }]}>
             <FancyText size={'extraLarge'} type="semiBold" color="white" style={{ fontSize: 17 }}>
               Bem-vindo de Volta!
@@ -103,17 +101,18 @@ export default function LoginIndexPage() {
             </FancyText>
           </View>
           <View style={[styles.fieldsContainer, keyboardVisible ? { width: '100%' } : { width: '80%' }]}>
-            <FancyTextInput label="E-mail" value={email} inputProps={{ onChangeText: setEmail }} />
-            <FancyPasswordInput label="Senha" value={password} inputProps={{ onChangeText: setPassword }} />
+            <FancyTextInput label="E-mail" value={email} inputProps={{ onChangeText: setEmail }} readonly={loading} disabled={loading} />
+            <FancyPasswordInput label="Senha" value={password} inputProps={{ onChangeText: setPassword }} readonly={loading} disabled={loading} />
 
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <FancyCheckbox label="Lembrar-se" value={rememberMe} onChangeValue={setRememberMe} />
+              <FancyCheckbox label="Lembrar-se" value={rememberMe} onChangeValue={setRememberMe} disabled={loading} />
               <FancyButton
                 type="text"
                 label="Esqueceu sua senha?"
                 onPress={() => router.push('forgot-password')}
                 labelStyle={{ fontSize: EXTRA_SMALL_SIZE_FONT }}
                 containerStyle={{ borderWidth: 0, height: 30, alignItems: 'center' }}
+                disabled={loading}
               />
             </View>
 
@@ -127,6 +126,7 @@ export default function LoginIndexPage() {
                 onPress={() => router.push('create-account')}
                 labelStyle={{ lineHeight: 14 }}
                 containerStyle={{ height: 20, alignItems: 'center' }}
+                disabled={loading}
               />
             </View>
           </View>

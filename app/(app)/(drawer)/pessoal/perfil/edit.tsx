@@ -13,6 +13,7 @@ import FancyVerticalSpacer from '../../../../../components/FancyVerticalSpacer';
 import ControlledDateInput from '../../../../../components/forms/ControlledDateInput';
 import FancyLoading from '../../../../../components/FancyLoading';
 import { ControlledImagePicker } from '../../../../../components/forms/ControlledImagePicker';
+import FancyScrollView from '../../../../../components/FancyScrollView';
 
 export default function EditProfilePage() {
   const { user, updateUser } = useAuth();
@@ -66,25 +67,27 @@ export default function EditProfilePage() {
 
   return (
     <FancyBasePage showFab={false} showSearchBar={false}>
-      <ControlledImagePicker
-        control={form.control}
-        name="foto"
-        setValue={form.setValue as (name: string, value: any) => void}
-        uploadFieldName="uploadFoto"
-      />
-      <ControlledTextInput name="nome" control={form.control} label="Nome" />
-      <ControlledTextInput name="email" control={form.control} label="E-mail" disabled />
-      <ControlledDateInput name="dataNascimento" control={form.control} label="Data de Nascimento" />
-      <ControlledTextInput name="endereco" control={form.control} label="Endereço" />
-      <ControlledTextInput name="telefone" control={form.control} label="Telefone" />
-      <ControlledToggle
-        name="sexo"
-        control={form.control}
-        label="Sexo"
-        option1={{ title: 'Masculino', value: 'M' }}
-        option2={{ title: 'Feminino', value: 'F' }}
-      />
-      <FancyVerticalSpacer height={10} />
+      <FancyScrollView contentContainerStyle={{ gap: 15 }}>
+        <ControlledImagePicker
+          control={form.control}
+          name="foto"
+          setValue={form.setValue as (name: string, value: any) => void}
+          uploadFieldName="uploadFoto"
+        />
+        <ControlledTextInput name="nome" control={form.control} label="Nome" />
+        <ControlledTextInput name="email" control={form.control} label="E-mail" disabled />
+        <ControlledDateInput name="dataNascimento" control={form.control} label="Data de Nascimento" />
+        <ControlledTextInput name="endereco" control={form.control} label="Endereço" />
+        <ControlledTextInput name="telefone" control={form.control} label="Telefone" />
+        <ControlledToggle
+          name="sexo"
+          control={form.control}
+          label="Sexo"
+          option1={{ title: 'Masculino', value: 'M' }}
+          option2={{ title: 'Feminino', value: 'F' }}
+        />
+        <FancyVerticalSpacer height={10} />
+      </FancyScrollView>
       <FancyButton
         label={isLoadingMutation ? 'Salvando...' : 'Salvar'}
         disabled={isLoadingMutation}

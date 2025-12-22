@@ -1,14 +1,18 @@
 import { SplashScreen, Stack } from 'expo-router';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { useFonts } from 'expo-font';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 import { toastConfig } from '../utils/toast_config';
 import { FancyAlertConnector, FancyAlertProvider } from '../components/modal/FancyAlert';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { registerForPushNotificationsAsync } from '../services/notifications';
 import { NotificationsManager } from '../components/Notification_manager';
 import * as Sentry from '@sentry/react-native';
+import { ConnectivityProvider } from '../core/network/connectivity/ConnectivityProvider';
+import { createQueryClient } from '../core/react-query/queryClient';
+import { ConnectivityBanner } from '../components/FancyConnectivityBanner';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 Sentry.init({
   dsn: 'https://b65799084d172913463973ef37b937b0@o4510567624409088.ingest.us.sentry.io/4510567678279680',
@@ -32,14 +36,19 @@ Sentry.init({
 SplashScreen.preventAutoHideAsync();
 
 export default Sentry.wrap(function RootLayout() {
-  const queryClient = new QueryClient();
+  console.log('App started');
+  const [queryClient] = useState(() => createQueryClient());
 
   return (
-    <AuthProvider>
+    <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
-        <RootLayoutNav />
+        <AuthProvider>
+          <ConnectivityProvider>
+            <RootLayoutNav />
+          </ConnectivityProvider>
+        </AuthProvider>
       </QueryClientProvider>
-    </AuthProvider>
+    </SafeAreaProvider>
   );
 });
 
@@ -94,6 +103,7 @@ function RootLayoutNav() {
       </Stack>
       <Toast config={toastConfig} position="bottom" visibilityTime={4000} />
       <FancyAlertConnector />
+      <ConnectivityBanner />
     </FancyAlertProvider>
   );
 }

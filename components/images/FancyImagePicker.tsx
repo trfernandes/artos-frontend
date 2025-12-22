@@ -68,9 +68,8 @@ export default function FancyImagePicker({ value, size = 120, disabled, onChange
       </View>
       <View style={styles.buttonsContainer}>
         <FancyButton
-          icon={{ library: 'Entypo', name: 'images', size: 18 }}
-          containerStyle={{ minWidth: 26, minHeight: 26, width: 35, height: 35 }}
-          iconStyle={{ marginLeft: -1, marginTop: 0 }}
+          icon={{ library: 'Entypo', name: 'images', size: 15 }}
+          containerStyle={{ minWidth: 26, minHeight: 26, width: 35, height: 35, padding: 0, paddingHorizontal: 0 }}
           onPress={pickImage}
           disabled={disabled}
         />
@@ -79,12 +78,13 @@ export default function FancyImagePicker({ value, size = 120, disabled, onChange
             library: 'MaterialCommunityIcons',
             name: 'image-remove',
             color: !value && !disabled ? Pallete.icons.light : Pallete.icons.inactive,
-            size: 18,
+            size: 15,
           }}
-          iconStyle={{ marginLeft: -1, marginTop: -1 }}
+          iconStyle={{}}
           disabled={!value || disabled}
           containerStyle={[
             {
+              paddingHorizontal: 0,
               minWidth: 26,
               minHeight: 26,
               width: 35,

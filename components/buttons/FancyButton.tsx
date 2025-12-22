@@ -44,13 +44,7 @@ export default function FancyButton({
   const minWidth = resolveMinWidth(props.size);
 
   const parameters =
-    type === 'contained'
-      ? containedParameters
-      : type === 'outlined'
-      ? outlinedParameters
-      : type === 'text'
-      ? textParameters
-      : lightParameters;
+    type === 'contained' ? containedParameters : type === 'outlined' ? outlinedParameters : type === 'text' ? textParameters : lightParameters;
 
   const {
     style: labelPropsStyle,
@@ -103,16 +97,11 @@ export default function FancyButton({
         <FancyText
           {...restLabelProps}
           type={restLabelProps.type ?? 'semiBold'}
-          size={'small'}
+          size={props.labelProps?.size ?? 'small'}
           numberOfLines={numberOfLines}
           // adjustsFontSizeToFit={adjustsFontSizeToFit}
           minimumFontScale={minimumFontScale}
-          style={[
-            { textAlign: 'center' },
-            disabled ? parameters.disabledTextStyle : parameters.textStyle,
-            props.labelStyle,
-            labelPropsStyle,
-          ]}
+          style={[{ textAlign: 'center' }, disabled ? parameters.disabledTextStyle : parameters.textStyle, props.labelStyle, labelPropsStyle]}
           {...textProps}
         >
           {props.label}

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { triggerUnauthorized } from '../../core/network/authBridge';
 
 const apiClient = axios.create({
   baseURL: process.env.EXPO_PUBLIC_API_URL,
@@ -18,5 +19,23 @@ apiClient.interceptors.request.use(async config => {
   }
   return config;
 });
+
+let isHandling401 = false;
+
+apiClient.interceptors.response.use(
+  res => res,
+  async error => {
+    const status = error?.response?.status;
+    if (status === 401 && !isHandling401) {
+      isHandling401 = true;
+      try {
+        triggerUnauthorized('expired');
+      } finally {
+        setTimeout(() => (isHandling401 = false), 500);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default apiClient;
