@@ -2,35 +2,37 @@ import apiClient from '../api/api-client';
 import { apiName, MinisterioVoluntarioFuncoesApi } from '../api/MinisterioVoluntarioFuncoesApi';
 import { EscalaTemplateExperienciaEnum } from '../models/EscalaTemplate';
 import {
-  MinisterioVoluntarioFuncao,
+  MinisterioVoluntarioFuncaoApiModel,
+  MinisterioVoluntarioFuncaoModel,
+  MinisterioVoluntarioFuncaoSerializer,
   MinisterioVoluntarioFuncaoStatusEnum,
 } from '../models/MinisterioVoluntarioFuncao';
 import { BaseRepository } from './BaseRepository';
 
 export interface UpdateFuncaoDataDto {
-    funcaoId: string;
-    status: MinisterioVoluntarioFuncaoStatusEnum;
-    experiencia: EscalaTemplateExperienciaEnum;
-  }
+  funcaoId: string;
+  status: MinisterioVoluntarioFuncaoStatusEnum;
+  experiencia: EscalaTemplateExperienciaEnum;
+}
 
 export interface UpdateFuncoesDataDto {
   funcoes: UpdateFuncaoDataDto[];
 }
 
-class MinisterioVoluntarioFuncoesRepositoryClass extends BaseRepository<MinisterioVoluntarioFuncao> {
+class MinisterioVoluntarioFuncoesRepositoryClass extends BaseRepository<
+  MinisterioVoluntarioFuncaoModel,
+  MinisterioVoluntarioFuncaoApiModel
+> {
   constructor() {
-    super(MinisterioVoluntarioFuncoesApi);
+    super(MinisterioVoluntarioFuncoesApi, {
+      fromApi: MinisterioVoluntarioFuncaoSerializer.fromApi,
+      toApi: MinisterioVoluntarioFuncaoSerializer.toApi,
+    });
   }
 
-  async updateFuncoes(
-    ministerioVoluntarioId: string,
-    data: UpdateFuncoesDataDto
-  ): Promise<MinisterioVoluntarioFuncao[]> {
+  async updateFuncoes(ministerioVoluntarioId: string, data: UpdateFuncoesDataDto): Promise<MinisterioVoluntarioFuncaoModel[]> {
     try {
-      const response = await apiClient.put(
-        `/${apiName}/voluntarios/${ministerioVoluntarioId}/funcoes`,
-        data
-      );
+      const response = await apiClient.put(`/${apiName}/voluntarios/${ministerioVoluntarioId}/funcoes`, data);
       return response.data.data;
     } catch (error) {
       console.log(`Erro ao atualizar as funções ${apiName} ${ministerioVoluntarioId}:`, error);
@@ -39,5 +41,4 @@ class MinisterioVoluntarioFuncoesRepositoryClass extends BaseRepository<Minister
   }
 }
 
-export const MinisterioVoluntarioFuncoesRepository =
-  new MinisterioVoluntarioFuncoesRepositoryClass();
+export const MinisterioVoluntarioFuncoesRepository = new MinisterioVoluntarioFuncoesRepositoryClass();

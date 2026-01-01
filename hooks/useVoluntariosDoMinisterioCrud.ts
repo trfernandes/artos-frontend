@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { DropDownItemProps } from '../components/fields/FancyDropDownItem';
-import { Voluntario } from '../domain/models/Voluntario';
+import { VoluntarioModel } from '../domain/models/Voluntario';
 import { Operator, ValueType, DynamicQuery, OrderDirection } from '../domain/utils/query_utils';
 import { useMinisterioVoluntariosCrud } from './useMinisterioVoluntariosCrud';
 import { MinisterioVoluntarioStatusEnum } from '../domain/models/MinisterioVoluntario';
@@ -48,9 +48,9 @@ export function useVoluntariosDoMinisterioCrud(
     })) as DropDownItemProps<string>[];
   }, [ministerioVoluntariosList, ministerioId]);
 
-  const voluntariosList = useMemo((): Voluntario[] => {
+  const voluntariosList = useMemo((): VoluntarioModel[] => {
     if (!ministerioVoluntariosList) return [];
-    return ministerioVoluntariosList.map(mv => mv.voluntario) as Voluntario[];
+    return ministerioVoluntariosList.map(mv => mv.voluntario) as VoluntarioModel[];
   }, [ministerioVoluntariosList]);
 
   const voluntariosDropDownList = useMemo(() => {

@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { Notificacao } from '../../../domain/models/Notificacao';
+import { NotificacaoModel } from '../../../domain/models/Notificacao';
 import FancyCardIcon from '../../cards/Horizontal/FancyCardIcon';
 import FancyText from '../../FancyText';
 import { format } from 'date-fns';
@@ -7,7 +7,7 @@ import { Pallete } from '../../../constants/colors';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { DefaultIconsNames } from '../../../constants/icons';
 
-export default function EscalaLembreteNotificacaoCard({ data }: { data: Notificacao }) {
+export default function EscalaLembreteNotificacaoCard({ data }: { data: NotificacaoModel }) {
   return (
     <FancyCardIcon
       cardIcon={{ library: 'MaterialCommunityIcons', name: 'message-text-clock-outline', size: 18 }}

@@ -4,11 +4,11 @@ import FancyTabs, { TabItem } from '../../../../tabs/FancyTabs';
 import EscalaEventoEquipeTab from './EscalaEventoEquipeTab';
 import FancyPageView from '../../../../containers/FancyPageView';
 import { useMemo } from 'react';
-import { Evento } from '../../../../../domain/models/Evento';
+import { EventoModel } from '../../../../../domain/models/Evento';
 import { Pallete } from '../../../../../constants/colors';
 import EventoInfoCard from '../../../common/EventoInfoCard';
 
-export default function EventoDetails(props: { evento: Evento; dataOcorrencia: Date }) {
+export default function EventoDetails(props: { evento: EventoModel; dataOcorrencia: Date }) {
   const TABS_DATA: TabItem[] = useMemo(
     () => [
       {

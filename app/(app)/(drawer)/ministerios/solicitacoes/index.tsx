@@ -35,42 +35,44 @@ export default function MinisterioSolicitacoesIndex() {
       listProps={{
         data: DATA,
         renderItem: ({ item }) => (
-          <FancyCard.Icon
-            title={
-              <View style={{ gap: 3, paddingBottom: 5 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                  <FancyText size={'small'} type="medium">
-                    De:
-                  </FancyText>
-                  <FancyText size={'small'} type="semiBold">
-                    {item.solicitante}
-                  </FancyText>
+          <FancyCard.Image
+            type="icon"
+            props={{
+              title: (
+                <View style={{ gap: 3, paddingBottom: 5 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                    <FancyText size={'small'} type="medium">
+                      De:
+                    </FancyText>
+                    <FancyText size={'small'} type="semiBold">
+                      {item.solicitante}
+                    </FancyText>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                    <FancyText size={'small'} type="medium">
+                      Para:
+                    </FancyText>
+                    <FancyText size={'small'} type="semiBold">
+                      {item.substituo}
+                    </FancyText>
+                  </View>
                 </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                  <FancyText size={'small'} type="medium">
-                    Para:
-                  </FancyText>
-                  <FancyText size={'small'} type="semiBold">
-                    {item.substituo}
-                  </FancyText>
-                </View>
-              </View>
-            }
-            cardIcon={{
-              ...DefaultIconsNames.refresh,
-              size: 15,
-            }}
-            subtitle={`${item.evento.dataFim.toLocaleDateString()} - ${item.evento.dataFim.toLocaleDateString()}`}
-            additionalData1={`${item.evento.nome}`}
-            additionalData2={`${item.funcao}`}
-            actionButtons={[
-      
-              {
-                icon: { ...DefaultIconsNames.confirm, size: 18 },
-                onPress: () => setVisualizarModal(true),
+              ),
+              cardIcon: {
+                ...DefaultIconsNames.refresh,
+                size: 15,
               },
-              { icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error }, onPress: () => {} },
-            ]}
+              subtitle: `${item.evento.dataFim.toLocaleDateString()} - ${item.evento.dataFim.toLocaleDateString()}`,
+              additionalData1: `${item.evento.nome}`,
+              additionalData2: `${item.funcao}`,
+              actionButtons: [
+                {
+                  icon: { ...DefaultIconsNames.confirm, size: 18 },
+                  onPress: () => setVisualizarModal(true),
+                },
+                { icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error }, onPress: () => {} },
+              ],
+            }}
           />
         ),
       }}

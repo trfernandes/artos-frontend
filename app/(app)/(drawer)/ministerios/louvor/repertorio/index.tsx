@@ -11,20 +11,23 @@ export default function MinisterioLouvorRepertorioIndexPage() {
       listProps={{
         data: MUSIC_LIST,
         renderItem: ({ item }) => (
-          <FancyCard.Icon
-            title={item.nome}
-            subtitle={item.artista}
-            additionalData1={item.categoria}
-            cardIcon={{ library: 'MaterialIcons', name: 'queue-music', size: 20 }}
-            actionButtons={[
-              {
-                icon: { ...DefaultIconsNames.edit, size: 18 },
-                onPress: () => {
-                  router.push('ministerios/louvor/repertorio/edit');
+          <FancyCard.Image
+            type="icon"
+            props={{
+              title: item.nome,
+              subtitle: item.artista,
+              additionalData1: item.categoria,
+              cardIcon: { library: 'MaterialIcons', name: 'queue-music', size: 20 },
+              actionButtons: [
+                {
+                  icon: { ...DefaultIconsNames.edit, size: 18 },
+                  onPress: () => {
+                    router.push('ministerios/louvor/repertorio/edit');
+                  },
                 },
-              },
-              { icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error }, onPress: () => {} },
-            ]}
+                { icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error }, onPress: () => {} },
+              ],
+            }}
           />
         ),
       }}

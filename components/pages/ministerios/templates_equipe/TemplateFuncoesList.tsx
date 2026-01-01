@@ -2,14 +2,14 @@ import { useCallback, useState } from 'react';
 import { FormProvider, useFieldArray, useForm, useFormContext } from 'react-hook-form';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import {
-  EscalaTemplateExperienciaEnum,
-  EscalaTemplateExperienciaLabel,
-  EscalaTemplateFuncao,
+    EscalaTemplateExperienciaEnum,
+    EscalaTemplateExperienciaLabel,
+    EscalaTemplateFuncaoModel,
 } from '../../../../domain/models/EscalaTemplate';
 import {
-  EscalaTemplateFormData,
-  EscalaTemplateFuncaoFormData,
-  escalaTemplateFuncaoSchema,
+    EscalaTemplateFormData,
+    EscalaTemplateFuncaoFormData,
+    escalaTemplateFuncaoSchema,
 } from '../../../../domain/schemas/escalaTemplateSchema';
 import FancyContainerList from '../../../container_list/FancyContainerList';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -154,7 +154,7 @@ export default function TemplateFuncoesList({
         // virtualized={false}
         contentContainerStyle={{ paddingTop: 6 }}
         disabled={disabled}
-        renderItem={({ item, index }: { item: EscalaTemplateFuncao; index: number }) => {
+        renderItem={({ item, index }: { item: EscalaTemplateFuncaoModel; index: number }) => {
           const matchedOption = funcoesList.find(option => option.value === item.funcaoId);
           const funcaoNome = matchedOption?.title || item.funcao?.nome || 'Fun��o n�o encontrada';
           const experienciaLabel = EscalaTemplateExperienciaLabel[item.experiencia];

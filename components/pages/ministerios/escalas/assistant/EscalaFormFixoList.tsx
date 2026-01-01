@@ -1,7 +1,7 @@
 import { FieldArrayWithId, useFieldArray, useFormContext } from 'react-hook-form';
 import {
-  EscalaEventoTemplateFixoFormData,
-  EscalaEventoTemplateFormData,
+    EscalaEventoTemplateFixoFormData,
+    EscalaEventoTemplateFormData,
 } from '../../../../../domain/schemas/escalaSchema';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import React, { useCallback, useMemo, useState } from 'react';
@@ -10,15 +10,15 @@ import FancyContainerList from '../../../../container_list/FancyContainerList';
 import { FancyCard } from '../../../../cards/Horizontal/FancyCard';
 import { Pallete } from '../../../../../constants/colors';
 import { FancyAlert } from '../../../../modal/FancyAlert';
-import { MinisterioFuncao } from '../../../../../domain/models/MinisterioFuncao';
+import { MinisterioFuncaoModel } from '../../../../../domain/models/MinisterioFuncao';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
-import { MinisterioVoluntario } from '../../../../../domain/models/MinisterioVoluntario';
+import { MinisterioVoluntarioModel } from '../../../../../domain/models/MinisterioVoluntario';
 
 interface EscalaFormFixoListProps {
-  funcoesList: MinisterioFuncao[];
+  funcoesList: MinisterioFuncaoModel[];
   funcoesDropDownList: DropDownItemProps<string>[];
   ministerioVoluntariosDropDownList: DropDownItemProps<string>[];
-  ministerioVoluntariosList: MinisterioVoluntario[];
+  ministerioVoluntariosList: MinisterioVoluntarioModel[];
 }
 
 export const EscalaFormFixoList = React.memo(function EscalaFormFixoList({

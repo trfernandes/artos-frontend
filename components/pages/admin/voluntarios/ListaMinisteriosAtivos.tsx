@@ -1,7 +1,7 @@
 import { format } from 'date-fns';
 import { Pallete } from '../../../../constants/colors';
 import { DefaultIconsNames } from '../../../../constants/icons';
-import { HierarquiaEnumLabel, MinisterioVoluntario } from '../../../../domain/models/MinisterioVoluntario';
+import { HierarquiaEnumLabel, MinisterioVoluntarioModel } from '../../../../domain/models/MinisterioVoluntario';
 import { FancyCardImageBaseProps, FancyCard } from '../../../cards/Horizontal/FancyCard';
 import FancyList from '../../../list/FancyList';
 import { View } from 'react-native';
@@ -12,9 +12,9 @@ export default function ListaMinisteriosAtivos({
   mode = 'edit',
   ...props
 }: {
-  ministerios: MinisterioVoluntario[];
-  onEditButtonPress: (ministerioVoluntario: MinisterioVoluntario) => void;
-  onDisableButtonPress: (ministerioVoluntario: MinisterioVoluntario) => void;
+  ministerios: MinisterioVoluntarioModel[];
+  onEditButtonPress: (ministerioVoluntario: MinisterioVoluntarioModel) => void;
+  onDisableButtonPress: (ministerioVoluntario: MinisterioVoluntarioModel) => void;
   mode?: 'view' | 'edit';
 }) {
   return (

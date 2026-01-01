@@ -1,10 +1,20 @@
 import { MinisterioVoluntarioPermissoesApi } from '../api/MinisterioVoluntarioPermissoesApi';
-import { MinisterioVoluntarioPermissao } from '../models/MinisterioVoluntarioPermissao';
+import {
+  MinisterioVoluntarioPermissaoApiModel,
+  MinisterioVoluntarioPermissaoModel,
+  MinisterioVoluntarioPermissaoSerializer,
+} from '../models/MinisterioVoluntarioPermissao';
 import { BaseRepository } from './BaseRepository';
 
-class MinisterioVoluntarioPermissoesRepositoryClass extends BaseRepository<MinisterioVoluntarioPermissao> {
+class MinisterioVoluntarioPermissoesRepositoryClass extends BaseRepository<
+  MinisterioVoluntarioPermissaoModel,
+  MinisterioVoluntarioPermissaoApiModel
+> {
   constructor() {
-    super(MinisterioVoluntarioPermissoesApi);
+    super(MinisterioVoluntarioPermissoesApi, {
+      fromApi: MinisterioVoluntarioPermissaoSerializer.fromApi,
+      toApi: MinisterioVoluntarioPermissaoSerializer.toApi,
+    });
   }
 }
 

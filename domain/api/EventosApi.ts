@@ -1,4 +1,4 @@
-import { Evento } from '../models/Evento';
+import { EventoApiModel, EventoModel } from '../models/Evento';
 import { BaseApi } from './BaseApi';
 import apiClient from './api-client';
 
@@ -7,12 +7,12 @@ interface EventosIntervaloQuery {
   dataTermino: string;
 }
 
-class EventosApiClass extends BaseApi<Evento> {
+class EventosApiClass extends BaseApi<EventoApiModel> {
   constructor() {
     super('eventos');
   }
 
-  async buscarPorIntervalo(params: EventosIntervaloQuery): Promise<Evento[]> {
+  async buscarPorIntervalo(params: EventosIntervaloQuery): Promise<EventoModel[]> {
     try {
       const response = await apiClient.get(`/${this.resourceName}/intervalo`, { params });
       return response.data?.data ?? response.data;

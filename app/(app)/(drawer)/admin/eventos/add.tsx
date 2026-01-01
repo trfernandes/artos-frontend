@@ -6,7 +6,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { eventoSchema, useEventosCrud } from '../../../../../hooks/useEventosCrud';
 import { zodResolver } from '@hookform/resolvers/zod';
 import EventosDadosForm from '../../../../../components/pages/admin/eventos/EventosDadosForm';
-import { Evento, RecorrenciaEnum } from '../../../../../domain/models/Evento';
+import { EventoModel, RecorrenciaEnum } from '../../../../../domain/models/Evento';
 import { router } from 'expo-router';
 
 export function getDefaultEventoTimes() {
@@ -46,8 +46,9 @@ export default function EventosAddPage() {
   const handleSubmit = async () => {
     form.handleSubmit(
       async data => {
-        const newEvento: Evento = {
+        const newEvento: EventoModel = {
           ...data,
+          cor: data.cor,
           dataTermino: data.dataTermino,
           id: undefined,
         };

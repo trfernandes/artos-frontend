@@ -1,17 +1,21 @@
-import { IndisponibilidadeVoluntario, UpsertIndisponibilidadesVoluntarioPayload } from '../models/IndisponibilidadeVoluntario';
+import {
+  IndisponibilidadeVoluntarioApiModel,
+  UpsertIndisponibilidadesVoluntarioDto,
+} from '../models/IndisponibilidadeVoluntario';
 import { BaseApi } from './BaseApi';
 import apiClient from './api-client';
 
-class IndisponibilidadesVoluntariosApiClass extends BaseApi<IndisponibilidadeVoluntario> {
+class IndisponibilidadesVoluntariosApiClass extends BaseApi<IndisponibilidadeVoluntarioApiModel> {
   constructor() {
     super('indisponibilidades-voluntarios');
   }
 
-  create(data: Omit<IndisponibilidadeVoluntario, 'id' | 'createdAt' | 'updatedAt'>): Promise<IndisponibilidadeVoluntario> {
-    return super.create({...data, });
+  create(data: IndisponibilidadeVoluntarioApiModel): Promise<IndisponibilidadeVoluntarioApiModel> {
+    return super.create({ ...data });
   }
 
-  async upsertMany(payload: UpsertIndisponibilidadesVoluntarioPayload): Promise<IndisponibilidadeVoluntario[]> {
+  async upsertMany(payload: UpsertIndisponibilidadesVoluntarioDto): Promise<IndisponibilidadeVoluntarioApiModel[]> {
+    console.log('IndisponibilidadesVoluntariosApi.upsertMany called with:', payload);
     const response = await apiClient.post(`/indisponibilidades-voluntarios/upsert`, payload);
     return response.data.data;
   }

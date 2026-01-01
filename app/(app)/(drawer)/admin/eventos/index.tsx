@@ -10,7 +10,7 @@ import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
 import FancyLoading from '../../../../../components/FancyLoading';
 import FancyBasePage from '../../../../../components/pages/base/FancyBasePage';
 import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
-import { Evento } from '../../../../../domain/models/Evento';
+import { EventoModel } from '../../../../../domain/models/Evento';
 import { toZonedTime } from 'date-fns-tz';
 
 export default function EventosIndexPage() {
@@ -41,7 +41,7 @@ export default function EventosIndexPage() {
     isLoadingMutation: isLoadingRemove,
   } = useEventosCrud({ autoFetch: false, initialParams: {} });
 
-  const eventosData = useMemo<Evento[]>(() => {
+  const eventosData = useMemo<EventoModel[]>(() => {
     const a = data.map(evento => ({
       ...evento,
       dataInicio: toZonedTime(evento.dataInicio, 'America/Sao_Paulo'),
@@ -59,7 +59,7 @@ export default function EventosIndexPage() {
     return <FancyLoading label="Processando..." />;
   }
 
-  const handleEditItem = (evento: Evento) => {
+  const handleEditItem = (evento: EventoModel) => {
     router.push({
       pathname: '/admin/eventos/edit',
       params: {

@@ -6,15 +6,15 @@ import FancyButton from '../../../../buttons/FancyButton';
 import { IconLibrary } from '../../../../FancyIcons';
 import PagerView from 'react-native-pager-view';
 import { Pallete } from '../../../../../constants/colors';
-import { EscalaSubstituicao } from '../../../../../domain/models/EscalaSubstituicao';
+import { EscalaSubstituicaoModel } from '../../../../../domain/models/EscalaSubstituicao';
 import { format } from 'date-fns';
 
 export default function SubstituicoesRequestsFrame({
   data,
   onRespond,
 }: {
-  data: EscalaSubstituicao[];
-  onRespond?: (substituicao: EscalaSubstituicao, response: 'accept' | 'reject') => void;
+  data: EscalaSubstituicaoModel[];
+  onRespond?: (substituicao: EscalaSubstituicaoModel, response: 'accept' | 'reject') => void;
 }) {
   const [pageIndex, setPageIndex] = useState(0);
 

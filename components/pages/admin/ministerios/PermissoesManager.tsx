@@ -1,9 +1,9 @@
 import { StyleSheet, View } from 'react-native';
 import {
-  MinisterioVoluntarioPermissao,
-  RecursoPermissaoEnum,
-  RecursosPermissoesTable,
-  TipoPermissaoEnumLabel,
+    MinisterioVoluntarioPermissaoModel,
+    RecursoPermissaoEnum,
+    RecursosPermissoesTable,
+    TipoPermissaoEnumLabel,
 } from '../../../../domain/models/MinisterioVoluntarioPermissao';
 import FancyText from '../../../FancyText';
 import { Pallete } from '../../../../constants/colors';
@@ -12,7 +12,7 @@ import FancyCheckbox from '../../../FancyCheckbox';
 import DefaultIcons from '../../../FancyIcons';
 
 export default function PermissoesManager(props: {
-  data: MinisterioVoluntarioPermissao[];
+  data: MinisterioVoluntarioPermissaoModel[];
   disabled?: boolean;
 }) {
   return (

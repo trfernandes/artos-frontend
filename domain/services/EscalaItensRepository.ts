@@ -1,19 +1,21 @@
 import { EscalaItensApi as EscalaItensApi } from '../api/EscalaItensApi';
-import { EscalaItem } from '../models/EscalaItem';
+import { EscalaItemApiModel, EscalaItemModel, EscalaItemSerializer } from '../models/EscalaItem';
 import { DynamicQuery } from '../utils/query_utils';
 import { BaseRepository } from './BaseRepository';
 
-class EscalaItensRepositoryClass extends BaseRepository<EscalaItem> {
+class EscalaItensRepositoryClass extends BaseRepository<EscalaItemModel, EscalaItemApiModel> {
   constructor() {
-    super(EscalaItensApi);
+    super(EscalaItensApi, { fromApi: EscalaItemSerializer.fromApi, toApi: EscalaItemSerializer.toApi });
   }
 
-  search(query: DynamicQuery, includeFotos: boolean = false): Promise<EscalaItem[]> {
-   return EscalaItensApi.search(query, includeFotos);
+  async search(query: DynamicQuery, includeFotos: boolean = false): Promise<EscalaItemModel[]> {
+    const result = await EscalaItensApi.search(query, includeFotos);
+    return result.map(item => this.serializer.fromApi(item));
   }
 
-  getByVoluntarioId(voluntarioId: string): Promise<EscalaItem[]> {
-    return EscalaItensApi.getByVoluntarioId(voluntarioId);
+  async getByVoluntarioId(voluntarioId: string): Promise<EscalaItemModel[]> {
+    const result = await EscalaItensApi.getByVoluntarioId(voluntarioId);
+    return result.map(item => this.serializer.fromApi(item));
   }
 }
 

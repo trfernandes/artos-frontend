@@ -53,7 +53,7 @@ export default function MinisterioTemplatesEditPage() {
         nome: template.nome,
         funcoes: template.funcoes
           ? template.funcoes.map(f => ({
-              funcaoId: f.funcaoId || f.funcao?.id,
+              funcaoId: f.funcao?.id,
               experiencia: f.experiencia,
               quantidade: f.quantidade,
             }))
@@ -61,12 +61,12 @@ export default function MinisterioTemplatesEditPage() {
         voluntarios: template.voluntarios
           ? template.voluntarios?.map(v => ({
               id: v.id,
-              voluntarioId: v.voluntarioId || v.voluntario?.id,
-              funcaoId: v.funcaoId || v.funcao?.id,
+              voluntarioId: v.voluntario?.id,
+              funcaoId: v.funcao?.id,
             }))
           : [],
-        respSetListFuncoesId: template.respSetListFuncoesId,
-        respSetListVoluntariosId: template.respSetListVoluntariosId,
+        respSetListFuncoesId: template.respSetListFuncoes?.id,
+        respSetListVoluntariosId: template.respSetListVoluntarios?.id,
         tipo: EscalaTemplateTipoEnumMap[template.tipo],
       });
     }
@@ -86,8 +86,7 @@ export default function MinisterioTemplatesEditPage() {
           router.back();
         });
       },
-      errors =>
-        console.log('Erro no submit do formulário\n', '=> Erros: ', strfyObj(errors), '\n=> Data: ', strfyObj(form.getValues()))
+      errors => console.log('Erro no submit do formulário\n', '=> Erros: ', strfyObj(errors), '\n=> Data: ', strfyObj(form.getValues()))
     ),
     [form.handleSubmit]
   );

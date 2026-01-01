@@ -62,10 +62,10 @@ export default function MinisterioIntegrantesEditPage() {
   } = useMinisterioVoluntarioFuncoesCrud({
     autoFetch: true,
     initialParams: funcoesInitialParams,
-    messages:{
+    messages: {
       successUpdate: 'Voluntário atualizado com sucesso!',
       errorUpdate: 'Erro ao atualizar o voluntário.',
-    }
+    },
   });
 
   const form = useForm<MinVoluntarioFormData>({
@@ -84,7 +84,7 @@ export default function MinisterioIntegrantesEditPage() {
       voluntarioEmail: voluntarioObj?.voluntario?.email || '',
       voluntarioStatus: voluntarioObj?.status || MinisterioVoluntarioStatusEnum.Ativo,
       funcoes: minVolFuncoesData.map(f => ({
-        id: f.funcao?.id || f.funcaoId,
+        id: f.funcao?.id,
         nome: f.funcao?.nome || '',
         status: MinisterioVoluntarioFuncaoStatusEnumMap[f.status] || MinisterioVoluntarioFuncaoStatusEnum.Ativo,
         experiencia: EscalaTemplateExperienciaEnumMap[f.experiencia] || EscalaTemplateExperienciaEnum.Iniciante,

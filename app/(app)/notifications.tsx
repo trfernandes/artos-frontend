@@ -7,7 +7,7 @@ import FancyButton from '../../components/buttons/FancyButton';
 import { BOLD_FONT, EXTRA_SMALL_SIZE_FONT } from '../../constants/font';
 import FancyTabs, { TabItem } from '../../components/tabs/FancyTabs';
 import { useNotificacoesCrud } from '../../hooks/useNotificacoesCrud';
-import { Notificacao } from '../../domain/models/Notificacao';
+import { NotificacaoModel } from '../../domain/models/Notificacao';
 import NotificationsList from '../../components/pages/notifications/NotificationsList';
 import FancyLoading from '../../components/FancyLoading';
 
@@ -38,7 +38,7 @@ export default function NotificationsPage() {
     });
   }, []);
 
-  const [notificacoesData, setNotificacoesData] = useState<Notificacao[]>([]);
+  const [notificacoesData, setNotificacoesData] = useState<NotificacaoModel[]>([]);
 
   useEffect(() => {
     setNotificacoesData(notificacoes);

@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCrud } from './useCrud';
 import { DynamicQuery, Operator, ValueType } from '../domain/utils/query_utils';
-import { EscalaTemplate } from '../domain/models/EscalaTemplate';
+import { EscalaTemplateModel } from '../domain/models/EscalaTemplate';
 import { EscalaTemplatesRepository } from '../domain/services/EscalaTemplatesRepository';
 import { EscalaTemplateFormData, escalaTemplateSchema } from '../domain/schemas/escalaTemplateSchema';
 
@@ -9,7 +9,7 @@ export function useEscalaTemplatesCrud(options?: {
   autoFetch?: boolean;
   initialParams?: DynamicQuery;
 }) {
-  return useCrud<EscalaTemplate, EscalaTemplateFormData>({
+  return useCrud<EscalaTemplateModel, EscalaTemplateFormData>({
     queryKey: 'escala-templates',
     autoFetch: options?.autoFetch ?? true,
     initialParams: options?.initialParams,
@@ -44,7 +44,7 @@ export function useEscalaTemplatesCrud(options?: {
       return results[0];
     },
     add: data => EscalaTemplatesRepository.add(data),
-    update: (id, data) => EscalaTemplatesRepository.update(id, data as EscalaTemplate),
+    update: (id, data) => EscalaTemplatesRepository.update(id, data as EscalaTemplateModel),
     remove: id => EscalaTemplatesRepository.remove(id),
     resolver: zodResolver(escalaTemplateSchema),
     messages: {

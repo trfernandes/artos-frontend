@@ -6,7 +6,7 @@ import { Pallete } from '../../../../constants/colors';
 import { FancyCard } from '../../../cards/Horizontal/FancyCard';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import {
-  Evento,
+  EventoModel,
   RecorrenciaDiaSemanaEnumMap,
   RecorrenciaEnumMap,
   RecorrenciaSemanaMesEnumMap,
@@ -17,16 +17,16 @@ import { format } from 'date-fns';
 export type EventoGroup = {
   month: number;
   year: number;
-  events: Evento[];
+  events: EventoModel[];
 };
 
 export type EventosListProps = {
-  items: Evento[];
+  items: EventoModel[];
   listProps?: Omit<FancyListProps<EventoGroup>, 'data' | 'renderItem'>;
   containerStyle?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
-  onEditItem: (item: Evento) => void;
-  onDeleteItem: (item: Evento) => void;
+  onEditItem: (item: EventoModel) => void;
+  onDeleteItem: (item: EventoModel) => void;
 };
 
 export default function EventosListView({
@@ -40,7 +40,7 @@ export default function EventosListView({
   let data: {
     month: number;
     year: number;
-    events: Evento[];
+    events: EventoModel[];
   }[] = [];
 
   items.forEach(item => {

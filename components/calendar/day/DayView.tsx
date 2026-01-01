@@ -58,10 +58,7 @@ export function DayView({
   disablePastDates = false,
   ...props
 }: DayViewProps) {
-  const daysMatrix = useMemo(
-    () => generateDays(props.currentDate.getFullYear(), props.currentDate.getMonth()),
-    [props.currentDate]
-  );
+  const daysMatrix = useMemo(() => generateDays(props.currentDate.getFullYear(), props.currentDate.getMonth()), [props.currentDate]);
 
   const today = useMemo(() => {
     const d = new Date();
@@ -129,7 +126,7 @@ export function DayView({
               const isToday = DateUtils.equal(cellDate, today);
               const isSelected = props.selectedDate ? DateUtils.equal(cellDate, props.selectedDate) : false;
 
-              const markedEntries = props.markedDates?.filter(d => DateUtils.equal(d.date, cellDate)) ?? [];
+              const markedEntries = props.markedDates?.filter(d => DateUtils.sameDay(d.date, cellDate)) ?? [];
 
               const isMarked = markedEntries.length > 0;
 

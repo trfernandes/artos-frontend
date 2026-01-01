@@ -8,6 +8,30 @@ import { LoadingProvider } from '../../contexts/LoadingContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import FancyHeader from '../../components/header/FancyHeader';
 
+// export const log = logger.createLogger({
+//   levels: {
+//     debug: 0,
+//     info: 1,
+//     warn: 2,
+//     error: 3,
+//   },
+//   severity: 'debug',
+//   transport: consoleTransport,
+//   transportOptions: {
+//     colors: {
+//       info: 'blueBright',
+//       warn: 'yellowBright',
+//       error: 'redBright',
+//     },
+//   },
+//   async: true,
+//   dateFormat: 'time',
+//   printLevel: true,
+//   printDate: true,
+//   fixedExtLvlLength: false,
+//   enabled: true,
+// });
+
 export default function RootLayout() {
   const { user, loading } = useAuth();
 
@@ -22,7 +46,7 @@ export default function RootLayout() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <MenuProvider>
           <ClickOutsideProvider>
-            <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+            <SafeAreaView style={{ flex: 1, paddingTop: 5, backgroundColor: 'white' }}>
               <StatusBar style={'dark'} />
               <LoadingProvider>
                 <Stack screenOptions={{ headerShown: false }}>

@@ -14,7 +14,7 @@ import { strfyObj } from '../../../../../utils/text_utils';
 import { MinisterioStatusEnumMap, MinisterioTipoEnumMap } from '../../../../../domain/models/Ministerio';
 import {
   HierarquiaEnum,
-  MinisterioVoluntario,
+  MinisterioVoluntarioModel,
   MinisterioVoluntarioStatusEnum,
 } from '../../../../../domain/models/MinisterioVoluntario';
 import { ImageUtils } from '../../../../../utils/image_utils';
@@ -85,10 +85,7 @@ export default function MinisteriosEditPage() {
       voluntarios: (m.voluntarios ?? [])
         .filter(v => v.voluntario && typeof v.voluntario.id === 'string')
         .map(v => ({
-          id: v.id,
-          voluntarioId: v.voluntario?.id || v.voluntarioId,
-          voluntarioNome: v.voluntario?.nome!,
-          hierarquia: v.hierarquia,
+          ...v,
           foto: v.voluntario?.foto ? ImageUtils.rawToDataUri(v.voluntario?.foto) ?? v.voluntario?.foto : undefined,
         })),
     });
@@ -102,9 +99,9 @@ export default function MinisteriosEditPage() {
   const handleAddLider = useCallback(
     (data: { hierarquia: HierarquiaEnum; voluntarioId: string }) => {
       addVoluntario({
+        voluntario: { id: data.voluntarioId },
         hierarquia: data.hierarquia,
-        voluntarioId: data.voluntarioId,
-        ministerioId: params.id!,
+        ministerio: { id: params.id! },
         status: MinisterioVoluntarioStatusEnum.Ativo,
         dataInicio: new Date(),
       });
@@ -118,8 +115,8 @@ export default function MinisteriosEditPage() {
         id: data.id!,
         data: {
           hierarquia: data.hierarquia,
-          voluntarioId: data.voluntarioId,
-          ministerioId: params.id!,
+          voluntario: { id: data.voluntarioId },
+          ministerio: { id: params.id! },
         },
       });
     },
@@ -178,7 +175,7 @@ export default function MinisteriosEditPage() {
                   id: v.id,
                   voluntario: { id: v.voluntarioId },
                   hierarquia: v.hierarquia,
-                } as MinisterioVoluntario)
+                } as MinisterioVoluntarioModel)
             ),
           },
         });

@@ -11,14 +11,14 @@ import { DefaultIconsNames } from '../../../../../constants/icons';
 import z from 'zod';
 import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Ministerio, MinisterioStatusEnum, MinisterioTipoEnum } from '../../../../../domain/models/Ministerio';
+import { MinisterioModel, MinisterioStatusEnum, MinisterioTipoEnum } from '../../../../../domain/models/Ministerio';
 import Toast from 'react-native-toast-message';
 import { strfyObj } from '../../../../../utils/text_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
 import { router } from 'expo-router';
 import { permissoesSchema } from '../../../../../components/pages/admin/ministerios/PermissoesTab';
 import { useMinisteriosCrud as useMinisteriosCrud } from '../../../../../hooks/useMinisteriosCrud';
-import { MinisterioVoluntario } from '../../../../../domain/models/MinisterioVoluntario';
+import { MinisterioVoluntarioModel } from '../../../../../domain/models/MinisterioVoluntario';
 import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
 import { useAuth, UserMinisterio } from '../../../../../contexts/AuthContext';
 
@@ -75,16 +75,16 @@ export default function MinisteriosAddPage() {
       async data => {
         const { voluntarios, ...ministerio } = data;
 
-        const newMinisterio: Ministerio = await addMinisterios({
+        const newMinisterio: MinisterioModel = await addMinisterios({
           ...ministerio,
-        } as unknown as Ministerio);
+        } as unknown as MinisterioModel);
 
         voluntarios.forEach(async voluntario => {
           await addVoluntarios({
-            ministerioId: newMinisterio.id,
-            voluntarioId: voluntario.voluntarioId,
+            ministerio: { id: newMinisterio.id },
+            voluntario: { id: voluntario.voluntarioId },
             hierarquia: voluntario.hierarquia,
-          } as MinisterioVoluntario);
+          } as MinisterioVoluntarioModel);
         });
 
         const ministerios: UserMinisterio[] = [

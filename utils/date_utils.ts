@@ -1,5 +1,6 @@
-import { startOfDay } from 'date-fns';
+import { format, isValid, parseISO, startOfDay } from 'date-fns';
 import { formatInTimeZone, fromZonedTime, toZonedTime } from 'date-fns-tz';
+import { ptBR } from 'date-fns/locale';
 
 const DateUtils = {
   getMonthName(monthIndex: number): string {
@@ -88,6 +89,66 @@ const DateUtils = {
   sameDay(a: Date, b: Date): boolean {
     return this.dayKey(a) === this.dayKey(b);
   },
+  toApiDateOnly(d: Date): string {
+    // gera YYYY-MM-DD na timezone local do device (ou padronize com date-fns)
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  },
+  formatStableDateBR(d: Date) {
+    return formatInTimeZone(d, APP_TZ, 'dd/MM/yyyy', { locale: ptBR });
+  },
+};
+
+export type DateOnlyString = `${number}-${number}-${number}`; // "YYYY-MM-DD" (typing leve)
+export type IsoDateTimeString = string; // ISO 8601
+
+export const DateUtilsApi = {
+  dateOnlyFromApi(value: string | Date, tz: string = APP_TZ): Date {
+    // 1) Normaliza para "yyyy-MM-dd"
+    const ymd = value instanceof Date ? formatInTimeZone(value, tz, 'yyyy-MM-dd') : value.slice(0, 10); // pega "YYYY-MM-DD" mesmo se vier ISO
+
+    // 2) Constrói Date local (meio-dia local = mais seguro)
+    const [y, m, d] = ymd.split('-').map(Number);
+    const date = new Date(y, m - 1, d, 12, 0, 0);
+
+    if (!isValid(date)) {
+      throw new Error(`dateOnlyFromApi: data inválida: ${String(value)} (ymd=${ymd})`);
+    }
+
+    return date;
+  },
+  dateOnlyToApi(value: Date | string): DateOnlyString {
+    if (typeof value === 'string') {
+      // assume já está no formato certo
+      return value as DateOnlyString;
+    }
+    return format(value, 'yyyy-MM-dd') as DateOnlyString;
+  },
+  dateTimeFromApi(value: string | Date): Date {
+    if (value instanceof Date) return value;
+
+    const parsed = parseISO(value);
+    if (!isValid(parsed)) throw new Error(`dateTimeFromApi: ISO inválido: ${String(value)}`);
+    return parsed;
+  },
+  dateTimeToApi(value: Date | string): IsoDateTimeString {
+    if (typeof value === 'string') {
+      // se já é ISO, mantém; se for 'YYYY-MM-DD' e você quer timestamp, melhor não aceitar aqui
+      return value;
+    }
+    return value.toISOString();
+  },
+  isSameDateOnly(a: Date | string, b: Date | string): boolean {
+    return this.dateOnlyToApi(a as any) === this.dateOnlyToApi(b as any);
+  },
+  compareDateTime(a: Date | string, b: Date | string): number {
+    const ta = (a instanceof Date ? a : this.dateTimeFromApi(a)).getTime();
+    const tb = (b instanceof Date ? b : this.dateTimeFromApi(b)).getTime();
+    return ta - tb;
+  },
+  
 };
 
 export const APP_TZ = 'America/Sao_Paulo';

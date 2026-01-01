@@ -1,18 +1,22 @@
 import { EscalaTemplatesApi } from '../api/EscalaTemplatesApi';
 import { BaseRepository } from './BaseRepository';
-import { EscalaTemplate } from '../models/EscalaTemplate';
+import { EscalaTemplateApiModel, EscalaTemplateModel, EscalaTemplateSerializer } from '../models/EscalaTemplate';
 
-class EscalaTemplatesRepositoryClass extends BaseRepository<EscalaTemplate> {
+class EscalaTemplatesRepositoryClass extends BaseRepository<EscalaTemplateModel, EscalaTemplateApiModel> {
   constructor() {
-    super(EscalaTemplatesApi);
+    super(EscalaTemplatesApi, { fromApi: EscalaTemplateSerializer.fromApi, toApi: EscalaTemplateSerializer.toApi });
   }
 
-  add(data: EscalaTemplate): Promise<EscalaTemplate> {
-    return EscalaTemplatesApi.create(data);
+  async add(data: EscalaTemplateModel): Promise<EscalaTemplateModel> {
+    const apiData = this.serializer.toApi(data);
+    const result = await EscalaTemplatesApi.create(apiData);
+    return this.serializer.fromApi(result);
   }
 
-  update(id: string, data: EscalaTemplate): Promise<EscalaTemplate> {
-    return EscalaTemplatesApi.update(id, data);
+  async update(id: string, data: EscalaTemplateModel): Promise<EscalaTemplateModel> {
+    const apiData = this.serializer.toApi(data);
+    const result = await EscalaTemplatesApi.update(id, apiData);
+    return this.serializer.fromApi(result);
   }
 }
 

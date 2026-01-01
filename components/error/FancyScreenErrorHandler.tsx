@@ -1,15 +1,8 @@
-import React from 'react';
 import axios, { AxiosError } from 'axios';
 import { strfyObj } from '../../utils/text_utils';
 import FancyError from './FancyError';
 
-export default function FancyScreenErrorHandler({
-  error,
-  onTryAgrainPress,
-}: {
-  error: Error;
-  onTryAgrainPress?: () => void;
-}) {
+export default function FancyScreenErrorHandler({ error, onTryAgrainPress }: { error: Error; onTryAgrainPress?: () => void }) {
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError;
 
@@ -28,6 +21,6 @@ export default function FancyScreenErrorHandler({
       return <FancyError.Connection onUpdate={onTryAgrainPress} />;
     }
   } else {
-    console.log('Erro ao carregar ministerios', error);
+    console.log('Erro ao carregar ministerios', strfyObj({ cause: error.cause, message: error.message, stack: error.stack, name: error.name }));
   }
 }

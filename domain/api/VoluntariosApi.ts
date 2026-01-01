@@ -1,13 +1,13 @@
-import { Voluntario } from '../models/Voluntario';
+import { VoluntarioApiModel } from '../models/Voluntario';
 import apiClient from './api-client';
 import { BaseApi } from './BaseApi';
 
-class VoluntariosApiClass extends BaseApi<Voluntario> {
+class VoluntariosApiClass extends BaseApi<VoluntarioApiModel> {
   constructor() {
     super('voluntarios');
   }
 
-  async update(id: string, data: Partial<Voluntario>, foto?: string | null): Promise<Voluntario> {
+  async update(id: string, data: Partial<VoluntarioApiModel>, foto?: string | null): Promise<VoluntarioApiModel> {
     try {
       const formData = new FormData();
 

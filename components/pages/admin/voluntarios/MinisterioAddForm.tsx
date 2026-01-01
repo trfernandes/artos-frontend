@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
 import ControlledDropDown from '../../../forms/ControlledDropDown';
-import { HierarquiaEnum, HierarquiaEnumLabel, MinisterioVoluntario } from '../../../../domain/models/MinisterioVoluntario';
+import { HierarquiaEnum, HierarquiaEnumLabel, MinisterioVoluntarioModel } from '../../../../domain/models/MinisterioVoluntario';
 import { View } from 'react-native';
 
 const schema = z.object({
@@ -18,7 +18,7 @@ export type MinisterioAddFormData = z.infer<typeof schema>;
 
 export default function MinisterioAddForm(
   props: {
-    ministerios: MinisterioVoluntario[] | null | undefined;
+    ministerios: MinisterioVoluntarioModel[] | null | undefined;
     mode: 'add' | 'edit';
     defaultValues?: MinisterioAddFormData;
   } & FancyModalDialogProps<MinisterioAddFormData & { mode: 'add' | 'edit' }>

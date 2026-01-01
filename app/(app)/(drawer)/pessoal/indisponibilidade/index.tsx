@@ -7,12 +7,12 @@ import DateAvailabilityAdjustmentModal from '../../../../../components/pages/pes
 import { useIndisponibilidadesVoluntariosCrud } from '../../../../../hooks/useIndisponibilidadesVoluntariosCrud';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { Conjunction, Operator, ValueType } from '../../../../../domain/utils/query_utils';
-import { IndisponibilidadeVoluntario, UpsertIndisponibilidadeVoluntarioItem } from '../../../../../domain/models/IndisponibilidadeVoluntario';
+import { UpsertIndisponibilidadeVoluntarioItem } from '../../../../../domain/models/IndisponibilidadeVoluntario';
 import Toast from 'react-native-toast-message';
 import { Pallete } from '../../../../../constants/colors';
 import FancyFab from '../../../../../components/buttons/FancyFab';
 import AddPeriodoModal from '../../../../../components/pages/pessoal/indisponibilidade/AddPeriodModal';
-import DateUtils from '../../../../../utils/date_utils';
+import DateUtils, { DateUtilsApi } from '../../../../../utils/date_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
 
 type ModalState = {
@@ -69,6 +69,7 @@ export default function IndisponibilidadeIndexPage() {
     isLoadingMutation: isLoadingMutating,
     isRefetching,
     upsertMany,
+    isError,
   } = useIndisponibilidadesVoluntariosCrud({
     initialParams: {
       where: {
@@ -135,11 +136,8 @@ export default function IndisponibilidadeIndexPage() {
   const markedDates = useMemo(
     () =>
       data.map(d => {
-        const raw = new Date(d.data as any); // garante Date mesmo se vier string
-        const localDay = DateUtils.normalizeLocalDay(raw);
-
         return {
-          date: localDay,
+          date: d.data,
           T: d.id,
           color: Pallete.error,
         };
@@ -155,10 +153,10 @@ export default function IndisponibilidadeIndexPage() {
 
       const indisponibilidades: UpsertIndisponibilidadeVoluntarioItem[] = datesBetweenPeriod.map(d => {
         // ✅ sempre "dia local" -> converte para UTC antes de enviar
-        const utcDate = DateUtils.localDayToUtcDate(d);
+        // const utcDate = DateUtils.localDayToUtcDate(d);
 
         return {
-          data: utcDate.toISOString(), // converte para string ISO
+          data: DateUtilsApi.dateOnlyToApi(d), // converte para string ISO
           motivo: motivo?.trim() || undefined,
         };
       });
@@ -193,15 +191,15 @@ export default function IndisponibilidadeIndexPage() {
         if (registro?.id) {
           await updateData({
             id: registro.id,
-            data: { data: utcDateToSave, motivo: motivo ?? null } as IndisponibilidadeVoluntario,
+            data: { data: utcDateToSave, motivo: motivo },
           });
           setLazyToastOptions({ type: 'success', message: 'Motivo atualizado com sucesso!', show: true });
         } else {
           await addData({
             data: utcDateToSave,
-            voluntarioId: userId,
+            voluntario: { id: userId },
             motivo,
-          } as IndisponibilidadeVoluntario);
+          });
           setLazyToastOptions({ type: 'info', message: 'Data marcada como indisponível!', show: true });
         }
       } else if (registro?.id) {
@@ -271,11 +269,7 @@ export default function IndisponibilidadeIndexPage() {
       )}
 
       {showPeriodoModal && (
-        <AddPeriodoModal
-          visible={showPeriodoModal}
-          modalProps={{ onButton1Press: () => setShowPeriodoModal(false) }}
-          onConfirm={handleConfirmAddPeriodo}
-        />
+        <AddPeriodoModal visible={showPeriodoModal} modalProps={{ onButton1Press: () => setShowPeriodoModal(false) }} onConfirm={handleConfirmAddPeriodo} />
       )}
     </View>
   );

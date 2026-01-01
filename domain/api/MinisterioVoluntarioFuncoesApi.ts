@@ -1,9 +1,9 @@
-import { MinisterioVoluntarioFuncao } from "../models/MinisterioVoluntarioFuncao";
-import { BaseApi } from "./BaseApi";
+import { MinisterioVoluntarioFuncaoApiModel } from '../models/MinisterioVoluntarioFuncao';
+import { BaseApi } from './BaseApi';
 
 export const apiName = 'ministerio-voluntario-funcoes';
 
-class MinisterioVoluntarioFuncoesApiClass extends BaseApi<MinisterioVoluntarioFuncao> {
+class MinisterioVoluntarioFuncoesApiClass extends BaseApi<MinisterioVoluntarioFuncaoApiModel> {
   constructor() {
     super(apiName);
   }

@@ -6,7 +6,7 @@ import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterio
 import FancyGroup from '../../../../list/FancyGroup';
 import { FancyTextDisplay } from '../../../../fields/FancyTextDisplay';
 import { format } from 'date-fns';
-import { EscalaItem } from '../../../../../domain/models/EscalaItem';
+import { EscalaItemModel } from '../../../../../domain/models/EscalaItem';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,7 +27,7 @@ export type FormData = z.infer<typeof schema>;
 export default function SubstituicaoModalPage({
   dadosEscala,
   ...props
-}: { dadosEscala: EscalaItem } & FancyModalDialogProps<FormData>) {
+}: { dadosEscala: EscalaItemModel } & FancyModalDialogProps<FormData>) {
   const { user } = useAuth();
 
   const initialParams: DynamicQuery = {

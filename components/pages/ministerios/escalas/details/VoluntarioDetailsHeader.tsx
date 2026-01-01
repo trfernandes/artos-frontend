@@ -1,5 +1,5 @@
 import { TouchableOpacity, View } from 'react-native';
-import { Voluntario } from '../../../../../domain/models/Voluntario';
+import { VoluntarioModel } from '../../../../../domain/models/Voluntario';
 import { Pallete } from '../../../../../constants/colors';
 import FancyText from '../../../../FancyText';
 import FancyAvatarImage from '../../../../images/FancyImage';
@@ -10,7 +10,7 @@ export default function VoluntarioDetailsHeader({
   voluntarioInfo,
   onClose,
 }: {
-  voluntarioInfo: Voluntario;
+  voluntarioInfo: VoluntarioModel;
   onClose?: () => void;
 }) {
   return (

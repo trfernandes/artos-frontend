@@ -31,5 +31,5 @@ export default function FancyBasePage({
 }
 
 const styles = StyleSheet.create({
-  container: { paddingHorizontal: 20, paddingTop: 10, gap: 15, borderWidth: 0 },
+  container: { paddingHorizontal: 15, paddingTop: 0, gap: 15, borderWidth: 0 },
 });

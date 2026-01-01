@@ -1,15 +1,15 @@
 import { View } from 'react-native';
 import { format } from 'date-fns';
 import { Pallete } from '../../../../constants/colors';
-import { HierarquiaEnumLabel, MinisterioVoluntario } from '../../../../domain/models/MinisterioVoluntario';
+import { HierarquiaEnumLabel, MinisterioVoluntarioModel } from '../../../../domain/models/MinisterioVoluntario';
 import { additionalData1TextProps } from '../../../cards/Horizontal/FancyBaseCard';
 import { FancyCardImageBaseProps, FancyCard } from '../../../cards/Horizontal/FancyCard';
 import FancyText from '../../../FancyText';
 import FancyList from '../../../list/FancyList';
 
 export default function ListaMinisterioInativos(props: {
-  ministeriosInativos: MinisterioVoluntario[];
-  onActivateButtonPress?: (ministerioVoluntario: MinisterioVoluntario) => void;
+  ministeriosInativos: MinisterioVoluntarioModel[];
+  onActivateButtonPress?: (ministerioVoluntario: MinisterioVoluntarioModel) => void;
 }) {
   return (
     <FancyList

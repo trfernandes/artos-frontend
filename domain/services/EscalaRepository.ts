@@ -1,10 +1,10 @@
 import { EscalasApi, GerarEscalaDto } from '../api/EscalaApi';
-import { Escala } from '../models/Escala';
+import { EscalaApiModel, EscalaModel, EscalaSerializer } from '../models/Escala';
 import { BaseRepository } from './BaseRepository';
 
-class EscalaRepositoryClass extends BaseRepository<Escala> {
+class EscalaRepositoryClass extends BaseRepository<EscalaModel, EscalaApiModel> {
   constructor() {
-    super(EscalasApi);
+    super(EscalasApi, { fromApi: EscalaSerializer.fromApi, toApi: EscalaSerializer.toApi });
   }
 
   async generate(data: GerarEscalaDto) {

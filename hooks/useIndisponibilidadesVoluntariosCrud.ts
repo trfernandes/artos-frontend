@@ -1,25 +1,23 @@
-import { IndisponibilidadesVoluntarioRepository } from '../domain/services/IndisponibilidadesVoluntariosRepository';
 import { useCrud, UseCrudOptions } from './useCrud';
-import { UpsertIndisponibilidadesVoluntarioPayload } from '../domain/models/IndisponibilidadeVoluntario';
+import { IndisponibilidadeVoluntarioModel, UpsertIndisponibilidadesVoluntarioDto } from '../domain/models/IndisponibilidadeVoluntario';
 import { useMutation } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
+import { IndisponibilidadesVoluntariosRepository } from '../domain/services/IndisponibilidadesVoluntariosRepository';
 
-export function useIndisponibilidadesVoluntariosCrud(
-  props: Pick<UseCrudOptions<any, any>, 'autoFetch' | 'initialParams' | 'messages'> = {}
-) {
+export function useIndisponibilidadesVoluntariosCrud(props: Pick<UseCrudOptions<any, any>, 'autoFetch' | 'initialParams' | 'messages'> = {}) {
   const crud = useCrud({
     ...props,
     queryKey: 'indisponibilidades-voluntarios',
     autoFetch: props.autoFetch || false,
-    fetchAll: () => IndisponibilidadesVoluntarioRepository.getAll(),
-    search: query => IndisponibilidadesVoluntarioRepository.search(query),
-    add: data => {
-      return IndisponibilidadesVoluntarioRepository.add(data);
+    fetchAll: () => IndisponibilidadesVoluntariosRepository.getAll(),
+    search: query => IndisponibilidadesVoluntariosRepository.search(query),
+    add: (data: IndisponibilidadeVoluntarioModel) => {
+      return IndisponibilidadesVoluntariosRepository.add(data);
     },
     update: (id, data) => {
-      return IndisponibilidadesVoluntarioRepository.update(id, data);
+      return IndisponibilidadesVoluntariosRepository.update(id, data);
     },
-    remove: id => IndisponibilidadesVoluntarioRepository.remove(id),
+    remove: id => IndisponibilidadesVoluntariosRepository.remove(id),
     messages: props.messages || {
       successDelete: 'Indisponibilidade removida com sucesso.',
       successCreate: 'Indisponibilidade criada com sucesso.',
@@ -30,16 +28,13 @@ export function useIndisponibilidadesVoluntariosCrud(
   });
 
   const upsertMany = useMutation({
-    mutationFn: (payload: UpsertIndisponibilidadesVoluntarioPayload) =>
-      IndisponibilidadesVoluntarioRepository.upsertMany(payload),
+    mutationFn: (payload: UpsertIndisponibilidadesVoluntarioDto) => IndisponibilidadesVoluntariosRepository.upsertMany(payload),
     onSuccess: () => {
-      crud.messages?.successUpdate &&
-        Toast.show({ type: 'success', text1: crud.messages?.successUpdate || 'Item atualizado com sucesso!' });
+      crud.messages?.successUpdate && Toast.show({ type: 'success', text1: crud.messages?.successUpdate || 'Item atualizado com sucesso!' });
       crud.queryClient.invalidateQueries({ queryKey: [crud.queryKey] });
     },
     onError: error => {
-      crud.messages?.errorUpdate &&
-        Toast.show({ type: 'error', text1: crud.messages?.errorUpdate || 'Erro ao atualizar item.' });
+      crud.messages?.errorUpdate && Toast.show({ type: 'error', text1: crud.messages?.errorUpdate || 'Erro ao atualizar item.' });
       console.log(error);
     },
   });

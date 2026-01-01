@@ -8,15 +8,15 @@ import EventoFormFuncaoModal from './EventoFormFuncaoModal';
 import { FieldArrayWithId, useFieldArray, useFormContext } from 'react-hook-form';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
 import {
-  EscalaEventoTemplateFormData,
-  EscalaEventoTemplateFuncaoFormData,
+    EscalaEventoTemplateFormData,
+    EscalaEventoTemplateFuncaoFormData,
 } from '../../../../../domain/schemas/escalaSchema';
 import { FancyAlert } from '../../../../modal/FancyAlert';
-import { MinisterioFuncao } from '../../../../../domain/models/MinisterioFuncao';
+import { MinisterioFuncaoModel } from '../../../../../domain/models/MinisterioFuncao';
 
 interface EscalaFormFuncaoListProps {
   ministerioId: string;
-  funcoesList: MinisterioFuncao[];
+  funcoesList: MinisterioFuncaoModel[];
   funcoesDropDownList: DropDownItemProps<string>[];
 }
 

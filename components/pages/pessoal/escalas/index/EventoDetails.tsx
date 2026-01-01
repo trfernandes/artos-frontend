@@ -3,7 +3,7 @@ import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
 import FancyModalDialog, { FancyModalDialogProps } from '../../../../modal/FancyModalDialog';
 import FancyTabs, { TabItem } from '../../../../tabs/FancyTabs';
 import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
-import { Evento } from '../../../../../domain/models/Evento';
+import { EventoModel } from '../../../../../domain/models/Evento';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import EventoInfoTab, { EventoInfoTabProps } from './EventoInfoTab';
 import FancyLoading from '../../../../FancyLoading';
@@ -28,7 +28,7 @@ export default function EventoDetails({
 
   const { data: eventosList, isLoading: isLoadingEventos } = useEventosCrud({ autoFetch: true, initialParams });
 
-  const [eventoData, setEventoData] = useState<Evento>();
+  const [eventoData, setEventoData] = useState<EventoModel>();
 
   useEffect(() => {
     if (eventosList?.length > 0) setEventoData(eventosList?.[0]);

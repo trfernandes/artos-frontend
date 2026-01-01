@@ -103,9 +103,7 @@ export function generateRecorrenciaDescription(
       result = 'Todos os dias';
     } else {
       // Ordena os dias com base na ordem definida
-      const diasOrdenados = diasSemana
-        .slice()
-        .sort((a, b) => DIA_SEMANA_ORDER.indexOf(a) - DIA_SEMANA_ORDER.indexOf(b));
+      const diasOrdenados = diasSemana.slice().sort((a, b) => DIA_SEMANA_ORDER.indexOf(a) - DIA_SEMANA_ORDER.indexOf(b));
 
       const dias = diasOrdenados.map(item => DIAS_SEMANA[item]);
 
@@ -135,9 +133,7 @@ export function generateRecorrenciaDescription(
     } else {
       const semanasValidas = semanasDoMes.filter(item => SEMANAS_MES[item]);
 
-      const semanasOrdenadas = semanasValidas
-        .slice()
-        .sort((a, b) => SEMANA_MES_ORDER.indexOf(a) - SEMANA_MES_ORDER.indexOf(b));
+      const semanasOrdenadas = semanasValidas.slice().sort((a, b) => SEMANA_MES_ORDER.indexOf(a) - SEMANA_MES_ORDER.indexOf(b));
 
       const semanasAbreviadas = semanasOrdenadas.map(item => SEMANAS_MES[item].abreviado);
 
@@ -159,9 +155,7 @@ export function generateRecorrenciaDescription(
       result += 'Em todos os dias';
     } else {
       // Ordena os dias com base na ordem definida
-      const diasOrdenados = diasSemana
-        .slice()
-        .sort((a, b) => DIA_SEMANA_ORDER.indexOf(a) - DIA_SEMANA_ORDER.indexOf(b));
+      const diasOrdenados = diasSemana.slice().sort((a, b) => DIA_SEMANA_ORDER.indexOf(a) - DIA_SEMANA_ORDER.indexOf(b));
 
       const dias = diasOrdenados.map(item => DIAS_SEMANA[item]);
 
@@ -190,12 +184,9 @@ export const eventoSchema = z
       .max(255, 'O nome do evento pode ter no máximo 255 caracteres'),
     descricao: z.string().max(1000, 'A descrição pode ter no máximo 1000 caracteres').optional(),
     dataInicio: z.date().refine(d => d >= new Date('1900-01-01'), 'A data de início deve ser posterior a 01/01/1900'),
-    dataTermino: z.date().nullable(),
+    dataTermino: z.date().optional(),
     local: z.string().max(255, 'O local pode ter no máximo 255 caracteres').optional(),
-    cor: z
-      .string()
-      .regex(/^#([0-9A-Fa-f]{3}){1,2}$/, 'Cor inválida')
-      .optional(),
+    cor: z.string().regex(/^#([0-9A-Fa-f]{3}){1,2}$/, 'Cor inválida'),
     recorrencia: z.enum(RecorrenciaEnum).optional(),
     recorrenciaSemanaDias: z.array(z.enum(RecorrenciaDiaSemanaEnum)).optional(),
     recorrenciaACadaMeses: z

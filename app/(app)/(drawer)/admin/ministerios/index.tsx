@@ -3,7 +3,7 @@ import { FancyCard, IconType, ImageType } from '../../../../../components/cards/
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
 import FancyScreenErrorHandler from '../../../../../components/error/FancyScreenErrorHandler';
 import {
-  Ministerio,
+  MinisterioModel,
   MinisterioStatusEnum,
   MinisterioStatusEnumMap,
   MinisterioTipoLabel,
@@ -37,7 +37,7 @@ export default function MinisteriosIndex() {
     initialParams: {},
   });
 
-  const ministeriosData = useMemo<Row<Ministerio>[]>(() => {
+  const ministeriosData = useMemo<Row<MinisterioModel>[]>(() => {
     const ativos = data
       .filter(m => MinisterioStatusEnumMap[m.status] === MinisterioStatusEnum.Ativo)
       .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
@@ -46,11 +46,11 @@ export default function MinisteriosIndex() {
       .filter(m => MinisterioStatusEnumMap[m.status] === MinisterioStatusEnum.Inativo)
       .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
 
-    const rows: Row<Ministerio>[] = [];
+    const rows: Row<MinisterioModel>[] = [];
 
     if (ativos.length > 0) {
       rows.push({ type: 'section', key: 'section-ativos', title: `Ativos (${ativos.length})` } as Section);
-      rows.push(...(ativos.map(v => ({ type: 'item', key: `ativo-${v.id}`, data: v })) as unknown as Item<Ministerio>[]));
+      rows.push(...(ativos.map(v => ({ type: 'item', key: `ativo-${v.id}`, data: v })) as unknown as Item<MinisterioModel>[]));
     }
 
     if (inativos.length > 0) {
@@ -60,7 +60,7 @@ export default function MinisteriosIndex() {
           type: 'item',
           key: `inativo-${v.id}`,
           data: v,
-        })) as unknown as Item<Ministerio>[])
+        })) as unknown as Item<MinisterioModel>[])
       );
     }
 

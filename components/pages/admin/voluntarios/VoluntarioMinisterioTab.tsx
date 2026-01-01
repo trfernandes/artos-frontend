@@ -2,13 +2,13 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import FancyFab from '../../../buttons/FancyFab';
 import { useMemo, useState } from 'react';
 import {
-  MinisterioVoluntario,
-  MinisterioVoluntarioStatusEnum,
-  MinisterioVoluntarioStatusEnumMap,
+    MinisterioVoluntarioModel,
+    MinisterioVoluntarioStatusEnum,
+    MinisterioVoluntarioStatusEnumMap,
 } from '../../../../domain/models/MinisterioVoluntario';
 import { Pallete } from '../../../../constants/colors';
 import { isAfter } from 'date-fns';
-import { Notificacao } from '../../../../domain/models/Notificacao';
+import { NotificacaoModel } from '../../../../domain/models/Notificacao';
 import FancyText from '../../../FancyText';
 import DefaultIcons from '../../../FancyIcons';
 import { DefaultIconsNames } from '../../../../constants/icons';
@@ -20,10 +20,10 @@ export default function VoluntarioMinisterioTab({
   mode = 'edit',
   ...props
 }: {
-  ministerios: MinisterioVoluntario[] | null | undefined;
-  historico?: Notificacao[] | null;
-  onEnable?: (ministerioVoluntario: MinisterioVoluntario) => void;
-  onDisabled?: (ministerioVoluntario: MinisterioVoluntario) => void;
+  ministerios: MinisterioVoluntarioModel[] | null | undefined;
+  historico?: NotificacaoModel[] | null;
+  onEnable?: (ministerioVoluntario: MinisterioVoluntarioModel) => void;
+  onDisabled?: (ministerioVoluntario: MinisterioVoluntarioModel) => void;
   onAdd?: (data: MinisterioAddFormData) => void;
   onUpdate?: (data: MinisterioAddFormData) => void;
   mode?: 'view' | 'edit';
@@ -36,7 +36,7 @@ export default function VoluntarioMinisterioTab({
     [props.ministerios]
   );
 
-  const ministeriosInativos = useMemo<MinisterioVoluntario[]>(
+  const ministeriosInativos = useMemo<MinisterioVoluntarioModel[]>(
     //Lista somente ministérios com status atual igual a inativo, e o último histórico com status ativo
     () => {
       const a =

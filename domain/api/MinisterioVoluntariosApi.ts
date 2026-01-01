@@ -1,7 +1,7 @@
-import { MinisterioVoluntario } from '../models/MinisterioVoluntario';
+import { MinisterioVoluntarioApiModel } from '../models/MinisterioVoluntario';
 import { BaseApi } from './BaseApi';
 
-class MinisterioVoluntariosApiClass extends BaseApi<MinisterioVoluntario> {
+class MinisterioVoluntariosApiClass extends BaseApi<MinisterioVoluntarioApiModel> {
   constructor() {
     super('ministerio-voluntarios');
   }

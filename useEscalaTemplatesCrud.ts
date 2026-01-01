@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { useCrud, UseCrudOptions } from './hooks/useCrud';
-import { EscalaTemplate } from './domain/models/EscalaTemplate';
+import { EscalaTemplateModel } from './domain/models/EscalaTemplate';
 import { EscalaTemplatesRepository } from './domain/services/EscalaTemplatesRepository';
 import { Operator, ValueType } from './domain/utils/query_utils';
 import { EscalaTemplateFormData, escalaTemplateSchema } from './domain/schemas/escalaTemplateSchema';
@@ -9,7 +9,7 @@ import { EscalaTemplateFormData, escalaTemplateSchema } from './domain/schemas/e
 export function useEscalaTemplatesCrud(
   props?: Pick<UseCrudOptions<any, any>, 'autoFetch' | 'initialParams'>
 ) {
-  return useCrud<EscalaTemplate, EscalaTemplateFormData>({
+  return useCrud<EscalaTemplateModel, EscalaTemplateFormData>({
     queryKey: 'escala-templates',
     autoFetch: props?.autoFetch ?? true,
     initialParams: props?.initialParams,
@@ -44,7 +44,7 @@ export function useEscalaTemplatesCrud(
       return results[0];
     },
     add: data => EscalaTemplatesRepository.add(data),
-    update: (id, data) => EscalaTemplatesRepository.update(id, data as EscalaTemplate),
+    update: (id, data) => EscalaTemplatesRepository.update(id, data as EscalaTemplateModel),
     remove: id => EscalaTemplatesRepository.remove(id),
     resolver: zodResolver(escalaTemplateSchema),
     messages: {

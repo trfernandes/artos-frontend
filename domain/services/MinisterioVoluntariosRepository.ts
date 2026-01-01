@@ -1,10 +1,10 @@
 import { MinisterioVoluntariosApi } from '../api/MinisterioVoluntariosApi';
-import { MinisterioVoluntario } from '../models/MinisterioVoluntario';
+import { MinisterioVoluntarioApiModel, MinisterioVoluntarioModel, MinisterioVoluntarioSerializer } from '../models/MinisterioVoluntario';
 import { BaseRepository } from './BaseRepository';
 
-class MinisterioVoluntariosRepositoryClass extends BaseRepository<MinisterioVoluntario> {
+class MinisterioVoluntariosRepositoryClass extends BaseRepository<MinisterioVoluntarioModel, MinisterioVoluntarioApiModel> {
   constructor() {
-    super(MinisterioVoluntariosApi);
+    super(MinisterioVoluntariosApi, { fromApi: MinisterioVoluntarioSerializer.fromApi, toApi: MinisterioVoluntarioSerializer.toApi });
   }
 }
 

@@ -1,4 +1,4 @@
-import { Notificacao, NotificacaoTipoEnum } from '../../../domain/models/Notificacao';
+import { NotificacaoModel, NotificacaoTipoEnum } from '../../../domain/models/Notificacao';
 import NotificacaoCard from './NotificacaoCard';
 import EscalaLembreteNotificacaoCard from './EscalaLembreteNotificacaoCard';
 import { SectionList, SectionListData, View } from 'react-native';
@@ -13,9 +13,9 @@ const ultimos7Dias = { title: 'Últimos 7 dias', hours: 168 };
 const esteMes = { title: 'Este mês', hours: 720 };
 const maisAntigas = { title: 'Mais antigas', hours: Infinity };
 
-export default function NotificationsList({ dataList }: { dataList: Notificacao[] }) {
-  const groupsData = useMemo<SectionListData<Notificacao>[]>(() => {
-    const groups: { key: string; title: string; items: Notificacao[] }[] = [
+export default function NotificationsList({ dataList }: { dataList: NotificacaoModel[] }) {
+  const groupsData = useMemo<SectionListData<NotificacaoModel>[]>(() => {
+    const groups: { key: string; title: string; items: NotificacaoModel[] }[] = [
       { key: 'today', title: Hoje.title, items: [] },
       { key: 'yesterday', title: Ontem.title, items: [] },
       { key: 'last7', title: ultimos7Dias.title, items: [] },
@@ -63,7 +63,7 @@ export default function NotificationsList({ dataList }: { dataList: Notificacao[
       }));
   }, [dataList]);
 
-  const renderItem = useCallback((item: Notificacao) => {
+  const renderItem = useCallback((item: NotificacaoModel) => {
     switch (item.tipo) {
       case NotificacaoTipoEnum.EscalaLembrete:
         return <EscalaLembreteNotificacaoCard data={item} />;

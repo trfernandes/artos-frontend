@@ -35,7 +35,7 @@ export default function FancyHeader({ navigation, back, options, ...props }: Fan
 }
 
 const HeaderMenuButton = (props: { title?: string; onPress?: () => void }) => (
-  <View style={[styles.buttonContainer, { position: 'absolute', left: 18, gap: 2 }]}>
+  <View style={[styles.buttonContainer, { position: 'absolute', left: 10, gap: 2 }]}>
     <FancyHeaderButton
       icon={{ ...DefaultIconsNames.menu, size: 24 }}
       onPress={props.onPress!}
@@ -54,7 +54,7 @@ const HeaderMenuButton = (props: { title?: string; onPress?: () => void }) => (
 );
 
 const HeaderBackButton = (props: { title?: string; onPress: () => void }) => (
-  <View style={[styles.buttonContainer, { position: 'absolute', left: 20, gap: 4, marginLeft: -10 }]}>
+  <View style={[styles.buttonContainer, { position: 'absolute', left: 15, gap: 4, marginLeft: -10 }]}>
     <FancyHeaderButton
       icon={{ library: 'MaterialCommunityIcons', name: 'arrow-left-thin', size: 28 }}
       onPress={props.onPress}
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     borderColor: 'black',
     backgroundColor: Pallete.backgroundColor,
     flexDirection: 'row',
-    paddingRight: 12,
+    paddingRight: 0,
     gap: 10,
     alignItems: 'center',
     height: 40,

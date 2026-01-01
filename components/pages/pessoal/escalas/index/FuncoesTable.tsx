@@ -1,7 +1,7 @@
 import { View, StyleSheet } from 'react-native';
 import { Pallete } from '../../../../../constants/colors';
 import {
-  EscalaItem,
+  EscalaItemModel,
   EscalaItemStatusEnum,
   EscalaItemStatusEnumLabel,
 } from '../../../../../domain/models/EscalaItem';
@@ -19,9 +19,9 @@ export default function FuncoesTable({
   onConfirmButtonPress,
   onSubButtonPress,
 }: {
-  data: EscalaItem[];
-  onConfirmButtonPress?: (dadosEscala: EscalaItem) => void;
-  onSubButtonPress?: (dadosEscala: EscalaItem) => void;
+  data: EscalaItemModel[];
+  onConfirmButtonPress?: (dadosEscala: EscalaItemModel) => void;
+  onSubButtonPress?: (dadosEscala: EscalaItemModel) => void;
 }) {
   return (
     <View>

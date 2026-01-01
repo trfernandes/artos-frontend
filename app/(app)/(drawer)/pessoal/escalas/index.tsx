@@ -5,7 +5,7 @@ import { useAuth } from '../../../../../contexts/AuthContext';
 import FancyCalendar, { MarkedDate } from '../../../../../components/calendar/FancyCalendar';
 import FancyList from '../../../../../components/list/FancyList';
 import { endOfMonth, getMinutes, isBefore, isSameDay, startOfMonth } from 'date-fns';
-import { EscalaItem, EscalaItemStatusEnum } from '../../../../../domain/models/EscalaItem';
+import { EscalaItemModel, EscalaItemStatusEnum } from '../../../../../domain/models/EscalaItem';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import FancyListEmpty from '../../../../../components/list/FancyListEmpty';
 import SubstituicaoModalPage from '../../../../../components/pages/pessoal/escalas/index/SubstituicaoModalPage';
@@ -17,7 +17,7 @@ import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/q
 import FancyLoading from '../../../../../components/FancyLoading';
 import EventoAccordeon from '../../../../../components/pages/pessoal/escalas/index/EventoAccordeon';
 import { useEscalaSubstituicoesCrud } from '../../../../../hooks/useEscalaSubstituicoesCrud';
-import { EscalaSubstituicao, EscalaSubstituicaoStatusEnum } from '../../../../../domain/models/EscalaSubstituicao';
+import { EscalaSubstituicaoModel, EscalaSubstituicaoStatusEnum } from '../../../../../domain/models/EscalaSubstituicao';
 import SubstituicoesRequestsFrame from '../../../../../components/pages/pessoal/escalas/index/SubstituicoesRequestsFrame';
 import FancySeparator from '../../../../../components/FancySeparator';
 
@@ -31,22 +31,20 @@ export const StatusColorMap: Record<EscalaItemStatusEnum, string> = {
 
 export type EscalaDoDiaAgrupada = {
   eventoId: string;
-  evento: EscalaItem['evento'];
+  evento: EscalaItemModel['evento'];
   dataOcorrencia: Date;
-  ministerio: EscalaItem['voluntario']['ministerio'];
-  voluntario: EscalaItem['voluntario'];
-  itens: EscalaItem[];
+  ministerio: EscalaItemModel['voluntario']['ministerio'];
+  voluntario: EscalaItemModel['voluntario'];
+  itens: EscalaItemModel[];
 };
 
 export default function MinhasEscalasIndexPage() {
   const { user } = useAuth();
-  const [escalasDoUsuario, setEscalasDoUsuario] = useState<EscalaItem[]>([]);
+  const [escalasDoUsuario, setEscalasDoUsuario] = useState<EscalaItemModel[]>([]);
   const [isLoadingEscalas, setIsLoadingEscalas] = useState<boolean>(true);
   const { update: updateEscala, isLoadingMutation: isLoading } = useEscalaItensCrud();
 
-  const [substituicaoPageParams, setSubstituicaoPageParams] = useState<
-    { visible: boolean; dadosEscala?: EscalaItem } | undefined
-  >({
+  const [substituicaoPageParams, setSubstituicaoPageParams] = useState<{ visible: boolean; dadosEscala?: EscalaItemModel } | undefined>({
     visible: false,
   });
   const [eventoPageParams, setEventoPageParams] = useState<{
@@ -133,10 +131,9 @@ export default function MinhasEscalasIndexPage() {
   const markedDates = useMemo<MarkedDate[]>(() => {
     if (!escalasDoUsuario) return [];
 
-    const keyFrom = (item: EscalaItem) => {
-      const ministerioId = item.voluntario.ministerioId ?? item.voluntario.ministerio?.id ?? '';
-      const dataISO =
-        item.dataOcorrencia instanceof Date ? item.dataOcorrencia.toISOString() : new Date(item.dataOcorrencia).toISOString();
+    const keyFrom = (item: EscalaItemModel) => {
+      const ministerioId = item.voluntario.ministerio?.id ?? '';
+      const dataISO = item.dataOcorrencia instanceof Date ? item.dataOcorrencia.toISOString() : new Date(item.dataOcorrencia).toISOString();
       const eventoId = item.evento?.id ?? '';
       return `${ministerioId}::${eventoId}::${dataISO}`;
     };
@@ -146,7 +143,7 @@ export default function MinhasEscalasIndexPage() {
         escalasDoUsuario.map(item => [
           keyFrom(item),
           {
-            ministerioId: item.voluntario.ministerioId ?? item.voluntario.ministerio?.id!,
+            ministerioId: item.voluntario.ministerio?.id!,
             evento: item.evento,
             dataOcorrencia: item.dataOcorrencia,
           },
@@ -251,11 +248,11 @@ export default function MinhasEscalasIndexPage() {
       await updateEscala({ id: escalaItemId, data: { status: EscalaItemStatusEnum.SubstituicaoSolicitada } });
 
       await addSubstituicao({
-        escalaItemId,
+        escalaItem: { id: escalaItemId },
         dataSolicitacao: new Date(),
         motivo,
-        solicitanteId,
-        substitutoId,
+        solicitante: { id: solicitanteId },
+        substituto: { id: substitutoId },
         status: EscalaSubstituicaoStatusEnum.Pendente,
       });
 
@@ -268,7 +265,7 @@ export default function MinhasEscalasIndexPage() {
   );
 
   const handleSolicitacaoRespondida = useCallback(
-    (substituicao: EscalaSubstituicao, response: 'accept' | 'reject') => {
+    (substituicao: EscalaSubstituicaoModel, response: 'accept' | 'reject') => {
       if (response === 'accept') {
         FancyAlert.alert('Aceitar Substituição', 'Você confirma que irá substituir este serviço?', [
           {

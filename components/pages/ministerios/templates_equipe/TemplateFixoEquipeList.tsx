@@ -6,28 +6,28 @@ import { FormProvider, useFieldArray, useForm, useFormContext } from 'react-hook
 import { EscalaTemplateFormData, escalaTemplateVoluntarioSchema } from '../../../../domain/schemas/escalaTemplateSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Pallete } from '../../../../constants/colors';
-import { MinisterioFuncao } from '../../../../domain/models/MinisterioFuncao';
+import { MinisterioFuncaoModel } from '../../../../domain/models/MinisterioFuncao';
 import { FancyAlert } from '../../../modal/FancyAlert';
 import Toast from 'react-native-toast-message';
-import { EscalaTemplateVoluntario } from '../../../../domain/models/EscalaTemplate';
+import { EscalaTemplateVoluntarioModel } from '../../../../domain/models/EscalaTemplate';
 import { FancyCard } from '../../../cards/Horizontal/FancyCard';
 import FancyContainerList from '../../../container_list/FancyContainerList';
-import { MinisterioVoluntario } from '../../../../domain/models/MinisterioVoluntario';
+import { MinisterioVoluntarioModel } from '../../../../domain/models/MinisterioVoluntario';
 
 const EMPTY_PROFILE_IMAGE = require('../../../../assets/images/empty_profile_image.png');
 
 interface TemplateFixoEquipeListProps {
   disabled?: boolean;
-  voluntariosList: MinisterioVoluntario[] | [];
-  funcoesList: MinisterioFuncao[] | [];
+  voluntariosList: MinisterioVoluntarioModel[] | [];
+  funcoesList: MinisterioFuncaoModel[] | [];
   voluntariosDropDownList?: DropDownItemProps<string>[];
   funcoesDropDownList: DropDownItemProps<string>[];
 }
 
 export default function TemplateFixoEquipeList({
   disabled = false,
-  voluntariosList = [] as MinisterioVoluntario[],
-  funcoesList = [] as MinisterioFuncao[],
+  voluntariosList = [] as MinisterioVoluntarioModel[],
+  funcoesList = [] as MinisterioFuncaoModel[],
   voluntariosDropDownList,
   funcoesDropDownList,
 }: TemplateFixoEquipeListProps) {
@@ -130,7 +130,7 @@ export default function TemplateFixoEquipeList({
         data={voluntariosData}
         contentContainerStyle={{ paddingTop: 6 }}
         disabled={disabled}
-        renderItem={({ item, index }: { item: EscalaTemplateVoluntario; index: number }) => {
+        renderItem={({ item, index }: { item: EscalaTemplateVoluntarioModel; index: number }) => {
           const voluntarioInfo = voluntariosList.find(option => option.id === item.voluntarioId);
           const funcaoInfo = funcoesList.find(option => option.id === item.funcaoId);
           return (

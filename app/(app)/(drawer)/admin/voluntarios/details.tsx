@@ -9,9 +9,9 @@ import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/q
 import VoluntarioMinisterioTab from '../../../../../components/pages/admin/voluntarios/VoluntarioMinisterioTab';
 import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
 import FancyLoading from '../../../../../components/FancyLoading';
-import { MinisterioVoluntario, MinisterioVoluntarioStatusEnum } from '../../../../../domain/models/MinisterioVoluntario';
+import { MinisterioVoluntarioModel, MinisterioVoluntarioStatusEnum } from '../../../../../domain/models/MinisterioVoluntario';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
-import { Voluntario } from '../../../../../domain/models/Voluntario';
+import { VoluntarioModel } from '../../../../../domain/models/Voluntario';
 import { VoluntariosRepository } from '../../../../../domain/services/VoluntariosRepository';
 import { MinisterioAddFormData } from '../../../../../components/pages/admin/voluntarios/MinisterioAddForm';
 
@@ -29,7 +29,7 @@ export default function VoluntariosDetailsPage() {
     };
   }, [parametros.id]);
 
-  const [voluntarioData, setVoluntarioData] = useState<Voluntario[] | undefined>();
+  const [voluntarioData, setVoluntarioData] = useState<VoluntarioModel[] | undefined>();
   const [isLoadingVoluntarios, setIsLoadingVoluntarios] = useState(false);
 
   const loadData = useCallback(() => {
@@ -63,7 +63,7 @@ export default function VoluntariosDetailsPage() {
     },
   });
 
-  const handleChangeStatus = useCallback((ministerioVoluntario: MinisterioVoluntario, status: MinisterioVoluntarioStatusEnum) => {
+  const handleChangeStatus = useCallback((ministerioVoluntario: MinisterioVoluntarioModel, status: MinisterioVoluntarioStatusEnum) => {
     FancyAlert.alert(
       'Exclusão de Ministério',
       status === MinisterioVoluntarioStatusEnum.Ativo

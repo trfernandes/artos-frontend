@@ -1,4 +1,4 @@
-import { Escala } from '../models/Escala';
+import { EscalaApiModel } from '../models/Escala';
 import { EscalaTemplateExperienciaEnum, EscalaTemplateTipoEnum } from '../models/EscalaTemplate';
 import apiClient from './api-client';
 import { BaseApi } from './BaseApi';
@@ -47,12 +47,12 @@ export type GerarEscalaDto = {
   criadoPor: string;
 };
 
-class EscalasApiClass extends BaseApi<Escala> {
+class EscalasApiClass extends BaseApi<EscalaApiModel> {
   constructor() {
     super('escalas');
   }
 
-  async generate(data: GerarEscalaDto): Promise<Escala> {
+  async generate(data: GerarEscalaDto): Promise<EscalaApiModel> {
     try {
       const response = await apiClient.post(`/${this.resourceName}/gerar`, data);
       return response.data.data;

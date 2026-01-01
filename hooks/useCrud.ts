@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FieldValues, Resolver, useForm, UseFormReturn } from 'react-hook-form';
 import Toast from 'react-native-toast-message';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Identifiable } from '../domain/models/Indentifiable';
+import { BaseModel } from '../domain/models/BaseModel';
 import { DynamicQuery } from '../domain/utils/query_utils';
 
 export type CrudFormMessages = {
@@ -31,7 +31,7 @@ export interface UseCrudOptions<T, TForm extends FieldValues, CreateDto = Partia
 }
 
 export function useCrud<
-  T extends Identifiable,
+  T extends BaseModel,
   TForm extends FieldValues,
   CreateDto = Omit<T, 'id' | 'createdAt' | 'updatedAt'>,
   UpdateDto = Partial<Omit<T, 'id' | 'createdAt' | 'updatedAt'>>

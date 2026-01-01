@@ -1,18 +1,22 @@
 import { MinisteriosApi } from '../api/MinisteriosApi';
-import { Ministerio } from '../models/Ministerio';
+import { MinisterioApiModel, MinisterioModel, MinisterioSerializer } from '../models/Ministerio';
 import { BaseRepository } from './BaseRepository';
 
-class MinisteriosRepositoryClass extends BaseRepository<Ministerio> {
+class MinisteriosRepositoryClass extends BaseRepository<MinisterioModel, MinisterioApiModel> {
   constructor() {
-    super(MinisteriosApi);
+    super(MinisteriosApi, { fromApi: MinisterioSerializer.fromApi, toApi: MinisterioSerializer.toApi });
   }
 
-  add(data: Omit<Ministerio, 'id' | 'createdAt' | 'updatedAt'>): Promise<Ministerio> {
-    return MinisteriosApi.create(data, data.uploadLogo);
+  async add(data: Omit<MinisterioModel, 'id' | 'createdAt' | 'updatedAt'>): Promise<MinisterioModel> {
+    const apiData = MinisterioSerializer.toApi(data);
+    const result = await MinisteriosApi.create(apiData, data.uploadLogo);
+    return MinisterioSerializer.fromApi(result);
   }
 
-  update(id: string, data: Partial<Ministerio>): Promise<Ministerio> {
-    return MinisteriosApi.update(id, data, data.uploadLogo);
+  async update(id: string, data: Partial<MinisterioModel>): Promise<MinisterioModel> {
+    const apiData = MinisterioSerializer.toApi(data);
+    const result = await MinisteriosApi.update(id, apiData, data.uploadLogo);
+    return MinisterioSerializer.fromApi(result);
   }
 }
 

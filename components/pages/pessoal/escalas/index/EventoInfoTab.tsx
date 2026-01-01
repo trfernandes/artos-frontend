@@ -5,7 +5,7 @@ import FancySeparator from '../../../../FancySeparator';
 import DefaultIcons, { CustomIconProps } from '../../../../FancyIcons';
 import { Pallete } from '../../../../../constants/colors';
 import FancyImage from '../../../../images/FancyImage';
-import { EscalaItem } from '../../../../../domain/models/EscalaItem';
+import { EscalaItemModel } from '../../../../../domain/models/EscalaItem';
 
 export interface EventoInfoTabProps {
   ministerioNome: string;
@@ -14,7 +14,7 @@ export interface EventoInfoTabProps {
   eventoDescricao?: string;
   dataOcorrencia: Date;
   local: string;
-  funcoes: EscalaItem[];
+  funcoes: EscalaItemModel[];
 }
 
 export default function EventoInfoTab({

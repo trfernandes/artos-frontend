@@ -13,7 +13,7 @@ import { useAuth } from '../../../../../contexts/AuthContext';
 import FancyLoading from '../../../../../components/FancyLoading';
 import Toast from 'react-native-toast-message';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
-import { Voluntario, VoluntarioStatusEnum, VoluntarioStatusEnumMap } from '../../../../../domain/models/Voluntario';
+import { VoluntarioModel, VoluntarioStatusEnum, VoluntarioStatusEnumMap } from '../../../../../domain/models/Voluntario';
 import FancySectionHeader, { Item, Row, Section } from '../../../../../components/cards/Horizontal/FancySectionHeader';
 import { FancyActionButtons } from '../../../../../components/cards/Horizontal/FancyCardActionButtons';
 
@@ -67,41 +67,40 @@ export default function VoluntariosIndexPage() {
     [updateVoluntario]
   );
 
-  const handleDeleteVoluntario = useCallback((voluntarioId: string) => {
-    FancyAlert.alert(
-      'Excluir definitivamente este voluntário?',
-      `A exclusão deste voluntário é permanente. Todos os vínculos com ministérios, funções, escalas e relatórios históricos serão removidos e não poderão ser recuperados. Se você não quiser perder o histórico, use a opção "Desativar" em vez de excluir.`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Sim, estou ciente',
-          style: 'destructive',
-          onPress: () => {
-            removeVoluntario(voluntarioId);
+  const handleDeleteVoluntario = useCallback(
+    (voluntarioId: string) => {
+      FancyAlert.alert(
+        'Excluir definitivamente este voluntário?',
+        `A exclusão deste voluntário é permanente. Todos os vínculos com ministérios, funções, escalas e relatórios históricos serão removidos e não poderão ser recuperados. Se você não quiser perder o histórico, use a opção "Desativar" em vez de excluir.`,
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Sim, estou ciente',
+            style: 'destructive',
+            onPress: () => {
+              removeVoluntario(voluntarioId);
+            },
           },
-        },
-      ]
-    );
-  }, [removeVoluntario]);
+        ]
+      );
+    },
+    [removeVoluntario]
+  );
 
-  const voluntariosData = useMemo<Row<Voluntario>[]>(() => {
-    const ativos = data
-      .filter(v => v.status === VoluntarioStatusEnum.Ativo)
-      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
-    const inativos = data
-      .filter(v => v.status === VoluntarioStatusEnum.Inativo)
-      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
+  const voluntariosData = useMemo<Row<VoluntarioModel>[]>(() => {
+    const ativos = data.filter(v => v.status === VoluntarioStatusEnum.Ativo).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
+    const inativos = data.filter(v => v.status === VoluntarioStatusEnum.Inativo).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
 
-    const rows: Row<Voluntario>[] = [];
+    const rows: Row<VoluntarioModel>[] = [];
 
     if (ativos.length > 0) {
       rows.push({ type: 'section', key: 'section-ativos', title: `Ativos (${ativos.length})` } as Section);
-      rows.push(...(ativos.map(v => ({ type: 'item', key: `ativo-${v.id}`, data: v })) as Item<Voluntario>[]));
+      rows.push(...(ativos.map(v => ({ type: 'item', key: `ativo-${v.id}`, data: v })) as Item<VoluntarioModel>[]));
     }
 
     if (inativos.length > 0) {
       rows.push({ type: 'section', key: 'section-inativos', title: `Inativos (${inativos.length})` } as Section);
-      rows.push(...(inativos.map(v => ({ type: 'item', key: `inativo-${v.id}`, data: v })) as Item<Voluntario>[]));
+      rows.push(...(inativos.map(v => ({ type: 'item', key: `inativo-${v.id}`, data: v })) as Item<VoluntarioModel>[]));
     }
 
     return rows;
@@ -154,11 +153,10 @@ export default function VoluntariosIndexPage() {
         onRefresh: refetch,
         data: voluntariosData,
         renderItem: ({ item, index }) => {
-          if (item.type === 'section')
-            return <FancySectionHeader title={item.title} containerStyle={{ marginTop: index > 0 ? 10 : 0 }} />;
+          if (item.type === 'section') return <FancySectionHeader title={item.title} containerStyle={{ marginTop: index > 0 ? 10 : 0 }} />;
           else
             return (
-              <View style={{ marginLeft: 10 }}>
+              <View>
                 <FancyCard.Image
                   key={index}
                   type="image"
@@ -194,8 +192,7 @@ export default function VoluntariosIndexPage() {
                             },
                           },
                           {
-                            label:
-                              VoluntarioStatusEnumMap[item.data.status] === VoluntarioStatusEnum.Ativo ? 'Desativar' : 'Ativar',
+                            label: VoluntarioStatusEnumMap[item.data.status] === VoluntarioStatusEnum.Ativo ? 'Desativar' : 'Ativar',
                             size: 'small',
                             icon:
                               VoluntarioStatusEnumMap[item.data.status] === VoluntarioStatusEnum.Ativo
@@ -215,9 +212,7 @@ export default function VoluntariosIndexPage() {
                               handleChangeStatus(
                                 item.data.id!,
                                 item.data.nome,
-                                item.data.status === VoluntarioStatusEnum.Ativo
-                                  ? VoluntarioStatusEnum.Inativo
-                                  : VoluntarioStatusEnum.Ativo
+                                item.data.status === VoluntarioStatusEnum.Ativo ? VoluntarioStatusEnum.Inativo : VoluntarioStatusEnum.Ativo
                               ),
                           },
                           {

@@ -1,8 +1,9 @@
-import { Notificacao } from '../models/Notificacao';
+import { NotificacaoApiModel, NotificacaoModel } from '../models/Notificacao';
 import apiClient from './api-client';
+import { BaseApi } from './BaseApi';
 
-class NotificaoesApiClass {
-  async listar(apenasNaoLidas = false): Promise<Notificacao[]> {
+class NotificaoesApiClass extends BaseApi<NotificacaoApiModel> {
+  async listar(apenasNaoLidas = false): Promise<NotificacaoModel[]> {
     const res = await apiClient.get('/notificacoes', {
       params: { apenasNaoLidas },
     });
@@ -23,4 +24,4 @@ class NotificaoesApiClass {
   }
 }
 
-export const NotificacoesApi = new NotificaoesApiClass();
+export const NotificacoesApi = new NotificaoesApiClass('notificacoes');

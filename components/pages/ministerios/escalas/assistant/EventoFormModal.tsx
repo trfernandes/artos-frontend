@@ -1,10 +1,10 @@
 import FancyModalDialog, { FancyModalDialogProps } from '../../../../modal/FancyModalDialog';
 import {
-  EscalaEventoFormData,
-  EscalaEventoTemplateFixoFormData,
-  EscalaEventoTemplateFormData,
-  EscalaEventoTemplateFuncaoFormData,
-  EscalaEventoTemplateSchema,
+    EscalaEventoFormData,
+    EscalaEventoTemplateFixoFormData,
+    EscalaEventoTemplateFormData,
+    EscalaEventoTemplateFuncaoFormData,
+    EscalaEventoTemplateSchema,
 } from '../../../../../domain/schemas/escalaSchema';
 import { format } from 'date-fns';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
@@ -14,7 +14,7 @@ import { StyleSheet } from 'react-native';
 import ControlledDropDown from '../../../../forms/ControlledDropDown';
 import FancyVerticalSpacer from '../../../../FancyVerticalSpacer';
 import { EnumUtils } from '../../../../../utils/enum_utils';
-import { EscalaTemplate, EscalaTemplateTipoEnum, EscalaTemplateTipoLabel } from '../../../../../domain/models/EscalaTemplate';
+import { EscalaTemplateModel, EscalaTemplateTipoEnum, EscalaTemplateTipoLabel } from '../../../../../domain/models/EscalaTemplate';
 import FancyDropDown from '../../../../fields/FancyDropDown';
 import { FancyAlert } from '../../../../modal/FancyAlert';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
@@ -138,7 +138,7 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
   });
 
   const loadTemplateData = useCallback(
-    (template: EscalaTemplate) => {
+    (template: EscalaTemplateModel) => {
       if (template.tipo === EscalaTemplateTipoEnum.Funcoes) {
         if (!template.funcoes) return;
 

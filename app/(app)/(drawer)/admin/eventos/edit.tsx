@@ -41,7 +41,7 @@ export default function EventosEditPage() {
       eventoForm.setValue('dataInicio', toZonedTime(eventosData[0]?.dataInicio, 'America/Sao_Paulo'));
       eventoForm.setValue(
         'dataTermino',
-        eventosData[0]?.dataTermino ? toZonedTime(eventosData[0]?.dataTermino, 'America/Sao_Paulo') : null
+        eventosData[0]?.dataTermino ? toZonedTime(eventosData[0]?.dataTermino, 'America/Sao_Paulo') : undefined
       );
       eventoForm.setValue('descricao', eventosData[0]?.descricao ?? '');
       eventoForm.setValue('recorrencia', eventosData[0]?.recorrencia);
@@ -80,12 +80,7 @@ export default function EventosEditPage() {
         <EventosDadosForm />
       </FormProvider>
       <View style={styles.buttons}>
-        <FancyButton
-          label="Salvar"
-          icon={{ ...DefaultIconsNames.save, size: 16 }}
-          type="contained"
-          onPress={handleSubmit}
-        />
+        <FancyButton label="Salvar" icon={{ ...DefaultIconsNames.save, size: 16 }} type="contained" onPress={handleSubmit} />
       </View>
     </FancyPageView>
   );

@@ -8,7 +8,7 @@ import { FancyTextDisplay } from '../../../../fields/FancyTextDisplay';
 import DefaultIcons from '../../../../FancyIcons';
 import { router } from 'expo-router';
 import FancyChips from '../../../../FancyChips';
-import { Escala, EscalaStatusEnum, EscalaStatusEnumLabel } from '../../../../../domain/models/Escala';
+import { EscalaModel, EscalaStatusEnum, EscalaStatusEnumLabel } from '../../../../../domain/models/Escala';
 import { EscalaStatusConfig } from '../../../../../app/(app)/(drawer)/ministerios/escalas';
 
 export default function Header({
@@ -19,7 +19,7 @@ export default function Header({
   onGeneratePress,
   onDeletePress,
 }: {
-  escala: Escala;
+  escala: EscalaModel;
   viewMode?: 'view' | 'edit';
   onPublishPress: () => void;
   onFinishPress: () => void;

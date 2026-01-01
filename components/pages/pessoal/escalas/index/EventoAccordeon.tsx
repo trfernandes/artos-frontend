@@ -7,7 +7,7 @@ import { EscalaDoDiaAgrupada } from '../../../../../app/(app)/(drawer)/pessoal/e
 import { Pallete } from '../../../../../constants/colors';
 import { ColorUtils } from '../../../../../utils/color_utils';
 import FuncoesTable from './FuncoesTable';
-import { EscalaItem } from '../../../../../domain/models/EscalaItem';
+import { EscalaItemModel } from '../../../../../domain/models/EscalaItem';
 import FancyButton from '../../../../buttons/FancyButton';
 import { BOLD_FONT } from '../../../../../constants/font';
 import { router } from 'expo-router';
@@ -18,8 +18,8 @@ export default function EventoAccordeon({
   onSubButtonPress,
 }: {
   data: EscalaDoDiaAgrupada;
-  onConfirmButtonPress: (dadosEscala: EscalaItem) => void;
-  onSubButtonPress: (dadosEscala: EscalaItem) => void;
+  onConfirmButtonPress: (dadosEscala: EscalaItemModel) => void;
+  onSubButtonPress: (dadosEscala: EscalaItemModel) => void;
 }) {
   const { borderColor, expandableIconColor, lightenColor, textColor, headerBackgroundColor } =
     useMemo(() => {

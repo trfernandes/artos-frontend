@@ -2,7 +2,7 @@ import { Alert, StyleSheet, View } from 'react-native';
 import FancyCalendar, { FancyCalendarProps } from '../../../calendar/FancyCalendar';
 import FancySeparator from '../../../FancySeparator';
 import { useEffect, useState } from 'react';
-import { Evento } from '../../../../domain/models/Evento';
+import { EventoModel } from '../../../../domain/models/Evento';
 import { useEventosCrud } from '../../../../hooks/useEventosCrud';
 import { Conjunction, Operator, ValueType } from '../../../../domain/utils/query_utils';
 import FancyList from '../../../list/FancyList';
@@ -12,10 +12,10 @@ import FancyLoading from '../../../FancyLoading';
 import { Pallete } from '../../../../constants/colors';
 
 export type EventoCalendarViewProps = {
-  items: Evento[];
+  items: EventoModel[];
   calendarProps?: FancyCalendarProps;
-  onDeleteItem: (item: Evento) => void;
-  onEditItem: (item: Evento) => void;
+  onDeleteItem: (item: EventoModel) => void;
+  onEditItem: (item: EventoModel) => void;
 };
 
 export default function EventoCalendarView(props: EventoCalendarViewProps) {

@@ -8,164 +8,162 @@ import { useMinisterioFuncoesCrud } from '../../../../../hooks/useMinisterioFunc
 import { useLocalSearchParams } from 'expo-router';
 import { Condition, DynamicQuery, Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
 import {
-  MinisterioFuncao,
-  MinisterioFuncaoStatusEnum,
-  MinisterioFuncaoStatusEnumLabel,
-  MinisterioFuncaoStatusEnumMap,
+    MinisterioFuncaoModel,
+    MinisterioFuncaoStatusEnum,
+    MinisterioFuncaoStatusEnumLabel,
+    MinisterioFuncaoStatusEnumMap,
 } from '../../../../../domain/models/MinisterioFuncao';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import FancyLoading from '../../../../../components/FancyLoading';
 import FancyChips from '../../../../../components/FancyChips';
 
 export default function MinisterioFuncoesIndex() {
-  const [funcaoFormModalParams, setFuncaoFormModalParams] = useState<
-    | {
-        mode?: 'add' | 'edit';
-        editValues?: MinisterioFuncao;
-        visible?: boolean;
-      }
-    | undefined
-  >();
-
-  const { ministerioId } = useLocalSearchParams<{ ministerioId?: string }>();
-
-  const [searchText, setSearchText] = useState('');
-
-  const searchParams = useMemo(() => {
-    if (!ministerioId) return;
-
-    const searchCondition: Condition | undefined =
-      searchText && searchText.trim() !== ''
-        ? {
-            path: 'nome',
-            operator: Operator.ILIKE,
-            value: { type: ValueType.LITERAL, value: searchText },
+    const [funcaoFormModalParams, setFuncaoFormModalParams] = useState<
+        | {
+              mode?: 'add' | 'edit';
+              editValues?: MinisterioFuncaoModel;
+              visible?: boolean;
           }
-        : undefined;
+        | undefined
+    >();
 
-    return {
-      where: {
-        conditions: [
-          {
-            path: 'ministerioId',
-            operator: Operator.EQUALS,
-            value: { type: ValueType.LITERAL, value: ministerioId },
-          },
-          ...(searchCondition ? [searchCondition] : []),
-        ],
-      },
-      orderBy: [{ path: 'nome', direction: OrderDirection.ASC }],
-    } as DynamicQuery;
-  }, [ministerioId, searchText]);
+    const { ministerioId } = useLocalSearchParams<{ ministerioId?: string }>();
 
-  const {
-    data: funcoesList,
-    remove: removeFuncao,
-    add: addFuncao,
-    update: updateFuncao,
-    isLoading,
-    isLoadingMutation,
-  } = useMinisterioFuncoesCrud({
-    initialParams: searchParams,
-    autoFetch: true,
-  });
+    const [searchText, setSearchText] = useState('');
 
-  const handleConfirm = useCallback(({ mode, data }: { mode: 'add' | 'edit'; data: MinisterioFuncao }) => {
-    if (mode === 'add') {
-      addFuncao({
-        ministerioId: ministerioId!,
-        nome: data.nome,
-        descricao: data.descricao,
-        status: data.status,
-      });
-    } else if (mode === 'edit') {
-      updateFuncao({
-        id: data.id!,
-        data: {
-          nome: data.nome,
-          descricao: data.descricao,
-          status: data.status,
-        },
-      });
-    }
-    setFuncaoFormModalParams({ visible: false });
-  }, []);
+    const searchParams = useMemo(() => {
+        if (!ministerioId) return;
 
-  if (isLoading || isLoadingMutation) return <FancyLoading />;
-
-  return (
-    <FancyListPage
-      showFab
-      fabProps={{ onPress: () => setFuncaoFormModalParams({ mode: 'add', visible: true }) }}
-      showSearchBar
-      searchBarProps={{
-        value: searchText,
-        onSearch: setSearchText,
-      }}
-      listProps={{
-        data: funcoesList,
-        renderItem: ({ item }) => (
-          <FancyCard.Image
-            type="icon"
-            props={{
-              title: item.nome,
-              subtitle: item.descricao,
-              cardIcon: { library: 'FontAwesome6', name: 'person-rays', size: 16 },
-              additionalData1: (
-                <FancyChips
-                  style={{ marginTop: 3 }}
-                  label={MinisterioFuncaoStatusEnumLabel[MinisterioFuncaoStatusEnumMap[item.status]]}
-                  color={
-                    MinisterioFuncaoStatusEnumMap[item.status] === MinisterioFuncaoStatusEnum.Ativo
-                      ? Pallete.primary
-                      : Pallete.error
+        const searchCondition: Condition | undefined =
+            searchText && searchText.trim() !== ''
+                ? {
+                      path: 'nome',
+                      operator: Operator.ILIKE,
+                      value: { type: ValueType.LITERAL, value: searchText },
                   }
-                />
-              ),
-              actionButtons: [
-                {
-                  icon: { ...DefaultIconsNames.edit, size: 18 },
-                  onPress: () => {
-                    setFuncaoFormModalParams({ visible: true, mode: 'edit', editValues: item });
-                  },
+                : undefined;
+
+        return {
+            where: {
+                conditions: [
+                    {
+                        path: 'ministerioId',
+                        operator: Operator.EQUALS,
+                        value: { type: ValueType.LITERAL, value: ministerioId },
+                    },
+                    ...(searchCondition ? [searchCondition] : []),
+                ],
+            },
+            orderBy: [{ path: 'nome', direction: OrderDirection.ASC }],
+        } as DynamicQuery;
+    }, [ministerioId, searchText]);
+
+    const {
+        data: funcoesList,
+        remove: removeFuncao,
+        add: addFuncao,
+        update: updateFuncao,
+        isLoading,
+        isLoadingMutation,
+    } = useMinisterioFuncoesCrud({
+        initialParams: searchParams,
+        autoFetch: true,
+    });
+
+    const handleConfirm = useCallback(({ mode, data }: { mode: 'add' | 'edit'; data: MinisterioFuncaoModel }) => {
+        if (mode === 'add') {
+            addFuncao({
+                ministerioId: ministerioId!,
+                nome: data.nome,
+                descricao: data.descricao,
+                status: data.status,
+            });
+        } else if (mode === 'edit') {
+            console.log('Updating funcao with data:', data);
+            updateFuncao({
+                id: data?.id!,
+                data: {
+                    nome: data.nome,
+                    descricao: data.descricao,
+                    status: data.status,
+                    ministerioId: data.ministerioId!,
                 },
-                {
-                  icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error },
-                  onPress: () => {
-                    FancyAlert.alert('Confirmação', 'Deseja realmente excluir essa função?', [
-                      {
-                        text: 'Não',
-                        style: 'cancel',
-                      },
-                      {
-                        text: 'Sim',
-                        style: 'destructive',
-                        onPress: async () => {
-                          await removeFuncao(item.id!);
-                        },
-                      },
-                    ]);
-                  },
-                },
-              ],
+            });
+        }
+        setFuncaoFormModalParams({ visible: false });
+    }, []);
+
+    if (isLoading || isLoadingMutation) return <FancyLoading />;
+
+    return (
+        <FancyListPage
+            showFab
+            fabProps={{ onPress: () => setFuncaoFormModalParams({ mode: 'add', visible: true }) }}
+            showSearchBar
+            searchBarProps={{
+                value: searchText,
+                onSearch: setSearchText,
             }}
-          />
-        ),
-      }}
-    >
-      {funcaoFormModalParams && (
-        <FuncaoFormModal
-          title="Nova Função"
-          mode={funcaoFormModalParams.mode || 'add'}
-          editValues={funcaoFormModalParams.editValues!}
-          ministerioId={ministerioId!}
-          modalProps={{ visible: funcaoFormModalParams.visible ?? true }}
-          onButton1Press={() => setFuncaoFormModalParams({ visible: false })}
-          onButton2Press={data => {
-            handleConfirm(data!);
-          }}
-        />
-      )}
-    </FancyListPage>
-  );
+            listProps={{
+                data: funcoesList,
+                renderItem: ({ item }) => (
+                    <FancyCard.Image
+                        type='icon'
+                        props={{
+                            title: item.nome,
+                            subtitle: item.descricao,
+                            cardIcon: { library: 'FontAwesome6', name: 'person-rays', size: 16 },
+                            additionalData1: (
+                                <FancyChips
+                                    style={{ marginTop: 3 }}
+                                    label={MinisterioFuncaoStatusEnumLabel[MinisterioFuncaoStatusEnumMap[item.status]]}
+                                    color={MinisterioFuncaoStatusEnumMap[item.status] === MinisterioFuncaoStatusEnum.Ativo ? Pallete.primary : Pallete.error}
+                                />
+                            ),
+                            actionButtons: [
+                                {
+                                    icon: { ...DefaultIconsNames.edit, size: 18 },
+                                    onPress: () => {
+                                        setFuncaoFormModalParams({ visible: true, mode: 'edit', editValues: item });
+                                    },
+                                },
+                                {
+                                    icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error },
+                                    onPress: () => {
+                                        FancyAlert.alert('Confirmação', 'Deseja realmente excluir essa função?', [
+                                            {
+                                                text: 'Não',
+                                                style: 'cancel',
+                                            },
+                                            {
+                                                text: 'Sim',
+                                                style: 'destructive',
+                                                onPress: async () => {
+                                                    await removeFuncao(item.id!);
+                                                },
+                                            },
+                                        ]);
+                                    },
+                                },
+                            ],
+                        }}
+                    />
+                ),
+            }}
+        >
+            {funcaoFormModalParams && (
+                <FuncaoFormModal
+                    title='Nova Função'
+                    mode={funcaoFormModalParams.mode || 'add'}
+                    editValues={funcaoFormModalParams.editValues!}
+                    ministerioId={ministerioId!}
+                    modalProps={{ visible: funcaoFormModalParams.visible ?? true }}
+                    onButton1Press={() => setFuncaoFormModalParams({ visible: false })}
+                    onButton2Press={(data) => {
+                        handleConfirm(data!);
+                    }}
+                />
+            )}
+        </FancyListPage>
+    );
 }

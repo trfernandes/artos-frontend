@@ -1,30 +1,13 @@
-import { Ministerio } from '../models/Ministerio';
+import { MinisterioApiModel } from '../models/Ministerio';
 import apiClient from './api-client';
 import { BaseApi } from './BaseApi';
-import * as FileSystem from 'expo-file-system';
 
-export async function base64ToFile(base64: string, filename: string = 'temp.jpg') {
-  const path = FileSystem.cacheDirectory + filename;
-
-  const base64Data = base64.includes('base64,') ? base64.split('base64,')[1] : base64;
-
-  await FileSystem.writeAsStringAsync(path, base64Data, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
-
-  return {
-    uri: path, // Esse URI pode ser enviado no FormData
-    name: filename,
-    type: 'image/jpeg', // ajuste se precisar
-  };
-}
-
-class MinisteriosApiClass extends BaseApi<Ministerio> {
+class MinisteriosApiClass extends BaseApi<MinisterioApiModel> {
   constructor() {
     super('ministerios');
   }
 
-  async create(data: Omit<Ministerio, 'id' | 'createdAt' | 'updatedAt'>, logo?: string | null): Promise<Ministerio> {
+  async create(data: Omit<MinisterioApiModel, 'id' | 'createdAt' | 'updatedAt'>, logo?: string | null): Promise<MinisterioApiModel> {
     try {
       const formData = new FormData();
 
@@ -59,7 +42,7 @@ class MinisteriosApiClass extends BaseApi<Ministerio> {
     }
   }
 
-  async update(id: string, data: Partial<Ministerio>, logo?: string | null): Promise<Ministerio> {
+  async update(id: string, data: Partial<MinisterioApiModel>, logo?: string | null): Promise<MinisterioApiModel> {
     try {
       const formData = new FormData();
 

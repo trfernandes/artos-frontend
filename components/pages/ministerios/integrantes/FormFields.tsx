@@ -3,9 +3,9 @@ import ControlledDropDown from '../../../forms/ControlledDropDown';
 import { View } from 'react-native';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import {
-  MinVoluntarioFormData,
-  MinVoluntarioFuncaoFormData,
-  minVoluntarioFuncaoSchema,
+    MinVoluntarioFormData,
+    MinVoluntarioFuncaoFormData,
+    minVoluntarioFuncaoSchema,
 } from '../../../../domain/schemas/ministerioVoluntariosSchema';
 import { useMemo, useState } from 'react';
 import IntegranteFormModal from './FormModal';
@@ -13,16 +13,16 @@ import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import { zodResolver } from '@hookform/resolvers/zod';
 import FancyContainerList from '../../../container_list/FancyContainerList';
 import { FancyCard } from '../../../cards/Horizontal/FancyCard';
-import { MinisterioFuncao } from '../../../../domain/models/MinisterioFuncao';
+import { MinisterioFuncaoModel } from '../../../../domain/models/MinisterioFuncao';
 import { Pallete } from '../../../../constants/colors';
 import { EscalaTemplateExperienciaLabel } from '../../../../domain/models/EscalaTemplate';
 import { FancyAlert } from '../../../modal/FancyAlert';
 import FancyImage from '../../../images/FancyImage';
 import FancyText from '../../../FancyText';
 import {
-  MinisterioVoluntarioStatusEnum,
-  MinisterioVoluntarioStatusEnumLabel,
-  MinisterioVoluntarioStatusEnumMap,
+    MinisterioVoluntarioStatusEnum,
+    MinisterioVoluntarioStatusEnumLabel,
+    MinisterioVoluntarioStatusEnumMap,
 } from '../../../../domain/models/MinisterioVoluntario';
 import FancyChips from '../../../FancyChips';
 
@@ -30,7 +30,7 @@ export interface IntegranteFormFieldsProps {
   mode: 'add' | 'edit';
   voluntariosDropDownList?: DropDownItemProps<string>[];
   funcoesDropDownList?: DropDownItemProps<string>[];
-  funcoesList: MinisterioFuncao[];
+  funcoesList: MinisterioFuncaoModel[];
 }
 
 export default function IntegranteFormFields({

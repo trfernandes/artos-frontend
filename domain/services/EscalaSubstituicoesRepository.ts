@@ -1,10 +1,10 @@
 import { EscalaSubstituicoesApi } from '../api/EscalaSubstituicoesApi';
-import { EscalaSubstituicao } from '../models/EscalaSubstituicao';
+import { EscalaSubstituicaoApiModel, EscalaSubstituicaoModel, EscalaSubstituicaoSerializer } from '../models/EscalaSubstituicao';
 import { BaseRepository } from './BaseRepository';
 
-class EscalaSubstituicoesRepositoryClass extends BaseRepository<EscalaSubstituicao> {
+class EscalaSubstituicoesRepositoryClass extends BaseRepository<EscalaSubstituicaoModel, EscalaSubstituicaoApiModel> {
   constructor() {
-    super(EscalaSubstituicoesApi);
+    super(EscalaSubstituicoesApi, { fromApi: EscalaSubstituicaoSerializer.fromApi, toApi: EscalaSubstituicaoSerializer.toApi });
   }
 }
 

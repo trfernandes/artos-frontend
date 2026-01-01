@@ -3,7 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEscalaTemplatesCrud } from '../../../../../useEscalaTemplatesCrud';
-import { EscalaTemplate, EscalaTemplateTipoEnum } from '../../../../../domain/models/EscalaTemplate';
+import { EscalaTemplateTipoEnum } from '../../../../../domain/models/EscalaTemplate';
 import { EscalaTemplateFormData, escalaTemplateSchema } from '../../../../../domain/schemas/escalaTemplateSchema';
 import { AxiosError } from 'axios';
 import TemplateForm from '../../../../../components/pages/ministerios/templates_equipe/TemplateForm';
@@ -27,16 +27,13 @@ export default function MinisterioTemplatesAddPage() {
   const handleOnSave = useCallback(
     form.handleSubmit(
       data => {
-        addTemplate(data as EscalaTemplate)
+        addTemplate({ ...data, ministerio: { id: data.ministerioId } })
           .then(() => {
             router.back();
           })
           .catch((error: AxiosError<any, any>) => {
             const errorMessage = error.response?.data?.message;
-            if (
-              errorMessage &&
-              errorMessage.trim() === 'Ja existe um template com esse nome para o ministerio informado.'
-            ) {
+            if (errorMessage && errorMessage.trim() === 'Ja existe um template com esse nome para o ministerio informado.') {
               form.setError('nome', {
                 type: 'custom',
                 message: 'O nome já está sendo utilizado',

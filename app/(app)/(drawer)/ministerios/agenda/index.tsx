@@ -4,7 +4,7 @@ import FancyCalendar from '../../../../../components/calendar/FancyCalendar';
 import FancyList from '../../../../../components/list/FancyList';
 import { useEffect, useMemo, useState } from 'react';
 import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
-import { Evento } from '../../../../../domain/models/Evento';
+import { EventoModel } from '../../../../../domain/models/Evento';
 import { formatDate, lastDayOfMonth, startOfMonth } from 'date-fns';
 import FancyLoading from '../../../../../components/FancyLoading';
 import DateUtils from '../../../../../utils/date_utils';
@@ -19,7 +19,7 @@ export default function MinisterioAgendaIndexPage() {
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [currentMonth, setCurrenMonth] = useState(new Date());
-  const [eventos, setEventos] = useState<Evento[]>();
+  const [eventos, setEventos] = useState<EventoModel[]>();
 
   const { buscarPorIntervalo, isLoading } = useEventosCrud({ autoFetch: false });
 
@@ -62,10 +62,7 @@ export default function MinisterioAgendaIndexPage() {
         data={daysEvents}
         listEmptyProps={{ label: 'Nenhum evento por aqui...' }}
         renderItem={({ item, index }) => {
-          const subtitle = `${formatDate(item.dataInicio, 'HH:mm')} à ${formatDate(
-            item.dataTermino,
-            'HH:mm'
-          )}`;
+          const subtitle = item.dataTermino && `${formatDate(item.dataInicio, 'HH:mm')} à ${formatDate(item.dataTermino, 'HH:mm')}`;
           return (
             <FancyCard.Color
               key={index}

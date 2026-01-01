@@ -8,7 +8,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Condition, DynamicQuery, Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
 import {
   HierarquiaEnumLabel,
-  MinisterioVoluntario,
+  MinisterioVoluntarioModel,
   MinisterioVoluntarioStatusEnum,
   MinisterioVoluntarioStatusEnumMap,
 } from '../../../../../domain/models/MinisterioVoluntario';
@@ -64,7 +64,7 @@ export default function MinisterioIntegrantesIndex() {
     initialParams: params,
   });
 
-  const integrantesData = useMemo<Row<MinisterioVoluntario>[]>(() => {
+  const integrantesData = useMemo<Row<MinisterioVoluntarioModel>[]>(() => {
     const ativos = data
       .filter(v => MinisterioVoluntarioStatusEnumMap[v.status] === MinisterioVoluntarioStatusEnum.Ativo)
       .sort((a, b) => (a.voluntario?.nome ?? '').localeCompare(b.voluntario?.nome ?? '', 'pt-BR', { sensitivity: 'base' }));
@@ -72,12 +72,12 @@ export default function MinisterioIntegrantesIndex() {
       .filter(v => MinisterioVoluntarioStatusEnumMap[v.status] === MinisterioVoluntarioStatusEnum.Inativo)
       .sort((a, b) => (a.voluntario?.nome ?? '').localeCompare(b.voluntario?.nome ?? '', 'pt-BR', { sensitivity: 'base' }));
 
-    const rows: Row<MinisterioVoluntario>[] = [];
+    const rows: Row<MinisterioVoluntarioModel>[] = [];
 
     if (ativos.length > 0) {
       rows.push({ type: 'section', key: 'section-ativos', title: `Ativos (${ativos.length})` } as Section);
       rows.push(
-        ...(ativos.map(v => ({ type: 'item', key: `ativo-${v.id}`, data: v })) as unknown as Item<MinisterioVoluntario>[])
+        ...(ativos.map(v => ({ type: 'item', key: `ativo-${v.id}`, data: v })) as unknown as Item<MinisterioVoluntarioModel>[])
       );
     }
 
@@ -88,7 +88,7 @@ export default function MinisterioIntegrantesIndex() {
           type: 'item',
           key: `inativo-${v.id}`,
           data: v,
-        })) as unknown as Item<MinisterioVoluntario>[])
+        })) as unknown as Item<MinisterioVoluntarioModel>[])
       );
     }
 

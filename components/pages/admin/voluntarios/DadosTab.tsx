@@ -1,13 +1,13 @@
 import { StyleSheet, View } from 'react-native';
 import FancyAvatarImage from '../../../images/FancyImage';
 import FancyScrollView from '../../../FancyScrollView';
-import { Voluntario } from '../../../../domain/models/Voluntario';
+import { VoluntarioModel } from '../../../../domain/models/Voluntario';
 import FancyText from '../../../FancyText';
 import { format } from 'date-fns';
 import FancyVerticalSpacer from '../../../FancyVerticalSpacer';
 import FancyValueLine from '../../../fields/FancyValueLine';
 
-export default function VoluntarioDadosTab(props: { voluntario: Voluntario }) {
+export default function VoluntarioDadosTab(props: { voluntario: VoluntarioModel }) {
   if (!props.voluntario) {
     return;
   }

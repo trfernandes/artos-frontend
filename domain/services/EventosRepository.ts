@@ -1,6 +1,6 @@
 import { endOfDay, format } from 'date-fns';
 import { EventosApi } from '../api/EventosApi';
-import { Evento } from '../models/Evento';
+import { EventoApiModel, EventoModel, EventoSerializer } from '../models/Evento';
 import { BaseRepository } from './BaseRepository';
 
 export interface EventosIntervaloParams {
@@ -8,13 +8,12 @@ export interface EventosIntervaloParams {
   dataTermino: Date | string;
 }
 
-class EventosRepositoryClass extends BaseRepository<Evento> {
+class EventosRepositoryClass extends BaseRepository<EventoModel, EventoApiModel> {
   constructor() {
-    super(EventosApi);
+    super(EventosApi, { fromApi: EventoSerializer.fromApi, toApi: EventoSerializer.toApi });
   }
 
-  async buscarPorIntervalo(params: EventosIntervaloParams): Promise<Evento[]> {
-
+  async buscarPorIntervalo(params: EventosIntervaloParams): Promise<EventoModel[]> {
     return EventosApi.buscarPorIntervalo({
       dataInicio: format(params.dataInicio, "yyyy-MM-dd'T'HH:mm:ss"),
       dataTermino: format(endOfDay(params.dataTermino), "yyyy-MM-dd'T'HH:mm:ss"),

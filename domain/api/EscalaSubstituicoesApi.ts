@@ -1,7 +1,7 @@
 import { BaseApi } from './BaseApi';
-import { EscalaSubstituicao } from '../models/EscalaSubstituicao';
+import { EscalaSubstituicaoApiModel } from '../models/EscalaSubstituicao';
 
-class EscalaSubstituicoesApiClass extends BaseApi<EscalaSubstituicao> {
+class EscalaSubstituicoesApiClass extends BaseApi<EscalaSubstituicaoApiModel> {
   constructor() {
     super('escalas/substituicoes');
   }

@@ -1,14 +1,22 @@
 import { VoluntariosApi } from '../api/VoluntariosApi';
-import { Voluntario } from '../models/Voluntario';
+import { VoluntarioApiModel, VoluntarioModel, VoluntarioSerializer } from '../models/Voluntario';
+import { DynamicQuery } from '../utils/query_utils';
 import { BaseRepository } from './BaseRepository';
 
-class VoluntariosRepositoryClass extends BaseRepository<Voluntario> {
+class VoluntariosRepositoryClass extends BaseRepository<VoluntarioModel, VoluntarioApiModel> {
   constructor() {
-    super(VoluntariosApi);
+    super(VoluntariosApi, { fromApi: VoluntarioSerializer.fromApi, toApi: VoluntarioSerializer.toApi });
   }
 
-  update(id: string, data: Partial<Voluntario>): Promise<Voluntario> {
-    return VoluntariosApi.update(id, data, data.uploadFoto);
+  async update(id: string, data: Partial<VoluntarioModel>): Promise<VoluntarioModel> {
+    const dataApi = this.serializer.toApi(data);
+    const result = await VoluntariosApi.update(id, dataApi, data.uploadFoto);
+    return this.serializer.fromApi(result);
+  }
+
+  async search(query: DynamicQuery): Promise<VoluntarioModel[]> {
+    console.log(`VoluntariosRepository.search - query:`, query);
+    return await super.search(query);
   }
 }
 

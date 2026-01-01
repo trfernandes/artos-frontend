@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import { ptBR } from 'date-fns/locale';
 import { format } from 'date-fns';
-import { Evento } from '../../../../domain/models/Evento';
+import { EventoModel } from '../../../../domain/models/Evento';
 import FancyContainer from '../../../FancyContainer';
 import { useEventosCrud } from '../../../../hooks/useEventosCrud';
 import FancyDropDown from '../../../fields/FancyDropDown';
@@ -16,7 +16,7 @@ import Toast from 'react-native-toast-message';
 import EventoInfoCard from '../../common/EventoInfoCard';
 import { Pallete } from '../../../../constants/colors';
 
-export default function AgendaDetailsDadosTab(props: { ministerioId: string; dataOcorrencia: Date; evento: Evento }) {
+export default function AgendaDetailsDadosTab(props: { ministerioId: string; dataOcorrencia: Date; evento: EventoModel }) {
   const { data: templates, isLoading: isLoadingTemplates } = useEscalaTemplatesCrud({
     autoFetch: false,
     initialParams: {
@@ -71,7 +71,7 @@ export default function AgendaDetailsDadosTab(props: { ministerioId: string; dat
     if (!props.evento.id) return;
     await updateEventos({
       id: props.evento.id,
-      data: { templatePadraoId: templateId } as Evento,
+      data: { templatePadraoId: templateId } as EventoModel,
     });
     Toast.show({ type: 'success', text1: 'Template padrão do evento atualizado com sucesso!' });
   }, [props.evento.id, updateEventos, templateId]);

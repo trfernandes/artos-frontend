@@ -1,18 +1,34 @@
-import { IndisponibilidadesVoluntariosApi as IndisponibilidadesVoluntarioApi } from '../api/IndisponibilidadesVoluntariosApi';
+import { IndisponibilidadesVoluntariosApi } from '../api/IndisponibilidadesVoluntariosApi';
 import {
-  IndisponibilidadeVoluntario,
-  UpsertIndisponibilidadesVoluntarioPayload,
+  IndisponibilidadeVoluntarioApiModel,
+  IndisponibilidadeVoluntarioModel,
+  IndisponibilidadeVoluntarioSerializer,
+  UpsertIndisponibilidadesVoluntarioDto,
 } from '../models/IndisponibilidadeVoluntario';
 import { BaseRepository } from './BaseRepository';
 
-class IndisponibilidadesVoluntariosRepositoryClass extends BaseRepository<IndisponibilidadeVoluntario> {
+class IndisponibilidadesVoluntariosRepositoryClass extends BaseRepository<
+  IndisponibilidadeVoluntarioModel,
+  IndisponibilidadeVoluntarioApiModel
+> {
   constructor() {
-    super(IndisponibilidadesVoluntarioApi);
+    super(IndisponibilidadesVoluntariosApi, {
+      fromApi: IndisponibilidadeVoluntarioSerializer.fromApi,
+      toApi: IndisponibilidadeVoluntarioSerializer.toApi,
+    });
   }
 
-  upsertMany(payload: UpsertIndisponibilidadesVoluntarioPayload) {
-    return IndisponibilidadesVoluntarioApi.upsertMany(payload);
+  protected fromApi(apiModel: IndisponibilidadeVoluntarioApiModel): IndisponibilidadeVoluntarioModel {
+    return IndisponibilidadeVoluntarioSerializer.fromApi(apiModel);
+  }
+
+  protected toApi(model: IndisponibilidadeVoluntarioModel): IndisponibilidadeVoluntarioApiModel {
+    return IndisponibilidadeVoluntarioSerializer.toApi(model);
+  }
+
+  upsertMany(payload: UpsertIndisponibilidadesVoluntarioDto) {
+    return IndisponibilidadesVoluntariosApi.upsertMany(payload);
   }
 }
 
-export const IndisponibilidadesVoluntarioRepository = new IndisponibilidadesVoluntariosRepositoryClass();
+export const IndisponibilidadesVoluntariosRepository = new IndisponibilidadesVoluntariosRepositoryClass();
