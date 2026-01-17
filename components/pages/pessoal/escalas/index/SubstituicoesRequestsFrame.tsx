@@ -6,15 +6,15 @@ import FancyButton from '../../../../buttons/FancyButton';
 import { IconLibrary } from '../../../../FancyIcons';
 import PagerView from 'react-native-pager-view';
 import { Pallete } from '../../../../../constants/colors';
-import { EscalaSubstituicaoModel } from '../../../../../domain/models/EscalaSubstituicao';
 import { format } from 'date-fns';
+import { ResponseEscalaSubstituicaoDto } from '../../../../../domain/dtos/Escala/escala-substituicao.response';
 
 export default function SubstituicoesRequestsFrame({
   data,
   onRespond,
 }: {
-  data: EscalaSubstituicaoModel[];
-  onRespond?: (substituicao: EscalaSubstituicaoModel, response: 'accept' | 'reject') => void;
+  data: ResponseEscalaSubstituicaoDto[];
+  onRespond?: (substituicao: ResponseEscalaSubstituicaoDto, response: 'accept' | 'reject') => void;
 }) {
   const [pageIndex, setPageIndex] = useState(0);
 
@@ -30,16 +30,16 @@ export default function SubstituicoesRequestsFrame({
       }}
     >
       <PagerView
-        style={{ height: 155, }} // altura do bloco
+        style={{ height: 155 }} // altura do bloco
         initialPage={0}
-        onPageSelected={e => setPageIndex(e.nativeEvent.position)}
+        onPageSelected={(e) => setPageIndex(e.nativeEvent.position)}
       >
         {data.map((item, index) => (
           <View key={index} style={{ flex: 1, justifyContent: 'center' }}>
             <View style={{ borderWidth: 0, gap: 10 }}>
               <FancySection
                 containerStyle={{ borderWidth: 0 }}
-                title="Solicitações de Substituição"
+                title='Solicitações de Substituição'
                 icon={{
                   library: 'MaterialCommunityIcons',
                   name: 'format-list-checks',
@@ -52,11 +52,11 @@ export default function SubstituicoesRequestsFrame({
                     <FancyTextDisplay
                       titleStyle={{ size: 'extraSmall' }}
                       valueStyle={{ size: 'extraSmall' }}
-                      title="Solicitante:"
+                      title='Solicitante:'
                       value={item.solicitante?.voluntario?.nome}
                     />
                     <FancyTextDisplay
-                      title="Evento:"
+                      title='Evento:'
                       value={`${item.escalaItem?.evento?.nome} - ${
                         item.escalaItem?.dataOcorrencia && format(item.escalaItem?.dataOcorrencia, 'dd/MM/yyyy HH:mm')
                       }`}
@@ -64,15 +64,13 @@ export default function SubstituicoesRequestsFrame({
                       valueStyle={{ size: 'extraSmall' }}
                     />
                     <FancyTextDisplay
-                      title="Data/Hora da solicitação:"
-                      value={
-                        item.escalaItem?.dataOcorrencia && format(item.escalaItem?.dataOcorrencia, 'dd/MM/yyyy HH:mm')
-                      }
+                      title='Data/Hora da solicitação:'
+                      value={item.escalaItem?.dataOcorrencia && format(item.escalaItem?.dataOcorrencia, 'dd/MM/yyyy HH:mm')}
                       titleStyle={{ size: 'extraSmall' }}
                       valueStyle={{ size: 'extraSmall' }}
                     />
                     <FancyTextDisplay
-                      title="Função:"
+                      title='Função:'
                       value={item.escalaItem?.funcao?.nome}
                       titleStyle={{ size: 'extraSmall' }}
                       valueStyle={{ size: 'extraSmall' }}
@@ -80,9 +78,9 @@ export default function SubstituicoesRequestsFrame({
                   </View>
                   <View style={{ flexDirection: 'row', gap: 8 }}>
                     <FancyButton
-                      mode="default"
+                      mode='default'
                       size={30}
-                      label="Aceitar"
+                      label='Aceitar'
                       icon={{
                         library: 'MaterialCommunityIcons' as IconLibrary,
                         name: 'check-bold',
@@ -91,7 +89,7 @@ export default function SubstituicoesRequestsFrame({
                       onPress={() => onRespond?.(item, 'accept')}
                     />
                     <FancyButton
-                      mode="default"
+                      mode='default'
                       label={'Rejeitar'}
                       size={30}
                       icon={{

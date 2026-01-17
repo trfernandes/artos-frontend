@@ -17,11 +17,11 @@ export default function FancyDataNavigator({ showOpenButton = false, ...props }:
     <View style={styles.container}>
       <View style={styles.contentContainer}>
         <View style={styles.dataContainer}>
-          <FancyText size={'large'} type="bold" color={Pallete.fonts.dark}>
+          <FancyText size={'large'} type='bold' color={Pallete.fonts.dark}>
             Title
           </FancyText>
           {props.subtitle && (
-            <FancyText size={'medium'} type="medium" color={Pallete.fonts.inactive}>
+            <FancyText size={'medium'} type='medium' color={Pallete.fonts.inactive}>
               Subtitle
             </FancyText>
           )}

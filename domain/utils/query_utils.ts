@@ -38,12 +38,12 @@ export interface FieldValue {
 
 export interface ConditionValue {
   type: ValueType;
-  value?: any; 
-  path?: string; 
+  value?: any;
+  path?: string;
 }
 
 export interface SimpleCondition {
-  path: string; 
+  path: string;
   operator: Operator;
   value: LiteralValue | FieldValue;
 }

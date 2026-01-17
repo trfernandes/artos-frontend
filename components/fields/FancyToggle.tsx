@@ -48,7 +48,7 @@ export default function FancyToggle<ValueType>({
   return (
     <View style={[styles.container, { pointerEvents: disabled ? 'none' : 'auto' }]}>
       {label && (
-        <FancyText size={'extraSmall'} type="semiBold" color={disabled ? Pallete.fonts.inactive2 : Pallete.fonts.inactive}>
+        <FancyText size={'extraSmall'} type='semiBold' color={disabled ? Pallete.fonts.inactive2 : Pallete.fonts.inactive}>
           {label}
         </FancyText>
       )}
@@ -65,7 +65,7 @@ export default function FancyToggle<ValueType>({
           isSelected={isOption2Selected}
           onPress={() => {
             setSelectedOption(option2);
-               onChange?.(option2.value);
+            onChange?.(option2.value);
           }}
           {...option2}
         />

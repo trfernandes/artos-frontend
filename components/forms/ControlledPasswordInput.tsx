@@ -5,8 +5,7 @@ import FancyErrorText from './FancyErrorText';
 import FancyPasswordInput from '../fields/FancyPasswordInput';
 
 interface ControlledFancyTextInputProps<FormData extends FieldValues>
-  extends Pick<FancyTextInputProps, 'label' | 'inputContainerStyle' | 'inputProps'>,
-    Pick<TextInputProps, 'keyboardType'> {
+  extends Pick<FancyTextInputProps, 'label' | 'inputContainerStyle' | 'inputProps'>, Pick<TextInputProps, 'keyboardType'> {
   control: Control<FormData>;
   name: Path<FormData>;
   showErrorMessage?: boolean;

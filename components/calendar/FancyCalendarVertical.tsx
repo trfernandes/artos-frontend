@@ -85,7 +85,7 @@ export default function FancyCalendarVertical<T extends string, A>({
 
   // 3) Índice EXATO do mês atual
   const monthIndexForToday = useMemo(() => {
-    const idx = monthsList.findIndex(m => m.year === today.getFullYear() && m.month === today.getMonth());
+    const idx = monthsList.findIndex((m) => m.year === today.getFullYear() && m.month === today.getMonth());
     return idx >= 0 ? idx : 0;
   }, [monthsList, today]);
 
@@ -93,7 +93,7 @@ export default function FancyCalendarVertical<T extends string, A>({
     (date: Date) => {
       onSelectDate({ date: new Date(date) });
     },
-    [onSelectDate]
+    [onSelectDate],
   );
 
   const startRef = useRef(onStartMount);
@@ -120,7 +120,7 @@ export default function FancyCalendarVertical<T extends string, A>({
       data={monthsList}
       extraData={markedDates}
       initialScrollIndex={monthIndexForToday}
-      keyExtractor={item => `${item.year}-${item.month}`}
+      keyExtractor={(item) => `${item.year}-${item.month}`}
       contentContainerStyle={[styles.container, contentContainerStyle]}
       ListFooterComponent={<View></View>}
       renderItem={({ item, index }) => {
@@ -135,7 +135,7 @@ export default function FancyCalendarVertical<T extends string, A>({
             {showYearHeader && index > 0 && (
               <View style={styles.yearSeparator}>
                 <View style={styles.yearLine} />
-                <FancyText size="extraLarge" type="bold" color={Pallete.fonts.inactive2}>
+                <FancyText size='extraLarge' type='bold' color={Pallete.fonts.inactive2}>
                   {item.year}
                 </FancyText>
                 <View style={styles.yearLine} />
@@ -145,26 +145,20 @@ export default function FancyCalendarVertical<T extends string, A>({
             <View style={{ gap: 10 }}>
               <View style={styles.header}>
                 <FancyText
-                  size="large"
-                  type="bold"
+                  size='large'
+                  type='bold'
                   color={highlightCurrentMonth && isCurrentMonth ? Pallete.terciary : undefined}
-                  style={{ borderWidth: 0, lineHeight: 12 }}
                 >
                   {DateUtils.getMonthName(item.month)}
                 </FancyText>
-                <FancyText
-                  size="large"
-                  type="bold"
-                  color={Pallete.fonts.inactive2}
-                  style={{ borderWidth: 0, lineHeight: 12 }}
-                >
+                <FancyText size='large' type='bold' color={Pallete.fonts.inactive2} style={{ borderWidth: 0, lineHeight: 12 }}>
                   {item.year}
                 </FancyText>
               </View>
 
               <DayView
                 containerStyle={styles.calendar}
-                markedDatesType="SurroundCircle"
+                markedDatesType='SurroundCircle'
                 markedDates={monthMarked}
                 selectedDate={selectedDate}
                 currentDate={new Date(item.year, item.month, 1)}

@@ -18,7 +18,7 @@ export default function FancyListEmpty(props: FancyListEmptyProps) {
         size={props.icon?.size || 55}
         color={props.icon?.color || Pallete.fonts.inactive2}
       />
-      <FancyText size={'large'} type="bold" color={props.labelColor || Pallete.fonts.inactive2}>
+      <FancyText size={'large'} type='bold' color={props.labelColor || Pallete.fonts.inactive2}>
         {props.label || 'Não há nada por aqui...'}
       </FancyText>
     </View>

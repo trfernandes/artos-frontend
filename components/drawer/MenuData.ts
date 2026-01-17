@@ -1,11 +1,10 @@
-import { UserLoginData, UserMinisterio } from '../../contexts/AuthContext';
-import { MinisterioTipoEnum } from '../../domain/models/Ministerio';
-import { HierarquiaEnum } from '../../domain/models/MinisterioVoluntario';
-import { VoluntarioPapelEnum } from '../../domain/models/Voluntario';
+import { ResponseLoginDto, ResponseLoginMinisterioDto } from '../../domain/dtos/login/login.response';
 import { CustomIconProps } from '../FancyIcons';
-import { ImageUtils } from '../../utils/image_utils';
+import { MinisterioTipoEnum } from '../../domain/enums/Ministerio/ministerio-tipo.enum';
+import { IgrejaVoluntarioRoleEnum } from '../../domain/enums/Igreja/voluntario-role.enum';
+import { VoluntarioHierarquiaEnumLabel } from '../../domain/enums/MinisterioVoluntario/hierarquia.enum';
 
-const normalizeMinisterioTipo = (tipo: UserMinisterio['tipo']): MinisterioTipoEnum => {
+const normalizeMinisterioTipo = (tipo: ResponseLoginMinisterioDto['tipo']): MinisterioTipoEnum => {
   const rawTipo = tipo?.toString() ?? '';
   const viaKey = (MinisterioTipoEnum as Record<string, MinisterioTipoEnum>)[rawTipo];
 
@@ -13,9 +12,7 @@ const normalizeMinisterioTipo = (tipo: UserMinisterio['tipo']): MinisterioTipoEn
     return viaKey;
   }
 
-  return (Object.values(MinisterioTipoEnum) as string[]).includes(rawTipo)
-    ? (rawTipo as MinisterioTipoEnum)
-    : MinisterioTipoEnum.Outros;
+  return (Object.values(MinisterioTipoEnum) as string[]).includes(rawTipo) ? (rawTipo as MinisterioTipoEnum) : MinisterioTipoEnum.Outros;
 };
 
 export type DrawerItemData = {
@@ -72,10 +69,9 @@ const ADMIN_MENU: DrawerItemData[] = [
   },
 ];
 
-const getMenuForMinisterio = (ministerio: UserMinisterio): DrawerItemData[] => {
+const getMenuForMinisterio = (ministerio: ResponseLoginMinisterioDto): DrawerItemData[] => {
   const ministerioTipo = normalizeMinisterioTipo(ministerio.tipo);
   const routeParams = `?ministerioId=${ministerio.id}`;
-  const logoValue = ministerio.logo ? ImageUtils.rawToDataUri(ministerio.logo) ?? ministerio.logo : undefined;
 
   const baseItems: DrawerItemData[] = [
     {
@@ -100,11 +96,11 @@ const getMenuForMinisterio = (ministerio: UserMinisterio): DrawerItemData[] => {
     case MinisterioTipoEnum.Louvor:
       return [
         {
-          logo: logoValue
-            ? { type: 'logo', value: logoValue }
+          logo: ministerio.logoThumbUrl
+            ? { type: 'logo', value: ministerio.logoThumbUrl }
             : { type: 'icon', value: { name: 'music', library: 'Feather', size: 18 } },
           title: ministerio.nome ?? 'Ministerio',
-          subtitle: ministerio.hierarquia ? HierarquiaEnum[ministerio.hierarquia!] : '',
+          subtitle: ministerio.hierarquia ? VoluntarioHierarquiaEnumLabel[ministerio.hierarquia] : '',
           items: [
             ...baseItems,
             {
@@ -167,11 +163,11 @@ const getMenuForMinisterio = (ministerio: UserMinisterio): DrawerItemData[] => {
     case MinisterioTipoEnum.Outros:
       return [
         {
-          logo: logoValue
-            ? { type: 'logo', value: logoValue }
+          logo: ministerio.logoThumbUrl
+            ? { type: 'logo', value: ministerio.logoThumbUrl }
             : { type: 'icon', value: { name: 'grid', library: 'Feather', size: 18 } },
           title: ministerio.nome ?? 'Ministerio',
-          subtitle: ministerio.hierarquia ? HierarquiaEnum[ministerio.hierarquia!] : '',
+          subtitle: ministerio.hierarquia ? VoluntarioHierarquiaEnumLabel[ministerio.hierarquia] : '',
           items: [
             ...baseItems,
             {
@@ -206,20 +202,22 @@ const getMenuForMinisterio = (ministerio: UserMinisterio): DrawerItemData[] => {
   }
 };
 
-export function getMenuForUser(user: UserLoginData): { section: string; items: DrawerItemData[] }[] {
+export function getMenuForUser(user: ResponseLoginDto): { section: string; items: DrawerItemData[] }[] {
   const sections: { section: string; items: DrawerItemData[] }[] = [];
 
   sections.push({ section: 'Pessoal', items: BASE_MENU });
 
-  if (user?.ministerios?.length >= 1) {
-    const ministeriosMenus = user?.ministerios
-      .sort((a, b) => (a.nome ?? '').localeCompare(b.nome ?? '', 'pt-BR',
-        { sensitivity: 'base' }))
-      .map(ministerio => getMenuForMinisterio(ministerio));
+  const ministerios = user?.igrejas?.flatMap((igreja) => igreja.ministerios || []) || [];
+
+  if (ministerios.length >= 1) {
+    const ministeriosMenus = ministerios
+      .sort((a, b) => (a.nome ?? '').localeCompare(b.nome ?? '', 'pt-BR', { sensitivity: 'base' }))
+      .map((ministerio) => getMenuForMinisterio(ministerio));
     sections.push({ section: 'Ministérios', items: ministeriosMenus.flat() });
   }
 
-  if (user?.papel === VoluntarioPapelEnum.Admin) {
+  const isAdmin = user?.igrejas?.some((igreja) => igreja.role === IgrejaVoluntarioRoleEnum.ADMIN);
+  if (isAdmin) {
     sections.push({ section: 'Administração', items: ADMIN_MENU });
   }
 

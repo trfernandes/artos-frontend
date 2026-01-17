@@ -4,14 +4,13 @@ import { EscalaFormData, EscalaParticipanteFormData } from '../../../../../domai
 import FancyVerticalContainerCard, { DataType } from '../../../../cards/Vertical/FancyVerticalContainerCard';
 import { useVoluntariosDoMinisterioCrud } from '../../../../../hooks/useVoluntariosDoMinisterioCrud';
 import { useCallback, useEffect, useMemo } from 'react';
-import { ImageUtils } from '../../../../../utils/image_utils';
 import FancyText from '../../../../FancyText';
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import { Pallete } from '../../../../../constants/colors';
 import { useAssistenteEscala } from '../../../../../contexts/pages/escalas/AssistantContext';
 import DefaultIcons from '../../../../FancyIcons';
-
-const EMPTY_PROFILE_IMAGE = require('../../../../../assets/images/empty_profile_image.png');
+import { AppImages } from '../../../../../assets/app_images';
+import { getFirstAndLastName } from '../../../../../utils/text_utils';
 
 export default function AssistenteParticipantesStep() {
   const { ministerioId, isShouldLoadMembers, setShouldLoadMembers } = useAssistenteEscala();
@@ -24,16 +23,20 @@ export default function AssistenteParticipantesStep() {
     keyName: 'rhfKey',
   });
 
-  const { ministerioVoluntariosList: voluntarioData, isLoading } =
-    useVoluntariosDoMinisterioCrud(ministerioId);
+  const {
+    ministerioVoluntariosList: voluntarioData,
+    isLoadingMinisterioVoluntarios,
+    isLoadingMinisterioVoluntariosMutation,
+  } = useVoluntariosDoMinisterioCrud(ministerioId);
   const participantes = form.watch('participantes');
 
   const { showLoading, hideLoading } = useLoading();
 
   useEffect(() => {
-    if (isLoading) showLoading('Carregando voluntários...');
-    else hideLoading();
-  }, [isLoading]);
+    if (!isLoadingMinisterioVoluntarios && !isLoadingMinisterioVoluntariosMutation) {
+      hideLoading();
+    }
+  }, [isLoadingMinisterioVoluntarios, isLoadingMinisterioVoluntariosMutation]);
 
   useEffect(() => {
     if (!voluntarioData || voluntarioData.length === 0) return;
@@ -42,24 +45,21 @@ export default function AssistenteParticipantesStep() {
 
     const hasSameParticipants =
       currentParticipantes.length === voluntarioData.length &&
-      currentParticipantes.every(participante =>
-        voluntarioData.some(voluntario => voluntario.id === participante.minVolId)
-      );
+      currentParticipantes.every((participante) => voluntarioData.some((voluntario) => voluntario.id === participante.minVolId));
 
     if (hasSameParticipants && !isShouldLoadMembers) return;
 
     form.setValue(
       'participantes',
       voluntarioData.map(
-        v =>
+        (v) =>
           ({
             voluntarioId: v.voluntario?.id || v.voluntarioId,
             minVolId: v.id,
-            selected:
-              currentParticipantes.find(participante => participante.minVolId === v.id)?.selected ?? true,
-          } as EscalaParticipanteFormData)
+            selected: currentParticipantes.find((participante) => participante.minVolId === v.id)?.selected ?? true,
+          } as EscalaParticipanteFormData),
       ),
-      { shouldDirty: false, shouldTouch: false }
+      { shouldDirty: false, shouldTouch: false },
     );
 
     setShouldLoadMembers(false);
@@ -69,20 +69,18 @@ export default function AssistenteParticipantesStep() {
     if (!participantes || participantes.length === 0) return [];
 
     return participantes
-      .map(participante => {
-        const minVoluntario = voluntarioData?.find(v => v.id === participante.minVolId);
+      .map((participante) => {
+        const minVoluntario = voluntarioData?.find((v) => v.id === participante.minVolId);
         if (!minVoluntario) return null;
-
-        const imageSource =
-          ImageUtils.rawToDataUri(minVoluntario.voluntario?.foto) ??
-          minVoluntario.voluntario?.foto ??
-          EMPTY_PROFILE_IMAGE;
 
         return {
           key: minVoluntario.id,
-          title: minVoluntario.voluntario?.nome,
+          title: getFirstAndLastName(minVoluntario.voluntario?.nome),
           checked: participante.selected,
-          image: imageSource || EMPTY_PROFILE_IMAGE,
+          image:
+            minVoluntario.voluntario?.fotoUrl || minVoluntario.voluntario?.fotoThumbUrl
+              ? { uri: minVoluntario.voluntario?.fotoThumbUrl || minVoluntario.voluntario?.fotoUrl || '' }
+              : AppImages.emptyProfile,
           selected: participante.selected,
           linkedData: minVoluntario,
         } as DataType<'check'>;
@@ -98,7 +96,7 @@ export default function AssistenteParticipantesStep() {
 
       participantesArray.update(index, { ...currentParticipante, selected: value });
     },
-    [form, participantesArray, participantesArray.update]
+    [form, participantesArray, participantesArray.update],
   );
 
   const markAll = form.watch('markParticipantsAll');
@@ -106,21 +104,21 @@ export default function AssistenteParticipantesStep() {
   const executeMarkAll = useCallback(
     (mark: boolean) => {
       participantesArray.replace(
-        participantesArray.fields.map(participante => ({
+        participantesArray.fields.map((participante) => ({
           ...participante,
           selected: mark,
-        }))
+        })),
       );
     },
-    [markAll, participantesArray.fields]
+    [markAll, participantesArray.fields],
   );
 
-  if (isLoading) return;
+  if (isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation) return;
 
   return (
     <View style={styles.container}>
       <View style={{ paddingHorizontal: 20, gap: 12 }}>
-        <FancyText size={'extraSmall'} type="semiBold">
+        <FancyText size={'extraSmall'} type='semiBold'>
           Selecione os 'voluntários' que farão parte da escala:
         </FancyText>
         <Pressable
@@ -130,13 +128,8 @@ export default function AssistenteParticipantesStep() {
             executeMarkAll(!markAll);
           }}
         >
-          <DefaultIcons.Custom
-            library="Octicons"
-            name={markAll ? 'circle' : 'check-circle'}
-            size={18}
-            color={Pallete.primary}
-          />
-          <FancyText size={'small'} type="semiBold" style={{ color: Pallete.primary }}>
+          <DefaultIcons.Custom library='Octicons' name={markAll ? 'circle' : 'check-circle'} size={18} color={Pallete.primary} />
+          <FancyText size={'small'} type='semiBold' style={{ color: Pallete.primary }}>
             {!markAll ? 'Marcar todos' : 'Desmarcar todos'}
           </FancyText>
         </Pressable>
@@ -147,7 +140,7 @@ export default function AssistenteParticipantesStep() {
         columnSpacing={8}
         rowSpacing={8}
         data={voluntariosList}
-        topElementType="check"
+        topElementType='check'
         onChangeValue={handleChangeValue}
       />
     </View>

@@ -9,7 +9,7 @@ export type FancyDrawerSeparatorProps = {
 export default function FancyDrawerSeparator(props: FancyDrawerSeparatorProps) {
   return (
     <View style={styles.container}>
-      <FancyText size={'small'} type="semiBold" color={Pallete.fonts.inactive}>
+      <FancyText size={'small'} type='semiBold' color={Pallete.fonts.inactive}>
         {props.label}
       </FancyText>
     </View>

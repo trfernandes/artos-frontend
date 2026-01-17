@@ -1,57 +1,20 @@
-import z from 'zod';
-import { addLiderSchema } from '../app/(app)/(drawer)/admin/ministerios/add';
-import { permissoesSchema } from '../components/pages/admin/ministerios/PermissoesTab';
-import { MinisterioTipoEnum, MinisterioStatusEnum } from '../domain/models/Ministerio';
 import { MinisteriosRepository } from '../domain/services/MinisteriosRepository';
-import { useCrud } from './useCrud';
-import { DynamicQuery, Operator, ValueType } from '../domain/utils/query_utils';
+import { ExternalUseCrudParams, useCrud } from './useCrud';
+import { Operator, ValueType } from '../domain/utils/query_utils';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { ResponseMinisterioDto } from '../domain/dtos/Ministerio/ministerio.response';
+import { CreateMinisterioDto } from '../domain/dtos/Ministerio/ministerio.create';
+import { UpdateMinisterioDto } from '../domain/dtos/Ministerio/ministerio.update';
+import { AddMinisterioFormData, AddMinisterioSchema } from '../domain/schemas/ministerioAdminSchema';
 
-export const ministerioSchema = z.object({
-  id: z.uuidv4().nullable().optional(),
-  nome: z
-    .string({
-      message: 'Campo obrigatório',
-    })
-    .min(1, { message: 'Campo obrigatório' }),
-  tipo: z.enum(MinisterioTipoEnum, {
-    message: 'Campo obrigatório',
-  }),
-  logo: z.string().nullable().optional(),
-  uploadLogo: z.string().nullable().optional(),
-  descricao: z.string().nullable().optional(),
-  status: z.enum(MinisterioStatusEnum, {
-    message: 'Campo obrigatório',
-  }),
-  voluntarios: z
-    .array(addLiderSchema)
-    .min(1, { message: 'É obrigatório informar pelo menos um líder' })
-    .refine(
-      lideres => {
-        const ids = lideres.map(lider => lider.voluntarioId);
-        const uniqueIds = new Set(ids);
-        return uniqueIds.size === lideres.length;
-      },
-      { error: 'Esse líder já foi incluído' }
-    ),
-  permissoes: z.array(permissoesSchema),
-});
-
-export type MinisterioFormData = z.infer<typeof ministerioSchema>;
-
-interface UseMinisteriosOptions {
-  autoFetch?: boolean;
-  initialParams?: DynamicQuery | string;
-}
-
-export function useMinisteriosCrud(options?: UseMinisteriosOptions) {
-  return useCrud({
+export function useMinisteriosCrud({ autoFetch = false, initialParams = {}, muteMessages }: ExternalUseCrudParams = {}) {
+  return useCrud<ResponseMinisterioDto, AddMinisterioFormData, CreateMinisterioDto, UpdateMinisterioDto>({
     queryKey: 'ministerios',
-    autoFetch: options?.autoFetch ?? true,
-    initialParams: options?.initialParams,
+    autoFetch,
+    initialParams,
     fetchAll: () => MinisteriosRepository.getAll(),
-    search: query => MinisteriosRepository.search(query),
-    fetchOne: async id => {
+    search: (query) => MinisteriosRepository.search(query),
+    fetchOne: async (id) => {
       const result = await MinisteriosRepository.search({
         where: {
           conditions: [
@@ -66,9 +29,18 @@ export function useMinisteriosCrud(options?: UseMinisteriosOptions) {
       });
       return result[0];
     },
-    add: data => MinisteriosRepository.add(data),
+    add: (data) => MinisteriosRepository.add(data),
     update: (id, data) => MinisteriosRepository.update(id, data),
-    remove: id => MinisteriosRepository.remove(id),
-    resolver: zodResolver(ministerioSchema),
+    remove: (id) => MinisteriosRepository.remove(id),
+    resolver: zodResolver(AddMinisterioSchema),
+    muteMessages,
+    messages: {
+      errorCreate: 'Erro ao criar ministério.',
+      errorUpdate: 'Erro ao atualizar ministério.',
+      errorDelete: 'Erro ao deletar ministério.',
+      successCreate: 'Ministério criado com sucesso.',
+      successUpdate: 'Ministério atualizado com sucesso.',
+      successDelete: 'Ministério deletado com sucesso.',
+    },
   });
 }

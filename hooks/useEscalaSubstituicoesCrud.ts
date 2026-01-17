@@ -1,14 +1,18 @@
+import { CreateEscalaSubstituicaoDto } from '../domain/dtos/Escala/escala-substituicao.create';
+import { ResponseEscalaSubstituicaoDto } from '../domain/dtos/Escala/escala-substituicao.response';
+import { UpdateEscalaSubstituicaoDto } from '../domain/dtos/Escala/escala-substituicao.update';
 import { EscalaSubstituicoesRepository } from '../domain/services/EscalaSubstituicoesRepository';
 import { Operator, ValueType } from '../domain/utils/query_utils';
-import { useCrud, UseCrudOptions } from './useCrud';
+import { ExternalUseCrudParams, useCrud } from './useCrud';
 
-export function useEscalaSubstituicoesCrud(props: Pick<UseCrudOptions<any, any>, 'autoFetch' | 'initialParams'> = {}) {
-  const crud = useCrud({
+export function useEscalaSubstituicoesCrud({ autoFetch, initialParams }: ExternalUseCrudParams = {}) {
+  const crud = useCrud<ResponseEscalaSubstituicaoDto, any, CreateEscalaSubstituicaoDto, UpdateEscalaSubstituicaoDto>({
     queryKey: 'escalas-substituicoes',
-    autoFetch: false,
+    autoFetch,
+    initialParams,
     fetchAll: () => EscalaSubstituicoesRepository.getAll(),
-    search: query => EscalaSubstituicoesRepository.search(query),
-    fetchOne: async id => {
+    search: (query) => EscalaSubstituicoesRepository.search(query),
+    fetchOne: async (id) => {
       const result = await EscalaSubstituicoesRepository.search({
         where: {
           conditions: [
@@ -23,10 +27,9 @@ export function useEscalaSubstituicoesCrud(props: Pick<UseCrudOptions<any, any>,
       });
       return result[0];
     },
-    ...props,
-    add: data => EscalaSubstituicoesRepository.add(data),
+    add: (data) => EscalaSubstituicoesRepository.add(data),
     update: (id, data) => EscalaSubstituicoesRepository.update(id, data),
-    remove: id => EscalaSubstituicoesRepository.remove(id),
+    remove: (id) => EscalaSubstituicoesRepository.remove(id),
   });
 
   return {

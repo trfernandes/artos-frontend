@@ -18,7 +18,7 @@ export default function ControlledTextArea({ control, name, ...rest }: Controlle
           <FancyTextArea
             inputProps={{
               onBlur,
-              onChangeText: text => {
+              onChangeText: (text) => {
                 onChange(text);
               },
             }}

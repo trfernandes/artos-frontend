@@ -4,6 +4,7 @@ import FancyText from './FancyText';
 import DefaultIcons, { CustomIconProps } from './FancyIcons';
 import { DefaultIconsNames } from '../constants/icons';
 import { useCallback, useState } from 'react';
+import FancyContainer from './FancyContainer';
 
 export type FancyAccordeonProps = {
   title: string | React.ReactNode;
@@ -32,10 +33,10 @@ export default function FancyAccordeon({
 }: FancyAccordeonProps) {
   const [expanded, setExpanded] = useState(isExpanded);
 
-  const toggleExpand = useCallback(() => setExpanded(prev => !prev), []);
+  const toggleExpand = useCallback(() => setExpanded((prev) => !prev), []);
 
   return (
-    <View style={[styles.container, expanded ? containerExpandedContainerStyle : containerContainerStyle]}>
+    <FancyContainer containerStyle={[styles.container, containerContainerStyle, expanded && containerExpandedContainerStyle]}>
       <TouchableOpacity
         onPress={toggleExpand}
         style={[
@@ -50,7 +51,7 @@ export default function FancyAccordeon({
         ]}
       >
         {typeof title === 'string' ? (
-          <FancyText size={'small'} type="bold" style={{ lineHeight: 16, borderWidth: 0 }}>
+          <FancyText size={'small'} type='bold' style={{ lineHeight: 16, borderWidth: 0, opacity: 0.9 }}>
             {title}
           </FancyText>
         ) : (
@@ -60,7 +61,7 @@ export default function FancyAccordeon({
           <FancyText
             size={'extraSmall'}
             color={Pallete.fonts.inactive}
-            type="medium"
+            type='medium'
             style={{ lineHeight: 16, paddingTop: 2, flex: 1, borderWidth: 0, textAlign: 'right' }}
             numberOfLines={2}
           >
@@ -92,7 +93,7 @@ export default function FancyAccordeon({
         </View>
       </TouchableOpacity>
       {expanded && <View style={contentContainerStyle}>{children}</View>}
-    </View>
+    </FancyContainer>
   );
 }
 
@@ -102,12 +103,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     borderColor: Pallete.border,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    shadowOffset: { width: 0, height: 1 },
-    backgroundColor: 'white',
-    elevation: 1,
+    ...Pallete.shadows[200],
   },
   header: {
     borderColor: Pallete.border,

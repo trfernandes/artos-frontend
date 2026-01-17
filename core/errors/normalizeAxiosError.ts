@@ -63,18 +63,18 @@ export function normalizeAxiosError(error: unknown, opts?: { isOffline?: boolean
     status === 401
       ? 'UNAUTHORIZED'
       : status === 403
-      ? 'FORBIDDEN'
-      : status === 404
-      ? 'NOT_FOUND'
-      : status === 409
-      ? 'CONFLICT'
-      : status === 429
-      ? 'RATE_LIMIT'
-      : status === 400
-      ? 'VALIDATION'
-      : status && status >= 500
-      ? 'UNKNOWN'
-      : 'UNKNOWN';
+        ? 'FORBIDDEN'
+        : status === 404
+          ? 'NOT_FOUND'
+          : status === 409
+            ? 'CONFLICT'
+            : status === 429
+              ? 'RATE_LIMIT'
+              : status === 400
+                ? 'VALIDATION'
+                : status && status >= 500
+                  ? 'UNKNOWN'
+                  : 'UNKNOWN';
 
   const message = serverMessage ?? defaultMessage(type);
 

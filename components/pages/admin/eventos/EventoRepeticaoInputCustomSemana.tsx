@@ -1,13 +1,15 @@
 import FancyAccordeon from '../../../FancyAccordeon';
 import FancyListSelection from '../../../FancyListSelection';
 import { Controller, useFormContext } from 'react-hook-form';
-import {
-  RecorrenciaDiaSemanaEnum,
-  RecorrenciaDiaSemanaEnumLabel,
-} from '../../../../domain/models/Evento';
+
 import { View } from 'react-native';
 import FancyErrorText from '../../../forms/FancyErrorText';
 import { EventoRepeticaoSchemaData } from './EventoRepeticaoInputCustom';
+import {
+  RecorrenciaDiaSemanaEnum,
+  RecorrenciaDiaSemanaEnumLabel,
+  RecorrenciaDiaSemanaEnumOrder,
+} from '../../../../domain/enums/Evento/recorrencia-dia-semana.enum';
 
 export default function EventoRepeticaoInputCustomSemana() {
   const repeticaoForm = useFormContext<EventoRepeticaoSchemaData>();
@@ -16,12 +18,10 @@ export default function EventoRepeticaoInputCustomSemana() {
     <>
       <Controller
         control={repeticaoForm.control}
-        name="recorrenciaSemanaDias"
+        name='recorrenciaSemanaDias'
         render={({ field: { value, onChange }, fieldState: { error } }) => {
           const semanaDias = value || [];
-          const semanaEnumKeys = Object.keys(RecorrenciaDiaSemanaEnum).filter(item =>
-            isNaN(Number(item))
-          );
+          const semanaEnumKeys = Object.keys(RecorrenciaDiaSemanaEnum).filter((item) => isNaN(Number(item)));
           let subtitle = '';
           if (semanaDias.length === 0) {
             subtitle = 'Nenhum';
@@ -29,36 +29,37 @@ export default function EventoRepeticaoInputCustomSemana() {
             subtitle = 'Todos';
           } else {
             subtitle = value
-              ?.sort((a, b) => a - b)
-              .map(item => RecorrenciaDiaSemanaEnumLabel[item].abreviado)
+              ?.sort((a, b) => {
+                const aIndex = RecorrenciaDiaSemanaEnumOrder.indexOf(a);
+                const bIndex = RecorrenciaDiaSemanaEnumOrder.indexOf(b);
+                return aIndex - bIndex;
+              })
+              .map((item) => {
+                return RecorrenciaDiaSemanaEnumLabel[item]?.abreviado;
+              })
               .join(', ')!;
           }
           return (
             <View style={{ gap: 5 }}>
-              <FancyAccordeon title="Dias da Semana" subtitle={subtitle} isExpanded={true}>
+              <FancyAccordeon title='Dias da Semana' subtitle={subtitle} isExpanded={true}>
                 <FancyListSelection
                   showDividers
                   items={semanaEnumKeys.map((item, index) => ({
                     index: index,
                     label:
-                      RecorrenciaDiaSemanaEnumLabel[
-                        RecorrenciaDiaSemanaEnum[item as keyof typeof RecorrenciaDiaSemanaEnum]
-                      ].extenso,
+                      RecorrenciaDiaSemanaEnumLabel[RecorrenciaDiaSemanaEnum[item as keyof typeof RecorrenciaDiaSemanaEnum]]
+                        .extenso,
                     checked: !!value
-                      ?.map(item => Number(item))
-                      .includes(
-                        RecorrenciaDiaSemanaEnum[item as keyof typeof RecorrenciaDiaSemanaEnum]
-                      ),
+                      ?.map((item) => item)
+                      .includes(RecorrenciaDiaSemanaEnum[item as keyof typeof RecorrenciaDiaSemanaEnum]),
                   }))}
-                  onPress={index => {
+                  onPress={(index) => {
                     const item: RecorrenciaDiaSemanaEnum =
-                      RecorrenciaDiaSemanaEnum[
-                        semanaEnumKeys[index] as keyof typeof RecorrenciaDiaSemanaEnum
-                      ];
+                      RecorrenciaDiaSemanaEnum[semanaEnumKeys[index] as keyof typeof RecorrenciaDiaSemanaEnum];
                     if (value?.includes(item)) {
                       onChange(value.filter((i: any) => i !== item));
                     } else {
-                      onChange([...(value || []), Number(item)]);
+                      onChange([...(value || []), item]);
                     }
                   }}
                 />

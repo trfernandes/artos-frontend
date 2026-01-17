@@ -39,7 +39,8 @@
           "project": "artos-volunteers",
           "organization": "artos-uw"
         }
-      ]
+      ],
+      "expo-secure-store"
     ]
   }
 }

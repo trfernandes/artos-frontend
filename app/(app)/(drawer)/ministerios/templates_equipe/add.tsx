@@ -3,11 +3,11 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEscalaTemplatesCrud } from '../../../../../useEscalaTemplatesCrud';
-import { EscalaTemplateTipoEnum } from '../../../../../domain/models/EscalaTemplate';
 import { EscalaTemplateFormData, escalaTemplateSchema } from '../../../../../domain/schemas/escalaTemplateSchema';
 import { AxiosError } from 'axios';
 import TemplateForm from '../../../../../components/pages/ministerios/templates_equipe/TemplateForm';
 import { strfyObj } from '../../../../../utils/text_utils';
+import { EscalaTemplateTipoEnum } from '../../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
 
 export default function MinisterioTemplatesAddPage() {
   const { ministerioId } = useLocalSearchParams<{ ministerioId: string }>();
@@ -26,8 +26,8 @@ export default function MinisterioTemplatesAddPage() {
 
   const handleOnSave = useCallback(
     form.handleSubmit(
-      data => {
-        addTemplate({ ...data, ministerio: { id: data.ministerioId } })
+      (data) => {
+        addTemplate({ ...data, ministerioId: data.ministerioId })
           .then(() => {
             router.back();
           })
@@ -41,16 +41,16 @@ export default function MinisterioTemplatesAddPage() {
             }
           });
       },
-      errors => {
+      (errors) => {
         console.log('Erro ao adicionar template\n', strfyObj(errors));
-      }
+      },
     ),
-    [form.handleSubmit]
+    [form.handleSubmit],
   );
 
   return (
     <FormProvider {...form}>
-      <TemplateForm mode="add" ministerioId={ministerioId} onSave={handleOnSave} isLoading={isLoadingMutation} />
+      <TemplateForm mode='add' ministerioId={ministerioId} onSave={handleOnSave} isLoading={isLoadingMutation} />
     </FormProvider>
   );
 }

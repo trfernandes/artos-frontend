@@ -9,9 +9,9 @@ export default function AssistenteParametrosStep() {
 
   return (
     <View style={styles.container}>
-      <ControlledTextInput control={form.control} name="nome" label="Como quer chamar essa escala?" />
-      <ControlledDateInput control={form.control} name="dataInicio" label="Data de Início" />
-      <ControlledDateInput control={form.control} name="dataTermino" label="Data de Término" />
+      <ControlledTextInput control={form.control} name='nome' label='Como quer chamar essa escala?' />
+      <ControlledDateInput control={form.control} name='dataInicio' label='Data de Início' />
+      <ControlledDateInput control={form.control} name='dataTermino' label='Data de Término' />
     </View>
   );
 }

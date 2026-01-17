@@ -23,17 +23,17 @@ export default function FancyToast(props: FancyToastProps) {
     <Pressable style={styles.container} onPress={props.onPress}>
       <View style={[styles.content, { backgroundColor: newHex, borderColor: props.color }]}>
         <View style={[styles.iconContainer, { backgroundColor: props.color }]}>
-          <DefaultIcons.Custom {...props.icon} color="white" />
+          <DefaultIcons.Custom {...props.icon} color='white' />
         </View>
         <View style={{ width: 15 }} />
         <View style={styles.textsContainer}>
           {props.text1 && (
-            <FancyText size="small" type="semiBold" style={[styles.text, props.text2Style]}>
+            <FancyText size='small' type='semiBold' style={[styles.text, props.text2Style]}>
               {props.text1}
             </FancyText>
           )}
           {props.text2 && (
-            <FancyText size="small" type="medium" style={[styles.text, props.text2Style]}>
+            <FancyText size='small' type='medium' style={[styles.text, props.text2Style]}>
               {props.text2}
             </FancyText>
           )}
@@ -41,7 +41,7 @@ export default function FancyToast(props: FancyToastProps) {
         <View style={{ width: 5 }} />
         <FancyButton
           mode={'icon'}
-          type="text"
+          type='text'
           onPress={() => props.hide()}
           icon={{ ...DefaultIconsNames.cancel, color: props.color, size: 22 }}
           containerStyle={{ height: 40, minWidth: 30, width: 30, borderWidth: 0 }}

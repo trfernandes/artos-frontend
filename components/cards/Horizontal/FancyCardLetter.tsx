@@ -20,6 +20,7 @@ export type FancyCardLetterProps = {
   | 'contentContainerStyle'
   | 'isCollapsable'
   | 'centerContainerStyle'
+    | 'backgroundColor'
 >;
 
 export default function FancyCardLetter({ letter = 'A', ...props }: FancyCardLetterProps) {
@@ -35,7 +36,7 @@ export default function FancyCardLetter({ letter = 'A', ...props }: FancyCardLet
 function CardLetter({ letter }: { letter: string }) {
   return (
     <View style={styles.letterContainer}>
-      <FancyText type="bold" size={'large'} style={styles.letter}>
+      <FancyText type='bold' size={'large'} style={styles.letter}>
         {letter}
       </FancyText>
     </View>

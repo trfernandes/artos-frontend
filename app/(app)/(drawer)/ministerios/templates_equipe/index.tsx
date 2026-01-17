@@ -7,8 +7,13 @@ import { useCallback, useMemo, useState } from 'react';
 import { useEscalaTemplatesCrud } from '../../../../../useEscalaTemplatesCrud';
 import { DynamicQuery, Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
-import { EscalaTemplateTipoEnum, EscalaTemplateTipoEnumMap, EscalaTemplateTipoLabel } from '../../../../../domain/models/EscalaTemplate';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
+import {
+    EscalaTemplateTipoLabel,
+    EscalaTemplateTipoEnumMap,
+    EscalaTemplateTipoEnum,
+} from '../../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
+import { FancyTextDisplayCard } from '../../../../../components/cards/FancyTextDisplayCard';
 
 export default function MinisterioTemplateEquipeIndex() {
   const [searchText, setSearchText] = useState('');
@@ -62,28 +67,34 @@ export default function MinisterioTemplateEquipeIndex() {
     setSearchText(value.trim());
   }, []);
 
-  const handleEdit = useCallback((id: string) => {
-    router.push({
-      pathname: 'ministerios/templates_equipe/edit',
-      params: { ministerioId, templateId: id },
-    });
-  }, [ministerioId]);
+  const handleEdit = useCallback(
+    (id: string) => {
+      router.push({
+        pathname: 'ministerios/templates_equipe/edit',
+        params: { ministerioId, templateId: id },
+      });
+    },
+    [ministerioId],
+  );
 
-  const handleDelete = useCallback((id: string) => {
-    FancyAlert.alert('Confirmação', 'Deseja realmente excluir este template?', [
-      {
-        text: 'Cancelar',
-        style: 'cancel',
-      },
-      {
-        text: 'Excluir',
-        style: 'destructive',
-        onPress: () => {
-          removeTemplate(id);
+  const handleDelete = useCallback(
+    (id: string) => {
+      FancyAlert.alert('Confirmação', 'Deseja realmente excluir este template?', [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
         },
-      },
-    ]);
-  }, [removeTemplate]);
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: () => {
+            removeTemplate(id);
+          },
+        },
+      ]);
+    },
+    [removeTemplate],
+  );
 
   if (isLoading || isLoadingMutation) return <FancyLoading />;
 
@@ -91,7 +102,11 @@ export default function MinisterioTemplateEquipeIndex() {
     <FancyListPage
       showFab
       fabProps={{
-        onPress: () => router.push({ pathname: 'ministerios/templates_equipe/add', params: { ministerioId } }),
+        onPress: () =>
+          router.push({
+            pathname: 'ministerios/templates_equipe/add',
+            params: { ministerioId },
+          }),
       }}
       showSearchBar
       searchBarProps={{ value: searchText, onSearch: handleSearch }}
@@ -102,20 +117,31 @@ export default function MinisterioTemplateEquipeIndex() {
           const dimensaoEquipe =
             EscalaTemplateTipoEnumMap[item.tipo] === EscalaTemplateTipoEnum.Fixo ? item.voluntarios?.length : item.funcoes?.length;
           return (
-            <FancyCard.Image 
-              type="icon"
+            <FancyCard.Image
+              type='icon'
               props={{
                 title: item.nome,
-                subtitle: `Tipo: ${tipoLabel}`,
-                additionalData1: `Dimensão equipe: ${dimensaoEquipe ?? 0}`,
-                cardIcon: { ...DefaultIconsNames.group, size: 18, style: { marginTop: -2.5 } },
+                subtitle: <FancyTextDisplayCard title='Tipo: ' value={tipoLabel} />,
+                additionalData1: <FancyTextDisplayCard title='Dimensão equipe: ' value={(dimensaoEquipe ?? 0).toString()} />,
+                cardIcon: {
+                  ...DefaultIconsNames.group,
+                  size: 18,
+                  style: { marginTop: -2.5 },
+                },
                 actionButtons: [
                   {
-                    icon: { ...DefaultIconsNames.edit, size: 18 },
+                    icon: {
+                      ...DefaultIconsNames.edit,
+                      size: 18,
+                    },
                     onPress: () => item.id && handleEdit(item.id),
                   },
                   {
-                    icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error },
+                    icon: {
+                      ...DefaultIconsNames.delete,
+                      size: 18,
+                      backgroundColor: Pallete.error,
+                    },
                     onPress: () => item.id && handleDelete(item.id),
                   },
                 ],

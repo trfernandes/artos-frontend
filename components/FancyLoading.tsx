@@ -11,7 +11,7 @@ export default function FancyLoading({ label = 'Carregando...', containerStyle }
   return (
     <View style={[styles.container, containerStyle]}>
       <ActivityIndicator size={'large'} color={Pallete.primary} />
-      <FancyText size={'medium'} type="semiBold" color={Pallete.fonts.inactive}>
+      <FancyText size={'medium'} type='semiBold' color={Pallete.fonts.inactive}>
         {label}
       </FancyText>
     </View>

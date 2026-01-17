@@ -4,7 +4,7 @@ import { Pallete } from '../constants/colors';
 
 export type FancyDataPanelProps = {
   containerStyle?: StyleProp<ViewStyle>;
-  buttonStyle?: StyleProp<ViewStyle>; 
+  buttonStyle?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
   onPress?: () => void;
   value?: string;
@@ -18,7 +18,7 @@ export default function FancyDataPanel({ disabled = false, ...props }: FancyData
         {props.value ? (
           <FancyText
             size={'small'}
-            type="bold"
+            type='bold'
             color={disabled ? Pallete.fonts.inactive : Pallete.fonts.dark}
             style={props.textStyle}
           >
@@ -27,7 +27,7 @@ export default function FancyDataPanel({ disabled = false, ...props }: FancyData
         ) : (
           <FancyText
             size={'extraSmall'}
-            type="semiBold"
+            type='semiBold'
             color={disabled ? Pallete.fonts.inactive : Pallete.fonts.dark}
             style={props.textStyle}
           >

@@ -8,12 +8,13 @@ import FancySection from '../../../../FancySection';
 import { FancyTextDisplay } from '../../../../fields/FancyTextDisplay';
 import { format } from 'date-fns';
 import FancySeparator from '../../../../FancySeparator';
-import { EscalaTemplateTipoEnum, EscalaTemplateTipoLabel } from '../../../../../domain/models/EscalaTemplate';
 import FancyText from '../../../../FancyText';
 import FancyImage from '../../../../images/FancyImage';
 import FancyScrollView from '../../../../FancyScrollView';
 import { useAssistenteEscala } from '../../../../../contexts/pages/escalas/AssistantContext';
 import { useMemo } from 'react';
+import { EscalaTemplateTipoEnum, EscalaTemplateTipoLabel } from '../../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
+import { AppImages } from '../../../../../assets/app_images';
 
 export default function AssistenteRevisaoStep() {
   const { ministerioId } = useAssistenteEscala();
@@ -26,7 +27,7 @@ export default function AssistenteRevisaoStep() {
     () =>
       form
         .getValues('eventos')
-        ?.filter(evento => evento.selected)
+        ?.filter((evento) => evento.selected)
         .map((evento, index) => {
           const tipoTemplate =
             evento.template.tipo === EscalaTemplateTipoEnum.Fixo
@@ -51,13 +52,13 @@ export default function AssistenteRevisaoStep() {
               </View>
               <View style={{ paddingLeft: 18, gap: 1 }}>
                 <FancyTextDisplay
-                  title="Data:"
-                  value={format(new Date(evento.data), 'dd/MM/yyyy')}
+                  title='Data:'
+                  value={format(new Date(evento.dataOcorrencia), 'dd/MM/yyyy')}
                   titleStyle={{ type: 'bold', size: 'extraSmall' }}
                   valueStyle={{ size: 'extraSmall' }}
                 />
                 <FancyTextDisplay
-                  title="Template:"
+                  title='Template:'
                   value={template}
                   titleStyle={{ type: 'bold', size: 'extraSmall' }}
                   valueStyle={{ size: 'extraSmall' }}
@@ -66,44 +67,40 @@ export default function AssistenteRevisaoStep() {
             </View>
           );
         }),
-    [form]
+    [form],
   );
   const participanteSectionComponents = useMemo(
     () =>
       form
         .getValues('participantes')
-        ?.filter(participante => participante.selected)
+        ?.filter((participante) => participante.selected)
         .map((participante, index) => {
-          const { voluntario } = ministerioVoluntariosList.find(v => v.id === participante.minVolId)!;
+          const { voluntario } = ministerioVoluntariosList.find((v) => v.id === participante.minVolId)!;
 
           return (
             <View style={{ alignItems: 'center', gap: 8, borderWidth: 0, width: 50 }} key={index}>
               <FancyImage
                 source={
-                  voluntario?.foto
-                    ? { uri: voluntario?.foto }
-                    : require('../../../../../assets/images/empty_profile_image.png')
+                  voluntario?.fotoThumbUrl || voluntario?.fotoUrl
+                    ? { uri: voluntario.fotoThumbUrl || voluntario?.fotoUrl || '' }
+                    : AppImages.emptyProfile
                 }
                 size={40}
               />
-              <FancyText
-                size={'extraSmall'}
-                type="semiBold"
-                style={{ textAlign: 'center', fontSize: 9, lineHeight: 10 }}
-              >
+              <FancyText size={'extraSmall'} type='semiBold' style={{ textAlign: 'center', fontSize: 9, lineHeight: 10 }}>
                 {voluntario?.nome}
               </FancyText>
             </View>
           );
         }),
-    [form]
+    [form],
   );
 
   return (
     <View style={styles.container}>
       <View style={styles.sectionParametros}>
         <FancySection
-          title="Parâmetros"
+          title='Parâmetros'
           icon={{
             library: 'MaterialCommunityIcons',
             name: 'card-text-outline',
@@ -112,14 +109,8 @@ export default function AssistenteRevisaoStep() {
           }}
         >
           <FancyTextDisplay title={'Nome:'} value={form.getValues('nome')} />
-          <FancyTextDisplay
-            title={'Data Início:'}
-            value={format(form.getValues('dataInicio'), 'dd/MM/yyyy')}
-          />
-          <FancyTextDisplay
-            title={'Data Término:'}
-            value={format(form.getValues('dataTermino'), 'dd/MM/yyyy')}
-          />
+          <FancyTextDisplay title={'Data Início:'} value={format(form.getValues('dataInicio'), 'dd/MM/yyyy')} />
+          <FancyTextDisplay title={'Data Término:'} value={format(form.getValues('dataTermino'), 'dd/MM/yyyy')} />
         </FancySection>
       </View>
 
@@ -169,9 +160,7 @@ export default function AssistenteRevisaoStep() {
               style: { opacity: 0.6 },
             }}
           >
-            <View style={{ gap: 12, flexDirection: 'row', flexWrap: 'wrap', rowGap: 15, columnGap: 10 }}>
-              {participanteSectionComponents}
-            </View>
+            <View style={{ gap: 12, flexDirection: 'row', flexWrap: 'wrap', rowGap: 15, columnGap: 10 }}>{participanteSectionComponents}</View>
           </FancySection>
         </FancyScrollView>
       </View>

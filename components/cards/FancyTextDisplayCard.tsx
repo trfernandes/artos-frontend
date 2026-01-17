@@ -11,10 +11,10 @@ export function FancyTextDisplayCard({
   icon,
   containerStyle,
 }: {
-  title: string;
+  title?: string;
   titleStyle?: Pick<FancyTextProps, 'size' | 'type' | 'color'>;
   value: string | React.ReactNode;
-  valueStyle?: Pick<FancyTextProps, 'size' | 'type' | 'color' | 'style'>;
+  valueStyle?: FancyTextProps;
   icon?: CustomIconProps;
   containerStyle?: StyleProp<ViewStyle>;
 }) {
@@ -32,13 +32,15 @@ export function FancyTextDisplayCard({
           ]}
         />
       )}
-      <FancyText size={'extraSmall'} type="normal" style={styles.keyText} {...titleStyle}>
-        {title}
-      </FancyText>
+      {title && (
+        <FancyText size={'extraSmall'} type='normal' style={styles.keyText} {...titleStyle}>
+          {title}
+        </FancyText>
+      )}
       {React.isValidElement(value) ? (
         value
       ) : (
-        <FancyText size="extraSmall" type="semiBold" style={styles.valueText} {...valueStyle}>
+        <FancyText size='extraSmall' type='semiBold' style={styles.valueText} {...valueStyle}>
           {value}
         </FancyText>
       )}
@@ -50,7 +52,7 @@ const styles = StyleSheet.create({
   dataContainer: { flexDirection: 'row', gap: 3, justifyContent: 'flex-start', alignItems: 'flex-start' },
   keyText: {
     lineHeight: 12,
-    borderWidth: 0,    
+    borderWidth: 0,
   },
   valueText: { lineHeight: 12, flexShrink: 1, opacity: 0.8 },
 });

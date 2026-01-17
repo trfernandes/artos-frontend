@@ -1,6 +1,6 @@
 import z from 'zod';
-import { EscalaTemplateExperienciaEnum } from '../models/EscalaTemplate';
-import { MinisterioVoluntarioStatusEnum } from '../models/MinisterioVoluntario';
+import { EscalaTemplateExperienciaEnum } from '../enums/EscalaTemplate/escala-template-experiencia.enum';
+import { MinisterioVoluntarioStatusEnum } from '../enums/MinisterioVoluntario/ministerio-voluntario-status.enum';
 
 export const minVoluntarioFuncaoSchema = z.object({
   id: z.string('Campo obrigatório'),
@@ -12,7 +12,7 @@ export const minVoluntarioSchema = z.object({
   voluntarioId: z.uuid('Campo obrigatório'),
   voluntarioFoto: z.string().optional(),
   voluntarioNome: z.string().optional(),
-  voluntarioEmail: z.string().optional()  ,
+  voluntarioEmail: z.string().optional(),
   voluntarioStatus: z.enum(MinisterioVoluntarioStatusEnum).optional(),
   funcoes: z.array(minVoluntarioFuncaoSchema).optional(),
 });

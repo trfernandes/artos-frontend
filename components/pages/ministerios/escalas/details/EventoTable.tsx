@@ -5,9 +5,13 @@ import { ColorUtils } from '../../../../../utils/color_utils';
 import FancyAccordeon from '../../../../FancyAccordeon';
 import FancyText from '../../../../FancyText';
 import ListaVoluntariosTable from './ListaVoluntariosTable';
-import { EscalaItemDataType, EscalItemEquipeType as EscalaItemEquipeType } from '../../../../../app/(app)/(drawer)/ministerios/escalas/details';
+import {
+  EscalaItemDataType,
+  EscalaItemEquipeType as EscalaItemEquipeType,
+} from '../../../../../app/(app)/(drawer)/ministerios/escalas/details';
 import { useMemo, useState } from 'react';
 import SubstituirVoluntarioModal, { SubstituicaoConfirmDialog } from './SubstituirVoluntarioModal';
+import { DateUtilsApi } from '../../../../../utils/date_utils';
 
 export interface EventoTableProps {
   data: EscalaItemDataType;
@@ -45,12 +49,12 @@ export default function EventoTable({ data, viewMode, ministerioId, onChangeVolu
           }}
         >
           <View style={{ gap: 3 }}>
-            <FancyText type="bold" size="small">
+            <FancyText type='bold' size='small'>
               {data.evento.nome}
             </FancyText>
-            <FancyText type="medium" size="extraSmall" style={{}}>{`${format(data.dataOcorrencia, 'dd/MM/yyyy')} - ${`${format(
+            <FancyText type='medium' size='extraSmall' style={{}}>{`${format(data.dataOcorrencia, 'dd/MM/yyyy')} - ${`${format(
               data.evento.dataInicio!,
-              'HH:mm'
+              'HH:mm',
             )} à ${format(data.evento.dataTermino!, 'HH:mm')}`}`}</FancyText>
           </View>
         </View>
@@ -80,7 +84,7 @@ export default function EventoTable({ data, viewMode, ministerioId, onChangeVolu
         <ListaVoluntariosTable
           data={data.equipe}
           viewMode={viewMode}
-          onSubstituicaoButtonPressed={data => {
+          onSubstituicaoButtonPressed={(data) => {
             setSubstituicaoModalProps({ isOpen: true, data });
           }}
         />
@@ -93,12 +97,12 @@ export default function EventoTable({ data, viewMode, ministerioId, onChangeVolu
             evento: {
               dataInicio: data.evento.dataInicio!,
               dataTermino: data.evento.dataTermino!,
-              dataOcorrencia: data.dataOcorrencia,
+              dataOcorrencia: DateUtilsApi.dateTimeFromApi(data.dataOcorrencia),
             },
             ministerioId,
             idEscalaItem: data.escalaItemId,
           }}
-          onButton2Press={async data => {
+          onButton2Press={async (data) => {
             const result = await onChangeVoluntario?.(data);
             if (result) {
               setSubstituicaoModalProps({ isOpen: false });

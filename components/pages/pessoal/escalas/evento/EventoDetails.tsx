@@ -4,11 +4,11 @@ import FancyTabs, { TabItem } from '../../../../tabs/FancyTabs';
 import EscalaEventoEquipeTab from './EscalaEventoEquipeTab';
 import FancyPageView from '../../../../containers/FancyPageView';
 import { useMemo } from 'react';
-import { EventoModel } from '../../../../../domain/models/Evento';
 import { Pallete } from '../../../../../constants/colors';
 import EventoInfoCard from '../../../common/EventoInfoCard';
+import { ResponseEventoDto } from '../../../../../domain/dtos/Evento/evento.response';
 
-export default function EventoDetails(props: { evento: EventoModel; dataOcorrencia: Date }) {
+export default function EventoDetails(props: { evento: ResponseEventoDto; dataOcorrencia: Date }) {
   const TABS_DATA: TabItem[] = useMemo(
     () => [
       {
@@ -35,7 +35,7 @@ export default function EventoDetails(props: { evento: EventoModel; dataOcorrenc
       //   content: <EscalaEventoSetlistTab />,
       // },
     ],
-    []
+    [],
   );
 
   return (

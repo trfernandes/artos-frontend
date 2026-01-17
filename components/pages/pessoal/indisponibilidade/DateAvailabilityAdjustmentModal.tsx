@@ -13,7 +13,7 @@ const schema = z.object({
   motivo: z
     .string()
     .max(500, 'O motivo deve ter no maximo 500 caracteres')
-    .refine(value => value.trim().length === 0 || value.trim().length >= 3, {
+    .refine((value) => value.trim().length === 0 || value.trim().length >= 3, {
       message: 'O motivo deve ter ao menos 3 caracteres',
     }),
 });
@@ -31,12 +31,7 @@ export type DateAvailabilityAdjustmentModalProps = {
   onConfirm: (mode: 'mark' | 'unmark', date: Date, motivo?: string) => void;
 };
 
-export default function DateAvailabilityAdjustmentModal({
-  data,
-  modalProps,
-  onConfirm,
-}: DateAvailabilityAdjustmentModalProps) {
-
+export default function DateAvailabilityAdjustmentModal({ data, modalProps, onConfirm }: DateAvailabilityAdjustmentModalProps) {
   const [selectedStatus, setSelectedStatus] = useState<'available' | 'unavailable'>(data.status);
 
   const { control, handleSubmit, reset, watch } = useForm<DateAvailabilityForm>({
@@ -58,7 +53,7 @@ export default function DateAvailabilityAdjustmentModal({
   const canSubmit = hasSelectionChanged || (selectedStatus === 'unavailable' && hasMotivoChanged);
   const shouldShowMotivoForm = selectedStatus === 'unavailable';
 
-  const submitToMarkUnavailable = handleSubmit(formData => {
+  const submitToMarkUnavailable = handleSubmit((formData) => {
     const trimmedMotivo = formData.motivo.trim();
     onConfirm('mark', data.date, trimmedMotivo.length > 0 ? trimmedMotivo : undefined);
   });
@@ -87,7 +82,7 @@ export default function DateAvailabilityAdjustmentModal({
       {...modalProps}
       onButton1Press={handleModalClose}
       showCloseButton={false}
-      title="Detalhes da data"
+      title='Detalhes da data'
       onButton2Press={handleConfirmPress}
       button2={{ disabled: !canSubmit }}
     >
@@ -111,10 +106,10 @@ export default function DateAvailabilityAdjustmentModal({
           />
         </View>
 
-        <FancyTextInput label="Data" value={data.date.toLocaleDateString()} readonly disabled />
+        <FancyTextInput label='Data' value={data.date.toLocaleDateString()} readonly disabled />
 
         {shouldShowMotivoForm && (
-          <ControlledTextArea control={control} name="motivo" label="Motivo" placeholder="Descreva o motivo" />
+          <ControlledTextArea control={control} name='motivo' label='Motivo' placeholder='Descreva o motivo' />
         )}
       </View>
     </FancyModalDialog>

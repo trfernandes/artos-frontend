@@ -13,13 +13,7 @@ export interface EventoInfoCardProps {
   descricao?: string;
 }
 
-export default function EventoInfoCard({
-  eventoNome,
-  eventoCor,
-  dataOcorrencia,
-  local,
-  descricao,
-}: EventoInfoCardProps) {
+export default function EventoInfoCard({ eventoNome, eventoCor, dataOcorrencia, local, descricao }: EventoInfoCardProps) {
   return (
     <FancyContainer
       title={
@@ -29,31 +23,27 @@ export default function EventoInfoCard({
             alignItems: 'center',
             gap: 8,
             borderWidth: 0,
-            paddingHorizontal: 14,
+            paddingHorizontal: 15,
             paddingVertical: 13,
           }}
         >
           <View style={{ height: 10, width: 10, backgroundColor: eventoCor, borderRadius: 999 }} />
-          <FancyText size={'medium'} type={'bold'} style={{ marginVertical: 0, opacity: 0.8 }}>
+          <FancyText size={'largeMedium'} type={'bold'} style={{ marginVertical: 0, opacity: 0.8 }}>
             {eventoNome}
           </FancyText>
         </View>
       }
-      content={
+      containerStyle={{ paddingBottom: 16 }}
+      children={
         <View style={styles.fields}>
           <FancyValueLine
             dataContainerStyle={styles.dataContainer}
-            title="Data/Hora:"
-            value={format(dataOcorrencia, "EEEE, d 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
+            title='Data/Hora:'
+            value={format(dataOcorrencia, "EEE, d 'de' MMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
             showSeparator={true}
           />
-          <FancyValueLine
-            title="Descrição:"
-            value={descricao ?? 'Não definida'}
-            showSeparator={true}
-            dataContainerStyle={styles.dataContainer}
-          />
-          <FancyValueLine title="Local:" value={local ?? 'Não definido'} dataContainerStyle={styles.dataContainer} />
+          <FancyValueLine title='Descrição:' value={descricao ?? 'Não definida'} showSeparator={true} dataContainerStyle={styles.dataContainer} />
+          <FancyValueLine title='Local:' value={local ?? 'Não definido'} dataContainerStyle={styles.dataContainer} />
         </View>
       }
     />
@@ -62,9 +52,9 @@ export default function EventoInfoCard({
 
 const styles = StyleSheet.create({
   fields: {
-    gap: 10,
+    gap: 14,
     paddingTop: 4,
     // paddingBottom: 16,
   },
-  dataContainer: { paddingHorizontal: 22 },
+  dataContainer: { paddingHorizontal: 15 },
 });

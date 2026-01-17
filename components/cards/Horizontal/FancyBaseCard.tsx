@@ -18,6 +18,7 @@ export type FancyBaseCardProps = {
   subtitleProps?: FancyTextProps;
   isCollapsable?: boolean;
   centerContainerStyle?: StyleProp<ViewStyle>;
+  backgroundColor?: string;
 };
 
 export const titleTextProps: FancyTextProps = {
@@ -50,18 +51,18 @@ export default function FancyBaseCard({ isCollapsable = false, ...props }: Fancy
   const [collapsed, setCollapsed] = useState(true);
   return (
     <View
-      style={[styles.container, ((isCollapsable && !collapsed) || !isCollapsable) && { borderRadius: 30 }, props.containerStyle]}
+      style={[
+        styles.container,
+        ((isCollapsable && !collapsed) || !isCollapsable) && { borderRadius: 30, backgroundColor: props.backgroundColor || Pallete.backgroundColor2 },
+        props.containerStyle,
+      ]}
     >
       <View style={[styles.innerContainer, props.contentContainerStyle]}>
         <View style={styles.headerContainer}>
           {props.leftItem && <View style={styles.leftContainer}>{props.leftItem}</View>}
           <View style={[styles.centerContainer, props.centerContainerStyle]}>
             {props.title && (
-              <FancyText
-                {...titleTextProps}
-                {...props.titleProps}
-                style={[titleTextProps.style, props.titleProps?.style]}
-              >
+              <FancyText {...titleTextProps} {...props.titleProps} style={[titleTextProps.style, props.titleProps?.style]}>
                 {props.title}
               </FancyText>
             )}
@@ -69,10 +70,7 @@ export default function FancyBaseCard({ isCollapsable = false, ...props }: Fancy
               (isValidElement(props.subtitle) ? (
                 props.subtitle
               ) : (
-                <FancyText
-                  {...subTitleTextProps}
-                  {...props.subtitleProps}
-                >
+                <FancyText {...subTitleTextProps} {...props.subtitleProps}>
                   {props.subtitle}
                 </FancyText>
               ))}
@@ -80,17 +78,13 @@ export default function FancyBaseCard({ isCollapsable = false, ...props }: Fancy
               (isValidElement(props.additionalData1) ? (
                 props.additionalData1
               ) : (
-                <FancyText {...additionalData1TextProps}>
-                  {props.additionalData1}
-                </FancyText>
+                <FancyText {...additionalData1TextProps}>{props.additionalData1}</FancyText>
               ))}
             {props.additionalData2 &&
               (isValidElement(props.additionalData2) ? (
                 props.additionalData2
               ) : (
-                <FancyText {...additionalData2TextProps}>
-                  {props.additionalData2}
-                </FancyText>
+                <FancyText {...additionalData2TextProps}>{props.additionalData2}</FancyText>
               ))}
           </View>
           {props.rightItem && (
@@ -98,8 +92,8 @@ export default function FancyBaseCard({ isCollapsable = false, ...props }: Fancy
               {props.rightItem}
               {isCollapsable && props.content && (
                 <FancyButton
-                  type="text"
-                  mode="icon"
+                  type='text'
+                  mode='icon'
                   icon={{
                     name: !collapsed ? 'chevron-up' : 'chevron-down',
                     library: 'Entypo',

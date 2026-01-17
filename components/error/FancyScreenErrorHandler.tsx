@@ -12,7 +12,7 @@ export default function FancyScreenErrorHandler({ error, onTryAgrainPress }: { e
         isAxiosError: true,
         code: axiosError.code,
         message: axiosError.message,
-      })
+      }),
     );
 
     if (axiosError.code === 'ERR_BAD_RESPONSE') {
@@ -21,6 +21,9 @@ export default function FancyScreenErrorHandler({ error, onTryAgrainPress }: { e
       return <FancyError.Connection onUpdate={onTryAgrainPress} />;
     }
   } else {
-    console.log('Erro ao carregar ministerios', strfyObj({ cause: error.cause, message: error.message, stack: error.stack, name: error.name }));
+    console.log(
+      'Erro ao carregar ministerios',
+      strfyObj({ cause: error.cause, message: error.message, stack: error.stack, name: error.name }),
+    );
   }
 }

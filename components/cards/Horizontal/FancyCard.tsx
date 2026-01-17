@@ -36,6 +36,7 @@ export type FancyCardImageBaseProps = {
   | 'contentContainerStyle'
   | 'isCollapsable'
   | 'centerContainerStyle'
+  | 'backgroundColor'
 >;
 
 export type ImageType = { type: 'image'; props: FancyCardImageProps };

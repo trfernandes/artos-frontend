@@ -32,13 +32,13 @@ export function FancyTextDisplay({
           ]}
         />
       )}
-      <FancyText size={'small'} type="bold" style={styles.keyText} {...titleStyle}>
+      <FancyText size={'small'} type='bold' style={styles.keyText} {...titleStyle}>
         {title}
       </FancyText>
       {React.isValidElement(value) ? (
         value
       ) : (
-        <FancyText size="small" type="medium" style={styles.valueText} {...valueStyle}>
+        <FancyText size='small' type='medium' style={styles.valueText} {...valueStyle}>
           {value}
         </FancyText>
       )}

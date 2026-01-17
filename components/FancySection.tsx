@@ -10,7 +10,7 @@ export default function FancySection({
   title,
   children,
   containerStyle,
-  contentStyle
+  contentStyle,
 }: {
   icon: CustomIconProps;
   title?: string;
@@ -22,7 +22,7 @@ export default function FancySection({
     <View style={[styles.sectionContainer, containerStyle]}>
       {title && (
         <View style={styles.sectionHeader}>
-          <FancyText size="medium" type="bold" style={{ opacity: 0.8 }}>
+          <FancyText size='medium' type='bold' style={{ opacity: 0.8 }}>
             {title}
           </FancyText>
         </View>
@@ -38,7 +38,7 @@ export default function FancySection({
 }
 
 const styles = StyleSheet.create({
-  sectionContainer: { gap: 12, borderWidth: 0, borderColor: 'red', },
+  sectionContainer: { gap: 12, borderWidth: 0, borderColor: 'red' },
   sectionHeader: { flexDirection: 'row', gap: 8 },
   sectionContent: { flexDirection: 'row', gap: 15, alignItems: 'center' },
   iconContainer: {

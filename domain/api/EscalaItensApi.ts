@@ -1,16 +1,18 @@
 import axios from 'axios';
-import { EscalaItemApiModel } from '../models/EscalaItem';
 import apiClient from './api-client';
 import { BaseApi } from './BaseApi';
 import { strfyObj } from '../../utils/text_utils';
 import { DynamicQuery } from '../utils/query_utils';
+import { CreateEscalaItemDto } from '../dtos/Escala/escala-item.create';
+import { ResponseEscalaItemDto } from '../dtos/Escala/escala-item.response';
+import { UpdateEscalaItemDto } from '../dtos/Escala/escala-item.update';
 
-class EscalaItensApiClass extends BaseApi<EscalaItemApiModel> {
+class EscalaItensApiClass extends BaseApi<ResponseEscalaItemDto, CreateEscalaItemDto, UpdateEscalaItemDto> {
   constructor() {
     super('escalas/itens');
   }
 
-  override async search(query: DynamicQuery, includeFotos: boolean = false): Promise<EscalaItemApiModel[]> {
+  override async search(query: DynamicQuery, includeFotos: boolean = false): Promise<ResponseEscalaItemDto[]> {
     try {
       const response = await apiClient.post(`/${this.resourceName}/search`, query, { params: { includeFotos } });
       return response.data.data;
@@ -24,7 +26,7 @@ class EscalaItensApiClass extends BaseApi<EscalaItemApiModel> {
     }
   }
 
-  async getByVoluntarioId(voluntarioId: string): Promise<EscalaItemApiModel[]> {
+  async getByVoluntarioId(voluntarioId: string): Promise<ResponseEscalaItemDto[]> {
     try {
       const response = await apiClient.get(`/${this.resourceName}/voluntario/${voluntarioId}`);
       return response.data.data;

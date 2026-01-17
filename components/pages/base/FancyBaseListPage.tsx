@@ -13,7 +13,12 @@ export default function FancyListPage<ItemT>(props: FancyBasePageProps & FancyBa
       {...props}
       children={
         <>
-          <FancyList {...props.listProps} contentContainerStyle={{ gap: 10 }} containerStyle={{ flex: 1 }} bottomSpace={40} />
+          <FancyList
+            {...props.listProps}
+            contentContainerStyle={{ gap: 10, paddingHorizontal: 15 }}
+            containerStyle={{ flex: 1 }}
+            bottomSpace={40}
+          />
           {props.children}
         </>
       }

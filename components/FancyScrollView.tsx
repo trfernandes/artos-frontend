@@ -8,6 +8,7 @@ import {
   Animated,
   StyleProp,
   ViewStyle,
+  View,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { FADE } from './list/FancyList';
@@ -81,7 +82,7 @@ export default function FancyScrollView(props: FancyScrollViewProps) {
   }, [layoutReady]);
 
   return (
-    <>
+    <View style={{ flex: 1, borderWidth: 0 }}>
       <KeyboardAwareScrollView
         style={[{}, props.style]}
         contentContainerStyle={[{ paddingBottom: 40 }, props.contentContainerStyle]}
@@ -101,10 +102,7 @@ export default function FancyScrollView(props: FancyScrollViewProps) {
       {(!props.topFade ||
         (props.topFade && props.topFade!.active === undefined) ||
         (props.topFade && props.topFade!.active === true)) && (
-        <Animated.View
-          pointerEvents="none"
-          style={[styles.fade, { top: 0 }, { opacity: topFadeAnim }]}
-        >
+        <Animated.View pointerEvents='none' style={[styles.fade, { top: 0 }, { opacity: topFadeAnim }]}>
           <LinearGradient
             colors={[FADE.colors.light, FADE.colors.dark]}
             style={[StyleSheet.absoluteFill, props.topFade?.style]}
@@ -116,8 +114,8 @@ export default function FancyScrollView(props: FancyScrollViewProps) {
         (props.bottomFade && props.bottomFade!.active === undefined) ||
         (props.bottomFade && props.bottomFade!.active === true)) && (
         <Animated.View
-          pointerEvents="none"
-          style={[styles.fade, { bottom: 0 }, { opacity: bottomFadeAnim }]}
+          pointerEvents='none'
+          style={[styles.fade, { bottom: 0, borderWidth: 0, zIndex: 99999 }, { opacity: bottomFadeAnim }]}
         >
           <LinearGradient
             colors={[FADE.colors.dark, FADE.colors.light]}
@@ -125,7 +123,7 @@ export default function FancyScrollView(props: FancyScrollViewProps) {
           />
         </Animated.View>
       )}
-    </>
+    </View>
   );
 }
 

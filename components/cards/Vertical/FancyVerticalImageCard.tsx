@@ -2,11 +2,10 @@ import { StyleSheet, TouchableOpacity, View, ImageSourcePropType } from 'react-n
 import FancyVerticalCard, { FancyVerticalCardProps } from './FancyVerticalCard';
 import DefaultIcons, { CustomIconProps } from '../../FancyIcons';
 import { Pallete } from '../../../constants/colors';
-import { ImageUtils } from '../../../utils/image_utils';
 import { Image } from 'expo-image';
 
 export type FancyVerticalImageCardProps = {
-  source?: string | ImageSourcePropType;
+  source?: ImageSourcePropType;
   selected?: boolean;
   imageSize?: number;
   highlighted?: boolean;
@@ -35,15 +34,7 @@ export default function FancyVerticalImageCard({
   );
 }
 
-export function ImageComponent({
-  source,
-  highlighted = false,
-}: {
-  source: string | ImageSourcePropType;
-  highlighted?: boolean;
-}) {
-  const resolvedSource = ImageUtils.normalizeImageSource(source) ?? source;
-
+export function ImageComponent({ source, highlighted = false }: { source: ImageSourcePropType; highlighted?: boolean }) {
   return (
     <View
       style={{
@@ -57,7 +48,7 @@ export function ImageComponent({
         borderWidth: 2.5,
       }}
     >
-      {resolvedSource ? <Image source={resolvedSource} style={styles.image} contentFit="fill" /> : null}
+      {source ? <Image source={source} style={styles.image} contentFit='fill' /> : null}
     </View>
   );
 }
@@ -75,8 +66,8 @@ export function TopLeftMenuButton({ customIcon, onPress }: { customIcon?: Custom
       }}
     >
       <DefaultIcons.Custom
-        library="MaterialCommunityIcons"
-        name="dots-vertical"
+        library='MaterialCommunityIcons'
+        name='dots-vertical'
         {...customIcon}
         size={customIcon?.size || 18}
         color={customIcon?.color || Pallete.icons.dark}
@@ -98,8 +89,8 @@ export function TopRightMenuButton({ customIcon, onPress }: { customIcon?: Custo
       }}
     >
       <DefaultIcons.Custom
-        library="MaterialCommunityIcons"
-        name="dots-vertical"
+        library='MaterialCommunityIcons'
+        name='dots-vertical'
         {...customIcon}
         size={customIcon?.size || 18}
         color={customIcon?.color || Pallete.icons.dark}
@@ -112,6 +103,7 @@ const styles = StyleSheet.create({
   selected: { backgroundColor: Pallete.selected },
   image: {
     borderRadius: 9999,
+    borderWidth: 1,
     aspectRatio: 1,
     width: '60%',
   },

@@ -5,11 +5,12 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEscalasCrud } from '../../../../../hooks/useEscalaCrud';
 import { Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
-import { EscalaStatusEnum, EscalaStatusEnumLabel } from '../../../../../domain/models/Escala';
+
 import { Pallete } from '../../../../../constants/colors';
 import FancyChips from '../../../../../components/FancyChips';
 import { useCallback } from 'react';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
+import { EscalaStatusEnum, EscalaStatusEnumLabel } from '../../../../../domain/enums/Escala/escala-status.enum';
 
 export const EscalaStatusConfig = {
   [EscalaStatusEnum.Gerada]: {
@@ -44,7 +45,10 @@ export default function MinisterioEscalasIndexPage() {
           {
             path: 'ministerio.id',
             operator: Operator.EQUALS,
-            value: { type: ValueType.LITERAL, value: ministerioId as string },
+            value: {
+              type: ValueType.LITERAL,
+              value: ministerioId as string,
+            },
           },
         ],
       },
@@ -68,11 +72,11 @@ export default function MinisterioEscalasIndexPage() {
         },
       ]);
     },
-    [removeEscala]
+    [removeEscala],
   );
 
-  if (isLoadingEscalas) return <FancyLoading label="Carregando..." />;
-  if (isLoadingEscalasMutation) return <FancyLoading label="Processando..." />;
+  if (isLoadingEscalas) return <FancyLoading label='Carregando...' />;
+  if (isLoadingEscalasMutation) return <FancyLoading label='Processando...' />;
 
   return (
     <FancyListPage
@@ -88,17 +92,18 @@ export default function MinisterioEscalasIndexPage() {
         data: escalas,
         renderItem: ({ item }) => (
           <FancyCard.Image
-            type="icon"
+            type='icon'
             props={{
               centerContainerStyle: { gap: 6 },
-              cardIcon: { ...DefaultIconsNames['calendar-day'], size: 18 },
+              cardIcon: {
+                ...DefaultIconsNames['calendar-day'],
+                size: 18,
+              },
               title: item.nome,
               subtitle: `De ${new Date(item.dataInicio).toLocaleDateString()} até ${new Date(
-                item.dataTermino
+                item.dataTermino,
               ).toLocaleDateString()}`,
-              additionalData1: (
-                <FancyChips {...EscalaStatusConfig[item.status]} label={EscalaStatusEnumLabel[item.status]} />
-              ),
+              additionalData1: <FancyChips {...EscalaStatusConfig[item.status]} label={EscalaStatusEnumLabel[item.status]} />,
               actionButtons: [
                 {
                   icon: { ...DefaultIconsNames.edit, size: 16 },
@@ -114,7 +119,11 @@ export default function MinisterioEscalasIndexPage() {
                   },
                 },
                 {
-                  icon: { ...DefaultIconsNames.delete, size: 16, backgroundColor: Pallete.error },
+                  icon: {
+                    ...DefaultIconsNames.delete,
+                    size: 16,
+                    backgroundColor: Pallete.error,
+                  },
                   onPress: () => handleDeletePress(item.id!),
                 },
               ],

@@ -83,4 +83,3 @@ const lightParameters: ButtonParamters = {
 };
 
 export { containedParameters, outlinedParameters, textParameters, lightParameters };
-

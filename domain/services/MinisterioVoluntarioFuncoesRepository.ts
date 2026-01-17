@@ -1,18 +1,17 @@
 import apiClient from '../api/api-client';
 import { apiName, MinisterioVoluntarioFuncoesApi } from '../api/MinisterioVoluntarioFuncoesApi';
-import { EscalaTemplateExperienciaEnum } from '../models/EscalaTemplate';
-import {
-  MinisterioVoluntarioFuncaoApiModel,
-  MinisterioVoluntarioFuncaoModel,
-  MinisterioVoluntarioFuncaoSerializer,
-  MinisterioVoluntarioFuncaoStatusEnum,
-} from '../models/MinisterioVoluntarioFuncao';
+import { CreateMinisterioVoluntarioFuncaoDto } from '../dtos/MinisterioVoluntarioFuncao/ministerio-voluntario-funcao.create';
+import { ResponseMinisterioVoluntarioFuncaoDto } from '../dtos/MinisterioVoluntarioFuncao/ministerio-voluntario-funcao.response';
+import { UpdateMinisterioVoluntarioFuncaoDto } from '../dtos/MinisterioVoluntarioFuncao/ministerio-voluntario-funcao.update';
 import { BaseRepository } from './BaseRepository';
+
+type StatusType = NonNullable<CreateMinisterioVoluntarioFuncaoDto['status']>;
+type ExperienciaType = NonNullable<CreateMinisterioVoluntarioFuncaoDto['experiencia']>;
 
 export interface UpdateFuncaoDataDto {
   funcaoId: string;
-  status: MinisterioVoluntarioFuncaoStatusEnum;
-  experiencia: EscalaTemplateExperienciaEnum;
+  status: StatusType;
+  experiencia: ExperienciaType;
 }
 
 export interface UpdateFuncoesDataDto {
@@ -20,22 +19,23 @@ export interface UpdateFuncoesDataDto {
 }
 
 class MinisterioVoluntarioFuncoesRepositoryClass extends BaseRepository<
-  MinisterioVoluntarioFuncaoModel,
-  MinisterioVoluntarioFuncaoApiModel
+  ResponseMinisterioVoluntarioFuncaoDto,
+  CreateMinisterioVoluntarioFuncaoDto,
+  UpdateMinisterioVoluntarioFuncaoDto
 > {
   constructor() {
-    super(MinisterioVoluntarioFuncoesApi, {
-      fromApi: MinisterioVoluntarioFuncaoSerializer.fromApi,
-      toApi: MinisterioVoluntarioFuncaoSerializer.toApi,
-    });
+    super(MinisterioVoluntarioFuncoesApi);
   }
 
-  async updateFuncoes(ministerioVoluntarioId: string, data: UpdateFuncoesDataDto): Promise<MinisterioVoluntarioFuncaoModel[]> {
+  async updateFuncoes(
+    ministerioVoluntarioId: string,
+    data: UpdateFuncoesDataDto,
+  ): Promise<ResponseMinisterioVoluntarioFuncaoDto[]> {
     try {
       const response = await apiClient.put(`/${apiName}/voluntarios/${ministerioVoluntarioId}/funcoes`, data);
       return response.data.data;
     } catch (error) {
-      console.log(`Erro ao atualizar as funções ${apiName} ${ministerioVoluntarioId}:`, error);
+      console.log(`Erro ao atualizar as funcoes ${apiName} ${ministerioVoluntarioId}:`, error);
       throw error;
     }
   }

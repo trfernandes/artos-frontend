@@ -1,13 +1,17 @@
 import { StyleSheet } from 'react-native';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
-import FancyButton from '../../../../../components/buttons/FancyButton';
-import { DefaultIconsNames } from '../../../../../constants/icons';
 import { FormProvider, useForm } from 'react-hook-form';
-import { eventoSchema, useEventosCrud } from '../../../../../hooks/useEventosCrud';
 import { zodResolver } from '@hookform/resolvers/zod';
-import EventosDadosForm from '../../../../../components/pages/admin/eventos/EventosDadosForm';
-import { EventoModel, RecorrenciaEnum } from '../../../../../domain/models/Evento';
 import { router } from 'expo-router';
+import { eventoSchema } from '../../../../../domain/schemas/eventoSchema';
+import { RecorrenciaEnum } from '../../../../../domain/enums/Evento/recorrencia.enum';
+import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
+import { DateUtilsApi } from '../../../../../utils/date_utils';
+import { CreateEventoDto } from '../../../../../domain/dtos/Evento/evento.create';
+import FancyLoading from '../../../../../components/FancyLoading';
+import FancyButton from '../../../../../components/buttons/FancyButton';
+import EventosDadosForm from '../../../../../components/pages/admin/eventos/EventosDadosForm';
+import { DefaultIconsNames } from '../../../../../constants/icons';
 
 export function getDefaultEventoTimes() {
   const now = new Date();
@@ -20,7 +24,6 @@ export function getDefaultEventoTimes() {
   rounded.setSeconds(0);
   rounded.setMilliseconds(0);
 
-  // Definir início e término
   const dataInicio = rounded;
   const dataTermino = new Date(rounded);
   dataTermino.setHours(dataInicio.getHours() + 1);
@@ -41,41 +44,39 @@ export default function EventosAddPage() {
     },
   });
 
-  const { add, isError, isLoading } = useEventosCrud();
+  const { add, isError, isLoading, isLoadingMutation } = useEventosCrud();
 
   const handleSubmit = async () => {
     form.handleSubmit(
-      async data => {
-        const newEvento: EventoModel = {
+      async (data) => {
+        const newEvento: CreateEventoDto = {
           ...data,
           cor: data.cor,
-          dataTermino: data.dataTermino,
-          id: undefined,
+          dataInicio: DateUtilsApi.dateTimeToApi(data.dataInicio),
+          dataTermino: data.dataTermino && DateUtilsApi.dateTimeToApi(data.dataTermino),
+          recorrencia: data.recorrencia || RecorrenciaEnum.Nunca,
         };
         await add(newEvento);
         router.back();
       },
-      error => console.log(error)
+      (error) => console.log(error),
     )();
   };
 
-  if (isError) {
-    return <FancyPageView>Erro ao carregar dados.</FancyPageView>;
-  }
+  if (isLoadingMutation) return <FancyLoading label='Salvando...' />;
 
-  if (isLoading) {
-    return <FancyPageView>Carregando...</FancyPageView>;
-  }
+  if (isLoading) return <FancyLoading />;
 
   return (
     <FancyPageView style={styles.container}>
       <FormProvider {...form}>
         <EventosDadosForm />
         <FancyButton
+          containerStyle={{ margin: 15, marginBottom: 0 }}
           label={isLoading ? 'Salvando...' : 'Salvar'}
           disabled={isLoading}
           icon={{ ...DefaultIconsNames.save, size: 16 }}
-          type="contained"
+          type='contained'
           onPress={handleSubmit}
         />
       </FormProvider>
@@ -88,8 +89,6 @@ const styles = StyleSheet.create({
     flex: 1,
     borderWidth: 0,
     borderColor: 'lightgreen',
-    paddingTop: 15,
     paddingBottom: 5,
-    paddingHorizontal: 20,
   },
 });

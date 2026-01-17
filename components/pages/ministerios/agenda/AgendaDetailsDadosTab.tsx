@@ -1,7 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import { ptBR } from 'date-fns/locale';
 import { format } from 'date-fns';
-import { EventoModel } from '../../../../domain/models/Evento';
 import FancyContainer from '../../../FancyContainer';
 import { useEventosCrud } from '../../../../hooks/useEventosCrud';
 import FancyDropDown from '../../../fields/FancyDropDown';
@@ -11,12 +10,13 @@ import { Operator, OrderDirection, ValueType } from '../../../../domain/utils/qu
 import FancyLoading from '../../../FancyLoading';
 import { useCallback, useMemo, useState } from 'react';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
-import { EscalaTemplateTipoLabel } from '../../../../domain/models/EscalaTemplate';
 import Toast from 'react-native-toast-message';
 import EventoInfoCard from '../../common/EventoInfoCard';
 import { Pallete } from '../../../../constants/colors';
+import { ResponseEventoDto } from '../../../../domain/dtos/Evento/evento.response';
+import { EscalaTemplateTipoLabel } from '../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
 
-export default function AgendaDetailsDadosTab(props: { ministerioId: string; dataOcorrencia: Date; evento: EventoModel }) {
+export default function AgendaDetailsDadosTab(props: { ministerioId: string; dataOcorrencia: Date; evento: ResponseEventoDto }) {
   const { data: templates, isLoading: isLoadingTemplates } = useEscalaTemplatesCrud({
     autoFetch: false,
     initialParams: {
@@ -40,12 +40,12 @@ export default function AgendaDetailsDadosTab(props: { ministerioId: string; dat
     const list = [
       ...[{ title: 'Nenhum', subtitle: '', value: '' } as DropDownItemProps<string>],
       ...templates.map(
-        t =>
+        (t) =>
           ({
             title: t.nome,
             subtitle: EscalaTemplateTipoLabel[t.tipo],
             value: t.id,
-          } as DropDownItemProps<string>)
+          } as DropDownItemProps<string>),
       ),
     ];
     return list;
@@ -63,15 +63,13 @@ export default function AgendaDetailsDadosTab(props: { ministerioId: string; dat
 
   const { update: updateEventos } = useEventosCrud({ autoFetch: false });
 
-  const [templateId, setTemplateId] = useState<string>(
-    props.evento.templatePadrao?.id || props.evento.templatePadrao?.id || ''
-  );
+  const [templateId, setTemplateId] = useState<string>(props.evento.templatePadrao?.id || props.evento.templatePadrao?.id || '');
 
   const handleSaveTemplate = useCallback(async () => {
     if (!props.evento.id) return;
     await updateEventos({
       id: props.evento.id,
-      data: { templatePadraoId: templateId } as EventoModel,
+      data: { templatePadraoId: templateId },
     });
     Toast.show({ type: 'success', text1: 'Template padrão do evento atualizado com sucesso!' });
   }, [props.evento.id, updateEventos, templateId]);
@@ -88,29 +86,25 @@ export default function AgendaDetailsDadosTab(props: { ministerioId: string; dat
         local={props.evento.local}
       />
       <FancyContainer
+        containerStyle={{ paddingBottom: 16 }}
         title={'Parâmetros do Evento'}
-        content={
+        children={
           <View
             style={{
-              paddingHorizontal: 22,
+              paddingHorizontal: 15,
               flexDirection: 'row',
-              // borderWidth: 1,
               gap: 10,
               alignItems: 'center',
             }}
           >
             <FancyDropDown
-              label="Template padrão"
+              label='Template padrão'
               containerStyle={{ flex: 1 }}
               listItems={templatesList}
               value={templateId}
               onChange={setTemplateId}
             />
-            <FancyButton
-              label="Salvar"
-              containerStyle={{ alignSelf: 'flex-end', width: '25%' }}
-              onPress={handleSaveTemplate}
-            />
+            <FancyButton label='Salvar' containerStyle={{ alignSelf: 'flex-end', width: '25%' }} onPress={handleSaveTemplate} />
           </View>
         }
       />

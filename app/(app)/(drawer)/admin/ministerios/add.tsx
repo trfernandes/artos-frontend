@@ -6,104 +6,102 @@ import FancyStepsNavigation from '../../../../../components/steps/FancyStepsNavi
 import { FancyStepsConfig } from '../../../../../components/steps/FancyStepsConfig';
 import { Pallete } from '../../../../../constants/colors';
 import DadosTab from '../../../../../components/pages/admin/ministerios/DadosTab';
-import LiderancaTab, { baseLiderSchema } from '../../../../../components/pages/admin/ministerios/LiderancaTab';
 import { DefaultIconsNames } from '../../../../../constants/icons';
-import z from 'zod';
 import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { MinisterioModel, MinisterioStatusEnum, MinisterioTipoEnum } from '../../../../../domain/models/Ministerio';
 import Toast from 'react-native-toast-message';
 import { strfyObj } from '../../../../../utils/text_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
 import { router } from 'expo-router';
-import { permissoesSchema } from '../../../../../components/pages/admin/ministerios/PermissoesTab';
 import { useMinisteriosCrud as useMinisteriosCrud } from '../../../../../hooks/useMinisteriosCrud';
-import { MinisterioVoluntarioModel } from '../../../../../domain/models/MinisterioVoluntario';
 import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
 import { useAuth, UserMinisterio } from '../../../../../contexts/AuthContext';
-
-export const addLiderSchema = baseLiderSchema;
-
-export const ministerioSchema = z.object({
-  id: z.uuidv4().nullable().optional(),
-  nome: z
-    .string({
-      message: 'Campo obrigatório',
-    })
-    .min(1, { message: 'Campo obrigatório' }),
-  tipo: z.enum(MinisterioTipoEnum, {
-    message: 'Campo obrigatório',
-  }),
-  logo: z.string().nullable().optional(),
-  uploadLogo: z.string().nullable().optional(),
-  descricao: z.string().nullable().optional(),
-  status: z.enum(MinisterioStatusEnum, {
-    message: 'Campo obrigatório',
-  }),
-  voluntarios: z
-    .array(addLiderSchema)
-    .min(1, { message: 'É obrigatório informar pelo menos um líder' })
-    .refine(
-      lideres => {
-        const ids = lideres.map(lider => lider.voluntarioId);
-        const uniqueIds = new Set(ids);
-        return uniqueIds.size === lideres.length;
-      },
-      { error: 'Esse líder já foi incluído' }
-    ),
-  permissoes: z.array(permissoesSchema).optional(),
-});
-
-export type MinisterioFormData = z.infer<typeof ministerioSchema>;
-export type MinisterioLiderancaFormData = z.infer<typeof addLiderSchema>;
+import { MinisterioStatusEnum } from '../../../../../domain/enums/Ministerio/ministerio-status.enum';
+import { ResponseMinisterioDto } from '../../../../../domain/dtos/Ministerio/ministerio.response';
+import LiderancaTab from '../../../../../components/pages/admin/ministerios/LiderancaTab';
+import { AddMinisterioFormData, AddMinisterioSchema } from '../../../../../domain/schemas/ministerioAdminSchema';
+import { sendImageToServer } from '../../../../../utils/image_utils';
+import { CreateMinisterioDto } from '../../../../../domain/dtos/Ministerio/ministerio.create';
+import { useLoading } from '../../../../../contexts/LoadingContext';
 
 export default function MinisteriosAddPage() {
   const [stepIndex, setStepIndex] = useState(0);
 
-  const form = useForm<MinisterioFormData>({
-    resolver: zodResolver(ministerioSchema),
-    defaultValues: { status: MinisterioStatusEnum.Ativo },
+  const { showLoading, hideLoading } = useLoading();
+
+  const form = useForm<AddMinisterioFormData>({
+    resolver: zodResolver(AddMinisterioSchema),
+    defaultValues: { status: MinisterioStatusEnum.Ativo, logoUpload: null, logoUrl: null, logoThumbUrl: null },
   });
 
   const { user, updateUser } = useAuth();
 
   const { add: addMinisterios, isLoading: isLoadingMinisterios } = useMinisteriosCrud();
-  const { add: addVoluntarios, isLoading: isLoadingVoluntarios } = useMinisterioVoluntariosCrud();
+  const { add: addVoluntarios, isLoading: isLoadingVoluntarios } = useMinisterioVoluntariosCrud({ muteMessages: true });
 
   const handleSubmit = async () => {
     await form.handleSubmit(
-      async data => {
-        const { voluntarios, ...ministerio } = data;
+      async (data) => {
+        showLoading('Salvando');
 
-        const newMinisterio: MinisterioModel = await addMinisterios({
-          ...ministerio,
-        } as unknown as MinisterioModel);
+        try {
+          const { voluntarios, ...ministerio } = data;
 
-        voluntarios.forEach(async voluntario => {
-          await addVoluntarios({
-            ministerio: { id: newMinisterio.id },
-            voluntario: { id: voluntario.voluntarioId },
-            hierarquia: voluntario.hierarquia,
-          } as MinisterioVoluntarioModel);
-        });
+          const newMinisterioData: CreateMinisterioDto = {
+            nome: ministerio.nome,
+            tipo: ministerio.tipo,
+            descricao: ministerio.descricao || undefined,
+            status: MinisterioStatusEnum.Ativo,
+            logoUrl: null,
+            logoThumbUrl: null,
+          };
 
-        const ministerios: UserMinisterio[] = [
-          { id: newMinisterio.id!, nome: newMinisterio.nome, tipo: newMinisterio.tipo },
-          ...(user?.ministerios || []),
-        ];
-        updateUser({ ...user, ministerios });
+          //Enviar logo para o servidor e guardar as URLs retornadas
+          if (data.logoUpload?.uri) {
+            const { imageThumbUrl, imageUrl } = await sendImageToServer('ministerios', data.logoUpload);
 
-        form.reset();
-        router.back();
+            newMinisterioData.logoUrl = imageUrl;
+            newMinisterioData.logoThumbUrl = imageThumbUrl;
+
+            form.setValue('logoUrl', imageUrl);
+            form.setValue('logoThumbUrl', imageThumbUrl);
+            form.setValue('logoUpload', null);
+          }
+
+          const newMinisterio: ResponseMinisterioDto = await addMinisterios(newMinisterioData);
+
+          voluntarios.forEach(async (voluntario) => {
+            await addVoluntarios({
+              ministerioId: newMinisterio.id,
+              voluntarioId: voluntario.voluntarioId,
+              hierarquia: voluntario.hierarquia,
+            });
+          });
+
+          const ministerios: UserMinisterio[] = [
+            {
+              id: newMinisterio.id!,
+              nome: newMinisterio.nome,
+              tipo: newMinisterio.tipo,
+            },
+            ...(user?.ministerios || []),
+          ];
+          updateUser({ ...user, ministerios });
+
+          form.reset();
+          router.back();
+        } finally {
+          hideLoading();
+        }
       },
-      errors => {
+      (errors) => {
         console.log(`Erro ao adicionar ministério\n ${strfyObj(errors)}`);
         Toast.show({
           type: 'error',
           text1: 'Erro',
           text2: errors.voluntarios?.message || 'Erro ao submeter o formulário',
         });
-      }
+      },
     )();
   };
 
@@ -141,19 +139,7 @@ export default function MinisteriosAddPage() {
       },
       {
         title: 'Liderança',
-        content: (
-          <LiderancaTab
-            validationSchema={addLiderSchema}
-            options={{ mode: 'add' }}
-            onDeleteLider={() => {
-              Toast.show({
-                type: 'success',
-                text1: 'Exclusão',
-                text2: 'Líder removido com sucesso!',
-              });
-            }}
-          />
-        ),
+        content: <LiderancaTab />,
         actions: [
           {
             label: 'Anterior',
@@ -173,12 +159,12 @@ export default function MinisteriosAddPage() {
   };
 
   if (isLoadingMinisterios || isLoadingVoluntarios) {
-    return <FancyLoading label="Adicionando..." />;
+    return <FancyLoading label='Adicionando...' />;
   }
 
   return (
     <FancyPageView style={styles.container}>
-      <FancyStepsHeader index={stepIndex} config={STEPS} />
+      <FancyStepsHeader index={stepIndex} config={STEPS} containerStyle={{ paddingHorizontal: 15 }} />
       <FormProvider {...form}>
         <View style={styles.contentContainer}>{STEPS.steps[stepIndex].content}</View>
       </FormProvider>
@@ -188,8 +174,8 @@ export default function MinisteriosAddPage() {
 }
 
 const styles = StyleSheet.create({
-  container: { paddingVertical: 16, gap: 20, alignItems: 'center' },
-  contentContainer: { width: '100%', gap: 20, flex: 1, paddingHorizontal: 20 },
+  container: { paddingVertical: 5, gap: 20, alignItems: 'center' },
+  contentContainer: { width: '100%', gap: 20, flex: 1, paddingHorizontal: 15 },
   buttonsContainer: { width: '100%', gap: 10, flexDirection: 'row' },
   button: {
     flex: 1,

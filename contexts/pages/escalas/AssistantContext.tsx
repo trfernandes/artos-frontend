@@ -31,8 +31,8 @@ export function AssistenteEscalaProvider({ ministerioId, children }: { ministeri
   const [isShouldLoadMembers, setShouldLoadMembers] = useState(true);
   const [tempoGeracaoEscala, setTempoGeracaoEscala] = useState<number | undefined>(undefined);
 
-  const nextStep = () => setIndex(i => i + 1);
-  const previousStep = () => setIndex(i => Math.max(0, i - 1));
+  const nextStep = () => setIndex((i) => i + 1);
+  const previousStep = () => setIndex((i) => Math.max(0, i - 1));
 
   const value = useMemo(
     () => ({
@@ -50,7 +50,7 @@ export function AssistenteEscalaProvider({ ministerioId, children }: { ministeri
       tempoGeracaoEscala,
       setTempoGeracaoEscala,
     }),
-    [ministerioId, index, resultado, isShouldLoadEvents, isShouldLoadMembers, tempoGeracaoEscala]
+    [ministerioId, index, resultado, isShouldLoadEvents, isShouldLoadMembers, tempoGeracaoEscala],
   );
 
   return <AssistenteEscalaContext.Provider value={value}>{children}</AssistenteEscalaContext.Provider>;

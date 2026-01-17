@@ -33,7 +33,7 @@ export default function FancyChips({
     large: { font: MEDIUM_SIZE_FONT, padV: 7, padH: 14, icon: 16 },
   }[size];
 
-  const baseBg = outlined ? 'transparent' : backgroundColor ?? `${color}22`;
+  const baseBg = outlined ? 'transparent' : (backgroundColor ?? `${color}22`);
   const baseBorder = outlined ? color : 'transparent';
   const baseTextColor = outlined ? color : color;
 
@@ -64,7 +64,7 @@ export default function FancyChips({
         />
       )}
       <FancyText
-        ellipsizeMode="clip"
+        ellipsizeMode='clip'
         numberOfLines={1}
         {...labelProps}
         style={[

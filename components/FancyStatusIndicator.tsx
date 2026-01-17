@@ -28,7 +28,7 @@ export default function FancyStatusIndicator({ value, label }: { value: boolean;
       />
       <FancyText
         size={'extraSmall'}
-        type="semiBold"
+        type='semiBold'
         color={Pallete.fonts.inactive}
         style={{ lineHeight: 10, borderWidth: 0, height: 11 }}
       >

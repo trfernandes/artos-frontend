@@ -1,17 +1,17 @@
 import { Stack } from 'expo-router';
-import FancyHeader from '../../../../../components/header/FancyHeader';
+import FancyPageHeader from '../../../../../components/header/FancyHeader';
 
 export default function PerfilLayout() {
   return (
     <Stack
       screenOptions={{
-        header: props => <FancyHeader {...props} />,
+        header: (props) => <FancyPageHeader {...props} />,
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Meu Perfil' }} />
+      <Stack.Screen name='index' options={{ title: 'Meu Perfil' }} />
       <Stack.Screen
-        name="edit"
-        options={{ title: 'Editar Perfil', header: props => <FancyHeader leftButton="back" {...props} /> }}
+        name='edit'
+        options={{ title: 'Editar Perfil', header: (props) => <FancyPageHeader leftButton='back' {...props} /> }}
       />
     </Stack>
   );

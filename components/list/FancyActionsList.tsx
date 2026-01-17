@@ -18,15 +18,17 @@ export default function FancyActionsList(props: { actions?: ActionItemData[] }) 
         <View key={index} style={styles.actionContainer}>
           <TouchableOpacity style={styles.action} onPress={action.onPress}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              {action.icon && <DefaultIcons.Custom {...action.icon} color={Pallete.icons.dark} style={{ opacity: 0.9, lineHeight: 20 }} />}
+              {action.icon && (
+                <DefaultIcons.Custom {...action.icon} color={Pallete.icons.dark} style={{ opacity: 0.9, lineHeight: 20 }} />
+              )}
               <FancyText size={'medium'} type={'bold'} style={styles.actionLabel}>
                 {action.label}
               </FancyText>
             </View>
             <FancyButton
               icon={{ library: 'FontAwesome6', name: 'chevron-right', color: Pallete.fonts.dark, size: 14 }}
-              mode="icon"
-              type="text"
+              mode='icon'
+              type='text'
               onPress={action.onPress}
             />
           </TouchableOpacity>

@@ -13,32 +13,30 @@ import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import { zodResolver } from '@hookform/resolvers/zod';
 import FancyContainerList from '../../../container_list/FancyContainerList';
 import { FancyCard } from '../../../cards/Horizontal/FancyCard';
-import { MinisterioFuncaoModel } from '../../../../domain/models/MinisterioFuncao';
 import { Pallete } from '../../../../constants/colors';
-import { EscalaTemplateExperienciaLabel } from '../../../../domain/models/EscalaTemplate';
-import { FancyAlert } from '../../../modal/FancyAlert';
 import FancyImage from '../../../images/FancyImage';
 import FancyText from '../../../FancyText';
+
+import FancyChips from '../../../FancyChips';
+import { ResponseMinisterioFuncaoDto } from '../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.response';
+import { EscalaTemplateExperienciaLabel } from '../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
 import {
-    MinisterioVoluntarioStatusEnum,
     MinisterioVoluntarioStatusEnumLabel,
     MinisterioVoluntarioStatusEnumMap,
-} from '../../../../domain/models/MinisterioVoluntario';
-import FancyChips from '../../../FancyChips';
+    MinisterioVoluntarioStatusEnum,
+} from '../../../../domain/enums/MinisterioVoluntario/ministerio-voluntario-status.enum';
+import { AppImages } from '../../../../assets/app_images';
 
 export interface IntegranteFormFieldsProps {
   mode: 'add' | 'edit';
   voluntariosDropDownList?: DropDownItemProps<string>[];
   funcoesDropDownList?: DropDownItemProps<string>[];
-  funcoesList: MinisterioFuncaoModel[];
+  funcoesList: ResponseMinisterioFuncaoDto[];
 }
 
-export default function IntegranteFormFields({
-  voluntariosDropDownList,
-  funcoesDropDownList,
-  funcoesList,
-  mode,
-}: IntegranteFormFieldsProps) {
+export default function IntegranteFormFields({ voluntariosDropDownList, funcoesDropDownList, funcoesList, mode }: IntegranteFormFieldsProps) {
+  //   console.log('IntegranteFormFields render', strfyObj({ voluntariosDropDownList, funcoesDropDownList, funcoesList, mode }));
+
   const [formModalOptions, setFormModalOptions] = useState<{
     visible: boolean;
     mode: 'add' | 'edit';
@@ -64,11 +62,13 @@ export default function IntegranteFormFields({
     resolver: zodResolver(minVoluntarioFuncaoSchema),
   });
 
-  const handleSave = formModal.handleSubmit(data => {
-    const findedFuncao = funcoesList.find(f => f.id === data.id);
+  const handleSave = formModal.handleSubmit((data) => {
+    // console.log('Saving funcao data:', strfyObj({ data, funcoesList }));
+
+    const findedFuncao = funcoesList.find((f) => f.id === data.id);
     const current = getValues('funcoes') as MinVoluntarioFuncaoFormData[];
 
-    const existingIndex = current.findIndex(f => f.id === data.id);
+    const existingIndex = current.findIndex((f) => f.id === data.id);
 
     const newItem: MinVoluntarioFuncaoFormData = {
       id: data.id,
@@ -89,21 +89,8 @@ export default function IntegranteFormFields({
   };
 
   const handleDelete = (id: string) => {
-    const funcao = funcoesList.find(f => f.id === id);
-
-    FancyAlert.alert(`Confirmação`, `Tem certeza que deseja remover a função "${funcao?.nome}"?`, [
-      {
-        text: 'Não',
-        style: 'destructive',
-      },
-      {
-        text: 'Sim',
-        onPress: () => {
-          const index = fieldsFuncao.findIndex(f => f.id === id);
-          if (index !== -1) remove(index);
-        },
-      },
-    ]);
+    const index = fieldsFuncao.findIndex((f) => f.id === id);
+    if (index !== -1) remove(index);
   };
 
   const handleClearForm = () => {
@@ -111,10 +98,11 @@ export default function IntegranteFormFields({
   };
 
   const notUsedFuncoesList = useMemo(() => {
-    return funcoesDropDownList?.filter(v => !fieldsFuncao.some(f => f.id === v.value)) || [];
+    const funcoes = funcoesDropDownList?.filter((v) => !fieldsFuncao.some((f) => f.id === v.value)) || [];
+    return funcoes;
   }, [funcoesDropDownList, fieldsFuncao]);
 
-  const sortedFuncoesList = useMemo(() => {
+  const sortedFuncoesList = useMemo<MinVoluntarioFuncaoFormData[]>(() => {
     return [...fieldsFuncao].sort((a, b) => {
       const nomeA = a.nome?.toUpperCase() || '';
       const nomeB = b.nome?.toUpperCase() || '';
@@ -125,20 +113,20 @@ export default function IntegranteFormFields({
   return (
     <View style={{ flex: 1, gap: 20 }}>
       {mode === 'add' ? (
-        <ControlledDropDown control={control} name="voluntarioId" label="Voluntário" listItems={voluntariosDropDownList} />
+        <ControlledDropDown control={control} name='voluntarioId' label='Voluntário' listItems={voluntariosDropDownList} />
       ) : (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
-          <FancyImage source={{ uri: getValues('voluntarioFoto') }} size={50} />
+          <FancyImage source={getValues('voluntarioFoto') ? { uri: getValues('voluntarioFoto') } : AppImages.emptyProfile} size={50} />
           <View style={{ gap: 2 }}>
-            <FancyText size="largeMedium" type="bold" style={{ opacity: 0.8 }}>
+            <FancyText size='largeMedium' type='bold' style={{ opacity: 0.8 }}>
               {getValues('voluntarioNome')}
             </FancyText>
-            <FancyText size="small" type="medium" style={{ opacity: 0.8 }}>
+            <FancyText size='small' type='medium' style={{ opacity: 0.8 }}>
               {getValues('voluntarioEmail')}
             </FancyText>
             {getValues('voluntarioStatus') && (
               <FancyChips
-                size="small"
+                size='small'
                 style={{ marginTop: 3 }}
                 label={MinisterioVoluntarioStatusEnumLabel[MinisterioVoluntarioStatusEnumMap[getValues('voluntarioStatus')!]]}
                 color={
@@ -153,7 +141,7 @@ export default function IntegranteFormFields({
       )}
 
       <FancyContainerList
-        title="Funções"
+        title='Funções'
         contentContainerStyle={{ paddingTop: 6 }}
         buttons={[
           {
@@ -167,8 +155,8 @@ export default function IntegranteFormFields({
         data={sortedFuncoesList}
         renderItem={({ item }) => (
           <FancyCard.Image
-            key={item.fieldId}
-            type="icon"
+            key={item.id}
+            type='icon'
             props={{
               title: item.nome,
               subtitle: EscalaTemplateExperienciaLabel[item.experiencia!],
@@ -201,7 +189,7 @@ export default function IntegranteFormFields({
           <IntegranteFormModal
             mode={formModalOptions.mode}
             title={formModalOptions.mode === 'add' ? 'Adicionar Função' : 'Editar Função'}
-            funcoesDropDownList={formModalOptions.mode === 'add' ? notUsedFuncoesList : funcoesDropDownList}
+            funcoesDropDownList={notUsedFuncoesList}
             onButton2Press={() => handleSave()}
             onButton1Press={() => {
               setFormModalOptions({ visible: false, mode: 'add' });

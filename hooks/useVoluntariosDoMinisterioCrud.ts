@@ -1,14 +1,12 @@
 import { useMemo } from 'react';
 import { DropDownItemProps } from '../components/fields/FancyDropDownItem';
-import { VoluntarioModel } from '../domain/models/Voluntario';
 import { Operator, ValueType, DynamicQuery, OrderDirection } from '../domain/utils/query_utils';
 import { useMinisterioVoluntariosCrud } from './useMinisterioVoluntariosCrud';
-import { MinisterioVoluntarioStatusEnum } from '../domain/models/MinisterioVoluntario';
+import { MinisterioVoluntarioStatusEnum } from '../domain/enums/MinisterioVoluntario/ministerio-voluntario-status.enum';
+import { ResponseVoluntarioDto } from '../domain/dtos/Voluntario/voluntario.response';
+import { AppImages } from '../assets/app_images';
 
-export function useVoluntariosDoMinisterioCrud(
-  ministerioId?: string,
-  status: MinisterioVoluntarioStatusEnum = MinisterioVoluntarioStatusEnum.Ativo
-) {
+export function useVoluntariosDoMinisterioCrud(ministerioId?: string, status: MinisterioVoluntarioStatusEnum = MinisterioVoluntarioStatusEnum.Ativo) {
   const initialParams = useMemo(() => {
     if (!ministerioId) return undefined;
 
@@ -32,36 +30,51 @@ export function useVoluntariosDoMinisterioCrud(
     } as DynamicQuery;
   }, [ministerioId]);
 
-  const { data: ministerioVoluntariosList, isLoading } = useMinisterioVoluntariosCrud({
+  const {
+    data: ministerioVoluntariosList,
+    isLoading: isLoadingMinisterioVoluntarios,
+    isLoadingMutation: isLoadingMinisterioVoluntariosMutation,
+    add: addMinisterioVoluntario,
+    update: updateMinisterioVoluntario,
+    remove: removeMinisterioVoluntario,
+  } = useMinisterioVoluntariosCrud({
     autoFetch: true,
     initialParams,
   });
 
   const ministerioVoluntariosDropDownList = useMemo(() => {
     if (!ministerioVoluntariosList) return [];
-    return ministerioVoluntariosList.map(mv => ({
-      title: mv.voluntario?.nome,
-      value: mv.id,
-      left: mv.voluntario?.foto
-        ? { type: 'image', source: mv.voluntario.foto }
-        : { source: require('../assets/images/empty_profile_image.png') },
-    })) as DropDownItemProps<string>[];
+    return ministerioVoluntariosList.map((mv) => {
+      const voluntario = mv.voluntario as ResponseVoluntarioDto | null | undefined;
+      return {
+        title: voluntario?.nome ?? '',
+        value: mv.id ?? '',
+        left: {
+          type: 'image',
+          source:
+            voluntario?.fotoThumbUrl || voluntario?.fotoUrl ? { uri: voluntario.fotoThumbUrl || voluntario.fotoUrl || '' } : AppImages.emptyProfile,
+        },
+      };
+    }) as DropDownItemProps<string>[];
   }, [ministerioVoluntariosList, ministerioId]);
 
-  const voluntariosList = useMemo((): VoluntarioModel[] => {
+  const voluntariosList = useMemo<ResponseVoluntarioDto[]>(() => {
     if (!ministerioVoluntariosList) return [];
-    return ministerioVoluntariosList.map(mv => mv.voluntario) as VoluntarioModel[];
+    return ministerioVoluntariosList
+      .map((mv) => mv.voluntario as ResponseVoluntarioDto | null | undefined)
+      .filter((v): v is ResponseVoluntarioDto => Boolean(v));
   }, [ministerioVoluntariosList]);
 
   const voluntariosDropDownList = useMemo(() => {
     if (!ministerioId) return [];
 
-    return voluntariosList.map(voluntario => ({
-      title: voluntario?.nome,
-      value: voluntario?.id,
-      left: voluntario?.foto
-        ? { type: 'image', source: voluntario.foto }
-        : { source: require('../assets/images/empty_profile_image.png') },
+    return voluntariosList.map((voluntario) => ({
+      title: voluntario.nome ?? '',
+      value: voluntario.id ?? '',
+      left: {
+        type: 'image',
+        source: voluntario.fotoThumbUrl || voluntario.fotoUrl ? { uri: voluntario.fotoThumbUrl || voluntario.fotoUrl || '' } : AppImages.emptyProfile,
+      },
     })) as DropDownItemProps<string>[];
   }, [voluntariosList, ministerioId]);
 
@@ -70,6 +83,10 @@ export function useVoluntariosDoMinisterioCrud(
     voluntariosDropDownList,
     ministerioVoluntariosList,
     ministerioVoluntariosDropDownList,
-    isLoading,
+    isLoadingMinisterioVoluntarios,
+    isLoadingMinisterioVoluntariosMutation,
+    addMinisterioVoluntario,
+    updateMinisterioVoluntario,
+    removeMinisterioVoluntario,
   };
 }

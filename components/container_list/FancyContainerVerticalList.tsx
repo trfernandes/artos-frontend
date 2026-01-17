@@ -3,9 +3,7 @@ import { CustomIconProps } from '../FancyIcons';
 import { Pallete } from '../../constants/colors';
 import FancyText from '../FancyText';
 import FancyButton from '../buttons/FancyButton';
-import FancyVerticalContainerCard, {
-  FancyVerticalContainerCardProps,
-} from '../cards/Vertical/FancyVerticalContainerCard';
+import FancyVerticalContainerCard, { FancyVerticalContainerCardProps } from '../cards/Vertical/FancyVerticalContainerCard';
 
 export interface FancyContainerVerticalListProps {
   title: string;
@@ -20,7 +18,7 @@ export default function FancyContainerVerticalList({ ...props }: FancyContainerV
     <View style={[styles.container, props.containerStyle]}>
       <View style={styles.headerContainer}>
         <View style={styles.headerTitleContainer}>
-          <FancyText size={'small'} type="semiBold" style={styles.headerTitle}>
+          <FancyText size={'small'} type='semiBold' style={styles.headerTitle}>
             {props.title}
           </FancyText>
         </View>
@@ -30,8 +28,8 @@ export default function FancyContainerVerticalList({ ...props }: FancyContainerV
             {props.buttons.map((button, index) => (
               <FancyButton
                 key={index}
-                mode="icon"
-                type="contained"
+                mode='icon'
+                type='contained'
                 icon={{ ...button.icon, color: Pallete.icons.light }}
                 onPress={button.onPress}
                 containerStyle={{ minHeight: 24, height: 24, minWidth: 24, width: 24 }}
@@ -61,7 +59,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerContainer: {
-    paddingLeft:15,
+    paddingLeft: 15,
     paddingRight: 12,
     paddingVertical: 8,
     borderWidth: DESIGN_MODE,

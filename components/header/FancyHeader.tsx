@@ -9,21 +9,22 @@ import FancyHeaderButton from './FancyHeaderButton';
 
 export type FancyHeaderProps = {
   leftButton?: 'menu' | 'back' | 'close' | React.ReactNode;
-} & NativeStackHeaderProps;
+  leftButtonOnPress?: () => void;
+} & Partial<NativeStackHeaderProps>;
 
-export default function FancyHeader({ navigation, back, options, ...props }: FancyHeaderProps) {
+export default function FancyPageHeader({ navigation, back, options, leftButtonOnPress, ...props }: FancyHeaderProps) {
   const nav = useNavigation<DrawerNavigationProp<Record<string, object>>>();
 
   return (
     <View style={styles.container}>
       <View style={styles.leftContainer}>
-        {back && props.leftButton === 'back' ? (
-          <HeaderBackButton title={options.title} onPress={navigation.goBack} />
+        {back || props.leftButton === 'back' ? (
+          <HeaderBackButton title={options?.title} onPress={leftButtonOnPress || navigation?.goBack || nav.goBack} />
         ) : (
-          <HeaderMenuButton title={options.title} onPress={() => nav.toggleDrawer()} />
+          <HeaderMenuButton title={options?.title} onPress={() => nav.toggleDrawer()} />
         )}
       </View>
-      {options.headerRight && (
+      {options?.headerRight && (
         <View style={styles.rightContainer}>
           {options.headerRight?.({
             canGoBack: false,
@@ -46,7 +47,7 @@ const HeaderMenuButton = (props: { title?: string; onPress?: () => void }) => (
       }}
     />
     {props.title && (
-      <FancyText size="medium" type="bold" color={Pallete.fonts.dark} style={styles.headerTitle}>
+      <FancyText size='medium' type='bold' color={Pallete.fonts.dark} style={styles.headerTitle}>
         {props.title}
       </FancyText>
     )}
@@ -65,7 +66,7 @@ const HeaderBackButton = (props: { title?: string; onPress: () => void }) => (
       }}
     />
     {props.title && (
-      <FancyText size="medium" type="bold" color={Pallete.fonts.dark} style={styles.headerTitle}>
+      <FancyText size='medium' type='bold' color={Pallete.fonts.dark} style={styles.headerTitle}>
         {props.title}
       </FancyText>
     )}

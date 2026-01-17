@@ -3,11 +3,10 @@ import FancyErrorText from './FancyErrorText';
 import FancyDropDown, { FancyDropDownProps } from '../fields/FancyDropDown';
 import { View } from 'react-native';
 
-interface ControlledFancyDropDownProps<TFormValues extends FieldValues, TName extends Path<TFormValues>>
-  extends Pick<
-    FancyDropDownProps<PathValue<TFormValues, TName>>,
-    'placeholder' | 'listItems' | 'label' | 'onChange' | 'disabled' | 'isLoading'
-  > {
+interface ControlledFancyDropDownProps<TFormValues extends FieldValues, TName extends Path<TFormValues>> extends Pick<
+  FancyDropDownProps<PathValue<TFormValues, TName>>,
+  'placeholder' | 'listItems' | 'label' | 'onChange' | 'disabled' | 'isLoading'
+> {
   control: Control<TFormValues>;
   name: TName;
 }
@@ -28,7 +27,7 @@ export default function ControlledDropDown<TFormValues extends FieldValues, TNam
             listItems={listItems}
             value={value as PathValue<TFormValues, TName>}
             onBlur={onBlur}
-            onChange={selectedValue => {
+            onChange={(selectedValue) => {
               onChange(selectedValue);
               externalOnChange?.(selectedValue);
             }}

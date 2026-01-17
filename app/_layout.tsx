@@ -1,3 +1,4 @@
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SplashScreen, Stack } from 'expo-router';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { useFonts } from 'expo-font';
@@ -12,7 +13,8 @@ import * as Sentry from '@sentry/react-native';
 import { ConnectivityProvider } from '../core/network/connectivity/ConnectivityProvider';
 import { createQueryClient } from '../core/react-query/queryClient';
 import { ConnectivityBanner } from '../components/FancyConnectivityBanner';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 
 Sentry.init({
   dsn: 'https://b65799084d172913463973ef37b937b0@o4510567624409088.ingest.us.sentry.io/4510567678279680',
@@ -40,15 +42,17 @@ export default Sentry.wrap(function RootLayout() {
   const [queryClient] = useState(() => createQueryClient());
 
   return (
-    <SafeAreaProvider>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <ConnectivityProvider>
-            <RootLayoutNav />
-          </ConnectivityProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <ConnectivityProvider>
+              <RootLayoutNav />
+            </ConnectivityProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 });
 
@@ -97,13 +101,16 @@ function RootLayoutNav() {
   return (
     <FancyAlertProvider>
       <NotificationsManager />
-      <Stack>
-        <Stack.Screen name="(app)" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      </Stack>
-      <Toast config={toastConfig} position="bottom" visibilityTime={4000} />
-      <FancyAlertConnector />
-      <ConnectivityBanner />
+      <StatusBar backgroundColor='black'/>
+      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+        <Stack>
+          <Stack.Screen name='(app)' options={{ headerShown: false }} />
+          <Stack.Screen name='(auth)' options={{ headerShown: false }} />
+        </Stack>
+        <Toast config={toastConfig} position='bottom' visibilityTime={4000} />
+        <FancyAlertConnector />
+        <ConnectivityBanner />
+      </SafeAreaView>
     </FancyAlertProvider>
   );
 }

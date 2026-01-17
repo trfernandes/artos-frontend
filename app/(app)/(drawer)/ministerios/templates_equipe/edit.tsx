@@ -7,8 +7,8 @@ import { useEscalaTemplatesCrud } from '../../../../../useEscalaTemplatesCrud';
 import { useCallback, useEffect, useMemo } from 'react';
 import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
-import { EscalaTemplateTipoEnumMap } from '../../../../../domain/models/EscalaTemplate';
 import { strfyObj } from '../../../../../utils/text_utils';
+import { EscalaTemplateTipoEnumMap } from '../../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
 
 export default function MinisterioTemplatesEditPage() {
   const { ministerioId, templateId } = useLocalSearchParams<{
@@ -52,14 +52,14 @@ export default function MinisterioTemplatesEditPage() {
         id: template.id,
         nome: template.nome,
         funcoes: template.funcoes
-          ? template.funcoes.map(f => ({
+          ? template.funcoes.map((f) => ({
               funcaoId: f.funcao?.id,
               experiencia: f.experiencia,
               quantidade: f.quantidade,
             }))
           : [],
         voluntarios: template.voluntarios
-          ? template.voluntarios?.map(v => ({
+          ? template.voluntarios?.map((v) => ({
               id: v.id,
               voluntarioId: v.voluntario?.id,
               funcaoId: v.funcao?.id,
@@ -74,7 +74,7 @@ export default function MinisterioTemplatesEditPage() {
 
   const handleOnSave = useCallback(
     form.handleSubmit(
-      data => {
+      (data) => {
         if (!data.id) return;
 
         updateTemplate({
@@ -86,16 +86,17 @@ export default function MinisterioTemplatesEditPage() {
           router.back();
         });
       },
-      errors => console.log('Erro no submit do formulário\n', '=> Erros: ', strfyObj(errors), '\n=> Data: ', strfyObj(form.getValues()))
+      (errors) =>
+        console.log('Erro no submit do formulário\n', '=> Erros: ', strfyObj(errors), '\n=> Data: ', strfyObj(form.getValues())),
     ),
-    [form.handleSubmit]
+    [form.handleSubmit],
   );
 
   if (isLoading) return <FancyLoading />;
 
   return (
     <FormProvider {...form}>
-      <TemplateForm mode="edit" ministerioId={ministerioId} onSave={handleOnSave} isLoading={isLoadingMutation} />
+      <TemplateForm mode='edit' ministerioId={ministerioId} onSave={handleOnSave} isLoading={isLoadingMutation} />
     </FormProvider>
   );
 }

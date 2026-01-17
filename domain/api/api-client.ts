@@ -1,6 +1,6 @@
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { triggerUnauthorized } from '../../core/network/authBridge';
+import { getAuthToken } from '../../core/storage/authTokenStorage';
 
 const apiClient = axios.create({
   baseURL: process.env.EXPO_PUBLIC_API_URL,
@@ -12,8 +12,8 @@ const apiClient = axios.create({
 });
 
 // Interceptor para anexar o token JWT automaticamente
-apiClient.interceptors.request.use(async config => {
-  const token = await AsyncStorage.getItem('token');
+apiClient.interceptors.request.use(async (config) => {
+  const token = await getAuthToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -23,8 +23,8 @@ apiClient.interceptors.request.use(async config => {
 let isHandling401 = false;
 
 apiClient.interceptors.response.use(
-  res => res,
-  async error => {
+  (res) => res,
+  async (error) => {
     const status = error?.response?.status;
     if (status === 401 && !isHandling401) {
       isHandling401 = true;
@@ -35,7 +35,7 @@ apiClient.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default apiClient;

@@ -1,23 +1,24 @@
+import { CreateEscalaItemDto } from '../domain/dtos/Escala/escala-item.create';
+import { ResponseEscalaItemDto } from '../domain/dtos/Escala/escala-item.response';
+import { UpdateEscalaItemDto } from '../domain/dtos/Escala/escala-item.update';
 import { EscalaItensRepository } from '../domain/services/EscalaItensRepository';
-import { DynamicQuery, Operator, ValueType } from '../domain/utils/query_utils';
-import { useCrud } from './useCrud';
+import { Operator, ValueType } from '../domain/utils/query_utils';
+import { ExternalUseCrudParams, useCrud } from './useCrud';
 
 export function useEscalaItensCrud({
   autoFetch = false,
   initialParams = undefined,
   includeFotos = false,
-}: {
-  autoFetch?: boolean;
-  initialParams?: DynamicQuery;
+}: ExternalUseCrudParams & {
   includeFotos?: boolean;
 } = {}) {
-  const crud = useCrud({
+  const crud = useCrud<ResponseEscalaItemDto, any, CreateEscalaItemDto, UpdateEscalaItemDto>({
     queryKey: 'escalas-itens',
     autoFetch,
     initialParams,
     fetchAll: () => EscalaItensRepository.getAll(),
-    search: query => EscalaItensRepository.search(query, includeFotos),
-    fetchOne: async id => {
+    search: (query) => EscalaItensRepository.search(query, includeFotos),
+    fetchOne: async (id) => {
       const result = await EscalaItensRepository.search({
         where: {
           conditions: [
@@ -32,9 +33,9 @@ export function useEscalaItensCrud({
       });
       return result[0];
     },
-    add: data => EscalaItensRepository.add(data),
+    add: (data) => EscalaItensRepository.add(data),
     update: (id, data) => EscalaItensRepository.update(id, data),
-    remove: id => EscalaItensRepository.remove(id),
+    remove: (id) => EscalaItensRepository.remove(id),
   });
 
   return {

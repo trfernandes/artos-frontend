@@ -7,7 +7,7 @@ const PUBLIC_ROUTES = ['/login', '/create-account', '/forgot-password', '/reset-
 
 function isPublic(pathname: string) {
   // cobre /reset-password e /reset-password?token=...
-  return PUBLIC_ROUTES.some(r => pathname === r || pathname.startsWith(`${r}?`));
+  return PUBLIC_ROUTES.some((r) => pathname === r || pathname.startsWith(`${r}?`));
 }
 
 export function useProtectedRoute() {

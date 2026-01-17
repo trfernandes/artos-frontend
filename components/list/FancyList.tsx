@@ -1,22 +1,13 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { LegendList, LegendListProps } from '@legendapp/list';
 import { useState, useRef } from 'react';
-import {
-  ActivityIndicator,
-  LayoutChangeEvent,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  StyleProp,
-  StyleSheet,
-  View,
-  ViewStyle,
-} from 'react-native';
+import { ActivityIndicator, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import FancyListEmpty, { FancyListEmptyProps } from './FancyListEmpty';
 import { RefreshControl } from 'react-native-gesture-handler';
 
 export const FADE = {
-  colors: { dark: 'rgba(255,255,255,0)', light: 'rgba(255,255,255,0.6)' },
-  height: 20,
+  colors: { dark: 'rgba(255,255,255,0)', light: 'rgba(255,255,255,1)' },
+  height: 40,
 };
 
 export type FancyListProps<ItemT> = {
@@ -69,7 +60,7 @@ export default function FancyList<ItemT>({ showFade = true, ...props }: FancyLis
                 alignItems: 'center',
               }}
             >
-              <ActivityIndicator size="large" />
+              <ActivityIndicator size='large' />
             </View>
           ) : (
             <LegendList
@@ -87,26 +78,17 @@ export default function FancyList<ItemT>({ showFade = true, ...props }: FancyLis
               keyExtractor={props.keyExtractor}
               showsVerticalScrollIndicator={false}
               showsHorizontalScrollIndicator={false}
-              refreshControl={
-                <RefreshControl refreshing={props.refreshing || false} onRefresh={props.onRefresh || undefined} />
-              }
+              refreshControl={<RefreshControl refreshing={props.refreshing || false} onRefresh={props.onRefresh || undefined} />}
+              ItemSeparatorComponent={props.ItemSeparatorComponent}
             />
           )}
 
           {showFade && showTopFade && (
-            <LinearGradient
-              colors={[FADE.colors.light, FADE.colors.dark]}
-              style={[styles.fade, { top: 0 }]}
-              pointerEvents="none"
-            />
+            <LinearGradient colors={[FADE.colors.light, FADE.colors.dark]} style={[styles.fade, { top: 0 }]} pointerEvents='none' />
           )}
 
           {showFade && showBottomFade && (
-            <LinearGradient
-              colors={[FADE.colors.dark, FADE.colors.light]}
-              style={[styles.fade, { bottom: 0 }]}
-              pointerEvents="none"
-            />
+            <LinearGradient colors={[FADE.colors.dark, FADE.colors.light]} style={[styles.fade, { bottom: 0 }]} pointerEvents='none' />
           )}
         </>
       ) : (
@@ -120,6 +102,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     position: 'relative',
+    borderWidth: 1,
   },
   fade: {
     position: 'absolute',
@@ -127,6 +110,8 @@ const styles = StyleSheet.create({
     right: 0,
     height: FADE.height,
     zIndex: 1,
+    borderRadius: 10,
+    // borderWidth: 1,
   },
   list_content: { gap: 10 },
 });

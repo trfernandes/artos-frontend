@@ -9,33 +9,49 @@ import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/q
 import VoluntarioMinisterioTab from '../../../../../components/pages/admin/voluntarios/VoluntarioMinisterioTab';
 import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
 import FancyLoading from '../../../../../components/FancyLoading';
-import { MinisterioVoluntarioModel, MinisterioVoluntarioStatusEnum } from '../../../../../domain/models/MinisterioVoluntario';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
-import { VoluntarioModel } from '../../../../../domain/models/Voluntario';
 import { VoluntariosRepository } from '../../../../../domain/services/VoluntariosRepository';
 import { MinisterioAddFormData } from '../../../../../components/pages/admin/voluntarios/MinisterioAddForm';
+import { ResponseMinisterioVoluntarioDto } from '../../../../../domain/dtos/MinisterioVoluntario/ministerio-voluntario.response';
+import { MinisterioVoluntarioStatusEnum } from '../../../../../domain/enums/MinisterioVoluntario/ministerio-voluntario-status.enum';
+import { ResponseVoluntarioDto } from '../../../../../domain/dtos/Voluntario/voluntario.response';
+import { useFocusEffect } from 'expo-router';
+import { useLoading } from '../../../../../contexts/LoadingContext';
 
 export default function VoluntariosDetailsPage() {
   const parametros = useLocalSearchParams<{
     id: string;
   }>();
 
+  const { hideLoading } = useLoading();
+
+  useFocusEffect(() => {
+    hideLoading();
+  });
+
   const searchParams = useMemo<DynamicQuery>(() => {
     return {
       where: {
-        conditions: [{ path: 'id', operator: Operator.EQUALS, value: { type: ValueType.LITERAL, value: parametros.id } }],
+        conditions: [
+          {
+            path: 'id',
+            operator: Operator.EQUALS,
+            value: { type: ValueType.LITERAL, value: parametros.id },
+          },
+        ],
       },
       relations: ['ministerios', 'ministerios.ministerio', 'ministerios.historico'],
     };
   }, [parametros.id]);
 
-  const [voluntarioData, setVoluntarioData] = useState<VoluntarioModel[] | undefined>();
+  const [voluntarioData, setVoluntarioData] = useState<ResponseVoluntarioDto[] | undefined>();
   const [isLoadingVoluntarios, setIsLoadingVoluntarios] = useState(false);
 
   const loadData = useCallback(() => {
     setIsLoadingVoluntarios(true);
     VoluntariosRepository.search(searchParams)
-      .then(data => {
+      .then((data) => {
+        console.log('Voluntario data loaded:', JSON.stringify(data[0]?.ministerios?.[0], null, 2));
         setVoluntarioData(data);
       })
       .finally(() => {
@@ -53,43 +69,38 @@ export default function VoluntariosDetailsPage() {
     isLoadingMutation: isLoadingRemoveVoluntarioMinisterio,
   } = useMinisterioVoluntariosCrud({
     autoFetch: false,
-    messages: {
-      successDelete: 'Ministério removido do voluntário com sucesso!',
-      successCreate: 'Ministério adicionado ao voluntário com sucesso!',
-      successUpdate: 'Ministério do voluntário atualizado com sucesso!',
-      errorCreate: 'Erro ao adicionar ministério ao voluntário.',
-      errorDelete: 'Erro ao remover ministério do voluntário.',
-      errorUpdate: 'Erro ao atualizar ministério do voluntário.',
-    },
   });
 
-  const handleChangeStatus = useCallback((ministerioVoluntario: MinisterioVoluntarioModel, status: MinisterioVoluntarioStatusEnum) => {
-    FancyAlert.alert(
-      'Exclusão de Ministério',
-      status === MinisterioVoluntarioStatusEnum.Ativo
-        ? `Tem certeza que deseja "ativar" este ministério do voluntário?`
-        : `Tem certeza que deseja "desativar" este ministério do voluntário?`,
-      [
-        {
-          text: 'Não',
-          style: 'destructive',
-        },
-        {
-          text: 'Sim',
-          onPress: async () => {
-            await updateVoluntarioMinisterio({
-              id: ministerioVoluntario.id!,
-              data: {
-                status,
-              },
-            });
-
-            loadData();
+  const handleChangeStatus = useCallback(
+    (ministerioVoluntario: ResponseMinisterioVoluntarioDto, status: MinisterioVoluntarioStatusEnum) => {
+      FancyAlert.alert(
+        'Exclusão de Ministério',
+        status === MinisterioVoluntarioStatusEnum.Ativo
+          ? `Tem certeza que deseja "ativar" este ministério do voluntário?`
+          : `Tem certeza que deseja "desativar" este ministério do voluntário?`,
+        [
+          {
+            text: 'Não',
+            style: 'destructive',
           },
-        },
-      ]
-    );
-  }, []);
+          {
+            text: 'Sim',
+            onPress: async () => {
+              await updateVoluntarioMinisterio({
+                id: ministerioVoluntario.id!,
+                data: {
+                  status,
+                },
+              });
+
+              loadData();
+            },
+          },
+        ],
+      );
+    },
+    [updateVoluntarioMinisterio, loadData],
+  );
 
   const handleAddMinisterio = useCallback(
     async (data: MinisterioAddFormData) => {
@@ -101,12 +112,11 @@ export default function VoluntariosDetailsPage() {
 
       loadData();
     },
-    [addVoluntarioMinisterio, parametros.id]
+    [addVoluntarioMinisterio, parametros.id],
   );
 
   const handleUpdateMinisterio = useCallback(
     async (data: MinisterioAddFormData) => {
-
       await updateVoluntarioMinisterio({
         id: data.ministerioVoluntarioId!,
         data: {
@@ -116,7 +126,7 @@ export default function VoluntariosDetailsPage() {
 
       loadData();
     },
-    [updateVoluntarioMinisterio, parametros.id]
+    [updateVoluntarioMinisterio, parametros.id],
   );
 
   const TAB_DATA: TabItem[] = useMemo(
@@ -134,32 +144,28 @@ export default function VoluntariosDetailsPage() {
             onAdd={handleAddMinisterio}
             onUpdate={handleUpdateMinisterio}
             ministerios={voluntarioData?.[0]?.ministerios}
-            onEnable={ministerioVoluntario => {
+            onEnable={(ministerioVoluntario) => {
               handleChangeStatus(ministerioVoluntario, MinisterioVoluntarioStatusEnum.Ativo);
             }}
-            onDisabled={ministerioVoluntario => {
+            onDisabled={(ministerioVoluntario) => {
               handleChangeStatus(ministerioVoluntario, MinisterioVoluntarioStatusEnum.Inativo);
             }}
           />
         ),
       },
     ],
-    [voluntarioData, handleChangeStatus]
+    [voluntarioData, handleAddMinisterio, handleUpdateMinisterio, handleChangeStatus],
   );
 
   if (isLoadingRemoveVoluntarioMinisterio || isLoadingVoluntarios) return <FancyLoading />;
 
   return (
     <FancyPageView style={styles.container}>
-      <FancyTabs
-        items={TAB_DATA}
-        containerStyle={{ flex: 1, paddingHorizontal: 20 }}
-        contentContainerStyle={{ flex: 1, borderWidth: 0 }}
-      />
+      <FancyTabs items={TAB_DATA} containerStyle={{ flex: 1, paddingHorizontal: 20 }} contentContainerStyle={{ flex: 1, borderWidth: 0 }} />
     </FancyPageView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { paddingVertical: 10,   },
+  container: { paddingVertical: 10 },
 });

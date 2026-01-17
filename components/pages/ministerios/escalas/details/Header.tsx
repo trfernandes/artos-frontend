@@ -8,8 +8,9 @@ import { FancyTextDisplay } from '../../../../fields/FancyTextDisplay';
 import DefaultIcons from '../../../../FancyIcons';
 import { router } from 'expo-router';
 import FancyChips from '../../../../FancyChips';
-import { EscalaModel, EscalaStatusEnum, EscalaStatusEnumLabel } from '../../../../../domain/models/Escala';
 import { EscalaStatusConfig } from '../../../../../app/(app)/(drawer)/ministerios/escalas';
+import { ResponseEscalaDto } from '../../../../../domain/dtos/Escala/escala.response';
+import { EscalaStatusEnumLabel, EscalaStatusEnum } from '../../../../../domain/enums/Escala/escala-status.enum';
 
 export default function Header({
   escala,
@@ -19,7 +20,7 @@ export default function Header({
   onGeneratePress,
   onDeletePress,
 }: {
-  escala: EscalaModel;
+  escala: ResponseEscalaDto;
   viewMode?: 'view' | 'edit';
   onPublishPress: () => void;
   onFinishPress: () => void;
@@ -39,7 +40,7 @@ export default function Header({
             <DefaultIcons.Custom {...DefaultIconsNames['chevron-left']} style={{ borderWidth: 0, borderColor: 'forestgreen' }} />
           </TouchableOpacity>
 
-          <FancyText type="bold" size="large">
+          <FancyText type='bold' size='large'>
             {escala.nome}
           </FancyText>
         </View>
@@ -51,7 +52,7 @@ export default function Header({
               size: 15,
               style: { width: 15, height: 15, lineHeight: 13 },
             }}
-            title="Período:"
+            title='Período:'
             value={`${format(new Date(escala.dataInicio), 'dd/MM/yyyy')} à ${format(new Date(escala.dataTermino), 'dd/MM/yyyy')}`}
           />
           <FancyTextDisplay
@@ -61,9 +62,9 @@ export default function Header({
               size: 15,
               style: { width: 15, height: 15, lineHeight: 13 },
             }}
-            title="Status:"
+            title='Status:'
             value={
-              <FancyChips {...EscalaStatusConfig[escala.status]} label={EscalaStatusEnumLabel[escala.status]} size="small" />
+              <FancyChips {...EscalaStatusConfig[escala.status]} label={EscalaStatusEnumLabel[escala.status]} size='small' />
             }
           />
           <FancyTextDisplay
@@ -73,7 +74,7 @@ export default function Header({
               size: 15,
               style: { width: 15, height: 15, lineHeight: 15 },
             }}
-            title="Criado em:"
+            title='Criado em:'
             value={format(new Date(escala.createdAt!), 'dd/MM/yyyy')}
           />
           <FancyTextDisplay
@@ -83,18 +84,18 @@ export default function Header({
               size: 15,
               style: { width: 15, height: 15, lineHeight: 13 },
             }}
-            title="Últ. Atualização:"
+            title='Últ. Atualização:'
             value={format(new Date(escala.updatedAt!), 'dd/MM/yyyy')}
           />
         </View>
         )
       </View>
       {!viewMode ||
-        viewMode === 'edit' && (
+        (viewMode === 'edit' && (
           <View style={{ flexDirection: 'row', gap: 6, justifyContent: 'flex-start', flexWrap: 'wrap' }}>
             {escala.status === EscalaStatusEnum.Gerada && (
               <FancyButton
-                label="Publicar"
+                label='Publicar'
                 icon={{ library: 'MaterialIcons', name: 'publish', size: 16 }}
                 onPress={onPublishPress}
                 containerStyle={{
@@ -107,7 +108,7 @@ export default function Header({
             )}
             {escala.status === EscalaStatusEnum.Publicada && (
               <FancyButton
-                label="Concluir"
+                label='Concluir'
                 icon={{
                   library: 'MaterialIcons',
                   name: 'check',
@@ -124,13 +125,13 @@ export default function Header({
               />
             )}
             <FancyButton
-              label="Gerar"
+              label='Gerar'
               icon={{ library: 'MaterialIcons', name: 'refresh', size: 16 }}
               onPress={onGeneratePress}
               containerStyle={{ minWidth: 100, height: 30, gap: 5, paddingRight: 12, paddingLeft: 10 }}
             />
             <FancyButton
-              label="Excluir"
+              label='Excluir'
               icon={{ ...DefaultIconsNames.delete, size: 14 }}
               onPress={onDeletePress}
               containerStyle={{
@@ -143,7 +144,7 @@ export default function Header({
               }}
             />
           </View>
-        )}
+        ))}
     </View>
   );
 }

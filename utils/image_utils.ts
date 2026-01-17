@@ -1,7 +1,7 @@
-import * as FileSystem from 'expo-file-system';
 import z from 'zod';
 import { Buffer } from 'buffer';
 import { ImageSourcePropType } from 'react-native';
+import { cloudinaryAvatarThumb, uploadToCloudinaryUnsigned } from '../services/cloudinary_upload';
 
 const DATA_URI_PREFIX_REGEX = /^data:[^;]+;base64,/i;
 const URL_LIKE_REGEX = /^(?:https?:|file:|content:|asset:)/i;
@@ -59,9 +59,9 @@ const buildDataUri = (base64: string, mimeType?: string) => {
 
 export const ImageUtils = {
   async uriToBase64(uri: string) {
-    return await FileSystem.readAsStringAsync(uri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
+//     return await FileSystem.readAsStringAsync(uri, {
+//       encoding: FileSystem.EncodingType.Base64,
+//     });
   },
   stringToBase64(base64: string, mimeType?: string) {
     const sanitized = base64?.trim();
@@ -94,7 +94,7 @@ export const ImageUtils = {
           }
         };
 
-        reader.onerror = error => {
+        reader.onerror = (error) => {
           reject(error);
         };
 
@@ -162,10 +162,7 @@ export const ImageUtils = {
 
     return undefined;
   },
-  normalizeImageSource(
-    source?: string | ImageSourcePropType,
-    options?: { mimeType?: string }
-  ): ImageSourcePropType | undefined {
+  normalizeImageSource(source?: string | ImageSourcePropType, options?: { mimeType?: string }): ImageSourcePropType | undefined {
     if (source === undefined || source === null) {
       return undefined;
     }
@@ -183,7 +180,7 @@ export const ImageUtils = {
 
     if (Array.isArray(source)) {
       const normalized = source
-        .map(item => ImageUtils.normalizeImageSource(item as any, { mimeType }))
+        .map((item) => ImageUtils.normalizeImageSource(item as any, { mimeType }))
         .filter((item): item is ImageSourcePropType => Boolean(item));
 
       return normalized.length > 0 ? (normalized as unknown as ImageSourcePropType) : undefined;
@@ -204,7 +201,7 @@ const base64Regex = /^(?:data:[^;]+;base64,)?(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+
 export const base64StringSchema = z
   .string()
   .trim()
-  .refine(value => {
+  .refine((value) => {
     if (!value) {
       return true;
     }
@@ -223,7 +220,7 @@ export const base64StringSchema = z
 
     return base64Regex.test(sanitizeBase64Body(value));
   }, 'O formato da imagem deve ser Base64.')
-  .transform(value => {
+  .transform((value) => {
     if (!value || isNullishString(value)) {
       return undefined;
     }
@@ -231,3 +228,16 @@ export const base64StringSchema = z
     return ImageUtils.rawToDataUri(value) ?? value;
   })
   .optional();
+
+export async function sendImageToServer(
+  folderName: string,
+  image: { uri: string; type: string; name: string },
+): Promise<{ imageUrl: string; imageThumbUrl: string }> {
+  const up = await uploadToCloudinaryUnsigned(image, {
+    cloudName: 'djwptbgbm',
+    uploadPreset: 'artos_voluntarios',
+    folder: `artos/${folderName}`,
+  });
+
+  return { imageUrl: up.secureUrl, imageThumbUrl: cloudinaryAvatarThumb(up.secureUrl, 200) };
+}

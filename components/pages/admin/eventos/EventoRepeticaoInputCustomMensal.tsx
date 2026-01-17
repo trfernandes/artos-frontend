@@ -1,18 +1,23 @@
 import { View, StyleSheet } from 'react-native';
 import { Pallete } from '../../../../constants/colors';
 import FancyAccordeon from '../../../FancyAccordeon';
-import FancyText from '../../../FancyText';
 import { Controller, useFormContext } from 'react-hook-form';
-import {
-  RecorrenciaDiaSemanaEnum,
-  RecorrenciaDiaSemanaEnumLabel,
-  RecorrenciaSemanaMesEnum,
-  RecorrenciaSemanaMesEnumLabel,
-} from '../../../../domain/models/Evento';
+
 import FancyListSelection from '../../../FancyListSelection';
 import FancyErrorText from '../../../forms/FancyErrorText';
 import { EventoRepeticaoSchemaData } from './EventoRepeticaoInputCustom';
-import FancyTextInput from '../../../fields/FancyTextInput';
+import {
+  RecorrenciaDiaSemanaEnum,
+  RecorrenciaDiaSemanaEnumLabel,
+  RecorrenciaDiaSemanaEnumOrder,
+} from '../../../../domain/enums/Evento/recorrencia-dia-semana.enum';
+import {
+  RecorrenciaSemanaMesEnum,
+  RecorrenciaSemanaMesEnumLabel,
+  RecorrenciaSemanaMesEnumOrder,
+} from '../../../../domain/enums/Evento/recorrencia-semana-mes.enum';
+import { FancyMonthsSlider } from '../../../FancyMonthsSlider';
+import FancyText from '../../../FancyText';
 
 export default function EventoRepeticaoInputCustomMensal() {
   const form = useFormContext<EventoRepeticaoSchemaData>();
@@ -21,7 +26,7 @@ export default function EventoRepeticaoInputCustomMensal() {
     <View style={{ gap: 10 }}>
       <Controller
         control={form.control}
-        name="recorrenciaACadaMeses"
+        name='recorrenciaACadaMeses'
         render={({ field: { value, onChange }, fieldState: { error } }) => (
           <View style={{ gap: 5 }}>
             <View
@@ -32,35 +37,24 @@ export default function EventoRepeticaoInputCustomMensal() {
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'space-between',
+                  paddingVertical: 15,
                 },
               ]}
             >
-              <FancyText type="semiBold" size={'small'}>
-                A Cada
-              </FancyText>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 0 }}>
-                <FancyTextInput
-                  value={value ? String(value) : ''}
-                  inputContainerStyle={{
-                    width: 60,
-                  }}
-                  inputProps={{
-                    textAlign: 'center',
-                    keyboardType: 'numeric',
-                    maxLength: 2,
-                    onChangeText: text => {
-                      const numericValue = parseInt(text, 10);
-                      if (!isNaN(numericValue)) {
-                        onChange(numericValue);
-                      }
-                    }
-                  }}
-                />
-
-                <FancyText type="mediumItalic" size={'extraSmall'} color={Pallete.fonts.inactive}>
-                  mês(es)
-                </FancyText>
-              </View>
+              <FancyMonthsSlider
+                title={
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                    <FancyText type='semiBold' style={{ opacity: 0.7 }}>
+                      A frequência será de:
+                    </FancyText>
+                    <FancyText numberOfLines={1} style={{ flex: 1 }} type='bold'>{`${value}${
+                      value === 1 ? ' mês' : ' meses'
+                    }`}</FancyText>
+                  </View>
+                }
+                onChange={onChange}
+                value={value}
+              />
             </View>
             {error && <FancyErrorText message={error.message!} />}
           </View>
@@ -69,10 +63,10 @@ export default function EventoRepeticaoInputCustomMensal() {
       <>
         <Controller
           control={form.control}
-          name="recorrenciaSemanasMes"
+          name='recorrenciaSemanasMes'
           render={({ field: { value, onChange }, fieldState: { error } }) => {
             const semanaMes = value || [];
-            const mesEnumKeys = Object.keys(RecorrenciaSemanaMesEnum).filter(item => isNaN(Number(item)));
+            const mesEnumKeys = Object.keys(RecorrenciaSemanaMesEnum).filter((item) => isNaN(Number(item)));
             let subtitle = '';
             if (semanaMes.length === 0) {
               subtitle = 'Nenhum';
@@ -80,32 +74,28 @@ export default function EventoRepeticaoInputCustomMensal() {
               subtitle = 'Todos';
             } else {
               subtitle = value
-                ?.sort((a, b) => a - b)
-                .map(item => RecorrenciaSemanaMesEnumLabel[item].abreviado)
+                ?.sort((a, b) => {
+                  const aIndex = RecorrenciaSemanaMesEnumOrder.indexOf(a);
+                  const bIndex = RecorrenciaSemanaMesEnumOrder.indexOf(b);
+                  return aIndex - bIndex;
+                })
+                .map((item) => RecorrenciaSemanaMesEnumLabel[item].abreviado)
                 .join(', ')!;
             }
             return (
               <View style={{ gap: 5 }}>
-                <FancyAccordeon
-                  title="Semanas do Mês"
-                  subtitle={subtitle}
-                  contentContainerStyle={{ paddingTop: 2 }}
-                >
+                <FancyAccordeon title='Semanas do Mês' subtitle={subtitle} contentContainerStyle={{ paddingTop: 2 }}>
                   <FancyListSelection
                     showDividers
                     items={mesEnumKeys.map((item, index) => ({
                       index: index,
                       label:
-                        RecorrenciaSemanaMesEnumLabel[
-                          RecorrenciaSemanaMesEnum[item as keyof typeof RecorrenciaSemanaMesEnum]
-                        ].extenso,
-                      checked: !!value?.includes(
-                        RecorrenciaSemanaMesEnum[item as keyof typeof RecorrenciaSemanaMesEnum]
-                      ),
+                        RecorrenciaSemanaMesEnumLabel[RecorrenciaSemanaMesEnum[item as keyof typeof RecorrenciaSemanaMesEnum]]
+                          .extenso,
+                      checked: !!value?.includes(RecorrenciaSemanaMesEnum[item as keyof typeof RecorrenciaSemanaMesEnum]),
                     }))}
-                    onPress={index => {
-                      const item =
-                        RecorrenciaSemanaMesEnum[mesEnumKeys[index] as keyof typeof RecorrenciaSemanaMesEnum];
+                    onPress={(index) => {
+                      const item = RecorrenciaSemanaMesEnum[mesEnumKeys[index] as keyof typeof RecorrenciaSemanaMesEnum];
                       if (value?.includes(item)) {
                         onChange(value.filter((i: any) => i !== item));
                       } else {
@@ -123,10 +113,10 @@ export default function EventoRepeticaoInputCustomMensal() {
       <>
         <Controller
           control={form.control}
-          name="recorrenciaSemanaDias"
+          name='recorrenciaSemanaDias'
           render={({ field: { value, onChange }, fieldState: { error } }) => {
             const semanaDias = value || [];
-            const semanaEnumKeys = Object.keys(RecorrenciaDiaSemanaEnum).filter(item => isNaN(Number(item)));
+            const semanaEnumKeys = Object.keys(RecorrenciaDiaSemanaEnum).filter((item) => isNaN(Number(item)));
             let subtitle = '';
             if (semanaDias.length === 0) {
               subtitle = 'Nenhum';
@@ -134,30 +124,28 @@ export default function EventoRepeticaoInputCustomMensal() {
               subtitle = 'Todos';
             } else {
               subtitle = value
-                ?.sort((a, b) => a - b)
-                .map(item => RecorrenciaDiaSemanaEnumLabel[item].abreviado)
+                ?.sort((a, b) => {
+                  const aIndex = RecorrenciaDiaSemanaEnumOrder.indexOf(a);
+                  const bIndex = RecorrenciaDiaSemanaEnumOrder.indexOf(b);
+                  return aIndex - bIndex;
+                })
+                .map((item) => RecorrenciaDiaSemanaEnumLabel[item].abreviado)
                 .join(', ')!;
             }
             return (
               <View style={{ gap: 5 }}>
-                <FancyAccordeon title="Dias da Semana" subtitle={subtitle} isExpanded={true}>
+                <FancyAccordeon title='Dias da Semana' subtitle={subtitle} isExpanded={true}>
                   <FancyListSelection
                     showDividers
                     items={semanaEnumKeys.map((item, index) => ({
                       index: index,
                       label:
-                        RecorrenciaDiaSemanaEnumLabel[
-                          RecorrenciaDiaSemanaEnum[item as keyof typeof RecorrenciaDiaSemanaEnum]
-                        ].extenso,
-                      checked: !!value?.includes(
-                        RecorrenciaDiaSemanaEnum[item as keyof typeof RecorrenciaDiaSemanaEnum]
-                      ),
+                        RecorrenciaDiaSemanaEnumLabel[RecorrenciaDiaSemanaEnum[item as keyof typeof RecorrenciaDiaSemanaEnum]]
+                          .extenso,
+                      checked: !!value?.includes(RecorrenciaDiaSemanaEnum[item as keyof typeof RecorrenciaDiaSemanaEnum]),
                     }))}
-                    onPress={index => {
-                      const item =
-                        RecorrenciaDiaSemanaEnum[
-                          semanaEnumKeys[index] as keyof typeof RecorrenciaDiaSemanaEnum
-                        ];
+                    onPress={(index) => {
+                      const item = RecorrenciaDiaSemanaEnum[semanaEnumKeys[index] as keyof typeof RecorrenciaDiaSemanaEnum];
                       if (value?.includes(item)) {
                         onChange(value.filter((i: any) => i !== item));
                       } else {

@@ -13,7 +13,7 @@ const schema = z
     novaSenha: z.string().min(6, 'A nova senha deve ter pelo menos 6 caracteres'),
     confirmarSenha: z.string(),
   })
-  .refine(data => data.novaSenha === data.confirmarSenha, {
+  .refine((data) => data.novaSenha === data.confirmarSenha, {
     message: 'As senhas não conferem',
     path: ['confirmarSenha'],
   });
@@ -31,7 +31,7 @@ export default function ChangePasswordModal(props: FancyModalDialogProps<any>) {
     mode: 'onChange', // 👈 importante para validar em tempo real
   });
 
-  const handleConfirm = handleSubmit(async data => {
+  const handleConfirm = handleSubmit(async (data) => {
     try {
       const ok = await changePassword(data.senhaAtual, data.novaSenha);
       if (ok) {
@@ -57,16 +57,16 @@ export default function ChangePasswordModal(props: FancyModalDialogProps<any>) {
     <FancyModalDialog
       {...props}
       centerContainerStyle={{ gap: 15 }}
-      title="Alterar Senha"
+      title='Alterar Senha'
       onButton2Press={handleConfirm}
       button2={{
         disabled: !isValid || isSubmitting, // 👈 botão só habilita quando válido
         label: isSubmitting ? 'Alterando...' : 'Confirmar',
       }}
     >
-      <ControlledPasswordInput control={control} name="senhaAtual" label="Senha Atual" />
-      <ControlledPasswordInput control={control} name="novaSenha" label="Nova Senha" />
-      <ControlledPasswordInput control={control} name="confirmarSenha" label="Confirmar Nova Senha" />
+      <ControlledPasswordInput control={control} name='senhaAtual' label='Senha Atual' />
+      <ControlledPasswordInput control={control} name='novaSenha' label='Nova Senha' />
+      <ControlledPasswordInput control={control} name='confirmarSenha' label='Confirmar Nova Senha' />
     </FancyModalDialog>
   );
 }

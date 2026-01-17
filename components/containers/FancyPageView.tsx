@@ -8,7 +8,7 @@ interface FancyPageViewProps {
 
 export default function FancyPageView(props: FancyPageViewProps & ViewProps) {
   return (
-    <View {...props} style={[styles.container, props.style]} >
+    <View {...props} style={[styles.container, props.style]}>
       {props.children}
     </View>
   );

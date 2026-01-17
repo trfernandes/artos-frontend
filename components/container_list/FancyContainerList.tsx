@@ -7,6 +7,7 @@ import FancyButton from '../buttons/FancyButton';
 import FancyList, { FancyListProps } from '../list/FancyList';
 import FancySeparator from '../FancySeparator';
 import FancyListEmpty from '../list/FancyListEmpty';
+import FancyContainer from '../FancyContainer';
 
 export interface FancyContainerListProps<ItemT>
   extends Pick<FancyListProps<ItemT>, 'data' | 'renderItem' | 'containerStyle' | 'contentContainerStyle' | 'keyExtractor'> {
@@ -34,12 +35,12 @@ export default function FancyContainerList<ItemT>({
   const hasItems = items.length > 0;
 
   return (
-    <View
-      style={[styles.container, containerStyle, disabled ? { opacity: 0.6, pointerEvents: 'none' } : { pointerEvents: 'auto' }]}
+    <FancyContainer
+      containerStyle={[styles.container, containerStyle, disabled ? { opacity: 0.6, pointerEvents: 'none' } : { pointerEvents: 'auto' }]}
     >
       <View style={styles.headerContainer}>
         <View style={styles.headerTitleContainer}>
-          <FancyText size={'medium'} type="bold" style={[styles.headerTitle, { opacity: 0.6 }]}>
+          <FancyText size={'medium'} type='bold' style={[styles.headerTitle, { opacity: 0.6 }]}>
             {title}
           </FancyText>
         </View>
@@ -49,8 +50,8 @@ export default function FancyContainerList<ItemT>({
             {buttons.map((button, index) => (
               <FancyButton
                 key={index}
-                mode="icon"
-                type="contained"
+                mode='icon'
+                type='contained'
                 icon={{ ...button.icon, color: Pallete.icons.light }}
                 onPress={button.onPress}
                 containerStyle={{ minHeight: 25, height: 25, minWidth: 25, width: 25 }}
@@ -60,7 +61,7 @@ export default function FancyContainerList<ItemT>({
           </View>
         )}
       </View>
-      <FancySeparator style={{ marginVertical: 0 }} />
+      <FancySeparator />
       <View style={[styles.contentContainer, contentContainerStyle]}>
         {virtualized ? (
           <FancyList<ItemT>
@@ -86,7 +87,7 @@ export default function FancyContainerList<ItemT>({
           <FancyListEmpty />
         )}
       </View>
-    </View>
+    </FancyContainer>
   );
 }
 

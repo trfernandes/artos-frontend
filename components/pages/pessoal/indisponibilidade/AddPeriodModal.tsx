@@ -8,20 +8,21 @@ import ControlledTextArea from '../../../forms/ControlledTextArea';
 import ControlledDateInput from '../../../forms/ControlledDateInput';
 import { differenceInDays } from 'date-fns';
 import { FancyAlert } from '../../../modal/FancyAlert';
+import FancyText from '../../../FancyText';
 
 const schema = z
   .object({
     dataInicio: z
       .date()
       .nullable()
-      .refine(d => !!d, { message: 'Data inicial obrigatória' }),
+      .refine((d) => !!d, { message: 'Data inicial obrigatória' }),
     dataTermino: z
       .date()
       .nullable()
-      .refine(d => !!d, { message: 'Data final obrigatória' }),
+      .refine((d) => !!d, { message: 'Data final obrigatória' }),
     motivo: z.string().min(3, 'Informe pelo menos 3 caracteres').max(500, 'Máximo de 500 caracteres'),
   })
-  .refine(data => data.dataInicio && data.dataTermino && data.dataTermino >= data.dataInicio, {
+  .refine((data) => data.dataInicio && data.dataTermino && data.dataTermino >= data.dataInicio, {
     path: ['dataTermino'],
     message: 'Data final deve ser maior ou igual à inicial',
   });
@@ -33,7 +34,7 @@ export type AddPeriodoModalProps = {
 };
 
 export default function AddPeriodoModal({ visible, modalProps, onConfirm }: AddPeriodoModalProps) {
-  const { control, handleSubmit, setValue } = useForm({
+  const { control, handleSubmit, setValue, trigger } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
       dataInicio: new Date(),
@@ -60,25 +61,50 @@ export default function AddPeriodoModal({ visible, modalProps, onConfirm }: AddP
   return (
     <FancyModalDialog
       {...modalProps}
-      title="Adicionar Período de Indisponibilidade"
+      title='Adicionar Período de Indisponibilidade'
       button1={{ label: 'Cancelar' }}
       button2={{
         label: 'Salvar',
-        onPress: () => {
+        onPress: async () => {
           if (differenceInDays(dataTermino || new Date(), dataInicio || new Date()) > 31) {
             FancyAlert.alert('Erro', 'O período não pode ser maior que 31 dias.');
             return;
           }
 
-          handleSubmit(submit)();
+          const valid = await trigger();
+
+          if (!valid) return;
+
+          FancyAlert.alert(
+            'Confirmação',
+            <View style={{ paddingBottom: 20, gap: 15 }}>
+              <FancyText type='medium' size='medium'>
+                Deseja realmente adicionar este período de indisponibilidade?
+              </FancyText>
+              <FancyText type='bold' size='small'>
+                Atenção! Se houver alguma data já indisponível ela será sobreescrevida!
+              </FancyText>
+            </View>,
+            [
+              {
+                text: 'Não',
+                style: 'destructive',
+              },
+              {
+                text: 'Sim, estou ciente',
+
+                onPress: () => handleSubmit(submit)(),
+              },
+            ],
+          );
         },
       }}
     >
       <View style={{ gap: 16 }}>
         <ControlledDateInput
           control={control}
-          name="dataInicio"
-          label="Data Início"
+          name='dataInicio'
+          label='Data Início'
           calendarProps={{
             dayViewProps: {
               disablePastDates: true,
@@ -88,8 +114,8 @@ export default function AddPeriodoModal({ visible, modalProps, onConfirm }: AddP
         />
         <ControlledDateInput
           control={control}
-          name="dataTermino"
-          label="Data Fim"
+          name='dataTermino'
+          label='Data Fim'
           calendarProps={{
             dayViewProps: {
               disablePastDates: true,
@@ -97,7 +123,7 @@ export default function AddPeriodoModal({ visible, modalProps, onConfirm }: AddP
             },
           }}
         />
-        <ControlledTextArea control={control} name="motivo" label="Motivo" />
+        <ControlledTextArea control={control} name='motivo' label='Motivo' />
       </View>
     </FancyModalDialog>
   );

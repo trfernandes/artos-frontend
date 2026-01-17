@@ -7,14 +7,17 @@ export default function AuthLayout() {
   if (loading) return null;
 
   if (user) {
-    return <Redirect href="/(app)" />;
+    return <Redirect href='/(app)' />;
   }
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="login" />
-      <Stack.Screen name="forgot-password" />
-      <Stack.Screen name="create-account" />
+      <Stack.Screen name='login' />
+      <Stack.Screen name='forgot-password' />
+      <Stack.Screen name='create-account' />
+      <Stack.Screen name='create-igreja-account' />
+      <Stack.Screen name='igreja-cadastro-aguardando-email' />
+      <Stack.Screen name='create-voluntario-account' />
     </Stack>
   );
 }

@@ -7,9 +7,9 @@ import FancyButton from '../../components/buttons/FancyButton';
 import { BOLD_FONT, EXTRA_SMALL_SIZE_FONT } from '../../constants/font';
 import FancyTabs, { TabItem } from '../../components/tabs/FancyTabs';
 import { useNotificacoesCrud } from '../../hooks/useNotificacoesCrud';
-import { NotificacaoModel } from '../../domain/models/Notificacao';
 import NotificationsList from '../../components/pages/notifications/NotificationsList';
 import FancyLoading from '../../components/FancyLoading';
+import { ResponseNotificacaoDto } from '../../domain/dtos/Notificacao/notificacao.response';
 
 export default function NotificationsPage() {
   const { setOptions } = useNavigation();
@@ -20,11 +20,16 @@ export default function NotificationsPage() {
     setOptions({
       headerRight: () => (
         <FancyButton
-          label="Marcar todas como lidas"
+          label='Marcar todas como lidas'
           containerStyle={{ gap: 5, paddingRight: 8, marginTop: 8 }}
-          labelStyle={{ fontSize: EXTRA_SMALL_SIZE_FONT, fontFamily: BOLD_FONT, color: Pallete.fonts.dark, opacity: 0.8 }}
-          type="text"
-          iconPosition="left"
+          labelStyle={{
+            fontSize: EXTRA_SMALL_SIZE_FONT,
+            fontFamily: BOLD_FONT,
+            color: Pallete.fonts.dark,
+            opacity: 0.8,
+          }}
+          type='text'
+          iconPosition='left'
           icon={{
             library: 'MaterialIcons',
             name: 'checklist-rtl',
@@ -38,17 +43,20 @@ export default function NotificationsPage() {
     });
   }, []);
 
-  const [notificacoesData, setNotificacoesData] = useState<NotificacaoModel[]>([]);
+  const [notificacoesData, setNotificacoesData] = useState<ResponseNotificacaoDto[]>([]);
 
   useEffect(() => {
     setNotificacoesData(notificacoes);
   }, [notificacoes]);
 
   const todasNotificacoesData = useMemo(() => notificacoesData, [notificacoesData]);
-  const naoLidasData = useMemo(() => notificacoesData?.filter(n => !n.lidaEm || n.lidaEm === null) ?? [], [notificacoesData]);
+  const naoLidasData = useMemo(() => notificacoesData?.filter((n) => !n.lidaEm || n.lidaEm === null) ?? [], [notificacoesData]);
 
   const TAB_ITEMS: TabItem[] = [
-    { title: 'Não lidas', content: <NotificationsList dataList={naoLidasData} /> },
+    {
+      title: 'Não lidas',
+      content: <NotificationsList dataList={naoLidasData} />,
+    },
     {
       title: 'Todas',
       content: (
@@ -60,11 +68,16 @@ export default function NotificationsPage() {
   ];
 
   if (isLoading) return <FancyLoading />;
-  if (isLoadingMutation) return <FancyLoading label="Processando..." />;
+  if (isLoadingMutation) return <FancyLoading label='Processando...' />;
 
   return (
     <FancyPageView style={styles.container}>
-      <FancyTabs items={TAB_ITEMS} containerStyle={{ marginTop: 5, paddingHorizontal: 20, flex: 1 }} contentContainerStyle={{ flex: 1 }} />
+      <FancyTabs
+        items={TAB_ITEMS}
+        containerStyle={{ marginTop: 5, flex: 1 }}
+        headerStyle={{ paddingHorizontal: 15 }}
+        contentContainerStyle={{ flex: 1 }}
+      />
     </FancyPageView>
   );
 }

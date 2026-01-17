@@ -1,5 +1,3 @@
-import { Pallete } from '../../../../constants/colors';
-import { DefaultIconsNames } from '../../../../constants/icons';
 import FancyFab from '../../../buttons/FancyFab';
 import FancyVerticalContainerCard from '../../../cards/Vertical/FancyVerticalContainerCard';
 import FancyDropDown from '../../../fields/FancyDropDown';
@@ -45,42 +43,51 @@ export const PEOPLE_DATA: Integrante[] = [
   { nome: 'Baterista', funcao: 'Ausente', type: 'vazio' },
 ];
 
-export default function EventosEscalaEquipe(props: Omit<FancyModalDialogProps, 'title'>) {
+export default function EventosEscalaEquipe(props: Omit<FancyModalDialogProps<any>, 'title'>) {
   const [data, setData] = useState<Integrante[]>(PEOPLE_DATA);
 
-  const [modalFormIntegrante, setModalFormIntegrante] = useState<{ visible: boolean; integrante?: Integrante }>({ visible: false });
+  const [modalFormIntegrante, setModalFormIntegrante] = useState<{
+    visible: boolean;
+    integrante?: Integrante;
+  }>({ visible: false });
 
   return (
     <FancyFullModal {...props}>
       <FancyVerticalContainerCard
-        topElementType="letter"
-        data={data.map(item => ({
+        topElementType='letter'
+        data={data.map((item) => ({
           title: item.nome,
           subtitle: item.funcao || '',
           letter: item.type === 'vazio' ? '' : item.nome[0],
         }))}
-        itemProps={{
-          topRightIcon: { customIcon: { ...DefaultIconsNames.add, color: Pallete.icons.inactive } },
-        }}
+
+        // itemProps={{
+        //     topRightIcon: {
+        //         customIcon: {
+        //             ...DefaultIconsNames.add,
+        //             color: Pallete.icons.inactive,
+        //         },
+        //     },
+        // }}
       />
       <FancyFab onPress={() => setModalFormIntegrante({ visible: true })} />
       {modalFormIntegrante && (
         <FancyModalDialog
-          title="Adicionar Voluntário"
+          title='Adicionar Voluntário'
           centerContainerStyle={{ gap: 15 }}
           modalProps={modalFormIntegrante}
           onButton1Press={() => setModalFormIntegrante({ visible: false })}
           onButton2Press={() => setModalFormIntegrante({ visible: false })}
         >
           <FancyDropDown
-            label="Disponibilidade"
+            label='Disponibilidade'
             listItems={[
               { title: 'Somente Disponíveis', value: '1' },
               { title: 'Todos', value: '2' },
             ]}
           />
-          <FancyDropDown label="Função Específica" />
-          <FancyDropDown label="Voluntário" />
+          <FancyDropDown label='Função Específica' listItems={[]} />
+          <FancyDropDown label='Voluntário' listItems={[]} />
         </FancyModalDialog>
       )}
     </FancyFullModal>

@@ -31,16 +31,9 @@ export default function FancyTabs(props: FancyTabsProps) {
   return (
     <View style={[styles.container, props.containerStyle]}>
       <View style={styles.headerContainer}>
-        <FancyTabsHeader
-          titles={props.items}
-          index={index}
-          onChangeTab={handleTabChange}
-          headerStyle={props.headerStyle}
-        />
+        <FancyTabsHeader titles={props.items} index={index} onChangeTab={handleTabChange} headerStyle={props.headerStyle} />
       </View>
-      <View style={[styles.contentContainer, props.contentContainerStyle]}>
-        {props.items?.[index].content}
-      </View>
+      <View style={[styles.contentContainer, props.contentContainerStyle]}>{props.items?.[index].content}</View>
     </View>
   );
 }

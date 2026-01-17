@@ -7,19 +7,11 @@ export type FancyTextAreaProps = { containerStyle?: StyleProp<ViewStyle> } & Omi
 >;
 
 export default function FancyTextArea({ containerStyle, inputProps, ...rest }: FancyTextAreaProps) {
-  const containerStyleArray = containerStyle
-    ? Array.isArray(containerStyle)
-      ? containerStyle
-      : [containerStyle]
-    : [];
+  const containerStyleArray = containerStyle ? (Array.isArray(containerStyle) ? containerStyle : [containerStyle]) : [];
 
   const { style: inputStyle, numberOfLines, ...remainingInputProps } = inputProps ?? {};
 
-  const normalizedInputStyle = inputStyle
-    ? Array.isArray(inputStyle)
-      ? inputStyle
-      : [inputStyle]
-    : [];
+  const normalizedInputStyle = inputStyle ? (Array.isArray(inputStyle) ? inputStyle : [inputStyle]) : [];
 
   return (
     <FancyTextInput

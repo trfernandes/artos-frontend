@@ -13,10 +13,10 @@ export default function DadosTab() {
         }}
         style={{ borderRadius: 100, alignSelf: 'center', marginVertical: 10 }}
       />
-      <FancyTextInput label="Nome" disabled />
-      <FancyTextInput label="E-mail" disabled />
-      <FancyTextInput label="Data de Nascimento" disabled />
-      <FancyTextInput label="Endereço" disabled />
+      <FancyTextInput label='Nome' disabled />
+      <FancyTextInput label='E-mail' disabled />
+      <FancyTextInput label='Data de Nascimento' disabled />
+      <FancyTextInput label='Endereço' disabled />
     </View>
   );
 }

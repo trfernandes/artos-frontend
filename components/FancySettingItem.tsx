@@ -3,14 +3,15 @@ import { Pallete } from '../constants/colors';
 import DefaultIcons, { CustomIconProps } from './FancyIcons';
 import FancyText from './FancyText';
 import FancyPopup from './popup/FancyPopup';
+import FancyContainer from './FancyContainer';
 
-export type SettingItemProps = {
+export type FancySettingItemProps = {
   label: string;
   icon?: CustomIconProps;
   children?: React.ReactNode;
   value?: string;
   rightComponent?: React.ReactNode;
-  options: { label: string; onPress?: () => void }[];
+  options?: { label: string; onPress?: () => void }[];
   disabled?: boolean;
   containerStyle?: StyleProp<ViewStyle>;
 };
@@ -24,17 +25,17 @@ export default function FancySettingItem({
   rightComponent,
   disabled = false,
   containerStyle,
-}: SettingItemProps) {
+}: FancySettingItemProps) {
   return (
-    <View style={[styles.container, disabled && styles.containerDisabled, containerStyle]}>
+    <FancyContainer containerStyle={[styles.container, disabled && styles.containerDisabled, containerStyle]}>
       <View style={styles.header}>
         <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-          {icon && <DefaultIcons.Custom size={16} color={Pallete.fonts.inactive} {...icon} />}
+          {icon && <DefaultIcons.Custom size={16} color={Pallete.fonts.inactive} {...icon} style={{ borderWidth: 0 }} />}
           <FancyText
             size={'small'}
-            type="semiBold"
-            color={disabled ? Pallete.fonts.inactive2 : Pallete.fonts.inactive}
-            style={{ lineHeight: 18, borderWidth: 0 }}
+            type='bold'
+            color={disabled ? Pallete.fonts.inactive2 : Pallete.fonts.dark}
+            style={{ lineHeight: 18, borderWidth: 0, opacity: 0.9 }}
           >
             {label}
           </FancyText>
@@ -43,24 +44,26 @@ export default function FancySettingItem({
           <FancyPopup
             disabled={disabled}
             items={options}
+            showSeparator={true}
             triggerComponent={
               <View
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: 5,
-                  paddingVertical: 5,
+                  //   paddingVertical: 5,
                   paddingHorizontal: 10,
                   paddingRight: 0,
+                  //   borderWidth: 1,
                   borderRadius: 10,
                 }}
               >
-                <FancyText size="small" type="medium" color={Pallete.fonts.inactive}>
+                <FancyText size='small' type='medium' color={Pallete.fonts.inactive}>
                   {value}
                 </FancyText>
                 <DefaultIcons.Custom
-                  library="MaterialCommunityIcons"
-                  name="unfold-more-horizontal"
+                  library='MaterialCommunityIcons'
+                  name='unfold-more-horizontal'
                   color={Pallete.icons.inactive}
                   size={22}
                   style={{ borderWidth: 0, width: 19 }}
@@ -71,7 +74,7 @@ export default function FancySettingItem({
         )}
       </View>
       {children}
-    </View>
+    </FancyContainer>
   );
 }
 

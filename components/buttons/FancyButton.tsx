@@ -1,4 +1,13 @@
-import { GestureResponderEvent, StyleProp, StyleSheet, TextStyle, TouchableOpacity, ViewStyle } from 'react-native';
+import {
+  AccessibilityRole,
+  AccessibilityState,
+  GestureResponderEvent,
+  StyleProp,
+  StyleSheet,
+  TextStyle,
+  TouchableOpacity,
+  ViewStyle,
+} from 'react-native';
 import FancyText, { FancyTextProps } from '../FancyText';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import { containedParameters, outlinedParameters, textParameters, lightParameters } from './FancyButtonStyles';
@@ -20,6 +29,10 @@ export type FancyButtonProps = {
   iconStyle?: StyleProp<TextStyle>;
   textProps?: FancyTextProps;
   size?: FancyButtonSize;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
+  accessibilityRole?: AccessibilityRole;
+  accessibilityState?: AccessibilityState;
 };
 
 const resolveSize = (size?: FancyButtonSize, fallback = 40) => {
@@ -44,7 +57,13 @@ export default function FancyButton({
   const minWidth = resolveMinWidth(props.size);
 
   const parameters =
-    type === 'contained' ? containedParameters : type === 'outlined' ? outlinedParameters : type === 'text' ? textParameters : lightParameters;
+    type === 'contained'
+      ? containedParameters
+      : type === 'outlined'
+        ? outlinedParameters
+        : type === 'text'
+          ? textParameters
+          : lightParameters;
 
   const {
     style: labelPropsStyle,
@@ -60,10 +79,15 @@ export default function FancyButton({
   const minimumFontScale = providedMinimumFontScale ?? 0.85;
 
   const dimensionStyle = mode === 'icon' ? { width: minWidth, height } : { minWidth, height };
+  const accessibilityState = { disabled, ...props.accessibilityState };
 
   return (
     <TouchableOpacity
       disabled={disabled}
+      accessibilityLabel={props.accessibilityLabel}
+      accessibilityHint={props.accessibilityHint}
+      accessibilityRole={props.accessibilityRole}
+      accessibilityState={accessibilityState}
       style={[
         baseStyles.container,
         iconPosition === 'left' ? { flexDirection: 'row' } : { flexDirection: 'row-reverse' },
@@ -101,7 +125,12 @@ export default function FancyButton({
           numberOfLines={numberOfLines}
           // adjustsFontSizeToFit={adjustsFontSizeToFit}
           minimumFontScale={minimumFontScale}
-          style={[{ textAlign: 'center' }, disabled ? parameters.disabledTextStyle : parameters.textStyle, props.labelStyle, labelPropsStyle]}
+          style={[
+            { textAlign: 'center' },
+            disabled ? parameters.disabledTextStyle : parameters.textStyle,
+            props.labelStyle,
+            labelPropsStyle,
+          ]}
           {...textProps}
         >
           {props.label}
@@ -113,7 +142,7 @@ export default function FancyButton({
 
 const baseStyles = StyleSheet.create({
   container: {
-    borderRadius: 50,
+    borderRadius: 50,        
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,

@@ -1,58 +1,14 @@
-import { EscalaApiModel } from '../models/Escala';
-import { EscalaTemplateExperienciaEnum, EscalaTemplateTipoEnum } from '../models/EscalaTemplate';
+import { CreateEscalaDto } from '../dtos/Escala/escala.create';
+import { ResponseEscalaDto } from '../dtos/Escala/escala.response';
 import apiClient from './api-client';
 import { BaseApi } from './BaseApi';
 
-export type GerarEscalaTemplateFuncaoDto = {
-  id: string;
-  quantidade: number;
-  experienciaMinima: EscalaTemplateExperienciaEnum;
-};
-
-export type GerarEscalaTemplateFixoDto = {
-  voluntarioId: string;
-  funcaoId: string;
-};
-
-export type GerarEscalaEventoEquipePersonalizadaDto = {
-  origem: 'personalizada';
-  tipo: EscalaTemplateTipoEnum;
-  funcoes?: GerarEscalaTemplateFuncaoDto[];
-  fixos?: GerarEscalaTemplateFixoDto[];
-};
-
-export type GerarEscalaEventoEquipePorTemplateDto = {
-  origem: 'porTemplate';
-  templateId?: string;
-};
-
-export type GerarEscalaEventoDto = {
-  id: string;
-  data: string;
-  equipe: GerarEscalaEventoEquipePorTemplateDto | GerarEscalaEventoEquipePersonalizadaDto;
-};
-
-export type GerarEscalaParticipanteDto = {
-  voluntarioId: string;
-  minVolId: string;
-};
-
-export type GerarEscalaDto = {
-  ministerioId: string;
-  nome: string;
-  dataInicio: string;
-  dataTermino: string;
-  eventos?: GerarEscalaEventoDto[];
-  participantes?: GerarEscalaParticipanteDto[];
-  criadoPor: string;
-};
-
-class EscalasApiClass extends BaseApi<EscalaApiModel> {
+class EscalasApiClass extends BaseApi<ResponseEscalaDto, CreateEscalaDto, Partial<CreateEscalaDto>> {
   constructor() {
     super('escalas');
   }
 
-  async generate(data: GerarEscalaDto): Promise<EscalaApiModel> {
+  async generate(data: CreateEscalaDto): Promise<ResponseEscalaDto> {
     try {
       const response = await apiClient.post(`/${this.resourceName}/gerar`, data);
       return response.data.data;

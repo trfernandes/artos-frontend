@@ -36,23 +36,23 @@ export default function MinisterioSolicitacoesIndex() {
         data: DATA,
         renderItem: ({ item }) => (
           <FancyCard.Image
-            type="icon"
+            type='icon'
             props={{
               title: (
                 <View style={{ gap: 3, paddingBottom: 5 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                    <FancyText size={'small'} type="medium">
+                    <FancyText size={'small'} type='medium'>
                       De:
                     </FancyText>
-                    <FancyText size={'small'} type="semiBold">
+                    <FancyText size={'small'} type='semiBold'>
                       {item.solicitante}
                     </FancyText>
                   </View>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                    <FancyText size={'small'} type="medium">
+                    <FancyText size={'small'} type='medium'>
                       Para:
                     </FancyText>
-                    <FancyText size={'small'} type="semiBold">
+                    <FancyText size={'small'} type='semiBold'>
                       {item.substituo}
                     </FancyText>
                   </View>

@@ -5,7 +5,7 @@ import FancySeparator from '../../../../FancySeparator';
 import DefaultIcons, { CustomIconProps } from '../../../../FancyIcons';
 import { Pallete } from '../../../../../constants/colors';
 import FancyImage from '../../../../images/FancyImage';
-import { EscalaItemModel } from '../../../../../domain/models/EscalaItem';
+import { ResponseEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.response';
 
 export interface EventoInfoTabProps {
   ministerioNome: string;
@@ -14,7 +14,7 @@ export interface EventoInfoTabProps {
   eventoDescricao?: string;
   dataOcorrencia: Date;
   local: string;
-  funcoes: EscalaItemModel[];
+  funcoes: ResponseEscalaItemDto[];
 }
 
 export default function EventoInfoTab({
@@ -30,36 +30,36 @@ export default function EventoInfoTab({
     <View style={styles.container}>
       <View style={styles.title}>
         {ministerioLogo && <FancyImage source={{ uri: ministerioLogo }} size={80} />}
-        <FancyText size="large" type="bold" color={Pallete.fonts.inactive}>
+        <FancyText size='large' type='bold' color={Pallete.fonts.inactive}>
           {ministerioNome}
         </FancyText>
       </View>
       <View style={styles.lines}>
         <FancyValueLineDisplay
           icon={{ library: 'MaterialCommunityIcons', name: 'format-text', size: 14, color: Pallete.icons.inactive }}
-          title="Nome"
+          title='Nome'
           value={eventoNome}
         />
-        {eventoDescricao && <FancyValueLineDisplay title="Descrição" value={eventoDescricao} />}
+        {eventoDescricao && <FancyValueLineDisplay title='Descrição' value={eventoDescricao} />}
         <FancyValueLineDisplay
           icon={{ library: 'MaterialCommunityIcons', name: 'calendar-today', size: 14, color: Pallete.icons.inactive }}
-          title="Data/Hora"
+          title='Data/Hora'
           value={dataOcorrencia ? format(dataOcorrencia, 'dd/MM/yyyy HH:mm') : '(Vazio)'}
           showBottomLine={true}
         />
         <FancyValueLineDisplay
           icon={{ library: 'MaterialCommunityIcons', name: 'map-marker', size: 14, color: Pallete.icons.inactive }}
-          title="Local"
+          title='Local'
           value={local || '(Nenhum)'}
           showBottomLine={true}
         />
         <FancyValueLineDisplay
           icon={{ library: 'MaterialCommunityIcons', name: 'tools', size: 13, color: Pallete.icons.inactive }}
-          title="Função"
+          title='Função'
           value={
             funcoes
-              .map(f => f.funcao.nome)
-              .sort((a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }))
+              .map((f) => f.funcao?.nome)
+              .sort((a, b) => (a && b ? a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }) : 0))
               .join(', ') || '(Vazio)'
           }
           showBottomLine={false}
@@ -85,11 +85,11 @@ function FancyValueLineDisplay({
       <View style={styles.displayContainer}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           {icon && <DefaultIcons.Custom {...icon} style={{ borderWidth: 0 }} color={Pallete.icons.inactive2} />}
-          <FancyText size="small" type="bold" style={{ opacity: 0.8 }}>
+          <FancyText size='small' type='bold' style={{ opacity: 0.8 }}>
             {title}
           </FancyText>
         </View>
-        <FancyText size="small" type="mediumItalic">
+        <FancyText size='small' type='mediumItalic'>
           {value}
         </FancyText>
       </View>

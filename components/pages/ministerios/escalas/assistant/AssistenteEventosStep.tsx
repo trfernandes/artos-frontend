@@ -1,11 +1,11 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import {
-  EscalaEventoFormData,
-  EscalaEventoTemplateFixoFormData,
-  EscalaEventoTemplateFormData,
-  EscalaEventoTemplateFuncaoFormData,
-  EscalaFormData,
+    EscalaEventoFormData,
+    EscalaEventoTemplateFixoFormData,
+    EscalaEventoTemplateFormData,
+    EscalaEventoTemplateFuncaoFormData,
+    EscalaFormData,
 } from '../../../../../domain/schemas/escalaSchema';
 import FancyList from '../../../../list/FancyList';
 import { FancyCard } from '../../../../cards/Horizontal/FancyCard';
@@ -16,10 +16,11 @@ import { Pallete } from '../../../../../constants/colors';
 import EventoFormModal from './EventoFormModal';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import FancyText from '../../../../FancyText';
-import { EscalaTemplateTipoEnum } from '../../../../../domain/models/EscalaTemplate';
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import { useAssistenteEscala } from '../../../../../contexts/pages/escalas/AssistantContext';
 import DefaultIcons from '../../../../FancyIcons';
+import { EscalaTemplateTipoEnum } from '../../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
+import { DateUtilsApi } from '../../../../../utils/date_utils';
 
 export default function AssistenteEventosStep() {
   const { ministerioId, isShouldLoadEvents, setShouldLoadEvents } = useAssistenteEscala();
@@ -34,7 +35,7 @@ export default function AssistenteEventosStep() {
     keyName: 'rhfKey',
   });
 
-  const { buscarPorIntervalo, isLoading } = useEventosCrud({ autoFetch: false });
+  const { buscarPorIntervalo } = useEventosCrud({ autoFetch: false });
 
   const { showLoading, hideLoading } = useLoading();
 
@@ -42,8 +43,6 @@ export default function AssistenteEventosStep() {
     let isMounted = true;
 
     const carregarEventos = async () => {
-      console.log('DATAS ===> ', { dataInicio: format(dataInicio, 'yyyy-MM-dd HH:mm:ss'), dataTermino: format(dataTermino, 'yyyy-MM-dd HH:mm:ss') });
-
       if (!dataInicio || !dataTermino) {
         if (isMounted) eventosArray.replace([]);
         return;
@@ -51,18 +50,26 @@ export default function AssistenteEventosStep() {
 
       try {
         const resultado = await buscarPorIntervalo({ dataInicio, dataTermino });
+
         if (!isMounted) return;
 
         const mapeados = (resultado ?? [])
-          .map(ocorrencia => {
+          .map((ocorrencia) => {
             if (!ocorrencia) return null;
+
+            const horario = ocorrencia.evento
+              ? `${format(DateUtilsApi.dateTimeFromApi(ocorrencia.evento?.dataInicio), 'HH:mm')} - ${
+                  ocorrencia.evento?.dataTermino ? format(DateUtilsApi.dateTimeFromApi(ocorrencia.evento.dataTermino), 'HH:mm') : 'Indefinido'
+                }`
+              : '';
 
             return {
               eventoId: ocorrencia.id,
               nome: ocorrencia.nome ?? 'Evento sem nome',
               local: ocorrencia.local ?? '',
               cor: ocorrencia.cor,
-              data: ocorrencia.dataInicio,
+              dataOcorrencia: DateUtilsApi.dateTimeFromApi(ocorrencia.dataOcorrencia),
+              horario: horario,
               selected: true,
               template: {
                 tipo: ocorrencia.templatePadrao?.tipo ? ocorrencia.templatePadrao?.tipo! : EscalaTemplateTipoEnum.Funcoes,
@@ -71,19 +78,19 @@ export default function AssistenteEventosStep() {
                   nome: ocorrencia.templatePadrao?.nome,
                 },
                 fixos: ocorrencia.templatePadrao?.voluntarios?.map(
-                  v =>
+                  (v) =>
                     ({
                       funcaoId: v.funcao?.id,
                       minVolId: v.voluntario?.id || v.voluntarioId,
-                    } as EscalaEventoTemplateFixoFormData)
+                    } as EscalaEventoTemplateFixoFormData),
                 ),
                 funcoes: ocorrencia.templatePadrao?.funcoes?.map(
-                  f =>
+                  (f) =>
                     ({
                       funcaoId: f.funcao?.id,
                       experiencia: f.experiencia,
                       quantidade: f.quantidade,
-                    } as EscalaEventoTemplateFuncaoFormData)
+                    } as EscalaEventoTemplateFuncaoFormData),
                 ),
               },
             } as EscalaEventoFormData;
@@ -115,8 +122,8 @@ export default function AssistenteEventosStep() {
 
   const handleSaveTemplate = useCallback(
     (data: EscalaEventoTemplateFormData) => {
-      const evento = eventosArray.fields.find(e => e.eventoId === eventoFormProps.data?.eventoId);
-      const eventoIndex = eventosArray.fields.findIndex(e => e.eventoId === eventoFormProps.data?.eventoId);
+      const evento = eventosArray.fields.find((e) => e.eventoId === eventoFormProps.data?.eventoId);
+      const eventoIndex = eventosArray.fields.findIndex((e) => e.eventoId === eventoFormProps.data?.eventoId);
 
       if (evento) {
         eventosArray.update(eventoIndex, {
@@ -127,7 +134,7 @@ export default function AssistenteEventosStep() {
         setEventoFormProps({ visible: false, data: undefined });
       }
     },
-    [form, eventosArray]
+    [form, eventosArray],
   );
 
   const markAll = form.watch('markEventsAll');
@@ -135,19 +142,19 @@ export default function AssistenteEventosStep() {
   const executeMarkAll = useCallback(
     (mark: boolean) => {
       eventosArray.replace(
-        eventosArray.fields.map(evento => ({
+        eventosArray.fields.map((evento) => ({
           ...evento,
           selected: mark,
-        }))
+        })),
       );
     },
-    [markAll, eventosArray.fields]
+    [markAll, eventosArray.fields],
   );
 
   return (
     <View style={styles.container}>
       <View style={{ paddingHorizontal: 20, gap: 12 }}>
-        <FancyText size={'extraSmall'} type="semiBold">
+        <FancyText size={'extraSmall'} type='semiBold'>
           Selecione os 'eventos' que farão parte da escala:
         </FancyText>
 
@@ -158,24 +165,23 @@ export default function AssistenteEventosStep() {
             executeMarkAll(!markAll);
           }}
         >
-          <DefaultIcons.Custom library="Octicons" name={markAll ? 'circle' : 'check-circle'} size={15} color={Pallete.primary} />
-          <FancyText size={'small'} type="semiBold" style={{ color: Pallete.primary }}>
+          <DefaultIcons.Custom library='Octicons' name={markAll ? 'circle' : 'check-circle'} size={15} color={Pallete.primary} />
+          <FancyText size={'small'} type='semiBold' style={{ color: Pallete.primary }}>
             {!markAll ? 'Marcar todos' : 'Desmarcar todos'}
           </FancyText>
         </TouchableOpacity>
       </View>
 
       <FancyList
-        keyExtractor={({ eventoId, data }) => eventoId + data}
+        keyExtractor={({ eventoId, dataOcorrencia: data }) => eventoId + data}
         containerStyle={{ flex: 1 }}
         contentContainerStyle={{ paddingHorizontal: 10 }}
         data={eventosArray.fields}
         extraData={eventosArray.fields}
-        refreshing={isLoading}
+        // refreshing={isLoading}
         renderItem={({ item, index }) => {
           const accentColor = item.cor ?? Pallete.primary;
-          const dataValor = item.data instanceof Date ? item.data : new Date(item.data as unknown as string);
-          const dataFormatada = Number.isNaN(dataValor.getTime()) ? 'Data indisponivel' : format(dataValor, 'dd/MM/yyyy - HH:mm');
+          const dataFormatada = `${format(item.dataOcorrencia, 'dd/MM/yyyy')} - ${item.horario}`;
           const estruturaEquipe = item.template.templateBase.id
             ? `Template - ${item.template.templateBase.nome}`
             : (item.template.fixos && item.template.fixos?.length > 0) || (item.template.funcoes && item.template.funcoes?.length > 0)
@@ -197,10 +203,16 @@ export default function AssistenteEventosStep() {
                     marginRight: 5,
                   }}
                 >
-                  <FancyText size={'extraSmall'} type="medium" style={{ opacity: 0.9 }}>
+                  <FancyText size={'extraSmall'} type='medium' style={{ opacity: 0.9 }}>
                     Equipe:
                   </FancyText>
-                  <FancyText size={'extraSmall'} type="bold" style={{ opacity: 0.7, marginRight: 0, flexShrink: 1 }} numberOfLines={1} ellipsizeMode="tail">
+                  <FancyText
+                    size={'extraSmall'}
+                    type='bold'
+                    style={{ opacity: 0.7, marginRight: 0, flexShrink: 1 }}
+                    numberOfLines={1}
+                    ellipsizeMode='tail'
+                  >
                     {estruturaEquipe}
                   </FancyText>
                 </View>
@@ -232,7 +244,7 @@ export default function AssistenteEventosStep() {
           data={eventoFormProps.data}
           modalProps={{
             onButton1Press: () => setEventoFormProps({ visible: false, data: undefined }),
-            onButton2Press: data => {
+            onButton2Press: (data) => {
               if (!data) return;
               handleSaveTemplate(data);
             },

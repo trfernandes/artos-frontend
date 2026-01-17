@@ -2,7 +2,6 @@ import { StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import React from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Pallete } from '../../../constants/colors';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function LoginBase({
   children,
@@ -12,10 +11,10 @@ export default function LoginBase({
   containerStyle?: StyleProp<ViewStyle>;
 }) {
   return (
-    <SafeAreaView style={[styles.backgroundContainer, containerStyle]}>
+    <>
       <LinearGradient colors={['#3B82F6', '#234C90']} style={styles.gradient} start={{ x: 1, y: 0 }} end={{ x: 0, y: 1 }} />
       {children}
-    </SafeAreaView>
+    </>
   );
 }
 

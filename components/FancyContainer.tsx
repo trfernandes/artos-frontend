@@ -7,27 +7,20 @@ import DefaultIcons, { CustomIconProps } from './FancyIcons';
 export interface FancyContainerProps {
   title?: string | React.ReactNode;
   icon?: CustomIconProps;
-  content: ReactNode;
+  children: ReactNode;
   containerStyle?: StyleProp<ViewStyle>;
   headerContainerStyle?: StyleProp<ViewStyle>;
   titleStyle?: StyleProp<TextStyle>;
 }
 
-export default function FancyContainer({
-  title,
-  icon,
-  content,
-  containerStyle,
-  headerContainerStyle,
-  titleStyle,
-}: FancyContainerProps) {
+export default function FancyContainer({ title, icon, children, containerStyle, headerContainerStyle, titleStyle }: FancyContainerProps) {
   return (
     <View style={[styles.container, containerStyle]}>
       {title && typeof title === 'string' ? (
         <View style={[styles.headerContainer, headerContainerStyle]}>
           {icon && <DefaultIcons.Custom {...icon} />}
           <View style={styles.headerTitleContainer}>
-            <FancyText size={'medium'} type="bold" style={[styles.headerTitle, titleStyle]}>
+            <FancyText size={'medium'} type='bold' style={[styles.headerTitle, titleStyle]}>
               {title}
             </FancyText>
           </View>
@@ -35,18 +28,17 @@ export default function FancyContainer({
       ) : (
         title
       )}
-      {content}
+      {children}
     </View>
   );
 }
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Pallete.backgroundColor,
-    borderWidth: 1,
+    borderWidth: 0.6,
     borderRadius: 10,
     ...Pallete.shadows[200],
     borderColor: Pallete.borderCard,
-    paddingBottom: 16,
   },
   headerContainer: {
     paddingHorizontal: 14,

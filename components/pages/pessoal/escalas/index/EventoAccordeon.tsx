@@ -7,10 +7,10 @@ import { EscalaDoDiaAgrupada } from '../../../../../app/(app)/(drawer)/pessoal/e
 import { Pallete } from '../../../../../constants/colors';
 import { ColorUtils } from '../../../../../utils/color_utils';
 import FuncoesTable from './FuncoesTable';
-import { EscalaItemModel } from '../../../../../domain/models/EscalaItem';
 import FancyButton from '../../../../buttons/FancyButton';
 import { BOLD_FONT } from '../../../../../constants/font';
 import { router } from 'expo-router';
+import { ResponseEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.response';
 
 export default function EventoAccordeon({
   data,
@@ -18,27 +18,26 @@ export default function EventoAccordeon({
   onSubButtonPress,
 }: {
   data: EscalaDoDiaAgrupada;
-  onConfirmButtonPress: (dadosEscala: EscalaItemModel) => void;
-  onSubButtonPress: (dadosEscala: EscalaItemModel) => void;
+  onConfirmButtonPress: (dadosEscala: ResponseEscalaItemDto) => void;
+  onSubButtonPress: (dadosEscala: ResponseEscalaItemDto) => void;
 }) {
-  const { borderColor, expandableIconColor, lightenColor, textColor, headerBackgroundColor } =
-    useMemo(() => {
-      const border = ColorUtils.darkenColor(data.evento?.cor || Pallete.primary, 0);
-      return {
-        borderColor: border,
-        expandableIconColor: ColorUtils.darkenColor(data.evento?.cor || Pallete.primary, 0.4),
-        lightenColor: ColorUtils.lightenColor(data.evento?.cor || Pallete.primary, 0.96),
-        textColor: ColorUtils.getTextColorForBackground(border),
-        headerBackgroundColor: ColorUtils.lightenColor(data.evento?.cor || Pallete.primary, 0.2),
-      };
-    }, [data.evento?.cor]);
+  const { borderColor, expandableIconColor, lightenColor, textColor, headerBackgroundColor } = useMemo(() => {
+    const border = ColorUtils.darkenColor(data.evento?.cor || Pallete.primary, 0);
+    return {
+      borderColor: border,
+      expandableIconColor: ColorUtils.darkenColor(data.evento?.cor || Pallete.primary, 0.4),
+      lightenColor: ColorUtils.lightenColor(data.evento?.cor || Pallete.primary, 0.96),
+      textColor: ColorUtils.getTextColorForBackground(border),
+      headerBackgroundColor: ColorUtils.lightenColor(data.evento?.cor || Pallete.primary, 0.2),
+    };
+  }, [data.evento?.cor]);
 
   return (
     <FancyAccordeon
       subtitle={
         <FancyButton
-          label="Ver detalhes"
-          type="text"
+          label='Ver detalhes'
+          type='text'
           labelStyle={{
             color: Pallete.fonts.link,
             fontFamily: BOLD_FONT,
@@ -74,13 +73,13 @@ export default function EventoAccordeon({
           }}
         >
           <View style={{ gap: 3 }}>
-            <FancyText type="bold" size="small">
-              {data.evento.nome}
+            <FancyText type='bold' size='small'>
+              {data.evento?.nome}
             </FancyText>
-            <FancyText type="medium" size="extraSmall" style={{}}>{`${`${format(
-              data.evento.dataInicio!,
-              'HH:mm'
-            )} à ${format(data.evento.dataTermino!, 'HH:mm')}`}`}</FancyText>
+            <FancyText type='medium' size='extraSmall' style={{}}>{`${`${format(data.evento?.dataInicio!, 'HH:mm')} à ${format(
+              data.evento?.dataTermino!,
+              'HH:mm',
+            )}`}`}</FancyText>
           </View>
         </View>
       }
@@ -112,11 +111,7 @@ export default function EventoAccordeon({
       }}
       iconProps={{ color: expandableIconColor }}
     >
-      <FuncoesTable
-        data={data.itens}
-        onConfirmButtonPress={onConfirmButtonPress}
-        onSubButtonPress={onSubButtonPress}
-      />
+      <FuncoesTable data={data.itens} onConfirmButtonPress={onConfirmButtonPress} onSubButtonPress={onSubButtonPress} />
     </FancyAccordeon>
   );
 }

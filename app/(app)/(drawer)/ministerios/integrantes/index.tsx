@@ -6,21 +6,24 @@ import { DefaultIconsNames } from '../../../../../constants/icons';
 import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Condition, DynamicQuery, Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
-import {
-  HierarquiaEnumLabel,
-  MinisterioVoluntarioModel,
-  MinisterioVoluntarioStatusEnum,
-  MinisterioVoluntarioStatusEnumMap,
-} from '../../../../../domain/models/MinisterioVoluntario';
 import FancyLoading from '../../../../../components/FancyLoading';
-import { View } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
-import FancySectionHeader, { Item, Row, Section } from '../../../../../components/cards/Horizontal/FancySectionHeader';
 import { FancyTextDisplayCard } from '../../../../../components/cards/FancyTextDisplayCard';
-import { FancyActionButtons } from '../../../../../components/cards/Horizontal/FancyCardActionButtons';
+import { VoluntarioHierarquiaEnumLabel } from '../../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
+import {
+    MinisterioStatusColorMap,
+    MinisterioVoluntarioStatusEnum,
+    MinisterioVoluntarioStatusEnumLabel,
+    MinisterioVoluntarioStatusEnumMap,
+} from '../../../../../domain/enums/MinisterioVoluntario/ministerio-voluntario-status.enum';
+import { AppImages } from '../../../../../assets/app_images';
+import { useLoading } from '../../../../../contexts/LoadingContext';
+import FancyChips from '../../../../../components/FancyChips';
 
 export default function MinisterioIntegrantesIndex() {
+  const { showLoading } = useLoading();
+
   const { ministerioId } = useLocalSearchParams<{ ministerioId: string }>();
 
   const [searchText, setSearchText] = useState('');
@@ -43,7 +46,10 @@ export default function MinisterioIntegrantesIndex() {
           {
             path: 'ministerio.id',
             operator: Operator.EQUALS,
-            value: { type: ValueType.LITERAL as const, value: ministerioId },
+            value: {
+              type: ValueType.LITERAL as const,
+              value: ministerioId,
+            },
           },
           ...(searchCondition ? [searchCondition] : []),
         ],
@@ -64,44 +70,11 @@ export default function MinisterioIntegrantesIndex() {
     initialParams: params,
   });
 
-  const integrantesData = useMemo<Row<MinisterioVoluntarioModel>[]>(() => {
-    const ativos = data
-      .filter(v => MinisterioVoluntarioStatusEnumMap[v.status] === MinisterioVoluntarioStatusEnum.Ativo)
-      .sort((a, b) => (a.voluntario?.nome ?? '').localeCompare(b.voluntario?.nome ?? '', 'pt-BR', { sensitivity: 'base' }));
-    const inativos = data
-      .filter(v => MinisterioVoluntarioStatusEnumMap[v.status] === MinisterioVoluntarioStatusEnum.Inativo)
-      .sort((a, b) => (a.voluntario?.nome ?? '').localeCompare(b.voluntario?.nome ?? '', 'pt-BR', { sensitivity: 'base' }));
-
-    const rows: Row<MinisterioVoluntarioModel>[] = [];
-
-    if (ativos.length > 0) {
-      rows.push({ type: 'section', key: 'section-ativos', title: `Ativos (${ativos.length})` } as Section);
-      rows.push(
-        ...(ativos.map(v => ({ type: 'item', key: `ativo-${v.id}`, data: v })) as unknown as Item<MinisterioVoluntarioModel>[])
-      );
-    }
-
-    if (inativos.length > 0) {
-      rows.push({ type: 'section', key: 'section-inativos', title: `Inativos (${inativos.length})` } as Section);
-      rows.push(
-        ...(inativos.map(v => ({
-          type: 'item',
-          key: `inativo-${v.id}`,
-          data: v,
-        })) as unknown as Item<MinisterioVoluntarioModel>[])
-      );
-    }
-
-    return rows;
-  }, [data]);
-
   const handleChangeStatus = useCallback(
     (id: string, nome: string, newStatus: MinisterioVoluntarioStatusEnum) => {
       FancyAlert.alert(
         newStatus === MinisterioVoluntarioStatusEnum.Inativo ? 'Desativação de Voluntário' : 'Ativação de Voluntário',
-        `Tem certeza que deseja "${
-          newStatus === MinisterioVoluntarioStatusEnum.Inativo ? 'DESATIVAR' : 'ATIVAR'
-        }" o voluntário "${nome}"?`,
+        `Tem certeza que deseja "${newStatus === MinisterioVoluntarioStatusEnum.Inativo ? 'DESATIVAR' : 'ATIVAR'}" o voluntário "${nome}"?`,
         [
           {
             text: 'Não',
@@ -111,38 +84,42 @@ export default function MinisterioIntegrantesIndex() {
             text: 'Sim',
             style: 'destructive',
             onPress: () => {
-              updateIntegrante({ id, data: { status: newStatus } }).then(() => {
+              updateIntegrante({
+                id,
+                data: { status: newStatus },
+              }).then(() => {
                 Toast.show({
-                  text1: `Voluntário ${
-                    newStatus === MinisterioVoluntarioStatusEnum.Inativo ? 'desativado' : 'ativado'
-                  } com sucesso!`,
+                  text1: `Voluntário ${newStatus === MinisterioVoluntarioStatusEnum.Inativo ? 'desativado' : 'ativado'} com sucesso!`,
                   type: 'success',
                 });
               });
             },
           },
-        ]
+        ],
       );
     },
-    [updateIntegrante]
+    [updateIntegrante],
   );
 
-  const handleRemoveVoluntario = useCallback((ministerioVoluntarioId: string) => {
-    FancyAlert.alert(
-      'Excluir definitivamente este voluntário desse ministério?',
-      `A exclusão deste voluntário é permanente. Todos os vínculos com esse ministério como funções, escalas e histórico serão removidos e não poderão ser recuperados. Se você não quiser perder o histórico, use a opção "Desativar" em vez de excluir.`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Sim, estou ciente',
-          style: 'destructive',
-          onPress: () => {
-            removeIntegrante(ministerioVoluntarioId);
+  const handleRemoveVoluntario = useCallback(
+    (ministerioVoluntarioId: string) => {
+      FancyAlert.alert(
+        'Excluir definitivamente este voluntário desse ministério?',
+        `A exclusão deste voluntário é permanente. Todos os vínculos com esse ministério como funções, escalas e histórico serão removidos e não poderão ser recuperados. Se você não quiser perder o histórico, use a opção "Desativar" em vez de excluir.`,
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Sim, estou ciente',
+            style: 'destructive',
+            onPress: () => {
+              removeIntegrante(ministerioVoluntarioId);
+            },
           },
-        },
-      ]
-    );
-  }, [removeIntegrante]);
+        ],
+      );
+    },
+    [removeIntegrante],
+  );
 
   if (isLoading || isLoadingMutation) return <FancyLoading />;
 
@@ -150,119 +127,85 @@ export default function MinisterioIntegrantesIndex() {
     <FancyListPage
       showFab
       fabProps={{
-        onPress: () => router.push({ pathname: '/ministerios/integrantes/add', params: { ministerioId } }),
+        onPress: () =>
+          router.push({
+            pathname: '/ministerios/integrantes/add',
+            params: { ministerioId },
+          }),
       }}
       showSearchBar
       searchBarProps={{
         value: searchText,
-        onSearch: text => setSearchText(text.trim()),
+        onSearch: (text) => setSearchText(text.trim()),
       }}
       listProps={{
-        data: integrantesData,
-        renderItem: ({ item, index }) => {
-          if (item.type === 'section')
-            return <FancySectionHeader key={index} title={item.title} containerStyle={{ marginTop: index > 0 ? 10 : 0 }} />;
-          else
-            return (
-              <View style={{ marginLeft: 10 }} key={index}>
-                <FancyCard.Image
-                  type="image"
-                  props={{
-                    title: item.data?.voluntario?.nome,
-                    subtitle: <FancyTextDisplayCard title={'E-mail:'} value={item.data?.voluntario?.email} />,
-                    additionalData1: <FancyTextDisplayCard title="Função:" value={HierarquiaEnumLabel[item.data?.hierarquia!]} />,
-                    source: item.data?.voluntario?.foto ?? require('../../../../../assets/images/empty_profile_image.png'),
-                    content: (
-                      <FancyActionButtons
-                        containerStyle={{
-                          justifyContent: 'flex-start',
-                          marginTop: 6,
-                          gap: 8,
-                          width: '100%',
-                        }}
-                        actions={[
-                          {
-                            label: 'Editar',
-                            size: 'small',
-                            icon: {
-                              ...DefaultIconsNames.edit,
-                              size: 12,
-                            },
-                            onPress: () => {
-                              router.push({
-                                pathname: '/ministerios/integrantes/edit',
-                                params: {
-                                  ministerioId: item.data?.ministerio?.id!,
-                                  ministerioVoluntarioId: item.data?.id!,
-                                  voluntario: JSON.stringify(item.data!),
-                                },
-                              });
-                            },
-                          },
-                          {
-                            label:
-                              MinisterioVoluntarioStatusEnumMap[item.data.status] === MinisterioVoluntarioStatusEnum.Ativo
-                                ? 'Desativar'
-                                : 'Ativar',
-                            size: 'small',
-                            icon:
-                              MinisterioVoluntarioStatusEnumMap[item.data.status] === MinisterioVoluntarioStatusEnum.Ativo
-                                ? {
-                                    library: 'MaterialCommunityIcons',
-                                    name: 'close-thick',
-                                    size: 12,
-                                    backgroundColor: Pallete.terciary,
-                                  }
-                                : {
-                                    library: 'MaterialCommunityIcons',
-                                    name: 'check-bold',
-                                    size: 12,
-                                    backgroundColor: Pallete.confirm,
-                                  },
-                            onPress: () => {
-                              handleChangeStatus(
-                                item.data.id!,
-                                item.data?.voluntario?.nome!,
-                                MinisterioVoluntarioStatusEnumMap[item.data?.status] === MinisterioVoluntarioStatusEnum.Ativo
-                                  ? MinisterioVoluntarioStatusEnum.Inativo
-                                  : MinisterioVoluntarioStatusEnum.Ativo
-                              );
-                            },
-                          },
-                          {
-                            label: 'Excluir',
-                            icon: {
-                              library: DefaultIconsNames.delete.library,
-                              name: DefaultIconsNames.delete.name,
-                              size: 12,
-                              backgroundColor: Pallete.error,
-                            },
-                            onPress: () => {
-                              FancyAlert.alert(
-                                'Excluir definitivamente este ministério?',
-                                `A exclusão deste ministério é permanente. Todos os vínculos com voluntários, funções, escalas e relatórios históricos serão removidos e não poderão ser recuperados. Se você não quiser perder o histórico, use a opção "Desativar" em vez de excluir.`,
-                                [
-                                  { text: 'Cancelar', style: 'cancel' },
-                                  {
-                                    text: 'Sim, estou ciente',
-                                    style: 'destructive',
-                                    onPress: () => {
-                                      handleRemoveVoluntario(item.data.id!);
-                                    },
-                                  },
-                                ]
-                              );
-                            },
-                            size: 'small',
-                          },
-                        ]}
-                      />
-                    ),
-                  }}
+        data: data,
+        renderItem: ({ item, index }) => (
+          <FancyCard.Image
+            key={index}
+            type='image'
+            props={{
+              title: item.voluntario?.nome,
+              subtitle: <FancyTextDisplayCard title={undefined} value={item.voluntario?.email} />,
+              additionalData1: <FancyTextDisplayCard title='Função:' value={VoluntarioHierarquiaEnumLabel[item.hierarquia!]} />,
+              additionalData2: (
+                <FancyChips
+                  style={{ marginTop: 2 }}
+                  label={MinisterioVoluntarioStatusEnumLabel[item.status]}
+                  color={MinisterioStatusColorMap[item.status]}
                 />
-              </View>
-            );
-        },
+              ),
+              source:
+                item.voluntario?.fotoThumbUrl || item.voluntario?.fotoThumbUrl
+                  ? { uri: item.voluntario?.fotoThumbUrl || item.voluntario?.fotoUrl || '' }
+                  : AppImages.emptyProfile,
+              actionButtons: [
+                {
+                  icon: { ...DefaultIconsNames.edit, size: 17 },
+                  onPress: () => {
+                    showLoading();
+                    router.push({
+                      pathname: '/ministerios/integrantes/edit',
+                      params: {
+                        ministerioId: ministerioId!,
+                        ministerioVoluntarioId: item.id!,
+                      },
+                    });
+                  },
+                },
+                {
+                  type: 'menu',
+                  icon: { library: 'Entypo', name: 'dots-three-vertical', size: 15, backgroundColor: Pallete.secondary },
+                  options: [
+                    {
+                      label: MinisterioVoluntarioStatusEnumMap[item.status] == MinisterioVoluntarioStatusEnum.Ativo ? 'Desativar' : 'Ativar',
+                      icon:
+                        MinisterioVoluntarioStatusEnumMap[item.status] == MinisterioVoluntarioStatusEnum.Ativo
+                          ? { library: 'FontAwesome6', name: 'thumbs-down', size: 16 }
+                          : { library: 'FontAwesome6', name: 'thumbs-up', size: 16 },
+                      onPress: () => {
+                        handleChangeStatus(
+                          item.id!,
+                          item.voluntario?.nome ?? '',
+                          MinisterioVoluntarioStatusEnumMap[item.status] === MinisterioVoluntarioStatusEnum.Ativo
+                            ? MinisterioVoluntarioStatusEnum.Inativo
+                            : MinisterioVoluntarioStatusEnum.Ativo,
+                        );
+                      },
+                    },
+                    {
+                      label: 'Excluir',
+                      icon: { library: 'FontAwesome6', name: 'trash-can', size: 16, style: { borderWidth: 0 } },
+                      onPress: () => {
+                        handleRemoveVoluntario(item.id!);
+                      },
+                    },
+                  ],
+                },
+              ],
+            }}
+          />
+        ),
       }}
     />
   );

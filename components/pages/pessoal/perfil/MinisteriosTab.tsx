@@ -14,13 +14,13 @@ export default function MinisteriosTab() {
           {
             path: 'voluntario.id',
             operator: Operator.EQUALS,
-            value: { type: ValueType.LITERAL, value: user?.id ?? '' },
+            value: { type: ValueType.LITERAL, value: user?.user?.id ?? '' },
           },
         ],
       },
       relations: ['ministerio', 'voluntario'],
     };
-  }, [user?.id]);
+  }, [user?.user?.id]);
 
   const { data: ministeriosData } = useMinisterioVoluntariosCrud({
     initialParams: minVoluntariosSearchParams,

@@ -19,30 +19,25 @@ export type FancyCardCheckboxProps = {
   | 'containerStyle'
   | 'contentContainerStyle'
   | 'isCollapsable'
+    | 'backgroundColor'
 >;
 
-export default function FancyCardCheckBox({ checkboxColor, value, onChangeValue, actionButtons, ...props }: FancyCardCheckboxProps) {
+export default function FancyCardCheckBox({
+  checkboxColor,
+  value,
+  onChangeValue,
+  actionButtons,
+  ...props
+}: FancyCardCheckboxProps) {
   return (
     <FancyBaseCard
       {...props}
       leftItem={
         <View style={styles.checkboxContainer}>
-          <FancyCheckbox
-            value={value}
-            color={checkboxColor}
-            size={30}
-            iconSize={16}
-            onChangeValue={onChangeValue}
-          />
+          <FancyCheckbox value={value} color={checkboxColor} size={30} iconSize={16} onChangeValue={onChangeValue} />
         </View>
       }
-      rightItem={
-        isValidElement(actionButtons) ? (
-          actionButtons
-        ) : (
-          <FancyActionButtons actions={actionButtons} />
-        )
-      }
+      rightItem={isValidElement(actionButtons) ? actionButtons : <FancyActionButtons actions={actionButtons} />}
     />
   );
 }

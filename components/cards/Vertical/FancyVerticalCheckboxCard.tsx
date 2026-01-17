@@ -5,17 +5,12 @@ import { ImageComponent } from './FancyVerticalImageCard';
 
 export type FancyVerticalCheckboxCardProps = {
   value: boolean;
-  source?: string | ImageSourcePropType;
+  source?: ImageSourcePropType;
   onChangeValue?: (value: boolean) => void;
   containerStyle?: StyleProp<ViewStyle>;
 } & Pick<FancyVerticalCardProps, 'title' | 'subtitle'>;
 
-export default function FancyVerticalCheckboxCard({
-  source,
-  value,
-  onChangeValue,
-  ...props
-}: FancyVerticalCheckboxCardProps) {
+export default function FancyVerticalCheckboxCard({ source, value, onChangeValue, ...props }: FancyVerticalCheckboxCardProps) {
   return (
     <TouchableOpacity onPress={() => onChangeValue?.(!value)}>
       <FancyVerticalCard

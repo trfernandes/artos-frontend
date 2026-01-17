@@ -6,7 +6,7 @@ export default function DayViewHeader() {
   return (
     <View style={styles.container}>
       {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((d, i) => (
-        <FancyText key={i} size="medium" type="bold" color={Pallete.fonts.inactive} style={styles.dayHeader}>
+        <FancyText key={i} size='medium' type='bold' color={Pallete.fonts.inactive} style={styles.dayHeader}>
           {d}
         </FancyText>
       ))}

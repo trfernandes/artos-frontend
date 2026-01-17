@@ -101,9 +101,10 @@ export default function FancyColorPicker({
   const enlargedMultiplier = 1.1;
 
   const renderCircles = () => {
-    const orderedColors = disabled && currentColor ? [currentColor, ...colors.filter(colorItem => colorItem !== currentColor)] : colors;
+    const orderedColors =
+      disabled && currentColor ? [currentColor, ...colors.filter((colorItem) => colorItem !== currentColor)] : colors;
 
-    return orderedColors.map(color => {
+    return orderedColors.map((color) => {
       const isSelected = color === currentColor;
       const displaySize = isSelected ? circleSize * enlargedMultiplier : circleSize;
       const displayColor = disabled && !isSelected ? Pallete.disabled2 : color;
@@ -135,7 +136,7 @@ export default function FancyColorPicker({
                 },
               ]}
             >
-              {isSelected && <DefaultIcons.Custom library="FontAwesome" name="check" size={25} color={Pallete.fonts.light} />}
+              {isSelected && <DefaultIcons.Custom library='FontAwesome' name='check' size={25} color={Pallete.fonts.light} />}
             </View>
           </View>
         </TouchableOpacity>
@@ -152,12 +153,12 @@ export default function FancyColorPicker({
   }
 
   return (
-    <FancyGroup title="Cor" contentContainerStyle={{ padding: 0, paddingVertical: 0, paddingHorizontal: 0 }}>
+    <FancyGroup title='Cor' contentContainerStyle={{ padding: 0, paddingVertical: 0, paddingHorizontal: 0 }}>
       <View style={styles.colorContainer}>
         {!disabled && showLeftArrow && (
-          <Animated.View style={[styles.arrowContainer, { left: 0, opacity: fadeAnim }]}>
+          <Animated.View style={[styles.arrowContainer, { left: 5, opacity: fadeAnim }]}>
             <FancyButton
-              mode="icon"
+              mode='icon'
               size={25}
               icon={{
                 name: 'arrow-left',
@@ -183,9 +184,9 @@ export default function FancyColorPicker({
           {renderCircles()}
         </ScrollView>
         {!disabled && showRightArrow && (
-          <Animated.View style={[styles.arrowContainer, { right: 0, opacity: fadeAnim }]}>
+          <Animated.View style={[styles.arrowContainer, { right: 5, opacity: fadeAnim }]}>
             <FancyButton
-              mode="icon"
+              mode='icon'
               size={25}
               icon={{
                 name: 'arrow-right',
@@ -210,6 +211,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     position: 'relative',
+    paddingVertical: 6,
   },
   paletteContainer: {
     flexDirection: 'row',
@@ -225,7 +227,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   touchable: {
-    margin: 6,
+    marginHorizontal: 2,
   },
   circleOutline: {
     justifyContent: 'center',

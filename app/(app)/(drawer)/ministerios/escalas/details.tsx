@@ -4,36 +4,48 @@ import { StyleSheet } from 'react-native';
 import FancySeparator from '../../../../../components/FancySeparator';
 import { useCallback, useMemo, useRef } from 'react';
 import FancyList from '../../../../../components/list/FancyList';
-import { EscalaItemStatusEnum } from '../../../../../domain/models/EscalaItem';
 import FancyLoading from '../../../../../components/FancyLoading';
 import Header from '../../../../../components/pages/ministerios/escalas/details/Header';
 import EventoTable from '../../../../../components/pages/ministerios/escalas/details/EventoTable';
 import { useEscalaItensCrud } from '../../../../../hooks/useEscalaItensCrud';
 import { SubstituicaoConfirmDialog } from '../../../../../components/pages/ministerios/escalas/details/SubstituirVoluntarioModal';
 import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
-import { EscalaStatusEnum } from '../../../../../domain/models/Escala';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import { useEscalasCrud } from '../../../../../hooks/useEscalaCrud';
+import { EscalaItemStatusEnum } from '../../../../../domain/enums/Escala/escala-item-status.enum';
+import { EscalaStatusEnum } from '../../../../../domain/enums/Escala/escala-status.enum';
 
 export type EscalaItemDataType = {
-  dataOcorrencia: Date;
+  dataOcorrencia: string;
   evento: EscalaItemEventoDataType['evento'];
-  equipe: EscalItemEquipeType[];
+  equipe: EscalaItemEquipeType[];
   escalaItemId: string;
 };
 
 export type EscalaItemEventoDataType = {
   dataOcorrencia: string;
-  evento: { id: string; nome: string; cor?: string; dataInicio?: Date; dataTermino?: Date };
-  voluntario: { minVoluntarioId: string; voluntarioId: string; nome: string; foto: string };
-  funcao: { id: string; nome: string };
+  evento: {
+    id: string;
+    nome: string;
+    cor?: string;
+    dataInicio?: Date;
+    dataTermino?: Date;
+  };
+  voluntario?: {
+    minVoluntarioId: string;
+    voluntarioId: string;
+    nome: string;
+    fotoUrl?: string;
+    fotoThumbUrl?: string;
+  };
+  funcao?: { id: string; nome: string };
   status: EscalaItemStatusEnum;
 };
 
-export type EscalItemEquipeType = {
+export type EscalaItemEquipeType = {
   idEscalaItem: string;
-  voluntario: EscalaItemEventoDataType['voluntario'];
-  funcao: EscalaItemEventoDataType['funcao'];
+  voluntario?: EscalaItemEventoDataType['voluntario'];
+  funcao?: EscalaItemEventoDataType['funcao'];
   status: EscalaItemEventoDataType['status'];
 };
 
@@ -56,10 +68,13 @@ export default function MinisterioEscalasDetailsPage() {
         ],
       },
     }),
-    [escalaId]
+    [escalaId],
   );
 
-  const { data: escalaData, isLoading } = useEscalasCrud({ autoFetch: true, initialParams });
+  const { data: escalaData, isLoading } = useEscalasCrud({
+    autoFetch: true,
+    initialParams,
+  });
 
   const startRef = useRef<number>(0);
 
@@ -87,7 +102,9 @@ export default function MinisterioEscalasDetailsPage() {
     },
   });
 
-  const { update: updateEscala, remove: removeEscala } = useEscalasCrud({ autoFetch: false });
+  const { update: updateEscala, remove: removeEscala } = useEscalasCrud({
+    autoFetch: false,
+  });
 
   const eventosData = useMemo(() => {
     const start = performance.now();
@@ -133,15 +150,21 @@ export default function MinisterioEscalasDetailsPage() {
           minVoluntarioId: item.voluntario?.id!,
           voluntarioId: item.voluntario?.voluntario?.id!,
           nome: item.voluntario?.voluntario?.nome!,
-          foto: item.voluntario?.voluntario?.foto || '',
+          fotoUrl: item.voluntario?.voluntario?.fotoUrl,
+          fotoThumbUrl: item.voluntario?.voluntario?.fotoThumbUrl,
         },
-        funcao: { id: item.funcao?.id!, nome: item.funcao.nome },
+        funcao: {
+          id: item.funcao?.id!,
+          nome: item.funcao?.nome!,
+        },
         status: item.status,
       });
     }
 
     // 🔹 Ordenação otimizada
-    const gruposOrdenados = Array.from(mapa.values()) as (EscalaItemDataType & { _t: number })[];
+    const gruposOrdenados = Array.from(mapa.values()) as (EscalaItemDataType & {
+      _t: number;
+    })[];
     for (const g of gruposOrdenados) g._t = new Date(g.dataOcorrencia).getTime();
 
     gruposOrdenados.sort((a, b) => {
@@ -152,9 +175,15 @@ export default function MinisterioEscalasDetailsPage() {
     // 🔹 Ordenar equipe internamente
     for (const grupo of gruposOrdenados) {
       grupo.equipe.sort((a, b) => {
-        if (a.funcao.nome < b.funcao.nome) return -1;
-        if (a.funcao.nome > b.funcao.nome) return 1;
-        return a.voluntario.minVoluntarioId.localeCompare(b.voluntario.minVoluntarioId);
+        const funcaoA = a.funcao?.nome ?? '';
+        const funcaoB = b.funcao?.nome ?? '';
+
+        if (funcaoA < funcaoB) return -1;
+        if (funcaoA > funcaoB) return 1;
+
+        const voluntarioA = a.voluntario?.minVoluntarioId ?? '';
+        const voluntarioB = b.voluntario?.minVoluntarioId ?? '';
+        return voluntarioA.localeCompare(voluntarioB);
       });
     }
 
@@ -170,7 +199,7 @@ export default function MinisterioEscalasDetailsPage() {
         await updateEscalaItem({
           id: data.idEscalaItem,
           data: {
-            voluntario: { id: data.idSubstituto } as any,
+            voluntarioId: data.idSubstituto,
           },
         });
         return true;
@@ -178,7 +207,7 @@ export default function MinisterioEscalasDetailsPage() {
         return false;
       }
     },
-    [updateEscalaItem]
+    [updateEscalaItem],
   );
 
   const handlePublishPress = useCallback(() => {
@@ -253,16 +282,20 @@ export default function MinisterioEscalasDetailsPage() {
       <FancySeparator />
       {eventosData && (
         <FancyList
-          keyExtractor={item => item.evento?.id + item.dataOcorrencia.toString()}
+          keyExtractor={(item) => item.evento?.id + item.dataOcorrencia.toString()}
           data={eventosData}
-          contentContainerStyle={{ paddingHorizontal: 15, gap: 10, paddingBottom: 30 }}
+          contentContainerStyle={{
+            paddingHorizontal: 15,
+            gap: 10,
+            paddingBottom: 30,
+          }}
           containerStyle={{ flex: 1 }}
           renderItem={({ item }) => (
             <EventoTable
               data={item}
               viewMode={viewMode}
               ministerioId={ministerioId}
-              onChangeVoluntario={async data => {
+              onChangeVoluntario={async (data) => {
                 return await handleSubstituirVoluntario(data);
               }}
             />

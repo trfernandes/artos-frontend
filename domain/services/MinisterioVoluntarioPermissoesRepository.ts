@@ -1,20 +1,17 @@
 import { MinisterioVoluntarioPermissoesApi } from '../api/MinisterioVoluntarioPermissoesApi';
-import {
-  MinisterioVoluntarioPermissaoApiModel,
-  MinisterioVoluntarioPermissaoModel,
-  MinisterioVoluntarioPermissaoSerializer,
-} from '../models/MinisterioVoluntarioPermissao';
+import { CreateMinisterioVoluntarioPermissaoDto } from '../dtos/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.create';
+import { ResponseMinisterioVoluntarioPermissaoDto } from '../dtos/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.response';
+import { UpdateMinisterioVoluntarioPermissaoDto } from '../dtos/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.update';
 import { BaseRepository } from './BaseRepository';
 
 class MinisterioVoluntarioPermissoesRepositoryClass extends BaseRepository<
-  MinisterioVoluntarioPermissaoModel,
-  MinisterioVoluntarioPermissaoApiModel
+  ResponseMinisterioVoluntarioPermissaoDto,
+  ResponseMinisterioVoluntarioPermissaoDto,
+  CreateMinisterioVoluntarioPermissaoDto,
+  UpdateMinisterioVoluntarioPermissaoDto
 > {
   constructor() {
-    super(MinisterioVoluntarioPermissoesApi, {
-      fromApi: MinisterioVoluntarioPermissaoSerializer.fromApi,
-      toApi: MinisterioVoluntarioPermissaoSerializer.toApi,
-    });
+    super(MinisterioVoluntarioPermissoesApi);
   }
 }
 

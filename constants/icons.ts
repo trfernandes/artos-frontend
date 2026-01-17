@@ -79,7 +79,7 @@ export const DefaultIconsNames: Record<IconName, Icon> = {
     name: 'plus',
   },
   minus: {
-    library: 'FontAwesome',
+    library: 'Entypo',
     name: 'minus',
   },
   open: {

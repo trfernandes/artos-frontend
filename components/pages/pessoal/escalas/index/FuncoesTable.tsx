@@ -1,10 +1,6 @@
 import { View, StyleSheet } from 'react-native';
 import { Pallete } from '../../../../../constants/colors';
-import {
-  EscalaItemModel,
-  EscalaItemStatusEnum,
-  EscalaItemStatusEnumLabel,
-} from '../../../../../domain/models/EscalaItem';
+
 import FancyChips from '../../../../FancyChips';
 import { IconLibrary } from '../../../../FancyIcons';
 import FancySeparator from '../../../../FancySeparator';
@@ -13,15 +9,17 @@ import FancyVerticalSpacer from '../../../../FancyVerticalSpacer';
 import { VoluntarioStatusChipParams } from '../../../ministerios/escalas/details/ListaVoluntariosTable';
 import { BOLD_FONT, SMALL_SIZE_FONT, SEMI_BOLD_FONT, MEDIUM_SIZE_FONT } from '../../../../../constants/font';
 import FancyButton from '../../../../buttons/FancyButton';
+import { ResponseEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.response';
+import { EscalaItemStatusEnum, EscalaItemStatusEnumLabel } from '../../../../../domain/enums/Escala/escala-item-status.enum';
 
 export default function FuncoesTable({
   data,
   onConfirmButtonPress,
   onSubButtonPress,
 }: {
-  data: EscalaItemModel[];
-  onConfirmButtonPress?: (dadosEscala: EscalaItemModel) => void;
-  onSubButtonPress?: (dadosEscala: EscalaItemModel) => void;
+  data: ResponseEscalaItemDto[];
+  onConfirmButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void;
+  onSubButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void;
 }) {
   return (
     <View>
@@ -39,8 +37,8 @@ export default function FuncoesTable({
             <View style={{ gap: 10, borderWidth: 0, alignItems: 'center' }} key={index}>
               <View style={styles.rowContainer}>
                 <View style={[styles.column1, { justifyContent: 'center' }]}>
-                  <FancyText style={[styles.valueItem]} ellipsizeMode="tail" numberOfLines={2}>
-                    {equipeItem.funcao.nome}
+                  <FancyText style={[styles.valueItem]} ellipsizeMode='tail' numberOfLines={2}>
+                    {equipeItem.funcao?.nome}
                   </FancyText>
                 </View>
                 <View style={[styles.column2, { justifyContent: 'center' }]}>
@@ -48,7 +46,7 @@ export default function FuncoesTable({
                     label={EscalaItemStatusEnumLabel[equipeItem.status]}
                     color={VoluntarioStatusChipParams[equipeItem.status].color}
                     backgroundColor={VoluntarioStatusChipParams[equipeItem.status].background}
-                    size="medium"
+                    size='medium'
                     style={{ alignItems: 'center' }}
                   />
                 </View>
@@ -65,15 +63,14 @@ export default function FuncoesTable({
                   ]}
                 >
                   <FancyButton
-                    mode="icon"
+                    mode='icon'
                     size={24}
                     disabled={equipeItem.status !== EscalaItemStatusEnum.Pendente}
                     icon={{
                       library: 'MaterialCommunityIcons' as IconLibrary,
                       name: 'check-bold',
                       size: 15,
-                      color:
-                        equipeItem.status !== EscalaItemStatusEnum.Pendente ? Pallete.icons.inactive : Pallete.icons.light,
+                      color: equipeItem.status !== EscalaItemStatusEnum.Pendente ? Pallete.icons.inactive : Pallete.icons.light,
                     }}
                     containerStyle={{
                       backgroundColor:
@@ -85,15 +82,14 @@ export default function FuncoesTable({
                     onPress={() => onConfirmButtonPress?.(equipeItem)}
                   />
                   <FancyButton
-                    mode="icon"
+                    mode='icon'
                     size={24}
                     disabled={equipeItem.status !== EscalaItemStatusEnum.Pendente}
                     icon={{
                       library: 'FontAwesome6' as IconLibrary,
                       name: 'repeat',
                       size: 12,
-                      color:
-                        equipeItem.status !== EscalaItemStatusEnum.Pendente ? Pallete.icons.inactive : Pallete.icons.light,
+                      color: equipeItem.status !== EscalaItemStatusEnum.Pendente ? Pallete.icons.inactive : Pallete.icons.light,
                     }}
                     containerStyle={{
                       backgroundColor:

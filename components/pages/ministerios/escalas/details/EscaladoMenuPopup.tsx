@@ -38,7 +38,7 @@ export default function EscaladoMenuPopup() {
             alignItems: 'center',
           }}
         >
-          <DefaultIcons.Custom library="Entypo" name="dots-three-vertical" size={11} color={Pallete.icons.light} />
+          <DefaultIcons.Custom library='Entypo' name='dots-three-vertical' size={11} color={Pallete.icons.light} />
         </View>
       }
     />

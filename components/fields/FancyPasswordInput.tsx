@@ -5,6 +5,7 @@ import { Pallete } from '../../constants/colors';
 
 export default function FancyPasswordInput(props: FancyTextInputProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const toggleLabel = showPassword ? 'Ocultar senha' : 'Mostrar senha';
 
   return (
     <FancyTextInput
@@ -12,8 +13,8 @@ export default function FancyPasswordInput(props: FancyTextInputProps) {
       inputProps={{ ...props.inputProps, secureTextEntry: !showPassword }}
       rightContainer={
         <FancyButton
-          mode="icon"
-          type="text"
+          mode='icon'
+          type='text'
           size={18}
           icon={{
             library: 'Feather',
@@ -23,6 +24,10 @@ export default function FancyPasswordInput(props: FancyTextInputProps) {
             style: { borderWidth: 0 },
           }}
           containerStyle={{ marginRight: 10 }}
+          accessibilityRole='button'
+          accessibilityLabel={toggleLabel}
+          accessibilityHint='Alterna a visibilidade da senha'
+          accessibilityState={{ selected: showPassword }}
           onPress={() => setShowPassword(!showPassword)}
         />
       }

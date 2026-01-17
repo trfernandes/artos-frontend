@@ -1,14 +1,31 @@
-import { format, isValid, parseISO, startOfDay } from 'date-fns';
+import { format, isSameDay, isValid, parseISO, startOfDay } from 'date-fns';
 import { formatInTimeZone, fromZonedTime, toZonedTime } from 'date-fns-tz';
 import { ptBR } from 'date-fns/locale';
 
 const DateUtils = {
   getMonthName(monthIndex: number): string {
-    const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    const monthNames = [
+      'Janeiro',
+      'Fevereiro',
+      'Março',
+      'Abril',
+      'Maio',
+      'Junho',
+      'Julho',
+      'Agosto',
+      'Setembro',
+      'Outubro',
+      'Novembro',
+      'Dezembro',
+    ];
     return monthNames[monthIndex];
   },
   compareOnlyDate(data1: Date, data2: Date): boolean {
-    return data1.getFullYear?.() === data2.getFullYear?.() && data1.getMonth?.() === data2.getMonth?.() && data1.getDate?.() === data2.getDate?.();
+    return (
+      data1.getFullYear?.() === data2.getFullYear?.() &&
+      data1.getMonth?.() === data2.getMonth?.() &&
+      data1.getDate?.() === data2.getDate?.()
+    );
   },
   formatHour(hour: number, minute: number): string {
     const pad = (n: number) => n.toString().padStart(2, '0');
@@ -135,7 +152,6 @@ export const DateUtilsApi = {
   },
   dateTimeToApi(value: Date | string): IsoDateTimeString {
     if (typeof value === 'string') {
-      // se já é ISO, mantém; se for 'YYYY-MM-DD' e você quer timestamp, melhor não aceitar aqui
       return value;
     }
     return value.toISOString();
@@ -143,12 +159,15 @@ export const DateUtilsApi = {
   isSameDateOnly(a: Date | string, b: Date | string): boolean {
     return this.dateOnlyToApi(a as any) === this.dateOnlyToApi(b as any);
   },
+  compareDateOnlyFromApi(dateFromApi: string, b: Date): boolean {
+    const normalizedDateFromApi = this.dateOnlyFromApi(dateFromApi);
+    return isSameDay(normalizedDateFromApi, b);
+  },
   compareDateTime(a: Date | string, b: Date | string): number {
     const ta = (a instanceof Date ? a : this.dateTimeFromApi(a)).getTime();
     const tb = (b instanceof Date ? b : this.dateTimeFromApi(b)).getTime();
     return ta - tb;
   },
-  
 };
 
 export const APP_TZ = 'America/Sao_Paulo';

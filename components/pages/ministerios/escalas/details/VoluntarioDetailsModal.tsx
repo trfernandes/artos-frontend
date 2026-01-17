@@ -1,11 +1,5 @@
 import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
-import {
-  Conjunction,
-  DynamicQuery,
-  Operator,
-  OrderDirection,
-  ValueType,
-} from '../../../../../domain/utils/query_utils';
+import { Conjunction, DynamicQuery, Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
 import { StyleSheet, View } from 'react-native';
 import { Pallete } from '../../../../../constants/colors';
 import VoluntarioDetailsHeader from './VoluntarioDetailsHeader';
@@ -14,11 +8,11 @@ import FancyText from '../../../../FancyText';
 import FancySeparator from '../../../../FancySeparator';
 import { FancyTextDisplay } from '../../../../fields/FancyTextDisplay';
 import { addMonths, format, startOfToday } from 'date-fns';
-import { EscalaTemplateExperienciaLabel } from '../../../../../domain/models/EscalaTemplate';
 import { useEffect, useMemo, useState } from 'react';
 import { EscalaItensRepository } from '../../../../../domain/services/EscalaItensRepository';
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import FancySection from '../../../../FancySection';
+import { EscalaTemplateExperienciaLabel } from '../../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
 
 export default function VoluntarioDetailsModal({
   ministerioVoluntarioId,
@@ -54,7 +48,7 @@ export default function VoluntarioDetailsModal({
       },
       relations: ['voluntario', 'voluntario.indisponibilidades', 'funcoes', 'funcoes.funcao'],
     }),
-    [ministerioVoluntarioId]
+    [ministerioVoluntarioId],
   );
 
   const { data: voluntarioData, isLoading: isLoadingVoluntario } = useMinisterioVoluntariosCrud({
@@ -65,7 +59,7 @@ export default function VoluntarioDetailsModal({
   // 🟦 Habilidades (funções)
   const habilidadesContent = useMemo(() => {
     return (
-      voluntarioData?.[0]?.funcoes?.map(item => (
+      voluntarioData?.[0]?.funcoes?.map((item) => (
         <FancyTextDisplay
           key={item.id}
           titleStyle={{ size: 'extraSmall' }}
@@ -77,12 +71,11 @@ export default function VoluntarioDetailsModal({
     );
   }, [voluntarioData]);
 
-  // 🟪 Indisponibilidades futuras
   const indisponibilidadesContent = useMemo(() => {
     return (
       voluntarioData?.[0]?.voluntario?.indisponibilidades
         ?.sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime())
-        .map(item => (
+        .map((item) => (
           <FancyTextDisplay
             key={item.id}
             titleStyle={{ size: 'extraSmall' }}
@@ -135,7 +128,7 @@ export default function VoluntarioDetailsModal({
   const ultimaEscalaContent = useMemo(() => {
     if (!ultimaEscala) {
       return (
-        <FancyText size="extraSmall" type="mediumItalic">
+        <FancyText size='extraSmall' type='mediumItalic'>
           Nenhuma escala encontrada!
         </FancyText>
       );
@@ -146,19 +139,19 @@ export default function VoluntarioDetailsModal({
         <FancyTextDisplay
           titleStyle={{ size: 'extraSmall' }}
           valueStyle={{ size: 'extraSmall' }}
-          title="Evento:"
+          title='Evento:'
           value={ultimaEscala.evento?.nome ?? '-'}
         />
         <FancyTextDisplay
           titleStyle={{ size: 'extraSmall' }}
           valueStyle={{ size: 'extraSmall' }}
-          title="Data/Hora:"
+          title='Data/Hora:'
           value={format(new Date(ultimaEscala.dataOcorrencia), 'dd/MM/yyyy HH:mm')}
         />
         <FancyTextDisplay
           titleStyle={{ size: 'extraSmall' }}
           valueStyle={{ size: 'extraSmall' }}
-          title="Função:"
+          title='Função:'
           value={ultimaEscala.funcao?.nome ?? '-'}
         />
       </>
@@ -208,19 +201,19 @@ export default function VoluntarioDetailsModal({
   const proximasEscalasContent = useMemo(() => {
     if (isLoadingProximas)
       return (
-        <FancyText size="extraSmall" type="mediumItalic">
+        <FancyText size='extraSmall' type='mediumItalic'>
           Carregando próximas escalas...
         </FancyText>
       );
 
     if (!proximasEscalas.length)
       return (
-        <FancyText size="extraSmall" type="mediumItalic">
+        <FancyText size='extraSmall' type='mediumItalic'>
           Nenhuma escala encontrada!
         </FancyText>
       );
 
-    return proximasEscalas.map(proxima => (
+    return proximasEscalas.map((proxima) => (
       <FancyTextDisplay
         key={proxima.id}
         titleStyle={{ size: 'extraSmall' }}
@@ -246,10 +239,7 @@ export default function VoluntarioDetailsModal({
       center={
         voluntarioData?.length > 0 && (
           <View style={{ width: '100%' }}>
-            <VoluntarioDetailsHeader
-              voluntarioInfo={voluntarioData[0].voluntario!}
-              onClose={onClose}
-            />
+            <VoluntarioDetailsHeader voluntarioInfo={voluntarioData[0].voluntario!} onClose={onClose} />
             <View
               style={{
                 padding: 20,
@@ -268,7 +258,7 @@ export default function VoluntarioDetailsModal({
                   size: 24,
                   color: '#4A90E2',
                 }}
-                title="Última Escala"
+                title='Última Escala'
               >
                 <View style={{ gap: 4 }}>{ultimaEscalaContent}</View>
               </FancySection>
@@ -283,7 +273,7 @@ export default function VoluntarioDetailsModal({
                   size: 23,
                   color: '#8E7AEF',
                 }}
-                title="Habilidades"
+                title='Habilidades'
               >
                 <View style={{ gap: 5 }}>{habilidadesContent}</View>
               </FancySection>
@@ -297,7 +287,7 @@ export default function VoluntarioDetailsModal({
                   size: 26,
                   color: '#D36AC2',
                 }}
-                title="Indisponibilidades Futuras"
+                title='Indisponibilidades Futuras'
               >
                 <View style={{ gap: 5 }}>{indisponibilidadesContent}</View>
               </FancySection>
@@ -311,7 +301,7 @@ export default function VoluntarioDetailsModal({
                   size: 25,
                   color: '#5AC8B0',
                 }}
-                title="Próximas Escalas"
+                title='Próximas Escalas'
               >
                 <View style={{ gap: 4 }}>{proximasEscalasContent}</View>
               </FancySection>

@@ -53,7 +53,7 @@ export default function FancyTimePickerModal({
           <FancyTimePicker
             value={value}
             containerStyle={styles.pickerContainer}
-            onChange={time => {
+            onChange={(time) => {
               setTime(time);
               onChange?.(time);
             }}

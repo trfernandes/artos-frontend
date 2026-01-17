@@ -35,25 +35,25 @@ export default function EscalaFormFixoModal({
       centerContainerStyle={{ gap: 12, paddingBottom: 5, paddingHorizontal: 5 }}
       onButton2Press={() => {
         form.handleSubmit(
-          data => {
+          (data) => {
             const isValid = validateUniqueFuncaoOnVoluntario(data);
             if (!isValid) form.setError('funcaoId', { message: 'Essa função já foi cadastrada para o usuário' });
             else modalProps?.onButton2Press?.(data);
           },
-          errors => {
+          (errors) => {
             console.log('Erro no formulário de adição de equipe', strfyObj(errors));
-          }
+          },
         )();
       }}
     >
       <ControlledDropDown
         control={form.control}
-        name="minVolId"
-        label="Voluntário"
+        name='minVolId'
+        label='Voluntário'
         listItems={voluntariosSelectionList}
         disabled={mode === 'edit'}
       />
-      <ControlledDropDown control={form.control} name="funcaoId" label="Função" listItems={funcoesSelectionList} />
+      <ControlledDropDown control={form.control} name='funcaoId' label='Função' listItems={funcoesSelectionList} />
     </FancyModalDialog>
   );
 }

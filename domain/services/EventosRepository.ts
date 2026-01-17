@@ -1,23 +1,27 @@
 import { endOfDay, format } from 'date-fns';
 import { EventosApi } from '../api/EventosApi';
-import { EventoApiModel, EventoModel, EventoSerializer } from '../models/Evento';
 import { BaseRepository } from './BaseRepository';
+import { ResponseEventoOcorrenciaDto } from '../dtos/Evento/evento-ocorrencia.response.dto';
+import { CreateEventoDto } from '../dtos/Evento/evento.create';
+import { ResponseEventoDto } from '../dtos/Evento/evento.response';
+import { UpdateEventoDto } from '../dtos/Evento/evento.update';
 
 export interface EventosIntervaloParams {
   dataInicio: Date | string;
   dataTermino: Date | string;
 }
 
-class EventosRepositoryClass extends BaseRepository<EventoModel, EventoApiModel> {
+class EventosRepositoryClass extends BaseRepository<ResponseEventoDto, CreateEventoDto, UpdateEventoDto> {
   constructor() {
-    super(EventosApi, { fromApi: EventoSerializer.fromApi, toApi: EventoSerializer.toApi });
+    super(EventosApi);
   }
 
-  async buscarPorIntervalo(params: EventosIntervaloParams): Promise<EventoModel[]> {
-    return EventosApi.buscarPorIntervalo({
+  async buscarPorIntervalo(params: EventosIntervaloParams): Promise<ResponseEventoOcorrenciaDto[]> {
+    const response = await EventosApi.buscarPorIntervalo({
       dataInicio: format(params.dataInicio, "yyyy-MM-dd'T'HH:mm:ss"),
       dataTermino: format(endOfDay(params.dataTermino), "yyyy-MM-dd'T'HH:mm:ss"),
     });
+    return response;
   }
 }
 

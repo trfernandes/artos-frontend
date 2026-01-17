@@ -40,6 +40,6 @@ export default function FancyStepsNavigation({ config, stepIndex, setStepIndex, 
 }
 
 const styles = StyleSheet.create({
-  container: { flexDirection: 'row', gap: 10, paddingHorizontal: 20 },
+  container: { flexDirection: 'row', gap: 10, width: '100%' },
   action: { flex: 1 },
 });

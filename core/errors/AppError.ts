@@ -21,7 +21,7 @@ export class AppError extends Error {
     public readonly type: AppErrorType,
     message: string,
     public readonly status?: number,
-    public readonly details?: AppErrorDetails
+    public readonly details?: AppErrorDetails,
   ) {
     super(message);
   }

@@ -3,16 +3,14 @@ import { View } from 'react-native';
 import { EscalaTemplateFuncaoFormData } from '../../../../domain/schemas/escalaTemplateSchema';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import ControlledDropDown from '../../../forms/ControlledDropDown';
-import FancyModalDialog, {
-  FancyModalDialogProps,
-} from '../../../modal/FancyModalDialog';
-import ControlledTextInput from '../../../forms/ControlledTextInput';
+import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
 import { useCallback, useMemo } from 'react';
 import { EnumUtils } from '../../../../utils/enum_utils';
 import {
-  EscalaTemplateExperienciaEnum,
-  EscalaTemplateExperienciaLabel,
-} from '../../../../domain/models/EscalaTemplate';
+    EscalaTemplateExperienciaEnum,
+    EscalaTemplateExperienciaLabel,
+} from '../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
+import ControlledNumberInput from '../../../forms/ControlledNumberInput';
 
 type TemplateFuncoesFormProps = FancyModalDialogProps<void> & {
   mode: 'add' | 'edit';
@@ -20,63 +18,31 @@ type TemplateFuncoesFormProps = FancyModalDialogProps<void> & {
   funcoesList?: DropDownItemProps<string>[];
 };
 
-export default function TemplateFuncoesForm({
-  mode = 'add',
-  voluntarioList,
-  funcoesList,
-  ...props
-}: TemplateFuncoesFormProps) {
+export default function TemplateFuncoesForm({ mode = 'add', voluntarioList, funcoesList, ...props }: TemplateFuncoesFormProps) {
+  const { control, handleSubmit } = useFormContext<EscalaTemplateFuncaoFormData>();
 
-  const { control, handleSubmit } =
-    useFormContext<EscalaTemplateFuncaoFormData>();
-
-  const experiencaList = useMemo<
-    DropDownItemProps<EscalaTemplateExperienciaEnum>[]
-  >(() => {
-    return EnumUtils.getDropDownItems(
-      EscalaTemplateExperienciaEnum,
-      EscalaTemplateExperienciaLabel
-    ).sort(
-      (a, b) => Number(a.value) - Number(b.value)
+  const experiencaList = useMemo<DropDownItemProps<EscalaTemplateExperienciaEnum>[]>(() => {
+    return EnumUtils.getDropDownItems(EscalaTemplateExperienciaEnum, EscalaTemplateExperienciaLabel).sort(
+      (a, b) => Number(a.value) - Number(b.value),
     ) as DropDownItemProps<EscalaTemplateExperienciaEnum>[];
   }, []);
 
   const handleConfirm = useCallback(
     handleSubmit(
-      _ => {
+      (_) => {
         props.onButton2Press?.();
       },
-      errors => console.log('Erros do Funcoes Form', JSON.stringify(errors))
+      (errors) => console.log('Erros do Funcoes Form', JSON.stringify(errors)),
     ),
-    [props]
+    [props],
   );
 
   return (
-    <FancyModalDialog
-      {...props}
-      title={mode === 'add' ? 'Adicionar Função' : 'Editar Função'}
-      onButton2Press={handleConfirm}
-    >
+    <FancyModalDialog {...props} title={mode === 'add' ? 'Adicionar Função' : 'Editar Função'} onButton2Press={handleConfirm}>
       <View style={{ gap: 15 }}>
-        <ControlledDropDown
-          control={control}
-          name="funcaoId"
-          label="Função"
-          listItems={funcoesList}
-          disabled={mode === 'edit'}
-        />
-        <ControlledDropDown
-          control={control}
-          name="experiencia"
-          label="Experiência"
-          listItems={experiencaList}
-        />
-        <ControlledTextInput
-          inputProps={{ textAlign: 'right' }}
-          control={control}
-          name="quantidade"
-          label="Quantidade"
-        />
+        <ControlledDropDown control={control} name='funcaoId' label='Função' listItems={funcoesList} disabled={mode === 'edit'} />
+        <ControlledDropDown control={control} name='experiencia' label='Experiência' listItems={experiencaList} />
+        <ControlledNumberInput control={control} name='quantidade' title='Quantidade' min={1} max={10} />
       </View>
     </FancyModalDialog>
   );

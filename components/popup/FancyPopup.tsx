@@ -20,18 +20,12 @@ export type FancyPopupProps = {
   disabled?: boolean;
 };
 
-export default function FancyPopup({
-  items,
-  showSeparator = false,
-  triggerComponent,
-  menuProps,
-  disabled = false,
-}: FancyPopupProps) {
+export default function FancyPopup({ items, showSeparator = false, triggerComponent, menuProps, disabled = false }: FancyPopupProps) {
   return (
     <Menu {...menuProps}>
       <MenuTrigger disabled={disabled}>{triggerComponent}</MenuTrigger>
       <MenuOptions optionsContainerStyle={styles.menuContainer}>
-        <View style={{}}>
+        <View>
           {items?.map((item, index) => (
             <View
               key={index}
@@ -42,27 +36,16 @@ export default function FancyPopup({
               <MenuOption
                 key={index}
                 onSelect={item.onPress}
-                customStyles={{ optionWrapper: { borderWidth: 0, paddingVertical: 0 } }}
+                customStyles={{ optionWrapper: { borderWidth: 0, height: 40, alignItems: 'center', justifyContent: 'center' } }}
               >
                 <View
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
                     paddingHorizontal: 10,
-                    gap: 12,
+                    gap: 10,
                   }}
                 >
-                  <View style={{ flex: 1, borderWidth: 0 }}>
-                    <FancyText
-                      size={'small'}
-                      type={'medium'}
-                      style={styles.optionText}
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                    >
-                      {item.label}
-                    </FancyText>
-                  </View>
                   <View style={{ width: 20, borderWidth: 0, justifyContent: 'flex-end' }}>
                     {item.icon && (
                       <DefaultIcons.Custom
@@ -83,9 +66,14 @@ export default function FancyPopup({
                       />
                     )}
                   </View>
+                  <View style={{ flex: 1, borderWidth: 0 }}>
+                    <FancyText size={'small'} type={'medium'} style={styles.optionText} numberOfLines={1} adjustsFontSizeToFit>
+                      {item.label}
+                    </FancyText>
+                  </View>
                 </View>
               </MenuOption>
-              {showSeparator && index < items.length - 1 && <FancySeparator style={{ paddingVertical: 8 }} />}
+              {showSeparator && index < items.length - 1 && <FancySeparator style={{ paddingVertical: 4 }} />}
             </View>
           ))}
         </View>
@@ -96,12 +84,11 @@ export default function FancyPopup({
 
 const styles = StyleSheet.create({
   menuContainer: {
-    paddingVertical: 10,
+    paddingVertical: 4,
     borderRadius: 10,
     borderWidth: 0.5,
     borderColor: Pallete.border,
     ...Pallete.shadows[200],
   },
-  menuOption: {},
   optionText: { borderWidth: 0, lineHeight: 15, flex: 1 },
 });

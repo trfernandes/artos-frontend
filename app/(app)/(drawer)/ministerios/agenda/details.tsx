@@ -36,13 +36,7 @@ export default function MinisterioAgendaDetailsPage() {
       {
         title: 'Dados',
         icon: { ...DefaultIconsNames.info, size: 14 },
-        content: (
-          <AgendaDetailsDadosTab
-            ministerioId={params.ministerioId}
-            dataOcorrencia={new Date(params.dataOcorrencia)}
-            evento={data[0]}
-          />
-        ),
+        content: <AgendaDetailsDadosTab ministerioId={params.ministerioId} dataOcorrencia={new Date(params.dataOcorrencia)} evento={data[0]} />,
       },
       {
         title: 'Escala',
@@ -50,18 +44,18 @@ export default function MinisterioAgendaDetailsPage() {
         content: <AgendaDetailsEscalaTab />,
       },
     ],
-    [params, data]
+    [params, data],
   );
 
   if (isLoading) return <FancyLoading />;
 
   return (
     <FancyPageView style={styles.container}>
-      <FancyTabs items={tab_items} />
+      <FancyTabs items={tab_items} contentContainerStyle={{ flex: 1 }} containerStyle={{ flex: 1 }} />
     </FancyPageView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { paddingHorizontal: 20, paddingVertical: 10 },
+  container: { flex: 1, paddingHorizontal: 20, paddingVertical: 10 },
 });

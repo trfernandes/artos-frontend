@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { DropDownItemProps } from '../components/fields/FancyDropDownItem';
 import { Operator, ValueType, DynamicQuery, OrderDirection } from '../domain/utils/query_utils';
 import { useMinisterioFuncoesCrud } from './useMinisterioFuncoesCrud';
-import { MinisterioFuncaoModel } from '../domain/models/MinisterioFuncao';
+import { ResponseMinisterioFuncaoDto } from '../domain/dtos/MinisterioFuncao/ministerio-funcao.response';
 
 export function useFuncoesDoMinisterio(ministerioId?: string) {
   const initialParams = useMemo(() => {
@@ -27,15 +27,15 @@ export function useFuncoesDoMinisterio(ministerioId?: string) {
     initialParams,
   });
 
-  const funcoesList = useMemo((): MinisterioFuncaoModel[] => {
+  const funcoesList = useMemo((): ResponseMinisterioFuncaoDto[] => {
     if (!ministerioFuncoesList) return [];
-    return ministerioFuncoesList as MinisterioFuncaoModel[];
+    return ministerioFuncoesList as ResponseMinisterioFuncaoDto[];
   }, [ministerioFuncoesList]);
 
   const funcoesDropDownList = useMemo(() => {
     if (!ministerioId) return [];
 
-    return funcoesList.map(funcao => ({
+    return funcoesList.map((funcao) => ({
       title: funcao?.nome,
       value: funcao?.id,
     })) as DropDownItemProps<string>[];

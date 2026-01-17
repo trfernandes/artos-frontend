@@ -5,19 +5,15 @@ import FancySettingItem from '../../../FancySettingItem';
 import EventoRepeticaoInputCustomSemana from './EventoRepeticaoInputCustomSemana';
 import FancyFullModal from '../../../modal/FancyFullModal';
 import FancyButton from '../../../buttons/FancyButton';
-import { DefaultIconsNames } from '../../../../constants/icons';
 import { Controller, FormProvider, useForm, useFormContext } from 'react-hook-form';
-import { EventoFormData } from '../../../../hooks/useEventosCrud';
-import {
-  RecorrenciaDiaSemanaEnum,
-  RecorrenciaEnum,
-  RecorrenciaEnumLabel,
-  RecorrenciaSemanaMesEnum,
-} from '../../../../domain/models/Evento';
 import EventoRepeticaoInputCustomMensal from './EventoRepeticaoInputCustomMensal';
 import { strfyObj } from '../../../../utils/text_utils';
 import z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { RecorrenciaDiaSemanaEnum } from '../../../../domain/enums/Evento/recorrencia-dia-semana.enum';
+import { RecorrenciaSemanaMesEnum } from '../../../../domain/enums/Evento/recorrencia-semana-mes.enum';
+import { RecorrenciaEnum, RecorrenciaEnumLabel } from '../../../../domain/enums/Evento/recorrencia.enum';
+import { EventoFormData } from '../../../../domain/schemas/eventoSchema';
 
 export const schema = z
   .object({
@@ -81,15 +77,15 @@ export default function EventoRepeticaoInputCustom({ modalProps }: { modalProps?
   const recorrencia = recorrenciaForm.watch('recorrencia');
 
   return (
-    <FancyFullModal modalProps={modalProps}>
+    <FancyFullModal modalProps={modalProps} title='Parametrização de Recorrência'>
       <FancyScrollView style={{ flex: 1, borderWidth: 0, borderColor: 'coral' }}>
         <View style={styles.body}>
           <Controller
             control={recorrenciaForm.control}
-            name="recorrencia"
+            name='recorrencia'
             render={({ field: { value, onChange } }) => (
               <FancySettingItem
-                label="Frequência"
+                label='Frequência'
                 value={RecorrenciaEnumLabel[value]}
                 options={[
                   {
@@ -127,19 +123,19 @@ export default function EventoRepeticaoInputCustom({ modalProps }: { modalProps?
         </View>
       </FancyScrollView>
       <FancyButton
-        label="Confirmar"
-        icon={{ ...DefaultIconsNames.confirm, size: 16 }}
+        label='Confirmar'
+        // icon={{ ...DefaultIconsNames.confirm, size: 14 }}
         containerStyle={styles.confirmarButton}
-        onPress={async e => {
+        onPress={async (e) => {
           await recorrenciaForm.handleSubmit(
-            data => {
+            () => {
               eventoForm.reset({
                 ...eventoForm.getValues(),
                 ...(recorrenciaForm.getValues() as EventoRepeticaoSchemaData),
               });
               modalProps?.onRequestClose?.(e);
             },
-            errors => console.log(strfyObj(errors))
+            (errors) => console.log(strfyObj(errors)),
           )();
         }}
       />
@@ -160,9 +156,9 @@ const styles = StyleSheet.create({
   body: {
     backgroundColor: 'transparent',
     flex: 1,
-    paddingHorizontal: 20,
-    paddingVertical: 5,
+    paddingHorizontal: 15,
     gap: 10,
+    width: '100%',
   },
   confirmarButton: { marginHorizontal: 20 },
 });

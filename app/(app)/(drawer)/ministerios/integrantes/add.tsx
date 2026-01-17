@@ -8,15 +8,16 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useFuncoesDoMinisterio } from '../../../../../hooks/useFuncoesDoMinisterio';
 import FancyLoading from '../../../../../components/FancyLoading';
 import { useMinisterioVoluntarioFuncoesCrud } from '../../../../../hooks/useMinisterioVoluntarioFuncoesCrud';
-import { MinisterioVoluntarioFuncaoStatusEnum } from '../../../../../domain/models/MinisterioVoluntarioFuncao';
-import { EscalaTemplateExperienciaEnum } from '../../../../../domain/models/EscalaTemplate';
-import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
-import { HierarquiaEnum, MinisterioVoluntarioStatusEnum } from '../../../../../domain/models/MinisterioVoluntario';
-import Toast from 'react-native-toast-message';
 import { useVoluntariosCrud } from '../../../../../hooks/useVoluntariosCrud';
 import { useMemo } from 'react';
 import { DropDownItemProps } from '../../../../../components/fields/FancyDropDownItem';
 import { DynamicQuery, OrderDirection } from '../../../../../domain/utils/query_utils';
+import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
+import Toast from 'react-native-toast-message';
+import { EscalaTemplateExperienciaEnum } from '../../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
+import { VoluntarioHierarquiaEnum } from '../../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
+import { MinisterioVoluntarioFuncaoStatusEnum } from '../../../../../domain/enums/MinisterioVoluntarioFuncao/ministerio-voluntario-funcao-status.enum';
+import { AppImages } from '../../../../../assets/app_images';
 
 export default function MinisterioIntegrantesAddPage() {
   const { ministerioId } = useLocalSearchParams<{ ministerioId: string }>();
@@ -39,13 +40,15 @@ export default function MinisterioIntegrantesAddPage() {
     if (!ministerioId) return [];
 
     return voluntariosData
-      .filter(v => !v.ministerios?.some(m => m.ministerio?.id === ministerioId) || !v.ministerios)
-      .map(voluntario => ({
+      .filter((v) => !v.ministerios?.some((m) => m.ministerio?.id === ministerioId) || !v.ministerios)
+      .map((voluntario) => ({
         title: voluntario?.nome,
         value: voluntario?.id,
-        left: voluntario?.foto
-          ? { type: 'image', source: voluntario.foto }
-          : { source: require('../../../../../assets/images/empty_profile_image.png') },
+        left: {
+          type: 'image',
+          source:
+            voluntario.fotoThumbUrl || voluntario.fotoUrl ? { uri: voluntario.fotoThumbUrl || voluntario.fotoUrl || '' } : AppImages.emptyProfile,
+        },
       })) as DropDownItemProps<string>[];
   }, [voluntariosData, ministerioId]);
 
@@ -55,17 +58,15 @@ export default function MinisterioIntegrantesAddPage() {
   const { add: addFuncaoVoluntario } = useMinisterioVoluntarioFuncoesCrud();
 
   const handleSave = form.handleSubmit(
-    data => {
-      data.funcoes?.forEach(async f => {
-        const ministerioFuncao = funcoesList.find(funcao => funcao.id === f.id);
+    (data) => {
+      data.funcoes?.forEach(async (f) => {
+        const ministerioFuncao = funcoesList.find((funcao) => funcao.id === f.id);
         if (!ministerioFuncao) return;
 
         let voluntario = await addVoluntario({
           ministerioId: ministerioId,
           voluntarioId: data.voluntarioId,
-          hierarquia: HierarquiaEnum.Voluntario,
-          status: MinisterioVoluntarioStatusEnum.Ativo,
-          dataInicio: new Date(),
+          hierarquia: VoluntarioHierarquiaEnum.Voluntario,
         });
 
         await addFuncaoVoluntario({
@@ -83,7 +84,7 @@ export default function MinisterioIntegrantesAddPage() {
         router.back();
       });
     },
-    errors => console.log(errors)
+    (errors) => console.log(errors),
   );
 
   if (isLoadingVoluntarios || isLoadingFuncoes) return <FancyLoading />;
@@ -92,13 +93,13 @@ export default function MinisterioIntegrantesAddPage() {
     <FancyPageView style={{ flex: 1, paddingHorizontal: 20, paddingVertical: 15, gap: 40 }}>
       <FormProvider {...form}>
         <IntegranteFormFields
-          mode="add"
+          mode='add'
           voluntariosDropDownList={voluntariosDropDownList}
           funcoesDropDownList={funcoesDropDownList}
           funcoesList={funcoesList}
         />
       </FormProvider>
-      <FancyButton label="Salvar" onPress={handleSave} />
+      <FancyButton label='Salvar' onPress={handleSave} />
     </FancyPageView>
   );
 }

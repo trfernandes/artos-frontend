@@ -5,7 +5,7 @@ import { Platform } from 'react-native';
 import apiClient from '../domain/api/api-client';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { NotificacaoTipoEnum } from '../domain/models/Notificacao';
+import { NotificacaoTipoEnum } from '../domain/enums/Notificacao/tipo-notificacao.enum';
 
 // Handler global: como a notificação se comporta em foreground
 Notifications.setNotificationHandler({

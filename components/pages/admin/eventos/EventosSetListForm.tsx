@@ -53,65 +53,72 @@ export default function EventosSetListForm() {
         title={'Músicas'}
         data={data}
         renderItem={({ item }) => (
-          <FancyCard.Letter
-            title={item.nome}
-            subtitle={item.artista}
-            additionalData1={`Tom: ${item.tom}  |  Bpm: ${item.bpm}`}
-            letter={item.order.toString()}
-            containerStyle={{}}
-            actionButtons={[
-              {
-                icon: { ...DefaultIconsNames.edit, size: 18 },
-                onPress: () => setMusicFormParams(prev => ({ ...prev, visible: true, mode: 'edit', music: item })),
-              },
-              { icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error } },
-            ]}
+          <FancyCard.Image
+            type='letter'
+            props={{
+              title: item.nome,
+              subtitle: item.artista,
+              additionalData1: `Tom: ${item.tom}  |  Bpm: ${item.bpm}`,
+              letter: item.order.toString(),
+              containerStyle: {},
+              actionButtons: [
+                {
+                  icon: { ...DefaultIconsNames.edit, size: 18 },
+                  onPress: () => setMusicFormParams((prev) => ({ ...prev, visible: true, mode: 'edit', music: item })),
+                },
+                { icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error } },
+              ],
+            }}
           />
         )}
         buttons={[
           {
             icon: { ...DefaultIconsNames.add, size: 18 },
-            onPress: () => setMusicFormParams(prev => ({ ...prev, visible: true, mode: 'add' })),
+            onPress: () => setMusicFormParams((prev) => ({ ...prev, visible: true, mode: 'add' })),
           },
           { icon: { ...DefaultIconsNames.sort, size: 11 } },
           { icon: { ...DefaultIconsNames['list-clear'], size: 16, style: { marginLeft: 2 } } },
         ]}
       />
-      <FancyTextArea label="Observações Gerais" />
+      <FancyTextArea label='Observações Gerais' />
       {musicFormParams.visible && (
         <FancyModalDialog
           title={musicFormParams.mode === 'add' ? 'Adicionar música' : 'Editar música'}
           modalProps={{ visible: musicFormParams.visible }}
-          onButton1Press={() => setMusicFormParams(prev => ({ ...prev, visible: false }))}
-          onButton2Press={() => setMusicFormParams(prev => ({ ...prev, visible: false }))}
+          onButton1Press={() => setMusicFormParams((prev) => ({ ...prev, visible: false }))}
+          onButton2Press={() => setMusicFormParams((prev) => ({ ...prev, visible: false }))}
           centerContainerStyle={{ gap: 15 }}
         >
           <FancyDropDown
-            label="Música"
+            label='Música'
             value={musicFormParams.music.order.toString()}
-            listItems={data.map(musica => ({ title: musica.nome, subtitle: musica.artista, value: musica.order.toString() }))}
-            onChange={value => setMusicFormParams(prev => ({ ...prev, music: { ...prev.music, order: Number(value) } }))}
+            listItems={data.map((musica) => ({
+              title: musica.nome,
+              subtitle: musica.artista,
+              value: musica.order.toString(),
+            }))}
+            onChange={(value) => setMusicFormParams((prev) => ({ ...prev, music: { ...prev.music, order: Number(value) } }))}
           />
           <FancyDropDown
-            label="Tom"
+            label='Tom'
             value={musicFormParams.music.tom}
-            listItems={TONS.map(tom => ({ title: tom, value: tom }))}
-            onChange={value => setMusicFormParams(prev => ({ ...prev, music: { ...prev.music, tom: value } }))}
+            listItems={TONS.map((tom) => ({ title: tom, value: tom }))}
+            onChange={(value) => setMusicFormParams((prev) => ({ ...prev, music: { ...prev.music, tom: value } }))}
           />
           <FancyTextInput
-            label="Bpm"
+            label='Bpm'
             value={musicFormParams.music.bpm}
             inputProps={{
               keyboardType: 'numeric',
               maxLength: 3,
-              onChangeText: value => setMusicFormParams(prev => ({ ...prev, music: { ...prev.music, bpm: value } })),
+              onChangeText: (value) => setMusicFormParams((prev) => ({ ...prev, music: { ...prev.music, bpm: value } })),
             }}
           />
           <FancyTextArea
-            label="Observações"
+            label='Observações'
             value={musicFormParams.music.observacoes}
             inputProps={{
-              onChangeText: value => setMusicFormParams(prev => ({ ...prev, music: { ...prev.music, observacoes: value } })),
+              onChangeText: (value) => setMusicFormParams((prev) => ({ ...prev, music: { ...prev.music, observacoes: value } })),
             }}
           />
         </FancyModalDialog>

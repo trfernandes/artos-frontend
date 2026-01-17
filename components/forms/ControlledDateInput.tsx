@@ -11,7 +11,8 @@ import { Pallete } from '../../constants/colors';
 import { FancyCalendarProps } from '../calendar/FancyCalendar';
 
 interface ControlledDateInputProps<FormData extends FieldValues>
-  extends Pick<FancyTextInputProps, 'label' | 'inputContainerStyle' | 'inputProps' | 'disabled'>,
+  extends
+    Pick<FancyTextInputProps, 'label' | 'inputContainerStyle' | 'inputProps' | 'disabled'>,
     Pick<TextInputProps, 'keyboardType'> {
   control: Control<FormData>;
   name: Path<FormData>;
@@ -42,7 +43,7 @@ export default function ControlledDateInput<FormData extends FieldValues>({
             inputProps={{
               ...rest.inputProps,
               onBlur,
-              onChangeText: text => {
+              onChangeText: (text) => {
                 text;
                 onChange(text);
               },
@@ -57,7 +58,7 @@ export default function ControlledDateInput<FormData extends FieldValues>({
           {showErrorMessage && error && <FancyErrorText message={error.message!} />}
           {showModal && (
             <FancyModalDialog
-              containerStyle={{ gap: 20, }}
+              containerStyle={{ gap: 20 }}
               modalProps={{ visible: showModal }}
               onButton1Press={() => setShowModal(false)}
               onButton2Press={() => {

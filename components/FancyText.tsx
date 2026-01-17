@@ -33,32 +33,32 @@ export default function FancyText(props: FancyTextProps) {
     size === 'extraSmall'
       ? EXTRA_SMALL_SIZE_FONT
       : size === 'small'
-      ? SMALL_SIZE_FONT
-      : size === 'medium'
-      ? MEDIUM_SIZE_FONT
-      : size === 'large'
-      ? LARGE_SIZE_FONT
-      : size === 'largeMedium'
-      ? LARGE_MEDIUM_SIZE_FONT
-      : size === 'extraLarge'
-      ? EXTRA_LARGE_SIZE_FONT
-      : size;
+        ? SMALL_SIZE_FONT
+        : size === 'medium'
+          ? MEDIUM_SIZE_FONT
+          : size === 'large'
+            ? LARGE_SIZE_FONT
+            : size === 'largeMedium'
+              ? LARGE_MEDIUM_SIZE_FONT
+              : size === 'extraLarge'
+                ? EXTRA_LARGE_SIZE_FONT
+                : size;
   const fontFamily =
     type === 'bold'
       ? BOLD_FONT
       : type === 'semiBold'
-      ? SEMI_BOLD_FONT
-      : type === 'medium'
-      ? MEDIUM_FONT
-      : type === 'normalItalic'
-      ? ITALIC_FONT
-      : type === 'semiBoldItalic'
-      ? ITALIC_SEMI_BOLD_FONT
-      : type === 'mediumItalic'
-      ? ITALIC_MEDIUM_FONT
-      : type === 'boldItalic'
-      ? ITALIC_BOLD_FONT
-      : REGULAR_FONT;
+        ? SEMI_BOLD_FONT
+        : type === 'medium'
+          ? MEDIUM_FONT
+          : type === 'normalItalic'
+            ? ITALIC_FONT
+            : type === 'semiBoldItalic'
+              ? ITALIC_SEMI_BOLD_FONT
+              : type === 'mediumItalic'
+                ? ITALIC_MEDIUM_FONT
+                : type === 'boldItalic'
+                  ? ITALIC_BOLD_FONT
+                  : REGULAR_FONT;
 
   return (
     <Text {...props} style={[styles.text, { fontSize, fontFamily, color, lineHeight: fontSize + 2 }, props.style]}>

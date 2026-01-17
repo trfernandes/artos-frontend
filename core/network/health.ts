@@ -1,4 +1,4 @@
-import apiClient from "../../domain/api/api-client";
+import apiClient from '../../domain/api/api-client';
 
 export async function pingHealth(timeoutMs = 2500): Promise<boolean> {
   try {

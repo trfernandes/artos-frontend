@@ -5,7 +5,7 @@ import FancyToast from '../components/FancyToast';
 export const toastConfig: ToastConfig = {
   success: (props: ToastConfigParams<any>) => (
     <FancyToast
-      {...props}      
+      {...props}
       icon={{
         library: 'FontAwesome5',
         name: 'check',

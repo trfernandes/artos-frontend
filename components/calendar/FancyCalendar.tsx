@@ -135,7 +135,7 @@ export default function FancyCalendar({
   const [currentDate, setCurrentDate] = useState<Date>(initialCurrentDate);
 
   useEffect(() => {
-    setCurrentDate(prev => {
+    setCurrentDate((prev) => {
       const monthStart = new Date(prev.getFullYear(), prev.getMonth(), 1);
       const minMonth = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
       const maxMonth = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
@@ -153,7 +153,7 @@ export default function FancyCalendar({
     normalized.setHours(0, 0, 0, 0);
     const safeDate = normalized < minDate ? minDate : normalized > maxDate ? maxDate : normalized;
 
-    setCurrentDate(prev => {
+    setCurrentDate((prev) => {
       const sameMonth = prev.getFullYear() === safeDate.getFullYear() && prev.getMonth() === safeDate.getMonth();
       if (sameMonth) {
         return prev;
@@ -176,7 +176,7 @@ export default function FancyCalendar({
       setCurrentDate(newDate);
       onChangeMonthVisualization?.(newDate);
     },
-    [currentDate, onChangeMonthVisualization, minDate, maxDate]
+    [currentDate, onChangeMonthVisualization, minDate, maxDate],
   );
 
   const handleSelectDate = useCallback(
@@ -187,7 +187,7 @@ export default function FancyCalendar({
       onChangeSelectedDate?.(date);
       setVisualization(CalendarVisualization.Day);
     },
-    [isControlled, onChangeSelectedDate, selectDateOnPress]
+    [isControlled, onChangeSelectedDate, selectDateOnPress],
   );
 
   const flingGestures = Gesture.Simultaneous(
@@ -204,7 +204,7 @@ export default function FancyCalendar({
         if (canChangeMonthsOnSwiple && visualization === CalendarVisualization.Day) {
           runOnJS(changeMonth)(-1);
         }
-      })
+      }),
   );
 
   return (
@@ -245,7 +245,7 @@ export default function FancyCalendar({
               currentDate={currentDate}
               minimumDate={minDate}
               maximumDate={maxDate}
-              onSelectMonth={month => {
+              onSelectMonth={(month) => {
                 const candidate = new Date(currentDate.getFullYear(), month, 1);
                 const minMonth = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
                 const maxMonth = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
@@ -268,7 +268,7 @@ export default function FancyCalendar({
               minimumDate={minDate}
               maximumDate={maxDate}
               currentDate={currentDate}
-              onSelectYear={year => {
+              onSelectYear={(year) => {
                 const candidate = new Date(year, currentDate.getMonth(), 1);
                 const minMonth = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
                 const maxMonth = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);

@@ -3,21 +3,17 @@ import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
 import FancyModalDialog, { FancyModalDialogProps } from '../../../../modal/FancyModalDialog';
 import FancyTabs, { TabItem } from '../../../../tabs/FancyTabs';
 import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
-import { EventoModel } from '../../../../../domain/models/Evento';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import EventoInfoTab, { EventoInfoTabProps } from './EventoInfoTab';
 import FancyLoading from '../../../../FancyLoading';
+import { ResponseEventoDto } from '../../../../../domain/dtos/Evento/evento.response';
 
 export interface EventoDetailsProps {
   eventoId: string;
   data: EventoInfoTabProps;
 }
 
-export default function EventoDetails({
-  eventoId,
-  data,
-  ...props
-}: EventoDetailsProps & FancyModalDialogProps<any>) {
+export default function EventoDetails({ eventoId, data, ...props }: EventoDetailsProps & FancyModalDialogProps<any>) {
   const initialParams = useMemo<DynamicQuery>(() => {
     return {
       where: {
@@ -28,7 +24,7 @@ export default function EventoDetails({
 
   const { data: eventosList, isLoading: isLoadingEventos } = useEventosCrud({ autoFetch: true, initialParams });
 
-  const [eventoData, setEventoData] = useState<EventoModel>();
+  const [eventoData, setEventoData] = useState<ResponseEventoDto>();
 
   useEffect(() => {
     if (eventosList?.length > 0) setEventoData(eventosList?.[0]);
@@ -50,7 +46,7 @@ export default function EventoDetails({
       showCloseButton
       button2={{ visible: false }}
       button1={{ visible: false }}
-      title="Detalhes do Evento"
+      title='Detalhes do Evento'
       containerStyle={{ height: '80%' }}
       centerContainerStyle={{ flex: 1, borderWidth: 0 }}
     >

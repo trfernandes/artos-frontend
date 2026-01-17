@@ -6,67 +6,50 @@ import { useCallback } from 'react';
 import { Pallete } from '../../../../../constants/colors';
 import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  EscalaEventosArraySchema,
-  EscalaFormData,
-  EscalaParticipantesArraySchema,
-  EscalaSchema,
-} from '../../../../../domain/schemas/escalaSchema';
+import { EscalaEventosArraySchema, EscalaFormData, EscalaParticipantesArraySchema, EscalaSchema } from '../../../../../domain/schemas/escalaSchema';
 import AssistenteParametrosStep from '../../../../../components/pages/ministerios/escalas/assistant/AssistenteParametrosStep';
 import AssistenteEventosStep from '../../../../../components/pages/ministerios/escalas/assistant/AssistenteEventosStep';
 import AssistenteParticipantesStep from '../../../../../components/pages/ministerios/escalas/assistant/AssistenteParticipantesStep';
 import AssistenteRevisaoStep from '../../../../../components/pages/ministerios/escalas/assistant/AssistenteRevisaoStep';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEscalasCrud } from '../../../../../hooks/useEscalaCrud';
-import { EscalaTemplateTipoEnum } from '../../../../../domain/models/EscalaTemplate';
 import { useAuth } from '../../../../../contexts/AuthContext';
-import {
-  GerarEscalaDto,
-  GerarEscalaEventoDto,
-  GerarEscalaEventoEquipePersonalizadaDto,
-  GerarEscalaEventoEquipePorTemplateDto,
-} from '../../../../../domain/api/EscalaApi';
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import { strfyObj } from '../../../../../utils/text_utils';
 import AssistenteResultadoStep from '../../../../../components/pages/ministerios/escalas/assistant/AssistenteResultadoStep';
-import {
-  AssistenteEscalaProvider,
-  useAssistenteEscala,
-} from '../../../../../contexts/pages/escalas/AssistantContext';
+import { AssistenteEscalaProvider, useAssistenteEscala } from '../../../../../contexts/pages/escalas/AssistantContext';
 import { areIntervalsOverlapping, endOfMonth } from 'date-fns';
 import Toast from 'react-native-toast-message';
 import { EscalaRepository } from '../../../../../domain/services/EscalaRepository';
 import { Operator, ValueType, Conjunction } from '../../../../../domain/utils/query_utils';
+import {
+    CreateEscalaDto,
+    CreateEscalaEventoDto,
+    CreateEscalaEventoEquipePersonalizadaDto,
+    CreateEscalaEventoEquipePorTemplateDto,
+} from '../../../../../domain/dtos/Escala/escala.create';
+import { EscalaTemplateTipoEnum } from '../../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
+import { DateUtilsApi } from '../../../../../utils/date_utils';
 
-const mapEscalaFormToDto = (
-  ministerioId: string,
-  usuarioId: string,
-  values: EscalaFormData
-): GerarEscalaDto => {
-  const toIsoString = (value: Date | string) =>
-    value instanceof Date ? value.toISOString() : new Date(value).toISOString();
-
+const mapEscalaFormToDto = (ministerioId: string, usuarioId: string, values: EscalaFormData): CreateEscalaDto => {
   const eventos =
     values.eventos
-      ?.filter(evento => evento.selected)
-      .map(evento => {
-        let equipe: GerarEscalaEventoEquipePorTemplateDto | GerarEscalaEventoEquipePersonalizadaDto | null;
+      ?.filter((evento) => evento.selected)
+      .map((evento) => {
+        let equipe: CreateEscalaEventoEquipePorTemplateDto | CreateEscalaEventoEquipePersonalizadaDto | null;
 
         if (evento.template.templateBase) {
           equipe = {
             origem: 'porTemplate',
-            templateId:
-              'id' in evento.template.templateBase
-                ? (evento.template.templateBase as { id?: string }).id
-                : undefined,
-          } as GerarEscalaEventoEquipePorTemplateDto;
+            templateId: 'id' in evento.template.templateBase ? (evento.template.templateBase as { id?: string }).id : undefined,
+          } as CreateEscalaEventoEquipePorTemplateDto;
         } else {
           equipe = {
             origem: 'personalizada',
             tipo: evento.template.tipo,
             funcoes:
               evento.template.tipo === EscalaTemplateTipoEnum.Funcoes
-                ? evento.template.funcoes?.map(funcao => ({
+                ? evento.template.funcoes?.map((funcao) => ({
                     id: funcao.funcaoId!,
                     quantidade: funcao.quantidade,
                     experienciaMinima: funcao.experiencia,
@@ -74,24 +57,24 @@ const mapEscalaFormToDto = (
                 : undefined,
             fixos:
               evento.template.tipo === EscalaTemplateTipoEnum.Fixo
-                ? evento.template.fixos?.map(fixo => ({
+                ? evento.template.fixos?.map((fixo) => ({
                     voluntarioId: fixo.minVolId,
                     funcaoId: fixo.funcaoId,
                   }))
                 : undefined,
-          } as GerarEscalaEventoEquipePersonalizadaDto;
+          } as CreateEscalaEventoEquipePersonalizadaDto;
         }
         return {
           id: evento.eventoId,
-          data: toIsoString(evento.data),
+          data: DateUtilsApi.dateOnlyToApi(evento.dataOcorrencia),
           equipe: equipe,
-        } as GerarEscalaEventoDto;
+        } as CreateEscalaEventoDto;
       }) ?? [];
 
   const participantes =
     values.participantes
-      ?.filter(e => e.selected)
-      .map(participante => ({
+      ?.filter((e) => e.selected)
+      .map((participante) => ({
         minVolId: participante.minVolId,
         voluntarioId: participante.voluntarioId,
       })) ?? [];
@@ -100,25 +83,16 @@ const mapEscalaFormToDto = (
     ministerioId,
     criadoPor: usuarioId,
     nome: values.nome,
-    dataInicio: toIsoString(values.dataInicio),
-    dataTermino: toIsoString(values.dataTermino),
+    dataInicio: DateUtilsApi.dateOnlyToApi(values.dataInicio),
+    dataTermino: DateUtilsApi.dateOnlyToApi(values.dataTermino),
     ...(eventos.length ? { eventos } : {}),
     ...(participantes.length ? { participantes } : {}),
   };
 };
 
 function AssistenteWrapper() {
-  const {
-    ministerioId,
-    setResultado,
-    index,
-    setIndex,
-    nextStep,
-    previousStep,
-    setShouldLoadEvents,
-    resultado,
-    setTempoGeracaoEscala,
-  } = useAssistenteEscala();
+  const { ministerioId, setResultado, index, setIndex, nextStep, previousStep, setShouldLoadEvents, resultado, setTempoGeracaoEscala } =
+    useAssistenteEscala();
 
   const { showLoading, hideLoading } = useLoading();
 
@@ -129,8 +103,8 @@ function AssistenteWrapper() {
   const form = useForm({
     resolver: zodResolver(EscalaSchema),
     defaultValues: {
-      dataInicio: new Date(2025, dataAtual.getMonth() + 1, 1),
-      dataTermino: endOfMonth(new Date(2025, dataAtual.getMonth() + 1, 1)),
+      dataInicio: new Date(dataAtual.getFullYear(), dataAtual.getMonth() + 1, 1),
+      dataTermino: endOfMonth(new Date(dataAtual.getFullYear(), dataAtual.getMonth() + 1, 1)),
       markEventsAll: true,
       markParticipantsAll: true,
       eventos: [],
@@ -165,7 +139,6 @@ function AssistenteWrapper() {
         const payload = mapEscalaFormToDto(ministerioId, user?.id!, values);
         const resultado = await generateEscala(payload);
         const time = Date.now() - start;
-        ('');
         setTempoGeracaoEscala?.(time);
         setResultado(resultado);
         nextStep();
@@ -173,7 +146,7 @@ function AssistenteWrapper() {
         hideLoading();
       }
     },
-    [generateEscala]
+    [generateEscala],
   );
 
   const handleViewResults = useCallback(() => {
@@ -215,6 +188,7 @@ function AssistenteWrapper() {
             },
             iconPosition: 'right',
             onPress: async () => {
+              showLoading();
               form.clearErrors();
 
               const values = {
@@ -226,7 +200,7 @@ function AssistenteWrapper() {
               const validation = EscalaSchema.safeParse(values);
 
               if (!validation.success) {
-                validation.error.issues.forEach(err => {
+                validation.error.issues.forEach((err) => {
                   form.setError(err.path[0] as keyof EscalaFormData, { message: err.message });
                 });
                 return;
@@ -238,19 +212,28 @@ function AssistenteWrapper() {
                     {
                       path: 'nome',
                       operator: Operator.ILIKE,
-                      value: { type: ValueType.LITERAL, value: values.nome },
+                      value: {
+                        type: ValueType.LITERAL,
+                        value: values.nome,
+                      },
                     },
                     {
                       conditions: [
                         {
                           path: 'dataInicio',
                           operator: Operator.GTE,
-                          value: { type: ValueType.LITERAL, value: values.dataInicio.toDateString() },
+                          value: {
+                            type: ValueType.LITERAL,
+                            value: DateUtilsApi.dateOnlyToApi(values.dataInicio),
+                          },
                         },
                         {
                           path: 'dataInicio',
                           operator: Operator.LTE,
-                          value: { type: ValueType.LITERAL, value: values.dataTermino.toDateString() },
+                          value: {
+                            type: ValueType.LITERAL,
+                            value: DateUtilsApi.dateOnlyToApi(values.dataTermino),
+                          },
                         },
                       ],
                       conjunction: Conjunction.AND,
@@ -260,12 +243,18 @@ function AssistenteWrapper() {
                         {
                           path: 'dataTermino',
                           operator: Operator.GTE,
-                          value: { type: ValueType.LITERAL, value: values.dataInicio.toDateString() },
+                          value: {
+                            type: ValueType.LITERAL,
+                            value: DateUtilsApi.dateOnlyToApi(values.dataInicio),
+                          },
                         },
                         {
                           path: 'dataTermino',
                           operator: Operator.LTE,
-                          value: { type: ValueType.LITERAL, value: values.dataTermino.toDateString() },
+                          value: {
+                            type: ValueType.LITERAL,
+                            value: DateUtilsApi.dateOnlyToApi(values.dataTermino),
+                          },
                         },
                       ],
                       conjunction: Conjunction.AND,
@@ -278,12 +267,12 @@ function AssistenteWrapper() {
               if (escalasConflitantes && escalasConflitantes.length > 0) {
                 let message = '';
 
-                const escalasWithSameName = escalasConflitantes.filter(e => e.nome === values.nome);
+                const escalasWithSameName = escalasConflitantes.filter((e) => e.nome === values.nome);
                 if (escalasWithSameName.length > 0) {
                   message += `Já existe uma escala com o nome "${values.nome}". `;
                 }
 
-                const escalasWithOverlappingDates = escalasConflitantes.filter(e => {
+                const escalasWithOverlappingDates = escalasConflitantes.filter((e) => {
                   console.log('Comparing with escala', strfyObj(e), dataInicioWatch, dataTerminoWatch);
                   return areIntervalsOverlapping(
                     {
@@ -293,7 +282,7 @@ function AssistenteWrapper() {
                     {
                       start: dataInicioWatch,
                       end: dataTerminoWatch,
-                    }
+                    },
                   );
                 });
 
@@ -343,17 +332,22 @@ function AssistenteWrapper() {
             },
             iconPosition: 'right',
             onPress: () => {
+              showLoading();
               form.clearErrors();
 
               const values = eventosWatch;
               const validation = EscalaEventosArraySchema.safeParse(values);
 
               if (!validation.success) {
-                validation.error.issues.forEach(err => {
-                  Toast.show({ text2: `${err.message}!` as string, type: 'error' });
+                validation.error.issues.forEach((err) => {
+                  Toast.show({
+                    text2: `${err.message}!` as string,
+                    type: 'error',
+                  });
                 });
                 return;
               }
+
               nextStep();
             },
           },
@@ -389,8 +383,11 @@ function AssistenteWrapper() {
               const validation = EscalaParticipantesArraySchema.safeParse(values);
 
               if (!validation.success) {
-                validation.error.issues.forEach(err => {
-                  Toast.show({ text2: `${err.message}!` as string, type: 'error' });
+                validation.error.issues.forEach((err) => {
+                  Toast.show({
+                    text2: `${err.message}!` as string,
+                    type: 'error',
+                  });
                 });
                 return;
               }
@@ -434,11 +431,11 @@ function AssistenteWrapper() {
         content: <AssistenteResultadoStep />,
         actions: [
           {
-            label: 'Reiniciar assistente',
+            label: 'Reiniciar',
             icon: {
               library: 'MaterialCommunityIcons',
               name: 'arrow-u-left-top',
-              size: 16,
+              size: 14,
               style: { borderWidth: 0, width: 12, lineHeight: 12 },
             },
             onPress: () => {
@@ -452,7 +449,7 @@ function AssistenteWrapper() {
             icon: {
               library: 'MaterialCommunityIcons',
               name: 'table-eye',
-              size: 16,
+              size: 14,
               style: { borderWidth: 0, width: 14, lineHeight: 14 },
             },
             color: Pallete.secondary,
@@ -466,7 +463,7 @@ function AssistenteWrapper() {
   return (
     <FancyPageView style={[styles.container, { pointerEvents: isGeneratingEscala ? 'none' : 'auto' }]}>
       <FormProvider {...form}>
-        <FancySteps config={stepsConfig} index={index} setIndex={setIndex} />
+        <FancySteps config={stepsConfig} index={index} setIndex={setIndex} headerContainerStyle={{ paddingHorizontal: 15 }} />
       </FormProvider>
     </FancyPageView>
   );

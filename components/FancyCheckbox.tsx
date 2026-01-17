@@ -35,19 +35,13 @@ export default function FancyCheckbox(props: FancyCheckboxProps) {
   return (
     <TouchableOpacity style={styles.container} onPress={() => props.onChangeValue?.(!props.value)}>
       <View style={styles.checkboxContainer}>
-        <View
-          style={[
-            styles.checkbox,
-            { width: props.size || 16, height: props.size || 16 },
-            ...checkboxStateStyle,
-          ]}
-        >
-          <DefaultIcons.Custom {...DefaultIconsNames.confirm} size={props.iconSize || 9} color="white" />
+        <View style={[styles.checkbox, { width: props.size || 16, height: props.size || 16 }, ...checkboxStateStyle]}>
+          <DefaultIcons.Custom {...DefaultIconsNames.confirm} size={props.iconSize || 9} color='white' />
         </View>
       </View>
       {props.label && (
         <View style={styles.labelContainer}>
-          <FancyText type="medium" size={'small'}>
+          <FancyText type='medium' size={'small'}>
             {props.label}
           </FancyText>
         </View>

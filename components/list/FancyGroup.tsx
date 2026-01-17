@@ -34,5 +34,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     paddingHorizontal: 5,
   },
-  groupContentContainer: { borderColor: Pallete.border, borderWidth: 1, borderRadius: 10, padding: 15 },
+  groupContentContainer: {
+    borderColor: Pallete.border,
+    ...Pallete.shadows[200],
+    backgroundColor: Pallete.backgroundColor,
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 15,
+  },
 });

@@ -76,7 +76,7 @@ export default function FancyDrawer(props: FancyDrawerProps) {
 
           <FancyDrawerSeparator label={'Outros'} />
           <FancyDrawerItem
-            title="Sair"
+            title='Sair'
             logo={{
               type: 'icon',
               value: { name: 'logout', library: 'MaterialCommunityIcons', size: 20 },

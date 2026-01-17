@@ -1,8 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { FieldValues, Resolver, useForm, UseFormReturn } from 'react-hook-form';
+import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query';
+import { useState, useRef, useMemo, useEffect } from 'react';
+import { FieldValues, Resolver, UseFormReturn, useForm } from 'react-hook-form';
 import Toast from 'react-native-toast-message';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { BaseModel } from '../domain/models/BaseModel';
 import { DynamicQuery } from '../domain/utils/query_utils';
 
 export type CrudFormMessages = {
@@ -16,26 +15,40 @@ export type CrudFormMessages = {
 
 type CrudQueryKind = 'none' | 'query' | 'id';
 
-export interface UseCrudOptions<T, TForm extends FieldValues, CreateDto = Partial<T>, UpdateDto = Partial<T>> {
-  queryKey: string;
-  fetchAll: () => Promise<T[]>;
-  fetchOne?: (id: string) => Promise<T>;
-  add: (data: CreateDto) => Promise<T>;
-  update: (id: string, data: UpdateDto) => Promise<T>;
-  remove: (id: string) => Promise<void>;
-  search?: (params: DynamicQuery) => Promise<T[]>;
-  resolver?: Resolver<TForm, any, TForm>;
+export type CrudIdentifiable = { id?: string | null };
+
+export interface ExternalUseCrudParams {
+  autoFetch?: boolean;
+  initialParams?: DynamicQuery | string | null;
   messages?: CrudFormMessages;
-  autoFetch?: boolean; // busca automática padrão
-  initialParams?: DynamicQuery | string;
+  muteMessages?: boolean;
 }
 
-export function useCrud<
-  T extends BaseModel,
-  TForm extends FieldValues,
-  CreateDto = Omit<T, 'id' | 'createdAt' | 'updatedAt'>,
-  UpdateDto = Partial<Omit<T, 'id' | 'createdAt' | 'updatedAt'>>
->({
+export interface UseCrudOptions<TResponse extends CrudIdentifiable, TForm extends FieldValues, TCreate, TUpdate> {
+  queryKey: string;
+
+  fetchAll: () => Promise<TResponse[]>;
+  fetchOne?: (id: string) => Promise<TResponse>;
+
+  add: (data: TCreate) => Promise<TResponse>;
+  update: (id: string, data: TUpdate) => Promise<TResponse>;
+  remove: (id: string) => Promise<void>;
+
+  search?: (params: DynamicQuery) => Promise<TResponse[]>;
+
+  resolver?: Resolver<TForm, any, TForm>;
+  messages?: CrudFormMessages;
+  muteMessages?: boolean;
+
+  /**
+   * Se o TForm não for exatamente o CreateDto/UpdateDto, use estes mappers.
+   * Por padrão, faz cast direto.
+   */
+  toCreateDto?: (form: TForm) => TCreate;
+  toUpdateDto?: (form: TForm, current: TResponse) => TUpdate;
+}
+
+export function useCrud<TResponse extends CrudIdentifiable, TForm extends FieldValues, TCreate = TForm, TUpdate = Partial<TForm>>({
   queryKey,
   fetchAll,
   fetchOne,
@@ -44,16 +57,18 @@ export function useCrud<
   remove,
   search,
   resolver,
+  muteMessages = false,
   messages,
   autoFetch = false,
   initialParams,
-}: UseCrudOptions<T, TForm, CreateDto, UpdateDto>) {
+  toCreateDto,
+  toUpdateDto,
+}: UseCrudOptions<TResponse, TForm, TCreate, TUpdate> & ExternalUseCrudParams) {
   const queryClient = useQueryClient();
-  const [currentItem, setCurrentItem] = useState<T | null>(null);
 
-  const [searchParams, setSearchParams] = useState<DynamicQuery | null>(
-    typeof initialParams === 'string' ? null : initialParams ?? null
-  );
+  const [currentItem, setCurrentItem] = useState<TResponse | null>(null);
+
+  const [searchParams, setSearchParams] = useState<DynamicQuery | null>(typeof initialParams === 'string' ? null : initialParams ?? null);
   const [hasBootstrappedInitialParams, setHasBootstrappedInitialParams] = useState(() => !initialParams);
   const [isFetchingInitialItem, setIsFetchingInitialItem] = useState(false);
 
@@ -64,9 +79,7 @@ export function useCrud<
     kind: CrudQueryKind;
     value?: DynamicQuery | string;
   } => {
-    if (!initialParams) {
-      return { key: null, kind: 'none' };
-    }
+    if (!initialParams) return { key: null, kind: 'none' };
 
     if (typeof initialParams === 'string') {
       return { key: `id:${initialParams}`, kind: 'id', value: initialParams };
@@ -75,17 +88,14 @@ export function useCrud<
     let serialized = '';
     try {
       serialized = JSON.stringify(initialParams);
-    } catch (error) {
-      console.warn('useCrud: falha ao serializar initialParams', error);
+    } catch {
       serialized = JSON.stringify({ ...initialParams });
     }
 
     return { key: `query:${serialized}`, kind: 'query', value: initialParams };
   }, [initialParams]);
 
-  const form: UseFormReturn<any> = useForm<TForm>({
-    resolver,
-  });
+  const form: UseFormReturn<TForm> = useForm<TForm>({ resolver });
 
   useEffect(() => {
     const { key, kind, value } = initialParamsSnapshot;
@@ -93,16 +103,13 @@ export function useCrud<
     if (!key) {
       if (appliedInitialParamsKeyRef.current !== key) {
         appliedInitialParamsKeyRef.current = key;
-        setSearchParams(prev => (prev === null ? prev : null));
+        setSearchParams((prev) => (prev === null ? prev : null));
       }
       setHasBootstrappedInitialParams(true);
       return;
     }
 
-    if (appliedInitialParamsKeyRef.current === key) {
-      return;
-    }
-
+    if (appliedInitialParamsKeyRef.current === key) return;
     appliedInitialParamsKeyRef.current = key;
 
     if (kind === 'id') {
@@ -115,16 +122,12 @@ export function useCrud<
       setIsFetchingInitialItem(true);
 
       fetchOne(value)
-        .then(item => {
-          if (!isMounted || !item) {
-            return;
-          }
+        .then((item) => {
+          if (!isMounted || !item) return;
           setCurrentItem(item);
         })
         .finally(() => {
-          if (!isMounted) {
-            return;
-          }
+          if (!isMounted) return;
           setIsFetchingInitialItem(false);
           setHasBootstrappedInitialParams(true);
         });
@@ -141,12 +144,10 @@ export function useCrud<
     setHasBootstrappedInitialParams(true);
   }, [initialParamsSnapshot, fetchOne]);
 
-  const dataQuery = useQuery<T[], Error>({
+  const dataQuery = useQuery<TResponse[], Error>({
     queryKey: [queryKey, searchParams],
     queryFn: async () => {
-      if (searchParams && search) {
-        return await search(searchParams);
-      }
+      if (searchParams && search) return await search(searchParams);
       return await fetchAll();
     },
     enabled: hasBootstrappedInitialParams && (autoFetch || searchParams !== null),
@@ -154,33 +155,29 @@ export function useCrud<
 
   const hasReceivedData = dataQuery.data !== undefined;
   const combinedLoading =
-    !hasBootstrappedInitialParams ||
-    (!hasReceivedData && (dataQuery.isLoading || dataQuery.isFetching)) ||
-    isFetchingInitialItem;
+    !hasBootstrappedInitialParams || (!hasReceivedData && (dataQuery.isLoading || dataQuery.isFetching)) || isFetchingInitialItem;
   const combinedRefetching = hasReceivedData && dataQuery.isFetching && !dataQuery.isLoading;
 
   const createMutation = useMutation({
     mutationFn: add,
     onSuccess: () => {
-      messages?.successCreate &&
-        Toast.show({ type: 'success', text1: messages?.successCreate || 'Item criado com sucesso!' });
+      if (!muteMessages) Toast.show({ type: 'success', text1: messages?.successCreate || 'Item criado com sucesso!' });
       queryClient.invalidateQueries({ queryKey: [queryKey] });
     },
-    onError: error => {
-      messages?.errorCreate && Toast.show({ type: 'error', text1: messages?.errorCreate || 'Erro ao criar item.' });
+    onError: (error) => {
+      if (!muteMessages) Toast.show({ type: 'error', text1: messages?.errorCreate || 'Erro ao criar item.' });
       console.log(error);
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateDto }) => update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: TUpdate }) => update(id, data),
     onSuccess: () => {
-      messages?.successUpdate &&
-        Toast.show({ type: 'success', text1: messages?.successUpdate || 'Item atualizado com sucesso!' });
+      if (!muteMessages) Toast.show({ type: 'success', text1: messages?.successUpdate || 'Item atualizado com sucesso!' });
       queryClient.invalidateQueries({ queryKey: [queryKey] });
     },
-    onError: error => {
-      messages?.errorUpdate && Toast.show({ type: 'error', text1: messages?.errorUpdate || 'Erro ao atualizar item.' });
+    onError: (error) => {
+      if (!muteMessages) Toast.show({ type: 'error', text1: messages?.errorUpdate || 'Erro ao atualizar item.' });
       console.log(error);
     },
   });
@@ -188,37 +185,40 @@ export function useCrud<
   const removeMutation = useMutation({
     mutationFn: remove,
     onSuccess: () => {
-      messages?.successDelete &&
-        Toast.show({ type: 'success', text1: messages?.successDelete || 'Item removido com sucesso!' });
+      if (!muteMessages) Toast.show({ type: 'success', text1: messages?.successDelete || 'Item removido com sucesso!' });
       queryClient.invalidateQueries({ queryKey: [queryKey] });
     },
-    onError: error => {
-      messages?.errorDelete && Toast.show({ type: 'error', text1: messages?.errorDelete || 'Erro ao remover item.' });
+    onError: (error) => {
+      if (!muteMessages) Toast.show({ type: 'error', text1: messages?.errorDelete || 'Erro ao remover item.' });
       console.log(error);
     },
   });
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (formValues: TForm) => {
     if (currentItem?.id) {
-      await updateMutation.mutateAsync({ id: currentItem.id, data });
+      const payload = toUpdateDto ? toUpdateDto(formValues, currentItem) : (formValues as unknown as TUpdate);
+      await updateMutation.mutateAsync({ id: currentItem.id, data: payload });
     } else {
-      await createMutation.mutateAsync(data);
+      const payload = toCreateDto ? toCreateDto(formValues) : (formValues as unknown as TCreate);
+      await createMutation.mutateAsync(payload);
     }
   };
 
   return {
     queryClient,
-    messages,
     queryKey,
     form,
     data: dataQuery.data || [],
     currentItem,
     setCurrentItem,
     setSearchParams,
+
     add: createMutation.mutateAsync,
     update: updateMutation.mutateAsync,
     remove: removeMutation.mutateAsync,
+
     handleSubmit,
+
     isLoading: combinedLoading,
     isLoadingMutation: createMutation.isPending || updateMutation.isPending || removeMutation.isPending,
     isRefetching: combinedRefetching,

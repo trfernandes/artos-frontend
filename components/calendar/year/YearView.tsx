@@ -19,7 +19,7 @@ export default function YearView({ ...props }: YearViewProps) {
   const yearsScrollRef = useRef<ScrollView>(null);
 
   const scrollToCurrentYear = () => {
-    const index = yearsList.findIndex(y => y === props.currentDate.getFullYear());
+    const index = yearsList.findIndex((y) => y === props.currentDate.getFullYear());
     const row = Math.floor(index / 3);
     const cellHeight = 60;
     const offsetY = row * cellHeight - 120;
@@ -35,7 +35,7 @@ export default function YearView({ ...props }: YearViewProps) {
   return (
     <ScrollView ref={yearsScrollRef} style={{ flex: 1 }} contentContainerStyle={styles.container}>
       <View style={styles.containerContent}>
-        {yearsList.map(year => {
+        {yearsList.map((year) => {
           const isSelected = year === props.currentDate.getFullYear();
           return (
             <Pressable

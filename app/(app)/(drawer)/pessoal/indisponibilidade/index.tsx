@@ -7,13 +7,13 @@ import DateAvailabilityAdjustmentModal from '../../../../../components/pages/pes
 import { useIndisponibilidadesVoluntariosCrud } from '../../../../../hooks/useIndisponibilidadesVoluntariosCrud';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { Conjunction, Operator, ValueType } from '../../../../../domain/utils/query_utils';
-import { UpsertIndisponibilidadeVoluntarioItem } from '../../../../../domain/models/IndisponibilidadeVoluntario';
 import Toast from 'react-native-toast-message';
 import { Pallete } from '../../../../../constants/colors';
 import FancyFab from '../../../../../components/buttons/FancyFab';
 import AddPeriodoModal from '../../../../../components/pages/pessoal/indisponibilidade/AddPeriodModal';
 import DateUtils, { DateUtilsApi } from '../../../../../utils/date_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
+import { UpsertIndisponibilidadeVoluntarioItemDto } from '../../../../../domain/dtos/IndisponibilidadeVoluntario/upsert-indisponibilidade-voluntario-item.dto';
 
 type ModalState = {
   visible: boolean;
@@ -26,7 +26,10 @@ export default function IndisponibilidadeIndexPage() {
   const { user } = useAuth();
   const userId = user?.id;
 
-  const [modalState, setModalState] = useState<ModalState>({ visible: false, status: 'available' });
+  const [modalState, setModalState] = useState<ModalState>({
+    visible: false,
+    status: 'available',
+  });
   const [showPeriodoModal, setShowPeriodoModal] = useState(false);
   const [hasSettled, setHasSettled] = useState(false);
 
@@ -69,7 +72,6 @@ export default function IndisponibilidadeIndexPage() {
     isLoadingMutation: isLoadingMutating,
     isRefetching,
     upsertMany,
-    isError,
   } = useIndisponibilidadesVoluntariosCrud({
     initialParams: {
       where: {
@@ -79,25 +81,27 @@ export default function IndisponibilidadeIndexPage() {
             operator: Operator.EQUALS,
             value: { type: ValueType.LITERAL, value: userId },
           },
-
-          // ⚠️ Se o backend compara timestamp, ok usar ISO.
-          // Se a coluna for DATE (recomendado), troque para dayKey(queryStartDate) e dayKey(queryEndDate).
           {
             path: 'data',
             operator: Operator.GTE,
-            value: { type: ValueType.LITERAL, value: queryStartDate.toISOString() },
+            value: {
+              type: ValueType.LITERAL,
+              value: queryStartDate.toISOString(),
+            },
           },
           {
             path: 'data',
             operator: Operator.LTE,
-            value: { type: ValueType.LITERAL, value: queryEndDate.toISOString() },
+            value: {
+              type: ValueType.LITERAL,
+              value: queryEndDate.toISOString(),
+            },
           },
         ],
         conjunction: Conjunction.AND,
       },
     },
     autoFetch: true,
-    messages: {},
   });
 
   const loadingFlags = isLoadingData || isLoadingMutating || isRefetching;
@@ -126,7 +130,10 @@ export default function IndisponibilidadeIndexPage() {
 
   useEffect(() => {
     if (!isBusy && lazyToastOptions) {
-      Toast.show({ type: lazyToastOptions.type, text1: lazyToastOptions.message });
+      Toast.show({
+        type: lazyToastOptions.type,
+        text1: lazyToastOptions.message,
+      });
       setLazyToastOptions(null);
     }
   }, [isBusy, lazyToastOptions]);
@@ -135,14 +142,14 @@ export default function IndisponibilidadeIndexPage() {
   // ✅ marcações: normalize por dia no fuso
   const markedDates = useMemo(
     () =>
-      data.map(d => {
+      data.map((d) => {
         return {
-          date: d.data,
+          date: DateUtilsApi.dateOnlyFromApi(d.data),
           T: d.id,
           color: Pallete.error,
         };
       }),
-    [data]
+    [data],
   );
 
   const handleConfirmAddPeriodo = async (inicio: Date, fim: Date, motivo: string) => {
@@ -151,7 +158,7 @@ export default function IndisponibilidadeIndexPage() {
     try {
       const datesBetweenPeriod = DateUtils.generateDatesBetween(inicio, fim);
 
-      const indisponibilidades: UpsertIndisponibilidadeVoluntarioItem[] = datesBetweenPeriod.map(d => {
+      const indisponibilidades: UpsertIndisponibilidadeVoluntarioItemDto[] = datesBetweenPeriod.map((d) => {
         // ✅ sempre "dia local" -> converte para UTC antes de enviar
         // const utcDate = DateUtils.localDayToUtcDate(d);
 
@@ -166,49 +173,69 @@ export default function IndisponibilidadeIndexPage() {
         indisponibilidades,
       });
 
-      setLazyToastOptions({ type: 'info', message: 'Período registrado com sucesso', show: true });
+      setLazyToastOptions({
+        type: 'info',
+        message: 'Período registrado com sucesso',
+        show: true,
+      });
     } catch (error) {
       console.error('Erro ao registrar período:', error);
-      setLazyToastOptions({ type: 'error', message: 'Erro ao registrar período', show: true });
+      setLazyToastOptions({
+        type: 'error',
+        message: 'Erro ao registrar período',
+        show: true,
+      });
     }
   };
 
-  const closeModal = () => setModalState(prev => ({ ...prev, visible: false }));
+  const closeModal = () => setModalState((prev) => ({ ...prev, visible: false }));
 
   const handleConfirm = async (mode: 'mark' | 'unmark', date: Date, motivo?: string) => {
-    // ✅ normalize seleção
-    const selectedLocalDay = DateUtils.normalizeLocalDay(date);
-
-    // ✅ achar registro por chave do dia
-    const registro = data.find(d => DateUtils.sameDay(new Date(d.data as any), selectedLocalDay));
-
+    const registro = data.find((d) => DateUtilsApi.compareDateOnlyFromApi(d.data, date));
     closeModal();
 
     try {
       if (mode === 'mark') {
-        const utcDateToSave = DateUtils.localDayToUtcDate(selectedLocalDay);
-
         if (registro?.id) {
           await updateData({
             id: registro.id,
-            data: { data: utcDateToSave, motivo: motivo },
+            data: {
+              data: DateUtilsApi.dateOnlyToApi(date),
+              motivo: motivo,
+            },
           });
-          setLazyToastOptions({ type: 'success', message: 'Motivo atualizado com sucesso!', show: true });
+          setLazyToastOptions({
+            type: 'success',
+            message: 'Motivo atualizado com sucesso!',
+            show: true,
+          });
         } else {
           await addData({
-            data: utcDateToSave,
-            voluntario: { id: userId },
+            data: DateUtilsApi.dateOnlyToApi(date),
+            voluntarioId: userId,
             motivo,
           });
-          setLazyToastOptions({ type: 'info', message: 'Data marcada como indisponível!', show: true });
+          setLazyToastOptions({
+            type: 'info',
+            message: 'Data marcada como indisponível!',
+            show: true,
+          });
         }
       } else if (registro?.id) {
         await removeData(registro.id);
-        setLazyToastOptions({ type: 'info', message: 'Data disponível novamente!', show: true });
+        setLazyToastOptions({
+          type: 'info',
+          message: 'Data disponível novamente!',
+          show: true,
+        });
       }
     } catch (error) {
       console.error('Erro ao atualizar data:', error);
-      setLazyToastOptions({ type: 'error', message: 'Erro ao atualizar data!', show: true });
+      setLazyToastOptions({
+        type: 'error',
+        message: 'Erro ao atualizar data!',
+        show: true,
+      });
     }
   };
 
@@ -223,15 +250,10 @@ export default function IndisponibilidadeIndexPage() {
           endDate={calendarEndDate}
           markedDates={markedDates}
           onSelectDate={({ date }) => {
-            // ✅ normalize clique
-            const selectedLocalDay = DateUtils.normalizeLocalDay(new Date(date));
-
-            // ✅ achar registro por chave do dia (sem bug de fuso)
-            const registro = data.find(d => DateUtils.sameDay(new Date(d.data as any), selectedLocalDay));
-
+            const registro = data.find((d) => DateUtilsApi.compareDateOnlyFromApi(d.data, date));
             setModalState({
               visible: true,
-              date: selectedLocalDay,
+              date: date,
               status: registro ? 'unavailable' : 'available',
               motivo: registro?.motivo ?? null,
             });
@@ -242,7 +264,7 @@ export default function IndisponibilidadeIndexPage() {
 
         <View style={styles.legend}>
           <View style={styles.legendCircle} />
-          <FancyText type="bold" size="extraSmall">
+          <FancyText type='bold' size='extraSmall'>
             Datas indisponíveis
           </FancyText>
         </View>
@@ -269,7 +291,11 @@ export default function IndisponibilidadeIndexPage() {
       )}
 
       {showPeriodoModal && (
-        <AddPeriodoModal visible={showPeriodoModal} modalProps={{ onButton1Press: () => setShowPeriodoModal(false) }} onConfirm={handleConfirmAddPeriodo} />
+        <AddPeriodoModal
+          visible={showPeriodoModal}
+          modalProps={{ onButton1Press: () => setShowPeriodoModal(false) }}
+          onConfirm={handleConfirmAddPeriodo}
+        />
       )}
     </View>
   );

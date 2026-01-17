@@ -78,18 +78,17 @@ function DayComponent({
 
     return <View style={[styles.marked, markerColor ? { backgroundColor: markerColor } : null]} />;
   };
-  
 
   return (
     <TouchableOpacity style={containerStyles} onPress={handlePress} disabled={isDisabled}>
       {showCircle ? (
         <View style={circleStyles}>
-          <FancyText size="medium" type="bold" color={isDisabled ? Pallete.fonts.inactive : Pallete.fonts.light}>
+          <FancyText size='medium' type='bold' color={isDisabled ? Pallete.fonts.inactive : Pallete.fonts.light}>
             {day}
           </FancyText>
         </View>
       ) : (
-        <FancyText size="medium" type={textWeight} color={textColor}>
+        <FancyText size='medium' type={textWeight} color={textColor}>
           {day}
         </FancyText>
       )}

@@ -1,5 +1,5 @@
 // components/overlays/FancyAlert.tsx
-import { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, isValidElement } from 'react';
 import { Modal, View, StyleSheet } from 'react-native';
 import FancyButton from '../buttons/FancyButton';
 import FancyText from '../FancyText';
@@ -12,18 +12,18 @@ type Button = {
 };
 
 type AlertContextType = {
-  show: (title: string, message?: string, buttons?: Button[]) => void;
+  show: (title: string | React.ReactNode, message?: string | React.ReactNode, buttons?: Button[]) => void;
 };
 
 const AlertCtx = createContext<AlertContextType | null>(null);
 
 export function FancyAlertProvider({ children }: { children: ReactNode }) {
   const [visible, setVisible] = useState(false);
-  const [title, setTitle] = useState('');
-  const [message, setMessage] = useState('');
+  const [title, setTitle] = useState<string | React.ReactNode>();
+  const [message, setMessage] = useState<string | React.ReactNode>('');
   const [buttons, setButtons] = useState<Button[]>([]);
 
-  const show = (t: string, m?: string, b?: Button[]) => {
+  const show = (t: string | React.ReactNode, m?: string | React.ReactNode, b?: Button[]) => {
     setTitle(t);
     setMessage(m || '');
     setButtons(b || [{ text: 'OK' }]);
@@ -39,19 +39,27 @@ export function FancyAlertProvider({ children }: { children: ReactNode }) {
     <AlertCtx.Provider value={{ show }}>
       {children}
 
-      <Modal visible={visible} transparent animationType="fade" onRequestClose={() => setVisible(false)}>
+      <Modal visible={visible} transparent animationType='fade' onRequestClose={() => setVisible(false)}>
         <View style={styles.backdrop}>
           <View style={styles.card}>
             <View>
               {title ? (
-                <FancyText type="bold" size="large" style={styles.title}>
-                  {title}
-                </FancyText>
+                isValidElement(title) ? (
+                  title
+                ) : (
+                  <FancyText type='bold' size='large' style={styles.title}>
+                    {title}
+                  </FancyText>
+                )
               ) : null}
               {message ? (
-                <FancyText type="medium" size="medium" style={styles.message}>
-                  {message}
-                </FancyText>
+                isValidElement(message) ? (
+                  message
+                ) : (
+                  <FancyText type='medium' size='medium' style={styles.message}>
+                    {message}
+                  </FancyText>
+                )
               ) : null}
             </View>
 
@@ -81,9 +89,8 @@ export function useFancyAlert() {
   return ctx;
 }
 
-// API estática igual ao Alert
 export const FancyAlert = {
-  alert(title: string, message?: string, buttons?: Button[]) {
+  alert(title: string | React.ReactNode, message?: string | React.ReactNode, buttons?: Button[]) {
     globalShow?.(title, message, buttons);
   },
 };

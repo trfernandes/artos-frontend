@@ -1,7 +1,9 @@
+import { CreateEscalaTemplateDto } from '../dtos/EscalaTemplate/escala-template.create';
+import { ResponseEscalaTemplateDto } from '../dtos/EscalaTemplate/escala-template.response';
+import { UpdateEscalaTemplateDto } from '../dtos/EscalaTemplate/escala-template.update';
 import { BaseApi } from './BaseApi';
-import { EscalaTemplateApiModel } from '../models/EscalaTemplate';
 
-class EscalaTemplatesApiClass extends BaseApi<EscalaTemplateApiModel> {
+class EscalaTemplatesApiClass extends BaseApi<ResponseEscalaTemplateDto, CreateEscalaTemplateDto, UpdateEscalaTemplateDto> {
   constructor() {
     super('escala-templates');
   }

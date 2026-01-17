@@ -1,10 +1,10 @@
 import { NotificacoesApi } from '../api/NotificacoesApi';
-import { NotificacaoApiModel, NotificacaoModel, NotificacaoSerializer } from '../models/Notificacao';
+import { ResponseNotificacaoDto } from '../dtos/Notificacao/notificacao.response';
 import { BaseRepository } from './BaseRepository';
 
-class NotificacoesRepositoryClass extends BaseRepository<NotificacaoModel, NotificacaoApiModel> {
+class NotificacoesRepositoryClass extends BaseRepository<ResponseNotificacaoDto, any, any> {
   constructor() {
-    super(NotificacoesApi, { fromApi: NotificacaoSerializer.fromApi, toApi: NotificacaoSerializer.toApi });
+    super(NotificacoesApi);
   }
 }
 

@@ -1,62 +1,48 @@
-import { View, Modal, StyleSheet, ModalProps, NativeSyntheticEvent, Platform } from 'react-native';
+import { View, Modal, StyleSheet, ModalProps, Platform, NativeSyntheticEvent } from 'react-native';
 import { MenuProvider } from 'react-native-popup-menu';
-import { Pallete } from '../../constants/colors';
-import FancyText from '../FancyText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { DefaultIconsNames } from '../../constants/icons';
-import FancyHeaderButton from '../header/FancyHeaderButton';
+import FancyPageHeader from '../header/FancyHeader';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-export type FancyFullModalProps = { modalProps?: ModalProps; children?: React.ReactNode };
+export type FancyFullModalProps = { title?: string; modalProps?: ModalProps; children?: React.ReactNode };
 
-export default function FancyFullModal({ modalProps, children }: FancyFullModalProps) {
+export default function FancyFullModal({ title, modalProps, children }: FancyFullModalProps) {
   const insets = useSafeAreaInsets();
 
   return (
     <Modal visible={modalProps?.visible} {...modalProps}>
-      <MenuProvider skipInstanceCheck={true}>
-        <View
-          style={{
-            paddingTop: Platform.OS === 'ios' ? insets.top - 3 : 0,
-            paddingBottom: insets.bottom,
-            paddingLeft: insets.left,
-            paddingRight: insets.right,
-            flex: 1,
-          }}
-        >
-          <View style={styles.container}>
-            <View style={styles.inner}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <FancyHeaderButton
-                  icon={{ ...DefaultIconsNames['chevron-left'], size: 22 }}
-                  onPress={() => modalProps?.onRequestClose?.({} as unknown as NativeSyntheticEvent<any>)}
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <MenuProvider skipInstanceCheck={true}>
+          <View
+            style={{
+              paddingTop: Platform.OS === 'ios' ? insets.top - 3 : 30,
+              paddingBottom: insets.bottom,
+              paddingLeft: insets.left,
+              paddingRight: insets.right,
+              flex: 1,
+            }}
+          >
+            <View style={styles.container}>
+              <View style={styles.inner}>
+                <FancyPageHeader
+                  leftButton='back'
+                  options={{ title }}
+                  leftButtonOnPress={() => modalProps?.onRequestClose?.({} as unknown as NativeSyntheticEvent<any>)}
                 />
-                <FancyText
-                  type="semiBold"
-                  size={'medium'}
-                  style={{
-                    color: Pallete.fonts.dark,
-                    lineHeight: 16,
-                    marginTop: 1,
-                  }}
-                >
-                  Voltar
-                </FancyText>
               </View>
+              {children}
             </View>
-            {children}
           </View>
-        </View>
-      </MenuProvider>
+        </MenuProvider>
+      </GestureHandlerRootView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, gap: 5 },
   inner: {
     width: '100%',
-    paddingHorizontal: 18,
-    paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,

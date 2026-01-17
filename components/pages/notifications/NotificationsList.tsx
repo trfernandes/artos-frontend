@@ -1,4 +1,3 @@
-import { NotificacaoModel, NotificacaoTipoEnum } from '../../../domain/models/Notificacao';
 import NotificacaoCard from './NotificacaoCard';
 import EscalaLembreteNotificacaoCard from './EscalaLembreteNotificacaoCard';
 import { SectionList, SectionListData, View } from 'react-native';
@@ -6,6 +5,9 @@ import { useCallback, useMemo } from 'react';
 import FancyListEmpty from '../../list/FancyListEmpty';
 import { isAfter, isSameDay, startOfDay, startOfMonth, subDays } from 'date-fns';
 import FancyText from '../../FancyText';
+import { ResponseNotificacaoDto } from '../../../domain/dtos/Notificacao/notificacao.response';
+import { NotificacaoTipoEnum } from '../../../domain/enums/Notificacao/tipo-notificacao.enum';
+import { DateUtilsApi } from '../../../utils/date_utils';
 
 const Hoje = { title: 'Hoje', hours: 0 };
 const Ontem = { title: 'Ontem', hours: 24 };
@@ -13,9 +15,9 @@ const ultimos7Dias = { title: 'Últimos 7 dias', hours: 168 };
 const esteMes = { title: 'Este mês', hours: 720 };
 const maisAntigas = { title: 'Mais antigas', hours: Infinity };
 
-export default function NotificationsList({ dataList }: { dataList: NotificacaoModel[] }) {
-  const groupsData = useMemo<SectionListData<NotificacaoModel>[]>(() => {
-    const groups: { key: string; title: string; items: NotificacaoModel[] }[] = [
+export default function NotificationsList({ dataList }: { dataList: ResponseNotificacaoDto[] }) {
+  const groupsData = useMemo<SectionListData<ResponseNotificacaoDto>[]>(() => {
+    const groups: { key: string; title: string; items: ResponseNotificacaoDto[] }[] = [
       { key: 'today', title: Hoje.title, items: [] },
       { key: 'yesterday', title: Ontem.title, items: [] },
       { key: 'last7', title: ultimos7Dias.title, items: [] },
@@ -32,7 +34,7 @@ export default function NotificationsList({ dataList }: { dataList: NotificacaoM
     for (const notificacao of dataList) {
       if (!notificacao.criadaEm) continue;
 
-      const criadaEm = notificacao.criadaEm instanceof Date ? notificacao.criadaEm : new Date(notificacao.criadaEm);
+      const criadaEm = DateUtilsApi.dateOnlyFromApi(notificacao.criadaEm);
 
       let targetKey: string;
 
@@ -48,7 +50,7 @@ export default function NotificationsList({ dataList }: { dataList: NotificacaoM
         targetKey = 'older';
       }
 
-      const group = groups.find(g => g.key === targetKey);
+      const group = groups.find((g) => g.key === targetKey);
       if (group) {
         group.items.push(notificacao);
       }
@@ -56,14 +58,14 @@ export default function NotificationsList({ dataList }: { dataList: NotificacaoM
 
     // transformar em sections para o SectionList
     return groups
-      .filter(g => g.items.length > 0) // opcional: esconder grupos vazios
-      .map(g => ({
+      .filter((g) => g.items.length > 0) // opcional: esconder grupos vazios
+      .map((g) => ({
         title: g.title,
         data: g.items,
       }));
   }, [dataList]);
 
-  const renderItem = useCallback((item: NotificacaoModel) => {
+  const renderItem = useCallback((item: ResponseNotificacaoDto) => {
     switch (item.tipo) {
       case NotificacaoTipoEnum.EscalaLembrete:
         return <EscalaLembreteNotificacaoCard data={item} />;
@@ -72,7 +74,7 @@ export default function NotificationsList({ dataList }: { dataList: NotificacaoM
     }
   }, []);
 
-  if (!dataList || dataList.length === 0) return <FancyListEmpty label="Nenhuma notificação por aqui..." />;
+  if (!dataList || dataList.length === 0) return <FancyListEmpty label='Nenhuma notificação por aqui...' />;
 
   return (
     <SectionList

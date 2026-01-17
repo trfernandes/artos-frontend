@@ -35,11 +35,7 @@ export default function MonthView({ minimumDate, maximumDate, ...props }: MonthV
               numberOfLines={1}
               type={isSelected ? 'bold' : 'medium'}
               size={12}
-              style={[
-                styles.text,
-                isSelected && styles.selectedText,
-                disabled && styles.disabledText,
-              ]}
+              style={[styles.text, isSelected && styles.selectedText, disabled && styles.disabledText]}
             >
               {month}
             </FancyText>

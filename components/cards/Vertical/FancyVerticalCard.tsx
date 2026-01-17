@@ -40,9 +40,7 @@ export default function FancyVerticalCard({
   bottomElementStyle,
 }: FancyVerticalCardProps) {
   return (
-    <View
-      style={[styles.container, containerStyle, cardHeight !== undefined && { height: cardHeight as DimensionValue }]}
-    >
+    <View style={[styles.container, containerStyle, cardHeight !== undefined && { height: cardHeight as DimensionValue }]}>
       {/* Camada absoluta de topo */}
       <View style={styles.topOverlay}>
         <View style={styles.topLeft}>{topLeftElement}</View>
@@ -62,16 +60,17 @@ export default function FancyVerticalCard({
             <>
               {title && (
                 <FancyText
-                  size="extraSmall"
-                  type="bold"
-                  numberOfLines={1}
-                  ellipsizeMode="middle"
+                  size='extraSmall'
+                  type='bold'
+                  numberOfLines={2}
+                //   ellipsizeMode='middle'
                   style={{
                     textAlign: 'center',
+                    textAlignVertical:'center',
                     opacity: 0.8,
                     // borderWidth: 1,
-                    lineHeight: EXTRA_SMALL_SIZE_FONT + 3,
-                    height: EXTRA_SMALL_SIZE_FONT + 2, // 🔥 altura exata para 2 linhas
+                    // lineHeight: EXTRA_SMALL_SIZE_FONT*2 + 3,
+                    height: (EXTRA_SMALL_SIZE_FONT * 2) + 6, 
                   }}
                 >
                   {title}
@@ -80,10 +79,10 @@ export default function FancyVerticalCard({
 
               {subtitle && (
                 <FancyText
-                  size="extraSmall"
-                  type="semiBold"
+                  size='extraSmall'
+                  type='semiBold'
                   numberOfLines={1}
-                  ellipsizeMode="tail"
+                  ellipsizeMode='tail'
                   color={Pallete.fonts.inactive}
                   style={{
                     // marginTop: 4,

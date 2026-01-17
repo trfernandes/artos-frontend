@@ -4,22 +4,22 @@ import FancyCalendar from '../../../../../components/calendar/FancyCalendar';
 import FancyList from '../../../../../components/list/FancyList';
 import { useEffect, useMemo, useState } from 'react';
 import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
-import { EventoModel } from '../../../../../domain/models/Evento';
 import { formatDate, lastDayOfMonth, startOfMonth } from 'date-fns';
 import FancyLoading from '../../../../../components/FancyLoading';
-import DateUtils from '../../../../../utils/date_utils';
+import DateUtils, { DateUtilsApi } from '../../../../../utils/date_utils';
 import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
 import { Pallete } from '../../../../../constants/colors';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import FancySeparator from '../../../../../components/FancySeparator';
 import { router, useLocalSearchParams } from 'expo-router';
+import { ResponseEventoOcorrenciaDto } from '../../../../../domain/dtos/Evento/evento-ocorrencia.response.dto';
 
 export default function MinisterioAgendaIndexPage() {
   const params = useLocalSearchParams<{ ministerioId: string }>();
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [currentMonth, setCurrenMonth] = useState(new Date());
-  const [eventos, setEventos] = useState<EventoModel[]>();
+  const [eventos, setEventos] = useState<ResponseEventoOcorrenciaDto[]>();
 
   const { buscarPorIntervalo, isLoading } = useEventosCrud({ autoFetch: false });
 
@@ -27,20 +27,12 @@ export default function MinisterioAgendaIndexPage() {
     buscarPorIntervalo({
       dataInicio: startOfMonth(currentMonth),
       dataTermino: lastDayOfMonth(currentMonth),
-    }).then(data => {
-      setEventos(
-        data.map(e => ({
-          ...e,
-          dataInicio: new Date(e.dataInicio),
-          dataTermino: e.dataTermino && new Date(e.dataTermino),
-        }))
-      );
-    });
+    }).then(setEventos);
   }, [currentMonth]);
 
   const daysEvents = useMemo(() => {
-    return eventos?.filter(e => DateUtils.equal(e.dataInicio, currentDate));
-  }, [currentDate]);
+    return eventos?.filter((e) => DateUtils.equal(DateUtilsApi.dateOnlyFromApi(e.dataOcorrencia), currentDate));
+  }, [currentDate, currentMonth, eventos]);
 
   if (isLoading) return <FancyLoading />;
 
@@ -48,21 +40,26 @@ export default function MinisterioAgendaIndexPage() {
     <FancyPageView style={styles.container}>
       <FancyCalendar
         containerStyle={styles.calendarContainer}
-        onChangeMonthVisualization={date => {
+        onChangeMonthVisualization={(date) => {
           setCurrenMonth(date);
           setCurrentDate(startOfMonth(date));
         }}
         onChangeSelectedDate={setCurrentDate}
-        markedDatesType="bottomPoint"
-        markedDates={eventos?.map(e => ({ date: e.dataInicio, color: e.cor }))}
+        markedDatesType='bottomPoint'
+        markedDates={eventos?.map((e) => ({
+          date: DateUtilsApi.dateOnlyFromApi(e.dataOcorrencia),
+          color: e.cor,
+        }))}
         value={currentDate}
       />
       <FancySeparator />
       <FancyList
         data={daysEvents}
         listEmptyProps={{ label: 'Nenhum evento por aqui...' }}
+        keyExtractor={(item) => item.id}
         renderItem={({ item, index }) => {
-          const subtitle = item.dataTermino && `${formatDate(item.dataInicio, 'HH:mm')} à ${formatDate(item.dataTermino, 'HH:mm')}`;
+          const subtitle =
+            item.evento?.dataTermino && `${formatDate(item.evento.dataInicio, 'HH:mm')} à ${formatDate(item.evento.dataTermino, 'HH:mm')}`;
           return (
             <FancyCard.Color
               key={index}
@@ -71,13 +68,16 @@ export default function MinisterioAgendaIndexPage() {
               color={item.cor || Pallete.primary}
               actionButtons={[
                 {
-                  icon: { ...DefaultIconsNames['chevron-right'], size: 20 },
+                  icon: {
+                    ...DefaultIconsNames['chevron-right'],
+                    size: 20,
+                  },
                   onPress: () => {
                     router.push({
                       pathname: '/ministerios/agenda/details',
                       params: {
                         id: item.id,
-                        dataOcorrencia: item.dataInicio.toDateString(),
+                        dataOcorrencia: item.dataOcorrencia,
                         ministerioId: params.ministerioId,
                       },
                     });

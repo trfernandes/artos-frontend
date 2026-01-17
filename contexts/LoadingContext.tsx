@@ -32,11 +32,11 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
     <LoadingContext.Provider value={{ showLoading, hideLoading }}>
       {children}
 
-      <Modal visible={visible} transparent animationType="fade" statusBarTranslucent>
+      <Modal visible={visible} transparent animationType='fade' statusBarTranslucent>
         <View style={styles.overlay}>
           <View style={styles.box}>
-            <ActivityIndicator size="large" color={Pallete.primary} />
-            <FancyText size={'medium'} type="semiBold" color={Pallete.fonts.inactive}>
+            <ActivityIndicator size='large' color={Pallete.primary} />
+            <FancyText size={'medium'} type='semiBold' color={Pallete.fonts.inactive}>
               {label}
             </FancyText>
           </View>

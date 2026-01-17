@@ -2,53 +2,21 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { ImageUtils } from '../utils/image_utils'; // ajuste
 import { AxiosError } from 'axios';
 import apiClient from '../domain/api/api-client';
-import { MinisterioTipoEnum } from '../domain/models/Ministerio';
-import { HierarquiaEnum } from '../domain/models/MinisterioVoluntario';
-import { VoluntarioPapelEnum } from '../domain/models/Voluntario';
-
-export interface UserMinisterio {
-  id: string;
-  nome: string;
-  logo?: string;
-  tipo: MinisterioTipoEnum;
-  hierarquia?: HierarquiaEnum;
-}
-
-export interface UserLoginData {
-  id: string;
-  nome: string;
-  foto?: string;
-  email: string;
-  papel: VoluntarioPapelEnum;
-  ministerios: UserMinisterio[];
-}
-
-const normalizeUserImages = (user: UserLoginData | null): UserLoginData | null => {
-  if (!user) return null;
-
-  return {
-    ...user,
-    foto: user.foto ? ImageUtils.rawToDataUri(user.foto) ?? user.foto : undefined,
-    ministerios: (user.ministerios ?? []).map(ministerio => ({
-      ...ministerio,
-      logo: ministerio.logo ? ImageUtils.rawToDataUri(ministerio.logo) ?? ministerio.logo : undefined,
-    })),
-  };
-};
+import { ResponseLoginDto } from '../domain/dtos/login/login.response';
+import { clearAuthToken, getAuthToken, setAuthToken } from '../core/storage/authTokenStorage';
 
 type SignOutReason = 'manual' | 'expired';
 
 interface AuthContextData {
-  user: UserLoginData | null;
+  user: ResponseLoginDto | null;
   token: string | null;
   loading: boolean;
   signIn: (email: string, senha: string) => Promise<void>;
   signOut: (reason?: SignOutReason) => Promise<void>;
   forgotPassword: (email: string) => Promise<boolean>;
-  updateUser: (newUserData: Partial<UserLoginData>) => Promise<void>;
+  updateUser: (newUserData: Partial<ResponseLoginDto>) => Promise<void>;
   changePassword: (senhaAtual: string, novaSenha: string) => Promise<boolean>;
   deleteAccount: () => Promise<boolean>;
 }
@@ -62,7 +30,7 @@ type AuthProviderProps = {
 export function AuthProvider({ children }: AuthProviderProps) {
   const queryClient = useQueryClient();
 
-  const [user, setUser] = useState<UserLoginData | null>(null);
+  const [user, setUser] = useState<ResponseLoginDto | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -71,7 +39,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const loadStorage = async () => {
       try {
-        const storedToken = await AsyncStorage.getItem('token');
+        const storedToken = await getAuthToken();
         const storedUser = await AsyncStorage.getItem('user');
 
         if (storedToken) {
@@ -80,7 +48,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
 
         if (storedUser) {
-          setUser(normalizeUserImages(JSON.parse(storedUser)));
+          setUser(JSON.parse(storedUser));
         }
       } catch (error) {
         console.log('Erro ao carregar storage:', error);
@@ -104,7 +72,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
 
         return Promise.reject(error);
-      }
+      },
     );
 
     return () => {
@@ -115,21 +83,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signIn = async (email: string, senha: string) => {
     const response = await apiClient.post('/auth/login', { email, senha });
 
-    const newToken = response.data?.data?.access_token;
+    const loginData = response.data?.data as ResponseLoginDto | undefined;
+
+    const newToken = loginData?.access_token;
     if (!newToken) throw new Error('Token não retornado pelo servidor');
 
     setToken(newToken);
     apiClient.defaults.headers.Authorization = `Bearer ${newToken}`;
-    await AsyncStorage.setItem('token', newToken);
+    await setAuthToken(newToken);
 
-    const userResponse = response.data?.data?.user;
-    if (!userResponse) throw new Error('Dados de Usuario nao retornado pelo servidor');
+    const userResponse = loginData?.user;
+    if (!userResponse || !loginData) throw new Error('Dados de Usuario nao retornado pelo servidor');
 
-    const normalizedUser = normalizeUserImages(userResponse);
-    setUser(normalizedUser);
+    setUser(loginData);
 
-    if (normalizedUser) {
-      await AsyncStorage.setItem('user', JSON.stringify(normalizedUser));
+    if (loginData) {
+      await AsyncStorage.setItem('user', JSON.stringify(loginData));
     } else {
       await AsyncStorage.removeItem('user');
     }
@@ -145,7 +114,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       delete apiClient.defaults.headers.Authorization;
 
-      await AsyncStorage.removeItem('token');
+      await clearAuthToken();
       await AsyncStorage.removeItem('user');
 
       queryClient.clear();
@@ -166,17 +135,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return true;
   };
 
-  const updateUser = async (newUserData: Partial<UserLoginData>) => {
-    const mergedUser = user ? { ...user, ...newUserData } : (newUserData as UserLoginData);
-    const normalizedUser = normalizeUserImages(mergedUser)!;
+  const updateUser = async (newUserData: Partial<ResponseLoginDto>) => {
+    if (!user) return;
 
-    setUser(normalizedUser);
+    const mergedUser: ResponseLoginDto = {
+      ...user,
+      ...newUserData,
+      user: {
+        ...user.user,
+        ...(newUserData.user ?? {}),
+      },
+      igrejas: newUserData.igrejas ?? user.igrejas,
+    };
 
-    if (normalizedUser) {
-      await AsyncStorage.setItem('user', JSON.stringify(normalizedUser));
-    } else {
-      await AsyncStorage.removeItem('user');
-    }
+    setUser(mergedUser);
+    await AsyncStorage.setItem('user', JSON.stringify(mergedUser));
   };
 
   const changePassword = async (senhaAtual: string, novaSenha: string) => {
@@ -202,7 +175,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       changePassword,
       deleteAccount,
     }),
-    [user, token, loading]
+    [user, token, loading],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

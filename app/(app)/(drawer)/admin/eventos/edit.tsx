@@ -5,12 +5,14 @@ import FancyPageView from '../../../../../components/containers/FancyPageView';
 import FancyButton from '../../../../../components/buttons/FancyButton';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormProvider, useForm } from 'react-hook-form';
-import { EventoFormData, eventoSchema, useEventosCrud } from '../../../../../hooks/useEventosCrud';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
 import { useEffect } from 'react';
 import { toZonedTime } from 'date-fns-tz';
+import { EventoFormData, eventoSchema } from '../../../../../domain/schemas/eventoSchema';
+import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
+import { DateUtilsApi } from '../../../../../utils/date_utils';
 
 export default function EventosEditPage() {
   const params = useLocalSearchParams<{ id: string }>();
@@ -23,7 +25,13 @@ export default function EventosEditPage() {
     autoFetch: true,
     initialParams: {
       where: {
-        conditions: [{ path: 'id', operator: Operator.EQUALS, value: { type: ValueType.LITERAL, value: params.id } }],
+        conditions: [
+          {
+            path: 'id',
+            operator: Operator.EQUALS,
+            value: { type: ValueType.LITERAL, value: params.id },
+          },
+        ],
       },
     },
   });
@@ -41,13 +49,13 @@ export default function EventosEditPage() {
       eventoForm.setValue('dataInicio', toZonedTime(eventosData[0]?.dataInicio, 'America/Sao_Paulo'));
       eventoForm.setValue(
         'dataTermino',
-        eventosData[0]?.dataTermino ? toZonedTime(eventosData[0]?.dataTermino, 'America/Sao_Paulo') : undefined
+        eventosData[0]?.dataTermino ? toZonedTime(eventosData[0]?.dataTermino, 'America/Sao_Paulo') : undefined,
       );
       eventoForm.setValue('descricao', eventosData[0]?.descricao ?? '');
       eventoForm.setValue('recorrencia', eventosData[0]?.recorrencia);
-      eventoForm.setValue('recorrenciaSemanaDias', eventosData[0]?.recorrenciaSemanaDias?.map(item => item) || []);
+      eventoForm.setValue('recorrenciaSemanaDias', eventosData[0]?.recorrenciaSemanaDias?.map((item) => item) || []);
       eventoForm.setValue('recorrenciaACadaMeses', eventosData[0]?.recorrenciaACadaMeses || 1);
-      eventoForm.setValue('recorrenciaSemanasMes', eventosData[0]?.recorrenciaSemanasMes?.map(item => item) || []);
+      eventoForm.setValue('recorrenciaSemanasMes', eventosData[0]?.recorrenciaSemanasMes?.map((item) => item) || []);
     }
   }, [eventosData]);
 
@@ -56,53 +64,38 @@ export default function EventosEditPage() {
   }
 
   if (isLoadingEventoMutation) {
-    return <FancyLoading label="Processando..." />;
+    return <FancyLoading label='Salvando...' />;
   }
 
   const handleSubmit = async () => {
     eventoForm.handleSubmit(
-      async data => {
+      async (data) => {
         await updateEvento({
           id: data.id!,
           data: {
             ...data,
+            dataInicio: DateUtilsApi.dateTimeToApi(data.dataInicio),
+            dataTermino: data.dataTermino ? DateUtilsApi.dateTimeToApi(data.dataTermino) : undefined,
           },
         });
         router.back();
       },
-      error => console.log(error)
+      (error) => console.log(error),
     )();
   };
 
   return (
-    <FancyPageView style={styles.container}>
+    <FancyPageView>
       <FormProvider {...eventoForm}>
         <EventosDadosForm />
       </FormProvider>
       <View style={styles.buttons}>
-        <FancyButton label="Salvar" icon={{ ...DefaultIconsNames.save, size: 16 }} type="contained" onPress={handleSubmit} />
+        <FancyButton label='Salvar' icon={{ ...DefaultIconsNames.save, size: 16 }} type='contained' onPress={handleSubmit} />
       </View>
     </FancyPageView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    borderWidth: 0,
-    borderColor: 'lightgreen',
-    paddingVertical: 15,
-    gap: 15,
-    paddingTop: 15,
-    paddingBottom: 5,
-    paddingHorizontal: 20,
-  },
-  fields: {
-    gap: 15,
-    paddingVertical: 5,
-    borderWidth: 0,
-    borderColor: 'red',
-  },
-  buttons: { paddingHorizontal: 18 },
-  tabsContainer: { flex: 1 },
+  buttons: { paddingHorizontal: 15 },
 });

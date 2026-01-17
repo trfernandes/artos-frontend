@@ -12,7 +12,7 @@ export default function MinisterioLouvorRepertorioIndexPage() {
         data: MUSIC_LIST,
         renderItem: ({ item }) => (
           <FancyCard.Image
-            type="icon"
+            type='icon'
             props={{
               title: item.nome,
               subtitle: item.artista,

@@ -17,14 +17,13 @@ type BaseDataType = {
 };
 
 type TopElementValueMap = {
-  image: { source?: string | ImageSourcePropType; size?: number, highlighted?: boolean };
+  image: { source?: ImageSourcePropType; size?: number; highlighted?: boolean };
   letter: { letter?: string };
   icon: { icon?: CustomIconProps };
   check: { checked: boolean; image: string };
 };
 
-export type DataType<T extends TopElementType = TopElementType> = BaseDataType &
-  TopElementValueMap[T];
+export type DataType<T extends TopElementType = TopElementType> = BaseDataType & TopElementValueMap[T];
 
 export interface FancyVerticalContainerCardProps<T extends TopElementType = TopElementType> {
   topElementType: T;
@@ -39,9 +38,7 @@ export interface FancyVerticalContainerCardProps<T extends TopElementType = TopE
   containerStyle?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
 
-  onChangeValue?: T extends 'check'
-    ? (item: DataType<'check'>, value: boolean, index: number) => void
-    : undefined;
+  onChangeValue?: T extends 'check' ? (item: DataType<'check'>, value: boolean, index: number) => void : undefined;
 }
 
 const DEFAULT_ITEM_HEIGHT = 160;
@@ -128,9 +125,9 @@ export default function FancyVerticalContainerCard<T extends TopElementType>({
           value={item.checked}
           title={card.title}
           subtitle={card.subtitle}
-          source={item.image}
+          source={{ uri: item.image }}
           containerStyle={style}
-          onChangeValue={v => (onChangeValue as any)?.(item, v, index)}
+          onChangeValue={(v) => (onChangeValue as any)?.(item, v, index)}
         />
       );
     }

@@ -9,13 +9,14 @@ import FancyAvatarImage from '../images/FancyImage';
 import { useVoluntariosCrud } from '../../hooks/useVoluntariosCrud';
 import { Operator, ValueType } from '../../domain/utils/query_utils';
 import { useMemo } from 'react';
-import { calculateProfileCompletion } from '../../domain/models/Voluntario';
+import { AppImages } from '../../assets/app_images';
+import FancyDrawerIgrejaSelector from './FancyDrawerIgrejaSelector';
 
 export default function FancyDrawerHeader() {
   const auth = useAuth();
 
   const params = useMemo(() => {
-    if (!auth.user?.id) return undefined;
+    if (!auth.user?.user?.id) return undefined;
 
     return {
       where: {
@@ -23,49 +24,49 @@ export default function FancyDrawerHeader() {
           {
             path: 'id',
             operator: Operator.EQUALS,
-            value: { type: ValueType.LITERAL as const, value: auth.user.id },
+            value: { type: ValueType.LITERAL as const, value: auth.user.user.id },
           },
         ],
       },
     };
-  }, [auth.user?.id]);
+  }, [auth.user?.user?.id]);
 
   const { data } = useVoluntariosCrud({
     initialParams: params,
     autoFetch: true,
   });
 
-  const profileCompletion = data && data.length > 0 ? calculateProfileCompletion(data?.[0]) : 0;
+  //   const profileCompletion = data && data.length > 0 ? calculateProfileCompletion(data?.[0]) : 0;
 
   return (
     <LinearGradient colors={['#3B82F6', '#234C90']} start={{ x: 0, y: 0 }} end={{ x: 0.9, y: 1 }} style={styles.container}>
       <TouchableOpacity onPress={() => router.push('pessoal/perfil')} style={styles.contentContainer}>
         <View style={styles.dataContainer}>
           <View style={styles.infoContainer}>
-            <FancyText size={'small'} type="medium" color={Pallete.fonts.light}>
+            <FancyText size={'small'} type='medium' color={Pallete.fonts.light}>
               Olá,
             </FancyText>
-            <FancyText size={'medium'} type="bold" color={Pallete.fonts.light}>
-              {auth.user?.nome}
+            <FancyText size={'medium'} type='bold' color={Pallete.fonts.light}>
+              {auth.user?.user?.nome}
             </FancyText>
-            <FancyText size={'small'} type="semiBoldItalic" color={Pallete.fonts.light}>
-              {auth.user?.email}
+            <FancyText size={'small'} type='semiBoldItalic' color={Pallete.fonts.light}>
+              {auth.user?.user?.email}
             </FancyText>
           </View>
           <View style={styles.avatarContainer}>
             <FancyAvatarImage
-              source={auth.user?.foto ? { uri: auth.user?.foto } : require('../../assets/images/empty_profile_image.png')}
               size={50}
+              source={
+                auth.user?.user?.fotoThumbUrl || auth.user?.user?.fotoUrl
+                  ? { uri: auth.user?.user?.fotoThumbUrl || auth.user?.user?.fotoUrl || '' }
+                  : AppImages.emptyProfile
+              }
               style={styles.avatar as StyleProp<ImageStyle>}
             />
           </View>
-          <DefaultIcons.Custom library="Feather" name="chevron-right" size={28} color={Pallete.fonts.light} />
-        </View>
-        <View style={{ paddingRight: 2 }}>
-          <FancyText type="medium" size={'small'} color={Pallete.fonts.light} style={{ lineHeight: 18 }}>
-            {`⚠️ O seu perfil está ${profileCompletion}% completo, clique aqui para editar`}
-          </FancyText>
-        </View>
+          <DefaultIcons.Custom library='Feather' name='chevron-right' size={28} color={Pallete.fonts.light} />
+        </View>        
+        <FancyDrawerIgrejaSelector />
       </TouchableOpacity>
     </LinearGradient>
   );
@@ -85,6 +86,7 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'column',
     gap: 15,
+    // paddingBottom: 5,
   },
   dataContainer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
   infoContainer: {

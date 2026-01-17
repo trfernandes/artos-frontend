@@ -3,31 +3,33 @@ import { DefaultIconsNames } from '../../../../constants/icons';
 import TemplateFixoEquipeForm from './TemplateFixoEquipeForm';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import { FormProvider, useFieldArray, useForm, useFormContext } from 'react-hook-form';
-import { EscalaTemplateFormData, escalaTemplateVoluntarioSchema } from '../../../../domain/schemas/escalaTemplateSchema';
+import {
+    EscalaTemplateFormData,
+    EscalaTemplateVoluntarioFormData,
+    escalaTemplateVoluntarioSchema,
+} from '../../../../domain/schemas/escalaTemplateSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Pallete } from '../../../../constants/colors';
-import { MinisterioFuncaoModel } from '../../../../domain/models/MinisterioFuncao';
 import { FancyAlert } from '../../../modal/FancyAlert';
 import Toast from 'react-native-toast-message';
-import { EscalaTemplateVoluntarioModel } from '../../../../domain/models/EscalaTemplate';
 import { FancyCard } from '../../../cards/Horizontal/FancyCard';
 import FancyContainerList from '../../../container_list/FancyContainerList';
-import { MinisterioVoluntarioModel } from '../../../../domain/models/MinisterioVoluntario';
-
-const EMPTY_PROFILE_IMAGE = require('../../../../assets/images/empty_profile_image.png');
+import { ResponseMinisterioVoluntarioDto } from '../../../../domain/dtos/MinisterioVoluntario/ministerio-voluntario.response';
+import { ResponseMinisterioFuncaoDto } from '../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.response';
+import { AppImages } from '../../../../assets/app_images';
 
 interface TemplateFixoEquipeListProps {
   disabled?: boolean;
-  voluntariosList: MinisterioVoluntarioModel[] | [];
-  funcoesList: MinisterioFuncaoModel[] | [];
+  voluntariosList: ResponseMinisterioVoluntarioDto[] | [];
+  funcoesList: ResponseMinisterioFuncaoDto[] | [];
   voluntariosDropDownList?: DropDownItemProps<string>[];
   funcoesDropDownList: DropDownItemProps<string>[];
 }
 
 export default function TemplateFixoEquipeList({
   disabled = false,
-  voluntariosList = [] as MinisterioVoluntarioModel[],
-  funcoesList = [] as MinisterioFuncaoModel[],
+  voluntariosList = [] as ResponseMinisterioVoluntarioDto[],
+  funcoesList = [] as ResponseMinisterioFuncaoDto[],
   voluntariosDropDownList,
   funcoesDropDownList,
 }: TemplateFixoEquipeListProps) {
@@ -37,17 +39,18 @@ export default function TemplateFixoEquipeList({
     control,
     name: 'voluntarios',
   });
+  const voluntariosWatch = watch('voluntarios');
 
-  const voluntariosData = (watch('voluntarios') ?? []).slice().sort((a, b) => {
-    const voluntarioA = voluntariosList.find(v => v.id === a.voluntarioId);
-    const voluntarioB = voluntariosList.find(v => v.id === b.voluntarioId);
+  const voluntariosData = (voluntariosWatch ?? []).slice().sort((a, b) => {
+    const voluntarioA = voluntariosList.find((v) => v.id === a.voluntarioId);
+    const voluntarioB = voluntariosList.find((v) => v.id === b.voluntarioId);
     const nomeA = voluntarioA?.voluntario?.nome?.toLowerCase() || '';
     const nomeB = voluntarioB?.voluntario?.nome?.toLowerCase() || '';
     if (nomeA < nomeB) return -1;
     if (nomeA > nomeB) return 1;
 
-    const funcaoA = funcoesList.find(f => f.id === a.funcaoId);
-    const funcaoB = funcoesList.find(f => f.id === b.funcaoId);
+    const funcaoA = funcoesList.find((f) => f.id === a.funcaoId);
+    const funcaoB = funcoesList.find((f) => f.id === b.funcaoId);
     const funcaoNomeA = funcaoA?.nome?.toLowerCase() || '';
     const funcaoNomeB = funcaoB?.nome?.toLowerCase() || '';
     if (funcaoNomeA < funcaoNomeB) return -1;
@@ -62,8 +65,8 @@ export default function TemplateFixoEquipeList({
     if (disabled) {
       return;
     }
-    formAdd.handleSubmit(data => {
-      const alreadyExists = voluntariosData.some(v => v.voluntarioId === data.voluntarioId && v.funcaoId === data.funcaoId);
+    formAdd.handleSubmit((data) => {
+      const alreadyExists = voluntariosData.some((v) => v.voluntarioId === data.voluntarioId && v.funcaoId === data.funcaoId);
 
       if (alreadyExists) {
         formAdd.setError('voluntarioId', { message: 'Voluntário já adicionado.' });
@@ -93,7 +96,7 @@ export default function TemplateFixoEquipeList({
       formAdd.reset({ voluntarioId: undefined, funcaoId: undefined, id: undefined });
       setFormParams({ visible: true, mode });
     },
-    [disabled, formAdd]
+    [disabled, formAdd],
   );
 
   const handleRemove = useCallback(
@@ -120,7 +123,7 @@ export default function TemplateFixoEquipeList({
         },
       ]);
     },
-    [disabled, remove, voluntariosData]
+    [disabled, remove, voluntariosData],
   );
 
   return (
@@ -130,16 +133,19 @@ export default function TemplateFixoEquipeList({
         data={voluntariosData}
         contentContainerStyle={{ paddingTop: 6 }}
         disabled={disabled}
-        renderItem={({ item, index }: { item: EscalaTemplateVoluntarioModel; index: number }) => {
-          const voluntarioInfo = voluntariosList.find(option => option.id === item.voluntarioId);
-          const funcaoInfo = funcoesList.find(option => option.id === item.funcaoId);
+        renderItem={({ item, index }: { item: EscalaTemplateVoluntarioFormData; index: number }) => {
+          const voluntarioInfo = voluntariosList.find((option) => option.id === item.voluntarioId);
+          const funcaoInfo = funcoesList.find((option) => option.id === item.funcaoId);
           return (
             <FancyCard.Image
-              type="image"
+              type='image'
               props={{
                 title: voluntarioInfo?.voluntario?.nome,
                 subtitle: funcaoInfo?.nome,
-                source: voluntarioInfo?.voluntario?.foto ? { uri: voluntarioInfo?.voluntario?.foto } : EMPTY_PROFILE_IMAGE,
+                source:
+                  voluntarioInfo?.voluntario?.fotoThumbUrl || voluntarioInfo?.voluntario?.fotoUrl
+                    ? { uri: voluntarioInfo?.voluntario?.fotoThumbUrl || voluntarioInfo?.voluntario?.fotoUrl || '' }
+                    : AppImages.emptyProfile,
                 actionButtons: [
                   {
                     icon: {
@@ -177,4 +183,3 @@ export default function TemplateFixoEquipeList({
     </>
   );
 }
-

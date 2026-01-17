@@ -49,14 +49,13 @@ export default function FancyCalendarHeader({
         style={styles.actualDateContainer}
         onPress={() => {
           if (visualization === CalendarVisualization.Day) props.onChangeVisualization(CalendarVisualization.Month);
-          else if (visualization === CalendarVisualization.Month)
-            props.onChangeVisualization(CalendarVisualization.Year);
+          else if (visualization === CalendarVisualization.Month) props.onChangeVisualization(CalendarVisualization.Year);
         }}
       >
-        <FancyText size="large" type="bold" color={Pallete.fonts.inactive}>
+        <FancyText size='large' type='bold' color={Pallete.fonts.inactive}>
           {displayDate.getFullYear()}
         </FancyText>
-        <FancyText size="large" type="bold">
+        <FancyText size='large' type='bold'>
           {MONTH_NAMES[displayDate.getMonth()]}
         </FancyText>
       </Pressable>

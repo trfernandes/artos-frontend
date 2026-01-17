@@ -1,13 +1,14 @@
-import { EscalasApi, GerarEscalaDto } from '../api/EscalaApi';
-import { EscalaApiModel, EscalaModel, EscalaSerializer } from '../models/Escala';
+import { EscalasApi } from '../api/EscalaApi';
+import { CreateEscalaDto } from '../dtos/Escala/escala.create';
+import { ResponseEscalaDto } from '../dtos/Escala/escala.response';
 import { BaseRepository } from './BaseRepository';
 
-class EscalaRepositoryClass extends BaseRepository<EscalaModel, EscalaApiModel> {
+class EscalaRepositoryClass extends BaseRepository<ResponseEscalaDto, CreateEscalaDto, any> {
   constructor() {
-    super(EscalasApi, { fromApi: EscalaSerializer.fromApi, toApi: EscalaSerializer.toApi });
+    super(EscalasApi);
   }
 
-  async generate(data: GerarEscalaDto) {
+  async generate(data: CreateEscalaDto): Promise<ResponseEscalaDto> {
     return EscalasApi.generate(data);
   }
 }

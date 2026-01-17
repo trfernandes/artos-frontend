@@ -8,7 +8,15 @@ export type FancyCardSimpleProps = {
   actionButtons?: ActionButtonProps | ActionButtonProps[] | ReactNode;
 } & Pick<
   FancyBaseCardProps,
-  'title' | 'subtitle' | 'additionalData1' | 'additionalData2' | 'content' | 'containerStyle' | 'contentContainerStyle' | 'isCollapsable'
+  | 'title'
+  | 'subtitle'
+  | 'additionalData1'
+  | 'additionalData2'
+  | 'content'
+  | 'containerStyle'
+  | 'contentContainerStyle'
+  | 'isCollapsable'
+  | 'backgroundColor'
 >;
 
 export default function FancyCardSimple(props: FancyCardSimpleProps) {

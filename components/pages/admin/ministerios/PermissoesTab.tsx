@@ -3,10 +3,15 @@ import FancyDropDown from '../../../fields/FancyDropDown';
 import { PEOPLE_DATA } from '../eventos/EventosEscalaEquipe';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import z from 'zod';
-import { RecursoPermissaoEnum, TipoPermissaoEnum } from '../../../../domain/models/MinisterioVoluntarioPermissao';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { MinisterioFormData } from '../../../../app/(app)/(drawer)/admin/ministerios/add';
 import PermissoesManager from './PermissoesManager';
+import {
+  RecursoPermissaoEnum,
+  TipoPermissaoEnum,
+} from '../../../../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
+import { useMemo } from 'react';
+import { ResponseMinisterioVoluntarioPermissaoDto } from '../../../../domain/dtos/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.response';
 
 export const permissoesSchema = z.object({
   id: z.uuidv4('O Id do voluntário deve ser válido').optional(),
@@ -26,19 +31,31 @@ export default function PermissoesTab() {
     keyName: 'fieldId',
   });
 
+  const permissoesData = useMemo<ResponseMinisterioVoluntarioPermissaoDto[]>(() => {
+    return permissoesFieldArray.fields.map(
+      (field) =>
+        ({
+          id: field.id,
+          ministerioVoluntarioId: field.ministerioVoluntarioId,
+          recurso: field.recurso,
+          permissoes: field.permissoes,
+        }) as ResponseMinisterioVoluntarioPermissaoDto,
+    );
+  }, [permissoesFieldArray.fields]);
+
   return (
     <View style={styles.container}>
       <FancyDropDown
-        label="Líder"
+        label='Líder'
         listItems={PEOPLE_DATA.map(
           (value, index) =>
             ({
               title: value.nome,
               value: index.toString(),
-            } as DropDownItemProps<string>)
+            }) as DropDownItemProps<string>,
         )}
       />
-      <PermissoesManager disabled={false} data={permissoesFieldArray.fields} />
+      <PermissoesManager disabled={false} data={permissoesData} />
     </View>
   );
 }

@@ -1,3 +1,3 @@
 export const ErrorConstants = {
-    UniqueConstraintError: '909091'
-}
+  UniqueConstraintError: '909091',
+};

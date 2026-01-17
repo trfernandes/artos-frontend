@@ -1,11 +1,5 @@
 import { useRef, useState } from 'react';
-import {
-  StyleSheet,
-  TouchableOpacity,
-  View,
-  Animated,
-  StyleSheet as RNStyleSheet,
-} from 'react-native';
+import { StyleSheet, TouchableOpacity, View, Animated, StyleSheet as RNStyleSheet } from 'react-native';
 import { Pallete } from '../../constants/colors';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import { DefaultIconsNames } from '../../constants/icons';
@@ -86,28 +80,16 @@ export default function FancyExpandableFab({
         return (
           <Animated.View
             key={index}
-            style={[
-              styles.optionButtonContainer,
-              { transform: [{ translateY }], opacity: animation },
-            ]}
+            style={[styles.optionButtonContainer, { transform: [{ translateY }], opacity: animation }]}
             pointerEvents={open ? 'auto' : 'none'}
           >
             <View style={styles.labelContainer}>
-              <FancyText type="semiBold" size={'small'}>
+              <FancyText type='semiBold' size={'small'}>
                 {button.label}
               </FancyText>
             </View>
-            <View
-              style={[
-                styles.optionButton,
-                { backgroundColor: button.backgroundColor || Pallete.terciary },
-              ]}
-            >
-              <DefaultIcons.Custom
-                {...button.icon}
-                color={Pallete.icons.light}
-                size={button.size || 22}
-              />
+            <View style={[styles.optionButton, { backgroundColor: button.backgroundColor || Pallete.terciary }]}>
+              <DefaultIcons.Custom {...button.icon} color={Pallete.icons.light} size={button.size || 22} />
             </View>
           </Animated.View>
         );
@@ -117,27 +99,13 @@ export default function FancyExpandableFab({
       <TouchableOpacity activeOpacity={0.9} onPress={toggleMenu}>
         <Animated.View style={[styles.button, { backgroundColor }]}>
           {/* Ícone fechado */}
-          <Animated.View
-            style={[RNStyleSheet.absoluteFill, styles.iconWrapper, { opacity: closedOpacity }]}
-            pointerEvents="none"
-          >
-            <DefaultIcons.Custom
-              {...mainButtonClosed.icon}
-              size={mainButtonClosed.size || 22}
-              color={Pallete.icons.light}
-            />
+          <Animated.View style={[RNStyleSheet.absoluteFill, styles.iconWrapper, { opacity: closedOpacity }]} pointerEvents='none'>
+            <DefaultIcons.Custom {...mainButtonClosed.icon} size={mainButtonClosed.size || 22} color={Pallete.icons.light} />
           </Animated.View>
 
           {/* Ícone aberto */}
-          <Animated.View
-            style={[RNStyleSheet.absoluteFill, styles.iconWrapper, { opacity: openOpacity }]}
-            pointerEvents="none"
-          >
-            <DefaultIcons.Custom
-              {...mainButtonOpen.icon}
-              size={mainButtonOpen.size || 22}
-              color={Pallete.icons.light}
-            />
+          <Animated.View style={[RNStyleSheet.absoluteFill, styles.iconWrapper, { opacity: openOpacity }]} pointerEvents='none'>
+            <DefaultIcons.Custom {...mainButtonOpen.icon} size={mainButtonOpen.size || 22} color={Pallete.icons.light} />
           </Animated.View>
         </Animated.View>
       </TouchableOpacity>

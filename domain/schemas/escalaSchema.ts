@@ -1,5 +1,6 @@
 import z from 'zod';
-import { EscalaTemplateExperienciaEnum, EscalaTemplateTipoEnum } from '../models/EscalaTemplate';
+import { EscalaTemplateTipoEnum } from '../enums/EscalaTemplate/escala-template-tipo.enum';
+import { EscalaTemplateExperienciaEnum } from '../enums/EscalaTemplate/escala-template-experiencia.enum';
 
 export const EscalaEventoTemplateFuncaoSchema = z.object({
   funcaoId: z.uuidv4('Campo obrigatório'),
@@ -27,12 +28,8 @@ export const EscalaEventoTemplateSchema = z.object({
 export const EscalaEventosSchema = z
   .object({
     eventoId: z.uuidv4(),
-    data: z
-      .string()
-      .transform(val => new Date(val))
-      .refine(date => !isNaN(date.getTime()), {
-        message: 'Data inválida',
-      }),
+    dataOcorrencia: z.date('Campo Obrigatório'),
+    horario: z.string('Campo Obrigatório'),
     nome: z.string(),
     local: z.string().optional(),
     cor: z.string().optional(),
@@ -63,7 +60,7 @@ export const EscalaEventosSchema = z
     }
   });
 
-export const EscalaEventosArraySchema = z.array(EscalaEventosSchema).refine(eventos => eventos.some(e => e.selected), {
+export const EscalaEventosArraySchema = z.array(EscalaEventosSchema).refine((eventos) => eventos.some((e) => e.selected), {
   message: 'Selecione pelo menos um evento',
   path: ['selected'],
 });
@@ -74,12 +71,10 @@ const EscalaParticipantesSchema = z.object({
   selected: z.boolean(),
 });
 
-export const EscalaParticipantesArraySchema = z
-  .array(EscalaParticipantesSchema)
-  .refine(participantes => participantes.some(p => p.selected), {
-    message: 'Selecione pelo menos um participante',
-    path: ['selected'],
-  });
+export const EscalaParticipantesArraySchema = z.array(EscalaParticipantesSchema).refine((participantes) => participantes.some((p) => p.selected), {
+  message: 'Selecione pelo menos um participante',
+  path: ['selected'],
+});
 
 export const EscalaSchema = z
   .object({

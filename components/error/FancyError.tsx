@@ -14,23 +14,17 @@ export interface FancyErrorProps {
   showTryAgain?: boolean;
 }
 
-export default function FancyError({
-  title = '',
-  subtitle,
-  icon,
-  showTryAgain = true,
-  onUpdate,
-}: FancyErrorProps) {
+export default function FancyError({ title = '', subtitle, icon, showTryAgain = true, onUpdate }: FancyErrorProps) {
   return (
     <View style={styles.container}>
       <View style={{ alignItems: 'center', gap: 25 }}>
         {icon && <DefaultIcons.Custom {...icon} />}
         <View style={{ gap: 6, alignItems: 'center' }}>
-          <FancyText size={'medium'} type="bold" color={Pallete.fonts.inactive}>
+          <FancyText size={'medium'} type='bold' color={Pallete.fonts.inactive}>
             {title}
           </FancyText>
           {subtitle && (
-            <FancyText size={'small'} type="medium" color={Pallete.fonts.inactive}>
+            <FancyText size={'small'} type='medium' color={Pallete.fonts.inactive}>
               {subtitle}
             </FancyText>
           )}
@@ -39,7 +33,7 @@ export default function FancyError({
       {showTryAgain && (
         <FancyButton
           icon={{ ...DefaultIconsNames.refresh, size: 15, color: Pallete.icons.inactive }}
-          type="outlined"
+          type='outlined'
           containerStyle={{
             paddingHorizontal: 20,
             borderColor: Pallete.border,
@@ -51,7 +45,7 @@ export default function FancyError({
             fontSize: EXTRA_SMALL_SIZE_FONT,
             fontFamily: SEMI_BOLD_FONT,
           }}
-          label="Tentar novamente"
+          label='Tentar novamente'
           onPress={onUpdate}
         />
       )}
@@ -77,8 +71,8 @@ FancyError.Connection = ({
 FancyError.Default = (props: Pick<FancyErrorProps, 'onUpdate'>) => {
   return (
     <FancyError
-      title="Ocorreu um erro inesperado"
-      subtitle="Por favor tente novamente"
+      title='Ocorreu um erro inesperado'
+      subtitle='Por favor tente novamente'
       icon={{
         library: 'FontAwesome5',
         name: 'car-crash',

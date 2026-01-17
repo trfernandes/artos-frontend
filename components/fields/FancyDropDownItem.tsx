@@ -1,16 +1,16 @@
-import { ImageSourcePropType, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import FancyText from '../FancyText';
 import { Pallete } from '../../constants/colors';
 import { Image } from 'expo-image';
-import { ImageUtils } from '../../utils/image_utils';
+import { AppImages } from '../../assets/app_images';
 
 export interface DropDownItemProps<ValueType> {
   title: string;
   subtitle?: string;
   value: ValueType;
   selected?: boolean;
-  left?: { type: 'image'; source: string | ImageSourcePropType } | { type: 'icon'; icon: CustomIconProps } | undefined;
+  left?: { type: 'image'; source: string } | { type: 'icon'; icon: CustomIconProps } | undefined;
   onPress?: () => void;
 }
 
@@ -20,16 +20,11 @@ export default function FancyDropDownItem<ValueItem>(props: DropDownItemProps<Va
       {props.left &&
         (props.left?.type === 'icon' ? (
           <DefaultIcons.Custom color={Pallete.fonts.dark} {...(props.left.icon as CustomIconProps)} />
-        ) : props.left?.source ? (
+        ) : (
           <Image
-            source={
-              ImageUtils.normalizeImageSource(props.left?.source) ??
-              (typeof props.left?.source === 'string' ? { uri: props.left?.source } : props.left?.source)
-            }
+            source={props.left.source ? { uri: props.left.source || '' } : AppImages.emptyProfile}
             style={{ width: 30, height: 30, borderRadius: 100 }}
           />
-        ) : (
-          <Image source={require('../../assets/images/empty_profile_image.png')} style={{ width: 30, height: 30, borderRadius: 100 }} />
         ))}
       <View style={{ flexDirection: 'row', gap: 10, justifyContent: 'space-between', flex: 1 }}>
         <FancyText size={'small'} type={!props.selected ? 'medium' : 'bold'}>

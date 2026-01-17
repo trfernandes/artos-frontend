@@ -1,24 +1,21 @@
-import { StyleSheet, TouchableOpacity } from 'react-native';
-import { Pallete } from '../../../../constants/colors';
-import { useState } from 'react';
-import DefaultIcons from '../../../FancyIcons';
+import { StyleSheet, View } from 'react-native';
 import FancyText from '../../../FancyText';
-import { DefaultIconsNames } from '../../../../constants/icons';
-import EventoRepeticaoInputCustom from './EventoRepeticaoInputCustom';
 import FancySettingItem from '../../../FancySettingItem';
 import { Controller, useFormContext } from 'react-hook-form';
-import { EventoFormData, generateRecorrenciaDescription } from '../../../../hooks/useEventosCrud';
-import { RecorrenciaEnum } from '../../../../domain/models/Evento';
+import { generateRecorrenciaDescription } from '../../../../hooks/useEventosCrud';
 import FancyErrorText from '../../../forms/FancyErrorText';
+import { EventoFormData } from '../../../../domain/schemas/eventoSchema';
+import { RecorrenciaEnum } from '../../../../domain/enums/Evento/recorrencia.enum';
+import FancyButton from '../../../buttons/FancyButton';
+import { DefaultIconsNames } from '../../../../constants/icons';
 
 export type RecorrenciaValue = { type: 'Nunca' } | { type: 'Personalizado' };
 export type EventoRepeticaoInputProps = {
   disabled?: boolean;
+  setRepeticaoModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-export default function EventoRepeticaoInput({ disabled = false }: EventoRepeticaoInputProps) {
-  const [modalVisible, setModalVisible] = useState(false);
-
+export default function EventoRepeticaoInput({ disabled = false, setRepeticaoModalVisible }: EventoRepeticaoInputProps) {
   const {
     setValue,
     getValues,
@@ -30,19 +27,18 @@ export default function EventoRepeticaoInput({ disabled = false }: EventoRepetic
   const recorrencia = watch('recorrencia');
 
   return (
-    <>
+    <View style={{ gap: 5 }}>
       <Controller
         control={control}
-        name="recorrencia"
-        render={({ field: { value, onChange: controllerOnChange } }) => (
+        name='recorrencia'
+        render={() => (
           <FancySettingItem
             disabled={disabled}
             icon={{ library: 'Feather', name: 'repeat', size: 14 }}
             label={'Recorrência'}
+            containerStyle={{ gap: 4 }}
             value={
-              recorrencia && [RecorrenciaEnum.Semanal, RecorrenciaEnum.Mensal].includes(recorrencia)
-                ? 'Personalizado'
-                : 'Nunca'
+              recorrencia && [RecorrenciaEnum.Semanal, RecorrenciaEnum.Mensal].includes(recorrencia) ? 'Personalizado' : 'Nunca'
             }
             options={[
               {
@@ -55,52 +51,45 @@ export default function EventoRepeticaoInput({ disabled = false }: EventoRepetic
                 label: 'Personalizado',
                 onPress: () => {
                   setValue('recorrencia', RecorrenciaEnum.Semanal);
-                  setModalVisible(true);
+                  setRepeticaoModalVisible(true);
                 },
               },
             ]}
           >
             {recorrencia && [RecorrenciaEnum.Semanal, RecorrenciaEnum.Mensal].includes(recorrencia) && (
               <>
-                <TouchableOpacity
-                  style={styles.personalizadoContainer}
-                  onPress={() => setModalVisible(true)}
-                >
+                <View style={styles.personalizadoContainer}>
                   <FancyText
-                    size={'extraSmall'}
-                    type="medium"
-                    style={{ lineHeight: 16, flex: 1, borderWidth: 0 }}
+                    size={'small'}
+                    type='semiBold'
+                    style={{
+                      opacity: 0.8,
+                      flex: 1,
+                      height: '100%',
+                    }}
                   >
                     {getValues('recorrencia') !== undefined &&
                       generateRecorrenciaDescription(
                         getValues('recorrencia')!,
                         getValues('recorrenciaSemanaDias')!,
                         getValues('recorrenciaACadaMeses')!,
-                        getValues('recorrenciaSemanasMes')!
+                        getValues('recorrenciaSemanasMes')!,
                       )}
                   </FancyText>
-                  <DefaultIcons.Custom
-                    library={DefaultIconsNames['chevron-right'].library}
-                    name={DefaultIconsNames['chevron-right'].name}
-                    size={18}
-                    color={Pallete.icons.inactive}
+                  <FancyButton
+                    label='Editar'
+                    type='contained'
+                    containerStyle={{ gap: 6, height: 28, width: 75 }}
+                    icon={{ ...DefaultIconsNames.edit, size: 13 }}
+                    onPress={() => setRepeticaoModalVisible(true)}
                   />
-                </TouchableOpacity>
-                <EventoRepeticaoInputCustom
-                  modalProps={{
-                    visible: modalVisible,
-                    onRequestClose: () => setModalVisible(false),
-                  }}
-                />
+                </View>
               </>
             )}
           </FancySettingItem>
         )}
       />
-      {(errors.recorrencia ||
-        errors.recorrenciaACadaMeses ||
-        errors.recorrenciaSemanaDias ||
-        errors.recorrenciaSemanasMes) && (
+      {(errors.recorrencia || errors.recorrenciaACadaMeses || errors.recorrenciaSemanaDias || errors.recorrenciaSemanasMes) && (
         <FancyErrorText
           message={`${errors.recorrencia ? errors.recorrencia?.message + '\n' : ''} ${
             errors.recorrenciaACadaMeses ? errors.recorrenciaACadaMeses?.message + '\n' : ''
@@ -109,7 +98,7 @@ export default function EventoRepeticaoInput({ disabled = false }: EventoRepetic
           }`}
         />
       )}
-    </>
+    </View>
   );
 }
 
@@ -118,8 +107,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     flexDirection: 'row',
-    marginBottom: 10,
-    paddingLeft: 10,
+    paddingLeft: 5,
+    paddingVertical: 3,
+    paddingBottom: 5,
     gap: 15,
   },
 });

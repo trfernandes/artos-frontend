@@ -1,13 +1,15 @@
 import { StyleSheet, View } from 'react-native';
 import FancyAvatarImage from '../../../images/FancyImage';
 import FancyScrollView from '../../../FancyScrollView';
-import { VoluntarioModel } from '../../../../domain/models/Voluntario';
 import FancyText from '../../../FancyText';
 import { format } from 'date-fns';
 import FancyVerticalSpacer from '../../../FancyVerticalSpacer';
 import FancyValueLine from '../../../fields/FancyValueLine';
+import { ResponseVoluntarioDto } from '../../../../domain/dtos/Voluntario/voluntario.response';
+import { DateUtilsApi } from '../../../../utils/date_utils';
+import { AppImages } from '../../../../assets/app_images';
 
-export default function VoluntarioDadosTab(props: { voluntario: VoluntarioModel }) {
+export default function VoluntarioDadosTab(props: { voluntario: ResponseVoluntarioDto }) {
   if (!props.voluntario) {
     return;
   }
@@ -16,26 +18,34 @@ export default function VoluntarioDadosTab(props: { voluntario: VoluntarioModel 
     <FancyScrollView contentContainerStyle={styles.container}>
       <View style={{ gap: 20 }}>
         <FancyAvatarImage
-          source={props.voluntario.foto ? { uri: props.voluntario.foto } : require('../../../../assets/images/empty_profile_image.png')}
+          source={
+            props.voluntario.fotoUrl || props.voluntario.fotoThumbUrl
+              ? { uri: props.voluntario.fotoThumbUrl || props.voluntario.fotoUrl || '' }
+              : AppImages.emptyProfile
+          }
           disabled
           size={100}
           style={{ alignSelf: 'center' }}
         />
         <View style={{ alignItems: 'center', gap: 4 }}>
-          <FancyText size={'large'} type="bold" style={{ opacity: 0.8 }}>
+          <FancyText size={'large'} type='bold' style={{ opacity: 0.8 }}>
             {props.voluntario.nome}
           </FancyText>
-          <FancyText size={'medium'} type="normalItalic">
+          <FancyText size={'medium'} type='normalItalic'>
             {props.voluntario.email}
           </FancyText>
         </View>
       </View>
       <FancyVerticalSpacer height={40} />
       <View style={{ gap: 15 }}>
-        <FancyValueLine title="Data de Nascimento:" value={format(new Date(props.voluntario.dataNascimento), 'dd/MM/yyyy')} showSeparator={true} />
-        <FancyValueLine title="Telefone:" value={props.voluntario.telefone || 'Não definido'} showSeparator={true} />
-        <FancyValueLine title="Endereço:" value={props.voluntario.endereco || 'Não definido'} showSeparator={true} />
-        <FancyValueLine title="Sexo:" value={props.voluntario.sexo === 'M' ? 'Masculino' : props.voluntario.sexo === 'F' ? 'Feminino' : 'N/A'} />
+        <FancyValueLine
+          title='Data de Nascimento:'
+          value={props.voluntario.dataNascimento ? format(DateUtilsApi.dateOnlyFromApi(props.voluntario.dataNascimento), 'dd/MM/yyyy') : ''}
+          showSeparator={true}
+        />
+        <FancyValueLine title='Telefone:' value={props.voluntario.telefone || 'Não definido'} showSeparator={true} />
+        <FancyValueLine title='Endereço:' value={props.voluntario.endereco || 'Não definido'} showSeparator={true} />
+        <FancyValueLine title='Sexo:' value={props.voluntario.sexo === 'M' ? 'Masculino' : props.voluntario.sexo === 'F' ? 'Feminino' : 'N/A'} />
       </View>
     </FancyScrollView>
   );

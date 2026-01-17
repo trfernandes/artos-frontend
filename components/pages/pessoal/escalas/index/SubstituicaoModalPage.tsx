@@ -6,13 +6,14 @@ import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterio
 import FancyGroup from '../../../../list/FancyGroup';
 import { FancyTextDisplay } from '../../../../fields/FancyTextDisplay';
 import { format } from 'date-fns';
-import { EscalaItemModel } from '../../../../../domain/models/EscalaItem';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import ControlledDropDown from '../../../../forms/ControlledDropDown';
 import ControlledTextArea from '../../../../forms/ControlledTextArea';
 import { useAuth } from '../../../../../contexts/AuthContext';
+import { ResponseEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.response';
+import { AppImages } from '../../../../../assets/app_images';
 
 const schema = z.object({
   eventoId: z.string(),
@@ -24,10 +25,7 @@ const schema = z.object({
 
 export type FormData = z.infer<typeof schema>;
 
-export default function SubstituicaoModalPage({
-  dadosEscala,
-  ...props
-}: { dadosEscala: EscalaItemModel } & FancyModalDialogProps<FormData>) {
+export default function SubstituicaoModalPage({ dadosEscala, ...props }: { dadosEscala: ResponseEscalaItemDto } & FancyModalDialogProps<FormData>) {
   const { user } = useAuth();
 
   const initialParams: DynamicQuery = {
@@ -44,7 +42,7 @@ export default function SubstituicaoModalPage({
         {
           path: 'voluntario.id',
           operator: Operator.NOT_EQUALS,
-          value: { type: ValueType.LITERAL, value: user?.id! },
+          value: { type: ValueType.LITERAL, value: user?.user?.id! },
         },
       ],
     },
@@ -56,15 +54,18 @@ export default function SubstituicaoModalPage({
   const possiveisSubstitutosList = useMemo<DropDownItemProps<string>[]>(() => {
     return possiveisSubstitutos
       .map(
-        minVoluntario =>
+        (minVoluntario) =>
           ({
             title: minVoluntario.voluntario?.nome,
             left: {
               type: 'image',
-              source: minVoluntario.voluntario?.foto || require('../../../../../assets/images/empty_profile_image.png'),
+              source:
+                minVoluntario.voluntario?.fotoThumbUrl || minVoluntario.voluntario?.fotoUrl
+                  ? { uri: minVoluntario.voluntario.fotoThumbUrl || minVoluntario.voluntario.fotoUrl || '' }
+                  : AppImages.emptyProfile,
             },
             value: minVoluntario.id,
-          } as DropDownItemProps<string>)
+          } as DropDownItemProps<string>),
       )
       .sort((a, b) => a.title.localeCompare(b.title, 'pt-BR', { sensitivity: 'base' }));
   }, [possiveisSubstitutos]);
@@ -88,37 +89,37 @@ export default function SubstituicaoModalPage({
         async () => {
           props.onButton2Press?.(data);
         },
-        errors => console.log('Erro ao validar formulário de substituição', errors)
+        (errors) => console.log('Erro ao validar formulário de substituição', errors),
       )();
     },
-    [form.handleSubmit, props.onButton2Press, substitutoSelecionado]
+    [form.handleSubmit, props.onButton2Press, substitutoSelecionado],
   );
 
   return (
     <FancyModalDialog<FormData>
       {...props}
-      title="Solicitar substituição:"
+      title='Solicitar substituição:'
       centerContainerStyle={{ gap: 16 }}
       button1={{ disabled: isLoading || undefined, textProps: { adjustsFontSizeToFit: false } }}
       button2={{ disabled: isLoading || undefined, textProps: { adjustsFontSizeToFit: false } }}
       onButton2Press={() => handleConfirm(form.getValues())}
     >
-      <FancyGroup title="Informações" contentContainerStyle={{ gap: 8 }}>
-        <FancyTextDisplay title="Ministério:" value={dadosEscala.voluntario?.ministerio?.nome} />
-        <FancyTextDisplay title="Evento:" value={dadosEscala.evento?.nome} />
-        <FancyTextDisplay title="Data e Hora:" value={format(dadosEscala.dataOcorrencia, 'dd/MM/yyyy - HH:mm')} />
-        <FancyTextDisplay title="Função:" value={dadosEscala.funcao?.nome} />
+      <FancyGroup title='Informações' contentContainerStyle={{ gap: 8 }}>
+        <FancyTextDisplay title='Ministério:' value={dadosEscala.voluntario?.ministerio?.nome} />
+        <FancyTextDisplay title='Evento:' value={dadosEscala.evento?.nome} />
+        <FancyTextDisplay title='Data e Hora:' value={format(dadosEscala.dataOcorrencia, 'dd/MM/yyyy - HH:mm')} />
+        <FancyTextDisplay title='Função:' value={dadosEscala.funcao?.nome} />
       </FancyGroup>
       <ControlledDropDown
         control={form.control}
-        name="substitutoId"
+        name='substitutoId'
         label={'Quem será seu substituto?'}
         listItems={possiveisSubstitutosList}
         onChange={setSubstitutoSelecionado}
         disabled={isLoading}
         isLoading={isLoading}
       />
-      <ControlledTextArea control={form.control} name="motivo" label="Qual o motivo da substituição?" />
+      <ControlledTextArea control={form.control} name='motivo' label='Qual o motivo da substituição?' />
     </FancyModalDialog>
   );
 }

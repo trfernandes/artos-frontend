@@ -1,21 +1,19 @@
 import { EscalaItensApi as EscalaItensApi } from '../api/EscalaItensApi';
-import { EscalaItemApiModel, EscalaItemModel, EscalaItemSerializer } from '../models/EscalaItem';
+import { ResponseEscalaItemDto } from '../dtos/Escala/escala-item.response';
 import { DynamicQuery } from '../utils/query_utils';
 import { BaseRepository } from './BaseRepository';
 
-class EscalaItensRepositoryClass extends BaseRepository<EscalaItemModel, EscalaItemApiModel> {
+class EscalaItensRepositoryClass extends BaseRepository<ResponseEscalaItemDto, any, any> {
   constructor() {
-    super(EscalaItensApi, { fromApi: EscalaItemSerializer.fromApi, toApi: EscalaItemSerializer.toApi });
+    super(EscalaItensApi);
   }
 
-  async search(query: DynamicQuery, includeFotos: boolean = false): Promise<EscalaItemModel[]> {
-    const result = await EscalaItensApi.search(query, includeFotos);
-    return result.map(item => this.serializer.fromApi(item));
+  async search(query: DynamicQuery, includeFotos: boolean = false): Promise<ResponseEscalaItemDto[]> {
+    return EscalaItensApi.search(query, includeFotos);
   }
 
-  async getByVoluntarioId(voluntarioId: string): Promise<EscalaItemModel[]> {
-    const result = await EscalaItensApi.getByVoluntarioId(voluntarioId);
-    return result.map(item => this.serializer.fromApi(item));
+  async getByVoluntarioId(voluntarioId: string): Promise<ResponseEscalaItemDto[]> {
+    return EscalaItensApi.getByVoluntarioId(voluntarioId);
   }
 }
 

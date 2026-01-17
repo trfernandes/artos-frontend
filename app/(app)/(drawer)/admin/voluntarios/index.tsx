@@ -1,7 +1,6 @@
 import { router } from 'expo-router';
 import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
 import { Pallete } from '../../../../../constants/colors';
-import { ImageUtils } from '../../../../../utils/image_utils';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { StyleSheet, View } from 'react-native';
 import FancyScreenErrorHandler from '../../../../../components/error/FancyScreenErrorHandler';
@@ -13,9 +12,14 @@ import { useAuth } from '../../../../../contexts/AuthContext';
 import FancyLoading from '../../../../../components/FancyLoading';
 import Toast from 'react-native-toast-message';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
-import { VoluntarioModel, VoluntarioStatusEnum, VoluntarioStatusEnumMap } from '../../../../../domain/models/Voluntario';
-import FancySectionHeader, { Item, Row, Section } from '../../../../../components/cards/Horizontal/FancySectionHeader';
-import { FancyActionButtons } from '../../../../../components/cards/Horizontal/FancyCardActionButtons';
+import {
+    VoluntarioStatusEnum,
+    VoluntarioStatusEnumLabel,
+    VoluntarioStatusEnumMap,
+} from '../../../../../domain/enums/Voluntario/voluntario-status.enum';
+import { AppImages } from '../../../../../assets/app_images';
+import { useLoading } from '../../../../../contexts/LoadingContext';
+import FancyChips from '../../../../../components/FancyChips';
 
 export default function VoluntariosIndexPage() {
   const [searchText, setSearchText] = useState('');
@@ -53,7 +57,10 @@ export default function VoluntariosIndexPage() {
             text: 'Sim',
             style: 'destructive',
             onPress: () => {
-              updateVoluntario({ id, data: { status: newStatus } }).then(() => {
+              updateVoluntario({
+                id,
+                data: { status: newStatus },
+              }).then(() => {
                 Toast.show({
                   text1: `Voluntário ${newStatus === VoluntarioStatusEnum.Inativo ? 'desativado' : 'ativado'} com sucesso!`,
                   type: 'success',
@@ -61,10 +68,10 @@ export default function VoluntariosIndexPage() {
               });
             },
           },
-        ]
+        ],
       );
     },
-    [updateVoluntario]
+    [updateVoluntario],
   );
 
   const handleDeleteVoluntario = useCallback(
@@ -81,30 +88,17 @@ export default function VoluntariosIndexPage() {
               removeVoluntario(voluntarioId);
             },
           },
-        ]
+        ],
       );
     },
-    [removeVoluntario]
+    [removeVoluntario],
   );
 
-  const voluntariosData = useMemo<Row<VoluntarioModel>[]>(() => {
-    const ativos = data.filter(v => v.status === VoluntarioStatusEnum.Ativo).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
-    const inativos = data.filter(v => v.status === VoluntarioStatusEnum.Inativo).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
-
-    const rows: Row<VoluntarioModel>[] = [];
-
-    if (ativos.length > 0) {
-      rows.push({ type: 'section', key: 'section-ativos', title: `Ativos (${ativos.length})` } as Section);
-      rows.push(...(ativos.map(v => ({ type: 'item', key: `ativo-${v.id}`, data: v })) as Item<VoluntarioModel>[]));
-    }
-
-    if (inativos.length > 0) {
-      rows.push({ type: 'section', key: 'section-inativos', title: `Inativos (${inativos.length})` } as Section);
-      rows.push(...(inativos.map(v => ({ type: 'item', key: `inativo-${v.id}`, data: v })) as Item<VoluntarioModel>[]));
-    }
-
-    return rows;
+  const sorteredData = useMemo(() => {
+    return data.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
   }, [data]);
+
+  const { showLoading, hideLoading } = useLoading();
 
   if (isLoading || isRefetching || isLoadingMutation) return <FancyLoading />;
 
@@ -113,7 +107,7 @@ export default function VoluntariosIndexPage() {
       showFab={false}
       searchBarProps={{
         value: searchText,
-        onSearch: text => {
+        onSearch: (text) => {
           setSearchText(text.trim());
           if (text && text.trim() !== '') {
             setSearchParams({
@@ -122,12 +116,18 @@ export default function VoluntariosIndexPage() {
                   {
                     path: 'nome',
                     operator: Operator.ILIKE,
-                    value: { type: ValueType.LITERAL, value: text.trim() },
+                    value: {
+                      type: ValueType.LITERAL,
+                      value: text.trim(),
+                    },
                   },
                   {
                     path: 'id',
                     operator: Operator.NOT_EQUALS,
-                    value: { type: ValueType.LITERAL, value: user?.id! },
+                    value: {
+                      type: ValueType.LITERAL,
+                      value: user?.id!,
+                    },
                   },
                 ],
                 conjunction: Conjunction.AND,
@@ -141,7 +141,10 @@ export default function VoluntariosIndexPage() {
                   {
                     path: 'id',
                     operator: Operator.NOT_EQUALS,
-                    value: { type: ValueType.LITERAL, value: user?.id! },
+                    value: {
+                      type: ValueType.LITERAL,
+                      value: user?.id!,
+                    },
                   },
                 ],
               },
@@ -151,103 +154,152 @@ export default function VoluntariosIndexPage() {
       }}
       listProps={{
         onRefresh: refetch,
-        data: voluntariosData,
+        data: sorteredData,
         renderItem: ({ item, index }) => {
-          if (item.type === 'section') return <FancySectionHeader title={item.title} containerStyle={{ marginTop: index > 0 ? 10 : 0 }} />;
-          else
-            return (
-              <View>
-                <FancyCard.Image
-                  key={index}
-                  type="image"
-                  props={{
-                    title: item.data.nome,
-                    subtitle: item.data.email,
-                    source: item.data.foto
-                      ? ImageUtils.rawToDataUri(item.data.foto) ?? item.data.foto
-                      : require('../../../../../assets/images/empty_profile_image.png'),
-                    content: (
-                      <FancyActionButtons
-                        containerStyle={{
-                          justifyContent: 'flex-start',
-                          marginTop: 6,
-                          gap: 8,
-                          width: '100%',
-                        }}
-                        actions={[
-                          {
-                            label: 'Editar',
-                            size: 'small',
-                            icon: {
-                              ...DefaultIconsNames.edit,
-                              size: 12,
-                            },
-                            onPress: () => {
-                              router.push({
-                                pathname: '/admin/voluntarios/details',
-                                params: {
-                                  id: item.data.id,
-                                },
-                              });
-                            },
+          return (
+            <View>
+              <FancyCard.Image
+                key={index}
+                type='image'
+                props={{
+                  title: item.nome,
+                  subtitle: item.email,
+                  additionalData1: (
+                    <FancyChips
+                      style={{ marginTop: 2 }}
+                      label={VoluntarioStatusEnumLabel[item.status]}
+                      color={VoluntarioStatusEnumMap[item.status] === VoluntarioStatusEnum.Ativo ? Pallete.primary : Pallete.error}
+                    />
+                  ),
+                  source: item.fotoThumbUrl || item.fotoUrl ? { uri: item.fotoThumbUrl || item.fotoUrl || '' } : AppImages.emptyProfile,
+                  actionButtons: [
+                    {
+                      icon: { ...DefaultIconsNames.edit, size: 17 },
+                      onPress: () => {
+                        showLoading();
+                        router.push({
+                          pathname: '/admin/voluntarios/details',
+                          params: {
+                            id: item.id,
                           },
-                          {
-                            label: VoluntarioStatusEnumMap[item.data.status] === VoluntarioStatusEnum.Ativo ? 'Desativar' : 'Ativar',
-                            size: 'small',
-                            icon:
-                              VoluntarioStatusEnumMap[item.data.status] === VoluntarioStatusEnum.Ativo
-                                ? {
-                                    library: 'MaterialCommunityIcons',
-                                    name: 'close-thick',
-                                    size: 12,
-                                    backgroundColor: Pallete.terciary,
-                                  }
-                                : {
-                                    library: 'MaterialCommunityIcons',
-                                    name: 'check-bold',
-                                    size: 12,
-                                    backgroundColor: Pallete.terciary,
-                                  },
-                            onPress: () =>
-                              handleChangeStatus(
-                                item.data.id!,
-                                item.data.nome,
-                                item.data.status === VoluntarioStatusEnum.Ativo ? VoluntarioStatusEnum.Inativo : VoluntarioStatusEnum.Ativo
-                              ),
+                        });
+                      },
+                    },
+                    {
+                      type: 'menu',
+                      icon: { library: 'Entypo', name: 'dots-three-vertical', size: 15, backgroundColor: Pallete.secondary },
+                      options: [
+                        {
+                          label: VoluntarioStatusEnumMap[item.status] == VoluntarioStatusEnum.Ativo ? 'Desativar' : 'Ativar',
+                          icon:
+                            VoluntarioStatusEnumMap[item.status] == VoluntarioStatusEnum.Ativo
+                              ? { library: 'FontAwesome6', name: 'thumbs-down', size: 16 }
+                              : { library: 'FontAwesome6', name: 'thumbs-up', size: 16 },
+                          onPress: () => {
+                            handleChangeStatus(
+                              item.id!,
+                              item.nome,
+                              VoluntarioStatusEnumMap[item.status] === VoluntarioStatusEnum.Ativo
+                                ? VoluntarioStatusEnum.Inativo
+                                : VoluntarioStatusEnum.Ativo,
+                            );
                           },
-                          {
-                            label: 'Excluir',
-                            icon: {
-                              library: DefaultIconsNames.delete.library,
-                              name: DefaultIconsNames.delete.name,
-                              size: 12,
-                              backgroundColor: Pallete.error,
-                            },
-                            onPress: () => {
-                              FancyAlert.alert(
-                                'Excluir definitivamente este voluntário?',
-                                `A exclusão deste voluntário é permanente. Todos os vínculos com ministérios, funções, escalas e relatórios históricos serão removidos e não poderão ser recuperados. Se você não quiser perder o histórico, use a opção "Desativar" em vez de excluir.`,
-                                [
-                                  { text: 'Cancelar', style: 'cancel' },
-                                  {
-                                    text: 'Sim, estou ciente',
-                                    style: 'destructive',
-                                    onPress: () => {
-                                      handleDeleteVoluntario(item.data.id!);
-                                    },
-                                  },
-                                ]
-                              );
-                            },
-                            size: 'small',
+                        },
+                        {
+                          label: 'Excluir',
+                          icon: { library: 'FontAwesome6', name: 'trash-can', size: 16, style: { borderWidth: 0 } },
+                          onPress: () => {
+                            handleDeleteVoluntario(item.id!);
                           },
-                        ]}
-                      />
-                    ),
-                  }}
-                />
-              </View>
-            );
+                        },
+                      ],
+                    },
+                  ],
+                  // content: (
+                  //   <FancyActionButtons
+                  //     containerStyle={{
+                  //       justifyContent: 'flex-start',
+                  //       marginTop: 6,
+                  //       gap: 8,
+                  //       width: '100%',
+                  //     }}
+                  //     actions={[
+                  //       {
+                  //         label: 'Editar',
+                  //         size: 'small',
+                  //         icon: {
+                  //           ...DefaultIconsNames.edit,
+                  //           size: 12,
+                  //         },
+                  //         onPress: () => {
+                  //           router.push({
+                  //             pathname: '/admin/voluntarios/details',
+                  //             params: {
+                  //               id: item.data.id,
+                  //             },
+                  //           });
+                  //         },
+                  //       },
+                  //       {
+                  //         label: VoluntarioStatusEnumMap[item.data.status] === VoluntarioStatusEnum.Ativo ? 'Desativar' : 'Ativar',
+                  //         size: 'small',
+                  //         icon:
+                  //           VoluntarioStatusEnumMap[item.data.status] === VoluntarioStatusEnum.Ativo
+                  //             ? {
+                  //                 library: 'MaterialCommunityIcons',
+                  //                 name: 'close-thick',
+                  //                 size: 12,
+                  //                 backgroundColor: Pallete.terciary,
+                  //               }
+                  //             : {
+                  //                 library: 'MaterialCommunityIcons',
+                  //                 name: 'check-bold',
+                  //                 size: 12,
+                  //                 backgroundColor: Pallete.terciary,
+                  //               },
+                  //         onPress: () =>
+                  //           handleChangeStatus(
+                  //             item.data.id!,
+                  //             item.data.nome,
+                  //             item.data.status === VoluntarioStatusEnum.Ativo ? VoluntarioStatusEnum.Inativo : VoluntarioStatusEnum.Ativo,
+                  //           ),
+                  //       },
+                  //       {
+                  //         label: 'Excluir',
+                  //         icon: {
+                  //           library: DefaultIconsNames.delete.library,
+                  //           name: DefaultIconsNames.delete.name,
+                  //           size: 12,
+                  //           backgroundColor: Pallete.error,
+                  //         },
+                  //         onPress: () => {
+                  //           FancyAlert.alert(
+                  //             'Excluir definitivamente este voluntário?',
+                  //             `A exclusão deste voluntário é permanente. Todos os vínculos com ministérios, funções, escalas e relatórios históricos serão removidos e não poderão ser recuperados. Se você não quiser perder o histórico, use a opção "Desativar" em vez de excluir.`,
+                  //             [
+                  //               {
+                  //                 text: 'Cancelar',
+                  //                 style: 'cancel',
+                  //               },
+                  //               {
+                  //                 text: 'Sim, estou ciente',
+                  //                 style: 'destructive',
+                  //                 onPress: () => {
+                  //                   handleDeleteVoluntario(item.data.id!);
+                  //                 },
+                  //               },
+                  //             ],
+                  //           );
+                  //         },
+                  //         size: 'small',
+                  //       },
+                  //     ]}
+                  //   />
+                  // ),
+                }}
+              />
+            </View>
+          );
         },
       }}
     />

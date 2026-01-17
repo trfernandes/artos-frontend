@@ -60,12 +60,5 @@ const STEPS_CONFIG: FancyStepsConfig = {
 
 export default function MinisterioLouvorRepertorioAddPage() {
   const [stepIndex, setStepIndex] = useState(0);
-  return (
-    <FancySteps
-      containerStyle={{ paddingTop: 10 }}
-      index={stepIndex}
-      config={STEPS_CONFIG}
-      setIndex={setStepIndex}
-    />
-  );
+  return <FancySteps containerStyle={{ paddingTop: 10 }} index={stepIndex} config={STEPS_CONFIG} setIndex={setStepIndex} />;
 }

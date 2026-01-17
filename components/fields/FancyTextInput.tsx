@@ -1,17 +1,8 @@
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  ViewStyle,
-  StyleProp,
-  ViewProps,
-  TextInput,
-  TextInputProps,
-  Pressable,
-} from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ViewStyle, StyleProp, ViewProps, TextInput, TextInputProps, Pressable } from 'react-native';
 import FancyText, { FancyTextProps } from '../FancyText';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import { isValidElement, ReactNode } from 'react';
+import type { Ref } from 'react';
 import { MEDIUM_FONT, SMALL_SIZE_FONT } from '../../constants/font';
 import { Pallete } from '../../constants/colors';
 
@@ -33,6 +24,7 @@ export type FancyTextInputProps = {
   rightContainer?: Button | Button[] | ReactNode;
   onPress?: () => void;
   inputProps?: Omit<TextInputProps, 'value'>;
+  inputRef?: Ref<TextInput>;
   readonly?: boolean;
   labelProps?: FancyTextProps;
 };
@@ -54,12 +46,7 @@ export default function FancyTextInput({ disabled = false, ...props }: FancyText
     <Pressable {...props.inputContainerProps} style={[styles.container, props.containerStyle]} onPress={props.onPress}>
       {props.label && (
         <View style={styles.labelContainer}>
-          <FancyText
-            size={'extraSmall'}
-            type="semiBold"
-            style={[styles.labelText, disabled && styles.labelDisabledText]}
-            {...props.labelProps}
-          >
+          <FancyText size={'extraSmall'} type='semiBold' style={[styles.labelText, disabled && styles.labelDisabledText]} {...props.labelProps}>
             {props.label}
           </FancyText>
         </View>
@@ -84,17 +71,13 @@ export default function FancyTextInput({ disabled = false, ...props }: FancyText
         <View style={styles.centerContainer}>
           <TextInput
             onPress={props.onPress}
+            ref={props.inputRef}
             readOnly={disabled || props.readonly}
             value={props.value}
             placeholderTextColor={Pallete.fonts.inactive}
             multiline={isMultiline}
             {...remainingInputProps}
-            style={[
-              styles.valueText,
-              disabled && styles.valueDisabledText,
-              isMultiline && styles.valueTextMultiline,
-              ...normalizedInputStyle,
-            ]}
+            style={[styles.valueText, disabled && styles.valueDisabledText, isMultiline && styles.valueTextMultiline, ...normalizedInputStyle]}
           />
         </View>
         {props.rightContainer && (
@@ -109,7 +92,7 @@ export default function FancyTextInput({ disabled = false, ...props }: FancyText
       </View>
       {props.errorMessage && (
         <View style={styles.errorContainer}>
-          <FancyText size="extraSmall" type="semiBold" style={styles.errorText}>
+          <FancyText size='extraSmall' type='semiBold' style={styles.errorText} accessibilityRole='alert' accessibilityLiveRegion='polite'>
             {props.errorMessage || ''}
           </FancyText>
         </View>
@@ -123,11 +106,12 @@ const styles = StyleSheet.create({
   inputContainer: {
     backgroundColor: 'white',
     borderColor: Pallete.border,
-    borderWidth: 1,
+    borderWidth: 0.6,
     borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
+    ...Pallete.shadows[200],
   },
   inputContainerMultiline: {
     alignItems: 'flex-start',

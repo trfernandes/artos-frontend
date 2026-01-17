@@ -1,46 +1,31 @@
-import { router } from 'expo-router';
-import { View, StyleSheet, Keyboard } from 'react-native';
+import { StyleSheet } from 'react-native';
 import FancyButton from '../../components/buttons/FancyButton';
 import FancyText from '../../components/FancyText';
-import LoginBase from '../../components/pages/login/LoginBase';
+import AuthScreen from '../../components/pages/login/AuthScreen';
 import { Pallete } from '../../constants/colors';
-import { DefaultIconsNames } from '../../constants/icons';
 import Toast from 'react-native-toast-message';
 import z from 'zod';
 import ControlledTextInput from '../../components/forms/ControlledTextInput';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../../contexts/AuthContext';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { useState, useEffect } from 'react';
 
 const forgotPasswordSchema = z.object({
   email: z
     .string()
     .min(1, 'Informe o e-mail')
-    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'O formato inválido'),
+    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'O formato invalido'),
 });
 
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
   const { forgotPassword } = useAuth();
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
-
-  // detectar teclado aberto/fechado
-  useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
 
   const {
     control,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
   } = useForm<ForgotPasswordFormData>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: { email: '' },
@@ -53,74 +38,56 @@ export default function ForgotPasswordPage() {
       if (success) {
         Toast.show({
           type: 'success',
-          text1: 'Se o e-mail existir, enviamos instruções de recuperação.',
+          text1: 'Se o e-mail existir, enviamos instrucoes de recuperacao.',
         });
       } else {
-        Toast.show({ type: 'error', text1: 'Erro ao solicitar recuperação.' });
+        Toast.show({ type: 'error', text1: 'Erro ao solicitar recuperacao.' });
       }
     } catch {
-      Toast.show({ type: 'error', text1: 'Erro ao solicitar recuperação.' });
+      Toast.show({ type: 'error', text1: 'Erro ao solicitar recuperacao.' });
     }
   };
 
   return (
-    <LoginBase>
-      <KeyboardAwareScrollView
-        contentContainerStyle={styles.scrollContainer}
-        enableOnAndroid
-        enableAutomaticScroll
-        extraScrollHeight={20}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.backButtonContainer}>
-          <FancyButton
-            icon={{ ...DefaultIconsNames['chevron-left'], color: Pallete.icons.dark }}
-            size={30}
-            onPress={() => router.back()}
-            containerStyle={{ backgroundColor: Pallete.backgroundColor3 }}
-          />
-        </View>
+    <AuthScreen
+      showBackButton
+      scrollContainerStyle={styles.scrollContainer}
+      headerContainerStyle={styles.titleContainer}
+      headerWidth={{ default: '85%', keyboard: '100%' }}
+      contentWidth={{ default: '85%', keyboard: '100%' }}
+      paddingTopOnKeyboard={60}
+      fieldsContainerStyle={styles.fieldsContainer}
+      backButtonContainerStyle={styles.backButtonContainer}
+      header={({ keyboardVisible }) => (
+        <>
+          <FancyText size={!keyboardVisible ? 'extraLarge' : 'large'} type='bold' color='white'>
+            Recuperação de Senha
+          </FancyText>
+          <FancyText
+            size={!keyboardVisible ? 'medium' : 'small'}
+            type='medium'
+            color='white'
+            style={{
+              width: '99%',
+              borderWidth: 0,
+            }}
+          >
+            Informe seu e-mail para receber as instrucoes de recuperação
+          </FancyText>
+        </>
+      )}
+    >
+      <>
+        <ControlledTextInput
+          label='E-mail'
+          name='email'
+          control={control}
+          inputProps={{ autoCapitalize: 'none', keyboardType: 'email-address' }}
+        />
 
-        <View
-          style={[
-            styles.topContainer,
-            keyboardVisible ? { position: 'relative', justifyContent: 'center', paddingTop: 60 } : { position: 'absolute' },
-          ]}
-        >
-          <View style={[styles.titleContainer, keyboardVisible ? { width: '100%', gap: 4 } : { width: '80%', gap: 6 }]}>
-            <FancyText size={!keyboardVisible ? 'extraLarge' : 'large'} type="bold" color="white">
-              Recuperação de Senha
-            </FancyText>
-            <FancyText
-              size={!keyboardVisible ? 'medium' : 'small'}
-              type="medium"
-              color="white"
-              style={{
-                width: '99%',
-                borderWidth: 0,
-              }}
-            >
-              Informe seu e-mail para receber as instruções de recuperação
-            </FancyText>
-          </View>
-
-          <View style={[styles.fieldsContainer, keyboardVisible ? { width: '100%' } : { width: '80%' }]}>
-            <ControlledTextInput
-              label="E-mail"
-              name="email"
-              control={control}
-              inputProps={{ autoCapitalize: 'none', keyboardType: 'email-address' }}
-            />
-
-            <FancyButton
-              label={isSubmitting ? 'Enviando...' : 'Enviar'}
-              onPress={handleSubmit(onSubmit)}
-              disabled={isSubmitting}
-            />
-          </View>
-        </View>
-      </KeyboardAwareScrollView>
-    </LoginBase>
+        <FancyButton label={isSubmitting ? 'Enviando...' : 'Enviar'} onPress={handleSubmit(onSubmit)} disabled={isSubmitting} />
+      </>
+    </AuthScreen>
   );
 }
 
@@ -130,41 +97,12 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     paddingHorizontal: 40,
-    // paddingVertical: 20,
+    paddingVertical: 0,
     justifyContent: 'center',
     borderWidth: DESIGN_MODE,
     borderColor: 'blueviolet',
     gap: 25,
   },
-  container: {
-    backgroundColor: 'transparent',
-    flex: 1,
-    borderWidth: DESIGN_MODE,
-    borderColor: 'gold',
-    paddingHorizontal: 40,
-    paddingVertical: 20,
-    justifyContent: 'flex-start',
-    gap: 20,
-  },
-  topContainer: {
-    flex: 1,
-    gap: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-
-    borderWidth: DESIGN_MODE,
-    borderColor: 'deepskyblue',
-  },
-  centerContainer: {
-    borderWidth: DESIGN_MODE,
-    borderColor: 'chocolate',
-    justifyContent: 'center',
-  },
-  bottomSpacer: { flex: 0, borderWidth: DESIGN_MODE, borderColor: 'deepskyblue' },
   backButtonContainer: {
     position: 'absolute',
     left: 40,

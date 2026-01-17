@@ -32,7 +32,7 @@ export default function FancyVerticalLetterCard({ ...props }: FancyVerticalLette
 export function LetterComponent({ letter }: { letter: string }) {
   return (
     <View style={styles.letterContainer}>
-      <FancyText type="bold" size={'small'} style={styles.letter}>
+      <FancyText type='bold' size={'small'} style={styles.letter}>
         {letter}
       </FancyText>
     </View>

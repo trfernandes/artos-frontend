@@ -13,7 +13,8 @@ import { DefaultIconsNames } from '../../constants/icons';
 import DefaultIcons from '../FancyIcons';
 
 export interface FancyDropDownProps<T>
-  extends Pick<FancyTextInputProps, 'disabled' | 'label' | 'placeholder' | 'inputContainerStyle'>,
+  extends
+    Pick<FancyTextInputProps, 'disabled' | 'label' | 'placeholder' | 'inputContainerStyle'>,
     Pick<TextInputProps, 'onBlur'> {
   listItems: DropDownItemProps<T>[] | undefined;
   containerStyle?: StyleProp<ViewStyle>;
@@ -69,7 +70,7 @@ export default function FancyDropDown<ValueItem>({
   return (
     <View style={[styles.container, containerStyle]}>
       {label && (
-        <FancyText size={'extraSmall'} type="semiBold" color={Pallete.fonts.inactive}>
+        <FancyText size={'extraSmall'} type='semiBold' color={Pallete.fonts.inactive}>
           {label}
         </FancyText>
       )}
@@ -98,7 +99,14 @@ export default function FancyDropDown<ValueItem>({
 const styles = StyleSheet.create({
   container: { gap: 5 },
   listContainer: { borderWidth: 1, borderColor: Pallete.border, borderRadius: 10 },
-  inputContainer: { borderWidth: 1, borderColor: Pallete.border, borderRadius: 10, padding: 10 },
+  inputContainer: {
+    backgroundColor: 'white',
+    borderWidth: 0.6,
+    borderColor: Pallete.border,
+    borderRadius: 10,
+    padding: 10,
+    ...Pallete.shadows[200],
+  },
   itemText: { fontFamily: MEDIUM_FONT, fontSize: SMALL_SIZE_FONT, color: Pallete.fonts.dark },
   itemContainer: { flexDirection: 'row', padding: 10, paddingHorizontal: 12, gap: 10, borderRadius: 10 },
   placeholder: { fontFamily: ITALIC_SEMI_BOLD_FONT, fontSize: SMALL_SIZE_FONT, opacity: 0.8, color: Pallete.fonts.inactive },

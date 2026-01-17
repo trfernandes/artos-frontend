@@ -61,14 +61,14 @@ export default function FancyModalDialog<T = void>({
       top={
         title && (
           <View style={styles.titleContainer}>
-            <FancyText size="medium" type="bold" style={styles.titleText}>
+            <FancyText size='medium' type='bold' style={styles.titleText}>
               {title}
             </FancyText>
             {shouldRenderCloseButton && (
               <TouchableOpacity
                 onPress={onButton1Press}
                 style={styles.closeButton}
-                accessibilityRole="button"
+                accessibilityRole='button'
                 accessibilityLabel={closeButtonAccessibilityLabel ?? 'Fechar'}
               >
                 {DefaultIcons.Custom(closeIconProps)}
@@ -84,7 +84,7 @@ export default function FancyModalDialog<T = void>({
             {shouldShowButton1 && (
               <FancyButton
                 label={button1.label ?? 'Cancelar'}
-                type="outlined"
+                type='outlined'
                 onPress={onButton1Press}
                 disabled={false}
                 {...button1}

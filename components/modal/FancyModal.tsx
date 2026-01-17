@@ -10,7 +10,7 @@ export type FancyModalProps = {
 
 export default function FancyModal({ modalProps, center, top, bottom, ...props }: FancyModalProps) {
   return (
-    <Modal animationType="fade" transparent {...modalProps}>
+    <Modal animationType='fade' presentationStyle='formSheet' transparent {...modalProps}>
       <View style={[styles.centeredView, modalProps?.style]}>
         <View style={[styles.modalView, props.containerStyle]}>
           {top}
@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
   modalView: {
-    width: '85%',
+    width: '90%',
     backgroundColor: 'white',
     borderRadius: 12,
     padding: 20,

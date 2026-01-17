@@ -8,19 +8,14 @@ export type FancyHeaderButtonProps = {
   onPress: () => void;
   buttonProps?: FancyButtonProps;
   showBackground?: boolean;
-  containerStyle?: StyleProp<ViewStyle>
+  containerStyle?: StyleProp<ViewStyle>;
 };
 
-export default function FancyHeaderButton({
-  icon,
-  onPress,
-  buttonProps,
-  showBackground = false,
-}: FancyHeaderButtonProps) {
+export default function FancyHeaderButton({ icon, onPress, buttonProps, showBackground = false }: FancyHeaderButtonProps) {
   return (
     <FancyButton
-      mode="icon"
-      type="text"
+      mode='icon'
+      type='text'
       icon={{
         ...icon,
         color: Pallete.icons.dark,
@@ -32,7 +27,7 @@ export default function FancyHeaderButton({
         {
           // borderWidth: 1,
           height: 30,
-          minWidth: 30,          
+          minWidth: 30,
           backgroundColor: showBackground ? Pallete.backgroundColor3 : 'transparent',
         },
         buttonProps?.containerStyle,

@@ -1,21 +1,20 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCrud } from './useCrud';
-import { DynamicQuery, Operator, ValueType } from '../domain/utils/query_utils';
-import { EscalaTemplateModel } from '../domain/models/EscalaTemplate';
+import { ExternalUseCrudParams, useCrud } from './useCrud';
+import { Operator, ValueType } from '../domain/utils/query_utils';
 import { EscalaTemplatesRepository } from '../domain/services/EscalaTemplatesRepository';
 import { EscalaTemplateFormData, escalaTemplateSchema } from '../domain/schemas/escalaTemplateSchema';
+import { CreateEscalaTemplateDto } from '../domain/dtos/EscalaTemplate/escala-template.create';
+import { UpdateEscalaTemplateDto } from '../domain/dtos/EscalaTemplate/escala-template.update';
+import { ResponseEscalaTemplateDto } from '../domain/dtos/EscalaTemplate/escala-template.response';
 
-export function useEscalaTemplatesCrud(options?: {
-  autoFetch?: boolean;
-  initialParams?: DynamicQuery;
-}) {
-  return useCrud<EscalaTemplateModel, EscalaTemplateFormData>({
+export function useEscalaTemplatesCrud({ autoFetch = false, initialParams = {} }: ExternalUseCrudParams = {}) {
+  return useCrud<ResponseEscalaTemplateDto, EscalaTemplateFormData, CreateEscalaTemplateDto, UpdateEscalaTemplateDto>({
     queryKey: 'escala-templates',
-    autoFetch: options?.autoFetch ?? true,
-    initialParams: options?.initialParams,
+    autoFetch,
+    initialParams,
     fetchAll: () => EscalaTemplatesRepository.getAll({ relations: ['ministerio'] }),
-    search: query => EscalaTemplatesRepository.search(query),
-    fetchOne: async id => {
+    search: (query) => EscalaTemplatesRepository.search(query),
+    fetchOne: async (id) => {
       const results = await EscalaTemplatesRepository.search({
         where: {
           conditions: [
@@ -26,14 +25,7 @@ export function useEscalaTemplatesCrud(options?: {
             },
           ],
         },
-        relations: [
-          'ministerio',
-          'voluntarios',
-          'voluntarios.voluntario',
-          'voluntarios.funcao',
-          'funcoes',
-          'funcoes.funcao',
-        ],
+        relations: ['ministerio', 'voluntarios', 'voluntarios.voluntario', 'voluntarios.funcao', 'funcoes', 'funcoes.funcao'],
         limit: 1,
       });
 
@@ -43,9 +35,9 @@ export function useEscalaTemplatesCrud(options?: {
 
       return results[0];
     },
-    add: data => EscalaTemplatesRepository.add(data),
-    update: (id, data) => EscalaTemplatesRepository.update(id, data as EscalaTemplateModel),
-    remove: id => EscalaTemplatesRepository.remove(id),
+    add: (data) => EscalaTemplatesRepository.add(data),
+    update: (id, data) => EscalaTemplatesRepository.update(id, data),
+    remove: (id) => EscalaTemplatesRepository.remove(id),
     resolver: zodResolver(escalaTemplateSchema),
     messages: {
       successCreate: 'Template criado com sucesso!',

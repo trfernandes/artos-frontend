@@ -1,11 +1,10 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import { EscalItemEquipeType } from '../../../../../app/(app)/(drawer)/ministerios/escalas/details';
+import { EscalaItemEquipeType } from '../../../../../app/(app)/(drawer)/ministerios/escalas/details';
 import FancyText from '../../../../FancyText';
 import { BOLD_FONT, EXTRA_SMALL_SIZE_FONT, SEMI_BOLD_FONT, SMALL_SIZE_FONT } from '../../../../../constants/font';
 import FancyAvatarImage from '../../../../images/FancyImage';
 import FancySeparator from '../../../../FancySeparator';
 import FancyVerticalSpacer from '../../../../FancyVerticalSpacer';
-import { EscalaItemStatusEnum, EscalaItemStatusEnumLabel } from '../../../../../domain/models/EscalaItem';
 import DefaultIcons from '../../../../FancyIcons';
 import { Pallete } from '../../../../../constants/colors';
 import { useVoluntariosCrud } from '../../../../../hooks/useVoluntariosCrud';
@@ -13,6 +12,8 @@ import { useState } from 'react';
 import VoluntarioDetailsModal from './VoluntarioDetailsModal';
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import FancyChips from '../../../../FancyChips';
+import { EscalaItemStatusEnum, EscalaItemStatusEnumLabel } from '../../../../../domain/enums/Escala/escala-item-status.enum';
+import { AppImages } from '../../../../../assets/app_images';
 
 export const VoluntarioStatusChipParams = {
   [EscalaItemStatusEnum.Pendente]: {
@@ -47,8 +48,8 @@ export default function ListaVoluntariosTable({
   onSubstituicaoButtonPressed,
   viewMode,
 }: {
-  data: EscalItemEquipeType[];
-  onSubstituicaoButtonPressed?: (data: EscalItemEquipeType) => void;
+  data: EscalaItemEquipeType[];
+  onSubstituicaoButtonPressed?: (data: EscalaItemEquipeType) => void;
   viewMode?: 'view' | 'edit';
 }) {
   const { data: voluntariosData } = useVoluntariosCrud({ autoFetch: true });
@@ -74,13 +75,13 @@ export default function ListaVoluntariosTable({
         <FancyVerticalSpacer height={9} />
         <View style={styles.valuesContainer}>
           {data?.map((equipeItem, index) => {
-            const voluntarioFoto = voluntariosData.find(v => v.id === equipeItem.voluntario.voluntarioId)?.foto;
+            const voluntarioData = voluntariosData.find((v) => v.id === equipeItem.voluntario?.voluntarioId);
             return (
               <View style={{ gap: 10 }} key={index}>
                 <View style={styles.rowContainer}>
                   <View style={[styles.column1, { justifyContent: 'center' }]}>
-                    <FancyText style={[styles.valueItem]} ellipsizeMode="tail" numberOfLines={2}>
-                      {equipeItem.funcao.nome}
+                    <FancyText style={[styles.valueItem]} ellipsizeMode='tail' numberOfLines={2}>
+                      {equipeItem.funcao?.nome}
                     </FancyText>
                   </View>
                   <TouchableOpacity
@@ -88,39 +89,36 @@ export default function ListaVoluntariosTable({
                       showLoading('Carregando detalhes do voluntário...');
                       setVoluntarioDetailsProps({
                         isVisible: true,
-                        ministerioVoluntarioId: equipeItem.voluntario.minVoluntarioId,
-                        voluntarioId: equipeItem.voluntario.voluntarioId,
+                        ministerioVoluntarioId: equipeItem.voluntario?.minVoluntarioId,
+                        voluntarioId: equipeItem.voluntario?.voluntarioId,
                       });
                     }}
                     style={[styles.column2, { flexDirection: 'row', gap: 8, alignItems: 'center', flexWrap: 'nowrap' }]}
                   >
                     <FancyAvatarImage
                       source={
-                        voluntarioFoto
-                          ? { uri: voluntarioFoto, width: 25, height: 25 }
-                          : require('../../../../../assets/images/empty_profile_image.png')
+                        voluntarioData?.fotoThumbUrl || voluntarioData?.fotoUrl
+                          ? { uri: voluntarioData?.fotoThumbUrl || voluntarioData?.fotoUrl || '' }
+                          : AppImages.emptyProfile
                       }
                       style={{ width: 25, height: 25 }}
                     />
-                    <FancyText style={styles.valueItem} ellipsizeMode="tail" numberOfLines={2}>
-                      {equipeItem.voluntario.nome}
+                    <FancyText style={styles.valueItem} ellipsizeMode='tail' numberOfLines={2}>
+                      {equipeItem.voluntario?.nome}
                     </FancyText>
                   </TouchableOpacity>
-                  <FancyText style={[styles.valueItem, styles.column3]} ellipsizeMode="tail" numberOfLines={2}>
+                  <FancyText style={[styles.valueItem, styles.column3]} ellipsizeMode='tail' numberOfLines={2}>
                     <FancyChips
                       label={EscalaItemStatusEnumLabel[equipeItem.status]}
                       color={VoluntarioStatusChipParams[equipeItem.status].color}
                       backgroundColor={VoluntarioStatusChipParams[equipeItem.status].background}
-                      size="small"
+                      size='small'
                     />
                   </FancyText>
                   {!viewMode ||
                     (viewMode === 'edit' && (
                       <View
-                        style={[
-                          styles.column4,
-                          { borderWidth: 0, gap: 5, justifyContent: 'center', alignItems: 'center', flexDirection: 'row' },
-                        ]}
+                        style={[styles.column4, { borderWidth: 0, gap: 5, justifyContent: 'center', alignItems: 'center', flexDirection: 'row' }]}
                       >
                         <TouchableOpacity
                           style={{
@@ -133,7 +131,7 @@ export default function ListaVoluntariosTable({
                           }}
                           onPress={() => onSubstituicaoButtonPressed?.(equipeItem)}
                         >
-                          <DefaultIcons.Custom library="FontAwesome5" name="exchange-alt" size={12} color={Pallete.icons.light} />
+                          <DefaultIcons.Custom library='FontAwesome5' name='exchange-alt' size={12} color={Pallete.icons.light} />
                         </TouchableOpacity>
                       </View>
                     ))}
@@ -144,15 +142,13 @@ export default function ListaVoluntariosTable({
           })}
         </View>
       </View>
-      {voluntarioDetailsProps.isVisible &&
-        voluntarioDetailsProps.ministerioVoluntarioId &&
-        voluntarioDetailsProps.voluntarioId && (
-          <VoluntarioDetailsModal
-            ministerioVoluntarioId={voluntarioDetailsProps.ministerioVoluntarioId}
-            voluntarioId={voluntarioDetailsProps.voluntarioId}
-            onClose={() => setVoluntarioDetailsProps({ isVisible: false })}
-          />
-        )}
+      {voluntarioDetailsProps.isVisible && voluntarioDetailsProps.ministerioVoluntarioId && voluntarioDetailsProps.voluntarioId && (
+        <VoluntarioDetailsModal
+          ministerioVoluntarioId={voluntarioDetailsProps.ministerioVoluntarioId}
+          voluntarioId={voluntarioDetailsProps.voluntarioId}
+          onClose={() => setVoluntarioDetailsProps({ isVisible: false })}
+        />
+      )}
     </>
   );
 }

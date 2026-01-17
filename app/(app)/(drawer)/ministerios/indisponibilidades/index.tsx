@@ -36,11 +36,18 @@ const schema = z.object({
 export default function MinisterioIndisponibilidadesIndex() {
   const { ministerioId } = useLocalSearchParams<{ ministerioId?: string }>();
 
-  const { voluntariosList, voluntariosDropDownList, isLoading: isLoadingVoluntarios } = useVoluntariosDoMinisterioCrud(ministerioId);
+  const {
+    voluntariosList,
+    voluntariosDropDownList,
+    isLoading: isLoadingVoluntarios,
+  } = useVoluntariosDoMinisterioCrud(ministerioId);
 
   const { control, watch } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: { voluntarioId: voluntariosList[0]?.id, indisponibilidades: [] },
+    defaultValues: {
+      voluntarioId: voluntariosList[0]?.id,
+      indisponibilidades: [],
+    },
   });
 
   const voluntarioId = watch('voluntarioId');
@@ -48,7 +55,13 @@ export default function MinisterioIndisponibilidadesIndex() {
   const initialParams = useMemo(() => {
     return {
       where: {
-        conditions: [{ path: 'voluntario.id', operator: Operator.EQUALS, value: { type: ValueType.LITERAL, value: voluntarioId } }],
+        conditions: [
+          {
+            path: 'voluntario.id',
+            operator: Operator.EQUALS,
+            value: { type: ValueType.LITERAL, value: voluntarioId },
+          },
+        ],
       },
     } as DynamicQuery;
   }, [voluntarioId]);
@@ -74,7 +87,10 @@ export default function MinisterioIndisponibilidadesIndex() {
     };
   }, []);
 
-  const [modalState, setModalState] = useState<ModalState>({ visible: false, status: 'available' });
+  const [modalState, setModalState] = useState<ModalState>({
+    visible: false,
+    status: 'available',
+  });
   const [showPeriodoModal, setShowPeriodoModal] = useState(false);
 
   const handleAddPeriodo = async (inicio: Date, fim: Date, motivo: string) => {
@@ -82,11 +98,11 @@ export default function MinisterioIndisponibilidadesIndex() {
     if (!voluntarioId) return;
     try {
       const dates = DateUtils.generateDatesBetween(inicio, fim);
-      const indisponibilidadesExistentes = dates.map(d => ({
+      const indisponibilidadesExistentes = dates.map((d) => ({
         data: DateUtilsApi.dateOnlyToApi(d),
         motivo: motivo?.trim() || undefined,
       }));
-      
+
       await upsertMany({
         voluntarioId,
         indisponibilidades: indisponibilidadesExistentes,
@@ -97,10 +113,10 @@ export default function MinisterioIndisponibilidadesIndex() {
     }
   };
 
-  const closeModal = () => setModalState(s => ({ ...s, visible: false }));
+  const closeModal = () => setModalState((s) => ({ ...s, visible: false }));
 
   const handleConfirm = (mode: 'mark' | 'unmark', date: Date, motivo?: string) => {
-    const registro = indisponibilidadesData.find(d => new Date(d.data).getTime?.() === date.getTime?.());
+    const registro = indisponibilidadesData.find((d) => new Date(d.data).getTime?.() === date.getTime?.());
 
     closeModal();
 
@@ -110,20 +126,32 @@ export default function MinisterioIndisponibilidadesIndex() {
           if (registro?.id) {
             await updateIndisponibilidade({
               id: registro.id,
-              data: { data: date, motivo: motivo },
+              data: {
+                data: DateUtilsApi.dateOnlyToApi(date),
+                motivo: motivo,
+              },
             });
-            Toast.show({ type: 'success', text1: 'Motivo atualizado com sucesso!' });
+            Toast.show({
+              type: 'success',
+              text1: 'Motivo atualizado com sucesso!',
+            });
           } else {
             await addIndisponibilidade({
-              data: date,
-              voluntario: { id: voluntarioId },
+              data: DateUtilsApi.dateOnlyToApi(date),
+              voluntarioId: voluntarioId,
               motivo,
             });
-            Toast.show({ type: 'success', text1: 'Data marcada como indisponível!' });
+            Toast.show({
+              type: 'success',
+              text1: 'Data marcada como indisponível!',
+            });
           }
         } else if (registro?.id) {
           await removeIndisponibilidade(registro.id);
-          Toast.show({ type: 'info', text1: 'Data disponível novamente!!' });
+          Toast.show({
+            type: 'info',
+            text1: 'Data disponível novamente!!',
+          });
         }
       } catch {
         Toast.show({ type: 'error', text1: 'Erro ao atualizar data!' });
@@ -138,15 +166,15 @@ export default function MinisterioIndisponibilidadesIndex() {
   return (
     <FancyPageView style={styles.container}>
       <View style={styles.voluntarioContainer}>
-        <ControlledDropDown control={control} name="voluntarioId" label="Voluntário" listItems={voluntariosDropDownList} />
+        <ControlledDropDown control={control} name='voluntarioId' label='Voluntário' listItems={voluntariosDropDownList} />
       </View>
       {voluntarioId && !isLoadingIndisponibilidades ? (
         <View>
           <FancyVerticalSpacer height={30} />
           <FancyCalendar
             selectDateOnPress={false}
-            onChangeSelectedDate={date => {
-              const registro = indisponibilidadesData.find(d => new Date(d.data).getTime() === date.getTime());
+            onChangeSelectedDate={(date) => {
+              const registro = indisponibilidadesData.find((d) => new Date(d.data).getTime() === date.getTime());
               setModalState({
                 visible: true,
                 date,
@@ -157,28 +185,50 @@ export default function MinisterioIndisponibilidadesIndex() {
             containerStyle={{ paddingHorizontal: 5, flex: 1 }}
             minimumDate={startDate}
             maximumDate={endDate}
-            markedDates={indisponibilidadesData.map(d => ({ date: new Date(d.data), T: d.id, color: Pallete.error }))}
-            markedDatesType="SurroundCircle"
+            markedDates={indisponibilidadesData.map((d) => ({
+              date: new Date(d.data),
+              T: d.id,
+              color: Pallete.error,
+            }))}
+            markedDatesType='SurroundCircle'
           />
           <FancyVerticalSpacer height={40} />
-          <FancyButton label="Adicionar Período" icon={{ ...DefaultIconsNames.add, size: 20 }} onPress={() => setShowPeriodoModal(true)} />
+          <FancyButton
+            label='Adicionar Período'
+            icon={{ ...DefaultIconsNames.add, size: 20 }}
+            onPress={() => setShowPeriodoModal(true)}
+          />
         </View>
       ) : (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
           <FancyListEmpty />
         </View>
       )}
 
       {modalState.visible && modalState.date && modalState.status && (
         <DateAvailabilityAdjustmentModal
-          data={{ date: modalState.date, status: modalState.status, motivo: modalState.motivo ?? undefined }}
+          data={{
+            date: modalState.date,
+            status: modalState.status,
+            motivo: modalState.motivo ?? undefined,
+          }}
           modalProps={{ onButton1Press: closeModal }}
           onConfirm={handleConfirm}
         />
       )}
 
       {showPeriodoModal && (
-        <AddPeriodoModal visible={showPeriodoModal} modalProps={{ onButton1Press: () => setShowPeriodoModal(false) }} onConfirm={handleAddPeriodo} />
+        <AddPeriodoModal
+          visible={showPeriodoModal}
+          modalProps={{ onButton1Press: () => setShowPeriodoModal(false) }}
+          onConfirm={handleAddPeriodo}
+        />
       )}
     </FancyPageView>
   );

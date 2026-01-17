@@ -5,7 +5,6 @@ import DefaultIcons from '../FancyIcons';
 import { DrawerItemData } from './MenuData';
 import { router } from 'expo-router';
 import { Image } from 'expo-image';
-import { ImageUtils } from '../../utils/image_utils';
 
 export default function FancyDrawerItemHeader(
   props: { isCollapsed: boolean; onCollapsePress: () => void; onNavigate?: () => void } & DrawerItemData,
@@ -41,20 +40,17 @@ export default function FancyDrawerItemHeader(
               />
             )}
             {props.logo.type === 'logo' && props.logo.value && (
-              <Image
-                source={ImageUtils.normalizeImageSource(props.logo.value) ?? { uri: props.logo.value }}
-                style={{ width: 25, height: 25, borderRadius: 999 }}
-              />
+              <Image source={props.logo.value ?? { uri: props.logo.value }} style={{ width: 25, height: 25, borderRadius: 999 }} />
             )}
           </View>
         )}
       </View>
       <View style={styles.headerContainer}>
-        <FancyText size={'small'} type="semiBold" color={Pallete.fonts.dark}>
+        <FancyText size={'small'} type='semiBold' color={Pallete.fonts.dark}>
           {props.title}
         </FancyText>
         {props.subtitle && (
-          <FancyText size={'small'} type="medium" color={Pallete.fonts.inactive} style={{ paddingTop: 0 }}>
+          <FancyText size={'small'} type='medium' color={Pallete.fonts.inactive} style={{ paddingTop: 0 }}>
             {` - ${props.subtitle}`}
           </FancyText>
         )}
@@ -63,7 +59,7 @@ export default function FancyDrawerItemHeader(
         <View style={styles.collapseContainer}>
           <DefaultIcons.Custom
             name={props.isCollapsed ? 'chevron-down' : 'chevron-up'}
-            library="MaterialCommunityIcons"
+            library='MaterialCommunityIcons'
             size={24}
             color={Pallete.fonts.dark}
           />

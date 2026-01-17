@@ -2,15 +2,15 @@
 import { useEffect } from 'react';
 import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
-import { NotificacaoTipoEnum } from '../domain/models/Notificacao';
+import { NotificacaoTipoEnum } from '../domain/enums/Notificacao/tipo-notificacao.enum';
 
 export function NotificationsManager() {
   useEffect(() => {
-    const subRec = Notifications.addNotificationReceivedListener(notification => {
+    const subRec = Notifications.addNotificationReceivedListener((notification) => {
       console.log('[Notifications] Recebida:', notification.request.content);
     });
 
-    const subClick = Notifications.addNotificationResponseReceivedListener(response => {
+    const subClick = Notifications.addNotificationResponseReceivedListener((response) => {
       const data = response.notification.request.content.data as any;
       console.log('[Notifications] Clicada, data:', data);
 

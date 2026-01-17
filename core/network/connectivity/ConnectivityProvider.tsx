@@ -40,7 +40,7 @@ export function ConnectivityProvider({ children }: { children: React.ReactNode }
   }, [isServerDown, runHealthCheck]);
 
   useEffect(() => {
-    const unsub = NetInfo.addEventListener(state => {
+    const unsub = NetInfo.addEventListener((state) => {
       const offline = !(state.isConnected && state.isInternetReachable !== false);
       setIsOffline(offline);
     });
@@ -60,7 +60,7 @@ export function ConnectivityProvider({ children }: { children: React.ReactNode }
   }, [startPolling]);
 
   useEffect(() => {
-    const sub = AppState.addEventListener('change', next => {
+    const sub = AppState.addEventListener('change', (next) => {
       const prev = appStateRef.current;
       appStateRef.current = next;
 
