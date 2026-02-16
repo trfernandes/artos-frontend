@@ -72,3 +72,39 @@ Escopo: análise estática + build/tooling (sem execução em dispositivo/emulad
 1. Passo 3: Environment e segredos (`.env*`, API URL, credenciais hardcoded, localhost/IP local).
 2. Passo 4: autenticação/sessão (storage, 401/403, logout, corrida de token).
 3. Passos 5-11: formulários, hooks de API, navegação, UX, segurança, performance, design/acessibilidade e edge cases.
+
+## Passo 3 - Environment e Segredos (Blocos 1 e 7)
+
+### Evidências salvas
+1. `docs/auditoria-evidence/step-03/env-files.txt`
+2. `docs/auditoria-evidence/step-03/git-tracked-env.txt`
+3. `docs/auditoria-evidence/step-03/env-classification.txt`
+4. `docs/auditoria-evidence/step-03/.env.redacted.numbered.txt`
+5. `docs/auditoria-evidence/step-03/.env.local.redacted.numbered.txt`
+6. `docs/auditoria-evidence/step-03/.env.staging.redacted.numbered.txt`
+7. `docs/auditoria-evidence/step-03/api-url-usage.txt`
+8. `docs/auditoria-evidence/step-03/localhost-scan.txt`
+9. `docs/auditoria-evidence/step-03/security-patterns.txt`
+10. `docs/auditoria-evidence/step-03/gitignore.numbered.txt`
+
+### Checklist environment
+| Item | Status | Evidência |
+|---|---|---|
+| `API_URL` configurável via ENV | `OK` | `domain/api/api-client.ts:6` usa `process.env.EXPO_PUBLIC_API_URL` |
+| URLs separadas dev/staging/prod | `PARCIAL` | `.env.local` (local), `.env.staging` (staging), `.env` (remote) em `docs/auditoria-evidence/step-03/env-classification.txt` |
+| Credencial hardcoded em código | `ISSUE` | DSN Sentry hardcoded em `app/_layout.tsx:23` |
+| Segredo em arquivo versionado | `ISSUE` | `.env` contém chave de app (`.env:1`) e está versionado (`docs/auditoria-evidence/step-03/git-tracked-env.txt`) |
+| Referências a localhost/IP local no app | `OK` | Sem ocorrência em runtime app; ocorrências encontradas só em scripts/docs (`docs/auditoria-evidence/step-03/localhost-scan.txt`) |
+| Política de gitignore para env | `ISSUE` | `.env` não está ignorado; `.gitignore` ignora apenas `.env.local` e `.env.staging` (`.gitignore:36`-`.gitignore:39`) |
+
+### Riscos novos classificados
+1. `.env` versionado com segredo de app: **CRÍTICO** (exposição de segredo e risco de uso indevido).
+2. DSN Sentry hardcoded no código: **ALTO** (manutenção/rotação e segregação de ambientes prejudicadas).
+3. Estratégia de ambientes sem `eas.json` e sem controle explícito de env por profile: **ALTO**.
+
+---
+
+## Próximos passos
+1. Passo 4: autenticação e sessão (token storage, refresh, 401/403, logout e corrida).
+2. Passo 5: inventário completo de `useForm()`.
+3. Passos 6-11: hooks de API, navegação, UX, segurança, performance, design/acessibilidade e edge cases.
