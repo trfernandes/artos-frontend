@@ -1,8 +1,16 @@
 import { Stack } from 'expo-router';
 import FancyPageHeader from '../../../../../components/header/FancyHeader';
 import MainHeaderButtons from '../../../../../components/header/MainHeaderButtons';
+import { IgrejaVoluntarioRoleEnum } from '../../../../../domain/enums/Igreja/voluntario-role.enum';
+import { useRoleGuard } from '../../../../../hooks/useRoleGuard';
 
 export default function MinisteriosLayout() {
+  const { hasAccess, loading } = useRoleGuard([IgrejaVoluntarioRoleEnum.ADMIN, 'OWNER']);
+
+  if (loading || !hasAccess) {
+    return null;
+  }
+
   return (
     <Stack
       screenOptions={{
