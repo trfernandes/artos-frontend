@@ -1,0 +1,112 @@
+app/(app)/(drawer)/admin/eventos/add.tsx(69,9): error TS2304: Cannot find name 'Toast'.
+app/(app)/(drawer)/admin/eventos/edit.tsx(75,15): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+app/(app)/(drawer)/admin/ministerios/edit.tsx(94,7): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+app/(app)/(drawer)/admin/ministerios/edit.tsx(161,42): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+app/(app)/(drawer)/admin/ministerios/edit.tsx(161,42): error TS18048: 'updateMinisterio' is possibly 'undefined'.
+app/(app)/(drawer)/admin/ministerios/index.tsx(57,15): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+app/(app)/(drawer)/admin/voluntarios/details.tsx(91,21): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+app/(app)/(drawer)/admin/voluntarios/details.tsx(122,13): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+app/(app)/(drawer)/ministerios/funcoes/index.tsx(98,9): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+app/(app)/(drawer)/ministerios/indisponibilidades/index.tsx(46,5): error TS2339: Property 'isLoading' does not exist on type '{ voluntariosList: ResponseVoluntarioDto[]; voluntariosDropDownList: DropDownItemProps<string>[]; ministerioVoluntariosList: ResponseMinisterioVoluntarioDto[]; ... 5 more ...; removeMinisterioVoluntario: UseMutateAsyncFunction<...>; }'.
+app/(app)/(drawer)/ministerios/indisponibilidades/index.tsx(88,5): error TS2322: Type '{ igrejaId: string; where: { conditions: { path: string; operator: Operator; value: { type: ValueType; value: string; }; }[]; conjunction: Conjunction; }; } | undefined' is not assignable to type 'string | DynamicQuery | null | undefined'.
+  Type '{ igrejaId: string; where: { conditions: { path: string; operator: Operator; value: { type: ValueType; value: string; }; }[]; conjunction: Conjunction; }; }' is not assignable to type 'string | DynamicQuery | null | undefined'.
+    Type '{ igrejaId: string; where: { conditions: { path: string; operator: Operator; value: { type: ValueType; value: string; }; }[]; conjunction: Conjunction; }; }' is not assignable to type 'DynamicQuery'.
+      The types of 'where.conditions' are incompatible between these types.
+        Type '{ path: string; operator: Operator; value: { type: ValueType; value: string; }; }[]' is not assignable to type 'Condition[]'.
+          Type '{ path: string; operator: Operator; value: { type: ValueType; value: string; }; }' is not assignable to type 'Condition'.
+            Type '{ path: string; operator: Operator; value: { type: ValueType; value: string; }; }' is not assignable to type 'SimpleCondition'.
+              Types of property 'value' are incompatible.
+                Type '{ type: ValueType; value: string; }' is not assignable to type 'LiteralValue | FieldValue'.
+                  Type '{ type: ValueType; value: string; }' is not assignable to type 'LiteralValue'.
+                    Types of property 'type' are incompatible.
+                      Type 'ValueType' is not assignable to type 'ValueType.LITERAL'.
+app/(app)/(drawer)/ministerios/indisponibilidades/index.tsx(137,19): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+app/(app)/(drawer)/ministerios/integrantes/index.tsx(87,15): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+app/(app)/(drawer)/ministerios/solicitacoes/index.tsx(83,11): error TS2322: Type '{ modalProps: { visible: true; }; onClose: () => void; onConfirm: () => void; }' is not assignable to type 'IntrinsicAttributes & Omit<FancyModalDialogProps<any>, "title">'.
+  Property 'onClose' does not exist on type 'IntrinsicAttributes & Omit<FancyModalDialogProps<any>, "title">'.
+app/(app)/(drawer)/ministerios/templates_equipe/edit.tsx(80,9): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+app/(app)/(drawer)/pessoal/indisponibilidade/index.tsx(89,5): error TS2322: Type '{ igrejaId: string; where: { conditions: { path: string; operator: Operator; value: { type: ValueType; value: string; }; }[]; conjunction: Conjunction; }; } | undefined' is not assignable to type 'string | DynamicQuery | null | undefined'.
+  Type '{ igrejaId: string; where: { conditions: { path: string; operator: Operator; value: { type: ValueType; value: string; }; }[]; conjunction: Conjunction; }; }' is not assignable to type 'string | DynamicQuery | null | undefined'.
+    Type '{ igrejaId: string; where: { conditions: { path: string; operator: Operator; value: { type: ValueType; value: string; }; }[]; conjunction: Conjunction; }; }' is not assignable to type 'DynamicQuery'.
+      The types of 'where.conditions' are incompatible between these types.
+        Type '{ path: string; operator: Operator; value: { type: ValueType; value: string; }; }[]' is not assignable to type 'Condition[]'.
+          Type '{ path: string; operator: Operator; value: { type: ValueType; value: string; }; }' is not assignable to type 'Condition'.
+            Type '{ path: string; operator: Operator; value: { type: ValueType; value: string; }; }' is not assignable to type 'SimpleCondition'.
+              Types of property 'value' are incompatible.
+                Type '{ type: ValueType; value: string; }' is not assignable to type 'LiteralValue | FieldValue'.
+                  Type '{ type: ValueType; value: string; }' is not assignable to type 'LiteralValue'.
+                    Types of property 'type' are incompatible.
+                      Type 'ValueType' is not assignable to type 'ValueType.LITERAL'.
+app/(app)/(drawer)/pessoal/indisponibilidade/index.tsx(186,17): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+app/(app)/(drawer)/pessoal/perfil/edit.tsx(110,38): error TS2551: Property 'Inativo' does not exist on type 'typeof VoluntarioStatusEnum'. Did you mean 'ATIVO'?
+app/(app)/(drawer)/pessoal/perfil/edit.tsx(118,13): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+app/(app)/(drawer)/pessoal/perfil/edit.tsx(124,9): error TS2322: Type '{ nome: string; fotoThumbUrl: string | null | undefined; fotoUrl: string | null | undefined; id?: string | undefined; email?: string | undefined; }' is not assignable to type 'ResponseLoginUserDto'.
+  Types of property 'id' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+components/cards/Vertical/FancyVerticalContainerCard.tsx(128,11): error TS2322: Type 'string' is not assignable to type 'ImageSourcePropType | undefined'.
+components/cards/Vertical/FancyVerticalLetterCard.tsx(18,58): error TS18048: 'props.title' is possibly 'undefined'.
+components/FancyAccordeon.tsx(68,13): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: LinearGradientProps): LinearGradient', gave the following error.
+    Type 'string[]' is not assignable to type 'readonly [ColorValue, ColorValue, ...ColorValue[]]'.
+      Source provides no match for required element at position 0 in target.
+  Overload 2 of 2, '(props: LinearGradientProps, context: any): LinearGradient', gave the following error.
+    Type 'string[]' is not assignable to type 'readonly [ColorValue, ColorValue, ...ColorValue[]]'.
+      Source provides no match for required element at position 0 in target.
+components/FancyNumberSelector.tsx(31,11): error TS2322: Type '{ readOnly: true; inputContainerStyle: { borderWidth: number; borderRadius: number; borderColor: string; minHeight: "100%"; height: "100%"; }; style: { textAlign: string; flex: number; backgroundColor: string; fontFamily: string; fontSize: number; }; value: string; }' is not assignable to type 'IntrinsicAttributes & FancyTextInputProps'.
+  Property 'readOnly' does not exist on type 'IntrinsicAttributes & FancyTextInputProps'. Did you mean 'readonly'?
+components/fields/FancyDropDown.tsx(96,9): error TS2322: Type '"default" | "modal" | "portal" | undefined' is not assignable to type '"auto" | "default" | "modal" | undefined'.
+  Type '"portal"' is not assignable to type '"auto" | "default" | "modal" | undefined'.
+components/pages/admin/ministerios/PermissoesTab.tsx(7,10): error TS2614: Module '"../../../../app/(app)/(drawer)/admin/ministerios/add"' has no exported member 'MinisterioFormData'. Did you mean to use 'import MinisterioFormData from "../../../../app/(app)/(drawer)/admin/ministerios/add"' instead?
+components/pages/admin/ministerios/PermissoesTab.tsx(38,21): error TS2339: Property 'id' does not exist on type 'Record<"fieldId", string>'.
+components/pages/admin/ministerios/PermissoesTab.tsx(39,41): error TS2339: Property 'ministerioVoluntarioId' does not exist on type 'Record<"fieldId", string>'.
+components/pages/admin/ministerios/PermissoesTab.tsx(40,26): error TS2339: Property 'recurso' does not exist on type 'Record<"fieldId", string>'.
+components/pages/admin/ministerios/PermissoesTab.tsx(41,29): error TS2339: Property 'permissoes' does not exist on type 'Record<"fieldId", string>'.
+components/pages/admin/ministerios/VoluntarioTab.tsx(75,9): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+components/pages/admin/solicitacoes/NovoConviteModal.tsx(123,15): error TS2322: Type '"semiBold" | "regular"' is not assignable to type '"bold" | "medium" | "normal" | "normalItalic" | "mediumItalic" | "semiBold" | "semiBoldItalic" | "boldItalic" | undefined'.
+  Type '"regular"' is not assignable to type '"bold" | "medium" | "normal" | "normalItalic" | "mediumItalic" | "semiBold" | "semiBoldItalic" | "boldItalic" | undefined'.
+components/pages/admin/voluntarios/MinisterioAddForm.tsx(41,57): error TS2339: Property 'logo' does not exist on type 'ResponseMinisterioDto'.
+components/pages/login/createAccount/create-igreja-account-tab-dados.tsx(63,27): error TS2339: Property 'setIsCheckingCode' does not exist on type 'CodigoCheckContextType | { isCheckingCode: boolean; }'.
+components/pages/login/createAccount/create-igreja-account-tab-plano.tsx(8,47): error TS2551: Property 'textSecondary' does not exist on type '{ primary: string; secondary: string; terciary: string; warning: string; error: string; confirm: string; disabled: string; disabled2: string; disabled3: string; selected: string; buttons: { active: string; inactive: string; }; ... 8 more ...; shadows: { ...; }; }'. Did you mean 'secondary'?
+components/pages/login/createAccount/create-igreja-account-tab-responsavel.tsx(14,114): error TS2322: Type '{ control: Control<{ nome: string; cidade: string; uf: string; codigo: string; responsavelNome: string; responsavelEmail: string; responsavelSenha: string; responsavelConfirmarSenha: string; responsavelWhatsapp: string; }, any, { ...; }>; name: "responsavelEmail"; label: string; keyboardType: "email-address"; autoCa...' is not assignable to type 'IntrinsicAttributes & ControlledFancyTextInputProps<{ nome: string; cidade: string; uf: string; codigo: string; responsavelNome: string; responsavelEmail: string; responsavelSenha: string; responsavelConfirmarSenha: string; responsavelWhatsapp: string; }>'.
+  Property 'autoCapitalize' does not exist on type 'IntrinsicAttributes & ControlledFancyTextInputProps<{ nome: string; cidade: string; uf: string; codigo: string; responsavelNome: string; responsavelEmail: string; responsavelSenha: string; responsavelConfirmarSenha: string; responsavelWhatsapp: string; }>'.
+components/pages/ministerios/agenda/AgendaDetailsEscalaTab.tsx(47,5): error TS2322: Type '{ where: { conditions: { path: string; operator: Operator; value: { type: ValueType; value: string; }; }[]; conjunction: Conjunction; }; relations: string[]; orderBy: { ...; }[]; }' is not assignable to type 'string | DynamicQuery | null | undefined'.
+  Type '{ where: { conditions: { path: string; operator: Operator; value: { type: ValueType; value: string; }; }[]; conjunction: Conjunction; }; relations: string[]; orderBy: { ...; }[]; }' is not assignable to type 'DynamicQuery'.
+    The types of 'where.conditions' are incompatible between these types.
+      Type '{ path: string; operator: Operator; value: { type: ValueType; value: string; }; }[]' is not assignable to type 'Condition[]'.
+        Type '{ path: string; operator: Operator; value: { type: ValueType; value: string; }; }' is not assignable to type 'Condition'.
+          Type '{ path: string; operator: Operator; value: { type: ValueType; value: string; }; }' is not assignable to type 'SimpleCondition'.
+            Types of property 'value' are incompatible.
+              Type '{ type: ValueType; value: string; }' is not assignable to type 'LiteralValue | FieldValue'.
+                Type '{ type: ValueType; value: string; }' is not assignable to type 'LiteralValue'.
+                  Types of property 'type' are incompatible.
+                    Type 'ValueType' is not assignable to type 'ValueType.LITERAL'.
+components/pages/ministerios/escalas/details/AdicionarFuncaoModal.tsx(99,33): error TS2345: Argument of type 'string | (string | null)[] | null' is not assignable to parameter of type 'SetStateAction<string | null>'.
+  Type '(string | null)[]' is not assignable to type 'SetStateAction<string | null>'.
+components/pages/ministerios/escalas/details/AdicionarVoluntarioModal.tsx(227,37): error TS2345: Argument of type 'string | (string | null)[] | null' is not assignable to parameter of type 'SetStateAction<string | null>'.
+  Type '(string | null)[]' is not assignable to type 'SetStateAction<string | null>'.
+components/pages/ministerios/escalas/details/SubstituirVoluntarioModal.tsx(254,37): error TS2345: Argument of type 'string | (string | null)[] | null' is not assignable to parameter of type 'SetStateAction<string | null>'.
+  Type '(string | null)[]' is not assignable to type 'SetStateAction<string | null>'.
+components/pages/ministerios/escalas/details/VoluntarioDetailsHeader.tsx(29,55): error TS2339: Property 'foto' does not exist on type 'ResponseVoluntarioDto'.
+components/pages/ministerios/integrantes/FormModal.tsx(32,7): error TS2322: Type '{ children: Element[]; funcoesDropDownList?: DropDownItemProps<string>[] | undefined; mode: "add" | "edit"; title?: string | undefined; onButton1Press?: (() => void) | undefined; ... 13 more ...; button2Icon: Icon; }' is not assignable to type 'IntrinsicAttributes & { title?: string | undefined; children?: ReactNode; onButton1Press?: (() => void) | undefined; onButton2Press?: ((data?: string | undefined) => void) | undefined; ... 10 more ...; titleTextStyle?: StyleProp<...>; } & Omit<...>'.
+  Property 'button2Icon' does not exist on type 'IntrinsicAttributes & { title?: string | undefined; children?: ReactNode; onButton1Press?: (() => void) | undefined; onButton2Press?: ((data?: string | undefined) => void) | undefined; ... 10 more ...; titleTextStyle?: StyleProp<...>; } & Omit<...>'.
+components/pages/pessoal/escalas/index/SubstituicaoModalPage.tsx(142,9): error TS2322: Type 'Dispatch<SetStateAction<string | undefined>>' is not assignable to type '(value: string | string[]) => void'.
+  Types of parameters 'value' and 'value' are incompatible.
+    Type 'string | string[]' is not assignable to type 'SetStateAction<string | undefined>'.
+      Type 'string[]' is not assignable to type 'SetStateAction<string | undefined>'.
+contexts/pages/escalas/AssistantContext.tsx(2,29): error TS2307: Cannot find module '../../../domain/models/Escala' or its corresponding type declarations.
+domain/dtos/EscalaTemplate/escala-template.create.ts(1,40): error TS2307: Cannot find module '../../models/EscalaTemplate' or its corresponding type declarations.
+domain/dtos/MinisterioFuncao/ministerio-funcao.create.ts(1,44): error TS2307: Cannot find module '../../models/MinisterioFuncao' or its corresponding type declarations.
+domain/dtos/MinisterioVoluntario/ministerio-voluntario.update.ts(1,48): error TS2307: Cannot find module '../../models/MinisterioVoluntario' or its corresponding type declarations.
+domain/dtos/MinisterioVoluntarioFuncao/ministerio-voluntario-funcao.create.ts(2,54): error TS2307: Cannot find module '../../models/MinisterioVoluntarioFuncao' or its corresponding type declarations.
+domain/schemas/igreja-configuracoes.schema.ts(36,5): error TS2353: Object literal may only specify known properties, and 'errorMap' does not exist in type '{ error?: string | $ZodErrorMap<$ZodIssueInvalidValue<unknown>> | undefined; message?: string | undefined; }'.
+domain/services/EventosRepository.ts(26,5): error TS2322: Type 'ResponseEventoDto[]' is not assignable to type 'ResponseEventoOcorrenciaDto[]'.
+  Type 'ResponseEventoDto' is missing the following properties from type 'ResponseEventoOcorrenciaDto': dataOcorrencia, eventoId
+domain/services/MinisterioVoluntarioPermissoesRepository.ts(7,61): error TS2314: Generic type 'BaseRepository<TResponse, TCreate, TUpdate>' requires 3 type argument(s).
+hooks/useCadastroIgrejaEmail.ts(82,24): error TS2345: Argument of type 'StatusCadastroResponseDto | null | undefined' is not assignable to parameter of type 'StatusCadastroResponseDto | undefined'.
+  Type 'null' is not assignable to type 'StatusCadastroResponseDto | undefined'.
+hooks/useEscalaItensCrud.ts(27,65): error TS2353: Object literal may only specify known properties, and 'igrejaId' does not exist in type 'DynamicQuery'.
+hooks/useEscalaSubstituicoesCrud.ts(18,84): error TS2345: Argument of type 'DynamicQuery | { igrejaId: string; where?: WhereClause | undefined; orderBy?: OrderByClause[] | undefined; limit?: number | undefined; relations?: string[] | undefined; skip?: number | undefined; }' is not assignable to parameter of type 'DynamicQuery'.
+  Object literal may only specify known properties, and 'igrejaId' does not exist in type 'DynamicQuery'.
+hooks/useIndisponibilidadesVoluntariosCrud.ts(27,77): error TS2345: Argument of type 'DynamicQuery | { igrejaId: string; where?: WhereClause | undefined; orderBy?: OrderByClause[] | undefined; limit?: number | undefined; relations?: string[] | undefined; skip?: number | undefined; }' is not assignable to parameter of type 'DynamicQuery'.
+  Object literal may only specify known properties, and 'igrejaId' does not exist in type 'DynamicQuery'.
