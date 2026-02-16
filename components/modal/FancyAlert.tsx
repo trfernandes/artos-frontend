@@ -35,6 +35,8 @@ export function FancyAlertProvider({ children }: { children: ReactNode }) {
     btn?.onPress?.();
   };
 
+  const shouldStackButtons = buttons.length > 2;
+
   return (
     <AlertCtx.Provider value={{ show }}>
       {children}
@@ -63,14 +65,18 @@ export function FancyAlertProvider({ children }: { children: ReactNode }) {
               ) : null}
             </View>
 
-            <View style={styles.row}>
+            <View style={[styles.row, shouldStackButtons && styles.rowStacked]}>
               {buttons.map((btn, i) => (
                 <FancyButton
                   key={i}
                   label={btn.text}
                   onPress={() => close(btn)}
-                  textProps={{ adjustsFontSizeToFit: true }}
-                  containerStyle={[styles.button, btn.style === 'destructive' ? { backgroundColor: Pallete.error } : {}]}
+                  textProps={{ adjustsFontSizeToFit: !shouldStackButtons, numberOfLines: shouldStackButtons ? 2 : 1 }}
+                  containerStyle={[
+                    styles.button,
+                    shouldStackButtons && styles.buttonStacked,
+                    btn.style === 'destructive' ? { backgroundColor: Pallete.error } : {},
+                  ]}
                   type={btn.style === 'default' ? 'outlined' : 'contained'}
                 />
               ))}
@@ -120,6 +126,8 @@ const styles = StyleSheet.create({
   title: { marginBottom: 10 },
   message: { marginBottom: 20, lineHeight: 16 },
   row: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8 },
+  rowStacked: { flexDirection: 'column' },
   button: { flex: 1, height: 40 },
+  buttonStacked: { flex: 0, width: '100%', minHeight: 44, height: 44 },
   btnText: { color: 'white' },
 });

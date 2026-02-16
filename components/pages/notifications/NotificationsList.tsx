@@ -1,6 +1,6 @@
 import NotificacaoCard from './NotificacaoCard';
 import EscalaLembreteNotificacaoCard from './EscalaLembreteNotificacaoCard';
-import { SectionList, SectionListData, View } from 'react-native';
+import { SectionList, SectionListData, View, StyleSheet } from 'react-native';
 import { useCallback, useMemo } from 'react';
 import FancyListEmpty from '../../list/FancyListEmpty';
 import { isAfter, isSameDay, startOfDay, startOfMonth, subDays } from 'date-fns';
@@ -8,6 +8,7 @@ import FancyText from '../../FancyText';
 import { ResponseNotificacaoDto } from '../../../domain/dtos/Notificacao/notificacao.response';
 import { NotificacaoTipoEnum } from '../../../domain/enums/Notificacao/tipo-notificacao.enum';
 import { DateUtilsApi } from '../../../utils/date_utils';
+import { Pallete } from '../../../constants/colors';
 
 const Hoje = { title: 'Hoje', hours: 0 };
 const Ontem = { title: 'Ontem', hours: 24 };
@@ -32,9 +33,10 @@ export default function NotificationsList({ dataList }: { dataList: ResponseNoti
     const inicioMes = startOfMonth(now);
 
     for (const notificacao of dataList) {
-      if (!notificacao.criadaEm) continue;
+      const createdAt = notificacao.criadaEm || notificacao.createdAt;
+      if (!createdAt) continue;
 
-      const criadaEm = DateUtilsApi.dateOnlyFromApi(notificacao.criadaEm);
+      const criadaEm = DateUtilsApi.dateOnlyFromApi(createdAt);
 
       let targetKey: string;
 
@@ -70,17 +72,26 @@ export default function NotificationsList({ dataList }: { dataList: ResponseNoti
       case NotificacaoTipoEnum.EscalaLembrete:
         return <EscalaLembreteNotificacaoCard data={item} />;
       default:
-        return <NotificacaoCard />;
+        return <NotificacaoCard data={item} />;
     }
   }, []);
 
-  if (!dataList || dataList.length === 0) return <FancyListEmpty label='Nenhuma notificação por aqui...' />;
+  if (!dataList || dataList.length === 0) {
+    return (
+      <FancyListEmpty
+        label='Tudo certo por aqui'
+        labelColor={Pallete.fonts.inactive}
+        icon={{ library: 'MaterialCommunityIcons', name: 'bell-check-outline', size: 58, color: Pallete.fonts.inactive }}
+      />
+    );
+  }
 
   return (
     <SectionList
       sections={groupsData}
+      contentContainerStyle={{ paddingBottom: 10 }}
       renderSectionHeader={({ section }) => (
-        <View>
+        <View style={styles.sectionHeader}>
           <FancyText size={'small'} type={'bold'} style={{ opacity: 0.7 }}>
             {section.title}
           </FancyText>
@@ -89,7 +100,12 @@ export default function NotificationsList({ dataList }: { dataList: ResponseNoti
       SectionSeparatorComponent={() => <View style={{ height: 10 }} />}
       renderSectionFooter={() => <View style={{ height: 10 }} />}
       ItemSeparatorComponent={() => <View style={{ height: 6 }} />}
-      renderItem={({ item }) => renderItem(item)}
+      renderItem={({ item }) => <View style={styles.itemWrapper}>{renderItem(item)}</View>}
     />
   );
 }
+
+const styles = StyleSheet.create({
+  sectionHeader: { paddingTop: 8, paddingHorizontal: 15 },
+  itemWrapper: { paddingHorizontal: 15 },
+});

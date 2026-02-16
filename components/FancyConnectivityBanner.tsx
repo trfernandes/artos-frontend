@@ -1,4 +1,5 @@
 import { View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useConnectivity } from '../core/network/connectivity/ConnectivityProvider';
 import { Pallete } from '../constants/colors';
 import FancyText from './FancyText';
@@ -7,25 +8,31 @@ import { DefaultIconsNames } from '../constants/icons';
 
 export function ConnectivityBanner() {
   const { status, recheck } = useConnectivity();
+  const insets = useSafeAreaInsets();
 
   if (status === 'ok') return null;
 
   const title = status === 'offline' ? 'Sem internet' : 'Servidor indisponível';
-
   const subtitle = status === 'offline' ? 'Verifique sua conexão para continuar.' : 'Tente novamente em instantes.';
 
   return (
     <View
       style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 9999,
+        paddingBottom: insets.bottom + 8,
+        paddingTop: 12,
         paddingHorizontal: 12,
-        paddingVertical: 15,
         backgroundColor: Pallete.error,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
       }}
     >
-      <View>
+      <View style={{ flex: 1 }}>
         <FancyText size='small' type='bold' color='white'>
           {title}
         </FancyText>
@@ -42,7 +49,6 @@ export function ConnectivityBanner() {
           onPress={recheck}
           labelProps={{ size: 'extraSmall' }}
           label='Tentar novamente'
-          // iconPosition="right"
           icon={{ ...DefaultIconsNames.refresh, color: 'white', size: 12 }}
         />
       ) : null}

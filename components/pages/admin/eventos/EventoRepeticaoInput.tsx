@@ -79,7 +79,7 @@ export default function EventoRepeticaoInput({ disabled = false, setRepeticaoMod
                   <FancyButton
                     label='Editar'
                     type='contained'
-                    containerStyle={{ gap: 6, height: 28, width: 75 }}
+                    containerStyle={{ gap: 6, height: 31, minHeight: 31, width: 75 }}
                     icon={{ ...DefaultIconsNames.edit, size: 13 }}
                     onPress={() => setRepeticaoModalVisible(true)}
                   />

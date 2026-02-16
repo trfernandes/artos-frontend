@@ -87,7 +87,7 @@ export default function FancyMaskedTextInput({
         ...inputProps,
         onChangeText: handleChangeText,
         keyboardType: 'numeric',
-        maxLength: pattern.length,
+        maxLength: pattern?.length || undefined,
       }}
     />
   );

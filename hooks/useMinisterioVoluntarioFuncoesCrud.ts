@@ -49,7 +49,7 @@ export function useMinisterioVoluntarioFuncoesCrud({ autoFetch = false, initialP
     onSuccess: () => {
       Toast.show({
         type: 'success',
-        text1: 'Funcoes atualizadas com sucesso!',
+        text1: 'Funções atualizadas com sucesso!',
       });
       crud.queryClient.invalidateQueries({ queryKey: [crud.queryKey] });
     },

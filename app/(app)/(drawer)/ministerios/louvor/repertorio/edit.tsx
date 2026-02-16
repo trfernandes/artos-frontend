@@ -30,7 +30,7 @@ export default function MinisterioLouvorRepertorioAddPage() {
       containerStyle={{
         flex: 1,
         backgroundColor: Pallete.backgroundColor,
-        paddingVertical: 10,
+        paddingBottom: 10,
         gap: 20,
       }}
       contentContainerStyle={{ flex: 1 }}

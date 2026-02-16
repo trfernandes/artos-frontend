@@ -1,5 +1,5 @@
 import { FormProvider, useFieldArray, useForm, useFormContext } from 'react-hook-form';
-import ControlledDropDown from '../../../forms/ControlledDropDown';
+import ControlledSearchSelect from '../../../forms/ControlledSearchSelect';
 import { View } from 'react-native';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import {
@@ -113,7 +113,13 @@ export default function IntegranteFormFields({ voluntariosDropDownList, funcoesD
   return (
     <View style={{ flex: 1, gap: 20 }}>
       {mode === 'add' ? (
-        <ControlledDropDown control={control} name='voluntarioId' label='Voluntário' listItems={voluntariosDropDownList} />
+        <ControlledSearchSelect
+          control={control}
+          name='voluntarioId'
+          label='Voluntário'
+          listItems={voluntariosDropDownList}
+          searchPlaceholder='Buscar voluntário...'
+        />
       ) : (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
           <FancyImage source={getValues('voluntarioFoto') ? { uri: getValues('voluntarioFoto') } : AppImages.emptyProfile} size={50} />

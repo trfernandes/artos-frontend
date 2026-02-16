@@ -23,7 +23,12 @@ export default function FancyBasePage({
 }: FancyBasePageProps) {
   return (
     <FancyPageView style={[styles.container, containerStyle]}>
-      {showSearchBar && <FancySearchBar {...searchBarProps} containerStyle={{ paddingHorizontal: 15 }} />}
+      {showSearchBar && (
+        <FancySearchBar
+          {...searchBarProps}
+          containerStyle={[{ paddingHorizontal: 15 }, searchBarProps?.containerStyle]}
+        />
+      )}
       {children}
       {showFab && <FancyFab {...fabProps} right={10} bottom={10} />}
     </FancyPageView>
@@ -31,5 +36,5 @@ export default function FancyBasePage({
 }
 
 const styles = StyleSheet.create({
-  container: { paddingTop: 0, gap: 15, borderWidth: 0 },
+  container: { gap: 10, borderWidth: 0 },
 });

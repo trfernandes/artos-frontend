@@ -7,8 +7,12 @@ import { ResponseIndisponibilidadeVoluntarioDto } from '../domain/dtos/Indisponi
 import { CreateIndisponibilidadeVoluntarioDto } from '../domain/dtos/IndisponibilidadeVoluntario/indisponibilidade-voluntario.create';
 import { UpdateIndisponibilidadeVoluntarioDto } from '../domain/dtos/IndisponibilidadeVoluntario/indisponibilidade-voluntario.update';
 import { UpsertIndisponibilidadesVoluntarioDto } from '../domain/dtos/IndisponibilidadeVoluntario/upsert-indisponibilidades-voluntario.dto';
+import { useAuth } from '../contexts/AuthContext';
 
-export function useIndisponibilidadesVoluntariosCrud({ autoFetch = false, initialParams = {} }: ExternalUseCrudParams = {}) {
+export function useIndisponibilidadesVoluntariosCrud({ autoFetch = false, initialParams }: ExternalUseCrudParams = {}) {
+  const { igrejaAtiva } = useAuth();
+  const igrejaId = igrejaAtiva?.id;
+
   const crud = useCrud<
     ResponseIndisponibilidadeVoluntarioDto,
     any,
@@ -19,7 +23,8 @@ export function useIndisponibilidadesVoluntariosCrud({ autoFetch = false, initia
     autoFetch,
     initialParams,
     fetchAll: () => IndisponibilidadesVoluntariosRepository.getAll(),
-    search: (query) => IndisponibilidadesVoluntariosRepository.search(query),
+    search: (query) =>
+      IndisponibilidadesVoluntariosRepository.search(igrejaId ? { ...query, igrejaId } : query),
     add: (data) => {
       return IndisponibilidadesVoluntariosRepository.add(data);
     },
@@ -54,9 +59,28 @@ export function useIndisponibilidadesVoluntariosCrud({ autoFetch = false, initia
     },
   });
 
+  const removeWithIgreja = useMutation({
+    mutationFn: ({ id, igrejaId }: { id: string; igrejaId: string }) => IndisponibilidadesVoluntariosRepository.remove(id, igrejaId),
+    onSuccess: () => {
+      Toast.show({
+        type: 'success',
+        text1: 'Indisponibilidade removida com sucesso.',
+      });
+      crud.queryClient.invalidateQueries({ queryKey: [crud.queryKey] });
+    },
+    onError: (error) => {
+      Toast.show({
+        type: 'error',
+        text1: 'Erro ao remover a indisponibilidade.',
+      });
+      console.log(error);
+    },
+  });
+
   return {
     ...crud,
     upsertMany: upsertMany.mutateAsync,
-    isLoadingMutation: crud.isLoadingMutation || upsertMany.isPending,
+    removeWithIgreja: removeWithIgreja.mutateAsync,
+    isLoadingMutation: crud.isLoadingMutation || upsertMany.isPending || removeWithIgreja.isPending,
   };
 }

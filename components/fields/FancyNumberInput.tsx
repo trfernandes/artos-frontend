@@ -13,19 +13,45 @@ export type FancyNumberInputProps = {
   max?: number;
 };
 
-export default function FancyNumberInput({ title, value, onChange, containerStyle, min, max }: FancyNumberInputProps) {
+export default function FancyNumberInput({
+  title,
+  value,
+  onChange,
+  containerStyle,
+  min,
+  max,
+}: FancyNumberInputProps) {
   return (
     <View style={[styles.container, containerStyle]}>
       {title && (
-        <FancyText type='semiBold' size={'small'} color={Pallete.fonts.inactive} style={{ opacity: 1, flex: 1 }}>
+        <FancyText
+          type='semiBold'
+          size={'small'}
+          color={Pallete.fonts.inactive}
+          style={{ opacity: 1, flex: 1 }}
+        >
           {title}
         </FancyText>
       )}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, borderWidth: 0, borderColor: Pallete.primary, borderRadius: 12 }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 16,
+          borderWidth: 0,
+          borderColor: Pallete.primary,
+          borderRadius: 12,
+        }}
+      >
         <FancyButton
           type='contained'
           mode='icon'
-          icon={{ ...DefaultIconsNames.minus, color: Pallete.fonts.light, size: 18, style: { marginTop: 1 } }}
+          icon={{
+            ...DefaultIconsNames.minus,
+            color: Pallete.fonts.light,
+            size: 18,
+            style: { marginTop: 1 },
+          }}
           size={{ h: 25, w: 25 }}
           onPress={() => {
             onChange?.(value ? Math.max(min ?? 0, value - 1) : 0);

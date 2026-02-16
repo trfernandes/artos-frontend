@@ -1,3 +1,4 @@
-import type { CreateIndisponibilidadeVoluntarioDto } from './indisponibilidade-voluntario.create';
-
-export type UpdateIndisponibilidadeVoluntarioDto = Partial<CreateIndisponibilidadeVoluntarioDto>;
+export type UpdateIndisponibilidadeVoluntarioDto = {
+  data?: string;
+  motivo?: string;
+};

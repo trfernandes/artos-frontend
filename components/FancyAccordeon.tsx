@@ -5,6 +5,7 @@ import DefaultIcons, { CustomIconProps } from './FancyIcons';
 import { DefaultIconsNames } from '../constants/icons';
 import { useCallback, useState } from 'react';
 import FancyContainer from './FancyContainer';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export type FancyAccordeonProps = {
   title: string | React.ReactNode;
@@ -17,6 +18,10 @@ export type FancyAccordeonProps = {
   containerContainerStyle?: StyleProp<ViewStyle>;
   containerExpandedContainerStyle?: StyleProp<ViewStyle>;
   iconProps?: Partial<CustomIconProps>;
+  headerGradientColors?: string[];
+  headerExpandedGradientColors?: string[];
+  headerGradientStart?: { x: number; y: number };
+  headerGradientEnd?: { x: number; y: number };
 };
 
 export default function FancyAccordeon({
@@ -30,10 +35,18 @@ export default function FancyAccordeon({
   containerContainerStyle,
   containerExpandedContainerStyle,
   iconProps,
+  headerGradientColors,
+  headerExpandedGradientColors,
+  headerGradientStart = { x: 0, y: 0.5 },
+  headerGradientEnd = { x: 1, y: 0.5 },
 }: FancyAccordeonProps) {
   const [expanded, setExpanded] = useState(isExpanded);
 
   const toggleExpand = useCallback(() => setExpanded((prev) => !prev), []);
+  const gradientColors =
+    expanded && headerExpandedGradientColors?.length
+      ? headerExpandedGradientColors
+      : headerGradientColors;
 
   return (
     <FancyContainer containerStyle={[styles.container, containerContainerStyle, expanded && containerExpandedContainerStyle]}>
@@ -50,6 +63,15 @@ export default function FancyAccordeon({
           expanded ? headerExpandedContainerStyle : headerContainerStyle,
         ]}
       >
+        {gradientColors?.length ? (
+          <LinearGradient
+            colors={gradientColors}
+            start={headerGradientStart}
+            end={headerGradientEnd}
+            style={styles.headerGradient}
+            pointerEvents='none'
+          />
+        ) : null}
         {typeof title === 'string' ? (
           <FancyText size={'small'} type='bold' style={{ lineHeight: 16, borderWidth: 0, opacity: 0.9 }}>
             {title}
@@ -113,5 +135,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 15,
     flexDirection: 'row',
+    overflow: 'hidden',
+  },
+  headerGradient: {
+    ...StyleSheet.absoluteFillObject,
   },
 });

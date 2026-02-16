@@ -1,5 +1,5 @@
 import { View, StyleSheet, Pressable } from 'react-native';
-import { MONTH_NAMES } from '../FancyCalendar';
+import { MONTH_NAMES } from '../../../constants/calendar';
 import FancyText from '../../FancyText';
 import { Pallete } from '../../../constants/colors';
 

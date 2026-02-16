@@ -1,7 +1,16 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { LegendList, LegendListProps } from '@legendapp/list';
 import { useState, useRef } from 'react';
-import { ActivityIndicator, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import {
+    ActivityIndicator,
+    LayoutChangeEvent,
+    NativeScrollEvent,
+    NativeSyntheticEvent,
+    StyleProp,
+    StyleSheet,
+    View,
+    ViewStyle,
+} from 'react-native';
 import FancyListEmpty, { FancyListEmptyProps } from './FancyListEmpty';
 import { RefreshControl } from 'react-native-gesture-handler';
 
@@ -70,25 +79,41 @@ export default function FancyList<ItemT>({ showFade = true, ...props }: FancyLis
               recycleItems={props.recycleItems ?? true}
               maintainVisibleContentPosition={props.maintainVisibleContentPosition ?? true}
               initialScrollIndex={props.initialScrollIndex}
-              ListFooterComponent={props.ListFooterComponent || <View style={{ height: props.bottomSpace || 10 }} />}
+              ListFooterComponent={
+                props.ListFooterComponent || <View style={{ height: props.bottomSpace || 10 }} />
+              }
               onContentSizeChange={handleContentSizeChange}
               contentContainerStyle={[styles.list_content, props.contentContainerStyle]}
               onScroll={handleScroll}
               scrollEventThrottle={16}
               keyExtractor={props.keyExtractor}
+              keyboardShouldPersistTaps={props.keyboardShouldPersistTaps}
               showsVerticalScrollIndicator={false}
               showsHorizontalScrollIndicator={false}
-              refreshControl={<RefreshControl refreshing={props.refreshing || false} onRefresh={props.onRefresh || undefined} />}
+              refreshControl={
+                <RefreshControl
+                  refreshing={props.refreshing || false}
+                  onRefresh={props.onRefresh || undefined}
+                />
+              }
               ItemSeparatorComponent={props.ItemSeparatorComponent}
             />
           )}
 
           {showFade && showTopFade && (
-            <LinearGradient colors={[FADE.colors.light, FADE.colors.dark]} style={[styles.fade, { top: 0 }]} pointerEvents='none' />
+            <LinearGradient
+              colors={[FADE.colors.light, FADE.colors.dark]}
+              style={[styles.fade, { top: 0 }]}
+              pointerEvents='none'
+            />
           )}
 
           {showFade && showBottomFade && (
-            <LinearGradient colors={[FADE.colors.dark, FADE.colors.light]} style={[styles.fade, { bottom: 0 }]} pointerEvents='none' />
+            <LinearGradient
+              colors={[FADE.colors.dark, FADE.colors.light]}
+              style={[styles.fade, { bottom: 0 }]}
+              pointerEvents='none'
+            />
           )}
         </>
       ) : (

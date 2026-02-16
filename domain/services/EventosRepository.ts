@@ -9,6 +9,7 @@ import { UpdateEventoDto } from '../dtos/Evento/evento.update';
 export interface EventosIntervaloParams {
   dataInicio: Date | string;
   dataTermino: Date | string;
+  igrejaId?: string;
 }
 
 class EventosRepositoryClass extends BaseRepository<ResponseEventoDto, CreateEventoDto, UpdateEventoDto> {
@@ -20,6 +21,7 @@ class EventosRepositoryClass extends BaseRepository<ResponseEventoDto, CreateEve
     const response = await EventosApi.buscarPorIntervalo({
       dataInicio: format(params.dataInicio, "yyyy-MM-dd'T'HH:mm:ss"),
       dataTermino: format(endOfDay(params.dataTermino), "yyyy-MM-dd'T'HH:mm:ss"),
+      igrejaId: params.igrejaId,
     });
     return response;
   }

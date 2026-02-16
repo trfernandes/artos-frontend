@@ -139,8 +139,10 @@ const styles = StyleSheet.create({
   // =======================
   contentContainer: {
     flex: 1,
-    padding: 10,
-    gap: 6,
+    paddingHorizontal: 10,
+    paddingTop: 18,
+    paddingBottom: 10,
+    gap: 1,
     alignItems: 'center',
     justifyContent: 'center',
     // borderWidth: 1,

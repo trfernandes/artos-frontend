@@ -24,23 +24,29 @@ export default function FancyTabs(props: FancyTabsProps) {
 
   const handleTabChange = (index: number) => {
     setIndex(index);
-    props.items?.[index].onChange?.(index);
+    props.items?.[index]?.onChange?.(index);
     props.onTabChange?.(index);
   };
+
+  // Proteção contra items undefined ou vazio
+  if (!props.items || props.items.length === 0) {
+    return null;
+  }
 
   return (
     <View style={[styles.container, props.containerStyle]}>
       <View style={styles.headerContainer}>
         <FancyTabsHeader titles={props.items} index={index} onChangeTab={handleTabChange} headerStyle={props.headerStyle} />
       </View>
-      <View style={[styles.contentContainer, props.contentContainerStyle]}>{props.items?.[index].content}</View>
+      <View style={[styles.contentContainer, props.contentContainerStyle]}>{props.items[index]?.content}</View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    gap: 15,
+    paddingTop: 2,
+    gap: 10,
     borderWidth: 0,
     borderColor: 'red',
     backgroundColor: Pallete.backgroundColor,

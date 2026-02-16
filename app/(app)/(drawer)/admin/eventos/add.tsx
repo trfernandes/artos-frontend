@@ -12,6 +12,7 @@ import FancyLoading from '../../../../../components/FancyLoading';
 import FancyButton from '../../../../../components/buttons/FancyButton';
 import EventosDadosForm from '../../../../../components/pages/admin/eventos/EventosDadosForm';
 import { DefaultIconsNames } from '../../../../../constants/icons';
+import { useAuth } from '../../../../../contexts/AuthContext';
 
 export function getDefaultEventoTimes() {
   const now = new Date();
@@ -33,6 +34,7 @@ export function getDefaultEventoTimes() {
 
 export default function EventosAddPage() {
   const { dataInicio, dataTermino } = getDefaultEventoTimes();
+  const { igrejaAtiva } = useAuth();
 
   const form = useForm({
     resolver: zodResolver(eventoSchema),
@@ -51,6 +53,7 @@ export default function EventosAddPage() {
       async (data) => {
         const newEvento: CreateEventoDto = {
           ...data,
+          igrejaId: igrejaAtiva!.id,
           cor: data.cor,
           dataInicio: DateUtilsApi.dateTimeToApi(data.dataInicio),
           dataTermino: data.dataTermino && DateUtilsApi.dateTimeToApi(data.dataTermino),
@@ -59,7 +62,16 @@ export default function EventosAddPage() {
         await add(newEvento);
         router.back();
       },
-      (error) => console.log(error),
+      (errors) => {
+        if (__DEV__) {
+          console.log('[Admin/Eventos] Validation errors:', errors);
+        }
+        Toast.show({
+          type: 'error',
+          text1: 'Erro de validação',
+          text2: 'Verifique os campos do formulário',
+        });
+      },
     )();
   };
 

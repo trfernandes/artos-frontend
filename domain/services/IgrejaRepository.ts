@@ -6,13 +6,25 @@ import { ResponseIgrejaDto } from '../dtos/Igreja/response-igreja.dto';
 import { UpdateIgrejaDto } from '../dtos/Igreja/update-igreja.dto';
 import { VerificarCodigoIgrejaResponseDto } from '../dtos/Igreja/verificar-codigo-igreja.dto';
 import { JoinByCodigoDto } from '../dtos/Igreja/join-by-codigo.dto';
-import { ResponseIgrejaVoluntarioDto } from '../dtos/Igreja/response-igreja-voluntario.dto';
 import { AprovarMembroDto } from '../dtos/Igreja/aprovar-membro.dto';
-import { CreateIgrejaConviteDto } from '../dtos/Igreja/create-igreja-convite.dto';
-import { ResponseIgrejaConviteDto } from '../dtos/Igreja/response-igreja-convite.dto';
-import { ResponseConvitePreviewDto } from '../dtos/Igreja/response-convite-preview.dto';
 import { ResponseIgrejaAssinaturaDto } from '../dtos/Igreja/response-igreja-assinatura.dto';
 import { AlterarPlanoDto } from '../dtos/Igreja/alterar-plano.dto';
+import { ResponseAceitarConviteDto } from '../dtos/Igreja/response-aceitar-convite.dto';
+import { ResponseConvitePreviewDto } from '../dtos/Igreja/response-convite-preview.dto';
+import { ResponseIgrejaConviteDto } from '../dtos/Igreja/response-igreja-convite.dto';
+import { CreateIgrejaConviteDto } from '../dtos/Igreja/create-igreja-convite.dto';
+import {
+  ResponseIgrejaSolicitacaoDto,
+  SolicitacaoStatusEnum,
+} from '../dtos/Igreja/response-igreja-solicitacao.dto';
+import { NegarSolicitacaoDto } from '../dtos/Igreja/negar-solicitacao.dto';
+import { ResponseIgrejaConfiguracoesDto } from '../dtos/Igreja/response-igreja-configuracoes.dto';
+import { UpdateIgrejaDadosDto } from '../dtos/Igreja/update-igreja-dados.dto';
+import { UpdateIgrejaModoEntradaDto } from '../dtos/Igreja/update-igreja-modo-entrada.dto';
+import { UpdateIgrejaNotificacoesDto } from '../dtos/Igreja/update-igreja-notificacoes.dto';
+import { ResponseVoluntarioDto } from '../dtos/Voluntario/voluntario.response';
+import { DynamicQuery } from '../utils/query_utils';
+import { ResponseIgrejaVoluntarioDto } from '../dtos/Igreja/response-igreja-voluntario.dto';
 
 class IgrejaRepositoryClass extends BaseRepository<ResponseIgrejaDto, CreateIgrejaDto, UpdateIgrejaDto> {
   constructor() {
@@ -67,33 +79,65 @@ class IgrejaRepositoryClass extends BaseRepository<ResponseIgrejaDto, CreateIgre
   }
 
   /**
-   * Listar membros pendentes de aprovação (JWT)
+   * Listar solicitações de entrada na igreja (JWT)
    */
-  listarPendentes(igrejaId: string): Promise<ResponseIgrejaVoluntarioDto[]> {
-    return IgrejaApi.listarPendentes(igrejaId);
+  listarSolicitacoes(
+    igrejaId: string,
+    status?: SolicitacaoStatusEnum,
+  ): Promise<ResponseIgrejaSolicitacaoDto[]> {
+    return IgrejaApi.listarSolicitacoes(igrejaId, status);
   }
 
   /**
-   * Aprovar membro pendente (JWT)
+   * Aprovar solicitação de entrada (JWT)
    */
-  aprovarMembro(igrejaId: string, membroId: string, dto?: AprovarMembroDto): Promise<ResponseIgrejaVoluntarioDto> {
-    return IgrejaApi.aprovarMembro(igrejaId, membroId, dto);
+  aprovarSolicitacao(
+    igrejaId: string,
+    solicitacaoId: string,
+    dto?: AprovarMembroDto,
+  ): Promise<ResponseIgrejaSolicitacaoDto> {
+    return IgrejaApi.aprovarSolicitacao(igrejaId, solicitacaoId, dto);
   }
 
   /**
-   * Rejeitar membro pendente (JWT)
+   * Negar solicitação de entrada (JWT)
    */
-  rejeitarMembro(igrejaId: string, membroId: string): Promise<{ ok: true }> {
-    return IgrejaApi.rejeitarMembro(igrejaId, membroId);
+  negarSolicitacao(
+    igrejaId: string,
+    solicitacaoId: string,
+    dto?: NegarSolicitacaoDto,
+  ): Promise<ResponseIgrejaSolicitacaoDto> {
+    return IgrejaApi.negarSolicitacao(igrejaId, solicitacaoId, dto);
   }
 
-  // ========== CONVITES ==========
+  /**
+   * Listar voluntários da igreja com busca avançada (JWT)
+   */
+  listarVoluntarios(igrejaId: string, query?: DynamicQuery): Promise<ResponseVoluntarioDto[]> {
+    return IgrejaApi.listarVoluntarios(igrejaId, query);
+  }
+
+  // ========== CONVITES (ADMIN) ==========
 
   /**
    * Criar convite para igreja (JWT)
    */
   criarConvite(igrejaId: string, dto?: CreateIgrejaConviteDto): Promise<ResponseIgrejaConviteDto> {
     return IgrejaApi.criarConvite(igrejaId, dto);
+  }
+
+  /**
+   * Listar convites da igreja (JWT)
+   */
+  listarConvites(igrejaId: string, status?: string): Promise<ResponseIgrejaConviteDto[]> {
+    return IgrejaApi.listarConvites(igrejaId, status);
+  }
+
+  /**
+   * Revogar convite (JWT)
+   */
+  revogarConvite(conviteId: string): Promise<ResponseIgrejaConviteDto> {
+    return IgrejaApi.revogarConvite(conviteId);
   }
 
   /**
@@ -106,8 +150,24 @@ class IgrejaRepositoryClass extends BaseRepository<ResponseIgrejaDto, CreateIgre
   /**
    * Aceitar convite (JWT)
    */
-  aceitarConvite(token: string): Promise<ResponseIgrejaVoluntarioDto> {
+  aceitarConvite(token: string): Promise<ResponseAceitarConviteDto> {
     return IgrejaApi.aceitarConvite(token);
+  }
+
+  // ========== SOLICITAÇÕES DO USUÁRIO ==========
+
+  /**
+   * Listar solicitações de entrada em igrejas do usuário (JWT)
+   */
+  listarMinhasSolicitacoes(): Promise<ResponseIgrejaSolicitacaoDto[]> {
+    return IgrejaApi.listarMinhasSolicitacoes();
+  }
+
+  /**
+   * Cancelar solicitação de entrada do usuário (JWT)
+   */
+  cancelarMinhaSolicitacao(solicitacaoId: string): Promise<ResponseIgrejaSolicitacaoDto> {
+    return IgrejaApi.cancelarMinhaSolicitacao(solicitacaoId);
   }
 
   // ========== ASSINATURAS ==========
@@ -124,6 +184,36 @@ class IgrejaRepositoryClass extends BaseRepository<ResponseIgrejaDto, CreateIgre
    */
   alterarPlano(igrejaId: string, dto: AlterarPlanoDto): Promise<ResponseIgrejaAssinaturaDto> {
     return IgrejaApi.alterarPlano(igrejaId, dto);
+  }
+
+  // ========== CONFIGURAÇÕES ==========
+
+  /**
+   * Obter configurações completas da igreja (JWT)
+   */
+  getConfiguracoes(igrejaId: string): Promise<ResponseIgrejaConfiguracoesDto> {
+    return IgrejaApi.getConfiguracoes(igrejaId);
+  }
+
+  /**
+   * Atualizar dados cadastrais da igreja (JWT)
+   */
+  updateDados(igrejaId: string, dto: UpdateIgrejaDadosDto): Promise<ResponseIgrejaConfiguracoesDto> {
+    return IgrejaApi.updateDados(igrejaId, dto);
+  }
+
+  /**
+   * Atualizar modo de entrada da igreja (JWT)
+   */
+  updateModoEntrada(igrejaId: string, dto: UpdateIgrejaModoEntradaDto): Promise<ResponseIgrejaConfiguracoesDto> {
+    return IgrejaApi.updateModoEntrada(igrejaId, dto);
+  }
+
+  /**
+   * Atualizar configurações de notificações (JWT)
+   */
+  updateNotificacoes(igrejaId: string, dto: UpdateIgrejaNotificacoesDto): Promise<ResponseIgrejaConfiguracoesDto> {
+    return IgrejaApi.updateNotificacoes(igrejaId, dto);
   }
 }
 

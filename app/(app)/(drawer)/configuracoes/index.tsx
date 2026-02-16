@@ -1,0 +1,766 @@
+import {
+    StyleSheet,
+    View,
+    TouchableOpacity,
+    ActivityIndicator,
+    Platform,
+    ScrollView,
+} from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { uploadToCloudinaryUnsigned } from '../../../../services/cloudinary_upload';
+import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../../../../config/cloudinary';
+import FancyPageView from '../../../../components/containers/FancyPageView';
+import FancyTabs, { TabItem } from '../../../../components/tabs/FancyTabs';
+import { DefaultIconsNames } from '../../../../constants/icons';
+import { useState, useEffect } from 'react';
+import { useIgrejaConfiguracoes } from '../../../../hooks/useIgrejaConfiguracoes';
+import { useAuth } from '../../../../contexts/AuthContext';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+    dadosSchema,
+    modoEntradaSchema,
+    notificacoesSchema,
+    DadosFormData,
+    ModoEntradaFormData,
+    NotificacoesFormData,
+} from '../../../../domain/schemas/igreja-configuracoes.schema';
+import ControlledTextInput from '../../../../components/forms/ControlledTextInput';
+import ControlledDropDown from '../../../../components/forms/ControlledDropDown';
+import ControlledMaskedTextInput from '../../../../components/forms/ControlledMaskedTextInput';
+import FancyButton from '../../../../components/buttons/FancyButton';
+import { Pallete } from '../../../../constants/colors';
+import DefaultIcons from '../../../../components/FancyIcons';
+import FancyText from '../../../../components/FancyText';
+import { ModoEntradaEnum } from '../../../../domain/enums/modo-entrada.enum';
+import ControlledFancyToggle from '../../../../components/forms/ControlledFancyToggle';
+import FancyCheckbox from '../../../../components/FancyCheckbox';
+import * as Clipboard from 'expo-clipboard';
+import Toast from 'react-native-toast-message';
+import { ControlledImagePicker, FormImageFile } from '../../../../components/forms/ControlledImagePicker';
+
+const ESTADOS_BRASIL = [
+  { title: 'Acre (AC)', value: 'AC' },
+  { title: 'Alagoas (AL)', value: 'AL' },
+  { title: 'Amapá (AP)', value: 'AP' },
+  { title: 'Amazonas (AM)', value: 'AM' },
+  { title: 'Bahia (BA)', value: 'BA' },
+  { title: 'Ceará (CE)', value: 'CE' },
+  { title: 'Distrito Federal (DF)', value: 'DF' },
+  { title: 'Espírito Santo (ES)', value: 'ES' },
+  { title: 'Goiás (GO)', value: 'GO' },
+  { title: 'Maranhão (MA)', value: 'MA' },
+  { title: 'Mato Grosso (MT)', value: 'MT' },
+  { title: 'Mato Grosso do Sul (MS)', value: 'MS' },
+  { title: 'Minas Gerais (MG)', value: 'MG' },
+  { title: 'Pará (PA)', value: 'PA' },
+  { title: 'Paraíba (PB)', value: 'PB' },
+  { title: 'Paraná (PR)', value: 'PR' },
+  { title: 'Pernambuco (PE)', value: 'PE' },
+  { title: 'Piauí (PI)', value: 'PI' },
+  { title: 'Rio de Janeiro (RJ)', value: 'RJ' },
+  { title: 'Rio Grande do Norte (RN)', value: 'RN' },
+  { title: 'Rio Grande do Sul (RS)', value: 'RS' },
+  { title: 'Rondônia (RO)', value: 'RO' },
+  { title: 'Roraima (RR)', value: 'RR' },
+  { title: 'Santa Catarina (SC)', value: 'SC' },
+  { title: 'São Paulo (SP)', value: 'SP' },
+  { title: 'Sergipe (SE)', value: 'SE' },
+  { title: 'Tocantins (TO)', value: 'TO' },
+];
+
+const ANTECEDENCIA_OPTIONS = [
+  { title: '24 horas antes', value: 24 },
+  { title: '48 horas antes', value: 48 },
+  { title: '72 horas antes', value: 72 },
+  { title: '1 semana antes', value: 168 },
+];
+
+export default function ConfiguracoesPage() {
+  const { igrejaAtiva, user, updateUser } = useAuth();
+  const igrejaId = igrejaAtiva?.id;
+
+  // Não executar o hook se não houver igreja ativa
+  const { data, isLoading, updateDados, updateModoEntrada, updateNotificacoes, isUpdating } =
+    useIgrejaConfiguracoes({
+      igrejaId: igrejaId || '',
+      onUpdateDadosSuccess: async (updatedData) => {
+        // Atualizar a igreja no contexto de autenticação
+        if (user?.igrejas && igrejaAtiva) {
+          const igrejasAtualizadas = user.igrejas.map((igreja) =>
+            igreja.id === igrejaAtiva.id
+              ? {
+                  ...igreja,
+                  nome: updatedData.nome,
+                  logoUrl: updatedData.logoUrl,
+                  logoThumbUrl: updatedData.logoThumbUrl,
+                  // Preservar os ministérios da igreja atual
+                  ministerios: igreja.ministerios,
+                }
+              : igreja
+          );
+          
+          await updateUser({ igrejas: igrejasAtualizadas });
+        }
+      },
+    });
+
+  // State para controlar upload de imagem
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  // Forms
+  const dadosForm = useForm<DadosFormData>({
+    resolver: zodResolver(dadosSchema),
+    defaultValues: data
+      ? {
+          nome: data.nome,
+          endereco: {
+            cep: data.endereco?.cep || '',
+            rua: data.endereco?.rua || '',
+            numero: data.endereco?.numero || '',
+            complemento: data.endereco?.complemento || '',
+            cidade: data.endereco?.cidade || '',
+            uf: data.endereco?.uf || '',
+          },
+          telefone: data.telefone || '',
+          email: data.email || '',
+          logoUrl: data.logoUrl,
+        }
+      : undefined,
+  });
+
+  const modoEntradaForm = useForm<ModoEntradaFormData>({
+    resolver: zodResolver(modoEntradaSchema),
+    defaultValues: data
+      ? {
+          modoEntrada: data.modoEntrada,
+        }
+      : undefined,
+  });
+
+  const notificacoesForm = useForm<NotificacoesFormData>({
+    resolver: zodResolver(notificacoesSchema),
+    defaultValues: {
+      notificacoesHabilitadas: false,
+      antecedenciaHoras: 24,
+      canaisPush: true,
+      canaisWhatsapp: false,
+    },
+  });
+
+  // States para checkboxes
+  const [canaisPush, setCanaisPush] = useState(
+    data?.configuracoes?.notificacoes?.canais?.push ?? data?.notificacoes?.canais?.push ?? true
+  );
+  const [canaisWhatsapp, setCanaisWhatsapp] = useState(
+    data?.configuracoes?.notificacoes?.canais?.whatsapp ?? data?.notificacoes?.canais?.whatsapp ?? false
+  );
+
+  // Atualizar forms quando data carregar
+  useEffect(() => {
+    if (data) {
+      console.log('🔄 useEffect - Dados recebidos para reset do form:', JSON.stringify({
+        telefone: data.telefone,
+        email: data.email,
+        nome: data.nome,
+      }, null, 2));
+      
+      dadosForm.reset({
+        nome: data.nome || '',
+        endereco: {
+          cep: data.endereco?.cep || '',
+          rua: data.endereco?.rua || '',
+          numero: data.endereco?.numero || '',
+          complemento: data.endereco?.complemento || '',
+          cidade: data.endereco?.cidade || '',
+          uf: data.endereco?.uf || '',
+        },
+        telefone: data.telefone || '',
+        email: data.email || '',
+        logoUrl: data.logoUrl || '',
+      });
+
+      modoEntradaForm.reset({
+        modoEntrada: data.modoEntrada,
+      });
+
+      // Suporte para ambas estruturas: configuracoes.notificacoes ou notificacoes diretamente
+      const notificacoes = data.configuracoes?.notificacoes || data.notificacoes;
+      if (notificacoes) {
+        notificacoesForm.reset({
+          notificacoesHabilitadas: notificacoes.habilitadas ?? false,
+          antecedenciaHoras: notificacoes.antecedenciaHoras ?? 24,
+          canaisPush: notificacoes.canais?.push ?? true,
+          canaisWhatsapp: notificacoes.canais?.whatsapp ?? false,
+        });
+
+        setCanaisPush(notificacoes.canais?.push ?? true);
+        setCanaisWhatsapp(notificacoes.canais?.whatsapp ?? false);
+      }
+    }
+  }, [data]);
+
+  // Handlers
+  const handleSalvarDados = dadosForm.handleSubmit(async (formData: DadosFormData) => {
+    console.log('📤 Dados do form a serem enviados:', JSON.stringify(formData, null, 2));
+    
+    // Fazer upload da imagem se houver uma nova
+    const logoFile = dadosForm.getValues('logoFile' as any) as FormImageFile | null | undefined;
+    
+    let finalLogoUrl = formData.logoUrl;
+    
+    if (logoFile?.uri) {
+      setIsUploadingImage(true);
+      try {
+        const result = await uploadToCloudinaryUnsigned(logoFile, {
+          cloudName: CLOUDINARY_CLOUD_NAME,
+          uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+          folder: 'artos/igrejas',
+        });
+        finalLogoUrl = result.secureUrl;
+      } catch (error) {
+        console.error('Erro ao fazer upload da logo:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Erro',
+          text2: 'Não foi possível fazer upload da imagem',
+        });
+        setIsUploadingImage(false);
+        return;
+      } finally {
+        setIsUploadingImage(false);
+      }
+    }
+
+    try {
+      await updateDados({
+        igrejaId: igrejaId!,
+        dto: {
+          ...formData,
+          logoUrl: finalLogoUrl ?? undefined,
+        },
+      });
+    } catch (error) {
+      // Erro já tratado pelo hook
+    }
+  });
+
+  const handleSalvarModoEntrada = modoEntradaForm.handleSubmit((formData) => {
+    updateModoEntrada({
+      igrejaId: igrejaId!,
+      dto: formData,
+    });
+  });
+
+  const handleSalvarNotificacoes = notificacoesForm.handleSubmit((formData) => {
+    updateNotificacoes({
+      igrejaId: igrejaId!,
+      dto: {
+        notificacoesHabilitadas: formData.notificacoesHabilitadas,
+        antecedenciaHoras: formData.antecedenciaHoras,
+        canaisPush,
+        canaisWhatsapp,
+      },
+    });
+  });
+
+  const handleCopiarCodigo = async () => {
+    if (data?.codigo) {
+      await Clipboard.setStringAsync(data.codigo);
+      // Android já mostra feedback nativo ao copiar
+      if (Platform.OS !== 'android') {
+        Toast.show({
+          type: 'success',
+          text1: 'Código copiado!',
+          text2: 'O código foi copiado para a área de transferência',
+        });
+      }
+    }
+  };
+
+  // Verificar se há igreja ativa
+  if (!igrejaId) {
+    return (
+      <FancyPageView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <FancyText>Nenhuma igreja selecionada</FancyText>
+        </View>
+      </FancyPageView>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <FancyPageView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Pallete.primary} />
+        </View>
+      </FancyPageView>
+    );
+  }
+
+  if (!data) {
+    return (
+      <FancyPageView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <FancyText>Erro ao carregar configurações</FancyText>
+        </View>
+      </FancyPageView>
+    );
+  }
+
+  // Tabs - criado após validação de data
+  const TAB_DATA: TabItem[] = [
+      {
+        title: 'Dados',
+        icon: { ...DefaultIconsNames.info, size: 16 },
+        content: (
+          <View style={styles.tabWrapper}>
+            <KeyboardAwareScrollView
+              style={styles.scrollView}
+              contentContainerStyle={styles.tabContent}
+              showsVerticalScrollIndicator={false}
+              enableOnAndroid={true}
+              extraScrollHeight={100}
+            >
+              {/* Avatar / Logo */}
+              <View style={styles.avatarContainer}>
+                <ControlledImagePicker
+                  control={dadosForm.control}
+                  name="logoUrl"
+                  setValue={dadosForm.setValue}
+                  uploadFieldName={'logoFile' as any}
+                />
+              </View>
+
+              {/* Formulário */}
+              <ControlledTextInput control={dadosForm.control} name="nome" label="Nome da Igreja" />
+
+              <ControlledMaskedTextInput
+                control={dadosForm.control}
+                name="endereco.cep"
+                label="CEP"
+                maskType="cep"
+              />
+
+              <ControlledTextInput control={dadosForm.control} name="endereco.rua" label="Rua" />
+
+              <ControlledTextInput
+                control={dadosForm.control}
+                name="endereco.numero"
+                label="Número"
+                keyboardType="numeric"
+              />
+
+              <ControlledTextInput control={dadosForm.control} name="endereco.complemento" label="Complemento" />
+
+              <ControlledTextInput control={dadosForm.control} name="endereco.cidade" label="Cidade" />
+
+              <ControlledDropDown control={dadosForm.control} name="endereco.uf" label="UF" listItems={ESTADOS_BRASIL} />
+
+              <ControlledMaskedTextInput
+                control={dadosForm.control}
+                name="telefone"
+                label="Telefone"
+                maskType="phone"
+              />
+
+              <ControlledTextInput
+                control={dadosForm.control}
+                name="email"
+                label="Email"
+                keyboardType="email-address"
+              />
+
+              {/* Código da Igreja */}
+              <View style={styles.codigoCard}>
+                <View style={styles.codigoHeader}>
+                  <DefaultIcons.Custom library="MaterialCommunityIcons" name="qrcode" size={20} color={Pallete.primary} />
+                  <FancyText type="medium" size="small" style={styles.codigoTitulo}>
+                    Código da Igreja
+                  </FancyText>
+                </View>
+                <View style={styles.codigoBody}>
+                  <FancyText type="bold" size="extraLarge" style={styles.codigoTexto}>
+                    {data?.codigo || '---'}
+                  </FancyText>
+                  <FancyText type="normal" size="extraSmall" style={styles.codigoDesc}>
+                    Compartilhe este código para convidar pessoas
+                  </FancyText>
+                </View>
+                <TouchableOpacity style={styles.codigoCopyButton} onPress={handleCopiarCodigo}>
+                  <DefaultIcons.Custom library="MaterialCommunityIcons" name="content-copy" size={16} color={Pallete.primary} />
+                  <FancyText type="medium" size="small" style={styles.codigoCopyText}>
+                    Copiar Código
+                  </FancyText>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.buttonContainer}>
+                <FancyButton
+                  label="Salvar Alterações"
+                  icon={{ library: 'MaterialCommunityIcons', name: 'content-save', size: 14 }}
+                  onPress={handleSalvarDados}
+                  disabled={isUpdating || isUploadingImage}
+                  isLoading={isUpdating || isUploadingImage}
+                />
+              </View>
+            </KeyboardAwareScrollView>
+          </View>
+        ),
+      },
+      {
+        title: 'Acesso',
+        icon: { library: 'MaterialCommunityIcons', name: 'shield-account', size: 16 },
+        content: (
+          <View style={styles.tabWrapper}>
+            <KeyboardAwareScrollView
+              style={styles.scrollView}
+              contentContainerStyle={styles.tabContent}
+              showsVerticalScrollIndicator={false}
+              enableOnAndroid={true}
+              extraScrollHeight={100}
+            >
+              <TouchableOpacity
+                style={[
+                  styles.modoCard,
+                  modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.APENAS_CONVITE &&
+                    styles.modoCardSelected,
+                ]}
+                onPress={() => modoEntradaForm.setValue('modoEntrada', ModoEntradaEnum.APENAS_CONVITE)}
+              >
+                <DefaultIcons.Custom
+                  library="MaterialCommunityIcons"
+                  name="account-key"
+                  size={32}
+                  color={
+                    modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.APENAS_CONVITE
+                      ? Pallete.primary
+                      : '#999'
+                  }
+                />
+                <FancyText type="bold" size="medium" style={styles.modoCardTitle}>
+                  Apenas Convite
+                </FancyText>
+                <FancyText type="normal" size="small" style={styles.modoCardDesc}>
+                  Somente pessoas com convite podem entrar na igreja
+                </FancyText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.modoCard,
+                  modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_COM_APROVACAO &&
+                    styles.modoCardSelected,
+                ]}
+                onPress={() => modoEntradaForm.setValue('modoEntrada', ModoEntradaEnum.CODIGO_COM_APROVACAO)}
+              >
+                <DefaultIcons.Custom
+                  library="MaterialCommunityIcons"
+                  name="shield-check"
+                  size={32}
+                  color={
+                    modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_COM_APROVACAO
+                      ? Pallete.primary
+                      : '#999'
+                  }
+                />
+                <FancyText type="bold" size="medium" style={styles.modoCardTitle}>
+                  Código com Aprovação
+                </FancyText>
+                <FancyText type="normal" size="small" style={styles.modoCardDesc}>
+                  Qualquer um com código pode solicitar entrada. Um administrador deve aprovar.
+                </FancyText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.modoCard,
+                  modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_LIVRE &&
+                    styles.modoCardSelected,
+                ]}
+                onPress={() => modoEntradaForm.setValue('modoEntrada', ModoEntradaEnum.CODIGO_LIVRE)}
+              >
+                <DefaultIcons.Custom
+                  library="MaterialCommunityIcons"
+                  name="door-open"
+                  size={32}
+                  color={
+                    modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_LIVRE
+                      ? Pallete.primary
+                      : '#999'
+                  }
+                />
+                <FancyText type="bold" size="medium" style={styles.modoCardTitle}>
+                  Código Livre
+                </FancyText>
+                <FancyText type="normal" size="small" style={styles.modoCardDesc}>
+                  Qualquer um com o código entra automaticamente na igreja
+                </FancyText>
+              </TouchableOpacity>
+
+              <View style={styles.buttonContainer}>
+                <FancyButton
+                  label="Salvar"
+                  icon={{ library: 'MaterialCommunityIcons', name: 'shield-check', size: 14 }}
+                  onPress={handleSalvarModoEntrada}
+                  disabled={isUpdating}
+                  isLoading={isUpdating}
+                />
+              </View>
+            </KeyboardAwareScrollView>
+          </View>
+        ),
+      },
+      {
+        title: 'Notificações',
+        icon: { library: 'MaterialCommunityIcons', name: 'bell', size: 16 },
+        content: (
+          <View style={styles.tabWrapper}>
+            <KeyboardAwareScrollView
+              style={styles.scrollView}
+              contentContainerStyle={styles.tabContent}
+              showsVerticalScrollIndicator={false}
+              enableOnAndroid={true}
+              extraScrollHeight={100}
+            >
+              <ControlledFancyToggle
+                control={notificacoesForm.control}
+                name="notificacoesHabilitadas"
+                label="Lembretes automáticos"
+                option1={{ title: 'Habilitado', value: true }}
+                option2={{ title: 'Desabilitado', value: false }}
+              />
+
+              <ControlledDropDown
+                control={notificacoesForm.control}
+                name="antecedenciaHoras"
+                label="Antecedência padrão"
+                listItems={ANTECEDENCIA_OPTIONS}
+              />
+
+              <View style={styles.canaisContainer}>
+                <FancyText type="medium" size="small" style={styles.canaisLabel}>
+                  Canais de notificação:
+                </FancyText>
+
+                <View style={styles.checkboxesContainer}>
+                  <FancyCheckbox
+                    label="Notificações Push"
+                    value={canaisPush}
+                    onChangeValue={setCanaisPush}
+                  />
+                  <FancyCheckbox
+                    label="WhatsApp"
+                    value={canaisWhatsapp}
+                    onChangeValue={setCanaisWhatsapp}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.buttonContainer}>
+                <FancyButton
+                  label="Salvar"
+                  icon={{ library: 'MaterialCommunityIcons', name: 'bell-check', size: 14 }}
+                  onPress={handleSalvarNotificacoes}
+                  disabled={isUpdating}
+                  isLoading={isUpdating}
+                />
+              </View>
+            </KeyboardAwareScrollView>
+          </View>
+        ),
+      },
+      {
+        title: 'Assinatura',
+        icon: { library: 'MaterialCommunityIcons', name: 'credit-card', size: 16 },
+        content: (
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.assinaturaContainer}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.assinaturaCard}>
+              <View style={styles.assinaturaHeader}>
+                <FancyText type="bold" size="large">
+                  Plano Gratuito
+                </FancyText>
+                <View style={styles.badge}>
+                  <FancyText type="bold" size="extraSmall" style={styles.badgeText}>
+                    Ativo
+                  </FancyText>
+                </View>
+              </View>
+              <FancyText type="normal" size="small" style={styles.assinaturaDesc}>
+                Em breve você poderá fazer upgrade para planos com mais recursos
+              </FancyText>
+              <FancyButton
+                label="Gerenciar Plano"
+                disabled={true}
+                type="outlined"
+                containerStyle={styles.gerenciarButton}
+              />
+            </View>
+          </ScrollView>
+        ),
+      },
+    ];
+
+  return (
+    <FancyPageView style={styles.container}>
+      <FancyTabs
+        items={TAB_DATA}
+        containerStyle={styles.tabsContainer}
+        contentContainerStyle={styles.tabContentContainer}
+      />
+    </FancyPageView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tabsContainer: {
+    flex: 1,
+    paddingHorizontal: 15,
+  },
+  tabContentContainer: {
+    flex: 1,
+  },
+  tabWrapper: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  tabContent: {
+    paddingVertical: 15,
+    gap: 16,
+  },
+  buttonContainer: {
+    marginTop: 10,
+    paddingBottom: 20,
+  },
+
+  // Avatar / Logo
+  avatarContainer: {
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+
+  // Código da Igreja - Novo Layout
+  codigoCard: {
+    backgroundColor: Pallete.backgroundColor,
+    borderRadius: 12,
+    padding: 16,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: Pallete.border,
+    ...Pallete.shadows[100],
+  },
+  codigoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  codigoTitulo: {
+    opacity: 0.7,
+  },
+  codigoBody: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    gap: 4,
+  },
+  codigoTexto: {
+    letterSpacing: 2,
+    color: Pallete.primary,
+  },
+  codigoDesc: {
+    opacity: 0.6,
+    textAlign: 'center',
+  },
+  codigoCopyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: '#E3F2FF',
+    borderRadius: 8,
+  },
+  codigoCopyText: {
+    color: Pallete.primary,
+  },
+
+  // Modo de Entrada Cards
+  modoCard: {
+    padding: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Pallete.border,
+    backgroundColor: Pallete.backgroundColor,
+    gap: 8,
+  },
+  modoCardSelected: {
+    borderWidth: 2,
+    borderColor: Pallete.primary,
+    backgroundColor: '#E3F2FF',
+  },
+  modoCardTitle: {
+    marginTop: 8,
+  },
+  modoCardDesc: {
+    opacity: 0.7,
+    lineHeight: 18,
+  },
+
+  // Notificações
+  canaisContainer: {
+    gap: 12,
+  },
+  canaisLabel: {
+    opacity: 0.7,
+  },
+  checkboxesContainer: {
+    gap: 12,
+  },
+
+  // Assinatura
+  assinaturaContainer: {
+  },
+  assinaturaCard: {
+    backgroundColor: Pallete.backgroundColor,
+    padding: 5,
+    paddingTop:15,
+    borderRadius: 16,
+    gap: 16,
+  },
+  assinaturaHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  badge: {
+    backgroundColor: '#D1FAE5',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  badgeText: {
+    color: '#10B981',
+  },
+  assinaturaDesc: {
+    opacity: 0.7,
+    lineHeight: 20,
+  },
+  gerenciarButton: {
+    marginTop: 8,
+  },
+});

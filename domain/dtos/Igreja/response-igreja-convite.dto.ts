@@ -1,17 +1,20 @@
 import { IgrejaVoluntarioRoleEnum } from '../../enums/Igreja/voluntario-role.enum';
-import { ResponseIgrejaDto } from './response-igreja.dto';
 
-export type ResponseIgrejaConviteDto = {
+export type ConviteStatusType = 'ATIVO' | 'EXPIRADO' | 'REVOGADO' | 'ESGOTADO';
+
+export interface ResponseIgrejaConviteDto {
   id: string;
+  token: string;
+  inviteLink: string;
+  igrejaId: string;
+  descricao: string | null;
+  autoApprove: boolean;
+  roleSugerida: IgrejaVoluntarioRoleEnum;
+  maxUses: number | null;
+  usesCount: number;
+  expiresAt: string | null;
+  revokedAt: string | null;
+  ativo: boolean;
   createdAt: string;
   updatedAt: string;
-  igreja: ResponseIgrejaDto;
-  igrejaId: string;
-  token: string;
-  roleSugerida?: IgrejaVoluntarioRoleEnum | null;
-  autoApprove: boolean;
-  expiresAt?: string | null;
-  maxUses?: number | null;
-  usesCount: number;
-  ativo: boolean;
-};
+}

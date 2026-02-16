@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import FancyPageView from '../../components/containers/FancyPageView';
 import { Pallete } from '../../constants/colors';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useNavigation } from 'expo-router';
 import FancyButton from '../../components/buttons/FancyButton';
 import { BOLD_FONT, EXTRA_SMALL_SIZE_FONT } from '../../constants/font';
@@ -9,12 +9,17 @@ import FancyTabs, { TabItem } from '../../components/tabs/FancyTabs';
 import { useNotificacoesCrud } from '../../hooks/useNotificacoesCrud';
 import NotificationsList from '../../components/pages/notifications/NotificationsList';
 import FancyLoading from '../../components/FancyLoading';
-import { ResponseNotificacaoDto } from '../../domain/dtos/Notificacao/notificacao.response';
 
 export default function NotificationsPage() {
   const { setOptions } = useNavigation();
 
-  const { isLoading, isLoadingMutation, marcarComoLida, marcarTodasComoLidas, notificacoes, quantidadeNaoLidas } = useNotificacoesCrud();
+  const { isLoading, isLoadingMutation, marcarTodasComoLidas, notificacoes } = useNotificacoesCrud({
+    enabled: true,
+  });
+
+  const handleMarcarTodasComoLidas = useCallback(() => {
+    marcarTodasComoLidas();
+  }, [marcarTodasComoLidas]);
 
   useEffect(() => {
     setOptions({
@@ -37,31 +42,26 @@ export default function NotificationsPage() {
             color: Pallete.icons.dark,
             style: { borderWidth: 0, lineHeight: 10, opacity: 0.8 },
           }}
-          onPress={marcarTodasComoLidas}
+          onPress={handleMarcarTodasComoLidas}
         />
       ),
     });
-  }, []);
+  }, [handleMarcarTodasComoLidas, setOptions]);
 
-  const [notificacoesData, setNotificacoesData] = useState<ResponseNotificacaoDto[]>([]);
-
-  useEffect(() => {
-    setNotificacoesData(notificacoes);
-  }, [notificacoes]);
-
-  const todasNotificacoesData = useMemo(() => notificacoesData, [notificacoesData]);
-  const naoLidasData = useMemo(() => notificacoesData?.filter((n) => !n.lidaEm || n.lidaEm === null) ?? [], [notificacoesData]);
+  const naoLidasData = useMemo(() => notificacoes?.filter((n) => !n.lidaEm || n.lidaEm === null) ?? [], [notificacoes]);
 
   const TAB_ITEMS: TabItem[] = [
     {
       title: 'Não lidas',
+      icon: { library: 'MaterialCommunityIcons', name: 'email-outline', size: 14 },
       content: <NotificationsList dataList={naoLidasData} />,
     },
     {
       title: 'Todas',
+      icon: { library: 'MaterialCommunityIcons', name: 'bell-outline', size: 14 },
       content: (
         <View style={{ flex: 1 }}>
-          <NotificationsList dataList={todasNotificacoesData} />
+          <NotificationsList dataList={notificacoes} />
         </View>
       ),
     },
@@ -74,7 +74,7 @@ export default function NotificationsPage() {
     <FancyPageView style={styles.container}>
       <FancyTabs
         items={TAB_ITEMS}
-        containerStyle={{ marginTop: 5, flex: 1 }}
+        containerStyle={{ flex: 1 }}
         headerStyle={{ paddingHorizontal: 15 }}
         contentContainerStyle={{ flex: 1 }}
       />
@@ -84,25 +84,4 @@ export default function NotificationsPage() {
 
 const styles = StyleSheet.create({
   container: { gap: 15 },
-  itemContainer: {
-    flexDirection: 'row',
-    borderWidth: 0,
-
-    paddingVertical: 0,
-    gap: 15,
-    flex: 1,
-    alignItems: 'center',
-  },
-  iconContainer: {
-    borderWidth: 0,
-    backgroundColor: Pallete.backgroundColor2,
-    padding: 10,
-    // height: 40,
-    // width: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 100,
-  },
-  textsContainer: { gap: 5, flex: 1, borderWidth: 0, justifyContent: 'center' },
-  dateContainer: { justifyContent: 'center' },
 });

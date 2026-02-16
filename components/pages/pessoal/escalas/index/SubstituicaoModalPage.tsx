@@ -9,11 +9,12 @@ import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import ControlledDropDown from '../../../../forms/ControlledDropDown';
+import ControlledSearchSelect from '../../../../forms/ControlledSearchSelect';
 import ControlledTextArea from '../../../../forms/ControlledTextArea';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { ResponseEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.response';
 import { AppImages } from '../../../../../assets/app_images';
+import Toast from 'react-native-toast-message';
 
 const schema = z.object({
   eventoId: z.string(),
@@ -25,7 +26,10 @@ const schema = z.object({
 
 export type FormData = z.infer<typeof schema>;
 
-export default function SubstituicaoModalPage({ dadosEscala, ...props }: { dadosEscala: ResponseEscalaItemDto } & FancyModalDialogProps<FormData>) {
+export default function SubstituicaoModalPage({
+  dadosEscala,
+  ...props
+}: { dadosEscala: ResponseEscalaItemDto } & FancyModalDialogProps<FormData>) {
   const { user } = useAuth();
 
   const initialParams: DynamicQuery = {
@@ -49,7 +53,10 @@ export default function SubstituicaoModalPage({ dadosEscala, ...props }: { dados
     relations: ['funcoes', 'voluntario'],
   };
 
-  const { data: possiveisSubstitutos, isLoading } = useMinisterioVoluntariosCrud({ initialParams, autoFetch: true });
+  const { data: possiveisSubstitutos, isLoading } = useMinisterioVoluntariosCrud({
+    initialParams,
+    autoFetch: true,
+  });
 
   const possiveisSubstitutosList = useMemo<DropDownItemProps<string>[]>(() => {
     return possiveisSubstitutos
@@ -61,11 +68,16 @@ export default function SubstituicaoModalPage({ dadosEscala, ...props }: { dados
               type: 'image',
               source:
                 minVoluntario.voluntario?.fotoThumbUrl || minVoluntario.voluntario?.fotoUrl
-                  ? { uri: minVoluntario.voluntario.fotoThumbUrl || minVoluntario.voluntario.fotoUrl || '' }
+                  ? {
+                      uri:
+                        minVoluntario.voluntario.fotoThumbUrl ||
+                        minVoluntario.voluntario.fotoUrl ||
+                        '',
+                    }
                   : AppImages.emptyProfile,
             },
             value: minVoluntario.id,
-          } as DropDownItemProps<string>),
+          }) as DropDownItemProps<string>,
       )
       .sort((a, b) => a.title.localeCompare(b.title, 'pt-BR', { sensitivity: 'base' }));
   }, [possiveisSubstitutos]);
@@ -89,7 +101,16 @@ export default function SubstituicaoModalPage({ dadosEscala, ...props }: { dados
         async () => {
           props.onButton2Press?.(data);
         },
-        (errors) => console.log('Erro ao validar formulário de substituição', errors),
+        (errors) => {
+          if (__DEV__) {
+            console.log('[SubstituicaoModal] Validation errors:', errors);
+          }
+          Toast.show({
+            type: 'error',
+            text1: 'Erro de validação',
+            text2: 'Verifique os campos do formulário',
+          });
+        },
       )();
     },
     [form.handleSubmit, props.onButton2Press, substitutoSelecionado],
@@ -98,7 +119,7 @@ export default function SubstituicaoModalPage({ dadosEscala, ...props }: { dados
   return (
     <FancyModalDialog<FormData>
       {...props}
-      title='Solicitar substituição:'
+      title='Solicitar substituição'
       centerContainerStyle={{ gap: 16 }}
       button1={{ disabled: isLoading || undefined, textProps: { adjustsFontSizeToFit: false } }}
       button2={{ disabled: isLoading || undefined, textProps: { adjustsFontSizeToFit: false } }}
@@ -107,10 +128,13 @@ export default function SubstituicaoModalPage({ dadosEscala, ...props }: { dados
       <FancyGroup title='Informações' contentContainerStyle={{ gap: 8 }}>
         <FancyTextDisplay title='Ministério:' value={dadosEscala.voluntario?.ministerio?.nome} />
         <FancyTextDisplay title='Evento:' value={dadosEscala.evento?.nome} />
-        <FancyTextDisplay title='Data e Hora:' value={format(dadosEscala.dataOcorrencia, 'dd/MM/yyyy - HH:mm')} />
+        <FancyTextDisplay
+          title='Data e Hora:'
+          value={format(dadosEscala.dataOcorrencia, 'dd/MM/yyyy - HH:mm')}
+        />
         <FancyTextDisplay title='Função:' value={dadosEscala.funcao?.nome} />
       </FancyGroup>
-      <ControlledDropDown
+      <ControlledSearchSelect
         control={form.control}
         name='substitutoId'
         label={'Quem será seu substituto?'}
@@ -118,8 +142,13 @@ export default function SubstituicaoModalPage({ dadosEscala, ...props }: { dados
         onChange={setSubstitutoSelecionado}
         disabled={isLoading}
         isLoading={isLoading}
+        searchPlaceholder='Buscar substituto...'
       />
-      <ControlledTextArea control={form.control} name='motivo' label='Qual o motivo da substituição?' />
+      <ControlledTextArea
+        control={form.control}
+        name='motivo'
+        label='Qual o motivo da substituição?'
+      />
     </FancyModalDialog>
   );
 }

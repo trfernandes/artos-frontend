@@ -10,6 +10,7 @@ import { DayProps } from './day/Day';
 export interface MarkedData<A> {
   date: Date;
   T?: A;
+  color?: string;
 }
 
 type MonthData = {
@@ -65,13 +66,13 @@ export default function FancyCalendarVertical<T extends string, A>({
 
   // 2) Marcados por mês
   const markedByMonth = useMemo(() => {
-    const map: Record<string, { date: Date; T?: A }[]> = {};
+    const map: Record<string, { date: Date; T?: A; color?: string }[]> = {};
 
     for (const md of markedDates) {
       const d = new Date(md.date);
       d.setHours(0, 0, 0, 0);
       const k = monthKey(d.getFullYear(), d.getMonth());
-      (map[k] ||= []).push({ date: d, T: md.T });
+      (map[k] ||= []).push({ date: d, T: md.T, color: md.color });
     }
 
     return map;
@@ -182,12 +183,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
-    paddingHorizontal: 5,
+    paddingHorizontal: 0,
     // borderWidth: 1,
     paddingVertical: 5,
   },
   yearSeparator: {
-    paddingHorizontal: 5,
+    paddingHorizontal: 0,
     gap: 20,
     alignItems: 'center',
     flexDirection: 'row',

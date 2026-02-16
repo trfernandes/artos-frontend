@@ -1,150 +1,117 @@
-import { TouchableOpacity, View } from 'react-native';
-import FancyText from '../../../../FancyText';
-import FancyButton from '../../../../buttons/FancyButton';
-import { DefaultIconsNames } from '../../../../../constants/icons';
-import { Pallete } from '../../../../../constants/colors';
-import { format } from 'date-fns';
-import { FancyTextDisplay } from '../../../../fields/FancyTextDisplay';
-import DefaultIcons from '../../../../FancyIcons';
-import { router } from 'expo-router';
-import FancyChips from '../../../../FancyChips';
-import { EscalaStatusConfig } from '../../../../../app/(app)/(drawer)/ministerios/escalas';
+import { StyleSheet, View } from 'react-native';
 import { ResponseEscalaDto } from '../../../../../domain/dtos/Escala/escala.response';
-import { EscalaStatusEnumLabel, EscalaStatusEnum } from '../../../../../domain/enums/Escala/escala-status.enum';
+import { EscalaStatusEnum } from '../../../../../domain/enums/Escala/escala-status.enum';
+import { EscalaItemStatusEnum } from '../../../../../domain/enums/Escala/escala-item-status.enum';
+import EscalaHeader, { InlineAction } from './EscalaHeader';
+import { useMemo } from 'react';
+import { StatusDistribution } from './escalaHeader.utils';
 
 export default function Header({
   escala,
   viewMode,
   onPublishPress,
-  onFinishPress,
   onGeneratePress,
   onDeletePress,
 }: {
-  escala: ResponseEscalaDto;
+  escala?: ResponseEscalaDto;
   viewMode?: 'view' | 'edit';
   onPublishPress: () => void;
-  onFinishPress: () => void;
   onGeneratePress: () => void;
   onDeletePress: () => void;
 }) {
-  return (
-    <View style={{ borderWidth: 0, paddingHorizontal: 20, flexDirection: 'column', gap: 15 }}>
-      <View style={{ gap: 10 }}>
-        <View style={{ borderWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 5 }}>
-          <TouchableOpacity
-            onPress={() => {
-              router.back();
-            }}
-            style={{ borderWidth: 0, borderColor: 'coral', marginLeft: -8 }}
-          >
-            <DefaultIcons.Custom {...DefaultIconsNames['chevron-left']} style={{ borderWidth: 0, borderColor: 'forestgreen' }} />
-          </TouchableOpacity>
+  if (!escala) return null;
 
-          <FancyText type='bold' size='large'>
-            {escala.nome}
-          </FancyText>
-        </View>
-        <View style={{ flexDirection: 'column', gap: 5 }}>
-          <FancyTextDisplay
-            icon={{
-              library: 'MaterialIcons',
-              name: 'date-range',
-              size: 15,
-              style: { width: 15, height: 15, lineHeight: 13 },
-            }}
-            title='Período:'
-            value={`${format(new Date(escala.dataInicio), 'dd/MM/yyyy')} à ${format(new Date(escala.dataTermino), 'dd/MM/yyyy')}`}
-          />
-          <FancyTextDisplay
-            icon={{
-              library: 'MaterialIcons',
-              name: 'donut-large',
-              size: 15,
-              style: { width: 15, height: 15, lineHeight: 13 },
-            }}
-            title='Status:'
-            value={
-              <FancyChips {...EscalaStatusConfig[escala.status]} label={EscalaStatusEnumLabel[escala.status]} size='small' />
-            }
-          />
-          <FancyTextDisplay
-            icon={{
-              library: 'MaterialCommunityIcons',
-              name: 'calendar',
-              size: 15,
-              style: { width: 15, height: 15, lineHeight: 15 },
-            }}
-            title='Criado em:'
-            value={format(new Date(escala.createdAt!), 'dd/MM/yyyy')}
-          />
-          <FancyTextDisplay
-            icon={{
-              library: 'MaterialIcons',
-              name: 'update',
-              size: 15,
-              style: { width: 15, height: 15, lineHeight: 13 },
-            }}
-            title='Últ. Atualização:'
-            value={format(new Date(escala.updatedAt!), 'dd/MM/yyyy')}
-          />
-        </View>
-        )
-      </View>
-      {!viewMode ||
-        (viewMode === 'edit' && (
-          <View style={{ flexDirection: 'row', gap: 6, justifyContent: 'flex-start', flexWrap: 'wrap' }}>
-            {escala.status === EscalaStatusEnum.Gerada && (
-              <FancyButton
-                label='Publicar'
-                icon={{ library: 'MaterialIcons', name: 'publish', size: 16 }}
-                onPress={onPublishPress}
-                containerStyle={{
-                  height: 30,
-                  gap: 5,
-                  minWidth: 100,
-                  backgroundColor: EscalaStatusConfig[EscalaStatusEnum.Publicada].color,
-                }}
-              />
-            )}
-            {escala.status === EscalaStatusEnum.Publicada && (
-              <FancyButton
-                label='Concluir'
-                icon={{
-                  library: 'MaterialIcons',
-                  name: 'check',
-                  size: 16,
-                  style: { marginTop: -1, borderWidth: 0, width: 14 },
-                }}
-                onPress={onFinishPress}
-                containerStyle={{
-                  height: 30,
-                  gap: 5,
-                  minWidth: 100,
-                  backgroundColor: EscalaStatusConfig[EscalaStatusEnum.Concluida].color,
-                }}
-              />
-            )}
-            <FancyButton
-              label='Gerar'
-              icon={{ library: 'MaterialIcons', name: 'refresh', size: 16 }}
-              onPress={onGeneratePress}
-              containerStyle={{ minWidth: 100, height: 30, gap: 5, paddingRight: 12, paddingLeft: 10 }}
-            />
-            <FancyButton
-              label='Excluir'
-              icon={{ ...DefaultIconsNames.delete, size: 14 }}
-              onPress={onDeletePress}
-              containerStyle={{
-                minWidth: 100,
-                height: 30,
-                gap: 5,
-                backgroundColor: Pallete.error,
-                paddingRight: 12,
-                paddingLeft: 10,
-              }}
-            />
-          </View>
-        ))}
+  const { confirmedCount, totalCount, statusDistribution, periodStart, periodEnd, createdAt, updatedAt } =
+    useMemo(() => {
+      const items = escala?.itens ?? [];
+
+      const filledItems = items.filter((item) => Boolean(item.voluntarioId));
+      const resolvedTotal = filledItems.length;
+      const resolvedConfirmed = filledItems.filter(
+        (item) => item.status === EscalaItemStatusEnum.Confirmado,
+      ).length;
+
+      const resolvedDistribution: StatusDistribution | undefined = resolvedTotal > 0
+        ? {
+            confirmado: resolvedConfirmed,
+            pendente: filledItems.filter((i) => i.status === EscalaItemStatusEnum.Pendente).length,
+            ausente: filledItems.filter((i) => i.status === EscalaItemStatusEnum.Ausente).length,
+            substituido: filledItems.filter(
+              (i) =>
+                i.status === EscalaItemStatusEnum.Substituido ||
+                i.status === EscalaItemStatusEnum.SubstituicaoSolicitada,
+            ).length,
+          }
+        : undefined;
+
+      const startDate = new Date(escala.dataInicio);
+      const endDate = new Date(escala.dataTermino);
+      const createdDate = new Date(escala.createdAt);
+      const updatedDate = new Date(escala.updatedAt);
+
+      return {
+        confirmedCount: resolvedTotal > 0 ? resolvedConfirmed : undefined,
+        totalCount: resolvedTotal > 0 ? resolvedTotal : undefined,
+        statusDistribution: resolvedDistribution,
+        periodStart: startDate,
+        periodEnd: endDate,
+        createdAt: createdDate,
+        updatedAt: updatedDate,
+      };
+    }, [escala]);
+
+  const actions: InlineAction[] | undefined =
+    !viewMode || viewMode === 'edit'
+      ? [
+          ...(escala.status === EscalaStatusEnum.Gerada
+            ? [
+                {
+                  key: 'publish',
+                  icon: { library: 'MaterialIcons' as const, name: 'rocket-launch' },
+                  label: 'Publicar',
+                  variant: 'primary' as const,
+                  onPress: onPublishPress,
+                },
+              ]
+            : []),
+          {
+            key: 'generate',
+            icon: { library: 'MaterialCommunityIcons' as const, name: 'auto-fix' },
+            label: 'Gerar',
+            variant: 'neutral' as const,
+            onPress: onGeneratePress,
+          },
+          {
+            key: 'delete',
+            icon: { library: 'MaterialIcons' as const, name: 'delete-outline' },
+            label: 'Excluir',
+            variant: 'danger' as const,
+            onPress: onDeletePress,
+          },
+        ]
+      : undefined;
+
+  return (
+    <View style={styles.container}>
+      <EscalaHeader
+        title={escala.nome}
+        status={escala.status}
+        periodStart={periodStart}
+        periodEnd={periodEnd}
+        createdAt={createdAt}
+        updatedAt={updatedAt}
+        confirmedCount={confirmedCount}
+        totalCount={totalCount}
+        statusDistribution={statusDistribution}
+        variant='default'
+        actions={actions}
+      />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 16,
+  },
+});

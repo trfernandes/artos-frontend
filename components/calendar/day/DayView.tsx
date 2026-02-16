@@ -3,6 +3,7 @@ import DayViewHeader from './DayHeader';
 import Day, { DayProps } from './Day';
 import React, { useMemo, useCallback } from 'react';
 import DateUtils from '../../../utils/date_utils';
+import { Pallete } from '../../../constants/colors';
 
 const generateDays = (year: number, month: number): number[][] => {
   const matrix: number[][] = [];
@@ -129,7 +130,7 @@ export function DayView({
               const isToday = DateUtils.equal(cellDate, today);
               const isSelected = props.selectedDate ? DateUtils.equal(cellDate, props.selectedDate) : false;
 
-              const markedEntries = props.markedDates?.filter((d) => DateUtils.sameDay(d.date, cellDate)) ?? [];
+              const markedEntries = props.markedDates?.filter((d) => DateUtils.equal(d.date, cellDate)) ?? [];
 
               const isMarked = markedEntries.length > 0;
 
@@ -139,8 +140,8 @@ export function DayView({
 
               const dayType: DayProps['type'] = isDisabled ? 'inactive' : isToday ? 'actual' : 'default';
 
-              // monta cores dos marcadores (um ou vários)
-              const markerColorsFromMarks = markedEntries.map((m) => m.color).filter((c): c is string => !!c);
+              // monta cores dos marcadores (um por evento, com fallback)
+              const markerColorsFromMarks = markedEntries.map((m) => m.color || Pallete.primary);
 
               let markerColor: DayProps['markerColor'] | undefined;
 
@@ -175,7 +176,7 @@ export function DayView({
 
 const styles = StyleSheet.create({
   container: {
-    gap: 6,
+    gap: 10,
     width: '100%',
   },
   weekContainer: {},

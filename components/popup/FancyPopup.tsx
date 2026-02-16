@@ -9,6 +9,7 @@ import FancySeparator from '../FancySeparator';
 type Item = {
   icon?: CustomIconProps;
   label: string;
+  labelColor?: string;
   onPress?: () => void;
 };
 
@@ -18,14 +19,27 @@ export type FancyPopupProps = {
   triggerComponent?: ReactNode;
   menuProps?: MenuProps;
   disabled?: boolean;
+  title?: string;
 };
 
-export default function FancyPopup({ items, showSeparator = false, triggerComponent, menuProps, disabled = false }: FancyPopupProps) {
+export default function FancyPopup({
+  items,
+  showSeparator = false,
+  triggerComponent,
+  menuProps,
+  disabled = false,
+  title,
+}: FancyPopupProps) {
   return (
     <Menu {...menuProps}>
       <MenuTrigger disabled={disabled}>{triggerComponent}</MenuTrigger>
       <MenuOptions optionsContainerStyle={styles.menuContainer}>
         <View>
+          {title && (
+            <FancyText type='mediumItalic' size='small' style={styles.popupTitle} numberOfLines={2} adjustsFontSizeToFit>
+              {title}
+            </FancyText>
+          )}
           {items?.map((item, index) => (
             <View
               key={index}
@@ -67,7 +81,14 @@ export default function FancyPopup({ items, showSeparator = false, triggerCompon
                     )}
                   </View>
                   <View style={{ flex: 1, borderWidth: 0 }}>
-                    <FancyText size={'small'} type={'medium'} style={styles.optionText} numberOfLines={1} adjustsFontSizeToFit>
+                    <FancyText
+                      size={'small'}
+                      type={'medium'}
+                      color={item.labelColor || Pallete.fonts.dark}
+                      style={styles.optionText}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                    >
                       {item.label}
                     </FancyText>
                   </View>
@@ -90,5 +111,13 @@ const styles = StyleSheet.create({
     borderColor: Pallete.border,
     ...Pallete.shadows[200],
   },
-  optionText: { borderWidth: 0, lineHeight: 15, flex: 1 },
+  optionText: { borderWidth: 0 },
+  popupTitle: {
+    // textAlign: 'center',
+    marginVertical: 8,
+    color: Pallete.fonts.dark,
+    paddingHorizontal: 16,
+    opacity: 0.8,
+    // Remove fontWeight/fontSize para usar o padrão do FancyText
+  },
 });

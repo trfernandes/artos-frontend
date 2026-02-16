@@ -141,10 +141,8 @@ export default function TemplateFuncoesList({
           },
         },
       ]);
-
-      setFormParams({ visible: false, mode: 'edit' });
     },
-    [disabled, removeFuncao],
+    [disabled, funcoesWatch, removeFuncao],
   );
 
   if(isLoadingFuncoes) return <FancyLoading />;
@@ -163,25 +161,23 @@ export default function TemplateFuncoesList({
           return (
             <FancyCard.Simple
               title={funcaoNome}
-              subtitle={<FancyTextDisplayCard title='Exp. Mínima: ' value={experienciaLabel} />}
-              additionalData1={<FancyTextDisplayCard title='Quantidade: ' value={item.quantidade.toString()} />}
+              subtitle={<FancyTextDisplayCard icon={{ library: 'MaterialCommunityIcons', name: 'star-outline', size: 12, color: Pallete.primary }} value={experienciaLabel} />}
+              additionalData1={<FancyTextDisplayCard icon={{ library: 'MaterialCommunityIcons', name: 'account-multiple-outline', size: 12, color: Pallete.primary }} value={item.quantidade.toString()} />}
               letter={funcaoNome.charAt(0)}
               actionButtons={[
                 {
-                  size: 'small',
                   icon: {
                     ...DefaultIconsNames.edit,
-                    backgroundColor: disabled ? Pallete.disabled : Pallete.primary,
-                    size: 14,
+                    backgroundColor: Pallete.primary,
+                    size: 16,
                   },
                   onPress: disabled ? undefined : () => handleEdit(index),
                 },
                 {
-                  size: 'small',
                   icon: {
                     ...DefaultIconsNames.delete,
-                    size: 15,
-                    backgroundColor: disabled ? Pallete.disabled : Pallete.error,
+                    size: 16,
+                    backgroundColor: Pallete.error,
                   },
                   onPress: disabled ? undefined : () => handleRemove(index),
                 },

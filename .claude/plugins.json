@@ -1,0 +1,7 @@
+{
+  "plugins": [
+    "expo-app-design",
+    "expo-deployment", 
+    "upgrading-expo"
+  ]
+}

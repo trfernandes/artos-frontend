@@ -51,7 +51,9 @@ export default function VoluntariosDetailsPage() {
     setIsLoadingVoluntarios(true);
     VoluntariosRepository.search(searchParams)
       .then((data) => {
-        console.log('Voluntario data loaded:', JSON.stringify(data[0]?.ministerios?.[0], null, 2));
+        if (__DEV__) {
+          console.log('[Admin/Voluntarios] Data loaded:', data.length, 'voluntarios');
+        }
         setVoluntarioData(data);
       })
       .finally(() => {
@@ -167,5 +169,5 @@ export default function VoluntariosDetailsPage() {
 }
 
 const styles = StyleSheet.create({
-  container: { paddingVertical: 10 },
+  container: { paddingBottom: 8 },
 });

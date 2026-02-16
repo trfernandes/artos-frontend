@@ -26,7 +26,7 @@ export const Pallete = {
     inactive: '#8E8E93',
     inactive2: '#C7C7CC',
   },
-  border: '#B4B4B4',
+  border: '#bfbfbf',
   borderCard: '#c9c9c9ff',
   backgroundColor: '#FFFFFF',
   backgroundColor2: '#F2F2F7',

@@ -1,11 +1,12 @@
 import { useForm } from 'react-hook-form';
+import { View } from 'react-native';
 import FancyBasePage from '../../../../../components/pages/base/FancyBasePage';
 import { zodResolver } from '@hookform/resolvers/zod';
 import ControlledTextInput from '../../../../../components/forms/ControlledTextInput';
 import ControlledToggle from '../../../../../components/forms/ControlledFancyToggle';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import FancyButton from '../../../../../components/buttons/FancyButton';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import FancyVerticalSpacer from '../../../../../components/FancyVerticalSpacer';
@@ -23,6 +24,15 @@ import { sendImageToServer } from '../../../../../utils/image_utils';
 
 export default function EditProfilePage() {
   const { user, updateUser } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isMountedRef = useRef(true);
+  const cacheBusterRef = useRef(0);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const form = useForm({
     resolver: zodResolver(updateProfileSchema),
@@ -47,7 +57,7 @@ export default function EditProfilePage() {
           {
             path: 'id',
             operator: Operator.EQUALS,
-            value: { value: user?.id!, type: ValueType.LITERAL },
+            value: { value: user?.user?.id!, type: ValueType.LITERAL },
           },
         ],
       },
@@ -72,10 +82,15 @@ export default function EditProfilePage() {
     });
   }, [voluntarioData]);
 
-  const handleSubmit = () =>
-    form.handleSubmit(async (data) => {
-      let fotoUrlToSend: string | null | undefined = undefined;
-      let fotoThumbUrlToSend: string | null | undefined = undefined;
+  const handleSubmit = form.handleSubmit(async (data) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    try {
+      let fotoUrlToSend: string | undefined;
+      let fotoThumbUrlToSend: string | undefined;
+      let fotoUrlPreview: string | undefined;
+      let fotoThumbPreview: string | undefined;
 
       if (data.fotoUpload?.uri) {
         const { imageThumbUrl, imageUrl } = await sendImageToServer('voluntarios', data.fotoUpload);
@@ -83,12 +98,10 @@ export default function EditProfilePage() {
         fotoUrlToSend = imageUrl;
         fotoThumbUrlToSend = imageThumbUrl;
 
-        form.setValue('fotoUrl', fotoUrlToSend);
-        form.setValue('fotoThumbUrl', fotoThumbUrlToSend);
-        form.setValue('fotoUpload', null);
-      } else {
-        fotoUrlToSend = null;
-        fotoThumbUrlToSend = null;
+        cacheBusterRef.current = Date.now();
+        const suffix = `v=${cacheBusterRef.current}`;
+        fotoUrlPreview = `${imageUrl}${imageUrl.includes('?') ? '&' : '?'}${suffix}`;
+        fotoThumbPreview = `${imageThumbUrl}${imageThumbUrl.includes('?') ? '&' : '?'}${suffix}`;
       }
 
       const formData = {
@@ -103,52 +116,63 @@ export default function EditProfilePage() {
       };
 
       await updateVoluntario({
-        id: user?.id!,
+        id: user?.user?.id!,
         data: formData,
       });
 
-
       await updateUser({
-        ...user,
-        nome: data.nome,
-        fotoThumbUrl: fotoThumbUrlToSend ?? undefined,
-        fotoUrl: fotoUrlToSend ?? undefined,
+        user: {
+          ...user?.user,
+          nome: data.nome,
+          fotoThumbUrl: fotoThumbPreview ?? fotoThumbUrlToSend ?? user?.user?.fotoThumbUrl,
+          fotoUrl: fotoUrlPreview ?? fotoUrlToSend ?? user?.user?.fotoUrl,
+        },
       });
 
       router.back();
-    })();
+    } finally {
+      if (isMountedRef.current) {
+        setIsSubmitting(false);
+      }
+    }
+  });
 
   if (isLoading) return <FancyLoading />;
 
+  const isSaving = isSubmitting || isLoadingMutation;
+
   return (
     <FancyBasePage showFab={false} showSearchBar={false}>
-      <FancyScrollView contentContainerStyle={{ gap: 15, paddingHorizontal: 15 }}>
-        <ControlledImagePicker control={form.control} name='fotoThumbUrl' uploadFieldName='fotoUpload' setValue={form.setValue as any} />
+      <View style={{ flex: 1 }} pointerEvents={isSaving ? 'none' : 'auto'}>
+        <FancyScrollView fill contentContainerStyle={{ gap: 15, paddingHorizontal: 15, paddingBottom: 10 }}>
+          <ControlledImagePicker control={form.control} name='fotoThumbUrl' uploadFieldName='fotoUpload' setValue={form.setValue as any} />
 
-        <ControlledTextInput name='nome' control={form.control} label='Nome' />
-        <ControlledTextInput name='email' control={form.control} label='E-mail' disabled />
-        <ControlledDateInput name='dataNascimento' control={form.control} label='Data de Nascimento' />
-        <ControlledTextInput name='endereco' control={form.control} label='Endereço' />
-        <ControlledTextInput name='telefone' control={form.control} label='Telefone' />
+          <ControlledTextInput name='nome' control={form.control} label='Nome' />
+          <ControlledTextInput name='email' control={form.control} label='E-mail' disabled />
+          <ControlledDateInput name='dataNascimento' control={form.control} label='Data de Nascimento' />
+          <ControlledTextInput name='endereco' control={form.control} label='Endereço' />
+          <ControlledTextInput name='telefone' control={form.control} label='Telefone' />
 
-        <ControlledToggle
-          name='sexo'
-          control={form.control}
-          label='Sexo'
-          option1={{ title: SexoEnumLabel[SexoEnum.Masculino], value: SexoEnum.Masculino }}
-          option2={{ title: SexoEnumLabel[SexoEnum.Feminino], value: SexoEnum.Feminino }}
+          <ControlledToggle
+            name='sexo'
+            control={form.control}
+            label='Sexo'
+            option1={{ title: SexoEnumLabel[SexoEnum.Masculino], value: SexoEnum.Masculino }}
+            option2={{ title: SexoEnumLabel[SexoEnum.Feminino], value: SexoEnum.Feminino }}
+          />
+
+          <FancyVerticalSpacer height={10} />
+        </FancyScrollView>
+
+        <FancyButton
+          label='Salvar'
+          isLoading={isSaving}
+          disabled={isSaving}
+          icon={{ ...DefaultIconsNames.save, size: 16 }}
+          onPress={handleSubmit}
+          containerStyle={{ marginHorizontal: 15, marginBottom: 15 }}
         />
-
-        <FancyVerticalSpacer height={10} />
-      </FancyScrollView>
-
-      <FancyButton
-        label={isLoadingMutation ? 'Salvando...' : 'Salvar'}
-        disabled={isLoadingMutation}
-        icon={{ ...DefaultIconsNames.save, size: 16 }}
-        onPress={handleSubmit}
-        containerStyle={{ marginHorizontal: 15 }}
-      />
+      </View>
     </FancyBasePage>
   );
 }

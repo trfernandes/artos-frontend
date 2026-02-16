@@ -1,6 +1,7 @@
 import { SexoEnum } from '../../enums/common/sexo-enum';
 
 export type CreateVoluntarioDto = {
+  igrejaId?: string;
   nome: string;
   email: string;
   senha: string;
@@ -10,4 +11,5 @@ export type CreateVoluntarioDto = {
   sexo: SexoEnum;
   fotoUrl: string | null;
   fotoThumbUrl?: string | null;
+  codigoIgreja?: string;
 };

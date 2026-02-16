@@ -14,7 +14,7 @@ const forgotPasswordSchema = z.object({
   email: z
     .string()
     .min(1, 'Informe o e-mail')
-    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'O formato invalido'),
+    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'O formato é inválido'),
 });
 
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
@@ -38,13 +38,13 @@ export default function ForgotPasswordPage() {
       if (success) {
         Toast.show({
           type: 'success',
-          text1: 'Se o e-mail existir, enviamos instrucoes de recuperacao.',
+          text1: 'Se o e-mail existir, enviamos instruções de recuperação.',
         });
       } else {
-        Toast.show({ type: 'error', text1: 'Erro ao solicitar recuperacao.' });
+        Toast.show({ type: 'error', text1: 'Erro ao solicitar recuperação.' });
       }
     } catch {
-      Toast.show({ type: 'error', text1: 'Erro ao solicitar recuperacao.' });
+      Toast.show({ type: 'error', text1: 'Erro ao solicitar recuperação.' });
     }
   };
 
@@ -57,7 +57,6 @@ export default function ForgotPasswordPage() {
       contentWidth={{ default: '85%', keyboard: '100%' }}
       paddingTopOnKeyboard={60}
       fieldsContainerStyle={styles.fieldsContainer}
-      backButtonContainerStyle={styles.backButtonContainer}
       header={({ keyboardVisible }) => (
         <>
           <FancyText size={!keyboardVisible ? 'extraLarge' : 'large'} type='bold' color='white'>
@@ -72,7 +71,7 @@ export default function ForgotPasswordPage() {
               borderWidth: 0,
             }}
           >
-            Informe seu e-mail para receber as instrucoes de recuperação
+            Informe seu e-mail para receber as instruções de recuperação.
           </FancyText>
         </>
       )}
@@ -102,16 +101,6 @@ const styles = StyleSheet.create({
     borderWidth: DESIGN_MODE,
     borderColor: 'blueviolet',
     gap: 25,
-  },
-  backButtonContainer: {
-    position: 'absolute',
-    left: 40,
-    zIndex: 10,
-    top: 20,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    borderWidth: DESIGN_MODE,
-    borderColor: 'forestgreen',
   },
   titleContainer: {
     gap: 2,

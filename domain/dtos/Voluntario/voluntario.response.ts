@@ -1,4 +1,5 @@
 import { SexoEnum } from '../../enums/common/sexo-enum';
+import { VoluntarioStatusEnum } from '../../enums/Voluntario/voluntario-status.enum';
 import { ResponseIndisponibilidadeVoluntarioDto } from '../IndisponibilidadeVoluntario/indisponibilidade-voluntario.response';
 import { ResponseMinisterioVoluntarioDto } from '../MinisterioVoluntario/ministerio-voluntario.response';
 
@@ -15,6 +16,7 @@ export type ResponseVoluntarioDto = {
   fotoUrl: string;
   fotoThumbUrl?: string;
   fotoPublicId?: string;
+  status: VoluntarioStatusEnum;
   ministerios?: ResponseMinisterioVoluntarioDto[];
   indisponibilidades?: ResponseIndisponibilidadeVoluntarioDto[];
 };

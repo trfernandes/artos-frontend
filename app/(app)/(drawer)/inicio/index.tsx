@@ -1,31 +1,35 @@
 import FancyPageView from '../../../../components/containers/FancyPageView';
+import { useAuth } from '../../../../contexts/AuthContext';
+import { IgrejaVoluntarioRoleEnum } from '../../../../domain/enums/Igreja/voluntario-role.enum';
+import DashboardVoluntario from '../../../../components/pages/inicio/DashboardVoluntario';
+import DashboardLider from '../../../../components/pages/inicio/DashboardLider';
+import DashboardAdmin from '../../../../components/pages/inicio/DashboardAdmin';
+import { useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function InicioIndex() {
-  return (
-    <FancyPageView style={{ paddingHorizontal: 20, paddingTop: 10 }}>
-      {/* <FancyCard.Image
-        type="icon"
-        props={{
-          title: (
-            <FancyText size={'medium'} type="bold">
-              Escalas do mês
-            </FancyText>
-          ),
-          subtitle: (
-            <View style={{ paddingLeft: 5, gap: 10, paddingTop: 5 }}>
-              <ProximaEscalaItem data={new Date(2025, 7, 9)} nomeEvento="Ruah Movment" nomeFuncao="Tecladista" />
-              <ProximaEscalaItem data={new Date(2025, 7, 10)} nomeEvento="Culto de Domingo" nomeFuncao="Ministro(a)" />
-            </View>
-          ),
-          cardIcon: { ...DefaultIconsNames['calendar-day'], size: 20 },
-          contentContainerStyle: { paddingVertical: 10, paddingHorizontal: 20 },
-        }}
-      /> */}
-      {/* <Button title="Testar notificação local" onPress={scheduleLocalTestNotification} />
-      <Button
-        title="Testar notificação escala local"
-        onPress={() => scheduleLocalEscalaNotification('Ruah Movement', new Date(2025, 7, 9, 19, 30))}
-      /> */}
-    </FancyPageView>
+  const { igrejaAtiva } = useAuth();
+  const queryClient = useQueryClient();
+  const role = igrejaAtiva?.role;
+
+  useFocusEffect(
+    useCallback(() => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.refetchQueries({ queryKey: ['dashboard'], type: 'active' });
+    }, [queryClient]),
   );
+
+  const renderDashboard = () => {
+    switch (role) {
+      case IgrejaVoluntarioRoleEnum.ADMIN:
+        return <DashboardAdmin />;
+      case IgrejaVoluntarioRoleEnum.LIDER:
+        return <DashboardLider />;
+      default:
+        return <DashboardVoluntario />;
+    }
+  };
+
+  return <FancyPageView>{renderDashboard()}</FancyPageView>;
 }

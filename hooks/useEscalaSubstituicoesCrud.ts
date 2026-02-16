@@ -4,16 +4,21 @@ import { UpdateEscalaSubstituicaoDto } from '../domain/dtos/Escala/escala-substi
 import { EscalaSubstituicoesRepository } from '../domain/services/EscalaSubstituicoesRepository';
 import { Operator, ValueType } from '../domain/utils/query_utils';
 import { ExternalUseCrudParams, useCrud } from './useCrud';
+import { useAuth } from '../contexts/AuthContext';
 
 export function useEscalaSubstituicoesCrud({ autoFetch, initialParams }: ExternalUseCrudParams = {}) {
+  const { igrejaAtiva } = useAuth();
+  const igrejaId = igrejaAtiva?.id;
+
   const crud = useCrud<ResponseEscalaSubstituicaoDto, any, CreateEscalaSubstituicaoDto, UpdateEscalaSubstituicaoDto>({
     queryKey: 'escalas-substituicoes',
     autoFetch,
     initialParams,
     fetchAll: () => EscalaSubstituicoesRepository.getAll(),
-    search: (query) => EscalaSubstituicoesRepository.search(query),
+    search: (query) => EscalaSubstituicoesRepository.search(igrejaId ? { ...query, igrejaId } : query),
     fetchOne: async (id) => {
       const result = await EscalaSubstituicoesRepository.search({
+        ...(igrejaId ? { igrejaId } : {}),
         where: {
           conditions: [
             {

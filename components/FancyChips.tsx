@@ -34,7 +34,7 @@ export default function FancyChips({
   }[size];
 
   const baseBg = outlined ? 'transparent' : (backgroundColor ?? `${color}22`);
-  const baseBorder = outlined ? color : 'transparent';
+  const baseBorder = outlined ? color : (backgroundColor ?? `${color}22`);
   const baseTextColor = outlined ? color : color;
 
   const Container = onPress ? TouchableOpacity : View;
@@ -49,7 +49,7 @@ export default function FancyChips({
           borderColor: baseBorder,
           paddingVertical: sizes.padV,
           paddingHorizontal: sizes.padH,
-          borderWidth: outlined ? 1.5 : 0,
+          borderWidth: 1.5,
         },
         style,
       ]}
@@ -64,7 +64,6 @@ export default function FancyChips({
         />
       )}
       <FancyText
-        ellipsizeMode='clip'
         numberOfLines={1}
         {...labelProps}
         style={[

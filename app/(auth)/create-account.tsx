@@ -20,6 +20,8 @@ export default function ComecarScreen() {
       fieldsContainerStyle={styles.fieldsContainer}
       contentWidth={{ default: '85%', keyboard: '85%' }}
       headerWidth={{ default: '85%', keyboard: '85%' }}
+      alignTopOnKeyboard
+      keyboardBottomSpacing={60}
       header={({ keyboardVisible }) => (
         <View style={{ gap: 5, borderWidth: 0 }}>
           <FancyText

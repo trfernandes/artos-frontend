@@ -15,7 +15,7 @@ export default function VoluntarioDadosTab(props: { voluntario: ResponseVoluntar
   }
 
   return (
-    <FancyScrollView contentContainerStyle={styles.container}>
+    <FancyScrollView contentContainerStyle={styles.container} fill> 
       <View style={{ gap: 20 }}>
         <FancyAvatarImage
           source={
@@ -40,7 +40,11 @@ export default function VoluntarioDadosTab(props: { voluntario: ResponseVoluntar
       <View style={{ gap: 15 }}>
         <FancyValueLine
           title='Data de Nascimento:'
-          value={props.voluntario.dataNascimento ? format(DateUtilsApi.dateOnlyFromApi(props.voluntario.dataNascimento), 'dd/MM/yyyy') : ''}
+          value={
+            props.voluntario.dataNascimento
+              ? format(DateUtilsApi.dateOnlyFromApi(props.voluntario.dataNascimento), 'dd/MM/yyyy')
+              : 'Não definido'
+          }
           showSeparator={true}
         />
         <FancyValueLine title='Telefone:' value={props.voluntario.telefone || 'Não definido'} showSeparator={true} />

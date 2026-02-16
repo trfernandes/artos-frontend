@@ -121,8 +121,8 @@ export default function MinisterioTemplateEquipeIndex() {
               type='icon'
               props={{
                 title: item.nome,
-                subtitle: <FancyTextDisplayCard title='Tipo: ' value={tipoLabel} />,
-                additionalData1: <FancyTextDisplayCard title='Dimensão equipe: ' value={(dimensaoEquipe ?? 0).toString()} />,
+                subtitle: <FancyTextDisplayCard icon={{ library: 'MaterialCommunityIcons', name: 'tag-outline', size: 12, color: Pallete.primary }} value={tipoLabel} />,
+                additionalData1: <FancyTextDisplayCard icon={{ library: 'MaterialCommunityIcons', name: 'account-group-outline', size: 12, color: Pallete.primary }} value={(dimensaoEquipe ?? 0).toString()} />,
                 cardIcon: {
                   ...DefaultIconsNames.group,
                   size: 18,

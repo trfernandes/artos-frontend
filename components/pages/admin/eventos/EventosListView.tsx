@@ -1,7 +1,6 @@
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import FancyList, { FancyListProps } from '../../../list/FancyList';
 import { Pallete } from '../../../../constants/colors';
-import { FancyCard } from '../../../cards/Horizontal/FancyCard';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import { generateRecorrenciaJoinableDescription } from '../../../../hooks/useEventosCrud';
 import { format } from 'date-fns';
@@ -12,6 +11,11 @@ import { RecorrenciaEnumMap } from '../../../../domain/enums/Evento/recorrencia.
 import { FancyTextDisplayCard } from '../../../cards/FancyTextDisplayCard';
 import { FancyAlert } from '../../../modal/FancyAlert';
 import { DateUtilsApi } from '../../../../utils/date_utils';
+import FancyBaseCard from '../../../cards/Horizontal/FancyBaseCard';
+import {
+    ActionButtonProps,
+    FancyActionButtons,
+} from '../../../cards/Horizontal/FancyCardActionButtons';
 
 export type EventosListProps = {
   data: ResponseEventoDto[];
@@ -38,55 +42,28 @@ export default function EventosListView({
         bottomSpace={80}
         contentContainerStyle={[styles.listContent, contentContainerStyle]}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
-        renderItem={({ item, index }: { item: ResponseEventoDto; index: number }) => (
-          <FancyCard.Color
-            key={index}
-            title={item.nome}
-            subtitle={
-              <FancyTextDisplayCard
-                title='Início:'
-                value={format(DateUtilsApi.dateTimeFromApi(item.dataInicio), 'dd/MM/yyyy HH:mm')}
-              />
-            }
-            additionalData1={
-              <FancyTextDisplayCard
-                title='Término:'
-                value={
-                  item.dataTermino ? format(DateUtilsApi.dateTimeFromApi(item.dataTermino), 'dd/MM/yyyy HH:mm') : 'Sem término'
-                }
-              />
-            }
-            additionalData2={
-              <FancyTextDisplayCard
-                title='Recorrência:'
-                value={generateRecorrenciaJoinableDescription(
-                  RecorrenciaEnumMap[item.recorrencia!],
-                  item.recorrenciaSemanaDias?.map((i) => RecorrenciaDiaSemanaEnumMap[i]) || [],
-                  item.recorrenciaACadaMeses!,
-                  item.recorrenciaSemanasMes?.map((i) => RecorrenciaSemanaMesEnumMap[i]) || [],
-                )}
-                valueStyle={{}}
-              />
-            }
-            color={item.cor || 'blue'}
-            actionButtons={[
-              {
-                icon: {
-                  library: DefaultIconsNames.edit.library,
-                  name: DefaultIconsNames.edit.name,
-                  size: 18,
-                },
-                onPress: () => onEditItem?.(item),
+        renderItem={({ item, index }: { item: ResponseEventoDto; index: number }) => {
+          const actionButtons: ActionButtonProps[] = [
+            {
+              icon: {
+                library: DefaultIconsNames.edit.library,
+                name: DefaultIconsNames.edit.name,
+                size: 18,
               },
-              {
-                icon: {
-                  library: DefaultIconsNames.delete.library,
-                  name: DefaultIconsNames.delete.name,
-                  size: 18,
-                  backgroundColor: Pallete.error,
-                },
-                onPress: () => {
-                  FancyAlert.alert('Exclusão de Evento', `Tem certeza que deseja remover o evento "${item.nome}?"`, [
+              onPress: () => onEditItem?.(item),
+            },
+            {
+              icon: {
+                library: DefaultIconsNames.delete.library,
+                name: DefaultIconsNames.delete.name,
+                size: 18,
+                backgroundColor: Pallete.error,
+              },
+              onPress: () => {
+                FancyAlert.alert(
+                  'Exclusão de Evento',
+                  `Tem certeza que deseja remover o evento "${item.nome}?"`,
+                  [
                     {
                       text: 'Não',
                       style: 'destructive',
@@ -98,12 +75,76 @@ export default function EventosListView({
                         onDeleteItem?.(item);
                       },
                     },
-                  ]);
-                },
+                  ],
+                );
               },
-            ]}
-          />
-        )}
+            },
+          ];
+
+          return (
+            <FancyBaseCard
+              key={index}
+              title={item.nome}
+              subtitle={
+                <View style={styles.firstInfoRow}>
+                  <FancyTextDisplayCard
+                    value={format(
+                      DateUtilsApi.dateTimeFromApi(item.dataInicio),
+                      'dd/MM/yyyy HH:mm',
+                    )}
+                    icon={{
+                      library: 'MaterialCommunityIcons',
+                      name: 'calendar-clock',
+                      size: 13,
+                      color: Pallete.primary,
+                    }}
+                    containerStyle={styles.dataRow}
+                  />
+                </View>
+              }
+              additionalData1={
+                <FancyTextDisplayCard
+                  value={
+                    item.dataTermino
+                      ? format(DateUtilsApi.dateTimeFromApi(item.dataTermino), 'dd/MM/yyyy HH:mm')
+                      : 'Sem término'
+                  }
+                  icon={{
+                    library: 'MaterialCommunityIcons',
+                    name: 'calendar-check',
+                    size: 13,
+                    color: Pallete.primary,
+                  }}
+                  containerStyle={styles.dataRow}
+                />
+              }
+              additionalData2={
+                <FancyTextDisplayCard
+                  value={generateRecorrenciaJoinableDescription(
+                    RecorrenciaEnumMap[item.recorrencia!],
+                    item.recorrenciaSemanaDias?.map((i) => RecorrenciaDiaSemanaEnumMap[i]) || [],
+                    item.recorrenciaACadaMeses!,
+                    item.recorrenciaSemanasMes?.map((i) => RecorrenciaSemanaMesEnumMap[i]) || [],
+                  )}
+                  icon={{
+                    library: 'MaterialCommunityIcons',
+                    name: 'calendar-sync',
+                    size: 13,
+                    color: Pallete.primary,
+                  }}
+                  containerStyle={styles.dataRow}
+                  valueStyle={{}}
+                />
+              }
+              leftItem={
+                <View
+                  style={[styles.eventColorLine, { backgroundColor: item.cor || Pallete.primary }]}
+                />
+              }
+              rightItem={<FancyActionButtons actions={actionButtons} />}
+            />
+          );
+        }}
         {...listProps}
       />
     </View>
@@ -129,5 +170,18 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: 10,
+  },
+  dataRow: {
+    alignItems: 'center',
+    gap: 6,
+  },
+  firstInfoRow: {
+    marginTop: 4,
+  },
+  eventColorLine: {
+    width: 3,
+    flex: 1,
+    marginVertical: 10,
+    borderRadius: 3,
   },
 });

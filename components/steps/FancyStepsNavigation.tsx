@@ -13,13 +13,22 @@ export default function FancyStepsNavigation({ config, stepIndex, setStepIndex, 
   return (
     <View style={[styles.container, containerStyle]}>
       {config.steps[stepIndex]?.actions?.map(({ enabled = true, ...action }, actionIndex) => {
+        // Separar props conhecidos do resto
+        const {
+          label,
+          icon,
+          iconPosition,
+          color,
+          onPress,
+          ...buttonProps
+        } = action;
         return (
           <FancyButton
             key={actionIndex}
             onPress={
-              enabled && typeof action.onPress === 'function'
-                ? action.onPress
-                : action.onPress === 'next'
+              enabled && typeof onPress === 'function'
+                ? onPress
+                : onPress === 'next'
                 ? () => {
                     stepIndex < config.steps.length - 1 ? setStepIndex(stepIndex + 1) : null;
                   }
@@ -27,11 +36,16 @@ export default function FancyStepsNavigation({ config, stepIndex, setStepIndex, 
                     stepIndex > 0 ? setStepIndex(stepIndex - 1) : null;
                   }
             }
-            label={action.label}
-            icon={action.icon}
-            iconPosition={action.iconPosition}
+            label={label}
+            icon={icon}
+            iconPosition={iconPosition}
             disabled={!enabled}
-            containerStyle={[styles.action, action.color && { backgroundColor: action.color }, { gap: 6 }]}
+            containerStyle={[
+              styles.action,
+              enabled && color && { backgroundColor: color },
+              { gap: 6 }
+            ]}
+            {...buttonProps}
           />
         );
       })}

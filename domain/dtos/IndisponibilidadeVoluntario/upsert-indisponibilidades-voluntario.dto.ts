@@ -2,5 +2,6 @@ import type { UpsertIndisponibilidadeVoluntarioItemDto } from './upsert-indispon
 
 export type UpsertIndisponibilidadesVoluntarioDto = {
   voluntarioId: string;
+  igrejaId: string;
   indisponibilidades: UpsertIndisponibilidadeVoluntarioItemDto[];
 };

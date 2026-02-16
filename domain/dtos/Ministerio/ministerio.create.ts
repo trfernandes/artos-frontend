@@ -2,6 +2,7 @@ import { MinisterioStatusEnum } from '../../enums/Ministerio/ministerio-status.e
 import { MinisterioTipoEnum } from '../../enums/Ministerio/ministerio-tipo.enum';
 
 export type CreateMinisterioDto = {
+  igrejaId: string;
   nome: string;
   descricao?: string;
   tipo: MinisterioTipoEnum;

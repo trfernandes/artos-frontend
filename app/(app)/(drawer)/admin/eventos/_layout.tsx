@@ -6,17 +6,20 @@ export default function MinisteriosLayout() {
   return (
     <Stack
       screenOptions={{
-        header: (props) => <FancyPageHeader {...props} />,
+        headerShown: true,
+        header: (props) => <FancyPageHeader leftButton='menu' {...props} />,
       }}
     >
       <Stack.Screen name='index' options={{ title: 'Eventos', headerRight: () => <MainHeaderButtons /> }} />
       <Stack.Screen
         name='add'
-        options={{ title: 'Novo Evento', header: (props) => <FancyPageHeader leftButton='back' {...props} /> }}
+        options={{ title: 'Novo Evento', headerShown: true,
+ header: (props) => <FancyPageHeader leftButton='back' {...props} /> }}
       />
       <Stack.Screen
         name='edit'
-        options={{ title: 'Editar Evento', header: (props) => <FancyPageHeader leftButton='back' {...props} /> }}
+        options={{ title: 'Editar Evento', headerShown: true,
+ header: (props) => <FancyPageHeader leftButton='back' {...props} /> }}
       />
     </Stack>
   );

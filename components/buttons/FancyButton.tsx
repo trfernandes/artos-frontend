@@ -1,16 +1,22 @@
 import {
-  AccessibilityRole,
-  AccessibilityState,
-  GestureResponderEvent,
-  StyleProp,
-  StyleSheet,
-  TextStyle,
-  TouchableOpacity,
-  ViewStyle,
+    AccessibilityRole,
+    AccessibilityState,
+    GestureResponderEvent,
+    StyleProp,
+    StyleSheet,
+    TextStyle,
+    TouchableOpacity,
+    ViewStyle,
+    ActivityIndicator,
 } from 'react-native';
 import FancyText, { FancyTextProps } from '../FancyText';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
-import { containedParameters, outlinedParameters, textParameters, lightParameters } from './FancyButtonStyles';
+import {
+    containedParameters,
+    outlinedParameters,
+    textParameters,
+    lightParameters,
+} from './FancyButtonStyles';
 import { Pallete } from '../../constants/colors';
 
 type FancyButtonSize = number | { w: number; h: number };
@@ -33,6 +39,13 @@ export type FancyButtonProps = {
   accessibilityHint?: string;
   accessibilityRole?: AccessibilityRole;
   accessibilityState?: AccessibilityState;
+  // Novas props para loading padronizado
+  isLoading?: boolean;
+  loadingText?: string;
+  spinnerSize?: 'small' | 'large';
+  disableOnLoading?: boolean;
+  leftIconWhileLoading?: boolean;
+  loadingColor?: string;
 };
 
 const resolveSize = (size?: FancyButtonSize, fallback = 40) => {
@@ -51,6 +64,12 @@ export default function FancyButton({
   mode = 'default',
   iconPosition = 'left',
   textProps,
+  isLoading = false,
+  loadingText,
+  spinnerSize = 'small',
+  disableOnLoading = true,
+  leftIconWhileLoading = true,
+  loadingColor,
   ...props
 }: FancyButtonProps) {
   const height = resolveSize(props.size);
@@ -81,60 +100,107 @@ export default function FancyButton({
   const dimensionStyle = mode === 'icon' ? { width: minWidth, height } : { minWidth, height };
   const accessibilityState = { disabled, ...props.accessibilityState };
 
+  const showLoading = !!isLoading;
+  const isBtnDisabled = disabled || (showLoading && disableOnLoading);
+
+  // Adiciona paddingHorizontal apenas se houver label (texto)
+  const hasLabel = !!(props.label || loadingText);
+  const paddingStyle = hasLabel && mode === 'default' ? { paddingHorizontal: 12 } : {};
+
+  // Novo padrão: spinner SEMPRE à esquerda do texto quando loading
   return (
     <TouchableOpacity
-      disabled={disabled}
+      hitSlop={{ bottom: 4, top: 4, left: 4, right: 4 }}
+      disabled={isBtnDisabled}
       accessibilityLabel={props.accessibilityLabel}
       accessibilityHint={props.accessibilityHint}
       accessibilityRole={props.accessibilityRole}
-      accessibilityState={accessibilityState}
+      accessibilityState={{ ...accessibilityState, busy: showLoading || undefined, disabled: true }}
       style={[
         baseStyles.container,
         iconPosition === 'left' ? { flexDirection: 'row' } : { flexDirection: 'row-reverse' },
         mode === 'icon' && baseStyles.mode_icon,
-        disabled ? parameters.disabledContainerStyle : parameters.containerStyle,
+        isBtnDisabled ? parameters.disabledContainerStyle : parameters.containerStyle,
         dimensionStyle,
+        paddingStyle,
         props.containerStyle,
+        showLoading && { opacity: 0.7 },
       ]}
-      activeOpacity={disabled ? 1 : 0.7}
-      onPress={!disabled ? props.onPress : undefined}
+      activeOpacity={isBtnDisabled ? 1 : 0.7}
+      onPress={!isBtnDisabled ? props.onPress : undefined}
     >
-      {props.icon &&
-        DefaultIcons.Custom({
-          ...props.icon,
-          size: props.icon.size || height - 8,
-          style: [
-            {
-              lineHeight: props.icon.size || height - 8,
-              textAlign: 'center',
-              verticalAlign: 'middle',
-              justifyContent: 'center',
-              alignItems: 'center',
-            },
-            disabled ? parameters.disabledIconStyle : parameters.iconStyle,
-            props.iconStyle,
-            { color: props.icon.color || (disabled ? Pallete.icons.dark : Pallete.icons.light) },
-            props.icon.style,
-          ],
-        })}
-      {props.label && mode === 'default' && (
-        <FancyText
-          {...restLabelProps}
-          type={restLabelProps.type ?? 'semiBold'}
-          size={props.labelProps?.size ?? 'small'}
-          numberOfLines={numberOfLines}
-          // adjustsFontSizeToFit={adjustsFontSizeToFit}
-          minimumFontScale={minimumFontScale}
-          style={[
-            { textAlign: 'center' },
-            disabled ? parameters.disabledTextStyle : parameters.textStyle,
-            props.labelStyle,
-            labelPropsStyle,
-          ]}
-          {...textProps}
-        >
-          {props.label}
-        </FancyText>
+      {/* Se loading, mostra spinner à esquerda do texto, ocupando o lugar do ícone se houver */}
+      {showLoading ? (
+        <>
+          <ActivityIndicator
+            size={spinnerSize}
+            color={loadingColor || (isBtnDisabled ? Pallete.icons.dark : Pallete.primary)}
+            style={{ marginRight: 8 }}
+          />
+          <FancyText
+            {...restLabelProps}
+            type={restLabelProps.type ?? 'semiBold'}
+            size={props.labelProps?.size ?? 'small'}
+            numberOfLines={numberOfLines}
+            minimumFontScale={minimumFontScale}
+            style={[
+              { textAlign: 'center' },
+              loadingColor
+                ? { color: loadingColor }
+                : isBtnDisabled
+                  ? parameters.disabledTextStyle
+                  : parameters.textStyle,
+              props.labelStyle,
+              labelPropsStyle,
+            ]}
+            {...textProps}
+          >
+            {loadingText || props.label}
+          </FancyText>
+        </>
+      ) : (
+        <>
+          {/* Ícone à esquerda se não loading */}
+          {props.icon &&
+            DefaultIcons.Custom({
+              ...props.icon,
+              size: props.icon.size || height - 8,
+              style: [
+                {
+                  lineHeight: props.icon.size || height - 8,
+                  textAlign: 'center',
+                  verticalAlign: 'middle',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                },
+                isBtnDisabled ? parameters.disabledIconStyle : parameters.iconStyle,
+                props.iconStyle,
+                {
+                  color:
+                    props.icon.color || (isBtnDisabled ? Pallete.icons.dark : Pallete.icons.light),
+                },
+                props.icon.style,
+              ],
+            })}
+          {props.label && mode === 'default' && (
+            <FancyText
+              {...restLabelProps}
+              type={restLabelProps.type ?? 'semiBold'}
+              size={props.labelProps?.size ?? 'small'}
+              numberOfLines={numberOfLines}
+              minimumFontScale={minimumFontScale}
+              style={[
+                { textAlign: 'center' },
+                isBtnDisabled ? parameters.disabledTextStyle : parameters.textStyle,
+                props.labelStyle,
+                labelPropsStyle,
+              ]}
+              {...textProps}
+            >
+              {props.label}
+            </FancyText>
+          )}
+        </>
       )}
     </TouchableOpacity>
   );
@@ -142,11 +208,16 @@ export default function FancyButton({
 
 const baseStyles = StyleSheet.create({
   container: {
-    borderRadius: 50,        
+    borderRadius: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
-    paddingHorizontal: 12,
+    gap: 10,    
   },
   mode_icon: { paddingHorizontal: 0 },
+  loadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
 });

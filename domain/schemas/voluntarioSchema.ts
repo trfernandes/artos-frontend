@@ -20,6 +20,8 @@ export const createAccountSchema = z
       .max(100, { message: 'A senha pode ter no máximo 100 caracteres' }),
 
     confirmarSenha: z.string('Campo obrigatório'),
+    
+    codigoIgreja: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.senha !== data.confirmarSenha) {

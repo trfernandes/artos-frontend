@@ -9,7 +9,9 @@ export function strfyObj(
       return `${value.slice(0, half)}...${value.slice(-half)}`;
     } else if (value && typeof value === 'object' && !Array.isArray(value)) {
       // Recursivamente processa objetos
-      return Object.fromEntries(Object.entries(value).map(([key, val]) => [key, processValue(val)]));
+      return Object.fromEntries(
+        Object.entries(value).map(([key, val]) => [key, processValue(val)]),
+      );
     } else if (Array.isArray(value)) {
       // Recursivamente processa arrays
       return value.map((item) => processValue(item));
@@ -19,6 +21,12 @@ export function strfyObj(
 
   const processedObj = processValue(obj);
   return JSON.stringify(processedObj, null, space);
+}
+
+export function capitalizeFirst(text: string) {
+  const s = text.trim();
+  if (!s) return '';
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 }
 
 export function shortenString(str: string, length: number = 10): string {
@@ -40,14 +48,24 @@ export function Log(title: string, data: any, options?: { indent?: number; width
   if (typeof data === 'string') {
     formattedData = data;
   } else if (Array.isArray(data)) {
-    formattedData = data.map((item, i) => ` ${' '.repeat(indent)}${i + 1}. ${strfyObj(item)}`).join('\n');
+    formattedData = data
+      .map((item, i) => ` ${' '.repeat(indent)}${i + 1}. ${strfyObj(item)}`)
+      .join('\n');
   } else if (typeof data === 'object' && data !== null) {
     formattedData = strfyObj(data);
   } else {
     formattedData = String(data);
   }
 
-  console.log([`\n${'═'.repeat(width)}`, `🧩 ${title.toUpperCase()}`, `${line}`, formattedData, `${'═'.repeat(width)}\n`].join('\n'));
+  console.log(
+    [
+      `\n${'═'.repeat(width)}`,
+      `🧩 ${title.toUpperCase()}`,
+      `${line}`,
+      formattedData,
+      `${'═'.repeat(width)}\n`,
+    ].join('\n'),
+  );
 }
 
 type ShortNameOptions = {
@@ -57,9 +75,27 @@ type ShortNameOptions = {
   surnameParticles?: string[];
 };
 
-const DEFAULT_PARTICLES = ['da', 'das', 'de', 'do', 'dos', 'del', 'della', 'di', 'van', 'von', 'la', 'las', 'le', 'los'];
+const DEFAULT_PARTICLES = [
+  'da',
+  'das',
+  'de',
+  'do',
+  'dos',
+  'del',
+  'della',
+  'di',
+  'van',
+  'von',
+  'la',
+  'las',
+  'le',
+  'los',
+];
 
-export function getFirstAndLastName(fullName: string | null | undefined, options: ShortNameOptions = {}): string {
+export function getFirstAndLastName(
+  fullName: string | null | undefined,
+  options: ShortNameOptions = {},
+): string {
   const { includeSurnameParticles = true, surnameParticles = DEFAULT_PARTICLES } = options;
 
   const clean = (fullName ?? '').trim().replace(/\s+/g, ' ');

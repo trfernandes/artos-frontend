@@ -1,14 +1,16 @@
 import { useFormContext } from 'react-hook-form';
 import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
 import { MinVoluntarioFuncaoFormData } from '../../../../domain/schemas/ministerioVoluntariosSchema';
-import ControlledDropDown from '../../../forms/ControlledDropDown';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import { useMemo } from 'react';
 import { EnumUtils } from '../../../../utils/enum_utils';
 import {
-  EscalaTemplateExperienciaEnum,
-  EscalaTemplateExperienciaLabel,
+    EscalaTemplateExperienciaEnum,
+    EscalaTemplateExperienciaLabel,
 } from '../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
+import ControlledSearchSelect from '../../../forms/ControlledSearchSelect';
+import ControlledBottomSheetSelect from '../../../forms/ControlledBottomSheetSelect';
+import { DefaultIconsNames } from '../../../../constants/icons';
 
 interface IntegranteFormModalProps {
   funcoesDropDownList?: DropDownItemProps<string>[];
@@ -25,15 +27,25 @@ export default function IntegranteFormModal(props: IntegranteFormModalProps & Fa
   }, []);
 
   return (
-    <FancyModalDialog centerContainerStyle={{ gap: 15 }} {...props}>
-      <ControlledDropDown
+    <FancyModalDialog
+      centerContainerStyle={{ gap: 15 }}
+      button2Icon={DefaultIconsNames.save}
+      {...props}
+    >
+      <ControlledSearchSelect
         name='id'
         label='Função'
         control={control}
         listItems={props.funcoesDropDownList}
         disabled={props.mode === 'edit'}
+        searchPlaceholder='Buscar função...'
       />
-      <ControlledDropDown control={control} name='experiencia' label='Experiência' listItems={experiencaList} />
+      <ControlledBottomSheetSelect
+        control={control}
+        name='experiencia'
+        label='Experiência'
+        listItems={experiencaList}
+      />
     </FancyModalDialog>
   );
 }

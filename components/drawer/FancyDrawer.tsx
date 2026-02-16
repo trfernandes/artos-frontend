@@ -1,20 +1,31 @@
 import { DrawerContentComponentProps } from '@react-navigation/drawer';
-import { StyleSheet, View } from 'react-native';
-import { useMemo } from 'react';
+import { StyleSheet, View, ActivityIndicator, Linking, Platform } from 'react-native';
+import { useMemo, useCallback } from 'react';
 import FancyDrawerHeader from './FancyDrawerHeader';
 import FancyDrawerItem from './FancyDrawerItem';
 import FancyDrawerSeparator from './FancyDrawerSeparator';
 import FancyScrollView from '../FancyScrollView';
 import { useAuth } from '../../contexts/AuthContext';
-import { getMenuForUser } from './MenuData';
+import { useMinisteriosDrawer } from '../../hooks/useMinisteriosDrawer';
+import { getMenuForIgreja } from './MenuData';
+import { Pallete } from '../../constants/colors';
 
 export type FancyDrawerProps = {} & DrawerContentComponentProps;
 
 export default function FancyDrawer(props: FancyDrawerProps) {
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
+  const { igrejaAtiva, isLoading, isAdmin } = useMinisteriosDrawer();
   const { navigation } = props;
 
-  const menuSections = useMemo(() => getMenuForUser(user!), [user]);
+  const handleOpenStoreReview = useCallback(() => {
+    const storeUrl = Platform.select({
+      ios: 'https://apps.apple.com/app/id__APP_ID__', // TODO: substituir pelo Apple ID real quando publicado
+      android: 'https://play.google.com/store/apps/details?id=com.church.artos',
+    });
+    if (storeUrl) Linking.openURL(storeUrl);
+  }, []);
+
+  const menuSections = useMemo(() => getMenuForIgreja(igrejaAtiva), [igrejaAtiva]);
 
   const firstExpandableIndex = useMemo(() => {
     let index = 0;
@@ -39,7 +50,7 @@ export default function FancyDrawer(props: FancyDrawerProps) {
         {section.items.map((item, itemIndex) => {
           itemRunningIndex += 1;
           const isExpandable = Boolean(item.items && item.items.length);
-          const defaultCollapsed = isExpandable ? itemRunningIndex != firstExpandableIndex : undefined;
+          const defaultCollapsed = isExpandable ? true : undefined;
 
           return (
             <FancyDrawerItem
@@ -54,6 +65,9 @@ export default function FancyDrawer(props: FancyDrawerProps) {
     ));
   }, [menuSections, firstExpandableIndex, navigation, itemRunningIndex]);
 
+  // Mostra loading enquanto busca os ministérios para admins
+  const showMinisteriosLoading = isAdmin && isLoading;
+
   return (
     <View style={styles.container}>
       <FancyDrawerHeader />
@@ -67,19 +81,35 @@ export default function FancyDrawer(props: FancyDrawerProps) {
         }}
       >
         <FancyScrollView
-          topFade={{ style: { borderTopStartRadius: 15, borderTopEndRadius: 15, borderWidth: 0 } }}
-          showsVerticalScrollIndicator={true}
+          topFade={{ style: { borderTopStartRadius: 15, borderTopEndRadius: 15, borderTopRightRadius: 15, borderTopLeftRadius: 15, borderWidth: 0 } }}
+          bottomFade={{ style: { borderBottomStartRadius: 15, borderBottomEndRadius: 15, borderWidth: 0 } }}
+          showsVerticalScrollIndicator={false}        
           style={styles.menuContainer}
           contentContainerStyle={{ borderRadius: 15, paddingHorizontal: 8, paddingTop: 10 }}
         >
           {sections}
 
+          {showMinisteriosLoading && (
+            <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+              <ActivityIndicator size="small" color={Pallete.primary} />
+            </View>
+          )}
+
           <FancyDrawerSeparator label={'Outros'} />
+          <FancyDrawerItem
+            title='Avaliar o App'
+            logo={{
+              type: 'icon',
+              value: { name: 'star-outline', library: 'MaterialCommunityIcons', size: 17 },
+            }}
+            onPress={{ type: 'RunMethod', method: handleOpenStoreReview }}
+            onNavigate={() => navigation.closeDrawer?.()}
+          />
           <FancyDrawerItem
             title='Sair'
             logo={{
               type: 'icon',
-              value: { name: 'logout', library: 'MaterialCommunityIcons', size: 20 },
+              value: { name: 'exit-to-app', library: 'MaterialCommunityIcons', size: 15 },
             }}
             onPress={{ type: 'RunMethod', method: signOut }}
             onNavigate={() => navigation.closeDrawer?.()}

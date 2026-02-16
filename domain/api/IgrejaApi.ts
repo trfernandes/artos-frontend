@@ -9,14 +9,34 @@ import { VerificarCodigoIgrejaResponseDto } from '../dtos/Igreja/verificar-codig
 import { JoinByCodigoDto } from '../dtos/Igreja/join-by-codigo.dto';
 import { ResponseIgrejaVoluntarioDto } from '../dtos/Igreja/response-igreja-voluntario.dto';
 import { AprovarMembroDto } from '../dtos/Igreja/aprovar-membro.dto';
-import { CreateIgrejaConviteDto } from '../dtos/Igreja/create-igreja-convite.dto';
-import { ResponseIgrejaConviteDto } from '../dtos/Igreja/response-igreja-convite.dto';
-import { ResponseConvitePreviewDto } from '../dtos/Igreja/response-convite-preview.dto';
 import { ResponseIgrejaAssinaturaDto } from '../dtos/Igreja/response-igreja-assinatura.dto';
 import { AlterarPlanoDto } from '../dtos/Igreja/alterar-plano.dto';
+import { ResponseAceitarConviteDto } from '../dtos/Igreja/response-aceitar-convite.dto';
+import { ResponseConvitePreviewDto } from '../dtos/Igreja/response-convite-preview.dto';
+import { ResponseIgrejaConviteDto } from '../dtos/Igreja/response-igreja-convite.dto';
+import { CreateIgrejaConviteDto } from '../dtos/Igreja/create-igreja-convite.dto';
+import {
+  ResponseIgrejaSolicitacaoDto,
+  SolicitacaoStatusEnum,
+} from '../dtos/Igreja/response-igreja-solicitacao.dto';
+import { NegarSolicitacaoDto } from '../dtos/Igreja/negar-solicitacao.dto';
+import { ResponseIgrejaConfiguracoesDto } from '../dtos/Igreja/response-igreja-configuracoes.dto';
+import { UpdateIgrejaDadosDto } from '../dtos/Igreja/update-igreja-dados.dto';
+import { UpdateIgrejaModoEntradaDto } from '../dtos/Igreja/update-igreja-modo-entrada.dto';
+import { UpdateIgrejaNotificacoesDto } from '../dtos/Igreja/update-igreja-notificacoes.dto';
+import { ResponseVoluntarioDto } from '../dtos/Voluntario/voluntario.response';
+import { DynamicQuery } from '../utils/query_utils';
 
 type ApiEnvelope<T> = {
   data: T;
+};
+
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-cache, no-store, max-age=0, must-revalidate',
+  Pragma: 'no-cache',
+  Expires: '0',
+  // Forca o servidor a responder com corpo, evitando 304 sem payload no cliente.
+  'If-None-Match': '"artos-force-fresh"',
 };
 
 class IgrejaApiClass extends BaseApi<ResponseIgrejaDto, CreateIgrejaDto, UpdateIgrejaDto> {
@@ -51,7 +71,10 @@ class IgrejaApiClass extends BaseApi<ResponseIgrejaDto, CreateIgrejaDto, UpdateI
   async verificarCodigoDisponivel(codigo: string): Promise<VerificarCodigoIgrejaResponseDto> {
     const response = await apiClient.get<ApiEnvelope<VerificarCodigoIgrejaResponseDto>>(
       `/${this.resourceName}/codigo-disponivel`,
-      { params: { codigo } },
+      {
+        params: { codigo },
+        headers: NO_CACHE_HEADERS,
+      },
     );
     return response.data.data;
   }
@@ -64,7 +87,10 @@ class IgrejaApiClass extends BaseApi<ResponseIgrejaDto, CreateIgrejaDto, UpdateI
     const baseURL = apiClient.defaults.baseURL;
     const response = await axios.get<ApiEnvelope<VerificarCodigoIgrejaResponseDto>>(
       `${baseURL}/${this.resourceName}/codigo-disponivel`,
-      { params: { codigo } },
+      {
+        params: { codigo },
+        headers: NO_CACHE_HEADERS,
+      },
     );
     return response.data.data;
   }
@@ -94,36 +120,63 @@ class IgrejaApiClass extends BaseApi<ResponseIgrejaDto, CreateIgrejaDto, UpdateI
     return response.data.data;
   }
 
+  // ========== SOLICITAÇÕES (ADMIN/LIDER) ==========
+
   /**
-   * Listar membros pendentes de aprovação (JWT)
-   * GET /igrejas/{igrejaId}/pendentes
+   * Listar solicitações de entrada na igreja (JWT)
+   * GET /igrejas/{igrejaId}/solicitacoes?status=PENDING|APPROVED|DENIED|CANCELED
    */
-  async listarPendentes(igrejaId: string): Promise<ResponseIgrejaVoluntarioDto[]> {
-    const response = await apiClient.get<ApiEnvelope<ResponseIgrejaVoluntarioDto[]>>(
-      `/${this.resourceName}/${igrejaId}/pendentes`,
+  async listarSolicitacoes(
+    igrejaId: string,
+    status?: SolicitacaoStatusEnum,
+  ): Promise<ResponseIgrejaSolicitacaoDto[]> {
+    const response = await apiClient.get<ApiEnvelope<ResponseIgrejaSolicitacaoDto[]>>(
+      `/${this.resourceName}/${igrejaId}/solicitacoes`,
+      { params: status ? { status } : undefined },
     );
     return response.data.data;
   }
 
   /**
-   * Aprovar membro pendente (JWT)
-   * PATCH /igrejas/{igrejaId}/pendentes/{membroId}/aprovar
+   * Aprovar solicitação de entrada (JWT)
+   * POST /igrejas/{igrejaId}/solicitacoes/{solicitacaoId}/aprovar
    */
-  async aprovarMembro(igrejaId: string, membroId: string, dto?: AprovarMembroDto): Promise<ResponseIgrejaVoluntarioDto> {
-    const response = await apiClient.patch<ApiEnvelope<ResponseIgrejaVoluntarioDto>>(
-      `/${this.resourceName}/${igrejaId}/pendentes/${membroId}/aprovar`,
+  async aprovarSolicitacao(
+    igrejaId: string,
+    solicitacaoId: string,
+    dto?: AprovarMembroDto,
+  ): Promise<ResponseIgrejaSolicitacaoDto> {
+    const response = await apiClient.post<ApiEnvelope<ResponseIgrejaSolicitacaoDto>>(
+      `/${this.resourceName}/${igrejaId}/solicitacoes/${solicitacaoId}/aprovar`,
       dto || {},
     );
     return response.data.data;
   }
 
   /**
-   * Rejeitar membro pendente (JWT)
-   * DELETE /igrejas/{igrejaId}/pendentes/{membroId}/rejeitar
+   * Negar solicitação de entrada (JWT)
+   * POST /igrejas/{igrejaId}/solicitacoes/{solicitacaoId}/negar
    */
-  async rejeitarMembro(igrejaId: string, membroId: string): Promise<{ ok: true }> {
-    const response = await apiClient.delete<ApiEnvelope<{ ok: true }>>(
-      `/${this.resourceName}/${igrejaId}/pendentes/${membroId}/rejeitar`,
+  async negarSolicitacao(
+    igrejaId: string,
+    solicitacaoId: string,
+    dto?: NegarSolicitacaoDto,
+  ): Promise<ResponseIgrejaSolicitacaoDto> {
+    const response = await apiClient.post<ApiEnvelope<ResponseIgrejaSolicitacaoDto>>(
+      `/${this.resourceName}/${igrejaId}/solicitacoes/${solicitacaoId}/negar`,
+      dto || {},
+    );
+    return response.data.data;
+  }
+
+  /**
+   * Listar voluntários da igreja com busca avançada (JWT)
+   * POST /igrejas/{igrejaId}/voluntarios/search
+   */
+  async listarVoluntarios(igrejaId: string, query?: DynamicQuery): Promise<ResponseVoluntarioDto[]> {
+    const response = await apiClient.post<ApiEnvelope<ResponseVoluntarioDto[]>>(
+      `/${this.resourceName}/${igrejaId}/voluntarios/search`,
+      query || {},
     );
     return response.data.data;
   }
@@ -143,24 +196,69 @@ class IgrejaApiClass extends BaseApi<ResponseIgrejaDto, CreateIgrejaDto, UpdateI
   }
 
   /**
+   * Listar convites da igreja (JWT)
+   * GET /igrejas/{igrejaId}/convites?status=TODOS|ATIVOS|EXPIRADOS|REVOGADOS|USADOS
+   */
+  async listarConvites(igrejaId: string, status?: string): Promise<ResponseIgrejaConviteDto[]> {
+    const response = await apiClient.get<ApiEnvelope<ResponseIgrejaConviteDto[]>>(
+      `/${this.resourceName}/${igrejaId}/convites`,
+      { params: status ? { status } : undefined },
+    );
+    return response.data.data;
+  }
+
+  /**
+   * Revogar convite (JWT)
+   * POST /convites/{conviteId}/revogar
+   */
+  async revogarConvite(conviteId: string): Promise<ResponseIgrejaConviteDto> {
+    const response = await apiClient.post<ApiEnvelope<ResponseIgrejaConviteDto>>(
+      `/convites/${conviteId}/revogar`,
+    );
+    return response.data.data;
+  }
+
+  /**
    * Obter preview de convite (Público)
-   * GET /igrejas/convites/{token}
+   * POST /convites/{token}/preview
    */
   async getConvitePreview(token: string): Promise<ResponseConvitePreviewDto> {
     const baseURL = apiClient.defaults.baseURL;
-    const response = await axios.get<ApiEnvelope<ResponseConvitePreviewDto>>(
-      `${baseURL}/${this.resourceName}/convites/${token}`,
+    const response = await axios.post<ApiEnvelope<ResponseConvitePreviewDto>>(
+      `${baseURL}/convites/${token}/preview`,
     );
     return response.data.data;
   }
 
   /**
    * Aceitar convite (JWT)
-   * POST /igrejas/convites/{token}/aceitar
+   * POST /convites/{token}/accept
    */
-  async aceitarConvite(token: string): Promise<ResponseIgrejaVoluntarioDto> {
-    const response = await apiClient.post<ApiEnvelope<ResponseIgrejaVoluntarioDto>>(
-      `/${this.resourceName}/convites/${token}/aceitar`,
+  async aceitarConvite(token: string): Promise<ResponseAceitarConviteDto> {
+    const response = await apiClient.post<ApiEnvelope<ResponseAceitarConviteDto>>(
+      `/convites/${token}/accept`,
+    );
+    return response.data.data;
+  }
+
+  // ========== SOLICITAÇÕES DO USUÁRIO ==========
+
+  /**
+   * Listar solicitações de entrada em igrejas do usuário (JWT)
+   * GET /me/igrejas/solicitacoes
+   */
+  async listarMinhasSolicitacoes(): Promise<ResponseIgrejaSolicitacaoDto[]> {
+    const response = await apiClient.get<ApiEnvelope<ResponseIgrejaSolicitacaoDto[]>>('/me/igrejas/solicitacoes');
+    return response.data.data;
+  }
+
+  /**
+   * Cancelar solicitação de entrada do usuário (JWT)
+   * POST /me/igrejas/solicitacoes/{id}/cancelar
+   */
+  async cancelarMinhaSolicitacao(solicitacaoId: string): Promise<ResponseIgrejaSolicitacaoDto> {
+    const response = await apiClient.post<ApiEnvelope<ResponseIgrejaSolicitacaoDto>>(
+      `/me/igrejas/solicitacoes/${solicitacaoId}/cancelar`,
     );
     return response.data.data;
   }
@@ -185,6 +283,58 @@ class IgrejaApiClass extends BaseApi<ResponseIgrejaDto, CreateIgrejaDto, UpdateI
   async alterarPlano(igrejaId: string, dto: AlterarPlanoDto): Promise<ResponseIgrejaAssinaturaDto> {
     const response = await apiClient.patch<ApiEnvelope<ResponseIgrejaAssinaturaDto>>(
       `/${this.resourceName}/${igrejaId}/assinatura/plano`,
+      dto,
+    );
+    return response.data.data;
+  }
+
+  // ========== CONFIGURAÇÕES ==========
+
+  /**
+   * Obter configurações completas da igreja (JWT)
+   * GET /igrejas/{igrejaId}/configuracoes
+   */
+  async getConfiguracoes(igrejaId: string): Promise<ResponseIgrejaConfiguracoesDto> {
+    const response = await apiClient.get<ApiEnvelope<ResponseIgrejaConfiguracoesDto>>(
+      `/${this.resourceName}/${igrejaId}/configuracoes`,
+    );
+    return response.data.data;
+  }
+
+  /**
+   * Atualizar dados cadastrais da igreja (JWT)
+   * PATCH /igrejas/{igrejaId}/dados
+   */
+  async updateDados(igrejaId: string, dto: UpdateIgrejaDadosDto): Promise<ResponseIgrejaConfiguracoesDto> {
+    const response = await apiClient.patch<ApiEnvelope<ResponseIgrejaConfiguracoesDto>>(
+      `/${this.resourceName}/${igrejaId}/dados`,
+      dto,
+    );
+    return response.data.data;
+  }
+
+  /**
+   * Atualizar modo de entrada da igreja (JWT)
+   * PATCH /igrejas/{igrejaId}/modo-entrada
+   */
+  async updateModoEntrada(igrejaId: string, dto: UpdateIgrejaModoEntradaDto): Promise<ResponseIgrejaConfiguracoesDto> {
+    const response = await apiClient.patch<ApiEnvelope<ResponseIgrejaConfiguracoesDto>>(
+      `/${this.resourceName}/${igrejaId}/modo-entrada`,
+      dto,
+    );
+    return response.data.data;
+  }
+
+  /**
+   * Atualizar configurações de notificações (JWT)
+   * PATCH /igrejas/{igrejaId}/notificacoes
+   */
+  async updateNotificacoes(
+    igrejaId: string,
+    dto: UpdateIgrejaNotificacoesDto,
+  ): Promise<ResponseIgrejaConfiguracoesDto> {
+    const response = await apiClient.patch<ApiEnvelope<ResponseIgrejaConfiguracoesDto>>(
+      `/${this.resourceName}/${igrejaId}/notificacoes`,
       dto,
     );
     return response.data.data;

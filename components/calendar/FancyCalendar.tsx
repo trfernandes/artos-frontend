@@ -7,21 +7,9 @@ import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Gesture, Directions, GestureDetector } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
 import { Pallete } from '../../constants/colors';
+import { MONTH_NAMES } from '../../constants/calendar';
 
-export const MONTH_NAMES = [
-  'Janeiro',
-  'Fevereiro',
-  'Março',
-  'Abril',
-  'Maio',
-  'Junho',
-  'Julho',
-  'Agosto',
-  'Setembro',
-  'Outubro',
-  'Novembro',
-  'Dezembro',
-];
+export { MONTH_NAMES };
 
 export enum CalendarVisualization {
   Day,
@@ -47,6 +35,7 @@ export type FancyCalendarProps = {
   dayViewProps?: Partial<DayViewProps>;
   selectDateOnPress?: boolean;
   markedDatesType?: DayViewProps['markedDatesType'];
+  dayModeTopPadding?: number;
 };
 
 export default function FancyCalendar({
@@ -62,6 +51,7 @@ export default function FancyCalendar({
   dayViewProps,
   selectDateOnPress = true,
   markedDatesType = 'bottomPoint',
+  dayModeTopPadding = 16,
 }: FancyCalendarProps) {
   const dayViewMaximum = dayViewProps?.maximumDate;
 
@@ -227,7 +217,14 @@ export default function FancyCalendar({
       </View>
 
       <GestureDetector gesture={flingGestures}>
-        <View style={styles.contentContainer}>
+        <View
+          style={[
+            styles.contentContainer,
+            visualization === CalendarVisualization.Day && {
+              paddingTop: dayModeTopPadding,
+            },
+          ]}
+        >
           {visualization === CalendarVisualization.Day && (
             <DayView
               currentDate={currentDate}
@@ -293,14 +290,22 @@ export default function FancyCalendar({
 }
 
 const styles = StyleSheet.create({
-  container: { minHeight: 275, backgroundColor: 'white' },
-  headerContainer: {},
+  container: { minHeight: 253, backgroundColor: 'white', gap: 0 },
+  headerContainer: {
+    width: '100%',
+    paddingHorizontal: 0,
+    paddingLeft: 2,
+    paddingTop: 2,
+    paddingBottom: 0,
+    zIndex: 1,
+  },
   contentContainer: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    paddingTop: 20,
-    paddingBottom: 5,
+    paddingLeft: 2,
+    paddingTop: 6,
+    paddingBottom: 0,
   },
   border: { borderWidth: 0.5, borderRadius: 10, borderColor: Pallete.border, ...Pallete.shadows[100] },
 });

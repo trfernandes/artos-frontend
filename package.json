@@ -4,14 +4,21 @@
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
+    "start:local": "dotenv -e .env.local -- expo start",
+    "start:staging": "dotenv -e .env.staging -- expo start",
     "android": "expo run:android",
+    "android:local": "dotenv -e .env.local -- expo run:android",
+    "android:staging": "dotenv -e .env.staging -- expo run:android",
     "ios": "expo run:ios",
+    "ios:local": "dotenv -e .env.local -- expo run:ios",
+    "ios:staging": "dotenv -e .env.staging -- expo run:ios",
     "web": "expo start --web",
     "format": "prettier . --write",
     "format:check": "prettier . --check"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
+    "@gorhom/bottom-sheet": "^5.2.8",
     "@hookform/resolvers": "^5.2.1",
     "@legendapp/list": "^2.0.14",
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -37,6 +44,7 @@
     "expo-secure-store": "~15.0.8",
     "expo-splash-screen": "~31.0.13",
     "expo-status-bar": "~3.0.9",
+    "expo-store-review": "~9.0.9",
     "expo-system-ui": "~6.0.9",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -60,6 +68,7 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~19.1.10",
+    "dotenv-cli": "^11.0.0",
     "expo": "54.0.30",
     "typescript": "5.9.3"
   },

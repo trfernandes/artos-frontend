@@ -2,7 +2,8 @@ import { useFieldArray, useForm, useFormContext } from 'react-hook-form';
 import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
 import { AddLiderSchema, AddLiderFormData, AddMinisterioFormData } from '../../../../domain/schemas/ministerioAdminSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import ControlledDropDown from '../../../forms/ControlledDropDown';
+import ControlledSearchSelect from '../../../forms/ControlledSearchSelect';
+import ControlledBottomSheetSelect from '../../../forms/ControlledBottomSheetSelect';
 import { useVoluntariosCrud } from '../../../../hooks/useVoluntariosCrud';
 import { useCallback, useMemo } from 'react';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
@@ -50,17 +51,18 @@ export default function AddLiderancaFormModal(props: {} & FancyModalDialogProps<
 
   return (
     <FancyModalDialog {...props} title='Adicionar Líder' centerContainerStyle={{ gap: 15 }} onButton2Press={onSubmit}>
-      <ControlledDropDown
+      <ControlledSearchSelect
         control={form.control}
         name='voluntarioId'
         label='Voluntário:'
+        searchPlaceholder='Buscar voluntário...'
         listItems={voluntariosDropDownList}
         onChange={(data) => {
           const nome = voluntariosDropDownList.find((v) => v.value === data)?.title || '';
           form.setValue('voluntarioNome', nome);
         }}
       />
-      <ControlledDropDown control={form.control} name='hierarquia' label='Função:' listItems={VoluntarioHierarquiaLideresEnumList} />
+      <ControlledBottomSheetSelect control={form.control} name='hierarquia' label='Função:' listItems={VoluntarioHierarquiaLideresEnumList} />
     </FancyModalDialog>
   );
 }

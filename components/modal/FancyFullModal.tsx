@@ -26,6 +26,7 @@ export default function FancyFullModal({ title, modalProps, children }: FancyFul
               <View style={styles.inner}>
                 <FancyPageHeader
                   leftButton='back'
+                  applyTopSafeArea={false}
                   options={{ title }}
                   leftButtonOnPress={() => modalProps?.onRequestClose?.({} as unknown as NativeSyntheticEvent<any>)}
                 />

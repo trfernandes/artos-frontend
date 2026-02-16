@@ -17,7 +17,7 @@ export default function NotificationButton() {
   }, [quantidadeNaoLidas]);
 
   return (
-    <View style={{}}>
+    <View style={{borderWidth:0, width:22, height:22, alignItems:'center', justifyContent:'center'}}>
       {qtdNaoLidas > 0 && (
         <View style={styles.hasNotificationContainer}>
           <View style={styles.hasNotification} />
@@ -25,7 +25,7 @@ export default function NotificationButton() {
       )}
 
       <FancyHeaderButton
-        icon={{ library: 'Feather', name: 'bell', size: 20 }}
+        icon={{ library: 'Feather', name: 'bell', size: 20, style: { borderWidth: 0 } }}
         onPress={function (): void {
           router.push('/notifications');
         }}
@@ -45,8 +45,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
-    right: 14,
-    top: 4,
+    right: 0,
+    top: 0,
     padding: 1.2,
     borderRadius: 4,
     backgroundColor: 'white',

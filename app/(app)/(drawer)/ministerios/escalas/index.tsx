@@ -8,30 +8,30 @@ import FancyLoading from '../../../../../components/FancyLoading';
 
 import { Pallete } from '../../../../../constants/colors';
 import FancyChips from '../../../../../components/FancyChips';
-import { useCallback } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import { EscalaStatusEnum, EscalaStatusEnumLabel } from '../../../../../domain/enums/Escala/escala-status.enum';
+import { EscalaItemStatusEnum } from '../../../../../domain/enums/Escala/escala-item-status.enum';
+import { View } from 'react-native';
+import FancyText from '../../../../../components/FancyText';
+import DefaultIcons from '../../../../../components/FancyIcons';
 
 export const EscalaStatusConfig = {
   [EscalaStatusEnum.Gerada]: {
     label: 'Gerada',
-    color: '#3C8DFF', // Azul frio — indica processo técnico
+    color: '#3C8DFF',
     background: '#E6F0FF',
   },
   [EscalaStatusEnum.Publicada]: {
     label: 'Publicada',
-    color: '#E8B83A', // Verde-água — sensação de ativo e confirmado
+    color: '#E8B83A',
     background: '#FFF7E0',
-  },
-  [EscalaStatusEnum.Concluida]: {
-    label: 'Concluída',
-    color: '#8E63E8', // Verde oliva frio — indica finalização com sucesso
-    background: '#F3EBFF',
   },
 } as const;
 
 export default function MinisterioEscalasIndexPage() {
   const { ministerioId } = useLocalSearchParams();
+  const [searchText, setSearchText] = useState('');
 
   const {
     data: escalas,
@@ -52,6 +52,7 @@ export default function MinisterioEscalasIndexPage() {
           },
         ],
       },
+      relations: ['itens'],
       orderBy: [{ path: 'dataInicio', direction: OrderDirection.DESC }],
     },
   });
@@ -75,12 +76,29 @@ export default function MinisterioEscalasIndexPage() {
     [removeEscala],
   );
 
+  const filteredEscalas = useMemo(() => {
+    const normalized = searchText.trim().toLowerCase();
+    if (!normalized) return escalas;
+    return escalas?.filter((item) => item.nome?.toLowerCase().includes(normalized));
+  }, [escalas, searchText]);
+
   if (isLoadingEscalas) return <FancyLoading label='Carregando...' />;
   if (isLoadingEscalasMutation) return <FancyLoading label='Processando...' />;
+
+  const formatPeriodo = (dataInicio: string, dataTermino: string) => {
+    const inicio = new Date(dataInicio).toLocaleDateString();
+    const termino = new Date(dataTermino).toLocaleDateString();
+    return `${inicio} - ${termino}`;
+  };
 
   return (
     <FancyListPage
       showFab
+      showSearchBar
+      searchBarProps={{
+        value: searchText,
+        onSearch: (text) => setSearchText(text.trim()),
+      }}
       fabProps={{
         onPress: () =>
           router.push({
@@ -89,47 +107,117 @@ export default function MinisterioEscalasIndexPage() {
           }),
       }}
       listProps={{
-        data: escalas,
-        renderItem: ({ item }) => (
-          <FancyCard.Image
-            type='icon'
-            props={{
-              centerContainerStyle: { gap: 6 },
-              cardIcon: {
-                ...DefaultIconsNames['calendar-day'],
-                size: 18,
-              },
-              title: item.nome,
-              subtitle: `De ${new Date(item.dataInicio).toLocaleDateString()} até ${new Date(
-                item.dataTermino,
-              ).toLocaleDateString()}`,
-              additionalData1: <FancyChips {...EscalaStatusConfig[item.status]} label={EscalaStatusEnumLabel[item.status]} />,
-              actionButtons: [
-                {
-                  icon: { ...DefaultIconsNames.edit, size: 16 },
-                  onPress: () => {
-                    router.push({
-                      pathname: '/ministerios/escalas/details',
-                      params: {
-                        ministerioId,
-                        escalaId: item.id,
-                        viewMode: 'edit',
-                      },
-                    });
-                  },
+        data: filteredEscalas,
+        renderItem: ({ item }) => {
+          const filledItems = (item.itens ?? []).filter((i) => Boolean(i.voluntarioId));
+          const totalCount = filledItems.length;
+          const confirmedCount = filledItems.filter((i) => i.status === EscalaItemStatusEnum.Confirmado).length;
+          const confirmationPercent = totalCount > 0 ? Math.round((confirmedCount / totalCount) * 100) : 0;
+          const itemsWithEvento = (item.itens ?? []).filter((i) => Boolean(i.eventoId));
+          const occurrencesCount = itemsWithEvento.length;
+          const eventsCount = new Set(itemsWithEvento.map((i) => i.eventoId)).size;
+          const hasConfirmation = totalCount > 0;
+          const hasOccurrences = occurrencesCount > 0;
+
+          return (
+            <FancyCard.Image
+              type='icon'
+              props={{
+                centerContainerStyle: { gap: 4 },
+                cardIcon: {
+                  ...DefaultIconsNames['calendar-day'],
+                  size: 18,
                 },
-                {
-                  icon: {
-                    ...DefaultIconsNames.delete,
-                    size: 16,
-                    backgroundColor: Pallete.error,
+                title: item.nome,
+                subtitle: (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                    <View style={{ width: 14, alignItems: 'center', justifyContent: 'center' }}>
+                      <DefaultIcons.Custom
+                        library='MaterialCommunityIcons'
+                        name='calendar-range'
+                        size={13}
+                        color={Pallete.primary}
+                      />
+                    </View>
+                    <FancyText size='extraSmall' type='semiBold' color={Pallete.fonts.inactive}>
+                      {formatPeriodo(item.dataInicio, item.dataTermino)}
+                    </FancyText>
+                  </View>
+                ),
+                additionalData1:
+                  hasConfirmation || hasOccurrences ? (
+                    <View style={{ gap: 3 }}>
+                      {hasConfirmation && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <View style={{ width: 14, alignItems: 'center', justifyContent: 'center' }}>
+                            <DefaultIcons.Custom
+                              library='MaterialCommunityIcons'
+                              name='account-check-outline'
+                              size={15}
+                              color={Pallete.primary}
+                            />
+                          </View>
+                          <FancyText size='extraSmall' type='semiBold' color={Pallete.fonts.inactive}>
+                            {`${confirmedCount}/${totalCount}`}
+                          </FancyText>
+                          <FancyText size='extraSmall' type='semiBold' color={Pallete.fonts.inactive}>
+                            {`${confirmationPercent}%`}
+                          </FancyText>
+                        </View>
+                      )}
+                      {hasOccurrences && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <View style={{ width: 14, alignItems: 'center', justifyContent: 'center' }}>
+                            <DefaultIcons.Custom
+                              library='MaterialCommunityIcons'
+                              name='calendar-multiple'
+                              size={12}
+                              color={Pallete.primary}
+                            />
+                          </View>
+                          <FancyText size='extraSmall' type='semiBold' color={Pallete.fonts.inactive}>
+                            {`${eventsCount} evento(s) / ${occurrencesCount} ocorrência(s)`}
+                          </FancyText>
+                        </View>
+                      )}
+                    </View>
+                  ) : undefined,
+                additionalData2: (
+                  <View style={{ marginTop: 6 }}>
+                    <FancyChips
+                      {...EscalaStatusConfig[item.status]}
+                      label={EscalaStatusEnumLabel[item.status]}
+                      size='small'
+                    />
+                  </View>
+                ),
+                actionButtons: [
+                  {
+                    icon: { ...DefaultIconsNames.edit, size: 16 },
+                    onPress: () => {
+                      router.push({
+                        pathname: '/ministerios/escalas/details',
+                        params: {
+                          ministerioId,
+                          escalaId: item.id,
+                          viewMode: 'edit',
+                        },
+                      });
+                    },
                   },
-                  onPress: () => handleDeletePress(item.id!),
-                },
-              ],
-            }}
-          />
-        ),
+                  {
+                    icon: {
+                      ...DefaultIconsNames.delete,
+                      size: 16,
+                      backgroundColor: Pallete.error,
+                    },
+                    onPress: () => handleDeletePress(item.id!),
+                  },
+                ],
+              }}
+            />
+          );
+        },
       }}
     />
   );

@@ -5,15 +5,11 @@ import EventosListView from '../../../../../components/pages/admin/eventos/Event
 import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
 import FancyLoading from '../../../../../components/FancyLoading';
 import FancyBasePage from '../../../../../components/pages/base/FancyBasePage';
-import { DynamicQuery, Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
+import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import { ResponseEventoDto } from '../../../../../domain/dtos/Evento/evento.response';
 
 export default function EventosIndexPage() {
   const [searchText, setSearchText] = useState('');
-
-  const searchParams: DynamicQuery = {
-    orderBy: [{ path: 'nome', direction: OrderDirection.ASC }],
-  };
 
   const {
     data,
@@ -21,7 +17,7 @@ export default function EventosIndexPage() {
     setSearchParams,
     remove,
     isLoadingMutation: isLoadingRemove,
-  } = useEventosCrud({ autoFetch: false, initialParams: searchParams });
+  } = useEventosCrud({ autoFetch: false });
 
   const eventosData = useMemo<ResponseEventoDto[]>(() => {
     return data.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
@@ -46,6 +42,7 @@ export default function EventosIndexPage() {
 
   return (
     <FancyBasePage
+      showSearchBar
       fabProps={{ onPress: () => router.push('admin/eventos/add') }}
       searchBarProps={{
         value: searchText,
@@ -59,7 +56,7 @@ export default function EventosIndexPage() {
                     path: 'nome',
                     operator: Operator.ILIKE,
                     value: {
-                      type: ValueType.LITERAL,
+                      type: ValueType.LITERAL as const,
                       value: text.trim(),
                     },
                   },

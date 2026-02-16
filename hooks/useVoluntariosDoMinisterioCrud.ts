@@ -1,14 +1,26 @@
 import { useMemo } from 'react';
 import { DropDownItemProps } from '../components/fields/FancyDropDownItem';
-import { Operator, ValueType, DynamicQuery, OrderDirection } from '../domain/utils/query_utils';
+import {
+     Conjunction,
+     Operator,
+     ValueType,
+     DynamicQuery,
+     OrderDirection,
+} from '../domain/utils/query_utils';
 import { useMinisterioVoluntariosCrud } from './useMinisterioVoluntariosCrud';
 import { MinisterioVoluntarioStatusEnum } from '../domain/enums/MinisterioVoluntario/ministerio-voluntario-status.enum';
 import { ResponseVoluntarioDto } from '../domain/dtos/Voluntario/voluntario.response';
 import { AppImages } from '../assets/app_images';
+import { useAuth } from '../contexts/AuthContext';
 
-export function useVoluntariosDoMinisterioCrud(ministerioId?: string, status: MinisterioVoluntarioStatusEnum = MinisterioVoluntarioStatusEnum.Ativo) {
+export function useVoluntariosDoMinisterioCrud(
+  ministerioId?: string,
+  status: MinisterioVoluntarioStatusEnum = MinisterioVoluntarioStatusEnum.Ativo,
+) {
+  const { igrejaAtiva } = useAuth();
+
   const initialParams = useMemo(() => {
-    if (!ministerioId) return undefined;
+    if (!ministerioId || !igrejaAtiva?.id) return undefined;
 
     return {
       where: {
@@ -23,12 +35,18 @@ export function useVoluntariosDoMinisterioCrud(ministerioId?: string, status: Mi
             operator: Operator.EQUALS,
             value: { type: ValueType.LITERAL, value: status },
           },
+          {
+            path: 'ministerio.igrejaId',
+            operator: Operator.EQUALS,
+            value: { type: ValueType.LITERAL, value: igrejaAtiva.id },
+          },
         ],
+        conjunction: Conjunction.AND,
       },
       orderBy: [{ path: 'voluntario.nome', direction: OrderDirection.ASC }],
-      relations: ['voluntario'],
+      relations: ['voluntario', 'funcoes', 'funcoes.funcao'],
     } as DynamicQuery;
-  }, [ministerioId]);
+  }, [ministerioId, igrejaAtiva?.id]);
 
   const {
     data: ministerioVoluntariosList,
@@ -38,7 +56,7 @@ export function useVoluntariosDoMinisterioCrud(ministerioId?: string, status: Mi
     update: updateMinisterioVoluntario,
     remove: removeMinisterioVoluntario,
   } = useMinisterioVoluntariosCrud({
-    autoFetch: true,
+    autoFetch: !!ministerioId && !!igrejaAtiva?.id,
     initialParams,
   });
 
@@ -52,7 +70,9 @@ export function useVoluntariosDoMinisterioCrud(ministerioId?: string, status: Mi
         left: {
           type: 'image',
           source:
-            voluntario?.fotoThumbUrl || voluntario?.fotoUrl ? { uri: voluntario.fotoThumbUrl || voluntario.fotoUrl || '' } : AppImages.emptyProfile,
+            voluntario?.fotoThumbUrl || voluntario?.fotoUrl
+              ? { uri: voluntario.fotoThumbUrl || voluntario.fotoUrl || '' }
+              : AppImages.emptyProfile,
         },
       };
     }) as DropDownItemProps<string>[];
@@ -73,7 +93,10 @@ export function useVoluntariosDoMinisterioCrud(ministerioId?: string, status: Mi
       value: voluntario.id ?? '',
       left: {
         type: 'image',
-        source: voluntario.fotoThumbUrl || voluntario.fotoUrl ? { uri: voluntario.fotoThumbUrl || voluntario.fotoUrl || '' } : AppImages.emptyProfile,
+        source:
+          voluntario.fotoThumbUrl || voluntario.fotoUrl
+            ? { uri: voluntario.fotoThumbUrl || voluntario.fotoUrl || '' }
+            : AppImages.emptyProfile,
       },
     })) as DropDownItemProps<string>[];
   }, [voluntariosList, ministerioId]);

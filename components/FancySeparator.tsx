@@ -31,6 +31,8 @@ export default function FancySeparator(props: FancySeparatorProps) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    borderWidth: 0,
+    alignSelf: 'stretch',
+    width: '100%',
+    // borderWidth: 1,
   },
 });

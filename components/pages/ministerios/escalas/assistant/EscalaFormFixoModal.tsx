@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { EscalaEventoTemplateFixoFormData, EscalaEventoTemplateFixoSchema } from '../../../../../domain/schemas/escalaSchema';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
-import ControlledDropDown from '../../../../forms/ControlledDropDown';
+import ControlledSearchSelect from '../../../../forms/ControlledSearchSelect';
 import FancyModalDialog, { FancyModalDialogProps } from '../../../../modal/FancyModalDialog';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { strfyObj } from '../../../../../utils/text_utils';
@@ -46,14 +46,21 @@ export default function EscalaFormFixoModal({
         )();
       }}
     >
-      <ControlledDropDown
+      <ControlledSearchSelect
         control={form.control}
         name='minVolId'
         label='Voluntário'
         listItems={voluntariosSelectionList}
         disabled={mode === 'edit'}
+        searchPlaceholder='Buscar voluntário...'
       />
-      <ControlledDropDown control={form.control} name='funcaoId' label='Função' listItems={funcoesSelectionList} />
+      <ControlledSearchSelect
+        control={form.control}
+        name='funcaoId'
+        label='Função'
+        listItems={funcoesSelectionList}
+        searchPlaceholder='Buscar função...'
+      />
     </FancyModalDialog>
   );
 }

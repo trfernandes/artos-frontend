@@ -1,15 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import { DimensionValue, Keyboard, KeyboardAvoidingView, Platform, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import { KeyboardAwareScrollView, KeyboardAwareScrollViewProps } from 'react-native-keyboard-aware-scroll-view';
+import {
+    DimensionValue,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    StatusBar as RNStatusBar,
+    StyleProp,
+    StyleSheet,
+    View,
+    ViewStyle,
+} from 'react-native';
+import {
+    KeyboardAwareScrollView,
+    KeyboardAwareScrollViewProps,
+} from 'react-native-keyboard-aware-scroll-view';
 import FancyButton from '../../buttons/FancyButton';
 import { DefaultIconsNames } from '../../../constants/icons';
 import { Pallete } from '../../../constants/colors';
 import { router } from 'expo-router';
 import LoginBase from './LoginBase';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type WidthOptions = { default?: DimensionValue; keyboard?: DimensionValue };
 type RenderContent = React.ReactNode | ((params: { keyboardVisible: boolean }) => React.ReactNode);
-type StyleWithKeyboard = StyleProp<ViewStyle> | ((params: { keyboardVisible: boolean }) => StyleProp<ViewStyle>);
+type StyleWithKeyboard =
+  | StyleProp<ViewStyle>
+  | ((params: { keyboardVisible: boolean }) => StyleProp<ViewStyle>);
 
 type AuthScreenProps = {
   children: RenderContent;
@@ -27,6 +43,8 @@ type AuthScreenProps = {
   contentWidth?: WidthOptions;
   containerPosition?: { default?: 'absolute' | 'relative'; keyboard?: 'absolute' | 'relative' };
   paddingTopOnKeyboard?: number;
+  keyboardBottomSpacing?: number;
+  alignTopOnKeyboard?: boolean;
   keyboardAwareProps?: Partial<KeyboardAwareScrollViewProps>;
   disableScroll?: boolean;
 };
@@ -47,14 +65,25 @@ export default function AuthScreen({
   contentWidth,
   containerPosition,
   paddingTopOnKeyboard,
+  keyboardBottomSpacing,
+  alignTopOnKeyboard = false,
   keyboardAwareProps,
   disableScroll = false,
 }: AuthScreenProps) {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const insets = useSafeAreaInsets();
+  const androidStatusBarHeight = Platform.OS === 'android' ? RNStatusBar.currentHeight ?? 0 : 0;
+  const safeTopInset = Math.max(insets.top, androidStatusBarHeight);
+  const resolvedScrollTopPadding = Math.max(25, safeTopInset + 8);
+  const resolvedBackButtonTop = safeTopInset + 10;
 
   useEffect(() => {
-    const showSubscription = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
-    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () =>
+      setKeyboardVisible(true),
+    );
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () =>
+      setKeyboardVisible(false),
+    );
 
     return () => {
       showSubscription.remove();
@@ -71,54 +100,72 @@ export default function AuthScreen({
       ? { width: headerWidth.keyboard }
       : null
     : headerWidth?.default !== undefined
-    ? { width: headerWidth.default }
-    : null;
+      ? { width: headerWidth.default }
+      : null;
 
   const contentWidthStyle = keyboardVisible
     ? contentWidth?.keyboard !== undefined
       ? { width: contentWidth.keyboard }
       : null
     : contentWidth?.default !== undefined
-    ? { width: contentWidth.default }
-    : null;
+      ? { width: contentWidth.default }
+      : null;
 
-  const centerPosition = keyboardVisible ? containerPosition?.keyboard || 'relative' : containerPosition?.default || 'absolute';
+  const centerPosition = keyboardVisible
+    ? containerPosition?.keyboard || 'relative'
+    : containerPosition?.default || 'absolute';
 
-  const { contentContainerStyle: contentContainerStyleProp, ...restKeyboardAwareProps } = keyboardAwareProps || {};
+  const { contentContainerStyle: contentContainerStyleProp, ...restKeyboardAwareProps } =
+    keyboardAwareProps || {};
 
   const scrollContainerStyles = [
     styles.scrollContainer,
-    typeof scrollContainerStyle === 'function' ? scrollContainerStyle({ keyboardVisible }) : scrollContainerStyle,
+    { paddingTop: resolvedScrollTopPadding },
+    typeof scrollContainerStyle === 'function'
+      ? scrollContainerStyle({ keyboardVisible })
+      : scrollContainerStyle,
     contentContainerStyleProp,
   ];
 
+  const bottomSpacing = keyboardBottomSpacing ?? 20;
   const centerContainerStyles = [
     styles.centerContainer,
     { position: centerPosition, paddingTop: keyboardVisible ? paddingTopOnKeyboard || 0 : 0 },
-    typeof centerContainerStyle === 'function' ? centerContainerStyle({ keyboardVisible }) : centerContainerStyle,
+    keyboardVisible && alignTopOnKeyboard ? { justifyContent: 'flex-start' as const } : null,
+    typeof centerContainerStyle === 'function'
+      ? centerContainerStyle({ keyboardVisible })
+      : centerContainerStyle,
   ];
 
   const headerContainerStyles = [
     styles.headerContainer,
     headerWidthStyle,
-    typeof headerContainerStyle === 'function' ? headerContainerStyle({ keyboardVisible }) : headerContainerStyle,
+    typeof headerContainerStyle === 'function'
+      ? headerContainerStyle({ keyboardVisible })
+      : headerContainerStyle,
   ];
 
   const fieldsContainerStyles = [
     styles.fieldsContainer,
     contentWidthStyle,
-    typeof fieldsContainerStyle === 'function' ? fieldsContainerStyle({ keyboardVisible }) : fieldsContainerStyle,
+    keyboardVisible && bottomSpacing > 0 ? { marginBottom: bottomSpacing } : null,
+    typeof fieldsContainerStyle === 'function'
+      ? fieldsContainerStyle({ keyboardVisible })
+      : fieldsContainerStyle,
   ];
 
   const backButtonContainerStyles = [
     styles.backButtonContainer,
-    typeof backButtonContainerStyle === 'function' ? backButtonContainerStyle({ keyboardVisible }) : backButtonContainerStyle,
+    { top: resolvedBackButtonTop },
+    typeof backButtonContainerStyle === 'function'
+      ? backButtonContainerStyle({ keyboardVisible })
+      : backButtonContainerStyle,
   ];
 
   const scrollProps: KeyboardAwareScrollViewProps = {
     enableOnAndroid: true,
     enableAutomaticScroll: true,
-    extraScrollHeight: 20,
+    extraScrollHeight: bottomSpacing,
     keyboardShouldPersistTaps: 'handled',
     ...restKeyboardAwareProps,
   };
@@ -136,19 +183,19 @@ export default function AuthScreen({
               width: 40,
               height: 40,
               borderRadius: 20,
-              justifyContent: 'center',
-              alignItems: 'center',
+              justifyContent: 'center' as const,
+              alignItems: 'center' as const,
             }}
           />
         </View>
       )}
 
-      <View style={centerContainerStyles}>
+      <View style={[centerContainerStyles, keyboardVisible ? {} : null]}>
         {topNode && !(hideTopContentOnKeyboard && keyboardVisible) ? topNode : null}
 
         {headerNode ? <View style={headerContainerStyles}>{headerNode}</View> : null}
 
-        <View style={fieldsContainerStyles}>{childrenNode}</View>
+        <View style={[fieldsContainerStyles]}>{childrenNode}</View>
       </View>
     </>
   );
@@ -159,12 +206,19 @@ export default function AuthScreen({
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : -10}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : !keyboardVisible ? 0 : 0}
         >
-          <View style={[{ flex: 1 }, scrollContainerStyles]}>{content}</View>
+          <View
+            style={[
+              { flex: 1, marginBottom: Platform.OS === 'ios' ? 0 : 22 },
+              scrollContainerStyles,
+            ]}
+          >
+            {content}
+          </View>
         </KeyboardAvoidingView>
       ) : (
-        <KeyboardAwareScrollView  {...scrollProps}  contentContainerStyle={scrollContainerStyles}>
+        <KeyboardAwareScrollView {...scrollProps} contentContainerStyle={scrollContainerStyles}>
           {content}
         </KeyboardAwareScrollView>
       )}
@@ -179,22 +233,20 @@ const styles = StyleSheet.create({
     paddingTop: 25,
     justifyContent: 'center',
     gap: 20,
-    borderWidth: 0,
+    paddingBottom: 20,
   },
   centerContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
     gap: 20,
-    borderWidth: 0,
   },
   headerContainer: {
     gap: 6,
-    borderWidth: 0,
   },
   fieldsContainer: {
     borderRadius: 15,
@@ -202,15 +254,15 @@ const styles = StyleSheet.create({
     gap: 15,
     backgroundColor: Pallete.backgroundColor,
     ...Pallete.shadows[200],
-    borderWidth: 0,
+    // borderWidth: 2,
+    overflow: 'hidden',
   },
   backButtonContainer: {
-    position: 'absolute',
+    position: 'absolute' as const,
     left: 25,
-    top: 20,
+    top: 35,
     zIndex: 10,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    borderWidth: 0,
+    justifyContent: 'center' as const,
+    alignItems: 'flex-start' as const,
   },
 });

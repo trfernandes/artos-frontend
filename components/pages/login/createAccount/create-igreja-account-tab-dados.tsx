@@ -1,14 +1,41 @@
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useFormContext } from 'react-hook-form';
 import { LoginCreateIgrejaFormData } from '../../../../domain/schemas/loginCreateIgrejaSchema';
 import ControlledTextInput from '../../../forms/ControlledTextInput';
-import ControlledDropDown from '../../../forms/ControlledDropDown';
+import ControlledSearchSelect from '../../../forms/ControlledSearchSelect';
 import { UF_LIST } from '../../../../domain/utils/uf-list';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { getCidadesPorUf } from '../../../../domain/utils/cidades-list';
+import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
+import { useCallback, useEffect, useRef, useState, createContext, useContext, useMemo } from 'react';
 import { Pallete } from '../../../../constants/colors';
 import { IgrejaRepository } from '../../../../domain/services/IgrejaRepository';
 import FancyText from '../../../FancyText';
 import DefaultIcons from '../../../FancyIcons';
+
+// Contexto para compartilhar o estado de verificação do código
+type CodigoCheckContextType = {
+  isCheckingCode: boolean;
+  setIsCheckingCode: (value: boolean) => void;
+};
+
+const CodigoCheckContext = createContext<CodigoCheckContextType | null>(null);
+
+export const useCodigoCheck = () => {
+  const context = useContext(CodigoCheckContext);
+  if (!context) {
+    return { isCheckingCode: false };
+  }
+  return context;
+};
+
+export const CodigoCheckProvider = ({ children }: { children: React.ReactNode }) => {
+  const [isCheckingCode, setIsCheckingCode] = useState(false);
+  return (
+    <CodigoCheckContext.Provider value={{ isCheckingCode, setIsCheckingCode }}>
+      {children}
+    </CodigoCheckContext.Provider>
+  );
+};
 
 /**
  * Gera um slug a partir do nome da igreja
@@ -30,10 +57,12 @@ export default function CreateIgrejaAccountTabDados() {
   const { control, watch, setValue, clearErrors, setError } = useFormContext<LoginCreateIgrejaFormData>();
   const nome = watch('nome');
   const codigo = watch('codigo');
+  const uf = watch('uf');
 
   const [isDebouncing, setIsDebouncing] = useState(false);
-  const [isCheckingCode, setIsCheckingCode] = useState(false);
+  const { isCheckingCode, setIsCheckingCode } = useCodigoCheck();
   const [codigoStatus, setCodigoStatus] = useState<'available' | 'unavailable' | null>(null);
+  const [sugestao, setSugestao] = useState<string | null>(null);
 
   const debounceNomeRef = useRef<NodeJS.Timeout | null>(null);
   const debounceCodigoRef = useRef<NodeJS.Timeout | null>(null);
@@ -108,8 +137,10 @@ export default function CreateIgrejaAccountTabDados() {
 
         if (result.disponivel) {
           setCodigoStatus('available');
+          setSugestao(null);
         } else {
           setCodigoStatus('unavailable');
+          setSugestao(result.sugestao || null);
           setError('codigo', {
             message: result.sugestao ? `Código já em uso. Sugestão: ${result.sugestao}` : 'Código já em uso',
           });
@@ -118,6 +149,7 @@ export default function CreateIgrejaAccountTabDados() {
         console.log('Erro ao verificar código:', error);
         // Em caso de erro (401, etc), não mostra status
         setCodigoStatus(null);
+        setSugestao(null);
       } finally {
         setIsCheckingCode(false);
       }
@@ -181,6 +213,54 @@ export default function CreateIgrejaAccountTabDados() {
     return null;
   };
 
+  const aplicarSugestao = () => {
+    if (sugestao) {
+      setValue('codigo', sugestao);
+      clearErrors('codigo');
+      setCodigoStatus(null);
+      setSugestao(null);
+      lastCheckedCodigo.current = null; // Força nova verificação
+    }
+  };
+
+  // Lista de cidades baseada na UF selecionada (async)
+  const [cidadesList, setCidadesList] = useState<DropDownItemProps<string>[]>([]);
+  const [isLoadingCidades, setIsLoadingCidades] = useState(false);
+
+  useEffect(() => {
+    if (!uf) {
+      setCidadesList([]);
+      return;
+    }
+
+    setIsLoadingCidades(true);
+    getCidadesPorUf(uf)
+      .then((cidades) => {
+        setCidadesList(cidades);
+      })
+      .catch((error) => {
+        console.error('Erro ao carregar cidades:', error);
+        setCidadesList([]);
+      })
+      .finally(() => {
+        setIsLoadingCidades(false);
+      });
+  }, [uf]);
+
+  // Limpa a cidade quando a UF muda
+  useEffect(() => {
+    if (uf) {
+      const cidade = watch('cidade');
+      if (cidade) {
+        // Verifica se a cidade atual pertence à nova UF
+        const cidadeExiste = cidadesList.some((c) => c.value === cidade);
+        if (!cidadeExiste) {
+          setValue('cidade', '');
+        }
+      }
+    }
+  }, [uf, cidadesList, setValue, watch]);
+
   return (
     <View style={styles.container}>
       <ControlledTextInput
@@ -202,14 +282,25 @@ export default function CreateIgrejaAccountTabDados() {
           ✓ Código disponível
         </FancyText>
       )}
-      <View style={styles.row}>
-        <View style={styles.cidadeContainer}>
-          <ControlledTextInput control={control} name='cidade' label='Cidade' />
-        </View>
-        <View style={styles.ufContainer}>
-          <ControlledDropDown control={control} name='uf' label='UF' listItems={UF_LIST} placeholder='UF' />
-        </View>
-      </View>
+      {codigoStatus === 'unavailable' && sugestao && (
+        <TouchableOpacity onPress={aplicarSugestao} style={styles.sugestaoContainer}>
+          <DefaultIcons.Custom library='Feather' name='info' size={12} color={Pallete.primary} />
+          <FancyText size='extraSmall' type='medium' color={Pallete.primary} style={styles.sugestaoText}>
+            Usar sugestão: {sugestao}
+          </FancyText>
+        </TouchableOpacity>
+      )}
+      <ControlledSearchSelect control={control} name='uf' label='Estado' listItems={UF_LIST} placeholder='Selecione o estado' searchPlaceholder='Buscar estado...' />
+      <ControlledSearchSelect
+        control={control}
+        name='cidade'
+        label='Cidade'
+        listItems={cidadesList}
+        placeholder={isLoadingCidades ? 'Carregando cidades...' : 'Selecione a cidade'}
+        searchPlaceholder='Buscar cidade...'
+        disabled={!uf || isLoadingCidades}
+        isLoading={isLoadingCidades}
+      />
     </View>
   );
 }
@@ -219,17 +310,17 @@ const styles = StyleSheet.create({
     gap: 10,
     width: '100%',
   },
-  row: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  cidadeContainer: {
-    flex: 1,
-  },
-  ufContainer: {
-    width: 100,
-  },
   statusText: {
     marginTop: -3,
+  },
+  sugestaoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: -5,
+    paddingVertical: 2,
+  },
+  sugestaoText: {
+    textDecorationLine: 'underline',
   },
 });

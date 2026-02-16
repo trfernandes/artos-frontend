@@ -2,7 +2,8 @@ import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyMod
 import { VoluntarioHierarquiaEnumLabel, VoluntarioHierarquiaEnumList } from '../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import ControlledDropDown from '../../../forms/ControlledDropDown';
+import ControlledSearchSelect from '../../../forms/ControlledSearchSelect';
+import ControlledBottomSheetSelect from '../../../forms/ControlledBottomSheetSelect';
 import { useScreenReadyLoading } from '../../../../hooks/useScreenReadyLoading';
 import { View } from 'react-native';
 import FancyText from '../../../FancyText';
@@ -75,17 +76,18 @@ export default function VoluntarioAddFormModal({
           )()
         }
       >
-        <ControlledDropDown
+        <ControlledSearchSelect
           control={form.control}
           name='voluntarioId'
           label='Voluntário'
+          searchPlaceholder='Buscar voluntário...'
           listItems={ministerioVoluntariosDropDownList}
           onChange={(value) => {
             const voluntarioNome = voluntariosDoMinisterioCrud.data.find((v) => v.id === value)?.nome || '';
             form.setValue('voluntarioNome', voluntarioNome);
           }}
         />
-        <ControlledDropDown control={form.control} name='hierarquia' label='Função' listItems={VoluntarioHierarquiaEnumList} />
+        <ControlledBottomSheetSelect control={form.control} name='hierarquia' label='Função' listItems={VoluntarioHierarquiaEnumList} />
       </FancyModalDialog>
     </View>
   );

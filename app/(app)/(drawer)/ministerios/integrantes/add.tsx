@@ -84,7 +84,16 @@ export default function MinisterioIntegrantesAddPage() {
         router.back();
       });
     },
-    (errors) => console.log(errors),
+    (errors) => {
+      if (__DEV__) {
+        console.log('[Ministerios/Integrantes] Validation errors:', errors);
+      }
+      Toast.show({
+        type: 'error',
+        text1: 'Erro de validação',
+        text2: 'Verifique os campos do formulário',
+      });
+    },
   );
 
   if (isLoadingVoluntarios || isLoadingFuncoes) return <FancyLoading />;

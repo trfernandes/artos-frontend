@@ -1,7 +1,18 @@
-import { StyleSheet, StyleProp, ViewStyle } from 'react-native';
+import { StyleSheet, StyleProp, ViewStyle, View } from 'react-native';
 import React from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Pallete } from '../../../constants/colors';
+
+export function AuthGradientBackground({ style }: { style?: StyleProp<ViewStyle> }) {
+  return (
+    <LinearGradient
+      colors={['#3B82F6', '#234C90']}
+      style={[styles.gradient, style]}
+      start={{ x: 1, y: 0 }}
+      end={{ x: 0, y: 1 }}
+    />
+  );
+}
 
 export default function LoginBase({
   children,
@@ -11,10 +22,10 @@ export default function LoginBase({
   containerStyle?: StyleProp<ViewStyle>;
 }) {
   return (
-    <>
-      <LinearGradient colors={['#3B82F6', '#234C90']} style={styles.gradient} start={{ x: 1, y: 0 }} end={{ x: 0, y: 1 }} />
+    <View style={{ flex: 1 }}>
+      <AuthGradientBackground style={{ borderWidth: 1, height: 800, width: 500 }} />
       {children}
-    </>
+    </View>
   );
 }
 

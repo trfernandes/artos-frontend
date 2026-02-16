@@ -84,16 +84,16 @@ export default function FuncoesTable({
                   <FancyButton
                     mode='icon'
                     size={24}
-                    disabled={equipeItem.status !== EscalaItemStatusEnum.Pendente}
+                    disabled={equipeItem.status !== EscalaItemStatusEnum.Pendente && equipeItem.status !== EscalaItemStatusEnum.Confirmado}
                     icon={{
                       library: 'FontAwesome6' as IconLibrary,
                       name: 'repeat',
                       size: 12,
-                      color: equipeItem.status !== EscalaItemStatusEnum.Pendente ? Pallete.icons.inactive : Pallete.icons.light,
+                      color: equipeItem.status !== EscalaItemStatusEnum.Pendente && equipeItem.status !== EscalaItemStatusEnum.Confirmado ? Pallete.icons.inactive : Pallete.icons.light,
                     }}
                     containerStyle={{
                       backgroundColor:
-                        equipeItem.status === EscalaItemStatusEnum.Pendente ? Pallete.terciary : Pallete.icons.inactive2,
+                        equipeItem.status === EscalaItemStatusEnum.Pendente || equipeItem.status === EscalaItemStatusEnum.Confirmado ? Pallete.terciary : Pallete.icons.inactive2,
                       aspectRatio: 1,
                     }}
                     onPress={() => onSubButtonPress?.(equipeItem)}

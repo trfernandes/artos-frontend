@@ -1,8 +1,9 @@
-import { IgrejaVoluntarioRoleEnum } from "../../enums/Igreja/voluntario-role.enum";
+import { IgrejaVoluntarioRoleEnum } from '../../enums/Igreja/voluntario-role.enum';
 
-export class CreateIgrejaConviteDto {
-  roleSugerida?: IgrejaVoluntarioRoleEnum | null;
+export interface CreateIgrejaConviteDto {
+  descricao?: string;
   autoApprove?: boolean;
-  expiresAt?: string | null; // ISO string
-  maxUses?: number | null;
+  roleSugerida?: IgrejaVoluntarioRoleEnum;
+  maxUses?: number;
+  expiresAt?: string;
 }

@@ -22,23 +22,33 @@ export default function ControlledTextInput<FormData extends FieldValues>({
     <Controller
       control={control}
       name={name}
-      render={({ field: { onChange, onBlur, value, disabled }, fieldState: { error } }) => (
-        <View style={{ gap: 5 }}>
-          <FancyTextInput
-            disabled={disabled}
-            {...rest}
-            value={value === undefined || value === null ? '' : typeof value === 'string' ? value : String(value)}
-            inputProps={{
-              ...rest.inputProps,
-              onBlur,
-              onChangeText: (text) => {
-                onChange(text);
-              },
-            }}
-          />
-          {showErrorMessage && error && <FancyErrorText message={error.message!} />}
-        </View>
-      )}
+      render={({ field: { onChange, onBlur, value, disabled }, fieldState: { error } }) => {
+        const externalInputProps = rest.inputProps;
+
+        return (
+          <View style={{ gap: 5 }}>
+            <FancyTextInput
+              disabled={disabled}
+              {...rest}
+              value={
+                value === undefined || value === null ? '' : typeof value === 'string' ? value : String(value)
+              }
+              inputProps={{
+                ...externalInputProps,
+                onBlur: (event) => {
+                  onBlur();
+                  externalInputProps?.onBlur?.(event);
+                },
+                onChangeText: (text) => {
+                  onChange(text);
+                  externalInputProps?.onChangeText?.(text);
+                },
+              }}
+            />
+            {showErrorMessage && error && <FancyErrorText message={error.message!} />}
+          </View>
+        );
+      }}
     />
   );
 }

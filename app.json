@@ -3,7 +3,7 @@
     "name": "artos_frontend",
     "slug": "artos_frontend",
     "version": "1.0.0",
-    "scheme": "artos",
+    "scheme": "diakonia",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -15,7 +15,9 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.church.artos"
+      "bundleIdentifier": "com.church.artos",
+      "buildNumber": "1",
+      "associatedDomains": ["applinks:diakonia.app.br"]
     },
     "android": {
       "adaptiveIcon": {
@@ -23,7 +25,22 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.church.artos"
+      "package": "com.church.artos",
+      "versionCode": 1,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "diakonia.app.br",
+              "pathPrefix": "/invite"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

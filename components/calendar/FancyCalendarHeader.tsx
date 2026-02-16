@@ -1,7 +1,8 @@
 import { View, StyleSheet, Pressable } from 'react-native';
-import { CalendarVisualization, FancyCalendarProps, MONTH_NAMES } from './FancyCalendar';
+import { CalendarVisualization, FancyCalendarProps } from './FancyCalendar';
+import { MONTH_NAMES } from '../../constants/calendar';
 import FancyText from '../FancyText';
-import FancyButton from '../buttons/FancyButton';
+import DefaultIcons from '../FancyIcons';
 import { Pallete } from '../../constants/colors';
 
 export type FancyCalendarHeaderProps = {
@@ -20,6 +21,7 @@ export default function FancyCalendarHeader({
   selectedDate,
   ...props
 }: FancyCalendarHeaderProps) {
+  const safeDate = Number.isNaN(props.currentDate?.getTime?.()) ? new Date() : props.currentDate;
   const minimumDate = props.calendarProps?.minimumDate
     ? new Date(props.calendarProps.minimumDate.getFullYear(), props.calendarProps.minimumDate.getMonth(), 1)
     : undefined;
@@ -30,18 +32,21 @@ export default function FancyCalendarHeader({
 
   const canGoToPreviousMonth = (): boolean => {
     if (!minimumDate) return true;
-    const previousMonth = new Date(props.currentDate.getFullYear(), props.currentDate.getMonth() - 1, 1);
+    const previousMonth = new Date(safeDate.getFullYear(), safeDate.getMonth() - 1, 1);
     return previousMonth >= minimumDate;
   };
 
   const canGoToNextMonth = (): boolean => {
     if (!maximumDate) return true;
-    const nextMonth = new Date(props.currentDate.getFullYear(), props.currentDate.getMonth() + 1, 1);
+    const nextMonth = new Date(safeDate.getFullYear(), safeDate.getMonth() + 1, 1);
     return nextMonth <= maximumDate;
   };
 
   // Exibe mes/ano atual conforme navegacao
-  const displayDate = props.currentDate;
+  const displayDate = safeDate;
+
+  const prevEnabled = canGoToPreviousMonth();
+  const nextEnabled = canGoToNextMonth();
 
   return (
     <View style={styles.container}>
@@ -52,43 +57,64 @@ export default function FancyCalendarHeader({
           else if (visualization === CalendarVisualization.Month) props.onChangeVisualization(CalendarVisualization.Year);
         }}
       >
-        <FancyText size='large' type='bold' color={Pallete.fonts.inactive}>
+        <FancyText size='large' type='bold' color={Pallete.fonts.inactive} numberOfLines={1} ellipsizeMode='tail'>
           {displayDate.getFullYear()}
         </FancyText>
-        <FancyText size='large' type='bold'>
+        <FancyText size='large' type='bold' numberOfLines={1} ellipsizeMode='tail'>
           {MONTH_NAMES[displayDate.getMonth()]}
         </FancyText>
       </Pressable>
       <View style={styles.buttonsContainer}>
-        <FancyButton
-          disabled={!canGoToPreviousMonth()}
-          size={30}
-          icon={{
-            library: 'Entypo',
-            name: 'chevron-left',
-            color: canGoToPreviousMonth() ? Pallete.icons.dark : Pallete.icons.inactive,
-          }}
+        <Pressable
+          disabled={!prevEnabled}
           onPress={props.onPreviousMonth}
-          containerStyle={{ backgroundColor: Pallete.backgroundColor3 }}
-        />
-        <FancyButton
-          disabled={!canGoToNextMonth()}
-          size={30}
-          icon={{
-            library: 'Entypo',
-            name: 'chevron-right',
-            color: canGoToNextMonth() ? Pallete.icons.dark : Pallete.icons.inactive,
-          }}
+          style={[styles.navButton, !prevEnabled && styles.navButtonDisabled]}
+        >
+          <DefaultIcons.Custom
+            library="Entypo"
+            name="chevron-left"
+            size={18}
+            color={prevEnabled ? Pallete.primary : Pallete.icons.inactive2}
+          />
+        </Pressable>
+        <Pressable
+          disabled={!nextEnabled}
           onPress={props.onNextMonth}
-          containerStyle={{ backgroundColor: Pallete.backgroundColor3 }}
-        />
+          style={[styles.navButton, !nextEnabled && styles.navButtonDisabled]}
+        >
+          <DefaultIcons.Custom
+            library="Entypo"
+            name="chevron-right"
+            size={18}
+            color={nextEnabled ? Pallete.primary : Pallete.icons.inactive2}
+          />
+        </Pressable>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  actualDateContainer: { flexDirection: 'row', gap: 10, alignItems: 'center' },
-  buttonsContainer: { flexDirection: 'row', gap: 6 },
+  container: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 34 },
+  actualDateContainer: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'center',
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
+  },
+  buttonsContainer: { flexDirection: 'row', gap: 8, flexShrink: 0 },
+  navButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: `${Pallete.primary}10`,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  navButtonDisabled: {
+    backgroundColor: Pallete.disabled,
+    opacity: 0.5,
+  },
 });

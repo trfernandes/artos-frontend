@@ -6,14 +6,16 @@ import { router } from 'expo-router';
 
 export default function FancyDrawerItem({
   isDefaultCollapsed,
+  isChild,
   ...props
-}: DrawerItemData & { isDefaultCollapsed?: boolean; onNavigate?: () => void }) {
+}: DrawerItemData & { isDefaultCollapsed?: boolean; onNavigate?: () => void; isChild?: boolean }) {
   const [isCollapsed, setCollapsed] = useState<boolean>(isDefaultCollapsed ?? true);
 
   const handleOnItemPress = (item: DrawerItemData) => {
     if (item.onPress) {
       if (item.onPress.type === 'GoToRoute' && item.onPress.routeName) {
-        router.push(item.onPress.routeName);
+        // Sempre usa push - o Drawer do Expo Router gerencia a pilha automaticamente
+        router.push(item.onPress.routeName as any);
       } else if (item.onPress.type === 'RunMethod' && item.onPress.method) {
         item.onPress.method();
       }
@@ -22,8 +24,10 @@ export default function FancyDrawerItem({
     props.onNavigate?.();
   };
 
+  const isExpandable = Boolean(props.items && props.items.length > 0);
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isExpandable && styles.containerExpandable]}>
       <View style={styles.headerContainer}>
         <FancyDrawerItemHeader
           {...props}
@@ -36,7 +40,7 @@ export default function FancyDrawerItem({
         <View style={styles.childrenContainer}>
           {props.items?.map((item, index) => (
             <TouchableOpacity key={index} onPress={() => handleOnItemPress(item)}>
-              <FancyDrawerItem {...item} onNavigate={props.onNavigate} />
+              <FancyDrawerItem {...item} isChild onNavigate={props.onNavigate} />
             </TouchableOpacity>
           ))}
         </View>
@@ -46,7 +50,8 @@ export default function FancyDrawerItem({
 }
 
 const styles = StyleSheet.create({
-  container: { borderWidth: 0, paddingVertical: 6, gap: 5 },
+  container: { borderWidth: 0, paddingVertical: 3, gap: 2 },
+  containerExpandable: { paddingVertical: 5 },
   headerContainer: { height: 25, borderWidth: 0 },
   childrenContainer: { paddingHorizontal: 15 },
 });

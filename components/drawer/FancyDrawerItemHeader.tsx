@@ -12,7 +12,8 @@ export default function FancyDrawerItemHeader(
   const handleOnItemPress = () => {
     if (props.onPress) {
       if (props.onPress.type === 'GoToRoute' && props.onPress.routeName) {
-        router.push(props.onPress.routeName);
+        // Sempre usa push - o Drawer do Expo Router gerencia a pilha automaticamente
+        router.push(props.onPress.routeName as any);
       } else if (props.onPress.type === 'RunMethod' && props.onPress.method) {
         props.onPress.method();
       }
@@ -24,6 +25,7 @@ export default function FancyDrawerItemHeader(
   return (
     <TouchableOpacity
       style={styles.container}
+      hitSlop={{ top: 10, bottom: 10, left: 0, right: 0 }}
       onPress={() => {
         props.items && props.items.length > 0 ? props.onCollapsePress() : handleOnItemPress();
       }}
@@ -79,8 +81,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
-  iconContainer: { borderWidth: 0, borderColor: 'blue' },
-  icon: { textAlign: 'center', alignSelf: 'flex-start', width: 25 },
+  iconContainer: { borderWidth: 0, borderColor: 'blue', minWidth: 22, alignItems: 'center' },
+  icon: { textAlign: 'center', alignSelf: 'center', width: 20 },
   headerContainer: {
     flex: 1,
     flexDirection: 'row',

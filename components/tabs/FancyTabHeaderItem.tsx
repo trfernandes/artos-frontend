@@ -7,12 +7,17 @@ import { Pallete } from '../../constants/colors';
 export type FancyTabHeaderItemProps = {
   status: 'active' | 'inactive';
   onPress?: () => void;
+  multiRow?: boolean;
 } & TabItem;
 
-export default function FancyTabHeaderItem({ status = 'active', ...props }: FancyTabHeaderItemProps) {
+export default function FancyTabHeaderItem({ status = 'active', multiRow, ...props }: FancyTabHeaderItemProps) {
   return (
     <TouchableOpacity
-      style={[styles.container, status === 'active' ? styles.containerActive : styles.containerInactive]}
+      style={[
+        styles.container,
+        status === 'active' ? styles.containerActive : styles.containerInactive,
+        multiRow && styles.containerMultiRow,
+      ]}
       onPress={props.onPress}
     >
       <View
@@ -35,6 +40,7 @@ export default function FancyTabHeaderItem({ status = 'active', ...props }: Fanc
           <FancyText
             type={status === 'active' ? 'semiBold' : 'semiBoldItalic'}
             size={'extraSmall'}
+            numberOfLines={1}
             style={{
               borderWidth: 0,
               lineHeight: 17,
@@ -53,12 +59,22 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: 50,
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     flexDirection: 'row',
-    alignItems: 'stretch',
+    alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 'auto',
+    minWidth: 80,
     gap: 6,
+  },
+  containerMultiRow: {
+    flexGrow: 0,
+    flexShrink: 1,
+    flexBasis: '48%',
+    maxWidth: '48%',
+    minWidth: 0,
   },
   containerActive: { backgroundColor: Pallete.primary },
   containerInactive: {
@@ -66,6 +82,6 @@ const styles = StyleSheet.create({
     borderColor: Pallete.border,
     backgroundColor: Pallete.backgroundColor2,
   },
-  iconContainer: { borderWidth: 0, justifyContent: 'center', width: 20, alignItems: 'center' },
-  titleContaner: { borderWidth: 0, justifyContent: 'center' },
+  iconContainer: { justifyContent: 'center', alignItems: 'center' },
+  titleContaner: { justifyContent: 'center' },
 });

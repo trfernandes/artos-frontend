@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { View, StyleSheet, StyleProp, ImageStyle, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, StyleProp, ImageStyle, TouchableOpacity, Platform } from 'react-native';
 import FancyText from '../FancyText';
 import { Pallete } from '../../constants/colors';
 import { useAuth } from '../../contexts/AuthContext';
@@ -11,9 +11,13 @@ import { Operator, ValueType } from '../../domain/utils/query_utils';
 import { useMemo } from 'react';
 import { AppImages } from '../../assets/app_images';
 import FancyDrawerIgrejaSelector from './FancyDrawerIgrejaSelector';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function FancyDrawerHeader() {
   const auth = useAuth();
+  const insets = useSafeAreaInsets();
+  const ANDROID_STATUS_BAR_HEIGHT = 36;
+  const topInset = Platform.OS === 'android' ? ANDROID_STATUS_BAR_HEIGHT : insets.top;
 
   const params = useMemo(() => {
     if (!auth.user?.user?.id) return undefined;
@@ -39,35 +43,42 @@ export default function FancyDrawerHeader() {
   //   const profileCompletion = data && data.length > 0 ? calculateProfileCompletion(data?.[0]) : 0;
 
   return (
-    <LinearGradient colors={['#3B82F6', '#234C90']} start={{ x: 0, y: 0 }} end={{ x: 0.9, y: 1 }} style={styles.container}>
-      <TouchableOpacity onPress={() => router.push('pessoal/perfil')} style={styles.contentContainer}>
-        <View style={styles.dataContainer}>
-          <View style={styles.infoContainer}>
-            <FancyText size={'small'} type='medium' color={Pallete.fonts.light}>
-              Olá,
-            </FancyText>
-            <FancyText size={'medium'} type='bold' color={Pallete.fonts.light}>
-              {auth.user?.user?.nome}
-            </FancyText>
-            <FancyText size={'small'} type='semiBoldItalic' color={Pallete.fonts.light}>
-              {auth.user?.user?.email}
-            </FancyText>
+    <LinearGradient
+      colors={['#3B82F6', '#234C90']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0.9, y: 1 }}
+      style={[styles.container, { paddingTop: topInset + 12 }]}
+    >
+      <View style={styles.contentContainer}>
+        <TouchableOpacity onPress={() => router.push('pessoal/perfil')}>
+          <View style={styles.dataContainer}>
+            <View style={styles.infoContainer}>
+              <FancyText size={'small'} type='medium' color={Pallete.fonts.light}>
+                Olá,
+              </FancyText>
+              <FancyText size={'medium'} type='bold' color={Pallete.fonts.light}>
+                {auth.user?.user?.nome}
+              </FancyText>
+              <FancyText size={'small'} type='semiBoldItalic' color={Pallete.fonts.light}>
+                {auth.user?.user?.email}
+              </FancyText>
+            </View>
+            <View style={styles.avatarContainer}>
+              <FancyAvatarImage
+                size={40}
+                source={
+                  auth.user?.user?.fotoThumbUrl || auth.user?.user?.fotoUrl
+                    ? { uri: auth.user?.user?.fotoThumbUrl || auth.user?.user?.fotoUrl || '' }
+                    : AppImages.emptyProfile
+                }
+                style={styles.avatar as StyleProp<ImageStyle>}
+              />
+            </View>
+            <DefaultIcons.Custom library='Feather' name='chevron-right' size={28} color={Pallete.fonts.light} />
           </View>
-          <View style={styles.avatarContainer}>
-            <FancyAvatarImage
-              size={50}
-              source={
-                auth.user?.user?.fotoThumbUrl || auth.user?.user?.fotoUrl
-                  ? { uri: auth.user?.user?.fotoThumbUrl || auth.user?.user?.fotoUrl || '' }
-                  : AppImages.emptyProfile
-              }
-              style={styles.avatar as StyleProp<ImageStyle>}
-            />
-          </View>
-          <DefaultIcons.Custom library='Feather' name='chevron-right' size={28} color={Pallete.fonts.light} />
-        </View>        
+        </TouchableOpacity>
         <FancyDrawerIgrejaSelector />
-      </TouchableOpacity>
+      </View>
     </LinearGradient>
   );
 }
@@ -79,7 +90,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingLeft: 16,
     paddingRight: 6,
-    paddingTop: 16,
     paddingBottom: 26,
   },
   contentContainer: {

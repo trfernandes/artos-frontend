@@ -125,7 +125,7 @@ export default function FancyVerticalContainerCard<T extends TopElementType>({
           value={item.checked}
           title={card.title}
           subtitle={card.subtitle}
-          source={{ uri: item.image }}
+          source={item.image}
           containerStyle={style}
           onChangeValue={(v) => (onChangeValue as any)?.(item, v, index)}
         />

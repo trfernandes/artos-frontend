@@ -9,6 +9,7 @@ export type FancyCardCheckboxProps = {
   onChangeValue: (value: boolean) => void;
   actionButtons?: ActionButtonProps | ActionButtonProps[] | ReactNode;
   checkboxColor?: string;
+  checkboxPosition?: 'left' | 'right';
 } & Pick<
   FancyBaseCardProps,
   | 'title'
@@ -19,7 +20,7 @@ export type FancyCardCheckboxProps = {
   | 'containerStyle'
   | 'contentContainerStyle'
   | 'isCollapsable'
-    | 'backgroundColor'
+  | 'backgroundColor'
 >;
 
 export default function FancyCardCheckBox({
@@ -27,17 +28,32 @@ export default function FancyCardCheckBox({
   value,
   onChangeValue,
   actionButtons,
+  checkboxPosition = 'left',
   ...props
 }: FancyCardCheckboxProps) {
+  const checkboxElement = (
+    <View style={styles.checkboxContainer}>
+      <FancyCheckbox
+        value={value}
+        color={checkboxColor}
+        size={25}
+        iconSize={14}
+        onChangeValue={onChangeValue}
+      />
+    </View>
+  );
+
+  const actionButtonsElement = isValidElement(actionButtons) ? (
+    actionButtons
+  ) : (
+    <FancyActionButtons actions={actionButtons} />
+  );
+
   return (
     <FancyBaseCard
       {...props}
-      leftItem={
-        <View style={styles.checkboxContainer}>
-          <FancyCheckbox value={value} color={checkboxColor} size={30} iconSize={16} onChangeValue={onChangeValue} />
-        </View>
-      }
-      rightItem={isValidElement(actionButtons) ? actionButtons : <FancyActionButtons actions={actionButtons} />}
+      leftItem={checkboxPosition === 'left' ? checkboxElement : actionButtonsElement}
+      rightItem={checkboxPosition === 'left' ? actionButtonsElement : checkboxElement}
     />
   );
 }
@@ -45,11 +61,8 @@ export default function FancyCardCheckBox({
 const styles = StyleSheet.create({
   checkboxContainer: {
     borderRadius: 100,
-    // marginLeft: 15,
     marginRight: 5,
-    width: 40,
-    height: 40,
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'center',    
   },
 });

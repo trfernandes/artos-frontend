@@ -6,6 +6,7 @@ export default function MinisterioSolicitacoesLayout() {
   return (
     <Stack
       screenOptions={{
+        headerShown: true,
         header: (props) => <FancyPageHeader {...props} />,
       }}
     >

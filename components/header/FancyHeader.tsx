@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { Pallete } from '../../constants/colors';
 import FancyText from '../FancyText';
 import { useNavigation } from 'expo-router';
@@ -6,48 +6,73 @@ import { DrawerNavigationProp } from '@react-navigation/drawer';
 import { NativeStackHeaderProps } from '@react-navigation/native-stack';
 import { DefaultIconsNames } from '../../constants/icons';
 import FancyHeaderButton from './FancyHeaderButton';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const HEADER_CONTENT_HEIGHT = 40;
 
 export type FancyHeaderProps = {
   leftButton?: 'menu' | 'back' | 'close' | React.ReactNode;
   leftButtonOnPress?: () => void;
+  applyTopSafeArea?: boolean;
 } & Partial<NativeStackHeaderProps>;
 
-export default function FancyPageHeader({ navigation, back, options, leftButtonOnPress, ...props }: FancyHeaderProps) {
+export default function FancyPageHeader({
+  navigation,
+  back,
+  options,
+  leftButtonOnPress,
+  applyTopSafeArea = true,
+  ...props
+}: FancyHeaderProps) {
   const nav = useNavigation<DrawerNavigationProp<Record<string, object>>>();
+  const insets = useSafeAreaInsets();
+  const ANDROID_STATUS_BAR_HEIGHT = 36;
+  const topInset = applyTopSafeArea
+    ? Platform.OS === 'android' ? ANDROID_STATUS_BAR_HEIGHT : insets.top
+    : 0;
+  const headerHeight = topInset + HEADER_CONTENT_HEIGHT;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.leftContainer}>
-        {back || props.leftButton === 'back' ? (
-          <HeaderBackButton title={options?.title} onPress={leftButtonOnPress || navigation?.goBack || nav.goBack} />
-        ) : (
-          <HeaderMenuButton title={options?.title} onPress={() => nav.toggleDrawer()} />
+    <View style={[styles.container, { height: headerHeight, paddingTop: topInset }]}>
+      <View style={styles.headerRow}>
+        <View style={styles.leftContainer}>
+          {props.leftButton === 'menu' ? (
+            <HeaderMenuButton title={options?.title} onPress={() => nav.toggleDrawer()} />
+          ) : back || props.leftButton === 'back' ? (
+            <HeaderBackButton
+              title={options?.title}
+              onPress={leftButtonOnPress || navigation?.goBack || nav.goBack}
+            />
+          ) : (
+            <HeaderMenuButton title={options?.title} onPress={() => nav.toggleDrawer()} />
+          )}
+        </View>
+        {options?.headerRight && (
+          <View style={styles.rightContainer}>
+            {options.headerRight?.({
+              canGoBack: false,
+            })}
+          </View>
         )}
       </View>
-      {options?.headerRight && (
-        <View style={styles.rightContainer}>
-          {options.headerRight?.({
-            canGoBack: false,
-          })}
-        </View>
-      )}
     </View>
   );
 }
 
 const HeaderMenuButton = (props: { title?: string; onPress?: () => void }) => (
-  <View style={[styles.buttonContainer, { position: 'absolute', left: 10, gap: 2 }]}>
+  <View style={[styles.buttonContainer, { position: 'absolute', left: 13, gap: 10 }]}>
     <FancyHeaderButton
       icon={{ ...DefaultIconsNames.menu, size: 24 }}
       onPress={props.onPress!}
       buttonProps={{
         containerStyle: {
-          marginLeft: -6,
+          width: 24,
+          minWidth: 24,
         },
       }}
     />
     {props.title && (
-      <FancyText size='medium' type='bold' color={Pallete.fonts.dark} style={styles.headerTitle}>
+      <FancyText size='medium' type='bold' color={Pallete.fonts.dark} style={styles.headerTitle} numberOfLines={1} ellipsizeMode='tail'>
         {props.title}
       </FancyText>
     )}
@@ -55,18 +80,19 @@ const HeaderMenuButton = (props: { title?: string; onPress?: () => void }) => (
 );
 
 const HeaderBackButton = (props: { title?: string; onPress: () => void }) => (
-  <View style={[styles.buttonContainer, { position: 'absolute', left: 15, gap: 4, marginLeft: -10 }]}>
+  <View style={[styles.buttonContainer, { position: 'absolute', left: 13, gap: 10, borderWidth: 0 }]}>
     <FancyHeaderButton
       icon={{ library: 'MaterialCommunityIcons', name: 'arrow-left-thin', size: 28 }}
       onPress={props.onPress}
       buttonProps={{
         containerStyle: {
-          width: 36,
+          width: 28,
+          minWidth: 28,
         },
       }}
     />
     {props.title && (
-      <FancyText size='medium' type='bold' color={Pallete.fonts.dark} style={styles.headerTitle}>
+      <FancyText size='medium' type='bold' color={Pallete.fonts.dark} style={styles.headerTitle} numberOfLines={1} ellipsizeMode='tail'>
         {props.title}
       </FancyText>
     )}
@@ -80,16 +106,17 @@ const styles = StyleSheet.create({
     borderWidth: DESING_MODE,
     borderColor: 'black',
     backgroundColor: Pallete.backgroundColor,
+  },
+  headerRow: {
+    flex: 1,
     flexDirection: 'row',
     paddingRight: 0,
     gap: 10,
     alignItems: 'center',
-    height: 40,
   },
   buttonContainer: { justifyContent: 'center', alignItems: 'center', flexDirection: 'row' },
   leftContainer: {
     flex: 1,
-    borderWidth: DESING_MODE,
     borderColor: 'red',
     justifyContent: 'flex-start',
     alignItems: 'center',
@@ -97,6 +124,18 @@ const styles = StyleSheet.create({
     gap: 10,
     height: '100%',
   },
-  rightContainer: { borderWidth: DESING_MODE, borderColor: 'blue', justifyContent: 'center', alignItems: 'center' },
-  headerTitle: { alignItems: 'center', justifyContent: 'center', flex: 1, lineHeight: 22, borderWidth: 0 },
+  rightContainer: {
+    borderWidth: DESING_MODE,
+    borderColor: 'blue',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  headerTitle: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 1,
+    lineHeight: 22,
+    borderWidth: 0,
+  },
 });

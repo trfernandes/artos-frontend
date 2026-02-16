@@ -17,5 +17,5 @@ export default function FancyDrawerSeparator(props: FancyDrawerSeparatorProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { paddingHorizontal: 10, paddingVertical: 10 },
+  container: { paddingHorizontal: 10, paddingTop: 7, paddingBottom: 8 },
 });

@@ -21,6 +21,9 @@ export interface FancyDropDownProps<T>
   value?: T;
   onChange?: (value: T) => void;
   isLoading?: boolean;
+  dropdownPosition?: 'auto' | 'top' | 'bottom';
+  renderMode?: 'default' | 'modal' | 'portal';
+  inverted?: boolean;
 }
 
 export default function FancyDropDown<ValueItem>({
@@ -32,6 +35,9 @@ export default function FancyDropDown<ValueItem>({
   value,
   onChange,
   containerStyle,
+  dropdownPosition = 'auto',
+  renderMode,
+  inverted = false,
 }: FancyDropDownProps<ValueItem>) {
   const activeColor = ColorUtils.lightenColor(Pallete.primary, 0.7);
 
@@ -86,7 +92,10 @@ export default function FancyDropDown<ValueItem>({
         style={[styles.inputContainer, innerDisabled && { backgroundColor: Pallete.disabled }]}
         selectedTextStyle={[styles.selectedText, innerDisabled && { color: Pallete.fonts.inactive }]}
         activeColor={activeColor}
-        keyboardAvoiding
+        dropdownPosition={dropdownPosition}
+        mode={renderMode}
+        inverted={inverted}
+        statusBarIsTranslucent
         value={value}
         placeholder={placeholder || !innerDisabled ? 'Selecione...' : 'Nenhum item disponível'}
         placeholderStyle={styles.placeholder}

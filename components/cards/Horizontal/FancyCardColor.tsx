@@ -32,10 +32,9 @@ export default function FancyCardColor(props: FancyCardColorProps) {
 
 const styles = StyleSheet.create({
   colorContainer: {
-    borderRadius: 100,
-    width: 26,
-    height: 26,
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: 3,
+    flex: 1,
+    marginVertical: 4,
+    borderRadius: 3,
   },
 });

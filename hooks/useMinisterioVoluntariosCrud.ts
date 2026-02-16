@@ -9,8 +9,14 @@ export function useMinisterioVoluntariosCrud({ autoFetch = false, initialParams,
     initialParams,
     autoFetch,
     queryKey: 'ministerio-voluntarios',
-    fetchAll: () => MinisterioVoluntariosRepository.getAll(),
-    search: (query) => MinisterioVoluntariosRepository.search(query),
+    fetchAll: async () => {
+      const result = await MinisterioVoluntariosRepository.getAll();
+      return result ?? [];
+    },
+    search: async (query) => {
+      const result = await MinisterioVoluntariosRepository.search(query);
+      return result ?? [];
+    },
     add: (data) => {
       return MinisterioVoluntariosRepository.add(data);
     },

@@ -20,13 +20,22 @@ apiClient.interceptors.request.use(async (config) => {
   return config;
 });
 
+// Endpoints de auth retornam 401 para credenciais inválidas — não devem disparar signOut
+const AUTH_ENDPOINTS = ['/auth/login', '/auth/register', '/auth/forgot-password'];
+
+export function isAuthEndpoint(url: string): boolean {
+  return AUTH_ENDPOINTS.some((endpoint) => url.includes(endpoint));
+}
+
 let isHandling401 = false;
 
 apiClient.interceptors.response.use(
   (res) => res,
   async (error) => {
     const status = error?.response?.status;
-    if (status === 401 && !isHandling401) {
+    const requestUrl = error?.config?.url || '';
+
+    if (status === 401 && !isHandling401 && !isAuthEndpoint(requestUrl)) {
       isHandling401 = true;
       try {
         triggerUnauthorized('expired');

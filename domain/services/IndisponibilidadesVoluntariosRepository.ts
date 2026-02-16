@@ -17,6 +17,10 @@ class IndisponibilidadesVoluntariosRepositoryClass extends BaseRepository<
   upsertMany(payload: UpsertIndisponibilidadesVoluntarioDto) {
     return IndisponibilidadesVoluntariosApi.upsertMany(payload);
   }
+
+  remove(id: string, igrejaId?: string): Promise<void> {
+    return IndisponibilidadesVoluntariosApi.delete(id, igrejaId);
+  }
 }
 
 export const IndisponibilidadesVoluntariosRepository = new IndisponibilidadesVoluntariosRepositoryClass();

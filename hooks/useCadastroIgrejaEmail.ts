@@ -13,7 +13,7 @@ const POLLING_INTERVAL_MS = 15000; // 15 segundos
 const POLLING_MAX_DURATION_MS = 120000; // 2 minutos
 
 export type UseCadastroIgrejaEmailOptions = {
-  onConfirmado?: () => void;
+  onConfirmado?: (authData?: StatusCadastroResponseDto) => void;
   enablePolling?: boolean;
 };
 
@@ -34,6 +34,9 @@ export function useCadastroIgrejaEmail({
   // Polling control
   const pollingStartTimeRef = useRef<number | null>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Flag para prevenir chamadas duplicadas de onConfirmado
+  const onConfirmadoCalledRef = useRef(false);
 
   // Carrega dados do storage ao montar
   useEffect(() => {
@@ -66,9 +69,18 @@ export function useCadastroIgrejaEmail({
 
   // Verifica se foi confirmado
   useEffect(() => {
-    if (statusQuery.data?.statusSolicitacao === IgrejaCadastroSolicitacaoStatusEnum.CONCLUIDO) {
+    const shouldTrigger =
+      statusQuery.data?.statusSolicitacao === IgrejaCadastroSolicitacaoStatusEnum.CONCLUIDO &&
+      !onConfirmadoCalledRef.current;
+
+    if (shouldTrigger) {
+      onConfirmadoCalledRef.current = true;
       pararPolling();
-      onConfirmado?.();
+
+      // Pequeno delay para garantir que o componente está pronto
+      setTimeout(() => {
+        onConfirmado?.(statusQuery.data);
+      }, 50);
     }
   }, [statusQuery.data?.statusSolicitacao, onConfirmado]);
 
@@ -189,7 +201,7 @@ export function useCadastroIgrejaEmail({
     const result = await statusQuery.refetch();
 
     if (result.data?.statusSolicitacao === IgrejaCadastroSolicitacaoStatusEnum.CONCLUIDO) {
-      return true;
+      return result.data;
     }
 
     Toast.show({
@@ -197,7 +209,7 @@ export function useCadastroIgrejaEmail({
       text1: 'Aguardando confirmação',
       text2: 'O e-mail ainda não foi confirmado.',
     });
-    return false;
+    return null;
   }, [statusQuery]);
 
   // Limpar dados do cadastro (após confirmação)

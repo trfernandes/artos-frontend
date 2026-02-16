@@ -1,4 +1,5 @@
 import { EscalaItensApi as EscalaItensApi } from '../api/EscalaItensApi';
+import { GetEscalaItensVoluntarioQueryDto } from '../dtos/Escala/get-escala-itens-voluntario.query';
 import { ResponseEscalaItemDto } from '../dtos/Escala/escala-item.response';
 import { DynamicQuery } from '../utils/query_utils';
 import { BaseRepository } from './BaseRepository';
@@ -12,8 +13,15 @@ class EscalaItensRepositoryClass extends BaseRepository<ResponseEscalaItemDto, a
     return EscalaItensApi.search(query, includeFotos);
   }
 
-  async getByVoluntarioId(voluntarioId: string): Promise<ResponseEscalaItemDto[]> {
-    return EscalaItensApi.getByVoluntarioId(voluntarioId);
+  async getByVoluntarioId(
+    voluntarioId: string,
+    query: GetEscalaItensVoluntarioQueryDto,
+  ): Promise<ResponseEscalaItemDto[]> {
+    return EscalaItensApi.getByVoluntarioId(voluntarioId, query);
+  }
+
+  async removeWithIgrejaId(id: string, igrejaId: string): Promise<void> {
+    return EscalaItensApi.deleteWithIgrejaId(id, igrejaId);
   }
 }
 

@@ -1,15 +1,37 @@
 import { useFormContext } from 'react-hook-form';
-import { StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { EscalaFormData } from '../../../../../domain/schemas/escalaSchema';
 import ControlledDateInput from '../../../../forms/ControlledDateInput';
 import ControlledTextInput from '../../../../forms/ControlledTextInput';
+import { Pallete } from '../../../../../constants/colors';
 
-export default function AssistenteParametrosStep() {
+type AssistenteParametrosStepProps = {
+  isCheckingName?: boolean;
+  onNomeBlur?: (nome: string) => void | Promise<void>;
+};
+
+export default function AssistenteParametrosStep({
+  isCheckingName = false,
+  onNomeBlur,
+}: AssistenteParametrosStepProps) {
   const form = useFormContext<EscalaFormData>();
+  const nome = form.watch('nome');
 
   return (
     <View style={styles.container}>
-      <ControlledTextInput control={form.control} name='nome' label='Como quer chamar essa escala?' />
+      <ControlledTextInput
+        control={form.control}
+        name='nome'
+        label='Como quer chamar essa escala?'
+        inputProps={{
+          onBlur: () => onNomeBlur?.(nome || ''),
+        }}
+        rightContainer={
+          isCheckingName ? (
+            <ActivityIndicator size='small' color={Pallete.primary} style={{ marginRight: 10 }} />
+          ) : null
+        }
+      />
       <ControlledDateInput control={form.control} name='dataInicio' label='Data de Início' />
       <ControlledDateInput control={form.control} name='dataTermino' label='Data de Término' />
     </View>
@@ -17,5 +39,5 @@ export default function AssistenteParametrosStep() {
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 15, paddingHorizontal: 20 },
+  container: { gap: 15 },
 });

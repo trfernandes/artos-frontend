@@ -1,11 +1,19 @@
-import { ModalProps, StyleProp, StyleSheet, TouchableOpacity, View, ViewStyle } from 'react-native';
+import {
+  ModalProps,
+  StyleProp,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+  TextStyle,
+} from 'react-native';
 import FancyText from '../FancyText';
 import FancyModal, { FancyModalProps } from './FancyModal';
 import FancyButton, { FancyButtonProps } from '../buttons/FancyButton';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import { Pallete } from '../../constants/colors';
 
-export type FancyModalDialogProps<T> = {
+export type FancyModalDialogProps<T = void> = {
   title?: string;
   children?: React.ReactNode;
   onButton1Press?: () => void;
@@ -19,6 +27,8 @@ export type FancyModalDialogProps<T> = {
   showCloseButton?: boolean;
   closeButtonIconProps?: CustomIconProps;
   closeButtonAccessibilityLabel?: string;
+  titleAlign?: 'center' | 'left';
+  titleTextStyle?: StyleProp<TextStyle>;
 } & Omit<FancyModalProps, 'top' | 'bottom' | 'center' | 'modalProps'>;
 
 export default function FancyModalDialog<T = void>({
@@ -35,6 +45,8 @@ export default function FancyModalDialog<T = void>({
   showCloseButton,
   closeButtonIconProps,
   closeButtonAccessibilityLabel,
+  titleAlign = 'center',
+  titleTextStyle,
   containerStyle,
   ...fancyModalProps
 }: FancyModalDialogProps<T>) {
@@ -61,7 +73,15 @@ export default function FancyModalDialog<T = void>({
       top={
         title && (
           <View style={styles.titleContainer}>
-            <FancyText size='medium' type='bold' style={styles.titleText}>
+            <FancyText
+              size='medium'
+              type='bold'
+              style={[
+                styles.titleText,
+                titleAlign === 'left' && styles.titleTextLeft,
+                titleTextStyle,
+              ]}
+            >
               {title}
             </FancyText>
             {shouldRenderCloseButton && (
@@ -124,6 +144,11 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     textAlign: 'center',
     flexShrink: 1,
+  },
+  titleTextLeft: {
+    textAlign: 'left',
+    flex: 1,
+    paddingRight: 24,
   },
   closeButton: {
     position: 'absolute',

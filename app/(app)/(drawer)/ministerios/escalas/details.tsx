@@ -1,7 +1,6 @@
 import FancyPageView from '../../../../../components/containers/FancyPageView';
 import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet } from 'react-native';
-import FancySeparator from '../../../../../components/FancySeparator';
 import { useCallback, useMemo, useRef } from 'react';
 import FancyList from '../../../../../components/list/FancyList';
 import FancyLoading from '../../../../../components/FancyLoading';
@@ -14,6 +13,10 @@ import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import { useEscalasCrud } from '../../../../../hooks/useEscalaCrud';
 import { EscalaItemStatusEnum } from '../../../../../domain/enums/Escala/escala-item-status.enum';
 import { EscalaStatusEnum } from '../../../../../domain/enums/Escala/escala-status.enum';
+import FancyScreenErrorHandler from '../../../../../components/error/FancyScreenErrorHandler';
+import { EscalaRepository } from '../../../../../domain/services/EscalaRepository';
+import { useAuth } from '../../../../../contexts/AuthContext';
+import Toast from 'react-native-toast-message';
 
 export type EscalaItemDataType = {
   dataOcorrencia: string;
@@ -28,6 +31,7 @@ export type EscalaItemEventoDataType = {
     id: string;
     nome: string;
     cor?: string;
+    local?: string;
     dataInicio?: Date;
     dataTermino?: Date;
   };
@@ -55,6 +59,7 @@ export default function MinisterioEscalasDetailsPage() {
     escalaId: string;
     viewMode?: 'view' | 'edit';
   }>();
+  const { igrejaAtiva } = useAuth();
 
   const initialParams = useMemo<DynamicQuery>(
     () => ({
@@ -67,13 +72,36 @@ export default function MinisterioEscalasDetailsPage() {
           },
         ],
       },
+      relations: [
+        'itens',
+        'itens.evento',
+        'itens.voluntario',
+        'itens.voluntario.voluntario',
+        'itens.funcao',
+      ],
     }),
     [escalaId],
   );
 
-  const { data: escalaData, isLoading } = useEscalasCrud({
+  const {
+    data: escalaData,
+    isLoading,
+    isError,
+    update: updateEscala,
+    remove: removeEscala,
+    refetch: refetchEscala,
+  } = useEscalasCrud({
     autoFetch: true,
     initialParams,
+  });
+
+  const {
+    update: updateEscalaItem,
+    remove: removeEscalaItem,
+    add: addEscalaItem,
+    isError: isErrorEscalaItens,
+  } = useEscalaItensCrud({
+    autoFetch: false,
   });
 
   const startRef = useRef<number>(0);
@@ -81,34 +109,35 @@ export default function MinisterioEscalasDetailsPage() {
   // Marca o início
   if (!startRef.current) startRef.current = performance.now();
 
-  const {
-    data: escalaItensData,
-    update: updateEscalaItem,
-    isLoading: isLoadingEscalaItens,
-    isLoadingMutation: isLoadingMutationEscalaItens,
-  } = useEscalaItensCrud({
-    autoFetch: true,
-    initialParams: {
-      where: {
-        conditions: [
-          {
-            path: 'escala.id',
-            operator: Operator.EQUALS,
-            value: { type: ValueType.LITERAL, value: escalaId },
-          },
-        ],
-      },
-      relations: ['evento', 'voluntario', 'voluntario.voluntario', 'funcao'],
-    },
-  });
+  //   const {
+  //     data: escalaItensData,
+  //     update: updateEscalaItem,
+  //     isError: isErrorEscalaItens,
+  //     isLoading: isLoadingEscalaItens,
+  //     isLoadingMutation: isLoadingMutationEscalaItens,
+  //   } = useEscalaItensCrud({
+  //     autoFetch: true,
+  //     initialParams: {
+  //       where: {
+  //         conditions: [
+  //           {
+  //             path: 'escala.id',
+  //             operator: Operator.EQUALS,
+  //             value: { type: ValueType.LITERAL, value: escalaId },
+  //           },
+  //         ],
+  //       },
+  //       relations: ['evento', 'voluntario', 'voluntario.voluntario', 'funcao', 'itens'],
+  //     },
+  //   });
 
-  const { update: updateEscala, remove: removeEscala } = useEscalasCrud({
-    autoFetch: false,
-  });
+  //   const { update: updateEscala, remove: removeEscala } = useEscalasCrud({
+  //     autoFetch: false,
+  //   });
 
   const eventosData = useMemo(() => {
     const start = performance.now();
-    const escalaItens = escalaItensData ?? [];
+    const escalaItens = escalaData?.[0]?.itens ?? [];
     if (escalaItens.length === 0) return [];
 
     const mapa = new Map<string, EscalaItemDataType>();
@@ -121,6 +150,7 @@ export default function MinisterioEscalasDetailsPage() {
           id: e?.id!,
           nome: e.nome,
           cor: e.cor,
+          local: e.local,
           dataInicio: e.dataInicio,
           dataTermino: e.dataTermino,
         });
@@ -191,23 +221,108 @@ export default function MinisterioEscalasDetailsPage() {
     console.log(`⏱️ Tempo de processamento dos resultados: ${end - start} ms`);
 
     return gruposOrdenados;
-  }, [JSON.stringify(escalaItensData)]);
+  }, [escalaData?.[0]?.itens]);
 
   const handleSubstituirVoluntario = useCallback(
     async (data: SubstituicaoConfirmDialog): Promise<boolean> => {
       try {
-        await updateEscalaItem({
+        await updateEscalaItem?.({
           id: data.idEscalaItem,
           data: {
             voluntarioId: data.idSubstituto,
           },
+        });
+        await refetchEscala();
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [updateEscalaItem, refetchEscala],
+  );
+
+  const handleAdicionarVoluntario = useCallback(
+    async (data: { idEscalaItem: string; idVoluntario: string }): Promise<boolean> => {
+      try {
+        await updateEscalaItem?.({
+          id: data.idEscalaItem,
+          data: {
+            voluntarioId: data.idVoluntario,
+          },
+        });
+        await refetchEscala();
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [updateEscalaItem, refetchEscala],
+  );
+
+  const handleDeleteEvento = useCallback(
+    async (eventoId: string, dataOcorrencia: string): Promise<boolean> => {
+      try {
+        if (!igrejaAtiva?.id) return false;
+        await EscalaRepository.deleteItensByEvento(escalaId, igrejaAtiva.id, {
+          eventoId,
+          dataOcorrencia,
+        });
+        await refetchEscala();
+        Toast.show({
+          type: 'success',
+          text1: 'Evento removido com sucesso.',
         });
         return true;
       } catch {
         return false;
       }
     },
-    [updateEscalaItem],
+    [escalaId, refetchEscala, igrejaAtiva?.id],
+  );
+
+  const handleAdicionarFuncao = useCallback(
+    async (data: {
+      funcaoId: string;
+      eventoId: string;
+      dataOcorrencia: string;
+    }): Promise<boolean> => {
+      try {
+        await addEscalaItem?.({
+          escalaId: escalaId,
+          eventoId: data.eventoId,
+          dataOcorrencia: data.dataOcorrencia,
+          funcaoId: data.funcaoId,
+        });
+        await refetchEscala();
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [addEscalaItem, escalaId, refetchEscala],
+  );
+
+  const handleExcluirFuncao = useCallback(
+    async (funcaoId: string, eventoId: string, dataOcorrencia: string): Promise<void> => {
+      try {
+        // Buscar todos os itens da escala com esta função, evento e data
+        const itensToRemove = escalaData?.[0]?.itens?.filter(
+          (item) =>
+            item.funcao?.id === funcaoId &&
+            item.evento?.id === eventoId &&
+            item.dataOcorrencia === dataOcorrencia,
+        );
+
+        if (itensToRemove && itensToRemove.length > 0) {
+          // Remover todos os itens dessa função
+          await Promise.all(itensToRemove.map((item) => removeEscalaItem?.(item.id!)));
+          await refetchEscala();
+        }
+      } catch (error) {
+        console.error('Erro ao excluir função:', error);
+      }
+    },
+    [escalaData, removeEscalaItem, refetchEscala],
   );
 
   const handlePublishPress = useCallback(() => {
@@ -217,7 +332,7 @@ export default function MinisterioEscalasDetailsPage() {
         text: 'Sim',
         style: 'destructive',
         onPress: async () => {
-          await updateEscala({
+          await updateEscala?.({
             id: escalaId,
             data: {
               status: EscalaStatusEnum.Publicada,
@@ -226,9 +341,14 @@ export default function MinisterioEscalasDetailsPage() {
         },
       },
     ]);
-  }, []);
+  }, [escalaId, updateEscala]);
 
-  const handleGeneratePress = useCallback(() => {}, []);
+  const handleGeneratePress = useCallback(() => {
+    // TODO: Implementar regerar escala
+    FancyAlert.alert('Gerar Escala', 'Funcionalidade em desenvolvimento', [
+      { text: 'OK', style: 'cancel' },
+    ]);
+  }, []);
 
   const handleDeletePress = useCallback(() => {
     FancyAlert.alert('Exclusão de escala', 'Deseja realmente excluir esta escala?', [
@@ -244,29 +364,17 @@ export default function MinisterioEscalasDetailsPage() {
     ]);
   }, [escalaId, removeEscala, router]);
 
-  const handleFinishPress = useCallback(() => {
-    FancyAlert.alert('Alterar status da escala', 'Deseja realmente "Concluir" esta escala?', [
-      { text: 'Não', style: 'cancel' },
-      {
-        text: 'Sim',
-        style: 'destructive',
-        onPress: async () => {
-          await updateEscala({
-            id: escalaId,
-            data: {
-              status: EscalaStatusEnum.Concluida,
-            },
-          });
-        },
-      },
-    ]);
-  }, [escalaId, removeEscala, router]);
+  if (isError || isErrorEscalaItens) {
+    console.log('Erro ao carregar dados da escala:', isError ? 'isError' : 'isErrorEscalaItens');
+    return (
+      <FancyScreenErrorHandler
+        error={{ name: 'Erro', message: 'Erro ao carregar os dados da escala.' }}
+      />
+    );
+  }
 
-  if (isLoading || isLoadingEscalaItens || isLoadingMutationEscalaItens) {
+  if (isLoading || !escalaData?.[0]) {
     return <FancyLoading />;
-  } else {
-    const tempo = performance.now() - startRef.current!;
-    console.log(`⏱️ Tempo de renderização da tela: ${tempo} ms`);
   }
 
   return (
@@ -275,18 +383,16 @@ export default function MinisterioEscalasDetailsPage() {
         escala={escalaData?.[0]}
         viewMode={viewMode}
         onPublishPress={handlePublishPress}
-        onFinishPress={handleFinishPress}
         onGeneratePress={handleGeneratePress}
         onDeletePress={handleDeletePress}
       />
-      <FancySeparator />
       {eventosData && (
         <FancyList
           keyExtractor={(item) => item.evento?.id + item.dataOcorrencia.toString()}
           data={eventosData}
           contentContainerStyle={{
-            paddingHorizontal: 15,
-            gap: 10,
+            paddingHorizontal: 16,
+            gap: 14,
             paddingBottom: 30,
           }}
           containerStyle={{ flex: 1 }}
@@ -295,8 +401,21 @@ export default function MinisterioEscalasDetailsPage() {
               data={item}
               viewMode={viewMode}
               ministerioId={ministerioId}
+              escalaId={escalaId}
               onChangeVoluntario={async (data) => {
                 return await handleSubstituirVoluntario(data);
+              }}
+              onAddVoluntario={async (data) => {
+                return await handleAdicionarVoluntario(data);
+              }}
+              onDeleteEvento={async (eventoId, dataOcorrencia) => {
+                return await handleDeleteEvento(eventoId, dataOcorrencia);
+              }}
+              onAdicionarFuncao={async (data) => {
+                return await handleAdicionarFuncao(data);
+              }}
+              onExcluirFuncao={async (funcaoId, eventoId, dataOcorrencia) => {
+                await handleExcluirFuncao(funcaoId, eventoId, dataOcorrencia);
               }}
             />
           )}
@@ -307,5 +426,5 @@ export default function MinisterioEscalasDetailsPage() {
 }
 
 const styles = StyleSheet.create({
-  container: { paddingTop: 10, gap: 15 },
+  container: { gap: 16 },
 });

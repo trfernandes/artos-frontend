@@ -77,7 +77,10 @@ export const EscalaFormFuncaoList = React.memo(function EscalaFormFuncaoList({
           text: 'Sim',
           style: 'default',
           onPress: () => {
-            funcoesArray.remove(Number(item.funKey));
+            const index = funcoesArray.fields.findIndex((f) => f.funKey === item.funKey);
+            if (index >= 0) {
+              funcoesArray.remove(index);
+            }
           },
         },
       ]);

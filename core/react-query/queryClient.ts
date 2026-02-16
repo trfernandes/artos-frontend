@@ -24,9 +24,11 @@ export function createQueryClient() {
         retry: 1,
         refetchOnReconnect: true,
         refetchOnWindowFocus: true,
+        networkMode: 'online', // Pausa queries quando offline
       },
       mutations: {
         retry: false,
+        networkMode: 'online', // Impede mutations quando offline
       },
     },
   });

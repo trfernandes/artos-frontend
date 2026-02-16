@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { StyleSheet, View, Modal, TextInput } from 'react-native';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { useCooldown } from '../../hooks/useCooldown';
+import { StyleSheet, View, Modal } from 'react-native';
 import { router } from 'expo-router';
 import AuthScreen from '../../components/pages/login/AuthScreen';
 import FancyText from '../../components/FancyText';
@@ -10,16 +11,62 @@ import { Pallete } from '../../constants/colors';
 import { EXTRA_LARGE_SIZE_FONT, LARGE_SIZE_FONT } from '../../constants/font';
 import { useCadastroIgrejaEmail } from '../../hooks/useCadastroIgrejaEmail';
 import { ColorUtils } from '../../utils/color_utils';
+import FancyTextInput from '../../components/fields/FancyTextInput';
+import { useConnectivity } from '../../core/network/connectivity/ConnectivityProvider';
+import { ResponseLoginDto } from '../../domain/dtos/login/login.response';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function IgrejaCadastroAguardandoEmailPage() {
   const [modalVisible, setModalVisible] = useState(false);
   const [novoEmail, setNovoEmail] = useState('');
+  const isProcessingLoginRef = useRef(false);
+
+  const { status: connectivityStatus } = useConnectivity();
+  const isServerUnavailable = connectivityStatus !== 'ok';
+  const { signInWithData } = useAuth();
+
+  const realizarLoginAutomatico = useCallback(async (authData: any) => {
+    // Evita execuções duplicadas usando ref que persiste entre renders
+    if (isProcessingLoginRef.current) {
+      return;
+    }
+
+    isProcessingLoginRef.current = true;
+
+    try {
+      // Verifica se o backend retornou dados de autenticação
+      // igrejas pode ser um array vazio para contas recém-criadas
+      if (authData?.access_token && authData?.user && authData?.igrejas !== undefined) {
+        const loginData: ResponseLoginDto = {
+          access_token: authData.access_token,
+          user: authData.user,
+          igrejas: authData.igrejas || [],
+        };
+
+        // Usa o método do AuthContext para fazer login com os dados
+        await signInWithData(loginData);
+
+        // Limpa dados do cadastro
+        await limparDadosCadastro();
+
+        // Redireciona para a tela inicial
+        router.replace('/');
+      } else {
+        // Se não houver dados de auth, vai para login
+        await limparDadosCadastro();
+        router.replace('/(auth)/login');
+      }
+    } catch (error) {
+      console.log('Erro ao realizar login automático:', error);
+      await limparDadosCadastro();
+      router.replace('/(auth)/login');
+    }
+  }, [signInWithData]);
 
   const {
     dadosCadastro,
     loadingDados,
     status,
-    isLoadingStatus,
     verificarConfirmacao,
     reenviarEmail,
     alterarEmail,
@@ -27,27 +74,36 @@ export default function IgrejaCadastroAguardandoEmailPage() {
     isReenviando,
     isAlterandoEmail,
     isVerificando,
-    cooldownRestante,
-    cooldownAtivo,
   } = useCadastroIgrejaEmail({
-    onConfirmado: async () => {
-      await limparDadosCadastro();
-      router.replace('/(auth)/login');
-    },
+    onConfirmado: realizarLoginAutomatico,
     enablePolling: true,
   });
 
   const handleVerificar = async () => {
-    const confirmado = await verificarConfirmacao();
-    if (confirmado) {
-      await limparDadosCadastro();
-      router.replace('/(auth)/login');
+    const authData = await verificarConfirmacao();
+    if (authData) {
+      await realizarLoginAutomatico(authData);
     }
   };
 
+  // Cooldown local para UX
+  const { seconds: cooldownRestante, start: startCooldown, isActive: cooldownAtivo } = useCooldown(60);
+  const [reenviadoMsg, setReenviadoMsg] = useState('');
+
   const handleReenviar = () => {
+    if (isReenviando || cooldownAtivo) return;
     reenviarEmail();
+    startCooldown();
   };
+
+  // Feedback de sucesso após reenviar
+  // Exibe mensagem quando loading termina e cooldown inicia
+  useEffect(() => {
+    if (!isReenviando && cooldownAtivo && !reenviadoMsg) {
+      setReenviadoMsg('E-mail reenviado! Confira spam.');
+      setTimeout(() => setReenviadoMsg(''), 5000);
+    }
+  }, [isReenviando, cooldownAtivo]);
 
   const handleAbrirModalAlterarEmail = () => {
     setNovoEmail(dadosCadastro?.responsavelEmail || '');
@@ -88,21 +144,23 @@ export default function IgrejaCadastroAguardandoEmailPage() {
     });
   };
 
-  // Loading inicial
-  if (loadingDados || isLoadingStatus) {
+  // Se não há dados de cadastro, voltar para criar igreja (apenas após terminar o loading)
+  useEffect(() => {
+    if (!loadingDados && !dadosCadastro) {
+      router.replace('/(auth)/create-igreja-account');
+    }
+  }, [dadosCadastro, loadingDados]);
+
+  // Loading inicial - só mostra se estiver carregando os dados do storage
+  if (loadingDados) {
     return (
-      <AuthScreen
-        header={() => null}
-        scrollContainerStyle={styles.loadingContainer}
-      >
+      <AuthScreen header={() => null} scrollContainerStyle={styles.loadingContainer}>
         <FancyLoading />
       </AuthScreen>
     );
   }
 
-  // Se não há dados de cadastro, voltar para criar igreja
   if (!dadosCadastro) {
-    router.replace('/(auth)/create-igreja-account');
     return null;
   }
 
@@ -110,7 +168,6 @@ export default function IgrejaCadastroAguardandoEmailPage() {
 
   return (
     <AuthScreen
-      disableScroll
       containerPosition={{ default: 'relative', keyboard: 'relative' }}
       scrollContainerStyle={styles.scrollContainer}
       centerContainerStyle={styles.centerContainer}
@@ -143,10 +200,16 @@ export default function IgrejaCadastroAguardandoEmailPage() {
 
           {/* Email */}
           <View style={styles.emailSection}>
-            <FancyText size='extraSmall' color={Pallete.fonts.inactive}>
+            <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={{ textAlign: 'center', alignSelf: 'center' }}>
               E-mail do responsável
             </FancyText>
-            <FancyText size='medium' type='semiBold'>
+            <FancyText
+              size='medium'
+              type='semiBold'
+              style={{ textAlign: 'center', alignSelf: 'center', flexShrink: 0, maxWidth: '100%' }}
+              numberOfLines={1}
+              ellipsizeMode='middle'
+            >
               {dadosCadastro.responsavelEmail}
             </FancyText>
           </View>
@@ -201,7 +264,7 @@ export default function IgrejaCadastroAguardandoEmailPage() {
           <FancyButton
             label={isVerificando ? 'Verificando...' : 'Já confirmei'}
             type='contained'
-            disabled={isVerificando}
+            disabled={isVerificando || isServerUnavailable}
             icon={{ library: 'Feather', name: 'check', size: 18 }}
             containerStyle={styles.primaryButton}
             onPress={handleVerificar}
@@ -209,31 +272,38 @@ export default function IgrejaCadastroAguardandoEmailPage() {
 
           {/* Botão secundário - Reenviar */}
           <FancyButton
-            label={cooldownAtivo ? `Reenviar (${cooldownRestante}s)` : 'Reenviar e-mail'}
+            label={cooldownAtivo ? `Reenviar em ${cooldownRestante}s` : 'Reenviar e-mail'}
             type='outlined'
-            disabled={isReenviando || cooldownAtivo}
-            icon={{ library: 'Feather', name: 'mail', size: 18 }}
+            isLoading={isReenviando}
+            loadingText='Reenviando...'
+            spinnerSize='small'
+            icon={{ library: 'Feather', name: 'mail', size: 18, color: Pallete.primary }}
             containerStyle={styles.secondaryButton}
-            onPress={handleReenviar}
+            disabled={isReenviando || cooldownAtivo || isServerUnavailable}
+            onPress={() => {
+              if (isReenviando || cooldownAtivo || isServerUnavailable) return;
+              handleReenviar();
+            }}
           />
+          {reenviadoMsg && (
+            <FancyText size='extraSmall' color={Pallete.confirm} style={{ textAlign: 'center', marginTop: 4 }}>
+              {reenviadoMsg}
+            </FancyText>
+          )}
 
           {/* Link - Alterar email */}
           <FancyButton
             label='Alterar e-mail'
             type='text'
             icon={{ library: 'Feather', name: 'edit-2', size: 16 }}
+            disabled={isServerUnavailable}
             onPress={handleAbrirModalAlterarEmail}
           />
         </View>
       </View>
 
       {/* Modal para alterar email */}
-      <Modal
-        visible={modalVisible}
-        transparent
-        animationType='fade'
-        onRequestClose={() => setModalVisible(false)}
-      >
+      <Modal visible={modalVisible} transparent animationType='fade' onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <FancyText size='large' type='bold' style={styles.modalTitle}>
@@ -245,15 +315,25 @@ export default function IgrejaCadastroAguardandoEmailPage() {
             </FancyText>
 
             <View style={styles.modalInputContainer}>
-              <TextInput
-                style={styles.modalInput}
-                value={novoEmail}
-                onChangeText={setNovoEmail}
-                placeholder='Novo e-mail'
-                keyboardType='email-address'
-                autoCapitalize='none'
-                autoCorrect={false}
-              />
+              <View style={styles.modalInputWrapper}>
+                <FancyText size='small' color={Pallete.fonts.inactive} style={{ marginBottom: 4 }}>
+                  Novo e-mail
+                </FancyText>
+                <FancyTextInput
+                  value={novoEmail}
+                  label={undefined}
+                  placeholder='Novo e-mail'
+                  inputProps={{
+                    onChangeText: setNovoEmail,
+                    keyboardType: 'email-address',
+                    autoCapitalize: 'none',
+                    autoCorrect: false,
+                    style: styles.modalInput,
+                  }}
+                  containerStyle={{ width: '100%' }}
+                  inputContainerStyle={{ width: '100%' }}
+                />
+              </View>
             </View>
 
             <View style={styles.modalActions}>
@@ -266,7 +346,7 @@ export default function IgrejaCadastroAguardandoEmailPage() {
               <FancyButton
                 label={isAlterandoEmail ? 'Salvando...' : 'Salvar e reenviar'}
                 type='contained'
-                disabled={isAlterandoEmail || !novoEmail.trim()}
+                disabled={isAlterandoEmail || !novoEmail.trim() || isServerUnavailable}
                 containerStyle={styles.modalButton}
                 onPress={handleAlterarEmail}
               />
@@ -274,11 +354,26 @@ export default function IgrejaCadastroAguardandoEmailPage() {
           </View>
         </View>
       </Modal>
+      {/* {isReenviando && (
+        <View style={styles.loadingOverlay} pointerEvents='auto'>
+          <FancyLoading />
+        </View>
+      )} */}
     </AuthScreen>
   );
 }
 
 const styles = StyleSheet.create({
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.18)',
+    zIndex: 99,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalInputWrapper: {
+    width: '100%',
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -291,7 +386,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   centerContainer: {
-    flex: 1,
+    flexGrow: 1,
     gap: 15,
   },
   fieldsContainer: {
@@ -300,11 +395,10 @@ const styles = StyleSheet.create({
     gap: 10,
     backgroundColor: Pallete.backgroundColor,
     alignItems: 'stretch',
-    flex: 1,
+    padding: 20,
   },
   content: {
-    flex: 1,
-    justifyContent: 'space-between',
+    gap: 20,
   },
   card: {
     backgroundColor: ColorUtils.lightenColor(Pallete.primary, 0.95),
@@ -355,7 +449,6 @@ const styles = StyleSheet.create({
   },
   actionsContainer: {
     gap: 12,
-    paddingTop: 20,
   },
   primaryButton: {
     width: '100%',

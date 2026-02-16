@@ -6,6 +6,7 @@ export default function MinisterioConfiguracoesLayout() {
   return (
     <Stack
       screenOptions={{
+        headerShown: true,
         header: (props) => <FancyPageHeader {...props} />,
       }}
     >
@@ -14,7 +15,8 @@ export default function MinisterioConfiguracoesLayout() {
         options={{
           title: 'Configurações do Louvor',
           headerRight: () => <MainHeaderButtons />,
-          header: (props) => <FancyPageHeader leftButton='back' {...props} />,
+          headerShown: true,
+          header: (props) => <FancyPageHeader leftButton='menu' {...props} />,
         }}
       />
     </Stack>

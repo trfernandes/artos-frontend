@@ -3,11 +3,11 @@ import FancyModalDialog, { FancyModalDialogProps } from '../../../../modal/Fancy
 import { StyleSheet, View } from 'react-native';
 import FancyText from '../../../../FancyText';
 import FancyAvatarImage from '../../../../images/FancyImage';
-import FancyDropDown from '../../../../fields/FancyDropDown';
+import FancySearchSelect from '../../../../fields/FancySearchSelect';
 import FancyCheckbox from '../../../../FancyCheckbox';
 import { format } from 'date-fns';
 import { useVoluntariosDoMinisterioCrud } from '../../../../../hooks/useVoluntariosDoMinisterioCrud';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { IndisponibilidadesVoluntariosApi } from '../../../../../domain/api/IndisponibilidadesVoluntariosApi';
 import { Conjunction, Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import { MinisterioVoluntarioFuncoesApi } from '../../../../../domain/api/MinisterioVoluntarioFuncoesApi';
@@ -16,6 +16,7 @@ import { FancyAlert } from '../../../../modal/FancyAlert';
 import FancyErrorText from '../../../../forms/FancyErrorText';
 import FancyGroup from '../../../../list/FancyGroup';
 import { AppImages } from '../../../../../assets/app_images';
+import { useAuth } from '../../../../../contexts/AuthContext';
 
 export interface SubstituirVoluntarioModalProps {
   data: EscalaItemEquipeType & {
@@ -38,6 +39,8 @@ export interface SubstituicaoConfirmDialog {
 export default function SubstituirVoluntarioModal({ data, ...props }: SubstituirVoluntarioModalProps & FancyModalDialogProps<any>) {
   const [disponiveisNaData, setDisponiveisNaData] = useState(false);
   const [temMesmaFuncao, setTemMesmaFuncao] = useState(false);
+  const { igrejaAtiva } = useAuth();
+  const igrejaId = igrejaAtiva?.id;
 
   const {
     ministerioVoluntariosList: voluntariosList,
@@ -50,8 +53,13 @@ export default function SubstituirVoluntarioModal({ data, ...props }: Substituir
 
   const [isLoadingSubstitutos, setIsLoadingSubstitutos] = useState(false);
 
+  // Estabiliza as dependências do useEffect
+  const dataOcorrenciaString = useMemo(() => data.evento.dataOcorrencia.toISOString(), [data.evento.dataOcorrencia]);
+  const funcaoId = useMemo(() => data.funcao?.id, [data.funcao?.id]);
+  const currentVoluntarioId = useMemo(() => data.voluntario?.minVoluntarioId, [data.voluntario?.minVoluntarioId]);
+
   useEffect(() => {
-    const dropDownListWithoutCurrentVoluntario = dropDownList.filter((v) => v.value !== data.voluntario?.minVoluntarioId);
+    const dropDownListWithoutCurrentVoluntario = dropDownList.filter((v) => v.value !== currentVoluntarioId);
 
     if (!data) {
       setVoluntariosDropDownList(dropDownListWithoutCurrentVoluntario);
@@ -67,15 +75,21 @@ export default function SubstituirVoluntarioModal({ data, ...props }: Substituir
       try {
         setIsLoadingSubstitutos(true);
 
-        const listWithoutCurrentVoluntario = voluntariosList.filter((v) => v.id !== data.voluntario?.minVoluntarioId);
+        const listWithoutCurrentVoluntario = voluntariosList.filter((v) => v.id !== currentVoluntarioId);
 
         let newList = [...listWithoutCurrentVoluntario];
+
+        if (!igrejaId) {
+          setVoluntariosDropDownList(dropDownListWithoutCurrentVoluntario);
+          return;
+        }
 
         // 🔹 Filtra por disponibilidade
         if (disponiveisNaData) {
           const resultados = await Promise.all(
             newList.map(async (minVoluntario) => {
               const indisponivel = await IndisponibilidadesVoluntariosApi.search({
+                igrejaId,
                 where: {
                   conditions: [
                     {
@@ -86,7 +100,7 @@ export default function SubstituirVoluntarioModal({ data, ...props }: Substituir
                     {
                       path: 'data',
                       operator: Operator.EQUALS,
-                      value: { type: ValueType.LITERAL, value: data.evento.dataOcorrencia.toISOString().split('T')[0] },
+                      value: { type: ValueType.LITERAL, value: dataOcorrenciaString.split('T')[0] },
                     },
                   ],
                   conjunction: Conjunction.AND,
@@ -115,7 +129,7 @@ export default function SubstituirVoluntarioModal({ data, ...props }: Substituir
                     {
                       path: 'funcao.id',
                       operator: Operator.EQUALS,
-                      value: { type: ValueType.LITERAL, value: data.funcao?.id! },
+                      value: { type: ValueType.LITERAL, value: funcaoId! },
                     },
                   ],
                   conjunction: Conjunction.AND,
@@ -152,7 +166,7 @@ export default function SubstituirVoluntarioModal({ data, ...props }: Substituir
     }
 
     filtrarVoluntarios();
-  }, [dropDownList, disponiveisNaData, temMesmaFuncao, data]);
+  }, [voluntariosList, disponiveisNaData, temMesmaFuncao, dataOcorrenciaString, funcaoId, currentVoluntarioId, igrejaId]);
 
   const [selectedSubstituto, setSelectedSubstituto] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -232,8 +246,9 @@ export default function SubstituirVoluntarioModal({ data, ...props }: Substituir
         </View>
 
         <View style={{ flexDirection: 'column', gap: 5 }}>
-          <FancyDropDown
+          <FancySearchSelect
             label='Substituto'
+            placeholder='Buscar voluntário...'
             value={selectedSubstituto}
             onChange={(value) => {
               setSelectedSubstituto(value);
@@ -244,7 +259,6 @@ export default function SubstituirVoluntarioModal({ data, ...props }: Substituir
             }}
             listItems={voluntariosDropDownList}
             disabled={isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation || isLoadingSubstitutos}
-            isLoading={isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation || isLoadingSubstitutos}
           />
           {errors && <FancyErrorText message={errors['substituto']} />}
         </View>

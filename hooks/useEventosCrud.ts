@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
 import { ExternalUseCrudParams, useCrud } from './useCrud';
 import { Operator, ValueType } from '../domain/utils/query_utils';
-import { EventosRepository, EventosIntervaloParams } from '../domain/services/EventosRepository';
+import { EventosRepository } from '../domain/services/EventosRepository';
+import { IgrejaEventosRepository, EventosIntervaloParams } from '../domain/services/IgrejaEventosRepository';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ResponseEventoDto } from '../domain/dtos/Evento/evento.response';
 import { CreateEventoDto } from '../domain/dtos/Evento/evento.create';
@@ -10,6 +11,7 @@ import { RecorrenciaDiaSemanaEnum } from '../domain/enums/Evento/recorrencia-dia
 import { RecorrenciaSemanaMesEnum } from '../domain/enums/Evento/recorrencia-semana-mes.enum';
 import { RecorrenciaEnum } from '../domain/enums/Evento/recorrencia.enum';
 import { EventoFormData, eventoSchema } from '../domain/schemas/eventoSchema';
+import { useAuth } from '../contexts/AuthContext';
 
 const DIA_SEMANA_ORDER: RecorrenciaDiaSemanaEnum[] = [
   RecorrenciaDiaSemanaEnum.domingo,
@@ -289,6 +291,12 @@ export function generateRecorrenciaDescription(
 }
 
 export function useEventosCrud({ autoFetch = false, initialParams = {}, messages = undefined }: ExternalUseCrudParams = {}) {
+  const { igrejaAtiva } = useAuth();
+
+  if (!igrejaAtiva) {
+    throw new Error('Nenhuma igreja ativa selecionada');
+  }
+
   const crud = useCrud<ResponseEventoDto, EventoFormData, CreateEventoDto, UpdateEventoDto>({
     queryKey: 'eventos',
     autoFetch,
@@ -301,10 +309,10 @@ export function useEventosCrud({ autoFetch = false, initialParams = {}, messages
       errorUpdate: 'Erro ao atualizar o evento.',
       errorDelete: 'Erro ao remover o evento.',
     },
-    fetchAll: () => EventosRepository.search({}),
-    search: (query) => EventosRepository.search(query),
+    fetchAll: () => IgrejaEventosRepository.listarEventos(igrejaAtiva.id),
+    search: (query) => IgrejaEventosRepository.listarEventos(igrejaAtiva.id, query),
     fetchOne: async (id) => {
-      const result = await EventosRepository.search({
+      const result = await IgrejaEventosRepository.listarEventos(igrejaAtiva.id, {
         where: {
           conditions: [
             {
@@ -320,9 +328,9 @@ export function useEventosCrud({ autoFetch = false, initialParams = {}, messages
       });
       return result[0];
     },
-    add: (data) => EventosRepository.add(data),
+    add: (data) => EventosRepository.add({ ...data, igrejaId: igrejaAtiva.id }),
     update: (id, data) => {
-      return EventosRepository.update(id, data);
+      return EventosRepository.update(id, { ...data, igrejaId: igrejaAtiva.id });
     },
     remove: (id) => EventosRepository.remove(id),
     resolver: zodResolver(eventoSchema),
@@ -333,11 +341,11 @@ export function useEventosCrud({ autoFetch = false, initialParams = {}, messages
   const buscarPorIntervalo = useCallback(async (params: EventosIntervaloParams) => {
     setIsLoadingIntervalo(true);
     try {
-      return await EventosRepository.buscarPorIntervalo(params);
+      return await IgrejaEventosRepository.buscarPorIntervalo(igrejaAtiva.id, params);
     } finally {
       setIsLoadingIntervalo(false);
     }
-  }, []);
+  }, [igrejaAtiva.id]);
 
   return {
     ...crud,

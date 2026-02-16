@@ -1,31 +1,39 @@
 import FancyModalDialog, { FancyModalDialogProps } from '../../../../modal/FancyModalDialog';
 import {
-    EscalaEventoFormData,
-    EscalaEventoTemplateFixoFormData,
-    EscalaEventoTemplateFormData,
-    EscalaEventoTemplateFuncaoFormData,
-    EscalaEventoTemplateSchema,
+  EscalaEventoFormData,
+  EscalaEventoTemplateFixoFormData,
+  EscalaEventoTemplateFormData,
+  EscalaEventoTemplateFuncaoFormData,
+  EscalaEventoTemplateSchema,
 } from '../../../../../domain/schemas/escalaSchema';
 import { format } from 'date-fns';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { StyleSheet } from 'react-native';
-import ControlledDropDown from '../../../../forms/ControlledDropDown';
+import ControlledSearchSelect from '../../../../forms/ControlledSearchSelect';
 import FancyVerticalSpacer from '../../../../FancyVerticalSpacer';
 import { EnumUtils } from '../../../../../utils/enum_utils';
-import FancyDropDown from '../../../../fields/FancyDropDown';
+import FancyBottomSheetSelect from '../../../../fields/FancyBottomSheetSelect';
 import { FancyAlert } from '../../../../modal/FancyAlert';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useEscalaTemplatesCrud } from '../../../../../useEscalaTemplatesCrud';
-import { DynamicQuery, Operator, ValueType, OrderDirection } from '../../../../../domain/utils/query_utils';
+import {
+  DynamicQuery,
+  Operator,
+  ValueType,
+  OrderDirection,
+} from '../../../../../domain/utils/query_utils';
 import FancyLoading from '../../../../FancyLoading';
 import { useFuncoesDoMinisterio } from '../../../../../hooks/useFuncoesDoMinisterio';
 import { useVoluntariosDoMinisterioCrud } from '../../../../../hooks/useVoluntariosDoMinisterioCrud';
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import { EscalaFormFuncaoList } from './EscalaFormFuncaoList';
 import { EscalaFormFixoList } from './EscalaFormFixoList';
-import { EscalaTemplateTipoEnum, EscalaTemplateTipoLabel } from '../../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
+import {
+  EscalaTemplateTipoEnum,
+  EscalaTemplateTipoLabel,
+} from '../../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
 import { ResponseEscalaTemplateDto } from '../../../../../domain/dtos/EscalaTemplate/escala-template.response';
 
 interface EventoFormModalProps {
@@ -57,10 +65,18 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
     initialParams: templatesParams,
   });
 
-  const { funcoesList, funcoesDropDownList, isLoading: isLoadingFuncoesDoMinisterio } = useFuncoesDoMinisterio(ministerioId);
+  const {
+    funcoesList,
+    funcoesDropDownList,
+    isLoading: isLoadingFuncoesDoMinisterio,
+  } = useFuncoesDoMinisterio(ministerioId);
 
-  const { ministerioVoluntariosDropDownList, ministerioVoluntariosList, isLoadingMinisterioVoluntarios, isLoadingMinisterioVoluntariosMutation } =
-    useVoluntariosDoMinisterioCrud(ministerioId);
+  const {
+    ministerioVoluntariosDropDownList,
+    ministerioVoluntariosList,
+    isLoadingMinisterioVoluntarios,
+    isLoadingMinisterioVoluntariosMutation,
+  } = useVoluntariosDoMinisterioCrud(ministerioId);
 
   const templatesDropDownList = useMemo<DropDownItemProps<string>[]>(() => {
     const list = templatesList ?? [];
@@ -76,19 +92,46 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
   const formTemplate = useForm<EscalaEventoTemplateFormData>({
     resolver: zodResolver(EscalaEventoTemplateSchema),
     defaultValues: {
-      templateBase: data?.template.templateBase.id ? data.template.templateBase : { id: '', nome: '' },
+      templateBase: data?.template.templateBase.id
+        ? data.template.templateBase
+        : { id: '', nome: '' },
       tipo: data?.template.tipo || EscalaTemplateTipoEnum.Funcoes,
       funcoes: data?.template.funcoes || [],
       fixos: data?.template.fixos || [],
     },
   });
 
+  // Reset form when modal opens with new data
   useEffect(() => {
-    const fixosMudou = formTemplate.formState.dirtyFields.fixos?.filter((f) => f.funcaoId || f.minVolId);
-    const funcoesMudou = formTemplate.formState.dirtyFields.funcoes?.filter((f) => f.funcaoId || f.experiencia || f.quantidade);
+    if (data) {
+      console.log('\n=== MODAL RECEBEU DADOS (useEffect reset) ===');
+      console.log('EventoId:', data.eventoId);
+      console.log('Nome:', data.nome);
+      console.log('Template recebido:', JSON.stringify(data.template, null, 2));
+
+      formTemplate.reset({
+        templateBase: data.template.templateBase.id
+          ? data.template.templateBase
+          : { id: '', nome: '' },
+        tipo: data.template.tipo || EscalaTemplateTipoEnum.Funcoes,
+        funcoes: data.template.funcoes || [],
+        fixos: data.template.fixos || [],
+      });
+    }
+  }, [data?.eventoId]);
+
+  useEffect(() => {
+    const fixosMudou = formTemplate.formState.dirtyFields.fixos?.filter(
+      (f) => f.funcaoId || f.minVolId,
+    );
+    const funcoesMudou = formTemplate.formState.dirtyFields.funcoes?.filter(
+      (f) => f.funcaoId || f.experiencia || f.quantidade,
+    );
 
     if (fixosMudou || funcoesMudou) {
-      formTemplate.setValue('templateBase', { id: '', nome: '' });
+      console.log('Limpando templateBase porque funções/fixos foram editados');
+      formTemplate.setValue('templateBase.id', '');
+      formTemplate.setValue('templateBase.nome', '');
       formTemplate.setValue('tipo', data?.template.tipo || EscalaTemplateTipoEnum.Funcoes);
     }
   }, [formTemplate.formState.isDirty]);
@@ -101,34 +144,38 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
       const novo = value;
 
       if (antigo !== undefined && antigo !== novo) {
-        FancyAlert.alert('Edição', 'A mudança de template base vai acarretar a perda dos dados inseridos, realmente deseja prosseguir?', [
-          {
-            text: 'Não',
-            style: 'destructive',
-            onPress: () => formTemplate.setValue('templateBase.id', antigo || ''),
-          },
-          {
-            text: 'Sim',
-            style: 'default',
-            onPress: () => {
-              const templateInfo = templatesList?.find((t) => t.id === value);
-
-              if (templateInfo) {
-                formTemplate.setValue('templateBase.nome', templateInfo.nome);
-                formTemplate.setValue('tipo', templateInfo.tipo);
-                formTemplate.setValue('funcoes', []);
-                formTemplate.setValue('fixos', []);
-
-                loadTemplateData(templateInfo);
-              } else {
-                formTemplate.setValue('templateBase.nome', '');
-                formTemplate.setValue('tipo', EscalaTemplateTipoEnum.Funcoes);
-                formTemplate.setValue('funcoes', []);
-                formTemplate.setValue('fixos', []);
-              }
+        FancyAlert.alert(
+          'Edição',
+          'A mudança de template base vai acarretar a perda dos dados inseridos, realmente deseja prosseguir?',
+          [
+            {
+              text: 'Não',
+              style: 'destructive',
+              onPress: () => formTemplate.setValue('templateBase.id', antigo || ''),
             },
-          },
-        ]);
+            {
+              text: 'Sim',
+              style: 'default',
+              onPress: () => {
+                const templateInfo = templatesList?.find((t) => t.id === value);
+
+                if (templateInfo) {
+                  formTemplate.setValue('templateBase.nome', templateInfo.nome);
+                  formTemplate.setValue('tipo', templateInfo.tipo);
+                  formTemplate.setValue('funcoes', []);
+                  formTemplate.setValue('fixos', []);
+
+                  loadTemplateData(templateInfo);
+                } else {
+                  formTemplate.setValue('templateBase.nome', '');
+                  formTemplate.setValue('tipo', EscalaTemplateTipoEnum.Funcoes);
+                  formTemplate.setValue('funcoes', []);
+                  formTemplate.setValue('fixos', []);
+                }
+              },
+            },
+          ],
+        );
       }
 
       prevId.current = novo;
@@ -180,7 +227,12 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
   const { showLoading, hideLoading } = useLoading();
 
   useEffect(() => {
-    if (isLoadingFuncoesDoMinisterio || isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation || isLoadingTemplates) {
+    if (
+      isLoadingFuncoesDoMinisterio ||
+      isLoadingMinisterioVoluntarios ||
+      isLoadingMinisterioVoluntariosMutation ||
+      isLoadingTemplates
+    ) {
       showLoading('Carregando..');
     } else {
       hideLoading();
@@ -201,9 +253,13 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
       <FancyModalDialog
         {...modalProps}
         title={`${data?.nome} - ${format(data?.dataOcorrencia!, 'dd/MM/yyyy HH:ss')}`}
+        titleAlign='left'
         onButton2Press={(_) => {
           formTemplate.handleSubmit(
-            (data) => modalProps?.onButton2Press?.(data),
+            (data) => {
+              console.log('EventoFormModal - Salvando template:', JSON.stringify(data, null, 2));
+              modalProps?.onButton2Press?.(data);
+            },
             (errors) => {
               const erro = errors.funcoes || errors.fixos;
 
@@ -223,38 +279,51 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
           <FancyLoading />
         ) : (
           <>
-            <ControlledDropDown label='Template Base' control={formTemplate.control} name='templateBase.id' listItems={templatesDropDownList} />
+            <ControlledSearchSelect
+              label='Template Base'
+              control={formTemplate.control}
+              name='templateBase.id'
+              listItems={templatesDropDownList}
+              searchPlaceholder='Buscar template...'
+            />
             <FancyVerticalSpacer height={12} />
 
             <Controller
               control={formTemplate.control}
               name={'tipo'}
               render={({ field: { onChange, value } }) => (
-                <FancyDropDown
+                <FancyBottomSheetSelect
                   label='Tipo de Equipe'
-                  listItems={EnumUtils.getDropDownItems(EscalaTemplateTipoEnum, EscalaTemplateTipoLabel)}
+                  listItems={EnumUtils.getDropDownItems(
+                    EscalaTemplateTipoEnum,
+                    EscalaTemplateTipoLabel,
+                  )}
                   disabled={templateBaseIdWatch !== ''}
                   value={value}
                   onChange={(newValue) => {
                     if (value === newValue && !value) return;
 
-                    FancyAlert.alert('Alteração de tipo', 'Essa mudança vai resultar em excluir toda a equipe, deseja continuar?', [
-                      {
-                        text: 'Não',
-                        style: 'destructive',
-                        onPress: () => {
-                          onChange(value);
+                    FancyAlert.alert(
+                      'Alteração de tipo',
+                      'Essa mudança vai resultar em excluir toda a equipe, deseja continuar?',
+                      [
+                        {
+                          text: 'Não',
+                          style: 'destructive',
+                          onPress: () => {
+                            onChange(value);
+                          },
                         },
-                      },
-                      {
-                        text: 'Sim',
-                        style: 'default',
-                        onPress: () => {
-                          onChange(newValue);
-                          handleChangeTipo(newValue);
+                        {
+                          text: 'Sim',
+                          style: 'default',
+                          onPress: () => {
+                            onChange(newValue);
+                            handleChangeTipo(newValue);
+                          },
                         },
-                      },
-                    ]);
+                      ],
+                    );
                   }}
                 />
               )}
@@ -264,7 +333,11 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
 
             <FormProvider {...formTemplate}>
               {templateTipoWatch === EscalaTemplateTipoEnum.Funcoes ? (
-                <EscalaFormFuncaoList ministerioId={ministerioId} funcoesDropDownList={funcoesDropDownList} funcoesList={funcoesList} />
+                <EscalaFormFuncaoList
+                  ministerioId={ministerioId}
+                  funcoesDropDownList={funcoesDropDownList}
+                  funcoesList={funcoesList}
+                />
               ) : templateTipoWatch === EscalaTemplateTipoEnum.Fixo ? (
                 <EscalaFormFixoList
                   funcoesList={funcoesList}

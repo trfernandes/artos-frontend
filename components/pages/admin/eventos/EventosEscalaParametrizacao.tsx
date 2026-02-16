@@ -1,7 +1,7 @@
 import { Alert, StyleSheet, View } from 'react-native';
 import FancyContainerList from '../../../container_list/FancyContainerList';
 import FancyDropDown from '../../../fields/FancyDropDown';
-import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
+import FancyModalDialog from '../../../modal/FancyModalDialog';
 import { FancyCard } from '../../../cards/Horizontal/FancyCard';
 import { useState } from 'react';
 import { Pallete } from '../../../../constants/colors';
@@ -10,7 +10,13 @@ import FancyFullModal from '../../../modal/FancyFullModal';
 import FancyButton from '../../../buttons/FancyButton';
 import FancyTextInput from '../../../fields/FancyTextInput';
 
-export default function EventosEscalaParametrizacao(props: Omit<FancyModalDialogProps<any>, 'title'>) {
+export type EventosEscalaParametrizacaoProps = {
+  modalProps?: { visible: boolean };
+  onButton1Press?: () => void;
+  onButton2Press?: () => void;
+};
+
+export default function EventosEscalaParametrizacao({ modalProps, onButton1Press, onButton2Press }: EventosEscalaParametrizacaoProps) {
   const [data, setData] = useState<
     Array<{
       order: Number;
@@ -46,7 +52,7 @@ export default function EventosEscalaParametrizacao(props: Omit<FancyModalDialog
   const [selectedTemplate, setSelectedTemplate] = useState('1');
 
   return (
-    <FancyFullModal {...props}>
+    <FancyFullModal title="Parametrização" modalProps={{ visible: modalProps?.visible, onRequestClose: onButton1Press }}>
       <View style={styles.contentContainer}>
         <FancyDropDown
           label='Template'
@@ -122,7 +128,7 @@ export default function EventosEscalaParametrizacao(props: Omit<FancyModalDialog
           )}
           {templateList.find((item) => item.id === selectedTemplate)?.tipo === 'Fixo' && <View></View>}
         </View>
-        <FancyButton label='Confirmar' icon={{ ...DefaultIconsNames.confirm, size: 16 }} onPress={props.onButton2Press} />
+        <FancyButton label='Confirmar' icon={{ ...DefaultIconsNames.confirm, size: 16 }} onPress={onButton2Press} />
         {modalEditFuncaoParams.visible && (
           <FancyModalDialog
             title={modalEditFuncaoParams.mode === 'add' ? 'Nova Função' : 'Editar Função'}

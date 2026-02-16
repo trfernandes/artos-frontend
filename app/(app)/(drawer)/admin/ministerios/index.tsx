@@ -5,7 +5,7 @@ import FancyScreenErrorHandler from '../../../../../components/error/FancyScreen
 
 import { useMinisteriosCrud } from '../../../../../hooks/useMinisteriosCrud';
 import { useCallback, useState } from 'react';
-import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
+import { Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
 import { FancyTextDisplayCard } from '../../../../../components/cards/FancyTextDisplayCard';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
@@ -20,8 +20,10 @@ import FancyChips from '../../../../../components/FancyChips';
 
 export default function MinisteriosIndex() {
   const { showLoading } = useLoading();
+  const { user, updateUser } = useAuth();
 
   const [searchText, setSearchText] = useState('');
+
   const {
     data,
     update: updateMinisterio,
@@ -32,8 +34,10 @@ export default function MinisteriosIndex() {
     refetch,
     isError,
   } = useMinisteriosCrud({
-    autoFetch: false,
-    initialParams: {},
+    autoFetch: true,
+    initialParams: {
+      orderBy: [{ path: 'nome', direction: OrderDirection.ASC }],
+    },
   });
 
   const handleChangeStatus = useCallback(
@@ -66,8 +70,6 @@ export default function MinisteriosIndex() {
     },
     [updateMinisterio],
   );
-
-  const { user, updateUser } = useAuth();
 
   const handleRemoveMinisterio = useCallback(
     (ministerioId: string) => {
@@ -109,6 +111,7 @@ export default function MinisteriosIndex() {
 
   return (
     <FancyListPage
+      showSearchBar
       fabProps={{ onPress: () => router.push('/admin/ministerios/add') }}
       searchBarProps={{
         value: searchText,
@@ -122,15 +125,18 @@ export default function MinisteriosIndex() {
                     path: 'nome',
                     operator: Operator.ILIKE,
                     value: {
-                      type: ValueType.LITERAL,
+                      type: ValueType.LITERAL as const,
                       value: text.trim(),
                     },
                   },
                 ],
               },
+              orderBy: [{ path: 'nome', direction: OrderDirection.ASC }],
             });
           } else {
-            setSearchParams({});
+            setSearchParams({
+              orderBy: [{ path: 'nome', direction: OrderDirection.ASC }],
+            });
           }
         },
       }}
@@ -141,10 +147,17 @@ export default function MinisteriosIndex() {
         renderItem: ({ item, index }) => {
           const commonProps: FancyCardImageBaseProps = {
             title: item.nome,
-            subtitle: <FancyTextDisplayCard value={MinisterioTipoLabel[item.tipo]} title='Tipo:' />,
+            subtitle: (
+              <FancyTextDisplayCard
+                value={MinisterioTipoLabel[item.tipo]}
+                icon={{ library: 'MaterialCommunityIcons', name: 'tag-outline', size: 12, color: Pallete.primary }}
+                containerStyle={{ marginVertical: 2 }}
+              />
+            ),
             additionalData1: (
               <FancyChips
                 style={{ marginTop: 2 }}
+                size='small'
                 label={MinisterioStatusLabel[item.status]}
                 color={MinisterioStatusEnumMap[item.status] === MinisterioStatusEnum.Ativo ? Pallete.primary : Pallete.error}
               />

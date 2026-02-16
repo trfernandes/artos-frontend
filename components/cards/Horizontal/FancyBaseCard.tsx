@@ -61,11 +61,14 @@ export default function FancyBaseCard({ isCollapsable = false, ...props }: Fancy
         <View style={styles.headerContainer}>
           {props.leftItem && <View style={styles.leftContainer}>{props.leftItem}</View>}
           <View style={[styles.centerContainer, props.centerContainerStyle]}>
-            {props.title && (
-              <FancyText {...titleTextProps} {...props.titleProps} style={[titleTextProps.style, props.titleProps?.style]}>
-                {props.title}
-              </FancyText>
-            )}
+            {props.title &&
+              (isValidElement(props.title) ? (
+                props.title
+              ) : (
+                <FancyText {...titleTextProps} {...props.titleProps} style={[titleTextProps.style, props.titleProps?.style]}>
+                  {props.title}
+                </FancyText>
+              ))}
             {props.subtitle &&
               (isValidElement(props.subtitle) ? (
                 props.subtitle
@@ -144,6 +147,7 @@ const styles = StyleSheet.create({
     borderColor: 'forestgreen',
     justifyContent: 'center',
     alignItems: 'center',
+    alignSelf: 'stretch',
   },
   centerContainer: {
     flex: 1,

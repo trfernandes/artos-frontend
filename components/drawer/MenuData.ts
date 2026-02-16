@@ -1,8 +1,8 @@
-import { ResponseLoginDto, ResponseLoginMinisterioDto } from '../../domain/dtos/login/login.response';
+import { ResponseLoginIgrejaDto, ResponseLoginMinisterioDto } from '../../domain/dtos/login/login.response';
 import { CustomIconProps } from '../FancyIcons';
 import { MinisterioTipoEnum } from '../../domain/enums/Ministerio/ministerio-tipo.enum';
 import { IgrejaVoluntarioRoleEnum } from '../../domain/enums/Igreja/voluntario-role.enum';
-import { VoluntarioHierarquiaEnumLabel } from '../../domain/enums/MinisterioVoluntario/hierarquia.enum';
+import { VoluntarioHierarquiaEnum, VoluntarioHierarquiaEnumLabel } from '../../domain/enums/MinisterioVoluntario/hierarquia.enum';
 
 const normalizeMinisterioTipo = (tipo: ResponseLoginMinisterioDto['tipo']): MinisterioTipoEnum => {
   const rawTipo = tipo?.toString() ?? '';
@@ -24,17 +24,18 @@ export type DrawerItemData = {
   onPress?: { type: 'RunMethod'; method: () => void } | { type: 'GoToRoute'; routeName: string };
 };
 
+// Menu pessoal - disponível para todos
 const BASE_MENU: DrawerItemData[] = [
   {
-    logo: { type: 'icon', value: { name: 'home', library: 'Octicons', size: 18 } },
+    logo: { type: 'icon', value: { name: 'home', library: 'Octicons', size: 14 } },
     title: 'Inicio',
-    onPress: { type: 'GoToRoute', routeName: '/' },
+    onPress: { type: 'GoToRoute', routeName: '/inicio' },
   },
   {
     title: 'Minhas Indisponibilidades',
     logo: {
       type: 'icon',
-      value: { name: 'calendar-times', library: 'FontAwesome6', size: 18 },
+      value: { name: 'calendar-times', library: 'FontAwesome6', size: 14 },
     },
     onPress: { type: 'GoToRoute', routeName: '/pessoal/indisponibilidade' },
   },
@@ -42,43 +43,56 @@ const BASE_MENU: DrawerItemData[] = [
     title: 'Minhas Escalas',
     logo: {
       type: 'icon',
-      value: { name: 'calendar-today', library: 'MaterialCommunityIcons', size: 21 },
+      value: { name: 'calendar-today', library: 'MaterialCommunityIcons', size: 17 },
     },
     onPress: { type: 'GoToRoute', routeName: '/pessoal/escalas' },
   },
 ];
 
-const ADMIN_MENU: DrawerItemData[] = [
+// Menu da Igreja - somente ADMIN (owner)
+const getIgrejaMenu = (): DrawerItemData[] => [
   {
     logo: {
       type: 'icon',
-      value: { name: 'calendar-month', library: 'MaterialCommunityIcons', size: 21 },
+      value: { name: 'calendar-month', library: 'MaterialCommunityIcons', size: 17 },
     },
     title: 'Eventos',
     onPress: { type: 'GoToRoute', routeName: '/admin/eventos' },
   },
   {
-    logo: { type: 'icon', value: { name: 'grid', library: 'Feather', size: 18 } },
+    logo: { type: 'icon', value: { name: 'grid', library: 'Feather', size: 14 } },
     title: 'Ministérios',
     onPress: { type: 'GoToRoute', routeName: '/admin/ministerios' },
   },
   {
-    logo: { type: 'icon', value: { name: 'people', library: 'Octicons', size: 18 } },
+    logo: { type: 'icon', value: { name: 'people', library: 'Octicons', size: 14 } },
     title: 'Voluntários',
     onPress: { type: 'GoToRoute', routeName: '/admin/voluntarios' },
   },
+  {
+    logo: {
+      type: 'icon',
+      value: { name: 'account-clock', library: 'MaterialCommunityIcons', size: 17 },
+    },
+    title: 'Solicitações e Convites',
+    onPress: { type: 'GoToRoute', routeName: '/admin/solicitacoes' },
+  },
+  {
+    logo: { type: 'icon', value: { name: 'cog', library: 'MaterialCommunityIcons', size: 17 } },
+    title: 'Configurações',
+    onPress: { type: 'GoToRoute', routeName: '/configuracoes' },
+  },
 ];
 
-const getMenuForMinisterio = (ministerio: ResponseLoginMinisterioDto): DrawerItemData[] => {
-  const ministerioTipo = normalizeMinisterioTipo(ministerio.tipo);
-  const routeParams = `?ministerioId=${ministerio.id}`;
-
-  const baseItems: DrawerItemData[] = [
+// Menus básicos do ministério (apenas Agenda e Escalas) - para voluntários comuns
+const getMinisterioBasicItems = (ministerioId: string): DrawerItemData[] => {
+  const routeParams = `?ministerioId=${ministerioId}`;
+  return [
     {
       title: 'Agenda',
       logo: {
         type: 'icon',
-        value: { name: 'calendar-month', library: 'MaterialCommunityIcons', size: 21 },
+        value: { name: 'calendar-month', library: 'MaterialCommunityIcons', size: 17 },
       },
       onPress: { type: 'GoToRoute', routeName: `/ministerios/agenda${routeParams}` },
     },
@@ -86,140 +100,147 @@ const getMenuForMinisterio = (ministerio: ResponseLoginMinisterioDto): DrawerIte
       title: 'Escalas',
       logo: {
         type: 'icon',
-        value: { name: 'calendar-account', library: 'MaterialCommunityIcons', size: 21 },
+        value: { name: 'calendar-account', library: 'MaterialCommunityIcons', size: 17 },
       },
       onPress: { type: 'GoToRoute', routeName: `/ministerios/escalas${routeParams}` },
+    },
+  ];
+};
+
+// Menus completos do ministério - para líderes e admin
+const getMinisterioFullItems = (ministerio: ResponseLoginMinisterioDto): DrawerItemData[] => {
+  const ministerioTipo = normalizeMinisterioTipo(ministerio.tipo);
+  const routeParams = `?ministerioId=${ministerio.id}`;
+
+  const baseItems = getMinisterioBasicItems(ministerio.id);
+
+  const commonItems: DrawerItemData[] = [
+    {
+      title: 'Indisponibilidades',
+      logo: {
+        type: 'icon',
+        value: { name: 'calendar-times', library: 'FontAwesome6', size: 14 },
+      },
+      onPress: { type: 'GoToRoute', routeName: `/ministerios/indisponibilidades${routeParams}` },
+    },
+    {
+      title: 'Integrantes',
+      logo: { type: 'icon', value: { name: 'people', library: 'Octicons', size: 14 } },
+      onPress: {
+        type: 'GoToRoute',
+        routeName: `/ministerios/integrantes${routeParams}`,
+      },
+    },
+    {
+      title: 'Funções',
+      logo: {
+        type: 'icon',
+        value: { library: 'FontAwesome6', name: 'person-rays', size: 14 },
+      },
+      onPress: { type: 'GoToRoute', routeName: `/ministerios/funcoes${routeParams}` },
     },
   ];
 
   switch (ministerioTipo) {
     case MinisterioTipoEnum.Louvor:
       return [
+        ...baseItems,
+        ...commonItems,
         {
-          logo: ministerio.logoThumbUrl
-            ? { type: 'logo', value: ministerio.logoThumbUrl }
-            : { type: 'icon', value: { name: 'music', library: 'Feather', size: 18 } },
-          title: ministerio.nome ?? 'Ministerio',
-          subtitle: ministerio.hierarquia ? VoluntarioHierarquiaEnumLabel[ministerio.hierarquia] : '',
-          items: [
-            ...baseItems,
-            {
-              title: 'Indisponibilidades',
-              logo: {
-                type: 'icon',
-                value: { name: 'calendar-times', library: 'FontAwesome6', size: 18 },
-              },
-              onPress: { type: 'GoToRoute', routeName: `/ministerios/indisponibilidades${routeParams}` },
+          title: 'Templates de Equipe',
+          logo: {
+            type: 'icon',
+            value: {
+              name: 'file-document-outline',
+              library: 'MaterialCommunityIcons',
+              size: 16,
             },
-            {
-              title: 'Integrantes',
-              logo: { type: 'icon', value: { name: 'people', library: 'Octicons', size: 18 } },
-              onPress: {
-                type: 'GoToRoute',
-                routeName: `/ministerios/integrantes${routeParams}`,
-              },
-            },
-            {
-              title: 'Funções',
-              logo: {
-                type: 'icon',
-                value: { library: 'FontAwesome6', name: 'person-rays', size: 18 },
-              },
-              onPress: { type: 'GoToRoute', routeName: `/ministerios/funcoes${routeParams}` },
-            },
-            // {
-            //   title: 'Substituicoes',
-            //   logo: {
-            //     type: 'icon',
-            //     value: {
-            //       name: 'file-send-outline',
-            //       library: 'MaterialCommunityIcons',
-            //       size: 20,
-            //     },
-            //   },
-            //   onPress: {
-            //     type: 'GoToRoute',
-            //     routeName: `/ministerios/substituicoes${routeParams}`,
-            //   },
-            // },
-            {
-              title: 'Templates de Equipe',
-              logo: {
-                type: 'icon',
-                value: {
-                  name: 'file-document-outline',
-                  library: 'MaterialCommunityIcons',
-                  size: 20,
-                },
-              },
-              onPress: {
-                type: 'GoToRoute',
-                routeName: `/ministerios/templates_equipe${routeParams}`,
-              },
-            },
-          ],
+          },
+          onPress: {
+            type: 'GoToRoute',
+            routeName: `/ministerios/templates_equipe${routeParams}`,
+          },
         },
       ];
     case MinisterioTipoEnum.Outros:
-      return [
-        {
-          logo: ministerio.logoThumbUrl
-            ? { type: 'logo', value: ministerio.logoThumbUrl }
-            : { type: 'icon', value: { name: 'grid', library: 'Feather', size: 18 } },
-          title: ministerio.nome ?? 'Ministerio',
-          subtitle: ministerio.hierarquia ? VoluntarioHierarquiaEnumLabel[ministerio.hierarquia] : '',
-          items: [
-            ...baseItems,
-            {
-              title: 'Funções',
-              logo: {
-                type: 'icon',
-                value: { library: 'FontAwesome6', name: 'person-rays', size: 18 },
-              },
-              onPress: { type: 'GoToRoute', routeName: `/ministerios/funcoes${routeParams}` },
-            },
-            {
-              title: 'Indisponibilidades',
-              logo: {
-                type: 'icon',
-                value: { name: 'calendar-times', library: 'FontAwesome6', size: 18 },
-              },
-              onPress: { type: 'GoToRoute', routeName: `/ministerios/indisponibilidades${routeParams}` },
-            },
-            {
-              title: 'Integrantes',
-              logo: { type: 'icon', value: { name: 'people', library: 'Octicons', size: 18 } },
-              onPress: {
-                type: 'GoToRoute',
-                routeName: `/ministerios/integrantes${routeParams}`,
-              },
-            },
-          ],
-        },
-      ];
     default:
-      return [];
+      return [...baseItems, ...commonItems];
   }
 };
 
-export function getMenuForUser(user: ResponseLoginDto): { section: string; items: DrawerItemData[] }[] {
-  const sections: { section: string; items: DrawerItemData[] }[] = [];
+// Monta o menu de um ministério baseado na hierarquia do usuário
+const getMenuForMinisterio = (
+  ministerio: ResponseLoginMinisterioDto,
+  isAdmin: boolean,
+  isVoluntarioRole: boolean,
+): DrawerItemData[] => {
+  // Comparação robusta da hierarquia
+  const hierarquia = ministerio.hierarquia?.toString();
+  const isLider =
+    hierarquia === VoluntarioHierarquiaEnum.Lider ||
+    hierarquia === VoluntarioHierarquiaEnum.Auxiliar ||
+    hierarquia === '1' ||
+    hierarquia === '2';
 
+  // Admin ou líder do ministério: todos os menus
+  const showFullMenu = isAdmin || isLider;
+
+  let items = showFullMenu ? getMinisterioFullItems(ministerio) : getMinisterioBasicItems(ministerio.id);
+
+  if (isVoluntarioRole) {
+    items = items.filter((item) => item.title !== 'Escalas');
+  }
+
+  const ministerioTipo = normalizeMinisterioTipo(ministerio.tipo);
+  const defaultIcon =
+    ministerioTipo === MinisterioTipoEnum.Louvor
+      ? { name: 'music', library: 'Feather' as const, size: 14 }
+      : { name: 'grid', library: 'Feather' as const, size: 14 };
+
+  return [
+    {
+      logo: ministerio.logoThumbUrl ? { type: 'logo', value: ministerio.logoThumbUrl } : { type: 'icon', value: defaultIcon },
+      title: ministerio.nome ?? 'Ministério',
+      subtitle: ministerio.hierarquia ? VoluntarioHierarquiaEnumLabel[ministerio.hierarquia] : '',
+      items,
+    },
+  ];
+};
+
+export function getMenuForIgreja(igreja: ResponseLoginIgrejaDto | null): { section: string; items: DrawerItemData[] }[] {
+  if (!igreja) {
+    return [{ section: 'Pessoal', items: BASE_MENU }];
+  }
+
+  const sections: { section: string; items: DrawerItemData[] }[] = [];
+  // Comparação robusta do role (case insensitive)
+  const roleUpper = igreja.role?.toString().toUpperCase();
+  const isAdmin = roleUpper === IgrejaVoluntarioRoleEnum.ADMIN || roleUpper === 'OWNER';
+  const isVoluntarioRole = roleUpper === IgrejaVoluntarioRoleEnum.VOLUNTARIO;
+
+  // Seção Pessoal - sempre disponível
   sections.push({ section: 'Pessoal', items: BASE_MENU });
 
-  const ministerios = user?.igrejas?.flatMap((igreja) => igreja.ministerios || []) || [];
+  // Seção Igreja - somente para ADMIN (owner)
+  if (isAdmin) {
+    sections.push({ section: 'Igreja', items: getIgrejaMenu() });
+  }
+
+  // Seção Ministérios
+  const ministerios = igreja.ministerios || [];
 
   if (ministerios.length >= 1) {
     const ministeriosMenus = ministerios
       .sort((a, b) => (a.nome ?? '').localeCompare(b.nome ?? '', 'pt-BR', { sensitivity: 'base' }))
-      .map((ministerio) => getMenuForMinisterio(ministerio));
+      .map((ministerio) => getMenuForMinisterio(ministerio, isAdmin, isVoluntarioRole));
     sections.push({ section: 'Ministérios', items: ministeriosMenus.flat() });
   }
 
-  const isAdmin = user?.igrejas?.some((igreja) => igreja.role === IgrejaVoluntarioRoleEnum.ADMIN);
-  if (isAdmin) {
-    sections.push({ section: 'Administração', items: ADMIN_MENU });
-  }
-
   return sections;
+}
+
+// Mantém compatibilidade com código antigo (deprecated)
+export function getMenuForUser(user: { igrejas?: ResponseLoginIgrejaDto[] }): { section: string; items: DrawerItemData[] }[] {
+  const primeiraIgreja = user?.igrejas?.[0] || null;
+  return getMenuForIgreja(primeiraIgreja);
 }

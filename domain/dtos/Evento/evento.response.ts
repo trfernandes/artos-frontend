@@ -1,6 +1,7 @@
 import { RecorrenciaDiaSemanaEnum } from '../../enums/Evento/recorrencia-dia-semana.enum';
 import { RecorrenciaSemanaMesEnum } from '../../enums/Evento/recorrencia-semana-mes.enum';
 import { RecorrenciaEnum } from '../../enums/Evento/recorrencia.enum';
+import { TemplatePadraoOrigemEnum } from '../../enums/Evento/template-padrao-origem.enum';
 import { ResponseEscalaTemplateDto } from '../EscalaTemplate/escala-template.response';
 import { ResponseIgrejaDto } from '../Igreja/response-igreja.dto';
 
@@ -22,4 +23,5 @@ export type ResponseEventoDto = {
   recorrenciaSemanasMes?: RecorrenciaSemanaMesEnum[];
   templatePadraoId?: string;
   templatePadrao?: ResponseEscalaTemplateDto;
+  templatePadraoOrigem?: TemplatePadraoOrigemEnum;
 };

@@ -146,10 +146,11 @@ export default function MinisterioIntegrantesIndex() {
             type='image'
             props={{
               title: item.voluntario?.nome,
-              subtitle: <FancyTextDisplayCard title={undefined} value={item.voluntario?.email} />,
-              additionalData1: <FancyTextDisplayCard title='Função:' value={VoluntarioHierarquiaEnumLabel[item.hierarquia!]} />,
+              subtitle: <FancyTextDisplayCard icon={{ library: 'MaterialCommunityIcons', name: 'email-outline', size: 12, color: Pallete.primary }} value={item.voluntario?.email} valueStyle={{ numberOfLines: 1 }} />,
+              additionalData1: <FancyTextDisplayCard icon={{ library: 'MaterialCommunityIcons', name: 'account-cog-outline', size: 12, color: Pallete.primary }} value={VoluntarioHierarquiaEnumLabel[item.hierarquia!]} />,
               additionalData2: (
                 <FancyChips
+                  size='small'
                   style={{ marginTop: 2 }}
                   label={MinisterioVoluntarioStatusEnumLabel[item.status]}
                   color={MinisterioStatusColorMap[item.status]}

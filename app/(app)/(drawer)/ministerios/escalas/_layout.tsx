@@ -6,23 +6,33 @@ export default function MinisterioEscalasLayout() {
   return (
     <Stack
       screenOptions={{
+        headerShown: true,
         header: (props) => <FancyPageHeader {...props} />,
       }}
     >
-      <Stack.Screen name='index' options={{ title: 'Escalas', headerRight: () => <MainHeaderButtons /> }} />
+      <Stack.Screen
+        name='index'
+        options={{
+          title: 'Escalas',
+          headerShown: true,
+          header: (props) => <FancyPageHeader leftButton='menu' {...props} />,
+          headerRight: () => <MainHeaderButtons />,
+        }}
+      />
       <Stack.Screen
         name='assistant'
         options={{
+          headerShown: true,
           header: (props) => <FancyPageHeader leftButton='back' {...props} />,
           title: 'Assistente de Escalas',
         }}
       />
-
       <Stack.Screen
         name='details'
         options={{
           headerShadowVisible: false,
-          header: (props) => null,
+          headerShown: true,
+          header: (props) => <FancyPageHeader leftButton='back' {...props} />,
           title: 'Detalhes da Escala',
         }}
       />

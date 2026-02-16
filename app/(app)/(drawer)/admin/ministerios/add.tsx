@@ -15,7 +15,7 @@ import FancyLoading from '../../../../../components/FancyLoading';
 import { router } from 'expo-router';
 import { useMinisteriosCrud as useMinisteriosCrud } from '../../../../../hooks/useMinisteriosCrud';
 import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
-import { useAuth, UserMinisterio } from '../../../../../contexts/AuthContext';
+import { useAuth } from '../../../../../contexts/AuthContext';
 import { MinisterioStatusEnum } from '../../../../../domain/enums/Ministerio/ministerio-status.enum';
 import { ResponseMinisterioDto } from '../../../../../domain/dtos/Ministerio/ministerio.response';
 import LiderancaTab from '../../../../../components/pages/admin/ministerios/LiderancaTab';
@@ -34,7 +34,7 @@ export default function MinisteriosAddPage() {
     defaultValues: { status: MinisterioStatusEnum.Ativo, logoUpload: null, logoUrl: null, logoThumbUrl: null },
   });
 
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, igrejaAtiva } = useAuth();
 
   const { add: addMinisterios, isLoading: isLoadingMinisterios } = useMinisteriosCrud();
   const { add: addVoluntarios, isLoading: isLoadingVoluntarios } = useMinisterioVoluntariosCrud({ muteMessages: true });
@@ -48,6 +48,7 @@ export default function MinisteriosAddPage() {
           const { voluntarios, ...ministerio } = data;
 
           const newMinisterioData: CreateMinisterioDto = {
+            igrejaId: igrejaAtiva!.id,
             nome: ministerio.nome,
             tipo: ministerio.tipo,
             descricao: ministerio.descricao || undefined,
@@ -70,23 +71,36 @@ export default function MinisteriosAddPage() {
 
           const newMinisterio: ResponseMinisterioDto = await addMinisterios(newMinisterioData);
 
-          voluntarios.forEach(async (voluntario) => {
-            await addVoluntarios({
-              ministerioId: newMinisterio.id,
-              voluntarioId: voluntario.voluntarioId,
-              hierarquia: voluntario.hierarquia,
-            });
-          });
+          // Adiciona voluntários ao ministério
+          await Promise.all(
+            voluntarios.map((voluntario) =>
+              addVoluntarios({
+                ministerioId: newMinisterio.id,
+                voluntarioId: voluntario.voluntarioId,
+                hierarquia: voluntario.hierarquia,
+              }),
+            ),
+          );
 
-          const ministerios: UserMinisterio[] = [
-            {
-              id: newMinisterio.id!,
-              nome: newMinisterio.nome,
-              tipo: newMinisterio.tipo,
-            },
-            ...(user?.ministerios || []),
-          ];
-          updateUser({ ...user, ministerios });
+          // Atualiza o usuário logado com o novo ministério na igreja ativa
+          if (igrejaAtiva) {
+            const novaIgreja = {
+              ...igrejaAtiva,
+              ministerios: [
+                ...igrejaAtiva.ministerios,
+                {
+                  id: newMinisterio.id!,
+                  nome: newMinisterio.nome,
+                  tipo: newMinisterio.tipo,
+                  hierarquia: voluntarios[0]?.hierarquia, // ou lógica adequada
+                  logoUrl: newMinisterio.logoUrl,
+                  logoThumbUrl: newMinisterio.logoThumbUrl,
+                },
+              ],
+            };
+            const novasIgrejas = (user?.igrejas || []).map((ig) => (ig.id === igrejaAtiva.id ? novaIgreja : ig));
+            updateUser({ ...user, igrejas: novasIgrejas });
+          }
 
           form.reset();
           router.back();
@@ -159,7 +173,7 @@ export default function MinisteriosAddPage() {
   };
 
   if (isLoadingMinisterios || isLoadingVoluntarios) {
-    return <FancyLoading label='Adicionando...' />;
+    return <FancyLoading />;
   }
 
   return (
@@ -168,7 +182,12 @@ export default function MinisteriosAddPage() {
       <FormProvider {...form}>
         <View style={styles.contentContainer}>{STEPS.steps[stepIndex].content}</View>
       </FormProvider>
-      <FancyStepsNavigation config={STEPS} stepIndex={stepIndex} setStepIndex={setStepIndex} />
+      <FancyStepsNavigation
+        config={STEPS}
+        stepIndex={stepIndex}
+        setStepIndex={setStepIndex}
+        containerStyle={{ paddingHorizontal: 15 }}
+      />
     </FancyPageView>
   );
 }

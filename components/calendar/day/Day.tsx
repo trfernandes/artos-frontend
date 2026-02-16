@@ -70,13 +70,18 @@ function DayComponent({
   const renderMarkers = () => {
     if (!shouldRenderBottomMarker) return null;
 
+    const resolveColor = (c?: string) => {
+      if (isSelected) return Pallete.fonts.light;
+      return c || undefined;
+    };
+
     if (Array.isArray(markerColor)) {
       return markerColor.map((c, index) => (
-        <View key={`marker-${index}`} style={[styles.marked, c ? { backgroundColor: c } : null]} />
+        <View key={`marker-${index}`} style={[styles.marked, { backgroundColor: resolveColor(c) }]} />
       ));
     }
 
-    return <View style={[styles.marked, markerColor ? { backgroundColor: markerColor } : null]} />;
+    return <View style={[styles.marked, { backgroundColor: resolveColor(markerColor) }]} />;
   };
 
   return (
@@ -110,8 +115,8 @@ const styles = StyleSheet.create({
     // borderWidth: 1,
   },
   circle: {
-    width: '80%',
-    height: '80%',
+    width: '68%',
+    height: '68%',
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
@@ -129,9 +134,9 @@ const styles = StyleSheet.create({
   },
   marked: {
     marginTop: 1,
-    height: 3,
-    width: 3,
-    borderRadius: 1.5,
+    height: 4,
+    width: 4,
+    borderRadius: 2,
     backgroundColor: Pallete.warning,
   },
 });

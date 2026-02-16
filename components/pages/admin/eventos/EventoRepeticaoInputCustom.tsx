@@ -78,7 +78,7 @@ export default function EventoRepeticaoInputCustom({ modalProps }: { modalProps?
 
   return (
     <FancyFullModal modalProps={modalProps} title='Parametrização de Recorrência'>
-      <FancyScrollView style={{ flex: 1, borderWidth: 0, borderColor: 'coral' }}>
+      <FancyScrollView fill style={{ flex: 1, borderWidth: 0, borderColor: 'coral' }}>
         <View style={styles.body}>
           <Controller
             control={recorrenciaForm.control}

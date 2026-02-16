@@ -40,12 +40,8 @@ export function ImageComponent({ source, highlighted = false }: { source: ImageS
       style={{
         alignItems: 'center',
         justifyContent: 'flex-start',
-        ...Pallete.shadows[100],
-        backgroundColor: Pallete.backgroundColor3,
         borderRadius: 9999,
-        padding: 2,
-        borderColor: highlighted ? Pallete.primary : Pallete.warning,
-        borderWidth: 2.5,
+        ...Pallete.shadows[200],
       }}
     >
       {source ? <Image source={source} style={styles.image} contentFit='fill' /> : null}
@@ -103,8 +99,7 @@ const styles = StyleSheet.create({
   selected: { backgroundColor: Pallete.selected },
   image: {
     borderRadius: 9999,
-    borderWidth: 1,
     aspectRatio: 1,
-    width: '60%',
+    width: '50%',
   },
 });

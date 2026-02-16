@@ -3,12 +3,13 @@ import FancyPageView from '../../../../../components/containers/FancyPageView';
 import { StyleSheet, View } from 'react-native';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
-import ControlledDropDown from '../../../../../components/forms/ControlledDropDown';
+import ControlledSearchSelect from '../../../../../components/forms/ControlledSearchSelect';
 import { useVoluntariosDoMinisterioCrud } from '../../../../../hooks/useVoluntariosDoMinisterioCrud';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useIndisponibilidadesVoluntariosCrud } from '../../../../../hooks/useIndisponibilidadesVoluntariosCrud';
 import { useMemo, useState } from 'react';
-import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
+import { Conjunction, Operator, ValueType } from '../../../../../domain/utils/query_utils';
+import FancyError from '../../../../../components/error/FancyError';
 import FancyLoading from '../../../../../components/FancyLoading';
 import { Pallete } from '../../../../../constants/colors';
 import FancyCalendar from '../../../../../components/calendar/FancyCalendar';
@@ -20,6 +21,7 @@ import AddPeriodoModal from '../../../../../components/pages/pessoal/indisponibi
 import Toast from 'react-native-toast-message';
 import DateUtils, { DateUtilsApi } from '../../../../../utils/date_utils';
 import DateAvailabilityAdjustmentModal from '../../../../../components/pages/pessoal/indisponibilidade/DateAvailabilityAdjustmentModal';
+import { useAuth } from '../../../../../contexts/AuthContext';
 
 type ModalState = {
   visible: boolean;
@@ -35,6 +37,8 @@ const schema = z.object({
 
 export default function MinisterioIndisponibilidadesIndex() {
   const { ministerioId } = useLocalSearchParams<{ ministerioId?: string }>();
+  const { igrejaAtiva } = useAuth();
+  const igrejaId = igrejaAtiva?.id;
 
   const {
     voluntariosList,
@@ -53,7 +57,9 @@ export default function MinisterioIndisponibilidadesIndex() {
   const voluntarioId = watch('voluntarioId');
 
   const initialParams = useMemo(() => {
+    if (!voluntarioId || !igrejaId) return undefined;
     return {
+      igrejaId: igrejaId,
       where: {
         conditions: [
           {
@@ -62,20 +68,23 @@ export default function MinisterioIndisponibilidadesIndex() {
             value: { type: ValueType.LITERAL, value: voluntarioId },
           },
         ],
+        conjunction: Conjunction.AND,
       },
-    } as DynamicQuery;
-  }, [voluntarioId]);
+    };
+  }, [voluntarioId, igrejaId]);
 
   const {
     data: indisponibilidadesData,
     add: addIndisponibilidade,
     update: updateIndisponibilidade,
-    remove: removeIndisponibilidade,
+    removeWithIgreja,
     isLoading: isLoadingIndisponibilidades,
     isLoadingMutation: isLoadingIndisponibilidadesMutation,
+    isError: isErrorIndisponibilidades,
+    refetch: refetchIndisponibilidades,
     upsertMany,
   } = useIndisponibilidadesVoluntariosCrud({
-    autoFetch: true,
+    autoFetch: Boolean(voluntarioId && igrejaId),
     initialParams,
   });
 
@@ -95,7 +104,7 @@ export default function MinisterioIndisponibilidadesIndex() {
 
   const handleAddPeriodo = async (inicio: Date, fim: Date, motivo: string) => {
     setShowPeriodoModal(false);
-    if (!voluntarioId) return;
+    if (!voluntarioId || !igrejaId) return;
     try {
       const dates = DateUtils.generateDatesBetween(inicio, fim);
       const indisponibilidadesExistentes = dates.map((d) => ({
@@ -105,6 +114,7 @@ export default function MinisterioIndisponibilidadesIndex() {
 
       await upsertMany({
         voluntarioId,
+        igrejaId,
         indisponibilidades: indisponibilidadesExistentes,
       });
       Toast.show({ type: 'success', text1: 'Período registrado com sucesso' });
@@ -136,9 +146,11 @@ export default function MinisterioIndisponibilidadesIndex() {
               text1: 'Motivo atualizado com sucesso!',
             });
           } else {
+            if (!igrejaId) return;
             await addIndisponibilidade({
               data: DateUtilsApi.dateOnlyToApi(date),
               voluntarioId: voluntarioId,
+              igrejaId,
               motivo,
             });
             Toast.show({
@@ -146,8 +158,8 @@ export default function MinisterioIndisponibilidadesIndex() {
               text1: 'Data marcada como indisponível!',
             });
           }
-        } else if (registro?.id) {
-          await removeIndisponibilidade(registro.id);
+        } else if (registro?.id && igrejaId) {
+          await removeWithIgreja({ id: registro.id, igrejaId });
           Toast.show({
             type: 'info',
             text1: 'Data disponível novamente!!',
@@ -163,14 +175,18 @@ export default function MinisterioIndisponibilidadesIndex() {
     return <FancyLoading />;
   }
 
+  if (isErrorIndisponibilidades) {
+    return <FancyError.Default onUpdate={refetchIndisponibilidades} />;
+  }
+
   return (
     <FancyPageView style={styles.container}>
       <View style={styles.voluntarioContainer}>
-        <ControlledDropDown control={control} name='voluntarioId' label='Voluntário' listItems={voluntariosDropDownList} />
+        <ControlledSearchSelect control={control} name='voluntarioId' label='Voluntário' searchPlaceholder='Buscar voluntário...' listItems={voluntariosDropDownList} />
       </View>
       {voluntarioId && !isLoadingIndisponibilidades ? (
         <View>
-          <FancyVerticalSpacer height={30} />
+          <FancyVerticalSpacer height={15} />
           <FancyCalendar
             selectDateOnPress={false}
             onChangeSelectedDate={(date) => {
@@ -182,7 +198,7 @@ export default function MinisterioIndisponibilidadesIndex() {
                 motivo: registro?.motivo ?? null,
               });
             }}
-            containerStyle={{ paddingHorizontal: 5, flex: 1 }}
+            containerStyle={{ paddingHorizontal: 5 }}
             minimumDate={startDate}
             maximumDate={endDate}
             markedDates={indisponibilidadesData.map((d) => ({
@@ -192,7 +208,7 @@ export default function MinisterioIndisponibilidadesIndex() {
             }))}
             markedDatesType='SurroundCircle'
           />
-          <FancyVerticalSpacer height={40} />
+          <FancyVerticalSpacer height={15} />
           <FancyButton
             label='Adicionar Período'
             icon={{ ...DefaultIconsNames.add, size: 20 }}
@@ -207,7 +223,7 @@ export default function MinisterioIndisponibilidadesIndex() {
             alignItems: 'center',
           }}
         >
-          <FancyListEmpty />
+          <FancyListEmpty label='Nenhum voluntário selecionado...' icon={{ library: 'MaterialCommunityIcons', name: 'calendar-remove-outline', size: 55 }} />
         </View>
       )}
 
@@ -235,7 +251,7 @@ export default function MinisterioIndisponibilidadesIndex() {
 }
 
 const styles = StyleSheet.create({
-  container: { paddingVertical: 10, flex: 1, paddingHorizontal: 20 },
+  container: { paddingBottom: 10, flex: 1, paddingHorizontal: 20 },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.35)',
@@ -255,5 +271,5 @@ const styles = StyleSheet.create({
     borderRadius: 7,
     backgroundColor: Pallete.error,
   },
-  voluntarioContainer: {},
+  voluntarioContainer: { paddingTop: 5 },
 });

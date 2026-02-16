@@ -4,6 +4,7 @@ import { BaseApi } from './BaseApi';
 import { strfyObj } from '../../utils/text_utils';
 import { DynamicQuery } from '../utils/query_utils';
 import { CreateEscalaItemDto } from '../dtos/Escala/escala-item.create';
+import { GetEscalaItensVoluntarioQueryDto } from '../dtos/Escala/get-escala-itens-voluntario.query';
 import { ResponseEscalaItemDto } from '../dtos/Escala/escala-item.response';
 import { UpdateEscalaItemDto } from '../dtos/Escala/escala-item.update';
 
@@ -14,7 +15,10 @@ class EscalaItensApiClass extends BaseApi<ResponseEscalaItemDto, CreateEscalaIte
 
   override async search(query: DynamicQuery, includeFotos: boolean = false): Promise<ResponseEscalaItemDto[]> {
     try {
-      const response = await apiClient.post(`/${this.resourceName}/search`, query, { params: { includeFotos } });
+      const igrejaId = (query as { igrejaId?: string } | undefined)?.igrejaId;
+      const params = igrejaId ? { includeFotos, igrejaId } : { includeFotos };
+
+      const response = await apiClient.post(`/${this.resourceName}/search`, query, { params });
       return response.data.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -26,9 +30,14 @@ class EscalaItensApiClass extends BaseApi<ResponseEscalaItemDto, CreateEscalaIte
     }
   }
 
-  async getByVoluntarioId(voluntarioId: string): Promise<ResponseEscalaItemDto[]> {
+  async getByVoluntarioId(
+    voluntarioId: string,
+    query: GetEscalaItensVoluntarioQueryDto,
+  ): Promise<ResponseEscalaItemDto[]> {
     try {
-      const response = await apiClient.get(`/${this.resourceName}/voluntario/${voluntarioId}`);
+      const response = await apiClient.get(`/${this.resourceName}/voluntario/${voluntarioId}`, {
+        params: query,
+      });
       return response.data.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -46,9 +55,31 @@ class EscalaItensApiClass extends BaseApi<ResponseEscalaItemDto, CreateEscalaIte
             }
           })(),
           resposta: error.response?.data,
-          params: { voluntarioId },
+          params: { voluntarioId, ...query },
         };
         console.log('Erro ao buscar por Id de voluntário:', strfyObj(errorInfo));
+      } else {
+        console.error('Erro inesperado:', error);
+      }
+      throw error;
+    }
+  }
+
+  async deleteWithIgrejaId(id: string, igrejaId: string): Promise<void> {
+    try {
+      await apiClient.delete(`/${this.resourceName}/${id}`, { params: { igrejaId } });
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const errorInfo = {
+          mensagem: error.message,
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          url: error.config?.url,
+          metodo: error.config?.method,
+          params: { id, igrejaId },
+          resposta: error.response?.data,
+        };
+        console.log('Erro ao deletar item de escala:', strfyObj(errorInfo));
       } else {
         console.error('Erro inesperado:', error);
       }

@@ -14,7 +14,13 @@ export interface FancyErrorProps {
   showTryAgain?: boolean;
 }
 
-export default function FancyError({ title = '', subtitle, icon, showTryAgain = true, onUpdate }: FancyErrorProps) {
+export default function FancyError({
+  title = '',
+  subtitle,
+  icon,
+  showTryAgain = true,
+  onUpdate,
+}: FancyErrorProps) {
   return (
     <View style={styles.container}>
       <View style={{ alignItems: 'center', gap: 25 }}>

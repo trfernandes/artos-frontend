@@ -38,6 +38,23 @@ export type StatusCadastroResponseDto = {
   nextAction: string;
   emailEnviadoEm?: string | null;
   linkExpiraEm?: string | null;
+  // Token de acesso retornado quando o cadastro é confirmado
+  access_token?: string;
+  user?: {
+    id: string;
+    nome: string;
+    email: string;
+    fotoUrl?: string | null;
+    fotoThumbUrl?: string | null;
+  };
+  igrejas?: Array<{
+    id: string;
+    nome: string;
+    logoUrl?: string | null;
+    logoThumbUrl?: string | null;
+    role: string;
+    ministerios: any[];
+  }>;
 };
 
 // Request do PATCH /public/cadastro-igreja/:id/alterar-email

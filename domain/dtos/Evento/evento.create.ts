@@ -3,6 +3,7 @@ import { RecorrenciaSemanaMesEnum } from '../../enums/Evento/recorrencia-semana-
 import { RecorrenciaEnum } from '../../enums/Evento/recorrencia.enum';
 
 export type CreateEventoDto = {
+  igrejaId: string;
   nome: string;
   descricao?: string;
   dataInicio: string;

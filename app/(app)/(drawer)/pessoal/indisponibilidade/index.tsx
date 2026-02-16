@@ -7,6 +7,7 @@ import DateAvailabilityAdjustmentModal from '../../../../../components/pages/pes
 import { useIndisponibilidadesVoluntariosCrud } from '../../../../../hooks/useIndisponibilidadesVoluntariosCrud';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { Conjunction, Operator, ValueType } from '../../../../../domain/utils/query_utils';
+import FancyError from '../../../../../components/error/FancyError';
 import Toast from 'react-native-toast-message';
 import { Pallete } from '../../../../../constants/colors';
 import FancyFab from '../../../../../components/buttons/FancyFab';
@@ -23,8 +24,9 @@ type ModalState = {
 };
 
 export default function IndisponibilidadeIndexPage() {
-  const { user } = useAuth();
-  const userId = user?.id;
+  const { user, igrejaAtiva } = useAuth();
+  const userId = user?.user?.id;
+  const igrejaId = igrejaAtiva?.id;
 
   const [modalState, setModalState] = useState<ModalState>({
     visible: false,
@@ -32,14 +34,6 @@ export default function IndisponibilidadeIndexPage() {
   });
   const [showPeriodoModal, setShowPeriodoModal] = useState(false);
   const [hasSettled, setHasSettled] = useState(false);
-
-  if (!userId) {
-    return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <FancyText>Não foi possível carregar suas indisponibilidades.</FancyText>
-      </View>
-    );
-  }
 
   const { queryStartDate, queryEndDate, calendarStartDate, calendarEndDate } = useMemo(() => {
     const now = new Date();
@@ -63,17 +57,10 @@ export default function IndisponibilidadeIndexPage() {
     };
   }, []);
 
-  const {
-    update: updateData,
-    add: addData,
-    data,
-    remove: removeData,
-    isLoading: isLoadingData,
-    isLoadingMutation: isLoadingMutating,
-    isRefetching,
-    upsertMany,
-  } = useIndisponibilidadesVoluntariosCrud({
-    initialParams: {
+  const initialParams = useMemo(() => {
+    if (!userId || !igrejaId) return undefined;
+    return {
+      igrejaId: igrejaId,
       where: {
         conditions: [
           {
@@ -81,27 +68,26 @@ export default function IndisponibilidadeIndexPage() {
             operator: Operator.EQUALS,
             value: { type: ValueType.LITERAL, value: userId },
           },
-          {
-            path: 'data',
-            operator: Operator.GTE,
-            value: {
-              type: ValueType.LITERAL,
-              value: queryStartDate.toISOString(),
-            },
-          },
-          {
-            path: 'data',
-            operator: Operator.LTE,
-            value: {
-              type: ValueType.LITERAL,
-              value: queryEndDate.toISOString(),
-            },
-          },
         ],
         conjunction: Conjunction.AND,
       },
-    },
-    autoFetch: true,
+    };
+  }, [userId, igrejaId]);
+
+  const {
+    update: updateData,
+    add: addData,
+    data,
+    removeWithIgreja,
+    isLoading: isLoadingData,
+    isLoadingMutation: isLoadingMutating,
+    isRefetching,
+    isError,
+    refetch,
+    upsertMany,
+  } = useIndisponibilidadesVoluntariosCrud({
+    initialParams,
+    autoFetch: Boolean(userId && igrejaId),
   });
 
   const loadingFlags = isLoadingData || isLoadingMutating || isRefetching;
@@ -153,23 +139,22 @@ export default function IndisponibilidadeIndexPage() {
   );
 
   const handleConfirmAddPeriodo = async (inicio: Date, fim: Date, motivo: string) => {
+    if (!userId || !igrejaId) return;
     setShowPeriodoModal(false);
 
     try {
       const datesBetweenPeriod = DateUtils.generateDatesBetween(inicio, fim);
 
       const indisponibilidades: UpsertIndisponibilidadeVoluntarioItemDto[] = datesBetweenPeriod.map((d) => {
-        // ✅ sempre "dia local" -> converte para UTC antes de enviar
-        // const utcDate = DateUtils.localDayToUtcDate(d);
-
         return {
-          data: DateUtilsApi.dateOnlyToApi(d), // converte para string ISO
+          data: DateUtilsApi.dateOnlyToApi(d),
           motivo: motivo?.trim() || undefined,
         };
       });
 
       await upsertMany({
         voluntarioId: userId,
+        igrejaId,
         indisponibilidades,
       });
 
@@ -191,6 +176,7 @@ export default function IndisponibilidadeIndexPage() {
   const closeModal = () => setModalState((prev) => ({ ...prev, visible: false }));
 
   const handleConfirm = async (mode: 'mark' | 'unmark', date: Date, motivo?: string) => {
+    if (!userId || !igrejaId) return;
     const registro = data.find((d) => DateUtilsApi.compareDateOnlyFromApi(d.data, date));
     closeModal();
 
@@ -213,6 +199,7 @@ export default function IndisponibilidadeIndexPage() {
           await addData({
             data: DateUtilsApi.dateOnlyToApi(date),
             voluntarioId: userId,
+            igrejaId,
             motivo,
           });
           setLazyToastOptions({
@@ -222,7 +209,7 @@ export default function IndisponibilidadeIndexPage() {
           });
         }
       } else if (registro?.id) {
-        await removeData(registro.id);
+        await removeWithIgreja({ id: registro.id, igrejaId });
         setLazyToastOptions({
           type: 'info',
           message: 'Data disponível novamente!',
@@ -239,13 +226,26 @@ export default function IndisponibilidadeIndexPage() {
     }
   };
 
+  // Early return AFTER all hooks
+  if (!userId || !igrejaId) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', flex: 1 }]}>
+        <FancyText>Não foi possível carregar suas indisponibilidades.</FancyText>
+      </View>
+    );
+  }
+
+  if (isError) {
+    return <FancyError.Default onUpdate={refetch} />;
+  }
+
   return (
     <View style={{ flex: 1 }}>
       <FancyPageView style={[styles.container, { opacity: isBusy ? 0 : 1 }]}>
         <FancyCalendarVertical<'id', string>
           highlightCurrentMonth
           disablePastDates
-          contentContainerStyle={{ paddingHorizontal: 20 }}
+          contentContainerStyle={{ paddingHorizontal: 15 }}
           startDate={calendarStartDate}
           endDate={calendarEndDate}
           markedDates={markedDates}
@@ -258,7 +258,11 @@ export default function IndisponibilidadeIndexPage() {
               motivo: registro?.motivo ?? null,
             });
           }}
-          listProps={{ bottomSpace: 70 }}
+          listProps={{
+            bottomSpace: 70,
+            showFade: false,
+            maintainVisibleContentPosition: false,
+          }}
           daysProps={{ markerColor: Pallete.error }}
         />
 
@@ -302,7 +306,7 @@ export default function IndisponibilidadeIndexPage() {
 }
 
 const styles = StyleSheet.create({
-  container: { paddingBottom: 50, gap: 30, paddingTop: 5 },
+  container: { paddingBottom: 50, gap: 10 },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.35)',
@@ -312,7 +316,7 @@ const styles = StyleSheet.create({
   },
   legend: {
     flexDirection: 'row',
-    paddingLeft: 20,
+    paddingLeft: 15,
     alignItems: 'center',
     gap: 8,
   },

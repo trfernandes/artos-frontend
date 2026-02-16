@@ -2,7 +2,8 @@ import { useFormContext } from 'react-hook-form';
 import { View } from 'react-native';
 import { EscalaTemplateFuncaoFormData } from '../../../../domain/schemas/escalaTemplateSchema';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
-import ControlledDropDown from '../../../forms/ControlledDropDown';
+import ControlledSearchSelect from '../../../forms/ControlledSearchSelect';
+import ControlledBottomSheetSelect from '../../../forms/ControlledBottomSheetSelect';
 import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
 import { useCallback, useMemo } from 'react';
 import { EnumUtils } from '../../../../utils/enum_utils';
@@ -40,8 +41,8 @@ export default function TemplateFuncoesForm({ mode = 'add', voluntarioList, func
   return (
     <FancyModalDialog {...props} title={mode === 'add' ? 'Adicionar Função' : 'Editar Função'} onButton2Press={handleConfirm}>
       <View style={{ gap: 15 }}>
-        <ControlledDropDown control={control} name='funcaoId' label='Função' listItems={funcoesList} disabled={mode === 'edit'} />
-        <ControlledDropDown control={control} name='experiencia' label='Experiência' listItems={experiencaList} />
+        <ControlledSearchSelect control={control} name='funcaoId' label='Função' listItems={funcoesList} disabled={mode === 'edit'} searchPlaceholder='Buscar função...' />
+        <ControlledBottomSheetSelect control={control} name='experiencia' label='Experiência' listItems={experiencaList} />
         <ControlledNumberInput control={control} name='quantidade' title='Quantidade' min={1} max={10} />
       </View>
     </FancyModalDialog>

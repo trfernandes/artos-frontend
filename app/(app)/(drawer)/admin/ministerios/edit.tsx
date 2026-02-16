@@ -12,7 +12,7 @@ import { strfyObj } from '../../../../../utils/text_utils';
 import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
 import { useMinisteriosCrud } from '../../../../../hooks/useMinisteriosCrud';
 import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
-import { useAuth, UserMinisterio } from '../../../../../contexts/AuthContext';
+import { useAuth } from '../../../../../contexts/AuthContext';
 import { MinisterioStatusEnumMap } from '../../../../../domain/enums/Ministerio/ministerio-status.enum';
 import { MinisterioTipoEnumMap } from '../../../../../domain/enums/Ministerio/ministerio-tipo.enum';
 import { VoluntarioHierarquiaEnum } from '../../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
@@ -48,9 +48,13 @@ export default function MinisteriosEditPage() {
     update: updateMinisterio,
   } = useMinisteriosCrud({ initialParams: ministerioSearchParams });
 
-  const { add: addVoluntario, update: updateVoluntario, remove: removeVoluntario } = useMinisterioVoluntariosCrud({ autoFetch: false });
+  const {
+    add: addVoluntario,
+    update: updateVoluntario,
+    remove: removeVoluntario,
+  } = useMinisterioVoluntariosCrud({ autoFetch: false });
 
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, igrejaAtiva } = useAuth();
 
   const [tabIndex, setTabIndex] = useState(0);
 
@@ -68,7 +72,7 @@ export default function MinisteriosEditPage() {
       descricao: m.descricao ?? '',
       logoUrl: m.logoUrl ?? null,
       logoThumbUrl: m.logoThumbUrl ?? null,
-      uploadLogo: m.logo ?? '',
+      uploadLogo: m.logoThumbUrl || m.logoUrl || '',
       tipo: MinisterioTipoEnumMap[m.tipo!],
       status: MinisterioStatusEnumMap[m.status!],
     });
@@ -133,6 +137,7 @@ export default function MinisteriosEditPage() {
 
         try {
           const updateData: UpdateMinisterioDto = {
+            igrejaId: igrejaAtiva!.id,
             nome: data.nome,
             descricao: data.descricao === null ? undefined : data.descricao,
             tipo: data.tipo,
@@ -159,21 +164,29 @@ export default function MinisteriosEditPage() {
           });
 
           //Atualizar informações do ministério no usuário logado
-          const ministeriosExistentes = user?.ministerios || [];
-
-          const novoMinisterio: UserMinisterio = {
-            id: editedMinisterio.id!,
-            nome: editedMinisterio.nome,
-            logoThumbUrl: editedMinisterio.logoThumbUrl,
-            logoUrl: editedMinisterio.logoUrl,
-            tipo: editedMinisterio.tipo,
-            hierarquia: editedMinisterio.voluntarios?.find((v) => v.voluntario?.id === user?.id)?.hierarquia,
-          };
-
-          // Atualiza se já existe, senão adiciona
-          const ministeriosAtualizados = [...ministeriosExistentes.filter((m) => m.id !== novoMinisterio.id), novoMinisterio];
-
-          updateUser({ ...user, ministerios: ministeriosAtualizados });
+          // Atualiza o ministério editado na igreja ativa do usuário logado
+          if (igrejaAtiva) {
+            const hierarquia = editedMinisterio.voluntarios?.find((v) => v.voluntario?.id === user?.user.id)?.hierarquia ?? VoluntarioHierarquiaEnum.Voluntario;
+            const novoMinisterio = {
+              id: editedMinisterio.id!,
+              nome: editedMinisterio.nome,
+              logoThumbUrl: editedMinisterio.logoThumbUrl,
+              logoUrl: editedMinisterio.logoUrl,
+              tipo: editedMinisterio.tipo,
+              hierarquia,
+            };
+            const novaIgreja = {
+              ...igrejaAtiva,
+              ministerios: [
+                ...igrejaAtiva.ministerios.filter((m) => m.id !== novoMinisterio.id),
+                novoMinisterio,
+              ],
+            };
+            const novasIgrejas = (user?.igrejas || []).map((ig) =>
+              ig.id === igrejaAtiva.id ? novaIgreja : ig
+            );
+            updateUser({ ...user, igrejas: novasIgrejas });
+          }
 
           form.reset();
           router.back();
@@ -210,7 +223,7 @@ export default function MinisteriosEditPage() {
           items={tabsConfig}
           headerStyle={{ paddingHorizontal: 15 }}
           containerStyle={styles.tabsContainer}
-          contentContainerStyle={styles.tabContent}
+          contentContainerStyle={styles.tabContent}          
         />
       </FormProvider>
 

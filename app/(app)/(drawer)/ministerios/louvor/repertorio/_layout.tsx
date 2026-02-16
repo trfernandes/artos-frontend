@@ -6,6 +6,7 @@ export default function MinisterioLouvorRepertorioLayout() {
   return (
     <Stack
       screenOptions={{
+        headerShown: true,
         header: (props) => <FancyPageHeader {...props} />,
       }}
     >
@@ -13,17 +14,18 @@ export default function MinisterioLouvorRepertorioLayout() {
         name='index'
         options={{
           title: 'Repertório',
-
           headerRight: () => <MainHeaderButtons />,
         }}
       />
       <Stack.Screen
         name='add'
-        options={{ title: 'Adicionar Música', header: (props) => <FancyPageHeader leftButton='back' {...props} /> }}
+        options={{ title: 'Adicionar Música', headerShown: true,
+ header: (props) => <FancyPageHeader leftButton='back' {...props} /> }}
       />
       <Stack.Screen
         name='edit'
-        options={{ title: 'Editar Música', header: (props) => <FancyPageHeader leftButton='back' {...props} /> }}
+        options={{ title: 'Editar Música', headerShown: true,
+ header: (props) => <FancyPageHeader leftButton='back' {...props} /> }}
       />
     </Stack>
   );

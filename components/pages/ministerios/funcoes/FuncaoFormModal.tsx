@@ -11,6 +11,7 @@ import { MinisterioFuncaoStatusEnum } from '../../../../domain/enums/MinisterioF
 import { ResponseMinisterioFuncaoDto } from '../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.response';
 import { CreateMinisterioFuncaoDto } from '../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.create';
 import { UpdateMinisterioFuncaoDto } from '../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.update';
+import { strfyObj } from '../../../../utils/text_utils';
 
 const schema = z.object({
   id: z.uuid().optional(),
@@ -20,11 +21,14 @@ const schema = z.object({
 });
 
 export default function FuncaoFormModal(
-  props: FancyModalDialogProps<{ mode: 'add' | 'edit'; data: CreateMinisterioFuncaoDto | UpdateMinisterioFuncaoDto }> & {
+  props: FancyModalDialogProps<{
+    mode: 'add' | 'edit';
+    data: CreateMinisterioFuncaoDto | UpdateMinisterioFuncaoDto;
+  }> & {
     ministerioId: string;
   } & {
     mode: 'add' | 'edit';
-    editValues: ResponseMinisterioFuncaoDto;
+    editValues?: ResponseMinisterioFuncaoDto;
   },
 ) {
   const { control, handleSubmit, reset } = useForm({
@@ -40,7 +44,7 @@ export default function FuncaoFormModal(
       reset({
         id: props.editValues?.id,
         nome: props.editValues.nome,
-        descricao: props.editValues.descricao,
+        descricao: props.editValues.descricao || '',
         status: props.editValues.status,
       });
     } else if (props.mode === 'add') {
@@ -50,12 +54,15 @@ export default function FuncaoFormModal(
 
   const handleConfirm = useMemo(
     () =>
-      handleSubmit(async (data) => {
-        props.onButton2Press?.({
-          mode: props.mode,
-          data,
-        });
-      }),
+      handleSubmit(
+        async (data) => {
+          props.onButton2Press?.({
+            mode: props.mode,
+            data,
+          });
+        },
+        (errors) => console.log('Erros do Função Form', strfyObj(errors)),
+      ),
     [props],
   );
 

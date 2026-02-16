@@ -1,11 +1,8 @@
-import { IgrejaVoluntarioRoleEnum } from '../../enums/Igreja/voluntario-role.enum';
-
-export type ResponseConvitePreviewDto = {
-  igrejaId: string;
+export interface ResponseConvitePreviewDto {
+  token: string;
   igrejaNome: string;
+  igrejaId: string;
+  igrejaLogo?: string | null;
   autoApprove: boolean;
-  expiresAt?: string | null;
-  maxUses?: number | null;
-  usesCount: number;
-  roleSugerida?: IgrejaVoluntarioRoleEnum | null;
-};
+  expiresAt?: string;
+}

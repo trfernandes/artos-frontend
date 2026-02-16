@@ -9,6 +9,7 @@ export default function SubstituicaoModal(props: Omit<FancyModalDialogProps<any>
       <FancyDropDown
         label='Voluntário'
         placeholder='Selecione o voluntário que irá o substituir'
+        renderMode='modal'
         // ...existing code...
         listItems={PEOPLE_DATA.map((value, index) => {
           return {

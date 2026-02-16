@@ -111,6 +111,8 @@ export default function VoluntarioTab({ ministerioId }: VoluntarioTabProps) {
       <FancyList
         data={minVoluntsList}
         bottomSpace={45}
+        containerStyle={{ flex: 1 }}
+        listEmptyProps={{ label: 'Nenhum voluntário adicionado', icon: { library: 'MaterialCommunityIcons', name: 'account-group-outline', size: 55 } }}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => {
           const commonProps: FancyCardImageProps = {

@@ -1,17 +1,25 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { NotificacoesApi } from '../domain/api/NotificacoesApi';
 
-export function useNotificacoesCrud({ apenasNaoLidas = false }: { apenasNaoLidas?: boolean } = {}) {
+export function useNotificacoesCrud({
+  apenasNaoLidas = false,
+  enabled = true,
+}: {
+  apenasNaoLidas?: boolean;
+  enabled?: boolean;
+} = {}) {
   const qc = useQueryClient();
 
   const listarQuery = useQuery({
-    queryKey: ['notificacoes'],
-    queryFn: () => NotificacoesApi.listar(false),
+    queryKey: ['notificacoes', apenasNaoLidas],
+    queryFn: () => NotificacoesApi.listar(apenasNaoLidas),
+    enabled,
   });
 
   const contarNaoLidasQuery = useQuery({
     queryKey: ['notificacoes', 'unread-count'],
     queryFn: async () => NotificacoesApi.contarNaoLidas(),
+    enabled,
   });
 
   const marcarComoLidoMutation = useMutation({
@@ -30,12 +38,15 @@ export function useNotificacoesCrud({ apenasNaoLidas = false }: { apenasNaoLidas
     },
   });
 
+  const noop = () => {};
+  const noopMarcarComoLida = (_id: string) => {};
+
   return {
-    notificacoes: listarQuery.data ?? [],
-    isLoading: listarQuery.isLoading,
-    isLoadingMutation: marcarComoLidoMutation.isPending || marcarTodasComoLidasMutation.isPending,
-    quantidadeNaoLidas: contarNaoLidasQuery.data ?? 0,
-    marcarComoLida: (id: string) => marcarComoLidoMutation.mutate(id),
-    marcarTodasComoLidas: () => marcarTodasComoLidasMutation.mutate(),
+    notificacoes: enabled ? listarQuery.data ?? [] : [],
+    isLoading: enabled ? listarQuery.isLoading : false,
+    isLoadingMutation: enabled ? marcarComoLidoMutation.isPending || marcarTodasComoLidasMutation.isPending : false,
+    quantidadeNaoLidas: enabled ? contarNaoLidasQuery.data ?? 0 : 0,
+    marcarComoLida: enabled ? (id: string) => marcarComoLidoMutation.mutate(id) : noopMarcarComoLida,
+    marcarTodasComoLidas: enabled ? () => marcarTodasComoLidasMutation.mutate() : noop,
   };
 }

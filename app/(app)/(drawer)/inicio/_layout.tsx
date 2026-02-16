@@ -6,6 +6,7 @@ export default function InicioLayout() {
   return (
     <Stack
       screenOptions={{
+        headerShown: true,
         header: (props) => <FancyPageHeader {...props} />,
       }}
     >
@@ -13,6 +14,7 @@ export default function InicioLayout() {
         name='index'
         options={{
           title: 'Início',
+          headerShown: true,
           header: (props) => <FancyPageHeader leftButton='menu' {...props} />,
           headerRight: () => <MainHeaderButtons />,
         }}

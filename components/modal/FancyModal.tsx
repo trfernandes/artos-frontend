@@ -1,4 +1,5 @@
 import { Modal, ModalProps, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export type FancyModalProps = {
   modalProps?: ModalProps;
@@ -11,13 +12,15 @@ export type FancyModalProps = {
 export default function FancyModal({ modalProps, center, top, bottom, ...props }: FancyModalProps) {
   return (
     <Modal animationType='fade' presentationStyle='formSheet' transparent {...modalProps}>
-      <View style={[styles.centeredView, modalProps?.style]}>
-        <View style={[styles.modalView, props.containerStyle]}>
-          {top}
-          {center}
-          {bottom}
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View style={[styles.centeredView, modalProps?.style]}>
+          <View style={[styles.modalView, props.containerStyle]}>
+            {top}
+            {center}
+            {bottom}
+          </View>
         </View>
-      </View>
+      </GestureHandlerRootView>
     </Modal>
   );
 }

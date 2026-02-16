@@ -16,8 +16,8 @@ export default function TemplateFixoEquipeForm({ voluntarioList, funcoesList, ..
   return (
     <FancyModalDialog {...props} title='Adicionar Voluntário' onButton2Press={props.onButton2Press}>
       <View style={{ gap: 15 }}>
-        <ControlledDropDown control={control} name='voluntarioId' label='Voluntário' listItems={voluntarioList} />
-        <ControlledDropDown control={control} name='funcaoId' label='Função' listItems={funcoesList} />
+        <ControlledDropDown control={control} name='voluntarioId' label='Voluntário' listItems={voluntarioList} renderMode='modal' />
+        <ControlledDropDown control={control} name='funcaoId' label='Função' listItems={funcoesList} renderMode='modal' />
       </View>
     </FancyModalDialog>
   );

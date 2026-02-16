@@ -51,5 +51,5 @@ export default function EventoDetails(props: { evento: ResponseEventoDto; dataOc
 }
 
 const styles = StyleSheet.create({
-  container: { paddingTop: 10, gap: 6, borderWidth: 0, borderColor: 'forestgreen' },
+  container: { gap: 6, paddingBottom: 20, borderWidth: 0, borderColor: 'forestgreen' },
 });

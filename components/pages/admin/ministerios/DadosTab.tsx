@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 import ControlledTextInput from '../../../forms/ControlledTextInput';
 import { useFormContext } from 'react-hook-form';
 import ControlledTextArea from '../../../forms/ControlledTextArea';
-import ControlledDropDown from '../../../forms/ControlledDropDown';
+import ControlledBottomSheetSelect from '../../../forms/ControlledBottomSheetSelect';
 
 import FancyScrollView from '../../../FancyScrollView';
 import { EnumUtils } from '../../../../utils/enum_utils';
@@ -14,10 +14,10 @@ export default function DadosTab(props: { mode: 'add' } | { mode: 'edit'; id: st
   const { control, setValue } = useFormContext<AddMinisterioFormData>();
 
   return (
-    <FancyScrollView contentContainerStyle={styles.fieldsContainer}>
+    <FancyScrollView contentContainerStyle={styles.fieldsContainer} fill>
       <ControlledImagePicker control={control} name='logoThumbUrl' uploadFieldName='logoUpload' setValue={setValue as any} />
       <ControlledTextInput control={control} name='nome' label='Nome' />
-      <ControlledDropDown
+      <ControlledBottomSheetSelect
         control={control}
         name='tipo'
         label='Tipo'

@@ -30,9 +30,9 @@ export interface UseCrudOptions<TResponse extends CrudIdentifiable, TForm extend
   fetchAll: () => Promise<TResponse[]>;
   fetchOne?: (id: string) => Promise<TResponse>;
 
-  add: (data: TCreate) => Promise<TResponse>;
-  update: (id: string, data: TUpdate) => Promise<TResponse>;
-  remove: (id: string) => Promise<void>;
+  add?: (data: TCreate) => Promise<TResponse>;
+  update?: (id: string, data: TUpdate) => Promise<TResponse>;
+  remove?: (id: string) => Promise<void>;
 
   search?: (params: DynamicQuery) => Promise<TResponse[]>;
 
@@ -166,11 +166,13 @@ export function useCrud<TResponse extends CrudIdentifiable, TForm extends FieldV
     },
     onError: (error) => {
       if (!muteMessages) Toast.show({ type: 'error', text1: messages?.errorCreate || 'Erro ao criar item.' });
-      console.log(error);
+      if (__DEV__) {
+        console.log('[useCrud] Create error:', error);
+      }
     },
   });
 
-  const updateMutation = useMutation({
+  const updateMutation = update && useMutation({
     mutationFn: ({ id, data }: { id: string; data: TUpdate }) => update(id, data),
     onSuccess: () => {
       if (!muteMessages) Toast.show({ type: 'success', text1: messages?.successUpdate || 'Item atualizado com sucesso!' });
@@ -178,7 +180,9 @@ export function useCrud<TResponse extends CrudIdentifiable, TForm extends FieldV
     },
     onError: (error) => {
       if (!muteMessages) Toast.show({ type: 'error', text1: messages?.errorUpdate || 'Erro ao atualizar item.' });
-      console.log(error);
+      if (__DEV__) {
+        console.log('[useCrud] Update error:', error);
+      }
     },
   });
 
@@ -190,14 +194,16 @@ export function useCrud<TResponse extends CrudIdentifiable, TForm extends FieldV
     },
     onError: (error) => {
       if (!muteMessages) Toast.show({ type: 'error', text1: messages?.errorDelete || 'Erro ao remover item.' });
-      console.log(error);
+      if (__DEV__) {
+        console.log('[useCrud] Delete error:', error);
+      }
     },
   });
 
   const handleSubmit = async (formValues: TForm) => {
     if (currentItem?.id) {
       const payload = toUpdateDto ? toUpdateDto(formValues, currentItem) : (formValues as unknown as TUpdate);
-      await updateMutation.mutateAsync({ id: currentItem.id, data: payload });
+      await updateMutation?.mutateAsync({ id: currentItem.id, data: payload });
     } else {
       const payload = toCreateDto ? toCreateDto(formValues) : (formValues as unknown as TCreate);
       await createMutation.mutateAsync(payload);
@@ -214,16 +220,16 @@ export function useCrud<TResponse extends CrudIdentifiable, TForm extends FieldV
     setSearchParams,
 
     add: createMutation.mutateAsync,
-    update: updateMutation.mutateAsync,
+    update: updateMutation?.mutateAsync,
     remove: removeMutation.mutateAsync,
 
     handleSubmit,
 
     isLoading: combinedLoading,
-    isLoadingMutation: createMutation.isPending || updateMutation.isPending || removeMutation.isPending,
+    isLoadingMutation: createMutation.isPending || updateMutation?.isPending || removeMutation.isPending,
     isRefetching: combinedRefetching,
     isError: dataQuery.isError,
-    error: dataQuery.error || createMutation.error || updateMutation.error || removeMutation.error,
+    error: dataQuery.error || createMutation.error || updateMutation?.error || removeMutation.error,
     refetch: dataQuery.refetch,
   };
 }

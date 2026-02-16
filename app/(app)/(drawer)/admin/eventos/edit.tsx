@@ -70,12 +70,14 @@ export default function EventosEditPage() {
   const handleSubmit = async () => {
     eventoForm.handleSubmit(
       async (data) => {
+        const { id, ...payload } = data;
+
         await updateEvento({
-          id: data.id!,
+          id: id!,
           data: {
-            ...data,
-            dataInicio: DateUtilsApi.dateTimeToApi(data.dataInicio),
-            dataTermino: data.dataTermino ? DateUtilsApi.dateTimeToApi(data.dataTermino) : undefined,
+            ...payload,
+            dataInicio: DateUtilsApi.dateTimeToApi(payload.dataInicio),
+            dataTermino: payload.dataTermino ? DateUtilsApi.dateTimeToApi(payload.dataTermino) : undefined,
           },
         });
         router.back();

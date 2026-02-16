@@ -34,6 +34,9 @@ export function useIgrejaCrud({
     { dto: CreateCadastroIgrejaDto; formData: LoginCreateIgrejaFormData }
   >({
     mutationFn: async ({ dto, formData }) => {
+        // Debug: logar entrada do mutationFn
+        // eslint-disable-next-line no-console
+        console.log('[criarCadastroMutation] mutationFn chamada', { dto });
       const response = await CadastroIgrejaRepository.criarCadastro(dto);
 
       // Salvar dados no storage para a tela de confirmação
@@ -63,6 +66,16 @@ export function useIgrejaCrud({
     },
     onError: (error: any) => {
       hideLoading();
+      // Log seguro para debug (sem dados sensíveis)
+      if (error) {
+        // eslint-disable-next-line no-console
+        console.log('[criarCadastroMutation] erro:', {
+          status: error?.response?.status,
+          url: error?.config?.url,
+          method: error?.config?.method,
+          data: error?.response?.data,
+        });
+      }
       if (!muteMessages) {
         const message = error?.response?.data?.message || 'Erro ao criar cadastro. Tente novamente.';
         Toast.show({

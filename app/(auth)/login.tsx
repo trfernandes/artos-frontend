@@ -16,13 +16,14 @@ import { useConnectivity } from '../../core/network/connectivity/ConnectivityPro
 import { CadastroIgrejaRepository } from '../../domain/services/CadastroIgrejaRepository';
 import { FancyAlert } from '../../components/modal/FancyAlert';
 
-const REMEMBER_EMAIL_KEY = '@artos:remember_email';
-const REMEMBER_PASSWORD_KEY = '@artos:remember_password';
+const REMEMBER_EMAIL_KEY = 'artos_remember_email';
+const REMEMBER_PASSWORD_KEY = 'artos_remember_password';
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function LoginIndexPage() {
   const { signIn } = useAuth();
-  const { isOffline } = useConnectivity();
+  const { status: connectivityStatus, isOffline } = useConnectivity();
+  const isServerUnavailable = connectivityStatus !== 'ok';
   const passwordInputRef = useRef<TextInput>(null);
 
   const [email, setEmail] = useState('');
@@ -80,16 +81,8 @@ export default function LoginIndexPage() {
   const handleCadastroPendente = async (error: AxiosError | any, fallbackEmail: string) => {
     const data = error?.response?.data;
     const payload = data?.data ?? data;
-    const errorCode =
-      data?.code ||
-      data?.error?.code ||
-      data?.errorCode ||
-      payload?.code ||
-      payload?.errorCode;
-    const message =
-      data?.message ||
-      data?.error?.message ||
-      payload?.message;
+    const errorCode = data?.code || data?.error?.code || data?.errorCode || payload?.code || payload?.errorCode;
+    const message = data?.message || data?.error?.message || payload?.message;
 
     const normalizedMessage = typeof message === 'string' ? message.toLowerCase() : '';
     const isCadastroPendente =
@@ -140,17 +133,53 @@ export default function LoginIndexPage() {
     try {
       await signIn(trimmedEmail, password);
 
-      if (rememberMe) {
-        await SecureStore.setItemAsync(REMEMBER_EMAIL_KEY, trimmedEmail);
-        await SecureStore.setItemAsync(REMEMBER_PASSWORD_KEY, password);
-      } else {
-        await SecureStore.deleteItemAsync(REMEMBER_EMAIL_KEY);
-        await SecureStore.deleteItemAsync(REMEMBER_PASSWORD_KEY);
+      try {
+        if (rememberMe) {
+          await SecureStore.setItemAsync(REMEMBER_EMAIL_KEY, trimmedEmail);
+          await SecureStore.setItemAsync(REMEMBER_PASSWORD_KEY, password);
+        } else {
+          await SecureStore.deleteItemAsync(REMEMBER_EMAIL_KEY);
+          await SecureStore.deleteItemAsync(REMEMBER_PASSWORD_KEY);
+        }
+      } catch (secureStoreError: any) {
+        console.error('Erro ao salvar credenciais no SecureStore:', secureStoreError);
+        Toast.show({
+          type: 'error',
+          text1: 'Erro ao salvar credenciais',
+          text2: `Não foi possível salvar o e-mail e senha localmente. ${secureStoreError?.message || JSON.stringify(secureStoreError)}`,
+        });
       }
 
       router.replace('/');
     } catch (error: any) {
       if (await handleCadastroPendente(error, trimmedEmail)) return;
+
+      const status = error?.response?.status;
+      const data = error?.response?.data;
+      const backendMessage: string = (data?.message || data?.error?.message || '').toLowerCase();
+
+      if (status === 401) {
+        if (backendMessage.includes('não verificado') || backendMessage.includes('nao verificado')) {
+          Toast.show({
+            type: 'info',
+            text1: 'E-mail não verificado',
+            text2: 'Verifique seu e-mail para ativar sua conta.',
+          });
+        } else if (backendMessage.includes('desativada') || backendMessage.includes('desativado')) {
+          Toast.show({
+            type: 'error',
+            text1: 'Conta desativada',
+            text2: 'Sua conta foi desativada. Entre em contato com o suporte.',
+          });
+        } else {
+          Toast.show({
+            type: 'error',
+            text1: 'Credenciais inválidas',
+            text2: 'E-mail ou senha incorretos.',
+          });
+        }
+        return;
+      }
 
       const isNetworkError =
         !error?.response ||
@@ -173,15 +202,13 @@ export default function LoginIndexPage() {
     }
   };
 
-
   return (
     <AuthScreen
       scrollContainerStyle={styles.scrollContainer}
       centerContainerStyle={styles.centerContainer}
       headerContainerStyle={styles.titleContainer}
-      headerWidth={{ default: '85%', keyboard: '85%' }}
-      contentWidth={{ default: '85%', keyboard: '85%' }}
-      hideTopContentOnKeyboard
+      headerWidth={{ default: '85%', keyboard: '110%' }}
+      contentWidth={{ default: '85%', keyboard: '110%' }}
       fieldsContainerStyle={styles.fieldsContainer}
       topContent={({ keyboardVisible }) =>
         !keyboardVisible ? (
@@ -262,7 +289,7 @@ export default function LoginIndexPage() {
           />
         </View>
 
-        <FancyButton label={loading ? 'Entrando...' : 'Logar'} onPress={handleLogin} disabled={loading} />
+        <FancyButton label={loading ? 'Entrando...' : 'Entrar'} onPress={handleLogin} disabled={loading || isServerUnavailable} />
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingTop: 5 }}>
           <FancyText size={'extraSmall'} style={{ borderWidth: 0 }}>
@@ -273,7 +300,12 @@ export default function LoginIndexPage() {
             label='Cadastre-se'
             onPress={() => router.push('/(auth)/create-account')}
             labelStyle={{ lineHeight: 14 }}
-            containerStyle={{ paddingHorizontal: 0, height: 20, alignItems: 'center', borderWidth: 0 }}
+            containerStyle={{
+              paddingHorizontal: 0,
+              height: 20,
+              alignItems: 'center',
+              borderWidth: 0,
+            }}
             disabled={loading}
           />
         </View>
@@ -292,7 +324,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: DESIGN_MODE,
     borderColor: 'blueviolet',
-    gap: 25,
+    paddingBottom: 40,
+    gap: 20,
   },
   logoContainer: {
     position: 'absolute',

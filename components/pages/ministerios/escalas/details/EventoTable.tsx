@@ -1,85 +1,169 @@
-import { View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { format } from 'date-fns';
 import { Pallete } from '../../../../../constants/colors';
 import { ColorUtils } from '../../../../../utils/color_utils';
 import FancyAccordeon from '../../../../FancyAccordeon';
 import FancyText from '../../../../FancyText';
 import ListaVoluntariosTable from './ListaVoluntariosTable';
+import DefaultIcons from '../../../../FancyIcons';
+import { FancyAlert } from '../../../../modal/FancyAlert';
 import {
   EscalaItemDataType,
   EscalaItemEquipeType as EscalaItemEquipeType,
 } from '../../../../../app/(app)/(drawer)/ministerios/escalas/details';
 import { useMemo, useState } from 'react';
 import SubstituirVoluntarioModal, { SubstituicaoConfirmDialog } from './SubstituirVoluntarioModal';
+import AdicionarVoluntarioModal, {
+  AdicionarVoluntarioConfirmDialog,
+} from './AdicionarVoluntarioModal';
+import AdicionarFuncaoModal, { AdicionarFuncaoConfirmDialog } from './AdicionarFuncaoModal';
 import { DateUtilsApi } from '../../../../../utils/date_utils';
+
+const EVENT_META_COLOR = 'rgba(0, 0, 0, 0.8)';
 
 export interface EventoTableProps {
   data: EscalaItemDataType;
   viewMode?: 'view' | 'edit';
   ministerioId: string;
+  escalaId: string;
   onChangeVoluntario?: (data: SubstituicaoConfirmDialog) => Promise<boolean>;
+  onAddVoluntario?: (data: AdicionarVoluntarioConfirmDialog) => Promise<boolean>;
+  onDeleteEvento?: (eventoId: string, dataOcorrencia: string) => Promise<boolean>;
+  onAdicionarFuncao?: (data: AdicionarFuncaoConfirmDialog) => Promise<boolean>;
+  onExcluirFuncao?: (funcaoId: string, eventoId: string, dataOcorrencia: string) => void;
 }
 
-export default function EventoTable({ data, viewMode, ministerioId, onChangeVoluntario }: EventoTableProps) {
-  const [substituicaoModalProps, setSubstituicaoModalProps] = useState<{ isOpen: boolean; data?: EscalaItemEquipeType }>({
+export default function EventoTable({
+  data,
+  viewMode,
+  ministerioId,
+  escalaId: _escalaId,
+  onChangeVoluntario,
+  onAddVoluntario,
+  onDeleteEvento,
+  onAdicionarFuncao,
+  onExcluirFuncao,
+}: EventoTableProps) {
+  const [substituicaoModalProps, setSubstituicaoModalProps] = useState<{
+    isOpen: boolean;
+    data?: EscalaItemEquipeType;
+  }>({
     isOpen: false,
   });
+  const [adicionarModalProps, setAdicionarModalProps] = useState<{
+    isOpen: boolean;
+    data?: EscalaItemEquipeType;
+  }>({
+    isOpen: false,
+  });
+  const [adicionarFuncaoModalOpen, setAdicionarFuncaoModalOpen] = useState(false);
 
-  const { borderColor, expandableIconColor, lightenColor, textColor, headerBackgroundColor } = useMemo(() => {
-    const border = ColorUtils.darkenColor(data.evento.cor || Pallete.primary, 0);
+  const {
+    borderColor,
+    expandableIconColor,
+    headerBackgroundColor,
+    headerExpandedBackgroundColor,
+    headerGradientColors,
+    headerExpandedGradientColors,
+  } = useMemo(() => {
+    const accentColor = data.evento.cor || Pallete.primary;
+    const darkStart = ColorUtils.lightenColor(accentColor, 0.62);
+    const midStart = ColorUtils.lightenColor(accentColor, 0.72);
+    const mid = ColorUtils.lightenColor(accentColor, 0.76);
+    const midEnd = ColorUtils.lightenColor(accentColor, 0.8);
+    const lightEnd = ColorUtils.lightenColor(accentColor, 0.84);
+
     return {
-      borderColor: border,
-      expandableIconColor: ColorUtils.darkenColor(data.evento.cor || Pallete.primary, 0.4),
-      lightenColor: ColorUtils.lightenColor(data.evento.cor || Pallete.primary, 0.96),
-      textColor: ColorUtils.getTextColorForBackground(border),
-      headerBackgroundColor: ColorUtils.lightenColor(data.evento.cor || Pallete.primary, 0.2),
+      borderColor: accentColor,
+      expandableIconColor:
+        ColorUtils.getTextColorForBackground(accentColor) === '#FFFFFF'
+          ? '#FFFFFF'
+          : ColorUtils.darkenColor(accentColor, 0.25),
+      headerBackgroundColor: lightEnd,
+      headerExpandedBackgroundColor: lightEnd,
+      headerGradientColors: [lightEnd, midEnd, mid, midStart, darkStart],
+      headerExpandedGradientColors: [lightEnd, midEnd, mid, midStart, darkStart],
     };
   }, [data.evento.cor]);
+
+  const handleDeleteEvento = () => {
+    FancyAlert.alert('Excluir Evento', 'Deseja realmente excluir este evento da escala?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Excluir',
+        style: 'destructive',
+        onPress: async () => {
+          await onDeleteEvento?.(data.evento.id, data.dataOcorrencia);
+        },
+      },
+    ]);
+  };
 
   return (
     <>
       <FancyAccordeon
-        title=<View
-          style={{
-            paddingVertical: 10,
-            flexDirection: 'row',
-            gap: 10,
-            alignItems: 'center',
-            flex: 1,
-          }}
-        >
-          <View style={{ gap: 3 }}>
-            <FancyText type='bold' size='small'>
-              {data.evento.nome}
-            </FancyText>
-            <FancyText type='medium' size='extraSmall' style={{}}>{`${format(data.dataOcorrencia, 'dd/MM/yyyy')} - ${`${format(
-              data.evento.dataInicio!,
-              'HH:mm',
-            )} à ${format(data.evento.dataTermino!, 'HH:mm')}`}`}</FancyText>
+        title={
+          <View style={styles.titleContainer}>
+            <View style={styles.titleTextContainer}>
+              <FancyText type='bold' size='small' color={Pallete.fonts.dark} numberOfLines={1}>
+                {data.evento.nome}
+              </FancyText>
+
+              <View style={styles.headerMetaRow}>
+                <View style={styles.metaGroup}>
+                  <DefaultIcons.Custom
+                    library='MaterialIcons'
+                    name='event'
+                    size={13}
+                    color={EVENT_META_COLOR}
+                  />
+                  <FancyText type='medium' size='extraSmall' color={EVENT_META_COLOR}>
+                    {format(data.dataOcorrencia, 'dd/MM/yyyy')}
+                  </FancyText>
+                </View>
+                <View style={styles.metaGroup}>
+                  <DefaultIcons.Custom
+                    library='MaterialIcons'
+                    name='access-time'
+                    size={13}
+                    color={EVENT_META_COLOR}
+                  />
+                  <FancyText type='medium' size='extraSmall' color={EVENT_META_COLOR}>{`${format(
+                    data.evento.dataInicio!,
+                    'HH:mm',
+                  )} - ${format(data.evento.dataTermino!, 'HH:mm')}`}</FancyText>
+                </View>
+              </View>
+            </View>
           </View>
-        </View>
-        contentContainerStyle={{ paddingHorizontal: 0, paddingTop: 15, borderWidth: 0, backgroundColor: 'white' }}
-        headerContainerStyle={{ backgroundColor: lightenColor }}
-        headerExpandedContainerStyle={{
-          borderBottomWidth: 1.35,
-          borderColor: borderColor,
-          backgroundColor: lightenColor,
-        }}
-        containerContainerStyle={{
-          borderColor: borderColor,
-          borderRadius: 12,
-          borderWidth: 1.35,
-          backgroundColor: lightenColor,
-        }}
-        containerExpandedContainerStyle={{
-          borderColor: borderColor,
-          borderRadius: 12,
-          borderWidth: 1.35,
-          backgroundColor: 'white',
-          paddingBottom: 15,
-          marginBottom: 10,
-        }}
-        iconProps={{ color: expandableIconColor }}
+        }
+        contentContainerStyle={styles.contentContainer}
+        headerContainerStyle={[styles.headerContainer, { backgroundColor: headerBackgroundColor }]}
+        headerExpandedContainerStyle={[
+          styles.headerExpandedContainer,
+          {
+            borderColor: borderColor,
+            backgroundColor: headerExpandedBackgroundColor,
+          },
+        ]}
+        headerGradientColors={headerGradientColors}
+        headerExpandedGradientColors={headerExpandedGradientColors}
+        headerGradientStart={{ x: 0, y: 0.5 }}
+        headerGradientEnd={{ x: 1, y: 0.5 }}
+        containerContainerStyle={[
+          styles.containerContainer,
+          {
+            borderColor: borderColor,
+            backgroundColor: headerBackgroundColor,
+          },
+        ]}
+        containerExpandedContainerStyle={[
+          styles.containerExpandedContainer,
+          {
+            borderColor: borderColor,
+          },
+        ]}
+        iconProps={{ color: expandableIconColor, size: 18 }}
       >
         <ListaVoluntariosTable
           data={data.equipe}
@@ -87,6 +171,25 @@ export default function EventoTable({ data, viewMode, ministerioId, onChangeVolu
           onSubstituicaoButtonPressed={(data) => {
             setSubstituicaoModalProps({ isOpen: true, data });
           }}
+          onAdicionarVoluntarioButtonPressed={(data) => {
+            setAdicionarModalProps({ isOpen: true, data });
+          }}
+          onAdicionarFuncaoPressed={() => {
+            setAdicionarFuncaoModalOpen(true);
+          }}
+          onExcluirFuncaoPressed={(funcaoId) => {
+            FancyAlert.alert('Excluir Função', 'Deseja realmente excluir esta função do evento?', [
+              { text: 'Cancelar', style: 'cancel' },
+              {
+                text: 'Excluir',
+                style: 'destructive',
+                onPress: () => {
+                  onExcluirFuncao?.(funcaoId, data.evento.id, data.dataOcorrencia);
+                },
+              },
+            ]);
+          }}
+          onExcluirEvento={handleDeleteEvento}
         />
       </FancyAccordeon>
 
@@ -100,7 +203,6 @@ export default function EventoTable({ data, viewMode, ministerioId, onChangeVolu
               dataOcorrencia: DateUtilsApi.dateTimeFromApi(data.dataOcorrencia),
             },
             ministerioId,
-            idEscalaItem: data.escalaItemId,
           }}
           onButton2Press={async (data) => {
             const result = await onChangeVoluntario?.(data);
@@ -114,6 +216,104 @@ export default function EventoTable({ data, viewMode, ministerioId, onChangeVolu
           }}
         />
       )}
+
+      {adicionarModalProps.isOpen && (
+        <AdicionarVoluntarioModal
+          data={{
+            ...adicionarModalProps.data!,
+            evento: {
+              dataInicio: data.evento.dataInicio!,
+              dataTermino: data.evento.dataTermino!,
+              dataOcorrencia: DateUtilsApi.dateTimeFromApi(data.dataOcorrencia),
+            },
+            ministerioId,
+          }}
+          onButton2Press={async (data) => {
+            const result = await onAddVoluntario?.(data);
+            if (result) {
+              setAdicionarModalProps({ isOpen: false });
+            }
+          }}
+          onButton1Press={() => setAdicionarModalProps({ isOpen: false })}
+          modalProps={{
+            visible: adicionarModalProps.isOpen,
+          }}
+        />
+      )}
+
+      {adicionarFuncaoModalOpen && (
+        <AdicionarFuncaoModal
+          ministerioId={ministerioId}
+          eventoNome={data.evento.nome}
+          eventoId={data.evento.id}
+          dataOcorrencia={DateUtilsApi.dateTimeFromApi(data.dataOcorrencia)}
+          dataInicio={data.evento.dataInicio!}
+          dataTermino={data.evento.dataTermino!}
+          onButton2Press={async (funcaoData) => {
+            const result = await onAdicionarFuncao?.(funcaoData);
+            if (result) {
+              setAdicionarFuncaoModalOpen(false);
+            }
+          }}
+          onButton1Press={() => setAdicionarFuncaoModalOpen(false)}
+          modalProps={{
+            visible: adicionarFuncaoModalOpen,
+          }}
+        />
+      )}
     </>
   );
 }
+const styles = StyleSheet.create({
+  titleContainer: {
+    paddingVertical: 11,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  titleTextContainer: {
+    flex: 1,
+    minWidth: 0,
+    gap: 4,
+  },
+  headerMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  metaGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  contentContainer: {
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    paddingBottom: 10,
+    borderWidth: 0,
+    backgroundColor: Pallete.backgroundColor,
+  },
+  headerContainer: {
+    borderRadius: 12,
+  },
+  headerExpandedContainer: {
+    borderRadius: 12,
+    borderBottomWidth: 1,
+  },
+  containerContainer: {
+    borderRadius: 12,
+    borderWidth: 1,
+    overflow: 'hidden',
+    ...Pallete.shadows[100],
+  },
+  containerExpandedContainer: {
+    borderRadius: 12,
+    borderWidth: 1,
+    backgroundColor: Pallete.backgroundColor,
+    paddingBottom: 12,
+    overflow: 'hidden',
+    ...Pallete.shadows[100],
+  },
+});

@@ -1,17 +1,20 @@
 import { StyleSheet, View } from 'react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import axios from 'axios';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import FancyCalendar, { MarkedDate } from '../../../../../components/calendar/FancyCalendar';
 import FancyList from '../../../../../components/list/FancyList';
-import { endOfMonth, getMinutes, isBefore, isSameDay, startOfMonth } from 'date-fns';
+import { endOfMonth, isBefore, startOfMonth } from 'date-fns';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
-import FancyListEmpty from '../../../../../components/list/FancyListEmpty';
+
 import SubstituicaoModalPage from '../../../../../components/pages/pessoal/escalas/index/SubstituicaoModalPage';
 import { EscalaItensRepository } from '../../../../../domain/services/EscalaItensRepository';
 import { useEscalaItensCrud } from '../../../../../hooks/useEscalaItensCrud';
 import Toast from 'react-native-toast-message';
-import EventoDetails, { EventoDetailsProps } from '../../../../../components/pages/pessoal/escalas/index/EventoDetails';
+import EventoDetails, {
+    EventoDetailsProps,
+} from '../../../../../components/pages/pessoal/escalas/index/EventoDetails';
 import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
 import EventoAccordeon from '../../../../../components/pages/pessoal/escalas/index/EventoAccordeon';
@@ -19,8 +22,10 @@ import { useEscalaSubstituicoesCrud } from '../../../../../hooks/useEscalaSubsti
 import SubstituicoesRequestsFrame from '../../../../../components/pages/pessoal/escalas/index/SubstituicoesRequestsFrame';
 import FancySeparator from '../../../../../components/FancySeparator';
 import { EscalaItemStatusEnum } from '../../../../../domain/enums/Escala/escala-item-status.enum';
+import { EscalaStatusEnum } from '../../../../../domain/enums/Escala/escala-status.enum';
 import { ResponseEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.response';
 import { EscalaSubstituicaoStatusEnum } from '../../../../../domain/enums/Escala/escala-substituicao-status.enum';
+import { getApiErrorMessage } from '../../../../../domain/api/api-error';
 import { DateUtilsApi } from '../../../../../utils/date_utils';
 import { ResponseEscalaSubstituicaoDto } from '../../../../../domain/dtos/Escala/escala-substituicao.response';
 
@@ -42,7 +47,7 @@ export type EscalaDoDiaAgrupada = {
 };
 
 export default function MinhasEscalasIndexPage() {
-  const { user } = useAuth();
+  const { user, igrejaAtiva } = useAuth();
   const [escalasDoUsuario, setEscalasDoUsuario] = useState<ResponseEscalaItemDto[]>([]);
   const [isLoadingEscalas, setIsLoadingEscalas] = useState<boolean>(true);
   const { update: updateEscala, isLoadingMutation: isLoading } = useEscalaItensCrud();
@@ -65,7 +70,7 @@ export default function MinhasEscalasIndexPage() {
         {
           path: 'substituto.voluntario.id',
           operator: Operator.EQUALS,
-          value: { type: ValueType.LITERAL, value: user?.id! },
+          value: { type: ValueType.LITERAL, value: user?.user?.id! },
         },
         {
           path: 'status',
@@ -102,41 +107,56 @@ export default function MinhasEscalasIndexPage() {
   const [eventosOfSelectedDate, setEventosOfSelectedDate] = useState<EscalaDoDiaAgrupada[]>([]);
 
   const loadMonthEscalas = useCallback(async () => {
+    if (!igrejaAtiva?.id || !user?.user?.id) return;
+
     setIsLoadingEscalas(true);
     try {
-      const result = await EscalaItensRepository.search({
-        where: {
-          conditions: [
-            {
-              path: 'voluntario.voluntario.id',
-              operator: Operator.EQUALS,
-              value: { type: ValueType.LITERAL, value: user?.id! },
-            },
-            {
-              path: 'dataOcorrencia',
-              operator: Operator.GTE,
-              value: {
-                type: ValueType.LITERAL,
-                value: startOfMonth(showingMonth).toISOString(),
-              },
-            },
-            {
-              path: 'dataOcorrencia',
-              operator: Operator.LTE,
-              value: {
-                type: ValueType.LITERAL,
-                value: endOfMonth(showingMonth).toISOString(),
-              },
-            },
-          ],
-        },
-        relations: ['voluntario', 'evento', 'escala', 'funcao', 'voluntario.ministerio'],
+      const dataInicio = DateUtilsApi.dateOnlyToApi(startOfMonth(showingMonth));
+      const dataTermino = DateUtilsApi.dateOnlyToApi(endOfMonth(showingMonth));
+
+      const result = await EscalaItensRepository.getByVoluntarioId(user.user.id, {
+        igrejaId: igrejaAtiva.id,
+        dataInicio,
+        dataTermino,
       });
-      setEscalasDoUsuario(result);
+
+      // Filtrar escalas geradas — mostrar somente publicadas
+      const filtered = result.filter(
+        (item) => !item.escala || item.escala.status !== EscalaStatusEnum.Gerada,
+      );
+      setEscalasDoUsuario(filtered);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+
+        if (status === 400) {
+          Toast.show({
+            type: 'error',
+            text1: 'Período inválido',
+            text2: 'Período inválido para consulta.',
+          });
+          return;
+        }
+
+        if (status === 403) {
+          Toast.show({
+            type: 'error',
+            text1: 'Acesso negado',
+            text2: 'Você não pode consultar escalas de outro voluntário.',
+          });
+          return;
+        }
+      }
+
+      Toast.show({
+        type: 'error',
+        text1: 'Não foi possível carregar suas escalas.',
+        text2: getApiErrorMessage(error, 'Tente novamente em instantes.'),
+      });
     } finally {
       setIsLoadingEscalas(false);
     }
-  }, [user?.id, showingMonth]);
+  }, [user?.user?.id, igrejaAtiva?.id, showingMonth]);
 
   useEffect(() => {
     loadMonthEscalas();
@@ -171,7 +191,9 @@ export default function MinhasEscalasIndexPage() {
       const diffHora = timeA - timeB;
       if (diffHora !== 0) return diffHora;
 
-      return (a.evento?.nome ?? '').localeCompare(b.evento?.nome ?? '', 'pt-BR', { sensitivity: 'base' });
+      return (a.evento?.nome ?? '').localeCompare(b.evento?.nome ?? '', 'pt-BR', {
+        sensitivity: 'base',
+      });
     });
 
     return eventos.map((escala) => ({
@@ -186,7 +208,7 @@ export default function MinhasEscalasIndexPage() {
 
       escalasDoUsuario
         // 1) mantém só as escalas desse dia
-        .filter((evento) => isSameDay(new Date(evento.dataOcorrencia), date))
+        .filter((evento) => DateUtilsApi.compareDateOnlyFromApi(evento.dataOcorrencia, date))
         .forEach((item) => {
           const eventoId = item.evento?.id ?? '';
           if (!eventoId) return;
@@ -217,7 +239,7 @@ export default function MinhasEscalasIndexPage() {
         });
 
       const eventosAgrupados = Array.from(map.values()).sort((a, b) => {
-        const diffHora = getMinutes(a.dataOcorrencia) - getMinutes(b.dataOcorrencia);
+        const diffHora = a.dataOcorrencia.getTime() - b.dataOcorrencia.getTime();
         if (diffHora !== 0) return diffHora;
 
         return (a.evento?.nome ?? '').localeCompare(b.evento?.nome ?? '', 'pt-BR', {
@@ -241,7 +263,7 @@ export default function MinhasEscalasIndexPage() {
           text: 'Não',
           style: 'destructive',
           onPress: async () => {
-            await updateEscala({
+            await updateEscala?.({
               id: escalaItensId,
               data: { status: EscalaItemStatusEnum.Ausente },
             });
@@ -251,7 +273,7 @@ export default function MinhasEscalasIndexPage() {
         {
           text: 'Sim',
           onPress: async () => {
-            await updateEscala({
+            await updateEscala?.({
               id: escalaItensId,
               data: { status: EscalaItemStatusEnum.Confirmado },
             });
@@ -265,7 +287,7 @@ export default function MinhasEscalasIndexPage() {
 
   const handleConfirmSubstituicao = useCallback(
     async (escalaItemId: string, solicitanteId: string, substitutoId: string, motivo: string) => {
-      await updateEscala({
+      await updateEscala?.({
         id: escalaItemId,
         data: { status: EscalaItemStatusEnum.SubstituicaoSolicitada },
       });
@@ -299,7 +321,7 @@ export default function MinhasEscalasIndexPage() {
           {
             text: 'Sim',
             onPress: async () => {
-              await updateSubstituicao({
+              await updateSubstituicao?.({
                 id: substituicao.id!,
                 data: {
                   status: EscalaSubstituicaoStatusEnum.Aprovada,
@@ -315,28 +337,32 @@ export default function MinhasEscalasIndexPage() {
           },
         ]);
       } else if (response === 'reject') {
-        FancyAlert.alert('Recusar Substituição', 'Você confirma que irá recusar esta substituição?', [
-          {
-            text: 'Não',
-            style: 'destructive',
-          },
-          {
-            text: 'Sim',
-            onPress: async () => {
-              await updateSubstituicao({
-                id: substituicao.id!,
-                data: {
-                  status: EscalaSubstituicaoStatusEnum.Recusada,
-                  dataResposta: DateUtilsApi.dateTimeToApi(new Date()),
-                },
-              });
-              Toast.show({
-                type: 'success',
-                text1: 'Substituição recusada com sucesso.',
-              });
+        FancyAlert.alert(
+          'Recusar Substituição',
+          'Você confirma que irá recusar esta substituição?',
+          [
+            {
+              text: 'Não',
+              style: 'destructive',
             },
-          },
-        ]);
+            {
+              text: 'Sim',
+              onPress: async () => {
+                await updateSubstituicao?.({
+                  id: substituicao.id!,
+                  data: {
+                    status: EscalaSubstituicaoStatusEnum.Recusada,
+                    dataResposta: DateUtilsApi.dateTimeToApi(new Date()),
+                  },
+                });
+                Toast.show({
+                  type: 'success',
+                  text1: 'Substituição recusada com sucesso.',
+                });
+              },
+            },
+          ],
+        );
       }
     },
     [updateSubstituicao],
@@ -347,7 +373,10 @@ export default function MinhasEscalasIndexPage() {
   return (
     <FancyPageView style={styles.container}>
       {solicitacoesDeSubstituicao && solicitacoesDeSubstituicao.length > 0 && (
-        <SubstituicoesRequestsFrame data={solicitacoesDeSubstituicao} onRespond={handleSolicitacaoRespondida} />
+        <SubstituicoesRequestsFrame
+          data={solicitacoesDeSubstituicao}
+          onRespond={handleSolicitacaoRespondida}
+        />
       )}
 
       <FancyCalendar
@@ -363,11 +392,11 @@ export default function MinhasEscalasIndexPage() {
           }
         }}
       />
-      <FancySeparator />
+      <FancySeparator style={[styles.fullWidthSeparator, styles.calendarSeparator]} />
       <View style={styles.eventsListContainer}>
         <FancyList
           bottomSpace={-10}
-          ListEmptyComponent={() => <FancyListEmpty />}
+          listEmptyProps={{ label: 'Nenhuma escala neste dia', icon: { library: 'MaterialCommunityIcons', name: 'calendar-blank-outline', size: 55 } }}
           containerStyle={{ borderWidth: 0, flex: 1 }}
           data={eventosOfSelectedDate}
           renderItem={({ item, index }) => (
@@ -389,7 +418,13 @@ export default function MinhasEscalasIndexPage() {
             dadosEscala={substituicaoPageParams.dadosEscala!}
             onButton1Press={() => setSubstituicaoPageParams({ visible: false })}
             onButton2Press={(data) =>
-              data && handleConfirmSubstituicao(data.escalaItemId, data.solicitanteId, data.substitutoId, data.motivo)
+              data &&
+              handleConfirmSubstituicao(
+                data.escalaItemId,
+                data.solicitanteId,
+                data.substitutoId,
+                data.motivo,
+              )
             }
           />
         )}
@@ -408,11 +443,12 @@ export default function MinhasEscalasIndexPage() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 25,
-    paddingTop: 5,
+    paddingHorizontal: 15,
     paddingBottom: 15,
     borderWidth: 0,
-    gap: 20,
+    gap: 10,
   },
   eventsListContainer: { flex: 1, paddingTop: 5 },
+  fullWidthSeparator: { marginHorizontal: -15 },
+  calendarSeparator: { marginTop: 0, marginBottom: 0 },
 });
