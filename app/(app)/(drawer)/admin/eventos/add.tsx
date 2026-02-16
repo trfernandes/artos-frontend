@@ -13,6 +13,7 @@ import FancyButton from '../../../../../components/buttons/FancyButton';
 import EventosDadosForm from '../../../../../components/pages/admin/eventos/EventosDadosForm';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { useAuth } from '../../../../../contexts/AuthContext';
+import Toast from 'react-native-toast-message';
 
 export function getDefaultEventoTimes() {
   const now = new Date();

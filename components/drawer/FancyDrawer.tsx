@@ -1,6 +1,7 @@
 import { DrawerContentComponentProps } from '@react-navigation/drawer';
 import { StyleSheet, View, ActivityIndicator, Linking, Platform } from 'react-native';
 import { useMemo, useCallback } from 'react';
+import Toast from 'react-native-toast-message';
 import FancyDrawerHeader from './FancyDrawerHeader';
 import FancyDrawerItem from './FancyDrawerItem';
 import FancyDrawerSeparator from './FancyDrawerSeparator';
@@ -22,33 +23,26 @@ export default function FancyDrawer(props: FancyDrawerProps) {
       ios: 'https://apps.apple.com/app/id__APP_ID__', // TODO: substituir pelo Apple ID real quando publicado
       android: 'https://play.google.com/store/apps/details?id=com.church.artos',
     });
-    if (storeUrl) Linking.openURL(storeUrl);
+
+    if (!storeUrl || storeUrl.includes('__APP_ID__')) {
+      Toast.show({
+        type: 'info',
+        text1: 'Avaliação indisponível',
+        text2: 'A avaliação da App Store será habilitada após a publicação.',
+      });
+      return;
+    }
+
+    Linking.openURL(storeUrl);
   }, []);
 
   const menuSections = useMemo(() => getMenuForIgreja(igrejaAtiva), [igrejaAtiva]);
-
-  const firstExpandableIndex = useMemo(() => {
-    let index = 0;
-    for (const section of menuSections) {
-      for (const item of section.items) {
-        const isExpandable = Boolean(item.items && item.items.length);
-        if (isExpandable) {
-          return index;
-        }
-        index += 1;
-      }
-    }
-    return -1;
-  }, [menuSections]);
-
-  let itemRunningIndex = -1;
 
   const sections = useMemo(() => {
     return menuSections.map((section, sectionIndex) => (
       <View key={sectionIndex}>
         <FancyDrawerSeparator label={section.section} />
         {section.items.map((item, itemIndex) => {
-          itemRunningIndex += 1;
           const isExpandable = Boolean(item.items && item.items.length);
           const defaultCollapsed = isExpandable ? true : undefined;
 
@@ -63,7 +57,7 @@ export default function FancyDrawer(props: FancyDrawerProps) {
         })}
       </View>
     ));
-  }, [menuSections, firstExpandableIndex, navigation, itemRunningIndex]);
+  }, [menuSections, navigation]);
 
   // Mostra loading enquanto busca os ministérios para admins
   const showMinisteriosLoading = isAdmin && isLoading;

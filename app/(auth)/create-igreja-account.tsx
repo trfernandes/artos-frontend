@@ -7,7 +7,7 @@ import CreateIgrejaAccountTabDados, { CodigoCheckProvider, useCodigoCheck } from
 import CreateIgrejaAccountTabResponsavel from '../../components/pages/login/createAccount/create-igreja-account-tab-responsavel';
 import CreateIgrejaAccountTabPlano from '../../components/pages/login/createAccount/create-igreja-account-tab-plano';
 import CreateIgrejaAccountTabPronto from '../../components/pages/login/createAccount/create-igreja-account-tab-pronto';
-import { FormProvider, useForm } from 'react-hook-form';
+import { FormProvider } from 'react-hook-form';
 import { LoginCreateIgrejaStepFields } from '../../domain/schemas/loginCreateIgrejaSchema';
 import FancyText from '../../components/FancyText';
 import { EXTRA_LARGE_SIZE_FONT, LARGE_SIZE_FONT } from '../../constants/font';
@@ -154,8 +154,6 @@ function CreateIgrejaAccountPageContent() {
       },
     ],
   };
-
-  const createForm = useForm();
 
   return (
     <AuthScreen

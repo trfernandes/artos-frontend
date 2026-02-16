@@ -115,7 +115,7 @@ export default function FancyButton({
       accessibilityLabel={props.accessibilityLabel}
       accessibilityHint={props.accessibilityHint}
       accessibilityRole={props.accessibilityRole}
-      accessibilityState={{ ...accessibilityState, busy: showLoading || undefined, disabled: true }}
+      accessibilityState={{ ...accessibilityState, busy: showLoading || undefined, disabled: isBtnDisabled }}
       style={[
         baseStyles.container,
         iconPosition === 'left' ? { flexDirection: 'row' } : { flexDirection: 'row-reverse' },
