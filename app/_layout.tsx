@@ -18,30 +18,24 @@ import { ConnectivityBanner } from '../components/FancyConnectivityBanner';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Pallete } from '../constants/colors';
+import { useProtectedRoute } from '../hooks/useProtectedRoute';
 
-Sentry.init({
-  dsn: 'https://b65799084d172913463973ef37b937b0@o4510567624409088.ingest.us.sentry.io/4510567678279680',
+const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
 
-  // Adds more context data to events (IP address, cookies, user, etc.)
-  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
-  sendDefaultPii: true,
-
-  // Enable Logs
-  enableLogs: true,
-
-  // Configure Session Replay
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1,
-  integrations: [Sentry.mobileReplayIntegration()],
-
-  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
-  // spotlight: __DEV__,
-});
+if (sentryDsn) {
+  Sentry.init({
+    dsn: sentryDsn,
+    sendDefaultPii: process.env.EXPO_PUBLIC_SENTRY_SEND_DEFAULT_PII === '1',
+    enableLogs: __DEV__,
+    replaysSessionSampleRate: __DEV__ ? 0 : 0.1,
+    replaysOnErrorSampleRate: 1,
+    integrations: [Sentry.mobileReplayIntegration()],
+  });
+}
 
 SplashScreen.preventAutoHideAsync();
 
 export default Sentry.wrap(function RootLayout() {
-  console.log('App started');
   const [queryClient] = useState(() => createQueryClient());
 
   return (
@@ -60,6 +54,8 @@ export default Sentry.wrap(function RootLayout() {
 });
 
 function RootLayoutNav() {
+  useProtectedRoute();
+
   const { user, loading } = useAuth();
   const segments = useSegments();
   const isAuthRoute = segments[0] === '(auth)';

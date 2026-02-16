@@ -3,11 +3,23 @@ import { useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { usePathname, useRootNavigationState, useRouter } from 'expo-router';
 
-const PUBLIC_ROUTES = ['/login', '/create-account', '/forgot-password', '/reset-password'];
+const PUBLIC_ROUTE_PREFIXES = [
+  '/login',
+  '/create-account',
+  '/create-igreja-account',
+  '/create-voluntario-account',
+  '/forgot-password',
+  '/reset-password',
+  '/igreja-cadastro-aguardando-email',
+  '/invite/',
+];
+
+function isInviteRoute(pathname: string) {
+  return pathname.startsWith('/invite/');
+}
 
 function isPublic(pathname: string) {
-  // cobre /reset-password e /reset-password?token=...
-  return PUBLIC_ROUTES.some((r) => pathname === r || pathname.startsWith(`${r}?`));
+  return PUBLIC_ROUTE_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(prefix));
 }
 
 export function useProtectedRoute() {
@@ -29,7 +41,7 @@ export function useProtectedRoute() {
     }
 
     // 3) logado tentando rota pública → manda pra área logada
-    if (user && onPublic) {
+    if (user && onPublic && !isInviteRoute(pathname)) {
       if (pathname !== '/(app)') router.replace('/(app)');
       return;
     }
