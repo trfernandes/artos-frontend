@@ -17,7 +17,7 @@
 - Push notifications are handled in `services/notifications.tsx`; device tokens are sent to `/notificacoes/device-tokens/:voluntarioId`.
 
 ## Environment & integration points
-- API base URL and app secret are injected via `EXPO_PUBLIC_API_URL` and `EXPO_PUBLIC_APP_SECRET_KEY` (see `.env`).
+- API base URL and app secret are injected via `EXPO_PUBLIC_API_URL` and `EXPO_PUBLIC_APP_SECRET_KEY` (see `.env.example`).
 - Axios client is configured in `domain/api/api-client.ts` (JWT header + 401 handling).
 - Sentry is initialized in `app/_layout.tsx` with replay integration enabled.
 
