@@ -1,0 +1,39 @@
+1	// hooks/useProtectedRoute.ts
+2	import { useEffect } from 'react';
+3	import { useAuth } from '../contexts/AuthContext';
+4	import { usePathname, useRootNavigationState, useRouter } from 'expo-router';
+5	
+6	const PUBLIC_ROUTES = ['/login', '/create-account', '/forgot-password', '/reset-password'];
+7	
+8	function isPublic(pathname: string) {
+9	  // cobre /reset-password e /reset-password?token=...
+10	  return PUBLIC_ROUTES.some((r) => pathname === r || pathname.startsWith(`${r}?`));
+11	}
+12	
+13	export function useProtectedRoute() {
+14	  const { user, loading } = useAuth();
+15	  const router = useRouter();
+16	  const pathname = usePathname();
+17	  const navState = useRootNavigationState(); // só fica definido quando o Navigator montou
+18	
+19	  useEffect(() => {
+20	    // 1) ainda carregando user OU nav ainda não montou → não decide nada
+21	    if (loading || !navState?.key) return;
+22	
+23	    const onPublic = isPublic(pathname);
+24	
+25	    // 2) não logado tentando rota privada → manda pro login
+26	    if (!user && !onPublic) {
+27	      if (pathname !== '/login') router.replace('/login');
+28	      return;
+29	    }
+30	
+31	    // 3) logado tentando rota pública → manda pra área logada
+32	    if (user && onPublic) {
+33	      if (pathname !== '/(app)') router.replace('/(app)');
+34	      return;
+35	    }
+36	
+37	    // 4) caso normal: não faz nada
+38	  }, [user, loading, pathname, navState?.key, router]);
+39	}

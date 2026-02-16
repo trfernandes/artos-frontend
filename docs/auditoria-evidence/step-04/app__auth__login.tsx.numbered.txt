@@ -1,0 +1,364 @@
+1	import { StyleSheet, View, TextInput } from 'react-native';
+2	import FancyButton from '../../components/buttons/FancyButton';
+3	import FancyCheckbox from '../../components/FancyCheckbox';
+4	import FancyText from '../../components/FancyText';
+5	import FancyTextInput from '../../components/fields/FancyTextInput';
+6	import FancyPasswordInput from '../../components/fields/FancyPasswordInput';
+7	import AuthScreen from '../../components/pages/login/AuthScreen';
+8	import { EXTRA_SMALL_SIZE_FONT } from '../../constants/font';
+9	import { router } from 'expo-router';
+10	import { useState, useEffect, useRef } from 'react';
+11	import { useAuth } from '../../contexts/AuthContext';
+12	import Toast from 'react-native-toast-message';
+13	import { AxiosError } from 'axios';
+14	import * as SecureStore from 'expo-secure-store';
+15	import { useConnectivity } from '../../core/network/connectivity/ConnectivityProvider';
+16	import { CadastroIgrejaRepository } from '../../domain/services/CadastroIgrejaRepository';
+17	import { FancyAlert } from '../../components/modal/FancyAlert';
+18	
+19	const REMEMBER_EMAIL_KEY = 'artos_remember_email';
+20	const REMEMBER_PASSWORD_KEY = 'artos_remember_password';
+21	const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+22	
+23	export default function LoginIndexPage() {
+24	  const { signIn } = useAuth();
+25	  const { status: connectivityStatus, isOffline } = useConnectivity();
+26	  const isServerUnavailable = connectivityStatus !== 'ok';
+27	  const passwordInputRef = useRef<TextInput>(null);
+28	
+29	  const [email, setEmail] = useState('');
+30	  const [password, setPassword] = useState('');
+31	  const [rememberMe, setRememberMe] = useState(false);
+32	  const [loading, setLoading] = useState(false);
+33	  const [emailError, setEmailError] = useState('');
+34	  const [passwordError, setPasswordError] = useState('');
+35	
+36	  useEffect(() => {
+37	    const loadCredentials = async () => {
+38	      const savedEmail = await SecureStore.getItemAsync(REMEMBER_EMAIL_KEY);
+39	      const savedPassword = await SecureStore.getItemAsync(REMEMBER_PASSWORD_KEY);
+40	
+41	      if (savedEmail && savedPassword) {
+42	        setEmail(savedEmail);
+43	        setPassword(savedPassword);
+44	        setRememberMe(true);
+45	      }
+46	    };
+47	    loadCredentials();
+48	  }, []);
+49	
+50	  const validateForm = () => {
+51	    let isValid = true;
+52	    const trimmedEmail = email.trim();
+53	
+54	    if (!trimmedEmail) {
+55	      setEmailError('Informe o e-mail');
+56	      isValid = false;
+57	    } else if (!EMAIL_REGEX.test(trimmedEmail)) {
+58	      setEmailError('E-mail invalido');
+59	      isValid = false;
+60	    } else {
+61	      setEmailError('');
+62	    }
+63	
+64	    if (!password.trim()) {
+65	      setPasswordError('Informe a senha');
+66	      isValid = false;
+67	    } else {
+68	      setPasswordError('');
+69	    }
+70	
+71	    return isValid;
+72	  };
+73	
+74	  const handleNetworkError = () => {
+75	    FancyAlert.alert('Problema de conexao', 'Nao foi possivel se conectar. Verifique sua internet e tente novamente.', [
+76	      { text: 'Cancelar', style: 'default' },
+77	      { text: 'Tentar novamente', onPress: () => handleLogin() },
+78	    ]);
+79	  };
+80	
+81	  const handleCadastroPendente = async (error: AxiosError | any, fallbackEmail: string) => {
+82	    const data = error?.response?.data;
+83	    const payload = data?.data ?? data;
+84	    const errorCode = data?.code || data?.error?.code || data?.errorCode || payload?.code || payload?.errorCode;
+85	    const message = data?.message || data?.error?.message || payload?.message;
+86	
+87	    const normalizedMessage = typeof message === 'string' ? message.toLowerCase() : '';
+88	    const isCadastroPendente =
+89	      errorCode === 'CADASTRO_PENDENTE' ||
+90	      normalizedMessage.includes('cadastro_pendente') ||
+91	      normalizedMessage.includes('cadastro pendente');
+92	
+93	    if (!isCadastroPendente) return false;
+94	
+95	    const cadastroId = payload?.cadastroId;
+96	    const cadastroSecret = payload?.cadastroSecret;
+97	    const responsavelEmail = payload?.responsavelEmail || fallbackEmail;
+98	
+99	    if (cadastroId && cadastroSecret && responsavelEmail) {
+100	      await CadastroIgrejaRepository.salvarDadosCadastro({
+101	        cadastroId,
+102	        cadastroSecret,
+103	        responsavelEmail,
+104	      });
+105	    }
+106	
+107	    const dadosCadastro = await CadastroIgrejaRepository.obterDadosCadastro();
+108	    if (dadosCadastro) {
+109	      router.replace('/(auth)/igreja-cadastro-aguardando-email');
+110	      return true;
+111	    }
+112	
+113	    Toast.show({
+114	      type: 'error',
+115	      text1: 'Cadastro pendente',
+116	      text2: 'Nao encontramos os dados do cadastro. Inicie o cadastro novamente.',
+117	    });
+118	    return true;
+119	  };
+120	
+121	  const handleLogin = async () => {
+122	    if (loading) return;
+123	    if (!validateForm()) return;
+124	
+125	    const trimmedEmail = email.trim();
+126	    if (isOffline) {
+127	      handleNetworkError();
+128	      return;
+129	    }
+130	
+131	    setLoading(true);
+132	
+133	    try {
+134	      await signIn(trimmedEmail, password);
+135	
+136	      try {
+137	        if (rememberMe) {
+138	          await SecureStore.setItemAsync(REMEMBER_EMAIL_KEY, trimmedEmail);
+139	          await SecureStore.setItemAsync(REMEMBER_PASSWORD_KEY, password);
+140	        } else {
+141	          await SecureStore.deleteItemAsync(REMEMBER_EMAIL_KEY);
+142	          await SecureStore.deleteItemAsync(REMEMBER_PASSWORD_KEY);
+143	        }
+144	      } catch (secureStoreError: any) {
+145	        console.error('Erro ao salvar credenciais no SecureStore:', secureStoreError);
+146	        Toast.show({
+147	          type: 'error',
+148	          text1: 'Erro ao salvar credenciais',
+149	          text2: `Não foi possível salvar o e-mail e senha localmente. ${secureStoreError?.message || JSON.stringify(secureStoreError)}`,
+150	        });
+151	      }
+152	
+153	      router.replace('/');
+154	    } catch (error: any) {
+155	      if (await handleCadastroPendente(error, trimmedEmail)) return;
+156	
+157	      const status = error?.response?.status;
+158	      const data = error?.response?.data;
+159	      const backendMessage: string = (data?.message || data?.error?.message || '').toLowerCase();
+160	
+161	      if (status === 401) {
+162	        if (backendMessage.includes('não verificado') || backendMessage.includes('nao verificado')) {
+163	          Toast.show({
+164	            type: 'info',
+165	            text1: 'E-mail não verificado',
+166	            text2: 'Verifique seu e-mail para ativar sua conta.',
+167	          });
+168	        } else if (backendMessage.includes('desativada') || backendMessage.includes('desativado')) {
+169	          Toast.show({
+170	            type: 'error',
+171	            text1: 'Conta desativada',
+172	            text2: 'Sua conta foi desativada. Entre em contato com o suporte.',
+173	          });
+174	        } else {
+175	          Toast.show({
+176	            type: 'error',
+177	            text1: 'Credenciais inválidas',
+178	            text2: 'E-mail ou senha incorretos.',
+179	          });
+180	        }
+181	        return;
+182	      }
+183	
+184	      const isNetworkError =
+185	        !error?.response ||
+186	        error?.code === 'ECONNABORTED' ||
+187	        `${error?.message || ''}`.toLowerCase().includes('timeout') ||
+188	        `${error?.message || ''}`.toLowerCase().includes('network');
+189	
+190	      if (isNetworkError || isOffline) {
+191	        handleNetworkError();
+192	        return;
+193	      }
+194	
+195	      Toast.show({
+196	        type: 'error',
+197	        text1: 'Nao foi possivel autenticar',
+198	        text2: 'Verifique se e-mail e senha estao corretos e tente novamente.',
+199	      });
+200	    } finally {
+201	      setLoading(false);
+202	    }
+203	  };
+204	
+205	  return (
+206	    <AuthScreen
+207	      scrollContainerStyle={styles.scrollContainer}
+208	      centerContainerStyle={styles.centerContainer}
+209	      headerContainerStyle={styles.titleContainer}
+210	      headerWidth={{ default: '85%', keyboard: '110%' }}
+211	      contentWidth={{ default: '85%', keyboard: '110%' }}
+212	      fieldsContainerStyle={styles.fieldsContainer}
+213	      topContent={({ keyboardVisible }) =>
+214	        !keyboardVisible ? (
+215	          <View style={styles.logoContainer}>
+216	            <FancyText type='semiBold' color='white' style={{ fontSize: 35, lineHeight: 35 }}>
+217	              ARTOS
+218	            </FancyText>
+219	          </View>
+220	        ) : null
+221	      }
+222	      header={() => (
+223	        <View style={{ gap: 0 }}>
+224	          <FancyText size={'extraLarge'} type='semiBold' color='white' style={{ fontSize: 17 }}>
+225	            Bem-vindo de volta!
+226	          </FancyText>
+227	          <FancyText size={'medium'} type='medium' color='white' style={{ fontSize: 12 }}>
+228	            Entre para acessar todas as funcionalidades
+229	          </FancyText>
+230	        </View>
+231	      )}
+232	    >
+233	      <>
+234	        <FancyTextInput
+235	          label='E-mail'
+236	          value={email}
+237	          errorMessage={emailError}
+238	          inputProps={{
+239	            onChangeText: (value) => {
+240	              setEmail(value);
+241	              if (emailError) setEmailError('');
+242	            },
+243	            keyboardType: 'email-address',
+244	            autoCapitalize: 'none',
+245	            autoCorrect: false,
+246	            returnKeyType: 'next',
+247	            textContentType: 'emailAddress',
+248	            autoComplete: 'email',
+249	            importantForAutofill: 'yes',
+250	            blurOnSubmit: false,
+251	            onSubmitEditing: () => passwordInputRef.current?.focus(),
+252	            accessibilityLabel: 'E-mail',
+253	          }}
+254	          readonly={loading}
+255	          disabled={loading}
+256	        />
+257	        <FancyPasswordInput
+258	          label='Senha'
+259	          value={password}
+260	          errorMessage={passwordError}
+261	          inputRef={passwordInputRef}
+262	          inputProps={{
+263	            onChangeText: (value) => {
+264	              setPassword(value);
+265	              if (passwordError) setPasswordError('');
+266	            },
+267	            returnKeyType: 'go',
+268	            textContentType: 'password',
+269	            autoComplete: 'password',
+270	            autoCapitalize: 'none',
+271	            autoCorrect: false,
+272	            importantForAutofill: 'yes',
+273	            onSubmitEditing: () => handleLogin(),
+274	            accessibilityLabel: 'Senha',
+275	          }}
+276	          readonly={loading}
+277	          disabled={loading}
+278	        />
+279	
+280	        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+281	          <FancyCheckbox label='Lembrar-se' value={rememberMe} onChangeValue={setRememberMe} disabled={loading} />
+282	          <FancyButton
+283	            type='text'
+284	            label='Esqueceu sua senha?'
+285	            onPress={() => router.push('/(auth)/forgot-password')}
+286	            labelStyle={{ fontSize: EXTRA_SMALL_SIZE_FONT }}
+287	            containerStyle={{ borderWidth: 0, height: 30, alignItems: 'center' }}
+288	            disabled={loading}
+289	          />
+290	        </View>
+291	
+292	        <FancyButton label={loading ? 'Entrando...' : 'Entrar'} onPress={handleLogin} disabled={loading || isServerUnavailable} />
+293	
+294	        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingTop: 5 }}>
+295	          <FancyText size={'extraSmall'} style={{ borderWidth: 0 }}>
+296	            Não tem uma conta ainda?
+297	          </FancyText>
+298	          <FancyButton
+299	            type='text'
+300	            label='Cadastre-se'
+301	            onPress={() => router.push('/(auth)/create-account')}
+302	            labelStyle={{ lineHeight: 14 }}
+303	            containerStyle={{
+304	              paddingHorizontal: 0,
+305	              height: 20,
+306	              alignItems: 'center',
+307	              borderWidth: 0,
+308	            }}
+309	            disabled={loading}
+310	          />
+311	        </View>
+312	      </>
+313	    </AuthScreen>
+314	  );
+315	}
+316	
+317	const DESIGN_MODE = 0;
+318	
+319	const styles = StyleSheet.create({
+320	  scrollContainer: {
+321	    flexGrow: 1,
+322	    paddingHorizontal: 40,
+323	    paddingVertical: 20,
+324	    justifyContent: 'center',
+325	    borderWidth: DESIGN_MODE,
+326	    borderColor: 'blueviolet',
+327	    paddingBottom: 40,
+328	    gap: 20,
+329	  },
+330	  logoContainer: {
+331	    position: 'absolute',
+332	    top: 0,
+333	    justifyContent: 'flex-start',
+334	    alignItems: 'center',
+335	    marginBottom: 0,
+336	    borderWidth: DESIGN_MODE,
+337	    borderColor: 'forestgreen',
+338	  },
+339	  titleContainer: {
+340	    gap: 2,
+341	    marginBottom: 14,
+342	    borderWidth: DESIGN_MODE,
+343	    borderColor: 'magenta',
+344	  },
+345	  centerContainer: {
+346	    gap: 6,
+347	    borderWidth: DESIGN_MODE,
+348	    borderColor: 'chocolate',
+349	    top: 40,
+350	    left: 0,
+351	    right: 0,
+352	    bottom: 0,
+353	    zIndex: 10,
+354	    justifyContent: 'center',
+355	    alignItems: 'center',
+356	  },
+357	  fieldsContainer: {
+358	    borderWidth: DESIGN_MODE,
+359	    borderRadius: 15,
+360	    borderColor: 'firebrick',
+361	    padding: 25,
+362	    gap: 15,
+363	  },
+364	});

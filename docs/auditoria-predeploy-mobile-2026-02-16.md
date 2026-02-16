@@ -108,3 +108,50 @@ Escopo: análise estática + build/tooling (sem execução em dispositivo/emulad
 1. Passo 4: autenticação e sessão (token storage, refresh, 401/403, logout e corrida).
 2. Passo 5: inventário completo de `useForm()`.
 3. Passos 6-11: hooks de API, navegação, UX, segurança, performance, design/acessibilidade e edge cases.
+
+## Passo 4 - Autenticação e Sessão (Bloco 2 + parte de 7)
+
+### Evidências salvas
+1. `docs/auditoria-evidence/step-04/contexts_AuthContext.tsx.numbered.txt`
+2. `docs/auditoria-evidence/step-04/core_storage_authTokenStorage.ts.numbered.txt`
+3. `docs/auditoria-evidence/step-04/domain_api_api-client.ts.numbered.txt`
+4. `docs/auditoria-evidence/step-04/core_network_authBridge.ts.numbered.txt`
+5. `docs/auditoria-evidence/step-04/hooks_usePostLoginRedirect.ts.numbered.txt`
+6. `docs/auditoria-evidence/step-04/hooks_useProtectedRoute.ts.numbered.txt`
+7. `docs/auditoria-evidence/step-04/app__auth__login.tsx.numbered.txt`
+8. `docs/auditoria-evidence/step-04/app__auth__create-voluntario-account.tsx.numbered.txt`
+9. `docs/auditoria-evidence/step-04/app__auth__create-igreja-account.tsx.numbered.txt`
+10. `docs/auditoria-evidence/step-04/domain_dtos_login_login.response.ts.numbered.txt`
+
+### Checklist token/session
+| Item | Status | Evidência |
+|---|---|---|
+| Token salvo com storage seguro | `OK` | `core/storage/authTokenStorage.ts:7`, `core/storage/authTokenStorage.ts:20`, `core/storage/authTokenStorage.ts:25` (SecureStore) |
+| Refresh token implementado | `ISSUE` | Não há fluxo `/auth/refresh` nem `refreshToken` em `contexts/AuthContext.tsx` |
+| Token expirado força logout | `OK` | `contexts/AuthContext.tsx:91`-`contexts/AuthContext.tsx:93` |
+| Limpeza completa no logout | `PARCIAL` | Limpa token/user/igreja/cache em `contexts/AuthContext.tsx:180`-`contexts/AuthContext.tsx:184`; não há limpeza explícita de outros dados auxiliares em AsyncStorage |
+| Interceptor adiciona token automaticamente | `OK` | `domain/api/api-client.ts:15`-`domain/api/api-client.ts:19` |
+| 401 faz logout + redirect login | `OK` | `contexts/AuthContext.tsx:91`-`contexts/AuthContext.tsx:93` e `contexts/AuthContext.tsx:186` |
+| 403 com mensagem adequada | `PARCIAL` | Mensagem existe utilitária em `domain/api/api-error.ts:25`, sem tratamento global unificado |
+| Múltiplos 401 simultâneos | `OK` | Guarda `isSigningOutRef` em `contexts/AuthContext.tsx:167` |
+| Race condition de refresh token | `ISSUE` | Não aplicável por ausência de refresh token; sessão depende de novo login |
+
+### Checklist login/registro
+| Item | Status | Evidência |
+|---|---|---|
+| Login inválido com mensagem clara | `OK` | `app/(auth)/login.tsx:175`-`app/(auth)/login.tsx:179` |
+| Registro e-mail duplicado com mensagem clara | `PARCIAL` | Usa mensagem bruta do backend em `app/(auth)/create-voluntario-account.tsx:75`; sem tratamento específico |
+| Campos de senha com toggle visibilidade | `OK` | `components/fields/FancyPasswordInput.tsx:13`, `components/fields/FancyPasswordInput.tsx:31` |
+| Botão de login desabilita durante request | `OK` | `app/(auth)/login.tsx:292` |
+
+### Riscos novos classificados
+1. Persistência do objeto `user` com `access_token` em AsyncStorage (`contexts/AuthContext.tsx:139`, `contexts/AuthContext.tsx:154`, `contexts/AuthContext.tsx:216`, `contexts/AuthContext.tsx:248`): **CRÍTICO**.
+2. Ausência de refresh token/renovação de sessão: **ALTO**.
+3. Fluxo `authBridge` incompleto (`triggerUnauthorized` sem `setUnauthorizedHandler` ativo): **MÉDIO**.
+
+---
+
+## Próximos passos
+1. Passo 5: mapear todos os `useForm()` e validar `zodResolver`, `onError`, disable submit, máscara e teclado numérico.
+2. Passo 6: mapear todos os `useMutation()`.
+3. Passo 7: mapear todos os `useQuery()`.
