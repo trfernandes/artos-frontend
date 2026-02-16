@@ -14,6 +14,7 @@ import { Pallete } from '../../../constants/colors';
 import { useAuth } from '../../../contexts/AuthContext';
 import { IgrejaRepository } from '../../../domain/services/IgrejaRepository';
 import { ResponseConvitePreviewDto } from '../../../domain/dtos/Igreja/response-convite-preview.dto';
+import { extractInviteToken } from '../../../utils/inviteToken';
 
 function getErrorMessage(error: AxiosError | any): string {
   const data = error?.response?.data;
@@ -69,21 +70,8 @@ export default function JoinChurchPage() {
   const [loadingAccept, setLoadingAccept] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const extractToken = (input: string): string => {
-    const trimmed = input.trim();
-    const deeplinkMatch = trimmed.match(/artos:\/\/invite\/([^\/\s]+)/);
-    if (deeplinkMatch) {
-      return deeplinkMatch[1];
-    }
-    const lastSlashIndex = trimmed.lastIndexOf('/');
-    if (lastSlashIndex !== -1 && lastSlashIndex < trimmed.length - 1) {
-      return trimmed.substring(lastSlashIndex + 1);
-    }
-    return trimmed;
-  };
-
   const handlePreview = async () => {
-    const extractedToken = extractToken(token);
+    const extractedToken = extractInviteToken(token);
 
     if (!extractedToken) {
       setError('Digite o código do convite');
@@ -107,7 +95,7 @@ export default function JoinChurchPage() {
   };
 
   const handleAccept = async () => {
-    const extractedToken = extractToken(token);
+    const extractedToken = extractInviteToken(token);
 
     if (!extractedToken || !preview || loadingAccept) return;
 
