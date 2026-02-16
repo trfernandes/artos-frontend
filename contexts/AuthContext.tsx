@@ -9,6 +9,31 @@ import { clearAuthToken, getAuthToken, setAuthToken } from '../core/storage/auth
 import { deregisterPushToken } from '../services/notifications';
 
 const IGREJA_ATIVA_KEY = 'igrejaAtivaId';
+const USER_STORAGE_KEY = 'user';
+
+type StoredUserPayload = {
+  user: ResponseLoginDto['user'];
+  igrejas: ResponseLoginDto['igrejas'];
+  access_token?: string;
+};
+
+function toStoredUserPayload(loginData: ResponseLoginDto): StoredUserPayload {
+  return {
+    user: loginData.user,
+    igrejas: loginData.igrejas,
+  };
+}
+
+function parseStoredUserPayload(raw: string): StoredUserPayload | null {
+  try {
+    const parsed = JSON.parse(raw) as StoredUserPayload | null;
+    if (!parsed || typeof parsed !== 'object') return null;
+    if (!parsed.user || !Array.isArray(parsed.igrejas)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
 
 type SignOutReason = 'manual' | 'expired';
 
@@ -44,29 +69,51 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const isSigningOutRef = useRef(false);
 
+  const persistUser = async (authData: ResponseLoginDto) => {
+    await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(toStoredUserPayload(authData)));
+  };
+
   useEffect(() => {
     const loadStorage = async () => {
       try {
         const storedToken = await getAuthToken();
-        const storedUser = await AsyncStorage.getItem('user');
+        const storedUser = await AsyncStorage.getItem(USER_STORAGE_KEY);
         const storedIgrejaId = await AsyncStorage.getItem(IGREJA_ATIVA_KEY);
+        const parsedStoredUser = storedUser ? parseStoredUserPayload(storedUser) : null;
+        const legacyToken = parsedStoredUser?.access_token || null;
+        const resolvedToken = storedToken || legacyToken;
 
-        if (storedToken) {
-          setToken(storedToken);
-          apiClient.defaults.headers.Authorization = `Bearer ${storedToken}`;
+        if (resolvedToken) {
+          setToken(resolvedToken);
+          apiClient.defaults.headers.Authorization = `Bearer ${resolvedToken}`;
         }
 
-        if (storedUser) {
-          const parsedUser = JSON.parse(storedUser) as ResponseLoginDto;
-          setUser(parsedUser);
+        if (!storedToken && legacyToken) {
+          await setAuthToken(legacyToken);
+        }
+
+        if (parsedStoredUser && resolvedToken) {
+          const hydratedUser: ResponseLoginDto = {
+            access_token: resolvedToken,
+            user: parsedStoredUser.user,
+            igrejas: parsedStoredUser.igrejas,
+          };
+          setUser(hydratedUser);
+
+          // Remove token legado do payload salvo em AsyncStorage
+          if (parsedStoredUser.access_token) {
+            await persistUser(hydratedUser);
+          }
 
           // Restaurar igreja ativa ou usar a primeira
-          if (parsedUser.igrejas?.length) {
+          if (hydratedUser.igrejas?.length) {
             const igrejaRestaurada = storedIgrejaId
-              ? parsedUser.igrejas.find((i) => i.id === storedIgrejaId)
+              ? hydratedUser.igrejas.find((i) => i.id === storedIgrejaId)
               : null;
-            setIgrejaAtivaState(igrejaRestaurada || parsedUser.igrejas[0]);
+            setIgrejaAtivaState(igrejaRestaurada || hydratedUser.igrejas[0]);
           }
+        } else if (storedUser && !parsedStoredUser) {
+          await AsyncStorage.removeItem(USER_STORAGE_KEY);
         }
       } catch (error) {
         if (__DEV__) {
@@ -136,9 +183,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     if (loginData) {
-      await AsyncStorage.setItem('user', JSON.stringify(loginData));
+      await persistUser(loginData);
     } else {
-      await AsyncStorage.removeItem('user');
+      await AsyncStorage.removeItem(USER_STORAGE_KEY);
     }
   };
 
@@ -151,7 +198,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     await setAuthToken(newToken);
 
     setUser(loginData);
-    await AsyncStorage.setItem('user', JSON.stringify(loginData));
+    await persistUser(loginData);
 
     // Define a primeira igreja como ativa
     if (loginData.igrejas?.length) {
@@ -178,7 +225,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       delete apiClient.defaults.headers.Authorization;
 
       await clearAuthToken();
-      await AsyncStorage.removeItem('user');
+      await AsyncStorage.removeItem(USER_STORAGE_KEY);
       await AsyncStorage.removeItem(IGREJA_ATIVA_KEY);
 
       queryClient.clear();
@@ -213,7 +260,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
 
     setUser(mergedUser);
-    await AsyncStorage.setItem('user', JSON.stringify(mergedUser));
+    await persistUser(mergedUser);
 
     // Atualiza igrejaAtiva se a igreja ativa foi modificada
     if (igrejaAtiva && newUserData.igrejas) {
@@ -245,7 +292,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         };
         
         setUser(updatedUser);
-        await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+        await persistUser(updatedUser);
         
         // Atualizar igreja ativa se ainda existir na lista
         if (igrejaAtiva && updatedUser.igrejas?.length) {
