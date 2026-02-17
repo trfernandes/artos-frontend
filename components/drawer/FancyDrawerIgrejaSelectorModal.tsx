@@ -7,9 +7,11 @@ import FancyText from '../FancyText';
 import DefaultIcons from '../FancyIcons';
 import FancyPopup from '../popup/FancyPopup';
 import { ResponseLoginIgrejaDto } from '../../domain/dtos/login/login.response';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
 import { useSairDaIgreja } from '../../hooks/useSairDaIgreja';
 import { FancyAlert } from '../modal/FancyAlert';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 interface FancyDrawerIgrejaSelectorModalProps {
   visible: boolean;
@@ -26,6 +28,8 @@ export default function FancyDrawerIgrejaSelectorModal({
   igrejaAtiva,
   onSelectIgreja,
 }: FancyDrawerIgrejaSelectorModalProps) {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
   const { sairDaIgreja, validateRole, isPending } = useSairDaIgreja();
 
   const handleAdicionarIgreja = () => {
@@ -196,11 +200,12 @@ export default function FancyDrawerIgrejaSelectorModal({
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(Pallete: ThemePalette) {
+  return StyleSheet.create({
   // MODAL
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: Pallete.overlays.backdrop,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
@@ -208,7 +213,7 @@ const styles = StyleSheet.create({
   modalContent: {
     width: '100%',
     maxWidth: 320,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Pallete.backgroundColor,
     borderRadius: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
@@ -221,7 +226,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: Pallete.border,
   },
   modalScrollView: {
     maxHeight: 400,
@@ -234,7 +239,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontWeight: '400',
-    color: '#9CA3AF',
+    color: Pallete.fonts.inactive,
   },
 
   // ITEM DA LISTA
@@ -258,7 +263,7 @@ const styles = StyleSheet.create({
   },
   igrejaItemBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: Pallete.border,
   },
   igrejaLogo: {
     ...Pallete.shadows[200],
@@ -273,7 +278,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 999,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Pallete.backgroundColor2,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -289,7 +294,7 @@ const styles = StyleSheet.create({
   // DIVISOR
   divisor: {
     height: 1,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: Pallete.border,
   },
 
   // ADICIONAR IGREJA
@@ -322,6 +327,7 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     fontSize: 15,
     fontWeight: '500',
-    color: '#2D7CFF',
+    color: Pallete.primary,
   },
-});
+  });
+}

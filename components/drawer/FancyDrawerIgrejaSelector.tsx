@@ -6,9 +6,13 @@ import DefaultIcons from '../FancyIcons';
 import { useAuth } from '../../contexts/AuthContext';
 import { ResponseLoginIgrejaDto } from '../../domain/dtos/login/login.response';
 import FancyDrawerIgrejaSelectorModal from './FancyDrawerIgrejaSelectorModal';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export default function FancyDrawerIgrejaSelector() {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
   const { user, igrejaAtiva, setIgrejaAtiva } = useAuth();
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -77,39 +81,41 @@ export default function FancyDrawerIgrejaSelector() {
   );
 }
 
-const styles = StyleSheet.create({
-  // CARD COLAPSADO
-  cardContainer: {
-    marginRight: 10,
-    marginBottom: 8,
-    height: 38,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  logo: {
-    width: 24,
-    height: 24,
-    borderRadius: 9999,
-    borderWidth: 0.2,
-    borderColor: Pallete.border,
-    marginRight: 12,
-  },
-  logoPlaceholder: {
-    width: 26,
-    height: 26,
-    borderRadius: 999,
-    backgroundColor: '#2D7CFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  nomeText: {
-    flex: 1,
-    fontWeight: '500',
-    color: '#FFFFFF',
-  },
-});
+function createStyles(Pallete: ThemePalette) {
+  return StyleSheet.create({
+    // CARD COLAPSADO
+    cardContainer: {
+      marginRight: 10,
+      marginBottom: 8,
+      height: 38,
+      backgroundColor: 'rgba(255, 255, 255, 0.15)',
+      borderRadius: 10,
+      paddingHorizontal: 8,
+      paddingVertical: 10,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    logo: {
+      width: 24,
+      height: 24,
+      borderRadius: 9999,
+      borderWidth: 0.2,
+      borderColor: Pallete.border,
+      marginRight: 12,
+    },
+    logoPlaceholder: {
+      width: 26,
+      height: 26,
+      borderRadius: 999,
+      backgroundColor: Pallete.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    nomeText: {
+      flex: 1,
+      fontWeight: '500',
+      color: '#FFFFFF',
+    },
+  });
+}

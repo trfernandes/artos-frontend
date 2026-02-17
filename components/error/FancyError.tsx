@@ -1,10 +1,10 @@
 import { View, StyleSheet } from 'react-native';
-import { Pallete } from '../../constants/colors';
 import FancyButton from '../buttons/FancyButton';
 import { DefaultIconsNames } from '../../constants/icons';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import FancyText from '../FancyText';
 import { EXTRA_SMALL_SIZE_FONT, SEMI_BOLD_FONT } from '../../constants/font';
+import { usePallete } from '../../hooks/usePallete';
 
 export interface FancyErrorProps {
   title: string;
@@ -21,8 +21,10 @@ export default function FancyError({
   showTryAgain = true,
   onUpdate,
 }: FancyErrorProps) {
+  const Pallete = usePallete();
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: Pallete.backgroundColor }]}>
       <View style={{ alignItems: 'center', gap: 25 }}>
         {icon && <DefaultIcons.Custom {...icon} />}
         <View style={{ gap: 6, alignItems: 'center' }}>
@@ -64,6 +66,8 @@ FancyError.Connection = ({
   subtitle = 'Verifique sua conexão e tente novamente',
   ...props
 }: { title?: string; subtitle?: string } & Pick<FancyErrorProps, 'onUpdate'>) => {
+  const Pallete = usePallete();
+
   return (
     <FancyError
       title={title}
@@ -75,6 +79,8 @@ FancyError.Connection = ({
 };
 
 FancyError.Default = (props: Pick<FancyErrorProps, 'onUpdate'>) => {
+  const Pallete = usePallete();
+
   return (
     <FancyError
       title='Ocorreu um erro inesperado'
@@ -95,7 +101,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Pallete.backgroundColor,
+    backgroundColor: 'transparent',
     gap: 30,
   },
 });

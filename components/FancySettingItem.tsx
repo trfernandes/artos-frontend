@@ -1,9 +1,11 @@
 import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
-import { Pallete } from '../constants/colors';
+import { ThemePalette } from '../constants/colors';
 import DefaultIcons, { CustomIconProps } from './FancyIcons';
 import FancyText from './FancyText';
 import FancyPopup from './popup/FancyPopup';
 import FancyContainer from './FancyContainer';
+import { usePallete } from '../hooks/usePallete';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 
 export type FancySettingItemProps = {
   label: string;
@@ -26,6 +28,9 @@ export default function FancySettingItem({
   disabled = false,
   containerStyle,
 }: FancySettingItemProps) {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
+
   return (
     <FancyContainer containerStyle={[styles.container, disabled && styles.containerDisabled, containerStyle]}>
       <View style={styles.header}>
@@ -78,22 +83,24 @@ export default function FancySettingItem({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: Pallete.border,
-    gap: 10,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-  },
-  header: {
-    borderWidth: 0,
-    borderColor: 'deepskyblue',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexDirection: 'row',
-  },
-  containerDisabled: { backgroundColor: Pallete.backgroundColor3 },
-  textDisabled: { color: Pallete.fonts.inactive2 },
-});
+function createStyles(Pallete: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: Pallete.border,
+      gap: 10,
+      paddingHorizontal: 15,
+      paddingVertical: 10,
+    },
+    header: {
+      borderWidth: 0,
+      borderColor: 'deepskyblue',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      flexDirection: 'row',
+    },
+    containerDisabled: { backgroundColor: Pallete.backgroundColor3 },
+    textDisabled: { color: Pallete.fonts.inactive2 },
+  });
+}

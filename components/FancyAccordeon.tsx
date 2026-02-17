@@ -1,11 +1,13 @@
 import { View, StyleSheet, StyleProp, ViewStyle, TouchableOpacity } from 'react-native';
-import { Pallete } from '../constants/colors';
+import { ThemePalette } from '../constants/colors';
 import FancyText from './FancyText';
 import DefaultIcons, { CustomIconProps } from './FancyIcons';
 import { DefaultIconsNames } from '../constants/icons';
 import { useCallback, useState } from 'react';
 import FancyContainer from './FancyContainer';
 import { LinearGradient } from 'expo-linear-gradient';
+import { usePallete } from '../hooks/usePallete';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 
 export type FancyAccordeonProps = {
   title: string | React.ReactNode;
@@ -40,6 +42,8 @@ export default function FancyAccordeon({
   headerGradientStart = { x: 0, y: 0.5 },
   headerGradientEnd = { x: 1, y: 0.5 },
 }: FancyAccordeonProps) {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
   const [expanded, setExpanded] = useState(isExpanded);
 
   const toggleExpand = useCallback(() => setExpanded((prev) => !prev), []);
@@ -119,25 +123,27 @@ export default function FancyAccordeon({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    gap: 0,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: Pallete.border,
-    ...Pallete.shadows[200],
-  },
-  header: {
-    borderColor: Pallete.border,
-    paddingLeft: 15,
-    backgroundColor: '#f9f9f9ff',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 15,
-    flexDirection: 'row',
-    overflow: 'hidden',
-  },
-  headerGradient: {
-    ...StyleSheet.absoluteFillObject,
-  },
-});
+function createStyles(Pallete: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      gap: 0,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: Pallete.border,
+      ...Pallete.shadows[200],
+    },
+    header: {
+      borderColor: Pallete.border,
+      paddingLeft: 15,
+      backgroundColor: Pallete.backgroundColor2,
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: 15,
+      flexDirection: 'row',
+      overflow: 'hidden',
+    },
+    headerGradient: {
+      ...StyleSheet.absoluteFillObject,
+    },
+  });
+}
