@@ -1,13 +1,15 @@
 import React from 'react';
 import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { CustomIconProps } from '../FancyIcons';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
 import FancyText from '../FancyText';
 import FancyButton from '../buttons/FancyButton';
 import FancyList, { FancyListProps } from '../list/FancyList';
 import FancySeparator from '../FancySeparator';
 import FancyListEmpty from '../list/FancyListEmpty';
 import FancyContainer from '../FancyContainer';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export interface FancyContainerListProps<ItemT>
   extends Pick<FancyListProps<ItemT>, 'data' | 'renderItem' | 'containerStyle' | 'contentContainerStyle' | 'keyExtractor'> {
@@ -31,6 +33,8 @@ export default function FancyContainerList<ItemT>({
   containerStyle,
   contentContainerStyle,
 }: FancyContainerListProps<ItemT>) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const items = Array.from(data ?? []);
   const hasItems = items.length > 0;
 
@@ -52,7 +56,7 @@ export default function FancyContainerList<ItemT>({
                 key={index}
                 mode='icon'
                 type='contained'
-                icon={{ ...button.icon, color: Pallete.icons.light }}
+                icon={{ ...button.icon, color: palette.icons.light }}
                 onPress={button.onPress}
                 containerStyle={{ minHeight: 25, height: 25, minWidth: 25, width: 25 }}
                 iconStyle={button.icon.style}
@@ -93,44 +97,45 @@ export default function FancyContainerList<ItemT>({
 
 const DESIGN_MODE = 0;
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Pallete.backgroundColor,
-    borderColor: Pallete.border,
-    ...Pallete.shadows[300],
-    borderRadius: 10,
-    flex: 1,
-  },
-  headerContainer: {
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderWidth: DESIGN_MODE,
-    borderColor: 'coral',
-    gap: 10,
-    flexDirection: 'row',
-  },
-  headerTitleContainer: {
-    flex: 1,
-    borderWidth: DESIGN_MODE,
-    borderColor: 'pink',
-    justifyContent: 'center',
-  },
-  headerTitle: { borderWidth: 0, borderColor: 'red' },
-  headerButtonsContainer: {
-    gap: 5,
-    flexDirection: 'row',
-    borderWidth: 0,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
-  contentContainer: {
-    borderWidth: DESIGN_MODE,
-    borderColor: 'greenyellow',
-
-    gap: 10,
-    flex: 1,
-  },
-  listContentStyle: { gap: 10, borderWidth: 0, borderColor: 'magenta', paddingBottom: 10, paddingHorizontal: 10 },
-  listContainerStyle: { borderWidth: 0, borderColor: 'gold', flex: 1 },
-  divider: { height: 0.3, borderTopWidth: 1, borderColor: Pallete.border },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      backgroundColor: palette.backgroundColor,
+      borderColor: palette.border,
+      ...palette.shadows[300],
+      borderRadius: 10,
+      flex: 1,
+    },
+    headerContainer: {
+      paddingHorizontal: 15,
+      paddingVertical: 10,
+      borderWidth: DESIGN_MODE,
+      borderColor: 'coral',
+      gap: 10,
+      flexDirection: 'row',
+    },
+    headerTitleContainer: {
+      flex: 1,
+      borderWidth: DESIGN_MODE,
+      borderColor: 'pink',
+      justifyContent: 'center',
+    },
+    headerTitle: { borderWidth: 0, borderColor: 'red' },
+    headerButtonsContainer: {
+      gap: 5,
+      flexDirection: 'row',
+      borderWidth: 0,
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+    },
+    contentContainer: {
+      borderWidth: DESIGN_MODE,
+      borderColor: 'greenyellow',
+      gap: 10,
+      flex: 1,
+    },
+    listContentStyle: { gap: 10, borderWidth: 0, borderColor: 'magenta', paddingBottom: 10, paddingHorizontal: 10 },
+    listContainerStyle: { borderWidth: 0, borderColor: 'gold', flex: 1 },
+    divider: { height: 0.3, borderTopWidth: 1, borderColor: palette.border },
+  });
+}

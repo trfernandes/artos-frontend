@@ -1,9 +1,11 @@
 import { ReactNode, isValidElement } from 'react';
 import { StyleProp, StyleSheet, TouchableOpacity, View, ViewStyle } from 'react-native';
-import { Pallete } from '../../../constants/colors';
+import { ThemePalette } from '../../../constants/colors';
 import DefaultIcons, { CustomIconProps } from '../../FancyIcons';
 import FancyText from '../../FancyText';
 import FancyPopup from '../../popup/FancyPopup';
+import { usePallete } from '../../../hooks/usePallete';
+import { useThemedStyles } from '../../../hooks/useThemedStyles';
 
 interface FancyActionButtonsProps {
   actions?: ActionButtonProps | ActionButtonProps[] | ReactNode;
@@ -50,6 +52,9 @@ const sizeMapping: Record<'small' | 'medium', SizeDefinition> = {
 };
 
 export function FancyActionButtons({ actions, actionButtonContainerStyle, containerStyle }: FancyActionButtonsProps): ReactNode {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+
   function generateButton(item: ActionButtonProps, idx: number, hasLabel: boolean, iconColor: string, sizeDefinitions: SizeDefinition): ReactNode {
     const Wrapper: any = isMenuActionButton(item) ? View : TouchableOpacity;
 
@@ -63,7 +68,7 @@ export function FancyActionButtons({ actions, actionButtonContainerStyle, contai
             minWidth: sizeDefinitions.container.width,
             height: sizeDefinitions.container.height,
             borderRadius: 999,
-            backgroundColor: item.icon.backgroundColor || Pallete.primary,
+            backgroundColor: item.icon.backgroundColor || palette.primary,
           },
           actionButtonContainerStyle,
         ]}
@@ -102,7 +107,7 @@ export function FancyActionButtons({ actions, actionButtonContainerStyle, contai
   function generateButtonsComponent(buttons: ActionButtonProps[]): ReactNode {
     return buttons.map((item, idx) => {
       const hasLabel = Boolean(item.label);
-      const iconColor = item.icon.color || Pallete.fonts.light;
+      const iconColor = item.icon.color || palette.fonts.light;
       const sizeDefinitions = sizeMapping[item.size || 'medium'];
 
       if (isMenuActionButton(item)) {
@@ -126,22 +131,24 @@ export function FancyActionButtons({ actions, actionButtonContainerStyle, contai
   );
 }
 
-const styles = StyleSheet.create({
-  actionButtonsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 5,
-  },
-  actionButton: { borderRadius: 100, justifyContent: 'center', alignItems: 'center' },
-  actionButtonContent: {
-    flex: 1,
-    height: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionButtonLabel: {
-    marginLeft: 4,
-  },
-});
+function createStyles(_palette: ThemePalette) {
+  return StyleSheet.create({
+    actionButtonsContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 5,
+    },
+    actionButton: { borderRadius: 100, justifyContent: 'center', alignItems: 'center' },
+    actionButtonContent: {
+      flex: 1,
+      height: '100%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    actionButtonLabel: {
+      marginLeft: 4,
+    },
+  });
+}

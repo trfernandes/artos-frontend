@@ -1,8 +1,10 @@
 import { StyleSheet, TouchableOpacity, View, ImageSourcePropType } from 'react-native';
 import FancyVerticalCard, { FancyVerticalCardProps } from './FancyVerticalCard';
 import DefaultIcons, { CustomIconProps } from '../../FancyIcons';
-import { Pallete } from '../../../constants/colors';
+import { ThemePalette } from '../../../constants/colors';
 import { Image } from 'expo-image';
+import { usePallete } from '../../../hooks/usePallete';
+import { useThemedStyles } from '../../../hooks/useThemedStyles';
 
 export type FancyVerticalImageCardProps = {
   source?: ImageSourcePropType;
@@ -23,6 +25,8 @@ export default function FancyVerticalImageCard({
   highlighted = false,
   ...props
 }: FancyVerticalImageCardProps) {
+  const styles = useThemedStyles(createStyles);
+
   return (
     <FancyVerticalCard
       cardHeight={125}
@@ -34,14 +38,23 @@ export default function FancyVerticalImageCard({
   );
 }
 
-export function ImageComponent({ source, highlighted = false }: { source: ImageSourcePropType; highlighted?: boolean }) {
+export function ImageComponent({
+  source,
+  highlighted = false,
+}: {
+  source: ImageSourcePropType;
+  highlighted?: boolean;
+}) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+
   return (
     <View
       style={{
         alignItems: 'center',
         justifyContent: 'flex-start',
         borderRadius: 9999,
-        ...Pallete.shadows[200],
+        ...palette.shadows[200],
       }}
     >
       {source ? <Image source={source} style={styles.image} contentFit='fill' /> : null}
@@ -50,6 +63,8 @@ export function ImageComponent({ source, highlighted = false }: { source: ImageS
 }
 
 export function TopLeftMenuButton({ customIcon, onPress }: { customIcon?: CustomIconProps; onPress?: () => void }) {
+  const palette = usePallete();
+
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -66,13 +81,15 @@ export function TopLeftMenuButton({ customIcon, onPress }: { customIcon?: Custom
         name='dots-vertical'
         {...customIcon}
         size={customIcon?.size || 18}
-        color={customIcon?.color || Pallete.icons.dark}
+        color={customIcon?.color || palette.icons.dark}
       />
     </TouchableOpacity>
   );
 }
 
 export function TopRightMenuButton({ customIcon, onPress }: { customIcon?: CustomIconProps; onPress?: () => void }) {
+  const palette = usePallete();
+
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -89,17 +106,19 @@ export function TopRightMenuButton({ customIcon, onPress }: { customIcon?: Custo
         name='dots-vertical'
         {...customIcon}
         size={customIcon?.size || 18}
-        color={customIcon?.color || Pallete.icons.dark}
+        color={customIcon?.color || palette.icons.dark}
       />
     </TouchableOpacity>
   );
 }
 
-const styles = StyleSheet.create({
-  selected: { backgroundColor: Pallete.selected },
-  image: {
-    borderRadius: 9999,
-    aspectRatio: 1,
-    width: '50%',
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    selected: { backgroundColor: palette.selected },
+    image: {
+      borderRadius: 9999,
+      aspectRatio: 1,
+      width: '50%',
+    },
+  });
+}

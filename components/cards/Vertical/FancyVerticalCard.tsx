@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, StyleSheet, StyleProp, ViewStyle, DimensionValue } from 'react-native';
 import FancyText from '../../FancyText';
-import { Pallete } from '../../../constants/colors';
+import { ThemePalette } from '../../../constants/colors';
 import { EXTRA_SMALL_SIZE_FONT } from '../../../constants/font';
+import { usePallete } from '../../../hooks/usePallete';
+import { useThemedStyles } from '../../../hooks/useThemedStyles';
 
 export interface FancyVerticalCardProps {
   title?: string;
@@ -39,6 +41,9 @@ export default function FancyVerticalCard({
   topElementStyle,
   bottomElementStyle,
 }: FancyVerticalCardProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+
   return (
     <View style={[styles.container, containerStyle, cardHeight !== undefined && { height: cardHeight as DimensionValue }]}>
       {/* Camada absoluta de topo */}
@@ -83,7 +88,7 @@ export default function FancyVerticalCard({
                   type='semiBold'
                   numberOfLines={1}
                   ellipsizeMode='tail'
-                  color={Pallete.fonts.inactive}
+                  color={palette.fonts.inactive}
                   style={{
                     // marginTop: 4,
                     textAlign: 'center',
@@ -104,9 +109,10 @@ export default function FancyVerticalCard({
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
   container: {
-    backgroundColor: Pallete.backgroundColor2,
+    backgroundColor: palette.backgroundColor2,
     borderRadius: 8,
     overflow: 'hidden',
     gap: 10,
@@ -168,3 +174,4 @@ const styles = StyleSheet.create({
     borderColor: 'green',
   },
 });
+}
