@@ -2,7 +2,10 @@ import React from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import FancyText from '../../FancyText';
 import DefaultIcons, { CustomIconProps } from '../../FancyIcons';
-import { Pallete } from '../../../constants/colors';
+import { ThemePalette } from '../../../constants/colors';
+import { usePallete } from '../../../hooks/usePallete';
+import { useThemedStyles } from '../../../hooks/useThemedStyles';
+import { ColorUtils } from '../../../utils/color_utils';
 
 type DashboardCardProps = {
   title: string;
@@ -23,6 +26,9 @@ export default function DashboardCard({
   onPress,
   surfaceVariant = 'default',
 }: DashboardCardProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+
   const content = (
     <View
       style={[
@@ -31,12 +37,12 @@ export default function DashboardCard({
         surfaceVariant === 'scaleCard' && styles.scaleCardContainer,
       ]}
     >
-      <View style={[styles.iconContainer, { backgroundColor: iconBackgroundColor || `${Pallete.primary}15` }]}>
+      <View style={[styles.iconContainer, { backgroundColor: iconBackgroundColor || ColorUtils.withAlpha(palette.primary, 0.15) }]}>
         <DefaultIcons.Custom
           library={icon.library}
           name={icon.name}
           size={icon.size || 12}
-          color={icon.color || Pallete.primary}
+          color={icon.color || palette.primary}
         />
       </View>
 
@@ -44,7 +50,7 @@ export default function DashboardCard({
         <FancyText
           size={16}
           type="bold"
-          color={Pallete.fonts.dark}
+          color={palette.fonts.dark}
           numberOfLines={1}
           adjustsFontSizeToFit
           minimumFontScale={0.82}
@@ -56,7 +62,7 @@ export default function DashboardCard({
         <FancyText
           size="extraSmall"
           type="medium"
-          color={Pallete.fonts.inactive}
+          color={palette.fonts.inactive}
           numberOfLines={1}
           adjustsFontSizeToFit
           minimumFontScale={0.88}
@@ -69,7 +75,7 @@ export default function DashboardCard({
           <FancyText
             size="extraSmall"
             type="normal"
-            color={Pallete.fonts.inactive}
+            color={palette.fonts.inactive}
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.88}
@@ -93,49 +99,51 @@ export default function DashboardCard({
   return content;
 }
 
-const styles = StyleSheet.create({
-  pressable: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: Pallete.backgroundColor2,
-    borderRadius: 16,
-    padding: 10,
-    minHeight: 80,
-    ...Pallete.shadows[100],
-  },
-  infoBlueContainer: {
-    backgroundColor: Pallete.backgroundColor4,
-    borderWidth: 1,
-    borderColor: 'rgba(59,130,246,0.22)',
-  },
-  scaleCardContainer: {
-    borderWidth: 1,
-    borderColor: 'rgba(191,191,191,0.45)',
-  },
-  iconContainer: {
-    position: 'absolute',
-    top: 8,
-    left: 8,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  centerContent: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 10,
-    gap: 5,
-  },
-  fitText: {
-    width: '100%',
-    textAlign: 'center',
-  },
-  valueText: {
-    opacity: 0.8,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    pressable: {
+      flex: 1,
+    },
+    container: {
+      flex: 1,
+      backgroundColor: palette.backgroundColor2,
+      borderRadius: 16,
+      padding: 10,
+      minHeight: 80,
+      ...palette.shadows[100],
+    },
+    infoBlueContainer: {
+      backgroundColor: palette.backgroundColor4,
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.primary, 0.22),
+    },
+    scaleCardContainer: {
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.border, 0.45),
+    },
+    iconContainer: {
+      position: 'absolute',
+      top: 8,
+      left: 8,
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    centerContent: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingTop: 10,
+      gap: 5,
+    },
+    fitText: {
+      width: '100%',
+      textAlign: 'center',
+    },
+    valueText: {
+      opacity: 0.8,
+    },
+  });
+}
