@@ -2,9 +2,11 @@ import { View, StyleSheet } from 'react-native';
 import { useFormContext } from 'react-hook-form';
 import { LoginCreateIgrejaFormData } from '../../../../domain/schemas/loginCreateIgrejaSchema';
 import FancyText from '../../../FancyText';
-import { Pallete } from '../../../../constants/colors';
+import { ThemePalette } from '../../../../constants/colors';
 import DefaultIcons from '../../../FancyIcons';
 import { ColorUtils } from '../../../../utils/color_utils';
+import { usePallete } from '../../../../hooks/usePallete';
+import { useThemedStyles } from '../../../../hooks/useThemedStyles';
 
 type SummaryItemProps = {
   label: string;
@@ -13,10 +15,13 @@ type SummaryItemProps = {
 };
 
 function SummaryItem({ label, value, hidden = false }: SummaryItemProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+
   if (hidden || !value) return null;
   return (
     <View style={styles.summaryItem}>
-      <FancyText size='extraSmall' color={Pallete.fonts.inactive}>
+      <FancyText size='extraSmall' color={palette.fonts.inactive}>
         {label}:
       </FancyText>
       <FancyText size='extraSmall' type='medium' style={{ flex: 1 }} numberOfLines={1}>
@@ -33,13 +38,16 @@ type SummarySectionProps = {
 };
 
 function SummarySection({ icon, title, children }: SummarySectionProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+
   return (
     <View style={styles.sectionContainer}>
       <View style={styles.sectionHeader}>
         <View style={styles.sectionIconContainer}>
-          <DefaultIcons.Custom library={icon.library as any} name={icon.name} size={18} color={Pallete.primary} />
+          <DefaultIcons.Custom library={icon.library as any} name={icon.name} size={18} color={palette.primary} />
         </View>
-        <FancyText size='small' type='bold' color={Pallete.primary}>
+        <FancyText size='small' type='bold' color={palette.primary}>
           {title}
         </FancyText>
       </View>
@@ -49,6 +57,8 @@ function SummarySection({ icon, title, children }: SummarySectionProps) {
 }
 
 export default function CreateIgrejaAccountTabPronto() {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const { getValues } = useFormContext<LoginCreateIgrejaFormData>();
   const values = getValues();
 
@@ -66,13 +76,13 @@ export default function CreateIgrejaAccountTabPronto() {
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <View style={styles.checkIconContainer}>
-          <DefaultIcons.Custom library='MaterialCommunityIcons' name='check' size={20} color='white' />
+          <DefaultIcons.Custom library='MaterialCommunityIcons' name='check' size={20} color={palette.fonts.light} />
         </View>
         <View style={styles.headerTextContainer}>
           <FancyText type='bold' size='medium'>
             Tudo pronto!
           </FancyText>
-          <FancyText size='extraSmall' color={Pallete.fonts.inactive}>
+          <FancyText size='extraSmall' color={palette.fonts.inactive}>
             Revise os dados antes de criar sua igreja
           </FancyText>
         </View>
@@ -97,62 +107,64 @@ export default function CreateIgrejaAccountTabPronto() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    gap: 12,
-    width: '100%',
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  headerTextContainer: {
-    flex: 1,
-    gap: 2,
-  },
-  checkIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Pallete.confirm,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  summaryContainer: {
-    width: '100%',
-    backgroundColor: ColorUtils.lightenColor(Pallete.primary, 0.95),
-    borderRadius: 12,
-    padding: 14,
-    gap: 12,
-  },
-  sectionContainer: {
-    gap: 8,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  sectionIconContainer: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: ColorUtils.lightenColor(Pallete.primary, 0.9),
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sectionContent: {
-    gap: 6,
-    paddingLeft: 36,
-  },
-  summaryItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: Pallete.borderCard,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      gap: 12,
+      width: '100%',
+    },
+    headerContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    headerTextContainer: {
+      flex: 1,
+      gap: 2,
+    },
+    checkIconContainer: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: palette.confirm,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    summaryContainer: {
+      width: '100%',
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12),
+      borderRadius: 12,
+      padding: 14,
+      gap: 12,
+    },
+    sectionContainer: {
+      gap: 8,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    sectionIconContainer: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.16),
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    sectionContent: {
+      gap: 6,
+      paddingLeft: 36,
+    },
+    summaryItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: palette.borderCard,
+    },
+  });
+}

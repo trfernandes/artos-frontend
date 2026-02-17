@@ -2,10 +2,10 @@ import { StyleSheet, View } from 'react-native';
 import { useAuth } from '../../../../contexts/AuthContext';
 import FancyAvatarImage from '../../../images/FancyImage';
 import FancyActionsList from '../../../list/FancyActionsList';
-import { Pallete } from '../../../../constants/colors';
 import FancyText from '../../../FancyText';
 import { router } from 'expo-router';
 import { AppImages } from '../../../../assets/app_images';
+import { usePallete } from '../../../../hooks/usePallete';
 
 export default function DadosTab({
   onChangePasswordButtonPress,
@@ -14,6 +14,7 @@ export default function DadosTab({
   onChangePasswordButtonPress?: () => void;
   onDeleteAccountButtonPress?: () => void;
 }) {
+  const palette = usePallete();
   const { user } = useAuth();
 
   return (
@@ -27,13 +28,13 @@ export default function DadosTab({
                 : AppImages.emptyProfile
             }
             size={120}
-            style={{ backgroundColor: 'white', borderRadius: 100 }}
+            style={{ backgroundColor: palette.backgroundColor3, borderRadius: 100 }}
           />
           <View style={{ height: 5 }} />
           <FancyText type='semiBold' size='large'>
             {user?.user?.nome}
           </FancyText>
-          <FancyText size='small' style={{ color: Pallete.fonts.inactive }}>
+          <FancyText size='small' style={{ color: palette.fonts.inactive }}>
             {user?.user?.email}
           </FancyText>
         </View>
@@ -45,7 +46,7 @@ export default function DadosTab({
                 library: 'FontAwesome6',
                 name: 'user-pen',
                 size: 13,
-                color: Pallete.icons.dark,
+                color: palette.icons.dark,
                 style: { borderWidth: 0, marginTop: -1 },
               },
               label: 'Editar perfil',
@@ -56,7 +57,7 @@ export default function DadosTab({
                 library: 'FontAwesome6',
                 name: 'user-lock',
                 size: 13,
-                color: Pallete.icons.inactive,
+                color: palette.icons.inactive,
                 style: { borderWidth: 0, marginTop: -1 },
               },
               label: 'Alterar senha',
@@ -67,7 +68,7 @@ export default function DadosTab({
                 library: 'FontAwesome6',
                 name: 'user-xmark',
                 size: 13,
-                color: Pallete.icons.inactive,
+                color: palette.icons.inactive,
                 style: { borderWidth: 0, marginTop: -1 },
               },
               label: 'Excluir conta',

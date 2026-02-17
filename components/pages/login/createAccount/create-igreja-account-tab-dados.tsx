@@ -7,10 +7,10 @@ import { UF_LIST } from '../../../../domain/utils/uf-list';
 import { getCidadesPorUf } from '../../../../domain/utils/cidades-list';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import { useCallback, useEffect, useRef, useState, createContext, useContext, useMemo } from 'react';
-import { Pallete } from '../../../../constants/colors';
 import { IgrejaRepository } from '../../../../domain/services/IgrejaRepository';
 import FancyText from '../../../FancyText';
 import DefaultIcons from '../../../FancyIcons';
+import { usePallete } from '../../../../hooks/usePallete';
 
 // Contexto para compartilhar o estado de verificação do código
 type CodigoCheckContextType = {
@@ -54,6 +54,7 @@ function slugify(text: string): string {
 }
 
 export default function CreateIgrejaAccountTabDados() {
+  const palette = usePallete();
   const { control, watch, setValue, clearErrors, setError } = useFormContext<LoginCreateIgrejaFormData>();
   const nome = watch('nome');
   const codigo = watch('codigo');
@@ -202,13 +203,13 @@ export default function CreateIgrejaAccountTabDados() {
 
   const renderCodigoRightContainer = () => {
     if (isCheckingCode) {
-      return <ActivityIndicator size='small' color={Pallete.primary} style={{ marginRight: 10 }} />;
+      return <ActivityIndicator size='small' color={palette.primary} style={{ marginRight: 10 }} />;
     }
     if (codigoStatus === 'available') {
-      return <DefaultIcons.Custom library='Feather' name='check-circle' size={18} color={Pallete.confirm} style={{ marginRight: 10 }} />;
+      return <DefaultIcons.Custom library='Feather' name='check-circle' size={18} color={palette.confirm} style={{ marginRight: 10 }} />;
     }
     if (codigoStatus === 'unavailable') {
-      return <DefaultIcons.Custom library='Feather' name='x-circle' size={18} color={Pallete.error} style={{ marginRight: 10 }} />;
+      return <DefaultIcons.Custom library='Feather' name='x-circle' size={18} color={palette.error} style={{ marginRight: 10 }} />;
     }
     return null;
   };
@@ -268,7 +269,7 @@ export default function CreateIgrejaAccountTabDados() {
         name='nome'
         label='Qual o nome da sua igreja?'
         inputProps={{ onBlur: handleNomeBlur }}
-        rightContainer={isDebouncing ? <ActivityIndicator size='small' color={Pallete.primary} style={{ marginRight: 10 }} /> : null}
+        rightContainer={isDebouncing ? <ActivityIndicator size='small' color={palette.primary} style={{ marginRight: 10 }} /> : null}
       />
       <ControlledTextInput
         control={control}
@@ -278,14 +279,14 @@ export default function CreateIgrejaAccountTabDados() {
         rightContainer={renderCodigoRightContainer()}
       />
       {codigoStatus === 'available' && (
-        <FancyText size='extraSmall' type='semiBold' color={Pallete.confirm} style={styles.statusText}>
+        <FancyText size='extraSmall' type='semiBold' color={palette.confirm} style={styles.statusText}>
           ✓ Código disponível
         </FancyText>
       )}
       {codigoStatus === 'unavailable' && sugestao && (
         <TouchableOpacity onPress={aplicarSugestao} style={styles.sugestaoContainer}>
-          <DefaultIcons.Custom library='Feather' name='info' size={12} color={Pallete.primary} />
-          <FancyText size='extraSmall' type='medium' color={Pallete.primary} style={styles.sugestaoText}>
+          <DefaultIcons.Custom library='Feather' name='info' size={12} color={palette.primary} />
+          <FancyText size='extraSmall' type='medium' color={palette.primary} style={styles.sugestaoText}>
             Usar sugestão: {sugestao}
           </FancyText>
         </TouchableOpacity>

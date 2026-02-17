@@ -7,8 +7,11 @@ import MinisteriosTab from '../../../../../components/pages/pessoal/perfil/Minis
 import { useState } from 'react';
 import ChangePasswordModal from '../../../../../components/pages/pessoal/perfil/ChangePasswordModal';
 import DeleteAccountModal from '../../../../../components/pages/pessoal/perfil/DeleteAccountModal';
+import { ThemePalette } from '../../../../../constants/colors';
+import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 
 export default function PerfilIndexPage() {
+  const styles = useThemedStyles(createStyles);
   const [isChangePasswordModalVisible, setChangePasswordModalVisible] = useState(false);
   const [isDeleteAccountModalVisible, setDeleteAccountModalVisible] = useState(false);
 
@@ -52,15 +55,17 @@ export default function PerfilIndexPage() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { paddingTop: 0 },
-  footer: {
-    padding: 20,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: '#ccc',
-    backgroundColor: '#fff',
-  },
-  buttonsContainer: {
-    gap: 12,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: { paddingTop: 0 },
+    footer: {
+      padding: 20,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderColor: palette.border,
+      backgroundColor: palette.backgroundColor,
+    },
+    buttonsContainer: {
+      gap: 12,
+    },
+  });
+}
