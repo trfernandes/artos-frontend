@@ -1,7 +1,7 @@
 import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
 import { Conjunction, DynamicQuery, Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
 import { StyleSheet, View } from 'react-native';
-import { Pallete } from '../../../../../constants/colors';
+import { ThemePalette } from '../../../../../constants/colors';
 import VoluntarioDetailsHeader from './VoluntarioDetailsHeader';
 import FancyModal, { FancyModalProps } from '../../../../modal/FancyModal';
 import FancyText from '../../../../FancyText';
@@ -13,6 +13,7 @@ import { EscalaItensRepository } from '../../../../../domain/services/EscalaIten
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import FancySection from '../../../../FancySection';
 import { EscalaTemplateExperienciaLabel } from '../../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
+import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 
 export default function VoluntarioDetailsModal({
   ministerioVoluntarioId,
@@ -24,6 +25,8 @@ export default function VoluntarioDetailsModal({
   voluntarioId: string;
   onClose?: () => void;
 } & FancyModalProps) {
+  const styles = useThemedStyles(createStyles);
+
   const initialParams = useMemo<DynamicQuery>(
     () => ({
       where: {
@@ -238,18 +241,9 @@ export default function VoluntarioDetailsModal({
       containerStyle={{ padding: 0 }}
       center={
         voluntarioData?.length > 0 && (
-          <View style={{ width: '100%' }}>
+          <View style={styles.wrapper}>
             <VoluntarioDetailsHeader voluntarioInfo={voluntarioData[0].voluntario!} onClose={onClose} />
-            <View
-              style={{
-                padding: 20,
-                paddingBottom: 30,
-                gap: 15,
-                backgroundColor: 'white',
-                borderRadius: 10,
-                marginTop: -6,
-              }}
-            >
+            <View style={styles.contentContainer}>
               {/* Última Escala */}
               <FancySection
                 icon={{
@@ -313,15 +307,26 @@ export default function VoluntarioDetailsModal({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    borderWidth: 1,
-    borderColor: Pallete.border,
-    borderRadius: 10,
-    paddingVertical: 18,
-    paddingHorizontal: 15,
-    backgroundColor: 'white',
-    elevation: 0.4,
-    gap: 20,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    wrapper: { width: '100%' },
+    contentContainer: {
+      padding: 20,
+      paddingBottom: 30,
+      gap: 15,
+      backgroundColor: palette.backgroundColor2,
+      borderRadius: 10,
+      marginTop: -6,
+    },
+    card: {
+      borderWidth: 1,
+      borderColor: palette.border,
+      borderRadius: 10,
+      paddingVertical: 18,
+      paddingHorizontal: 15,
+      backgroundColor: palette.backgroundColor2,
+      elevation: 0.4,
+      gap: 20,
+    },
+  });
+}

@@ -11,7 +11,7 @@ import { useMemo, useState } from 'react';
 import { Conjunction, Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyError from '../../../../../components/error/FancyError';
 import FancyLoading from '../../../../../components/FancyLoading';
-import { Pallete } from '../../../../../constants/colors';
+import { ThemePalette } from '../../../../../constants/colors';
 import FancyCalendar from '../../../../../components/calendar/FancyCalendar';
 import FancyButton from '../../../../../components/buttons/FancyButton';
 import { DefaultIconsNames } from '../../../../../constants/icons';
@@ -22,6 +22,8 @@ import Toast from 'react-native-toast-message';
 import DateUtils, { DateUtilsApi } from '../../../../../utils/date_utils';
 import DateAvailabilityAdjustmentModal from '../../../../../components/pages/pessoal/indisponibilidade/DateAvailabilityAdjustmentModal';
 import { useAuth } from '../../../../../contexts/AuthContext';
+import { usePallete } from '../../../../../hooks/usePallete';
+import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 
 type ModalState = {
   visible: boolean;
@@ -36,6 +38,8 @@ const schema = z.object({
 });
 
 export default function MinisterioIndisponibilidadesIndex() {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const { ministerioId } = useLocalSearchParams<{ ministerioId?: string }>();
   const { igrejaAtiva } = useAuth();
   const igrejaId = igrejaAtiva?.id;
@@ -204,7 +208,7 @@ export default function MinisterioIndisponibilidadesIndex() {
             markedDates={indisponibilidadesData.map((d) => ({
               date: new Date(d.data),
               T: d.id,
-              color: Pallete.error,
+              color: palette.error,
             }))}
             markedDatesType='SurroundCircle'
           />
@@ -250,26 +254,28 @@ export default function MinisterioIndisponibilidadesIndex() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { paddingBottom: 10, flex: 1, paddingHorizontal: 20 },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 999,
-  },
-  legend: {
-    flexDirection: 'row',
-    paddingLeft: 20,
-    alignItems: 'center',
-    gap: 8,
-  },
-  legendCircle: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: Pallete.error,
-  },
-  voluntarioContainer: { paddingTop: 5 },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: { paddingBottom: 10, flex: 1, paddingHorizontal: 20 },
+    loadingOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.35)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 999,
+    },
+    legend: {
+      flexDirection: 'row',
+      paddingLeft: 20,
+      alignItems: 'center',
+      gap: 8,
+    },
+    legendCircle: {
+      width: 14,
+      height: 14,
+      borderRadius: 7,
+      backgroundColor: palette.error,
+    },
+    voluntarioContainer: { paddingTop: 5 },
+  });
+}

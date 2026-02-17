@@ -7,7 +7,10 @@ import DefaultIcons from '../../../../FancyIcons';
 import FancyText from '../../../../FancyText';
 import { TimeUtils } from '../../../../../utils/timer_util';
 import { DateUtilsApi } from '../../../../../utils/date_utils';
-import { Pallete } from '../../../../../constants/colors';
+import { ThemePalette } from '../../../../../constants/colors';
+import { usePallete } from '../../../../../hooks/usePallete';
+import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
+import { ColorUtils } from '../../../../../utils/color_utils';
 
 type ResumoMetricRowProps = {
   label: string;
@@ -29,23 +32,26 @@ function ResumoMetricRow({
   icon,
   iconBackgroundColor,
 }: ResumoMetricRowProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+
   return (
     <View style={[styles.metricRow, withDivider && styles.metricRowDivider]}>
       <View style={styles.metricLeft}>
         <View
           style={[
             styles.metricIconBadge,
-            { backgroundColor: iconBackgroundColor || `${Pallete.primary}15` },
+            { backgroundColor: iconBackgroundColor || ColorUtils.withAlpha(palette.primary, 0.15) },
           ]}
         >
           <DefaultIcons.Custom
             library={icon.library}
             name={icon.name}
             size={icon.size || 12}
-            color={icon.color || Pallete.primary}
+            color={icon.color || palette.primary}
           />
         </View>
-        <FancyText size='small' type='medium' color={Pallete.fonts.inactive} numberOfLines={1}>
+        <FancyText size='small' type='medium' color={palette.fonts.inactive} numberOfLines={1}>
           {label}
         </FancyText>
       </View>
@@ -53,7 +59,7 @@ function ResumoMetricRow({
       <FancyText
         size='largeMedium'
         type='bold'
-        color={Pallete.fonts.dark}
+        color={palette.fonts.dark}
         style={styles.metricValue}
       >
         {value}
@@ -63,6 +69,8 @@ function ResumoMetricRow({
 }
 
 export default function AssistenteResultadoStep() {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const { resultado, tempoGeracaoEscala } = useAssistenteEscala();
 
   const quantEventos = useMemo(() => {
@@ -126,13 +134,13 @@ export default function AssistenteResultadoStep() {
             library='FontAwesome6'
             name='circle-check'
             size={44}
-            color={Pallete.confirm}
+            color={palette.confirm}
           />
           <View style={styles.successTextWrap}>
-            <FancyText size='large' type='bold' color={Pallete.fonts.dark}>
+            <FancyText size='large' type='bold' color={palette.fonts.dark}>
               Sua escala está pronta
             </FancyText>
-            <FancyText size='small' type='medium' color={Pallete.fonts.inactive}>
+            <FancyText size='small' type='medium' color={palette.fonts.inactive}>
               Confira o resumo final da geração automática.
             </FancyText>
           </View>
@@ -140,33 +148,33 @@ export default function AssistenteResultadoStep() {
 
         <View style={styles.summaryPanel}>
           <View style={styles.summaryHeader}>
-            <View style={[styles.summaryHeaderBadge, { backgroundColor: `${Pallete.primary}15` }]}>
+            <View style={[styles.summaryHeaderBadge, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.15) }]}>
               <DefaultIcons.Custom
                 library='MaterialCommunityIcons'
                 name='view-dashboard-outline'
                 size={13}
-                color={Pallete.primary}
+                color={palette.primary}
               />
             </View>
             <View style={styles.summaryHeaderTextWrap}>
-              <FancyText size='small' type='bold' color={Pallete.fonts.dark}>
+              <FancyText size='small' type='bold' color={palette.fonts.dark}>
                 Resumo final da escala
               </FancyText>
-              <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive}>
+              <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
                 Visão geral da geração automática
               </FancyText>
             </View>
           </View>
 
           <View style={styles.periodHero}>
-            <FancyText size='small' type='medium' color={Pallete.fonts.inactive}>
+            <FancyText size='small' type='medium' color={palette.fonts.inactive}>
               Período da escala
             </FancyText>
 
             <FancyText
               size='large'
               type='bold'
-              color={Pallete.fonts.dark}
+              color={palette.fonts.dark}
               style={styles.periodPrimaryValue}
             >
               {periodoResumo}
@@ -174,7 +182,7 @@ export default function AssistenteResultadoStep() {
             <FancyText
               size='small'
               type='medium'
-              color={Pallete.fonts.inactive}
+              color={palette.fonts.inactive}
               style={styles.periodMetaLine}
             >
               {periodoInicio} a {periodoFim}
@@ -182,7 +190,7 @@ export default function AssistenteResultadoStep() {
             <FancyText
               size='extraSmall'
               type='semiBold'
-              color={Pallete.primary}
+              color={palette.primary}
               style={styles.periodCoverage}
             >
               {periodoDias} dias de cobertura
@@ -195,20 +203,20 @@ export default function AssistenteResultadoStep() {
               value={quantEventos}
               withDivider
               icon={{ library: 'MaterialCommunityIcons', name: 'calendar-month', size: 12 }}
-              iconBackgroundColor={`${Pallete.primary}15`}
+              iconBackgroundColor={ColorUtils.withAlpha(palette.primary, 0.15)}
             />
             <ResumoMetricRow
               label='Voluntários'
               value={quantParticipantes}
               withDivider
               icon={{ library: 'MaterialCommunityIcons', name: 'account-group', size: 12 }}
-              iconBackgroundColor={`${Pallete.secondary}15`}
+              iconBackgroundColor={ColorUtils.withAlpha(palette.secondary, 0.15)}
             />
             <ResumoMetricRow
               label='Tempo de geração'
               value={tempoTotal}
               icon={{ library: 'MaterialCommunityIcons', name: 'timer-outline', size: 12 }}
-              iconBackgroundColor={`${Pallete.confirm}15`}
+              iconBackgroundColor={ColorUtils.withAlpha(palette.confirm, 0.15)}
             />
           </View>
         </View>
@@ -217,124 +225,126 @@ export default function AssistenteResultadoStep() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingVertical: 10,
-  },
-  contentWrapper: {
-    width: '100%',
-    maxWidth: 620,
-    alignSelf: 'center',
-    paddingHorizontal: 14,
-    gap: 34,
-  },
-  successHeader: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 9,
-  },
-  successTextWrap: {
-    alignItems: 'center',
-    gap: 3,
-  },
-  summaryPanel: {
-    width: '100%',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#DCE5F2',
-    backgroundColor: Pallete.backgroundColor,
-    paddingVertical: 14,
-    paddingHorizontal: 12,
-    ...Pallete.shadows[100],
-  },
-  summaryHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 9,
-  },
-  summaryHeaderBadge: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
-  },
-  summaryHeaderTextWrap: {
-    gap: 2,
-  },
-  periodHero: {
-    marginTop: 12,
-    borderRadius: 12,
-    borderWidth: 0,
-    backgroundColor: Pallete.backgroundColor,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    gap: 2,
-  },
-  periodHeroHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  heroIconBadge: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
-  },
-  periodPrimaryValue: {
-    marginTop: 2,
-  },
-  periodMetaLine: {
-    lineHeight: 17,
-  },
-  periodCoverage: {
-    marginTop: 1,
-  },
-  kpiList: {
-    marginTop: 2,
-    borderRadius: 12,
-    borderWidth: 0,
-    backgroundColor: Pallete.backgroundColor,
-    overflow: 'hidden',
-  },
-  metricRow: {
-    minHeight: 42,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-  },
-  metricRowDivider: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Pallete.borderCard,
-  },
-  metricLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    flex: 1,
-    minWidth: 0,
-    marginRight: 8,
-  },
-  metricIconBadge: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.04)',
-  },
-  metricValue: {
-    textAlign: 'right',
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: 'center',
+      paddingVertical: 10,
+    },
+    contentWrapper: {
+      width: '100%',
+      maxWidth: 620,
+      alignSelf: 'center',
+      paddingHorizontal: 14,
+      gap: 34,
+    },
+    successHeader: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 9,
+    },
+    successTextWrap: {
+      alignItems: 'center',
+      gap: 3,
+    },
+    summaryPanel: {
+      width: '100%',
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: palette.borderCard,
+      backgroundColor: palette.backgroundColor2,
+      paddingVertical: 14,
+      paddingHorizontal: 12,
+      ...palette.shadows[100],
+    },
+    summaryHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 9,
+    },
+    summaryHeaderBadge: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.border, 0.28),
+    },
+    summaryHeaderTextWrap: {
+      gap: 2,
+    },
+    periodHero: {
+      marginTop: 12,
+      borderRadius: 12,
+      borderWidth: 0,
+      backgroundColor: palette.backgroundColor3,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      gap: 2,
+    },
+    periodHeroHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    heroIconBadge: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.border, 0.28),
+    },
+    periodPrimaryValue: {
+      marginTop: 2,
+    },
+    periodMetaLine: {
+      lineHeight: 17,
+    },
+    periodCoverage: {
+      marginTop: 1,
+    },
+    kpiList: {
+      marginTop: 2,
+      borderRadius: 12,
+      borderWidth: 0,
+      backgroundColor: palette.backgroundColor3,
+      overflow: 'hidden',
+    },
+    metricRow: {
+      minHeight: 42,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+    },
+    metricRowDivider: {
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: palette.borderCard,
+    },
+    metricLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      flex: 1,
+      minWidth: 0,
+      marginRight: 8,
+    },
+    metricIconBadge: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.border, 0.24),
+    },
+    metricValue: {
+      textAlign: 'right',
+    },
+  });
+}

@@ -8,14 +8,15 @@ import { formatDate, lastDayOfMonth, startOfMonth } from 'date-fns';
 import FancyLoading from '../../../../../components/FancyLoading';
 import DateUtils, { DateUtilsApi } from '../../../../../utils/date_utils';
 import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
-import { Pallete } from '../../../../../constants/colors';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import FancySeparator from '../../../../../components/FancySeparator';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { ResponseEventoOcorrenciaDto } from '../../../../../domain/dtos/Evento/evento-ocorrencia.response.dto';
 import { useAuth } from '../../../../../contexts/AuthContext';
+import { usePallete } from '../../../../../hooks/usePallete';
 
 export default function MinisterioAgendaIndexPage() {
+  const palette = usePallete();
   const params = useLocalSearchParams<{ ministerioId: string }>();
   const { igrejaAtiva } = useAuth();
 
@@ -79,7 +80,7 @@ export default function MinisterioAgendaIndexPage() {
             <FancyCard.Color
               title={item.nome}
               subtitle={subtitle}
-              color={item.cor || Pallete.primary}
+              color={item.cor || palette.primary}
               actionButtons={[
                 {
                   icon: {

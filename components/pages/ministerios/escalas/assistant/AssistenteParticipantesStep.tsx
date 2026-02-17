@@ -12,14 +12,18 @@ import { useCallback, useEffect, useMemo } from 'react';
 import FancyText from '../../../../FancyText';
 import FancyLoading from '../../../../FancyLoading';
 import { useLoading } from '../../../../../contexts/LoadingContext';
-import { Pallete } from '../../../../../constants/colors';
+import { ThemePalette } from '../../../../../constants/colors';
 import { useAssistenteEscala } from '../../../../../contexts/pages/escalas/AssistantContext';
 import DefaultIcons from '../../../../FancyIcons';
 import { AppImages } from '../../../../../assets/app_images';
 import { getFirstAndLastName } from '../../../../../utils/text_utils';
 import { MinisterioVoluntarioFuncaoStatusEnum } from '../../../../../domain/enums/MinisterioVoluntarioFuncao/ministerio-voluntario-funcao-status.enum';
+import { usePallete } from '../../../../../hooks/usePallete';
+import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 
 export default function AssistenteParticipantesStep() {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const { ministerioId, isShouldLoadMembers, setShouldLoadMembers } = useAssistenteEscala();
 
   const form = useFormContext<EscalaFormData>();
@@ -167,9 +171,9 @@ export default function AssistenteParticipantesStep() {
               library='Octicons'
               name={markAll ? 'circle' : 'check-circle'}
               size={18}
-              color={Pallete.primary}
+              color={palette.primary}
             />
-            <FancyText size={'small'} type='semiBold' style={{ color: Pallete.primary }}>
+            <FancyText size={'small'} type='semiBold' style={{ color: palette.primary }}>
               {!markAll ? 'Marcar todos' : 'Desmarcar todos'}
             </FancyText>
           </Pressable>
@@ -179,9 +183,9 @@ export default function AssistenteParticipantesStep() {
               library='MaterialCommunityIcons'
               name='alert-circle-outline'
               size={16}
-              color={Pallete.warning}
+              color={palette.warning}
             />
-            <FancyText size='small' type='medium' color={Pallete.warning} style={{ flex: 1 }}>
+            <FancyText size='small' type='medium' color={palette.warning} style={{ flex: 1 }}>
               Nenhum participante com função ativa no ministério.
             </FancyText>
           </View>
@@ -203,12 +207,12 @@ export default function AssistenteParticipantesStep() {
             library='MaterialCommunityIcons'
             name='account-off-outline'
             size={34}
-            color={Pallete.fonts.inactive}
+            color={palette.fonts.inactive}
           />
-          <FancyText size='small' type='semiBold' color={Pallete.fonts.dark}>
+          <FancyText size='small' type='semiBold' color={palette.fonts.dark}>
             Sem participantes aptos
           </FancyText>
-          <FancyText size='small' color={Pallete.fonts.inactive} style={{ textAlign: 'center' }}>
+          <FancyText size='small' color={palette.fonts.inactive} style={{ textAlign: 'center' }}>
             Cadastre pelo menos uma função para algum voluntário deste ministério para continuar.
           </FancyText>
         </View>
@@ -217,27 +221,29 @@ export default function AssistenteParticipantesStep() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { gap: 15, flex: 1 },
-  emptyEligibleHint: {
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
-  },
-  emptyEligibleContainer: {
-    flex: 1,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: Pallete.borderCard,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-    gap: 8,
-    backgroundColor: Pallete.backgroundColor2,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: { gap: 15, flex: 1 },
+    emptyEligibleHint: {
+      flexDirection: 'row',
+      gap: 8,
+      alignItems: 'center',
+    },
+    emptyEligibleContainer: {
+      flex: 1,
+      borderWidth: 1,
+      borderStyle: 'dashed',
+      borderColor: palette.borderCard,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 16,
+      gap: 8,
+      backgroundColor: palette.backgroundColor2,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+    },
+  });
+}

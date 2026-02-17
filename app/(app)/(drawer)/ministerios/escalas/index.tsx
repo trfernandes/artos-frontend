@@ -6,7 +6,7 @@ import { useEscalasCrud } from '../../../../../hooks/useEscalaCrud';
 import { Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
 
-import { Pallete } from '../../../../../constants/colors';
+import { ThemePalette } from '../../../../../constants/colors';
 import FancyChips from '../../../../../components/FancyChips';
 import { useCallback, useMemo, useState } from 'react';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
@@ -15,23 +15,29 @@ import { EscalaItemStatusEnum } from '../../../../../domain/enums/Escala/escala-
 import { View } from 'react-native';
 import FancyText from '../../../../../components/FancyText';
 import DefaultIcons from '../../../../../components/FancyIcons';
+import { usePallete } from '../../../../../hooks/usePallete';
+import { ColorUtils } from '../../../../../utils/color_utils';
 
-export const EscalaStatusConfig = {
-  [EscalaStatusEnum.Gerada]: {
-    label: 'Gerada',
-    color: '#3C8DFF',
-    background: '#E6F0FF',
-  },
-  [EscalaStatusEnum.Publicada]: {
-    label: 'Publicada',
-    color: '#E8B83A',
-    background: '#FFF7E0',
-  },
-} as const;
+export function getEscalaStatusConfig(palette: ThemePalette) {
+  return {
+    [EscalaStatusEnum.Gerada]: {
+      label: 'Gerada',
+      color: palette.primary,
+      background: ColorUtils.withAlpha(palette.primary, 0.16),
+    },
+    [EscalaStatusEnum.Publicada]: {
+      label: 'Publicada',
+      color: palette.warning,
+      background: ColorUtils.withAlpha(palette.warning, 0.18),
+    },
+  } as const;
+}
 
 export default function MinisterioEscalasIndexPage() {
+  const palette = usePallete();
   const { ministerioId } = useLocalSearchParams();
   const [searchText, setSearchText] = useState('');
+  const escalaStatusConfig = useMemo(() => getEscalaStatusConfig(palette), [palette]);
 
   const {
     data: escalas,
@@ -136,10 +142,10 @@ export default function MinisterioEscalasIndexPage() {
                         library='MaterialCommunityIcons'
                         name='calendar-range'
                         size={13}
-                        color={Pallete.primary}
+                        color={palette.primary}
                       />
                     </View>
-                    <FancyText size='extraSmall' type='semiBold' color={Pallete.fonts.inactive}>
+                    <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
                       {formatPeriodo(item.dataInicio, item.dataTermino)}
                     </FancyText>
                   </View>
@@ -154,13 +160,13 @@ export default function MinisterioEscalasIndexPage() {
                               library='MaterialCommunityIcons'
                               name='account-check-outline'
                               size={15}
-                              color={Pallete.primary}
+                              color={palette.primary}
                             />
                           </View>
-                          <FancyText size='extraSmall' type='semiBold' color={Pallete.fonts.inactive}>
+                          <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
                             {`${confirmedCount}/${totalCount}`}
                           </FancyText>
-                          <FancyText size='extraSmall' type='semiBold' color={Pallete.fonts.inactive}>
+                          <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
                             {`${confirmationPercent}%`}
                           </FancyText>
                         </View>
@@ -172,10 +178,10 @@ export default function MinisterioEscalasIndexPage() {
                               library='MaterialCommunityIcons'
                               name='calendar-multiple'
                               size={12}
-                              color={Pallete.primary}
+                              color={palette.primary}
                             />
                           </View>
-                          <FancyText size='extraSmall' type='semiBold' color={Pallete.fonts.inactive}>
+                          <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
                             {`${eventsCount} evento(s) / ${occurrencesCount} ocorrência(s)`}
                           </FancyText>
                         </View>
@@ -185,7 +191,7 @@ export default function MinisterioEscalasIndexPage() {
                 additionalData2: (
                   <View style={{ marginTop: 6 }}>
                     <FancyChips
-                      {...EscalaStatusConfig[item.status]}
+                      {...escalaStatusConfig[item.status]}
                       label={EscalaStatusEnumLabel[item.status]}
                       size='small'
                     />
@@ -209,7 +215,7 @@ export default function MinisterioEscalasIndexPage() {
                     icon: {
                       ...DefaultIconsNames.delete,
                       size: 16,
-                      backgroundColor: Pallete.error,
+                      backgroundColor: palette.error,
                     },
                     onPress: () => handleDeletePress(item.id!),
                   },

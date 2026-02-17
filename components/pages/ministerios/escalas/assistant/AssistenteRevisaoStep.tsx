@@ -10,13 +10,15 @@ import { useAssistenteEscala } from '../../../../../contexts/pages/escalas/Assis
 import { useMemo, useState } from 'react';
 import { EscalaTemplateTipoEnum } from '../../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
 import { AppImages } from '../../../../../assets/app_images';
-import { Pallete } from '../../../../../constants/colors';
+import { ThemePalette } from '../../../../../constants/colors';
 import DefaultIcons from '../../../../FancyIcons';
 import { ColorUtils } from '../../../../../utils/color_utils';
 import FancySeparator from '../../../../FancySeparator';
 import { useFuncoesDoMinisterio } from '../../../../../hooks/useFuncoesDoMinisterio';
 import { EscalaTemplateExperienciaLabel } from '../../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
 import { getFirstAndLastName } from '../../../../../utils/text_utils';
+import { usePallete } from '../../../../../hooks/usePallete';
+import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 
 // --- Componentes Auxiliares Locais ---
 
@@ -31,6 +33,8 @@ const InfoCard = ({
   icon: string;
   defaultExpanded?: boolean;
 }) => {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   return (
@@ -45,17 +49,17 @@ const InfoCard = ({
             library='MaterialCommunityIcons'
             name={icon as any}
             size={16}
-            color={Pallete.primary}
+            color={palette.primary}
           />
         </View>
-        <FancyText type='bold' size='small' color={Pallete.fonts.dark}>
+        <FancyText type='bold' size='small' color={palette.fonts.dark}>
           {title}
         </FancyText>
         <DefaultIcons.Custom
           library='Feather'
           name={expanded ? 'chevron-up' : 'chevron-down'}
           size={18}
-          color={Pallete.fonts.inactive}
+          color={palette.fonts.inactive}
           style={{ marginLeft: 'auto' }}
         />
       </TouchableOpacity>
@@ -80,6 +84,8 @@ const EventItem = ({
   funcoesList: any[];
   ministerioVoluntariosList: any[];
 }) => {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const [expanded, setExpanded] = useState(false);
 
   const tipoTemplate = useMemo(() => {
@@ -97,15 +103,15 @@ const EventItem = ({
         activeOpacity={0.7}
         onPress={() => setExpanded(!expanded)}
       >
-        <View style={[styles.eventDot, { backgroundColor: evento.cor || Pallete.primary }]} />
+        <View style={[styles.eventDot, { backgroundColor: evento.cor || palette.primary }]} />
         <View style={{ flex: 1 }}>
-          <FancyText size='small' type='semiBold' color={Pallete.fonts.dark}>
+          <FancyText size='small' type='semiBold' color={palette.fonts.dark}>
             {evento.nome}
           </FancyText>
           <FancyText
             size='extraSmall'
             type='medium'
-            color={Pallete.fonts.inactive}
+            color={palette.fonts.inactive}
             style={{ marginTop: 4 }}
           >
             {format(evento.dataOcorrencia, 'dd/MM • HH:mm')} • {tipoTemplate}
@@ -115,7 +121,7 @@ const EventItem = ({
           library='Feather'
           name={expanded ? 'chevron-up' : 'chevron-down'}
           size={20}
-          color={Pallete.fonts.inactive}
+          color={palette.fonts.inactive}
         />
       </TouchableOpacity>
 
@@ -124,10 +130,10 @@ const EventItem = ({
           {/* Template Info */}
           {evento.template.templateBase?.nome && (
             <View style={styles.detailRow}>
-              <FancyText size='extraSmall' type='bold' color={Pallete.fonts.inactive}>
+              <FancyText size='extraSmall' type='bold' color={palette.fonts.inactive}>
                 TEMPLATE:
               </FancyText>
-              <FancyText size='extraSmall' color={Pallete.fonts.dark}>
+              <FancyText size='extraSmall' color={palette.fonts.dark}>
                 {evento.template.templateBase.nome}
               </FancyText>
             </View>
@@ -140,7 +146,7 @@ const EventItem = ({
                 <FancyText
                   size='extraSmall'
                   type='bold'
-                  color={Pallete.fonts.inactive}
+                  color={palette.fonts.inactive}
                   style={{ marginBottom: 4 }}
                 >
                   FUNÇÕES REQUERIDAS:
@@ -156,9 +162,9 @@ const EventItem = ({
                   return (
                     <View key={idx} style={styles.detailItem}>
                       <View style={styles.bullet} />
-                      <FancyText size='extraSmall' color={Pallete.fonts.dark}>
+                      <FancyText size='extraSmall' color={palette.fonts.dark}>
                         {funcaoNome}{' '}
-                        <FancyText size='extraSmall' color={Pallete.fonts.inactive}>
+                        <FancyText size='extraSmall' color={palette.fonts.inactive}>
                           ({f.quantidade}x {expLabel})
                         </FancyText>
                       </FancyText>
@@ -175,7 +181,7 @@ const EventItem = ({
                 <FancyText
                   size='extraSmall'
                   type='bold'
-                  color={Pallete.fonts.inactive}
+                  color={palette.fonts.inactive}
                   style={{ marginBottom: 4 }}
                 >
                   VOLUNTÁRIOS FIXOS:
@@ -200,9 +206,9 @@ const EventItem = ({
                         size={20}
                         style={{ borderRadius: 10, marginRight: 6 }}
                       />
-                      <FancyText size='extraSmall' color={Pallete.fonts.dark}>
+                      <FancyText size='extraSmall' color={palette.fonts.dark}>
                         {volNome}{' '}
-                        <FancyText size='extraSmall' color={Pallete.fonts.inactive}>
+                        <FancyText size='extraSmall' color={palette.fonts.inactive}>
                           • {funcaoNome}
                         </FancyText>
                       </FancyText>
@@ -220,6 +226,8 @@ const EventItem = ({
 };
 
 export default function AssistenteRevisaoStep() {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const { ministerioId } = useAssistenteEscala();
   const form = useFormContext<EscalaFormData>();
 
@@ -290,12 +298,12 @@ export default function AssistenteRevisaoStep() {
             <FancyText
               size='small'
               type='semiBold'
-              color={Pallete.fonts.inactive}
+              color={palette.fonts.inactive}
               style={styles.label}
             >
               NOME DA ESCALA
             </FancyText>
-            <FancyText size='small' type='bold' color={Pallete.fonts.dark} style={{ opacity: 0.8 }}>
+            <FancyText size='small' type='bold' color={palette.fonts.dark} style={{ opacity: 0.8 }}>
               {nomeEscala || 'Sem nome'}
             </FancyText>
           </View>
@@ -306,12 +314,12 @@ export default function AssistenteRevisaoStep() {
             <FancyText
               size='small'
               type='semiBold'
-              color={Pallete.fonts.inactive}
+              color={palette.fonts.inactive}
               style={styles.label}
             >
               PERÍODO
             </FancyText>
-            <FancyText size='small' type='bold' color={Pallete.fonts.dark} style={{ opacity: 0.8 }}>
+            <FancyText size='small' type='bold' color={palette.fonts.dark} style={{ opacity: 0.8 }}>
               {dataInicio ? format(dataInicio, 'dd/MM', { locale: ptBR }) : '--'} a{' '}
               {dataTermino ? format(dataTermino, 'dd/MM/yyyy', { locale: ptBR }) : '--'}
             </FancyText>
@@ -324,7 +332,7 @@ export default function AssistenteRevisaoStep() {
         {eventosSelecionados.length === 0 ? (
           <FancyText
             size='small'
-            color={Pallete.fonts.inactive}
+            color={palette.fonts.inactive}
             style={{ textAlign: 'center', padding: 10 }}
           >
             Nenhum evento selecionado.
@@ -351,10 +359,10 @@ export default function AssistenteRevisaoStep() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipsScroll}>
             {resumoFuncoes.map(([funcao, count]) => (
               <View key={funcao} style={styles.summaryChip}>
-                <FancyText size='extraSmall' type='bold' style={{ color: '#065F46' }}>
+                <FancyText size='extraSmall' type='bold' style={{ color: palette.confirm }}>
                   {count}
                 </FancyText>
-                <FancyText size='extraSmall' style={{ color: '#065F46', marginLeft: 4 }}>
+                <FancyText size='extraSmall' style={{ color: palette.confirm, marginLeft: 4 }}>
                   {funcao}
                 </FancyText>
               </View>
@@ -376,7 +384,7 @@ export default function AssistenteRevisaoStep() {
               <FancyText
                 size='extraSmall'
                 type='semiBold'
-                color={Pallete.fonts.dark}
+                color={palette.fonts.dark}
                 numberOfLines={2}
                 style={[styles.gridName, { opacity: 0.8 }]}
               >
@@ -388,15 +396,15 @@ export default function AssistenteRevisaoStep() {
                     library='MaterialCommunityIcons'
                     name='briefcase-outline'
                     size={11}
-                    color={Pallete.primary}
+                    color={palette.primary}
                   />
-                  <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive} numberOfLines={1} style={{ flexShrink: 1 }}>
+                  <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} numberOfLines={1} style={{ flexShrink: 1 }}>
                     {participante.funcoes[0]}
                     {participante.funcoes.length > 1 ? ` +${participante.funcoes.length - 1}` : ''}
                   </FancyText>
                 </View>
               ) : (
-                <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={{ opacity: 0.6 }}>
+                <FancyText size='extraSmall' color={palette.fonts.inactive} style={{ opacity: 0.6 }}>
                   Sem função
                 </FancyText>
               )}
@@ -409,9 +417,9 @@ export default function AssistenteRevisaoStep() {
                 library='MaterialCommunityIcons'
                 name='account-off-outline'
                 size={30}
-                color={Pallete.fonts.inactive}
+                color={palette.fonts.inactive}
               />
-              <FancyText size='small' color={Pallete.fonts.inactive} style={{ marginTop: 8 }}>
+              <FancyText size='small' color={palette.fonts.inactive} style={{ marginTop: 8 }}>
                 Nenhum participante selecionado.
               </FancyText>
             </View>
@@ -424,147 +432,149 @@ export default function AssistenteRevisaoStep() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  contentContainer: {
-    paddingBottom: 20,
-    gap: 16,
-  },
-  card: {
-    backgroundColor: Pallete.backgroundColor,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Pallete.borderCard,
-    ...Pallete.shadows[100],
-    overflow: 'hidden',
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: ColorUtils.lightenColor(Pallete.primary, 0.96),
-    gap: 10,
-  },
-  iconContainer: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cardContent: {
-    padding: 16,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  infoItem: {
-    flex: 1,
-  },
-  label: {
-    marginBottom: 4,
-    textTransform: 'uppercase',
-  },
-  listContainer: {
-    gap: 12,
-  },
-  participantGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  participantGridItem: {
-    width: '31%',
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#F3F4F6',
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-    gap: 3,
-  },
-  gridAvatar: {
-    borderRadius: 18,
-  },
-  gridName: {
-    textAlign: 'center',
-    marginTop: 2,
-  },
-  gridFuncaoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    maxWidth: '100%',
-  },
-  eventListContainer: {
-    gap: 0,
-  },
-  listItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 4,
-  },
-  expandedContent: {
-    paddingTop: 8,
-    paddingBottom: 4,
-    paddingLeft: 20, // Indentação para hierarquia
-    gap: 8,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    gap: 6,
-    alignItems: 'center',
-  },
-  detailsList: {
-    gap: 4,
-    marginTop: 4,
-  },
-  detailItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  bullet: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Pallete.fonts.inactive,
-    marginHorizontal: 4,
-  },
-  eventDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  chipsScroll: {
-    marginBottom: 16,
-    flexDirection: 'row',
-  },
-  summaryChip: {
-    backgroundColor: '#ECFDF5',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginRight: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#D1FAE5',
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-    borderStyle: 'dashed',
-    borderWidth: 1,
-    borderColor: Pallete.borderCard,
-    borderRadius: 8,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    contentContainer: {
+      paddingBottom: 20,
+      gap: 16,
+    },
+    card: {
+      backgroundColor: palette.backgroundColor2,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: palette.borderCard,
+      ...palette.shadows[100],
+      overflow: 'hidden',
+    },
+    cardHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12),
+      gap: 10,
+    },
+    iconContainer: {
+      width: 26,
+      height: 26,
+      borderRadius: 13,
+      backgroundColor: palette.backgroundColor3,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    cardContent: {
+      padding: 16,
+    },
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    infoItem: {
+      flex: 1,
+    },
+    label: {
+      marginBottom: 4,
+      textTransform: 'uppercase',
+    },
+    listContainer: {
+      gap: 12,
+    },
+    participantGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    participantGridItem: {
+      width: '31%',
+      alignItems: 'center',
+      backgroundColor: palette.backgroundColor3,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: palette.borderCard,
+      paddingVertical: 10,
+      paddingHorizontal: 4,
+      gap: 3,
+    },
+    gridAvatar: {
+      borderRadius: 18,
+    },
+    gridName: {
+      textAlign: 'center',
+      marginTop: 2,
+    },
+    gridFuncaoRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 3,
+      maxWidth: '100%',
+    },
+    eventListContainer: {
+      gap: 0,
+    },
+    listItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingVertical: 4,
+    },
+    expandedContent: {
+      paddingTop: 8,
+      paddingBottom: 4,
+      paddingLeft: 20,
+      gap: 8,
+    },
+    detailRow: {
+      flexDirection: 'row',
+      gap: 6,
+      alignItems: 'center',
+    },
+    detailsList: {
+      gap: 4,
+      marginTop: 4,
+    },
+    detailItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    bullet: {
+      width: 4,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: palette.fonts.inactive,
+      marginHorizontal: 4,
+    },
+    eventDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+    },
+    chipsScroll: {
+      marginBottom: 16,
+      flexDirection: 'row',
+    },
+    summaryChip: {
+      backgroundColor: ColorUtils.withAlpha(palette.confirm, 0.14),
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 12,
+      marginRight: 8,
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.confirm, 0.34),
+    },
+    emptyState: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 20,
+      borderStyle: 'dashed',
+      borderWidth: 1,
+      borderColor: palette.borderCard,
+      borderRadius: 8,
+    },
+  });
+}

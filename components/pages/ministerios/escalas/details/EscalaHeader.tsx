@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import FancyText from '../../../../FancyText';
-import { Pallete } from '../../../../../constants/colors';
+import { ThemePalette } from '../../../../../constants/colors';
 import { EscalaStatusEnum } from '../../../../../domain/enums/Escala/escala-status.enum';
 import DefaultIcons from '../../../../FancyIcons';
 import EscalaStatusBadge from './EscalaStatusBadge';
@@ -13,6 +13,9 @@ import {
   isStaleUpdate,
   StatusDistribution,
 } from './escalaHeader.utils';
+import { usePallete } from '../../../../../hooks/usePallete';
+import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
+import { ColorUtils } from '../../../../../utils/color_utils';
 
 export type EscalaHeaderVariant = 'default' | 'compact' | 'leader';
 
@@ -48,6 +51,9 @@ function MetaInlineItem({
   icon: { library: 'MaterialIcons' | 'MaterialCommunityIcons'; name: string };
   value: string;
 }) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+
   return (
     <View style={styles.metaInlineItem}>
       <View style={styles.metaInlineIcon}>
@@ -55,13 +61,13 @@ function MetaInlineItem({
           library={icon.library}
           name={icon.name}
           size={13}
-          color={Pallete.primary}
+          color={palette.primary}
         />
       </View>
       <FancyText
         type='medium'
         size='extraSmall'
-        color={Pallete.fonts.dark}
+        color={palette.fonts.dark}
         numberOfLines={1}
         style={styles.metaInlineValue}
       >
@@ -72,8 +78,10 @@ function MetaInlineItem({
 }
 
 function ActionIconButton({ action }: { action: InlineAction }) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const isDanger = action.variant === 'danger';
-  const iconColor = isDanger ? Pallete.error : Pallete.icons.inactive;
+  const iconColor = isDanger ? palette.error : palette.icons.inactive;
 
   return (
     <Pressable
@@ -98,6 +106,9 @@ function ActionIconButton({ action }: { action: InlineAction }) {
 }
 
 function PrimaryPillButton({ action }: { action: InlineAction }) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+
   return (
     <Pressable
       onPress={action.onPress}
@@ -111,9 +122,9 @@ function PrimaryPillButton({ action }: { action: InlineAction }) {
         library={action.icon.library}
         name={action.icon.name}
         size={15}
-        color={Pallete.icons.light}
+        color={palette.icons.light}
       />
-      <FancyText type='semiBold' size='extraSmall' color={Pallete.fonts.light}>
+      <FancyText type='semiBold' size='extraSmall' color={palette.fonts.light}>
         {action.label}
       </FancyText>
     </Pressable>
@@ -136,6 +147,8 @@ export default function EscalaHeader({
   onOpenDetails,
   actions,
 }: EscalaHeaderProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const createdLabel = `Criada em ${formatShortDate(createdAt, true)}`;
   const updatedLabel = `Atualizada ${formatRelativeOrDate(updatedAt)}`;
   const periodLabel = formatPeriod(periodStart, periodEnd);
@@ -145,6 +158,10 @@ export default function EscalaHeader({
   const showLeader = variant === 'leader';
   const inlineActions = actions ?? [];
   const hasInlineActions = inlineActions.length > 0;
+  const actionsGradientColors: [string, string] = [
+    ColorUtils.withAlpha(palette.primary, 0.2),
+    ColorUtils.withAlpha(palette.primary, 0.1),
+  ];
 
   return (
     <View style={[styles.surfaceCard, hasInlineActions && styles.surfaceCardWithActions]}>
@@ -153,7 +170,7 @@ export default function EscalaHeader({
           <FancyText
             type='bold'
             size='largeMedium'
-            color={Pallete.fonts.dark}
+            color={palette.fonts.dark}
             numberOfLines={1}
             style={styles.titleText}
           >
@@ -189,7 +206,7 @@ export default function EscalaHeader({
               accessibilityRole='button'
               accessibilityLabel='Abrir detalhes da escala'
             >
-              <FancyText type='semiBold' size='extraSmall' color={Pallete.primary}>
+              <FancyText type='semiBold' size='extraSmall' color={palette.primary}>
                 Ver detalhes
               </FancyText>
             </Pressable>
@@ -201,7 +218,7 @@ export default function EscalaHeader({
             <FancyText
               type='medium'
               size='extraSmall'
-              color={Pallete.fonts.inactive}
+              color={palette.fonts.inactive}
               numberOfLines={1}
               style={styles.metaFooterText}
             >
@@ -214,7 +231,7 @@ export default function EscalaHeader({
                   library='MaterialIcons'
                   name='warning-amber'
                   size={12}
-                  color={Pallete.warning}
+                  color={palette.warning}
                 />
               </View>
             )}
@@ -231,7 +248,7 @@ export default function EscalaHeader({
             pressed && styles.primaryActionPressed,
           ]}
         >
-          <FancyText type='semiBold' size='extraSmall' color={Pallete.fonts.light}>
+          <FancyText type='semiBold' size='extraSmall' color={palette.fonts.light}>
             {primaryActionLabel}
           </FancyText>
         </Pressable>
@@ -241,7 +258,7 @@ export default function EscalaHeader({
         <>
           <View style={styles.actionsDivider} />
           <LinearGradient
-            colors={['#EEF4FF', '#F7FAFF']}
+            colors={actionsGradientColors}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.actionsBackground}
@@ -263,145 +280,147 @@ export default function EscalaHeader({
   );
 }
 
-const styles = StyleSheet.create({
-  surfaceCard: {
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: '#E3EAF4',
-    backgroundColor: Pallete.backgroundColor,
-    paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 12,
-    ...Pallete.shadows[100],
-  },
-  surfaceCardWithActions: {
-    paddingBottom: 0,
-  },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 10,
-  },
-  titleBlock: {
-    flex: 1,
-    minWidth: 0,
-    gap: 1,
-  },
-  titleText: {
-    lineHeight: 20,
-  },
-  topActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  infoButtonPressed: {
-    opacity: 0.75,
-  },
-  metaInlineRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    marginTop: 7,
-  },
-  metaInlineItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  metaInlineIcon: {
-    width: 14,
-    height: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  metaInlineValue: {
-    flexShrink: 1,
-  },
-  healthSection: {
-    marginTop: 10,
-  },
-  metaFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  metaFooterText: {
-    opacity: 0.68,
-  },
-  staleTag: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: `${Pallete.warning}22`,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  detailsLink: {
-    alignSelf: 'flex-start',
-  },
-  primaryActionButton: {
-    marginTop: 2,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: Pallete.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  primaryActionPressed: {
-    opacity: 0.85,
-  },
-  actionsDivider: {
-    height: 1,
-    backgroundColor: '#E3EAF4',
-    marginHorizontal: -14,
-    marginTop: 10,
-  },
-  actionsBackground: {
-    marginHorizontal: -14,
-    paddingHorizontal: 14,
-    borderBottomLeftRadius: 17,
-    borderBottomRightRadius: 17,
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 11,
-  },
-  actionsSecondaryGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  primaryPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    height: 34,
-    paddingHorizontal: 16,
-    borderRadius: 999,
-    backgroundColor: Pallete.primary,
-  },
-  primaryPillPressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.97 }],
-  },
-  iconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Pallete.backgroundColor2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconButtonDanger: {
-    backgroundColor: '#FDEEEF',
-  },
-  iconButtonPressed: {
-    opacity: 0.6,
-    transform: [{ scale: 0.92 }],
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    surfaceCard: {
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: palette.borderCard,
+      backgroundColor: palette.backgroundColor2,
+      paddingHorizontal: 14,
+      paddingTop: 12,
+      paddingBottom: 12,
+      ...palette.shadows[100],
+    },
+    surfaceCardWithActions: {
+      paddingBottom: 0,
+    },
+    topRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 10,
+    },
+    titleBlock: {
+      flex: 1,
+      minWidth: 0,
+      gap: 1,
+    },
+    titleText: {
+      lineHeight: 20,
+    },
+    topActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    infoButtonPressed: {
+      opacity: 0.75,
+    },
+    metaInlineRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      marginTop: 7,
+    },
+    metaInlineItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    metaInlineIcon: {
+      width: 14,
+      height: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    metaInlineValue: {
+      flexShrink: 1,
+    },
+    healthSection: {
+      marginTop: 10,
+    },
+    metaFooter: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      justifyContent: 'space-between',
+      marginTop: 10,
+    },
+    metaFooterText: {
+      opacity: 0.68,
+    },
+    staleTag: {
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      backgroundColor: ColorUtils.withAlpha(palette.warning, 0.22),
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    detailsLink: {
+      alignSelf: 'flex-start',
+    },
+    primaryActionButton: {
+      marginTop: 2,
+      height: 36,
+      borderRadius: 10,
+      backgroundColor: palette.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    primaryActionPressed: {
+      opacity: 0.85,
+    },
+    actionsDivider: {
+      height: 1,
+      backgroundColor: palette.borderCard,
+      marginHorizontal: -14,
+      marginTop: 10,
+    },
+    actionsBackground: {
+      marginHorizontal: -14,
+      paddingHorizontal: 14,
+      borderBottomLeftRadius: 17,
+      borderBottomRightRadius: 17,
+    },
+    actionsRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 11,
+    },
+    actionsSecondaryGroup: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    primaryPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      height: 34,
+      paddingHorizontal: 16,
+      borderRadius: 999,
+      backgroundColor: palette.primary,
+    },
+    primaryPillPressed: {
+      opacity: 0.85,
+      transform: [{ scale: 0.97 }],
+    },
+    iconButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: palette.backgroundColor3,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    iconButtonDanger: {
+      backgroundColor: ColorUtils.withAlpha(palette.error, 0.18),
+    },
+    iconButtonPressed: {
+      opacity: 0.6,
+      transform: [{ scale: 0.92 }],
+    },
+  });
+}

@@ -7,7 +7,6 @@ import FancyContainerList from '../../../container_list/FancyContainerList';
 import { zodResolver } from '@hookform/resolvers/zod';
 import TemplateFuncoesForm from './TemplateFuncoesForm';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
-import { Pallete } from '../../../../constants/colors';
 import { FancyCard } from '../../../cards/Horizontal/FancyCard';
 import Toast from 'react-native-toast-message';
 import { FancyAlert } from '../../../modal/FancyAlert';
@@ -18,6 +17,7 @@ import {
 import { useFuncoesDoMinisterio } from '../../../../hooks/useFuncoesDoMinisterio';
 import { FancyTextDisplayCard } from '../../../cards/FancyTextDisplayCard';
 import FancyLoading from '../../../FancyLoading';
+import { usePallete } from '../../../../hooks/usePallete';
 
 interface TemplateFuncoesListProps {
   disabled?: boolean;
@@ -35,6 +35,7 @@ export default function TemplateFuncoesList({
   funcoesList = [] as DropDownItemProps<string>[],
   ministerioId,
 }: TemplateFuncoesListProps) {
+  const palette = usePallete();
   const { control, watch, setValue } = useFormContext<EscalaTemplateFormData>();
   const { append: addFuncao, update: updateFuncao, remove: removeFuncao } = useFieldArray({ control, name: 'funcoes' });
   const funcoesWatch = watch('funcoes') ?? [];
@@ -161,14 +162,14 @@ export default function TemplateFuncoesList({
           return (
             <FancyCard.Simple
               title={funcaoNome}
-              subtitle={<FancyTextDisplayCard icon={{ library: 'MaterialCommunityIcons', name: 'star-outline', size: 12, color: Pallete.primary }} value={experienciaLabel} />}
-              additionalData1={<FancyTextDisplayCard icon={{ library: 'MaterialCommunityIcons', name: 'account-multiple-outline', size: 12, color: Pallete.primary }} value={item.quantidade.toString()} />}
+              subtitle={<FancyTextDisplayCard icon={{ library: 'MaterialCommunityIcons', name: 'star-outline', size: 12, color: palette.primary }} value={experienciaLabel} />}
+              additionalData1={<FancyTextDisplayCard icon={{ library: 'MaterialCommunityIcons', name: 'account-multiple-outline', size: 12, color: palette.primary }} value={item.quantidade.toString()} />}
               letter={funcaoNome.charAt(0)}
               actionButtons={[
                 {
                   icon: {
                     ...DefaultIconsNames.edit,
-                    backgroundColor: Pallete.primary,
+                    backgroundColor: palette.primary,
                     size: 16,
                   },
                   onPress: disabled ? undefined : () => handleEdit(index),
@@ -177,7 +178,7 @@ export default function TemplateFuncoesList({
                   icon: {
                     ...DefaultIconsNames.delete,
                     size: 16,
-                    backgroundColor: Pallete.error,
+                    backgroundColor: palette.error,
                   },
                   onPress: disabled ? undefined : () => handleRemove(index),
                 },

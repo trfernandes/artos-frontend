@@ -1,6 +1,6 @@
 import { View, StyleSheet } from 'react-native';
 import { format } from 'date-fns';
-import { Pallete } from '../../../../../constants/colors';
+import { ThemePalette } from '../../../../../constants/colors';
 import { ColorUtils } from '../../../../../utils/color_utils';
 import FancyAccordeon from '../../../../FancyAccordeon';
 import FancyText from '../../../../FancyText';
@@ -18,8 +18,9 @@ import AdicionarVoluntarioModal, {
 } from './AdicionarVoluntarioModal';
 import AdicionarFuncaoModal, { AdicionarFuncaoConfirmDialog } from './AdicionarFuncaoModal';
 import { DateUtilsApi } from '../../../../../utils/date_utils';
-
-const EVENT_META_COLOR = 'rgba(0, 0, 0, 0.8)';
+import { usePallete } from '../../../../../hooks/usePallete';
+import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
+import { useAppTheme } from '../../../../../hooks/useAppTheme';
 
 export interface EventoTableProps {
   data: EscalaItemDataType;
@@ -44,6 +45,11 @@ export default function EventoTable({
   onAdicionarFuncao,
   onExcluirFuncao,
 }: EventoTableProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+  const { isDark } = useAppTheme();
+  const eventMetaColor = palette.fonts.inactive;
+
   const [substituicaoModalProps, setSubstituicaoModalProps] = useState<{
     isOpen: boolean;
     data?: EscalaItemEquipeType;
@@ -66,25 +72,25 @@ export default function EventoTable({
     headerGradientColors,
     headerExpandedGradientColors,
   } = useMemo(() => {
-    const accentColor = data.evento.cor || Pallete.primary;
-    const darkStart = ColorUtils.lightenColor(accentColor, 0.62);
-    const midStart = ColorUtils.lightenColor(accentColor, 0.72);
-    const mid = ColorUtils.lightenColor(accentColor, 0.76);
-    const midEnd = ColorUtils.lightenColor(accentColor, 0.8);
-    const lightEnd = ColorUtils.lightenColor(accentColor, 0.84);
+    const accentColor = data.evento.cor || palette.primary;
+    const darkStart = isDark ? ColorUtils.withAlpha(accentColor, 0.32) : ColorUtils.lightenColor(accentColor, 0.62);
+    const midStart = isDark ? ColorUtils.withAlpha(accentColor, 0.26) : ColorUtils.lightenColor(accentColor, 0.72);
+    const mid = isDark ? ColorUtils.withAlpha(accentColor, 0.22) : ColorUtils.lightenColor(accentColor, 0.76);
+    const midEnd = isDark ? ColorUtils.withAlpha(accentColor, 0.18) : ColorUtils.lightenColor(accentColor, 0.8);
+    const lightEnd = isDark ? ColorUtils.withAlpha(accentColor, 0.16) : ColorUtils.lightenColor(accentColor, 0.84);
 
     return {
       borderColor: accentColor,
       expandableIconColor:
         ColorUtils.getTextColorForBackground(accentColor) === '#FFFFFF'
-          ? '#FFFFFF'
+          ? palette.fonts.light
           : ColorUtils.darkenColor(accentColor, 0.25),
       headerBackgroundColor: lightEnd,
       headerExpandedBackgroundColor: lightEnd,
       headerGradientColors: [lightEnd, midEnd, mid, midStart, darkStart],
       headerExpandedGradientColors: [lightEnd, midEnd, mid, midStart, darkStart],
     };
-  }, [data.evento.cor]);
+  }, [data.evento.cor, isDark, palette.primary, palette.fonts.light]);
 
   const handleDeleteEvento = () => {
     FancyAlert.alert('Excluir Evento', 'Deseja realmente excluir este evento da escala?', [
@@ -105,7 +111,7 @@ export default function EventoTable({
         title={
           <View style={styles.titleContainer}>
             <View style={styles.titleTextContainer}>
-              <FancyText type='bold' size='small' color={Pallete.fonts.dark} numberOfLines={1}>
+              <FancyText type='bold' size='small' color={palette.fonts.dark} numberOfLines={1}>
                 {data.evento.nome}
               </FancyText>
 
@@ -115,9 +121,9 @@ export default function EventoTable({
                     library='MaterialIcons'
                     name='event'
                     size={13}
-                    color={EVENT_META_COLOR}
+                    color={eventMetaColor}
                   />
-                  <FancyText type='medium' size='extraSmall' color={EVENT_META_COLOR}>
+                  <FancyText type='medium' size='extraSmall' color={eventMetaColor}>
                     {format(data.dataOcorrencia, 'dd/MM/yyyy')}
                   </FancyText>
                 </View>
@@ -126,9 +132,9 @@ export default function EventoTable({
                     library='MaterialIcons'
                     name='access-time'
                     size={13}
-                    color={EVENT_META_COLOR}
+                    color={eventMetaColor}
                   />
-                  <FancyText type='medium' size='extraSmall' color={EVENT_META_COLOR}>{`${format(
+                  <FancyText type='medium' size='extraSmall' color={eventMetaColor}>{`${format(
                     data.evento.dataInicio!,
                     'HH:mm',
                   )} - ${format(data.evento.dataTermino!, 'HH:mm')}`}</FancyText>
@@ -264,56 +270,58 @@ export default function EventoTable({
     </>
   );
 }
-const styles = StyleSheet.create({
-  titleContainer: {
-    paddingVertical: 11,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    flex: 1,
-  },
-  titleTextContainer: {
-    flex: 1,
-    minWidth: 0,
-    gap: 4,
-  },
-  headerMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  metaGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  contentContainer: {
-    paddingHorizontal: 12,
-    paddingTop: 12,
-    paddingBottom: 10,
-    borderWidth: 0,
-    backgroundColor: Pallete.backgroundColor,
-  },
-  headerContainer: {
-    borderRadius: 12,
-  },
-  headerExpandedContainer: {
-    borderRadius: 12,
-    borderBottomWidth: 1,
-  },
-  containerContainer: {
-    borderRadius: 12,
-    borderWidth: 1,
-    overflow: 'hidden',
-    ...Pallete.shadows[100],
-  },
-  containerExpandedContainer: {
-    borderRadius: 12,
-    borderWidth: 1,
-    backgroundColor: Pallete.backgroundColor,
-    paddingBottom: 12,
-    overflow: 'hidden',
-    ...Pallete.shadows[100],
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    titleContainer: {
+      paddingVertical: 11,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      flex: 1,
+    },
+    titleTextContainer: {
+      flex: 1,
+      minWidth: 0,
+      gap: 4,
+    },
+    headerMetaRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: 10,
+    },
+    metaGroup: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    contentContainer: {
+      paddingHorizontal: 12,
+      paddingTop: 12,
+      paddingBottom: 10,
+      borderWidth: 0,
+      backgroundColor: palette.backgroundColor2,
+    },
+    headerContainer: {
+      borderRadius: 12,
+    },
+    headerExpandedContainer: {
+      borderRadius: 12,
+      borderBottomWidth: 1,
+    },
+    containerContainer: {
+      borderRadius: 12,
+      borderWidth: 1,
+      overflow: 'hidden',
+      ...palette.shadows[100],
+    },
+    containerExpandedContainer: {
+      borderRadius: 12,
+      borderWidth: 1,
+      backgroundColor: palette.backgroundColor2,
+      paddingBottom: 12,
+      overflow: 'hidden',
+      ...palette.shadows[100],
+    },
+  });
+}

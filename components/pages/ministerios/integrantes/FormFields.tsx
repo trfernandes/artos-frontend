@@ -13,7 +13,6 @@ import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import { zodResolver } from '@hookform/resolvers/zod';
 import FancyContainerList from '../../../container_list/FancyContainerList';
 import { FancyCard } from '../../../cards/Horizontal/FancyCard';
-import { Pallete } from '../../../../constants/colors';
 import FancyImage from '../../../images/FancyImage';
 import FancyText from '../../../FancyText';
 
@@ -26,6 +25,7 @@ import {
     MinisterioVoluntarioStatusEnum,
 } from '../../../../domain/enums/MinisterioVoluntario/ministerio-voluntario-status.enum';
 import { AppImages } from '../../../../assets/app_images';
+import { usePallete } from '../../../../hooks/usePallete';
 
 export interface IntegranteFormFieldsProps {
   mode: 'add' | 'edit';
@@ -35,6 +35,7 @@ export interface IntegranteFormFieldsProps {
 }
 
 export default function IntegranteFormFields({ voluntariosDropDownList, funcoesDropDownList, funcoesList, mode }: IntegranteFormFieldsProps) {
+  const palette = usePallete();
   //   console.log('IntegranteFormFields render', strfyObj({ voluntariosDropDownList, funcoesDropDownList, funcoesList, mode }));
 
   const [formModalOptions, setFormModalOptions] = useState<{
@@ -137,8 +138,8 @@ export default function IntegranteFormFields({ voluntariosDropDownList, funcoesD
                 label={MinisterioVoluntarioStatusEnumLabel[MinisterioVoluntarioStatusEnumMap[getValues('voluntarioStatus')!]]}
                 color={
                   MinisterioVoluntarioStatusEnumMap[getValues('voluntarioStatus')!] === MinisterioVoluntarioStatusEnum.Ativo
-                    ? Pallete.primary
-                    : Pallete.error
+                    ? palette.primary
+                    : palette.error
                 }
               />
             )}
@@ -180,7 +181,7 @@ export default function IntegranteFormFields({ voluntariosDropDownList, funcoesD
                   icon: {
                     ...DefaultIconsNames.delete,
                     size: 18,
-                    backgroundColor: Pallete.error,
+                    backgroundColor: palette.error,
                   },
                   onPress: () => handleDelete(item.id),
                 },

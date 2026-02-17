@@ -9,7 +9,6 @@ import {
     escalaTemplateVoluntarioSchema,
 } from '../../../../domain/schemas/escalaTemplateSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Pallete } from '../../../../constants/colors';
 import { FancyAlert } from '../../../modal/FancyAlert';
 import Toast from 'react-native-toast-message';
 import { FancyCard } from '../../../cards/Horizontal/FancyCard';
@@ -17,6 +16,7 @@ import FancyContainerList from '../../../container_list/FancyContainerList';
 import { ResponseMinisterioVoluntarioDto } from '../../../../domain/dtos/MinisterioVoluntario/ministerio-voluntario.response';
 import { ResponseMinisterioFuncaoDto } from '../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.response';
 import { AppImages } from '../../../../assets/app_images';
+import { usePallete } from '../../../../hooks/usePallete';
 
 interface TemplateFixoEquipeListProps {
   disabled?: boolean;
@@ -33,6 +33,7 @@ export default function TemplateFixoEquipeList({
   voluntariosDropDownList,
   funcoesDropDownList,
 }: TemplateFixoEquipeListProps) {
+  const palette = usePallete();
   const { control, watch } = useFormContext<EscalaTemplateFormData>();
   const formAdd = useForm({ resolver: zodResolver(escalaTemplateVoluntarioSchema) });
   const { append, remove } = useFieldArray({
@@ -151,7 +152,7 @@ export default function TemplateFixoEquipeList({
                     icon: {
                       ...DefaultIconsNames.delete,
                       size: 16,
-                      backgroundColor: disabled ? Pallete.disabled : Pallete.error,
+                      backgroundColor: disabled ? palette.disabled : palette.error,
                     },
                     onPress: disabled ? undefined : () => handleRemove(index),
                   },
