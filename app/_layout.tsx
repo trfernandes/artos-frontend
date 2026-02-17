@@ -1,6 +1,6 @@
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SplashScreen, Stack, useSegments } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { useFonts } from 'expo-font';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -20,6 +20,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useProtectedRoute } from '../hooks/useProtectedRoute';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { useAppTheme } from '../hooks/useAppTheme';
+import * as NavigationBar from 'expo-navigation-bar';
 
 const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
 
@@ -101,6 +102,14 @@ function RootLayoutNav() {
       registerForPushNotificationsAsync(user.user.id);
     }
   }, [user?.user?.id]);
+
+  // sincroniza barra de navegação Android (3 botões) com o tema atual
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    void NavigationBar.setBackgroundColorAsync(palette.backgroundColor);
+    void NavigationBar.setButtonStyleAsync(isDark ? 'light' : 'dark');
+  }, [isDark, palette.backgroundColor]);
 
   if (!fontsLoaded || loading) {
     return null;
