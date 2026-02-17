@@ -13,9 +13,11 @@ export type FancyVerticalLetterCardProps = {
 } & Pick<FancyVerticalCardProps, 'title' | 'subtitle' | 'containerStyle' | 'additionalElement'>;
 
 export default function FancyVerticalLetterCard({ ...props }: FancyVerticalLetterCardProps) {
+  const initialLetter = props.char || props.title?.[0] || '?';
+
   return (
     <FancyVerticalCard
-      topElement={<LetterComponent letter={props.char || props.title[0]!} />}
+      topElement={<LetterComponent letter={initialLetter} />}
       topRightElement={
         props.topRightIcon && (
           <TopRightMenuButton customIcon={props.topRightIcon?.customIcon} onPress={props.topRightIcon?.onPress} />

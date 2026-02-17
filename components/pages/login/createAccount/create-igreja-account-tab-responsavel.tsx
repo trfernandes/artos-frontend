@@ -11,7 +11,13 @@ export default function CreateIgrejaAccountTabResponsavel() {
   return (
     <View style={styles.container}>
       <ControlledTextInput control={control} name="responsavelNome" label="Nome do Responsável" />
-      <ControlledTextInput control={control} name="responsavelEmail" label="E-mail" keyboardType="email-address" autoCapitalize="none" />
+      <ControlledTextInput
+        control={control}
+        name="responsavelEmail"
+        label="E-mail"
+        keyboardType="email-address"
+        inputProps={{ autoCapitalize: 'none' }}
+      />
       <ControlledPasswordInput control={control} name="responsavelSenha" label="Senha" />
       <ControlledPasswordInput control={control} name="responsavelConfirmarSenha" label="Confirmar Senha" />
       <ControlledMaskedTextInput control={control} name="responsavelWhatsapp" label="WhatsApp" maskType="phone" />

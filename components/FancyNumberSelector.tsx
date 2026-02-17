@@ -28,14 +28,16 @@ export default function FancyNumberSelector({ containerStyle }: FancyNumberSelec
       </View>
       <View style={styles.inputContainer}>
         <FancyTextInput
-          readOnly
+          readonly
           inputContainerStyle={styles.input}
-          style={{
-            textAlign: 'center',
-            flex: 1,
-            backgroundColor: 'transparent',
-            fontFamily: SEMI_BOLD_FONT,
-            fontSize: MEDIUM_SIZE_FONT,
+          inputProps={{
+            style: {
+              textAlign: 'center',
+              flex: 1,
+              backgroundColor: 'transparent',
+              fontFamily: SEMI_BOLD_FONT,
+              fontSize: MEDIUM_SIZE_FONT,
+            },
           }}
           value={value.toString()}
         />

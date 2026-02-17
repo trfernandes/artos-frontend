@@ -80,8 +80,8 @@ export default function MinisterioSolicitacoesIndex() {
       {visualizarModal && (
         <Visualizar
           modalProps={{ visible: visualizarModal }}
-          onClose={() => setVisualizarModal(false)}
-          onConfirm={() => setVisualizarModal(false)}
+          onButton1Press={() => setVisualizarModal(false)}
+          onButton2Press={() => setVisualizarModal(false)}
         />
       )}
     </FancyListPage>

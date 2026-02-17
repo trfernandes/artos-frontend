@@ -29,7 +29,7 @@ export default function IntegranteFormModal(props: IntegranteFormModalProps & Fa
   return (
     <FancyModalDialog
       centerContainerStyle={{ gap: 15 }}
-      button2Icon={DefaultIconsNames.save}
+      button2={{ icon: DefaultIconsNames.save }}
       {...props}
     >
       <ControlledSearchSelect

@@ -72,6 +72,7 @@ export default function FancyDropDown<ValueItem>({
   }, [isLoading]);
 
   const innerDisabled = disabled || isLoading || listItems?.length === 0;
+  const dropdownMode = renderMode === 'portal' ? 'modal' : renderMode;
 
   return (
     <View style={[styles.container, containerStyle]}>
@@ -93,9 +94,8 @@ export default function FancyDropDown<ValueItem>({
         selectedTextStyle={[styles.selectedText, innerDisabled && { color: Pallete.fonts.inactive }]}
         activeColor={activeColor}
         dropdownPosition={dropdownPosition}
-        mode={renderMode}
+        mode={dropdownMode}
         inverted={inverted}
-        statusBarIsTranslucent
         value={value}
         placeholder={placeholder || !innerDisabled ? 'Selecione...' : 'Nenhum item disponível'}
         placeholderStyle={styles.placeholder}

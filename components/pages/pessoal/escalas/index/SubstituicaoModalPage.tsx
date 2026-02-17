@@ -139,7 +139,7 @@ export default function SubstituicaoModalPage({
         name='substitutoId'
         label={'Quem será seu substituto?'}
         listItems={possiveisSubstitutosList}
-        onChange={setSubstitutoSelecionado}
+        onChange={(value) => setSubstitutoSelecionado(Array.isArray(value) ? value[0] : value)}
         disabled={isLoading}
         isLoading={isLoading}
         searchPlaceholder='Buscar substituto...'

@@ -23,7 +23,7 @@ const CodigoCheckContext = createContext<CodigoCheckContextType | null>(null);
 export const useCodigoCheck = () => {
   const context = useContext(CodigoCheckContext);
   if (!context) {
-    return { isCheckingCode: false };
+    return { isCheckingCode: false, setIsCheckingCode: (_value: boolean) => {} };
   }
   return context;
 };

@@ -251,7 +251,7 @@ export default function SubstituirVoluntarioModal({ data, ...props }: Substituir
             placeholder='Buscar voluntário...'
             value={selectedSubstituto}
             onChange={(value) => {
-              setSelectedSubstituto(value);
+              setSelectedSubstituto(Array.isArray(value) ? value[0] || null : value);
               setErrors((prev) => {
                 const { substituto, ...rest } = prev;
                 return rest;

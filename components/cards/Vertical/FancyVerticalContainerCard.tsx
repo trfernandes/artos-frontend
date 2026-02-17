@@ -20,7 +20,7 @@ type TopElementValueMap = {
   image: { source?: ImageSourcePropType; size?: number; highlighted?: boolean };
   letter: { letter?: string };
   icon: { icon?: CustomIconProps };
-  check: { checked: boolean; image: string };
+  check: { checked: boolean; image: ImageSourcePropType | string };
 };
 
 export type DataType<T extends TopElementType = TopElementType> = BaseDataType & TopElementValueMap[T];
@@ -125,7 +125,7 @@ export default function FancyVerticalContainerCard<T extends TopElementType>({
           value={item.checked}
           title={card.title}
           subtitle={card.subtitle}
-          source={item.image}
+          source={typeof item.image === 'string' ? { uri: item.image } : item.image}
           containerStyle={style}
           onChangeValue={(v) => (onChangeValue as any)?.(item, v, index)}
         />

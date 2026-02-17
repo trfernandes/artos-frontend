@@ -63,9 +63,9 @@ export default function FancyAccordeon({
           expanded ? headerExpandedContainerStyle : headerContainerStyle,
         ]}
       >
-        {gradientColors?.length ? (
+        {gradientColors?.length && gradientColors.length >= 2 ? (
           <LinearGradient
-            colors={gradientColors}
+            colors={gradientColors as [string, string, ...string[]]}
             start={headerGradientStart}
             end={headerGradientEnd}
             style={styles.headerGradient}

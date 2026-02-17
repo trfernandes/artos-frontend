@@ -38,7 +38,7 @@ export default function MinisterioAddForm(
             ({
               title: ministerio.nome,
               value: ministerio.id,
-              left: { type: 'image', source: ministerio.logo },
+              left: { type: 'image', source: ministerio.logoThumbUrl || ministerio.logoUrl || undefined },
             }) as DropDownItemProps<string>,
         ) || [];
 

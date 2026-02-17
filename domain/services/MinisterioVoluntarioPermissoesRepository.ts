@@ -6,7 +6,6 @@ import { BaseRepository } from './BaseRepository';
 
 class MinisterioVoluntarioPermissoesRepositoryClass extends BaseRepository<
   ResponseMinisterioVoluntarioPermissaoDto,
-  ResponseMinisterioVoluntarioPermissaoDto,
   CreateMinisterioVoluntarioPermissaoDto,
   UpdateMinisterioVoluntarioPermissaoDto
 > {

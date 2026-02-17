@@ -79,7 +79,7 @@ export function useCadastroIgrejaEmail({
 
       // Pequeno delay para garantir que o componente está pronto
       setTimeout(() => {
-        onConfirmado?.(statusQuery.data);
+        onConfirmado?.(statusQuery.data || undefined);
       }, 50);
     }
   }, [statusQuery.data?.statusSolicitacao, onConfirmado]);

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useMemo } from 'react';
-import { EscalaModel } from '../../../domain/models/Escala';
+import { ResponseEscalaDto } from '../../../domain/dtos/Escala/escala.response';
 
 export interface AssistenteEscalaContextData {
   ministerioId: string;
@@ -15,7 +15,7 @@ export interface AssistenteEscalaContextData {
   isShouldLoadMembers: boolean;
   setShouldLoadMembers: (v: boolean) => void;
 
-  resultado: EscalaModel;
+  resultado: ResponseEscalaDto | any;
   setResultado: (r: any) => void;
 
   tempoGeracaoEscala?: number;

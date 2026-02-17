@@ -43,7 +43,7 @@ export default function MinisterioIndisponibilidadesIndex() {
   const {
     voluntariosList,
     voluntariosDropDownList,
-    isLoading: isLoadingVoluntarios,
+    isLoadingMinisterioVoluntarios: isLoadingVoluntarios,
   } = useVoluntariosDoMinisterioCrud(ministerioId);
 
   const { control, watch } = useForm({

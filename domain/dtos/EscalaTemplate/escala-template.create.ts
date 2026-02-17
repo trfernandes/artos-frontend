@@ -1,4 +1,4 @@
-import { EscalaTemplateTipoEnum } from '../../models/EscalaTemplate';
+import { EscalaTemplateTipoEnum } from '../../enums/EscalaTemplate/escala-template-tipo.enum';
 import type { CreateEscalaTemplateFuncaoDto } from './escala-template-funcao.create';
 import type { CreateEscalaTemplateVoluntarioDto } from './escala-template-voluntario.create';
 

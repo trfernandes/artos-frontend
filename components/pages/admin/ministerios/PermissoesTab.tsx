@@ -4,7 +4,6 @@ import { PEOPLE_DATA } from '../eventos/EventosEscalaEquipe';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import z from 'zod';
 import { useFieldArray, useFormContext } from 'react-hook-form';
-import { MinisterioFormData } from '../../../../app/(app)/(drawer)/admin/ministerios/add';
 import PermissoesManager from './PermissoesManager';
 import {
   RecursoPermissaoEnum,
@@ -23,7 +22,7 @@ export const permissoesSchema = z.object({
 export type PermissoesFormData = z.infer<typeof permissoesSchema>;
 
 export default function PermissoesTab() {
-  const ministerioForm = useFormContext<MinisterioFormData>();
+  const ministerioForm = useFormContext<any>();
 
   const permissoesFieldArray = useFieldArray({
     control: ministerioForm.control,
@@ -33,7 +32,7 @@ export default function PermissoesTab() {
 
   const permissoesData = useMemo<ResponseMinisterioVoluntarioPermissaoDto[]>(() => {
     return permissoesFieldArray.fields.map(
-      (field) =>
+      (field: any) =>
         ({
           id: field.id,
           ministerioVoluntarioId: field.ministerioVoluntarioId,

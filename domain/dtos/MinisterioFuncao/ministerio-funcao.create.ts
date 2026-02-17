@@ -1,4 +1,4 @@
-import { MinisterioFuncaoStatusEnum } from '../../models/MinisterioFuncao';
+import { MinisterioFuncaoStatusEnum } from '../../enums/MinisterioFuncao/ministerio-funcao-status.enum';
 
 export type CreateMinisterioFuncaoDto = {
   ministerioId: string;

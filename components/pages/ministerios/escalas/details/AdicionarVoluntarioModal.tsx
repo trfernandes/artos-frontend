@@ -224,7 +224,7 @@ export default function AdicionarVoluntarioModal({ data, ...props }: AdicionarVo
             placeholder='Buscar voluntário...'
             value={selectedVoluntario}
             onChange={(value) => {
-              setSelectedVoluntario(value);
+              setSelectedVoluntario(Array.isArray(value) ? value[0] || null : value);
               setErrors((prev) => {
                 const { voluntario, ...rest } = prev;
                 return rest;

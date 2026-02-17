@@ -33,7 +33,7 @@ export const dadosSchema = z.object({
 // Schema para validação de modo de entrada
 export const modoEntradaSchema = z.object({
   modoEntrada: z.nativeEnum(ModoEntradaEnum, {
-    errorMap: () => ({ message: 'Modo de entrada inválido' }),
+    message: 'Modo de entrada inválido',
   }),
 });
 

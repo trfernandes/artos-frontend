@@ -96,7 +96,7 @@ export default function AdicionarFuncaoModal({ ministerioId, eventoNome, eventoI
             placeholder='Buscar função...'
             value={selectedFuncao}
             onChange={(value) => {
-              setSelectedFuncao(value);
+              setSelectedFuncao(Array.isArray(value) ? value[0] || null : value);
               setErrors((prev) => {
                 const { funcao, ...rest } = prev;
                 return rest;

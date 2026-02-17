@@ -120,7 +120,7 @@ export default function NovoConviteModal({
               color={!autoApprove ? Pallete.warning : Pallete.fonts.inactive}
             />
             <FancyText
-              type={!autoApprove ? 'semiBold' : 'regular'}
+              type={!autoApprove ? 'semiBold' : 'normal'}
               size='small'
               color={!autoApprove ? Pallete.warning : Pallete.fonts.inactive}
             >

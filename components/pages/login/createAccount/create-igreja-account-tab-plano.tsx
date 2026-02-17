@@ -5,7 +5,7 @@ import { Pallete } from '../../../../constants/colors';
 export default function CreateIgrejaAccountTabPlano() {
   return (
     <View style={styles.container}>
-      <FancyText size="medium" color={Pallete.textSecondary} style={styles.placeholder}>
+      <FancyText size="medium" color={Pallete.secondary} style={styles.placeholder}>
         Escolha seu plano (em breve)
       </FancyText>
     </View>
