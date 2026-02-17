@@ -1,7 +1,8 @@
 import { View, StyleSheet, Pressable } from 'react-native';
 import { MONTH_NAMES } from '../../../constants/calendar';
 import FancyText from '../../FancyText';
-import { Pallete } from '../../../constants/colors';
+import { ThemePalette } from '../../../constants/colors';
+import { useThemedStyles } from '../../../hooks/useThemedStyles';
 
 export type MonthViewProps = {
   selectedDate?: Date;
@@ -12,6 +13,8 @@ export type MonthViewProps = {
 };
 
 export default function MonthView({ minimumDate, maximumDate, ...props }: MonthViewProps) {
+  const styles = useThemedStyles(createStyles);
+
   return (
     <View style={styles.container}>
       {MONTH_NAMES.map((month, i) => {
@@ -46,39 +49,41 @@ export default function MonthView({ minimumDate, maximumDate, ...props }: MonthV
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    alignContent: 'center',
-  },
-  cell: {
-    width: '30%',
-    margin: '1.5%',
-    padding: 0,
-    height: 50,
-    borderRadius: 5,
-    backgroundColor: '#eee',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  selectedCell: {
-    backgroundColor: Pallete.primary,
-  },
-  disabledCell: {
-    opacity: 0.4,
-  },
-  text: {
-    paddingHorizontal: 10,
-    textAlign: 'center',
-    width: '100%',
-  },
-  selectedText: {
-    color: '#fff',
-  },
-  disabledText: {
-    color: Pallete.fonts.inactive2,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'center',
+      alignContent: 'center',
+    },
+    cell: {
+      width: '30%',
+      margin: '1.5%',
+      padding: 0,
+      height: 50,
+      borderRadius: 5,
+      backgroundColor: palette.backgroundColor3,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    selectedCell: {
+      backgroundColor: palette.primary,
+    },
+    disabledCell: {
+      opacity: 0.4,
+    },
+    text: {
+      paddingHorizontal: 10,
+      textAlign: 'center',
+      width: '100%',
+    },
+    selectedText: {
+      color: palette.fonts.light,
+    },
+    disabledText: {
+      color: palette.fonts.inactive2,
+    },
+  });
+}

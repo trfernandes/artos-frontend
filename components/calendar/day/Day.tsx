@@ -1,7 +1,9 @@
 import React, { useMemo } from 'react';
 import { StyleProp, StyleSheet, TouchableOpacity, View, ViewStyle } from 'react-native';
 import FancyText from '../../FancyText';
-import { Pallete } from '../../../constants/colors';
+import { ThemePalette } from '../../../constants/colors';
+import { usePallete } from '../../../hooks/usePallete';
+import { useThemedStyles } from '../../../hooks/useThemedStyles';
 
 export type DayProps = {
   day: number;
@@ -24,23 +26,25 @@ function DayComponent({
   markerColor,
   disabled = false,
 }: DayProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const isDisabled = disabled;
   const isSelected = selected;
   const isToday = type === 'actual';
   const isInactive = type === 'inactive';
 
   const textColor = useMemo(() => {
-    if (isSelected && markerType !== 'SurroundCircle') return Pallete.fonts.light;
-    if (isToday) return Pallete.warning;
-    if (isInactive) return Pallete.fonts.inactive2;
-    return Pallete.fonts.dark;
-  }, [isSelected, isToday, isInactive, markerType]);
+    if (isSelected && markerType !== 'SurroundCircle') return palette.fonts.light;
+    if (isToday) return palette.warning;
+    if (isInactive) return palette.fonts.inactive2;
+    return palette.fonts.dark;
+  }, [isSelected, isToday, isInactive, markerType, palette]);
 
   const textWeight: 'bold' | 'semiBold' = isSelected ? 'bold' : 'semiBold';
 
   const containerStyles: StyleProp<ViewStyle> = [
     styles.container,
-    isSelected && markerType !== 'SurroundCircle' && { backgroundColor: Pallete.primary },
+    isSelected && markerType !== 'SurroundCircle' && { backgroundColor: palette.primary },
   ];
 
   // 👇 pega a cor vinda das markedDates (string ou primeiro item do array)
@@ -55,7 +59,7 @@ function DayComponent({
     styles.circle,
     showCircle &&
       !isDisabled && {
-        backgroundColor: resolvedMarkerColor || Pallete.primary,
+        backgroundColor: resolvedMarkerColor || palette.primary,
       },
     showCircle && isDisabled && styles.circleDisabled,
   ];
@@ -71,7 +75,7 @@ function DayComponent({
     if (!shouldRenderBottomMarker) return null;
 
     const resolveColor = (c?: string) => {
-      if (isSelected) return Pallete.fonts.light;
+      if (isSelected) return palette.fonts.light;
       return c || undefined;
     };
 
@@ -88,7 +92,7 @@ function DayComponent({
     <TouchableOpacity style={containerStyles} onPress={handlePress} disabled={isDisabled}>
       {showCircle ? (
         <View style={circleStyles}>
-          <FancyText size='medium' type='bold' color={isDisabled ? Pallete.fonts.inactive : Pallete.fonts.light}>
+          <FancyText size='medium' type='bold' color={isDisabled ? palette.fonts.inactive : palette.fonts.light}>
             {day}
           </FancyText>
         </View>
@@ -105,40 +109,42 @@ function DayComponent({
 
 const DAY_WIDTH = `${100 / 9}%`; // mantém alinhado com o header (do jeito que você definiu)
 
-const styles = StyleSheet.create({
-  container: {
-    width: DAY_WIDTH,
-    aspectRatio: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 999,
-    // borderWidth: 1,
-  },
-  circle: {
-    width: '68%',
-    height: '68%',
-    borderRadius: 999,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  markerContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 2,
-    paddingBottom: 2,
-    marginHorizontal: 6,
-  },
-  circleDisabled: {
-    backgroundColor: Pallete.disabled3,
-  },
-  marked: {
-    marginTop: 1,
-    height: 4,
-    width: 4,
-    borderRadius: 2,
-    backgroundColor: Pallete.warning,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      width: DAY_WIDTH,
+      aspectRatio: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 999,
+      // borderWidth: 1,
+    },
+    circle: {
+      width: '68%',
+      height: '68%',
+      borderRadius: 999,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    markerContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'center',
+      gap: 2,
+      paddingBottom: 2,
+      marginHorizontal: 6,
+    },
+    circleDisabled: {
+      backgroundColor: palette.disabled3,
+    },
+    marked: {
+      marginTop: 1,
+      height: 4,
+      width: 4,
+      borderRadius: 2,
+      backgroundColor: palette.warning,
+    },
+  });
+}
 
 export default React.memo(DayComponent);

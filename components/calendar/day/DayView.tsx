@@ -3,7 +3,7 @@ import DayViewHeader from './DayHeader';
 import Day, { DayProps } from './Day';
 import React, { useMemo, useCallback } from 'react';
 import DateUtils from '../../../utils/date_utils';
-import { Pallete } from '../../../constants/colors';
+import { usePallete } from '../../../hooks/usePallete';
 
 const generateDays = (year: number, month: number): number[][] => {
   const matrix: number[][] = [];
@@ -59,6 +59,7 @@ export function DayView({
   disablePastDates = false,
   ...props
 }: DayViewProps) {
+  const palette = usePallete();
   const daysMatrix = useMemo(
     () => generateDays(props.currentDate.getFullYear(), props.currentDate.getMonth()),
     [props.currentDate],
@@ -141,7 +142,7 @@ export function DayView({
               const dayType: DayProps['type'] = isDisabled ? 'inactive' : isToday ? 'actual' : 'default';
 
               // monta cores dos marcadores (um por evento, com fallback)
-              const markerColorsFromMarks = markedEntries.map((m) => m.color || Pallete.primary);
+              const markerColorsFromMarks = markedEntries.map((m) => m.color || palette.primary);
 
               let markerColor: DayProps['markerColor'] | undefined;
 

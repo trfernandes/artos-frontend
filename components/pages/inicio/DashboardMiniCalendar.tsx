@@ -2,19 +2,24 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import FancyCalendar, { MarkedDate } from '../../calendar/FancyCalendar';
 import { DashboardEscalaItemDto } from '../../../domain/dtos/Dashboard/dashboard.response';
-import { Pallete } from '../../../constants/colors';
+import { ThemePalette } from '../../../constants/colors';
 import { format, isSameDay, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import FancyModalDialog from '../../modal/FancyModalDialog';
 import FancyText from '../../FancyText';
 import FancyChips from '../../FancyChips';
 import DefaultIcons from '../../FancyIcons';
+import { usePallete } from '../../../hooks/usePallete';
+import { useThemedStyles } from '../../../hooks/useThemedStyles';
+import { ColorUtils } from '../../../utils/color_utils';
 
 type DashboardMiniCalendarProps = {
   escalas?: DashboardEscalaItemDto[];
 };
 
 export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendarProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
 
@@ -42,9 +47,9 @@ export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendar
 
     return escalasUnicas.map((escala) => ({
       date: parseISO(escala.eventoData),
-      color: escala.isConfirmado ? Pallete.confirm : Pallete.warning,
+      color: escala.isConfirmado ? palette.confirm : palette.warning,
     }));
-  }, [escalasUnicas]);
+  }, [escalasUnicas, palette.confirm, palette.warning]);
 
   const escalasDaDataSelecionada = useMemo(() => {
     if (!selectedDate) return [];
@@ -91,26 +96,26 @@ export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendar
         >
           <View style={styles.summaryCard}>
             <View style={styles.summaryDateBadge}>
-              <FancyText size="extraSmall" type="semiBold" color={Pallete.primary}>
+              <FancyText size="extraSmall" type="semiBold" color={palette.primary}>
                 {selectedDate ? format(selectedDate, 'MMM', { locale: ptBR }).toUpperCase() : '--'}
               </FancyText>
-              <FancyText size="medium" type="bold" color={Pallete.fonts.dark}>
+              <FancyText size="medium" type="bold" color={palette.fonts.dark}>
                 {selectedDate ? format(selectedDate, 'dd', { locale: ptBR }) : '--'}
               </FancyText>
             </View>
             <View style={styles.summaryDateRow}>
-              <FancyText size="small" type="semiBold" color={Pallete.fonts.dark}>
+              <FancyText size="small" type="semiBold" color={palette.fonts.dark}>
                 {selectedDate ? format(selectedDate, "EEEE", { locale: ptBR }) : 'Data não selecionada'}
               </FancyText>
-              <FancyText size="extraSmall" type="medium" color={Pallete.fonts.inactive}>
+              <FancyText size="extraSmall" type="medium" color={palette.fonts.inactive}>
                 {selectedDate ? format(selectedDate, "'Dia' dd 'de' MMMM", { locale: ptBR }) : ''}
               </FancyText>
             </View>
             <FancyChips
               label={`${escalasDaDataSelecionada.length} escala(s)`}
               size="small"
-              color={Pallete.primary}
-              backgroundColor={`${Pallete.primary}12`}
+              color={palette.primary}
+              backgroundColor={ColorUtils.withAlpha(palette.primary, 0.12)}
               style={styles.summaryChip}
             />
           </View>
@@ -123,7 +128,7 @@ export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendar
                     <FancyText
                       size="small"
                       type="bold"
-                      color={Pallete.fonts.dark}
+                      color={palette.fonts.dark}
                       numberOfLines={1}
                       style={{ flex: 1 }}
                     >
@@ -132,8 +137,12 @@ export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendar
                     <FancyChips
                       label={escala.isConfirmado ? 'Confirmada' : 'Pendente'}
                       size="small"
-                      color={escala.isConfirmado ? Pallete.confirm : Pallete.warning}
-                      backgroundColor={escala.isConfirmado ? `${Pallete.confirm}14` : `${Pallete.warning}14`}
+                      color={escala.isConfirmado ? palette.confirm : palette.warning}
+                      backgroundColor={
+                        escala.isConfirmado
+                          ? ColorUtils.withAlpha(palette.confirm, 0.14)
+                          : ColorUtils.withAlpha(palette.warning, 0.14)
+                      }
                     />
                   </View>
 
@@ -142,9 +151,9 @@ export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendar
                       library="MaterialCommunityIcons"
                       name="clock-time-four-outline"
                       size={14}
-                      color={Pallete.primary}
+                      color={palette.primary}
                     />
-                    <FancyText size="extraSmall" type="semiBold" color={Pallete.fonts.dark}>
+                    <FancyText size="extraSmall" type="semiBold" color={palette.fonts.dark}>
                       {format(parseISO(escala.eventoData), "HH:mm", { locale: ptBR })}
                     </FancyText>
                   </View>
@@ -154,9 +163,9 @@ export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendar
                       library="MaterialCommunityIcons"
                       name="briefcase-outline"
                       size={14}
-                      color={Pallete.primary}
+                      color={palette.primary}
                     />
-                    <FancyText size="extraSmall" type="semiBold" color={Pallete.fonts.inactive}>
+                    <FancyText size="extraSmall" type="semiBold" color={palette.fonts.inactive}>
                       {escala.funcaoNome}
                     </FancyText>
                   </View>
@@ -166,9 +175,9 @@ export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendar
                       library="MaterialCommunityIcons"
                       name="account-group-outline"
                       size={14}
-                      color={Pallete.primary}
+                      color={palette.primary}
                     />
-                    <FancyText size="extraSmall" type="medium" color={Pallete.fonts.inactive}>
+                    <FancyText size="extraSmall" type="medium" color={palette.fonts.inactive}>
                       {escala.ministerioNome}
                     </FancyText>
                   </View>
@@ -179,9 +188,9 @@ export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendar
                         library="MaterialCommunityIcons"
                         name="map-marker-outline"
                         size={14}
-                        color={Pallete.primary}
+                        color={palette.primary}
                       />
-                      <FancyText size="extraSmall" type="medium" color={Pallete.fonts.inactive} numberOfLines={1}>
+                      <FancyText size="extraSmall" type="medium" color={palette.fonts.inactive} numberOfLines={1}>
                         {escala.eventoLocal}
                       </FancyText>
                     </View>
@@ -195,9 +204,9 @@ export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendar
                 library="MaterialCommunityIcons"
                 name="calendar-remove-outline"
                 size={20}
-                color={Pallete.icons.inactive}
+                color={palette.icons.inactive}
               />
-              <FancyText size="small" type="medium" color={Pallete.fonts.inactive}>
+              <FancyText size="small" type="medium" color={palette.fonts.inactive}>
                 Nenhuma escala para esta data.
               </FancyText>
             </View>
@@ -208,88 +217,90 @@ export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendar
   );
 }
 
-const styles = StyleSheet.create({
-  calendar: {
-    minHeight: 260,
-    borderRadius: 16,
-    overflow: 'hidden',
-    paddingTop: 16,
-    paddingHorizontal: 16,
-    paddingBottom: 0,
-  },
-  modalContainer: {
-    gap: 12,
-  },
-  modalContent: {
-    gap: 10,
-    maxHeight: 400,
-  },
-  summaryCard: {
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: `${Pallete.primary}22`,
-    backgroundColor: `${Pallete.primary}08`,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    gap: 6,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  summaryDateBadge: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: `${Pallete.primary}33`,
-    backgroundColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 0,
-  },
-  summaryDateRow: {
-    flex: 1,
-    justifyContent: 'center',
-    gap: 1,
-  },
-  summaryChip: {
-    alignSelf: 'center',
-  },
-  modalList: {
-    maxHeight: 290,
-  },
-  modalListContent: {
-    gap: 9,
-    paddingBottom: 0,
-  },
-  eventCard: {
-    borderWidth: 1,
-    borderColor: `${Pallete.border}40`,
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 9,
-    gap: 7,
-    backgroundColor: '#FAFAFC',
-  },
-  eventCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
-    minHeight: 16,
-  },
-  emptyCard: {
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: `${Pallete.border}30`,
-    backgroundColor: Pallete.backgroundColor2,
-    paddingVertical: 14,
-    paddingHorizontal: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    calendar: {
+      minHeight: 260,
+      borderRadius: 16,
+      overflow: 'hidden',
+      paddingTop: 16,
+      paddingHorizontal: 16,
+      paddingBottom: 0,
+    },
+    modalContainer: {
+      gap: 12,
+    },
+    modalContent: {
+      gap: 10,
+      maxHeight: 400,
+    },
+    summaryCard: {
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.primary, 0.22),
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
+      paddingHorizontal: 10,
+      paddingVertical: 8,
+      gap: 6,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    summaryDateBadge: {
+      width: 44,
+      height: 44,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.primary, 0.33),
+      backgroundColor: palette.backgroundColor,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 0,
+    },
+    summaryDateRow: {
+      flex: 1,
+      justifyContent: 'center',
+      gap: 1,
+    },
+    summaryChip: {
+      alignSelf: 'center',
+    },
+    modalList: {
+      maxHeight: 290,
+    },
+    modalListContent: {
+      gap: 9,
+      paddingBottom: 0,
+    },
+    eventCard: {
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.border, 0.4),
+      borderRadius: 12,
+      paddingHorizontal: 10,
+      paddingVertical: 9,
+      gap: 7,
+      backgroundColor: palette.backgroundColor3,
+    },
+    eventCardHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    infoRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 7,
+      minHeight: 16,
+    },
+    emptyCard: {
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.border, 0.3),
+      backgroundColor: palette.backgroundColor2,
+      paddingVertical: 14,
+      paddingHorizontal: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+    },
+  });
+}

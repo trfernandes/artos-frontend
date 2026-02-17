@@ -6,8 +6,9 @@ import YearView from './year/YearView';
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Gesture, Directions, GestureDetector } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
 import { MONTH_NAMES } from '../../constants/calendar';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export { MONTH_NAMES };
 
@@ -53,6 +54,7 @@ export default function FancyCalendar({
   markedDatesType = 'bottomPoint',
   dayModeTopPadding = 16,
 }: FancyCalendarProps) {
+  const styles = useThemedStyles(createStyles);
   const dayViewMaximum = dayViewProps?.maximumDate;
 
   const [visualization, setVisualization] = useState(CalendarVisualization.Day);
@@ -289,23 +291,25 @@ export default function FancyCalendar({
   );
 }
 
-const styles = StyleSheet.create({
-  container: { minHeight: 253, backgroundColor: 'white', gap: 0 },
-  headerContainer: {
-    width: '100%',
-    paddingHorizontal: 0,
-    paddingLeft: 2,
-    paddingTop: 2,
-    paddingBottom: 0,
-    zIndex: 1,
-  },
-  contentContainer: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    paddingLeft: 2,
-    paddingTop: 6,
-    paddingBottom: 0,
-  },
-  border: { borderWidth: 0.5, borderRadius: 10, borderColor: Pallete.border, ...Pallete.shadows[100] },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: { minHeight: 253, backgroundColor: palette.backgroundColor2, gap: 0 },
+    headerContainer: {
+      width: '100%',
+      paddingHorizontal: 0,
+      paddingLeft: 2,
+      paddingTop: 2,
+      paddingBottom: 0,
+      zIndex: 1,
+    },
+    contentContainer: {
+      flex: 1,
+      justifyContent: 'flex-start',
+      alignItems: 'center',
+      paddingLeft: 2,
+      paddingTop: 6,
+      paddingBottom: 0,
+    },
+    border: { borderWidth: 0.5, borderRadius: 10, borderColor: palette.border, ...palette.shadows[100] },
+  });
+}
