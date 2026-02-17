@@ -23,7 +23,7 @@ import {
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import FancyText from '../FancyText';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
 import { BOLD_FONT, ITALIC_MEDIUM_FONT, MEDIUM_FONT, SMALL_SIZE_FONT } from '../../constants/font';
 import DefaultIcons from '../FancyIcons';
 import { DropDownItemProps } from './FancyDropDownItem';
@@ -36,6 +36,8 @@ import FancySearchBar from '../FancySearchBar';
 import FancySeparator from '../FancySeparator';
 import FancyCheckbox from '../FancyCheckbox';
 import FancyList from '../list/FancyList';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const ANIMATION = {
@@ -80,6 +82,8 @@ function FancySearchSelectInner<ValueItem>(
   }: FancySearchSelectProps<ValueItem>,
   ref: React.Ref<FancySearchSelectRef>,
 ) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const [isVisible, setIsVisible] = useState(false);
   const [search, setSearch] = useState('');
   const [tempValue, setTempValue] = useState<ValueItem | ValueItem[] | undefined>(value);
@@ -92,7 +96,7 @@ function FancySearchSelectInner<ValueItem>(
   );
   const insets = useSafeAreaInsets();
 
-  const activeColor = ColorUtils.lightenColor(Pallete.primary, 0.85);
+  const activeColor = ColorUtils.lightenColor(palette.primary, 0.85);
   const selectedItem = multiSelect ? undefined : listItems?.find((item) => item.value === value);
   const selectedCount = multiSelect && Array.isArray(value) ? value.length : 0;
   const innerDisabled = disabled || isLoading || listItems?.length === 0;
@@ -234,20 +238,20 @@ function FancySearchSelectInner<ValueItem>(
           library='MaterialCommunityIcons'
           name='magnify-close'
           size={48}
-          color={Pallete.fonts.inactive}
+          color={palette.fonts.inactive}
         />
-        <FancyText color={Pallete.fonts.inactive} style={{ textAlign: 'center' }}>
+        <FancyText color={palette.fonts.inactive} style={{ textAlign: 'center' }}>
           {emptyMessage}
         </FancyText>
       </View>
     ),
-    [emptyMessage],
+    [emptyMessage, palette.fonts.inactive],
   );
 
   return (
     <View style={[styles.container, containerStyle]}>
       {label && (
-        <FancyText size={'extraSmall'} type='semiBold' color={Pallete.fonts.inactive}>
+        <FancyText size={'extraSmall'} type='semiBold' color={palette.fonts.inactive}>
           {label}
         </FancyText>
       )}
@@ -255,14 +259,14 @@ function FancySearchSelectInner<ValueItem>(
         style={({ pressed }) => [
           styles.inputContainer,
           innerDisabled && styles.inputDisabled,
-          pressed && !innerDisabled && { borderColor: Pallete.primary },
+          pressed && !innerDisabled && { borderColor: palette.primary },
         ]}
         onPress={() => !innerDisabled && handleOpen()}
         disabled={innerDisabled}
       >
         <FancyText
           style={selectedItem || selectedCount > 0 ? styles.selectedText : styles.placeholder}
-          color={disabled ? Pallete.fonts.inactive : Pallete.fonts.dark}
+          color={disabled ? palette.fonts.inactive : palette.fonts.dark}
           numberOfLines={1}
         >
           {multiSelect
@@ -276,7 +280,7 @@ function FancySearchSelectInner<ValueItem>(
             library='Feather'
             name='search'
             size={16}
-            color={innerDisabled ? Pallete.fonts.inactive2 : Pallete.icons.inactive}
+            color={innerDisabled ? palette.fonts.inactive2 : palette.icons.inactive}
           />
         </View>
       </Pressable>
@@ -333,14 +337,14 @@ function FancySearchSelectInner<ValueItem>(
                       library='Feather'
                       name='x'
                       size={18}
-                      color={Pallete.fonts.dark}
+                      color={palette.fonts.dark}
                     />
                   </TouchableOpacity>
 
                   <FancyText
                     type='bold'
                     size='medium'
-                    color={Pallete.fonts.dark}
+                    color={palette.fonts.dark}
                     style={styles.headerTitle}
                   >
                     {title ?? label ?? 'Selecione'}
@@ -364,8 +368,8 @@ function FancySearchSelectInner<ValueItem>(
                         size={18}
                         color={
                           Array.isArray(tempValue) && tempValue.length > 0
-                            ? Pallete.fonts.dark
-                            : Pallete.fonts.inactive
+                            ? palette.fonts.dark
+                            : palette.fonts.inactive
                         }
                       />
                     </TouchableOpacity>
@@ -413,7 +417,7 @@ function FancySearchSelectInner<ValueItem>(
                         <FancyText
                           style={[
                             styles.itemText,
-                            isSelected && { color: Pallete.primary, fontFamily: BOLD_FONT },
+                            isSelected && { color: palette.primary, fontFamily: BOLD_FONT },
                           ]}
                         >
                           {item.title}
@@ -429,7 +433,7 @@ function FancySearchSelectInner<ValueItem>(
                                 library='MaterialCommunityIcons'
                                 name='check'
                                 size={20}
-                                color={Pallete.primary}
+                                color={palette.primary}
                               />
                             </View>
                           )
@@ -461,145 +465,140 @@ const FancySearchSelect = forwardRef(FancySearchSelectInner) as <T>(
 
 export default FancySearchSelect;
 
-const styles = StyleSheet.create({
-  container: { gap: 6 },
-  inputContainer: {
-    backgroundColor: 'white',
-    borderWidth: 0.6,
-    borderColor: Pallete.border,
-    borderRadius: 12,
-    height: 40,
-    paddingHorizontal: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    ...Pallete.shadows[200],
-  },
-  inputDisabled: {
-    backgroundColor: Pallete.disabled,
-    borderColor: Pallete.border,
-  },
-  iconContainer: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    // backgroundColor: ColorUtils.lightenColor(Pallete.primary, 0.9),
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  placeholder: {
-    fontFamily: ITALIC_MEDIUM_FONT,
-    fontSize: SMALL_SIZE_FONT,
-    color: Pallete.fonts.inactive,
-    flex: 1,
-  },
-  selectedText: {
-    fontFamily: MEDIUM_FONT,
-    fontSize: SMALL_SIZE_FONT,
-    flex: 1,
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: 'transparent',
-  },
-  backdropTouchable: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  sheetContainer: {
-    flex: 1,
-    backgroundColor: Pallete.backgroundColor,
-    marginTop: 40,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    overflow: 'hidden',
-    ...Pallete.shadows[300],
-  },
-  handleContainer: {
-    alignItems: 'center',
-    paddingBottom: 6,
-    backgroundColor: 'white',
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Pallete.border,
-  },
-  header: {
-    paddingHorizontal: 16,
-    // paddingVertical: 8,
-    paddingTop: 5,
-    gap: 20,
-    paddingBottom: 5,
-    // borderBottomLeftRadius: 12,
-    // borderBottomRightRadius: 12,
-    // ...Pallete.shadows[200],
-    // marginBottom: 5,
-    backgroundColor: 'white',
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-  },
-  closeButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: ColorUtils.lightenColor(Pallete.primary, 0.9),
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  confirmButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: ColorUtils.lightenColor(Pallete.primary, 0.9),
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  confirmButtonDisabled: {
-    opacity: 0.5,
-  },
-  searchContainer: {
-    backgroundColor: 'white',
-    borderBottomColor: ColorUtils.lightenColor(Pallete.border, 0.5),
-  },
-  list: {
-    // borderWidth: 1,
-    flex: 1,
-    backgroundColor: Pallete.backgroundColor,
-  },
-  listContent: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  listItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    gap: 12,
-    borderRadius: 12,
-  },
-  itemText: {
-    fontFamily: MEDIUM_FONT,
-    fontSize: SMALL_SIZE_FONT,
-    color: Pallete.fonts.dark,
-    flex: 1,
-  },
-  checkContainer: {
-    width: 24,
-    alignItems: 'center',
-  },
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-    gap: 12,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: { gap: 6 },
+    inputContainer: {
+      backgroundColor: palette.backgroundColor,
+      borderWidth: 0.6,
+      borderColor: palette.border,
+      borderRadius: 12,
+      height: 40,
+      paddingHorizontal: 10,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      ...palette.shadows[200],
+    },
+    inputDisabled: {
+      backgroundColor: palette.disabled,
+      borderColor: palette.border,
+    },
+    iconContainer: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    placeholder: {
+      fontFamily: ITALIC_MEDIUM_FONT,
+      fontSize: SMALL_SIZE_FONT,
+      color: palette.fonts.inactive,
+      flex: 1,
+    },
+    selectedText: {
+      fontFamily: MEDIUM_FONT,
+      fontSize: SMALL_SIZE_FONT,
+      flex: 1,
+    },
+    modalContainer: {
+      flex: 1,
+      backgroundColor: 'transparent',
+    },
+    backdropTouchable: {
+      ...StyleSheet.absoluteFillObject,
+    },
+    backdrop: {
+      flex: 1,
+      backgroundColor: palette.overlays.backdrop,
+    },
+    sheetContainer: {
+      flex: 1,
+      backgroundColor: palette.backgroundColor,
+      marginTop: 40,
+      borderTopLeftRadius: 28,
+      borderTopRightRadius: 28,
+      overflow: 'hidden',
+      ...palette.shadows[300],
+    },
+    handleContainer: {
+      alignItems: 'center',
+      paddingBottom: 6,
+      backgroundColor: palette.backgroundColor,
+    },
+    handle: {
+      width: 40,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: palette.border,
+    },
+    header: {
+      paddingHorizontal: 16,
+      paddingTop: 5,
+      gap: 20,
+      paddingBottom: 5,
+      backgroundColor: palette.backgroundColor,
+    },
+    headerTitle: {
+      flex: 1,
+      textAlign: 'center',
+    },
+    closeButton: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14),
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    confirmButton: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14),
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    confirmButtonDisabled: {
+      opacity: 0.5,
+    },
+    searchContainer: {
+      backgroundColor: palette.backgroundColor,
+      borderBottomColor: ColorUtils.lightenColor(palette.border, 0.5),
+    },
+    list: {
+      flex: 1,
+      backgroundColor: palette.backgroundColor,
+    },
+    listContent: {
+      paddingHorizontal: 16,
+      paddingTop: 16,
+    },
+    listItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+      paddingHorizontal: 12,
+      gap: 12,
+      borderRadius: 12,
+    },
+    itemText: {
+      fontFamily: MEDIUM_FONT,
+      fontSize: SMALL_SIZE_FONT,
+      color: palette.fonts.dark,
+      flex: 1,
+    },
+    checkContainer: {
+      width: 24,
+      alignItems: 'center',
+    },
+    emptyContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 60,
+      gap: 12,
+    },
+  });
+}

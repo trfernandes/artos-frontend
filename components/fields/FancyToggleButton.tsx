@@ -1,7 +1,9 @@
 import { StyleSheet, TouchableOpacity } from 'react-native';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
 import { ButtonOption } from './FancyToggle';
 import FancyText from '../FancyText';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export default function FancyToggleButton<ValueType>({
   title,
@@ -14,6 +16,9 @@ export default function FancyToggleButton<ValueType>({
   disabled = false,
   onPress,
 }: { isSelected: boolean; disabled?: boolean; onPress?: () => void } & ButtonOption<ValueType>) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+
   return (
     <TouchableOpacity
       style={[
@@ -30,7 +35,7 @@ export default function FancyToggleButton<ValueType>({
       }}
     >
       <FancyText
-        color={disabled || isSelected === false ? Pallete.fonts.inactive : Pallete.fonts.dark}
+        color={disabled || isSelected === false ? palette.fonts.inactive : palette.fonts.dark}
         type={isSelected ? 'bold' : 'semiBoldItalic'}
         size={isSelected ? 'small' : 'extraSmall'}
         {...(isSelected ? activeLabelProps : inactiveLabelProps)}
@@ -41,23 +46,25 @@ export default function FancyToggleButton<ValueType>({
   );
 }
 
-const styles = StyleSheet.create({
-  optionItemContainer: {
-    borderRadius: 100,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  optionSelectedContainer: {
-    backgroundColor: Pallete.backgroundColor,
-    width: '55%',
-    shadowColor: 'gray',
-    elevation: 1,
-    shadowOffset: {
-      width: -1,
-      height: 0,
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    optionItemContainer: {
+      borderRadius: 100,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-  },
-  optionUnselectedContainer: { backgroundColor: Pallete.backgroundColor2, width: '45%' },
-});
+    optionSelectedContainer: {
+      backgroundColor: palette.backgroundColor,
+      width: '55%',
+      shadowColor: 'gray',
+      elevation: 1,
+      shadowOffset: {
+        width: -1,
+        height: 0,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 5,
+    },
+    optionUnselectedContainer: { backgroundColor: palette.backgroundColor2, width: '45%' },
+  });
+}

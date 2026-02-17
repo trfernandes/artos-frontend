@@ -1,8 +1,10 @@
 import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
 import FancyText, { FancyTextProps } from '../FancyText';
 import { useEffect, useState } from 'react';
 import FancyToggleButton from './FancyToggleButton';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export interface ButtonOption<ValueType> {
   title: string;
@@ -30,6 +32,8 @@ export default function FancyToggle<ValueType>({
   onChange,
   disabled = false,
 }: FancyToggleProps<ValueType>) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const [selectedOption, setSelectedOption] = useState<ButtonOption<ValueType> | undefined>(option1);
 
   useEffect(() => {
@@ -40,7 +44,7 @@ export default function FancyToggle<ValueType>({
         setSelectedOption(option2);
       }
     }
-  }, [value]);
+  }, [value, option1, option2]);
 
   const isOption1Selected = (selectedOption && selectedOption.value === option1.value) || false;
   const isOption2Selected = (selectedOption && selectedOption.value === option2.value) || false;
@@ -48,7 +52,7 @@ export default function FancyToggle<ValueType>({
   return (
     <View style={[styles.container, { pointerEvents: disabled ? 'none' : 'auto' }]}>
       {label && (
-        <FancyText size={'extraSmall'} type='semiBold' color={disabled ? Pallete.fonts.inactive2 : Pallete.fonts.inactive}>
+        <FancyText size={'extraSmall'} type='semiBold' color={disabled ? palette.fonts.inactive2 : palette.fonts.inactive}>
           {label}
         </FancyText>
       )}
@@ -74,14 +78,16 @@ export default function FancyToggle<ValueType>({
   );
 }
 
-const styles = StyleSheet.create({
-  container: { gap: 5 },
-  optionContainer: {
-    backgroundColor: Pallete.backgroundColor2,
-    borderRadius: 20,
-    borderColor: Pallete.border,
-    borderWidth: 0.5,
-    flexDirection: 'row',
-    height: 32,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: { gap: 5 },
+    optionContainer: {
+      backgroundColor: palette.backgroundColor2,
+      borderRadius: 20,
+      borderColor: palette.border,
+      borderWidth: 0.5,
+      flexDirection: 'row',
+      height: 32,
+    },
+  });
+}

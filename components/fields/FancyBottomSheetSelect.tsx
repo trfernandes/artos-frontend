@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { GestureHandlerRootView, TouchableOpacity } from 'react-native-gesture-handler';
 import FancyText from '../FancyText';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
 import {
     BOLD_FONT,
     ITALIC_MEDIUM_FONT,
@@ -29,6 +29,8 @@ import FancyImage from '../images/FancyImage';
 import { ImageUtils } from '../../utils/image_utils';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FancySeparator from '../FancySeparator';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const ANIMATION = {
@@ -67,6 +69,8 @@ function FancyBottomSheetSelectInner<ValueItem>(
   }: FancyBottomSheetSelectProps<ValueItem>,
   ref: React.Ref<FancyBottomSheetSelectRef>,
 ) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const [isVisible, setIsVisible] = useState(false);
   const [tempValue, setTempValue] = useState<ValueItem | undefined>(value);
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
@@ -78,7 +82,7 @@ function FancyBottomSheetSelectInner<ValueItem>(
   );
   const insets = useSafeAreaInsets();
 
-  const activeColor = ColorUtils.lightenColor(Pallete.primary, 0.85);
+  const activeColor = ColorUtils.lightenColor(palette.primary, 0.85);
   const selectedItem = listItems?.find((item) => item.value === value);
   const innerDisabled = disabled || isLoading || listItems?.length === 0;
 
@@ -223,7 +227,7 @@ function FancyBottomSheetSelectInner<ValueItem>(
           <FancyText
             style={[
               styles.itemText,
-              isSelected && { color: Pallete.primary, fontFamily: BOLD_FONT },
+              isSelected && { color: palette.primary, fontFamily: BOLD_FONT },
             ]}
           >
             {item.title}
@@ -234,7 +238,7 @@ function FancyBottomSheetSelectInner<ValueItem>(
                 library='MaterialCommunityIcons'
                 name='check'
                 size={20}
-                color={Pallete.primary}
+                color={palette.primary}
               />
             </View>
           )}
@@ -247,7 +251,7 @@ function FancyBottomSheetSelectInner<ValueItem>(
   return (
     <View style={[styles.container, containerStyle]}>
       {label && (
-        <FancyText size={'extraSmall'} type='semiBold' color={Pallete.fonts.inactive}>
+        <FancyText size={'extraSmall'} type='semiBold' color={palette.fonts.inactive}>
           {label}
         </FancyText>
       )}
@@ -255,14 +259,14 @@ function FancyBottomSheetSelectInner<ValueItem>(
         style={({ pressed }) => [
           styles.inputContainer,
           innerDisabled && styles.inputDisabled,
-          pressed && !innerDisabled && { borderColor: Pallete.primary },
+          pressed && !innerDisabled && { borderColor: palette.primary },
         ]}
         onPress={() => !innerDisabled && handleOpen()}
         disabled={innerDisabled}
       >
         <FancyText
           style={selectedItem ? styles.selectedText : styles.placeholder}
-          color={disabled ? Pallete.fonts.inactive : Pallete.fonts.dark}
+          color={disabled ? palette.fonts.inactive : palette.fonts.dark}
           numberOfLines={1}
         >
           {selectedItem?.title ?? placeholder}
@@ -273,7 +277,7 @@ function FancyBottomSheetSelectInner<ValueItem>(
             name='chevron-down'
             size={22}
             style={{ marginTop: 2 }}
-            color={innerDisabled ? Pallete.fonts.inactive2 : Pallete.icons.inactive}
+            color={innerDisabled ? palette.fonts.inactive2 : palette.icons.inactive}
           />
         </View>
       </Pressable>
@@ -324,14 +328,14 @@ function FancyBottomSheetSelectInner<ValueItem>(
                     library='Feather'
                     name='x'
                     size={20}
-                    color={Pallete.fonts.dark}
+                    color={palette.fonts.dark}
                   />
                 </TouchableOpacity>
 
                 <FancyText
                   type='bold'
                   size='medium'
-                  color={Pallete.fonts.dark}
+                  color={palette.fonts.dark}
                   style={styles.headerTitle}
                 >
                   {title ?? label ?? 'Selecione'}
@@ -365,130 +369,129 @@ const FancyBottomSheetSelect = forwardRef(FancyBottomSheetSelectInner) as <T>(
 
 export default FancyBottomSheetSelect;
 
-const styles = StyleSheet.create({
-  container: { gap: 6 },
-  inputContainer: {
-    backgroundColor: 'white',
-    borderWidth: 0.6,
-    borderColor: Pallete.border,
-    borderRadius: 12,
-    height: 40,
-    paddingHorizontal: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    ...Pallete.shadows[200],
-  },
-  inputDisabled: {
-    backgroundColor: Pallete.disabled,
-    borderColor: Pallete.border,
-  },
-  iconContainer: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    // backgroundColor: Pallete.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  placeholder: {
-    fontFamily: ITALIC_MEDIUM_FONT,
-    fontSize: SMALL_SIZE_FONT,
-    color: Pallete.fonts.inactive,
-    flex: 1,
-  },
-  selectedText: {
-    fontFamily: MEDIUM_FONT,
-    fontSize: SMALL_SIZE_FONT,
-    flex: 1,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  backdropTouchable: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  sheetContainer: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    overflow: 'hidden',
-    ...Pallete.shadows[300],
-  },
-  handleContainer: {
-    alignItems: 'center',
-    paddingVertical: 10,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Pallete.border,
-  },
-  sheetHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 0.5,
-    borderBottomColor: ColorUtils.lightenColor(Pallete.border, 0.5),
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-  },
-  closeButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: ColorUtils.lightenColor(Pallete.primary, 0.9),
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  confirmButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: ColorUtils.lightenColor(Pallete.primary, 0.9),
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  confirmButtonDisabled: {
-    opacity: 0.5,
-  },
-  list: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  listContent: {
-    paddingHorizontal: 12,
-    paddingTop: 16,
-  },
-  listItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-
-    paddingHorizontal: 16,
-    // borderWidth:1,
-    gap: 12,
-    borderRadius: 12,
-  },
-  itemText: {
-    fontFamily: MEDIUM_FONT,
-    fontSize: SMALL_SIZE_FONT,
-    color: Pallete.fonts.dark,
-    flex: 1,
-  },
-  checkContainer: {
-    width: 24,
-    alignItems: 'center',
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: { gap: 6 },
+    inputContainer: {
+      backgroundColor: palette.backgroundColor,
+      borderWidth: 0.6,
+      borderColor: palette.border,
+      borderRadius: 12,
+      height: 40,
+      paddingHorizontal: 10,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      ...palette.shadows[200],
+    },
+    inputDisabled: {
+      backgroundColor: palette.disabled,
+      borderColor: palette.border,
+    },
+    iconContainer: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    placeholder: {
+      fontFamily: ITALIC_MEDIUM_FONT,
+      fontSize: SMALL_SIZE_FONT,
+      color: palette.fonts.inactive,
+      flex: 1,
+    },
+    selectedText: {
+      fontFamily: MEDIUM_FONT,
+      fontSize: SMALL_SIZE_FONT,
+      flex: 1,
+    },
+    modalContainer: {
+      flex: 1,
+      justifyContent: 'flex-end',
+    },
+    backdropTouchable: {
+      ...StyleSheet.absoluteFillObject,
+    },
+    backdrop: {
+      flex: 1,
+      backgroundColor: palette.overlays.backdrop,
+    },
+    sheetContainer: {
+      backgroundColor: palette.backgroundColor,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      overflow: 'hidden',
+      ...palette.shadows[300],
+    },
+    handleContainer: {
+      alignItems: 'center',
+      paddingVertical: 10,
+    },
+    handle: {
+      width: 40,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: palette.border,
+    },
+    sheetHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 0.5,
+      borderBottomColor: ColorUtils.lightenColor(palette.border, 0.5),
+    },
+    headerTitle: {
+      flex: 1,
+      textAlign: 'center',
+    },
+    closeButton: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14),
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    confirmButton: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14),
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    confirmButtonDisabled: {
+      opacity: 0.5,
+    },
+    list: {
+      flex: 1,
+      paddingHorizontal: 16,
+      paddingTop: 16,
+    },
+    listContent: {
+      paddingHorizontal: 12,
+      paddingTop: 16,
+    },
+    listItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      gap: 12,
+      borderRadius: 12,
+    },
+    itemText: {
+      fontFamily: MEDIUM_FONT,
+      fontSize: SMALL_SIZE_FONT,
+      color: palette.fonts.dark,
+      flex: 1,
+    },
+    checkContainer: {
+      width: 24,
+      alignItems: 'center',
+    },
+  });
+}
