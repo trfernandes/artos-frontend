@@ -13,9 +13,10 @@ import {
 } from 'react-native';
 import FancyListEmpty, { FancyListEmptyProps } from './FancyListEmpty';
 import { RefreshControl } from 'react-native-gesture-handler';
+import { usePallete } from '../../hooks/usePallete';
+import { ColorUtils } from '../../utils/color_utils';
 
 export const FADE = {
-  colors: { dark: 'rgba(255,255,255,0)', light: 'rgba(255,255,255,1)' },
   height: 40,
 };
 
@@ -27,6 +28,7 @@ export type FancyListProps<ItemT> = {
 } & Omit<LegendListProps<ItemT>, 'refreshControl'>;
 
 export default function FancyList<ItemT>({ showFade = true, ...props }: FancyListProps<ItemT>) {
+  const palette = usePallete();
   const [showTopFade, setShowTopFade] = useState(false);
   const [showBottomFade, setShowBottomFade] = useState(false);
 
@@ -56,6 +58,14 @@ export default function FancyList<ItemT>({ showFade = true, ...props }: FancyLis
   };
 
   const hasData = props.data && props.data.length > 0;
+  const topFadeColors = [
+    ColorUtils.withAlpha(palette.backgroundColor, 1),
+    ColorUtils.withAlpha(palette.backgroundColor, 0),
+  ] as const;
+  const bottomFadeColors = [
+    ColorUtils.withAlpha(palette.backgroundColor, 0),
+    ColorUtils.withAlpha(palette.backgroundColor, 1),
+  ] as const;
 
   return (
     <View style={props.containerStyle} onLayout={handleLayout}>
@@ -69,7 +79,7 @@ export default function FancyList<ItemT>({ showFade = true, ...props }: FancyLis
                 alignItems: 'center',
               }}
             >
-              <ActivityIndicator size='large' />
+              <ActivityIndicator size='large' color={palette.primary} />
             </View>
           ) : (
             <LegendList
@@ -102,7 +112,7 @@ export default function FancyList<ItemT>({ showFade = true, ...props }: FancyLis
 
           {showFade && showTopFade && (
             <LinearGradient
-              colors={[FADE.colors.light, FADE.colors.dark]}
+              colors={topFadeColors}
               style={[styles.fade, { top: 0 }]}
               pointerEvents='none'
             />
@@ -110,7 +120,7 @@ export default function FancyList<ItemT>({ showFade = true, ...props }: FancyLis
 
           {showFade && showBottomFade && (
             <LinearGradient
-              colors={[FADE.colors.dark, FADE.colors.light]}
+              colors={bottomFadeColors}
               style={[styles.fade, { bottom: 0 }]}
               pointerEvents='none'
             />

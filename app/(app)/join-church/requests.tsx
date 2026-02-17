@@ -11,11 +11,13 @@ import DefaultIcons from '../../../components/FancyIcons';
 import FancyPageView from '../../../components/containers/FancyPageView';
 import { FancyAlert } from '../../../components/modal/FancyAlert';
 import { FancyCard } from '../../../components/cards/Horizontal/FancyCard';
-import { Pallete } from '../../../constants/colors';
+import { ThemePalette } from '../../../constants/colors';
 import { IgrejaRepository } from '../../../domain/services/IgrejaRepository';
 import { ResponseIgrejaSolicitacaoDto } from '../../../domain/dtos/Igreja/response-igreja-solicitacao.dto';
 import { useState } from 'react';
 import { APP_TZ } from '../../../utils/date_utils';
+import { usePallete } from '../../../hooks/usePallete';
+import { useThemedStyles } from '../../../hooks/useThemedStyles';
 
 type StatusType = 'PENDING' | 'APPROVED' | 'DENIED' | 'CANCELED';
 
@@ -56,6 +58,8 @@ function formatDateTime(dateStr: string): string {
 }
 
 export default function JoinChurchRequestsPage() {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
@@ -250,66 +254,68 @@ export default function JoinChurchRequestsPage() {
   );
 }
 
-const styles = StyleSheet.create({
-  page: {
-    flex: 1,
-    backgroundColor: Pallete.backgroundColor,
-  },
-  list: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 20,
-  },
-  cardWrapper: {
-    position: 'relative',
-  },
-  card: {
-    width: '100%',
-    borderRadius: 30,
-    borderWidth: 1,
-    ...Pallete.shadows[100],
-  },
-  cardContent: {
-    paddingVertical: 6,
-  },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 2,
-  },
-  messageBox: {
-    marginTop: 6,
-    backgroundColor: `${Pallete.error}08`,
-    padding: 10,
-    borderRadius: 8,
-  },
-  chevronContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 32,
-    gap: 12,
-  },
-  emptyIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: `${Pallete.primary}10`,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  cancelButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: `${Pallete.error}15`,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
+function createStyles(Pallete: ThemePalette) {
+  return StyleSheet.create({
+    page: {
+      flex: 1,
+      backgroundColor: Pallete.backgroundColor,
+    },
+    list: {
+      paddingHorizontal: 20,
+      paddingTop: 12,
+      paddingBottom: 20,
+    },
+    cardWrapper: {
+      position: 'relative',
+    },
+    card: {
+      width: '100%',
+      borderRadius: 30,
+      borderWidth: 1,
+      ...Pallete.shadows[100],
+    },
+    cardContent: {
+      paddingVertical: 6,
+    },
+    statusRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      marginTop: 2,
+    },
+    messageBox: {
+      marginTop: 6,
+      backgroundColor: `${Pallete.error}08`,
+      padding: 10,
+      borderRadius: 8,
+    },
+    chevronContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    center: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 32,
+      gap: 12,
+    },
+    emptyIcon: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: `${Pallete.primary}10`,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    cancelButton: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: `${Pallete.error}15`,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+  });
+}

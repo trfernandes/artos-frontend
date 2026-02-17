@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { View, StyleSheet, StyleProp, ImageStyle, TouchableOpacity, Platform } from 'react-native';
+import { View, StyleSheet, StyleProp, ImageStyle, TouchableOpacity } from 'react-native';
 import FancyText from '../FancyText';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
 import { useAuth } from '../../contexts/AuthContext';
 import DefaultIcons from '../FancyIcons';
 import { router } from 'expo-router';
@@ -11,13 +11,15 @@ import { Operator, ValueType } from '../../domain/utils/query_utils';
 import { useMemo } from 'react';
 import { AppImages } from '../../assets/app_images';
 import FancyDrawerIgrejaSelector from './FancyDrawerIgrejaSelector';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTopSafeInset } from '../../hooks/useTopSafeInset';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export default function FancyDrawerHeader() {
   const auth = useAuth();
-  const insets = useSafeAreaInsets();
-  const ANDROID_STATUS_BAR_HEIGHT = 36;
-  const topInset = Platform.OS === 'android' ? ANDROID_STATUS_BAR_HEIGHT : insets.top;
+  const topInset = useTopSafeInset();
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
 
   const params = useMemo(() => {
     if (!auth.user?.user?.id) return undefined;
@@ -44,7 +46,7 @@ export default function FancyDrawerHeader() {
 
   return (
     <LinearGradient
-      colors={['#3B82F6', '#234C90']}
+      colors={palette.gradients.drawerHeader}
       start={{ x: 0, y: 0 }}
       end={{ x: 0.9, y: 1 }}
       style={[styles.container, { paddingTop: topInset + 12 }]}
@@ -53,13 +55,13 @@ export default function FancyDrawerHeader() {
         <TouchableOpacity onPress={() => router.push('pessoal/perfil')}>
           <View style={styles.dataContainer}>
             <View style={styles.infoContainer}>
-              <FancyText size={'small'} type='medium' color={Pallete.fonts.light}>
+              <FancyText size={'small'} type='medium' color={palette.fonts.light}>
                 Olá,
               </FancyText>
-              <FancyText size={'medium'} type='bold' color={Pallete.fonts.light}>
+              <FancyText size={'medium'} type='bold' color={palette.fonts.light}>
                 {auth.user?.user?.nome}
               </FancyText>
-              <FancyText size={'small'} type='semiBoldItalic' color={Pallete.fonts.light}>
+              <FancyText size={'small'} type='semiBoldItalic' color={palette.fonts.light}>
                 {auth.user?.user?.email}
               </FancyText>
             </View>
@@ -74,7 +76,7 @@ export default function FancyDrawerHeader() {
                 style={styles.avatar as StyleProp<ImageStyle>}
               />
             </View>
-            <DefaultIcons.Custom library='Feather' name='chevron-right' size={28} color={Pallete.fonts.light} />
+            <DefaultIcons.Custom library='Feather' name='chevron-right' size={28} color={palette.fonts.light} />
           </View>
         </TouchableOpacity>
         <FancyDrawerIgrejaSelector />
@@ -83,44 +85,45 @@ export default function FancyDrawerHeader() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    borderColor: 'red',
-    alignItems: 'center',
-    paddingLeft: 16,
-    paddingRight: 6,
-    paddingBottom: 26,
-  },
-  contentContainer: {
-    width: '100%',
-    flexDirection: 'column',
-    gap: 15,
-    // paddingBottom: 5,
-  },
-  dataContainer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-  infoContainer: {
-    flex: 1,
-    borderColor: 'rgb(255, 0, 204)',
-    gap: 3,
-    justifyContent: 'center',
-  },
-  avatarContainer: {
-    borderColor: 'rgb(0, 255, 34)',
-    justifyContent: 'center',
-  },
-  buttonContainer: {
-    borderColor: 'rgb(0, 225, 255)',
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 15,
-  },
-  button: { borderWidth: 0, maxHeight: 'auto', minHeight: 'auto', padding: 0, gap: 5 },
-  avatar: {
-    backgroundColor: 'white',
-    height: 50,
-    aspectRatio: 1,
-    borderRadius: 100,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      width: '100%',
+      borderColor: 'red',
+      alignItems: 'center',
+      paddingLeft: 16,
+      paddingRight: 6,
+      paddingBottom: 26,
+    },
+    contentContainer: {
+      width: '100%',
+      flexDirection: 'column',
+      gap: 15,
+    },
+    dataContainer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
+    infoContainer: {
+      flex: 1,
+      borderColor: 'rgb(255, 0, 204)',
+      gap: 3,
+      justifyContent: 'center',
+    },
+    avatarContainer: {
+      borderColor: 'rgb(0, 255, 34)',
+      justifyContent: 'center',
+    },
+    buttonContainer: {
+      borderColor: 'rgb(0, 225, 255)',
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      gap: 15,
+    },
+    button: { borderWidth: 0, maxHeight: 'auto', minHeight: 'auto', padding: 0, gap: 5 },
+    avatar: {
+      backgroundColor: palette.backgroundColor2,
+      height: 50,
+      aspectRatio: 1,
+      borderRadius: 100,
+    },
+  });
+}

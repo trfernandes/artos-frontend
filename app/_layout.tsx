@@ -5,9 +5,9 @@ import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { useFonts } from 'expo-font';
 import { QueryClientProvider } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
-import { toastConfig } from '../utils/toast_config';
+import { createToastConfig } from '../utils/toast_config';
 import { FancyAlertConnector, FancyAlertProvider } from '../components/modal/FancyAlert';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { registerForPushNotificationsAsync } from '../services/notifications';
 import { NotificationsManager } from '../components/Notification_manager';
 import { AppReviewManager } from '../components/AppReviewManager';
@@ -17,8 +17,9 @@ import { createQueryClient } from '../core/react-query/queryClient';
 import { ConnectivityBanner } from '../components/FancyConnectivityBanner';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { Pallete } from '../constants/colors';
 import { useProtectedRoute } from '../hooks/useProtectedRoute';
+import { ThemeProvider } from '../contexts/ThemeContext';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
 
@@ -41,13 +42,15 @@ export default Sentry.wrap(function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <ConnectivityProvider>
-              <RootLayoutNav />
-            </ConnectivityProvider>
-          </AuthProvider>
-        </QueryClientProvider>
+        <ThemeProvider>
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>
+              <ConnectivityProvider>
+                <RootLayoutNav />
+              </ConnectivityProvider>
+            </AuthProvider>
+          </QueryClientProvider>
+        </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
@@ -57,10 +60,12 @@ function RootLayoutNav() {
   useProtectedRoute();
 
   const { user, loading } = useAuth();
+  const { isDark, palette } = useAppTheme();
   const segments = useSegments();
   const isAuthRoute = segments[0] === '(auth)';
-  const statusBarStyle: 'light' | 'dark' = isAuthRoute ? 'light' : 'dark';
-  const safeAreaBackgroundColor = isAuthRoute ? '#FFFFFF' : Pallete.backgroundColor;
+  const statusBarStyle: 'light' | 'dark' = isAuthRoute || isDark ? 'light' : 'dark';
+  const safeAreaBackgroundColor = palette.backgroundColor;
+  const toastConfig = useMemo(() => createToastConfig(palette), [palette]);
 
   const [fontsLoaded] = useFonts({
     MontserratBlack: require('../assets/fonts/montserrat/Montserrat-Black.ttf'),

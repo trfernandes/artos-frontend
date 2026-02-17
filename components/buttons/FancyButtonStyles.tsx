@@ -1,41 +1,5 @@
 import { StyleProp, StyleSheet, TextStyle, ViewStyle } from 'react-native';
-import { Pallete } from '../../constants/colors';
-
-const containedStyles = StyleSheet.create({
-  container: { backgroundColor: Pallete.buttons.active },
-  text: { color: Pallete.fonts.light },
-  disabled: { backgroundColor: Pallete.buttons.inactive, borderWidth: 1, borderColor: Pallete.border },
-  disabledText: { color: Pallete.fonts.inactive },
-  icon: { color: Pallete.fonts.light },
-  disabledIcon: { color: Pallete.fonts.inactive },
-});
-
-const outlinedStyles = StyleSheet.create({
-  container: { backgroundColor: 'transparent', borderWidth: 2, borderColor: Pallete.primary },
-  text: { color: Pallete.primary },
-  disabled: { backgroundColor: 'transparent', borderWidth: 2, borderColor: Pallete.disabled2 },
-  disabledText: { color: Pallete.fonts.inactive },
-  icon: { color: Pallete.primary },
-  disabledIcon: { color: Pallete.fonts.inactive },
-});
-
-const textStyles = StyleSheet.create({
-  container: {},
-  text: { color: Pallete.primary },
-  disabled: {},
-  disabledText: { color: Pallete.fonts.inactive },
-  icon: { color: Pallete.primary },
-  disabledIcon: { color: Pallete.fonts.inactive },
-});
-
-const lightStyles = StyleSheet.create({
-  container: { backgroundColor: 'rgba(59, 130, 246, 0.16)', borderWidth: 2, borderColor: Pallete.primary },
-  text: { color: Pallete.primary },
-  disabled: { backgroundColor: 'rgba(233, 233, 233, 0.16)', borderWidth: 2, borderColor: Pallete.primary },
-  disabledText: { color: Pallete.fonts.inactive },
-  icon: { color: Pallete.primary },
-  disabledIcon: { color: Pallete.fonts.inactive },
-});
+import { ThemePalette } from '../../constants/colors';
 
 type ButtonParamters = {
   containerStyle?: StyleProp<ViewStyle>;
@@ -46,40 +10,102 @@ type ButtonParamters = {
   disabledIconStyle?: StyleProp<TextStyle>;
 };
 
-const containedParameters: ButtonParamters = {
-  containerStyle: containedStyles.container,
-  textStyle: containedStyles.text,
-  disabledContainerStyle: containedStyles.disabled,
-  disabledTextStyle: containedStyles.disabledText,
-  iconStyle: containedStyles.icon,
-  disabledIconStyle: containedStyles.disabledIcon,
+type FancyButtonParameters = {
+  containedParameters: ButtonParamters;
+  outlinedParameters: ButtonParamters;
+  textParameters: ButtonParamters;
+  lightParameters: ButtonParamters;
 };
 
-const outlinedParameters: ButtonParamters = {
-  containerStyle: outlinedStyles.container,
-  textStyle: outlinedStyles.text,
-  disabledContainerStyle: outlinedStyles.disabled,
-  disabledTextStyle: outlinedStyles.disabledText,
-  iconStyle: outlinedStyles.icon,
-  disabledIconStyle: outlinedStyles.disabledIcon,
-};
+export function getFancyButtonParameters(palette: ThemePalette): FancyButtonParameters {
+  const containedStyles = StyleSheet.create({
+    container: { backgroundColor: palette.buttons.active },
+    text: { color: palette.fonts.light },
+    disabled: {
+      backgroundColor: palette.buttons.inactive,
+      borderWidth: 1,
+      borderColor: palette.border,
+    },
+    disabledText: { color: palette.fonts.inactive },
+    icon: { color: palette.fonts.light },
+    disabledIcon: { color: palette.fonts.inactive },
+  });
 
-const textParameters: ButtonParamters = {
-  containerStyle: textStyles.container,
-  textStyle: textStyles.text,
-  disabledContainerStyle: textStyles.disabled,
-  disabledTextStyle: textStyles.disabledText,
-  iconStyle: textStyles.icon,
-  disabledIconStyle: textStyles.disabledIcon,
-};
+  const outlinedStyles = StyleSheet.create({
+    container: {
+      backgroundColor: 'transparent',
+      borderWidth: 2,
+      borderColor: palette.primary,
+    },
+    text: { color: palette.primary },
+    disabled: {
+      backgroundColor: 'transparent',
+      borderWidth: 2,
+      borderColor: palette.disabled2,
+    },
+    disabledText: { color: palette.fonts.inactive },
+    icon: { color: palette.primary },
+    disabledIcon: { color: palette.fonts.inactive },
+  });
 
-const lightParameters: ButtonParamters = {
-  containerStyle: lightStyles.container,
-  textStyle: lightStyles.text,
-  disabledContainerStyle: lightStyles.disabled,
-  disabledTextStyle: lightStyles.disabledText,
-  iconStyle: lightStyles.icon,
-  disabledIconStyle: lightStyles.disabledIcon,
-};
+  const textStyles = StyleSheet.create({
+    container: {},
+    text: { color: palette.primary },
+    disabled: {},
+    disabledText: { color: palette.fonts.inactive },
+    icon: { color: palette.primary },
+    disabledIcon: { color: palette.fonts.inactive },
+  });
 
-export { containedParameters, outlinedParameters, textParameters, lightParameters };
+  const lightStyles = StyleSheet.create({
+    container: {
+      backgroundColor: 'rgba(59, 130, 246, 0.16)',
+      borderWidth: 2,
+      borderColor: palette.primary,
+    },
+    text: { color: palette.primary },
+    disabled: {
+      backgroundColor: 'rgba(233, 233, 233, 0.16)',
+      borderWidth: 2,
+      borderColor: palette.primary,
+    },
+    disabledText: { color: palette.fonts.inactive },
+    icon: { color: palette.primary },
+    disabledIcon: { color: palette.fonts.inactive },
+  });
+
+  return {
+    containedParameters: {
+      containerStyle: containedStyles.container,
+      textStyle: containedStyles.text,
+      disabledContainerStyle: containedStyles.disabled,
+      disabledTextStyle: containedStyles.disabledText,
+      iconStyle: containedStyles.icon,
+      disabledIconStyle: containedStyles.disabledIcon,
+    },
+    outlinedParameters: {
+      containerStyle: outlinedStyles.container,
+      textStyle: outlinedStyles.text,
+      disabledContainerStyle: outlinedStyles.disabled,
+      disabledTextStyle: outlinedStyles.disabledText,
+      iconStyle: outlinedStyles.icon,
+      disabledIconStyle: outlinedStyles.disabledIcon,
+    },
+    textParameters: {
+      containerStyle: textStyles.container,
+      textStyle: textStyles.text,
+      disabledContainerStyle: textStyles.disabled,
+      disabledTextStyle: textStyles.disabledText,
+      iconStyle: textStyles.icon,
+      disabledIconStyle: textStyles.disabledIcon,
+    },
+    lightParameters: {
+      containerStyle: lightStyles.container,
+      textStyle: lightStyles.text,
+      disabledContainerStyle: lightStyles.disabled,
+      disabledTextStyle: lightStyles.disabledText,
+      iconStyle: lightStyles.icon,
+      disabledIconStyle: lightStyles.disabledIcon,
+    },
+  };
+}

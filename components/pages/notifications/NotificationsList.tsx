@@ -8,7 +8,7 @@ import FancyText from '../../FancyText';
 import { ResponseNotificacaoDto } from '../../../domain/dtos/Notificacao/notificacao.response';
 import { NotificacaoTipoEnum } from '../../../domain/enums/Notificacao/tipo-notificacao.enum';
 import { DateUtilsApi } from '../../../utils/date_utils';
-import { Pallete } from '../../../constants/colors';
+import { usePallete } from '../../../hooks/usePallete';
 
 const Hoje = { title: 'Hoje', hours: 0 };
 const Ontem = { title: 'Ontem', hours: 24 };
@@ -17,6 +17,7 @@ const esteMes = { title: 'Este mês', hours: 720 };
 const maisAntigas = { title: 'Mais antigas', hours: Infinity };
 
 export default function NotificationsList({ dataList }: { dataList: ResponseNotificacaoDto[] }) {
+  const Pallete = usePallete();
   const groupsData = useMemo<SectionListData<ResponseNotificacaoDto>[]>(() => {
     const groups: { key: string; title: string; items: ResponseNotificacaoDto[] }[] = [
       { key: 'today', title: Hoje.title, items: [] },

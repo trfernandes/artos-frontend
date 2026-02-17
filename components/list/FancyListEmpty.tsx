@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import FancyText from '../FancyText';
-import { Pallete } from '../../constants/colors';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
+import { usePallete } from '../../hooks/usePallete';
 
 export type FancyListEmptyProps = {
   label?: string;
@@ -10,6 +10,8 @@ export type FancyListEmptyProps = {
 };
 
 export default function FancyListEmpty(props: FancyListEmptyProps) {
+  const Pallete = usePallete();
+
   return (
     <View style={styles.container}>
       <DefaultIcons.Custom

@@ -7,7 +7,7 @@ import FancyText from '../../components/FancyText';
 import FancyButton from '../../components/buttons/FancyButton';
 import DefaultIcons from '../../components/FancyIcons';
 import FancyLoading from '../../components/FancyLoading';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
 import { EXTRA_LARGE_SIZE_FONT, LARGE_SIZE_FONT } from '../../constants/font';
 import { useCadastroIgrejaEmail } from '../../hooks/useCadastroIgrejaEmail';
 import { ColorUtils } from '../../utils/color_utils';
@@ -15,8 +15,12 @@ import FancyTextInput from '../../components/fields/FancyTextInput';
 import { useConnectivity } from '../../core/network/connectivity/ConnectivityProvider';
 import { ResponseLoginDto } from '../../domain/dtos/login/login.response';
 import { useAuth } from '../../contexts/AuthContext';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export default function IgrejaCadastroAguardandoEmailPage() {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
   const [modalVisible, setModalVisible] = useState(false);
   const [novoEmail, setNovoEmail] = useState('');
   const isProcessingLoginRef = useRef(false);
@@ -363,7 +367,8 @@ export default function IgrejaCadastroAguardandoEmailPage() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(Pallete: ThemePalette) {
+  return StyleSheet.create({
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.18)',
@@ -496,4 +501,5 @@ const styles = StyleSheet.create({
   modalButton: {
     flex: 1,
   },
-});
+  });
+}

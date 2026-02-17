@@ -1,8 +1,8 @@
 import { View, StyleSheet, ViewStyle, StyleProp, TextStyle } from 'react-native';
 import FancyText from './FancyText';
-import { Pallete } from '../constants/colors';
 import { ReactNode } from 'react';
 import DefaultIcons, { CustomIconProps } from './FancyIcons';
+import { usePallete } from '../hooks/usePallete';
 
 export interface FancyContainerProps {
   title?: string | React.ReactNode;
@@ -14,8 +14,20 @@ export interface FancyContainerProps {
 }
 
 export default function FancyContainer({ title, icon, children, containerStyle, headerContainerStyle, titleStyle }: FancyContainerProps) {
+  const palette = usePallete();
+
   return (
-    <View style={[styles.container, containerStyle]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: palette.backgroundColor,
+          borderColor: palette.borderCard,
+          ...palette.shadows[200],
+        },
+        containerStyle,
+      ]}
+    >
       {title && typeof title === 'string' ? (
         <View style={[styles.headerContainer, headerContainerStyle]}>
           {icon && <DefaultIcons.Custom {...icon} />}
@@ -34,11 +46,8 @@ export default function FancyContainer({ title, icon, children, containerStyle, 
 }
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Pallete.backgroundColor,
     borderWidth: 0.6,
     borderRadius: 10,
-    ...Pallete.shadows[200],
-    borderColor: Pallete.borderCard,
   },
   headerContainer: {
     paddingHorizontal: 14,

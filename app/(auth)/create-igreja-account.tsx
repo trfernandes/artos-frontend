@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import AuthScreen from '../../components/pages/login/AuthScreen';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
 import { FancyStepsConfig } from '../../components/steps/FancyStepsConfig';
 import CreateIgrejaAccountTabDados, { CodigoCheckProvider, useCodigoCheck } from '../../components/pages/login/createAccount/create-igreja-account-tab-dados';
 import CreateIgrejaAccountTabResponsavel from '../../components/pages/login/createAccount/create-igreja-account-tab-responsavel';
@@ -15,8 +15,12 @@ import { router } from 'expo-router';
 import { useIgrejaCrud } from '../../hooks/useIgrejaCrud';
 import FancySteps from '../../components/steps/FancySteps';
 import { useConnectivity } from '../../core/network/connectivity/ConnectivityProvider';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 function CreateIgrejaAccountPageContent() {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
   const [stepIndex, setStepIndex] = useState(0);
   const [showSlowText, setShowSlowText] = useState(false);
   const slowTimer = useRef<NodeJS.Timeout | null>(null);
@@ -220,29 +224,31 @@ export default function CreateIgrejaAccountPage() {
   );
 }
 
-const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    paddingHorizontal: 40,
-    justifyContent: 'center',
-  },
-  titleContainer: {
-    borderColor: 'magenta',
-    justifyContent: 'center',
-    // borderWidth: 1,
-  },
-  fieldsContainer: {
-    borderRadius: 15,
-    borderColor: 'firebrick',
-    gap: 10,
-    backgroundColor: Pallete.backgroundColor,
-    ...Pallete.shadows[200],
-  },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.18)',
-    zIndex: 99,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+function createStyles(Pallete: ThemePalette) {
+  return StyleSheet.create({
+    scrollContainer: {
+      flexGrow: 1,
+      paddingHorizontal: 40,
+      justifyContent: 'center',
+    },
+    titleContainer: {
+      borderColor: 'magenta',
+      justifyContent: 'center',
+      // borderWidth: 1,
+    },
+    fieldsContainer: {
+      borderRadius: 15,
+      borderColor: 'firebrick',
+      gap: 10,
+      backgroundColor: Pallete.backgroundColor,
+      ...Pallete.shadows[200],
+    },
+    loadingOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.18)',
+      zIndex: 99,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  });
+}

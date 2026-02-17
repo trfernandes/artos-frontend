@@ -16,7 +16,7 @@ import {
   SMALL_SIZE_FONT,
 } from '../constants/font';
 import React from 'react';
-import { Pallete } from '../constants/colors';
+import { usePallete } from '../hooks/usePallete';
 
 export type FancyTextProps = {
   children?: React.ReactNode;
@@ -27,7 +27,8 @@ export type FancyTextProps = {
 } & TextProps;
 
 export default function FancyText(props: FancyTextProps) {
-  const { size = 'medium', type = 'normal', color = Pallete.fonts.dark } = props;
+  const palette = usePallete();
+  const { size = 'medium', type = 'normal', color = palette.fonts.dark } = props;
 
   const fontSize =
     size === 'extraSmall'

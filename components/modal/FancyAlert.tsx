@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, ReactNode, isValidElement }
 import { Modal, View, StyleSheet } from 'react-native';
 import FancyButton from '../buttons/FancyButton';
 import FancyText from '../FancyText';
-import { Pallete } from '../../constants/colors';
+import { usePallete } from '../../hooks/usePallete';
 
 type Button = {
   text: string;
@@ -18,6 +18,7 @@ type AlertContextType = {
 const AlertCtx = createContext<AlertContextType | null>(null);
 
 export function FancyAlertProvider({ children }: { children: ReactNode }) {
+  const palette = usePallete();
   const [visible, setVisible] = useState(false);
   const [title, setTitle] = useState<string | React.ReactNode>();
   const [message, setMessage] = useState<string | React.ReactNode>('');
@@ -42,8 +43,8 @@ export function FancyAlertProvider({ children }: { children: ReactNode }) {
       {children}
 
       <Modal visible={visible} transparent animationType='fade' onRequestClose={() => setVisible(false)}>
-        <View style={styles.backdrop}>
-          <View style={styles.card}>
+        <View style={[styles.backdrop, { backgroundColor: palette.overlays.backdrop }]}>
+          <View style={[styles.card, { backgroundColor: palette.backgroundColor2 }]}>
             <View>
               {title ? (
                 isValidElement(title) ? (
@@ -75,7 +76,7 @@ export function FancyAlertProvider({ children }: { children: ReactNode }) {
                   containerStyle={[
                     styles.button,
                     shouldStackButtons && styles.buttonStacked,
-                    btn.style === 'destructive' ? { backgroundColor: Pallete.error } : {},
+                    btn.style === 'destructive' ? { backgroundColor: palette.error } : {},
                   ]}
                   type={btn.style === 'default' ? 'outlined' : 'contained'}
                 />
@@ -118,7 +119,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   card: {
-    backgroundColor: 'white',
+    backgroundColor: 'transparent',
     padding: 20,
     width: '80%',
     borderRadius: 10,

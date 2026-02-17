@@ -1,5 +1,5 @@
 import { View, StyleSheet, ViewStyle, StyleProp, ViewProps } from 'react-native';
-import { Pallete } from '../../constants/colors';
+import { usePallete } from '../../hooks/usePallete';
 
 interface FancyPageViewProps {
   children?: React.ReactNode | React.ReactNode[];
@@ -7,8 +7,13 @@ interface FancyPageViewProps {
 }
 
 export default function FancyPageView(props: FancyPageViewProps & ViewProps) {
+  const palette = usePallete();
+
   return (
-    <View {...props} style={[styles.container, props.style]}>
+    <View
+      {...props}
+      style={[styles.container, { backgroundColor: palette.backgroundColor }, props.style]}
+    >
       {props.children}
     </View>
   );
@@ -17,6 +22,6 @@ export default function FancyPageView(props: FancyPageViewProps & ViewProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Pallete.backgroundColor,
+    backgroundColor: 'transparent',
   },
 });

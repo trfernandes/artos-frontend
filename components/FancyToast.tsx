@@ -1,11 +1,11 @@
 import { View, Pressable, StyleSheet } from 'react-native';
 import { ToastConfigParams } from 'react-native-toast-message';
-import { Pallete } from '../constants/colors';
 import { DefaultIconsNames } from '../constants/icons';
 import FancyButton from './buttons/FancyButton';
 import DefaultIcons, { CustomIconProps } from './FancyIcons';
 import FancyText from './FancyText';
 import { ColorUtils } from '../utils/color_utils';
+import { usePallete } from '../hooks/usePallete';
 
 interface FancyToastProps extends ToastConfigParams<any> {
   icon: CustomIconProps;
@@ -14,6 +14,7 @@ interface FancyToastProps extends ToastConfigParams<any> {
 }
 
 export default function FancyToast(props: FancyToastProps) {
+  const palette = usePallete();
   const hsl = ColorUtils.hexToHsl(props.color);
   const [h, s, l] = hsl || [0, 0, 0];
   const newLightness = Math.min(100, l + props.lightColorPercent);
@@ -21,7 +22,16 @@ export default function FancyToast(props: FancyToastProps) {
 
   return (
     <Pressable style={styles.container} onPress={props.onPress}>
-      <View style={[styles.content, { backgroundColor: newHex, borderColor: props.color }]}>
+      <View
+        style={[
+          styles.content,
+          {
+            backgroundColor: newHex,
+            borderColor: props.color,
+            ...palette.shadows[200],
+          },
+        ]}
+      >
         <View style={[styles.iconContainer, { backgroundColor: props.color }]}>
           <DefaultIcons.Custom {...props.icon} color='white' />
         </View>
@@ -54,7 +64,6 @@ export default function FancyToast(props: FancyToastProps) {
 const styles = StyleSheet.create({
   container: { marginBottom: 15, width: '90%', zIndex: 1000000 },
   content: {
-    ...Pallete.shadows[200],
     borderRadius: 10,
     borderWidth: 1,
     flexDirection: 'row',

@@ -1,7 +1,7 @@
 import { StyleProp, ViewStyle } from 'react-native';
-import { Pallete } from '../../constants/colors';
 import FancyButton, { FancyButtonProps } from '../buttons/FancyButton';
 import { CustomIconProps } from '../FancyIcons';
+import { usePallete } from '../../hooks/usePallete';
 
 export type FancyHeaderButtonProps = {
   icon: CustomIconProps;
@@ -12,13 +12,15 @@ export type FancyHeaderButtonProps = {
 };
 
 export default function FancyHeaderButton({ icon, onPress, buttonProps, showBackground = false }: FancyHeaderButtonProps) {
+  const palette = usePallete();
+
   return (
     <FancyButton
       mode='icon'
       type='text'
       icon={{
         ...icon,
-        color: Pallete.icons.dark,
+        color: palette.icons.dark,
         size: icon.size || 22,
       }}
       onPress={onPress}
@@ -28,7 +30,7 @@ export default function FancyHeaderButton({ icon, onPress, buttonProps, showBack
           // borderWidth: 1,
           height: 30,
           minWidth: 30,
-          backgroundColor: showBackground ? Pallete.backgroundColor3 : 'transparent',
+          backgroundColor: showBackground ? palette.backgroundColor3 : 'transparent',
         },
         buttonProps?.containerStyle,
       ]}

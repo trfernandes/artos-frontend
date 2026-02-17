@@ -9,15 +9,11 @@ import {
     ViewStyle,
     ActivityIndicator,
 } from 'react-native';
+import { useMemo } from 'react';
 import FancyText, { FancyTextProps } from '../FancyText';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
-import {
-    containedParameters,
-    outlinedParameters,
-    textParameters,
-    lightParameters,
-} from './FancyButtonStyles';
-import { Pallete } from '../../constants/colors';
+import { getFancyButtonParameters } from './FancyButtonStyles';
+import { usePallete } from '../../hooks/usePallete';
 
 type FancyButtonSize = number | { w: number; h: number };
 
@@ -72,6 +68,13 @@ export default function FancyButton({
   loadingColor,
   ...props
 }: FancyButtonProps) {
+  const palette = usePallete();
+  const {
+    containedParameters,
+    outlinedParameters,
+    textParameters,
+    lightParameters,
+  } = useMemo(() => getFancyButtonParameters(palette), [palette]);
   const height = resolveSize(props.size);
   const minWidth = resolveMinWidth(props.size);
 
@@ -134,7 +137,7 @@ export default function FancyButton({
         <>
           <ActivityIndicator
             size={spinnerSize}
-            color={loadingColor || (isBtnDisabled ? Pallete.icons.dark : Pallete.primary)}
+            color={loadingColor || (isBtnDisabled ? palette.icons.dark : palette.primary)}
             style={{ marginRight: 8 }}
           />
           <FancyText
@@ -177,7 +180,7 @@ export default function FancyButton({
                 props.iconStyle,
                 {
                   color:
-                    props.icon.color || (isBtnDisabled ? Pallete.icons.dark : Pallete.icons.light),
+                    props.icon.color || (isBtnDisabled ? palette.icons.dark : palette.icons.light),
                 },
                 props.icon.style,
               ],

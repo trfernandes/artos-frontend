@@ -13,6 +13,8 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { FADE } from './list/FancyList';
 import { LinearGradient } from 'expo-linear-gradient';
+import { usePallete } from '../hooks/usePallete';
+import { ColorUtils } from '../utils/color_utils';
 
 export type FancyScrollViewProps = ScrollViewProps & {
   children?: React.ReactNode;
@@ -25,6 +27,7 @@ export type FancyScrollViewProps = ScrollViewProps & {
 
 export default function FancyScrollView(props: FancyScrollViewProps) {
   const { fill = false } = props;
+  const palette = usePallete();
 
   const [layoutReady, setLayoutReady] = useState(false);
   const contentHeight = useRef(0);
@@ -80,6 +83,15 @@ export default function FancyScrollView(props: FancyScrollViewProps) {
   const bottomFadeEnabled =
     !props.bottomFade || props.bottomFade.active === undefined || props.bottomFade.active === true;
 
+  const topFadeColors = [
+    ColorUtils.withAlpha(palette.backgroundColor, 1),
+    ColorUtils.withAlpha(palette.backgroundColor, 0),
+  ] as const;
+  const bottomFadeColors = [
+    ColorUtils.withAlpha(palette.backgroundColor, 0),
+    ColorUtils.withAlpha(palette.backgroundColor, 1),
+  ] as const;
+
   return (
     <View
       style={[
@@ -108,7 +120,7 @@ export default function FancyScrollView(props: FancyScrollViewProps) {
           style={[styles.fade, { top: 0, opacity: topFadeAnim }]}
         >
           <LinearGradient
-            colors={[FADE.colors.light, FADE.colors.dark]}
+            colors={topFadeColors}
             style={[StyleSheet.absoluteFill, props.topFade?.style]}
           />
         </Animated.View>
@@ -120,7 +132,7 @@ export default function FancyScrollView(props: FancyScrollViewProps) {
           style={[styles.fade, { bottom: 0, opacity: bottomFadeAnim }]}
         >
           <LinearGradient
-            colors={[FADE.colors.dark, FADE.colors.light]}
+            colors={bottomFadeColors}
             style={[StyleSheet.absoluteFill, props.bottomFade?.style]}
           />
         </Animated.View>

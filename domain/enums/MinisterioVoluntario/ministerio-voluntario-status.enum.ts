@@ -1,4 +1,4 @@
-import { Pallete } from '../../../constants/colors';
+import { ThemePalette } from '../../../constants/colors';
 
 export enum MinisterioVoluntarioStatusEnum {
   Ativo = '0',
@@ -15,7 +15,11 @@ export const MinisterioVoluntarioStatusEnumMap: Record<string, MinisterioVolunta
   '1': MinisterioVoluntarioStatusEnum.Inativo,
 };
 
-export const MinisterioStatusColorMap: Record<MinisterioVoluntarioStatusEnum, string> = {
-  [MinisterioVoluntarioStatusEnum.Ativo]: Pallete.primary,
-  [MinisterioVoluntarioStatusEnum.Inativo]: Pallete.error,
-};
+export function getMinisterioStatusColorMap(
+  palette: Pick<ThemePalette, 'primary' | 'error'>,
+): Record<MinisterioVoluntarioStatusEnum, string> {
+  return {
+    [MinisterioVoluntarioStatusEnum.Ativo]: palette.primary,
+    [MinisterioVoluntarioStatusEnum.Inativo]: palette.error,
+  };
+}

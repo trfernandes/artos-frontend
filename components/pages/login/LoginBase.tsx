@@ -1,12 +1,16 @@
 import { StyleSheet, StyleProp, ViewStyle, View } from 'react-native';
 import React from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Pallete } from '../../../constants/colors';
+import { ThemePalette } from '../../../constants/colors';
+import { usePallete } from '../../../hooks/usePallete';
+import { useThemedStyles } from '../../../hooks/useThemedStyles';
 
 export function AuthGradientBackground({ style }: { style?: StyleProp<ViewStyle> }) {
+  const palette = usePallete();
+
   return (
     <LinearGradient
-      colors={['#3B82F6', '#234C90']}
+      colors={palette.gradients.auth}
       style={[styles.gradient, style]}
       start={{ x: 1, y: 0 }}
       end={{ x: 0, y: 1 }}
@@ -21,9 +25,11 @@ export default function LoginBase({
   children: React.ReactNode | React.ReactNode[];
   containerStyle?: StyleProp<ViewStyle>;
 }) {
+  const styles = useThemedStyles(createStyles);
+
   return (
-    <View style={{ flex: 1 }}>
-      <AuthGradientBackground style={{ borderWidth: 1, height: 800, width: 500 }} />
+    <View style={[styles.container, containerStyle]}>
+      <AuthGradientBackground style={{ height: 800, width: 500 }} />
       {children}
     </View>
   );
@@ -47,14 +53,7 @@ const styles = StyleSheet.create({
     transform: [{ skewY: '140deg' }, { translateY: -240 }],
     borderRadius: 10,
   },
-  container: {
-    backgroundColor: 'transparent',
-    flex: 1,
-    borderWidth: DESIGN_MODE,
-    borderColor: 'gold',
-    paddingHorizontal: 40,
-    gap: 25,
-  },
+  container: { backgroundColor: 'transparent', flex: 1 },
   logoContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -69,15 +68,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   centerContainer: { flex: 3, borderWidth: DESIGN_MODE, borderColor: 'chocolate' },
-  fieldsContainer: {
-    borderWidth: DESIGN_MODE,
-    borderRadius: 15,
-    borderColor: 'firebrick',
-    // flex: 1,
-    padding: 25,
-    gap: 15,
-    backgroundColor: Pallete.backgroundColor,
-    ...Pallete.shadows[200],
-  },
   bottomSpacer: { flex: 1, borderWidth: DESIGN_MODE, borderColor: 'deepskyblue' },
 });
+
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      backgroundColor: palette.backgroundColor,
+      flex: 1,
+    },
+  });
+}

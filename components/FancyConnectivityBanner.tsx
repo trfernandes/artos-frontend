@@ -1,12 +1,13 @@
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useConnectivity } from '../core/network/connectivity/ConnectivityProvider';
-import { Pallete } from '../constants/colors';
 import FancyText from './FancyText';
 import FancyButton from './buttons/FancyButton';
 import { DefaultIconsNames } from '../constants/icons';
+import { usePallete } from '../hooks/usePallete';
 
 export function ConnectivityBanner() {
+  const palette = usePallete();
   const { status, recheck } = useConnectivity();
   const insets = useSafeAreaInsets();
 
@@ -26,7 +27,7 @@ export function ConnectivityBanner() {
         paddingBottom: insets.bottom + 8,
         paddingTop: 12,
         paddingHorizontal: 12,
-        backgroundColor: Pallete.error,
+        backgroundColor: palette.error,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',

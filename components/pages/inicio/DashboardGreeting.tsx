@@ -3,11 +3,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import FancyText from '../../FancyText';
 import FancyAvatarImage from '../../images/FancyImage';
-import { Pallete } from '../../../constants/colors';
+import { ThemePalette } from '../../../constants/colors';
 import { useAuth } from '../../../contexts/AuthContext';
 import { AppImages } from '../../../assets/app_images';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { usePallete } from '../../../hooks/usePallete';
+import { useThemedStyles } from '../../../hooks/useThemedStyles';
 
 type DashboardGreetingProps = {
   nome: string;
@@ -16,6 +18,8 @@ type DashboardGreetingProps = {
 
 export default function DashboardGreeting({ nome, subtitulo }: DashboardGreetingProps) {
   const { user } = useAuth();
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const hoje = format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR });
   const hojeCapitalizado = hoje.charAt(0).toUpperCase() + hoje.slice(1);
 
@@ -24,7 +28,7 @@ export default function DashboardGreeting({ nome, subtitulo }: DashboardGreeting
 
   return (
     <LinearGradient
-      colors={['#3B82F6', '#234C90']}
+      colors={palette.gradients.dashboard}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradient}
@@ -39,7 +43,7 @@ export default function DashboardGreeting({ nome, subtitulo }: DashboardGreeting
             <FancyText
               size="large"
               type="bold"
-              color={Pallete.fonts.light}
+              color={palette.fonts.light}
               numberOfLines={2}
               ellipsizeMode="tail"
               style={styles.nameText}
@@ -73,40 +77,42 @@ export default function DashboardGreeting({ nome, subtitulo }: DashboardGreeting
   );
 }
 
-const styles = StyleSheet.create({
-  gradient: {
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    ...Pallete.shadows[200],
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  textGroup: {
-    flex: 1,
-    minWidth: 0,
-    flexShrink: 1,
-    gap: 5,
-    marginRight: 10,
-  },
-  nameGroup: {
-    minWidth: 0,
-    flexShrink: 1,
-    gap: 2,
-  },
-  nameText: {
-    flexShrink: 1,
-  },
-  subtitleText: {
-    flexShrink: 1,
-  },
-  avatar: {
-    backgroundColor: 'white',
-    borderRadius: 100,
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.35)',
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    gradient: {
+      borderRadius: 14,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      ...palette.shadows[200],
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    textGroup: {
+      flex: 1,
+      minWidth: 0,
+      flexShrink: 1,
+      gap: 5,
+      marginRight: 10,
+    },
+    nameGroup: {
+      minWidth: 0,
+      flexShrink: 1,
+      gap: 2,
+    },
+    nameText: {
+      flexShrink: 1,
+    },
+    subtitleText: {
+      flexShrink: 1,
+    },
+    avatar: {
+      backgroundColor: palette.backgroundColor,
+      borderRadius: 100,
+      borderWidth: 2,
+      borderColor: 'rgba(255,255,255,0.35)',
+    },
+  });
+}

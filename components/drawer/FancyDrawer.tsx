@@ -9,11 +9,15 @@ import FancyScrollView from '../FancyScrollView';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMinisteriosDrawer } from '../../hooks/useMinisteriosDrawer';
 import { getMenuForIgreja } from './MenuData';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export type FancyDrawerProps = {} & DrawerContentComponentProps;
 
 export default function FancyDrawer(props: FancyDrawerProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const { signOut } = useAuth();
   const { igrejaAtiva, isLoading, isAdmin } = useMinisteriosDrawer();
   const { navigation } = props;
@@ -85,7 +89,7 @@ export default function FancyDrawer(props: FancyDrawerProps) {
 
           {showMinisteriosLoading && (
             <View style={{ paddingVertical: 20, alignItems: 'center' }}>
-              <ActivityIndicator size="small" color={Pallete.primary} />
+              <ActivityIndicator size="small" color={palette.primary} />
             </View>
           )}
 
@@ -114,11 +118,13 @@ export default function FancyDrawer(props: FancyDrawerProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { alignItems: 'center', flex: 1 },
-  menuContainer: {
-    backgroundColor: 'white',
-    paddingHorizontal: 3,
-    borderRadius: 15,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: { alignItems: 'center', flex: 1, backgroundColor: palette.backgroundColor },
+    menuContainer: {
+      backgroundColor: palette.backgroundColor,
+      paddingHorizontal: 3,
+      borderRadius: 15,
+    },
+  });
+}

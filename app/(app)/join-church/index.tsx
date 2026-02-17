@@ -10,11 +10,13 @@ import FancyTextInput from '../../../components/fields/FancyTextInput';
 import DefaultIcons from '../../../components/FancyIcons';
 import FancyPageView from '../../../components/containers/FancyPageView';
 import FancyScrollView from '../../../components/FancyScrollView';
-import { Pallete } from '../../../constants/colors';
+import { ThemePalette } from '../../../constants/colors';
 import { useAuth } from '../../../contexts/AuthContext';
 import { IgrejaRepository } from '../../../domain/services/IgrejaRepository';
 import { ResponseConvitePreviewDto } from '../../../domain/dtos/Igreja/response-convite-preview.dto';
 import { extractInviteToken } from '../../../utils/inviteToken';
+import { usePallete } from '../../../hooks/usePallete';
+import { useThemedStyles } from '../../../hooks/useThemedStyles';
 
 function getErrorMessage(error: AxiosError | any): string {
   const data = error?.response?.data;
@@ -63,6 +65,8 @@ function getInitials(name?: string): string {
 }
 
 export default function JoinChurchPage() {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
   const { refreshMe } = useAuth();
   const [token, setToken] = useState('');
   const [preview, setPreview] = useState<ResponseConvitePreviewDto | null>(null);
@@ -379,151 +383,153 @@ export default function JoinChurchPage() {
   );
 }
 
-const styles = StyleSheet.create({
-  pageContainer: {
-    flex: 1,
-    backgroundColor: Pallete.backgroundColor,
-  },
-  scrollContent: {
-    padding: 20,
-    paddingTop: 0,
-    paddingBottom: 40,
-    flexGrow: 1,
-  },
-  inputSection: {
-    alignItems: 'center',
-    paddingTop: 20,
-  },
-  iconContainer: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: `${Pallete.primary}15`,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  title: {
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitle: {
-    textAlign: 'center',
-    marginBottom: 24,
-    paddingHorizontal: 20,
-  },
-  inputCard: {
-    width: '100%',
-    backgroundColor: Pallete.backgroundColor2,
-    borderRadius: 16,
-    padding: 20,
-    gap: 16,
-  },
-  input: {
-    marginBottom: 0,
-  },
-  errorContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 10,
-    backgroundColor: `${Pallete.error}10`,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 10,
-  },
-  errorText: {
-    flex: 1,
-  },
-  primaryButton: {
-    marginTop: 4,
-  },
-  infoBox: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 10,
-    marginTop: 20,
-    paddingHorizontal: 16,
-  },
-  infoText: {
-    flex: 1,
-    fontStyle: 'italic',
-  },
-  previewSection: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingTop: 10,
-  },
-  previewCard: {
-    backgroundColor: Pallete.backgroundColor,
-    borderRadius: 20,
-    overflow: 'hidden',
-    ...Pallete.shadows[300],
-  },
-  cardHeader: {
-    paddingTop: 16,
-    paddingBottom: 8,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    gap: 8,
-  },
-  avatarWrapper: {
-    padding: 4,
-    borderRadius: 56,
-    backgroundColor: Pallete.backgroundColor,
-    ...Pallete.shadows[200],
-  },
-  avatarContainer: {
-    borderRadius: 50,
-    overflow: 'hidden',
-  },
-  churchLogo: {
-    borderRadius: 50,
-  },
-  avatarFallback: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: `${Pallete.primary}12`,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  churchName: {
-    textAlign: 'center',
-    color: Pallete.fonts.dark,
-  },
-  infoSection: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    gap: 10,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  infoIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: `${Pallete.primary}08`,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  infoTextContainer: {
-    flex: 1,
-    gap: 2,
-  },
-  actionsContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    gap: 8,
-  },
-  mainActionButton: {
-    borderRadius: 12,
-  },
-  footer: {
-    marginTop: 'auto',
-    paddingTop: 10,
-    alignItems: 'center',
-  },
-});
+function createStyles(Pallete: ThemePalette) {
+  return StyleSheet.create({
+    pageContainer: {
+      flex: 1,
+      backgroundColor: Pallete.backgroundColor,
+    },
+    scrollContent: {
+      padding: 20,
+      paddingTop: 0,
+      paddingBottom: 40,
+      flexGrow: 1,
+    },
+    inputSection: {
+      alignItems: 'center',
+      paddingTop: 20,
+    },
+    iconContainer: {
+      width: 88,
+      height: 88,
+      borderRadius: 44,
+      backgroundColor: `${Pallete.primary}15`,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    title: {
+      textAlign: 'center',
+      marginBottom: 8,
+    },
+    subtitle: {
+      textAlign: 'center',
+      marginBottom: 24,
+      paddingHorizontal: 20,
+    },
+    inputCard: {
+      width: '100%',
+      backgroundColor: Pallete.backgroundColor2,
+      borderRadius: 16,
+      padding: 20,
+      gap: 16,
+    },
+    input: {
+      marginBottom: 0,
+    },
+    errorContainer: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 10,
+      backgroundColor: `${Pallete.error}10`,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      borderRadius: 10,
+    },
+    errorText: {
+      flex: 1,
+    },
+    primaryButton: {
+      marginTop: 4,
+    },
+    infoBox: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 10,
+      marginTop: 20,
+      paddingHorizontal: 16,
+    },
+    infoText: {
+      flex: 1,
+      fontStyle: 'italic',
+    },
+    previewSection: {
+      flex: 1,
+      justifyContent: 'center',
+      paddingTop: 10,
+    },
+    previewCard: {
+      backgroundColor: Pallete.backgroundColor,
+      borderRadius: 20,
+      overflow: 'hidden',
+      ...Pallete.shadows[300],
+    },
+    cardHeader: {
+      paddingTop: 16,
+      paddingBottom: 8,
+      paddingHorizontal: 16,
+      alignItems: 'center',
+      gap: 8,
+    },
+    avatarWrapper: {
+      padding: 4,
+      borderRadius: 56,
+      backgroundColor: Pallete.backgroundColor,
+      ...Pallete.shadows[200],
+    },
+    avatarContainer: {
+      borderRadius: 50,
+      overflow: 'hidden',
+    },
+    churchLogo: {
+      borderRadius: 50,
+    },
+    avatarFallback: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      backgroundColor: `${Pallete.primary}12`,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    churchName: {
+      textAlign: 'center',
+      color: Pallete.fonts.dark,
+    },
+    infoSection: {
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+      gap: 10,
+    },
+    infoRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    infoIconContainer: {
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+      backgroundColor: `${Pallete.primary}08`,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    infoTextContainer: {
+      flex: 1,
+      gap: 2,
+    },
+    actionsContainer: {
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+      gap: 8,
+    },
+    mainActionButton: {
+      borderRadius: 12,
+    },
+    footer: {
+      marginTop: 'auto',
+      paddingTop: 10,
+      alignItems: 'center',
+    },
+  });
+}

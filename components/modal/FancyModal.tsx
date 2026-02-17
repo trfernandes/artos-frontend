@@ -1,5 +1,6 @@
 import { Modal, ModalProps, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { usePallete } from '../../hooks/usePallete';
 
 export type FancyModalProps = {
   modalProps?: ModalProps;
@@ -10,11 +11,21 @@ export type FancyModalProps = {
 };
 
 export default function FancyModal({ modalProps, center, top, bottom, ...props }: FancyModalProps) {
+  const palette = usePallete();
+
   return (
     <Modal animationType='fade' presentationStyle='formSheet' transparent {...modalProps}>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <View style={[styles.centeredView, modalProps?.style]}>
-          <View style={[styles.modalView, props.containerStyle]}>
+        <View
+          style={[styles.centeredView, { backgroundColor: palette.overlays.backdrop }, modalProps?.style]}
+        >
+          <View
+            style={[
+              styles.modalView,
+              { backgroundColor: palette.backgroundColor, ...palette.shadows[200] },
+              props.containerStyle,
+            ]}
+          >
             {top}
             {center}
             {bottom}
@@ -30,11 +41,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
   modalView: {
     width: '90%',
-    backgroundColor: 'white',
     borderRadius: 12,
     padding: 20,
     alignItems: 'center',

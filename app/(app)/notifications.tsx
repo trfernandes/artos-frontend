@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import FancyPageView from '../../components/containers/FancyPageView';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useNavigation } from 'expo-router';
 import FancyButton from '../../components/buttons/FancyButton';
@@ -9,8 +9,12 @@ import FancyTabs, { TabItem } from '../../components/tabs/FancyTabs';
 import { useNotificacoesCrud } from '../../hooks/useNotificacoesCrud';
 import NotificationsList from '../../components/pages/notifications/NotificationsList';
 import FancyLoading from '../../components/FancyLoading';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export default function NotificationsPage() {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
   const { setOptions } = useNavigation();
 
   const { isLoading, isLoadingMutation, marcarTodasComoLidas, notificacoes } = useNotificacoesCrud({
@@ -82,6 +86,8 @@ export default function NotificationsPage() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { gap: 15 },
-});
+function createStyles(_Pallete: ThemePalette) {
+  return StyleSheet.create({
+    container: { gap: 15 },
+  });
+}

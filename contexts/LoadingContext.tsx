@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import { Modal, View, ActivityIndicator, StyleSheet } from 'react-native';
-import { Pallete } from '../constants/colors';
 import FancyText from '../components/FancyText';
+import { usePallete } from '../hooks/usePallete';
 
 type LoadingContextProps = {
   showLoading: (label?: string) => void;
@@ -16,6 +16,7 @@ const LoadingContext = createContext<LoadingContextProps>({
 export const useLoading = () => useContext(LoadingContext);
 
 export function LoadingProvider({ children }: { children: ReactNode }) {
+  const palette = usePallete();
   const [visible, setVisible] = useState(false);
   const [label, setLabel] = useState('Carregando...');
 
@@ -34,9 +35,9 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
 
       <Modal visible={visible} transparent animationType='fade' statusBarTranslucent>
         <View style={styles.overlay}>
-          <View style={styles.box}>
-            <ActivityIndicator size='large' color={Pallete.primary} />
-            <FancyText size={'medium'} type='semiBold' color={Pallete.fonts.inactive}>
+          <View style={[styles.box, { backgroundColor: palette.backgroundColor }]}>
+            <ActivityIndicator size='large' color={palette.primary} />
+            <FancyText size={'medium'} type='semiBold' color={palette.fonts.inactive}>
               {label}
             </FancyText>
           </View>
@@ -54,7 +55,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   box: {
-    backgroundColor: '#fff',
     padding: 40,
     borderRadius: 20,
     alignItems: 'center',
@@ -64,11 +64,5 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 6,
     gap: 20,
-  },
-  label: {
-    marginTop: 12,
-    color: Pallete.fonts.dark,
-    fontWeight: '600',
-    fontSize: 15,
   },
 });

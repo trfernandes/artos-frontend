@@ -1,14 +1,16 @@
-import { StyleSheet } from 'react-native';
+import { Keyboard, StyleSheet } from 'react-native';
 import FancyButton from '../../components/buttons/FancyButton';
 import FancyText from '../../components/FancyText';
 import AuthScreen from '../../components/pages/login/AuthScreen';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
 import Toast from 'react-native-toast-message';
 import z from 'zod';
 import ControlledTextInput from '../../components/forms/ControlledTextInput';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../../contexts/AuthContext';
+import { getApiErrorMessage } from '../../domain/api/api-error';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 const forgotPasswordSchema = z.object({
   email: z
@@ -20,6 +22,7 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
+  const styles = useThemedStyles(createStyles);
   const { forgotPassword } = useAuth();
 
   const {
@@ -32,19 +35,17 @@ export default function ForgotPasswordPage() {
   });
 
   const onSubmit = async (data: ForgotPasswordFormData) => {
+    Keyboard.dismiss();
     try {
-      const success = await forgotPassword(data.email);
-
-      if (success) {
-        Toast.show({
-          type: 'success',
-          text1: 'Se o e-mail existir, enviamos instruções de recuperação.',
-        });
-      } else {
-        Toast.show({ type: 'error', text1: 'Erro ao solicitar recuperação.' });
-      }
-    } catch {
-      Toast.show({ type: 'error', text1: 'Erro ao solicitar recuperação.' });
+      await forgotPassword(data.email);
+      Toast.show({
+        type: 'success',
+        text1: 'E-mail enviado!',
+        text2: 'Se o e-mail existir, você receberá as instruções de recuperação.',
+      });
+    } catch (error) {
+      const message = getApiErrorMessage(error, 'Não foi possível solicitar a recuperação de senha.');
+      Toast.show({ type: 'error', text1: 'Erro', text2: message });
     }
   };
 
@@ -92,29 +93,31 @@ export default function ForgotPasswordPage() {
 
 const DESIGN_MODE = 0;
 
-const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    paddingHorizontal: 40,
-    paddingVertical: 0,
-    justifyContent: 'center',
-    borderWidth: DESIGN_MODE,
-    borderColor: 'blueviolet',
-    gap: 25,
-  },
-  titleContainer: {
-    gap: 2,
-    borderWidth: DESIGN_MODE,
-    borderColor: 'magenta',
-    justifyContent: 'center',
-  },
-  fieldsContainer: {
-    borderWidth: DESIGN_MODE,
-    borderRadius: 15,
-    borderColor: 'firebrick',
-    padding: 25,
-    gap: 25,
-    backgroundColor: Pallete.backgroundColor,
-    ...Pallete.shadows[200],
-  },
-});
+function createStyles(Pallete: ThemePalette) {
+  return StyleSheet.create({
+    scrollContainer: {
+      flexGrow: 1,
+      paddingHorizontal: 40,
+      paddingVertical: 0,
+      justifyContent: 'center',
+      borderWidth: DESIGN_MODE,
+      borderColor: 'blueviolet',
+      gap: 25,
+    },
+    titleContainer: {
+      gap: 2,
+      borderWidth: DESIGN_MODE,
+      borderColor: 'magenta',
+      justifyContent: 'center',
+    },
+    fieldsContainer: {
+      borderWidth: DESIGN_MODE,
+      borderRadius: 15,
+      borderColor: 'firebrick',
+      padding: 25,
+      gap: 25,
+      backgroundColor: Pallete.backgroundColor,
+      ...Pallete.shadows[200],
+    },
+  });
+}

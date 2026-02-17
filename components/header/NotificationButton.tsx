@@ -2,10 +2,15 @@ import { router } from 'expo-router';
 import FancyHeaderButton from './FancyHeaderButton';
 import { useNotificacoesCrud } from '../../hooks/useNotificacoesCrud';
 import { useEffect, useState } from 'react';
-import { Pallete } from '../../constants/colors';
 import { StyleSheet, View } from 'react-native';
+import { ThemePalette } from '../../constants/colors';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
+
+const NOTIFICATION_ICON_SIZE = 17;
+const BUTTON_HITBOX_SIZE = 30;
 
 export default function NotificationButton() {
+  const styles = useThemedStyles(createStyles);
   const [apenasNaoLidas, setApenasNaoLidas] = useState(false);
 
   const { quantidadeNaoLidas } = useNotificacoesCrud({ apenasNaoLidas });
@@ -17,7 +22,7 @@ export default function NotificationButton() {
   }, [quantidadeNaoLidas]);
 
   return (
-    <View style={{borderWidth:0, width:22, height:22, alignItems:'center', justifyContent:'center'}}>
+    <View style={styles.container}>
       {qtdNaoLidas > 0 && (
         <View style={styles.hasNotificationContainer}>
           <View style={styles.hasNotification} />
@@ -25,7 +30,7 @@ export default function NotificationButton() {
       )}
 
       <FancyHeaderButton
-        icon={{ library: 'Feather', name: 'bell', size: 20, style: { borderWidth: 0 } }}
+        icon={{ library: 'Feather', name: 'bell', size: NOTIFICATION_ICON_SIZE, style: { borderWidth: 0 } }}
         onPress={function (): void {
           router.push('/notifications');
         }}
@@ -34,22 +39,31 @@ export default function NotificationButton() {
   );
 }
 
-const styles = StyleSheet.create({
-  hasNotification: {
-    width: 6,
-    height: 6,
-    borderRadius: 4,
-    backgroundColor: Pallete.error,
-  },
-  hasNotificationContainer: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-    right: 0,
-    top: 0,
-    padding: 1.2,
-    borderRadius: 4,
-    backgroundColor: 'white',
-    zIndex: 1,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      borderWidth: 0,
+      width: BUTTON_HITBOX_SIZE,
+      height: BUTTON_HITBOX_SIZE,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    hasNotification: {
+      width: 6,
+      height: 6,
+      borderRadius: 4,
+      backgroundColor: palette.error,
+    },
+    hasNotificationContainer: {
+      position: 'absolute',
+      alignItems: 'center',
+      justifyContent: 'center',
+      right: 2,
+      top: 2,
+      padding: 1.2,
+      borderRadius: 4,
+      backgroundColor: palette.backgroundColor,
+      zIndex: 1,
+    },
+  });
+}

@@ -2,7 +2,9 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { TabItem } from './FancyTabs';
 import FancyText from '../FancyText';
 import DefaultIcons from '../FancyIcons';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export type FancyTabHeaderItemProps = {
   status: 'active' | 'inactive';
@@ -11,6 +13,9 @@ export type FancyTabHeaderItemProps = {
 } & TabItem;
 
 export default function FancyTabHeaderItem({ status = 'active', multiRow, ...props }: FancyTabHeaderItemProps) {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
+
   return (
     <TouchableOpacity
       style={[
@@ -32,7 +37,7 @@ export default function FancyTabHeaderItem({ status = 'active', multiRow, ...pro
             <DefaultIcons.Custom
               {...props.icon}
               size={props.icon.size || 18}
-              color={props.icon.color || status === 'active' ? Pallete.fonts.light : Pallete.fonts.inactive}
+              color={props.icon.color || (status === 'active' ? Pallete.fonts.light : Pallete.fonts.inactive)}
             />
           </View>
         )}
@@ -55,33 +60,35 @@ export default function FancyTabHeaderItem({ status = 'active', multiRow, ...pro
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    borderRadius: 50,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexGrow: 1,
-    flexShrink: 1,
-    flexBasis: 'auto',
-    minWidth: 80,
-    gap: 6,
-  },
-  containerMultiRow: {
-    flexGrow: 0,
-    flexShrink: 1,
-    flexBasis: '48%',
-    maxWidth: '48%',
-    minWidth: 0,
-  },
-  containerActive: { backgroundColor: Pallete.primary },
-  containerInactive: {
-    borderWidth: 0.2,
-    borderColor: Pallete.border,
-    backgroundColor: Pallete.backgroundColor2,
-  },
-  iconContainer: { justifyContent: 'center', alignItems: 'center' },
-  titleContaner: { justifyContent: 'center' },
-});
+function createStyles(Pallete: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      borderRadius: 50,
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexGrow: 1,
+      flexShrink: 1,
+      flexBasis: 'auto',
+      minWidth: 80,
+      gap: 6,
+    },
+    containerMultiRow: {
+      flexGrow: 0,
+      flexShrink: 1,
+      flexBasis: '48%',
+      maxWidth: '48%',
+      minWidth: 0,
+    },
+    containerActive: { backgroundColor: Pallete.primary },
+    containerInactive: {
+      borderWidth: 0.2,
+      borderColor: Pallete.border,
+      backgroundColor: Pallete.backgroundColor2,
+    },
+    iconContainer: { justifyContent: 'center', alignItems: 'center' },
+    titleContaner: { justifyContent: 'center' },
+  });
+}

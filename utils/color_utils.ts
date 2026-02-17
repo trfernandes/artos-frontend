@@ -125,4 +125,49 @@ export const ColorUtils = {
     // Se a cor for escura, usa texto branco; caso contrário, preto
     return luminance < 128 ? '#FFFFFF' : '#000000';
   },
+  withAlpha(color: string, opacity: number): string {
+    const clampedOpacity = Math.max(0, Math.min(1, opacity));
+
+    if (color.startsWith('rgba(')) {
+      return color.replace(/rgba\(([^,]+),([^,]+),([^,]+),([^)]+)\)/, (_match, r, g, b) => {
+        return `rgba(${r.trim()}, ${g.trim()}, ${b.trim()}, ${clampedOpacity})`;
+      });
+    }
+
+    if (color.startsWith('rgb(')) {
+      const rgbContent = color
+        .replace('rgb(', '')
+        .replace(')', '')
+        .split(',')
+        .map((value) => value.trim());
+      if (rgbContent.length === 3) {
+        return `rgba(${rgbContent[0]}, ${rgbContent[1]}, ${rgbContent[2]}, ${clampedOpacity})`;
+      }
+    }
+
+    let normalized = color.trim();
+    if (normalized.startsWith('#')) normalized = normalized.slice(1);
+
+    if (normalized.length === 3) {
+      normalized = normalized
+        .split('')
+        .map((char) => `${char}${char}`)
+        .join('');
+    }
+
+    if (normalized.length < 6) {
+      return color;
+    }
+
+    const rawHex = normalized.slice(0, 6);
+    const r = parseInt(rawHex.slice(0, 2), 16);
+    const g = parseInt(rawHex.slice(2, 4), 16);
+    const b = parseInt(rawHex.slice(4, 6), 16);
+
+    if ([r, g, b].some((value) => Number.isNaN(value))) {
+      return color;
+    }
+
+    return `rgba(${r}, ${g}, ${b}, ${clampedOpacity})`;
+  },
 };

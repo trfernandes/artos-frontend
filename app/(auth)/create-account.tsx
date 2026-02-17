@@ -1,6 +1,6 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import AuthScreen from '../../components/pages/login/AuthScreen';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
 import FancyButton from '../../components/buttons/FancyButton';
 import { EXTRA_LARGE_SIZE_FONT, LARGE_SIZE_FONT } from '../../constants/font';
 import FancyText from '../../components/FancyText';
@@ -9,8 +9,12 @@ import { FancyCard } from '../../components/cards/Horizontal/FancyCard';
 import DefaultIcons from '../../components/FancyIcons';
 import { useState } from 'react';
 import FancyModalDialog from '../../components/modal/FancyModalDialog';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export default function ComecarScreen() {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
   const [isHelpModalVisible, setIsHelpModalVisible] = useState(false);
 
   return (
@@ -178,80 +182,82 @@ export default function ComecarScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    paddingHorizontal: 40,
-    paddingVertical: 0,
-    justifyContent: 'center',
-    borderColor: 'red',
-  },
-  fieldsContainer: {
-    width: '85%',
-    borderRadius: 15,
-    borderColor: 'firebrick',
-    padding: 24,
-    gap: 20,
-    backgroundColor: Pallete.backgroundColor,
-    ...Pallete.shadows[200],
-    justifyContent: 'center',
-  },
-  content: {
-    width: '100%',
-    gap: 18,
-  },
-  cardsContainer: {
-    gap: 16,
-  },
-  cardWrapper: {
-    position: 'relative',
-  },
-  card: {
-    width: '100%',
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: Pallete.borderCard,
-    ...Pallete.shadows[100],
-  },
-  cardHighlight: {
-    borderColor: Pallete.primary,
-    borderWidth: 1,
-  },
-  badge: {
-    position: 'absolute',
-    right: 14,
-    top: -8,
-    backgroundColor: Pallete.primary,
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    zIndex: 2,
-  },
-  cardContent: {
-    paddingTop: 10,
-  },
-  chevronContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  footer: {
-    alignItems: 'center',
-    gap: 6,
-  },
-  footerLink: {
-    fontSize: 12,
-  },
-  footerLinkContainer: {
-    height: 20,
-    alignItems: 'center',
-  },
-  footerHint: {
-    textAlign: 'center',
-  },
-  modalContent: {
-    gap: 16,
-  },
-  modalSection: {
-    gap: 6,
-  },
-});
+function createStyles(Pallete: ThemePalette) {
+  return StyleSheet.create({
+    scrollContainer: {
+      flexGrow: 1,
+      paddingHorizontal: 40,
+      paddingVertical: 0,
+      justifyContent: 'center',
+      borderColor: 'red',
+    },
+    fieldsContainer: {
+      width: '85%',
+      borderRadius: 15,
+      borderColor: 'firebrick',
+      padding: 24,
+      gap: 20,
+      backgroundColor: Pallete.backgroundColor,
+      ...Pallete.shadows[200],
+      justifyContent: 'center',
+    },
+    content: {
+      width: '100%',
+      gap: 18,
+    },
+    cardsContainer: {
+      gap: 16,
+    },
+    cardWrapper: {
+      position: 'relative',
+    },
+    card: {
+      width: '100%',
+      borderRadius: 30,
+      borderWidth: 1,
+      borderColor: Pallete.borderCard,
+      ...Pallete.shadows[100],
+    },
+    cardHighlight: {
+      borderColor: Pallete.primary,
+      borderWidth: 1,
+    },
+    badge: {
+      position: 'absolute',
+      right: 14,
+      top: -8,
+      backgroundColor: Pallete.primary,
+      borderRadius: 12,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      zIndex: 2,
+    },
+    cardContent: {
+      paddingTop: 10,
+    },
+    chevronContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    footer: {
+      alignItems: 'center',
+      gap: 6,
+    },
+    footerLink: {
+      fontSize: 12,
+    },
+    footerLinkContainer: {
+      height: 20,
+      alignItems: 'center',
+    },
+    footerHint: {
+      textAlign: 'center',
+    },
+    modalContent: {
+      gap: 16,
+    },
+    modalSection: {
+      gap: 6,
+    },
+  });
+}

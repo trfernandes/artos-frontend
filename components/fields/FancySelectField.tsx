@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { View, StyleSheet, Pressable, Modal, FlatList, StyleProp, ViewStyle, TextInputProps } from 'react-native';
 import FancyText from '../FancyText';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
 import { BOLD_FONT, ITALIC_SEMI_BOLD_FONT, MEDIUM_FONT, SMALL_SIZE_FONT } from '../../constants/font';
 import DefaultIcons from '../FancyIcons';
 import { DefaultIconsNames } from '../../constants/icons';
@@ -11,6 +11,8 @@ import { ColorUtils } from '../../utils/color_utils';
 import FancyImage from '../images/FancyImage';
 import { ImageUtils } from '../../utils/image_utils';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export interface FancySelectFieldProps<T>
   extends Pick<FancyTextInputProps, 'disabled' | 'label' | 'placeholder'>,
@@ -34,6 +36,8 @@ export default function FancySelectField<ValueItem>({
   containerStyle,
   modalTitle,
 }: FancySelectFieldProps<ValueItem>) {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const insets = useSafeAreaInsets();
   const activeColor = ColorUtils.lightenColor(Pallete.primary, 0.7);
@@ -132,71 +136,73 @@ export default function FancySelectField<ValueItem>({
   );
 }
 
-const styles = StyleSheet.create({
-  container: { gap: 5 },
-  inputContainer: {
-    backgroundColor: 'white',
-    borderWidth: 0.6,
-    borderColor: Pallete.border,
-    borderRadius: 10,
-    padding: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    ...Pallete.shadows[200],
-  },
-  placeholder: {
-    fontFamily: ITALIC_SEMI_BOLD_FONT,
-    fontSize: SMALL_SIZE_FONT,
-    opacity: 0.8,
-    color: Pallete.fonts.inactive,
-    flex: 1,
-  },
-  selectedText: {
-    fontFamily: BOLD_FONT,
-    fontSize: SMALL_SIZE_FONT,
-    color: Pallete.fonts.dark,
-    flex: 1,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '60%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Pallete.border,
-  },
-  list: {
-    paddingHorizontal: 8,
-  },
-  listItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 14,
-    paddingHorizontal: 12,
-    gap: 10,
-    borderRadius: 10,
-  },
-  itemText: {
-    fontFamily: MEDIUM_FONT,
-    fontSize: SMALL_SIZE_FONT,
-    color: Pallete.fonts.dark,
-    flex: 1,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: Pallete.border,
-    marginHorizontal: 8,
-  },
-});
+function createStyles(Pallete: ThemePalette) {
+  return StyleSheet.create({
+    container: { gap: 5 },
+    inputContainer: {
+      backgroundColor: Pallete.backgroundColor,
+      borderWidth: 0.6,
+      borderColor: Pallete.border,
+      borderRadius: 10,
+      padding: 10,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      ...Pallete.shadows[200],
+    },
+    placeholder: {
+      fontFamily: ITALIC_SEMI_BOLD_FONT,
+      fontSize: SMALL_SIZE_FONT,
+      opacity: 0.8,
+      color: Pallete.fonts.inactive,
+      flex: 1,
+    },
+    selectedText: {
+      fontFamily: BOLD_FONT,
+      fontSize: SMALL_SIZE_FONT,
+      color: Pallete.fonts.dark,
+      flex: 1,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: Pallete.overlays.backdrop,
+      justifyContent: 'flex-end',
+    },
+    modalContent: {
+      backgroundColor: Pallete.backgroundColor,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      maxHeight: '60%',
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: Pallete.border,
+    },
+    list: {
+      paddingHorizontal: 8,
+    },
+    listItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 14,
+      paddingHorizontal: 12,
+      gap: 10,
+      borderRadius: 10,
+    },
+    itemText: {
+      fontFamily: MEDIUM_FONT,
+      fontSize: SMALL_SIZE_FONT,
+      color: Pallete.fonts.dark,
+      flex: 1,
+    },
+    separator: {
+      height: 1,
+      backgroundColor: Pallete.border,
+      marginHorizontal: 8,
+    },
+  });
+}

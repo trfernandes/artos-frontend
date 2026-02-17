@@ -1,9 +1,9 @@
 import { View, StyleSheet, StyleProp, ViewStyle, ActivityIndicator, TouchableOpacity } from 'react-native';
 import FancyTextInput from './fields/FancyTextInput';
-import { Pallete } from '../constants/colors';
 import DefaultIcons from './FancyIcons';
 import { useEffect, useRef, useState } from 'react';
 import { DefaultIconsNames } from '../constants/icons';
+import { usePallete } from '../hooks/usePallete';
 
 export type FancySearchBarProps = {
   value?: string; // 🔥 novo
@@ -13,6 +13,7 @@ export type FancySearchBarProps = {
 };
 
 export default function FancySearchBar(props: FancySearchBarProps) {
+  const Pallete = usePallete();
   const [internalValue, setInternalValue] = useState(props.value ?? '');
   const [debouncedSearch, setDebouncedSearch] = useState(internalValue);
   const [isLoading, setIsLoading] = useState(false);

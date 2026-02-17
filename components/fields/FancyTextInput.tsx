@@ -4,7 +4,9 @@ import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import { isValidElement, ReactNode } from 'react';
 import type { Ref } from 'react';
 import { MEDIUM_FONT, SMALL_SIZE_FONT } from '../../constants/font';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 interface Button {
   icon: CustomIconProps;
@@ -29,15 +31,17 @@ export type FancyTextInputProps = {
   labelProps?: FancyTextProps;
 };
 
-function generateButtonsComponent(buttons: Button[]) {
+function generateButtonsComponent(buttons: Button[], iconColor: string) {
   return buttons.map((button, idx) => (
     <TouchableOpacity style={{ justifyContent: 'center', alignItems: 'center' }} onPress={button.onPress} key={idx}>
-      <DefaultIcons.Custom size={button.icon.size || 18} color={Pallete.fonts.dark} {...button.icon} />
+      <DefaultIcons.Custom size={button.icon.size || 18} color={iconColor} {...button.icon} />
     </TouchableOpacity>
   ));
 }
 
 export default function FancyTextInput({ disabled = false, ...props }: FancyTextInputProps) {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
   const { style: rawInputStyle, multiline, ...remainingInputProps } = props.inputProps ?? {};
   const isMultiline = Boolean(multiline);
   const normalizedInputStyle = Array.isArray(rawInputStyle) ? rawInputStyle : rawInputStyle ? [rawInputStyle] : [];
@@ -64,7 +68,7 @@ export default function FancyTextInput({ disabled = false, ...props }: FancyText
             {isValidElement(props.leftContainer)
               ? props.leftContainer
               : Array.isArray(props.leftContainer)
-              ? generateButtonsComponent(props.leftContainer)
+              ? generateButtonsComponent(props.leftContainer, Pallete.fonts.dark)
               : null}
           </View>
         )}
@@ -85,7 +89,7 @@ export default function FancyTextInput({ disabled = false, ...props }: FancyText
             {isValidElement(props.rightContainer)
               ? props.rightContainer
               : Array.isArray(props.rightContainer)
-              ? generateButtonsComponent(props.rightContainer)
+              ? generateButtonsComponent(props.rightContainer, Pallete.fonts.dark)
               : null}
           </View>
         )}
@@ -101,64 +105,66 @@ export default function FancyTextInput({ disabled = false, ...props }: FancyText
   );
 }
 
-const styles = StyleSheet.create({
-  container: { gap: 5 },
-  inputContainer: {
-    backgroundColor: 'white',
-    borderColor: Pallete.border,
-    borderWidth: 0.6,
-    borderRadius: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    ...Pallete.shadows[200],
-  },
-  inputContainerMultiline: {
-    alignItems: 'flex-start',
-    paddingVertical: 10,
-  },
-  inputDisabledContainer: { backgroundColor: Pallete.disabled },
-  labelContainer: { paddingLeft: 2 },
-  labelText: { color: Pallete.fonts.inactive },
-  labelDisabledText: { color: Pallete.fonts.inactive2 },
-  leftContainer: {
-    flexDirection: 'row',
-    gap: 6,
-    justifyContent: 'center',
-    paddingLeft: 10,
-    borderColor: 'coral',
-  },
-  centerContainer: {
-    flex: 1,
-    borderColor: 'chocolate',
-  },
-  valueText: {
-    fontFamily: MEDIUM_FONT,
-    fontSize: SMALL_SIZE_FONT,
-    color: Pallete.fonts.dark,
-    minHeight: 35,
-    alignItems: 'center',
-    paddingHorizontal: 14,
-  },
-  valueTextMultiline: {
-    height: undefined,
-    minHeight: 100,
-    textAlignVertical: 'top',
-    paddingTop: 10,
-    paddingBottom: 10,
-    paddingHorizontal: 14,
-  },
-  valueDisabledText: { color: Pallete.fonts.inactive },
-  rightContainer: {
-    height: '100%',
-    gap: 5,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    borderColor: 'deepskyblue',
-    alignItems: 'center',
-  },
-  errorContainer: { paddingLeft: 2 },
-  errorText: { color: Pallete.error },
-  placeholderText: { color: Pallete.fonts.inactive },
-  placeholderDisabledText: { color: Pallete.fonts.inactive2 },
-});
+function createStyles(Pallete: ThemePalette) {
+  return StyleSheet.create({
+    container: { gap: 5 },
+    inputContainer: {
+      backgroundColor: Pallete.backgroundColor,
+      borderColor: Pallete.border,
+      borderWidth: 0.6,
+      borderRadius: 10,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+      ...Pallete.shadows[200],
+    },
+    inputContainerMultiline: {
+      alignItems: 'flex-start',
+      paddingVertical: 10,
+    },
+    inputDisabledContainer: { backgroundColor: Pallete.disabled },
+    labelContainer: { paddingLeft: 2 },
+    labelText: { color: Pallete.fonts.inactive },
+    labelDisabledText: { color: Pallete.fonts.inactive2 },
+    leftContainer: {
+      flexDirection: 'row',
+      gap: 6,
+      justifyContent: 'center',
+      paddingLeft: 10,
+      borderColor: 'coral',
+    },
+    centerContainer: {
+      flex: 1,
+      borderColor: 'chocolate',
+    },
+    valueText: {
+      fontFamily: MEDIUM_FONT,
+      fontSize: SMALL_SIZE_FONT,
+      color: Pallete.fonts.dark,
+      minHeight: 35,
+      alignItems: 'center',
+      paddingHorizontal: 14,
+    },
+    valueTextMultiline: {
+      height: undefined,
+      minHeight: 100,
+      textAlignVertical: 'top',
+      paddingTop: 10,
+      paddingBottom: 10,
+      paddingHorizontal: 14,
+    },
+    valueDisabledText: { color: Pallete.fonts.inactive },
+    rightContainer: {
+      height: '100%',
+      gap: 5,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      borderColor: 'deepskyblue',
+      alignItems: 'center',
+    },
+    errorContainer: { paddingLeft: 2 },
+    errorText: { color: Pallete.error },
+    placeholderText: { color: Pallete.fonts.inactive },
+    placeholderDisabledText: { color: Pallete.fonts.inactive2 },
+  });
+}

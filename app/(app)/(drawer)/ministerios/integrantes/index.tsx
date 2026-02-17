@@ -12,7 +12,7 @@ import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import { FancyTextDisplayCard } from '../../../../../components/cards/FancyTextDisplayCard';
 import { VoluntarioHierarquiaEnumLabel } from '../../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
 import {
-    MinisterioStatusColorMap,
+    getMinisterioStatusColorMap,
     MinisterioVoluntarioStatusEnum,
     MinisterioVoluntarioStatusEnumLabel,
     MinisterioVoluntarioStatusEnumMap,
@@ -20,13 +20,16 @@ import {
 import { AppImages } from '../../../../../assets/app_images';
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import FancyChips from '../../../../../components/FancyChips';
+import { usePallete } from '../../../../../hooks/usePallete';
 
 export default function MinisterioIntegrantesIndex() {
+  const palette = usePallete();
   const { showLoading } = useLoading();
 
   const { ministerioId } = useLocalSearchParams<{ ministerioId: string }>();
 
   const [searchText, setSearchText] = useState('');
+  const ministerioStatusColorMap = useMemo(() => getMinisterioStatusColorMap(palette), [palette]);
 
   const params = useMemo(() => {
     if (!ministerioId) return undefined;
@@ -153,7 +156,7 @@ export default function MinisterioIntegrantesIndex() {
                   size='small'
                   style={{ marginTop: 2 }}
                   label={MinisterioVoluntarioStatusEnumLabel[item.status]}
-                  color={MinisterioStatusColorMap[item.status]}
+                  color={ministerioStatusColorMap[item.status]}
                 />
               ),
               source:

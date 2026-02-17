@@ -16,10 +16,12 @@ import {
 } from 'react-native-keyboard-aware-scroll-view';
 import FancyButton from '../../buttons/FancyButton';
 import { DefaultIconsNames } from '../../../constants/icons';
-import { Pallete } from '../../../constants/colors';
+import { ThemePalette } from '../../../constants/colors';
 import { router } from 'expo-router';
 import LoginBase from './LoginBase';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { usePallete } from '../../../hooks/usePallete';
+import { useThemedStyles } from '../../../hooks/useThemedStyles';
 
 type WidthOptions = { default?: DimensionValue; keyboard?: DimensionValue };
 type RenderContent = React.ReactNode | ((params: { keyboardVisible: boolean }) => React.ReactNode);
@@ -70,6 +72,8 @@ export default function AuthScreen({
   keyboardAwareProps,
   disableScroll = false,
 }: AuthScreenProps) {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const insets = useSafeAreaInsets();
   const androidStatusBarHeight = Platform.OS === 'android' ? RNStatusBar.currentHeight ?? 0 : 0;
@@ -226,43 +230,45 @@ export default function AuthScreen({
   );
 }
 
-const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    paddingHorizontal: 40,
-    paddingTop: 25,
-    justifyContent: 'center',
-    gap: 20,
-    paddingBottom: 20,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    gap: 20,
-  },
-  headerContainer: {
-    gap: 6,
-  },
-  fieldsContainer: {
-    borderRadius: 15,
-    padding: 25,
-    gap: 15,
-    backgroundColor: Pallete.backgroundColor,
-    ...Pallete.shadows[200],
-    // borderWidth: 2,
-    overflow: 'hidden',
-  },
-  backButtonContainer: {
-    position: 'absolute' as const,
-    left: 25,
-    top: 35,
-    zIndex: 10,
-    justifyContent: 'center' as const,
-    alignItems: 'flex-start' as const,
-  },
-});
+function createStyles(Pallete: ThemePalette) {
+  return StyleSheet.create({
+    scrollContainer: {
+      flexGrow: 1,
+      paddingHorizontal: 40,
+      paddingTop: 25,
+      justifyContent: 'center',
+      gap: 20,
+      paddingBottom: 20,
+    },
+    centerContainer: {
+      flex: 1,
+      justifyContent: 'center' as const,
+      alignItems: 'center' as const,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      gap: 20,
+    },
+    headerContainer: {
+      gap: 6,
+    },
+    fieldsContainer: {
+      borderRadius: 15,
+      padding: 25,
+      gap: 15,
+      backgroundColor: Pallete.backgroundColor,
+      ...Pallete.shadows[200],
+      // borderWidth: 2,
+      overflow: 'hidden',
+    },
+    backButtonContainer: {
+      position: 'absolute' as const,
+      left: 25,
+      top: 35,
+      zIndex: 10,
+      justifyContent: 'center' as const,
+      alignItems: 'flex-start' as const,
+    },
+  });
+}

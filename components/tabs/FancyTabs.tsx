@@ -2,7 +2,8 @@ import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import FancyTabsHeader from './FancyTabsHeader';
 import { CustomIconProps } from '../FancyIcons';
 import { ReactNode, useState } from 'react';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export type TabItem = {
   title: string;
@@ -20,6 +21,7 @@ export type FancyTabsProps = {
 };
 
 export default function FancyTabs(props: FancyTabsProps) {
+  const styles = useThemedStyles(createStyles);
   const [index, setIndex] = useState(0);
 
   const handleTabChange = (index: number) => {
@@ -43,14 +45,16 @@ export default function FancyTabs(props: FancyTabsProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    paddingTop: 2,
-    gap: 10,
-    borderWidth: 0,
-    borderColor: 'red',
-    backgroundColor: Pallete.backgroundColor,
-  },
-  headerContainer: { paddingHorizontal: 0 },
-  contentContainer: { borderWidth: 0 },
-});
+function createStyles(Pallete: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      paddingTop: 2,
+      gap: 10,
+      borderWidth: 0,
+      borderColor: 'red',
+      backgroundColor: Pallete.backgroundColor,
+    },
+    headerContainer: { paddingHorizontal: 0 },
+    contentContainer: { borderWidth: 0 },
+  });
+}
