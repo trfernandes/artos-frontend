@@ -1,0 +1,67 @@
+1	import { useMutation, useQueryClient } from '@tanstack/react-query';
+2	import Toast from 'react-native-toast-message';
+3	import apiClient from '../domain/api/api-client';
+4	import { IgrejaVoluntarioRoleEnum } from '../domain/enums/Igreja/voluntario-role.enum';
+5	import { useAuth } from '../contexts/AuthContext';
+6	import { FancyAlert } from '../components/modal/FancyAlert';
+7	
+8	type SairDaIgrejaParams = {
+9	  igrejaId: string;
+10	  role?: IgrejaVoluntarioRoleEnum;
+11	};
+12	
+13	export const useSairDaIgreja = () => {
+14	  const queryClient = useQueryClient();
+15	  const { user, refreshMe } = useAuth();
+16	
+17	  const mutation = useMutation({
+18	    mutationFn: async ({ igrejaId, voluntarioId }: { igrejaId: string; voluntarioId: string }) => {
+19	      const { data } = await apiClient.delete(`/igrejas/${igrejaId}/voluntarios/${voluntarioId}`);
+20	      return data?.data ?? data;
+21	    },
+22	    onSuccess: async () => {
+23	      queryClient.invalidateQueries({ queryKey: ['igrejas'] });
+24	      await refreshMe();
+25	      Toast.show({
+26	        type: 'success',
+27	        text1: 'Sucesso',
+28	        text2: 'Você saiu da igreja com sucesso.',
+29	      });
+30	    },
+31	    onError: (error: any) => {
+32	      const mensagem = error?.response?.data?.message || 'Não foi possível sair da igreja. Tente novamente.';
+33	      Toast.show({
+34	        type: 'error',
+35	        text1: 'Erro',
+36	        text2: mensagem,
+37	      });
+38	    },
+39	  });
+40	
+41	  const validateRole = (role?: IgrejaVoluntarioRoleEnum) => {
+42	    if (role === IgrejaVoluntarioRoleEnum.ADMIN) {
+43	      FancyAlert.alert(
+44	        'Ação não permitida',
+45	        'Administradores devem excluir a igreja nas configurações para sair.',
+46	      );
+47	      return false;
+48	    }
+49	    return true;
+50	  };
+51	
+52	  const sairDaIgreja = ({ igrejaId, role }: SairDaIgrejaParams) => {
+53	    if (!validateRole(role)) return;
+54	    const voluntarioId = user?.user?.id;
+55	    if (!voluntarioId) {
+56	      FancyAlert.alert('Erro', 'Não foi possível identificar o usuário.');
+57	      return;
+58	    }
+59	    mutation.mutate({ igrejaId, voluntarioId });
+60	  };
+61	
+62	  return {
+63	    sairDaIgreja,
+64	    validateRole,
+65	    isPending: mutation.isPending,
+66	  };
+67	};

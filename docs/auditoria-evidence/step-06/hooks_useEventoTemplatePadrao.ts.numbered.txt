@@ -1,0 +1,46 @@
+1	import { useMutation, useQueryClient } from '@tanstack/react-query';
+2	import { IgrejaEventosRepository } from '../domain/services/IgrejaEventosRepository';
+3	import { RemoveEventoTemplatePadraoDto, UpdateEventoTemplatePadraoDto } from '../domain/dtos/Evento/update-evento-template-padrao.dto';
+4	import { useAuth } from '../contexts/AuthContext';
+5	
+6	type SaveEventoTemplatePadraoParams = {
+7	  eventoId: string;
+8	  data: UpdateEventoTemplatePadraoDto;
+9	};
+10	
+11	type RemoveEventoTemplatePadraoParams = {
+12	  eventoId: string;
+13	  params: RemoveEventoTemplatePadraoDto;
+14	};
+15	
+16	export function useEventoTemplatePadrao() {
+17	  const { igrejaAtiva } = useAuth();
+18	  const queryClient = useQueryClient();
+19	
+20	  if (!igrejaAtiva) {
+21	    throw new Error('Nenhuma igreja ativa selecionada');
+22	  }
+23	
+24	  const mutation = useMutation({
+25	    mutationFn: ({ eventoId, data }: SaveEventoTemplatePadraoParams) =>
+26	      IgrejaEventosRepository.atualizarTemplatePadrao(igrejaAtiva.id, eventoId, data),
+27	    onSuccess: async () => {
+28	      await queryClient.invalidateQueries({ queryKey: ['eventos'] });
+29	    },
+30	  });
+31	
+32	  const removeMutation = useMutation({
+33	    mutationFn: ({ eventoId, params }: RemoveEventoTemplatePadraoParams) =>
+34	      IgrejaEventosRepository.removerTemplatePadrao(igrejaAtiva.id, eventoId, params),
+35	    onSuccess: async () => {
+36	      await queryClient.invalidateQueries({ queryKey: ['eventos'] });
+37	    },
+38	  });
+39	
+40	  return {
+41	    salvarTemplatePadrao: mutation.mutateAsync,
+42	    removerTemplatePadrao: removeMutation.mutateAsync,
+43	    isSavingTemplatePadrao: mutation.isPending || removeMutation.isPending,
+44	    error: mutation.error || removeMutation.error,
+45	  };
+46	}

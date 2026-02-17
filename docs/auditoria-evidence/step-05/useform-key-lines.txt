@@ -1,0 +1,276 @@
+### app\(app)\(drawer)\admin\eventos\add.tsx
+39: const form = useForm({
+40: resolver: zodResolver(eventoSchema),
+49: const { add, isError, isLoading, isLoadingMutation } = useEventosCrud();
+52: form.handleSubmit(
+78: if (isLoadingMutation) return <FancyLoading label='Salvando...' />;
+80: if (isLoading) return <FancyLoading />;
+88: label={isLoading ? 'Salvando...' : 'Salvar'}
+89: disabled={isLoading}
+
+### app\(app)\(drawer)\admin\eventos\edit.tsx
+21: isLoading: isLoadingEvento,
+22: isLoadingMutation: isLoadingEventoMutation,
+40: resolver: zodResolver(eventoSchema),
+62: if (isLoadingEvento) {
+66: if (isLoadingEventoMutation) {
+71: eventoForm.handleSubmit(
+
+### app\(app)\(drawer)\admin\ministerios\add.tsx
+33: resolver: zodResolver(AddMinisterioSchema),
+39: const { add: addMinisterios, isLoading: isLoadingMinisterios } = useMinisteriosCrud();
+40: const { add: addVoluntarios, isLoading: isLoadingVoluntarios } = useMinisterioVoluntariosCrud({ muteMessages: true });
+43: await form.handleSubmit(
+175: if (isLoadingMinisterios || isLoadingVoluntarios) {
+
+### app\(app)\(drawer)\admin\ministerios\edit.tsx
+47: isLoading: loadingMinisterio,
+62: resolver: zodResolver(EditMinisterioSchema),
+134: form.handleSubmit(
+
+### app\(app)\(drawer)\configuracoes\index.tsx
+84: const { data, isLoading, updateDados, updateModoEntrada, updateNotificacoes, isUpdating } =
+113: resolver: zodResolver(dadosSchema),
+133: resolver: zodResolver(modoEntradaSchema),
+142: resolver: zodResolver(notificacoesSchema),
+204: const handleSalvarDados = dadosForm.handleSubmit(async (formData: DadosFormData) => {
+248: const handleSalvarModoEntrada = modoEntradaForm.handleSubmit((formData) => {
+255: const handleSalvarNotificacoes = notificacoesForm.handleSubmit((formData) => {
+292: if (isLoading) {
+343: maskType="cep"
+352: keyboardType="numeric"
+365: maskType="phone"
+372: keyboardType="email-address"
+404: disabled={isUpdating || isUploadingImage}
+405: isLoading={isUpdating || isUploadingImage}
+507: disabled={isUpdating}
+508: isLoading={isUpdating}
+566: disabled={isUpdating}
+567: isLoading={isUpdating}
+599: disabled={true}
+
+### app\(app)\(drawer)\ministerios\escalas\assistant.tsx
+141: const form = useForm({
+142: resolver: zodResolver(EscalaSchema),
+
+### app\(app)\(drawer)\ministerios\indisponibilidades\index.tsx
+46: isLoading: isLoadingVoluntarios,
+49: const { control, watch } = useForm({
+50: resolver: zodResolver(schema),
+81: isLoading: isLoadingIndisponibilidades,
+82: isLoadingMutation: isLoadingIndisponibilidadesMutation,
+174: if (isLoadingIndisponibilidades || isLoadingVoluntarios || isLoadingIndisponibilidadesMutation) {
+187: {voluntarioId && !isLoadingIndisponibilidades ? (
+
+### app\(app)\(drawer)\ministerios\integrantes\add.tsx
+25: const form = useForm({ resolver: zodResolver(minVoluntarioSchema) });
+34: const { data: voluntariosData, isLoading: isLoadingVoluntarios } = useVoluntariosCrud({
+55: const { funcoesList, funcoesDropDownList, isLoading: isLoadingFuncoes } = useFuncoesDoMinisterio(ministerioId);
+60: const handleSave = form.handleSubmit(
+99: if (isLoadingVoluntarios || isLoadingFuncoes) return <FancyLoading />;
+
+### app\(app)\(drawer)\ministerios\integrantes\edit.tsx
+38: resolver: zodResolver(minVoluntarioSchema),
+64: const { data, isLoading: isLoadingVoluntario } = useMinisterioVoluntariosCrud({ autoFetch: true, initialParams: voluntarioSearchParams });
+93: isLoading: isLoadingFuncoes,
+94: isLoadingMutation: isUpdatingFuncoesMutation,
+119: const handleSave = form.handleSubmit(
+133: const { funcoesDropDownList, funcoesList, isLoading: isLoadingFuncoesList } = useFuncoesDoMinisterio(params.ministerioId);
+146: if (isLoadingVoluntario || isUpdatingFuncoes || isLoadingFuncoesList || isLoadingFuncoes || isUpdatingFuncoesMutation) return <FancyLoading />;
+156: disabled={isUpdatingFuncoes}
+
+### app\(app)\(drawer)\ministerios\templates_equipe\add.tsx
+16: resolver: zodResolver(escalaTemplateSchema),
+25: const { add: addTemplate, isLoadingMutation } = useEscalaTemplatesCrud();
+28: form.handleSubmit(
+53: <TemplateForm mode='add' ministerioId={ministerioId} onSave={handleOnSave} isLoading={isLoadingMutation} />
+
+### app\(app)\(drawer)\ministerios\templates_equipe\edit.tsx
+39: isLoading,
+40: isLoadingMutation,
+44: resolver: zodResolver(escalaTemplateSchema),
+76: form.handleSubmit(
+95: if (isLoading) return <FancyLoading />;
+99: <TemplateForm mode='edit' ministerioId={ministerioId} onSave={handleOnSave} isLoading={isLoadingMutation} />
+
+### app\(app)\(drawer)\pessoal\perfil\edit.tsx
+27: const [isSubmitting, setIsSubmitting] = useState(false);
+37: const form = useForm({
+38: resolver: zodResolver(updateProfileSchema),
+50: isLoadingMutation,
+51: isLoading,
+85: const handleSubmit = form.handleSubmit(async (data) => {
+86: if (isSubmitting) return;
+87: setIsSubmitting(true);
+135: setIsSubmitting(false);
+140: if (isLoading) return <FancyLoading />;
+142: const isSaving = isSubmitting || isLoadingMutation;
+169: isLoading={isSaving}
+170: disabled={isSaving}
+
+### app\(auth)\create-igreja-account.tsx
+28: const { form, handleCriarIgrejaPublico, isSubmitting } = useIgrejaCrud({
+55: if (isSubmitting) return;
+60: if (isSubmitting) {
+75: }, [isSubmitting]);
+141: if (isSubmitting || isServerUnavailable) return;
+146: isLoading: isSubmitting,
+150: enabled: !isSubmitting && !isServerUnavailable,
+158: const createForm = useForm();
+202: {isSubmitting && (
+
+### app\(auth)\create-voluntario-account.tsx
+23: const { add, isLoadingMutation } = useVoluntariosCrud({
+28: const createForm = useForm({
+29: resolver: zodResolver(createAccountSchema),
+33: const handleSubmit = createForm.handleSubmit(async (data) => {
+149: label={isLoadingMutation ? 'Confirmando...' : 'Confirmar'}
+151: disabled={isLoadingMutation || isServerUnavailable}
+
+### app\(auth)\forgot-password.tsx
+28: formState: { isSubmitting },
+30: resolver: zodResolver(forgotPasswordSchema),
+84: inputProps={{ autoCapitalize: 'none', keyboardType: 'email-address' }}
+87: <FancyButton label={isSubmitting ? 'Enviando...' : 'Enviar'} onPress={handleSubmit(onSubmit)} disabled={isSubmitting} />
+
+### components\pages\admin\eventos\EventoRepeticaoInputCustom.tsx
+67: const recorrenciaForm = useForm({
+68: resolver: zodResolver(schema),
+130: await recorrenciaForm.handleSubmit(
+
+### components\pages\admin\ministerios\AddLiderancaFormModal.tsx
+21: const form = useForm<AddLiderFormData>({ resolver: zodResolver(AddLiderSchema) });
+44: form.handleSubmit(
+
+### components\pages\admin\ministerios\EditLiderancaFormModal.tsx
+13: const form = useForm<AddLiderFormData>({ resolver: zodResolver(AddLiderSchema), defaultValues: props.data });
+37: form.handleSubmit((formData) => {
+
+### components\pages\admin\ministerios\VoluntarioAddFormModal.tsx
+24: const form = useForm({
+25: resolver: zodResolver(AddMinisterioVoluntarioSchema),
+33: const dataReady = !voluntariosDoMinisterioCrud.isLoading && !voluntariosDoMinisterioCrud.isLoadingMutation;
+59: if (voluntariosDoMinisterioCrud.isLoading || voluntariosDoMinisterioCrud.isLoadingMutation) {
+71: form.handleSubmit(
+
+### components\pages\admin\ministerios\VoluntarioEditFormModal.tsx
+26: const form = useForm({
+27: resolver: zodResolver(EditSchema),
+39: form.handleSubmit(
+
+### components\pages\admin\voluntarios\MinisterioAddForm.tsx
+30: const { data: ministeriosData, isLoading } = useMinisteriosCrud({ autoFetch: true });
+48: const form = useForm({ resolver: zodResolver(schema), defaultValues: props.defaultValues });
+53: onButton2Press={() => form.handleSubmit((data) => props.onButton2Press?.({ ...data, mode: props.mode }))()}
+54: centerContainerStyle={{ minHeight: isLoading ? 100 : undefined, justifyContent: 'center' }}
+55: button2={{ disabled: isLoading }}
+63: disabled={props.mode === 'edit'}
+64: isLoading={isLoading}
+
+### components\pages\ministerios\escalas\assistant\EscalaFormFixoModal.tsx
+27: resolver: zodResolver(EscalaEventoTemplateFixoSchema),
+37: form.handleSubmit(
+54: disabled={mode === 'edit'}
+
+### components\pages\ministerios\escalas\assistant\EventoFormFuncaoModal.tsx
+25: resolver: zodResolver(EscalaEventoTemplateFuncaoSchema),
+35: form.handleSubmit(
+50: disabled={mode === 'edit'}
+
+### components\pages\ministerios\escalas\assistant\EventoFormModal.tsx
+63: const { data: templatesList = [], isLoading: isLoadingTemplates } = useEscalaTemplatesCrud({
+71: isLoading: isLoadingFuncoesDoMinisterio,
+77: isLoadingMinisterioVoluntarios,
+78: isLoadingMinisterioVoluntariosMutation,
+93: resolver: zodResolver(EscalaEventoTemplateSchema),
+231: isLoadingFuncoesDoMinisterio ||
+232: isLoadingMinisterioVoluntarios ||
+233: isLoadingMinisterioVoluntariosMutation ||
+234: isLoadingTemplates
+241: isLoadingFuncoesDoMinisterio,
+242: isLoadingTemplates,
+243: isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation,
+249: !isLoadingFuncoesDoMinisterio &&
+250: !isLoadingMinisterioVoluntarios &&
+251: !isLoadingMinisterioVoluntariosMutation &&
+252: !isLoadingTemplates && (
+258: formTemplate.handleSubmit(
+278: {isLoadingTemplates ? (
+301: disabled={templateBaseIdWatch !== ''}
+
+### components\pages\ministerios\funcoes\FuncaoFormModal.tsx
+34: const { control, handleSubmit, reset } = useForm({
+35: resolver: zodResolver(schema),
+57: handleSubmit(
+
+### components\pages\ministerios\integrantes\FormFields.tsx
+61: const formModal = useForm({
+62: resolver: zodResolver(minVoluntarioFuncaoSchema),
+65: const handleSave = formModal.handleSubmit((data) => {
+
+### components\pages\ministerios\templates_equipe\TemplateFixoEquipeList.tsx
+37: const formAdd = useForm({ resolver: zodResolver(escalaTemplateVoluntarioSchema) });
+65: if (disabled) {
+68: formAdd.handleSubmit((data) => {
+93: if (disabled) {
+104: if (disabled) {
+135: disabled={disabled}
+154: backgroundColor: disabled ? Pallete.disabled : Pallete.error,
+
+### components\pages\ministerios\templates_equipe\TemplateFuncoesList.tsx
+44: resolver: zodResolver(escalaTemplateFuncaoSchema),
+48: const { funcoesList: funcoesDataList, isLoading: isLoadingFuncoes } = useFuncoesDoMinisterio(ministerioId);
+52: if (disabled) {
+63: if (disabled) {
+66: formAdd.handleSubmit((data) => {
+107: if (disabled) {
+123: if (disabled) {
+148: if(isLoadingFuncoes) return <FancyLoading />;
+156: disabled={disabled}
+
+### components\pages\pessoal\escalas\index\SubstituicaoModalPage.tsx
+56: const { data: possiveisSubstitutos, isLoading } = useMinisterioVoluntariosCrud({
+87: const form = useForm({
+88: resolver: zodResolver(schema),
+100: form.handleSubmit(
+124: button1={{ disabled: isLoading || undefined, textProps: { adjustsFontSizeToFit: false } }}
+125: button2={{ disabled: isLoading || undefined, textProps: { adjustsFontSizeToFit: false } }}
+143: disabled={isLoading}
+144: isLoading={isLoading}
+
+### components\pages\pessoal\indisponibilidade\AddPeriodModal.tsx
+37: const { control, handleSubmit, setValue, trigger } = useForm({
+38: resolver: zodResolver(schema),
+96: onPress: () => handleSubmit(submit)(),
+
+### components\pages\pessoal\indisponibilidade\DateAvailabilityAdjustmentModal.tsx
+38: resolver: zodResolver(schema),
+56: const submitToMarkUnavailable = handleSubmit((formData) => {
+87: button2={{ disabled: !canSubmit }}
+
+### components\pages\pessoal\perfil\ChangePasswordModal.tsx
+28: formState: { isValid, isSubmitting },
+30: resolver: zodResolver(schema),
+34: const handleConfirm = handleSubmit(async (data) => {
+63: disabled: !isValid || isSubmitting, // 👈 botão só habilita quando válido
+64: label: isSubmitting ? 'Alterando...' : 'Confirmar',
+
+### hooks\useCrud.ts
+158: !hasBootstrappedInitialParams || (!hasReceivedData && (dataQuery.isLoading || dataQuery.isFetching)) || isFetchingInitialItem;
+159: const combinedRefetching = hasReceivedData && dataQuery.isFetching && !dataQuery.isLoading;
+167: onError: (error) => {
+181: onError: (error) => {
+195: onError: (error) => {
+228: isLoading: combinedLoading,
+229: isLoadingMutation: createMutation.isPending || updateMutation?.isPending || removeMutation.isPending,
+
+### hooks\useIgrejaCrud.ts
+14: onError?: (error: any) => void;
+21: onError,
+27: resolver: zodResolver(LoginCreateIgrejaSchema),
+67: onError: (error: any) => {
+87: onError?.(error);
+99: const handleCriarIgrejaPublico = form.handleSubmit(async (data) => {
+124: isSubmitting: criarCadastroMutation.isPending,
+125: isVerificandoCodigo: verificarCodigoMutation.isPending,
+

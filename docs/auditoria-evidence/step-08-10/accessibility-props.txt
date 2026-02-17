@@ -1,0 +1,18 @@
+components\buttons\FancyButton.tsx:38:  accessibilityLabel?: string;
+components\buttons\FancyButton.tsx:39:  accessibilityHint?: string;
+components\buttons\FancyButton.tsx:40:  accessibilityRole?: AccessibilityRole;
+components\buttons\FancyButton.tsx:115:      accessibilityLabel={props.accessibilityLabel}
+components\buttons\FancyButton.tsx:116:      accessibilityHint={props.accessibilityHint}
+components\buttons\FancyButton.tsx:117:      accessibilityRole={props.accessibilityRole}
+app\(auth)\login.tsx:252:            accessibilityLabel: 'E-mail',
+app\(auth)\login.tsx:274:            accessibilityLabel: 'Senha',
+components\fields\FancyPasswordInput.tsx:27:          accessibilityRole='button'
+components\fields\FancyPasswordInput.tsx:28:          accessibilityLabel={toggleLabel}
+components\fields\FancyPasswordInput.tsx:29:          accessibilityHint='Alterna a visibilidade da senha'
+components\fields\FancyTextInput.tsx:95:          <FancyText size='extraSmall' type='semiBold' style={styles.errorText} accessibilityRole='alert' accessibilityLiveRegion='polite'>
+components\modal\FancyModalDialog.tsx:91:                accessibilityRole='button'
+components\modal\FancyModalDialog.tsx:92:                accessibilityLabel={closeButtonAccessibilityLabel ?? 'Fechar'}
+components\pages\ministerios\escalas\details\EscalaHeader.tsx:87:      accessibilityRole='button'
+components\pages\ministerios\escalas\details\EscalaHeader.tsx:88:      accessibilityLabel={action.label}
+components\pages\ministerios\escalas\details\EscalaHeader.tsx:189:              accessibilityRole='button'
+components\pages\ministerios\escalas\details\EscalaHeader.tsx:190:              accessibilityLabel='Abrir detalhes da escala'

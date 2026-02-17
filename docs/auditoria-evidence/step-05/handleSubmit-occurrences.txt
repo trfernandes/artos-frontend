@@ -1,0 +1,36 @@
+hooks\useIgrejaCrud.ts:99:  const handleCriarIgrejaPublico = form.handleSubmit(async (data) => {
+app\(auth)\forgot-password.tsx:87:        <FancyButton label={isSubmitting ? 'Enviando...' : 'Enviar'} onPress={handleSubmit(onSubmit)} disabled={isSubmitting} />
+app\(auth)\create-voluntario-account.tsx:33:  const handleSubmit = createForm.handleSubmit(async (data) => {
+app\(app)\(drawer)\configuracoes\index.tsx:204:  const handleSalvarDados = dadosForm.handleSubmit(async (formData: DadosFormData) => {
+app\(app)\(drawer)\configuracoes\index.tsx:248:  const handleSalvarModoEntrada = modoEntradaForm.handleSubmit((formData) => {
+app\(app)\(drawer)\configuracoes\index.tsx:255:  const handleSalvarNotificacoes = notificacoesForm.handleSubmit((formData) => {
+app\(app)\(drawer)\pessoal\perfil\edit.tsx:85:  const handleSubmit = form.handleSubmit(async (data) => {
+app\(app)\(drawer)\admin\ministerios\edit.tsx:134:    form.handleSubmit(
+app\(app)\(drawer)\admin\ministerios\add.tsx:43:    await form.handleSubmit(
+app\(app)\(drawer)\admin\eventos\edit.tsx:71:    eventoForm.handleSubmit(
+app\(app)\(drawer)\admin\eventos\add.tsx:52:    form.handleSubmit(
+app\(app)\(drawer)\ministerios\templates_equipe\edit.tsx:76:    form.handleSubmit(
+app\(app)\(drawer)\ministerios\templates_equipe\add.tsx:28:    form.handleSubmit(
+app\(app)\(drawer)\ministerios\integrantes\edit.tsx:119:  const handleSave = form.handleSubmit(
+app\(app)\(drawer)\ministerios\integrantes\add.tsx:60:  const handleSave = form.handleSubmit(
+components\pages\admin\voluntarios\MinisterioAddForm.tsx:53:      onButton2Press={() => form.handleSubmit((data) => props.onButton2Press?.({ ...data, mode: props.mode }))()}
+components\pages\pessoal\perfil\ChangePasswordModal.tsx:34:  const handleConfirm = handleSubmit(async (data) => {
+components\pages\ministerios\templates_equipe\TemplateFuncoesList.tsx:66:      formAdd.handleSubmit((data) => {
+components\pages\ministerios\escalas\details\AdicionarFuncaoModal.tsx:61:    if (handleSubmit()) {
+components\pages\pessoal\indisponibilidade\DateAvailabilityAdjustmentModal.tsx:56:  const submitToMarkUnavailable = handleSubmit((formData) => {
+components\pages\ministerios\templates_equipe\TemplateFuncoesForm.tsx:32:    handleSubmit(
+components\pages\ministerios\escalas\details\AdicionarVoluntarioModal.tsx:177:    if (handleSubmit()) {
+components\pages\pessoal\indisponibilidade\AddPeriodModal.tsx:96:                onPress: () => handleSubmit(submit)(),
+components\pages\ministerios\templates_equipe\TemplateFixoEquipeList.tsx:68:    formAdd.handleSubmit((data) => {
+components\pages\ministerios\escalas\assistant\EscalaFormFixoModal.tsx:37:        form.handleSubmit(
+components\pages\ministerios\escalas\assistant\EventoFormFuncaoModal.tsx:35:        form.handleSubmit(
+components\pages\ministerios\escalas\assistant\EventoFormModal.tsx:258:          formTemplate.handleSubmit(
+components\pages\ministerios\escalas\details\SubstituirVoluntarioModal.tsx:191:          if (handleSubmit()) {
+components\pages\ministerios\integrantes\FormFields.tsx:65:  const handleSave = formModal.handleSubmit((data) => {
+components\pages\ministerios\funcoes\FuncaoFormModal.tsx:57:      handleSubmit(
+components\pages\pessoal\escalas\index\SubstituicaoModalPage.tsx:100:      form.handleSubmit(
+components\pages\admin\ministerios\VoluntarioEditFormModal.tsx:39:        form.handleSubmit(
+components\pages\admin\ministerios\AddLiderancaFormModal.tsx:44:    form.handleSubmit(
+components\pages\admin\ministerios\EditLiderancaFormModal.tsx:37:    form.handleSubmit((formData) => {
+components\pages\admin\ministerios\VoluntarioAddFormModal.tsx:71:          form.handleSubmit(
+components\pages\admin\eventos\EventoRepeticaoInputCustom.tsx:130:          await recorrenciaForm.handleSubmit(

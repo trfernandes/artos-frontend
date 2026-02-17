@@ -1,0 +1,154 @@
+1	import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
+2	import FancyModalDialog, { FancyModalDialogProps } from '../../../../modal/FancyModalDialog';
+3	import { useCallback, useMemo, useState } from 'react';
+4	import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
+5	import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
+6	import FancyGroup from '../../../../list/FancyGroup';
+7	import { FancyTextDisplay } from '../../../../fields/FancyTextDisplay';
+8	import { format } from 'date-fns';
+9	import { useForm } from 'react-hook-form';
+10	import z from 'zod';
+11	import { zodResolver } from '@hookform/resolvers/zod';
+12	import ControlledSearchSelect from '../../../../forms/ControlledSearchSelect';
+13	import ControlledTextArea from '../../../../forms/ControlledTextArea';
+14	import { useAuth } from '../../../../../contexts/AuthContext';
+15	import { ResponseEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.response';
+16	import { AppImages } from '../../../../../assets/app_images';
+17	import Toast from 'react-native-toast-message';
+18	
+19	const schema = z.object({
+20	  eventoId: z.string(),
+21	  solicitanteId: z.string(),
+22	  substitutoId: z.string('Campo obrigatório'),
+23	  escalaItemId: z.string('Campo obrigatório'),
+24	  motivo: z.string('Campo obrigatório').min(5, 'O motivo deve ter ao menos 10 caracteres'),
+25	});
+26	
+27	export type FormData = z.infer<typeof schema>;
+28	
+29	export default function SubstituicaoModalPage({
+30	  dadosEscala,
+31	  ...props
+32	}: { dadosEscala: ResponseEscalaItemDto } & FancyModalDialogProps<FormData>) {
+33	  const { user } = useAuth();
+34	
+35	  const initialParams: DynamicQuery = {
+36	    where: {
+37	      conditions: [
+38	        {
+39	          path: 'ministerio.id',
+40	          operator: Operator.EQUALS,
+41	          value: {
+42	            type: ValueType.LITERAL,
+43	            value: dadosEscala.voluntario?.ministerio?.id! || dadosEscala.voluntario?.ministerioId!,
+44	          },
+45	        },
+46	        {
+47	          path: 'voluntario.id',
+48	          operator: Operator.NOT_EQUALS,
+49	          value: { type: ValueType.LITERAL, value: user?.user?.id! },
+50	        },
+51	      ],
+52	    },
+53	    relations: ['funcoes', 'voluntario'],
+54	  };
+55	
+56	  const { data: possiveisSubstitutos, isLoading } = useMinisterioVoluntariosCrud({
+57	    initialParams,
+58	    autoFetch: true,
+59	  });
+60	
+61	  const possiveisSubstitutosList = useMemo<DropDownItemProps<string>[]>(() => {
+62	    return possiveisSubstitutos
+63	      .map(
+64	        (minVoluntario) =>
+65	          ({
+66	            title: minVoluntario.voluntario?.nome,
+67	            left: {
+68	              type: 'image',
+69	              source:
+70	                minVoluntario.voluntario?.fotoThumbUrl || minVoluntario.voluntario?.fotoUrl
+71	                  ? {
+72	                      uri:
+73	                        minVoluntario.voluntario.fotoThumbUrl ||
+74	                        minVoluntario.voluntario.fotoUrl ||
+75	                        '',
+76	                    }
+77	                  : AppImages.emptyProfile,
+78	            },
+79	            value: minVoluntario.id,
+80	          }) as DropDownItemProps<string>,
+81	      )
+82	      .sort((a, b) => a.title.localeCompare(b.title, 'pt-BR', { sensitivity: 'base' }));
+83	  }, [possiveisSubstitutos]);
+84	
+85	  const [substitutoSelecionado, setSubstitutoSelecionado] = useState<string | undefined>();
+86	
+87	  const form = useForm({
+88	    resolver: zodResolver(schema),
+89	    defaultValues: {
+90	      escalaItemId: dadosEscala.id,
+91	      eventoId: dadosEscala.evento?.id,
+92	      solicitanteId: dadosEscala.voluntario?.id,
+93	      motivo: undefined,
+94	      substitutoId: undefined,
+95	    },
+96	  });
+97	
+98	  const handleConfirm = useCallback(
+99	    async (data: FormData) => {
+100	      form.handleSubmit(
+101	        async () => {
+102	          props.onButton2Press?.(data);
+103	        },
+104	        (errors) => {
+105	          if (__DEV__) {
+106	            console.log('[SubstituicaoModal] Validation errors:', errors);
+107	          }
+108	          Toast.show({
+109	            type: 'error',
+110	            text1: 'Erro de validação',
+111	            text2: 'Verifique os campos do formulário',
+112	          });
+113	        },
+114	      )();
+115	    },
+116	    [form.handleSubmit, props.onButton2Press, substitutoSelecionado],
+117	  );
+118	
+119	  return (
+120	    <FancyModalDialog<FormData>
+121	      {...props}
+122	      title='Solicitar substituição'
+123	      centerContainerStyle={{ gap: 16 }}
+124	      button1={{ disabled: isLoading || undefined, textProps: { adjustsFontSizeToFit: false } }}
+125	      button2={{ disabled: isLoading || undefined, textProps: { adjustsFontSizeToFit: false } }}
+126	      onButton2Press={() => handleConfirm(form.getValues())}
+127	    >
+128	      <FancyGroup title='Informações' contentContainerStyle={{ gap: 8 }}>
+129	        <FancyTextDisplay title='Ministério:' value={dadosEscala.voluntario?.ministerio?.nome} />
+130	        <FancyTextDisplay title='Evento:' value={dadosEscala.evento?.nome} />
+131	        <FancyTextDisplay
+132	          title='Data e Hora:'
+133	          value={format(dadosEscala.dataOcorrencia, 'dd/MM/yyyy - HH:mm')}
+134	        />
+135	        <FancyTextDisplay title='Função:' value={dadosEscala.funcao?.nome} />
+136	      </FancyGroup>
+137	      <ControlledSearchSelect
+138	        control={form.control}
+139	        name='substitutoId'
+140	        label={'Quem será seu substituto?'}
+141	        listItems={possiveisSubstitutosList}
+142	        onChange={setSubstitutoSelecionado}
+143	        disabled={isLoading}
+144	        isLoading={isLoading}
+145	        searchPlaceholder='Buscar substituto...'
+146	      />
+147	      <ControlledTextArea
+148	        control={form.control}
+149	        name='motivo'
+150	        label='Qual o motivo da substituição?'
+151	      />
+152	    </FancyModalDialog>
+153	  );
+154	}

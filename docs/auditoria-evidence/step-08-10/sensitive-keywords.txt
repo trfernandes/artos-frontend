@@ -1,0 +1,197 @@
+contexts\AuthContext.tsx:17:  token: string | null;
+contexts\AuthContext.tsx:21:  signIn: (email: string, senha: string) => Promise<void>;
+contexts\AuthContext.tsx:24:  forgotPassword: (email: string) => Promise<boolean>;
+contexts\AuthContext.tsx:27:  changePassword: (senhaAtual: string, novaSenha: string) => Promise<boolean>;
+contexts\AuthContext.tsx:41:  const [token, setToken] = useState<string | null>(null);
+contexts\AuthContext.tsx:112:  const signIn = async (email: string, senha: string) => {
+contexts\AuthContext.tsx:113:    const response = await apiClient.post('/auth/login', { email, senha });
+contexts\AuthContext.tsx:117:    const newToken = loginData?.access_token;
+contexts\AuthContext.tsx:146:    const newToken = loginData?.access_token;
+contexts\AuthContext.tsx:171:      // Remover push token do backend antes de limpar a sessão
+contexts\AuthContext.tsx:197:  const forgotPassword = async (email: string) => {
+contexts\AuthContext.tsx:198:    await apiClient.post('/auth/forgot-password', { email });
+contexts\AuthContext.tsx:242:          access_token: user.access_token,
+contexts\AuthContext.tsx:272:  const changePassword = async (senhaAtual: string, novaSenha: string) => {
+contexts\AuthContext.tsx:273:    await apiClient.put('/auth/change-password', { senhaAtual, novaSenha });
+contexts\AuthContext.tsx:286:      token,
+contexts\AuthContext.tsx:299:    [user, token, loading, igrejaAtiva],
+core\storage\authTokenStorage.ts:4:const TOKEN_KEY = 'token';
+core\storage\authTokenStorage.ts:19:export async function setAuthToken(token: string): Promise<void> {
+core\storage\authTokenStorage.ts:20:  await SecureStore.setItemAsync(TOKEN_KEY, token);
+app\(public)\_layout.tsx:6:      <Stack.Screen name="invite/[token]" />
+app\(public)\invite\[token].tsx:61:  const { token: urlToken } = useLocalSearchParams<{ token: string }>();
+app\(public)\invite\[token].tsx:77:      // Se não estiver logado, salvar token e redirecionar para login
+app\(app)\notifications.tsx:56:      icon: { library: 'MaterialCommunityIcons', name: 'email-outline', size: 14 },
+core\network\authBridge.ts:3:let token: string | null = null;
+core\network\authBridge.ts:7:  token = next;
+core\network\authBridge.ts:11:  return token;
+app\(app)\join-church\index.tsx:66:  const [token, setToken] = useState('');
+app\(app)\join-church\index.tsx:86:    const extractedToken = extractToken(token);
+app\(app)\join-church\index.tsx:110:    const extractedToken = extractToken(token);
+app\(app)\join-church\index.tsx:186:                value={token}
+app\(app)\join-church\index.tsx:220:                disabled={loadingPreview || !token.trim()}
+app\(auth)\_layout.tsx:16:      <Stack.Screen name='forgot-password' />
+app\(auth)\_layout.tsx:19:      <Stack.Screen name='igreja-cadastro-aguardando-email' />
+core\errors\normalizeAxiosError.ts:28:  // Ex.: { error: { fields: { email: 'inválido' } } }
+app\(auth)\login.tsx:19:const REMEMBER_EMAIL_KEY = 'artos_remember_email';
+app\(auth)\login.tsx:20:const REMEMBER_PASSWORD_KEY = 'artos_remember_password';
+app\(auth)\login.tsx:27:  const passwordInputRef = useRef<TextInput>(null);
+app\(auth)\login.tsx:29:  const [email, setEmail] = useState('');
+app\(auth)\login.tsx:30:  const [password, setPassword] = useState('');
+app\(auth)\login.tsx:33:  const [emailError, setEmailError] = useState('');
+app\(auth)\login.tsx:34:  const [passwordError, setPasswordError] = useState('');
+app\(auth)\login.tsx:52:    const trimmedEmail = email.trim();
+app\(auth)\login.tsx:64:    if (!password.trim()) {
+app\(auth)\login.tsx:65:      setPasswordError('Informe a senha');
+app\(auth)\login.tsx:109:      router.replace('/(auth)/igreja-cadastro-aguardando-email');
+app\(auth)\login.tsx:125:    const trimmedEmail = email.trim();
+app\(auth)\login.tsx:134:      await signIn(trimmedEmail, password);
+app\(auth)\login.tsx:139:          await SecureStore.setItemAsync(REMEMBER_PASSWORD_KEY, password);
+app\(auth)\login.tsx:149:          text2: `Não foi possível salvar o e-mail e senha localmente. ${secureStoreError?.message || JSON.stringify(secureStoreError)}`,
+app\(auth)\login.tsx:178:            text2: 'E-mail ou senha incorretos.',
+app\(auth)\login.tsx:198:        text2: 'Verifique se e-mail e senha estao corretos e tente novamente.',
+app\(auth)\login.tsx:236:          value={email}
+app\(auth)\login.tsx:237:          errorMessage={emailError}
+app\(auth)\login.tsx:241:              if (emailError) setEmailError('');
+app\(auth)\login.tsx:243:            keyboardType: 'email-address',
+app\(auth)\login.tsx:247:            textContentType: 'emailAddress',
+app\(auth)\login.tsx:248:            autoComplete: 'email',
+app\(auth)\login.tsx:251:            onSubmitEditing: () => passwordInputRef.current?.focus(),
+app\(auth)\login.tsx:259:          value={password}
+app\(auth)\login.tsx:260:          errorMessage={passwordError}
+app\(auth)\login.tsx:261:          inputRef={passwordInputRef}
+app\(auth)\login.tsx:265:              if (passwordError) setPasswordError('');
+app\(auth)\login.tsx:268:            textContentType: 'password',
+app\(auth)\login.tsx:269:            autoComplete: 'password',
+app\(auth)\login.tsx:284:            label='Esqueceu sua senha?'
+app\(auth)\login.tsx:285:            onPress={() => router.push('/(auth)/forgot-password')}
+app\(auth)\igreja-cadastro-aguardando-email.tsx:39:      if (authData?.access_token && authData?.user && authData?.igrejas !== undefined) {
+app\(auth)\igreja-cadastro-aguardando-email.tsx:41:          access_token: authData.access_token,
+app\(auth)\igreja-cadastro-aguardando-email.tsx:196:          {/* Ícone de email */}
+app\(auth)\igreja-cadastro-aguardando-email.tsx:198:            <DefaultIcons.Custom library='MaterialCommunityIcons' name='email-outline' size={40} color={Pallete.primary} />
+app\(auth)\igreja-cadastro-aguardando-email.tsx:202:          <View style={styles.emailSection}>
+app\(auth)\igreja-cadastro-aguardando-email.tsx:231:            {status?.emailEnviadoEm && (
+app\(auth)\igreja-cadastro-aguardando-email.tsx:233:                Enviado {formatarTempoRelativo(status.emailEnviadoEm)}
+app\(auth)\igreja-cadastro-aguardando-email.tsx:294:          {/* Link - Alterar email */}
+app\(auth)\igreja-cadastro-aguardando-email.tsx:305:      {/* Modal para alterar email */}
+app\(auth)\igreja-cadastro-aguardando-email.tsx:328:                    keyboardType: 'email-address',
+app\(auth)\igreja-cadastro-aguardando-email.tsx:418:  emailSection: {
+app\(auth)\forgot-password.tsx:14:  email: z
+app\(auth)\forgot-password.tsx:31:    defaultValues: { email: '' },
+app\(auth)\forgot-password.tsx:36:      const success = await forgotPassword(data.email);
+app\(auth)\forgot-password.tsx:82:          name='email'
+app\(auth)\forgot-password.tsx:84:          inputProps={{ autoCapitalize: 'none', keyboardType: 'email-address' }}
+hooks\useCadastroIgrejaEmail.ts:30:  // Cooldown para reenviar email
+hooks\useCadastroIgrejaEmail.ts:135:  // Mutation para reenviar email
+hooks\useCadastroIgrejaEmail.ts:163:  // Mutation para alterar email
+app\(auth)\create-voluntario-account.tsx:30:    defaultValues: { nome: '', email: '', senha: '', confirmarSenha: '', codigoIgreja: '' },
+app\(auth)\create-voluntario-account.tsx:37:        email: data.email,
+app\(auth)\create-voluntario-account.tsx:38:        senha: data.senha,
+app\(auth)\create-voluntario-account.tsx:129:            <ControlledTextInput label='E-mail' name='email' control={createForm.control} inputProps={{ autoCapitalize: 'none' }} />
+app\(auth)\create-voluntario-account.tsx:130:            <ControlledPasswordInput label='Senha' name='senha' control={createForm.control} inputProps={{ secureTextEntry: true }} />
+app\(auth)\create-igreja-account.tsx:41:      router.replace('/(auth)/igreja-cadastro-aguardando-email');
+domain\api\api-client.ts:14:// Interceptor para anexar o token JWT automaticamente
+domain\api\api-client.ts:16:  const token = await getAuthToken();
+domain\api\api-client.ts:17:  if (token) {
+domain\api\api-client.ts:18:    config.headers.Authorization = `Bearer ${token}`;
+domain\api\api-client.ts:24:const AUTH_ENDPOINTS = ['/auth/login', '/auth/register', '/auth/forgot-password'];
+domain\enums\Igreja\mode.enum.ts:2:  INVITE_ONLY = 'INVITE_ONLY', // só por convite (token/link/QR)
+domain\api\IgrejaApi.ts:223:   * POST /convites/{token}/preview
+domain\api\IgrejaApi.ts:225:  async getConvitePreview(token: string): Promise<ResponseConvitePreviewDto> {
+domain\api\IgrejaApi.ts:228:      `${baseURL}/convites/${token}/preview`,
+domain\api\IgrejaApi.ts:235:   * POST /convites/{token}/accept
+domain\api\IgrejaApi.ts:237:  async aceitarConvite(token: string): Promise<ResponseAceitarConviteDto> {
+domain\api\IgrejaApi.ts:239:      `/convites/${token}/accept`,
+domain\dtos\Voluntario\voluntario.response.ts:11:  email: string;
+domain\dtos\Voluntario\voluntario.create.ts:6:  email: string;
+domain\dtos\Voluntario\voluntario.create.ts:7:  senha: string;
+hooks\useProtectedRoute.ts:6:const PUBLIC_ROUTES = ['/login', '/create-account', '/forgot-password', '/reset-password'];
+hooks\useProtectedRoute.ts:9:  // cobre /reset-password e /reset-password?token=...
+hooks\usePostLoginRedirect.ts:38:      // 1. Verificar se tem token de convite pendente
+hooks\usePostLoginRedirect.ts:52:        console.error('Erro ao verificar token pendente:', err);
+components\drawer\FancyDrawerHeader.tsx:63:                {auth.user?.user?.email}
+app\(app)\(drawer)\pessoal\perfil\edit.tsx:76:      email: voluntario.email ?? '',
+app\(app)\(drawer)\pessoal\perfil\edit.tsx:151:          <ControlledTextInput name='email' control={form.control} label='E-mail' disabled />
+app\(app)\(drawer)\configuracoes\index.tsx:126:          email: data.email || '',
+app\(app)\(drawer)\configuracoes\index.tsx:156:    data?.configuracoes?.notificacoes?.canais?.whatsapp ?? data?.notificacoes?.canais?.whatsapp ?? false
+app\(app)\(drawer)\configuracoes\index.tsx:164:        email: data.email,
+app\(app)\(drawer)\configuracoes\index.tsx:179:        email: data.email || '',
+app\(app)\(drawer)\configuracoes\index.tsx:194:          canaisWhatsapp: notificacoes.canais?.whatsapp ?? false,
+app\(app)\(drawer)\configuracoes\index.tsx:198:        setCanaisWhatsapp(notificacoes.canais?.whatsapp ?? false);
+app\(app)\(drawer)\configuracoes\index.tsx:370:                name="email"
+app\(app)\(drawer)\configuracoes\index.tsx:372:                keyboardType="email-address"
+domain\services\IgrejaRepository.ts:146:  getConvitePreview(token: string): Promise<ResponseConvitePreviewDto> {
+domain\services\IgrejaRepository.ts:147:    return IgrejaApi.getConvitePreview(token);
+domain\services\IgrejaRepository.ts:153:  aceitarConvite(token: string): Promise<ResponseAceitarConviteDto> {
+domain\services\IgrejaRepository.ts:154:    return IgrejaApi.aceitarConvite(token);
+app\(app)\(drawer)\admin\voluntarios\index.tsx:102:      const email = item.email?.toLowerCase() || '';
+app\(app)\(drawer)\admin\voluntarios\index.tsx:103:      return nome.includes(normalized) || email.includes(normalized);
+app\(app)\(drawer)\admin\voluntarios\index.tsx:139:                  subtitle: item.email,
+domain\services\CadastroIgrejaRepository.ts:155:   * POST /public/cadastro-igreja/:cadastroId/reenviar-email
+domain\services\CadastroIgrejaRepository.ts:159:      `${API_BASE_PATH}/${cadastroId}/reenviar-email`,
+domain\services\CadastroIgrejaRepository.ts:173:   * PATCH /public/cadastro-igreja/:cadastroId/alterar-email
+domain\services\CadastroIgrejaRepository.ts:181:      `${API_BASE_PATH}/${cadastroId}/alterar-email`,
+domain\services\CadastroIgrejaRepository.ts:195:   * POST /public/cadastro-igreja/:cadastroId/confirmar-email
+domain\services\CadastroIgrejaRepository.ts:199:      `${API_BASE_PATH}/${cadastroId}/confirmar-email`,
+app\(app)\(drawer)\admin\solicitacoes\index.tsx:202:    const message = `Oi! Use este convite para entrar na nossa igreja no Artos:\n\n${convite.inviteLink}\n\nSe não abrir automaticamente, cole este código no app: ${convite.token}`;
+app\(app)\(drawer)\admin\solicitacoes\index.tsx:213:      `O convite "${convite.descricao || convite.token.substring(0, 8) + '...'}" não poderá mais ser usado.`,
+app\(app)\(drawer)\admin\solicitacoes\index.tsx:225:  const handleCopiarToken = (token: string) => {
+app\(app)\(drawer)\admin\solicitacoes\index.tsx:226:    Clipboard.setString(token);
+app\(app)\(drawer)\admin\solicitacoes\index.tsx:316:              onCopiarToken={() => handleCopiarToken(item.token)}
+app\(app)\(drawer)\admin\solicitacoes\index.tsx:408:        onCopiarToken={() => conviteGerado && handleCopiarToken(conviteGerado.token)}
+domain\schemas\loginCreateIgrejaSchema.tsx:30:    responsavelEmail: z.string('Campo obrigatório').min(1, 'Campo obrigatório').email('E-mail inválido'),
+domain\schemas\loginCreateIgrejaSchema.tsx:39:    message: 'As senhas não coincidem',
+domain\schemas\igreja-configuracoes.schema.ts:26:  email: z
+domain\schemas\igreja-configuracoes.schema.ts:29:    .email('Email inválido'),
+domain\schemas\voluntarioSchema.ts:12:    email: z
+domain\schemas\voluntarioSchema.ts:17:    senha: z
+domain\schemas\voluntarioSchema.ts:19:      .min(6, { message: 'A senha deve ter pelo menos 6 caracteres' })
+domain\schemas\voluntarioSchema.ts:20:      .max(100, { message: 'A senha pode ter no máximo 100 caracteres' }),
+domain\schemas\voluntarioSchema.ts:27:    if (data.senha !== data.confirmarSenha) {
+domain\schemas\voluntarioSchema.ts:31:        message: 'As senhas não coincidem',
+domain\schemas\voluntarioSchema.ts:38:  email: z
+domain\dtos\Igreja\update-igreja-dados.dto.ts:12:  email: string;
+domain\dtos\Igreja\response-igreja-convite.dto.ts:7:  token: string;
+domain\dtos\Igreja\response-igreja-configuracoes.dto.ts:16:  email?: string | null;
+domain\dtos\Igreja\response-igreja-configuracoes.dto.ts:27:        whatsapp?: boolean;
+domain\dtos\Igreja\response-igreja-configuracoes.dto.ts:36:      whatsapp?: boolean;
+domain\dtos\login\login.response.ts:26:  email: string;
+domain\dtos\login\login.response.ts:32:  access_token: string;
+domain\dtos\Igreja\response-convite-preview.dto.ts:2:  token: string;
+app\(app)\(drawer)\ministerios\integrantes\index.tsx:149:              subtitle: <FancyTextDisplayCard icon={{ library: 'MaterialCommunityIcons', name: 'email-outline', size: 12, color: Pallete.primary }} value={item.voluntario?.email} valueStyle={{ numberOfLines: 1 }} />,
+app\(app)\(drawer)\ministerios\integrantes\edit.tsx:113:      voluntarioEmail: voluntarioAtual.voluntario?.email || '',
+components\fields\FancyPasswordInput.tsx:8:  const toggleLabel = showPassword ? 'Ocultar senha' : 'Mostrar senha';
+components\fields\FancyPasswordInput.tsx:29:          accessibilityHint='Alterna a visibilidade da senha'
+domain\dtos\Igreja\cadastro-igreja.dto.ts:36:  emailConfirmado: boolean;
+domain\dtos\Igreja\cadastro-igreja.dto.ts:39:  emailEnviadoEm?: string | null;
+domain\dtos\Igreja\cadastro-igreja.dto.ts:42:  access_token?: string;
+domain\dtos\Igreja\cadastro-igreja.dto.ts:46:    email: string;
+domain\dtos\Igreja\cadastro-igreja.dto.ts:60:// Request do PATCH /public/cadastro-igreja/:id/alterar-email
+domain\dtos\Igreja\cadastro-igreja.dto.ts:65:// Request do POST /public/cadastro-igreja/:id/confirmar-email
+domain\dtos\Igreja\cadastro-igreja.dto.ts:67:  token: string;
+components\fields\FancyMaskedTextInput.tsx:7: * - 'cpf': XXX.XXX.XXX-XX
+components\fields\FancyMaskedTextInput.tsx:13:export type MaskType = 'phone' | 'cpf' | 'cnpj' | 'cep' | 'date' | 'custom';
+components\fields\FancyMaskedTextInput.tsx:25:  cpf: '999.999.999-99',
+components\pages\admin\voluntarios\DadosTab.tsx:35:            {props.voluntario.email}
+components\pages\pessoal\perfil\DadosTab.tsx:37:            {user?.user?.email}
+components\pages\pessoal\perfil\DadosTab.tsx:62:              label: 'Alterar senha',
+components\pages\pessoal\perfil\ChangePasswordModal.tsx:12:    senhaAtual: z.string().min(6, 'Senha atual inválida'),
+components\pages\pessoal\perfil\ChangePasswordModal.tsx:13:    novaSenha: z.string().min(6, 'A nova senha deve ter pelo menos 6 caracteres'),
+components\pages\pessoal\perfil\ChangePasswordModal.tsx:17:    message: 'As senhas não conferem',
+components\pages\pessoal\perfil\ChangePasswordModal.tsx:36:      const ok = await changePassword(data.senhaAtual, data.novaSenha);
+components\pages\pessoal\perfil\ChangePasswordModal.tsx:43:          text1: 'Erro ao alterar a senha',
+components\pages\pessoal\perfil\ChangePasswordModal.tsx:44:          text2: 'Verifique a senha atual e tente novamente.',
+components\pages\pessoal\perfil\ChangePasswordModal.tsx:50:        text1: 'Erro ao alterar a senha',
+components\pages\pessoal\perfil\ChangePasswordModal.tsx:67:      <ControlledPasswordInput control={control} name='senhaAtual' label='Senha Atual' />
+components\pages\admin\solicitacoes\SolicitacaoCard.tsx:66:                name='email'
+components\pages\admin\solicitacoes\SolicitacaoCard.tsx:71:                {voluntario?.email || ''}
+components\pages\admin\solicitacoes\NovoConviteModal.tsx:99:      {/* Toggle de entrada imediata - Redesenhado */}
+components\pages\admin\solicitacoes\SummaryCards.tsx:52:        icon='email-outline'
+components\pages\igreja\JoinChurchModal.tsx:60:  const [token, setToken] = useState('');
+components\pages\igreja\JoinChurchModal.tsx:65:  // Extrair token de URLs como diakonia://invite/TOKEN, https://diakonia.app.br/invite/TOKEN ou apenas TOKEN
+components\pages\igreja\JoinChurchModal.tsx:86:    const extractedToken = extractToken(token);
+components\pages\igreja\JoinChurchModal.tsx:116:    const extractedToken = extractToken(token);
+components\pages\igreja\JoinChurchModal.tsx:186:            value={token}
+components\pages\igreja\JoinChurchModal.tsx:198:            disabled={loadingPreview || !token.trim()}
+components\pages\login\createAccount\create-igreja-account-tab-responsavel.tsx:14:      <ControlledTextInput control={control} name="responsavelEmail" label="E-mail" keyboardType="email-address" autoCapitalize="none" />
+components\pages\ministerios\escalas\details\VoluntarioDetailsHeader.tsx:35:          {voluntarioInfo.email}

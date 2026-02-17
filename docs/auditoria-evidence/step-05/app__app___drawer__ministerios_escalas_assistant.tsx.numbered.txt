@@ -1,0 +1,630 @@
+1	import { StyleSheet } from 'react-native';
+2	import FancyPageView from '../../../../../components/containers/FancyPageView';
+3	import FancySteps from '../../../../../components/steps/FancySteps';
+4	import { FancyStepsConfig } from '../../../../../components/steps/FancyStepsConfig';
+5	import { useCallback } from 'react';
+6	import axios from 'axios';
+7	import { Pallete } from '../../../../../constants/colors';
+8	import { FormProvider, useForm } from 'react-hook-form';
+9	import { zodResolver } from '@hookform/resolvers/zod';
+10	import {
+11	  EscalaEventosArraySchema,
+12	  EscalaFormData,
+13	  EscalaParticipantesArraySchema,
+14	  EscalaSchema,
+15	} from '../../../../../domain/schemas/escalaSchema';
+16	import AssistenteParametrosStep from '../../../../../components/pages/ministerios/escalas/assistant/AssistenteParametrosStep';
+17	import AssistenteEventosStep from '../../../../../components/pages/ministerios/escalas/assistant/AssistenteEventosStep';
+18	import AssistenteParticipantesStep from '../../../../../components/pages/ministerios/escalas/assistant/AssistenteParticipantesStep';
+19	import AssistenteRevisaoStep from '../../../../../components/pages/ministerios/escalas/assistant/AssistenteRevisaoStep';
+20	import { router, useLocalSearchParams } from 'expo-router';
+21	import { useEscalasCrud } from '../../../../../hooks/useEscalaCrud';
+22	import { useAuth } from '../../../../../contexts/AuthContext';
+23	import { useLoading } from '../../../../../contexts/LoadingContext';
+24	import AssistenteResultadoStep from '../../../../../components/pages/ministerios/escalas/assistant/AssistenteResultadoStep';
+25	import {
+26	  AssistenteEscalaProvider,
+27	  useAssistenteEscala,
+28	} from '../../../../../contexts/pages/escalas/AssistantContext';
+29	import { endOfMonth } from 'date-fns';
+30	import Toast from 'react-native-toast-message';
+31	import { EscalaRepository } from '../../../../../domain/services/EscalaRepository';
+32	import { Operator, ValueType, Conjunction } from '../../../../../domain/utils/query_utils';
+33	import {
+34	  CreateEscalaDto,
+35	  CreateEscalaEventoDto,
+36	  CreateEscalaEventoEquipePersonalizadaDto,
+37	  CreateEscalaEventoEquipePorTemplateDto,
+38	} from '../../../../../domain/dtos/Escala/escala.create';
+39	import { EscalaTemplateTipoEnum } from '../../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
+40	import { DateUtilsApi } from '../../../../../utils/date_utils';
+41	import { useEscalaNomeValidator } from '../../../../../hooks/useEscalaNomeValidator';
+42	import { getApiErrorMessage } from '../../../../../domain/api/api-error';
+43	
+44	const DUPLICATE_NAME_MESSAGE = 'Já existe uma escala com esse nome neste ministério.';
+45	
+46	const normalizeEscalaName = (value?: string | null) =>
+47	  (value ?? '')
+48	    .normalize('NFD')
+49	    .replace(/[\u0300-\u036f]/g, '')
+50	    .trim()
+51	    .toLowerCase();
+52	
+53	const mapEscalaFormToDto = (
+54	  ministerioId: string,
+55	  usuarioId: string,
+56	  values: EscalaFormData,
+57	): CreateEscalaDto => {
+58	  const eventos =
+59	    values.eventos
+60	      ?.filter((evento) => evento.selected)
+61	      .map((evento) => {
+62	        let equipe:
+63	          | CreateEscalaEventoEquipePorTemplateDto
+64	          | CreateEscalaEventoEquipePersonalizadaDto
+65	          | null;
+66	
+67	        if (evento.template.templateBase) {
+68	          equipe = {
+69	            origem: 'porTemplate',
+70	            templateId:
+71	              'id' in evento.template.templateBase
+72	                ? (evento.template.templateBase as { id?: string }).id
+73	                : undefined,
+74	          } as CreateEscalaEventoEquipePorTemplateDto;
+75	        } else {
+76	          equipe = {
+77	            origem: 'personalizada',
+78	            tipo: evento.template.tipo,
+79	            funcoes:
+80	              evento.template.tipo === EscalaTemplateTipoEnum.Funcoes
+81	                ? evento.template.funcoes?.map((funcao) => ({
+82	                    id: funcao.funcaoId!,
+83	                    quantidade: funcao.quantidade,
+84	                    experienciaMinima: funcao.experiencia,
+85	                  }))
+86	                : undefined,
+87	            fixos:
+88	              evento.template.tipo === EscalaTemplateTipoEnum.Fixo
+89	                ? evento.template.fixos?.map((fixo) => ({
+90	                    voluntarioId: fixo.minVolId,
+91	                    funcaoId: fixo.funcaoId,
+92	                  }))
+93	                : undefined,
+94	          } as CreateEscalaEventoEquipePersonalizadaDto;
+95	        }
+96	        return {
+97	          id: evento.eventoId,
+98	          data: DateUtilsApi.dateOnlyToApi(evento.dataOcorrencia),
+99	          equipe: equipe,
+100	        } as CreateEscalaEventoDto;
+101	      }) ?? [];
+102	
+103	  const participantes =
+104	    values.participantes
+105	      ?.filter((e) => e.selected)
+106	      .map((participante) => ({
+107	        minVolId: participante.minVolId,
+108	        voluntarioId: participante.voluntarioId,
+109	      })) ?? [];
+110	
+111	  return {
+112	    ministerioId,
+113	    criadoPor: usuarioId,
+114	    nome: values.nome,
+115	    dataInicio: DateUtilsApi.dateOnlyToApi(values.dataInicio),
+116	    dataTermino: DateUtilsApi.dateOnlyToApi(values.dataTermino),
+117	    ...(eventos.length ? { eventos } : {}),
+118	    ...(participantes.length ? { participantes } : {}),
+119	  };
+120	};
+121	
+122	function AssistenteWrapper() {
+123	  const {
+124	    ministerioId,
+125	    setResultado,
+126	    index,
+127	    setIndex,
+128	    nextStep,
+129	    previousStep,
+130	    setShouldLoadEvents,
+131	    resultado,
+132	    setTempoGeracaoEscala,
+133	  } = useAssistenteEscala();
+134	
+135	  const { showLoading, hideLoading } = useLoading();
+136	
+137	  const { generate: generateEscala, isGenerating: isGeneratingEscala } = useEscalasCrud();
+138	
+139	  const dataAtual = new Date();
+140	
+141	  const form = useForm({
+142	    resolver: zodResolver(EscalaSchema),
+143	    defaultValues: {
+144	      dataInicio: new Date(dataAtual.getFullYear(), dataAtual.getMonth() + 1, 1),
+145	      dataTermino: endOfMonth(new Date(dataAtual.getFullYear(), dataAtual.getMonth() + 1, 1)),
+146	      markEventsAll: true,
+147	      markParticipantsAll: true,
+148	      eventos: [],
+149	    },
+150	  });
+151	
+152	  form.register('dataInicio', {
+153	    onChange: () => {
+154	      setShouldLoadEvents(true);
+155	    },
+156	  });
+157	
+158	  form.register('dataTermino', {
+159	    onChange: () => {
+160	      setShouldLoadEvents(true);
+161	    },
+162	  });
+163	
+164	  const nomeWatch = form.watch('nome');
+165	  const dataInicioWatch = form.watch('dataInicio');
+166	  const dataTerminoWatch = form.watch('dataTermino');
+167	  const eventosWatch = form.watch('eventos');
+168	  const participantesWatch = form.watch('participantes');
+169	
+170	  const { user, igrejaAtiva } = useAuth();
+171	  const { validateNome, validateNomeDebounced, isCheckingName } =
+172	    useEscalaNomeValidator(ministerioId);
+173	
+174	  const handleNomeBlurValidation = useCallback(
+175	    async (nome: string) => {
+176	      const nomeNormalizado = nome?.trim() ?? '';
+177	
+178	      if (!nomeNormalizado) {
+179	        return;
+180	      }
+181	
+182	      try {
+183	        const result = await validateNomeDebounced(nomeNormalizado);
+184	
+185	        if (result.exists) {
+186	          form.setError('nome', { message: DUPLICATE_NAME_MESSAGE });
+187	          return;
+188	        }
+189	
+190	        if (form.formState.errors.nome?.message === DUPLICATE_NAME_MESSAGE) {
+191	          form.clearErrors('nome');
+192	        }
+193	      } catch (error) {
+194	        if (__DEV__) {
+195	          console.log('[AssistenteEscala] erro ao validar nome no blur:', error);
+196	        }
+197	      }
+198	    },
+199	    [form, validateNomeDebounced],
+200	  );
+201	
+202	  const validateUniqueNameBeforeNext = useCallback(
+203	    async (nome: string): Promise<boolean> => {
+204	      const nomeNormalizado = nome?.trim() ?? '';
+205	
+206	      if (!nomeNormalizado) {
+207	        return true;
+208	      }
+209	
+210	      if (!ministerioId) {
+211	        Toast.show({
+212	          type: 'error',
+213	          text1: 'Ministério não identificado',
+214	          text2: 'Volte e entre novamente no assistente.',
+215	        });
+216	        return false;
+217	      }
+218	
+219	      if (!igrejaAtiva?.id) {
+220	        Toast.show({
+221	          type: 'error',
+222	          text1: 'Igreja não selecionada',
+223	          text2: 'Selecione uma igreja para continuar.',
+224	        });
+225	        return false;
+226	      }
+227	
+228	      try {
+229	        const result = await validateNome(nomeNormalizado);
+230	        if (result.exists) {
+231	          form.setError('nome', { message: DUPLICATE_NAME_MESSAGE });
+232	          return false;
+233	        }
+234	      } catch (error) {
+235	        // Fallback para ambientes em que o endpoint validar-nome ainda não existe.
+236	        if (!axios.isAxiosError(error) || error.response?.status !== 404) {
+237	          throw error;
+238	        }
+239	
+240	        const duplicates = await EscalaRepository.search({
+241	          where: {
+242	            conjunction: Conjunction.AND,
+243	            conditions: [
+244	              {
+245	                path: 'ministerio.id',
+246	                operator: Operator.EQUALS,
+247	                value: {
+248	                  type: ValueType.LITERAL,
+249	                  value: ministerioId,
+250	                },
+251	              },
+252	              {
+253	                path: 'nome',
+254	                operator: Operator.ILIKE,
+255	                value: {
+256	                  type: ValueType.LITERAL,
+257	                  value: nomeNormalizado,
+258	                },
+259	              },
+260	            ],
+261	          },
+262	        });
+263	
+264	        const normalizedTarget = normalizeEscalaName(nomeNormalizado);
+265	        const exists = (duplicates ?? []).some(
+266	          (escala) => normalizeEscalaName(escala.nome) === normalizedTarget,
+267	        );
+268	
+269	        if (exists) {
+270	          form.setError('nome', { message: DUPLICATE_NAME_MESSAGE });
+271	          return false;
+272	        }
+273	      }
+274	
+275	      if (form.formState.errors.nome?.message === DUPLICATE_NAME_MESSAGE) {
+276	        form.clearErrors('nome');
+277	      }
+278	
+279	      return true;
+280	    },
+281	    [form, igrejaAtiva?.id, ministerioId, validateNome],
+282	  );
+283	
+284	  const handleGenerate = useCallback(
+285	    async (values: EscalaFormData) => {
+286	      try {
+287	        showLoading('Gerando escala...');
+288	        const start = Date.now();
+289	        const payload = mapEscalaFormToDto(ministerioId, user?.user?.id!, values);
+290	        const resultado = await generateEscala(payload);
+291	        const time = Date.now() - start;
+292	        setTempoGeracaoEscala?.(time);
+293	        setResultado(resultado);
+294	        nextStep();
+295	      } finally {
+296	        hideLoading();
+297	      }
+298	    },
+299	    [generateEscala],
+300	  );
+301	
+302	  const handleViewResults = useCallback(() => {
+303	    if (!resultado) return;
+304	
+305	    router.push({
+306	      pathname: '/ministerios/escalas/details',
+307	      params: {
+308	        ministerioId,
+309	        escalaId: resultado.id,
+310	        viewMode: 'view',
+311	      },
+312	    });
+313	  }, [resultado]);
+314	
+315	  const stepsConfig: FancyStepsConfig = {
+316	    steps: [
+317	      {
+318	        title: 'Parâmetros',
+319	        content: (
+320	          <AssistenteParametrosStep
+321	            isCheckingName={isCheckingName}
+322	            onNomeBlur={handleNomeBlurValidation}
+323	          />
+324	        ),
+325	        actions: [
+326	          {
+327	            label: 'Anterior',
+328	            enabled: false,
+329	            icon: {
+330	              library: 'MaterialIcons',
+331	              name: 'chevron-left',
+332	              size: 20,
+333	              style: { borderWidth: 0, width: 10, lineHeight: 12 },
+334	            },
+335	          },
+336	          {
+337	            label: 'Próximo',
+338	            enabled: !isCheckingName,
+339	            icon: {
+340	              library: 'MaterialIcons',
+341	              name: 'chevron-right',
+342	              size: 20,
+343	              style: { borderWidth: 0, width: 10, lineHeight: 12 },
+344	            },
+345	            iconPosition: 'right',
+346	            onPress: async () => {
+347	              showLoading();
+348	              form.clearErrors();
+349	
+350	              try {
+351	                const values = {
+352	                  nome: nomeWatch,
+353	                  dataInicio: dataInicioWatch,
+354	                  dataTermino: dataTerminoWatch,
+355	                };
+356	
+357	                const validation = EscalaSchema.safeParse(values);
+358	
+359	                if (!validation.success) {
+360	                  validation.error.issues.forEach((err) => {
+361	                    form.setError(err.path[0] as keyof EscalaFormData, { message: err.message });
+362	                  });
+363	                  return;
+364	                }
+365	
+366	                const nomeDisponivel = await validateUniqueNameBeforeNext(values.nome);
+367	                if (!nomeDisponivel) {
+368	                  return;
+369	                }
+370	
+371	                const dataInicioApi = DateUtilsApi.dateOnlyToApi(values.dataInicio);
+372	                const dataTerminoApi = DateUtilsApi.dateOnlyToApi(values.dataTermino);
+373	
+374	                const escalasConflitantes = await EscalaRepository.search({
+375	                  where: {
+376	                    conditions: [
+377	                      {
+378	                        path: 'ministerio.id',
+379	                        operator: Operator.EQUALS,
+380	                        value: {
+381	                          type: ValueType.LITERAL,
+382	                          value: ministerioId,
+383	                        },
+384	                      },
+385	                      {
+386	                        conditions: [
+387	                          {
+388	                            path: 'dataInicio',
+389	                            operator: Operator.LTE,
+390	                            value: {
+391	                              type: ValueType.LITERAL,
+392	                              value: dataTerminoApi,
+393	                            },
+394	                          },
+395	                          {
+396	                            path: 'dataTermino',
+397	                            operator: Operator.GTE,
+398	                            value: {
+399	                              type: ValueType.LITERAL,
+400	                              value: dataInicioApi,
+401	                            },
+402	                          },
+403	                        ],
+404	                        conjunction: Conjunction.AND,
+405	                      },
+406	                    ],
+407	                    conjunction: Conjunction.AND,
+408	                  },
+409	                });
+410	
+411	                if (escalasConflitantes && escalasConflitantes.length > 0) {
+412	                  Toast.show({
+413	                    text1: 'Dados Inválidos',
+414	                    text2: `Já existe(m) ${escalasConflitantes.length} escala(s) com datas que se sobrepõem ao período selecionado.`,
+415	                    type: 'error',
+416	                  });
+417	                  return;
+418	                }
+419	
+420	                nextStep();
+421	              } catch (error) {
+422	                Toast.show({
+423	                  type: 'error',
+424	                  text1: 'Não foi possível validar os parâmetros.',
+425	                  text2: getApiErrorMessage(error, 'Tente novamente em instantes.'),
+426	                });
+427	              } finally {
+428	                hideLoading();
+429	              }
+430	            },
+431	          },
+432	        ],
+433	      },
+434	      {
+435	        title: 'Eventos',
+436	        content: <AssistenteEventosStep />,
+437	        actions: [
+438	          {
+439	            label: 'Anterior',
+440	            icon: {
+441	              library: 'MaterialIcons',
+442	              name: 'chevron-left',
+443	              size: 20,
+444	              style: { borderWidth: 0, width: 10, lineHeight: 12 },
+445	            },
+446	            onPress: () => previousStep(),
+447	          },
+448	          {
+449	            label: 'Próximo',
+450	            icon: {
+451	              library: 'MaterialIcons',
+452	              name: 'chevron-right',
+453	              size: 20,
+454	              style: { borderWidth: 0, width: 10, lineHeight: 12 },
+455	            },
+456	            iconPosition: 'right',
+457	            onPress: () => {
+458	              showLoading();
+459	              form.clearErrors();
+460	
+461	              const values = eventosWatch;
+462	              const validation = EscalaEventosArraySchema.safeParse(values);
+463	
+464	              if (!validation.success) {
+465	                validation.error.issues.forEach((err) => {
+466	                  Toast.show({
+467	                    text2: `${err.message}!` as string,
+468	                    type: 'error',
+469	                  });
+470	                });
+471	                hideLoading();
+472	                return;
+473	              }
+474	
+475	              hideLoading();
+476	              nextStep();
+477	            },
+478	          },
+479	        ],
+480	      },
+481	      {
+482	        title: 'Participantes',
+483	        content: <AssistenteParticipantesStep />,
+484	        actions: [
+485	          {
+486	            label: 'Anterior',
+487	            icon: {
+488	              library: 'MaterialIcons',
+489	              name: 'chevron-left',
+490	              size: 20,
+491	              style: { borderWidth: 0, width: 10, lineHeight: 12 },
+492	            },
+493	            onPress: () => previousStep(),
+494	          },
+495	          {
+496	            label: 'Próximo',
+497	            icon: {
+498	              library: 'MaterialIcons',
+499	              name: 'chevron-right',
+500	              size: 20,
+501	              style: { borderWidth: 0, width: 10, lineHeight: 12 },
+502	            },
+503	            iconPosition: 'right',
+504	            onPress: () => {
+505	              form.clearErrors();
+506	
+507	              const values = participantesWatch;
+508	
+509	              if (!values || values.length === 0) {
+510	                Toast.show({
+511	                  type: 'error',
+512	                  text1: 'Sem participantes com função',
+513	                  text2:
+514	                    'Cadastre função em pelo menos um voluntário do ministério para continuar.',
+515	                });
+516	                return;
+517	              }
+518	
+519	              const validation = EscalaParticipantesArraySchema.safeParse(values);
+520	
+521	              if (!validation.success) {
+522	                validation.error.issues.forEach((err) => {
+523	                  Toast.show({
+524	                    text2: `${err.message}!` as string,
+525	                    type: 'error',
+526	                  });
+527	                });
+528	                return;
+529	              }
+530	              nextStep();
+531	            },
+532	          },
+533	        ],
+534	      },
+535	      {
+536	        title: 'Revisão',
+537	        content: <AssistenteRevisaoStep />,
+538	        actions: [
+539	          {
+540	            label: 'Anterior',
+541	            icon: {
+542	              library: 'MaterialIcons',
+543	              name: 'chevron-left',
+544	              size: 20,
+545	              style: { borderWidth: 0, width: 10, lineHeight: 12 },
+546	            },
+547	            onPress: () => previousStep(),
+548	          },
+549	          {
+550	            label: 'Gerar',
+551	            icon: {
+552	              library: 'MaterialIcons',
+553	              name: 'play-arrow',
+554	              size: 16,
+555	              style: { borderWidth: 0, width: 10, lineHeight: 10 },
+556	            },
+557	            iconPosition: 'right',
+558	            color: Pallete.secondary,
+559	            onPress: () => {
+560	              handleGenerate(form.getValues() as EscalaFormData);
+561	            },
+562	          },
+563	        ],
+564	      },
+565	      {
+566	        title: 'Resultado',
+567	        content: <AssistenteResultadoStep />,
+568	        actions: [
+569	          {
+570	            label: 'Reiniciar',
+571	            icon: {
+572	              library: 'MaterialCommunityIcons',
+573	              name: 'arrow-u-left-top',
+574	              size: 14,
+575	              style: { borderWidth: 0, width: 12, lineHeight: 12 },
+576	            },
+577	            onPress: () => {
+578	              setIndex(0);
+579	              setResultado(null);
+580	              form.reset();
+581	            },
+582	          },
+583	          {
+584	            label: 'Visualizar',
+585	            icon: {
+586	              library: 'MaterialCommunityIcons',
+587	              name: 'table-eye',
+588	              size: 14,
+589	              style: { borderWidth: 0, width: 14, lineHeight: 14 },
+590	            },
+591	            color: Pallete.secondary,
+592	            onPress: handleViewResults,
+593	          },
+594	        ],
+595	      },
+596	    ],
+597	  };
+598	
+599	  return (
+600	    <FancyPageView
+601	      style={[styles.container, { pointerEvents: isGeneratingEscala ? 'none' : 'auto' }]}
+602	    >
+603	      <FormProvider {...form}>
+604	        <FancySteps
+605	          config={stepsConfig}
+606	          index={index}
+607	          setIndex={setIndex}
+608	          containerStyle={{ borderWidth: 0 }}
+609	          headerContainerStyle={{ paddingHorizontal: 15 }}
+610	          contentContainerStyle={{ paddingHorizontal: 15, flex: 1 }}
+611	          navigationContainerStyle={{ paddingHorizontal: 15 }}
+612	        />
+613	      </FormProvider>
+614	    </FancyPageView>
+615	  );
+616	}
+617	
+618	export default function MinisterioEscalasAssistenteIndex() {
+619	  const { ministerioId } = useLocalSearchParams<{ ministerioId: string }>();
+620	
+621	  return (
+622	    <AssistenteEscalaProvider ministerioId={ministerioId}>
+623	      <AssistenteWrapper />
+624	    </AssistenteEscalaProvider>
+625	  );
+626	}
+627	
+628	const styles = StyleSheet.create({
+629	  container: { paddingVertical: 10, paddingHorizontal: 5 },
+630	});

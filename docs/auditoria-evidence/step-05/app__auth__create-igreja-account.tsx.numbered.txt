@@ -1,0 +1,250 @@
+1	import { StyleSheet, View } from 'react-native';
+2	import { useEffect, useRef, useState } from 'react';
+3	import AuthScreen from '../../components/pages/login/AuthScreen';
+4	import { Pallete } from '../../constants/colors';
+5	import { FancyStepsConfig } from '../../components/steps/FancyStepsConfig';
+6	import CreateIgrejaAccountTabDados, { CodigoCheckProvider, useCodigoCheck } from '../../components/pages/login/createAccount/create-igreja-account-tab-dados';
+7	import CreateIgrejaAccountTabResponsavel from '../../components/pages/login/createAccount/create-igreja-account-tab-responsavel';
+8	import CreateIgrejaAccountTabPlano from '../../components/pages/login/createAccount/create-igreja-account-tab-plano';
+9	import CreateIgrejaAccountTabPronto from '../../components/pages/login/createAccount/create-igreja-account-tab-pronto';
+10	import { FormProvider, useForm } from 'react-hook-form';
+11	import { LoginCreateIgrejaStepFields } from '../../domain/schemas/loginCreateIgrejaSchema';
+12	import FancyText from '../../components/FancyText';
+13	import { EXTRA_LARGE_SIZE_FONT, LARGE_SIZE_FONT } from '../../constants/font';
+14	import { router } from 'expo-router';
+15	import { useIgrejaCrud } from '../../hooks/useIgrejaCrud';
+16	import FancySteps from '../../components/steps/FancySteps';
+17	import { useConnectivity } from '../../core/network/connectivity/ConnectivityProvider';
+18	
+19	function CreateIgrejaAccountPageContent() {
+20	  const [stepIndex, setStepIndex] = useState(0);
+21	  const [showSlowText, setShowSlowText] = useState(false);
+22	  const slowTimer = useRef<NodeJS.Timeout | null>(null);
+23	
+24	  const { status: connectivityStatus } = useConnectivity();
+25	  const isServerUnavailable = connectivityStatus !== 'ok';
+26	  const { isCheckingCode } = useCodigoCheck();
+27	
+28	  const { form, handleCriarIgrejaPublico, isSubmitting } = useIgrejaCrud({
+29	    defaultValues: {
+30	      nome: '',
+31	      cidade: '',
+32	      uf: '',
+33	      codigo: '',
+34	      responsavelNome: '',
+35	      responsavelEmail: '',
+36	      responsavelWhatsapp: '',
+37	      responsavelSenha: '',
+38	      responsavelConfirmarSenha: '',
+39	    },
+40	    onSuccess: () => {
+41	      router.replace('/(auth)/igreja-cadastro-aguardando-email');
+42	    },
+43	  });
+44	
+45	  const handleNext = async () => {
+46	    const fieldsToValidate = LoginCreateIgrejaStepFields[stepIndex as keyof typeof LoginCreateIgrejaStepFields];
+47	    const isValid = await form.trigger(fieldsToValidate as any);
+48	    if (isValid && stepIndex < 3) {
+49	      setStepIndex(stepIndex + 1);
+50	    }
+51	  };
+52	
+53	  // Guard-clause para impedir multi-clique
+54	  const handleConfirmar = () => {
+55	    if (isSubmitting) return;
+56	    handleCriarIgrejaPublico();
+57	  };
+58	
+59	  useEffect(() => {
+60	    if (isSubmitting) {
+61	      slowTimer.current = setTimeout(() => setShowSlowText(true), 800);
+62	    } else {
+63	      setShowSlowText(false);
+64	      if (slowTimer.current) {
+65	        clearTimeout(slowTimer.current);
+66	        slowTimer.current = null;
+67	      }
+68	    }
+69	    return () => {
+70	      if (slowTimer.current) {
+71	        clearTimeout(slowTimer.current);
+72	        slowTimer.current = null;
+73	      }
+74	    };
+75	  }, [isSubmitting]);
+76	
+77	  const stepsConfig: FancyStepsConfig = {
+78	    steps: [
+79	      {
+80	        title: 'Igreja',
+81	        content: <CreateIgrejaAccountTabDados />,
+82	        actions: [
+83	          {
+84	            label: 'Próximo',
+85	            onPress: () => handleNext(),
+86	            iconPosition: 'right',
+87	            icon: { library: 'Feather', name: 'arrow-right', size: 16 },
+88	            enabled: !isCheckingCode,
+89	          },
+90	        ],
+91	      },
+92	      {
+93	        title: 'Responsável',
+94	        content: <CreateIgrejaAccountTabResponsavel />,
+95	        actions: [
+96	          {
+97	            label: 'Voltar',
+98	            onPress: 'previous',
+99	            iconPosition: 'left',
+100	            icon: { library: 'Feather', name: 'arrow-left', size: 16 },
+101	          },
+102	          {
+103	            label: 'Próximo',
+104	            onPress: () => handleNext(),
+105	            iconPosition: 'right',
+106	            icon: { library: 'Feather', name: 'arrow-right', size: 16 },
+107	          },
+108	        ],
+109	      },
+110	      {
+111	        title: 'Plano',
+112	        content: <CreateIgrejaAccountTabPlano />,
+113	        actions: [
+114	          {
+115	            label: 'Voltar',
+116	            onPress: 'previous',
+117	            iconPosition: 'left',
+118	            icon: { library: 'Feather', name: 'arrow-left', size: 16 },
+119	          },
+120	          {
+121	            label: 'Próximo',
+122	            onPress: 'next',
+123	            iconPosition: 'right',
+124	            icon: { library: 'Feather', name: 'arrow-right', size: 16 },
+125	          },
+126	        ],
+127	      },
+128	      {
+129	        title: 'Revisão',
+130	        content: <CreateIgrejaAccountTabPronto />,
+131	        actions: [
+132	          {
+133	            label: 'Voltar',
+134	            onPress: 'previous',
+135	            iconPosition: 'left',
+136	            icon: { library: 'Feather', name: 'arrow-left', size: 16 },
+137	          },
+138	          {
+139	            label: 'Confirmar',
+140	            onPress: () => {
+141	              if (isSubmitting || isServerUnavailable) return;
+142	              handleCriarIgrejaPublico();
+143	            },
+144	            icon: { library: 'Feather', name: 'check', size: 16 },
+145	            color: Pallete.confirm,
+146	            isLoading: isSubmitting,
+147	            loadingText: 'Enviando...',
+148	            spinnerSize: 'small',
+149	            disableOnLoading: true,
+150	            enabled: !isSubmitting && !isServerUnavailable,
+151	            loadingColor: 'white',
+152	          },
+153	        ],
+154	      },
+155	    ],
+156	  };
+157	
+158	  const createForm = useForm();
+159	
+160	  return (
+161	    <AuthScreen
+162	      showBackButton
+163	      disableScroll
+164	      scrollContainerStyle={styles.scrollContainer}
+165	      headerContainerStyle={styles.titleContainer}
+166	      headerWidth={{ default: '85%', keyboard: '110%' }}
+167	      contentWidth={{ default: '85%', keyboard: '110%' }}
+168	      fieldsContainerStyle={({ keyboardVisible }) => {
+169	        if (keyboardVisible) {
+170	          return { height: '80%' };
+171	        } else {
+172	          return { height: '60%' };
+173	        }
+174	      }}
+175	      paddingTopOnKeyboard={60}
+176	      alignTopOnKeyboard
+177	      keyboardBottomSpacing={20}
+178	      header={({ keyboardVisible }) => (
+179	        <View style={{ gap: 5 }}>
+180	          <FancyText
+181	            size={!keyboardVisible ? 'extraLarge' : 'large'}
+182	            type='bold'
+183	            color='white'
+184	            style={{
+185	              lineHeight: !keyboardVisible ? EXTRA_LARGE_SIZE_FONT * 1.2 : LARGE_SIZE_FONT * 1.2,
+186	            }}
+187	          >
+188	            Criar sua igreja
+189	          </FancyText>
+190	          <FancyText size={!keyboardVisible ? 'medium' : 'small'} type='medium' color='white'>
+191	            Cadastre sua igreja e comece a organizar seus ministérios e voluntários
+192	          </FancyText>
+193	        </View>
+194	      )}
+195	    >
+196	      {({ keyboardVisible }) => (
+197	        <View style={{ gap: 10, flexGrow: 1, flexShrink: 1 }}>
+198	          <FormProvider {...form}>
+199	            <FancySteps size='small' config={stepsConfig} index={stepIndex} setIndex={setStepIndex} />
+200	          </FormProvider>
+201	          {/* Bloqueio de tela durante envio, sem overlay visual */}
+202	          {isSubmitting && (
+203	            <View style={{ ...StyleSheet.absoluteFillObject, zIndex: 99 }} pointerEvents="auto" />
+204	          )}
+205	          {/* Texto de aviso se demorar */}
+206	          {showSlowText && (
+207	            <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={{ textAlign: 'center', marginTop: 8 }}>
+208	              Isso pode levar alguns segundos...
+209	            </FancyText>
+210	          )}
+211	        </View>
+212	      )}
+213	    </AuthScreen>
+214	  );
+215	}
+216	
+217	export default function CreateIgrejaAccountPage() {
+218	  return (
+219	    <CodigoCheckProvider>
+220	      <CreateIgrejaAccountPageContent />
+221	    </CodigoCheckProvider>
+222	  );
+223	}
+224	
+225	const styles = StyleSheet.create({
+226	  scrollContainer: {
+227	    flexGrow: 1,
+228	    paddingHorizontal: 40,
+229	    justifyContent: 'center',
+230	  },
+231	  titleContainer: {
+232	    borderColor: 'magenta',
+233	    justifyContent: 'center',
+234	    // borderWidth: 1,
+235	  },
+236	  fieldsContainer: {
+237	    borderRadius: 15,
+238	    borderColor: 'firebrick',
+239	    gap: 10,
+240	    backgroundColor: Pallete.backgroundColor,
+241	    ...Pallete.shadows[200],
+242	  },
+243	  loadingOverlay: {
+244	    ...StyleSheet.absoluteFillObject,
+245	    backgroundColor: 'rgba(0,0,0,0.18)',
+246	    zIndex: 99,
+247	    alignItems: 'center',
+248	    justifyContent: 'center',
+249	  },
+250	});

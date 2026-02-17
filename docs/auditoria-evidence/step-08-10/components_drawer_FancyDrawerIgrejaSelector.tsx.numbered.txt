@@ -1,0 +1,115 @@
+1	import { StyleSheet, View, TouchableOpacity } from 'react-native';
+2	import { useState } from 'react';
+3	import FancyImage from '../images/FancyImage';
+4	import FancyText from '../FancyText';
+5	import DefaultIcons from '../FancyIcons';
+6	import { useAuth } from '../../contexts/AuthContext';
+7	import { ResponseLoginIgrejaDto } from '../../domain/dtos/login/login.response';
+8	import FancyDrawerIgrejaSelectorModal from './FancyDrawerIgrejaSelectorModal';
+9	import { Pallete } from '../../constants/colors';
+10	
+11	export default function FancyDrawerIgrejaSelector() {
+12	  const { user, igrejaAtiva, setIgrejaAtiva } = useAuth();
+13	  const [modalVisible, setModalVisible] = useState(false);
+14	
+15	  // Filtra igrejas válidas (apenas remove igrejas sem id ou nome)
+16	  const igrejasReais = (user?.igrejas || []).filter((igreja) => igreja.id && igreja.nome);
+17	
+18	  const handleTrocarIgreja = async (igreja: ResponseLoginIgrejaDto) => {
+19	    if (igreja.id !== igrejaAtiva?.id) {
+20	      await setIgrejaAtiva(igreja);
+21	    }
+22	    setModalVisible(false);
+23	  };
+24	
+25	  return (
+26	    <>
+27	      {/* CARD COLAPSADO */}
+28	      <TouchableOpacity
+29	        onPress={() => setModalVisible(true)}
+30	        activeOpacity={0.7}
+31	        style={styles.cardContainer}
+32	      >
+33	        {/* Logo - QUADRADO ARREDONDADO */}
+34	        {igrejaAtiva?.logoThumbUrl || igrejaAtiva?.logoUrl ? (
+35	          <FancyImage
+36	            source={{
+37	              uri: (igrejaAtiva.logoThumbUrl || igrejaAtiva.logoUrl) as string,
+38	            }}
+39	            size={28}
+40	            style={styles.logo}
+41	          />
+42	        ) : (
+43	          <View style={styles.logoPlaceholder}>
+44	            <DefaultIcons.Custom
+45	              library='MaterialCommunityIcons'
+46	              name='church'
+47	              color='#FFFFFF'
+48	              size={14}
+49	              style={{ marginBottom: 1 }}
+50	            />
+51	          </View>
+52	        )}
+53	
+54	        {/* Nome */}
+55	        <FancyText style={styles.nomeText} size='medium' type='semiBold' numberOfLines={1}>
+56	          {igrejaAtiva?.nome || 'Selecione uma igreja'}
+57	        </FancyText>
+58	
+59	        {/* Chevron */}
+60	        <DefaultIcons.Custom
+61	          library='MaterialCommunityIcons'
+62	          name='chevron-down'
+63	          size={18}
+64	          color='rgba(255, 255, 255, 0.6)'
+65	        />
+66	      </TouchableOpacity>
+67	
+68	      {/* MODAL */}
+69	      <FancyDrawerIgrejaSelectorModal
+70	        visible={modalVisible}
+71	        onClose={() => setModalVisible(false)}
+72	        igrejas={igrejasReais}
+73	        igrejaAtiva={igrejaAtiva}
+74	        onSelectIgreja={handleTrocarIgreja}
+75	      />
+76	    </>
+77	  );
+78	}
+79	
+80	const styles = StyleSheet.create({
+81	  // CARD COLAPSADO
+82	  cardContainer: {
+83	    marginRight: 10,
+84	    marginBottom: 8,
+85	    height: 38,
+86	    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+87	    borderRadius: 10,
+88	    paddingHorizontal: 8,
+89	    paddingVertical: 10,
+90	    flexDirection: 'row',
+91	    alignItems: 'center',
+92	  },
+93	  logo: {
+94	    width: 24,
+95	    height: 24,
+96	    borderRadius: 9999,
+97	    borderWidth: 0.2,
+98	    borderColor: Pallete.border,
+99	    marginRight: 12,
+100	  },
+101	  logoPlaceholder: {
+102	    width: 26,
+103	    height: 26,
+104	    borderRadius: 999,
+105	    backgroundColor: '#2D7CFF',
+106	    justifyContent: 'center',
+107	    alignItems: 'center',
+108	    marginRight: 12,
+109	  },
+110	  nomeText: {
+111	    flex: 1,
+112	    fontWeight: '500',
+113	    color: '#FFFFFF',
+114	  },
+115	});

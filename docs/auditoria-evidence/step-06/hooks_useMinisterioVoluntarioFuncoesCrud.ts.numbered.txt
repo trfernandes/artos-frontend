@@ -1,0 +1,83 @@
+1	import { useMutation } from '@tanstack/react-query';
+2	import { useCallback } from 'react';
+3	import Toast from 'react-native-toast-message';
+4	import { MinisterioVoluntarioFuncoesRepository } from '../domain/services/MinisterioVoluntarioFuncoesRepository';
+5	import { ExternalUseCrudParams, useCrud } from './useCrud';
+6	import { ResponseMinisterioVoluntarioFuncaoDto } from '../domain/dtos/MinisterioVoluntarioFuncao/ministerio-voluntario-funcao.response';
+7	import { CreateMinisterioVoluntarioFuncaoDto } from '../domain/dtos/MinisterioVoluntarioFuncao/ministerio-voluntario-funcao.create';
+8	import { UpdateMinisterioVoluntarioFuncaoDto } from '../domain/dtos/MinisterioVoluntarioFuncao/ministerio-voluntario-funcao.update';
+9	
+10	type UpdateFuncoesArgs = Parameters<typeof MinisterioVoluntarioFuncoesRepository.updateFuncoes>;
+11	
+12	type UpdateFuncoesPayload = {
+13	  ministerioVoluntarioId: UpdateFuncoesArgs[0];
+14	  data: UpdateFuncoesArgs[1];
+15	};
+16	
+17	export function useMinisterioVoluntarioFuncoesCrud({ autoFetch = false, initialParams = {} }: ExternalUseCrudParams = {}) {
+18	  const crud = useCrud<
+19	    ResponseMinisterioVoluntarioFuncaoDto,
+20	    any,
+21	    CreateMinisterioVoluntarioFuncaoDto,
+22	    UpdateMinisterioVoluntarioFuncaoDto
+23	  >({
+24	    autoFetch,
+25	    initialParams,
+26	    queryKey: 'ministerio-voluntario-funcoes',
+27	    fetchAll: () => MinisterioVoluntarioFuncoesRepository.getAll(),
+28	    search: (query) => MinisterioVoluntarioFuncoesRepository.search(query),
+29	    add: (data) => {
+30	      return MinisterioVoluntarioFuncoesRepository.add(data);
+31	    },
+32	    update: (id, data) => {
+33	      return MinisterioVoluntarioFuncoesRepository.update(id, data);
+34	    },
+35	    remove: (id) => MinisterioVoluntarioFuncoesRepository.remove(id),
+36	    messages: {
+37	      successCreate: 'Função adicionada com sucesso!',
+38	      errorCreate: 'Erro ao adicionar função.',
+39	      successUpdate: 'Função atualizada com sucesso!',
+40	      errorUpdate: 'Erro ao atualizar função.',
+41	      successDelete: 'Função excluída com sucesso!',
+42	      errorDelete: 'Erro ao excluir função.',
+43	    },
+44	  });
+45	
+46	  const updateFuncoesMutation = useMutation({
+47	    mutationFn: ({ ministerioVoluntarioId, data }: UpdateFuncoesPayload) =>
+48	      MinisterioVoluntarioFuncoesRepository.updateFuncoes(ministerioVoluntarioId, data),
+49	    onSuccess: () => {
+50	      Toast.show({
+51	        type: 'success',
+52	        text1: 'Funções atualizadas com sucesso!',
+53	      });
+54	      crud.queryClient.invalidateQueries({ queryKey: [crud.queryKey] });
+55	    },
+56	    onError: (error) => {
+57	      Toast.show({
+58	        type: 'error',
+59	        text1: 'Erro ao atualizar funcoes.',
+60	      });
+61	      console.log(error);
+62	    },
+63	  });
+64	
+65	  const updateFuncoes = useCallback(
+66	    (ministerioVoluntarioId: UpdateFuncoesArgs[0], data: UpdateFuncoesArgs[1]) =>
+67	      updateFuncoesMutation.mutateAsync({ ministerioVoluntarioId, data }),
+68	    [updateFuncoesMutation],
+69	  );
+70	
+71	  const isLoadingMutation = crud.isLoadingMutation || updateFuncoesMutation.isPending;
+72	  const isError = crud.isError || updateFuncoesMutation.isError;
+73	  const error = crud.error ?? updateFuncoesMutation.error ?? null;
+74	
+75	  return {
+76	    ...crud,
+77	    updateFuncoes,
+78	    isUpdatingFuncoes: updateFuncoesMutation.isPending,
+79	    isLoadingMutation,
+80	    isError,
+81	    error,
+82	  };
+83	}

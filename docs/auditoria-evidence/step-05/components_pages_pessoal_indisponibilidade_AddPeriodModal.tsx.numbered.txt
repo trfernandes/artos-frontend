@@ -1,0 +1,130 @@
+1	import { useEffect } from 'react';
+2	import { View } from 'react-native';
+3	import { useForm, useWatch } from 'react-hook-form';
+4	import { zodResolver } from '@hookform/resolvers/zod';
+5	import z from 'zod';
+6	import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
+7	import ControlledTextArea from '../../../forms/ControlledTextArea';
+8	import ControlledDateInput from '../../../forms/ControlledDateInput';
+9	import { differenceInDays } from 'date-fns';
+10	import { FancyAlert } from '../../../modal/FancyAlert';
+11	import FancyText from '../../../FancyText';
+12	
+13	const schema = z
+14	  .object({
+15	    dataInicio: z
+16	      .date()
+17	      .nullable()
+18	      .refine((d) => !!d, { message: 'Data inicial obrigatória' }),
+19	    dataTermino: z
+20	      .date()
+21	      .nullable()
+22	      .refine((d) => !!d, { message: 'Data final obrigatória' }),
+23	    motivo: z.string().min(3, 'Informe pelo menos 3 caracteres').max(500, 'Máximo de 500 caracteres'),
+24	  })
+25	  .refine((data) => data.dataInicio && data.dataTermino && data.dataTermino >= data.dataInicio, {
+26	    path: ['dataTermino'],
+27	    message: 'Data final deve ser maior ou igual à inicial',
+28	  });
+29	
+30	export type AddPeriodoModalProps = {
+31	  visible: boolean;
+32	  modalProps?: FancyModalDialogProps<any>;
+33	  onConfirm: (inicio: Date, fim: Date, motivo: string) => void;
+34	};
+35	
+36	export default function AddPeriodoModal({ visible, modalProps, onConfirm }: AddPeriodoModalProps) {
+37	  const { control, handleSubmit, setValue, trigger } = useForm({
+38	    resolver: zodResolver(schema),
+39	    defaultValues: {
+40	      dataInicio: new Date(),
+41	      dataTermino: new Date(),
+42	      motivo: '',
+43	    },
+44	  });
+45	
+46	  const dataInicio = useWatch({ control, name: 'dataInicio' });
+47	  const dataTermino = useWatch({ control, name: 'dataTermino' });
+48	  useEffect(() => {
+49	    if (dataInicio && dataTermino && dataInicio > dataTermino) {
+50	      setValue('dataTermino', dataInicio, { shouldValidate: true });
+51	    }
+52	  }, [dataInicio, dataTermino, setValue]);
+53	
+54	  const submit = (values: z.infer<typeof schema>) => {
+55	    onConfirm(values.dataInicio as Date, values.dataTermino as Date, values.motivo);
+56	  };
+57	
+58	  const currentDate = new Date();
+59	  const maxDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 4, 0);
+60	
+61	  return (
+62	    <FancyModalDialog
+63	      {...modalProps}
+64	      title='Adicionar Período de Indisponibilidade'
+65	      button1={{ label: 'Cancelar' }}
+66	      button2={{
+67	        label: 'Salvar',
+68	        onPress: async () => {
+69	          if (differenceInDays(dataTermino || new Date(), dataInicio || new Date()) > 31) {
+70	            FancyAlert.alert('Erro', 'O período não pode ser maior que 31 dias.');
+71	            return;
+72	          }
+73	
+74	          const valid = await trigger();
+75	
+76	          if (!valid) return;
+77	
+78	          FancyAlert.alert(
+79	            'Confirmação',
+80	            <View style={{ paddingBottom: 20, gap: 15 }}>
+81	              <FancyText type='medium' size='medium'>
+82	                Deseja realmente adicionar este período de indisponibilidade?
+83	              </FancyText>
+84	              <FancyText type='bold' size='small'>
+85	                Atenção! Se houver alguma data já indisponível ela será sobreescrevida!
+86	              </FancyText>
+87	            </View>,
+88	            [
+89	              {
+90	                text: 'Não',
+91	                style: 'destructive',
+92	              },
+93	              {
+94	                text: 'Sim, estou ciente',
+95	
+96	                onPress: () => handleSubmit(submit)(),
+97	              },
+98	            ],
+99	          );
+100	        },
+101	      }}
+102	    >
+103	      <View style={{ gap: 16 }}>
+104	        <ControlledDateInput
+105	          control={control}
+106	          name='dataInicio'
+107	          label='Data Início'
+108	          calendarProps={{
+109	            dayViewProps: {
+110	              disablePastDates: true,
+111	              maximumDate: maxDate,
+112	            },
+113	          }}
+114	        />
+115	        <ControlledDateInput
+116	          control={control}
+117	          name='dataTermino'
+118	          label='Data Fim'
+119	          calendarProps={{
+120	            dayViewProps: {
+121	              disablePastDates: true,
+122	              maximumDate: maxDate,
+123	            },
+124	          }}
+125	        />
+126	        <ControlledTextArea control={control} name='motivo' label='Motivo' />
+127	      </View>
+128	    </FancyModalDialog>
+129	  );
+130	}

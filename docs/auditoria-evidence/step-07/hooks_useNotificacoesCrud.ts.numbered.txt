@@ -1,0 +1,52 @@
+1	import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+2	import { NotificacoesApi } from '../domain/api/NotificacoesApi';
+3	
+4	export function useNotificacoesCrud({
+5	  apenasNaoLidas = false,
+6	  enabled = true,
+7	}: {
+8	  apenasNaoLidas?: boolean;
+9	  enabled?: boolean;
+10	} = {}) {
+11	  const qc = useQueryClient();
+12	
+13	  const listarQuery = useQuery({
+14	    queryKey: ['notificacoes', apenasNaoLidas],
+15	    queryFn: () => NotificacoesApi.listar(apenasNaoLidas),
+16	    enabled,
+17	  });
+18	
+19	  const contarNaoLidasQuery = useQuery({
+20	    queryKey: ['notificacoes', 'unread-count'],
+21	    queryFn: async () => NotificacoesApi.contarNaoLidas(),
+22	    enabled,
+23	  });
+24	
+25	  const marcarComoLidoMutation = useMutation({
+26	    mutationFn: (id: string) => NotificacoesApi.marcarComoLido(id),
+27	    onSuccess: () => {
+28	      qc.invalidateQueries({ queryKey: ['notificacoes'] });
+29	      qc.invalidateQueries({ queryKey: ['notificacoes', 'unread-count'] });
+30	    },
+31	  });
+32	
+33	  const marcarTodasComoLidasMutation = useMutation({
+34	    mutationFn: () => NotificacoesApi.marcarTodasComoLidas(),
+35	    onSuccess: () => {
+36	      qc.invalidateQueries({ queryKey: ['notificacoes'] });
+37	      qc.invalidateQueries({ queryKey: ['notificacoes', 'unread-count'] });
+38	    },
+39	  });
+40	
+41	  const noop = () => {};
+42	  const noopMarcarComoLida = (_id: string) => {};
+43	
+44	  return {
+45	    notificacoes: enabled ? listarQuery.data ?? [] : [],
+46	    isLoading: enabled ? listarQuery.isLoading : false,
+47	    isLoadingMutation: enabled ? marcarComoLidoMutation.isPending || marcarTodasComoLidasMutation.isPending : false,
+48	    quantidadeNaoLidas: enabled ? contarNaoLidasQuery.data ?? 0 : 0,
+49	    marcarComoLida: enabled ? (id: string) => marcarComoLidoMutation.mutate(id) : noopMarcarComoLida,
+50	    marcarTodasComoLidas: enabled ? () => marcarTodasComoLidasMutation.mutate() : noop,
+51	  };
+52	}

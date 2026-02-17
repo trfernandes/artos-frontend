@@ -1,0 +1,67 @@
+1	import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
+2	import {
+3	    VoluntarioHierarquiaEnum,
+4	    VoluntarioHierarquiaEnumList,
+5	    VoluntarioHierarquiaEnumMap,
+6	} from '../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
+7	import FancyDropDown from '../../../fields/FancyDropDown';
+8	import { useForm } from 'react-hook-form';
+9	import z from 'zod';
+10	import { zodResolver } from '@hookform/resolvers/zod';
+11	import ControlledDropDown from '../../../forms/ControlledDropDown';
+12	import { EditMinisterioVoluntarioFormData } from '../../../../domain/schemas/ministerioAdminSchema';
+13	import { AppImages } from '../../../../assets/app_images';
+14	
+15	const EditSchema = z.object({
+16	  hierarquia: z.enum(VoluntarioHierarquiaEnum, { error: 'Campo Obrigatório' }),
+17	});
+18	
+19	export default function VoluntarioEditFormModal({
+20	  ministerioId,
+21	  ...props
+22	}: {
+23	  ministerioId: string;
+24	  data: EditMinisterioVoluntarioFormData;
+25	} & FancyModalDialogProps<EditMinisterioVoluntarioFormData>) {
+26	  const form = useForm({
+27	    resolver: zodResolver(EditSchema),
+28	    defaultValues: {
+29	      hierarquia: VoluntarioHierarquiaEnumMap[props.data.hierarquia],
+30	    },
+31	  });
+32	
+33	  return (
+34	    <FancyModalDialog
+35	      title={'Editar Voluntário'}
+36	      {...props}
+37	      centerContainerStyle={{ gap: 15 }}
+38	      onButton2Press={() => {
+39	        form.handleSubmit(
+40	          (data) => {
+41	            props.onButton2Press?.({ ...props.data, hierarquia: data.hierarquia });
+42	            form.reset();
+43	          },
+44	          (error) => console.log('VoluntarioEditFormModal form error', error),
+45	        )();
+46	      }}
+47	    >
+48	      <FancyDropDown
+49	        label='Voluntário'
+50	        disabled
+51	        listItems={[
+52	          {
+53	            title: props.data.voluntarioNome,
+54	            value: props.data.id,
+55	            left: {
+56	              type: 'image',
+57	              source:
+58	                props.data.fotoThumbUrl || props.data.fotoUrl ? { uri: props.data.fotoThumbUrl || props.data.fotoUrl || '' } : AppImages.emptyProfile,
+59	            },
+60	          },
+61	        ]}
+62	        value={props.data.id}
+63	      />
+64	      <ControlledDropDown label='Função' control={form.control} name='hierarquia' listItems={VoluntarioHierarquiaEnumList} />
+65	    </FancyModalDialog>
+66	  );
+67	}

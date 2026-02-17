@@ -1,0 +1,106 @@
+1	import { StyleSheet } from 'react-native';
+2	import FancyPageView from '../../../../../components/containers/FancyPageView';
+3	import { FormProvider, useForm } from 'react-hook-form';
+4	import { zodResolver } from '@hookform/resolvers/zod';
+5	import { router } from 'expo-router';
+6	import { eventoSchema } from '../../../../../domain/schemas/eventoSchema';
+7	import { RecorrenciaEnum } from '../../../../../domain/enums/Evento/recorrencia.enum';
+8	import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
+9	import { DateUtilsApi } from '../../../../../utils/date_utils';
+10	import { CreateEventoDto } from '../../../../../domain/dtos/Evento/evento.create';
+11	import FancyLoading from '../../../../../components/FancyLoading';
+12	import FancyButton from '../../../../../components/buttons/FancyButton';
+13	import EventosDadosForm from '../../../../../components/pages/admin/eventos/EventosDadosForm';
+14	import { DefaultIconsNames } from '../../../../../constants/icons';
+15	import { useAuth } from '../../../../../contexts/AuthContext';
+16	
+17	export function getDefaultEventoTimes() {
+18	  const now = new Date();
+19	
+20	  const rounded = new Date(now);
+21	  rounded.setMinutes(now.getMinutes() < 30 ? 30 : 0);
+22	  if (now.getMinutes() >= 30) {
+23	    rounded.setHours(now.getHours() + 1);
+24	  }
+25	  rounded.setSeconds(0);
+26	  rounded.setMilliseconds(0);
+27	
+28	  const dataInicio = rounded;
+29	  const dataTermino = new Date(rounded);
+30	  dataTermino.setHours(dataInicio.getHours() + 1);
+31	
+32	  return { dataInicio, dataTermino };
+33	}
+34	
+35	export default function EventosAddPage() {
+36	  const { dataInicio, dataTermino } = getDefaultEventoTimes();
+37	  const { igrejaAtiva } = useAuth();
+38	
+39	  const form = useForm({
+40	    resolver: zodResolver(eventoSchema),
+41	    defaultValues: {
+42	      recorrencia: RecorrenciaEnum.Nunca,
+43	      cor: '#FF8C00',
+44	      dataInicio: dataInicio,
+45	      dataTermino: dataTermino,
+46	    },
+47	  });
+48	
+49	  const { add, isError, isLoading, isLoadingMutation } = useEventosCrud();
+50	
+51	  const handleSubmit = async () => {
+52	    form.handleSubmit(
+53	      async (data) => {
+54	        const newEvento: CreateEventoDto = {
+55	          ...data,
+56	          igrejaId: igrejaAtiva!.id,
+57	          cor: data.cor,
+58	          dataInicio: DateUtilsApi.dateTimeToApi(data.dataInicio),
+59	          dataTermino: data.dataTermino && DateUtilsApi.dateTimeToApi(data.dataTermino),
+60	          recorrencia: data.recorrencia || RecorrenciaEnum.Nunca,
+61	        };
+62	        await add(newEvento);
+63	        router.back();
+64	      },
+65	      (errors) => {
+66	        if (__DEV__) {
+67	          console.log('[Admin/Eventos] Validation errors:', errors);
+68	        }
+69	        Toast.show({
+70	          type: 'error',
+71	          text1: 'Erro de validação',
+72	          text2: 'Verifique os campos do formulário',
+73	        });
+74	      },
+75	    )();
+76	  };
+77	
+78	  if (isLoadingMutation) return <FancyLoading label='Salvando...' />;
+79	
+80	  if (isLoading) return <FancyLoading />;
+81	
+82	  return (
+83	    <FancyPageView style={styles.container}>
+84	      <FormProvider {...form}>
+85	        <EventosDadosForm />
+86	        <FancyButton
+87	          containerStyle={{ margin: 15, marginBottom: 0 }}
+88	          label={isLoading ? 'Salvando...' : 'Salvar'}
+89	          disabled={isLoading}
+90	          icon={{ ...DefaultIconsNames.save, size: 16 }}
+91	          type='contained'
+92	          onPress={handleSubmit}
+93	        />
+94	      </FormProvider>
+95	    </FancyPageView>
+96	  );
+97	}
+98	
+99	const styles = StyleSheet.create({
+100	  container: {
+101	    flex: 1,
+102	    borderWidth: 0,
+103	    borderColor: 'lightgreen',
+104	    paddingBottom: 5,
+105	  },
+106	});

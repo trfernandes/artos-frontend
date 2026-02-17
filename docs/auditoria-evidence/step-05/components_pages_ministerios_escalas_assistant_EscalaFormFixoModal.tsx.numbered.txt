@@ -1,0 +1,66 @@
+1	import { useForm } from 'react-hook-form';
+2	import { EscalaEventoTemplateFixoFormData, EscalaEventoTemplateFixoSchema } from '../../../../../domain/schemas/escalaSchema';
+3	import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
+4	import ControlledSearchSelect from '../../../../forms/ControlledSearchSelect';
+5	import FancyModalDialog, { FancyModalDialogProps } from '../../../../modal/FancyModalDialog';
+6	import { zodResolver } from '@hookform/resolvers/zod';
+7	import { strfyObj } from '../../../../../utils/text_utils';
+8	
+9	interface EscalaFormFixoModalProps {
+10	  mode: 'add' | 'edit';
+11	  data?: EscalaEventoTemplateFixoFormData;
+12	  modalProps?: FancyModalDialogProps<EscalaEventoTemplateFixoFormData>;
+13	  funcoesSelectionList: DropDownItemProps<string>[];
+14	  voluntariosSelectionList: DropDownItemProps<string>[];
+15	  validateUniqueFuncaoOnVoluntario: (data: EscalaEventoTemplateFixoFormData) => boolean;
+16	}
+17	
+18	export default function EscalaFormFixoModal({
+19	  modalProps,
+20	  data,
+21	  mode,
+22	  funcoesSelectionList,
+23	  voluntariosSelectionList,
+24	  validateUniqueFuncaoOnVoluntario,
+25	}: EscalaFormFixoModalProps) {
+26	  const form = useForm<EscalaEventoTemplateFixoFormData>({
+27	    resolver: zodResolver(EscalaEventoTemplateFixoSchema),
+28	    defaultValues: data || {},
+29	  });
+30	
+31	  return (
+32	    <FancyModalDialog
+33	      {...modalProps}
+34	      title={mode === 'add' ? 'Novo Voluntário' : 'Editar Voluntário'}
+35	      centerContainerStyle={{ gap: 12, paddingBottom: 5, paddingHorizontal: 5 }}
+36	      onButton2Press={() => {
+37	        form.handleSubmit(
+38	          (data) => {
+39	            const isValid = validateUniqueFuncaoOnVoluntario(data);
+40	            if (!isValid) form.setError('funcaoId', { message: 'Essa função já foi cadastrada para o usuário' });
+41	            else modalProps?.onButton2Press?.(data);
+42	          },
+43	          (errors) => {
+44	            console.log('Erro no formulário de adição de equipe', strfyObj(errors));
+45	          },
+46	        )();
+47	      }}
+48	    >
+49	      <ControlledSearchSelect
+50	        control={form.control}
+51	        name='minVolId'
+52	        label='Voluntário'
+53	        listItems={voluntariosSelectionList}
+54	        disabled={mode === 'edit'}
+55	        searchPlaceholder='Buscar voluntário...'
+56	      />
+57	      <ControlledSearchSelect
+58	        control={form.control}
+59	        name='funcaoId'
+60	        label='Função'
+61	        listItems={funcoesSelectionList}
+62	        searchPlaceholder='Buscar função...'
+63	      />
+64	    </FancyModalDialog>
+65	  );
+66	}

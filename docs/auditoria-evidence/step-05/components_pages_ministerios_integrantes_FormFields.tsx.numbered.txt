@@ -1,0 +1,208 @@
+1	import { FormProvider, useFieldArray, useForm, useFormContext } from 'react-hook-form';
+2	import ControlledSearchSelect from '../../../forms/ControlledSearchSelect';
+3	import { View } from 'react-native';
+4	import { DefaultIconsNames } from '../../../../constants/icons';
+5	import {
+6	    MinVoluntarioFormData,
+7	    MinVoluntarioFuncaoFormData,
+8	    minVoluntarioFuncaoSchema,
+9	} from '../../../../domain/schemas/ministerioVoluntariosSchema';
+10	import { useMemo, useState } from 'react';
+11	import IntegranteFormModal from './FormModal';
+12	import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
+13	import { zodResolver } from '@hookform/resolvers/zod';
+14	import FancyContainerList from '../../../container_list/FancyContainerList';
+15	import { FancyCard } from '../../../cards/Horizontal/FancyCard';
+16	import { Pallete } from '../../../../constants/colors';
+17	import FancyImage from '../../../images/FancyImage';
+18	import FancyText from '../../../FancyText';
+19	
+20	import FancyChips from '../../../FancyChips';
+21	import { ResponseMinisterioFuncaoDto } from '../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.response';
+22	import { EscalaTemplateExperienciaLabel } from '../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
+23	import {
+24	    MinisterioVoluntarioStatusEnumLabel,
+25	    MinisterioVoluntarioStatusEnumMap,
+26	    MinisterioVoluntarioStatusEnum,
+27	} from '../../../../domain/enums/MinisterioVoluntario/ministerio-voluntario-status.enum';
+28	import { AppImages } from '../../../../assets/app_images';
+29	
+30	export interface IntegranteFormFieldsProps {
+31	  mode: 'add' | 'edit';
+32	  voluntariosDropDownList?: DropDownItemProps<string>[];
+33	  funcoesDropDownList?: DropDownItemProps<string>[];
+34	  funcoesList: ResponseMinisterioFuncaoDto[];
+35	}
+36	
+37	export default function IntegranteFormFields({ voluntariosDropDownList, funcoesDropDownList, funcoesList, mode }: IntegranteFormFieldsProps) {
+38	  //   console.log('IntegranteFormFields render', strfyObj({ voluntariosDropDownList, funcoesDropDownList, funcoesList, mode }));
+39	
+40	  const [formModalOptions, setFormModalOptions] = useState<{
+41	    visible: boolean;
+42	    mode: 'add' | 'edit';
+43	  }>({
+44	    visible: false,
+45	    mode: 'add',
+46	  });
+47	
+48	  const { control, getValues } = useFormContext<MinVoluntarioFormData>();
+49	
+50	  const {
+51	    fields: fieldsFuncao,
+52	    append,
+53	    remove,
+54	    update,
+55	  } = useFieldArray({
+56	    control,
+57	    name: 'funcoes',
+58	    keyName: 'fieldId',
+59	  });
+60	
+61	  const formModal = useForm({
+62	    resolver: zodResolver(minVoluntarioFuncaoSchema),
+63	  });
+64	
+65	  const handleSave = formModal.handleSubmit((data) => {
+66	    // console.log('Saving funcao data:', strfyObj({ data, funcoesList }));
+67	
+68	    const findedFuncao = funcoesList.find((f) => f.id === data.id);
+69	    const current = getValues('funcoes') as MinVoluntarioFuncaoFormData[];
+70	
+71	    const existingIndex = current.findIndex((f) => f.id === data.id);
+72	
+73	    const newItem: MinVoluntarioFuncaoFormData = {
+74	      id: data.id,
+75	      experiencia: data.experiencia,
+76	      nome: findedFuncao?.nome || 'Nome não encontrado',
+77	    };
+78	
+79	    if (existingIndex === -1) append(newItem);
+80	    else update(existingIndex, newItem);
+81	
+82	    handleClearForm();
+83	    setFormModalOptions({ visible: false, mode: 'add' });
+84	  });
+85	
+86	  const handleEdit = (data: MinVoluntarioFuncaoFormData) => {
+87	    formModal.reset(data);
+88	    setFormModalOptions({ visible: true, mode: 'edit' });
+89	  };
+90	
+91	  const handleDelete = (id: string) => {
+92	    const index = fieldsFuncao.findIndex((f) => f.id === id);
+93	    if (index !== -1) remove(index);
+94	  };
+95	
+96	  const handleClearForm = () => {
+97	    formModal.reset({ id: undefined, experiencia: undefined, nome: '' });
+98	  };
+99	
+100	  const notUsedFuncoesList = useMemo(() => {
+101	    const funcoes = funcoesDropDownList?.filter((v) => !fieldsFuncao.some((f) => f.id === v.value)) || [];
+102	    return funcoes;
+103	  }, [funcoesDropDownList, fieldsFuncao]);
+104	
+105	  const sortedFuncoesList = useMemo<MinVoluntarioFuncaoFormData[]>(() => {
+106	    return [...fieldsFuncao].sort((a, b) => {
+107	      const nomeA = a.nome?.toUpperCase() || '';
+108	      const nomeB = b.nome?.toUpperCase() || '';
+109	      return nomeA.localeCompare(nomeB, 'pt-BR', { sensitivity: 'base' });
+110	    });
+111	  }, [fieldsFuncao]);
+112	
+113	  return (
+114	    <View style={{ flex: 1, gap: 20 }}>
+115	      {mode === 'add' ? (
+116	        <ControlledSearchSelect
+117	          control={control}
+118	          name='voluntarioId'
+119	          label='Voluntário'
+120	          listItems={voluntariosDropDownList}
+121	          searchPlaceholder='Buscar voluntário...'
+122	        />
+123	      ) : (
+124	        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
+125	          <FancyImage source={getValues('voluntarioFoto') ? { uri: getValues('voluntarioFoto') } : AppImages.emptyProfile} size={50} />
+126	          <View style={{ gap: 2 }}>
+127	            <FancyText size='largeMedium' type='bold' style={{ opacity: 0.8 }}>
+128	              {getValues('voluntarioNome')}
+129	            </FancyText>
+130	            <FancyText size='small' type='medium' style={{ opacity: 0.8 }}>
+131	              {getValues('voluntarioEmail')}
+132	            </FancyText>
+133	            {getValues('voluntarioStatus') && (
+134	              <FancyChips
+135	                size='small'
+136	                style={{ marginTop: 3 }}
+137	                label={MinisterioVoluntarioStatusEnumLabel[MinisterioVoluntarioStatusEnumMap[getValues('voluntarioStatus')!]]}
+138	                color={
+139	                  MinisterioVoluntarioStatusEnumMap[getValues('voluntarioStatus')!] === MinisterioVoluntarioStatusEnum.Ativo
+140	                    ? Pallete.primary
+141	                    : Pallete.error
+142	                }
+143	              />
+144	            )}
+145	          </View>
+146	        </View>
+147	      )}
+148	
+149	      <FancyContainerList
+150	        title='Funções'
+151	        contentContainerStyle={{ paddingTop: 6 }}
+152	        buttons={[
+153	          {
+154	            icon: { ...DefaultIconsNames.add, size: 19 },
+155	            onPress: () => {
+156	              handleClearForm();
+157	              setFormModalOptions({ visible: true, mode: 'add' });
+158	            },
+159	          },
+160	        ]}
+161	        data={sortedFuncoesList}
+162	        renderItem={({ item }) => (
+163	          <FancyCard.Image
+164	            key={item.id}
+165	            type='icon'
+166	            props={{
+167	              title: item.nome,
+168	              subtitle: EscalaTemplateExperienciaLabel[item.experiencia!],
+169	              cardIcon: {
+170	                library: 'FontAwesome6',
+171	                name: 'person-rays',
+172	                size: 18,
+173	              },
+174	              actionButtons: [
+175	                {
+176	                  icon: { ...DefaultIconsNames.edit, size: 17 },
+177	                  onPress: () => handleEdit(item),
+178	                },
+179	                {
+180	                  icon: {
+181	                    ...DefaultIconsNames.delete,
+182	                    size: 18,
+183	                    backgroundColor: Pallete.error,
+184	                  },
+185	                  onPress: () => handleDelete(item.id),
+186	                },
+187	              ],
+188	            }}
+189	          />
+190	        )}
+191	      />
+192	
+193	      {formModalOptions.visible && (
+194	        <FormProvider {...formModal}>
+195	          <IntegranteFormModal
+196	            mode={formModalOptions.mode}
+197	            title={formModalOptions.mode === 'add' ? 'Adicionar Função' : 'Editar Função'}
+198	            funcoesDropDownList={notUsedFuncoesList}
+199	            onButton2Press={() => handleSave()}
+200	            onButton1Press={() => {
+201	              setFormModalOptions({ visible: false, mode: 'add' });
+202	            }}
+203	          />
+204	        </FormProvider>
+205	      )}
+206	    </View>
+207	  );
+208	}
