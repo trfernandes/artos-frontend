@@ -54,10 +54,10 @@ export default function MinisteriosIndex() {
             text: 'Sim',
             style: 'destructive',
             onPress: () => {
-              updateMinisterio({
+              updateMinisterio?.({
                 id: ministerioId,
                 data: { status: newStatus },
-              }).then(() => {
+              })?.then(() => {
                 Toast.show({
                   text1: `Ministério ${newStatus === MinisterioStatusEnum.Inativo ? 'desativado' : 'ativado'} com sucesso!`,
                   type: 'success',
@@ -82,7 +82,7 @@ export default function MinisteriosIndex() {
             text: 'Sim, estou ciente',
             style: 'destructive',
             onPress: () => {
-              removeMinisterio(ministerioId);
+              removeMinisterio?.(ministerioId);
 
               //Remover ministério do usuário logado, se houver
               const hasMinisterio = user?.igrejas?.some((igreja) => igreja.ministerios?.some((m) => m.id === ministerioId));

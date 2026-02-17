@@ -18,7 +18,6 @@ import { useVoluntariosCrud } from '../../../../../hooks/useVoluntariosCrud';
 import { updateProfileSchema } from '../../../../../domain/schemas/voluntarioSchema';
 import { DateUtilsApi } from '../../../../../utils/date_utils';
 import { SexoEnum, SexoEnumLabel } from '../../../../../domain/enums/common/sexo-enum';
-import { VoluntarioStatusEnum } from '../../../../../domain/enums/Voluntario/voluntario-status.enum';
 import { router } from 'expo-router';
 import { sendImageToServer } from '../../../../../utils/image_utils';
 
@@ -87,6 +86,8 @@ export default function EditProfilePage() {
     setIsSubmitting(true);
 
     try {
+      if (!user?.user?.id) return;
+
       let fotoUrlToSend: string | undefined;
       let fotoThumbUrlToSend: string | undefined;
       let fotoUrlPreview: string | undefined;
@@ -107,7 +108,6 @@ export default function EditProfilePage() {
       const formData = {
         nome: data.nome,
         dataNascimento: data.dataNascimento ? DateUtilsApi.dateOnlyToApi(data.dataNascimento) : undefined,
-        status: VoluntarioStatusEnum.Inativo,
         endereco: data.endereco || '',
         telefone: data.telefone || '',
         sexo: data.sexo,
@@ -115,17 +115,17 @@ export default function EditProfilePage() {
         ...(fotoThumbUrlToSend !== undefined ? { fotoThumbUrl: fotoThumbUrlToSend } : null),
       };
 
-      await updateVoluntario({
-        id: user?.user?.id!,
+      await updateVoluntario?.({
+        id: user.user.id,
         data: formData,
       });
 
       await updateUser({
         user: {
-          ...user?.user,
+          ...user.user,
           nome: data.nome,
-          fotoThumbUrl: fotoThumbPreview ?? fotoThumbUrlToSend ?? user?.user?.fotoThumbUrl,
-          fotoUrl: fotoUrlPreview ?? fotoUrlToSend ?? user?.user?.fotoUrl,
+          fotoThumbUrl: fotoThumbPreview ?? fotoThumbUrlToSend ?? user.user.fotoThumbUrl,
+          fotoUrl: fotoUrlPreview ?? fotoUrlToSend ?? user.user.fotoUrl,
         },
       });
 

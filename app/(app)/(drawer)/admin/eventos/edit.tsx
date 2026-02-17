@@ -72,7 +72,7 @@ export default function EventosEditPage() {
       async (data) => {
         const { id, ...payload } = data;
 
-        await updateEvento({
+        await updateEvento?.({
           id: id!,
           data: {
             ...payload,

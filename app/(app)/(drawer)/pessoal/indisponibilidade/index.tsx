@@ -183,7 +183,7 @@ export default function IndisponibilidadeIndexPage() {
     try {
       if (mode === 'mark') {
         if (registro?.id) {
-          await updateData({
+          await updateData?.({
             id: registro.id,
             data: {
               data: DateUtilsApi.dateOnlyToApi(date),
@@ -196,7 +196,7 @@ export default function IndisponibilidadeIndexPage() {
             show: true,
           });
         } else {
-          await addData({
+          await addData?.({
             data: DateUtilsApi.dateOnlyToApi(date),
             voluntarioId: userId,
             igrejaId,

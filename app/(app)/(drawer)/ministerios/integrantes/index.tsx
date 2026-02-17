@@ -84,10 +84,10 @@ export default function MinisterioIntegrantesIndex() {
             text: 'Sim',
             style: 'destructive',
             onPress: () => {
-              updateIntegrante({
+              updateIntegrante?.({
                 id,
                 data: { status: newStatus },
-              }).then(() => {
+              })?.then(() => {
                 Toast.show({
                   text1: `Voluntário ${newStatus === MinisterioVoluntarioStatusEnum.Inativo ? 'desativado' : 'ativado'} com sucesso!`,
                   type: 'success',

@@ -134,7 +134,7 @@ export default function MinisterioIndisponibilidadesIndex() {
       try {
         if (mode === 'mark') {
           if (registro?.id) {
-            await updateIndisponibilidade({
+            await updateIndisponibilidade?.({
               id: registro.id,
               data: {
                 data: DateUtilsApi.dateOnlyToApi(date),
@@ -147,7 +147,7 @@ export default function MinisterioIndisponibilidadesIndex() {
             });
           } else {
             if (!igrejaId) return;
-            await addIndisponibilidade({
+            await addIndisponibilidade?.({
               data: DateUtilsApi.dateOnlyToApi(date),
               voluntarioId: voluntarioId,
               igrejaId,

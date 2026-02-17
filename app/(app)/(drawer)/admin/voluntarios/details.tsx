@@ -88,7 +88,7 @@ export default function VoluntariosDetailsPage() {
           {
             text: 'Sim',
             onPress: async () => {
-              await updateVoluntarioMinisterio({
+              await updateVoluntarioMinisterio?.({
                 id: ministerioVoluntario.id!,
                 data: {
                   status,
@@ -106,7 +106,7 @@ export default function VoluntariosDetailsPage() {
 
   const handleAddMinisterio = useCallback(
     async (data: MinisterioAddFormData) => {
-      await addVoluntarioMinisterio({
+      await addVoluntarioMinisterio?.({
         voluntarioId: parametros.id,
         ministerioId: data.ministerioId,
         hierarquia: data.hierarquia,
@@ -119,7 +119,7 @@ export default function VoluntariosDetailsPage() {
 
   const handleUpdateMinisterio = useCallback(
     async (data: MinisterioAddFormData) => {
-      await updateVoluntarioMinisterio({
+      await updateVoluntarioMinisterio?.({
         id: data.ministerioVoluntarioId!,
         data: {
           hierarquia: data.hierarquia,

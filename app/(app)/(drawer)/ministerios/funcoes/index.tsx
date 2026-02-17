@@ -87,15 +87,14 @@ export default function MinisterioFuncoesIndex() {
       | { mode: 'add'; data: CreateMinisterioFuncaoDto }
       | { mode: 'edit'; data: UpdateMinisterioFuncaoDto }) => {
       if (mode === 'add') {
-        addFuncao({
+        addFuncao?.({
           ministerioId: ministerioId!,
           nome: data.nome!,
           descricao: data.descricao,
           status: data.status!,
         });
       } else if (mode === 'edit') {
-        console.log('Updating funcao with data:', data);
-        updateFuncao({
+        updateFuncao?.({
           id: data.id!,
           data: {
             nome: data.nome,

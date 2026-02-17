@@ -72,7 +72,7 @@ export default function VoluntarioTab({ ministerioId }: VoluntarioTabProps) {
     (data: EditMinisterioVoluntarioFormData) => {
       showLoading('Salvando...');
       try {
-        updateVoluntario({ id: data.id, data: { hierarquia: VoluntarioHierarquiaEnumMap[data.hierarquia] } });
+        updateVoluntario?.({ id: data.id, data: { hierarquia: VoluntarioHierarquiaEnumMap[data.hierarquia] } });
       } finally {
         hideLoading();
       }

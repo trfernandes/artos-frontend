@@ -77,12 +77,12 @@ export default function MinisterioTemplatesEditPage() {
       (data) => {
         if (!data.id) return;
 
-        updateTemplate({
+        updateTemplate?.({
           id: data.id,
           data: {
             ...data,
           },
-        }).then(() => {
+        })?.then(() => {
           router.back();
         });
       },

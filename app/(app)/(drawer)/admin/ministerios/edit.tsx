@@ -80,7 +80,7 @@ export default function MinisteriosEditPage() {
 
   const handleAddLider = useCallback(
     (data: { hierarquia: VoluntarioHierarquiaEnum; ministerioId: string; voluntarioId: string }) => {
-      addVoluntario({
+      addVoluntario?.({
         voluntarioId: data.voluntarioId,
         hierarquia: data.hierarquia,
         ministerioId: data.ministerioId,
@@ -91,7 +91,7 @@ export default function MinisteriosEditPage() {
 
   const handleEditLider = useCallback(
     (data: any) => {
-      updateVoluntario({
+      updateVoluntario?.({
         id: data.id!,
         data: {
           hierarquia: data.hierarquia,
@@ -105,7 +105,7 @@ export default function MinisteriosEditPage() {
 
   const handleDeleteLider = useCallback(
     (id: string) => {
-      removeVoluntario(id);
+      removeVoluntario?.(id);
     },
     [removeVoluntario],
   );
@@ -158,10 +158,14 @@ export default function MinisteriosEditPage() {
             form.setValue('logoUpload', null);
           }
 
-          const editedMinisterio = await updateMinisterio({
+          const editedMinisterio = await updateMinisterio?.({
             id: params.id,
             data: updateData,
           });
+
+          if (!editedMinisterio) {
+            return;
+          }
 
           //Atualizar informações do ministério no usuário logado
           // Atualiza o ministério editado na igreja ativa do usuário logado
