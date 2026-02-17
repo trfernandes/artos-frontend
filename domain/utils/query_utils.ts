@@ -38,14 +38,14 @@ export interface FieldValue {
 
 export interface ConditionValue {
   type: ValueType;
-  value?: any;
+  value?: string;
   path?: string;
 }
 
 export interface SimpleCondition {
   path: string;
   operator: Operator;
-  value: LiteralValue | FieldValue;
+  value: LiteralValue | FieldValue | ConditionValue;
 }
 
 export interface ComplexCondition {
@@ -66,6 +66,7 @@ export interface OrderByClause {
 }
 
 export interface DynamicQuery {
+  igrejaId?: string;
   where?: WhereClause;
   orderBy?: OrderByClause[];
   limit?: number;
