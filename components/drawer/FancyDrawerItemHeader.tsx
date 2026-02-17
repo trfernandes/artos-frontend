@@ -1,14 +1,24 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import FancyText from '../FancyText';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
 import DefaultIcons from '../FancyIcons';
 import { DrawerItemData } from './MenuData';
 import { router } from 'expo-router';
 import { Image } from 'expo-image';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 export default function FancyDrawerItemHeader(
   props: { isCollapsed: boolean; onCollapsePress: () => void; onNavigate?: () => void } & DrawerItemData,
 ) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+  const { isDark } = useAppTheme();
+
+  const titleColor = isDark ? palette.fonts.light : palette.fonts.dark;
+  const subtitleColor = isDark ? palette.fonts.light : palette.fonts.inactive;
+
   const handleOnItemPress = () => {
     if (props.onPress) {
       if (props.onPress.type === 'GoToRoute' && props.onPress.routeName) {
@@ -37,7 +47,7 @@ export default function FancyDrawerItemHeader(
               <DefaultIcons.Custom
                 {...props.logo.value!}
                 size={props.logo?.value.size || 20}
-                color={props.logo?.value.color || Pallete.fonts.dark}
+                color={props.logo?.value.color || titleColor}
                 style={styles.icon}
               />
             )}
@@ -48,11 +58,11 @@ export default function FancyDrawerItemHeader(
         )}
       </View>
       <View style={styles.headerContainer}>
-        <FancyText size={'small'} type='semiBold' color={Pallete.fonts.dark}>
+        <FancyText size={'small'} type='semiBold' color={titleColor}>
           {props.title}
         </FancyText>
         {props.subtitle && (
-          <FancyText size={'small'} type='medium' color={Pallete.fonts.inactive} style={{ paddingTop: 0 }}>
+          <FancyText size={'small'} type='medium' color={subtitleColor} style={{ paddingTop: 0, opacity: isDark ? 0.9 : 1 }}>
             {` - ${props.subtitle}`}
           </FancyText>
         )}
@@ -63,7 +73,7 @@ export default function FancyDrawerItemHeader(
             name={props.isCollapsed ? 'chevron-down' : 'chevron-up'}
             library='MaterialCommunityIcons'
             size={24}
-            color={Pallete.fonts.dark}
+            color={titleColor}
           />
         </View>
       )}
@@ -71,23 +81,25 @@ export default function FancyDrawerItemHeader(
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    borderWidth: 0,
-    alignItems: 'center',
-    paddingHorizontal: 15,
-    gap: 10,
-    flex: 1,
-    justifyContent: 'center',
-  },
-  iconContainer: { borderWidth: 0, borderColor: 'blue', minWidth: 22, alignItems: 'center' },
-  icon: { textAlign: 'center', alignSelf: 'center', width: 20 },
-  headerContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    paddingTop: 2,
-    borderColor: 'red',
-  },
-  collapseContainer: {},
-});
+function createStyles(_palette: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      borderWidth: 0,
+      alignItems: 'center',
+      paddingHorizontal: 15,
+      gap: 10,
+      flex: 1,
+      justifyContent: 'center',
+    },
+    iconContainer: { borderWidth: 0, borderColor: 'blue', minWidth: 22, alignItems: 'center' },
+    icon: { textAlign: 'center', alignSelf: 'center', width: 20 },
+    headerContainer: {
+      flex: 1,
+      flexDirection: 'row',
+      paddingTop: 2,
+      borderColor: 'red',
+    },
+    collapseContainer: {},
+  });
+}
