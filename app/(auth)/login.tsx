@@ -1,4 +1,5 @@
-import { StyleSheet, View, TextInput } from 'react-native';
+import { StyleSheet, View, TextInput, Image, Platform, Keyboard } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FancyButton from '../../components/buttons/FancyButton';
 import FancyCheckbox from '../../components/FancyCheckbox';
 import FancyText from '../../components/FancyText';
@@ -15,6 +16,10 @@ import * as SecureStore from 'expo-secure-store';
 import { useConnectivity } from '../../core/network/connectivity/ConnectivityProvider';
 import { CadastroIgrejaRepository } from '../../domain/services/CadastroIgrejaRepository';
 import { FancyAlert } from '../../components/modal/FancyAlert';
+import {
+  clearPendingLoginAttempt,
+  setPendingLoginAttempt,
+} from '../../core/auth/pendingLoginAttemptStore';
 
 const REMEMBER_EMAIL_KEY = 'artos_remember_email';
 const REMEMBER_PASSWORD_KEY = 'artos_remember_password';
@@ -25,6 +30,25 @@ export default function LoginIndexPage() {
   const { status: connectivityStatus, isOffline } = useConnectivity();
   const isServerUnavailable = connectivityStatus !== 'ok';
   const passwordInputRef = useRef<TextInput>(null);
+  const insets = useSafeAreaInsets();
+  const safeTop = Platform.OS === 'ios' ? insets.top : 40;
+
+  const [headerY, setHeaderY] = useState(0);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const show = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+    const hide = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+  const logoHeight = 77;
+  // headerY é relativo ao centerContainer (que começa em safeTop)
+  // posição absoluta do "Bem-vindo" na tela = safeTop + headerY
+  // ponto médio entre status bar (safeTop) e "Bem-vindo" (safeTop + headerY) = safeTop + headerY/2
+  const logoTop = headerY > 0 ? safeTop + headerY / 2 - logoHeight / 2 : safeTop + 16;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -72,16 +96,21 @@ export default function LoginIndexPage() {
   };
 
   const handleNetworkError = () => {
-    FancyAlert.alert('Problema de conexao', 'Nao foi possivel se conectar. Verifique sua internet e tente novamente.', [
-      { text: 'Cancelar', style: 'default' },
-      { text: 'Tentar novamente', onPress: () => handleLogin() },
-    ]);
+    FancyAlert.alert(
+      'Problema de conexao',
+      'Nao foi possivel se conectar. Verifique sua internet e tente novamente.',
+      [
+        { text: 'Cancelar', style: 'default' },
+        { text: 'Tentar novamente', onPress: () => handleLogin() },
+      ],
+    );
   };
 
   const handleCadastroPendente = async (error: AxiosError | any, fallbackEmail: string) => {
     const data = error?.response?.data;
     const payload = data?.data ?? data;
-    const errorCode = data?.code || data?.error?.code || data?.errorCode || payload?.code || payload?.errorCode;
+    const errorCode =
+      data?.code || data?.error?.code || data?.errorCode || payload?.code || payload?.errorCode;
     const message = data?.message || data?.error?.message || payload?.message;
 
     const normalizedMessage = typeof message === 'string' ? message.toLowerCase() : '';
@@ -132,6 +161,7 @@ export default function LoginIndexPage() {
 
     try {
       await signIn(trimmedEmail, password);
+      clearPendingLoginAttempt();
 
       try {
         if (rememberMe) {
@@ -159,19 +189,25 @@ export default function LoginIndexPage() {
       const backendMessage: string = (data?.message || data?.error?.message || '').toLowerCase();
 
       if (status === 401) {
-        if (backendMessage.includes('não verificado') || backendMessage.includes('nao verificado')) {
-          Toast.show({
-            type: 'info',
-            text1: 'E-mail não verificado',
-            text2: 'Verifique seu e-mail para ativar sua conta.',
+        if (
+          backendMessage.includes('não verificado') ||
+          backendMessage.includes('nao verificado')
+        ) {
+          setPendingLoginAttempt(trimmedEmail, password);
+          router.push({
+            pathname: '/(auth)/voluntario-aguardando-email',
+            params: { email: trimmedEmail },
           });
+          return;
         } else if (backendMessage.includes('desativada') || backendMessage.includes('desativado')) {
+          clearPendingLoginAttempt();
           Toast.show({
             type: 'error',
             text1: 'Conta desativada',
             text2: 'Sua conta foi desativada. Entre em contato com o suporte.',
           });
         } else {
+          clearPendingLoginAttempt();
           Toast.show({
             type: 'error',
             text1: 'Credenciais inválidas',
@@ -203,114 +239,131 @@ export default function LoginIndexPage() {
   };
 
   return (
-    <AuthScreen
-      scrollContainerStyle={styles.scrollContainer}
-      centerContainerStyle={styles.centerContainer}
-      headerContainerStyle={styles.titleContainer}
-      headerWidth={{ default: '85%', keyboard: '110%' }}
-      contentWidth={{ default: '85%', keyboard: '110%' }}
-      fieldsContainerStyle={styles.fieldsContainer}
-      topContent={({ keyboardVisible }) =>
-        !keyboardVisible ? (
-          <View style={styles.logoContainer}>
-            <FancyText type='semiBold' color='white' style={{ fontSize: 35, lineHeight: 35 }}>
-              ARTOS
-            </FancyText>
-          </View>
-        ) : null
-      }
-      header={() => (
-        <View style={{ gap: 0 }}>
-          <FancyText size={'extraLarge'} type='semiBold' color='white' style={{ fontSize: 17 }}>
-            Bem-vindo de volta!
-          </FancyText>
-          <FancyText size={'medium'} type='medium' color='white' style={{ fontSize: 12 }}>
-            Entre para acessar todas as funcionalidades
-          </FancyText>
+    <>
+      {!keyboardVisible && (
+        <View style={[styles.logoContainer, { top: logoTop }]}>
+          <Image
+            source={require('../../assets/images/logo.png')}
+            style={styles.logoImage}
+            resizeMode='contain'
+          />
         </View>
       )}
-    >
-      <>
-        <FancyTextInput
-          label='E-mail'
-          value={email}
-          errorMessage={emailError}
-          inputProps={{
-            onChangeText: (value) => {
-              setEmail(value);
-              if (emailError) setEmailError('');
-            },
-            keyboardType: 'email-address',
-            autoCapitalize: 'none',
-            autoCorrect: false,
-            returnKeyType: 'next',
-            textContentType: 'emailAddress',
-            autoComplete: 'email',
-            importantForAutofill: 'yes',
-            blurOnSubmit: false,
-            onSubmitEditing: () => passwordInputRef.current?.focus(),
-            accessibilityLabel: 'E-mail',
-          }}
-          readonly={loading}
-          disabled={loading}
-        />
-        <FancyPasswordInput
-          label='Senha'
-          value={password}
-          errorMessage={passwordError}
-          inputRef={passwordInputRef}
-          inputProps={{
-            onChangeText: (value) => {
-              setPassword(value);
-              if (passwordError) setPasswordError('');
-            },
-            returnKeyType: 'go',
-            textContentType: 'password',
-            autoComplete: 'password',
-            autoCapitalize: 'none',
-            autoCorrect: false,
-            importantForAutofill: 'yes',
-            onSubmitEditing: () => handleLogin(),
-            accessibilityLabel: 'Senha',
-          }}
-          readonly={loading}
-          disabled={loading}
-        />
-
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <FancyCheckbox label='Lembrar-se' value={rememberMe} onChangeValue={setRememberMe} disabled={loading} />
-          <FancyButton
-            type='text'
-            label='Esqueceu sua senha?'
-            onPress={() => router.push('/(auth)/forgot-password')}
-            labelStyle={{ fontSize: EXTRA_SMALL_SIZE_FONT }}
-            containerStyle={{ borderWidth: 0, height: 30, alignItems: 'center' }}
-            disabled={loading}
-          />
-        </View>
-
-        <FancyButton label={loading ? 'Entrando...' : 'Entrar'} onPress={handleLogin} disabled={loading || isServerUnavailable} />
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingTop: 5 }}>
-          <FancyText size={'extraSmall'} style={{ borderWidth: 0 }}>
-            Não tem uma conta ainda?
-          </FancyText>
-          <FancyButton
-            type='text'
-            label='Cadastre-se'
-            onPress={() => router.push('/(auth)/create-account')}
-            labelStyle={{ lineHeight: 14 }}
-            containerStyle={{
-              paddingHorizontal: 0,
-              height: 20,
-              alignItems: 'center',
-              borderWidth: 0,
+      <AuthScreen
+        scrollContainerStyle={styles.scrollContainer}
+        centerContainerStyle={styles.centerContainer}
+        headerContainerStyle={styles.titleContainer}
+        fieldsContainerStyle={styles.fieldsContainer}
+        header={() => (
+          <View onLayout={(e) => setHeaderY(e.nativeEvent.layout.y)} style={{ gap: 0 }}>
+            <FancyText size={'large'} type='semiBold' color='white'>
+              Bem-vindo de volta!
+            </FancyText>
+            <FancyText size={'medium'} type='medium' color='white'>
+              Entre para acessar todas as funcionalidades
+            </FancyText>
+          </View>
+        )}
+      >
+        <>
+          <FancyTextInput
+            label='E-mail'
+            value={email}
+            errorMessage={emailError}
+            inputProps={{
+              onChangeText: (value) => {
+                setEmail(value);
+                if (emailError) setEmailError('');
+              },
+              keyboardType: 'email-address',
+              autoCapitalize: 'none',
+              autoCorrect: false,
+              returnKeyType: 'next',
+              textContentType: 'emailAddress',
+              autoComplete: 'email',
+              importantForAutofill: 'yes',
+              blurOnSubmit: false,
+              onSubmitEditing: () => passwordInputRef.current?.focus(),
+              accessibilityLabel: 'E-mail',
             }}
+            readonly={loading}
             disabled={loading}
           />
-        </View>
-      </>
-    </AuthScreen>
+          <FancyPasswordInput
+            label='Senha'
+            value={password}
+            errorMessage={passwordError}
+            inputRef={passwordInputRef}
+            inputProps={{
+              onChangeText: (value) => {
+                setPassword(value);
+                if (passwordError) setPasswordError('');
+              },
+              returnKeyType: 'go',
+              textContentType: 'password',
+              autoComplete: 'password',
+              autoCapitalize: 'none',
+              autoCorrect: false,
+              importantForAutofill: 'yes',
+              onSubmitEditing: () => handleLogin(),
+              accessibilityLabel: 'Senha',
+            }}
+            readonly={loading}
+            disabled={loading}
+          />
+
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: -8 }}>
+            <FancyCheckbox
+              label='Lembrar-se'
+              value={rememberMe}
+              onChangeValue={setRememberMe}
+              disabled={loading}
+            />
+            <FancyButton
+              type='text'
+              label='Esqueceu sua senha?'
+              onPress={() => router.push('/(auth)/forgot-password')}
+              labelStyle={{ fontSize: EXTRA_SMALL_SIZE_FONT }}
+              containerStyle={{
+                borderWidth: 0,
+                height: 24,
+                justifyContent: 'center',
+                alignItems: 'center',
+                paddingHorizontal: 0,
+                paddingVertical: 0,
+              }}
+              disabled={loading}
+            />
+          </View>
+
+          <FancyButton
+            label={loading ? 'Entrando...' : 'Entrar'}
+            onPress={handleLogin}
+            disabled={loading || isServerUnavailable}
+          />
+
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingTop: 5 }}>
+            <FancyText size={'extraSmall'} style={{ borderWidth: 0 }}>
+              Não tem uma conta ainda?
+            </FancyText>
+            <FancyButton
+              type='text'
+              label='Cadastre-se'
+              onPress={() => router.push('/(auth)/create-account')}
+              containerStyle={{
+                paddingHorizontal: 0,
+                paddingVertical: 0,
+                height: 24,
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderWidth: 0,
+              }}
+              disabled={loading}
+            />
+          </View>
+        </>
+      </AuthScreen>
+    </>
   );
 }
 
@@ -319,7 +372,6 @@ const DESIGN_MODE = 0;
 const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
-    paddingHorizontal: 40,
     paddingVertical: 20,
     justifyContent: 'center',
     borderWidth: DESIGN_MODE,
@@ -329,12 +381,17 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     position: 'absolute',
-    top: 0,
-    justifyContent: 'flex-start',
+    left: 0,
+    right: 0,
+    zIndex: 5,
     alignItems: 'center',
-    marginBottom: 0,
+    justifyContent: 'center',
     borderWidth: DESIGN_MODE,
     borderColor: 'forestgreen',
+  },
+  logoImage: {
+    width: 200,
+    height: 77,
   },
   titleContainer: {
     gap: 2,
@@ -346,13 +403,7 @@ const styles = StyleSheet.create({
     gap: 6,
     borderWidth: DESIGN_MODE,
     borderColor: 'chocolate',
-    top: 40,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 10,
     justifyContent: 'center',
-    alignItems: 'center',
   },
   fieldsContainer: {
     borderWidth: DESIGN_MODE,

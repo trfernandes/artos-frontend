@@ -7,8 +7,8 @@ import FancyModalDialog from '../modal/FancyModalDialog';
 import FancyDatePicker from '../datepicker/FancyDatePicker';
 import DefaultIcons from '../FancyIcons';
 import { DefaultIconsNames } from '../../constants/icons';
-import { Pallete } from '../../constants/colors';
 import { FancyCalendarProps } from '../calendar/FancyCalendar';
+import { usePallete } from '../../hooks/usePallete';
 
 interface ControlledDateInputProps<FormData extends FieldValues>
   extends
@@ -27,6 +27,7 @@ export default function ControlledDateInput<FormData extends FieldValues>({
   calendarProps,
   ...rest
 }: ControlledDateInputProps<FormData>) {
+  const palette = usePallete();
   const [showModal, setShowModal] = useState(false);
 
   return (
@@ -51,14 +52,15 @@ export default function ControlledDateInput<FormData extends FieldValues>({
             }}
             rightContainer={
               <View style={{ paddingRight: 10 }}>
-                <DefaultIcons.Custom {...DefaultIconsNames['calendar-month']} color={Pallete.icons.inactive} size={20} />
+                <DefaultIcons.Custom {...DefaultIconsNames['calendar-month']} color={palette.icons.inactive} size={20} />
               </View>
             }
           />
           {showErrorMessage && error && <FancyErrorText message={error.message!} />}
           {showModal && (
             <FancyModalDialog
-              containerStyle={{ gap: 20 }}
+              containerStyle={{ gap: 24 }}
+              buttonContainerStyle={{ marginTop: 8 }}
               modalProps={{ visible: showModal }}
               onButton1Press={() => setShowModal(false)}
               onButton2Press={() => {
@@ -68,7 +70,9 @@ export default function ControlledDateInput<FormData extends FieldValues>({
             >
               <FancyDatePicker
                 calendarProps={{
-                  ...(calendarProps ?? {}),
+                  ...calendarProps,
+                  containerStyle: [{ backgroundColor: 'transparent', borderWidth: 0 }, calendarProps?.containerStyle],
+                  dayModeTopPadding: calendarProps?.dayModeTopPadding ?? 10,
                   value,
                   onChangeSelectedDate: onChange,
                   dayViewProps: {

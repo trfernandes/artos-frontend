@@ -87,7 +87,7 @@ function createStyles(palette: ThemePalette) {
       borderColor: palette.border,
       borderWidth: 0.5,
       flexDirection: 'row',
-      height: 32,
+      height: 42,
     },
   });
 }

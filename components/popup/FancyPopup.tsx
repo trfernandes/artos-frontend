@@ -2,9 +2,11 @@ import { ReactNode } from 'react';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import { Menu, MenuOption, MenuOptions, MenuProps, MenuTrigger } from 'react-native-popup-menu';
 import { StyleSheet, View } from 'react-native';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
 import FancyText from '../FancyText';
 import FancySeparator from '../FancySeparator';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 type Item = {
   icon?: CustomIconProps;
@@ -30,6 +32,9 @@ export default function FancyPopup({
   disabled = false,
   title,
 }: FancyPopupProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+
   return (
     <Menu {...menuProps}>
       <MenuTrigger disabled={disabled}>{triggerComponent}</MenuTrigger>
@@ -44,13 +49,21 @@ export default function FancyPopup({
             <View
               key={index}
               style={{
-                borderColor: Pallete.disabled,
+                borderColor: palette.disabled,
               }}
             >
               <MenuOption
                 key={index}
                 onSelect={item.onPress}
-                customStyles={{ optionWrapper: { borderWidth: 0, height: 40, alignItems: 'center', justifyContent: 'center' } }}
+                customStyles={{
+                  optionWrapper: {
+                    borderWidth: 0,
+                    height: 40,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: palette.backgroundColor2,
+                  },
+                }}
               >
                 <View
                   style={{
@@ -62,11 +75,11 @@ export default function FancyPopup({
                 >
                   <View style={{ width: 20, borderWidth: 0, justifyContent: 'flex-end' }}>
                     {item.icon && (
-                      <DefaultIcons.Custom
-                        {...item.icon}
-                        size={item.icon.size || 20}
-                        color={item.icon.color || Pallete.fonts.dark}
-                        style={[
+                        <DefaultIcons.Custom
+                          {...item.icon}
+                          size={item.icon.size || 20}
+                          color={item.icon.color || palette.fonts.dark}
+                          style={[
                           {
                             width: 20,
                             height: 20,
@@ -84,7 +97,7 @@ export default function FancyPopup({
                     <FancyText
                       size={'small'}
                       type={'medium'}
-                      color={item.labelColor || Pallete.fonts.dark}
+                      color={item.labelColor || palette.fonts.dark}
                       style={styles.optionText}
                       numberOfLines={1}
                       adjustsFontSizeToFit
@@ -103,21 +116,22 @@ export default function FancyPopup({
   );
 }
 
-const styles = StyleSheet.create({
-  menuContainer: {
-    paddingVertical: 4,
-    borderRadius: 10,
-    borderWidth: 0.5,
-    borderColor: Pallete.border,
-    ...Pallete.shadows[200],
-  },
-  optionText: { borderWidth: 0 },
-  popupTitle: {
-    // textAlign: 'center',
-    marginVertical: 8,
-    color: Pallete.fonts.dark,
-    paddingHorizontal: 16,
-    opacity: 0.8,
-    // Remove fontWeight/fontSize para usar o padrão do FancyText
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    menuContainer: {
+      paddingVertical: 4,
+      borderRadius: 10,
+      borderWidth: 0.5,
+      borderColor: palette.border,
+      backgroundColor: palette.backgroundColor2,
+      ...palette.shadows[200],
+    },
+    optionText: { borderWidth: 0 },
+    popupTitle: {
+      marginVertical: 8,
+      color: palette.fonts.dark,
+      paddingHorizontal: 16,
+      opacity: 0.8,
+    },
+  });
+}

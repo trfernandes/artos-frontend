@@ -6,6 +6,7 @@ import { usePallete } from '../../hooks/usePallete';
 export type FancyListEmptyProps = {
   label?: string;
   labelColor?: string;
+  labelSize?: 'extraSmall' | 'small' | 'medium' | 'large' | 'largeMedium' | 'extraLarge' | number;
   icon?: CustomIconProps;
 };
 
@@ -20,7 +21,7 @@ export default function FancyListEmpty(props: FancyListEmptyProps) {
         size={props.icon?.size || 55}
         color={props.icon?.color || Pallete.fonts.inactive2}
       />
-      <FancyText size={'large'} type='bold' color={props.labelColor || Pallete.fonts.inactive2}>
+      <FancyText size={props.labelSize ?? 'large'} type='bold' color={props.labelColor || Pallete.fonts.inactive2} style={{ paddingHorizontal: 15, textAlign: 'center' }}>
         {props.label || 'Não há nada por aqui...'}
       </FancyText>
     </View>

@@ -1,11 +1,13 @@
 import { View, StyleProp, ViewStyle, StyleSheet, ScrollView } from 'react-native';
-import React from 'react';
+import React, { useState } from 'react';
 import { FancyStepsConfig } from './FancyStepsConfig';
 import FancyStepsHeader, { FancyStepsHeaderProps } from './FancyStepsHeader';
 import FancyStepsNavigation, { FancyStepsNavigationProps } from './FancyStepsNavigation';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export type FancyStepsSize = 'normal' | 'small';
+export type FancyStepsOverflowBehavior = 'always' | 'fitThenScroll';
 
 export type FancyStepsProps = {
   index: number;
@@ -20,20 +22,44 @@ export type FancyStepsProps = {
   navigatorProps?: FancyStepsNavigationProps;
   /** Tamanho dos steps: 'normal' (35px) ou 'small' (25px). Padrão: 'normal' */
   size?: FancyStepsSize;
+  /** Controle de rolagem do conteúdo: 'always' (padrão) ou 'fitThenScroll' */
+  overflowBehavior?: FancyStepsOverflowBehavior;
 };
 
 export default function FancySteps(props: FancyStepsProps) {
-  const { size = 'normal' } = props;
+  const styles = useThemedStyles(createStyles);
+  const { size = 'normal', overflowBehavior = 'always' } = props;
+  const [contentViewportHeight, setContentViewportHeight] = useState(0);
+  const [contentHeight, setContentHeight] = useState(0);
 
   const stepContent = props.config.steps[props.index].content;
+  const shouldEnableScroll =
+    overflowBehavior === 'fitThenScroll' ? contentHeight > contentViewportHeight + 1 : true;
 
   return (
     <View style={[styles.container, props.containerStyle]}>
-      <FancyStepsHeader {...props} {...props.headerProps} containerStyle={props.headerContainerStyle} size={size} />
+      <FancyStepsHeader
+        {...props}
+        {...props.headerProps}
+        containerStyle={props.headerContainerStyle}
+        size={size}
+      />
 
-      <ScrollView style={styles.scroll} contentContainerStyle={[styles.scrollContent, props.contentContainerStyle]} showsVerticalScrollIndicator={false}>
-        {stepContent}
-      </ScrollView>
+      <View
+        style={[styles.body, props.content?.containerStyle]}
+        onLayout={(event) => setContentViewportHeight(event.nativeEvent.layout.height)}
+      >
+        <ScrollView
+          style={styles.scroll}
+          scrollEnabled={shouldEnableScroll}
+          bounces={shouldEnableScroll}
+          onContentSizeChange={(_, height) => setContentHeight(height)}
+          contentContainerStyle={[styles.scrollContent, props.contentContainerStyle]}
+          showsVerticalScrollIndicator={false}
+        >
+          {stepContent}
+        </ScrollView>
+      </View>
 
       <FancyStepsNavigation
         containerStyle={props.navigationContainerStyle}
@@ -46,33 +72,26 @@ export default function FancySteps(props: FancyStepsProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Pallete.backgroundColor,
-    flexDirection: 'column',
-
-    // faz o componente respeitar o tamanho do pai (cresce/encolhe)
-    flexGrow: 1,
-    flexShrink: 1,
-
-    gap: 20,
-    // borderWidth: 1, // debug
-  },
-
-  // área “flexível” entre header e navegação
-  body: {
-    flex: 1,
-
-    // MUITO importante pra ScrollView conseguir encolher dentro de um flex container
-    minHeight: 0,
-  },
-
-  scroll: {
-  },
-
-  scrollContent: {
-    // se você quer espaçamento entre itens, coloque aqui
-    gap: 10,
-    paddingBottom: 10,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      backgroundColor: palette.backgroundColor,
+      flexDirection: 'column',
+      flexGrow: 1,
+      flexShrink: 1,
+      gap: 20,
+    },
+    body: {
+      flex: 1,
+      minHeight: 0,
+    },
+    scroll: {
+      flex: 1,
+      minHeight: 0,
+    },
+    scrollContent: {
+      gap: 10,
+      paddingBottom: 10,
+    },
+  });
+}

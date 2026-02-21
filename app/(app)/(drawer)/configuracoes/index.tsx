@@ -29,7 +29,7 @@ import ControlledTextInput from '../../../../components/forms/ControlledTextInpu
 import ControlledDropDown from '../../../../components/forms/ControlledDropDown';
 import ControlledMaskedTextInput from '../../../../components/forms/ControlledMaskedTextInput';
 import FancyButton from '../../../../components/buttons/FancyButton';
-import { Pallete } from '../../../../constants/colors';
+import { ThemePalette } from '../../../../constants/colors';
 import DefaultIcons from '../../../../components/FancyIcons';
 import FancyText from '../../../../components/FancyText';
 import { ModoEntradaEnum } from '../../../../domain/enums/modo-entrada.enum';
@@ -38,6 +38,9 @@ import FancyCheckbox from '../../../../components/FancyCheckbox';
 import * as Clipboard from 'expo-clipboard';
 import Toast from 'react-native-toast-message';
 import { ControlledImagePicker, FormImageFile } from '../../../../components/forms/ControlledImagePicker';
+import { usePallete } from '../../../../hooks/usePallete';
+import { useThemedStyles } from '../../../../hooks/useThemedStyles';
+import { ColorUtils } from '../../../../utils/color_utils';
 
 const ESTADOS_BRASIL = [
   { title: 'Acre (AC)', value: 'AC' },
@@ -78,6 +81,8 @@ const ANTECEDENCIA_OPTIONS = [
 
 export default function ConfiguracoesPage() {
   const { igrejaAtiva, user, updateUser } = useAuth();
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const igrejaId = igrejaAtiva?.id;
 
   // Não executar o hook se não houver igreja ativa
@@ -293,7 +298,7 @@ export default function ConfiguracoesPage() {
     return (
       <FancyPageView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Pallete.primary} />
+          <ActivityIndicator size="large" color={palette.primary} />
         </View>
       </FancyPageView>
     );
@@ -375,7 +380,7 @@ export default function ConfiguracoesPage() {
               {/* Código da Igreja */}
               <View style={styles.codigoCard}>
                 <View style={styles.codigoHeader}>
-                  <DefaultIcons.Custom library="MaterialCommunityIcons" name="qrcode" size={20} color={Pallete.primary} />
+                  <DefaultIcons.Custom library="MaterialCommunityIcons" name="qrcode" size={20} color={palette.primary} />
                   <FancyText type="medium" size="small" style={styles.codigoTitulo}>
                     Código da Igreja
                   </FancyText>
@@ -389,7 +394,7 @@ export default function ConfiguracoesPage() {
                   </FancyText>
                 </View>
                 <TouchableOpacity style={styles.codigoCopyButton} onPress={handleCopiarCodigo}>
-                  <DefaultIcons.Custom library="MaterialCommunityIcons" name="content-copy" size={16} color={Pallete.primary} />
+                  <DefaultIcons.Custom library="MaterialCommunityIcons" name="content-copy" size={16} color={palette.primary} />
                   <FancyText type="medium" size="small" style={styles.codigoCopyText}>
                     Copiar Código
                   </FancyText>
@@ -424,8 +429,12 @@ export default function ConfiguracoesPage() {
               <TouchableOpacity
                 style={[
                   styles.modoCard,
+                  {
+                    backgroundColor: palette.backgroundColor2,
+                    borderColor: palette.borderCard,
+                  },
                   modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.APENAS_CONVITE &&
-                    styles.modoCardSelected,
+                    [styles.modoCardSelected, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.16) }],
                 ]}
                 onPress={() => modoEntradaForm.setValue('modoEntrada', ModoEntradaEnum.APENAS_CONVITE)}
               >
@@ -435,8 +444,8 @@ export default function ConfiguracoesPage() {
                   size={32}
                   color={
                     modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.APENAS_CONVITE
-                      ? Pallete.primary
-                      : '#999'
+                      ? palette.primary
+                      : palette.fonts.inactive
                   }
                 />
                 <FancyText type="bold" size="medium" style={styles.modoCardTitle}>
@@ -450,8 +459,12 @@ export default function ConfiguracoesPage() {
               <TouchableOpacity
                 style={[
                   styles.modoCard,
+                  {
+                    backgroundColor: palette.backgroundColor2,
+                    borderColor: palette.borderCard,
+                  },
                   modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_COM_APROVACAO &&
-                    styles.modoCardSelected,
+                    [styles.modoCardSelected, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.16) }],
                 ]}
                 onPress={() => modoEntradaForm.setValue('modoEntrada', ModoEntradaEnum.CODIGO_COM_APROVACAO)}
               >
@@ -461,8 +474,8 @@ export default function ConfiguracoesPage() {
                   size={32}
                   color={
                     modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_COM_APROVACAO
-                      ? Pallete.primary
-                      : '#999'
+                      ? palette.primary
+                      : palette.fonts.inactive
                   }
                 />
                 <FancyText type="bold" size="medium" style={styles.modoCardTitle}>
@@ -476,8 +489,12 @@ export default function ConfiguracoesPage() {
               <TouchableOpacity
                 style={[
                   styles.modoCard,
+                  {
+                    backgroundColor: palette.backgroundColor2,
+                    borderColor: palette.borderCard,
+                  },
                   modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_LIVRE &&
-                    styles.modoCardSelected,
+                    [styles.modoCardSelected, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.16) }],
                 ]}
                 onPress={() => modoEntradaForm.setValue('modoEntrada', ModoEntradaEnum.CODIGO_LIVRE)}
               >
@@ -487,8 +504,8 @@ export default function ConfiguracoesPage() {
                   size={32}
                   color={
                     modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_LIVRE
-                      ? Pallete.primary
-                      : '#999'
+                      ? palette.primary
+                      : palette.fonts.inactive
                   }
                 />
                 <FancyText type="bold" size="medium" style={styles.modoCardTitle}>
@@ -617,7 +634,8 @@ export default function ConfiguracoesPage() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -656,13 +674,13 @@ const styles = StyleSheet.create({
 
   // Código da Igreja - Novo Layout
   codigoCard: {
-    backgroundColor: Pallete.backgroundColor,
+    backgroundColor: palette.backgroundColor2,
     borderRadius: 12,
     padding: 16,
     gap: 12,
     borderWidth: 1,
-    borderColor: Pallete.border,
-    ...Pallete.shadows[100],
+    borderColor: palette.borderCard,
+    ...palette.shadows[100],
   },
   codigoHeader: {
     flexDirection: 'row',
@@ -679,7 +697,7 @@ const styles = StyleSheet.create({
   },
   codigoTexto: {
     letterSpacing: 2,
-    color: Pallete.primary,
+    color: palette.primary,
   },
   codigoDesc: {
     opacity: 0.6,
@@ -692,11 +710,11 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 10,
     paddingHorizontal: 16,
-    backgroundColor: '#E3F2FF',
+    backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14),
     borderRadius: 8,
   },
   codigoCopyText: {
-    color: Pallete.primary,
+    color: palette.primary,
   },
 
   // Modo de Entrada Cards
@@ -704,14 +722,14 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: Pallete.border,
-    backgroundColor: Pallete.backgroundColor,
+    borderColor: palette.borderCard,
+    backgroundColor: palette.backgroundColor2,
     gap: 8,
   },
   modoCardSelected: {
     borderWidth: 2,
-    borderColor: Pallete.primary,
-    backgroundColor: '#E3F2FF',
+    borderColor: palette.primary,
+    backgroundColor: ColorUtils.withAlpha(palette.primary, 0.16),
   },
   modoCardTitle: {
     marginTop: 8,
@@ -736,11 +754,13 @@ const styles = StyleSheet.create({
   assinaturaContainer: {
   },
   assinaturaCard: {
-    backgroundColor: Pallete.backgroundColor,
+    backgroundColor: palette.backgroundColor2,
     padding: 5,
     paddingTop:15,
     borderRadius: 16,
     gap: 16,
+    borderWidth: 1,
+    borderColor: palette.borderCard,
   },
   assinaturaHeader: {
     flexDirection: 'row',
@@ -748,13 +768,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   badge: {
-    backgroundColor: '#D1FAE5',
+    backgroundColor: ColorUtils.withAlpha(palette.confirm, 0.2),
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 999,
   },
   badgeText: {
-    color: '#10B981',
+    color: palette.confirm,
   },
   assinaturaDesc: {
     opacity: 0.7,
@@ -763,4 +783,5 @@ const styles = StyleSheet.create({
   gerenciarButton: {
     marginTop: 8,
   },
-});
+  });
+}

@@ -67,15 +67,6 @@ export default function AgendaDetailsEscalaTab({
   if (isLoading) return <FancyLoading />;
   if (isError) return <FancyListEmpty label='Não foi possível carregar a equipe.' />;
 
-  if (!data || data.length === 0) {
-    return (
-      <FancyListEmpty
-        icon={{ library: 'MaterialCommunityIcons', name: 'account-group-outline', size: 55 }}
-        label='Nenhuma equipe escalada para este evento'
-      />
-    );
-  }
-
   return (
     <View style={styles.container}>
       <FancyVerticalContainerCard
@@ -86,6 +77,11 @@ export default function AgendaDetailsEscalaTab({
         numColumns={3}
         columnSpacing={8}
         rowSpacing={8}
+        listEmptyProps={{
+          icon: { library: 'MaterialCommunityIcons', name: 'account-group-outline', size: 55 },
+          label: 'Nenhuma equipe escalada para este evento',
+          labelSize: 'largeMedium',
+        }}
       />
     </View>
   );

@@ -1,8 +1,10 @@
 import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import FancyText from '../FancyText';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
 import FancyButton from '../buttons/FancyButton';
 import { DefaultIconsNames } from '../../constants/icons';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export type FancyNumberInputProps = {
   title?: string;
@@ -21,13 +23,16 @@ export default function FancyNumberInput({
   min,
   max,
 }: FancyNumberInputProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+
   return (
     <View style={[styles.container, containerStyle]}>
       {title && (
         <FancyText
           type='semiBold'
           size={'small'}
-          color={Pallete.fonts.inactive}
+          color={palette.fonts.inactive}
           style={{ opacity: 1, flex: 1 }}
         >
           {title}
@@ -39,7 +44,7 @@ export default function FancyNumberInput({
           alignItems: 'center',
           gap: 16,
           borderWidth: 0,
-          borderColor: Pallete.primary,
+          borderColor: palette.primary,
           borderRadius: 12,
         }}
       >
@@ -48,7 +53,7 @@ export default function FancyNumberInput({
           mode='icon'
           icon={{
             ...DefaultIconsNames.minus,
-            color: Pallete.fonts.light,
+            color: palette.fonts.light,
             size: 18,
             style: { marginTop: 1 },
           }}
@@ -57,13 +62,13 @@ export default function FancyNumberInput({
             onChange?.(value ? Math.max(min ?? 0, value - 1) : 0);
           }}
         />
-        <FancyText size={'large'} type='semiBold' color={Pallete.fonts.inactive}>
+        <FancyText size={'large'} type='semiBold' color={palette.fonts.inactive}>
           {value ?? '0'}
         </FancyText>
         <FancyButton
           type='contained'
           mode='icon'
-          icon={{ ...DefaultIconsNames.add, color: Pallete.icons.light, size: 18 }}
+          icon={{ ...DefaultIconsNames.add, color: palette.icons.light, size: 18 }}
           size={{ h: 25, w: 25 }}
           onPress={() => {
             onChange?.(value ? Math.min(max ?? Infinity, value + 1) : 1);
@@ -74,15 +79,17 @@ export default function FancyNumberInput({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Pallete.backgroundColor,
-    ...Pallete.shadows[200],
-    height: 48,
-    flexDirection: 'row',
-    borderWidth: 0.6,
-    borderColor: Pallete.border,
-    borderRadius: 10,
-    paddingHorizontal: 10,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      backgroundColor: palette.backgroundColor2,
+      ...palette.shadows[200],
+      height: 48,
+      flexDirection: 'row',
+      borderWidth: 0.6,
+      borderColor: palette.border,
+      borderRadius: 10,
+      paddingHorizontal: 10,
+    },
+  });
+}

@@ -3,7 +3,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { EscalaFormData } from '../../../../../domain/schemas/escalaSchema';
 import ControlledDateInput from '../../../../forms/ControlledDateInput';
 import ControlledTextInput from '../../../../forms/ControlledTextInput';
-import { Pallete } from '../../../../../constants/colors';
+import { usePallete } from '../../../../../hooks/usePallete';
 
 type AssistenteParametrosStepProps = {
   isCheckingName?: boolean;
@@ -14,6 +14,7 @@ export default function AssistenteParametrosStep({
   isCheckingName = false,
   onNomeBlur,
 }: AssistenteParametrosStepProps) {
+  const palette = usePallete();
   const form = useFormContext<EscalaFormData>();
   const nome = form.watch('nome');
 
@@ -28,7 +29,7 @@ export default function AssistenteParametrosStep({
         }}
         rightContainer={
           isCheckingName ? (
-            <ActivityIndicator size='small' color={Pallete.primary} style={{ marginRight: 10 }} />
+            <ActivityIndicator size='small' color={palette.primary} style={{ marginRight: 10 }} />
           ) : null
         }
       />

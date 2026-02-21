@@ -380,6 +380,7 @@ export default function MinhasEscalasIndexPage() {
       )}
 
       <FancyCalendar
+        containerStyle={styles.calendarContainer}
         value={selectedDate}
         markedDates={markedDates}
         onChangeSelectedDate={setSelectedDate}
@@ -392,7 +393,7 @@ export default function MinhasEscalasIndexPage() {
           }
         }}
       />
-      <FancySeparator style={[styles.fullWidthSeparator, styles.calendarSeparator]} />
+      <FancySeparator style={styles.calendarSeparator} />
       <View style={styles.eventsListContainer}>
         <FancyList
           bottomSpace={-10}
@@ -448,7 +449,7 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     gap: 10,
   },
-  eventsListContainer: { flex: 1, paddingTop: 5 },
-  fullWidthSeparator: { marginHorizontal: -15 },
+  calendarContainer: { backgroundColor: 'transparent', borderWidth: 0 },
   calendarSeparator: { marginTop: 0, marginBottom: 0 },
+  eventsListContainer: { flex: 1, paddingTop: 5 },
 });

@@ -3,6 +3,7 @@ import { useAuth } from '../../../../contexts/AuthContext';
 import { DynamicQuery, Operator, ValueType } from '../../../../domain/utils/query_utils';
 import { useMinisterioVoluntariosCrud } from '../../../../hooks/useMinisterioVoluntariosCrud';
 import VoluntarioMinisterioTab from '../../admin/voluntarios/VoluntarioMinisterioTab';
+import FancyLoading from '../../../FancyLoading';
 
 export default function MinisteriosTab() {
   const { user } = useAuth();
@@ -22,10 +23,12 @@ export default function MinisteriosTab() {
     };
   }, [user?.user?.id]);
 
-  const { data: ministeriosData } = useMinisterioVoluntariosCrud({
+  const { data: ministeriosData, isLoading } = useMinisterioVoluntariosCrud({
     initialParams: minVoluntariosSearchParams,
     autoFetch: true,
   });
+
+  if (isLoading) return <FancyLoading />;
 
   return <VoluntarioMinisterioTab ministerios={ministeriosData} mode={'view'} />;
 }

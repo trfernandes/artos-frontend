@@ -6,8 +6,8 @@ import { StyleSheet, View } from 'react-native';
 import { ThemePalette } from '../../constants/colors';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
 
-const NOTIFICATION_ICON_SIZE = 17;
-const BUTTON_HITBOX_SIZE = 30;
+const NOTIFICATION_ICON_SIZE = 20;
+const BUTTON_HITBOX_SIZE = 35;
 
 export default function NotificationButton() {
   const styles = useThemedStyles(createStyles);

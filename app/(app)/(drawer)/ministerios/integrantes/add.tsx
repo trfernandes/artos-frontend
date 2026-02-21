@@ -8,7 +8,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useFuncoesDoMinisterio } from '../../../../../hooks/useFuncoesDoMinisterio';
 import FancyLoading from '../../../../../components/FancyLoading';
 import { useMinisterioVoluntarioFuncoesCrud } from '../../../../../hooks/useMinisterioVoluntarioFuncoesCrud';
-import { useVoluntariosCrud } from '../../../../../hooks/useVoluntariosCrud';
+import { useIgrejaVoluntariosCrud } from '../../../../../hooks/useIgrejaVoluntariosCrud';
 import { useMemo } from 'react';
 import { DropDownItemProps } from '../../../../../components/fields/FancyDropDownItem';
 import { DynamicQuery, OrderDirection } from '../../../../../domain/utils/query_utils';
@@ -31,7 +31,7 @@ export default function MinisterioIntegrantesAddPage() {
     } as DynamicQuery;
   }, [ministerioId]);
 
-  const { data: voluntariosData, isLoading: isLoadingVoluntarios } = useVoluntariosCrud({
+  const { data: voluntariosData, isLoading: isLoadingVoluntarios } = useIgrejaVoluntariosCrud({
     autoFetch: true,
     initialParams,
   });

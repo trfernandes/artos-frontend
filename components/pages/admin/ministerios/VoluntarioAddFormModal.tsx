@@ -9,7 +9,7 @@ import { View } from 'react-native';
 import FancyText from '../../../FancyText';
 import { useMemo } from 'react';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
-import { useVoluntariosCrud } from '../../../../hooks/useVoluntariosCrud';
+import { useIgrejaVoluntariosCrud } from '../../../../hooks/useIgrejaVoluntariosCrud';
 import { OrderDirection } from '../../../../domain/utils/query_utils';
 import { AddMinisterioVoluntarioFormData, AddMinisterioVoluntarioSchema } from '../../../../domain/schemas/ministerioAdminSchema';
 import { AppImages } from '../../../../assets/app_images';
@@ -25,7 +25,7 @@ export default function VoluntarioAddFormModal({
     resolver: zodResolver(AddMinisterioVoluntarioSchema),
   });
 
-  const voluntariosDoMinisterioCrud = useVoluntariosCrud({
+  const voluntariosDoMinisterioCrud = useIgrejaVoluntariosCrud({
     autoFetch: true,
     initialParams: { orderBy: [{ path: 'nome', direction: OrderDirection.ASC }] },
   });

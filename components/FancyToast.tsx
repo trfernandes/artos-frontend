@@ -11,6 +11,7 @@ interface FancyToastProps extends ToastConfigParams<any> {
   icon: CustomIconProps;
   color: string;
   lightColorPercent: number;
+  backgroundColor?: string;
 }
 
 export default function FancyToast(props: FancyToastProps) {
@@ -19,6 +20,7 @@ export default function FancyToast(props: FancyToastProps) {
   const [h, s, l] = hsl || [0, 0, 0];
   const newLightness = Math.min(100, l + props.lightColorPercent);
   const newHex = ColorUtils.hslToHex(h, s, newLightness);
+  const resolvedBackgroundColor = props.backgroundColor ?? newHex;
 
   return (
     <Pressable style={styles.container} onPress={props.onPress}>
@@ -26,7 +28,7 @@ export default function FancyToast(props: FancyToastProps) {
         style={[
           styles.content,
           {
-            backgroundColor: newHex,
+            backgroundColor: resolvedBackgroundColor,
             borderColor: props.color,
             ...palette.shadows[200],
           },

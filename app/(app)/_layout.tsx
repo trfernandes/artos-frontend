@@ -1,4 +1,3 @@
-import { StatusBar } from 'expo-status-bar';
 import { ClickOutsideProvider } from 'react-native-click-outside';
 import { MenuProvider } from 'react-native-popup-menu';
 import { Redirect, Stack, router, useNavigationContainerRef } from 'expo-router';
@@ -8,7 +7,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import FancyPageHeader from '../../components/header/FancyHeader';
 import { usePostLoginRedirect } from '../../hooks/usePostLoginRedirect';
 import { FancyAlert } from '../../components/modal/FancyAlert';
-import { Pallete } from '../../constants/colors';
 
 export default function RootLayout() {
   const { user, loading, signOut } = useAuth();
@@ -49,7 +47,6 @@ export default function RootLayout() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <MenuProvider>
           <ClickOutsideProvider>
-            <StatusBar style={'dark'} backgroundColor={Pallete.backgroundColor} />
             <LoadingProvider>
               <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name='(drawer)' options={{ headerShown: false }} />

@@ -58,6 +58,7 @@ export default function FancyCalendar({
   const dayViewMaximum = dayViewProps?.maximumDate;
 
   const [visualization, setVisualization] = useState(CalendarVisualization.Day);
+  const isDayVisualization = visualization === CalendarVisualization.Day;
 
   const isControlled = value !== undefined;
   const [internalDate, setInternalDate] = useState<Date | undefined>(value);
@@ -221,13 +222,15 @@ export default function FancyCalendar({
       <GestureDetector gesture={flingGestures}>
         <View
           style={[
-            styles.contentContainer,
-            visualization === CalendarVisualization.Day && {
+            styles.contentContainerBase,
+            isDayVisualization ? styles.contentContainerDay : styles.contentContainerFixed,
+            isDayVisualization && {
               paddingTop: dayModeTopPadding,
+              paddingBottom: dayModeTopPadding,
             },
           ]}
         >
-          {visualization === CalendarVisualization.Day && (
+          {isDayVisualization && (
             <DayView
               currentDate={currentDate}
               selectedDate={selectedDate}
@@ -293,7 +296,7 @@ export default function FancyCalendar({
 
 function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
-    container: { minHeight: 253, backgroundColor: palette.backgroundColor2, gap: 0 },
+    container: { backgroundColor: palette.backgroundColor2, gap: 0 },
     headerContainer: {
       width: '100%',
       paddingHorizontal: 0,
@@ -302,13 +305,19 @@ function createStyles(palette: ThemePalette) {
       paddingBottom: 0,
       zIndex: 1,
     },
-    contentContainer: {
-      flex: 1,
+    contentContainerBase: {
       justifyContent: 'flex-start',
       alignItems: 'center',
       paddingLeft: 2,
-      paddingTop: 6,
       paddingBottom: 0,
+    },
+    contentContainerDay: {
+      width: '100%',
+    },
+    contentContainerFixed: {
+      minHeight: 250,
+      width: '100%',
+      paddingTop: 6,
     },
     border: { borderWidth: 0.5, borderRadius: 10, borderColor: palette.border, ...palette.shadows[100] },
   });

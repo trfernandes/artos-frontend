@@ -202,7 +202,7 @@ export default function MinisterioIndisponibilidadesIndex() {
                 motivo: registro?.motivo ?? null,
               });
             }}
-            containerStyle={{ paddingHorizontal: 5 }}
+            containerStyle={{ paddingHorizontal: 5, backgroundColor: 'transparent', borderWidth: 0 }}
             minimumDate={startDate}
             maximumDate={endDate}
             markedDates={indisponibilidadesData.map((d) => ({

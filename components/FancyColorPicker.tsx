@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { View, TouchableOpacity, StyleSheet, Dimensions, ScrollView, Animated } from 'react-native';
 import FancyButton from './buttons/FancyButton';
-import { Pallete } from '../constants/colors';
 import DefaultIcons from './FancyIcons';
 import FancyGroup from './list/FancyGroup';
+import { usePallete } from '../hooks/usePallete';
 
 export interface FancyColorPickerProps {
   value?: string;
@@ -40,6 +40,7 @@ export default function FancyColorPicker({
   horizontal = false,
   disabled = false,
 }: FancyColorPickerProps) {
+  const palette = usePallete();
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
 
@@ -107,7 +108,7 @@ export default function FancyColorPicker({
     return orderedColors.map((color) => {
       const isSelected = color === currentColor;
       const displaySize = isSelected ? circleSize * enlargedMultiplier : circleSize;
-      const displayColor = disabled && !isSelected ? Pallete.disabled2 : color;
+      const displayColor = disabled && !isSelected ? palette.disabled2 : color;
 
       return (
         <TouchableOpacity
@@ -136,7 +137,7 @@ export default function FancyColorPicker({
                 },
               ]}
             >
-              {isSelected && <DefaultIcons.Custom library='FontAwesome' name='check' size={25} color={Pallete.fonts.light} />}
+              {isSelected && <DefaultIcons.Custom library='FontAwesome' name='check' size={25} color={palette.fonts.light} />}
             </View>
           </View>
         </TouchableOpacity>
@@ -163,11 +164,11 @@ export default function FancyColorPicker({
               icon={{
                 name: 'arrow-left',
                 library: 'Feather',
-                color: Pallete.icons.dark,
+                color: palette.icons.dark,
                 size: 15,
                 style: { borderWidth: 0 },
               }}
-              containerStyle={[{ backgroundColor: Pallete.selected }, Pallete.shadows[100]]}
+              containerStyle={[{ backgroundColor: palette.selected }, palette.shadows[100]]}
             />
           </Animated.View>
         )}
@@ -191,11 +192,11 @@ export default function FancyColorPicker({
               icon={{
                 name: 'arrow-right',
                 library: 'Feather',
-                color: Pallete.icons.dark,
+                color: palette.icons.dark,
                 size: 15,
                 style: { borderWidth: 0 },
               }}
-              containerStyle={[{ backgroundColor: Pallete.selected, opacity: 0.8 }, Pallete.shadows[100]]}
+              containerStyle={[{ backgroundColor: palette.selected, opacity: 0.8 }, palette.shadows[100]]}
             />
           </Animated.View>
         )}

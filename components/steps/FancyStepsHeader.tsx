@@ -1,10 +1,12 @@
 import { LayoutChangeEvent, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { useState } from 'react';
 import FancyStepsCircle from './FancyStepsCircle';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
 import FancyStepsText from './FancyStepsText';
 import { FancyStepsConfig } from './FancyStepsConfig';
 import { FancyStepsSize } from './FancySteps';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 type LabelSize = {
   width: number;
@@ -25,6 +27,8 @@ const CIRCLE_SIZES: Record<FancyStepsSize, number> = {
 };
 
 export default function FancyStepsHeader({ config, containerStyle, size = 'normal', ...props }: FancyStepsHeaderProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const stepsLength = config.steps?.length ?? 0;
   const circleWidth = CIRCLE_SIZES[size];
   const [stepsWidth, setStepsWidth] = useState(0);
@@ -109,7 +113,7 @@ export default function FancyStepsHeader({ config, containerStyle, size = 'norma
                 key={index}
                 stepNumber={(index + 1).toString()}
                 circleWidth={circleWidth}
-                color={index === props.index ? Pallete.primary : Pallete.disabled2}
+                color={index === props.index ? palette.primary : palette.disabled2}
                 containerStyle={{ position: 'absolute', left: centerX - circleWidth / 2, top: 0 }}
               />
             );
@@ -130,7 +134,7 @@ export default function FancyStepsHeader({ config, containerStyle, size = 'norma
             <FancyStepsText
               key={index}
               text={item.title}
-              textColor={index === props.index ? Pallete.primary : Pallete.disabled2}
+              textColor={index === props.index ? palette.primary : palette.disabled2}
               maxWidth={labelMaxWidth}
               containerStyle={{ position: 'absolute', left }}
               onLayout={(event) => handleLabelLayout(index, event)}
@@ -142,21 +146,23 @@ export default function FancyStepsHeader({ config, containerStyle, size = 'norma
   );
 }
 
-const styles = StyleSheet.create({
-  container: { width: '100%', gap: 5,  borderWidth: 0, borderColor: 'red' },
-  containerSteps: { width: '100%', borderWidth: 0 },
-  containerCircles: { position: 'relative', width: '100%' },
-  containerTexts: { position: 'relative', width: '100%' },
-  lineBase: {
-    position: 'absolute',
-    height: 0,
-    borderTopWidth: 3,
-    borderTopColor: Pallete.disabled2,
-  },
-  lineActive: {
-    position: 'absolute',
-    height: 0,
-    borderTopWidth: 3,
-    borderTopColor: Pallete.primary,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: { width: '100%', gap: 5, borderWidth: 0, borderColor: 'red' },
+    containerSteps: { width: '100%', borderWidth: 0 },
+    containerCircles: { position: 'relative', width: '100%' },
+    containerTexts: { position: 'relative', width: '100%' },
+    lineBase: {
+      position: 'absolute',
+      height: 0,
+      borderTopWidth: 3,
+      borderTopColor: palette.disabled2,
+    },
+    lineActive: {
+      position: 'absolute',
+      height: 0,
+      borderTopWidth: 3,
+      borderTopColor: palette.primary,
+    },
+  });
+}

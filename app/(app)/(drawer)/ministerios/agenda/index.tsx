@@ -111,6 +111,6 @@ export default function MinisterioAgendaIndexPage() {
 const styles = StyleSheet.create({
   container: { paddingHorizontal: 15, gap: 10 },
   listContainer: { flex: 10 },
-  calendarContainer: { borderWidth: 0 },
+  calendarContainer: { borderWidth: 0, backgroundColor: 'transparent' },
   calendarSeparator: { marginTop: 0, marginBottom: 0 },
 });

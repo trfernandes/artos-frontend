@@ -62,7 +62,7 @@ export default function FancyText(props: FancyTextProps) {
                   : REGULAR_FONT;
 
   return (
-    <Text {...props} style={[styles.text, { fontSize, fontFamily, color, lineHeight: fontSize + 2 }, props.style]}>
+    <Text {...props} allowFontScaling={false} style={[styles.text, { fontSize, fontFamily, color, lineHeight: Math.round(fontSize * 1.25) }, props.style]}>
       {props.children}
     </Text>
   );

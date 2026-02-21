@@ -1,6 +1,8 @@
 import { Pressable, StyleProp, StyleSheet, TextStyle, View, ViewStyle } from 'react-native';
 import FancyText from './FancyText';
-import { Pallete } from '../constants/colors';
+import { ThemePalette } from '../constants/colors';
+import { usePallete } from '../hooks/usePallete';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 
 export type FancyDataPanelProps = {
   containerStyle?: StyleProp<ViewStyle>;
@@ -12,6 +14,9 @@ export type FancyDataPanelProps = {
 };
 
 export default function FancyDataPanel({ disabled = false, ...props }: FancyDataPanelProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+
   return (
     <View style={[styles.container, props.containerStyle]}>
       <Pressable onPress={props.onPress} style={[styles.panelContainer, props.buttonStyle]}>
@@ -19,7 +24,7 @@ export default function FancyDataPanel({ disabled = false, ...props }: FancyData
           <FancyText
             size={'small'}
             type='bold'
-            color={disabled ? Pallete.fonts.inactive : Pallete.fonts.dark}
+            color={disabled ? palette.fonts.inactive : palette.fonts.dark}
             style={props.textStyle}
           >
             {props.value}
@@ -28,7 +33,7 @@ export default function FancyDataPanel({ disabled = false, ...props }: FancyData
           <FancyText
             size={'extraSmall'}
             type='semiBold'
-            color={disabled ? Pallete.fonts.inactive : Pallete.fonts.dark}
+            color={disabled ? palette.fonts.inactive : palette.fonts.dark}
             style={props.textStyle}
           >
             Selecionar
@@ -39,16 +44,19 @@ export default function FancyDataPanel({ disabled = false, ...props }: FancyData
   );
 }
 
-const styles = StyleSheet.create({
-  container: {},
-  panelContainer: {
-    backgroundColor: Pallete.backgroundColor2,
-    minHeight: 30,
-    minWidth: 70,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 100,
-    paddingHorizontal: 10,
-    borderColor: 'blueviolet',
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: {},
+    panelContainer: {
+      backgroundColor: palette.backgroundColor2,
+      minHeight: 30,
+      minWidth: 70,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderRadius: 100,
+      paddingHorizontal: 10,
+      borderWidth: 1,
+      borderColor: palette.borderCard,
+    },
+  });
+}

@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import FancyScrollView from '../../FancyScrollView';
 import { CustomIconProps } from '../../FancyIcons';
 import FancyVerticalCheckboxCard from './FancyVerticalCheckboxCard';
-import FancyListEmpty from '../../list/FancyListEmpty';
+import FancyListEmpty, { FancyListEmptyProps } from '../../list/FancyListEmpty';
 import FancyVerticalImageCard from './FancyVerticalImageCard';
 
 export type TopElementType = 'image' | 'letter' | 'icon' | 'check';
@@ -39,6 +39,7 @@ export interface FancyVerticalContainerCardProps<T extends TopElementType = TopE
   contentContainerStyle?: StyleProp<ViewStyle>;
 
   onChangeValue?: T extends 'check' ? (item: DataType<'check'>, value: boolean, index: number) => void : undefined;
+  listEmptyProps?: FancyListEmptyProps;
 }
 
 const DEFAULT_ITEM_HEIGHT = 160;
@@ -54,6 +55,7 @@ export default function FancyVerticalContainerCard<T extends TopElementType>({
   containerStyle,
   contentContainerStyle,
   onChangeValue,
+  listEmptyProps,
 }: FancyVerticalContainerCardProps<T>) {
   const [containerWidth, setContainerWidth] = useState(0);
 
@@ -165,7 +167,7 @@ export default function FancyVerticalContainerCard<T extends TopElementType>({
       {Array.from({ length: totalSlots }, (_, i) => renderCard(data[i], i))}
     </FancyScrollView>
   ) : (
-    <FancyListEmpty />
+    <FancyListEmpty {...listEmptyProps} />
   );
 }
 

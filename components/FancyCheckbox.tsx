@@ -46,11 +46,13 @@ export default function FancyCheckbox(props: FancyCheckboxProps) {
             ...checkboxStateStyle,
           ]}
         >
-          <DefaultIcons.Custom
-            {...DefaultIconsNames.confirm}
-            size={props.iconSize || 9}
-            color='white'
-          />
+          {props.value && (
+            <DefaultIcons.Custom
+              {...DefaultIconsNames.confirm}
+              size={props.iconSize || 9}
+              color='white'
+            />
+          )}
         </View>
       </View>
       {props.label && (

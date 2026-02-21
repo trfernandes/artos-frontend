@@ -13,7 +13,6 @@ import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
 import { useCallback, useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Pallete } from '../../../../../constants/colors';
 import EventoFormModal from './EventoFormModal';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import FancyText from '../../../../FancyText';
@@ -23,8 +22,10 @@ import { useAssistenteEscala } from '../../../../../contexts/pages/escalas/Assis
 import DefaultIcons from '../../../../FancyIcons';
 import { EscalaTemplateTipoEnum } from '../../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
 import { DateUtilsApi } from '../../../../../utils/date_utils';
+import { usePallete } from '../../../../../hooks/usePallete';
 
 export default function AssistenteEventosStep() {
+  const palette = usePallete();
   const { ministerioId, isShouldLoadEvents, setShouldLoadEvents } = useAssistenteEscala();
   const form = useFormContext<EscalaFormData>();
 
@@ -205,9 +206,9 @@ export default function AssistenteEventosStep() {
             library='Octicons'
             name={markAll ? 'circle' : 'check-circle'}
             size={15}
-            color={Pallete.primary}
+            color={palette.primary}
           />
-          <FancyText size={'small'} type='semiBold' style={{ color: Pallete.primary }}>
+          <FancyText size={'small'} type='semiBold' style={{ color: palette.primary }}>
             {!markAll ? 'Marcar todos' : 'Desmarcar todos'}
           </FancyText>
         </TouchableOpacity>
@@ -226,7 +227,7 @@ export default function AssistenteEventosStep() {
           extraData={eventosArray.fields}
           // refreshing={isLoading}
           renderItem={({ item, index }) => {
-            const accentColor = item.cor ?? Pallete.primary;
+            const accentColor = item.cor ?? palette.primary;
             const dataFormatada = format(item.dataOcorrencia, 'EEEE, dd/MM/yyyy', { locale: ptBR });
             const horarioFormatado = item.horario || 'não informado';
             const hasTemplateBase = Boolean(
@@ -251,25 +252,25 @@ export default function AssistenteEventosStep() {
                   <View style={styles.eventInfoContainer}>
                     <View style={styles.eventInfoRow}>
                       <View style={styles.eventInfoIcon}>
-                        <DefaultIcons.Custom library='MaterialIcons' name='event' size={14} color={Pallete.primary} />
+                        <DefaultIcons.Custom library='MaterialIcons' name='event' size={14} color={palette.primary} />
                       </View>
-                      <FancyText size='extraSmall' type='medium' color={Pallete.fonts.dark} numberOfLines={1}>
+                      <FancyText size='extraSmall' type='medium' color={palette.fonts.dark} numberOfLines={1}>
                         {dataFormatada}
                       </FancyText>
                     </View>
                     <View style={styles.eventInfoRow}>
                       <View style={styles.eventInfoIcon}>
-                        <DefaultIcons.Custom library='MaterialIcons' name='access-time' size={14} color={Pallete.primary} />
+                        <DefaultIcons.Custom library='MaterialIcons' name='access-time' size={14} color={palette.primary} />
                       </View>
-                      <FancyText size='extraSmall' type='medium' color={Pallete.fonts.dark} numberOfLines={1}>
+                      <FancyText size='extraSmall' type='medium' color={palette.fonts.dark} numberOfLines={1}>
                         {horarioFormatado}
                       </FancyText>
                     </View>
                     <View style={styles.eventInfoRow}>
                       <View style={styles.eventInfoIcon}>
-                        <DefaultIcons.Custom library='MaterialIcons' name='group' size={14} color={Pallete.primary} />
+                        <DefaultIcons.Custom library='MaterialIcons' name='group' size={14} color={palette.primary} />
                       </View>
-                      <FancyText size='extraSmall' type='medium' color={Pallete.fonts.dark} numberOfLines={1} style={{ flexShrink: 1 }}>
+                      <FancyText size='extraSmall' type='medium' color={palette.fonts.dark} numberOfLines={1} style={{ flexShrink: 1 }}>
                         {estruturaEquipe}
                       </FancyText>
                     </View>
@@ -281,7 +282,7 @@ export default function AssistenteEventosStep() {
                       <FancyChips
                         size='small'
                         label='Sem template definido'
-                        color={Pallete.warning}
+                        color={palette.warning}
                         icon={{ library: 'MaterialCommunityIcons', name: 'alert-circle-outline' }}
                       />
                     </View>

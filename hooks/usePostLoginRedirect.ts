@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { router, useSegments } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
@@ -9,64 +9,88 @@ const PENDING_INVITE_TOKEN_KEY = 'pendingInviteToken';
 export function usePostLoginRedirect() {
   const { user, loading } = useAuth();
   const segments = useSegments();
-  const [hasChecked, setHasChecked] = useState(false);
+  const hasCheckedRef = useRef(false);
+  const isRedirectingRef = useRef(false);
+  const lastRedirectRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const checkAndRedirect = async () => {
-      // Aguardar até que a sessão esteja carregada
-      if (loading) return;
-      
-      // Se não estiver logado, resetar check
-      if (!user) {
-        setHasChecked(false);
-        return;
-      }
-      
-      // Se já verificou, não fazer nada
-      if (hasChecked) return;
+    const currentPath = '/' + segments.join('/');
 
-      // Não redirecionar se já estiver nas telas de join-church ou convite
-      const currentPath = '/' + segments.join('/');
-      if (
-        currentPath.includes('/join-church') ||
-        currentPath.includes('/invite')
-      ) {
-        setHasChecked(true);
-        return;
-      }
+    const isOnJoinChurchRoute = currentPath.includes('/join-church');
+    const isOnInviteRoute = currentPath.includes('/invite');
+    const isOnBypassRoute = isOnJoinChurchRoute || isOnInviteRoute;
 
-      // 1. Verificar se tem token de convite pendente
-      try {
-        const pendingToken = await AsyncStorage.getItem(PENDING_INVITE_TOKEN_KEY);
-        if (pendingToken) {
-          await AsyncStorage.removeItem(PENDING_INVITE_TOKEN_KEY);
-          Toast.show({
-            type: 'info',
-            text1: 'Processando convite...',
-          });
-          setHasChecked(true);
-          router.replace(`/(public)/invite/${pendingToken}`);
-          return;
-        }
-      } catch (err) {
-        console.error('Erro ao verificar token pendente:', err);
-      }
+    const replaceOnce = (target: string, onRedirect?: () => void) => {
+      if (isRedirectingRef.current) return;
+      if (lastRedirectRef.current === target) return;
 
-      // 2. Se não tem igrejas, redirecionar para join-church
-      if (!user.igrejas || user.igrejas.length === 0) {
-        Toast.show({
-          type: 'info',
-          text1: 'Vincule-se a uma igreja',
-          text2: 'Use um código de convite para começar.',
-        });
-        setHasChecked(true);
-        router.replace('/(app)/join-church');
-        return;
-      }
-
-      setHasChecked(true);
+      isRedirectingRef.current = true;
+      lastRedirectRef.current = target;
+      onRedirect?.();
+      router.replace(target);
     };
 
-    checkAndRedirect();
-  }, [user, loading, segments, hasChecked]);
+    const checkAndRedirect = async () => {
+      if (loading) return;
+
+      if (!user) {
+        hasCheckedRef.current = false;
+        isRedirectingRef.current = false;
+        lastRedirectRef.current = null;
+        return;
+      }
+
+      if (isOnBypassRoute) {
+        isRedirectingRef.current = false;
+
+        if (isOnJoinChurchRoute && lastRedirectRef.current === '/(app)/join-church') {
+          lastRedirectRef.current = null;
+        }
+
+        if (isOnInviteRoute && lastRedirectRef.current?.startsWith('/(public)/invite/')) {
+          lastRedirectRef.current = null;
+        }
+
+        return;
+      }
+
+      // Verifica token pendente apenas uma vez por sessão autenticada.
+      if (!hasCheckedRef.current) {
+        try {
+          const pendingToken = await AsyncStorage.getItem(PENDING_INVITE_TOKEN_KEY);
+          if (pendingToken) {
+            await AsyncStorage.removeItem(PENDING_INVITE_TOKEN_KEY);
+            replaceOnce(`/(public)/invite/${pendingToken}`, () => {
+              Toast.show({
+                type: 'info',
+                text1: 'Processando convite...',
+              });
+            });
+            hasCheckedRef.current = true;
+            return;
+          }
+        } catch (err) {
+          console.error('Erro ao verificar token pendente:', err);
+        } finally {
+          hasCheckedRef.current = true;
+        }
+      }
+
+      if (!user.igrejas || user.igrejas.length === 0) {
+        replaceOnce('/(app)/join-church', () => {
+          Toast.show({
+            type: 'info',
+            text1: 'Vincule-se a uma igreja',
+            text2: 'Use um código de convite para começar.',
+          });
+        });
+        return;
+      }
+
+      isRedirectingRef.current = false;
+      lastRedirectRef.current = null;
+    };
+
+    void checkAndRedirect();
+  }, [loading, user, segments]);
 }

@@ -226,6 +226,9 @@ function createStyles(palette: ThemePalette) {
       paddingTop: 16,
       paddingHorizontal: 16,
       paddingBottom: 0,
+      backgroundColor: palette.backgroundColor4,
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.primary, 0.22),
     },
     modalContainer: {
       gap: 12,

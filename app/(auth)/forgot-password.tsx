@@ -44,7 +44,10 @@ export default function ForgotPasswordPage() {
         text2: 'Se o e-mail existir, você receberá as instruções de recuperação.',
       });
     } catch (error) {
-      const message = getApiErrorMessage(error, 'Não foi possível solicitar a recuperação de senha.');
+      const message = getApiErrorMessage(
+        error,
+        'Não foi possível solicitar a recuperação de senha.',
+      );
       Toast.show({ type: 'error', text1: 'Erro', text2: message });
     }
   };
@@ -52,12 +55,11 @@ export default function ForgotPasswordPage() {
   return (
     <AuthScreen
       showBackButton
+      centerWithinBackButtonArea
       scrollContainerStyle={styles.scrollContainer}
       headerContainerStyle={styles.titleContainer}
-      headerWidth={{ default: '85%', keyboard: '100%' }}
-      contentWidth={{ default: '85%', keyboard: '100%' }}
-      paddingTopOnKeyboard={60}
       fieldsContainerStyle={styles.fieldsContainer}
+      compactTitleOnKeyboard='Recuperação de Senha'
       header={({ keyboardVisible }) => (
         <>
           <FancyText size={!keyboardVisible ? 'extraLarge' : 'large'} type='bold' color='white'>
@@ -67,10 +69,7 @@ export default function ForgotPasswordPage() {
             size={!keyboardVisible ? 'medium' : 'small'}
             type='medium'
             color='white'
-            style={{
-              width: '99%',
-              borderWidth: 0,
-            }}
+            style={{ borderWidth: 0 }}
           >
             Informe seu e-mail para receber as instruções de recuperação.
           </FancyText>
@@ -85,7 +84,11 @@ export default function ForgotPasswordPage() {
           inputProps={{ autoCapitalize: 'none', keyboardType: 'email-address' }}
         />
 
-        <FancyButton label={isSubmitting ? 'Enviando...' : 'Enviar'} onPress={handleSubmit(onSubmit)} disabled={isSubmitting} />
+        <FancyButton
+          label={isSubmitting ? 'Enviando...' : 'Enviar'}
+          onPress={handleSubmit(onSubmit)}
+          disabled={isSubmitting}
+        />
       </>
     </AuthScreen>
   );
@@ -97,7 +100,6 @@ function createStyles(Pallete: ThemePalette) {
   return StyleSheet.create({
     scrollContainer: {
       flexGrow: 1,
-      paddingHorizontal: 40,
       paddingVertical: 0,
       justifyContent: 'center',
       borderWidth: DESIGN_MODE,

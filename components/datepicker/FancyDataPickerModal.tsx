@@ -41,7 +41,8 @@ export default function FancyDatePickerModal({
       />
       {!disabled && visible && (
         <FancyModalDialog
-          containerStyle={{ gap: 20 }}
+          containerStyle={{ gap: 24 }}
+          buttonContainerStyle={{ marginTop: 8 }}
           modalProps={{ visible }}
           onButton1Press={() => setVisible(false)}
           onButton2Press={() => {
@@ -51,6 +52,8 @@ export default function FancyDatePickerModal({
         >
           <FancyDatePicker
             calendarProps={{
+              containerStyle: { backgroundColor: 'transparent', borderWidth: 0 },
+              dayModeTopPadding: 10,
               value: date,
               onChangeSelectedDate: (d) => setDate(d),
             }}

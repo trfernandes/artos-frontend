@@ -1,13 +1,16 @@
-import { View, StyleSheet, Switch, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useState } from 'react';
 import FancyText from '../../../FancyText';
 import FancyTextInput from '../../../fields/FancyTextInput';
 import FancyChips from '../../../FancyChips';
 import FancyModalDialog from '../../../modal/FancyModalDialog';
 import DefaultIcons from '../../../FancyIcons';
-import { Pallete } from '../../../../constants/colors';
+import { ThemePalette } from '../../../../constants/colors';
 import { CreateIgrejaConviteDto } from '../../../../domain/dtos/Igreja/create-igreja-convite.dto';
 import { addDays } from 'date-fns';
+import { usePallete } from '../../../../hooks/usePallete';
+import { useThemedStyles } from '../../../../hooks/useThemedStyles';
+import { ColorUtils } from '../../../../utils/color_utils';
 
 type NovoConviteModalProps = {
   visible: boolean;
@@ -37,6 +40,8 @@ export default function NovoConviteModal({
   onCriar,
   isLoading = false,
 }: NovoConviteModalProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const [descricao, setDescricao] = useState('');
   const [autoApprove, setAutoApprove] = useState(false);
   const [maxUses, setMaxUses] = useState<number | null>(1);
@@ -75,7 +80,7 @@ export default function NovoConviteModal({
           library: 'MaterialCommunityIcons',
           name: 'ticket-confirmation-outline',
           size: 16,
-          color: Pallete.fonts.light,
+          color: palette.fonts.light,
         },
         disabled: isLoading,
         isLoading: isLoading,
@@ -107,7 +112,10 @@ export default function NovoConviteModal({
             style={[
               styles.entryTypeCard,
               !autoApprove && styles.entryTypeCardActive,
-              !autoApprove && { borderColor: Pallete.warning, backgroundColor: `${Pallete.warning}10` },
+              !autoApprove && {
+                borderColor: palette.warning,
+                backgroundColor: ColorUtils.withAlpha(palette.warning, 0.14),
+              },
             ]}
             onPress={() => setAutoApprove(false)}
             disabled={isLoading}
@@ -117,16 +125,16 @@ export default function NovoConviteModal({
               library='MaterialIcons'
               name='hourglass-empty'
               size={24}
-              color={!autoApprove ? Pallete.warning : Pallete.fonts.inactive}
+              color={!autoApprove ? palette.warning : palette.fonts.inactive}
             />
             <FancyText
               type={!autoApprove ? 'semiBold' : 'normal'}
               size='small'
-              color={!autoApprove ? Pallete.warning : Pallete.fonts.inactive}
+              color={!autoApprove ? palette.warning : palette.fonts.inactive}
             >
               Com Aprovação
             </FancyText>
-            <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={styles.entryTypeDesc}>
+            <FancyText size='extraSmall' color={palette.fonts.inactive} style={styles.entryTypeDesc}>
               Você aprova cada solicitação
             </FancyText>
           </TouchableOpacity>
@@ -135,7 +143,10 @@ export default function NovoConviteModal({
             style={[
               styles.entryTypeCard,
               autoApprove && styles.entryTypeCardActive,
-              autoApprove && { borderColor: Pallete.confirm, backgroundColor: `${Pallete.confirm}10` },
+              autoApprove && {
+                borderColor: palette.confirm,
+                backgroundColor: ColorUtils.withAlpha(palette.confirm, 0.14),
+              },
             ]}
             onPress={() => setAutoApprove(true)}
             disabled={isLoading}
@@ -145,16 +156,16 @@ export default function NovoConviteModal({
               library='MaterialIcons'
               name='flash-on'
               size={24}
-              color={autoApprove ? Pallete.confirm : Pallete.fonts.inactive}
+              color={autoApprove ? palette.confirm : palette.fonts.inactive}
             />
             <FancyText
               type='bold'
               size='small'
-              color={autoApprove ? Pallete.confirm : Pallete.fonts.inactive}
+              color={autoApprove ? palette.confirm : palette.fonts.inactive}
             >
               Entrada Imediata
             </FancyText>
-            <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={styles.entryTypeDesc}>
+            <FancyText size='extraSmall' color={palette.fonts.inactive} style={styles.entryTypeDesc}>
               Entra automaticamente
             </FancyText>
           </TouchableOpacity>
@@ -171,7 +182,7 @@ export default function NovoConviteModal({
             <FancyChips
               key={opt.label}
               label={opt.label}
-              color={maxUses === opt.value ? Pallete.primary : Pallete.fonts.inactive}
+              color={maxUses === opt.value ? palette.primary : palette.fonts.inactive}
               outlined={maxUses !== opt.value}
               size='small'
               style={styles.chip}
@@ -191,7 +202,7 @@ export default function NovoConviteModal({
             <FancyChips
               key={opt.label}
               label={opt.label}
-              color={validadeDias === opt.value ? Pallete.primary : Pallete.fonts.inactive}
+              color={validadeDias === opt.value ? palette.primary : palette.fonts.inactive}
               outlined={validadeDias !== opt.value}
               size='small'
               style={styles.chip}
@@ -209,9 +220,9 @@ export default function NovoConviteModal({
               library='MaterialCommunityIcons'
               name='ticket-confirmation-outline'
               size={16}
-              color={Pallete.fonts.inactive}
+              color={palette.fonts.inactive}
             />
-            <FancyText size='extraSmall' color={Pallete.fonts.inactive}>
+            <FancyText size='extraSmall' color={palette.fonts.inactive}>
               {descricao.trim() || 'Convite'} • {maxUses ? `${maxUses} uso(s)` : 'Ilimitado'} • {validadeDias ? `${validadeDias} dias` : 'Sem expiração'}
             </FancyText>
           </View>
@@ -221,61 +232,65 @@ export default function NovoConviteModal({
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    gap: 18,
-    paddingHorizontal: 4,
-    paddingBottom: 8,
-  },
-  section: {
-    gap: 10,
-  },
-  sectionLabel: {
-    marginBottom: 2,
-  },
-  entryTypeSection: {
-    gap: 10,
-  },
-  entryTypeCards: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  entryTypeCard: {
-    flex: 1,
-    alignItems: 'center',
-    padding: 14,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: Pallete.borderCard,
-    backgroundColor: Pallete.backgroundColor2,
-    gap: 6,
-  },
-  entryTypeCardActive: {
-    borderWidth: 2,
-  },
-  entryTypeDesc: {
-    textAlign: 'center',
-  },
-  chipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-  },
-  previewSection: {
-    marginTop: 4,
-  },
-  previewCard: {
-    backgroundColor: Pallete.backgroundColor2,
-    borderRadius: 10,
-    padding: 12,
-  },
-  previewRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    content: {
+      gap: 18,
+      paddingHorizontal: 4,
+      paddingBottom: 8,
+    },
+    section: {
+      gap: 10,
+    },
+    sectionLabel: {
+      marginBottom: 2,
+    },
+    entryTypeSection: {
+      gap: 10,
+    },
+    entryTypeCards: {
+      flexDirection: 'row',
+      gap: 10,
+    },
+    entryTypeCard: {
+      flex: 1,
+      alignItems: 'center',
+      padding: 14,
+      borderRadius: 12,
+      borderWidth: 1.5,
+      borderColor: palette.borderCard,
+      backgroundColor: palette.backgroundColor2,
+      gap: 6,
+    },
+    entryTypeCardActive: {
+      borderWidth: 2,
+    },
+    entryTypeDesc: {
+      textAlign: 'center',
+    },
+    chipsRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    chip: {
+      paddingHorizontal: 14,
+      paddingVertical: 6,
+    },
+    previewSection: {
+      marginTop: 4,
+    },
+    previewCard: {
+      backgroundColor: palette.backgroundColor2,
+      borderRadius: 10,
+      padding: 12,
+      borderWidth: 1,
+      borderColor: palette.borderCard,
+    },
+    previewRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+  });
+}

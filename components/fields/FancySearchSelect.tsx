@@ -38,6 +38,7 @@ import FancyCheckbox from '../FancyCheckbox';
 import FancyList from '../list/FancyList';
 import { usePallete } from '../../hooks/usePallete';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const ANIMATION = {
@@ -83,6 +84,7 @@ function FancySearchSelectInner<ValueItem>(
   ref: React.Ref<FancySearchSelectRef>,
 ) {
   const palette = usePallete();
+  const { isDark } = useAppTheme();
   const styles = useThemedStyles(createStyles);
   const [isVisible, setIsVisible] = useState(false);
   const [search, setSearch] = useState('');
@@ -96,7 +98,9 @@ function FancySearchSelectInner<ValueItem>(
   );
   const insets = useSafeAreaInsets();
 
-  const activeColor = ColorUtils.lightenColor(palette.primary, 0.85);
+  const activeColor = isDark
+    ? ColorUtils.withAlpha(palette.primary, 0.22)
+    : ColorUtils.lightenColor(palette.primary, 0.85);
   const selectedItem = multiSelect ? undefined : listItems?.find((item) => item.value === value);
   const selectedCount = multiSelect && Array.isArray(value) ? value.length : 0;
   const innerDisabled = disabled || isLoading || listItems?.length === 0;

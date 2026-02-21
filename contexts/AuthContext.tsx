@@ -242,8 +242,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const forgotPassword = async (email: string) => {
-    await apiClient.post('/auth/forgot-password', { email });
-    return true;
+    try {
+      await apiClient.post('/auth/forgot-password', { email });
+      return true;
+    } catch (error) {
+      console.error('[forgotPassword] Erro:', error);
+      throw error;
+    }
   };
 
   const updateUser = async (newUserData: Partial<ResponseLoginDto>) => {

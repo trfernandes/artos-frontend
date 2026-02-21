@@ -29,43 +29,46 @@ export default function IgrejaCadastroAguardandoEmailPage() {
   const isServerUnavailable = connectivityStatus !== 'ok';
   const { signInWithData } = useAuth();
 
-  const realizarLoginAutomatico = useCallback(async (authData: any) => {
-    // Evita execuções duplicadas usando ref que persiste entre renders
-    if (isProcessingLoginRef.current) {
-      return;
-    }
+  const realizarLoginAutomatico = useCallback(
+    async (authData: any) => {
+      // Evita execuções duplicadas usando ref que persiste entre renders
+      if (isProcessingLoginRef.current) {
+        return;
+      }
 
-    isProcessingLoginRef.current = true;
+      isProcessingLoginRef.current = true;
 
-    try {
-      // Verifica se o backend retornou dados de autenticação
-      // igrejas pode ser um array vazio para contas recém-criadas
-      if (authData?.access_token && authData?.user && authData?.igrejas !== undefined) {
-        const loginData: ResponseLoginDto = {
-          access_token: authData.access_token,
-          user: authData.user,
-          igrejas: authData.igrejas || [],
-        };
+      try {
+        // Verifica se o backend retornou dados de autenticação
+        // igrejas pode ser um array vazio para contas recém-criadas
+        if (authData?.access_token && authData?.user && authData?.igrejas !== undefined) {
+          const loginData: ResponseLoginDto = {
+            access_token: authData.access_token,
+            user: authData.user,
+            igrejas: authData.igrejas || [],
+          };
 
-        // Usa o método do AuthContext para fazer login com os dados
-        await signInWithData(loginData);
+          // Usa o método do AuthContext para fazer login com os dados
+          await signInWithData(loginData);
 
-        // Limpa dados do cadastro
-        await limparDadosCadastro();
+          // Limpa dados do cadastro
+          await limparDadosCadastro();
 
-        // Redireciona para a tela inicial
-        router.replace('/');
-      } else {
-        // Se não houver dados de auth, vai para login
+          // Redireciona para a tela inicial
+          router.replace('/');
+        } else {
+          // Se não houver dados de auth, vai para login
+          await limparDadosCadastro();
+          router.replace('/(auth)/login');
+        }
+      } catch (error) {
+        console.log('Erro ao realizar login automático:', error);
         await limparDadosCadastro();
         router.replace('/(auth)/login');
       }
-    } catch (error) {
-      console.log('Erro ao realizar login automático:', error);
-      await limparDadosCadastro();
-      router.replace('/(auth)/login');
-    }
-  }, [signInWithData]);
+    },
+    [signInWithData],
+  );
 
   const {
     dadosCadastro,
@@ -91,7 +94,11 @@ export default function IgrejaCadastroAguardandoEmailPage() {
   };
 
   // Cooldown local para UX
-  const { seconds: cooldownRestante, start: startCooldown, isActive: cooldownAtivo } = useCooldown(60);
+  const {
+    seconds: cooldownRestante,
+    start: startCooldown,
+    isActive: cooldownAtivo,
+  } = useCooldown(60);
   const [reenviadoMsg, setReenviadoMsg] = useState('');
 
   const handleReenviar = () => {
@@ -172,19 +179,23 @@ export default function IgrejaCadastroAguardandoEmailPage() {
 
   return (
     <AuthScreen
+      showBackButton
+      centerWithinBackButtonArea
+      onPressBack={() => router.replace('/(auth)/login')}
       containerPosition={{ default: 'relative', keyboard: 'relative' }}
       scrollContainerStyle={styles.scrollContainer}
       centerContainerStyle={styles.centerContainer}
-      headerWidth={{ default: '100%', keyboard: '100%' }}
-      contentWidth={{ default: '100%', keyboard: '100%' }}
       fieldsContainerStyle={styles.fieldsContainer}
+      compactTitleOnKeyboard='Confirme seu e-mail'
       header={({ keyboardVisible }) => (
         <View style={{ gap: 5 }}>
           <FancyText
             size={!keyboardVisible ? 'extraLarge' : 'large'}
             type='bold'
             color='white'
-            style={{ lineHeight: !keyboardVisible ? EXTRA_LARGE_SIZE_FONT * 1.2 : LARGE_SIZE_FONT * 1.2 }}
+            style={{
+              lineHeight: !keyboardVisible ? EXTRA_LARGE_SIZE_FONT * 1.2 : LARGE_SIZE_FONT * 1.2,
+            }}
           >
             Confirme seu e-mail
           </FancyText>
@@ -199,12 +210,21 @@ export default function IgrejaCadastroAguardandoEmailPage() {
         <View style={styles.card}>
           {/* Ícone de email */}
           <View style={styles.iconContainer}>
-            <DefaultIcons.Custom library='MaterialCommunityIcons' name='email-outline' size={40} color={Pallete.primary} />
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='email-outline'
+              size={40}
+              color={Pallete.primary}
+            />
           </View>
 
           {/* Email */}
           <View style={styles.emailSection}>
-            <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={{ textAlign: 'center', alignSelf: 'center' }}>
+            <FancyText
+              size='extraSmall'
+              color={Pallete.fonts.inactive}
+              style={{ textAlign: 'center', alignSelf: 'center' }}
+            >
               E-mail do responsável
             </FancyText>
             <FancyText
@@ -227,7 +247,11 @@ export default function IgrejaCadastroAguardandoEmailPage() {
                 size={16}
                 color={isExpirado ? Pallete.error : Pallete.warning}
               />
-              <FancyText size='extraSmall' type='medium' color={isExpirado ? Pallete.error : Pallete.warning}>
+              <FancyText
+                size='extraSmall'
+                type='medium'
+                color={isExpirado ? Pallete.error : Pallete.warning}
+              >
                 {isExpirado ? 'Link expirado' : 'Aguardando confirmação'}
               </FancyText>
             </View>
@@ -248,13 +272,23 @@ export default function IgrejaCadastroAguardandoEmailPage() {
           {/* Dicas */}
           <View style={styles.tipsSection}>
             <View style={styles.tipRow}>
-              <DefaultIcons.Custom library='Feather' name='info' size={14} color={Pallete.fonts.inactive} />
+              <DefaultIcons.Custom
+                library='Feather'
+                name='info'
+                size={14}
+                color={Pallete.fonts.inactive}
+              />
               <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={{ flex: 1 }}>
                 Verifique a caixa de spam/lixo eletrônico
               </FancyText>
             </View>
             <View style={styles.tipRow}>
-              <DefaultIcons.Custom library='Feather' name='check-circle' size={14} color={Pallete.fonts.inactive} />
+              <DefaultIcons.Custom
+                library='Feather'
+                name='check-circle'
+                size={14}
+                color={Pallete.fonts.inactive}
+              />
               <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={{ flex: 1 }}>
                 Após confirmar, toque em "Já confirmei"
               </FancyText>
@@ -290,7 +324,11 @@ export default function IgrejaCadastroAguardandoEmailPage() {
             }}
           />
           {reenviadoMsg && (
-            <FancyText size='extraSmall' color={Pallete.confirm} style={{ textAlign: 'center', marginTop: 4 }}>
+            <FancyText
+              size='extraSmall'
+              color={Pallete.confirm}
+              style={{ textAlign: 'center', marginTop: 4 }}
+            >
               {reenviadoMsg}
             </FancyText>
           )}
@@ -307,7 +345,12 @@ export default function IgrejaCadastroAguardandoEmailPage() {
       </View>
 
       {/* Modal para alterar email */}
-      <Modal visible={modalVisible} transparent animationType='fade' onRequestClose={() => setModalVisible(false)}>
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType='fade'
+        onRequestClose={() => setModalVisible(false)}
+      >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <FancyText size='large' type='bold' style={styles.modalTitle}>
@@ -369,137 +412,135 @@ export default function IgrejaCadastroAguardandoEmailPage() {
 
 function createStyles(Pallete: ThemePalette) {
   return StyleSheet.create({
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.18)',
-    zIndex: 99,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalInputWrapper: {
-    width: '100%',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    paddingHorizontal: 25,
-    paddingTop: 70,
-    paddingBottom: 40,
-  },
-  centerContainer: {
-    flexGrow: 1,
-    gap: 15,
-  },
-  fieldsContainer: {
-    ...Pallete.shadows[200],
-    borderRadius: 15,
-    gap: 10,
-    backgroundColor: Pallete.backgroundColor,
-    alignItems: 'stretch',
-    padding: 20,
-  },
-  content: {
-    gap: 20,
-  },
-  card: {
-    backgroundColor: ColorUtils.lightenColor(Pallete.primary, 0.95),
-    borderRadius: 12,
-    padding: 20,
-    gap: 16,
-    alignItems: 'center',
-  },
-  iconContainer: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: ColorUtils.lightenColor(Pallete.primary, 0.9),
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emailSection: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  statusSection: {
-    alignItems: 'center',
-    gap: 6,
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: ColorUtils.lightenColor(Pallete.warning, 0.9),
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  statusBadgeExpirado: {
-    backgroundColor: ColorUtils.lightenColor(Pallete.error, 0.9),
-  },
-  tipsSection: {
-    width: '100%',
-    gap: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: Pallete.borderCard,
-  },
-  tipRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  actionsContainer: {
-    gap: 12,
-  },
-  primaryButton: {
-    width: '100%',
-  },
-  secondaryButton: {
-    width: '100%',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    width: '100%',
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 24,
-    gap: 16,
-  },
-  modalTitle: {
-    textAlign: 'center',
-  },
-  modalSubtitle: {
-    textAlign: 'center',
-  },
-  modalInputContainer: {
-    width: '100%',
-  },
-  modalInput: {
-    width: '100%',
-    height: 48,
-    borderWidth: 1,
-    borderColor: Pallete.borderCard,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    fontSize: 16,
-  },
-  modalActions: {
-    flexDirection: 'row',
-    gap: 12,
-    paddingTop: 8,
-  },
-  modalButton: {
-    flex: 1,
-  },
+    loadingOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.18)',
+      zIndex: 99,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    modalInputWrapper: {
+      width: '100%',
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    scrollContainer: {
+      flexGrow: 1,
+      paddingVertical: 0,
+    },
+    centerContainer: {
+      flexGrow: 1,
+      gap: 15,
+    },
+    fieldsContainer: {
+      ...Pallete.shadows[200],
+      borderRadius: 15,
+      gap: 10,
+      backgroundColor: Pallete.backgroundColor,
+      alignItems: 'stretch',
+      padding: 20,
+    },
+    content: {
+      gap: 20,
+    },
+    card: {
+      backgroundColor: ColorUtils.lightenColor(Pallete.primary, 0.95),
+      borderRadius: 12,
+      padding: 20,
+      gap: 16,
+      alignItems: 'center',
+    },
+    iconContainer: {
+      width: 72,
+      height: 72,
+      borderRadius: 36,
+      backgroundColor: ColorUtils.lightenColor(Pallete.primary, 0.9),
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    emailSection: {
+      alignItems: 'center',
+      gap: 4,
+    },
+    statusSection: {
+      alignItems: 'center',
+      gap: 6,
+    },
+    statusBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      backgroundColor: ColorUtils.lightenColor(Pallete.warning, 0.9),
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 20,
+    },
+    statusBadgeExpirado: {
+      backgroundColor: ColorUtils.lightenColor(Pallete.error, 0.9),
+    },
+    tipsSection: {
+      width: '100%',
+      gap: 8,
+      paddingTop: 8,
+      borderTopWidth: 1,
+      borderTopColor: Pallete.borderCard,
+    },
+    tipRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    actionsContainer: {
+      gap: 12,
+    },
+    primaryButton: {
+      width: '100%',
+    },
+    secondaryButton: {
+      width: '100%',
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    },
+    modalContent: {
+      width: '100%',
+      backgroundColor: 'white',
+      borderRadius: 16,
+      padding: 24,
+      gap: 16,
+    },
+    modalTitle: {
+      textAlign: 'center',
+    },
+    modalSubtitle: {
+      textAlign: 'center',
+    },
+    modalInputContainer: {
+      width: '100%',
+    },
+    modalInput: {
+      width: '100%',
+      height: 48,
+      borderWidth: 1,
+      borderColor: Pallete.borderCard,
+      borderRadius: 8,
+      paddingHorizontal: 16,
+      fontSize: 16,
+    },
+    modalActions: {
+      flexDirection: 'row',
+      gap: 12,
+      paddingTop: 8,
+    },
+    modalButton: {
+      flex: 1,
+    },
   });
 }

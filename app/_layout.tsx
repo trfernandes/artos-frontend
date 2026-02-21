@@ -20,7 +20,6 @@ import { StatusBar } from 'expo-status-bar';
 import { useProtectedRoute } from '../hooks/useProtectedRoute';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { useAppTheme } from '../hooks/useAppTheme';
-import * as NavigationBar from 'expo-navigation-bar';
 
 const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
 
@@ -106,9 +105,25 @@ function RootLayoutNav() {
   // sincroniza barra de navegação Android (3 botões) com o tema atual
   useEffect(() => {
     if (Platform.OS !== 'android') return;
+    let cancelled = false;
 
-    void NavigationBar.setBackgroundColorAsync(palette.backgroundColor);
-    void NavigationBar.setButtonStyleAsync(isDark ? 'light' : 'dark');
+    (async () => {
+      try {
+        const NavigationBar = await import('expo-navigation-bar');
+        if (cancelled) return;
+
+        await NavigationBar.setBackgroundColorAsync(palette.backgroundColor);
+        await NavigationBar.setButtonStyleAsync(isDark ? 'light' : 'dark');
+      } catch (error) {
+        if (__DEV__) {
+          console.warn("expo-navigation-bar indisponivel nesta build. Reinstale o app dev client.", error);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [isDark, palette.backgroundColor]);
 
   if (!fontsLoaded || loading) {

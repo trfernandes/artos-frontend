@@ -18,6 +18,7 @@ export default function AuthLayout() {
       <Stack.Screen name='create-igreja-account' />
       <Stack.Screen name='igreja-cadastro-aguardando-email' />
       <Stack.Screen name='create-voluntario-account' />
+      <Stack.Screen name='voluntario-aguardando-email' />
     </Stack>
   );
 }

@@ -308,7 +308,7 @@ function createStyles(palette: ThemePalette) {
       marginTop: 1,
     },
     kpiList: {
-      marginTop: 2,
+      marginTop: 10,
       borderRadius: 12,
       borderWidth: 0,
       backgroundColor: palette.backgroundColor3,

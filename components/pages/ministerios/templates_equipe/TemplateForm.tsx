@@ -3,7 +3,7 @@ import { FormProvider, useFormContext } from 'react-hook-form';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import FancyButton from '../../../buttons/FancyButton';
 import FancyPageView from '../../../containers/FancyPageView';
-import ControlledDropDown from '../../../forms/ControlledDropDown';
+import ControlledBottomSheetSelect from '../../../forms/ControlledBottomSheetSelect';
 import ControlledTextInput from '../../../forms/ControlledTextInput';
 import FancyErrorText from '../../../forms/FancyErrorText';
 import TemplateFixoEquipeList from './TemplateFixoEquipeList';
@@ -86,7 +86,7 @@ export default function TemplateForm({ mode = 'add', ministerioId, onSave, isLoa
   return (
     <FancyPageView style={[styles.container, { pointerEvents: isFormDisabled ? 'none' : 'auto' }]}>
       <ControlledTextInput control={form.control} name={'nome'} label='Nome' disabled={isFormDisabled} />
-      <ControlledDropDown
+      <ControlledBottomSheetSelect
         control={form.control}
         name={'tipo'}
         label='Tipo'
@@ -99,7 +99,7 @@ export default function TemplateForm({ mode = 'add', ministerioId, onSave, isLoa
       <FormProvider {...form}>
         {EscalaTemplateTipoEnumMap[tipoWatch] === EscalaTemplateTipoEnum.Funcoes && (
           <>
-            <ControlledDropDown
+            <ControlledBottomSheetSelect
               control={form.control}
               name={'respSetListFuncoesId'}
               label='Responsável pelo setlist'
@@ -114,7 +114,7 @@ export default function TemplateForm({ mode = 'add', ministerioId, onSave, isLoa
         )}
         {EscalaTemplateTipoEnumMap[tipoWatch] === EscalaTemplateTipoEnum.Fixo && (
           <>
-            <ControlledDropDown
+            <ControlledBottomSheetSelect
               control={form.control}
               name={'respSetListVoluntariosId'}
               label='Responsável pelo setlist'

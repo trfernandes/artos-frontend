@@ -20,19 +20,20 @@ export default function ComecarScreen() {
   return (
     <AuthScreen
       showBackButton
+      centerWithinBackButtonArea
       scrollContainerStyle={styles.scrollContainer}
       fieldsContainerStyle={styles.fieldsContainer}
-      contentWidth={{ default: '85%', keyboard: '85%' }}
-      headerWidth={{ default: '85%', keyboard: '85%' }}
       alignTopOnKeyboard
-      keyboardBottomSpacing={60}
+      compactTitleOnKeyboard='Como entrar'
       header={({ keyboardVisible }) => (
         <View style={{ gap: 5, borderWidth: 0 }}>
           <FancyText
             size={!keyboardVisible ? 'extraLarge' : 'large'}
             type='bold'
             color='white'
-            style={{ lineHeight: !keyboardVisible ? EXTRA_LARGE_SIZE_FONT * 1.2 : LARGE_SIZE_FONT * 1.2 }}
+            style={{
+              lineHeight: !keyboardVisible ? EXTRA_LARGE_SIZE_FONT * 1.2 : LARGE_SIZE_FONT * 1.2,
+            }}
           >
             Como você vai entrar?
           </FancyText>
@@ -59,7 +60,12 @@ export default function ComecarScreen() {
               props={{
                 title: 'Tenho convite',
                 subtitle: (
-                  <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive} numberOfLines={3}>
+                  <FancyText
+                    size='extraSmall'
+                    type='medium'
+                    color={Pallete.fonts.inactive}
+                    numberOfLines={3}
+                  >
                     Recebi um link ou código da minha igreja para entrar como voluntário.
                   </FancyText>
                 ),
@@ -87,7 +93,7 @@ export default function ComecarScreen() {
                 ),
                 containerStyle: [styles.card, styles.cardHighlight],
                 contentContainerStyle: styles.cardContent,
-                centerContainerStyle: { gap: 6, paddingBottom:5 },
+                centerContainerStyle: { gap: 6, paddingBottom: 5 },
                 backgroundColor: Pallete.backgroundColor4,
               }}
             />
@@ -103,7 +109,12 @@ export default function ComecarScreen() {
               props={{
                 title: 'Cadastrar igreja',
                 subtitle: (
-                  <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive} numberOfLines={3}>
+                  <FancyText
+                    size='extraSmall'
+                    type='medium'
+                    color={Pallete.fonts.inactive}
+                    numberOfLines={3}
+                  >
                     Sou responsável. Vou configurar a igreja e convidar voluntários.
                   </FancyText>
                 ),
@@ -131,7 +142,7 @@ export default function ComecarScreen() {
                 ),
                 containerStyle: styles.card,
                 contentContainerStyle: styles.cardContent,
-                centerContainerStyle: { gap: 6,paddingBottom:5 },
+                centerContainerStyle: { gap: 6, paddingBottom: 5 },
               }}
             />
           </TouchableOpacity>
@@ -186,13 +197,11 @@ function createStyles(Pallete: ThemePalette) {
   return StyleSheet.create({
     scrollContainer: {
       flexGrow: 1,
-      paddingHorizontal: 40,
       paddingVertical: 0,
       justifyContent: 'center',
       borderColor: 'red',
     },
     fieldsContainer: {
-      width: '85%',
       borderRadius: 15,
       borderColor: 'firebrick',
       padding: 24,

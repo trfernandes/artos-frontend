@@ -4,7 +4,7 @@ import { AddLiderSchema, AddLiderFormData, AddMinisterioFormData } from '../../.
 import { zodResolver } from '@hookform/resolvers/zod';
 import ControlledSearchSelect from '../../../forms/ControlledSearchSelect';
 import ControlledBottomSheetSelect from '../../../forms/ControlledBottomSheetSelect';
-import { useVoluntariosCrud } from '../../../../hooks/useVoluntariosCrud';
+import { useIgrejaVoluntariosCrud } from '../../../../hooks/useIgrejaVoluntariosCrud';
 import { useCallback, useMemo } from 'react';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import { VoluntarioHierarquiaLideresEnumList } from '../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
@@ -20,7 +20,7 @@ export default function AddLiderancaFormModal(props: {} & FancyModalDialogProps<
   });
   const form = useForm<AddLiderFormData>({ resolver: zodResolver(AddLiderSchema) });
 
-  const { data } = useVoluntariosCrud({ autoFetch: true, initialParams: { orderBy: [{ path: 'nome', direction: OrderDirection.ASC }] } });
+  const { data } = useIgrejaVoluntariosCrud({ autoFetch: true, initialParams: { orderBy: [{ path: 'nome', direction: OrderDirection.ASC }] } });
 
   const voluntariosDropDownList = useMemo<DropDownItemProps<string>[]>(() => {
     return (
