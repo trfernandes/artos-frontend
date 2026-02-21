@@ -1,5 +1,4 @@
 import { StyleSheet, View, TextInput, Image, Platform, Keyboard } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FancyButton from '../../components/buttons/FancyButton';
 import FancyCheckbox from '../../components/FancyCheckbox';
 import FancyText from '../../components/FancyText';
@@ -30,10 +29,6 @@ export default function LoginIndexPage() {
   const { status: connectivityStatus, isOffline } = useConnectivity();
   const isServerUnavailable = connectivityStatus !== 'ok';
   const passwordInputRef = useRef<TextInput>(null);
-  const insets = useSafeAreaInsets();
-  const safeTop = Platform.OS === 'ios' ? insets.top : 40;
-
-  const [headerY, setHeaderY] = useState(0);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
@@ -44,11 +39,7 @@ export default function LoginIndexPage() {
       hide.remove();
     };
   }, []);
-  const logoHeight = 77;
-  // headerY é relativo ao centerContainer (que começa em safeTop)
-  // posição absoluta do "Bem-vindo" na tela = safeTop + headerY
-  // ponto médio entre status bar (safeTop) e "Bem-vindo" (safeTop + headerY) = safeTop + headerY/2
-  const logoTop = headerY > 0 ? safeTop + headerY / 2 - logoHeight / 2 : safeTop + 16;
+  const logoTop = Platform.OS === 'ios' ? 60 : 52;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -255,7 +246,7 @@ export default function LoginIndexPage() {
         headerContainerStyle={styles.titleContainer}
         fieldsContainerStyle={styles.fieldsContainer}
         header={() => (
-          <View onLayout={(e) => setHeaderY(e.nativeEvent.layout.y)} style={{ gap: 0 }}>
+          <View style={{ gap: 0 }}>
             <FancyText size={'large'} type='semiBold' color='white'>
               Bem-vindo de volta!
             </FancyText>
@@ -312,7 +303,7 @@ export default function LoginIndexPage() {
             disabled={loading}
           />
 
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: -8 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <FancyCheckbox
               label='Lembrar-se'
               value={rememberMe}
@@ -367,17 +358,12 @@ export default function LoginIndexPage() {
   );
 }
 
-const DESIGN_MODE = 0;
-
 const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
-    paddingVertical: 20,
     justifyContent: 'center',
-    borderWidth: DESIGN_MODE,
-    borderColor: 'blueviolet',
-    paddingBottom: 40,
     gap: 20,
+    paddingHorizontal: 30,
   },
   logoContainer: {
     position: 'absolute',
@@ -386,8 +372,6 @@ const styles = StyleSheet.create({
     zIndex: 5,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: DESIGN_MODE,
-    borderColor: 'forestgreen',
   },
   logoImage: {
     width: 200,
@@ -395,20 +379,14 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     gap: 2,
-    marginBottom: 14,
-    borderWidth: DESIGN_MODE,
-    borderColor: 'magenta',
+    marginBottom: 12,
   },
   centerContainer: {
     gap: 6,
-    borderWidth: DESIGN_MODE,
-    borderColor: 'chocolate',
     justifyContent: 'center',
   },
   fieldsContainer: {
-    borderWidth: DESIGN_MODE,
     borderRadius: 15,
-    borderColor: 'firebrick',
     padding: 25,
     gap: 15,
   },

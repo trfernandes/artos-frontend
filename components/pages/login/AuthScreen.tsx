@@ -24,6 +24,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePallete } from '../../../hooks/usePallete';
 import { useThemedStyles } from '../../../hooks/useThemedStyles';
 
+const AUTH_HORIZONTAL_GUTTER = 30;
+const BACK_BUTTON_SIZE = 40;
+const BACK_BUTTON_CONTENT_GAP = 12;
+const OPEN_BOTTOM_GAP = 16;
+
 type WidthOptions = { default?: DimensionValue; keyboard?: DimensionValue };
 type RenderContent = React.ReactNode | ((params: { keyboardVisible: boolean }) => React.ReactNode);
 type StyleWithKeyboard =
@@ -77,71 +82,78 @@ export default function AuthScreen({
   disableScroll = false,
   compactTitleOnKeyboard,
 }: AuthScreenProps) {
-  const AUTH_HORIZONTAL_GUTTER = 30;
-  const BACK_BUTTON_SIZE = 40;
-  const BACK_BUTTON_CONTENT_GAP = 8;
-  const OPEN_TOP_GAP = 16;
-  const OPEN_BOTTOM_GAP = 16;
   const Pallete = usePallete();
   const styles = useThemedStyles(createStyles);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
-  const [contentAreaHeight, setContentAreaHeight] = useState(0);
-  const [contentBlockHeight, setContentBlockHeight] = useState(0);
   const segments = useSegments();
   const isAuthRoute = segments[0] === '(auth)';
   const insets = useSafeAreaInsets();
   const androidStatusBarHeight = Platform.OS === 'android' ? (RNStatusBar.currentHeight ?? 0) : 0;
   const safeTopInset = Math.max(insets.top, androidStatusBarHeight);
+
+  // Layout constants
   const resolvedScrollTopPadding = Math.max(25, safeTopInset + 8);
   const resolvedBackButtonTop = safeTopInset + 10;
+  const resolvedBackButtonLeft = isAuthRoute ? AUTH_HORIZONTAL_GUTTER : 25;
+
+  // Layout modes
   const shouldCenterWithinBackButtonArea = !!(centerWithinBackButtonArea && showBackButton);
   const isCompactKeyboardMode = !!(keyboardVisible && showBackButton && compactTitleOnKeyboard);
   const shouldUseAreaLayout = shouldCenterWithinBackButtonArea;
   const shouldUseOpenAreaLayout = shouldUseAreaLayout && keyboardVisible;
   const shouldUseClosedAreaLayout = shouldUseAreaLayout && !keyboardVisible;
-  const compactHeaderBottom = resolvedBackButtonTop + BACK_BUTTON_SIZE;
-  const openTopInset = compactHeaderBottom + OPEN_TOP_GAP;
-  const centerAreaTopInset = resolvedBackButtonTop + BACK_BUTTON_SIZE + BACK_BUTTON_CONTENT_GAP;
-  const availableClosedAreaHeight = Math.max(0, contentAreaHeight - centerAreaTopInset);
-  const closedSlack = availableClosedAreaHeight - contentBlockHeight;
-  const closedInnerTopOffset = closedSlack <= 0 ? 0 : closedSlack / 2;
-  const closedTopOffset = centerAreaTopInset + closedInnerTopOffset;
+
+  // Top inset below back button
+  const contentStartBelowBackButton =
+    resolvedBackButtonTop + BACK_BUTTON_SIZE + BACK_BUTTON_CONTENT_GAP;
+
+  // Padding top for center container
   const resolvedCenterPaddingTop = keyboardVisible
     ? shouldUseOpenAreaLayout
-      ? isCompactKeyboardMode
-        ? openTopInset
-        : paddingTopOnKeyboard || 0
-      : paddingTopOnKeyboard || 0
+      ? contentStartBelowBackButton
+      : (paddingTopOnKeyboard ?? 0)
     : shouldUseClosedAreaLayout
-      ? closedTopOffset
-      : shouldCenterWithinBackButtonArea
-        ? centerAreaTopInset
-        : 0;
+      ? contentStartBelowBackButton
+      : 0;
 
-  const bottomSpacing = keyboardBottomSpacing ?? 20;
+  // Bottom spacing
+  const defaultBottomSpacing = keyboardBottomSpacing ?? 20;
   const resolvedBottomSpacing =
-    keyboardVisible && shouldUseAreaLayout ? OPEN_BOTTOM_GAP : bottomSpacing;
-  const shouldTopAlignLegacy = isCompactKeyboardMode || (keyboardVisible && alignTopOnKeyboard);
-  const shouldUseTopAlign = shouldUseOpenAreaLayout || shouldUseClosedAreaLayout;
+    keyboardVisible && shouldUseAreaLayout ? OPEN_BOTTOM_GAP : defaultBottomSpacing;
+
+  // Alignment
+  const shouldTopAlign =
+    shouldUseOpenAreaLayout || isCompactKeyboardMode || (keyboardVisible && alignTopOnKeyboard);
   const shouldStretchFieldsOnKeyboard = shouldUseOpenAreaLayout || isCompactKeyboardMode;
-  const shouldUseCompactAndroidKeyboardSafeBottom = keyboardVisible && shouldUseAreaLayout;
+
   const keyboardAwareExtraScrollHeight =
     keyboardVisible && shouldUseAreaLayout ? OPEN_BOTTOM_GAP : resolvedBottomSpacing;
 
-  const centerContainerPositionStyle = shouldUseAreaLayout
-    ? {
+  // Position style for centerContainer
+  const centerContainerPositionStyle = (() => {
+    if (shouldUseAreaLayout) {
+      return {
         position: 'relative' as const,
         paddingTop: resolvedCenterPaddingTop,
         width: '100%' as const,
         alignSelf: 'stretch' as const,
-      }
-    : {
-        position: keyboardVisible
-          ? containerPosition?.keyboard || 'relative'
-          : containerPosition?.default || 'absolute',
-        paddingTop: resolvedCenterPaddingTop,
       };
+    }
 
+    const resolvedPosition = keyboardVisible
+      ? containerPosition?.keyboard || 'relative'
+      : containerPosition?.default || 'absolute';
+
+    return {
+      position: resolvedPosition,
+      ...(resolvedPosition === 'absolute'
+        ? ({ top: 0, left: 0, right: 0, bottom: 0 } as const)
+        : null),
+      paddingTop: resolvedCenterPaddingTop,
+    };
+  })();
+
+  // Content block styles
   const contentBlockStyles = [
     styles.contentBlock,
     isAuthRoute || shouldUseAreaLayout
@@ -149,25 +161,6 @@ export default function AuthScreen({
       : null,
     shouldUseOpenAreaLayout ? ({ flex: 1 as const, minHeight: 0 } as const) : null,
   ];
-
-  const centerContainerOnLayout = (height: number) => {
-    if (Math.abs(contentAreaHeight - height) > 0.5) {
-      setContentAreaHeight(height);
-    }
-  };
-
-  const contentBlockOnLayout = (height: number) => {
-    if (Math.abs(contentBlockHeight - height) > 0.5) {
-      setContentBlockHeight(height);
-    }
-  };
-
-  useEffect(() => {
-    if (!shouldUseClosedAreaLayout) {
-      if (contentAreaHeight !== 0) setContentAreaHeight(0);
-      if (contentBlockHeight !== 0) setContentBlockHeight(0);
-    }
-  }, [shouldUseClosedAreaLayout, contentAreaHeight, contentBlockHeight]);
 
   useEffect(() => {
     const showSubscription = Keyboard.addListener('keyboardDidShow', () =>
@@ -187,6 +180,7 @@ export default function AuthScreen({
   const topNode = typeof topContent === 'function' ? topContent({ keyboardVisible }) : topContent;
   const childrenNode = typeof children === 'function' ? children({ keyboardVisible }) : children;
 
+  // Width styles for auth routes
   const headerWidthStyle = isAuthRoute
     ? ({ width: '100%' as const } as const)
     : keyboardVisible
@@ -210,6 +204,7 @@ export default function AuthScreen({
   const { contentContainerStyle: contentContainerStyleProp, ...restKeyboardAwareProps } =
     keyboardAwareProps || {};
 
+  // Composed style arrays
   const scrollContainerStyles = [
     styles.scrollContainer,
     { paddingTop: resolvedScrollTopPadding },
@@ -223,10 +218,10 @@ export default function AuthScreen({
   const centerContainerStyles = [
     styles.centerContainer,
     centerContainerPositionStyle,
-    shouldUseTopAlign
-      ? { justifyContent: 'flex-start' as const }
-      : shouldTopAlignLegacy
-        ? { justifyContent: 'flex-start' as const }
+    shouldUseClosedAreaLayout && !keyboardVisible
+      ? ({ justifyContent: 'center' as const } as const)
+      : shouldTopAlign
+        ? ({ justifyContent: 'flex-start' as const } as const)
         : null,
     typeof centerContainerStyle === 'function'
       ? centerContainerStyle({ keyboardVisible })
@@ -253,7 +248,7 @@ export default function AuthScreen({
 
   const backButtonContainerStyles = [
     styles.backButtonContainer,
-    { top: resolvedBackButtonTop },
+    { top: resolvedBackButtonTop, left: resolvedBackButtonLeft },
     typeof backButtonContainerStyle === 'function'
       ? backButtonContainerStyle({ keyboardVisible })
       : backButtonContainerStyle,
@@ -266,6 +261,8 @@ export default function AuthScreen({
     keyboardShouldPersistTaps: 'handled',
     ...restKeyboardAwareProps,
   };
+
+  // On Android with disableScroll, fall back to scroll when keyboard opens
   const shouldUseKeyboardFallbackScroll =
     disableScroll && keyboardVisible && Platform.OS === 'android';
 
@@ -291,9 +288,9 @@ export default function AuthScreen({
             onPress={onPressBack || (() => router.back())}
             containerStyle={{
               backgroundColor: Pallete.backgroundColor3,
-              width: 40,
-              height: 40,
-              borderRadius: 20,
+              width: BACK_BUTTON_SIZE,
+              height: BACK_BUTTON_SIZE,
+              borderRadius: BACK_BUTTON_SIZE / 2,
               justifyContent: 'center' as const,
               alignItems: 'center' as const,
             }}
@@ -306,21 +303,15 @@ export default function AuthScreen({
         </View>
       )}
 
-      <View
-        style={[centerContainerStyles, keyboardVisible ? {} : null]}
-        onLayout={(event) => centerContainerOnLayout(event.nativeEvent.layout.height)}
-      >
-        <View
-          style={contentBlockStyles}
-          onLayout={(event) => contentBlockOnLayout(event.nativeEvent.layout.height)}
-        >
+      <View style={centerContainerStyles}>
+        <View style={contentBlockStyles}>
           {topNode && !(hideTopContentOnKeyboard && keyboardVisible) ? topNode : null}
 
           {headerNode && !isCompactKeyboardMode ? (
             <View style={headerContainerStyles}>{headerNode}</View>
           ) : null}
 
-          <View style={[fieldsContainerStyles]}>{childrenNode}</View>
+          <View style={fieldsContainerStyles}>{childrenNode}</View>
         </View>
       </View>
     </>
@@ -336,7 +327,7 @@ export default function AuthScreen({
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : !keyboardVisible ? 0 : 0}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
         >
           <View
             style={[
@@ -346,7 +337,7 @@ export default function AuthScreen({
                   Platform.OS === 'ios'
                     ? 0
                     : keyboardVisible
-                      ? shouldUseCompactAndroidKeyboardSafeBottom
+                      ? shouldUseAreaLayout
                         ? OPEN_BOTTOM_GAP
                         : 0
                       : 22,
@@ -380,10 +371,6 @@ function createStyles(Pallete: ThemePalette) {
       flex: 1,
       justifyContent: 'center' as const,
       alignItems: 'center' as const,
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
       gap: 20,
     },
     headerContainer: {
@@ -400,7 +387,6 @@ function createStyles(Pallete: ThemePalette) {
       gap: 15,
       backgroundColor: Pallete.backgroundColor,
       ...Pallete.shadows[200],
-      // borderWidth: 2,
       overflow: 'hidden',
     },
     backButtonContainer: {
