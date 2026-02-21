@@ -132,43 +132,16 @@ export default function AssistenteEventosStep() {
 
   const handleSaveTemplate = useCallback(
     (data: EscalaEventoTemplateFormData) => {
-      console.log('handleSaveTemplate CHAMADO');
-      console.log('Dados recebidos:', JSON.stringify(data, null, 2));
-      console.log('eventoFormProps.index:', eventoFormProps.index);
-      console.log('eventoFormProps.data?.eventoId:', eventoFormProps.data?.eventoId);
-
-      // Mapear todos os eventoIds para debug
-      console.log('\nTodos os eventos na lista:');
-      eventosArray.fields.forEach((e, idx) => {
-        console.log(`  [${idx}] eventoId: ${e.eventoId}, nome: ${e.nome}`);
-      });
-
       if (eventoFormProps.index !== undefined) {
         const evento = eventosArray.fields[eventoFormProps.index];
 
-        console.log('\nUsando índice direto:', eventoFormProps.index);
-        console.log('Evento encontrado:', evento ? 'SIM' : 'NÃO');
-
         if (evento) {
-          console.log('Atualizando evento no índice', eventoFormProps.index);
-          console.log('Evento antes da atualização:', JSON.stringify(evento, null, 2));
-
-          const updatedEvento = {
+          eventosArray.update(eventoFormProps.index, {
             ...evento,
             template: data,
-          };
-
-          console.log('Evento após atualização:', JSON.stringify(updatedEvento, null, 2));
-
-          eventosArray.update(eventoFormProps.index, updatedEvento);
-
-          console.log('Fechando modal');
+          });
           setEventoFormProps({ visible: false, data: undefined, index: undefined });
-        } else {
-          console.error('ERRO: Evento não encontrado no índice:', eventoFormProps.index);
         }
-      } else {
-        console.error('ERRO: Índice não foi passado!');
       }
     },
     [eventosArray, eventoFormProps.index, eventoFormProps.data?.eventoId],
@@ -302,11 +275,6 @@ export default function AssistenteEventosStep() {
                   {
                     icon: { ...DefaultIconsNames.edit, size: 16 },
                     onPress: () => {
-                      console.log('\n=== ABRINDO MODAL PARA EDITAR ===');
-                      console.log('Índice do item na lista:', index);
-                      console.log('EventoId do item:', item.eventoId);
-                      console.log('Nome do evento:', item.nome);
-                      console.log('Template atual:', JSON.stringify(item.template, null, 2));
                       setEventoFormProps({ visible: true, data: item, index });
                     },
                   },

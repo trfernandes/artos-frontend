@@ -154,7 +154,7 @@ export default function FancyColorPicker({
   }
 
   return (
-    <FancyGroup title='Cor' contentContainerStyle={{ padding: 0, paddingVertical: 0, paddingHorizontal: 0 }}>
+    <FancyGroup title='Cor' contentContainerStyle={{ padding: 0, paddingTop: 8, paddingHorizontal: 0, paddingBottom: 0 }}>
       <View style={styles.colorContainer}>
         {!disabled && showLeftArrow && (
           <Animated.View style={[styles.arrowContainer, { left: 5, opacity: fadeAnim }]}>

@@ -1,5 +1,6 @@
 import { StyleProp, View, ViewStyle } from 'react-native';
 import { useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 import FancyDataPanel, { FancyDataPanelProps } from '../FancyDataPanel';
 import DateUtils from '../../utils/date_utils';
 import FancyDatePicker from './FancyDatePicker';
@@ -41,8 +42,8 @@ export default function FancyDatePickerModal({
       />
       {!disabled && visible && (
         <FancyModalDialog
-          containerStyle={{ gap: 24 }}
-          buttonContainerStyle={{ marginTop: 8 }}
+          containerStyle={{ gap: Platform.OS === 'ios' ? 12 : 24 }}
+          buttonContainerStyle={{ marginTop: Platform.OS === 'ios' ? 0 : 8 }}
           modalProps={{ visible }}
           onButton1Press={() => setVisible(false)}
           onButton2Press={() => {

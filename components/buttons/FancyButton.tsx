@@ -170,11 +170,8 @@ export default function FancyButton({
               size: props.icon.size || height - 8,
               style: [
                 {
-                  lineHeight: props.icon.size || height - 8,
                   textAlign: 'center',
-                  verticalAlign: 'middle',
-                  justifyContent: 'center',
-                  alignItems: 'center',
+                  textAlignVertical: 'center',
                 },
                 isBtnDisabled ? parameters.disabledIconStyle : parameters.iconStyle,
                 props.iconStyle,

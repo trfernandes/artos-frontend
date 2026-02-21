@@ -86,6 +86,7 @@ function createStyles(palette: ThemePalette) {
       ...palette.shadows[200],
       height: 48,
       flexDirection: 'row',
+      alignItems: 'center',
       borderWidth: 0.6,
       borderColor: palette.border,
       borderRadius: 10,

@@ -27,7 +27,6 @@ import {
 import FancyLoading from '../../../../FancyLoading';
 import { useFuncoesDoMinisterio } from '../../../../../hooks/useFuncoesDoMinisterio';
 import { useVoluntariosDoMinisterioCrud } from '../../../../../hooks/useVoluntariosDoMinisterioCrud';
-import { useLoading } from '../../../../../contexts/LoadingContext';
 import { EscalaFormFuncaoList } from './EscalaFormFuncaoList';
 import { EscalaFormFixoList } from './EscalaFormFixoList';
 import {
@@ -104,11 +103,6 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
   // Reset form when modal opens with new data
   useEffect(() => {
     if (data) {
-      console.log('\n=== MODAL RECEBEU DADOS (useEffect reset) ===');
-      console.log('EventoId:', data.eventoId);
-      console.log('Nome:', data.nome);
-      console.log('Template recebido:', JSON.stringify(data.template, null, 2));
-
       formTemplate.reset({
         templateBase: data.template.templateBase.id
           ? data.template.templateBase
@@ -129,7 +123,6 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
     );
 
     if (fixosMudou || funcoesMudou) {
-      console.log('Limpando templateBase porque funções/fixos foram editados');
       formTemplate.setValue('templateBase.id', '');
       formTemplate.setValue('templateBase.nome', '');
       formTemplate.setValue('tipo', data?.template.tipo || EscalaTemplateTipoEnum.Funcoes);
@@ -224,32 +217,13 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
     [formTemplate],
   );
 
-  const { showLoading, hideLoading } = useLoading();
-
-  useEffect(() => {
-    if (
-      isLoadingFuncoesDoMinisterio ||
-      isLoadingMinisterioVoluntarios ||
-      isLoadingMinisterioVoluntariosMutation ||
-      isLoadingTemplates
-    ) {
-      showLoading('Carregando..');
-    } else {
-      hideLoading();
-    }
-  }, [
-    isLoadingFuncoesDoMinisterio,
-    isLoadingTemplates,
-    isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation,
-    showLoading,
-    hideLoading,
-  ]);
+  const isDataLoading =
+    isLoadingFuncoesDoMinisterio ||
+    isLoadingMinisterioVoluntarios ||
+    isLoadingMinisterioVoluntariosMutation ||
+    isLoadingTemplates;
 
   return (
-    !isLoadingFuncoesDoMinisterio &&
-    !isLoadingMinisterioVoluntarios &&
-    !isLoadingMinisterioVoluntariosMutation &&
-    !isLoadingTemplates && (
       <FancyModalDialog
         {...modalProps}
         title={`${data?.nome} - ${format(data?.dataOcorrencia!, 'dd/MM/yyyy HH:ss')}`}
@@ -257,7 +231,6 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
         onButton2Press={(_) => {
           formTemplate.handleSubmit(
             (data) => {
-              console.log('EventoFormModal - Salvando template:', JSON.stringify(data, null, 2));
               modalProps?.onButton2Press?.(data);
             },
             (errors) => {
@@ -275,7 +248,7 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
         }}
         centerContainerStyle={styles.container}
       >
-        {isLoadingTemplates ? (
+        {isDataLoading ? (
           <FancyLoading />
         ) : (
           <>
@@ -350,7 +323,6 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
           </>
         )}
       </FancyModalDialog>
-    )
   );
 }
 

@@ -1,6 +1,6 @@
 import { Control, Controller, FieldValues, Path } from 'react-hook-form';
 import FancyTextInput, { FancyTextInputProps } from '../fields/FancyTextInput';
-import { TextInputProps, View } from 'react-native';
+import { Platform, TextInputProps, View } from 'react-native';
 import FancyErrorText from './FancyErrorText';
 import { useState } from 'react';
 import FancyModalDialog from '../modal/FancyModalDialog';
@@ -59,8 +59,8 @@ export default function ControlledDateInput<FormData extends FieldValues>({
           {showErrorMessage && error && <FancyErrorText message={error.message!} />}
           {showModal && (
             <FancyModalDialog
-              containerStyle={{ gap: 24 }}
-              buttonContainerStyle={{ marginTop: 8 }}
+              containerStyle={{ gap: Platform.OS === 'ios' ? 12 : 24 }}
+              buttonContainerStyle={{ marginTop: Platform.OS === 'ios' ? 0 : 8 }}
               modalProps={{ visible: showModal }}
               onButton1Press={() => setShowModal(false)}
               onButton2Press={() => {

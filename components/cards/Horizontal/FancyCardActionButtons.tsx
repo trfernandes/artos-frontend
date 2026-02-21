@@ -78,10 +78,7 @@ export function FancyActionButtons({ actions, actionButtonContainerStyle, contai
             {...item.icon}
             style={[
               {
-                borderWidth: 0,
-                textAlign: 'left',
-                lineHeight: item.icon.size || 22,
-                height: '100%',
+                textAlign: 'center',
                 textAlignVertical: 'center',
               },
               item.icon.style,
@@ -94,7 +91,7 @@ export function FancyActionButtons({ actions, actionButtonContainerStyle, contai
               color={iconColor}
               size='extraSmall'
               type='bold'
-              style={[styles.actionButtonLabel, { borderWidth: 0, paddingRight: 2, height: '100%' }]}
+              style={[styles.actionButtonLabel, { paddingRight: 2 }]}
             >
               {item.label}
             </FancyText>

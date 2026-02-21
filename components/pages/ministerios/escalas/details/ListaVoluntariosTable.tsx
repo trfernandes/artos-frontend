@@ -1,4 +1,4 @@
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { EscalaItemEquipeType } from '../../../../../app/(app)/(drawer)/ministerios/escalas/details';
 import FancyText from '../../../../FancyText';
 import { SEMI_BOLD_FONT, SMALL_SIZE_FONT } from '../../../../../constants/font';
@@ -295,9 +295,9 @@ function createStyles(palette: ThemePalette) {
       alignSelf: 'center',
     },
     actionButton: {
-      width: 23,
-      height: 23,
-      borderRadius: 12,
+      width: Platform.OS === 'ios' ? 28 : 23,
+      height: Platform.OS === 'ios' ? 28 : 23,
+      borderRadius: Platform.OS === 'ios' ? 14 : 12,
       backgroundColor: palette.terciary,
       justifyContent: 'center',
       alignItems: 'center',

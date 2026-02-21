@@ -124,7 +124,7 @@ export default function EventoRepeticaoInputCustom({ modalProps }: { modalProps?
       </FancyScrollView>
       <FancyButton
         label='Confirmar'
-        // icon={{ ...DefaultIconsNames.confirm, size: 14 }}
+        icon={{ library: 'Feather', name: 'check', size: 16 }}
         containerStyle={styles.confirmarButton}
         onPress={async (e) => {
           await recorrenciaForm.handleSubmit(

@@ -421,7 +421,8 @@ function createStyles(palette: ThemePalette) {
       backgroundColor: palette.backgroundColor,
       borderTopLeftRadius: 24,
       borderTopRightRadius: 24,
-      overflow: 'hidden',
+      borderTopWidth: 1,
+      borderTopColor: palette.border,
       ...palette.shadows[300],
     },
     handleContainer: {

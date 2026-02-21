@@ -47,7 +47,7 @@ function MinisterioViewCard({ item }: { item: ResponseMinisterioVoluntarioDto })
       </View>
       <View style={styles.rightSection}>
         <View style={styles.topRow}>
-          <FancyText type='bold' size='medium' color={palette.fonts.primary} numberOfLines={1} style={{ flex: 1 }}>
+          <FancyText type='bold' size='medium' color={palette.fonts.dark} numberOfLines={1} style={{ flex: 1 }}>
             {item.ministerio?.nome}
           </FancyText>
           <FancyChips label={statusLabel} color={statusColor} size='small' style={{ marginLeft: 8 }} />
