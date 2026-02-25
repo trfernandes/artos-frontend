@@ -20,6 +20,7 @@ import {
     PanResponder,
     InteractionManager,
     TouchableOpacity,
+    ActivityIndicator,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import FancyText from '../FancyText';
@@ -280,12 +281,16 @@ function FancySearchSelectInner<ValueItem>(
             : (selectedItem?.title ?? placeholder)}
         </FancyText>
         <View style={styles.iconContainer}>
-          <DefaultIcons.Custom
-            library='Feather'
-            name='search'
-            size={16}
-            color={innerDisabled ? palette.fonts.inactive2 : palette.icons.inactive}
-          />
+          {isLoading ? (
+            <ActivityIndicator size='small' color={palette.primary} />
+          ) : (
+            <DefaultIcons.Custom
+              library='Feather'
+              name='search'
+              size={16}
+              color={innerDisabled ? palette.fonts.inactive2 : palette.icons.inactive}
+            />
+          )}
         </View>
       </Pressable>
 

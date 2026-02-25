@@ -10,7 +10,10 @@ import { ThemePalette } from '../../../../../constants/colors';
 import FancyChips from '../../../../../components/FancyChips';
 import { useCallback, useMemo, useState } from 'react';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
-import { EscalaStatusEnum, EscalaStatusEnumLabel } from '../../../../../domain/enums/Escala/escala-status.enum';
+import {
+  EscalaStatusEnum,
+  EscalaStatusEnumLabel,
+} from '../../../../../domain/enums/Escala/escala-status.enum';
 import { EscalaItemStatusEnum } from '../../../../../domain/enums/Escala/escala-item-status.enum';
 import { View } from 'react-native';
 import FancyText from '../../../../../components/FancyText';
@@ -119,13 +122,15 @@ export default function MinisterioEscalasIndexPage() {
         },
         data: filteredEscalas,
         renderItem: ({ item }) => {
-          const filledItems = (item.itens ?? []).filter((i) => Boolean(i.voluntarioId));
-          const totalCount = filledItems.length;
-          const confirmedCount = filledItems.filter((i) => i.status === EscalaItemStatusEnum.Confirmado).length;
-          const confirmationPercent = totalCount > 0 ? Math.round((confirmedCount / totalCount) * 100) : 0;
+          const assignedItems = (item.itens ?? []).filter((i) => Boolean(i.voluntarioId));
+          const totalCount = assignedItems.length;
+          const confirmedCount = assignedItems.filter(
+            (i) => i.status === EscalaItemStatusEnum.Confirmado,
+          ).length;
           const itemsWithEvento = (item.itens ?? []).filter((i) => Boolean(i.eventoId));
-          const occurrencesCount = itemsWithEvento.length;
-          const eventsCount = new Set(itemsWithEvento.map((i) => i.eventoId)).size;
+          const occurrencesCount = new Set(
+            itemsWithEvento.map((i) => `${i.eventoId}::${i.dataOcorrencia}`),
+          ).size;
           const hasConfirmation = totalCount > 0;
           const hasOccurrences = occurrencesCount > 0;
 
@@ -140,7 +145,9 @@ export default function MinisterioEscalasIndexPage() {
                 },
                 title: item.nome,
                 subtitle: (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                  <View
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}
+                  >
                     <View style={{ width: 14, alignItems: 'center', justifyContent: 'center' }}>
                       <DefaultIcons.Custom
                         library='MaterialCommunityIcons'
@@ -159,7 +166,9 @@ export default function MinisterioEscalasIndexPage() {
                     <View style={{ gap: 3 }}>
                       {hasConfirmation && (
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <View style={{ width: 14, alignItems: 'center', justifyContent: 'center' }}>
+                          <View
+                            style={{ width: 14, alignItems: 'center', justifyContent: 'center' }}
+                          >
                             <DefaultIcons.Custom
                               library='MaterialCommunityIcons'
                               name='account-check-outline'
@@ -167,17 +176,20 @@ export default function MinisterioEscalasIndexPage() {
                               color={palette.primary}
                             />
                           </View>
-                          <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
-                            {`${confirmedCount}/${totalCount}`}
-                          </FancyText>
-                          <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
-                            {`${confirmationPercent}%`}
+                          <FancyText
+                            size='extraSmall'
+                            type='semiBold'
+                            color={palette.fonts.inactive}
+                          >
+                            {`${confirmedCount}/${totalCount} confirmações`}
                           </FancyText>
                         </View>
                       )}
                       {hasOccurrences && (
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <View style={{ width: 14, alignItems: 'center', justifyContent: 'center' }}>
+                          <View
+                            style={{ width: 14, alignItems: 'center', justifyContent: 'center' }}
+                          >
                             <DefaultIcons.Custom
                               library='MaterialCommunityIcons'
                               name='calendar-multiple'
@@ -185,8 +197,12 @@ export default function MinisterioEscalasIndexPage() {
                               color={palette.primary}
                             />
                           </View>
-                          <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
-                            {`${eventsCount} evento(s) / ${occurrencesCount} ocorrência(s)`}
+                          <FancyText
+                            size='extraSmall'
+                            type='semiBold'
+                            color={palette.fonts.inactive}
+                          >
+                            {`${occurrencesCount} eventos`}
                           </FancyText>
                         </View>
                       )}
@@ -203,7 +219,12 @@ export default function MinisterioEscalasIndexPage() {
                 ),
                 actionButtons: [
                   {
-                    icon: { ...DefaultIconsNames.edit, size: 16 },
+                    icon: {
+                      ...DefaultIconsNames.edit,
+                      size: 16,
+                      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.88),
+                    },
+                    size: 'medium',
                     onPress: () => {
                       router.push({
                         pathname: '/ministerios/escalas/details',
@@ -219,8 +240,9 @@ export default function MinisterioEscalasIndexPage() {
                     icon: {
                       ...DefaultIconsNames.delete,
                       size: 16,
-                      backgroundColor: palette.error,
+                      backgroundColor: ColorUtils.withAlpha(palette.error, 0.92),
                     },
+                    size: 'medium',
                     onPress: () => handleDeletePress(item.id!),
                   },
                 ],

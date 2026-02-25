@@ -78,14 +78,19 @@ export default function AdicionarFuncaoModal({ ministerioId, eventoNome, eventoI
         pointerEvents: isLoadingFuncoes ? 'none' : 'auto',
       }}
     >
-      <FancyGroup title='Evento:'>
-        <View style={{ flexDirection: 'column', gap: 2 }}>
-          <FancyText size={'medium'} type='bold'>
-            {eventoNome}
+      <FancyGroup variant='accentedSummary'>
+        <View style={{ gap: 2 }}>
+          <FancyText size='small' type='bold'>
+            Evento:
           </FancyText>
-          <FancyText size={'small'} type='medium'>
-            {`${format(dataOcorrencia, 'dd/MM/yyyy')} - ${format(dataInicio!, 'HH:mm')} à ${format(dataTermino!, 'HH:mm')}`}
-          </FancyText>
+          <View style={{ flexDirection: 'column', gap: 2 }}>
+            <FancyText size={'small'} type='bold'>
+              {eventoNome}
+            </FancyText>
+            <FancyText size={'extraSmall'} type='medium'>
+              {`${format(dataOcorrencia, 'dd/MM/yyyy')} - ${format(dataInicio!, 'HH:mm')} à ${format(dataTermino!, 'HH:mm')}`}
+            </FancyText>
+          </View>
         </View>
       </FancyGroup>
 
@@ -113,5 +118,5 @@ export default function AdicionarFuncaoModal({ ministerioId, eventoNome, eventoI
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 20, paddingVertical: 10 },
+  container: { gap: 14, paddingTop: 0, paddingBottom: 10 },
 });

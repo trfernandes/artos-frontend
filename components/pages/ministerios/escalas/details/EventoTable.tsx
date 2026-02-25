@@ -29,6 +29,7 @@ export interface EventoTableProps {
   escalaId: string;
   onChangeVoluntario?: (data: SubstituicaoConfirmDialog) => Promise<boolean>;
   onAddVoluntario?: (data: AdicionarVoluntarioConfirmDialog) => Promise<boolean>;
+  onRemoveVoluntario?: (idEscalaItem: string) => Promise<boolean>;
   onDeleteEvento?: (eventoId: string, dataOcorrencia: string) => Promise<boolean>;
   onAdicionarFuncao?: (data: AdicionarFuncaoConfirmDialog) => Promise<boolean>;
   onExcluirFuncao?: (funcaoId: string, eventoId: string, dataOcorrencia: string) => void;
@@ -41,6 +42,7 @@ export default function EventoTable({
   escalaId: _escalaId,
   onChangeVoluntario,
   onAddVoluntario,
+  onRemoveVoluntario,
   onDeleteEvento,
   onAdicionarFuncao,
   onExcluirFuncao,
@@ -48,7 +50,7 @@ export default function EventoTable({
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
   const { isDark } = useAppTheme();
-  const eventMetaColor = palette.fonts.inactive;
+  const eventMetaColor = ColorUtils.withAlpha(palette.fonts.dark, 0.7);
 
   const [substituicaoModalProps, setSubstituicaoModalProps] = useState<{
     isOpen: boolean;
@@ -73,11 +75,21 @@ export default function EventoTable({
     headerExpandedGradientColors,
   } = useMemo(() => {
     const accentColor = data.evento.cor || palette.primary;
-    const darkStart = isDark ? ColorUtils.withAlpha(accentColor, 0.32) : ColorUtils.lightenColor(accentColor, 0.62);
-    const midStart = isDark ? ColorUtils.withAlpha(accentColor, 0.26) : ColorUtils.lightenColor(accentColor, 0.72);
-    const mid = isDark ? ColorUtils.withAlpha(accentColor, 0.22) : ColorUtils.lightenColor(accentColor, 0.76);
-    const midEnd = isDark ? ColorUtils.withAlpha(accentColor, 0.18) : ColorUtils.lightenColor(accentColor, 0.8);
-    const lightEnd = isDark ? ColorUtils.withAlpha(accentColor, 0.16) : ColorUtils.lightenColor(accentColor, 0.84);
+    const darkStart = isDark
+      ? ColorUtils.withAlpha(accentColor, 0.32)
+      : ColorUtils.lightenColor(accentColor, 0.62);
+    const midStart = isDark
+      ? ColorUtils.withAlpha(accentColor, 0.26)
+      : ColorUtils.lightenColor(accentColor, 0.72);
+    const mid = isDark
+      ? ColorUtils.withAlpha(accentColor, 0.22)
+      : ColorUtils.lightenColor(accentColor, 0.76);
+    const midEnd = isDark
+      ? ColorUtils.withAlpha(accentColor, 0.18)
+      : ColorUtils.lightenColor(accentColor, 0.8);
+    const lightEnd = isDark
+      ? ColorUtils.withAlpha(accentColor, 0.16)
+      : ColorUtils.lightenColor(accentColor, 0.84);
 
     return {
       borderColor: accentColor,
@@ -111,7 +123,7 @@ export default function EventoTable({
         title={
           <View style={styles.titleContainer}>
             <View style={styles.titleTextContainer}>
-              <FancyText type='bold' size='small' color={palette.fonts.dark} numberOfLines={1}>
+              <FancyText type='bold' size='extraSmall' color={palette.fonts.dark} numberOfLines={1}>
                 {data.evento.nome}
               </FancyText>
 
@@ -120,10 +132,10 @@ export default function EventoTable({
                   <DefaultIcons.Custom
                     library='MaterialIcons'
                     name='event'
-                    size={13}
+                    size={11}
                     color={eventMetaColor}
                   />
-                  <FancyText type='medium' size='extraSmall' color={eventMetaColor}>
+                  <FancyText type='semiBold' size={10} color={eventMetaColor}>
                     {format(data.dataOcorrencia, 'dd/MM/yyyy')}
                   </FancyText>
                 </View>
@@ -131,10 +143,10 @@ export default function EventoTable({
                   <DefaultIcons.Custom
                     library='MaterialIcons'
                     name='access-time'
-                    size={13}
+                    size={11}
                     color={eventMetaColor}
                   />
-                  <FancyText type='medium' size='extraSmall' color={eventMetaColor}>{`${format(
+                  <FancyText type='semiBold' size={10} color={eventMetaColor}>{`${format(
                     data.evento.dataInicio!,
                     'HH:mm',
                   )} - ${format(data.evento.dataTermino!, 'HH:mm')}`}</FancyText>
@@ -179,6 +191,22 @@ export default function EventoTable({
           }}
           onAdicionarVoluntarioButtonPressed={(data) => {
             setAdicionarModalProps({ isOpen: true, data });
+          }}
+          onRemoverVoluntarioPressed={(equipeItem) => {
+            FancyAlert.alert(
+              'Remover voluntário',
+              'Deseja remover o voluntário desta função? A função permanecerá vaga na escala.',
+              [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                  text: 'Remover',
+                  style: 'destructive',
+                  onPress: async () => {
+                    await onRemoveVoluntario?.(equipeItem.idEscalaItem);
+                  },
+                },
+              ],
+            );
           }}
           onAdicionarFuncaoPressed={() => {
             setAdicionarFuncaoModalOpen(true);
@@ -273,32 +301,32 @@ export default function EventoTable({
 function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
     titleContainer: {
-      paddingVertical: 11,
+      paddingVertical: 8,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
+      gap: 6,
       flex: 1,
     },
     titleTextContainer: {
       flex: 1,
       minWidth: 0,
-      gap: 4,
+      gap: 2,
     },
     headerMetaRow: {
       flexDirection: 'row',
       alignItems: 'center',
       flexWrap: 'wrap',
-      gap: 10,
+      gap: 8,
     },
     metaGroup: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 4,
+      gap: 3,
     },
     contentContainer: {
-      paddingHorizontal: 12,
-      paddingTop: 12,
-      paddingBottom: 10,
+      paddingHorizontal: 6,
+      paddingTop: 4,
+      paddingBottom: 4,
       borderWidth: 0,
       backgroundColor: palette.backgroundColor2,
     },
@@ -319,7 +347,7 @@ function createStyles(palette: ThemePalette) {
       borderRadius: 12,
       borderWidth: 1,
       backgroundColor: palette.backgroundColor2,
-      paddingBottom: 12,
+      paddingBottom: 4,
       overflow: 'hidden',
       ...palette.shadows[100],
     },

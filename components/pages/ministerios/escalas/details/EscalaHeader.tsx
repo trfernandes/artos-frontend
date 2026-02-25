@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import FancyText from '../../../../FancyText';
 import { ThemePalette } from '../../../../../constants/colors';
@@ -25,6 +25,8 @@ export type InlineAction = {
   label: string;
   onPress: () => void;
   variant?: 'primary' | 'neutral' | 'danger';
+  disabled?: boolean;
+  isLoading?: boolean;
 };
 
 export type EscalaHeaderProps = {
@@ -81,26 +83,50 @@ function ActionIconButton({ action }: { action: InlineAction }) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
   const isDanger = action.variant === 'danger';
-  const iconColor = isDanger ? palette.error : palette.icons.inactive;
+  const isPublishAction = action.key === 'publish';
+  const isDisabled = !!action.disabled || !!action.isLoading;
+  const iconColor = isPublishAction
+    ? isDisabled
+      ? ColorUtils.withAlpha(palette.primary, 0.55)
+      : palette.primary
+    : isDanger
+      ? isDisabled
+        ? ColorUtils.withAlpha(palette.error, 0.55)
+        : palette.error
+      : isDisabled
+        ? palette.icons.inactive
+        : palette.icons.dark;
+  const iconButtonBackground = isPublishAction
+    ? ColorUtils.withAlpha(palette.primary, 0.14)
+    : isDanger
+      ? ColorUtils.withAlpha(palette.error, 0.14)
+      : palette.backgroundColor3;
 
   return (
     <Pressable
       onPress={action.onPress}
+      disabled={isDisabled}
       style={({ pressed }) => [
         styles.iconButton,
-        isDanger && styles.iconButtonDanger,
+        { backgroundColor: iconButtonBackground },
+        isDisabled && styles.iconButtonDisabled,
         pressed && styles.iconButtonPressed,
       ]}
       hitSlop={6}
       accessibilityRole='button'
       accessibilityLabel={action.label}
+      accessibilityState={{ disabled: isDisabled, busy: !!action.isLoading }}
     >
-      <DefaultIcons.Custom
-        library={action.icon.library}
-        name={action.icon.name}
-        size={17}
-        color={iconColor}
-      />
+      {action.isLoading ? (
+        <ActivityIndicator size='small' color={iconColor} />
+      ) : (
+        <DefaultIcons.Custom
+          library={action.icon.library}
+          name={action.icon.name}
+          size={17}
+          color={iconColor}
+        />
+      )}
     </Pressable>
   );
 }
@@ -108,22 +134,32 @@ function ActionIconButton({ action }: { action: InlineAction }) {
 function PrimaryPillButton({ action }: { action: InlineAction }) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
+  const isDisabled = !!action.disabled || !!action.isLoading;
 
   return (
     <Pressable
       onPress={action.onPress}
+      disabled={isDisabled}
       style={({ pressed }) => [
         styles.primaryPill,
+        isDisabled && styles.primaryPillDisabled,
         pressed && styles.primaryPillPressed,
       ]}
       hitSlop={4}
+      accessibilityRole='button'
+      accessibilityLabel={action.label}
+      accessibilityState={{ disabled: isDisabled, busy: !!action.isLoading }}
     >
-      <DefaultIcons.Custom
-        library={action.icon.library}
-        name={action.icon.name}
-        size={15}
-        color={palette.icons.light}
-      />
+      {action.isLoading ? (
+        <ActivityIndicator size='small' color={palette.icons.light} />
+      ) : (
+        <DefaultIcons.Custom
+          library={action.icon.library}
+          name={action.icon.name}
+          size={15}
+          color={palette.icons.light}
+        />
+      )}
       <FancyText type='semiBold' size='extraSmall' color={palette.fonts.light}>
         {action.label}
       </FancyText>
@@ -236,7 +272,6 @@ export default function EscalaHeader({
               </View>
             )}
           </View>
-
         </>
       )}
 
@@ -264,13 +299,17 @@ export default function EscalaHeader({
             style={styles.actionsBackground}
           >
             <View style={styles.actionsRow}>
-              {inlineActions.filter((a) => a.variant === 'primary').map((action) => (
-                <PrimaryPillButton key={action.key} action={action} />
-              ))}
-              <View style={styles.actionsSecondaryGroup}>
-                {inlineActions.filter((a) => a.variant !== 'primary').map((action) => (
-                  <ActionIconButton key={action.key} action={action} />
+              {inlineActions
+                .filter((a) => a.variant === 'primary')
+                .map((action) => (
+                  <PrimaryPillButton key={action.key} action={action} />
                 ))}
+              <View style={styles.actionsSecondaryGroup}>
+                {inlineActions
+                  .filter((a) => a.variant !== 'primary')
+                  .map((action) => (
+                    <ActionIconButton key={action.key} action={action} />
+                  ))}
               </View>
             </View>
           </LinearGradient>
@@ -387,12 +426,13 @@ function createStyles(palette: ThemePalette) {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
+      gap: 10,
       paddingVertical: 11,
     },
     actionsSecondaryGroup: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 4,
+      gap: 6,
     },
     primaryPill: {
       flexDirection: 'row',
@@ -402,10 +442,15 @@ function createStyles(palette: ThemePalette) {
       paddingHorizontal: 16,
       borderRadius: 999,
       backgroundColor: palette.primary,
+      minWidth: 136,
+      justifyContent: 'center',
     },
     primaryPillPressed: {
       opacity: 0.85,
       transform: [{ scale: 0.97 }],
+    },
+    primaryPillDisabled: {
+      opacity: 0.7,
     },
     iconButton: {
       width: 36,
@@ -415,8 +460,8 @@ function createStyles(palette: ThemePalette) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    iconButtonDanger: {
-      backgroundColor: ColorUtils.withAlpha(palette.error, 0.18),
+    iconButtonDisabled: {
+      opacity: 0.65,
     },
     iconButtonPressed: {
       opacity: 0.6,

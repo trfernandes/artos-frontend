@@ -5,33 +5,33 @@ import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import { useMemo } from 'react';
 import { EnumUtils } from '../../../../utils/enum_utils';
 import {
-    EscalaTemplateExperienciaEnum,
-    EscalaTemplateExperienciaLabel,
+  EscalaTemplateExperienciaEnum,
+  EscalaTemplateExperienciaLabel,
 } from '../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
 import ControlledSearchSelect from '../../../forms/ControlledSearchSelect';
 import ControlledBottomSheetSelect from '../../../forms/ControlledBottomSheetSelect';
-import { DefaultIconsNames } from '../../../../constants/icons';
 
 interface IntegranteFormModalProps {
   funcoesDropDownList?: DropDownItemProps<string>[];
   mode: 'add' | 'edit';
 }
 
-export default function IntegranteFormModal(props: IntegranteFormModalProps & FancyModalDialogProps<string>) {
+export default function IntegranteFormModal(
+  props: IntegranteFormModalProps & FancyModalDialogProps<string>,
+) {
   const { control } = useFormContext<MinVoluntarioFuncaoFormData>();
 
   const experiencaList = useMemo<DropDownItemProps<EscalaTemplateExperienciaEnum>[]>(() => {
-    return EnumUtils.getDropDownItems(EscalaTemplateExperienciaEnum, EscalaTemplateExperienciaLabel).sort(
+    return EnumUtils.getDropDownItems(
+      EscalaTemplateExperienciaEnum,
+      EscalaTemplateExperienciaLabel,
+    ).sort(
       (a, b) => Number(a.value) - Number(b.value),
     ) as DropDownItemProps<EscalaTemplateExperienciaEnum>[];
   }, []);
 
   return (
-    <FancyModalDialog
-      centerContainerStyle={{ gap: 15 }}
-      button2={{ icon: { ...DefaultIconsNames.save, size: 14 } }}
-      {...props}
-    >
+    <FancyModalDialog centerContainerStyle={{ gap: 15 }} {...props}>
       <ControlledSearchSelect
         name='id'
         label='Função'

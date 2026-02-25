@@ -5,23 +5,32 @@ import { Pallete } from '../../../../../constants/colors';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Condition, DynamicQuery, Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
+import {
+  Condition,
+  DynamicQuery,
+  Operator,
+  OrderDirection,
+  ValueType,
+} from '../../../../../domain/utils/query_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
 import Toast from 'react-native-toast-message';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import { FancyTextDisplayCard } from '../../../../../components/cards/FancyTextDisplayCard';
 import { VoluntarioHierarquiaEnumLabel } from '../../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
 import {
-    getMinisterioStatusColorMap,
-    MinisterioVoluntarioStatusEnum,
-    MinisterioVoluntarioStatusEnumLabel,
-    MinisterioVoluntarioStatusEnumMap,
+  getMinisterioStatusColorMap,
+  MinisterioVoluntarioStatusEnum,
+  MinisterioVoluntarioStatusEnumLabel,
+  MinisterioVoluntarioStatusEnumMap,
 } from '../../../../../domain/enums/MinisterioVoluntario/ministerio-voluntario-status.enum';
 import { MinisterioVoluntarioFuncaoStatusEnum } from '../../../../../domain/enums/MinisterioVoluntarioFuncao/ministerio-voluntario-funcao-status.enum';
 import { AppImages } from '../../../../../assets/app_images';
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import FancyChips from '../../../../../components/FancyChips';
 import { usePallete } from '../../../../../hooks/usePallete';
+import FancyText from '../../../../../components/FancyText';
+import DefaultIcons from '../../../../../components/FancyIcons';
+import { View } from 'react-native';
 
 export default function MinisterioIntegrantesIndex() {
   const palette = usePallete();
@@ -77,7 +86,9 @@ export default function MinisterioIntegrantesIndex() {
   const handleChangeStatus = useCallback(
     (id: string, nome: string, newStatus: MinisterioVoluntarioStatusEnum) => {
       FancyAlert.alert(
-        newStatus === MinisterioVoluntarioStatusEnum.Inativo ? 'Desativação de Voluntário' : 'Ativação de Voluntário',
+        newStatus === MinisterioVoluntarioStatusEnum.Inativo
+          ? 'Desativação de Voluntário'
+          : 'Ativação de Voluntário',
         `Tem certeza que deseja "${newStatus === MinisterioVoluntarioStatusEnum.Inativo ? 'DESATIVAR' : 'ATIVAR'}" o voluntário "${nome}"?`,
         [
           {
@@ -154,12 +165,56 @@ export default function MinisterioIntegrantesIndex() {
             type='image'
             props={{
               title: item.voluntario?.nome,
-              subtitle: <FancyTextDisplayCard icon={{ library: 'MaterialCommunityIcons', name: 'email-outline', size: 12, color: Pallete.primary }} value={item.voluntario?.email} valueStyle={{ numberOfLines: 1 }} />,
-              additionalData1: <FancyTextDisplayCard icon={{ library: 'MaterialCommunityIcons', name: 'account-cog-outline', size: 12, color: Pallete.primary }} value={VoluntarioHierarquiaEnumLabel[item.hierarquia!]} />,
+              subtitle: (
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4,
+                    width: '100%',
+                    marginTop: 1,
+                  }}
+                >
+                  <View style={{ width: 13, alignItems: 'center', justifyContent: 'center' }}>
+                    <DefaultIcons.Custom
+                      library='MaterialCommunityIcons'
+                      name='email-outline'
+                      size={12}
+                      color={Pallete.primary}
+                    />
+                  </View>
+                  <FancyText
+                    size='extraSmall'
+                    type='semiBold'
+                    color={palette.fonts.inactive}
+                    numberOfLines={1}
+                    ellipsizeMode='middle'
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.82}
+                    style={{ flex: 1, opacity: 0.85 }}
+                  >
+                    {item.voluntario?.email}
+                  </FancyText>
+                </View>
+              ),
+              additionalData1: (
+                <FancyTextDisplayCard
+                  icon={{
+                    library: 'MaterialCommunityIcons',
+                    name: 'account-cog-outline',
+                    size: 12,
+                    color: Pallete.primary,
+                  }}
+                  value={VoluntarioHierarquiaEnumLabel[item.hierarquia!]}
+                />
+              ),
               additionalData2: (
                 <>
                   {(() => {
-                    const funcoesAtivas = item.funcoes?.filter(f => f.status === MinisterioVoluntarioFuncaoStatusEnum.Ativo) ?? [];
+                    const funcoesAtivas =
+                      item.funcoes?.filter(
+                        (f) => f.status === MinisterioVoluntarioFuncaoStatusEnum.Ativo,
+                      ) ?? [];
                     if (funcoesAtivas.length === 0) return null;
                     const funcoesLabel = funcoesAtivas
                       .map((f) => f.funcao?.nome?.trim())
@@ -209,19 +264,30 @@ export default function MinisterioIntegrantesIndex() {
                 },
                 {
                   type: 'menu',
-                  icon: { library: 'Entypo', name: 'dots-three-vertical', size: 15, backgroundColor: Pallete.secondary },
+                  icon: {
+                    library: 'Entypo',
+                    name: 'dots-three-vertical',
+                    size: 15,
+                    backgroundColor: Pallete.secondary,
+                  },
                   options: [
                     {
-                      label: MinisterioVoluntarioStatusEnumMap[item.status] == MinisterioVoluntarioStatusEnum.Ativo ? 'Desativar' : 'Ativar',
+                      label:
+                        MinisterioVoluntarioStatusEnumMap[item.status] ==
+                        MinisterioVoluntarioStatusEnum.Ativo
+                          ? 'Desativar'
+                          : 'Ativar',
                       icon:
-                        MinisterioVoluntarioStatusEnumMap[item.status] == MinisterioVoluntarioStatusEnum.Ativo
+                        MinisterioVoluntarioStatusEnumMap[item.status] ==
+                        MinisterioVoluntarioStatusEnum.Ativo
                           ? { library: 'FontAwesome6', name: 'thumbs-down', size: 16 }
                           : { library: 'FontAwesome6', name: 'thumbs-up', size: 16 },
                       onPress: () => {
                         handleChangeStatus(
                           item.id!,
                           item.voluntario?.nome ?? '',
-                          MinisterioVoluntarioStatusEnumMap[item.status] === MinisterioVoluntarioStatusEnum.Ativo
+                          MinisterioVoluntarioStatusEnumMap[item.status] ===
+                            MinisterioVoluntarioStatusEnum.Ativo
                             ? MinisterioVoluntarioStatusEnum.Inativo
                             : MinisterioVoluntarioStatusEnum.Ativo,
                         );
@@ -229,7 +295,12 @@ export default function MinisterioIntegrantesIndex() {
                     },
                     {
                       label: 'Excluir',
-                      icon: { library: 'FontAwesome6', name: 'trash-can', size: 16, style: { borderWidth: 0 } },
+                      icon: {
+                        library: 'FontAwesome6',
+                        name: 'trash-can',
+                        size: 16,
+                        style: { borderWidth: 0 },
+                      },
                       onPress: () => {
                         handleRemoveVoluntario(item.id!);
                       },

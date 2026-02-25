@@ -1,7 +1,7 @@
 import FancyPageView from '../../../../../components/containers/FancyPageView';
 import { router, useLocalSearchParams } from 'expo-router';
-import { StyleSheet } from 'react-native';
-import { useCallback, useMemo, useRef } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import FancyList from '../../../../../components/list/FancyList';
 import FancyLoading from '../../../../../components/FancyLoading';
 import Header from '../../../../../components/pages/ministerios/escalas/details/Header';
@@ -60,6 +60,7 @@ export default function MinisterioEscalasDetailsPage() {
     viewMode?: 'view' | 'edit';
   }>();
   const { igrejaAtiva } = useAuth();
+  const [isPublishing, setIsPublishing] = useState(false);
 
   const initialParams = useMemo<DynamicQuery>(
     () => ({
@@ -232,11 +233,20 @@ export default function MinisterioEscalasDetailsPage() {
           id: data.idEscalaItem,
           data: {
             voluntarioId: data.idSubstituto,
+            status: EscalaItemStatusEnum.Pendente,
           },
         });
         await refetchEscala();
+        Toast.show({
+          type: 'success',
+          text1: 'Voluntário substituído com sucesso.',
+        });
         return true;
       } catch {
+        Toast.show({
+          type: 'error',
+          text1: 'Não foi possível substituir o voluntário.',
+        });
         return false;
       }
     },
@@ -250,11 +260,47 @@ export default function MinisterioEscalasDetailsPage() {
           id: data.idEscalaItem,
           data: {
             voluntarioId: data.idVoluntario,
+            status: EscalaItemStatusEnum.Pendente,
           },
         });
         await refetchEscala();
+        Toast.show({
+          type: 'success',
+          text1: 'Voluntário adicionado à função.',
+        });
         return true;
       } catch {
+        Toast.show({
+          type: 'error',
+          text1: 'Não foi possível adicionar o voluntário.',
+        });
+        return false;
+      }
+    },
+    [updateEscalaItem, refetchEscala],
+  );
+
+  const handleRemoverVoluntario = useCallback(
+    async (idEscalaItem: string): Promise<boolean> => {
+      try {
+        await updateEscalaItem?.({
+          id: idEscalaItem,
+          data: {
+            voluntarioId: null as any,
+            status: EscalaItemStatusEnum.Pendente,
+          } as any,
+        });
+        await refetchEscala();
+        Toast.show({
+          type: 'success',
+          text1: 'Voluntário removido da função.',
+        });
+        return true;
+      } catch {
+        Toast.show({
+          type: 'error',
+          text1: 'Não foi possível remover o voluntário.',
+        });
         return false;
       }
     },
@@ -334,41 +380,42 @@ export default function MinisterioEscalasDetailsPage() {
         text: 'Sim',
         style: 'destructive',
         onPress: async () => {
-          await updateEscala?.({
-            id: escalaId,
-            data: {
-              status: EscalaStatusEnum.Publicada,
-            },
-          });
+          try {
+            setIsPublishing(true);
+            await updateEscala?.({
+              id: escalaId,
+              data: {
+                status: EscalaStatusEnum.Publicada,
+              },
+            });
+            await refetchEscala();
+          } finally {
+            setIsPublishing(false);
+          }
         },
       },
     ]);
-  }, [escalaId, updateEscala]);
+  }, [escalaId, updateEscala, refetchEscala]);
 
   const handleGeneratePress = useCallback(() => {
     const escala = escalaData?.[0];
     if (!escala) return;
 
-    if (isRegenerating) {
+    if (isRegenerating || isPublishing) {
       return;
     }
 
     if (escala.status !== EscalaStatusEnum.Gerada) {
-      FancyAlert.alert(
-        'Regerar escala',
-        'Só é possível regerar escalas com status Gerada. Para escalas publicadas, crie/edite uma nova versão.',
-        [{ text: 'OK', style: 'cancel' }],
-      );
       return;
     }
 
     FancyAlert.alert(
-      'Regerar Escala',
+      'Recalcular Escala',
       'Isso vai recalcular a escala com os dados atuais e substituir os itens existentes. Deseja continuar?',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
-          text: 'Regerar',
+          text: 'Recalcular',
           style: 'destructive',
           onPress: async () => {
             try {
@@ -376,16 +423,16 @@ export default function MinisterioEscalasDetailsPage() {
               await refetchEscala();
               Toast.show({
                 type: 'success',
-                text1: 'Escala regerada com sucesso!',
+                text1: 'Escala recalculada com sucesso!',
               });
             } catch (error) {
-              console.log('Erro ao regerar escala:', error);
+              console.log('Erro ao recalcular escala:', error);
             }
           },
         },
       ],
     );
-  }, [escalaData, escalaId, isRegenerating, regenerateEscala, refetchEscala]);
+  }, [escalaData, escalaId, isPublishing, isRegenerating, regenerateEscala, refetchEscala]);
 
   const handleDeletePress = useCallback(() => {
     FancyAlert.alert('Exclusão de escala', 'Deseja realmente excluir esta escala?', [
@@ -414,58 +461,99 @@ export default function MinisterioEscalasDetailsPage() {
     return <FancyLoading />;
   }
 
+  const isBlockingScreen = isRegenerating || isPublishing;
+  const blockingLabel = isPublishing ? 'Publicando escala...' : 'Recalculando escala...';
+
   return (
-    <FancyPageView style={styles.container}>
-      <Header
-        escala={escalaData?.[0]}
-        viewMode={viewMode}
-        onPublishPress={handlePublishPress}
-        onGeneratePress={handleGeneratePress}
-        onDeletePress={handleDeletePress}
-      />
-      {eventosData && (
-        <FancyList
-          keyExtractor={(item) => item.evento?.id + item.dataOcorrencia.toString()}
-          data={eventosData}
-          listEmptyProps={{
-            label: 'Nenhum evento nesta escala',
-            icon: { library: 'MaterialCommunityIcons', name: 'calendar-blank-outline', size: 68 },
-          }}
-          contentContainerStyle={{
-            paddingHorizontal: 16,
-            gap: 14,
-            paddingBottom: 30,
-          }}
-          containerStyle={{ flex: 1 }}
-          renderItem={({ item }) => (
-            <EventoTable
-              data={item}
-              viewMode={viewMode}
-              ministerioId={ministerioId}
-              escalaId={escalaId}
-              onChangeVoluntario={async (data) => {
-                return await handleSubstituirVoluntario(data);
-              }}
-              onAddVoluntario={async (data) => {
-                return await handleAdicionarVoluntario(data);
-              }}
-              onDeleteEvento={async (eventoId, dataOcorrencia) => {
-                return await handleDeleteEvento(eventoId, dataOcorrencia);
-              }}
-              onAdicionarFuncao={async (data) => {
-                return await handleAdicionarFuncao(data);
-              }}
-              onExcluirFuncao={async (funcaoId, eventoId, dataOcorrencia) => {
-                await handleExcluirFuncao(funcaoId, eventoId, dataOcorrencia);
-              }}
-            />
-          )}
+    <View style={styles.pageWrapper}>
+      <FancyPageView style={styles.container}>
+        <Header
+          escala={escalaData?.[0]}
+          viewMode={viewMode}
+          isRegenerating={isRegenerating}
+          isPublishing={isPublishing}
+          isScreenBlocked={isBlockingScreen}
+          onPublishPress={handlePublishPress}
+          onGeneratePress={handleGeneratePress}
+          onDeletePress={handleDeletePress}
         />
+        {eventosData && (
+          <FancyList
+            keyExtractor={(item) => item.evento?.id + item.dataOcorrencia.toString()}
+            data={eventosData}
+            listEmptyProps={{
+              label: 'Nenhum evento nesta escala',
+              icon: {
+                library: 'MaterialCommunityIcons',
+                name: 'calendar-blank-outline',
+                size: 68,
+              },
+            }}
+            contentContainerStyle={{
+              paddingHorizontal: 16,
+              gap: 10,
+              paddingBottom: 30,
+            }}
+            containerStyle={{ flex: 1 }}
+            renderItem={({ item }) => (
+              <EventoTable
+                data={item}
+                viewMode={viewMode}
+                ministerioId={ministerioId}
+                escalaId={escalaId}
+                onChangeVoluntario={async (data) => {
+                  return await handleSubstituirVoluntario(data);
+                }}
+                onAddVoluntario={async (data) => {
+                  return await handleAdicionarVoluntario(data);
+                }}
+                onRemoveVoluntario={async (idEscalaItem) => {
+                  return await handleRemoverVoluntario(idEscalaItem);
+                }}
+                onDeleteEvento={async (eventoId, dataOcorrencia) => {
+                  return await handleDeleteEvento(eventoId, dataOcorrencia);
+                }}
+                onAdicionarFuncao={async (data) => {
+                  return await handleAdicionarFuncao(data);
+                }}
+                onExcluirFuncao={async (funcaoId, eventoId, dataOcorrencia) => {
+                  await handleExcluirFuncao(funcaoId, eventoId, dataOcorrencia);
+                }}
+              />
+            )}
+          />
+        )}
+      </FancyPageView>
+
+      {isBlockingScreen && (
+        <View style={styles.blockingOverlay} pointerEvents='auto'>
+          <View style={styles.blockingOverlayContent}>
+            <FancyLoading label={blockingLabel} />
+          </View>
+        </View>
       )}
-    </FancyPageView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 16 },
+  pageWrapper: {
+    flex: 1,
+    position: 'relative',
+  },
+  container: { gap: 16, flex: 1 },
+  blockingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 50,
+  },
+  blockingOverlayContent: {
+    minWidth: 180,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.96)',
+  },
 });

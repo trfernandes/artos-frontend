@@ -53,9 +53,7 @@ function CreateIgrejaAccountPageContent() {
   const CARD_PADDING = 44; // padding: 22 × 2
   const STEPS_CHROME = 80; // header dos steps + navegação + gaps ≈ 80px
   const measuredHeight = measuredStepHeights[stepIndex];
-  const formCardMinHeight = measuredHeight
-    ? measuredHeight + CARD_PADDING + STEPS_CHROME
-    : 300;
+  const formCardMinHeight = measuredHeight ? measuredHeight + CARD_PADDING + STEPS_CHROME : 300;
   useEffect(() => {
     if (!keyboardVisible) {
       setBaselineWindowHeight(windowHeight);
@@ -73,7 +71,8 @@ function CreateIgrejaAccountPageContent() {
   const viewportResizeDelta = Math.max(0, baselineViewportHeight - effectiveViewportHeight);
   const resizeDelta = Math.max(windowResizeDelta, viewportResizeDelta);
   const overlayKeyboardInset = keyboardVisible ? Math.max(0, keyboardHeight - resizeDelta) : 0;
-  const availableCardHeight = effectiveViewportHeight - contentTopPadding - overlayKeyboardInset - 8;
+  const availableCardHeight =
+    effectiveViewportHeight - contentTopPadding - overlayKeyboardInset - 8;
   const expandedCardHeight = Math.max(0, availableCardHeight);
 
   const { status: connectivityStatus } = useConnectivity();
@@ -250,7 +249,9 @@ function CreateIgrejaAccountPageContent() {
           size='small'
           overflowBehavior='fitThenScroll'
           containerStyle={
-            expandToFill ? { flex: 1, minHeight: 0 } : { minHeight: formCardMinHeight - CARD_PADDING }
+            expandToFill
+              ? { flex: 1, minHeight: 0 }
+              : { minHeight: formCardMinHeight - CARD_PADDING }
           }
           config={stepsConfig}
           index={stepIndex}
@@ -258,10 +259,7 @@ function CreateIgrejaAccountPageContent() {
         />
       </FormProvider>
       {isSubmitting && (
-        <View
-          style={{ ...StyleSheet.absoluteFillObject, zIndex: 99 }}
-          pointerEvents='auto'
-        />
+        <View style={{ ...StyleSheet.absoluteFillObject, zIndex: 99 }} pointerEvents='auto' />
       )}
       {showSlowText && (
         <FancyText
@@ -306,7 +304,7 @@ function CreateIgrejaAccountPageContent() {
         enableAutomaticScroll={false}
         extraScrollHeight={0}
         extraHeight={0}
-        scrollEnabled={!keyboardVisible}
+        scrollEnabled
         keyboardShouldPersistTaps='handled'
         keyboardDismissMode='none'
         showsVerticalScrollIndicator={false}

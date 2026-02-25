@@ -17,7 +17,7 @@ export default function FancyModal({
   center,
   top,
   bottom,
-  closeOnBackdropPress = true,
+  closeOnBackdropPress = false,
   dismissKeyboardOnBackdropPress = true,
   ...props
 }: FancyModalProps) {

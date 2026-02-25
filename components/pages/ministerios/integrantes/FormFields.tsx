@@ -3,9 +3,9 @@ import ControlledSearchSelect from '../../../forms/ControlledSearchSelect';
 import { View } from 'react-native';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import {
-    MinVoluntarioFormData,
-    MinVoluntarioFuncaoFormData,
-    minVoluntarioFuncaoSchema,
+  MinVoluntarioFormData,
+  MinVoluntarioFuncaoFormData,
+  minVoluntarioFuncaoSchema,
 } from '../../../../domain/schemas/ministerioVoluntariosSchema';
 import { useMemo, useState } from 'react';
 import IntegranteFormModal from './FormModal';
@@ -20,9 +20,9 @@ import FancyChips from '../../../FancyChips';
 import { ResponseMinisterioFuncaoDto } from '../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.response';
 import { EscalaTemplateExperienciaLabel } from '../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
 import {
-    MinisterioVoluntarioStatusEnumLabel,
-    MinisterioVoluntarioStatusEnumMap,
-    MinisterioVoluntarioStatusEnum,
+  MinisterioVoluntarioStatusEnumLabel,
+  MinisterioVoluntarioStatusEnumMap,
+  MinisterioVoluntarioStatusEnum,
 } from '../../../../domain/enums/MinisterioVoluntario/ministerio-voluntario-status.enum';
 import { AppImages } from '../../../../assets/app_images';
 import { usePallete } from '../../../../hooks/usePallete';
@@ -34,7 +34,12 @@ export interface IntegranteFormFieldsProps {
   funcoesList: ResponseMinisterioFuncaoDto[];
 }
 
-export default function IntegranteFormFields({ voluntariosDropDownList, funcoesDropDownList, funcoesList, mode }: IntegranteFormFieldsProps) {
+export default function IntegranteFormFields({
+  voluntariosDropDownList,
+  funcoesDropDownList,
+  funcoesList,
+  mode,
+}: IntegranteFormFieldsProps) {
   const palette = usePallete();
   //   console.log('IntegranteFormFields render', strfyObj({ voluntariosDropDownList, funcoesDropDownList, funcoesList, mode }));
 
@@ -99,7 +104,8 @@ export default function IntegranteFormFields({ voluntariosDropDownList, funcoesD
   };
 
   const notUsedFuncoesList = useMemo(() => {
-    const funcoes = funcoesDropDownList?.filter((v) => !fieldsFuncao.some((f) => f.id === v.value)) || [];
+    const funcoes =
+      funcoesDropDownList?.filter((v) => !fieldsFuncao.some((f) => f.id === v.value)) || [];
     return funcoes;
   }, [funcoesDropDownList, fieldsFuncao]);
 
@@ -123,21 +129,39 @@ export default function IntegranteFormFields({ voluntariosDropDownList, funcoesD
         />
       ) : (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
-          <FancyImage source={getValues('voluntarioFoto') ? { uri: getValues('voluntarioFoto') } : AppImages.emptyProfile} size={50} />
-          <View style={{ gap: 2 }}>
+          <FancyImage
+            source={
+              getValues('voluntarioFoto')
+                ? { uri: getValues('voluntarioFoto') }
+                : AppImages.emptyProfile
+            }
+            size={50}
+          />
+          <View style={{ gap: 2, flex: 1, minWidth: 0 }}>
             <FancyText size='largeMedium' type='bold' style={{ opacity: 0.8 }}>
               {getValues('voluntarioNome')}
             </FancyText>
-            <FancyText size='small' type='medium' style={{ opacity: 0.8 }}>
+            <FancyText
+              size='small'
+              type='medium'
+              style={{ opacity: 0.8 }}
+              numberOfLines={1}
+              ellipsizeMode='middle'
+            >
               {getValues('voluntarioEmail')}
             </FancyText>
             {getValues('voluntarioStatus') && (
               <FancyChips
                 size='small'
                 style={{ marginTop: 3 }}
-                label={MinisterioVoluntarioStatusEnumLabel[MinisterioVoluntarioStatusEnumMap[getValues('voluntarioStatus')!]]}
+                label={
+                  MinisterioVoluntarioStatusEnumLabel[
+                    MinisterioVoluntarioStatusEnumMap[getValues('voluntarioStatus')!]
+                  ]
+                }
                 color={
-                  MinisterioVoluntarioStatusEnumMap[getValues('voluntarioStatus')!] === MinisterioVoluntarioStatusEnum.Ativo
+                  MinisterioVoluntarioStatusEnumMap[getValues('voluntarioStatus')!] ===
+                  MinisterioVoluntarioStatusEnum.Ativo
                     ? palette.primary
                     : palette.error
                 }
@@ -149,7 +173,7 @@ export default function IntegranteFormFields({ voluntariosDropDownList, funcoesD
 
       <FancyContainerList
         title='Funções'
-        contentContainerStyle={{ paddingTop: 6 }}
+        contentContainerStyle={{ paddingTop: 10 }}
         buttons={[
           {
             icon: { ...DefaultIconsNames.add, size: 19 },
@@ -196,7 +220,9 @@ export default function IntegranteFormFields({ voluntariosDropDownList, funcoesD
           <IntegranteFormModal
             mode={formModalOptions.mode}
             title={formModalOptions.mode === 'add' ? 'Adicionar Função' : 'Editar Função'}
-            funcoesDropDownList={formModalOptions.mode === 'edit' ? funcoesDropDownList : notUsedFuncoesList}
+            funcoesDropDownList={
+              formModalOptions.mode === 'edit' ? funcoesDropDownList : notUsedFuncoesList
+            }
             onButton2Press={() => handleSave()}
             onButton1Press={() => {
               setFormModalOptions({ visible: false, mode: 'add' });

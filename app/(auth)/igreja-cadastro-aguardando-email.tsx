@@ -188,18 +188,24 @@ export default function IgrejaCadastroAguardandoEmailPage() {
       fieldsContainerStyle={styles.fieldsContainer}
       compactTitleOnKeyboard='Confirme seu e-mail'
       header={({ keyboardVisible }) => (
-        <View style={{ gap: 5 }}>
+        <View style={{ gap: 5, alignItems: 'center' }}>
           <FancyText
             size={!keyboardVisible ? 'extraLarge' : 'large'}
             type='bold'
             color='white'
             style={{
               lineHeight: !keyboardVisible ? EXTRA_LARGE_SIZE_FONT * 1.2 : LARGE_SIZE_FONT * 1.2,
+              textAlign: 'center',
             }}
           >
             Confirme seu e-mail
           </FancyText>
-          <FancyText size={!keyboardVisible ? 'medium' : 'small'} type='medium' color='white'>
+          <FancyText
+            size={!keyboardVisible ? 'medium' : 'small'}
+            type='medium'
+            color='white'
+            style={{ textAlign: 'center' }}
+          >
             Enviamos um link de confirmação para ativar sua igreja
           </FancyText>
         </View>
@@ -430,10 +436,13 @@ function createStyles(Pallete: ThemePalette) {
     scrollContainer: {
       flexGrow: 1,
       paddingVertical: 0,
+      justifyContent: 'center',
     },
     centerContainer: {
-      flexGrow: 1,
+      flex: 1,
       gap: 15,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     fieldsContainer: {
       ...Pallete.shadows[200],
@@ -445,6 +454,7 @@ function createStyles(Pallete: ThemePalette) {
     },
     content: {
       gap: 20,
+      width: '100%',
     },
     card: {
       backgroundColor: ColorUtils.lightenColor(Pallete.primary, 0.95),

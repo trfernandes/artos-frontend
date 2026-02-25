@@ -17,7 +17,7 @@ export default function EscalaHealthIndicator({
       <ScaleFillIndicator
         filledCount={confirmedCount}
         totalCount={totalCount}
-        label='confirmados'
+        label='confirmações'
         showContainer
         size='default'
       />

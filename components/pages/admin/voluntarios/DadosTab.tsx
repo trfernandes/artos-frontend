@@ -15,7 +15,7 @@ export default function VoluntarioDadosTab(props: { voluntario: ResponseVoluntar
   }
 
   return (
-    <FancyScrollView contentContainerStyle={styles.container} fill> 
+    <FancyScrollView contentContainerStyle={styles.container} fill>
       <View style={{ gap: 20 }}>
         <FancyAvatarImage
           source={
@@ -27,11 +27,17 @@ export default function VoluntarioDadosTab(props: { voluntario: ResponseVoluntar
           size={100}
           style={{ alignSelf: 'center' }}
         />
-        <View style={{ alignItems: 'center', gap: 4 }}>
+        <View style={{ alignItems: 'center', gap: 4, width: '100%' }}>
           <FancyText size={'large'} type='bold' style={{ opacity: 0.8 }}>
             {props.voluntario.nome}
           </FancyText>
-          <FancyText size={'medium'} type='normalItalic'>
+          <FancyText
+            size={'medium'}
+            type='normalItalic'
+            numberOfLines={1}
+            ellipsizeMode='middle'
+            style={{ maxWidth: '100%' }}
+          >
             {props.voluntario.email}
           </FancyText>
         </View>
@@ -47,9 +53,26 @@ export default function VoluntarioDadosTab(props: { voluntario: ResponseVoluntar
           }
           showSeparator={true}
         />
-        <FancyValueLine title='Telefone:' value={props.voluntario.telefone || 'Não definido'} showSeparator={true} />
-        <FancyValueLine title='Endereço:' value={props.voluntario.endereco || 'Não definido'} showSeparator={true} />
-        <FancyValueLine title='Sexo:' value={props.voluntario.sexo === 'M' ? 'Masculino' : props.voluntario.sexo === 'F' ? 'Feminino' : 'N/A'} />
+        <FancyValueLine
+          title='Telefone:'
+          value={props.voluntario.telefone || 'Não definido'}
+          showSeparator={true}
+        />
+        <FancyValueLine
+          title='Endereço:'
+          value={props.voluntario.endereco || 'Não definido'}
+          showSeparator={true}
+        />
+        <FancyValueLine
+          title='Sexo:'
+          value={
+            props.voluntario.sexo === 'M'
+              ? 'Masculino'
+              : props.voluntario.sexo === 'F'
+                ? 'Feminino'
+                : 'N/A'
+          }
+        />
       </View>
     </FancyScrollView>
   );

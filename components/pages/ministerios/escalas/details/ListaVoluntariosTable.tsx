@@ -1,7 +1,7 @@
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { EscalaItemEquipeType } from '../../../../../app/(app)/(drawer)/ministerios/escalas/details';
 import FancyText from '../../../../FancyText';
-import { SEMI_BOLD_FONT, SMALL_SIZE_FONT } from '../../../../../constants/font';
+
 import FancyAvatarImage from '../../../../images/FancyImage';
 import DefaultIcons from '../../../../FancyIcons';
 import { ThemePalette } from '../../../../../constants/colors';
@@ -9,15 +9,19 @@ import { useVoluntariosCrud } from '../../../../../hooks/useVoluntariosCrud';
 import { useState, useCallback } from 'react';
 import VoluntarioDetailsModal from './VoluntarioDetailsModal';
 import FancyChips from '../../../../FancyChips';
-import { EscalaItemStatusEnum, EscalaItemStatusEnumLabel } from '../../../../../domain/enums/Escala/escala-item-status.enum';
+import {
+  EscalaItemStatusEnum,
+  EscalaItemStatusEnumLabel,
+} from '../../../../../domain/enums/Escala/escala-item-status.enum';
 import { AppImages } from '../../../../../assets/app_images';
 import FancySeparator from '../../../../FancySeparator';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 import { useAppTheme } from '../../../../../hooks/useAppTheme';
 import { ColorUtils } from '../../../../../utils/color_utils';
+import { getFirstAndLastName } from '../../../../../utils/text_utils';
 
-const ACTION_HIT_SLOP = { top: 10, bottom: 10, left: 10, right: 10 } as const;
+const ACTION_HIT_SLOP = { top: 16, bottom: 16, left: 16, right: 16 } as const;
 
 export const VoluntarioStatusChipParams = {
   [EscalaItemStatusEnum.Pendente]: {
@@ -53,23 +57,38 @@ function getVoluntarioStatusChipParams(isDark: boolean) {
   return {
     [EscalaItemStatusEnum.Pendente]: {
       ...VoluntarioStatusChipParams[EscalaItemStatusEnum.Pendente],
-      background: ColorUtils.withAlpha(VoluntarioStatusChipParams[EscalaItemStatusEnum.Pendente].color, 0.22),
+      background: ColorUtils.withAlpha(
+        VoluntarioStatusChipParams[EscalaItemStatusEnum.Pendente].color,
+        0.22,
+      ),
     },
     [EscalaItemStatusEnum.Ausente]: {
       ...VoluntarioStatusChipParams[EscalaItemStatusEnum.Ausente],
-      background: ColorUtils.withAlpha(VoluntarioStatusChipParams[EscalaItemStatusEnum.Ausente].color, 0.2),
+      background: ColorUtils.withAlpha(
+        VoluntarioStatusChipParams[EscalaItemStatusEnum.Ausente].color,
+        0.2,
+      ),
     },
     [EscalaItemStatusEnum.Confirmado]: {
       ...VoluntarioStatusChipParams[EscalaItemStatusEnum.Confirmado],
-      background: ColorUtils.withAlpha(VoluntarioStatusChipParams[EscalaItemStatusEnum.Confirmado].color, 0.2),
+      background: ColorUtils.withAlpha(
+        VoluntarioStatusChipParams[EscalaItemStatusEnum.Confirmado].color,
+        0.2,
+      ),
     },
     [EscalaItemStatusEnum.Substituido]: {
       ...VoluntarioStatusChipParams[EscalaItemStatusEnum.Substituido],
-      background: ColorUtils.withAlpha(VoluntarioStatusChipParams[EscalaItemStatusEnum.Substituido].color, 0.2),
+      background: ColorUtils.withAlpha(
+        VoluntarioStatusChipParams[EscalaItemStatusEnum.Substituido].color,
+        0.2,
+      ),
     },
     [EscalaItemStatusEnum.SubstituicaoSolicitada]: {
       ...VoluntarioStatusChipParams[EscalaItemStatusEnum.SubstituicaoSolicitada],
-      background: ColorUtils.withAlpha(VoluntarioStatusChipParams[EscalaItemStatusEnum.SubstituicaoSolicitada].color, 0.2),
+      background: ColorUtils.withAlpha(
+        VoluntarioStatusChipParams[EscalaItemStatusEnum.SubstituicaoSolicitada].color,
+        0.2,
+      ),
     },
   } as const;
 }
@@ -78,6 +97,7 @@ export default function ListaVoluntariosTable({
   data,
   onSubstituicaoButtonPressed,
   onAdicionarVoluntarioButtonPressed,
+  onRemoverVoluntarioPressed,
   onAdicionarFuncaoPressed,
   onExcluirFuncaoPressed,
   onExcluirEvento,
@@ -86,6 +106,7 @@ export default function ListaVoluntariosTable({
   data: EscalaItemEquipeType[];
   onSubstituicaoButtonPressed?: (data: EscalaItemEquipeType) => void;
   onAdicionarVoluntarioButtonPressed?: (data: EscalaItemEquipeType) => void;
+  onRemoverVoluntarioPressed?: (data: EscalaItemEquipeType) => void;
   onAdicionarFuncaoPressed?: () => void;
   onExcluirFuncaoPressed?: (funcaoId: string) => void;
   onExcluirEvento?: () => void;
@@ -116,7 +137,9 @@ export default function ListaVoluntariosTable({
     <>
       <View style={styles.container}>
         {data?.map((equipeItem, index) => {
-          const voluntarioData = voluntariosData.find((v) => v.id === equipeItem.voluntario?.voluntarioId);
+          const voluntarioData = voluntariosData.find(
+            (v) => v.id === equipeItem.voluntario?.voluntarioId,
+          );
           const hasVoluntario = !!equipeItem.voluntario?.nome;
 
           return (
@@ -126,7 +149,10 @@ export default function ListaVoluntariosTable({
                 {hasVoluntario ? (
                   <TouchableOpacity
                     onPress={() =>
-                      handleVoluntarioClick(equipeItem.voluntario?.minVoluntarioId!, equipeItem.voluntario?.voluntarioId!)
+                      handleVoluntarioClick(
+                        equipeItem.voluntario?.minVoluntarioId!,
+                        equipeItem.voluntario?.voluntarioId!,
+                      )
                     }
                   >
                     <FancyAvatarImage
@@ -135,27 +161,38 @@ export default function ListaVoluntariosTable({
                           ? { uri: voluntarioData?.fotoThumbUrl || voluntarioData?.fotoUrl || '' }
                           : AppImages.emptyProfile
                       }
+                      size={28}
                       style={styles.avatar}
                     />
                   </TouchableOpacity>
                 ) : (
                   <View style={styles.emptyAvatar}>
-                    <DefaultIcons.Custom library='MaterialIcons' name='person-outline' size={18} color='#CBD5E1' />
+                    <DefaultIcons.Custom
+                      library='MaterialIcons'
+                      name='work-outline'
+                      size={14}
+                      color='#94A3B8'
+                    />
                   </View>
                 )}
 
                 {/* Info: Função + Nome */}
-                  <View style={styles.infoColumn}>
-                  <FancyText type='medium' size='extraSmall' color={palette.fonts.inactive} numberOfLines={1}>
+                <View style={styles.infoColumn}>
+                  <FancyText
+                    type='medium'
+                    size={10}
+                    color={palette.fonts.inactive}
+                    numberOfLines={1}
+                  >
                     {equipeItem.funcao?.nome}
                   </FancyText>
                   {hasVoluntario ? (
-                    <FancyText type='semiBold' size='extraSmall'>
-                      {equipeItem.voluntario?.nome}
+                    <FancyText type='semiBold' size={10}>
+                      {getFirstAndLastName(equipeItem.voluntario?.nome)}
                     </FancyText>
                   ) : (
-                    <FancyText type='normal' size='small' color={palette.fonts.inactive}>
-                      Não escalado
+                    <FancyText type='semiBold' size={10} color={palette.fonts.inactive}>
+                      Sem Voluntário
                     </FancyText>
                   )}
                 </View>
@@ -168,6 +205,8 @@ export default function ListaVoluntariosTable({
                       color={voluntarioStatusChipParams[equipeItem.status].color}
                       backgroundColor={voluntarioStatusChipParams[equipeItem.status].background}
                       size='small'
+                      style={{ paddingVertical: 1, paddingHorizontal: 5, borderWidth: 1 }}
+                      labelProps={{ style: { fontSize: 9 } }}
                     />
                   </View>
                 )}
@@ -181,7 +220,12 @@ export default function ListaVoluntariosTable({
                         onPress={() => onSubstituicaoButtonPressed?.(equipeItem)}
                         style={styles.actionButton}
                       >
-                        <DefaultIcons.Custom library='FontAwesome5' name='exchange-alt' size={12} color={palette.icons.light} />
+                        <DefaultIcons.Custom
+                          library='FontAwesome5'
+                          name='exchange-alt'
+                          size={12}
+                          color={palette.icons.light}
+                        />
                       </TouchableOpacity>
                     ) : (
                       <TouchableOpacity
@@ -189,16 +233,41 @@ export default function ListaVoluntariosTable({
                         onPress={() => onAdicionarVoluntarioButtonPressed?.(equipeItem)}
                         style={[styles.actionButton, styles.actionButtonAdd]}
                       >
-                        <DefaultIcons.Custom library='MaterialIcons' name='person-add' size={14} color={palette.icons.light} />
+                        <DefaultIcons.Custom
+                          library='MaterialIcons'
+                          name='person-add'
+                          size={14}
+                          color={palette.icons.light}
+                        />
                       </TouchableOpacity>
                     )}
-                    <TouchableOpacity
-                      hitSlop={ACTION_HIT_SLOP}
-                      onPress={() => onExcluirFuncaoPressed?.(equipeItem.funcao?.id!)}
-                      style={[styles.actionButton, styles.actionButtonDelete]}
-                    >
-                      <DefaultIcons.Custom library='MaterialIcons' name='close' size={16} color={palette.icons.light} />
-                    </TouchableOpacity>
+                    {hasVoluntario ? (
+                      <TouchableOpacity
+                        hitSlop={ACTION_HIT_SLOP}
+                        onPress={() => onRemoverVoluntarioPressed?.(equipeItem)}
+                        style={[styles.actionButton, styles.actionButtonWarning]}
+                      >
+                        <DefaultIcons.Custom
+                          library='MaterialIcons'
+                          name='person-remove'
+                          size={15}
+                          color={palette.icons.light}
+                        />
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity
+                        hitSlop={ACTION_HIT_SLOP}
+                        onPress={() => onExcluirFuncaoPressed?.(equipeItem.funcao?.id!)}
+                        style={[styles.actionButton, styles.actionButtonDelete]}
+                      >
+                        <DefaultIcons.Custom
+                          library='MaterialIcons'
+                          name='delete-outline'
+                          size={15}
+                          color={palette.icons.light}
+                        />
+                      </TouchableOpacity>
+                    )}
                   </View>
                 )}
               </View>
@@ -217,34 +286,34 @@ export default function ListaVoluntariosTable({
           </View>
         )}
 
-        {/* Botão Adicionar Função */}
+        {/* Ações do evento */}
         {isEditMode && (
-          <>
-            <TouchableOpacity onPress={onAdicionarFuncaoPressed} style={styles.addFuncaoButton}>
-              <View style={styles.addFuncaoIcon}>
-                <DefaultIcons.Custom library='MaterialIcons' name='add' size={14} color={palette.icons.light} />
-              </View>
-              <FancyText style={styles.addFuncaoText} numberOfLines={1}>Adicionar Função</FancyText>
+          <View style={styles.footerActions}>
+            <TouchableOpacity onPress={onAdicionarFuncaoPressed} style={styles.footerPill}>
+              <DefaultIcons.Custom library='MaterialIcons' name='add' size={14} color={palette.icons.light} />
+              <FancyText type='semiBold' size={10} color={palette.fonts.light} numberOfLines={1}>
+                Nova Função
+              </FancyText>
             </TouchableOpacity>
-
-            {/* Botão Excluir Evento */}
-            <TouchableOpacity onPress={onExcluirEvento} style={styles.deleteEventoButton}>
-              <View style={styles.deleteEventoIcon}>
-                <DefaultIcons.Custom library='MaterialIcons' name='delete-outline' size={14} color={palette.icons.light} />
-              </View>
-              <FancyText style={styles.deleteEventoText} numberOfLines={1}>Excluir Evento</FancyText>
+            <TouchableOpacity onPress={onExcluirEvento} style={styles.footerPillDanger}>
+              <DefaultIcons.Custom library='MaterialIcons' name='delete-outline' size={14} color={palette.icons.light} />
+              <FancyText type='semiBold' size={10} color={palette.fonts.light} numberOfLines={1}>
+                Excluir Evento
+              </FancyText>
             </TouchableOpacity>
-          </>
+          </View>
         )}
       </View>
 
-      {voluntarioDetailsProps.isVisible && voluntarioDetailsProps.ministerioVoluntarioId && voluntarioDetailsProps.voluntarioId && (
-        <VoluntarioDetailsModal
-          ministerioVoluntarioId={voluntarioDetailsProps.ministerioVoluntarioId}
-          voluntarioId={voluntarioDetailsProps.voluntarioId}
-          onClose={() => setVoluntarioDetailsProps({ isVisible: false })}
-        />
-      )}
+      {voluntarioDetailsProps.isVisible &&
+        voluntarioDetailsProps.ministerioVoluntarioId &&
+        voluntarioDetailsProps.voluntarioId && (
+          <VoluntarioDetailsModal
+            ministerioVoluntarioId={voluntarioDetailsProps.ministerioVoluntarioId}
+            voluntarioId={voluntarioDetailsProps.voluntarioId}
+            onClose={() => setVoluntarioDetailsProps({ isVisible: false })}
+          />
+        )}
     </>
   );
 }
@@ -252,46 +321,48 @@ export default function ListaVoluntariosTable({
 function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
     container: {
-      gap: 4,
+      gap: 2,
     },
     rowBlock: {
-      gap: 4,
+      gap: 2,
     },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: 8,
+      paddingVertical: 3,
       paddingHorizontal: 4,
-      gap: 10,
-      minHeight: 52,
+      gap: 8,
+      minHeight: 40,
     },
     rowSeparator: {
       marginHorizontal: 4,
     },
     avatar: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 28,
+      height: 28,
+      borderRadius: 14,
       alignSelf: 'center',
     },
     emptyAvatar: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: palette.backgroundColor3,
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: '#E2E8F0',
+      borderWidth: 1,
+      borderColor: '#CBD5E1',
       justifyContent: 'center',
       alignItems: 'center',
       alignSelf: 'center',
     },
     infoColumn: {
       flex: 1,
-      gap: 1,
+      gap: -2,
       justifyContent: 'center',
     },
     actionsColumn: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
+      gap: 10,
       alignSelf: 'center',
     },
     actionButton: {
@@ -308,60 +379,46 @@ function createStyles(palette: ThemePalette) {
     actionButtonDelete: {
       backgroundColor: palette.error,
     },
-    addFuncaoButton: {
+    actionButtonWarning: {
+      backgroundColor: palette.warning,
+    },
+    footerActions: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 8,
-      paddingVertical: 10,
-      backgroundColor: palette.backgroundColor3,
-      borderRadius: 10,
-      borderWidth: 1,
-      borderColor: palette.borderCard,
+      gap: 10,
+      paddingTop: 4,
+      paddingBottom: 1,
+      paddingHorizontal: 4,
     },
-    addFuncaoIcon: {
-      width: 22,
-      height: 22,
-      borderRadius: 11,
+    footerPill: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 4,
+      height: 30,
+      paddingHorizontal: 10,
+      borderRadius: 999,
       backgroundColor: palette.primary,
-      justifyContent: 'center',
-      alignItems: 'center',
     },
-    addFuncaoText: {
-      fontSize: SMALL_SIZE_FONT,
-      fontFamily: SEMI_BOLD_FONT,
-      color: palette.fonts.dark,
-    },
-    deleteEventoButton: {
+    footerPillDanger: {
+      flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 8,
-      paddingVertical: 10,
-      backgroundColor: palette.backgroundColor3,
-      borderRadius: 10,
-      borderWidth: 1,
-      borderColor: palette.borderCard,
-    },
-    deleteEventoIcon: {
-      width: 22,
-      height: 22,
-      borderRadius: 11,
+      gap: 4,
+      height: 30,
+      paddingHorizontal: 10,
+      borderRadius: 999,
       backgroundColor: palette.error,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    deleteEventoText: {
-      fontSize: SMALL_SIZE_FONT,
-      fontFamily: SEMI_BOLD_FONT,
-      color: palette.fonts.dark,
     },
     separatorContainer: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: 4,
-      marginBottom: 6,
+      paddingVertical: 2,
+      marginBottom: 2,
       gap: 8,
     },
     separatorLine: {

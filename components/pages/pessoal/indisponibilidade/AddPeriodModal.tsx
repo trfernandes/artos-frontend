@@ -20,7 +20,10 @@ const schema = z
       .date()
       .nullable()
       .refine((d) => !!d, { message: 'Data final obrigatória' }),
-    motivo: z.string().min(3, 'Informe pelo menos 3 caracteres').max(500, 'Máximo de 500 caracteres'),
+    motivo: z
+      .string()
+      .min(3, 'Informe pelo menos 3 caracteres')
+      .max(500, 'Máximo de 500 caracteres'),
   })
   .refine((data) => data.dataInicio && data.dataTermino && data.dataTermino >= data.dataInicio, {
     path: ['dataTermino'],
@@ -64,6 +67,7 @@ export default function AddPeriodoModal({ visible, modalProps, onConfirm }: AddP
       title='Adicionar Período de Indisponibilidade'
       closeOnBackdropPress={false}
       dismissKeyboardOnBackdropPress
+      dismissKeyboardOnContentBlankPress
       button1={{ label: 'Cancelar' }}
       button2={{
         label: 'Salvar',

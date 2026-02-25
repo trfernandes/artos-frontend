@@ -1,4 +1,5 @@
 import {
+  Keyboard,
   ModalProps,
   StyleProp,
   StyleSheet,
@@ -31,6 +32,7 @@ export type FancyModalDialogProps<T = void> = {
   titleTextStyle?: StyleProp<TextStyle>;
   closeOnBackdropPress?: boolean;
   dismissKeyboardOnBackdropPress?: boolean;
+  dismissKeyboardOnContentBlankPress?: boolean;
 } & Omit<FancyModalProps, 'top' | 'bottom' | 'center' | 'modalProps'>;
 
 export default function FancyModalDialog<T = void>({
@@ -51,6 +53,7 @@ export default function FancyModalDialog<T = void>({
   titleTextStyle,
   closeOnBackdropPress,
   dismissKeyboardOnBackdropPress,
+  dismissKeyboardOnContentBlankPress,
   containerStyle,
   ...fancyModalProps
 }: FancyModalDialogProps<T>) {
@@ -101,7 +104,22 @@ export default function FancyModalDialog<T = void>({
           </View>
         )
       }
-      center={<View style={[styles.contentContainer, centerContainerStyle]}>{children}</View>}
+      center={
+        <View
+          style={[styles.contentContainer, centerContainerStyle]}
+          onStartShouldSetResponderCapture={(event) =>
+            !!dismissKeyboardOnContentBlankPress && event.target === event.currentTarget
+          }
+          onResponderRelease={(event) => {
+            if (!dismissKeyboardOnContentBlankPress) return;
+            if (event.target === event.currentTarget) {
+              Keyboard.dismiss();
+            }
+          }}
+        >
+          {children}
+        </View>
+      }
       bottom={
         buttonContainerComponent || (
           <View style={[styles.buttonsContainer, buttonContainerStyle]}>

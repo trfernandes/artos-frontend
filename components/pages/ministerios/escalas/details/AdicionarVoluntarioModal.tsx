@@ -193,47 +193,65 @@ export default function AdicionarVoluntarioModal({ data, ...props }: AdicionarVo
         pointerEvents: isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation || isLoadingVoluntarios ? 'none' : 'auto',
       }}
     >
-      <FancyGroup title='Evento:'>
-        <View style={{ flexDirection: 'column', gap: 2 }}>
-          <FancyText size={'small'} type='medium'>
-            {`${format(data?.evento.dataOcorrencia, 'dd/MM/yyyy')} - ${format(data?.evento.dataInicio!, 'HH:mm')} à ${format(
-              data?.evento.dataTermino!,
-              'HH:mm',
-            )}`}
+      <FancyGroup variant='accentedSummary'>
+        <View style={{ gap: 2 }}>
+          <FancyText size='small' type='bold'>
+            Evento:
           </FancyText>
+          <View style={{ flexDirection: 'column', gap: 2 }}>
+            <FancyText size={'small'} type='medium'>
+              {`${format(data?.evento.dataOcorrencia, 'dd/MM/yyyy')} - ${format(data?.evento.dataInicio!, 'HH:mm')} à ${format(
+                data?.evento.dataTermino!,
+                'HH:mm',
+              )}`}
+            </FancyText>
+          </View>
         </View>
       </FancyGroup>
 
-      <FancyGroup title='Função:'>
-        <View style={{ flexDirection: 'column', gap: 2 }}>
-          <FancyText size={'medium'} type='bold'>
-            {data?.funcao?.nome}
+      <FancyGroup variant='accentedSummary'>
+        <View style={{ gap: 2 }}>
+          <FancyText size='small' type='bold'>
+            Função:
           </FancyText>
+          <View style={{ flexDirection: 'column', gap: 2 }}>
+            <FancyText size={'small'} type='medium'>
+              {data?.funcao?.nome}
+            </FancyText>
+          </View>
         </View>
       </FancyGroup>
 
-      <FancyGroup title='Selecionar Voluntário:' contentContainerStyle={{ gap: 15 }}>
+      <FancyGroup>
         <View style={{ gap: 8 }}>
-          <FancyCheckbox value={disponiveisNaData} onChangeValue={setDisponiveisNaData} label='Disponíveis na data' />
-          <FancyCheckbox value={temMesmaFuncao} onChangeValue={setTemMesmaFuncao} label='Tem a mesma função' />
-        </View>
+          <FancyText size='small' type='bold'>
+            Selecionar Voluntário:
+          </FancyText>
 
-        <View style={{ flexDirection: 'column', gap: 5 }}>
-          <FancySearchSelect
-            label='Voluntário'
-            placeholder='Buscar voluntário...'
-            value={selectedVoluntario}
-            onChange={(value) => {
-              setSelectedVoluntario(Array.isArray(value) ? value[0] || null : value);
-              setErrors((prev) => {
-                const { voluntario, ...rest } = prev;
-                return rest;
-              });
-            }}
-            listItems={voluntariosDropDownList}
-            disabled={isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation || isLoadingVoluntarios}
-          />
-          {errors && <FancyErrorText message={errors['voluntario']} />}
+          <View style={{ gap: 12 }}>
+            <View style={{ gap: 8 }}>
+              <FancyCheckbox value={disponiveisNaData} onChangeValue={setDisponiveisNaData} label='Disponíveis na data' />
+              <FancyCheckbox value={temMesmaFuncao} onChangeValue={setTemMesmaFuncao} label='Tem a mesma função' />
+            </View>
+
+            <View style={{ flexDirection: 'column', gap: 5 }}>
+              <FancySearchSelect
+                label='Voluntário'
+                placeholder='Buscar voluntário...'
+                value={selectedVoluntario}
+                onChange={(value) => {
+                  setSelectedVoluntario(Array.isArray(value) ? value[0] || null : value);
+                  setErrors((prev) => {
+                    const { voluntario, ...rest } = prev;
+                    return rest;
+                  });
+                }}
+                listItems={voluntariosDropDownList}
+                disabled={isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation || isLoadingVoluntarios}
+              />
+              {errors && <FancyErrorText message={errors['voluntario']} />}
+            </View>
+          </View>
         </View>
       </FancyGroup>
     </FancyModalDialog>
@@ -241,5 +259,5 @@ export default function AdicionarVoluntarioModal({ data, ...props }: AdicionarVo
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 20, paddingVertical: 10 },
+  container: { gap: 14, paddingTop: 0, paddingBottom: 10 },
 });

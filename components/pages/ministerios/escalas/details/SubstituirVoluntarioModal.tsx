@@ -17,6 +17,8 @@ import FancyErrorText from '../../../../forms/FancyErrorText';
 import FancyGroup from '../../../../list/FancyGroup';
 import { AppImages } from '../../../../../assets/app_images';
 import { useAuth } from '../../../../../contexts/AuthContext';
+import { usePallete } from '../../../../../hooks/usePallete';
+import { getFirstAndLastName } from '../../../../../utils/text_utils';
 
 export interface SubstituirVoluntarioModalProps {
   data: EscalaItemEquipeType & {
@@ -37,6 +39,7 @@ export interface SubstituicaoConfirmDialog {
 }
 
 export default function SubstituirVoluntarioModal({ data, ...props }: SubstituirVoluntarioModalProps & FancyModalDialogProps<any>) {
+  const palette = usePallete();
   const [disponiveisNaData, setDisponiveisNaData] = useState(false);
   const [temMesmaFuncao, setTemMesmaFuncao] = useState(false);
   const { igrejaAtiva } = useAuth();
@@ -211,56 +214,78 @@ export default function SubstituirVoluntarioModal({ data, ...props }: Substituir
         pointerEvents: isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation || isLoadingSubstitutos ? 'none' : 'auto',
       }}
     >
-      <FancyGroup title='Evento:'>
-        <View style={{ flexDirection: 'column', gap: 2 }}>
-          <FancyText size={'small'} type='medium'>
-            {`${format(data?.evento.dataOcorrencia, 'dd/MM/yyyy')} - ${format(data?.evento.dataInicio!, 'HH:mm')} à ${format(
-              data?.evento.dataTermino!,
-              'HH:mm',
-            )}`}
+      <FancyGroup variant='accentedSummary'>
+        <View style={{ gap: 2 }}>
+          <FancyText size='small' type='bold'>
+            Evento:
           </FancyText>
+          <View style={{ flexDirection: 'column', gap: 2 }}>
+            <FancyText size={'extraSmall'} type='medium'>
+              {`${format(data?.evento.dataOcorrencia, 'dd/MM/yyyy')} - ${format(data?.evento.dataInicio!, 'HH:mm')} à ${format(
+                data?.evento.dataTermino!,
+                'HH:mm',
+              )}`}
+            </FancyText>
+          </View>
         </View>
       </FancyGroup>
-      <FancyGroup title='De:' contentContainerStyle={{ flexDirection: 'row', gap: 15 }}>
-        <FancyAvatarImage
-          source={
-            data.voluntario?.fotoUrl || data.voluntario?.fotoThumbUrl
-              ? { uri: data.voluntario?.fotoThumbUrl || data.voluntario?.fotoUrl || '' }
-              : AppImages.emptyProfile
-          }
-          style={{ width: 30, height: 30 }}
-        />
-        <View style={{ flexDirection: 'column', gap: 2 }}>
-          <FancyText size={'medium'} type='mediumItalic'>
-            {data?.voluntario?.nome}
+      <FancyGroup variant='accentedSummary' contentContainerStyle={{ flexDirection: 'row', gap: 15 }}>
+        <View style={{ gap: 6, flex: 1 }}>
+          <FancyText size='small' type='bold'>
+            De:
           </FancyText>
-          <FancyText size={'small'} type='bold'>
-            {data?.funcao?.nome}
-          </FancyText>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <FancyAvatarImage
+              source={
+                data.voluntario?.fotoUrl || data.voluntario?.fotoThumbUrl
+                  ? { uri: data.voluntario?.fotoThumbUrl || data.voluntario?.fotoUrl || '' }
+                  : AppImages.emptyProfile
+              }
+              size={30}
+              style={{ width: 30, height: 30 }}
+            />
+            <View style={{ flexDirection: 'column', gap: 1 }}>
+              <FancyText type='medium' size={11} color={palette.fonts.inactive}>
+                {data?.funcao?.nome}
+              </FancyText>
+              <FancyText type='semiBold' size={12}>
+                {getFirstAndLastName(data?.voluntario?.nome)}
+              </FancyText>
+            </View>
+          </View>
         </View>
       </FancyGroup>
-      <FancyGroup title='Para:' contentContainerStyle={{ gap: 15 }}>
+      <FancyGroup>
         <View style={{ gap: 8 }}>
-          <FancyCheckbox value={disponiveisNaData} onChangeValue={setDisponiveisNaData} label='Disponíveis na data' />
-          <FancyCheckbox value={temMesmaFuncao} onChangeValue={setTemMesmaFuncao} label='Tem a mesma função' />
-        </View>
+          <FancyText size='small' type='bold'>
+            Para:
+          </FancyText>
 
-        <View style={{ flexDirection: 'column', gap: 5 }}>
-          <FancySearchSelect
-            label='Substituto'
-            placeholder='Buscar voluntário...'
-            value={selectedSubstituto}
-            onChange={(value) => {
-              setSelectedSubstituto(Array.isArray(value) ? value[0] || null : value);
-              setErrors((prev) => {
-                const { substituto, ...rest } = prev;
-                return rest;
-              });
-            }}
-            listItems={voluntariosDropDownList}
-            disabled={isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation || isLoadingSubstitutos}
-          />
-          {errors && <FancyErrorText message={errors['substituto']} />}
+          <View style={{ gap: 12 }}>
+            <View style={{ gap: 8 }}>
+              <FancyCheckbox value={disponiveisNaData} onChangeValue={setDisponiveisNaData} label='Disponíveis na data' />
+              <FancyCheckbox value={temMesmaFuncao} onChangeValue={setTemMesmaFuncao} label='Tem a mesma função' />
+            </View>
+
+            <View style={{ flexDirection: 'column', gap: 5 }}>
+              <FancySearchSelect
+                label='Substituto'
+                placeholder='Buscar voluntário...'
+                value={selectedSubstituto}
+                onChange={(value) => {
+                  setSelectedSubstituto(Array.isArray(value) ? value[0] || null : value);
+                  setErrors((prev) => {
+                    const { substituto, ...rest } = prev;
+                    return rest;
+                  });
+                }}
+                listItems={voluntariosDropDownList}
+                isLoading={isLoadingSubstitutos}
+                disabled={isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation}
+              />
+              {errors && <FancyErrorText message={errors['substituto']} />}
+            </View>
+          </View>
         </View>
       </FancyGroup>
     </FancyModalDialog>
@@ -268,5 +293,5 @@ export default function SubstituirVoluntarioModal({ data, ...props }: Substituir
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 20, paddingVertical: 10 },
+  container: { gap: 14, paddingTop: 0, paddingBottom: 10 },
 });
