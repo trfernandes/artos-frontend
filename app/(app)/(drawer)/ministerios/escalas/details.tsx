@@ -88,6 +88,8 @@ export default function MinisterioEscalasDetailsPage() {
     isLoading,
     isError,
     update: updateEscala,
+    regenerate: regenerateEscala,
+    isRegenerating,
     remove: removeEscala,
     refetch: refetchEscala,
   } = useEscalasCrud({
@@ -344,11 +346,46 @@ export default function MinisterioEscalasDetailsPage() {
   }, [escalaId, updateEscala]);
 
   const handleGeneratePress = useCallback(() => {
-    // TODO: Implementar regerar escala
-    FancyAlert.alert('Gerar Escala', 'Funcionalidade em desenvolvimento', [
-      { text: 'OK', style: 'cancel' },
-    ]);
-  }, []);
+    const escala = escalaData?.[0];
+    if (!escala) return;
+
+    if (isRegenerating) {
+      return;
+    }
+
+    if (escala.status !== EscalaStatusEnum.Gerada) {
+      FancyAlert.alert(
+        'Regerar escala',
+        'Só é possível regerar escalas com status Gerada. Para escalas publicadas, crie/edite uma nova versão.',
+        [{ text: 'OK', style: 'cancel' }],
+      );
+      return;
+    }
+
+    FancyAlert.alert(
+      'Regerar Escala',
+      'Isso vai recalcular a escala com os dados atuais e substituir os itens existentes. Deseja continuar?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Regerar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await regenerateEscala?.(escalaId);
+              await refetchEscala();
+              Toast.show({
+                type: 'success',
+                text1: 'Escala regerada com sucesso!',
+              });
+            } catch (error) {
+              console.log('Erro ao regerar escala:', error);
+            }
+          },
+        },
+      ],
+    );
+  }, [escalaData, escalaId, isRegenerating, regenerateEscala, refetchEscala]);
 
   const handleDeletePress = useCallback(() => {
     FancyAlert.alert('Exclusão de escala', 'Deseja realmente excluir esta escala?', [
@@ -390,6 +427,10 @@ export default function MinisterioEscalasDetailsPage() {
         <FancyList
           keyExtractor={(item) => item.evento?.id + item.dataOcorrencia.toString()}
           data={eventosData}
+          listEmptyProps={{
+            label: 'Nenhum evento nesta escala',
+            icon: { library: 'MaterialCommunityIcons', name: 'calendar-blank-outline', size: 68 },
+          }}
           contentContainerStyle={{
             paddingHorizontal: 16,
             gap: 14,

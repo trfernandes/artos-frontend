@@ -75,9 +75,29 @@ export function useEscalasCrud({ autoFetch = false, initialParams = undefined }:
     },
   });
 
+  const regenerateMutation = useMutation({
+    mutationFn: (escalaId: string) => EscalaRepository.regenerate(escalaId),
+    onSuccess: async () => {
+      await crud.queryClient.invalidateQueries({ queryKey: [crud.queryKey] });
+    },
+    onError: (error) => {
+      Toast.show({
+        type: 'error',
+        text1: 'Erro ao regerar escala.',
+        text2: getApiErrorMessage(error, 'Não foi possível regerar a escala.'),
+      });
+
+      if (__DEV__) {
+        console.log('[useEscalasCrud] regenerate error:', error);
+      }
+    },
+  });
+
   return {
     ...crud,
     generate: generateMutation.mutateAsync,
     isGenerating: generateMutation.isPending,
+    regenerate: regenerateMutation.mutateAsync,
+    isRegenerating: regenerateMutation.isPending,
   };
 }

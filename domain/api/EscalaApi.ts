@@ -19,6 +19,16 @@ class EscalasApiClass extends BaseApi<ResponseEscalaDto, CreateEscalaDto, Partia
     }
   }
 
+  async regenerate(escalaId: string): Promise<ResponseEscalaDto> {
+    try {
+      const response = await apiClient.post(`/${this.resourceName}/${escalaId}/regerar`);
+      return response.data.data;
+    } catch (error) {
+      console.log(`Erro ao regerar ${this.resourceName}:`, error);
+      throw error;
+    }
+  }
+
   async deleteItensByEvento(
     escalaId: string,
     igrejaId: string,
