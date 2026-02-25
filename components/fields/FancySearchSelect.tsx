@@ -477,7 +477,7 @@ function createStyles(palette: ThemePalette) {
       borderWidth: 0.6,
       borderColor: palette.border,
       borderRadius: 12,
-      height: 40,
+      height: 44,
       paddingHorizontal: 10,
       flexDirection: 'row',
       alignItems: 'center',

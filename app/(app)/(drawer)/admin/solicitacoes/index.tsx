@@ -1,9 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { View, StyleSheet, Share, ScrollView, RefreshControl, Clipboard } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 import { formatInTimeZone } from 'date-fns-tz';
 import { ptBR } from 'date-fns/locale';
+import { useLocalSearchParams } from 'expo-router';
 
 // Components
 import FancyText from '../../../../../components/FancyText';
@@ -53,11 +54,17 @@ function formatDateTime(dateStr: string): string {
 export default function SolicitacoesConvitesPage() {
   const { igrejaAtiva } = useAuth();
   const queryClient = useQueryClient();
+  const params = useLocalSearchParams<{ tab?: string }>();
+  const initialTabIndex = params.tab === 'convites' ? 1 : 0;
 
   // Estados
-  const [tabIndex, setTabIndex] = useState(0);
+  const [tabIndex, setTabIndex] = useState(initialTabIndex);
   const [showNovoConviteModal, setShowNovoConviteModal] = useState(false);
   const [conviteGerado, setConviteGerado] = useState<ResponseIgrejaConviteDto | null>(null);
+
+  useEffect(() => {
+    setTabIndex(initialTabIndex);
+  }, [initialTabIndex]);
 
   // Verificar permissões
   const roleUpper = igrejaAtiva?.role?.toString().toUpperCase();
@@ -382,6 +389,7 @@ export default function SolicitacoesConvitesPage() {
         {/* Tabs */}
         <FancyTabs
           items={tabItems}
+          initialIndex={initialTabIndex}
           onTabChange={setTabIndex}
           containerStyle={styles.tabsContainer}
           contentContainerStyle={styles.tabContentContainer}

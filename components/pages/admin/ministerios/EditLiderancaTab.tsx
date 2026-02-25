@@ -27,6 +27,10 @@ export default function AddLiderancaTab() {
     <View style={{ flex: 1 }}>
       <FancyList
         data={lideresForm.fields}
+        listEmptyProps={{
+          label: 'Nenhum líder adicionado',
+          icon: { library: 'MaterialIcons', name: 'group-add', size: 68 },
+        }}
         keyExtractor={(item) => item.fieldId}
         renderItem={({ item }) => {
           const commonProps = {

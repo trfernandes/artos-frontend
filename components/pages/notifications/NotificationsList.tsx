@@ -16,7 +16,13 @@ const ultimos7Dias = { title: 'Últimos 7 dias', hours: 168 };
 const esteMes = { title: 'Este mês', hours: 720 };
 const maisAntigas = { title: 'Mais antigas', hours: Infinity };
 
-export default function NotificationsList({ dataList }: { dataList: ResponseNotificacaoDto[] }) {
+export default function NotificationsList({
+  dataList,
+  onPress,
+}: {
+  dataList: ResponseNotificacaoDto[];
+  onPress?: (notification: ResponseNotificacaoDto) => void;
+}) {
   const Pallete = usePallete();
   const groupsData = useMemo<SectionListData<ResponseNotificacaoDto>[]>(() => {
     const groups: { key: string; title: string; items: ResponseNotificacaoDto[] }[] = [
@@ -71,11 +77,11 @@ export default function NotificationsList({ dataList }: { dataList: ResponseNoti
   const renderItem = useCallback((item: ResponseNotificacaoDto) => {
     switch (item.tipo) {
       case NotificacaoTipoEnum.EscalaLembrete:
-        return <EscalaLembreteNotificacaoCard data={item} />;
+        return <EscalaLembreteNotificacaoCard data={item} onPress={onPress} />;
       default:
-        return <NotificacaoCard data={item} />;
+        return <NotificacaoCard data={item} onPress={onPress} />;
     }
-  }, []);
+  }, [onPress]);
 
   if (!dataList || dataList.length === 0) {
     return (

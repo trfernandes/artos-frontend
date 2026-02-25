@@ -1,4 +1,4 @@
-import { View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import FancyCardIcon from '../../cards/Horizontal/FancyCardIcon';
 import FancyText from '../../FancyText';
 import { Pallete } from '../../../constants/colors';
@@ -32,44 +32,66 @@ const NOTIFICACAO_ICONS: Partial<Record<NotificacaoTipoEnum, CustomIconProps>> =
 
 const DEFAULT_ICON: CustomIconProps = { library: 'MaterialCommunityIcons', name: 'bell-outline', size: 18 };
 
-export default function NotificacaoCard({ data }: { data: ResponseNotificacaoDto }) {
+export default function NotificacaoCard({
+  data,
+  onPress,
+}: {
+  data: ResponseNotificacaoDto;
+  onPress?: (notification: ResponseNotificacaoDto) => void;
+}) {
   const createdAt = data.criadaEm || data.createdAt;
   const timeLabel = createdAt ? DateUtils.timeAgoText(new Date(createdAt)) : '';
 
   const title = data.titulo?.trim() ? data.titulo : 'Notificação';
 
   return (
-    <FancyCardIcon
-      cardIcon={data.tipo ? NOTIFICACAO_ICONS[data.tipo] ?? DEFAULT_ICON : DEFAULT_ICON}
-      title={
-        <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 4 }}>
-          <FancyText size='small' type='bold' numberOfLines={1} style={{ flex: 1, opacity: 0.8 }}>
-            {title}
-          </FancyText>
-          <FancyText
-            size='extraSmall'
-            type='semiBold'
-            numberOfLines={1}
-            style={{ opacity: 0.8 }}
-            color={Pallete.fonts.inactive}
-          >
-            {timeLabel}
-          </FancyText>
-        </View>
-      }
-      subtitle={
-        data.mensagem ? (
-          <FancyText type='medium' size='extraSmall' style={{ lineHeight: 13 }} numberOfLines={2}>
-            {data.mensagem}
-          </FancyText>
-        ) : null
-      }
-      actionButtons={[
-        {
-          icon: { ...DefaultIconsNames['chevron-right'], size: 18 },
-          size: 'small',
-        },
-      ]}
-    />
+    <Pressable
+      style={({ pressed }) => [styles.pressable, pressed && styles.pressed]}
+      onPress={() => onPress?.(data)}
+      disabled={!onPress}
+      accessibilityRole={onPress ? 'button' : undefined}
+    >
+      <FancyCardIcon
+        cardIcon={data.tipo ? NOTIFICACAO_ICONS[data.tipo] ?? DEFAULT_ICON : DEFAULT_ICON}
+        title={
+          <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 4 }}>
+            <FancyText size='small' type='bold' numberOfLines={1} style={{ flex: 1, opacity: 0.8 }}>
+              {title}
+            </FancyText>
+            <FancyText
+              size='extraSmall'
+              type='semiBold'
+              numberOfLines={1}
+              style={{ opacity: 0.8 }}
+              color={Pallete.fonts.inactive}
+            >
+              {timeLabel}
+            </FancyText>
+          </View>
+        }
+        subtitle={
+          data.mensagem ? (
+            <FancyText type='medium' size='extraSmall' style={{ lineHeight: 13 }} numberOfLines={2}>
+              {data.mensagem}
+            </FancyText>
+          ) : null
+        }
+        actionButtons={[
+          {
+            icon: { ...DefaultIconsNames['chevron-right'], size: 18 },
+            size: 'small',
+          },
+        ]}
+      />
+    </Pressable>
   );
 }
+
+const styles = StyleSheet.create({
+  pressable: {
+    borderRadius: 24,
+  },
+  pressed: {
+    opacity: 0.85,
+  },
+});

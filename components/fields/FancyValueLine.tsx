@@ -10,6 +10,7 @@ export default function FancyValueLine({
   valueStyle,
   containerStyle,
   dataContainerStyle,
+  multiline = false,
 }: {
   title: string;
   value: string;
@@ -18,14 +19,15 @@ export default function FancyValueLine({
   valueStyle?: Pick<FancyTextProps, 'size' | 'type' | 'color' | 'style'>;
   dataContainerStyle?: StyleProp<ViewStyle>;
   containerStyle?: StyleProp<ViewStyle>;
+  multiline?: boolean;
 }) {
   return (
     <View style={[{ gap: 14 }, containerStyle]}>
-      <View style={[styles.dataContainer, dataContainerStyle]}>
+      <View style={[multiline ? styles.dataContainerMultiline : styles.dataContainer, dataContainerStyle]}>
         <FancyText size={'small'} type='bold' style={styles.keyText} {...titleStyle}>
           {title}
         </FancyText>
-        <FancyText size='small' type='medium' style={styles.valueText} {...valueStyle}>
+        <FancyText size='small' type='medium' style={multiline ? styles.valueTextMultiline : styles.valueText} {...valueStyle}>
           {value}
         </FancyText>
       </View>
@@ -36,6 +38,7 @@ export default function FancyValueLine({
 
 const styles = StyleSheet.create({
   dataContainer: { flexDirection: 'row', gap: 10, justifyContent: 'flex-start', alignItems: 'center', borderWidth: 0 },
+  dataContainerMultiline: { flexDirection: 'column', gap: 4, justifyContent: 'flex-start', borderWidth: 0 },
   dataDisplay: { width: '100%', justifyContent: 'space-between' },
   keyText: {
     lineHeight: 12,
@@ -43,4 +46,5 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   valueText: { textAlign: 'right', flex: 1, lineHeight: 12, flexShrink: 1, borderWidth: 0 },
+  valueTextMultiline: { lineHeight: 18, borderWidth: 0 },
 });

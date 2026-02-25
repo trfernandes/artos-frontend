@@ -196,6 +196,10 @@ export default function AssistenteEventosStep() {
           keyExtractor={({ eventoId, dataOcorrencia: data }) => eventoId + data}
           containerStyle={{ flex: 1 }}
           contentContainerStyle={{ paddingHorizontal: 0 }}
+          listEmptyProps={{
+            label: 'Nenhum evento encontrado no período',
+            icon: { library: 'MaterialCommunityIcons', name: 'calendar-search-outline', size: 68 },
+          }}
           data={eventosArray.fields}
           extraData={eventosArray.fields}
           // refreshing={isLoading}

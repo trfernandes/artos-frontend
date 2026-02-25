@@ -17,6 +17,7 @@ import { ResponseMinisterioVoluntarioDto } from '../../../../domain/dtos/Ministe
 import { ResponseMinisterioFuncaoDto } from '../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.response';
 import { AppImages } from '../../../../assets/app_images';
 import { usePallete } from '../../../../hooks/usePallete';
+import { ColorUtils } from '../../../../utils/color_utils';
 
 interface TemplateFixoEquipeListProps {
   disabled?: boolean;
@@ -152,7 +153,10 @@ export default function TemplateFixoEquipeList({
                     icon: {
                       ...DefaultIconsNames.delete,
                       size: 16,
-                      backgroundColor: disabled ? palette.disabled : palette.error,
+                      color: palette.fonts.light,
+                      backgroundColor: disabled
+                        ? ColorUtils.withAlpha(palette.error, 0.5)
+                        : palette.error,
                     },
                     onPress: disabled ? undefined : () => handleRemove(index),
                   },

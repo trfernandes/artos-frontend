@@ -1,14 +1,14 @@
 export enum MinisterioTipoEnum {
-  Outros = '1',
+  Padrao = '1',
   Louvor = '2',
 }
 
 export const MinisterioTipoLabel: Record<MinisterioTipoEnum, string> = {
-  [MinisterioTipoEnum.Outros]: 'Outros',
+  [MinisterioTipoEnum.Padrao]: 'Padrão',
   [MinisterioTipoEnum.Louvor]: 'Louvor',
 };
 
 export const MinisterioTipoEnumMap: Record<number, MinisterioTipoEnum> = {
-  1: MinisterioTipoEnum.Outros,
+  1: MinisterioTipoEnum.Padrao,
   2: MinisterioTipoEnum.Louvor,
 };

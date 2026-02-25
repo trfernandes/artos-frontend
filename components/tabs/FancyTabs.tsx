@@ -1,7 +1,7 @@
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import FancyTabsHeader from './FancyTabsHeader';
 import { CustomIconProps } from '../FancyIcons';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { ThemePalette } from '../../constants/colors';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
 
@@ -18,11 +18,18 @@ export type FancyTabsProps = {
   contentContainerStyle?: StyleProp<ViewStyle>;
   headerStyle?: StyleProp<ViewStyle>;
   onTabChange?: (index: number) => void;
+  initialIndex?: number;
 };
 
 export default function FancyTabs(props: FancyTabsProps) {
   const styles = useThemedStyles(createStyles);
-  const [index, setIndex] = useState(0);
+  const maxIndex = Math.max((props.items?.length ?? 1) - 1, 0);
+  const initialIndex = Math.min(Math.max(props.initialIndex ?? 0, 0), maxIndex);
+  const [index, setIndex] = useState(initialIndex);
+
+  useEffect(() => {
+    setIndex(initialIndex);
+  }, [initialIndex]);
 
   const handleTabChange = (index: number) => {
     setIndex(index);

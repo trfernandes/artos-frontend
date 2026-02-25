@@ -152,7 +152,7 @@ export default function FancyCalendarVertical<T extends string, A>({
                 >
                   {DateUtils.getMonthName(item.month)}
                 </FancyText>
-                <FancyText size='large' type='bold' color={Pallete.fonts.inactive2} style={{ borderWidth: 0, lineHeight: 12 }}>
+                <FancyText size='large' type='bold' color={Pallete.fonts.inactive2} style={{ borderWidth: 0 }}>
                   {item.year}
                 </FancyText>
               </View>
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     paddingHorizontal: 0,
     // borderWidth: 1,
     paddingVertical: 5,

@@ -111,6 +111,10 @@ export default function MinisterioTemplateEquipeIndex() {
       showSearchBar
       searchBarProps={{ value: searchText, onSearch: handleSearch }}
       listProps={{
+        listEmptyProps: {
+          label: searchText ? 'Nenhum template encontrado' : 'Nenhum template cadastrado',
+          icon: { library: 'MaterialCommunityIcons', name: 'file-document-outline', size: 68 },
+        },
         data: templatesData,
         renderItem: ({ item }) => {
           const tipoLabel = EscalaTemplateTipoLabel[item.tipo];

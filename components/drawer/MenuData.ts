@@ -12,7 +12,7 @@ const normalizeMinisterioTipo = (tipo: ResponseLoginMinisterioDto['tipo']): Mini
     return viaKey;
   }
 
-  return (Object.values(MinisterioTipoEnum) as string[]).includes(rawTipo) ? (rawTipo as MinisterioTipoEnum) : MinisterioTipoEnum.Outros;
+  return (Object.values(MinisterioTipoEnum) as string[]).includes(rawTipo) ? (rawTipo as MinisterioTipoEnum) : MinisterioTipoEnum.Padrao;
 };
 
 export type DrawerItemData = {
@@ -162,7 +162,7 @@ const getMinisterioFullItems = (ministerio: ResponseLoginMinisterioDto): DrawerI
           },
         },
       ];
-    case MinisterioTipoEnum.Outros:
+    case MinisterioTipoEnum.Padrao:
     default:
       return [...baseItems, ...commonItems];
   }

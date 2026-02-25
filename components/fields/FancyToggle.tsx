@@ -59,6 +59,7 @@ export default function FancyToggle<ValueType>({
       <View style={styles.optionContainer}>
         <FancyToggleButton
           isSelected={isOption1Selected}
+          position='left'
           onPress={() => {
             setSelectedOption(option1);
             onChange?.(option1.value);
@@ -67,6 +68,7 @@ export default function FancyToggle<ValueType>({
         />
         <FancyToggleButton
           isSelected={isOption2Selected}
+          position='right'
           onPress={() => {
             setSelectedOption(option2);
             onChange?.(option2.value);
@@ -87,7 +89,7 @@ function createStyles(palette: ThemePalette) {
       borderColor: palette.border,
       borderWidth: 0.5,
       flexDirection: 'row',
-      height: 42,
+      height: 46,
     },
   });
 }

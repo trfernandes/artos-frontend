@@ -56,11 +56,15 @@ export default function VoluntarioTab({ ministerioId }: VoluntarioTabProps) {
   const { showLoading, hideLoading } = useLoading();
 
   const handleAddVoluntario = useCallback(
-    (data: AddMinisterioVoluntarioFormData) => {
+    async (data: AddMinisterioVoluntarioFormData) => {
       console.log('Adicionando voluntario', data);
       showLoading('Salvando...');
       try {
-        addVoluntario({ ministerioId: ministerioId, voluntarioId: data.voluntarioId, hierarquia: VoluntarioHierarquiaEnumMap[data.hierarquia] });
+        await addVoluntario({
+          ministerioId: ministerioId,
+          voluntarioId: data.voluntarioId,
+          hierarquia: VoluntarioHierarquiaEnumMap[data.hierarquia],
+        });
       } finally {
         hideLoading();
       }
@@ -69,10 +73,13 @@ export default function VoluntarioTab({ ministerioId }: VoluntarioTabProps) {
   );
 
   const handleEditVoluntario = useCallback(
-    (data: EditMinisterioVoluntarioFormData) => {
+    async (data: EditMinisterioVoluntarioFormData) => {
       showLoading('Salvando...');
       try {
-        updateVoluntario?.({ id: data.id, data: { hierarquia: VoluntarioHierarquiaEnumMap[data.hierarquia] } });
+        await updateVoluntario?.({
+          id: data.id,
+          data: { hierarquia: VoluntarioHierarquiaEnumMap[data.hierarquia] },
+        });
       } finally {
         hideLoading();
       }
@@ -90,10 +97,10 @@ export default function VoluntarioTab({ ministerioId }: VoluntarioTabProps) {
         {
           text: 'Sim',
           style: 'destructive',
-          onPress: () => {
+          onPress: async () => {
             showLoading('Removendo...');
             try {
-              removeVoluntario(id);
+              await removeVoluntario(id);
             } finally {
               hideLoading();
             }

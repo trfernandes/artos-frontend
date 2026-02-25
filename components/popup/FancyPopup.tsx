@@ -58,10 +58,11 @@ export default function FancyPopup({
                 customStyles={{
                   optionWrapper: {
                     borderWidth: 0,
-                    height: 40,
+                    minHeight: 44,
                     alignItems: 'center',
                     justifyContent: 'center',
                     backgroundColor: palette.backgroundColor2,
+                    paddingVertical: 8,
                   },
                 }}
               >
@@ -119,8 +120,8 @@ export default function FancyPopup({
 function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
     menuContainer: {
-      paddingVertical: 4,
-      borderRadius: 10,
+      paddingVertical: 6,
+      borderRadius: 14,
       borderWidth: 0.5,
       borderColor: palette.border,
       backgroundColor: palette.backgroundColor2,
@@ -128,7 +129,8 @@ function createStyles(palette: ThemePalette) {
     },
     optionText: { borderWidth: 0 },
     popupTitle: {
-      marginVertical: 8,
+      marginTop: 8,
+      marginBottom: 6,
       color: palette.fonts.dark,
       paddingHorizontal: 16,
       opacity: 0.8,

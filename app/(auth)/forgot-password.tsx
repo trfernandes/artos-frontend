@@ -56,6 +56,9 @@ export default function ForgotPasswordPage() {
     <AuthScreen
       showBackButton
       centerWithinBackButtonArea
+      centerContainerStyle={({ keyboardVisible }) =>
+        !keyboardVisible ? { paddingTop: 0 } : null
+      }
       scrollContainerStyle={styles.scrollContainer}
       headerContainerStyle={styles.titleContainer}
       fieldsContainerStyle={styles.fieldsContainer}

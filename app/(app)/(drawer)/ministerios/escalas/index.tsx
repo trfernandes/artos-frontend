@@ -113,6 +113,10 @@ export default function MinisterioEscalasIndexPage() {
           }),
       }}
       listProps={{
+        listEmptyProps: {
+          label: searchText ? 'Nenhuma escala encontrada' : 'Nenhuma escala cadastrada',
+          icon: { library: 'MaterialCommunityIcons', name: 'calendar-text-outline', size: 68 },
+        },
         data: filteredEscalas,
         renderItem: ({ item }) => {
           const filledItems = (item.itens ?? []).filter((i) => Boolean(i.voluntarioId));

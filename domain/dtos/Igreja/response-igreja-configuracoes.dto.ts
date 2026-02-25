@@ -1,4 +1,5 @@
 import { ModoEntradaEnum } from '../../enums/modo-entrada.enum';
+import { NotificacaoTipoPreferenciaDto } from './update-igreja-notificacoes.dto';
 
 export interface ResponseIgrejaConfiguracoesDto {
   id: string;
@@ -26,6 +27,7 @@ export interface ResponseIgrejaConfiguracoesDto {
         push?: boolean;
         whatsapp?: boolean;
       };
+      preferenciasPorTipo?: Record<string, NotificacaoTipoPreferenciaDto>;
     };
   };
   notificacoes?: {
@@ -35,5 +37,6 @@ export interface ResponseIgrejaConfiguracoesDto {
       push?: boolean;
       whatsapp?: boolean;
     };
+    preferenciasPorTipo?: Record<string, NotificacaoTipoPreferenciaDto>;
   };
 }

@@ -5,6 +5,7 @@ import FancyPageHeader from '../header/FancyHeader';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useTopSafeInset } from '../../hooks/useTopSafeInset';
 import { usePallete } from '../../hooks/usePallete';
+import { DismissKeyboard } from '../DismissKeyboard';
 
 export type FancyFullModalProps = { title?: string; modalProps?: ModalProps; children?: React.ReactNode };
 
@@ -17,28 +18,30 @@ export default function FancyFullModal({ title, modalProps, children }: FancyFul
     <Modal visible={modalProps?.visible} {...modalProps}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <MenuProvider skipInstanceCheck={true}>
-          <View
-            style={{
-              paddingTop: topInset,
-              paddingBottom: insets.bottom,
-              paddingLeft: insets.left,
-              paddingRight: insets.right,
-              backgroundColor: palette.backgroundColor,
-              flex: 1,
-            }}
-          >
-            <View style={styles.container}>
-              <View style={styles.inner}>
-                <FancyPageHeader
-                  leftButton='back'
-                  applyTopSafeArea={false}
-                  options={{ title }}
-                  leftButtonOnPress={() => modalProps?.onRequestClose?.({} as unknown as NativeSyntheticEvent<any>)}
-                />
+          <DismissKeyboard>
+            <View
+              style={{
+                paddingTop: topInset,
+                paddingBottom: insets.bottom,
+                paddingLeft: insets.left,
+                paddingRight: insets.right,
+                backgroundColor: palette.backgroundColor,
+                flex: 1,
+              }}
+            >
+              <View style={styles.container}>
+                <View style={styles.inner}>
+                  <FancyPageHeader
+                    leftButton='back'
+                    applyTopSafeArea={false}
+                    options={{ title }}
+                    leftButtonOnPress={() => modalProps?.onRequestClose?.({} as unknown as NativeSyntheticEvent<any>)}
+                  />
+                </View>
+                {children}
               </View>
-              {children}
             </View>
-          </View>
+          </DismissKeyboard>
         </MenuProvider>
       </GestureHandlerRootView>
     </Modal>

@@ -14,9 +14,10 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SCREEN_SCALE = SCREEN_WIDTH / BASE_WIDTH;
 // Clamp fontScale between 0.85–1.3 to prevent broken layouts at extreme settings
 const CLAMPED_FONT_SCALE = Math.min(Math.max(PixelRatio.getFontScale(), 0.85), 1.3);
+const GLOBAL_FONT_BOOST = 1.05;
 
 export function scaledFont(size: number): number {
-  return Math.round(size * SCREEN_SCALE * CLAMPED_FONT_SCALE);
+  return Math.round(size * SCREEN_SCALE * CLAMPED_FONT_SCALE * GLOBAL_FONT_BOOST);
 }
 
 export const EXTRA_SMALL_SIZE_FONT = scaledFont(11);

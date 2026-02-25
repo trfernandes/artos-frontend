@@ -114,21 +114,21 @@ export function FancyAlertConnector() {
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.42)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   card: {
     backgroundColor: 'transparent',
-    padding: 20,
-    width: '80%',
-    borderRadius: 10,
+    padding: 22,
+    width: '84%',
+    borderRadius: 16,
   },
   title: { marginBottom: 10 },
-  message: { marginBottom: 20, lineHeight: 16 },
+  message: { marginBottom: 20, lineHeight: 20 },
   row: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8 },
   rowStacked: { flexDirection: 'column' },
-  button: { flex: 1, height: 40 },
+  button: { flex: 1, height: 44 },
   buttonStacked: { flex: 0, width: '100%', minHeight: 44, height: 44 },
   btnText: { color: 'white' },
 });

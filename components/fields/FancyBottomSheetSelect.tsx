@@ -377,7 +377,7 @@ function createStyles(palette: ThemePalette) {
       borderWidth: 0.6,
       borderColor: palette.border,
       borderRadius: 12,
-      height: 40,
+      height: 44,
       paddingHorizontal: 10,
       flexDirection: 'row',
       alignItems: 'center',
@@ -415,7 +415,7 @@ function createStyles(palette: ThemePalette) {
     },
     backdrop: {
       flex: 1,
-      backgroundColor: palette.overlays.backdrop,
+      backgroundColor: 'rgba(0,0,0,0.24)',
     },
     sheetContainer: {
       backgroundColor: palette.backgroundColor,

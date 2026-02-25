@@ -42,7 +42,7 @@ export default function EventoInfoCard({ eventoNome, eventoCor, dataOcorrencia, 
             value={format(dataOcorrencia, "EEE, d 'de' MMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
             showSeparator={true}
           />
-          <FancyValueLine title='Descrição:' value={descricao ?? 'Não definida'} showSeparator={true} dataContainerStyle={styles.dataContainer} />
+          <FancyValueLine title='Descrição:' value={descricao ?? 'Não definida'} showSeparator={true} dataContainerStyle={styles.dataContainer} multiline={true} />
           <FancyValueLine title='Local:' value={local ?? 'Não definido'} dataContainerStyle={styles.dataContainer} />
         </View>
       }

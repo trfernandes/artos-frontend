@@ -124,6 +124,10 @@ export default function MinisterioFuncoesIndex() {
         onSearch: setSearchText,
       }}
       listProps={{
+        listEmptyProps: {
+          label: searchText ? 'Nenhuma função encontrada' : 'Nenhuma função cadastrada',
+          icon: { library: 'MaterialCommunityIcons', name: 'account-cog-outline', size: 68 },
+        },
         data: funcoesList,
         renderItem: ({ item }) => (
           <FancyCard.Image

@@ -27,7 +27,7 @@ export default function FancyPageHeader({
   const nav = useNavigation<DrawerNavigationProp<Record<string, object>>>();
   const topSafeInset = useTopSafeInset();
   const palette = usePallete();
-  const topInset = applyTopSafeArea ? topSafeInset : 0;
+  const topInset = applyTopSafeArea ? Math.max(0, topSafeInset - 5) : 0;
   const headerHeight = topInset + HEADER_CONTENT_HEIGHT;
 
   return (
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     borderColor: 'blue',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 15,
+    marginRight: 13,
   },
   headerTitle: {
     alignItems: 'center',

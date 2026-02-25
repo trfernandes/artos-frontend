@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import FancyPageView from '../../components/containers/FancyPageView';
 import { ThemePalette } from '../../constants/colors';
 import { useCallback, useEffect, useMemo } from 'react';
-import { useNavigation } from 'expo-router';
+import { useFocusEffect, useNavigation } from 'expo-router';
 import FancyButton from '../../components/buttons/FancyButton';
 import { BOLD_FONT, EXTRA_SMALL_SIZE_FONT } from '../../constants/font';
 import FancyTabs, { TabItem } from '../../components/tabs/FancyTabs';
@@ -11,19 +11,39 @@ import NotificationsList from '../../components/pages/notifications/Notification
 import FancyLoading from '../../components/FancyLoading';
 import { usePallete } from '../../hooks/usePallete';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
+import { ResponseNotificacaoDto } from '../../domain/dtos/Notificacao/notificacao.response';
+import { openNotification } from '../../services/notification-routing';
 
 export default function NotificationsPage() {
   const Pallete = usePallete();
   const styles = useThemedStyles(createStyles);
   const { setOptions } = useNavigation();
 
-  const { isLoading, isLoadingMutation, marcarTodasComoLidas, notificacoes } = useNotificacoesCrud({
-    enabled: true,
-  });
+  const { isLoading, isLoadingMutation, marcarComoLida, marcarTodasComoLidas, notificacoes, refetchNotificacoes, refetchQuantidadeNaoLidas } =
+    useNotificacoesCrud({
+      enabled: true,
+    });
 
   const handleMarcarTodasComoLidas = useCallback(() => {
-    marcarTodasComoLidas();
+    void marcarTodasComoLidas();
   }, [marcarTodasComoLidas]);
+
+  const handleOpenNotification = useCallback(
+    (notification: ResponseNotificacaoDto) => {
+      if (!notification.lidaEm) {
+        void marcarComoLida(notification.id);
+      }
+      openNotification(notification, 'inbox');
+    },
+    [marcarComoLida],
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      void refetchNotificacoes();
+      void refetchQuantidadeNaoLidas();
+    }, [refetchNotificacoes, refetchQuantidadeNaoLidas]),
+  );
 
   useEffect(() => {
     setOptions({
@@ -58,14 +78,14 @@ export default function NotificationsPage() {
     {
       title: 'Não lidas',
       icon: { library: 'MaterialCommunityIcons', name: 'email-outline', size: 14 },
-      content: <NotificationsList dataList={naoLidasData} />,
+      content: <NotificationsList dataList={naoLidasData} onPress={handleOpenNotification} />,
     },
     {
       title: 'Todas',
       icon: { library: 'MaterialCommunityIcons', name: 'bell-outline', size: 14 },
       content: (
         <View style={{ flex: 1 }}>
-          <NotificationsList dataList={notificacoes} />
+          <NotificationsList dataList={notificacoes} onPress={handleOpenNotification} />
         </View>
       ),
     },

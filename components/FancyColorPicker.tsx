@@ -223,7 +223,8 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   scrollContainer: {
-    paddingHorizontal: 6,
+    paddingLeft: 10,
+    paddingRight: 6,
     paddingVertical: 6,
     alignItems: 'center',
   },

@@ -68,7 +68,13 @@ export default function FancySearchBar(props: FancySearchBarProps) {
       <View style={styles.inputContainer}>
         <FancyTextInput
           placeholder='Digite aqui para pesquisar....'
-          inputProps={{ onChangeText: setInternalValue }}
+          inputProps={{
+            onChangeText: setInternalValue,
+            style: {
+              paddingVertical: 0,
+              textAlignVertical: 'center',
+            },
+          }}
           value={internalValue} // 🔥 agora usa controlado
           leftContainer={
             <View style={{ justifyContent: 'center', alignItems: 'center' }}>
@@ -82,7 +88,7 @@ export default function FancySearchBar(props: FancySearchBarProps) {
               </View>
             ) : (
               <TouchableOpacity
-                style={{ justifyContent: 'center', alignItems: 'center', paddingRight: 8, paddingTop: 1 }}
+                style={{ justifyContent: 'center', alignItems: 'center', paddingRight: 8 }}
                 onPress={() => setInternalValue('')}
               >
                 <DefaultIcons.Custom {...DefaultIconsNames.cancel} size={22} color={Pallete.icons.inactive} key='right' />

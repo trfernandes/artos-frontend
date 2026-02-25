@@ -196,7 +196,7 @@ export default function IntegranteFormFields({ voluntariosDropDownList, funcoesD
           <IntegranteFormModal
             mode={formModalOptions.mode}
             title={formModalOptions.mode === 'add' ? 'Adicionar Função' : 'Editar Função'}
-            funcoesDropDownList={notUsedFuncoesList}
+            funcoesDropDownList={formModalOptions.mode === 'edit' ? funcoesDropDownList : notUsedFuncoesList}
             onButton2Press={() => handleSave()}
             onButton1Press={() => {
               setFormModalOptions({ visible: false, mode: 'add' });

@@ -11,6 +11,7 @@ import { useState } from 'react';
 import FancyModalDialog from '../../components/modal/FancyModalDialog';
 import { usePallete } from '../../hooks/usePallete';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
+import { ColorUtils } from '../../utils/color_utils';
 
 export default function ComecarScreen() {
   const Pallete = usePallete();
@@ -21,6 +22,9 @@ export default function ComecarScreen() {
     <AuthScreen
       showBackButton
       centerWithinBackButtonArea
+      centerContainerStyle={({ keyboardVisible }) =>
+        !keyboardVisible ? { paddingTop: 0 } : null
+      }
       scrollContainerStyle={styles.scrollContainer}
       fieldsContainerStyle={styles.fieldsContainer}
       alignTopOnKeyboard
@@ -140,9 +144,10 @@ export default function ComecarScreen() {
                     />
                   </View>
                 ),
-                containerStyle: styles.card,
+                containerStyle: [styles.card, styles.cardSoftBlueBorder],
                 contentContainerStyle: styles.cardContent,
                 centerContainerStyle: { gap: 6, paddingBottom: 5 },
+                backgroundColor: Pallete.backgroundColor4,
               }}
             />
           </TouchableOpacity>
@@ -230,6 +235,9 @@ function createStyles(Pallete: ThemePalette) {
     cardHighlight: {
       borderColor: Pallete.primary,
       borderWidth: 1,
+    },
+    cardSoftBlueBorder: {
+      borderColor: ColorUtils.withAlpha(Pallete.primary, 0.22),
     },
     badge: {
       position: 'absolute',

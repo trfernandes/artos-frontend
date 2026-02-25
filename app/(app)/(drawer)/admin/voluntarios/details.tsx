@@ -40,7 +40,7 @@ export default function VoluntariosDetailsPage() {
           },
         ],
       },
-      relations: ['ministerios', 'ministerios.ministerio', 'ministerios.historico'],
+      relations: ['ministerios', 'ministerios.historico', 'ministerios.ministerio'],
     };
   }, [parametros.id]);
 

@@ -173,7 +173,7 @@ function createStyles(palette: ThemePalette) {
       borderWidth: DESIGN_MODE,
       padding: DESIGN_MODE,
       borderColor: 'gold',
-      gap: 3,
+      gap: 6,
       justifyContent: 'center',
       overflow: 'hidden',
     },

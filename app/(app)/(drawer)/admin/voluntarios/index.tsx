@@ -127,6 +127,24 @@ export default function VoluntariosIndexPage() {
       }}
       listProps={{
         onRefresh: refetch,
+        listEmptyProps:
+          searchText.trim().length > 0
+            ? {
+                label: 'Nenhum voluntário encontrado',
+                icon: { library: 'MaterialCommunityIcons', name: 'account-group-outline', size: 68 },
+              }
+            : {
+                label: 'Nenhum voluntário cadastrado',
+                icon: { library: 'MaterialCommunityIcons', name: 'account-group-outline', size: 68 },
+                helperText: 'Para cadastrar voluntários, envie um convite e aguarde a entrada deles na igreja.',
+                actionLabel: 'Ir para Convites',
+                actionIcon: { library: 'MaterialCommunityIcons', name: 'ticket-confirmation-outline', size: 16 },
+                onActionPress: () =>
+                  router.push({
+                    pathname: '/admin/solicitacoes',
+                    params: { tab: 'convites' },
+                  }),
+              },
         data: sorteredData,
         renderItem: ({ item, index }) => {
           return (

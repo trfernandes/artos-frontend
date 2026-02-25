@@ -10,5 +10,5 @@ export default function MainHeaderButtons() {
 }
 
 const styles = StyleSheet.create({
-  container: { marginRight: 3 },
+  container: { marginRight: 0 },
 });

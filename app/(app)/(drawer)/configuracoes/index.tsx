@@ -27,6 +27,7 @@ import {
 } from '../../../../domain/schemas/igreja-configuracoes.schema';
 import ControlledTextInput from '../../../../components/forms/ControlledTextInput';
 import ControlledDropDown from '../../../../components/forms/ControlledDropDown';
+import ControlledSearchSelect from '../../../../components/forms/ControlledSearchSelect';
 import ControlledMaskedTextInput from '../../../../components/forms/ControlledMaskedTextInput';
 import FancyButton from '../../../../components/buttons/FancyButton';
 import { ThemePalette } from '../../../../constants/colors';
@@ -41,36 +42,9 @@ import { ControlledImagePicker, FormImageFile } from '../../../../components/for
 import { usePallete } from '../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../hooks/useThemedStyles';
 import { ColorUtils } from '../../../../utils/color_utils';
-
-const ESTADOS_BRASIL = [
-  { title: 'Acre (AC)', value: 'AC' },
-  { title: 'Alagoas (AL)', value: 'AL' },
-  { title: 'Amapá (AP)', value: 'AP' },
-  { title: 'Amazonas (AM)', value: 'AM' },
-  { title: 'Bahia (BA)', value: 'BA' },
-  { title: 'Ceará (CE)', value: 'CE' },
-  { title: 'Distrito Federal (DF)', value: 'DF' },
-  { title: 'Espírito Santo (ES)', value: 'ES' },
-  { title: 'Goiás (GO)', value: 'GO' },
-  { title: 'Maranhão (MA)', value: 'MA' },
-  { title: 'Mato Grosso (MT)', value: 'MT' },
-  { title: 'Mato Grosso do Sul (MS)', value: 'MS' },
-  { title: 'Minas Gerais (MG)', value: 'MG' },
-  { title: 'Pará (PA)', value: 'PA' },
-  { title: 'Paraíba (PB)', value: 'PB' },
-  { title: 'Paraná (PR)', value: 'PR' },
-  { title: 'Pernambuco (PE)', value: 'PE' },
-  { title: 'Piauí (PI)', value: 'PI' },
-  { title: 'Rio de Janeiro (RJ)', value: 'RJ' },
-  { title: 'Rio Grande do Norte (RN)', value: 'RN' },
-  { title: 'Rio Grande do Sul (RS)', value: 'RS' },
-  { title: 'Rondônia (RO)', value: 'RO' },
-  { title: 'Roraima (RR)', value: 'RR' },
-  { title: 'Santa Catarina (SC)', value: 'SC' },
-  { title: 'São Paulo (SP)', value: 'SP' },
-  { title: 'Sergipe (SE)', value: 'SE' },
-  { title: 'Tocantins (TO)', value: 'TO' },
-];
+import { UF_LIST } from '../../../../domain/utils/uf-list';
+import { getCidadesPorUf } from '../../../../domain/utils/cidades-list';
+import { DropDownItemProps } from '../../../../components/fields/FancyDropDownItem';
 
 const ANTECEDENCIA_OPTIONS = [
   { title: '24 horas antes', value: 24 },
@@ -160,6 +134,38 @@ export default function ConfiguracoesPage() {
   const [canaisWhatsapp, setCanaisWhatsapp] = useState(
     data?.configuracoes?.notificacoes?.canais?.whatsapp ?? data?.notificacoes?.canais?.whatsapp ?? false
   );
+  const ufSelecionada = dadosForm.watch('endereco.uf');
+  const [cidadesList, setCidadesList] = useState<DropDownItemProps<string>[]>([]);
+  const [isLoadingCidades, setIsLoadingCidades] = useState(false);
+
+  useEffect(() => {
+    if (!ufSelecionada) {
+      setCidadesList([]);
+      dadosForm.setValue('endereco.cidade', '');
+      return;
+    }
+
+    setIsLoadingCidades(true);
+    getCidadesPorUf(ufSelecionada)
+      .then((cidades) => {
+        setCidadesList(cidades);
+      })
+      .catch(() => {
+        setCidadesList([]);
+      })
+      .finally(() => {
+        setIsLoadingCidades(false);
+      });
+  }, [ufSelecionada, dadosForm]);
+
+  useEffect(() => {
+    const cidadeAtual = dadosForm.getValues('endereco.cidade');
+    if (!cidadeAtual) return;
+    const cidadeExiste = cidadesList.some((cidade) => cidade.value === cidadeAtual);
+    if (!cidadeExiste) {
+      dadosForm.setValue('endereco.cidade', '');
+    }
+  }, [cidadesList, dadosForm]);
 
   // Atualizar forms quando data carregar
   useEffect(() => {
@@ -359,9 +365,25 @@ export default function ConfiguracoesPage() {
 
               <ControlledTextInput control={dadosForm.control} name="endereco.complemento" label="Complemento" />
 
-              <ControlledTextInput control={dadosForm.control} name="endereco.cidade" label="Cidade" />
+              <ControlledSearchSelect
+                control={dadosForm.control}
+                name="endereco.uf"
+                label="Estado"
+                listItems={UF_LIST}
+                placeholder="Selecione o estado"
+                searchPlaceholder="Buscar estado..."
+              />
 
-              <ControlledDropDown control={dadosForm.control} name="endereco.uf" label="UF" listItems={ESTADOS_BRASIL} />
+              <ControlledSearchSelect
+                control={dadosForm.control}
+                name="endereco.cidade"
+                label="Cidade"
+                listItems={cidadesList}
+                placeholder={isLoadingCidades ? 'Carregando cidades...' : 'Selecione a cidade'}
+                searchPlaceholder="Buscar cidade..."
+                disabled={!ufSelecionada || isLoadingCidades}
+                isLoading={isLoadingCidades}
+              />
 
               <ControlledMaskedTextInput
                 control={dadosForm.control}
@@ -429,10 +451,6 @@ export default function ConfiguracoesPage() {
               <TouchableOpacity
                 style={[
                   styles.modoCard,
-                  {
-                    backgroundColor: palette.backgroundColor2,
-                    borderColor: palette.borderCard,
-                  },
                   modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.APENAS_CONVITE &&
                     [styles.modoCardSelected, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.16) }],
                 ]}
@@ -459,10 +477,6 @@ export default function ConfiguracoesPage() {
               <TouchableOpacity
                 style={[
                   styles.modoCard,
-                  {
-                    backgroundColor: palette.backgroundColor2,
-                    borderColor: palette.borderCard,
-                  },
                   modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_COM_APROVACAO &&
                     [styles.modoCardSelected, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.16) }],
                 ]}
@@ -489,10 +503,6 @@ export default function ConfiguracoesPage() {
               <TouchableOpacity
                 style={[
                   styles.modoCard,
-                  {
-                    backgroundColor: palette.backgroundColor2,
-                    borderColor: palette.borderCard,
-                  },
                   modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_LIVRE &&
                     [styles.modoCardSelected, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.16) }],
                 ]}
@@ -722,8 +732,8 @@ function createStyles(palette: ThemePalette) {
     padding: 20,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: palette.borderCard,
-    backgroundColor: palette.backgroundColor2,
+    borderColor: ColorUtils.withAlpha(palette.primary, 0.22),
+    backgroundColor: palette.backgroundColor4,
     gap: 8,
   },
   modoCardSelected: {

@@ -142,6 +142,10 @@ export default function MinisteriosIndex() {
       }}
       listProps={{
         onRefresh: refetch,
+        listEmptyProps: {
+          label: searchText ? 'Nenhum ministério encontrado' : 'Nenhum ministério cadastrado',
+          icon: { library: 'MaterialCommunityIcons', name: 'home-group', size: 68 },
+        },
         data: data,
         keyExtractor: (item) => item.id,
         renderItem: ({ item, index }) => {

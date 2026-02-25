@@ -42,9 +42,17 @@ function generateButtonsComponent(buttons: Button[], iconColor: string) {
 export default function FancyTextInput({ disabled = false, ...props }: FancyTextInputProps) {
   const Pallete = usePallete();
   const styles = useThemedStyles(createStyles);
-  const { style: rawInputStyle, multiline, ...remainingInputProps } = props.inputProps ?? {};
+  const {
+    style: rawInputStyle,
+    multiline,
+    placeholder: inputPlaceholder,
+    placeholderTextColor: inputPlaceholderTextColor,
+    ...remainingInputProps
+  } = props.inputProps ?? {};
   const isMultiline = Boolean(multiline);
   const normalizedInputStyle = Array.isArray(rawInputStyle) ? rawInputStyle : rawInputStyle ? [rawInputStyle] : [];
+  const resolvedPlaceholder = inputPlaceholder ?? props.placeholder;
+  const resolvedPlaceholderTextColor = inputPlaceholderTextColor ?? Pallete.fonts.inactive2;
 
   return (
     <Pressable {...props.inputContainerProps} style={[styles.container, props.containerStyle]} onPress={props.onPress}>
@@ -78,10 +86,16 @@ export default function FancyTextInput({ disabled = false, ...props }: FancyText
             ref={props.inputRef}
             readOnly={disabled || props.readonly}
             value={props.value}
-            placeholderTextColor={Pallete.fonts.inactive}
+            placeholder={resolvedPlaceholder}
+            placeholderTextColor={resolvedPlaceholderTextColor}
             multiline={isMultiline}
             {...remainingInputProps}
-            style={[styles.valueText, disabled && styles.valueDisabledText, isMultiline && styles.valueTextMultiline, ...normalizedInputStyle]}
+            style={[
+              styles.valueText,
+              disabled && styles.valueDisabledText,
+              isMultiline && styles.valueTextMultiline,
+              ...normalizedInputStyle,
+            ]}
           />
         </View>
         {props.rightContainer && (
@@ -113,6 +127,7 @@ function createStyles(Pallete: ThemePalette) {
       borderColor: Pallete.border,
       borderWidth: 0.6,
       borderRadius: 10,
+      minHeight: 44,
       flexDirection: 'row',
       alignItems: 'center',
       gap: 5,
@@ -136,18 +151,22 @@ function createStyles(Pallete: ThemePalette) {
     centerContainer: {
       flex: 1,
       borderColor: 'chocolate',
+      justifyContent: 'center',
     },
     valueText: {
       fontFamily: MEDIUM_FONT,
       fontSize: SMALL_SIZE_FONT,
       color: Pallete.fonts.dark,
-      minHeight: 35,
+      minHeight: 39,
       alignItems: 'center',
       paddingHorizontal: 14,
+      paddingVertical: 0,
+      textAlignVertical: 'center',
+      includeFontPadding: false,
     },
     valueTextMultiline: {
       height: undefined,
-      minHeight: 100,
+      minHeight: 110,
       textAlignVertical: 'top',
       paddingTop: 10,
       paddingBottom: 10,

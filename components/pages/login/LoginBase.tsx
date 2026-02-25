@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ThemePalette } from '../../../constants/colors';
 import { usePallete } from '../../../hooks/usePallete';
 import { useThemedStyles } from '../../../hooks/useThemedStyles';
+import { DismissKeyboard } from '../../DismissKeyboard';
 
 export function AuthGradientBackground({ style }: { style?: StyleProp<ViewStyle> }) {
   const palette = usePallete();
@@ -28,10 +29,12 @@ export default function LoginBase({
   const styles = useThemedStyles(createStyles);
 
   return (
-    <View style={[styles.container, containerStyle]}>
-      <AuthGradientBackground style={{ height: 800, width: 500 }} />
-      {children}
-    </View>
+    <DismissKeyboard>
+      <View style={[styles.container, containerStyle]}>
+        <AuthGradientBackground style={{ height: 800, width: 500 }} />
+        {children}
+      </View>
+    </DismissKeyboard>
   );
 }
 

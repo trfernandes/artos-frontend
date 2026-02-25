@@ -42,7 +42,7 @@ export default function FancyDatePickerModal({
       />
       {!disabled && visible && (
         <FancyModalDialog
-          containerStyle={{ gap: Platform.OS === 'ios' ? 12 : 24 }}
+          containerStyle={{ gap: 0 }}
           buttonContainerStyle={{ marginTop: Platform.OS === 'ios' ? 0 : 8 }}
           modalProps={{ visible }}
           onButton1Press={() => setVisible(false)}

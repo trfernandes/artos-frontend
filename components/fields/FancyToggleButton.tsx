@@ -14,8 +14,9 @@ export default function FancyToggleButton<ValueType>({
   inactiveLabelProps,
   isSelected,
   disabled = false,
+  position = 'left',
   onPress,
-}: { isSelected: boolean; disabled?: boolean; onPress?: () => void } & ButtonOption<ValueType>) {
+}: { isSelected: boolean; disabled?: boolean; onPress?: () => void; position?: 'left' | 'right' } & ButtonOption<ValueType>) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
 
@@ -23,7 +24,7 @@ export default function FancyToggleButton<ValueType>({
     <TouchableOpacity
       style={[
         styles.optionItemContainer,
-        { borderTopRightRadius: 100, borderBottomRightRadius: 100 },
+        position === 'left' ? styles.leftOptionRadius : styles.rightOptionRadius,
         isSelected
           ? [styles.optionSelectedContainer, activeContainerStyle]
           : [styles.optionUnselectedContainer, inactiveContainerStyle],
@@ -49,13 +50,20 @@ export default function FancyToggleButton<ValueType>({
 function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
     optionItemContainer: {
-      borderRadius: 100,
       justifyContent: 'center',
       alignItems: 'center',
+      flex: 1,
+    },
+    leftOptionRadius: {
+      borderTopLeftRadius: 100,
+      borderBottomLeftRadius: 100,
+    },
+    rightOptionRadius: {
+      borderTopRightRadius: 100,
+      borderBottomRightRadius: 100,
     },
     optionSelectedContainer: {
       backgroundColor: palette.backgroundColor,
-      width: '55%',
       shadowColor: 'gray',
       elevation: 1,
       shadowOffset: {
@@ -65,6 +73,6 @@ function createStyles(palette: ThemePalette) {
       shadowOpacity: 0.1,
       shadowRadius: 5,
     },
-    optionUnselectedContainer: { backgroundColor: palette.backgroundColor2, width: '45%' },
+    optionUnselectedContainer: { backgroundColor: palette.backgroundColor2 },
   });
 }

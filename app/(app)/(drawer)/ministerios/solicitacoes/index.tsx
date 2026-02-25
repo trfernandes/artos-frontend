@@ -33,6 +33,10 @@ export default function MinisterioSolicitacoesIndex() {
     <FancyListPage
       showFab={false}
       listProps={{
+        listEmptyProps: {
+          label: 'Nenhuma solicitação pendente',
+          icon: { library: 'MaterialCommunityIcons', name: 'swap-horizontal-circle-outline', size: 68 },
+        },
         data: DATA,
         renderItem: ({ item }) => (
           <FancyCard.Image

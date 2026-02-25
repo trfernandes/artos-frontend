@@ -222,12 +222,13 @@ export function generateRecorrenciaDescription(
 
       const dias = diasOrdenados.map((item) => DIAS_SEMANA[item]);
 
+      const prefixo = dias[dias.length - 1].artigo === 'a' ? 'Às' : 'Aos';
       if (dias.length === 1) {
-        result = `A${dias[dias.length - 1].artigo}s ${dias[0].plural.toLowerCase()}`;
+        result = `${prefixo} ${dias[0].plural.toLowerCase()}`;
       } else if (dias.length === 2) {
-        result = `A${dias[dias.length - 1].artigo}s ${dias[0].plural} e ${dias[1].plural.toLowerCase()}`;
+        result = `${prefixo} ${dias[0].plural} e ${dias[1].plural.toLowerCase()}`;
       } else {
-        result = `A${dias[dias.length - 1].artigo}s ${dias
+        result = `${prefixo} ${dias
           .slice(0, -1)
           .map((d) => d.plural)
           .join(', ')} e ${dias[dias.length - 1].plural.toLowerCase()}`;

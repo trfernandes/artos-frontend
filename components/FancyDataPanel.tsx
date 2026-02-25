@@ -25,7 +25,11 @@ export default function FancyDataPanel({ disabled = false, ...props }: FancyData
             size={'small'}
             type='bold'
             color={disabled ? palette.fonts.inactive : palette.fonts.dark}
-            style={props.textStyle}
+            numberOfLines={1}
+            ellipsizeMode='clip'
+            adjustsFontSizeToFit
+            minimumFontScale={0.75}
+            style={[styles.text, props.textStyle]}
           >
             {props.value}
           </FancyText>
@@ -34,7 +38,11 @@ export default function FancyDataPanel({ disabled = false, ...props }: FancyData
             size={'extraSmall'}
             type='semiBold'
             color={disabled ? palette.fonts.inactive : palette.fonts.dark}
-            style={props.textStyle}
+            numberOfLines={1}
+            ellipsizeMode='clip'
+            adjustsFontSizeToFit
+            minimumFontScale={0.75}
+            style={[styles.text, props.textStyle]}
           >
             Selecionar
           </FancyText>
@@ -49,14 +57,19 @@ function createStyles(palette: ThemePalette) {
     container: {},
     panelContainer: {
       backgroundColor: palette.backgroundColor2,
-      minHeight: 30,
-      minWidth: 70,
+      minHeight: 33,
+      minWidth: 77,
       justifyContent: 'center',
       alignItems: 'center',
       borderRadius: 100,
-      paddingHorizontal: 10,
+      paddingHorizontal: 11,
       borderWidth: 1,
       borderColor: palette.borderCard,
+    },
+    text: {
+      flexShrink: 1,
+      textAlign: 'center',
+      width: '100%',
     },
   });
 }

@@ -9,6 +9,10 @@ export default function MinisterioLouvorRepertorioIndexPage() {
   return (
     <FancyListPage
       listProps={{
+        listEmptyProps: {
+          label: 'Nenhuma música no repertório',
+          icon: { library: 'MaterialIcons', name: 'queue-music', size: 68 },
+        },
         data: MUSIC_LIST,
         renderItem: ({ item }) => (
           <FancyCard.Image

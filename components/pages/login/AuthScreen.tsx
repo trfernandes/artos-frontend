@@ -25,9 +25,9 @@ import { usePallete } from '../../../hooks/usePallete';
 import { useThemedStyles } from '../../../hooks/useThemedStyles';
 
 const AUTH_HORIZONTAL_GUTTER = 30;
-const BACK_BUTTON_SIZE = 40;
+const BACK_BUTTON_SIZE = 35;
 const BACK_BUTTON_CONTENT_GAP = 12;
-const OPEN_BOTTOM_GAP = 16;
+const OPEN_BOTTOM_GAP = 8;
 
 type WidthOptions = { default?: DimensionValue; keyboard?: DimensionValue };
 type RenderContent = React.ReactNode | ((params: { keyboardVisible: boolean }) => React.ReactNode);
@@ -86,7 +86,7 @@ export default function AuthScreen({
   const styles = useThemedStyles(createStyles);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const segments = useSegments();
-  const isAuthRoute = segments[0] === '(auth)';
+  const isAuthRoute = segments.some((s) => s === '(auth)' || s === 'auth');
   const insets = useSafeAreaInsets();
   const androidStatusBarHeight = Platform.OS === 'android' ? (RNStatusBar.currentHeight ?? 0) : 0;
   const safeTopInset = Math.max(insets.top, androidStatusBarHeight);
@@ -119,15 +119,16 @@ export default function AuthScreen({
   // Bottom spacing
   const defaultBottomSpacing = keyboardBottomSpacing ?? 20;
   const resolvedBottomSpacing =
-    keyboardVisible && shouldUseAreaLayout ? OPEN_BOTTOM_GAP : defaultBottomSpacing;
+    keyboardVisible && shouldUseAreaLayout
+      ? (keyboardBottomSpacing ?? OPEN_BOTTOM_GAP)
+      : defaultBottomSpacing;
 
   // Alignment
   const shouldTopAlign =
     shouldUseOpenAreaLayout || isCompactKeyboardMode || (keyboardVisible && alignTopOnKeyboard);
   const shouldStretchFieldsOnKeyboard = shouldUseOpenAreaLayout || isCompactKeyboardMode;
 
-  const keyboardAwareExtraScrollHeight =
-    keyboardVisible && shouldUseAreaLayout ? OPEN_BOTTOM_GAP : resolvedBottomSpacing;
+  const keyboardAwareExtraScrollHeight = resolvedBottomSpacing;
 
   // Position style for centerContainer
   const centerContainerPositionStyle = (() => {
@@ -262,10 +263,6 @@ export default function AuthScreen({
     ...restKeyboardAwareProps,
   };
 
-  // On Android with disableScroll, fall back to scroll when keyboard opens
-  const shouldUseKeyboardFallbackScroll =
-    disableScroll && keyboardVisible && Platform.OS === 'android';
-
   const content = (
     <>
       {showBackButton && (
@@ -284,7 +281,7 @@ export default function AuthScreen({
         >
           <FancyButton
             icon={{ ...DefaultIconsNames['chevron-left'], color: Pallete.icons.dark }}
-            size={35}
+            size={25}
             onPress={onPressBack || (() => router.back())}
             containerStyle={{
               backgroundColor: Pallete.backgroundColor3,
@@ -319,11 +316,7 @@ export default function AuthScreen({
 
   return (
     <LoginBase>
-      {shouldUseKeyboardFallbackScroll ? (
-        <KeyboardAwareScrollView {...scrollProps} contentContainerStyle={scrollContainerStyles}>
-          {content}
-        </KeyboardAwareScrollView>
-      ) : disableScroll ? (
+      {disableScroll ? (
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -334,12 +327,12 @@ export default function AuthScreen({
               {
                 flex: 1,
                 marginBottom:
-                  Platform.OS === 'ios'
-                    ? 0
-                    : keyboardVisible
-                      ? shouldUseAreaLayout
-                        ? OPEN_BOTTOM_GAP
-                        : 0
+                  keyboardVisible
+                    ? shouldUseAreaLayout
+                      ? resolvedBottomSpacing
+                      : 0
+                    : Platform.OS === 'ios'
+                      ? 0
                       : 22,
               },
               scrollContainerStyles,
@@ -393,7 +386,8 @@ function createStyles(Pallete: ThemePalette) {
       position: 'absolute' as const,
       left: 25,
       top: 35,
-      zIndex: 10,
+      zIndex: 1000,
+      elevation: 1000,
       justifyContent: 'center' as const,
       alignItems: 'center' as const,
     },

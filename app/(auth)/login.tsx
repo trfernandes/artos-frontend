@@ -1,10 +1,19 @@
-import { StyleSheet, View, TextInput, Image, Platform, Keyboard } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  TextInput,
+  Image,
+  Platform,
+  Keyboard,
+  StatusBar as RNStatusBar,
+} from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import FancyButton from '../../components/buttons/FancyButton';
 import FancyCheckbox from '../../components/FancyCheckbox';
 import FancyText from '../../components/FancyText';
 import FancyTextInput from '../../components/fields/FancyTextInput';
 import FancyPasswordInput from '../../components/fields/FancyPasswordInput';
-import AuthScreen from '../../components/pages/login/AuthScreen';
+import LoginBase from '../../components/pages/login/LoginBase';
 import { EXTRA_SMALL_SIZE_FONT } from '../../constants/font';
 import { router } from 'expo-router';
 import { useState, useEffect, useRef } from 'react';
@@ -19,6 +28,8 @@ import {
   clearPendingLoginAttempt,
   setPendingLoginAttempt,
 } from '../../core/auth/pendingLoginAttemptStore';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { usePallete } from '../../hooks/usePallete';
 
 const REMEMBER_EMAIL_KEY = 'artos_remember_email';
 const REMEMBER_PASSWORD_KEY = 'artos_remember_password';
@@ -30,6 +41,11 @@ export default function LoginIndexPage() {
   const isServerUnavailable = connectivityStatus !== 'ok';
   const passwordInputRef = useRef<TextInput>(null);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const Pallete = usePallete();
+  const insets = useSafeAreaInsets();
+  const androidStatusBarHeight = Platform.OS === 'android' ? (RNStatusBar.currentHeight ?? 0) : 0;
+  const safeTopInset = Math.max(insets.top, androidStatusBarHeight);
+  const logoTop = safeTopInset + (Platform.OS === 'ios' ? 12 : 8);
 
   useEffect(() => {
     const show = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
@@ -39,7 +55,6 @@ export default function LoginIndexPage() {
       hide.remove();
     };
   }, []);
-  const logoTop = Platform.OS === 'ios' ? 60 : 52;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -230,7 +245,7 @@ export default function LoginIndexPage() {
   };
 
   return (
-    <>
+    <LoginBase>
       {!keyboardVisible && (
         <View style={[styles.logoContainer, { top: logoTop }]}>
           <Image
@@ -240,23 +255,34 @@ export default function LoginIndexPage() {
           />
         </View>
       )}
-      <AuthScreen
-        scrollContainerStyle={styles.scrollContainer}
-        centerContainerStyle={styles.centerContainer}
-        headerContainerStyle={styles.titleContainer}
-        fieldsContainerStyle={styles.fieldsContainer}
-        header={() => (
-          <View style={{ gap: 0 }}>
-            <FancyText size={'large'} type='semiBold' color='white'>
-              Bem-vindo de volta!
-            </FancyText>
-            <FancyText size={'medium'} type='medium' color='white'>
-              Entre para acessar todas as funcionalidades
-            </FancyText>
-          </View>
-        )}
+      <KeyboardAwareScrollView
+        enableOnAndroid
+        enableAutomaticScroll
+        keyboardShouldPersistTaps='handled'
+        extraScrollHeight={20}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: Math.max(25, safeTopInset + 8) },
+        ]}
       >
-        <>
+        <View style={styles.titleContainer}>
+          <FancyText size='large' type='semiBold' color='white'>
+            Bem-vindo de volta!
+          </FancyText>
+          <FancyText size='medium' type='medium' color='white'>
+            Entre para acessar todas as funcionalidades
+          </FancyText>
+        </View>
+
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: Pallete.backgroundColor,
+              ...Pallete.shadows[200],
+            },
+          ]}
+        >
           <FancyTextInput
             label='E-mail'
             value={email}
@@ -334,7 +360,7 @@ export default function LoginIndexPage() {
           />
 
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingTop: 5 }}>
-            <FancyText size={'extraSmall'} style={{ borderWidth: 0 }}>
+            <FancyText size='extraSmall' style={{ borderWidth: 0 }}>
               Não tem uma conta ainda?
             </FancyText>
             <FancyButton
@@ -352,18 +378,19 @@ export default function LoginIndexPage() {
               disabled={loading}
             />
           </View>
-        </>
-      </AuthScreen>
-    </>
+        </View>
+      </KeyboardAwareScrollView>
+    </LoginBase>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: {
+  scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    gap: 20,
     paddingHorizontal: 30,
+    paddingBottom: 30,
+    gap: 16,
   },
   logoContainer: {
     position: 'absolute',
@@ -379,15 +406,11 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     gap: 2,
-    marginBottom: 12,
   },
-  centerContainer: {
-    gap: 6,
-    justifyContent: 'center',
-  },
-  fieldsContainer: {
+  card: {
     borderRadius: 15,
     padding: 25,
     gap: 15,
+    overflow: 'hidden',
   },
 });
