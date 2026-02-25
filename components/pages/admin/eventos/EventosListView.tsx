@@ -34,10 +34,19 @@ export default function EventosListView({
   onDeleteItem,
   onEditItem,
 }: EventosListProps) {
+  const { containerStyle: listContainerStyle, listEmptyProps, ...restListProps } = listProps || {};
+
   return (
-    <View style={containerStyle}>
+    <View style={[styles.container, containerStyle]}>
       <FancyList
         data={data}
+        containerStyle={[styles.listContainer, listContainerStyle]}
+        listEmptyProps={
+          listEmptyProps || {
+            label: 'Nenhum evento cadastrado',
+            icon: { library: 'MaterialCommunityIcons', name: 'calendar-blank-outline', size: 68 },
+          }
+        }
         fadingEdgeLength={200}
         bottomSpace={80}
         contentContainerStyle={[styles.listContent, contentContainerStyle]}
@@ -88,7 +97,7 @@ export default function EventosListView({
               subtitle={
                 <View style={styles.firstInfoRow}>
                   <FancyTextDisplayCard
-                    value={format(
+                  value={format(
                       DateUtilsApi.dateTimeFromApi(item.dataInicio),
                       'dd/MM/yyyy HH:mm',
                     )}
@@ -97,8 +106,10 @@ export default function EventosListView({
                       name: 'calendar-clock',
                       size: 13,
                       color: Pallete.primary,
+                      style: styles.dataIcon,
                     }}
                     containerStyle={styles.dataRow}
+                    valueStyle={{ type: 'medium' }}
                   />
                 </View>
               }
@@ -109,14 +120,16 @@ export default function EventosListView({
                       ? format(DateUtilsApi.dateTimeFromApi(item.dataTermino), 'dd/MM/yyyy HH:mm')
                       : 'Sem término'
                   }
-                  icon={{
-                    library: 'MaterialCommunityIcons',
-                    name: 'calendar-check',
-                    size: 13,
-                    color: Pallete.primary,
-                  }}
-                  containerStyle={styles.dataRow}
-                />
+                    icon={{
+                      library: 'MaterialCommunityIcons',
+                      name: 'calendar-check',
+                      size: 13,
+                      color: Pallete.primary,
+                      style: styles.dataIcon,
+                    }}
+                    containerStyle={styles.dataRow}
+                    valueStyle={{ type: 'medium' }}
+                  />
               }
               additionalData2={
                 <FancyTextDisplayCard
@@ -126,14 +139,15 @@ export default function EventosListView({
                     item.recorrenciaACadaMeses!,
                     item.recorrenciaSemanasMes?.map((i) => RecorrenciaSemanaMesEnumMap[i]) || [],
                   )}
-                  icon={{
-                    library: 'MaterialCommunityIcons',
-                    name: 'calendar-sync',
-                    size: 13,
-                    color: Pallete.primary,
-                  }}
-                  containerStyle={styles.dataRow}
-                  valueStyle={{}}
+                    icon={{
+                      library: 'MaterialCommunityIcons',
+                      name: 'calendar-sync',
+                      size: 13,
+                      color: Pallete.primary,
+                      style: styles.dataIconTopAligned,
+                    }}
+                    containerStyle={styles.dataRowMultiline}
+                    valueStyle={{ type: 'medium', style: styles.dataValueMultiline }}
                 />
               }
               leftItem={
@@ -145,7 +159,7 @@ export default function EventosListView({
             />
           );
         }}
-        {...listProps}
+        {...restListProps}
       />
     </View>
   );
@@ -154,6 +168,12 @@ export default function EventosListView({
 const DESIGN_MODE = 0;
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  listContainer: {
+    flex: 1,
+  },
   listContent: {
     gap: 0,
     borderWidth: DESIGN_MODE,
@@ -174,6 +194,19 @@ const styles = StyleSheet.create({
   dataRow: {
     alignItems: 'center',
     gap: 6,
+  },
+  dataRowMultiline: {
+    alignItems: 'flex-start',
+    gap: 6,
+  },
+  dataIcon: {
+    marginTop: 0,
+  },
+  dataIconTopAligned: {
+    marginTop: 1,
+  },
+  dataValueMultiline: {
+    lineHeight: 13,
   },
   firstInfoRow: {
     marginTop: 4,

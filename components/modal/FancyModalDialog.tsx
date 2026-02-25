@@ -29,6 +29,8 @@ export type FancyModalDialogProps<T = void> = {
   closeButtonAccessibilityLabel?: string;
   titleAlign?: 'center' | 'left';
   titleTextStyle?: StyleProp<TextStyle>;
+  closeOnBackdropPress?: boolean;
+  dismissKeyboardOnBackdropPress?: boolean;
 } & Omit<FancyModalProps, 'top' | 'bottom' | 'center' | 'modalProps'>;
 
 export default function FancyModalDialog<T = void>({
@@ -47,6 +49,8 @@ export default function FancyModalDialog<T = void>({
   closeButtonAccessibilityLabel,
   titleAlign = 'center',
   titleTextStyle,
+  closeOnBackdropPress,
+  dismissKeyboardOnBackdropPress,
   containerStyle,
   ...fancyModalProps
 }: FancyModalDialogProps<T>) {
@@ -125,6 +129,8 @@ export default function FancyModalDialog<T = void>({
       }
       containerStyle={[styles.container, containerStyle]}
       modalProps={mergedModalProps}
+      closeOnBackdropPress={closeOnBackdropPress}
+      dismissKeyboardOnBackdropPress={dismissKeyboardOnBackdropPress}
     />
   );
 }

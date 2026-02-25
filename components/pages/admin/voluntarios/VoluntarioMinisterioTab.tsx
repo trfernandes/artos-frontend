@@ -71,13 +71,13 @@ function createViewCardStyles(palette: ThemePalette) {
   return StyleSheet.create({
     card: {
       flexDirection: 'row',
-      backgroundColor: palette.backgroundColor2,
-      borderRadius: 12,
-      padding: 14,
+      backgroundColor: palette.backgroundColor4,
+      borderRadius: 16,
+      padding: 16,
       alignItems: 'center',
       gap: 12,
-      borderWidth: 0.5,
-      borderColor: palette.border,
+      borderWidth: 1,
+      borderColor: `${palette.primary}2E`,
       ...palette.shadows[100],
     },
     leftSection: {
@@ -85,9 +85,9 @@ function createViewCardStyles(palette: ThemePalette) {
       justifyContent: 'center',
     },
     logo: {
-      width: 50,
-      height: 50,
-      borderRadius: 25,
+      width: 54,
+      height: 54,
+      borderRadius: 27,
     },
     logoFallback: {
       alignItems: 'center',
@@ -135,6 +135,10 @@ export default function VoluntarioMinisterioTab({
       <View style={styles.container}>
         <FancyList
           data={props.ministerios}
+          listEmptyProps={{
+            label: 'Nenhum ministério vinculado',
+            icon: { library: 'MaterialCommunityIcons', name: 'home-group-outline', size: 68 },
+          }}
           contentContainerStyle={{ gap: 10, paddingHorizontal: 2 }}
           renderItem={({ item, index }) => <MinisterioViewCard key={index} item={item} />}
         />
@@ -148,10 +152,15 @@ export default function VoluntarioMinisterioTab({
         <View style={{ flex: 1, overflow: 'hidden' }}>
           <FancyList
             data={props.ministerios}
+            listEmptyProps={{
+              label: 'Nenhum ministério vinculado',
+              icon: { library: 'MaterialCommunityIcons', name: 'home-group-outline', size: 68 },
+            }}
             contentContainerStyle={{ gap: 10 }}
             renderItem={({ item, index }) => {
+              const ministerioNome = item.ministerio?.nome?.trim() || 'Ministério';
               const cardProps: FancyCardImageBaseProps = {
-                title: item.ministerio?.nome,
+                title: ministerioNome,
                 subtitle: <FancyTextDisplayCard title='Data Inicio:' value={format(DateUtilsApi.dateOnlyFromApi(item.dataInicio), 'dd/MM/yyyy')} />,
                 additionalData1: <FancyTextDisplayCard title='Função:' value={VoluntarioHierarquiaEnumLabel[item.hierarquia]} />,
                 additionalData2: <FancyChips style={{ marginTop: 3 }} label={MinisterioVoluntarioStatusEnumLabel[item.status as MinisterioVoluntarioStatusEnum] ?? ''} />,
@@ -169,7 +178,7 @@ export default function VoluntarioMinisterioTab({
                   />
                 );
               } else {
-                return <FancyCard.Image key={index} type='letter' props={{ ...cardProps, letter: item.ministerio?.nome.charAt(0) || '?' }} />;
+                return <FancyCard.Image key={index} type='letter' props={{ ...cardProps, letter: ministerioNome.charAt(0).toUpperCase() || '?' }} />;
               }
             }}
           />

@@ -105,6 +105,8 @@ export default function FancyScrollView(props: FancyScrollViewProps) {
         // Se fill=false, NÃO force flex/altura aqui.
         style={[fill ? styles.fillScroll : undefined, props.style]}
         contentContainerStyle={[{ paddingBottom: 40 }, props.contentContainerStyle]}
+        keyboardShouldPersistTaps={props.keyboardShouldPersistTaps ?? 'handled'}
+        keyboardDismissMode={props.keyboardDismissMode ?? 'on-drag'}
         onScroll={handleScroll}
         onLayout={handleLayout}
         onContentSizeChange={handleContentSizeChange}

@@ -62,6 +62,8 @@ export default function AddPeriodoModal({ visible, modalProps, onConfirm }: AddP
     <FancyModalDialog
       {...modalProps}
       title='Adicionar Período de Indisponibilidade'
+      closeOnBackdropPress={false}
+      dismissKeyboardOnBackdropPress
       button1={{ label: 'Cancelar' }}
       button2={{
         label: 'Salvar',

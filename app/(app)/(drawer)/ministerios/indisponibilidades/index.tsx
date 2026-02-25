@@ -84,12 +84,14 @@ export default function MinisterioIndisponibilidadesIndex() {
     removeWithIgreja,
     isLoading: isLoadingIndisponibilidades,
     isLoadingMutation: isLoadingIndisponibilidadesMutation,
+    isRefetching: isRefetchingIndisponibilidades,
     isError: isErrorIndisponibilidades,
     refetch: refetchIndisponibilidades,
     upsertMany,
   } = useIndisponibilidadesVoluntariosCrud({
     autoFetch: Boolean(voluntarioId && igrejaId),
     initialParams,
+    muteMessages: true,
   });
 
   const { startDate, endDate } = useMemo(() => {
@@ -130,7 +132,7 @@ export default function MinisterioIndisponibilidadesIndex() {
   const closeModal = () => setModalState((s) => ({ ...s, visible: false }));
 
   const handleConfirm = (mode: 'mark' | 'unmark', date: Date, motivo?: string) => {
-    const registro = indisponibilidadesData.find((d) => new Date(d.data).getTime?.() === date.getTime?.());
+    const registro = indisponibilidadesData.find((d) => DateUtilsApi.compareDateOnlyFromApi(d.data, date));
 
     closeModal();
 
@@ -175,7 +177,7 @@ export default function MinisterioIndisponibilidadesIndex() {
     })();
   };
 
-  if (isLoadingIndisponibilidades || isLoadingVoluntarios || isLoadingIndisponibilidadesMutation) {
+  if (isLoadingIndisponibilidades || isLoadingVoluntarios || isLoadingIndisponibilidadesMutation || isRefetchingIndisponibilidades) {
     return <FancyLoading />;
   }
 
@@ -194,7 +196,7 @@ export default function MinisterioIndisponibilidadesIndex() {
           <FancyCalendar
             selectDateOnPress={false}
             onChangeSelectedDate={(date) => {
-              const registro = indisponibilidadesData.find((d) => new Date(d.data).getTime() === date.getTime());
+              const registro = indisponibilidadesData.find((d) => DateUtilsApi.compareDateOnlyFromApi(d.data, date));
               setModalState({
                 visible: true,
                 date,
@@ -206,7 +208,8 @@ export default function MinisterioIndisponibilidadesIndex() {
             minimumDate={startDate}
             maximumDate={endDate}
             markedDates={indisponibilidadesData.map((d) => ({
-              date: new Date(d.data),
+              // d.data vem como date-only (YYYY-MM-DD); usar helper evita deslocamento por fuso.
+              date: DateUtilsApi.dateOnlyFromApi(d.data),
               T: d.id,
               color: palette.error,
             }))}

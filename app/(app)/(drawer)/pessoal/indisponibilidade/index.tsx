@@ -88,6 +88,7 @@ export default function IndisponibilidadeIndexPage() {
   } = useIndisponibilidadesVoluntariosCrud({
     initialParams,
     autoFetch: Boolean(userId && igrejaId),
+    muteMessages: true,
   });
 
   const loadingFlags = isLoadingData || isLoadingMutating || isRefetching;

@@ -117,8 +117,8 @@ export default function MinisterioIntegrantesEditPage() {
   }, [voluntarioAtual, funcoesData]);
 
   const handleSave = form.handleSubmit(
-    (data) => {
-      updateFuncoes(params.ministerioVoluntarioId, {
+    async (data) => {
+      await updateFuncoes(params.ministerioVoluntarioId, {
         funcoes: data.funcoes?.map((f) => ({
           funcaoId: f.id,
           status: MinisterioVoluntarioFuncaoStatusEnum.Ativo,

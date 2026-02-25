@@ -17,6 +17,7 @@ import {
     MinisterioVoluntarioStatusEnumLabel,
     MinisterioVoluntarioStatusEnumMap,
 } from '../../../../../domain/enums/MinisterioVoluntario/ministerio-voluntario-status.enum';
+import { MinisterioVoluntarioFuncaoStatusEnum } from '../../../../../domain/enums/MinisterioVoluntarioFuncao/ministerio-voluntario-funcao-status.enum';
 import { AppImages } from '../../../../../assets/app_images';
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import FancyChips from '../../../../../components/FancyChips';
@@ -57,7 +58,7 @@ export default function MinisterioIntegrantesIndex() {
           ...(searchCondition ? [searchCondition] : []),
         ],
       },
-      relations: ['voluntario', 'ministerio'],
+      relations: ['voluntario', 'ministerio', 'funcoes', 'funcoes.funcao'],
       orderBy: [{ path: 'voluntario.nome', direction: OrderDirection.ASC }],
     } as DynamicQuery;
   }, [ministerioId, searchText]);
@@ -142,6 +143,10 @@ export default function MinisterioIntegrantesIndex() {
         onSearch: (text) => setSearchText(text.trim()),
       }}
       listProps={{
+        listEmptyProps: {
+          label: searchText ? 'Nenhum integrante encontrado' : 'Nenhum integrante cadastrado',
+          icon: { library: 'MaterialCommunityIcons', name: 'account-multiple-outline', size: 68 },
+        },
         data: data,
         renderItem: ({ item, index }) => (
           <FancyCard.Image
@@ -152,12 +157,37 @@ export default function MinisterioIntegrantesIndex() {
               subtitle: <FancyTextDisplayCard icon={{ library: 'MaterialCommunityIcons', name: 'email-outline', size: 12, color: Pallete.primary }} value={item.voluntario?.email} valueStyle={{ numberOfLines: 1 }} />,
               additionalData1: <FancyTextDisplayCard icon={{ library: 'MaterialCommunityIcons', name: 'account-cog-outline', size: 12, color: Pallete.primary }} value={VoluntarioHierarquiaEnumLabel[item.hierarquia!]} />,
               additionalData2: (
-                <FancyChips
-                  size='small'
-                  style={{ marginTop: 2 }}
-                  label={MinisterioVoluntarioStatusEnumLabel[item.status]}
-                  color={ministerioStatusColorMap[item.status]}
-                />
+                <>
+                  {(() => {
+                    const funcoesAtivas = item.funcoes?.filter(f => f.status === MinisterioVoluntarioFuncaoStatusEnum.Ativo) ?? [];
+                    if (funcoesAtivas.length === 0) return null;
+                    const funcoesLabel = funcoesAtivas
+                      .map((f) => f.funcao?.nome?.trim())
+                      .filter((nome): nome is string => Boolean(nome))
+                      .join(', ');
+
+                    return (
+                      <FancyTextDisplayCard
+                        icon={{
+                          library: 'MaterialCommunityIcons',
+                          name: 'music-note',
+                          size: 12,
+                          color: Pallete.primary,
+                          style: { marginTop: 2, alignSelf: 'flex-start' },
+                        }}
+                        containerStyle={{ alignItems: 'flex-start', gap: 4 }}
+                        value={funcoesLabel}
+                        valueStyle={{ style: { lineHeight: 16, flexShrink: 1, opacity: 0.8 } }}
+                      />
+                    );
+                  })()}
+                  <FancyChips
+                    size='small'
+                    style={{ marginTop: 2 }}
+                    label={MinisterioVoluntarioStatusEnumLabel[item.status]}
+                    color={ministerioStatusColorMap[item.status]}
+                  />
+                </>
               ),
               source:
                 item.voluntario?.fotoThumbUrl || item.voluntario?.fotoThumbUrl

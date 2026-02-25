@@ -9,9 +9,9 @@ import { useFuncoesDoMinisterio } from '../../../../../hooks/useFuncoesDoMiniste
 import FancyLoading from '../../../../../components/FancyLoading';
 import { useMinisterioVoluntarioFuncoesCrud } from '../../../../../hooks/useMinisterioVoluntarioFuncoesCrud';
 import { useIgrejaVoluntariosCrud } from '../../../../../hooks/useIgrejaVoluntariosCrud';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { DropDownItemProps } from '../../../../../components/fields/FancyDropDownItem';
-import { DynamicQuery, OrderDirection } from '../../../../../domain/utils/query_utils';
+import { Condition, DynamicQuery, Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
 import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
 import Toast from 'react-native-toast-message';
 import { EscalaTemplateExperienciaEnum } from '../../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
@@ -21,26 +21,48 @@ import { AppImages } from '../../../../../assets/app_images';
 
 export default function MinisterioIntegrantesAddPage() {
   const { ministerioId } = useLocalSearchParams<{ ministerioId: string }>();
+  const [isSavingIntegrante, setIsSavingIntegrante] = useState(false);
 
   const form = useForm({ resolver: zodResolver(minVoluntarioSchema) });
 
-  const initialParams = useMemo(() => {
+  const voluntariosParams = useMemo(() => {
     return {
-      relations: ['ministerios.ministerio'],
-      orderBy: [{ path: 'nome', direction: OrderDirection.ASC }],
+      orderBy: [{ path: 'voluntario.nome', direction: OrderDirection.ASC }],
+    } as DynamicQuery;
+  }, []);
+
+  const integrantesParams = useMemo(() => {
+    if (!ministerioId) return undefined;
+    return {
+      where: {
+        conditions: [
+          {
+            path: 'ministerio.id',
+            operator: Operator.EQUALS,
+            value: { type: ValueType.LITERAL as const, value: ministerioId },
+          } as Condition,
+        ],
+      },
     } as DynamicQuery;
   }, [ministerioId]);
 
   const { data: voluntariosData, isLoading: isLoadingVoluntarios } = useIgrejaVoluntariosCrud({
     autoFetch: true,
-    initialParams,
+    initialParams: voluntariosParams,
+  });
+
+  const { data: integrantesData, isLoading: isLoadingIntegrantes } = useMinisterioVoluntariosCrud({
+    autoFetch: true,
+    initialParams: integrantesParams,
   });
 
   const voluntariosDropDownList = useMemo(() => {
     if (!ministerioId) return [];
 
+    const integrantesIds = new Set(integrantesData.map((i) => i.voluntarioId));
+
     return voluntariosData
-      .filter((v) => !v.ministerios?.some((m) => m.ministerio?.id === ministerioId) || !v.ministerios)
+      .filter((v) => !integrantesIds.has(v.id))
       .map((voluntario) => ({
         title: voluntario?.nome,
         value: voluntario?.id,
@@ -50,7 +72,7 @@ export default function MinisterioIntegrantesAddPage() {
             voluntario.fotoThumbUrl || voluntario.fotoUrl ? { uri: voluntario.fotoThumbUrl || voluntario.fotoUrl || '' } : AppImages.emptyProfile,
         },
       })) as DropDownItemProps<string>[];
-  }, [voluntariosData, ministerioId]);
+  }, [voluntariosData, integrantesData, ministerioId]);
 
   const { funcoesList, funcoesDropDownList, isLoading: isLoadingFuncoes } = useFuncoesDoMinisterio(ministerioId);
 
@@ -58,23 +80,27 @@ export default function MinisterioIntegrantesAddPage() {
   const { add: addFuncaoVoluntario } = useMinisterioVoluntarioFuncoesCrud();
 
   const handleSave = form.handleSubmit(
-    (data) => {
-      data.funcoes?.forEach(async (f) => {
-        const ministerioFuncao = funcoesList.find((funcao) => funcao.id === f.id);
-        if (!ministerioFuncao) return;
+    async (data) => {
+      if (!ministerioId || !data.voluntarioId) return;
+      setIsSavingIntegrante(true);
 
-        let voluntario = await addVoluntario({
-          ministerioId: ministerioId,
+      try {
+        const funcoesSelecionadas = (data.funcoes ?? []).filter((f) => funcoesList.some((funcao) => funcao.id === f.id));
+
+        const voluntario = await addVoluntario({
+          ministerioId,
           voluntarioId: data.voluntarioId,
           hierarquia: VoluntarioHierarquiaEnum.Voluntario,
         });
 
-        await addFuncaoVoluntario({
-          ministerioVoluntarioId: voluntario?.id!,
-          funcaoId: f.id,
-          experiencia: f.experiencia || EscalaTemplateExperienciaEnum.Iniciante,
-          status: MinisterioVoluntarioFuncaoStatusEnum.Ativo,
-        });
+        for (const f of funcoesSelecionadas) {
+          await addFuncaoVoluntario({
+            ministerioVoluntarioId: voluntario?.id!,
+            funcaoId: f.id,
+            experiencia: f.experiencia || EscalaTemplateExperienciaEnum.Iniciante,
+            status: MinisterioVoluntarioFuncaoStatusEnum.Ativo,
+          });
+        }
 
         Toast.show({
           type: 'success',
@@ -82,7 +108,17 @@ export default function MinisterioIntegrantesAddPage() {
         });
 
         router.back();
-      });
+      } catch (error) {
+        if (__DEV__) {
+          console.log('[Ministerios/Integrantes] Save error:', error);
+        }
+        Toast.show({
+          type: 'error',
+          text1: 'Erro ao salvar integrante',
+        });
+      } finally {
+        setIsSavingIntegrante(false);
+      }
     },
     (errors) => {
       if (__DEV__) {
@@ -96,7 +132,7 @@ export default function MinisterioIntegrantesAddPage() {
     },
   );
 
-  if (isLoadingVoluntarios || isLoadingFuncoes) return <FancyLoading />;
+  if (isLoadingVoluntarios || isLoadingIntegrantes || isLoadingFuncoes) return <FancyLoading />;
 
   return (
     <FancyPageView style={{ flex: 1, paddingHorizontal: 20, paddingVertical: 15, gap: 40 }}>
@@ -108,7 +144,7 @@ export default function MinisterioIntegrantesAddPage() {
           funcoesList={funcoesList}
         />
       </FormProvider>
-      <FancyButton label='Salvar' onPress={handleSave} />
+      <FancyButton label={isSavingIntegrante ? 'Salvando...' : 'Salvar'} disabled={isSavingIntegrante} onPress={handleSave} />
     </FancyPageView>
   );
 }

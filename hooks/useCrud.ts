@@ -160,9 +160,9 @@ export function useCrud<TResponse extends CrudIdentifiable, TForm extends FieldV
 
   const createMutation = useMutation({
     mutationFn: add,
-    onSuccess: () => {
+    onSuccess: async () => {
       if (!muteMessages) Toast.show({ type: 'success', text1: messages?.successCreate || 'Item criado com sucesso!' });
-      queryClient.invalidateQueries({ queryKey: [queryKey] });
+      await queryClient.invalidateQueries({ queryKey: [queryKey] });
     },
     onError: (error) => {
       if (!muteMessages) Toast.show({ type: 'error', text1: messages?.errorCreate || 'Erro ao criar item.' });
@@ -174,9 +174,9 @@ export function useCrud<TResponse extends CrudIdentifiable, TForm extends FieldV
 
   const updateMutation = update && useMutation({
     mutationFn: ({ id, data }: { id: string; data: TUpdate }) => update(id, data),
-    onSuccess: () => {
+    onSuccess: async () => {
       if (!muteMessages) Toast.show({ type: 'success', text1: messages?.successUpdate || 'Item atualizado com sucesso!' });
-      queryClient.invalidateQueries({ queryKey: [queryKey] });
+      await queryClient.invalidateQueries({ queryKey: [queryKey] });
     },
     onError: (error) => {
       if (!muteMessages) Toast.show({ type: 'error', text1: messages?.errorUpdate || 'Erro ao atualizar item.' });
@@ -188,9 +188,9 @@ export function useCrud<TResponse extends CrudIdentifiable, TForm extends FieldV
 
   const removeMutation = useMutation({
     mutationFn: remove,
-    onSuccess: () => {
+    onSuccess: async () => {
       if (!muteMessages) Toast.show({ type: 'success', text1: messages?.successDelete || 'Item removido com sucesso!' });
-      queryClient.invalidateQueries({ queryKey: [queryKey] });
+      await queryClient.invalidateQueries({ queryKey: [queryKey] });
     },
     onError: (error) => {
       if (!muteMessages) Toast.show({ type: 'error', text1: messages?.errorDelete || 'Erro ao remover item.' });

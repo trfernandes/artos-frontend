@@ -48,9 +48,9 @@ export function useEscalasCrud({ autoFetch = false, initialParams = undefined }:
 
   const generateMutation = useMutation({
     mutationFn: (data: CreateEscalaDto) => EscalaRepository.generate(data),
-    onSuccess: () => {
-      Toast.show({ type: 'success', text1: 'Escala gerada com sucesso!' });
-      crud.queryClient.invalidateQueries({ queryKey: [crud.queryKey] });
+    onSuccess: async () => {
+      // No assistente, a confirmação visual é a própria etapa "Resultado".
+      await crud.queryClient.invalidateQueries({ queryKey: [crud.queryKey] });
     },
     onError: (error) => {
       const responseData = axios.isAxiosError(error) ? (error.response?.data as any) : null;

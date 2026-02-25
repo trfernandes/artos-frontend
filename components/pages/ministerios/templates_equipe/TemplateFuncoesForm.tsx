@@ -21,6 +21,15 @@ type TemplateFuncoesFormProps = FancyModalDialogProps<void> & {
 
 export default function TemplateFuncoesForm({ mode = 'add', voluntarioList, funcoesList, ...props }: TemplateFuncoesFormProps) {
   const { control, handleSubmit } = useFormContext<EscalaTemplateFuncaoFormData>();
+  const sortedFuncoesList = useMemo(
+    () =>
+      [...(funcoesList ?? [])].sort((a, b) =>
+        (a.title || '').localeCompare(b.title || '', 'pt-BR', {
+          sensitivity: 'base',
+        }),
+      ),
+    [funcoesList],
+  );
 
   const experiencaList = useMemo<DropDownItemProps<EscalaTemplateExperienciaEnum>[]>(() => {
     return EnumUtils.getDropDownItems(EscalaTemplateExperienciaEnum, EscalaTemplateExperienciaLabel).sort(
@@ -41,7 +50,14 @@ export default function TemplateFuncoesForm({ mode = 'add', voluntarioList, func
   return (
     <FancyModalDialog {...props} title={mode === 'add' ? 'Adicionar Função' : 'Editar Função'} onButton2Press={handleConfirm}>
       <View style={{ gap: 15 }}>
-        <ControlledSearchSelect control={control} name='funcaoId' label='Função' listItems={funcoesList} disabled={mode === 'edit'} searchPlaceholder='Buscar função...' />
+        <ControlledSearchSelect
+          control={control}
+          name='funcaoId'
+          label='Função'
+          listItems={sortedFuncoesList}
+          disabled={mode === 'edit'}
+          searchPlaceholder='Buscar função...'
+        />
         <ControlledBottomSheetSelect control={control} name='experiencia' label='Experiência' listItems={experiencaList} />
         <ControlledNumberInput control={control} name='quantidade' title='Quantidade' min={1} max={10} />
       </View>
