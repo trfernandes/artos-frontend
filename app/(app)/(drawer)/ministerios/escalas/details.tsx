@@ -473,6 +473,12 @@ export default function MinisterioEscalasDetailsPage() {
           isRegenerating={isRegenerating}
           isPublishing={isPublishing}
           isScreenBlocked={isBlockingScreen}
+          onInsightsPress={() =>
+            router.push({
+              pathname: '/(app)/(drawer)/ministerios/escalas/insights',
+              params: { ministerioId, escalaId },
+            })
+          }
           onPublishPress={handlePublishPress}
           onGeneratePress={handleGeneratePress}
           onDeletePress={handleDeletePress}

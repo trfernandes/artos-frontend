@@ -3,7 +3,7 @@ import { ThemePalette } from '../constants/colors';
 import FancyText from './FancyText';
 import DefaultIcons, { CustomIconProps } from './FancyIcons';
 import { DefaultIconsNames } from '../constants/icons';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import FancyContainer from './FancyContainer';
 import { LinearGradient } from 'expo-linear-gradient';
 import { usePallete } from '../hooks/usePallete';
@@ -13,6 +13,8 @@ export type FancyAccordeonProps = {
   title: string | React.ReactNode;
   subtitle?: string | React.ReactNode;
   isExpanded?: boolean;
+  expanded?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
   children?: React.ReactNode;
   contentContainerStyle?: StyleProp<ViewStyle>;
   headerContainerStyle?: StyleProp<ViewStyle>;
@@ -20,6 +22,8 @@ export type FancyAccordeonProps = {
   containerContainerStyle?: StyleProp<ViewStyle>;
   containerExpandedContainerStyle?: StyleProp<ViewStyle>;
   iconProps?: Partial<CustomIconProps>;
+  headerColor?: string;
+  expandedHeaderColor?: string;
   headerGradientColors?: string[];
   headerExpandedGradientColors?: string[];
   headerGradientStart?: { x: number; y: number };
@@ -30,6 +34,8 @@ export default function FancyAccordeon({
   title,
   subtitle,
   isExpanded = false,
+  expanded: controlledExpanded,
+  onExpandedChange,
   children,
   contentContainerStyle,
   headerContainerStyle,
@@ -37,6 +43,8 @@ export default function FancyAccordeon({
   containerContainerStyle,
   containerExpandedContainerStyle,
   iconProps,
+  headerColor,
+  expandedHeaderColor,
   headerGradientColors,
   headerExpandedGradientColors,
   headerGradientStart = { x: 0, y: 0.5 },
@@ -44,13 +52,30 @@ export default function FancyAccordeon({
 }: FancyAccordeonProps) {
   const Pallete = usePallete();
   const styles = useThemedStyles(createStyles);
-  const [expanded, setExpanded] = useState(isExpanded);
+  const [internalExpanded, setInternalExpanded] = useState(isExpanded);
+  const isControlled = controlledExpanded !== undefined;
+  const expanded = isControlled ? !!controlledExpanded : internalExpanded;
 
-  const toggleExpand = useCallback(() => setExpanded((prev) => !prev), []);
+  useEffect(() => {
+    if (!isControlled) {
+      setInternalExpanded(isExpanded);
+    }
+  }, [isExpanded, isControlled]);
+
+  const toggleExpand = useCallback(() => {
+    const nextExpanded = !expanded;
+
+    if (!isControlled) {
+      setInternalExpanded(nextExpanded);
+    }
+
+    onExpandedChange?.(nextExpanded);
+  }, [expanded, isControlled, onExpandedChange]);
   const gradientColors =
     expanded && headerExpandedGradientColors?.length
       ? headerExpandedGradientColors
       : headerGradientColors;
+  const resolvedHeaderColor = expanded ? expandedHeaderColor ?? headerColor : headerColor;
 
   return (
     <FancyContainer containerStyle={[styles.container, containerContainerStyle, expanded && containerExpandedContainerStyle]}>
@@ -58,6 +83,7 @@ export default function FancyAccordeon({
         onPress={toggleExpand}
         style={[
           styles.header,
+          resolvedHeaderColor ? { backgroundColor: resolvedHeaderColor } : undefined,
           {
             borderRadius: 10,
             borderBottomStartRadius: expanded ? 0 : 10,

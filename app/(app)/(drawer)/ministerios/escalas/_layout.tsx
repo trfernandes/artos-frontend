@@ -36,6 +36,15 @@ export default function MinisterioEscalasLayout() {
           title: 'Detalhes da Escala',
         }}
       />
+      <Stack.Screen
+        name='insights'
+        options={{
+          headerShadowVisible: false,
+          headerShown: true,
+          header: (props) => <FancyPageHeader leftButton='back' {...props} />,
+          title: 'Insights da Escala',
+        }}
+      />
     </Stack>
   );
 }
