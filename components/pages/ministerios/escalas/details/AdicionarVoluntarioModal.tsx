@@ -1,6 +1,6 @@
 import { EscalaItemEquipeType } from '../../../../../app/(app)/(drawer)/ministerios/escalas/details';
 import FancyModalDialog, { FancyModalDialogProps } from '../../../../modal/FancyModalDialog';
-import { StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import FancyText from '../../../../FancyText';
 import FancySearchSelect from '../../../../fields/FancySearchSelect';
 import FancyCheckbox from '../../../../FancyCheckbox';
@@ -15,6 +15,7 @@ import FancyErrorText from '../../../../forms/FancyErrorText';
 import FancyGroup from '../../../../list/FancyGroup';
 import { AppImages } from '../../../../../assets/app_images';
 import { useAuth } from '../../../../../contexts/AuthContext';
+import { usePallete } from '../../../../../hooks/usePallete';
 
 export interface AdicionarVoluntarioModalProps {
   data: EscalaItemEquipeType & {
@@ -34,13 +35,14 @@ export interface AdicionarVoluntarioConfirmDialog {
 }
 
 export default function AdicionarVoluntarioModal({ data, ...props }: AdicionarVoluntarioModalProps & FancyModalDialogProps<any>) {
+  const palette = usePallete();
   const [disponiveisNaData, setDisponiveisNaData] = useState(false);
   const [temMesmaFuncao, setTemMesmaFuncao] = useState(false);
   const { igrejaAtiva } = useAuth();
   const igrejaId = igrejaAtiva?.id;
 
   const {
-    ministerioVoluntariosList: voluntariosList,
+    ministerioVoluntariosList,
     ministerioVoluntariosDropDownList: dropDownList,
     isLoadingMinisterioVoluntarios,
     isLoadingMinisterioVoluntariosMutation,
@@ -69,7 +71,7 @@ export default function AdicionarVoluntarioModal({ data, ...props }: AdicionarVo
       try {
         setIsLoadingVoluntarios(true);
 
-        let newList = [...voluntariosList];
+        let newList = [...ministerioVoluntariosList];
 
         if (!igrejaId) {
           setVoluntariosDropDownList(dropDownList);
@@ -80,6 +82,7 @@ export default function AdicionarVoluntarioModal({ data, ...props }: AdicionarVo
         if (disponiveisNaData) {
           const resultados = await Promise.all(
             newList.map(async (minVoluntario) => {
+              const voluntarioId = (minVoluntario.voluntario as any)?.id;
               const indisponivel = await IndisponibilidadesVoluntariosApi.search({
                 igrejaId,
                 where: {
@@ -87,7 +90,7 @@ export default function AdicionarVoluntarioModal({ data, ...props }: AdicionarVo
                     {
                       path: 'voluntario.id',
                       operator: Operator.EQUALS,
-                      value: { type: ValueType.LITERAL, value: minVoluntario.voluntario?.id! },
+                      value: { type: ValueType.LITERAL, value: voluntarioId! },
                     },
                     {
                       path: 'data',
@@ -137,18 +140,20 @@ export default function AdicionarVoluntarioModal({ data, ...props }: AdicionarVo
 
         // Monta a lista final do dropdown
         const mapped = newList.map(
-          (minVoluntario) =>
-            ({
-              title: minVoluntario.voluntario?.nome,
+          (minVoluntario) => {
+            const voluntario = minVoluntario.voluntario as any;
+            return {
+              title: voluntario?.nome,
               value: minVoluntario.id,
               left: {
                 type: 'image',
                 source:
-                  minVoluntario.voluntario?.fotoThumbUrl || minVoluntario.voluntario?.fotoUrl
-                    ? { uri: minVoluntario.voluntario?.fotoThumbUrl || minVoluntario.voluntario?.fotoUrl || '' }
+                  voluntario?.fotoThumbUrl || voluntario?.fotoUrl
+                    ? { uri: voluntario?.fotoThumbUrl || voluntario?.fotoUrl || '' }
                     : AppImages.emptyProfile,
               },
-            } as DropDownItemProps<string>),
+            } as DropDownItemProps<string>;
+          },
         );
 
         setVoluntariosDropDownList(mapped);
@@ -158,10 +163,11 @@ export default function AdicionarVoluntarioModal({ data, ...props }: AdicionarVo
     }
 
     filtrarVoluntarios();
-  }, [voluntariosList, disponiveisNaData, temMesmaFuncao, dataOcorrenciaString, funcaoId, igrejaId]);
+  }, [ministerioVoluntariosList, disponiveisNaData, temMesmaFuncao, dataOcorrenciaString, funcaoId, igrejaId]);
 
   const [selectedVoluntario, setSelectedVoluntario] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = (): boolean => {
     if (selectedVoluntario) {
@@ -173,13 +179,17 @@ export default function AdicionarVoluntarioModal({ data, ...props }: AdicionarVo
     return false;
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (handleSubmit()) {
-      props.onButton2Press &&
-        props.onButton2Press({
+      try {
+        setIsSubmitting(true);
+        await props.onButton2Press?.({
           idEscalaItem: data.idEscalaItem,
           idVoluntario: selectedVoluntario!,
         });
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -189,6 +199,8 @@ export default function AdicionarVoluntarioModal({ data, ...props }: AdicionarVo
       title='Selecionar Voluntário'
       centerContainerStyle={styles.container}
       onButton2Press={handleConfirm}
+      button1={{ disabled: isSubmitting }}
+      button2={{ isLoading: isSubmitting, loadingText: 'Adicionando...' }}
       containerStyle={{
         pointerEvents: isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation || isLoadingVoluntarios ? 'none' : 'auto',
       }}
@@ -230,9 +242,18 @@ export default function AdicionarVoluntarioModal({ data, ...props }: AdicionarVo
 
           <View style={{ gap: 12 }}>
             <View style={{ gap: 8 }}>
-              <FancyCheckbox value={disponiveisNaData} onChangeValue={setDisponiveisNaData} label='Disponíveis na data' />
-              <FancyCheckbox value={temMesmaFuncao} onChangeValue={setTemMesmaFuncao} label='Tem a mesma função' />
+              <FancyCheckbox value={disponiveisNaData} onChangeValue={setDisponiveisNaData} label='Disponíveis na data' disabled={isSubmitting} />
+              <FancyCheckbox value={temMesmaFuncao} onChangeValue={setTemMesmaFuncao} label='Tem a mesma função' disabled={isSubmitting} />
             </View>
+
+            {isLoadingVoluntarios && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 }}>
+                <ActivityIndicator size='small' color={palette.primary} />
+                <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                  Filtrando voluntários...
+                </FancyText>
+              </View>
+            )}
 
             <View style={{ flexDirection: 'column', gap: 5 }}>
               <FancySearchSelect
@@ -247,7 +268,7 @@ export default function AdicionarVoluntarioModal({ data, ...props }: AdicionarVo
                   });
                 }}
                 listItems={voluntariosDropDownList}
-                disabled={isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation || isLoadingVoluntarios}
+                disabled={isSubmitting || isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation || isLoadingVoluntarios}
               />
               {errors && <FancyErrorText message={errors['voluntario']} />}
             </View>

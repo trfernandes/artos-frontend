@@ -46,6 +46,7 @@ export default function AdicionarFuncaoModal({ ministerioId, eventoNome, eventoI
 
   const [selectedFuncao, setSelectedFuncao] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = (): boolean => {
     if (selectedFuncao) {
@@ -57,14 +58,18 @@ export default function AdicionarFuncaoModal({ ministerioId, eventoNome, eventoI
     return false;
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (handleSubmit()) {
-      props.onButton2Press &&
-        props.onButton2Press({
+      try {
+        setIsSubmitting(true);
+        await props.onButton2Press?.({
           funcaoId: selectedFuncao!,
           eventoId: eventoId,
           dataOcorrencia: dataOcorrencia.toISOString().split('T')[0],
         });
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -74,6 +79,8 @@ export default function AdicionarFuncaoModal({ ministerioId, eventoNome, eventoI
       title='Adicionar Função ao Evento'
       centerContainerStyle={styles.container}
       onButton2Press={handleConfirm}
+      button1={{ disabled: isSubmitting }}
+      button2={{ isLoading: isSubmitting, loadingText: 'Adicionando...' }}
       containerStyle={{
         pointerEvents: isLoadingFuncoes ? 'none' : 'auto',
       }}
@@ -108,7 +115,7 @@ export default function AdicionarFuncaoModal({ ministerioId, eventoNome, eventoI
               });
             }}
             listItems={funcoesSearchList}
-            disabled={isLoadingFuncoes}
+            disabled={isSubmitting || isLoadingFuncoes}
           />
           {errors && <FancyErrorText message={errors['funcao']} />}
         </View>

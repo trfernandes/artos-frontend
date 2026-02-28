@@ -1,4 +1,4 @@
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Modal } from 'react-native';
 import { format } from 'date-fns';
 import { ThemePalette } from '../../../../../constants/colors';
 import { ColorUtils } from '../../../../../utils/color_utils';
@@ -21,6 +21,7 @@ import { DateUtilsApi } from '../../../../../utils/date_utils';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 import { useAppTheme } from '../../../../../hooks/useAppTheme';
+import FancyLoading from '../../../../FancyLoading';
 
 export interface EventoTableProps {
   data: EscalaItemDataType;
@@ -32,7 +33,7 @@ export interface EventoTableProps {
   onRemoveVoluntario?: (idEscalaItem: string) => Promise<boolean>;
   onDeleteEvento?: (eventoId: string, dataOcorrencia: string) => Promise<boolean>;
   onAdicionarFuncao?: (data: AdicionarFuncaoConfirmDialog) => Promise<boolean>;
-  onExcluirFuncao?: (funcaoId: string, eventoId: string, dataOcorrencia: string) => void;
+  onExcluirFuncao?: (funcaoId: string, eventoId: string, dataOcorrencia: string) => Promise<void>;
 }
 
 export default function EventoTable({
@@ -65,6 +66,7 @@ export default function EventoTable({
     isOpen: false,
   });
   const [adicionarFuncaoModalOpen, setAdicionarFuncaoModalOpen] = useState(false);
+  const [loadingAction, setLoadingAction] = useState<{ visible: boolean; label: string }>({ visible: false, label: '' });
 
   const {
     borderColor,
@@ -111,7 +113,12 @@ export default function EventoTable({
         text: 'Excluir',
         style: 'destructive',
         onPress: async () => {
-          await onDeleteEvento?.(data.evento.id, data.dataOcorrencia);
+          try {
+            setLoadingAction({ visible: true, label: 'Excluindo evento...' });
+            await onDeleteEvento?.(data.evento.id, data.dataOcorrencia);
+          } finally {
+            setLoadingAction({ visible: false, label: '' });
+          }
         },
       },
     ]);
@@ -202,7 +209,12 @@ export default function EventoTable({
                   text: 'Remover',
                   style: 'destructive',
                   onPress: async () => {
-                    await onRemoveVoluntario?.(equipeItem.idEscalaItem);
+                    try {
+                      setLoadingAction({ visible: true, label: 'Removendo voluntário...' });
+                      await onRemoveVoluntario?.(equipeItem.idEscalaItem);
+                    } finally {
+                      setLoadingAction({ visible: false, label: '' });
+                    }
                   },
                 },
               ],
@@ -217,8 +229,13 @@ export default function EventoTable({
               {
                 text: 'Excluir',
                 style: 'destructive',
-                onPress: () => {
-                  onExcluirFuncao?.(funcaoId, data.evento.id, data.dataOcorrencia);
+                onPress: async () => {
+                  try {
+                    setLoadingAction({ visible: true, label: 'Excluindo função...' });
+                    await onExcluirFuncao?.(funcaoId, data.evento.id, data.dataOcorrencia);
+                  } finally {
+                    setLoadingAction({ visible: false, label: '' });
+                  }
                 },
               },
             ]);
@@ -295,6 +312,14 @@ export default function EventoTable({
           }}
         />
       )}
+
+      <Modal visible={loadingAction.visible} transparent animationType='fade'>
+        <View style={styles.blockingOverlay}>
+          <View style={styles.blockingOverlayContent}>
+            <FancyLoading label={loadingAction.label} />
+          </View>
+        </View>
+      </Modal>
     </>
   );
 }
@@ -350,6 +375,20 @@ function createStyles(palette: ThemePalette) {
       paddingBottom: 4,
       overflow: 'hidden',
       ...palette.shadows[100],
+    },
+    blockingOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.12)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 50,
+    },
+    blockingOverlayContent: {
+      minWidth: 180,
+      paddingHorizontal: 18,
+      paddingVertical: 16,
+      borderRadius: 12,
+      backgroundColor: palette.backgroundColor,
     },
   });
 }

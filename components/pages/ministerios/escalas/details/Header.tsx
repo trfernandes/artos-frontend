@@ -12,6 +12,7 @@ export default function Header({
   isRegenerating,
   isPublishing,
   isScreenBlocked,
+  onInsightsPress,
   onPublishPress,
   onGeneratePress,
   onDeletePress,
@@ -21,6 +22,7 @@ export default function Header({
   isRegenerating?: boolean;
   isPublishing?: boolean;
   isScreenBlocked?: boolean;
+  onInsightsPress?: () => void;
   onPublishPress: () => void;
   onGeneratePress: () => void;
   onDeletePress: () => void;
@@ -75,60 +77,77 @@ export default function Header({
     };
   }, [escala]);
 
-  const actions: InlineAction[] | undefined =
-    !viewMode || viewMode === 'edit'
-      ? [
-          ...(escala.status === EscalaStatusEnum.Gerada
-            ? [
-                {
-                  key: 'recalculate',
-                  icon: {
-                    library: 'MaterialCommunityIcons' as const,
-                    name: 'calculator-variant-outline',
-                  },
-                  label: isRegenerating ? 'Recalculando...' : 'Recalcular',
-                  variant: 'primary' as const,
-                  isLoading: isRegenerating,
-                  disabled: isScreenBlocked || escala.status !== EscalaStatusEnum.Gerada,
-                  onPress: onGeneratePress,
-                },
-                {
-                  key: 'publish',
-                  icon: { library: 'MaterialIcons' as const, name: 'rocket-launch' },
-                  label: 'Publicar escala',
-                  variant: 'neutral' as const,
-                  isLoading: isPublishing,
-                  disabled: isScreenBlocked,
-                  onPress: onPublishPress,
-                },
-              ]
-            : []),
-          ...(escala.status !== EscalaStatusEnum.Gerada
-            ? [
-                {
-                  key: 'recalculate',
-                  icon: {
-                    library: 'MaterialCommunityIcons' as const,
-                    name: 'calculator-variant-outline',
-                  },
-                  label: isRegenerating ? 'Recalculando...' : 'Recalcular',
-                  variant: 'primary' as const,
-                  isLoading: isRegenerating,
-                  disabled: true,
-                  onPress: onGeneratePress,
-                },
-              ]
-            : []),
-          {
-            key: 'delete',
-            icon: { library: 'MaterialIcons' as const, name: 'delete-outline' },
-            label: 'Excluir escala',
-            variant: 'danger' as const,
-            disabled: isScreenBlocked,
-            onPress: onDeletePress,
+  const canEdit = !viewMode || viewMode === 'edit';
+  const insightAction: InlineAction[] = onInsightsPress
+    ? [
+        {
+          key: 'insights',
+          icon: {
+            library: 'MaterialCommunityIcons' as const,
+            name: 'chart-box-outline',
           },
-        ]
-      : undefined;
+          label: 'Insights da escala',
+          variant: 'neutral' as const,
+          disabled: isScreenBlocked,
+          onPress: onInsightsPress,
+        },
+      ]
+    : [];
+
+  const actions: InlineAction[] = canEdit
+    ? [
+        ...(escala.status === EscalaStatusEnum.Gerada
+          ? [
+              {
+                key: 'recalculate',
+                icon: {
+                  library: 'MaterialCommunityIcons' as const,
+                  name: 'calculator-variant-outline',
+                },
+                label: isRegenerating ? 'Recalculando...' : 'Recalcular',
+                variant: 'primary' as const,
+                isLoading: isRegenerating,
+                disabled: isScreenBlocked || escala.status !== EscalaStatusEnum.Gerada,
+                onPress: onGeneratePress,
+              },
+              {
+                key: 'publish',
+                icon: { library: 'MaterialIcons' as const, name: 'rocket-launch' },
+                label: 'Publicar escala',
+                variant: 'neutral' as const,
+                isLoading: isPublishing,
+                disabled: isScreenBlocked,
+                onPress: onPublishPress,
+              },
+            ]
+          : []),
+        ...(escala.status !== EscalaStatusEnum.Gerada
+          ? [
+              {
+                key: 'recalculate',
+                icon: {
+                  library: 'MaterialCommunityIcons' as const,
+                  name: 'calculator-variant-outline',
+                },
+                label: isRegenerating ? 'Recalculando...' : 'Recalcular',
+                variant: 'primary' as const,
+                isLoading: isRegenerating,
+                disabled: true,
+                onPress: onGeneratePress,
+              },
+            ]
+          : []),
+        ...insightAction,
+        {
+          key: 'delete',
+          icon: { library: 'MaterialIcons' as const, name: 'delete-outline' },
+          label: 'Excluir escala',
+          variant: 'danger' as const,
+          disabled: isScreenBlocked,
+          onPress: onDeletePress,
+        },
+      ]
+    : [...insightAction];
 
   return (
     <View style={styles.container}>
@@ -143,7 +162,7 @@ export default function Header({
         totalCount={totalCount}
         statusDistribution={statusDistribution}
         variant='default'
-        actions={actions}
+        actions={actions.length ? actions : undefined}
       />
     </View>
   );
