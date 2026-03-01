@@ -19,6 +19,8 @@ import { AppImages } from '../../../../../assets/app_images';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { getFirstAndLastName } from '../../../../../utils/text_utils';
+import DefaultIcons from '../../../../FancyIcons';
+import { ColorUtils } from '../../../../../utils/color_utils';
 
 export interface SubstituirVoluntarioModalProps {
   data: EscalaItemEquipeType & {
@@ -224,47 +226,38 @@ export default function SubstituirVoluntarioModal({ data, ...props }: Substituir
         pointerEvents: isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation || isLoadingSubstitutos ? 'none' : 'auto',
       }}
     >
-      <FancyGroup variant='accentedSummary'>
-        <View style={{ gap: 2 }}>
-          <FancyText size='small' type='bold'>
-            Evento:
+      <View style={{
+        backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
+        borderRadius: 10,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: ColorUtils.withAlpha(palette.primary, 0.25),
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        gap: 6,
+      }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <DefaultIcons.Custom library='MaterialIcons' name='event' size={12} color={palette.primary} />
+          <FancyText size='extraSmall' type='medium'>
+            {`${format(data?.evento.dataOcorrencia, 'dd/MM/yyyy')} - ${format(data?.evento.dataInicio!, 'HH:mm')} à ${format(data?.evento.dataTermino!, 'HH:mm')}`}
           </FancyText>
-          <View style={{ flexDirection: 'column', gap: 2 }}>
-            <FancyText size={'extraSmall'} type='medium'>
-              {`${format(data?.evento.dataOcorrencia, 'dd/MM/yyyy')} - ${format(data?.evento.dataInicio!, 'HH:mm')} à ${format(
-                data?.evento.dataTermino!,
-                'HH:mm',
-              )}`}
-            </FancyText>
+        </View>
+        <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: ColorUtils.withAlpha(palette.borderCard, 0.7) }} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <FancyAvatarImage
+            source={
+              data.voluntario?.fotoUrl || data.voluntario?.fotoThumbUrl
+                ? { uri: data.voluntario?.fotoThumbUrl || data.voluntario?.fotoUrl || '' }
+                : AppImages.emptyProfile
+            }
+            size={20}
+            style={{ width: 20, height: 20 }}
+          />
+          <View>
+            <FancyText size={10} color={palette.fonts.inactive}>{data?.funcao?.nome}</FancyText>
+            <FancyText size={12} type='semiBold'>{getFirstAndLastName(data?.voluntario?.nome)}</FancyText>
           </View>
         </View>
-      </FancyGroup>
-      <FancyGroup variant='accentedSummary' contentContainerStyle={{ flexDirection: 'row', gap: 15 }}>
-        <View style={{ gap: 6, flex: 1 }}>
-          <FancyText size='small' type='bold'>
-            De:
-          </FancyText>
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            <FancyAvatarImage
-              source={
-                data.voluntario?.fotoUrl || data.voluntario?.fotoThumbUrl
-                  ? { uri: data.voluntario?.fotoThumbUrl || data.voluntario?.fotoUrl || '' }
-                  : AppImages.emptyProfile
-              }
-              size={26}
-              style={{ width: 26, height: 26 }}
-            />
-            <View style={{ flexDirection: 'column', gap: 1 }}>
-              <FancyText type='medium' size={11} color={palette.fonts.inactive}>
-                {data?.funcao?.nome}
-              </FancyText>
-              <FancyText type='semiBold' size={12}>
-                {getFirstAndLastName(data?.voluntario?.nome)}
-              </FancyText>
-            </View>
-          </View>
-        </View>
-      </FancyGroup>
+      </View>
       <FancyGroup>
         <View style={{ gap: 8 }}>
           <FancyText size='small' type='bold'>

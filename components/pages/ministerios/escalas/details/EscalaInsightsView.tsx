@@ -13,6 +13,8 @@ import {
 } from 'react-native';
 import DefaultIcons from '../../../../FancyIcons';
 import FancyAccordeon from '../../../../FancyAccordeon';
+import FancyAvatarImage from '../../../../images/FancyImage';
+import { AppImages } from '../../../../../assets/app_images';
 import FancyChips from '../../../../FancyChips';
 import FancyText from '../../../../FancyText';
 import { ThemePalette } from '../../../../../constants/colors';
@@ -25,6 +27,7 @@ import { ColorUtils } from '../../../../../utils/color_utils';
 import { DateUtilsApi } from '../../../../../utils/date_utils';
 import DashboardCard from '../../../inicio/DashboardCard';
 import { buildCurrentEscalaInsights, buildHistoricalEscalaInsights } from './escalaInsights.utils';
+import { getFirstAndLastName } from '../../../../../utils/text_utils';
 
 const HISTORY_MONTHS_WINDOW = 6;
 const MAX_RANKING_ROWS = 12;
@@ -196,12 +199,11 @@ export default function EscalaInsightsView({
 }: EscalaInsightsViewProps) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
-  const window = useWindowDimensions();
-  const [openSection, setOpenSection] = useState<InsightsSectionKey | null>('resumo');
+  const [openSections, setOpenSections] = useState<Set<InsightsSectionKey>>(new Set(['resumo']));
   const [activeInfo, setActiveInfo] = useState<ActiveInfo | null>(null);
 
   useEffect(() => {
-    setOpenSection('resumo');
+    setOpenSections(new Set(['resumo']));
     setActiveInfo(null);
   }, [escala.id]);
 
@@ -278,8 +280,6 @@ export default function EscalaInsightsView({
     currentInsights.maiorCarga.qtdAtual <= currentInsights.cargaMediaAtual * 1.8;
   const distributionChipColor = isBalanced ? palette.confirm : palette.warning;
   const accordionHeaderColor = ColorUtils.withAlpha(palette.primary, 0.05);
-  const peopleRowsMaxHeight = Math.min(240, Math.max(120, Math.floor(window.height * 0.28)));
-  const equilibrioMaxHeight = Math.min(250, Math.max(130, Math.floor(window.height * 0.29)));
 
   const renderTitle = (text: string) => (
     <View style={styles.sectionTitle}>
@@ -295,8 +295,12 @@ export default function EscalaInsightsView({
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <FancyAccordeon
             title={renderTitle('Resumo da escala atual')}
-            expanded={openSection === 'resumo'}
-            onExpandedChange={(expanded) => setOpenSection(expanded ? 'resumo' : null)}
+            expanded={openSections.has('resumo')}
+            onExpandedChange={(expanded) => setOpenSections(prev => {
+              const next = new Set(prev);
+              expanded ? next.add('resumo') : next.delete('resumo');
+              return next;
+            })}
             headerColor={accordionHeaderColor}
             expandedHeaderColor={accordionHeaderColor}
             contentContainerStyle={styles.accordeonContent}
@@ -325,8 +329,12 @@ export default function EscalaInsightsView({
 
           <FancyAccordeon
             title={renderTitle('Cobertura')}
-            expanded={openSection === 'cobertura'}
-            onExpandedChange={(expanded) => setOpenSection(expanded ? 'cobertura' : null)}
+            expanded={openSections.has('cobertura')}
+            onExpandedChange={(expanded) => setOpenSections(prev => {
+              const next = new Set(prev);
+              expanded ? next.add('cobertura') : next.delete('cobertura');
+              return next;
+            })}
             headerColor={accordionHeaderColor}
             expandedHeaderColor={accordionHeaderColor}
             contentContainerStyle={styles.accordeonContent}
@@ -355,8 +363,12 @@ export default function EscalaInsightsView({
 
           <FancyAccordeon
             title={renderTitle('Pessoas')}
-            expanded={openSection === 'pessoas'}
-            onExpandedChange={(expanded) => setOpenSection(expanded ? 'pessoas' : null)}
+            expanded={openSections.has('pessoas')}
+            onExpandedChange={(expanded) => setOpenSections(prev => {
+              const next = new Set(prev);
+              expanded ? next.add('pessoas') : next.delete('pessoas');
+              return next;
+            })}
             headerColor={accordionHeaderColor}
             expandedHeaderColor={accordionHeaderColor}
             contentContainerStyle={styles.accordeonContent}
@@ -383,19 +395,26 @@ export default function EscalaInsightsView({
                   </View>
                 </View>
 
-                <ScrollView
-                  style={{ maxHeight: peopleRowsMaxHeight }}
-                  nestedScrollEnabled
-                  showsVerticalScrollIndicator
-                >
+                <View>
                   {topRanking.map((row, index) => {
                     const mediaPessoa = historicalInsights.mediaEscalasMesPorPessoa[row.voluntarioId] ?? 0;
                     const mediaPessoaLabel = historyQuery.isLoading ? '...' : historyQuery.isError ? '—' : formatOneDecimal(mediaPessoa);
                     return (
                       <View key={row.voluntarioId} style={[styles.tableDataRow, index === topRanking.length - 1 && styles.tableLastRow]}>
-                        <FancyText size='extraSmall' type='medium' style={[styles.cellBase, styles.cellName]} numberOfLines={1}>
-                          {row.nome}
-                        </FancyText>
+                        <View style={[styles.cellBase, styles.cellName, styles.cellPersona]}>
+                          <FancyAvatarImage
+                            source={
+                              row.fotoThumbUrl || row.fotoUrl
+                                ? { uri: row.fotoThumbUrl || row.fotoUrl }
+                                : AppImages.emptyProfile
+                            }
+                            size={20}
+                            style={styles.rankingAvatar}
+                          />
+                          <FancyText size='extraSmall' type='medium' numberOfLines={1} style={{ flex: 1 }}>
+                            {getFirstAndLastName(row.nome)}
+                          </FancyText>
+                        </View>
                         <FancyText size='extraSmall' type='semiBold' style={[styles.cellBase, styles.cellCenter]}>
                           {formatCount(row.qtdAtual)}
                         </FancyText>
@@ -405,15 +424,19 @@ export default function EscalaInsightsView({
                       </View>
                     );
                   })}
-                </ScrollView>
+                </View>
               </View>
             )}
           </FancyAccordeon>
 
           <FancyAccordeon
             title={renderTitle('Equilíbrio')}
-            expanded={openSection === 'equilibrio'}
-            onExpandedChange={(expanded) => setOpenSection(expanded ? 'equilibrio' : null)}
+            expanded={openSections.has('equilibrio')}
+            onExpandedChange={(expanded) => setOpenSections(prev => {
+              const next = new Set(prev);
+              expanded ? next.add('equilibrio') : next.delete('equilibrio');
+              return next;
+            })}
             headerColor={accordionHeaderColor}
             expandedHeaderColor={accordionHeaderColor}
             contentContainerStyle={styles.accordeonContent}
@@ -422,11 +445,7 @@ export default function EscalaInsightsView({
             containerContainerStyle={styles.accordeonContainer}
             containerExpandedContainerStyle={styles.accordeonContainerExpanded}
           >
-            <ScrollView
-              style={{ maxHeight: equilibrioMaxHeight }}
-              nestedScrollEnabled
-              showsVerticalScrollIndicator
-            >
+            <View>
               <View style={styles.equilibrioRow}>
                 <FancyChips label={isBalanced ? 'Distribuição equilibrada' : 'Distribuição concentrada'} color={distributionChipColor} backgroundColor={ColorUtils.withAlpha(distributionChipColor, 0.16)} size='small' />
                 <InfoButton label='Explicar distribuição' onPress={(anchor) => openInfo('eq_distribuicao', anchor)} />
@@ -471,7 +490,7 @@ export default function EscalaInsightsView({
                 <FancyText size='small' type='bold'>{historyQuery.isError ? '—' : formatOneDecimal(historicalInsights.mediaEscalasMesMinisterio)}</FancyText>
                 <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>{historyPeriodLabel}</FancyText>
               </View>
-            </ScrollView>
+            </View>
           </FancyAccordeon>
         </ScrollView>
       </View>
@@ -556,7 +575,9 @@ function createStyles(palette: ThemePalette) {
     cellBase: { minWidth: 0 },
     cellName: { flex: 2 },
     cellCenter: { flex: 1, textAlign: 'center' },
-    equilibrioRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    cellPersona: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    rankingAvatar: { width: 20, height: 20, borderRadius: 10, flexShrink: 0 },
+    equilibrioRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
     infoRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -564,7 +585,8 @@ function createStyles(palette: ThemePalette) {
       gap: 10,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: ColorUtils.withAlpha(palette.borderCard, 0.85),
-      paddingBottom: 6,
+      paddingTop: 8,
+      paddingBottom: 8,
     },
     infoLabel: { flexDirection: 'row', alignItems: 'center', gap: 5 },
     infoValue: { flexShrink: 1, textAlign: 'right', maxWidth: '56%' },
@@ -576,6 +598,7 @@ function createStyles(palette: ThemePalette) {
       backgroundColor: palette.backgroundColor,
       paddingHorizontal: 10,
       paddingVertical: 8,
+      marginTop: 8,
     },
     monthlyHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
     popoverRoot: { flex: 1 },

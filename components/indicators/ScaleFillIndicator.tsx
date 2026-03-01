@@ -18,6 +18,7 @@ type ScaleFillIndicatorProps = {
   centerColor?: string;
   textColor?: string;
   percentColor?: string;
+  progressColor?: string;
   textType?: FancyTextProps['type'];
   textSize?: FancyTextProps['size'];
   donutSize?: number;
@@ -41,6 +42,7 @@ export default function ScaleFillIndicator({
   centerColor,
   textColor,
   percentColor,
+  progressColor: progressColorProp,
   textType = 'medium',
   textSize = 'extraSmall',
   donutSize,
@@ -55,7 +57,9 @@ export default function ScaleFillIndicator({
   const percent = safeTotal > 0 ? Math.round((safeFilled / safeTotal) * 100) : 0;
   const isEmptyState = safeTotal <= 0;
   const resolvedTrackColor = trackColor ?? palette.disabled2;
-  const progressColor = isEmptyState ? resolvedTrackColor : getProgressColor(percent, palette);
+  const isZeroPercent = percent === 0;
+  const baseProgressColor = progressColorProp ?? getProgressColor(percent, palette);
+  const progressColor = isEmptyState || isZeroPercent ? resolvedTrackColor : baseProgressColor;
 
   const isCompact = size === 'compact';
   const resolvedDonutSize = donutSize ?? (isCompact ? 12 : 15);
@@ -66,7 +70,7 @@ export default function ScaleFillIndicator({
     centerColor ?? (showContainer ? containerBackground : palette.backgroundColor);
   const resolvedTextColor = textColor ?? palette.fonts.dark;
   const resolvedPercentColor =
-    percentColor ?? (isEmptyState ? palette.fonts.inactive : progressColor);
+    percentColor ?? (isEmptyState || isZeroPercent ? palette.fonts.inactive : baseProgressColor);
 
   return (
     <View
@@ -92,10 +96,10 @@ export default function ScaleFillIndicator({
         type={textType}
         size={textSize}
         color={resolvedTextColor}
-        style={styles.label}
+        style={label ? styles.label : undefined}
         numberOfLines={1}
       >
-        {`${safeFilled}/${safeTotal} ${label}`}
+        {label ? `${safeFilled}/${safeTotal} ${label}` : `${safeFilled}/${safeTotal}`}
       </FancyText>
 
       <FancyText type={textType} size={textSize} color={resolvedPercentColor}>
@@ -110,7 +114,7 @@ function createStyles(palette: ThemePalette) {
     base: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 7,
+      gap: 5,
     },
     container: {
       borderRadius: 10,

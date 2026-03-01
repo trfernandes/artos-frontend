@@ -5,6 +5,8 @@ export type EscalaInsightsPersonRow = {
   voluntarioId: string;
   nome: string;
   qtdAtual: number;
+  fotoUrl?: string;
+  fotoThumbUrl?: string;
 };
 
 export type EscalaCurrentInsights = {
@@ -66,10 +68,13 @@ export function buildCurrentEscalaInsights(itens: ResponseEscalaItemDto[]): Esca
       continue;
     }
 
+    const voluntarioEntity = (item.voluntario?.voluntario as any);
     pessoasMap.set(item.voluntarioId, {
       voluntarioId: item.voluntarioId,
       nome: getVoluntarioNome(item),
       qtdAtual: 1,
+      fotoUrl: voluntarioEntity?.fotoUrl,
+      fotoThumbUrl: voluntarioEntity?.fotoThumbUrl,
     });
   }
 

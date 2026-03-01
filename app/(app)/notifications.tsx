@@ -38,6 +38,15 @@ export default function NotificationsPage() {
     [marcarComoLida],
   );
 
+  const handleMarkAsRead = useCallback(
+    (notification: ResponseNotificacaoDto) => {
+      if (!notification.lidaEm) {
+        void marcarComoLida(notification.id);
+      }
+    },
+    [marcarComoLida],
+  );
+
   useFocusEffect(
     useCallback(() => {
       void refetchNotificacoes();
@@ -78,14 +87,14 @@ export default function NotificationsPage() {
     {
       title: 'Não lidas',
       icon: { library: 'MaterialCommunityIcons', name: 'email-outline', size: 14 },
-      content: <NotificationsList dataList={naoLidasData} onPress={handleOpenNotification} />,
+      content: <NotificationsList dataList={naoLidasData} onPress={handleOpenNotification} onMarkAsRead={handleMarkAsRead} />,
     },
     {
       title: 'Todas',
       icon: { library: 'MaterialCommunityIcons', name: 'bell-outline', size: 14 },
       content: (
         <View style={{ flex: 1 }}>
-          <NotificationsList dataList={notificacoes} onPress={handleOpenNotification} />
+          <NotificationsList dataList={notificacoes} onPress={handleOpenNotification} onMarkAsRead={handleMarkAsRead} />
         </View>
       ),
     },

@@ -105,6 +105,7 @@ export default function MinisterioEscalasDetailsPage() {
     isError: isErrorEscalaItens,
   } = useEscalaItensCrud({
     autoFetch: false,
+    muteMessages: true,
   });
 
   const startRef = useRef<number>(0);
@@ -342,8 +343,16 @@ export default function MinisterioEscalasDetailsPage() {
           funcaoId: data.funcaoId,
         });
         await refetchEscala();
+        Toast.show({
+          type: 'success',
+          text1: 'Função adicionada à escala.',
+        });
         return true;
       } catch {
+        Toast.show({
+          type: 'error',
+          text1: 'Não foi possível adicionar a função.',
+        });
         return false;
       }
     },
@@ -365,9 +374,17 @@ export default function MinisterioEscalasDetailsPage() {
           // Remover todos os itens dessa função
           await Promise.all(itensToRemove.map((item) => removeEscalaItem?.(item.id!)));
           await refetchEscala();
+          Toast.show({
+            type: 'success',
+            text1: 'Função removida da escala.',
+          });
         }
       } catch (error) {
         console.error('Erro ao excluir função:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Não foi possível excluir a função.',
+        });
       }
     },
     [escalaData, removeEscalaItem, refetchEscala],

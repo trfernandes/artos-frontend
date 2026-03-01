@@ -7,6 +7,9 @@ import { useState } from 'react';
 import FancyErrorText from '../../../../forms/FancyErrorText';
 import FancyGroup from '../../../../list/FancyGroup';
 import { useMinisterioFuncoesCrud } from '../../../../../hooks/useMinisterioFuncoesCrud';
+import DefaultIcons from '../../../../FancyIcons';
+import { ColorUtils } from '../../../../../utils/color_utils';
+import { usePallete } from '../../../../../hooks/usePallete';
 
 export interface AdicionarFuncaoModalProps {
   ministerioId: string;
@@ -24,6 +27,7 @@ export interface AdicionarFuncaoConfirmDialog {
 }
 
 export default function AdicionarFuncaoModal({ ministerioId, eventoNome, eventoId, dataOcorrencia, dataInicio, dataTermino, ...props }: AdicionarFuncaoModalProps & FancyModalDialogProps<any>) {
+  const palette = usePallete();
   const { data: funcoes, isLoading: isLoadingFuncoes } = useMinisterioFuncoesCrud({
     autoFetch: true,
     initialParams: {
@@ -65,7 +69,7 @@ export default function AdicionarFuncaoModal({ ministerioId, eventoNome, eventoI
         await props.onButton2Press?.({
           funcaoId: selectedFuncao!,
           eventoId: eventoId,
-          dataOcorrencia: dataOcorrencia.toISOString().split('T')[0],
+          dataOcorrencia: format(dataOcorrencia, 'yyyy-MM-dd'),
         });
       } finally {
         setIsSubmitting(false);
@@ -85,21 +89,23 @@ export default function AdicionarFuncaoModal({ ministerioId, eventoNome, eventoI
         pointerEvents: isLoadingFuncoes ? 'none' : 'auto',
       }}
     >
-      <FancyGroup variant='accentedSummary'>
-        <View style={{ gap: 2 }}>
-          <FancyText size='small' type='bold'>
-            Evento:
+      <View style={{
+        backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
+        borderRadius: 10,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: ColorUtils.withAlpha(palette.primary, 0.25),
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        gap: 6,
+      }}>
+        <FancyText type='semiBold' size='small'>{eventoNome}</FancyText>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <DefaultIcons.Custom library='MaterialIcons' name='event' size={12} color={palette.primary} />
+          <FancyText size='extraSmall' type='medium'>
+            {`${format(dataOcorrencia, 'dd/MM/yyyy')} - ${format(dataInicio!, 'HH:mm')} à ${format(dataTermino!, 'HH:mm')}`}
           </FancyText>
-          <View style={{ flexDirection: 'column', gap: 2 }}>
-            <FancyText size={'small'} type='bold'>
-              {eventoNome}
-            </FancyText>
-            <FancyText size={'extraSmall'} type='medium'>
-              {`${format(dataOcorrencia, 'dd/MM/yyyy')} - ${format(dataInicio!, 'HH:mm')} à ${format(dataTermino!, 'HH:mm')}`}
-            </FancyText>
-          </View>
         </View>
-      </FancyGroup>
+      </View>
 
       <FancyGroup title='Selecionar Função:' contentContainerStyle={{ gap: 15 }}>
         <View style={{ flexDirection: 'column', gap: 5 }}>

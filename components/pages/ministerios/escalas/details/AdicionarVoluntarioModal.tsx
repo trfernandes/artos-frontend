@@ -16,6 +16,8 @@ import FancyGroup from '../../../../list/FancyGroup';
 import { AppImages } from '../../../../../assets/app_images';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { usePallete } from '../../../../../hooks/usePallete';
+import DefaultIcons from '../../../../FancyIcons';
+import { ColorUtils } from '../../../../../utils/color_utils';
 
 export interface AdicionarVoluntarioModalProps {
   data: EscalaItemEquipeType & {
@@ -27,6 +29,7 @@ export interface AdicionarVoluntarioModalProps {
       dataTermino: Date;
     };
   };
+  currentEquipe?: EscalaItemEquipeType[];
 }
 
 export interface AdicionarVoluntarioConfirmDialog {
@@ -34,7 +37,7 @@ export interface AdicionarVoluntarioConfirmDialog {
   idVoluntario: string;
 }
 
-export default function AdicionarVoluntarioModal({ data, ...props }: AdicionarVoluntarioModalProps & FancyModalDialogProps<any>) {
+export default function AdicionarVoluntarioModal({ data, currentEquipe, ...props }: AdicionarVoluntarioModalProps & FancyModalDialogProps<any>) {
   const palette = usePallete();
   const [disponiveisNaData, setDisponiveisNaData] = useState(false);
   const [temMesmaFuncao, setTemMesmaFuncao] = useState(false);
@@ -56,14 +59,26 @@ export default function AdicionarVoluntarioModal({ data, ...props }: AdicionarVo
   const dataOcorrenciaString = useMemo(() => data.evento.dataOcorrencia.toISOString(), [data.evento.dataOcorrencia]);
   const funcaoId = useMemo(() => data.funcao?.id, [data.funcao?.id]);
 
+  // IDs de ministerioVoluntario já escalados neste evento (evita duplo escalonamento)
+  const alreadyAssignedIds = useMemo(() => {
+    if (!currentEquipe) return new Set<string>();
+    return new Set(
+      currentEquipe
+        .filter((e) => !!e.voluntario?.minVoluntarioId)
+        .map((e) => e.voluntario!.minVoluntarioId),
+    );
+  }, [currentEquipe]);
+
   useEffect(() => {
+    const filteredDropDown = dropDownList.filter((item) => !alreadyAssignedIds.has(item.value as string));
+
     if (!data) {
-      setVoluntariosDropDownList(dropDownList);
+      setVoluntariosDropDownList(filteredDropDown);
       return;
     }
 
     if (!disponiveisNaData && !temMesmaFuncao) {
-      setVoluntariosDropDownList(dropDownList);
+      setVoluntariosDropDownList(filteredDropDown);
       return;
     }
 
@@ -71,10 +86,10 @@ export default function AdicionarVoluntarioModal({ data, ...props }: AdicionarVo
       try {
         setIsLoadingVoluntarios(true);
 
-        let newList = [...ministerioVoluntariosList];
+        let newList = ministerioVoluntariosList.filter((mv) => !alreadyAssignedIds.has(mv.id!));
 
         if (!igrejaId) {
-          setVoluntariosDropDownList(dropDownList);
+          setVoluntariosDropDownList(filteredDropDown);
           return;
         }
 
@@ -163,7 +178,7 @@ export default function AdicionarVoluntarioModal({ data, ...props }: AdicionarVo
     }
 
     filtrarVoluntarios();
-  }, [ministerioVoluntariosList, disponiveisNaData, temMesmaFuncao, dataOcorrenciaString, funcaoId, igrejaId]);
+  }, [ministerioVoluntariosList, disponiveisNaData, temMesmaFuncao, dataOcorrenciaString, funcaoId, igrejaId, dropDownList, alreadyAssignedIds]);
 
   const [selectedVoluntario, setSelectedVoluntario] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -205,34 +220,27 @@ export default function AdicionarVoluntarioModal({ data, ...props }: AdicionarVo
         pointerEvents: isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation || isLoadingVoluntarios ? 'none' : 'auto',
       }}
     >
-      <FancyGroup variant='accentedSummary'>
-        <View style={{ gap: 2 }}>
-          <FancyText size='small' type='bold'>
-            Evento:
+      <View style={{
+        backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
+        borderRadius: 10,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: ColorUtils.withAlpha(palette.primary, 0.25),
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        gap: 6,
+      }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <DefaultIcons.Custom library='MaterialIcons' name='event' size={12} color={palette.primary} />
+          <FancyText size='extraSmall' type='medium'>
+            {`${format(data?.evento.dataOcorrencia, 'dd/MM/yyyy')} - ${format(data?.evento.dataInicio!, 'HH:mm')} à ${format(data?.evento.dataTermino!, 'HH:mm')}`}
           </FancyText>
-          <View style={{ flexDirection: 'column', gap: 2 }}>
-            <FancyText size={'small'} type='medium'>
-              {`${format(data?.evento.dataOcorrencia, 'dd/MM/yyyy')} - ${format(data?.evento.dataInicio!, 'HH:mm')} à ${format(
-                data?.evento.dataTermino!,
-                'HH:mm',
-              )}`}
-            </FancyText>
-          </View>
         </View>
-      </FancyGroup>
-
-      <FancyGroup variant='accentedSummary'>
-        <View style={{ gap: 2 }}>
-          <FancyText size='small' type='bold'>
-            Função:
-          </FancyText>
-          <View style={{ flexDirection: 'column', gap: 2 }}>
-            <FancyText size={'small'} type='medium'>
-              {data?.funcao?.nome}
-            </FancyText>
-          </View>
+        <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: ColorUtils.withAlpha(palette.borderCard, 0.7) }} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <DefaultIcons.Custom library='MaterialIcons' name='work-outline' size={12} color={palette.primary} />
+          <FancyText size='extraSmall' type='medium'>{data?.funcao?.nome}</FancyText>
         </View>
-      </FancyGroup>
+      </View>
 
       <FancyGroup>
         <View style={{ gap: 8 }}>

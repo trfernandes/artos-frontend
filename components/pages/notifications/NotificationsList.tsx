@@ -1,7 +1,7 @@
 import NotificacaoCard from './NotificacaoCard';
 import EscalaLembreteNotificacaoCard from './EscalaLembreteNotificacaoCard';
-import { SectionList, SectionListData, View, StyleSheet } from 'react-native';
-import { useCallback, useMemo } from 'react';
+import { SectionList, SectionListData, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { useCallback, useMemo, useRef } from 'react';
 import FancyListEmpty from '../../list/FancyListEmpty';
 import { isAfter, isSameDay, startOfDay, startOfMonth, subDays } from 'date-fns';
 import FancyText from '../../FancyText';
@@ -9,6 +9,8 @@ import { ResponseNotificacaoDto } from '../../../domain/dtos/Notificacao/notific
 import { NotificacaoTipoEnum } from '../../../domain/enums/Notificacao/tipo-notificacao.enum';
 import { DateUtilsApi } from '../../../utils/date_utils';
 import { usePallete } from '../../../hooks/usePallete';
+import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
+import DefaultIcons from '../../FancyIcons';
 
 const Hoje = { title: 'Hoje', hours: 0 };
 const Ontem = { title: 'Ontem', hours: 24 };
@@ -16,12 +18,52 @@ const ultimos7Dias = { title: 'Últimos 7 dias', hours: 168 };
 const esteMes = { title: 'Este mês', hours: 720 };
 const maisAntigas = { title: 'Mais antigas', hours: Infinity };
 
+function SwipeableMarkAsRead({
+  item,
+  onMarkAsRead,
+  children,
+}: {
+  item: ResponseNotificacaoDto;
+  onMarkAsRead: (n: ResponseNotificacaoDto) => void;
+  children: React.ReactNode;
+}) {
+  const swipeableRef = useRef<any>(null);
+
+  return (
+    <ReanimatedSwipeable
+      ref={swipeableRef}
+      friction={2}
+      rightThreshold={60}
+      overshootRight={false}
+      renderRightActions={() => (
+        <TouchableOpacity
+          style={styles.markAsReadAction}
+          onPress={() => {
+            onMarkAsRead(item);
+            swipeableRef.current?.close();
+          }}
+          activeOpacity={0.8}
+        >
+          <DefaultIcons.Custom library='MaterialCommunityIcons' name='check' size={18} color='#fff' />
+          <FancyText size='extraSmall' type='semiBold' style={styles.markAsReadLabel}>
+            Lida
+          </FancyText>
+        </TouchableOpacity>
+      )}
+    >
+      {children}
+    </ReanimatedSwipeable>
+  );
+}
+
 export default function NotificationsList({
   dataList,
   onPress,
+  onMarkAsRead,
 }: {
   dataList: ResponseNotificacaoDto[];
   onPress?: (notification: ResponseNotificacaoDto) => void;
+  onMarkAsRead?: (notification: ResponseNotificacaoDto) => void;
 }) {
   const Pallete = usePallete();
   const groupsData = useMemo<SectionListData<ResponseNotificacaoDto>[]>(() => {
@@ -74,7 +116,7 @@ export default function NotificationsList({
       }));
   }, [dataList]);
 
-  const renderItem = useCallback((item: ResponseNotificacaoDto) => {
+  const renderCard = useCallback((item: ResponseNotificacaoDto) => {
     switch (item.tipo) {
       case NotificacaoTipoEnum.EscalaLembrete:
         return <EscalaLembreteNotificacaoCard data={item} onPress={onPress} />;
@@ -82,6 +124,19 @@ export default function NotificationsList({
         return <NotificacaoCard data={item} onPress={onPress} />;
     }
   }, [onPress]);
+
+  const renderItem = useCallback((item: ResponseNotificacaoDto) => {
+    const card = renderCard(item);
+    const isUnread = !item.lidaEm;
+
+    if (!isUnread || !onMarkAsRead) return card;
+
+    return (
+      <SwipeableMarkAsRead item={item} onMarkAsRead={onMarkAsRead}>
+        {card}
+      </SwipeableMarkAsRead>
+    );
+  }, [renderCard, onMarkAsRead]);
 
   if (!dataList || dataList.length === 0) {
     return (
@@ -115,4 +170,16 @@ export default function NotificationsList({
 const styles = StyleSheet.create({
   sectionHeader: { paddingTop: 8, paddingHorizontal: 15 },
   itemWrapper: { paddingHorizontal: 15 },
+  markAsReadAction: {
+    backgroundColor: '#16A34A',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 72,
+    borderRadius: 24,
+    marginLeft: 8,
+    gap: 2,
+  },
+  markAsReadLabel: {
+    color: '#fff',
+  },
 });

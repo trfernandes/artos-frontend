@@ -180,18 +180,18 @@ export default function ListaVoluntariosTable({
                 <View style={styles.infoColumn}>
                   <FancyText
                     type='medium'
-                    size={10}
+                    size={Platform.OS === 'ios' ? 11 : 10}
                     color={palette.fonts.inactive}
                     numberOfLines={1}
                   >
                     {equipeItem.funcao?.nome}
                   </FancyText>
                   {hasVoluntario ? (
-                    <FancyText type='semiBold' size={10}>
+                    <FancyText type='semiBold' size={Platform.OS === 'ios' ? 11 : 10}>
                       {getFirstAndLastName(equipeItem.voluntario?.nome)}
                     </FancyText>
                   ) : (
-                    <FancyText type='semiBold' size={10} color={palette.fonts.inactive}>
+                    <FancyText type='semiBold' size={Platform.OS === 'ios' ? 11 : 10} color={palette.fonts.inactive}>
                       Sem Voluntário
                     </FancyText>
                   )}
@@ -277,27 +277,18 @@ export default function ListaVoluntariosTable({
           );
         })}
 
-        {/* Separador */}
-        {isEditMode && (
-          <View style={styles.separatorContainer}>
-            <View style={styles.separatorLine} />
-            <View style={styles.separatorDot} />
-            <View style={styles.separatorLine} />
-          </View>
-        )}
-
         {/* Ações do evento */}
         {isEditMode && (
           <View style={styles.footerActions}>
             <TouchableOpacity onPress={onAdicionarFuncaoPressed} style={styles.footerPill}>
               <DefaultIcons.Custom library='MaterialIcons' name='add' size={14} color={palette.icons.light} />
-              <FancyText type='semiBold' size={10} color={palette.fonts.light} numberOfLines={1}>
+              <FancyText type='semiBold' size={Platform.OS === 'ios' ? 11 : 10} color={palette.fonts.light} numberOfLines={1}>
                 Nova Função
               </FancyText>
             </TouchableOpacity>
             <TouchableOpacity onPress={onExcluirEvento} style={styles.footerPillDanger}>
               <DefaultIcons.Custom library='MaterialIcons' name='delete-outline' size={14} color={palette.icons.light} />
-              <FancyText type='semiBold' size={10} color={palette.fonts.light} numberOfLines={1}>
+              <FancyText type='semiBold' size={Platform.OS === 'ios' ? 11 : 10} color={palette.fonts.light} numberOfLines={1}>
                 Excluir Evento
               </FancyText>
             </TouchableOpacity>
@@ -386,7 +377,7 @@ function createStyles(palette: ThemePalette) {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 10,
+      gap: 12,
       paddingTop: 4,
       paddingBottom: 1,
       paddingHorizontal: 4,
@@ -397,10 +388,15 @@ function createStyles(palette: ThemePalette) {
       alignItems: 'center',
       justifyContent: 'center',
       gap: 4,
-      height: 30,
-      paddingHorizontal: 10,
+      height: 34,
+      paddingHorizontal: 12,
       borderRadius: 999,
       backgroundColor: palette.primary,
+      elevation: 2,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.15,
+      shadowRadius: 2,
     },
     footerPillDanger: {
       flex: 1,
@@ -408,10 +404,15 @@ function createStyles(palette: ThemePalette) {
       alignItems: 'center',
       justifyContent: 'center',
       gap: 4,
-      height: 30,
-      paddingHorizontal: 10,
+      height: 34,
+      paddingHorizontal: 12,
       borderRadius: 999,
       backgroundColor: palette.error,
+      elevation: 2,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.15,
+      shadowRadius: 2,
     },
     separatorContainer: {
       flexDirection: 'row',

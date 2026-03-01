@@ -86,14 +86,39 @@ function resolveByTipo(payload: Record<string, any>): NotificationNavigationTarg
   const tipo = payload.tipo as NotificacaoTipoEnum | undefined;
 
   switch (tipo) {
+    // Escalas: navegar para a tela de escalas pessoais
     case NotificacaoTipoEnum.EscalaLembrete:
+    case NotificacaoTipoEnum.EscalaPublicada:
+    case NotificacaoTipoEnum.EscalaAlterada:
+    case NotificacaoTipoEnum.EscalaCancelada:
+    case NotificacaoTipoEnum.EscalaConfirmacaoPendente:
+    case NotificacaoTipoEnum.EscalaSubstituicaoSolicitada:
+    case NotificacaoTipoEnum.EscalaSubstituicaoAceita:
+    case NotificacaoTipoEnum.EscalaSubstituicaoRecusada:
+    case NotificacaoTipoEnum.EscalaVoluntarioConfirmou:
+    case NotificacaoTipoEnum.EscalaVoluntarioRecusou:
+    case NotificacaoTipoEnum.EscalaSubstituicaoSolicitadaLider:
+    case NotificacaoTipoEnum.EscalaSubstituicaoResolvidaLider:
+    case NotificacaoTipoEnum.IndisponibilidadeConflito:
       return { pathname: '/(app)/(drawer)/pessoal/escalas' };
+
+    // Ministério: navegar para a listagem de ministérios
+    case NotificacaoTipoEnum.MinisterioNovoIntegrante:
+      return { pathname: '/(app)/(drawer)/ministerios' };
+
+    // Admin: solicitações de vínculo
     case NotificacaoTipoEnum.IgrejaVinculoSolicitado:
       return { pathname: '/(app)/(drawer)/admin/solicitacoes' };
+
+    // Admin: novos voluntários
+    case NotificacaoTipoEnum.IgrejaNovoVoluntario:
+      return { pathname: '/(app)/(drawer)/admin/voluntarios' };
+
+    // Demais tipos: permanecer na tela de notificações
     case NotificacaoTipoEnum.IgrejaConviteAceito:
     case NotificacaoTipoEnum.IgrejaVinculoAprovado:
     case NotificacaoTipoEnum.IgrejaVinculoNegado:
-      return { pathname: '/notifications' };
+    case NotificacaoTipoEnum.IgrejaConviteExpirado:
     default:
       return { pathname: '/notifications' };
   }

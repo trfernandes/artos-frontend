@@ -48,7 +48,7 @@ export default function NotificationButton() {
       {showBadge && (
         <View style={styles.badgeWrapper}>
           <View style={styles.badgeContainer}>
-            <FancyText size='extraSmall' type='bold' style={styles.badgeLabel}>
+            <FancyText size={8} type='bold' style={styles.badgeLabel}>
               {badgeLabel}
             </FancyText>
           </View>
@@ -77,17 +77,17 @@ function createStyles(palette: ThemePalette) {
     },
     badgeLabel: {
       color: palette.fonts.light,
-      lineHeight: 12,
+      lineHeight: 9,
       textAlign: 'center',
-      minWidth: 10,
+      minWidth: 8,
       paddingHorizontal: 0,
       includeFontPadding: false,
     },
     badgeContainer: {
-      minWidth: 14,
-      height: 14,
+      minWidth: 12,
+      height: 12,
       paddingHorizontal: 2,
-      borderRadius: 10,
+      borderRadius: 6,
       backgroundColor: palette.error,
       alignItems: 'center',
       justifyContent: 'center',
@@ -96,8 +96,8 @@ function createStyles(palette: ThemePalette) {
       position: 'absolute',
       alignItems: 'center',
       justifyContent: 'center',
-      right: -2,
-      top: -1,
+      right: 7,
+      top: 5,
       borderRadius: 4,
       backgroundColor: palette.backgroundColor,
       zIndex: 1,

@@ -84,23 +84,36 @@ function ActionIconButton({ action }: { action: InlineAction }) {
   const styles = useThemedStyles(createStyles);
   const isDanger = action.variant === 'danger';
   const isPublishAction = action.key === 'publish';
+  const isInsightsAction = action.key === 'insights';
   const isDisabled = !!action.disabled || !!action.isLoading;
   const iconColor = isPublishAction
     ? isDisabled
-      ? ColorUtils.withAlpha(palette.primary, 0.55)
-      : palette.primary
-    : isDanger
+      ? ColorUtils.withAlpha('#FFFFFF', 0.7)
+      : '#FFFFFF'
+    : isInsightsAction
       ? isDisabled
-        ? ColorUtils.withAlpha(palette.error, 0.55)
-        : palette.error
-      : isDisabled
-        ? palette.icons.inactive
-        : palette.icons.dark;
+        ? ColorUtils.withAlpha('#FFFFFF', 0.7)
+        : '#FFFFFF'
+      : isDanger
+        ? isDisabled
+          ? ColorUtils.withAlpha('#FFFFFF', 0.7)
+          : '#FFFFFF'
+        : isDisabled
+          ? palette.icons.inactive
+          : palette.icons.dark;
   const iconButtonBackground = isPublishAction
-    ? ColorUtils.withAlpha(palette.primary, 0.14)
-    : isDanger
-      ? ColorUtils.withAlpha(palette.error, 0.14)
-      : palette.backgroundColor3;
+    ? isDisabled
+      ? ColorUtils.withAlpha(palette.confirm, 0.55)
+      : palette.confirm
+    : isInsightsAction
+      ? isDisabled
+        ? ColorUtils.withAlpha(palette.warning, 0.55)
+        : palette.warning
+      : isDanger
+        ? isDisabled
+          ? ColorUtils.withAlpha(palette.error, 0.55)
+          : palette.error
+        : '#FFFFFF';
 
   return (
     <Pressable
@@ -109,6 +122,9 @@ function ActionIconButton({ action }: { action: InlineAction }) {
       style={({ pressed }) => [
         styles.iconButton,
         { backgroundColor: iconButtonBackground },
+        isPublishAction && { borderWidth: 0 },
+        isInsightsAction && { borderWidth: 0 },
+        isDanger && { borderWidth: 0 },
         isDisabled && styles.iconButtonDisabled,
         pressed && styles.iconButtonPressed,
       ]}
@@ -224,13 +240,10 @@ export default function EscalaHeader({
           icon={{ library: 'MaterialCommunityIcons', name: 'calendar-range' }}
           value={periodLabel}
         />
+        {hasHealth && (
+          <EscalaHealthIndicator confirmedCount={confirmedCount} totalCount={totalCount} compact />
+        )}
       </View>
-
-      {hasHealth && (
-        <View style={styles.healthSection}>
-          <EscalaHealthIndicator confirmedCount={confirmedCount} totalCount={totalCount} />
-        </View>
-      )}
 
       {showCompact ? (
         <>
@@ -253,7 +266,7 @@ export default function EscalaHeader({
           <View style={styles.metaFooter}>
             <FancyText
               type='medium'
-              size='extraSmall'
+              size={9}
               color={palette.fonts.inactive}
               numberOfLines={1}
               style={styles.metaFooterText}
@@ -358,6 +371,7 @@ function createStyles(palette: ThemePalette) {
     metaInlineRow: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
       flexWrap: 'wrap',
       marginTop: 7,
     },
@@ -375,15 +389,12 @@ function createStyles(palette: ThemePalette) {
     metaInlineValue: {
       flexShrink: 1,
     },
-    healthSection: {
-      marginTop: 10,
-    },
     metaFooter: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
       justifyContent: 'space-between',
-      marginTop: 10,
+      marginTop: 6,
     },
     metaFooterText: {
       opacity: 0.68,
@@ -426,13 +437,13 @@ function createStyles(palette: ThemePalette) {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      gap: 10,
+      gap: 8,
       paddingVertical: 11,
     },
     actionsSecondaryGroup: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
+      gap: 8,
     },
     primaryPill: {
       flexDirection: 'row',

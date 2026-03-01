@@ -11,7 +11,9 @@ import {
   EscalaItemDataType,
   EscalaItemEquipeType as EscalaItemEquipeType,
 } from '../../../../../app/(app)/(drawer)/ministerios/escalas/details';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, ReactNode } from 'react';
+import { EscalaItemStatusEnum } from '../../../../../domain/enums/Escala/escala-item-status.enum';
+import ScaleFillIndicator from '../../../../indicators/ScaleFillIndicator';
 import SubstituirVoluntarioModal, { SubstituicaoConfirmDialog } from './SubstituirVoluntarioModal';
 import AdicionarVoluntarioModal, {
   AdicionarVoluntarioConfirmDialog,
@@ -106,6 +108,31 @@ export default function EventoTable({
     };
   }, [data.evento.cor, isDark, palette.primary, palette.fonts.light]);
 
+  const { eventConfirmed, eventTotal } = useMemo(() => {
+    const assigned = data.equipe.filter((item) => Boolean(item.voluntario));
+    const confirmed = assigned.filter(
+      (item) => item.status === EscalaItemStatusEnum.Confirmado,
+    ).length;
+    return { eventConfirmed: confirmed, eventTotal: assigned.length };
+  }, [data.equipe]);
+
+  const eventProgressColor = ColorUtils.darkenColor(data.evento.cor || palette.primary, 0.25);
+
+  const eventSubtitle: ReactNode | undefined =
+    eventTotal > 0 ? (
+      <ScaleFillIndicator
+        filledCount={eventConfirmed}
+        totalCount={eventTotal}
+        label=''
+        showContainer={false}
+        size='compact'
+        donutSize={14}
+        donutStrokeWidth={2.2}
+        textSize={11}
+        progressColor={eventProgressColor}
+      />
+    ) : undefined;
+
   const handleDeleteEvento = () => {
     FancyAlert.alert('Excluir Evento', 'Deseja realmente excluir este evento da escala?', [
       { text: 'Cancelar', style: 'cancel' },
@@ -127,6 +154,7 @@ export default function EventoTable({
   return (
     <>
       <FancyAccordeon
+        subtitle={eventSubtitle}
         title={
           <View style={styles.titleContainer}>
             <View style={styles.titleTextContainer}>
@@ -279,6 +307,7 @@ export default function EventoTable({
             },
             ministerioId,
           }}
+          currentEquipe={data.equipe}
           onButton2Press={async (data) => {
             const result = await onAddVoluntario?.(data);
             if (result) {
@@ -316,7 +345,7 @@ export default function EventoTable({
       <Modal visible={loadingAction.visible} transparent animationType='fade'>
         <View style={styles.blockingOverlay}>
           <View style={styles.blockingOverlayContent}>
-            <FancyLoading label={loadingAction.label} />
+            <FancyLoading label={loadingAction.label} containerStyle={{ flex: 0, alignSelf: 'center' }} />
           </View>
         </View>
       </Modal>

@@ -119,9 +119,11 @@ export default function FancyAccordeon({
           >
             {subtitle}
           </FancyText>
-        ) : (
-          subtitle
-        )}
+        ) : subtitle ? (
+          <View style={{ flexShrink: 1, alignItems: 'flex-end' }}>
+            {subtitle}
+          </View>
+        ) : null}
         <View
           style={{
             flexDirection: 'row',
