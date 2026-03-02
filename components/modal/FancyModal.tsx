@@ -24,7 +24,7 @@ export default function FancyModal({
   const palette = usePallete();
 
   return (
-    <Modal animationType='fade' presentationStyle='formSheet' transparent {...modalProps}>
+    <Modal animationType='fade' presentationStyle='overFullScreen' transparent {...modalProps}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <View
             style={[styles.centeredView, { backgroundColor: palette.overlays.backdrop }, modalProps?.style]}

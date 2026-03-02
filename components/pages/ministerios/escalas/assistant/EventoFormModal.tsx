@@ -10,7 +10,7 @@ import { format } from 'date-fns';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { StyleSheet } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
 import ControlledSearchSelect from '../../../../forms/ControlledSearchSelect';
 import FancyVerticalSpacer from '../../../../FancyVerticalSpacer';
 import { EnumUtils } from '../../../../../utils/enum_utils';
@@ -100,6 +100,8 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
     },
   });
 
+  const prevTemplateBaseIdRef = useRef<string>(formTemplate.getValues('templateBase.id') || '');
+
   // Reset form when modal opens with new data
   useEffect(() => {
     if (data) {
@@ -111,6 +113,7 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
         funcoes: data.template.funcoes || [],
         fixos: data.template.fixos || [],
       });
+      prevTemplateBaseIdRef.current = data.template.templateBase.id || '';
     }
   }, [data?.eventoId]);
 
@@ -128,52 +131,6 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
       formTemplate.setValue('tipo', data?.template.tipo || EscalaTemplateTipoEnum.Funcoes);
     }
   }, [formTemplate.formState.isDirty]);
-
-  const prevId = useRef<string | undefined>(formTemplate.getValues('templateBase.id'));
-
-  formTemplate.register('templateBase.id', {
-    onChange: ({ target: { value } }) => {
-      const antigo = prevId.current;
-      const novo = value;
-
-      if (antigo !== undefined && antigo !== novo) {
-        FancyAlert.alert(
-          'Edição',
-          'A mudança de template base vai acarretar a perda dos dados inseridos, realmente deseja prosseguir?',
-          [
-            {
-              text: 'Não',
-              style: 'destructive',
-              onPress: () => formTemplate.setValue('templateBase.id', antigo || ''),
-            },
-            {
-              text: 'Sim',
-              style: 'default',
-              onPress: () => {
-                const templateInfo = templatesList?.find((t) => t.id === value);
-
-                if (templateInfo) {
-                  formTemplate.setValue('templateBase.nome', templateInfo.nome);
-                  formTemplate.setValue('tipo', templateInfo.tipo);
-                  formTemplate.setValue('funcoes', []);
-                  formTemplate.setValue('fixos', []);
-
-                  loadTemplateData(templateInfo);
-                } else {
-                  formTemplate.setValue('templateBase.nome', '');
-                  formTemplate.setValue('tipo', EscalaTemplateTipoEnum.Funcoes);
-                  formTemplate.setValue('funcoes', []);
-                  formTemplate.setValue('fixos', []);
-                }
-              },
-            },
-          ],
-        );
-      }
-
-      prevId.current = novo;
-    },
-  });
 
   const loadTemplateData = useCallback(
     (template: ResponseEscalaTemplateDto) => {
@@ -201,6 +158,63 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
       }
     },
     [formTemplate],
+  );
+
+  const applyTemplateSelection = useCallback(
+    (templateId: string) => {
+      const selectedTemplate = templatesList?.find((t) => t.id === templateId);
+
+      formTemplate.setValue('templateBase.id', templateId);
+
+      if (selectedTemplate) {
+        formTemplate.setValue('templateBase.nome', selectedTemplate.nome);
+        formTemplate.setValue('tipo', selectedTemplate.tipo);
+        formTemplate.setValue('funcoes', []);
+        formTemplate.setValue('fixos', []);
+        loadTemplateData(selectedTemplate);
+      } else {
+        formTemplate.setValue('templateBase.nome', '');
+        formTemplate.setValue('tipo', EscalaTemplateTipoEnum.Funcoes);
+        formTemplate.setValue('funcoes', []);
+        formTemplate.setValue('fixos', []);
+      }
+
+      prevTemplateBaseIdRef.current = templateId;
+    },
+    [formTemplate, loadTemplateData, templatesList],
+  );
+
+  const handleTemplateBaseChange = useCallback(
+    (newTemplateBaseId: string) => {
+      const previousTemplateBaseId = prevTemplateBaseIdRef.current || '';
+      const nextTemplateBaseId = newTemplateBaseId || '';
+
+      if (previousTemplateBaseId === nextTemplateBaseId) {
+        return;
+      }
+
+      Alert.alert(
+        'Edição',
+        'A mudança de template base vai acarretar a perda dos dados inseridos, realmente deseja prosseguir?',
+        [
+          {
+            text: 'Não',
+            style: 'cancel',
+            onPress: () => {
+              formTemplate.setValue('templateBase.id', previousTemplateBaseId);
+            },
+          },
+          {
+            text: 'Sim',
+            style: 'default',
+            onPress: () => {
+              applyTemplateSelection(nextTemplateBaseId);
+            },
+          },
+        ],
+      );
+    },
+    [applyTemplateSelection, formTemplate],
   );
 
   const templateBaseIdWatch = formTemplate.watch('templateBase.id');
@@ -258,6 +272,9 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
               name='templateBase.id'
               listItems={templatesDropDownList}
               searchPlaceholder='Buscar template...'
+              onChange={(newTemplateBaseId) => {
+                handleTemplateBaseChange(newTemplateBaseId as string);
+              }}
             />
             <FancyVerticalSpacer height={12} />
 
@@ -275,17 +292,13 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
                   value={value}
                   onChange={(newValue) => {
                     if (value === newValue && !value) return;
-
-                    FancyAlert.alert(
+                    Alert.alert(
                       'Alteração de tipo',
                       'Essa mudança vai resultar em excluir toda a equipe, deseja continuar?',
                       [
                         {
                           text: 'Não',
-                          style: 'destructive',
-                          onPress: () => {
-                            onChange(value);
-                          },
+                          style: 'cancel',
                         },
                         {
                           text: 'Sim',

@@ -42,7 +42,7 @@ export function FancyAlertProvider({ children }: { children: ReactNode }) {
     <AlertCtx.Provider value={{ show }}>
       {children}
 
-      <Modal visible={visible} transparent animationType='fade' onRequestClose={() => setVisible(false)}>
+      <Modal visible={visible} transparent animationType='fade' presentationStyle='overFullScreen' onRequestClose={() => setVisible(false)}>
         <View style={[styles.backdrop, { backgroundColor: palette.overlays.backdrop }]}>
           <View style={[styles.card, { backgroundColor: palette.backgroundColor2 }]}>
             <View>

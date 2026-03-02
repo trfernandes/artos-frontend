@@ -132,19 +132,25 @@ export default function AssistenteEventosStep() {
 
   const handleSaveTemplate = useCallback(
     (data: EscalaEventoTemplateFormData) => {
-      if (eventoFormProps.index !== undefined) {
-        const evento = eventosArray.fields[eventoFormProps.index];
-
-        if (evento) {
-          eventosArray.update(eventoFormProps.index, {
-            ...evento,
-            template: data,
-          });
-          setEventoFormProps({ visible: false, data: undefined, index: undefined });
-        }
+      if (eventoFormProps.index === undefined) {
+        return;
       }
+
+      const eventos = form.getValues('eventos') ?? [];
+      const eventoAtual = eventos[eventoFormProps.index];
+
+      if (!eventoAtual) {
+        setEventoFormProps({ visible: false, data: undefined, index: undefined });
+        return;
+      }
+
+      eventosArray.update(eventoFormProps.index, {
+        ...eventoAtual,
+        template: data,
+      });
+      setEventoFormProps({ visible: false, data: undefined, index: undefined });
     },
-    [eventosArray, eventoFormProps.index, eventoFormProps.data?.eventoId],
+    [eventosArray, eventoFormProps.index, form],
   );
 
   const markAll = form.watch('markEventsAll');
@@ -292,7 +298,8 @@ export default function AssistenteEventosStep() {
         <EventoFormModal
           data={eventoFormProps.data}
           modalProps={{
-            onButton1Press: () => setEventoFormProps({ visible: false, data: undefined }),
+            onButton1Press: () =>
+              setEventoFormProps({ visible: false, data: undefined, index: undefined }),
             onButton2Press: (data) => {
               if (!data) return;
               handleSaveTemplate(data);
