@@ -1,7 +1,7 @@
 import { EscalasApi } from '../api/EscalaApi';
 import { CreateEscalaDto } from '../dtos/Escala/escala.create';
 import { ResponseEscalaValidarNomeDto } from '../dtos/Escala/escala-validar-nome.response';
-import { ResponseEscalaDto } from '../dtos/Escala/escala.response';
+import { EscalaParametrizacaoType, ResponseEscalaDto } from '../dtos/Escala/escala.response';
 import { BaseRepository } from './BaseRepository';
 
 class EscalaRepositoryClass extends BaseRepository<ResponseEscalaDto, CreateEscalaDto, any> {
@@ -23,6 +23,10 @@ class EscalaRepositoryClass extends BaseRepository<ResponseEscalaDto, CreateEsca
     payload: { eventoId: string; dataOcorrencia: string },
   ): Promise<void> {
     return EscalasApi.deleteItensByEvento(escalaId, igrejaId, payload);
+  }
+
+  getParametrizacao(escalaId: string): Promise<EscalaParametrizacaoType> {
+    return EscalasApi.getParametrizacao(escalaId);
   }
 
   validarNome(

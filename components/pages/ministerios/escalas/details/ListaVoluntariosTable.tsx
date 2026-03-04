@@ -13,6 +13,7 @@ import {
   EscalaItemStatusEnum,
   EscalaItemStatusEnumLabel,
 } from '../../../../../domain/enums/Escala/escala-item-status.enum';
+import { EscalaTemplateExperienciaLabel } from '../../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
 import { AppImages } from '../../../../../assets/app_images';
 import FancySeparator from '../../../../FancySeparator';
 import { usePallete } from '../../../../../hooks/usePallete';
@@ -185,6 +186,9 @@ export default function ListaVoluntariosTable({
                     numberOfLines={1}
                   >
                     {equipeItem.funcao?.nome}
+                    {equipeItem.funcao?.experiencia
+                      ? ` · ${EscalaTemplateExperienciaLabel[equipeItem.funcao.experiencia]}`
+                      : ''}
                   </FancyText>
                   {hasVoluntario ? (
                     <FancyText type='semiBold' size={Platform.OS === 'ios' ? 11 : 10}>

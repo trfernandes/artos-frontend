@@ -85,22 +85,15 @@ function ActionIconButton({ action }: { action: InlineAction }) {
   const isDanger = action.variant === 'danger';
   const isPublishAction = action.key === 'publish';
   const isInsightsAction = action.key === 'insights';
+  const isParametrizacaoAction = action.key === 'parametrizacao';
   const isDisabled = !!action.disabled || !!action.isLoading;
-  const iconColor = isPublishAction
+  const iconColor = isPublishAction || isInsightsAction || isDanger || isParametrizacaoAction
     ? isDisabled
       ? ColorUtils.withAlpha('#FFFFFF', 0.7)
       : '#FFFFFF'
-    : isInsightsAction
-      ? isDisabled
-        ? ColorUtils.withAlpha('#FFFFFF', 0.7)
-        : '#FFFFFF'
-      : isDanger
-        ? isDisabled
-          ? ColorUtils.withAlpha('#FFFFFF', 0.7)
-          : '#FFFFFF'
-        : isDisabled
-          ? palette.icons.inactive
-          : palette.icons.dark;
+    : isDisabled
+      ? palette.icons.inactive
+      : palette.icons.dark;
   const iconButtonBackground = isPublishAction
     ? isDisabled
       ? ColorUtils.withAlpha(palette.confirm, 0.55)
@@ -109,11 +102,15 @@ function ActionIconButton({ action }: { action: InlineAction }) {
       ? isDisabled
         ? ColorUtils.withAlpha(palette.warning, 0.55)
         : palette.warning
-      : isDanger
+      : isParametrizacaoAction
         ? isDisabled
-          ? ColorUtils.withAlpha(palette.error, 0.55)
-          : palette.error
-        : '#FFFFFF';
+          ? ColorUtils.withAlpha(palette.secondary, 0.55)
+          : palette.secondary
+        : isDanger
+          ? isDisabled
+            ? ColorUtils.withAlpha(palette.error, 0.55)
+            : palette.error
+          : '#FFFFFF';
 
   return (
     <Pressable
@@ -124,6 +121,7 @@ function ActionIconButton({ action }: { action: InlineAction }) {
         { backgroundColor: iconButtonBackground },
         isPublishAction && { borderWidth: 0 },
         isInsightsAction && { borderWidth: 0 },
+        isParametrizacaoAction && { borderWidth: 0 },
         isDanger && { borderWidth: 0 },
         isDisabled && styles.iconButtonDisabled,
         pressed && styles.iconButtonPressed,
@@ -437,23 +435,23 @@ function createStyles(palette: ThemePalette) {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      gap: 8,
-      paddingVertical: 11,
+      gap: 6,
+      paddingVertical: 10,
     },
     actionsSecondaryGroup: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
+      gap: 6,
     },
     primaryPill: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
-      height: 34,
-      paddingHorizontal: 16,
+      gap: 5,
+      height: 30,
+      paddingHorizontal: 12,
       borderRadius: 999,
       backgroundColor: palette.primary,
-      minWidth: 136,
+      minWidth: 100,
       justifyContent: 'center',
     },
     primaryPillPressed: {
@@ -464,9 +462,9 @@ function createStyles(palette: ThemePalette) {
       opacity: 0.7,
     },
     iconButton: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
       backgroundColor: palette.backgroundColor3,
       alignItems: 'center',
       justifyContent: 'center',

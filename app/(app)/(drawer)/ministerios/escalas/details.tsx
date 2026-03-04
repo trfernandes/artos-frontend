@@ -17,6 +17,8 @@ import FancyScreenErrorHandler from '../../../../../components/error/FancyScreen
 import { EscalaRepository } from '../../../../../domain/services/EscalaRepository';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import Toast from 'react-native-toast-message';
+import EscalaParametrizacaoModal from '../../../../../components/pages/ministerios/escalas/details/EscalaParametrizacaoModal';
+import { EscalaTemplateExperienciaEnum } from '../../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
 
 export type EscalaItemDataType = {
   dataOcorrencia: string;
@@ -49,7 +51,7 @@ export type EscalaItemEventoDataType = {
 export type EscalaItemEquipeType = {
   idEscalaItem: string;
   voluntario?: EscalaItemEventoDataType['voluntario'];
-  funcao?: EscalaItemEventoDataType['funcao'];
+  funcao?: { id: string; nome: string; experiencia?: EscalaTemplateExperienciaEnum };
   status: EscalaItemEventoDataType['status'];
 };
 
@@ -61,6 +63,7 @@ export default function MinisterioEscalasDetailsPage() {
   }>();
   const { igrejaAtiva } = useAuth();
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isParametrizacaoOpen, setIsParametrizacaoOpen] = useState(false);
 
   const initialParams = useMemo<DynamicQuery>(
     () => ({
@@ -78,6 +81,7 @@ export default function MinisterioEscalasDetailsPage() {
         'itens.evento',
         'itens.voluntario',
         'itens.voluntario.voluntario',
+        'itens.voluntario.funcoes',
         'itens.funcao',
       ],
     }),
@@ -178,6 +182,10 @@ export default function MinisterioEscalasDetailsPage() {
         mapa.set(chave, grupo);
       }
 
+      const expDoVoluntario = item.voluntario?.funcoes?.find(
+        (f: any) => f.funcaoId === item.funcao?.id,
+      )?.experiencia as EscalaTemplateExperienciaEnum | undefined;
+
       grupo.equipe.push({
         idEscalaItem: item?.id!,
         voluntario: {
@@ -190,6 +198,7 @@ export default function MinisterioEscalasDetailsPage() {
         funcao: {
           id: item.funcao?.id!,
           nome: item.funcao?.nome!,
+          experiencia: expDoVoluntario,
         },
         status: item.status,
       });
@@ -499,6 +508,7 @@ export default function MinisterioEscalasDetailsPage() {
           onPublishPress={handlePublishPress}
           onGeneratePress={handleGeneratePress}
           onDeletePress={handleDeletePress}
+          onParametrizacaoPress={() => setIsParametrizacaoOpen(true)}
         />
         {eventosData && (
           <FancyList
@@ -555,6 +565,12 @@ export default function MinisterioEscalasDetailsPage() {
           </View>
         </View>
       )}
+
+      <EscalaParametrizacaoModal
+        visible={isParametrizacaoOpen}
+        escalaId={escalaId}
+        onClose={() => setIsParametrizacaoOpen(false)}
+      />
     </View>
   );
 }

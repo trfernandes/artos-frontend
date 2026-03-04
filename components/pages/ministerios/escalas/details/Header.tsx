@@ -16,6 +16,7 @@ export default function Header({
   onPublishPress,
   onGeneratePress,
   onDeletePress,
+  onParametrizacaoPress,
 }: {
   escala?: ResponseEscalaDto;
   viewMode?: 'view' | 'edit';
@@ -26,6 +27,7 @@ export default function Header({
   onPublishPress: () => void;
   onGeneratePress: () => void;
   onDeletePress: () => void;
+  onParametrizacaoPress?: () => void;
 }) {
   if (!escala) return null;
 
@@ -94,6 +96,19 @@ export default function Header({
       ]
     : [];
 
+  const parametrizacaoAction: InlineAction[] = onParametrizacaoPress
+    ? [
+        {
+          key: 'parametrizacao',
+          icon: { library: 'MaterialIcons' as const, name: 'tune' },
+          label: 'Ver parâmetros',
+          variant: 'neutral' as const,
+          disabled: isScreenBlocked,
+          onPress: onParametrizacaoPress,
+        },
+      ]
+    : [];
+
   const actions: InlineAction[] = canEdit
     ? [
         ...(escala.status === EscalaStatusEnum.Gerada
@@ -138,6 +153,7 @@ export default function Header({
             ]
           : []),
         ...insightAction,
+        ...parametrizacaoAction,
         {
           key: 'delete',
           icon: { library: 'MaterialIcons' as const, name: 'delete-outline' },
@@ -147,7 +163,7 @@ export default function Header({
           onPress: onDeletePress,
         },
       ]
-    : [...insightAction];
+    : [...insightAction, ...parametrizacaoAction];
 
   return (
     <View style={styles.container}>

@@ -27,7 +27,7 @@ export default function FancyPageHeader({
   const nav = useNavigation<DrawerNavigationProp<Record<string, object>>>();
   const topSafeInset = useTopSafeInset();
   const palette = usePallete();
-  const topInset = applyTopSafeArea ? Math.max(0, topSafeInset - 5) : 0;
+  const topInset = applyTopSafeArea ? topSafeInset : 0;
   const headerHeight = topInset + HEADER_CONTENT_HEIGHT;
 
   return (

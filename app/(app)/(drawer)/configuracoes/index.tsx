@@ -42,6 +42,7 @@ import { ControlledImagePicker, FormImageFile } from '../../../../components/for
 import { usePallete } from '../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../hooks/useThemedStyles';
 import { ColorUtils } from '../../../../utils/color_utils';
+import FancyChips from '../../../../components/FancyChips';
 import { UF_LIST } from '../../../../domain/utils/uf-list';
 import { getCidadesPorUf } from '../../../../domain/utils/cidades-list';
 import { DropDownItemProps } from '../../../../components/fields/FancyDropDownItem';
@@ -612,11 +613,7 @@ export default function ConfiguracoesPage() {
                 <FancyText type="bold" size="large">
                   Plano Gratuito
                 </FancyText>
-                <View style={styles.badge}>
-                  <FancyText type="bold" size="extraSmall" style={styles.badgeText}>
-                    Ativo
-                  </FancyText>
-                </View>
+                <FancyChips label="Ativo" size="small" />
               </View>
               <FancyText type="normal" size="small" style={styles.assinaturaDesc}>
                 Em breve você poderá fazer upgrade para planos com mais recursos
@@ -776,15 +773,6 @@ function createStyles(palette: ThemePalette) {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  badge: {
-    backgroundColor: ColorUtils.withAlpha(palette.confirm, 0.2),
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-  },
-  badgeText: {
-    color: palette.confirm,
   },
   assinaturaDesc: {
     opacity: 0.7,

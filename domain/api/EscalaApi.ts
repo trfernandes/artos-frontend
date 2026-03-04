@@ -1,5 +1,5 @@
 import { CreateEscalaDto } from '../dtos/Escala/escala.create';
-import { ResponseEscalaDto } from '../dtos/Escala/escala.response';
+import { EscalaParametrizacaoType, ResponseEscalaDto } from '../dtos/Escala/escala.response';
 import { ResponseEscalaValidarNomeDto } from '../dtos/Escala/escala-validar-nome.response';
 import apiClient from './api-client';
 import { BaseApi } from './BaseApi';
@@ -40,6 +40,13 @@ class EscalasApiClass extends BaseApi<ResponseEscalaDto, CreateEscalaDto, Partia
       console.log(`Erro ao remover itens de ${this.resourceName}:`, error);
       throw error;
     }
+  }
+
+  async getParametrizacao(escalaId: string): Promise<EscalaParametrizacaoType> {
+    const response = await apiClient.get<{ data: EscalaParametrizacaoType }>(
+      `/${this.resourceName}/${escalaId}/parametrizacao`,
+    );
+    return response.data.data;
   }
 
   async validarNome(

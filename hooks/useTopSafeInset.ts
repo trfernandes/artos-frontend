@@ -1,7 +1,7 @@
 import { Platform, StatusBar as RNStatusBar } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const DEFAULT_TOP_INSET_REDUCTION = 2;
+const DEFAULT_TOP_INSET_REDUCTION = 0;
 
 export function useTopSafeInset(reduction: number = DEFAULT_TOP_INSET_REDUCTION): number {
   const insets = useSafeAreaInsets();
