@@ -572,10 +572,16 @@ function AssistenteWrapper() {
               library: 'MaterialIcons',
               name: 'exit-to-app',
               size: 16,
-              color: Pallete.primary,
+              color: Pallete.fonts.inactive,
             },
-            type: 'light',
-            containerStyle: { flex: 0, paddingHorizontal: 14, borderWidth: 1.5 },
+            type: 'outlined',
+            containerStyle: {
+              flex: 0,
+              paddingHorizontal: 14,
+              borderColor: Pallete.border,
+              borderWidth: 1.5,
+            },
+            labelStyle: { color: Pallete.fonts.inactive },
             onPress: () => {
               router.push({ pathname: '/ministerios/escalas', params: { ministerioId } });
             },
