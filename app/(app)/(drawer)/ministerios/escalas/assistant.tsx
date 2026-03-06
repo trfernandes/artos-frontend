@@ -567,15 +567,15 @@ function AssistenteWrapper() {
         content: <AssistenteResultadoStep />,
         actions: [
           {
+            label: 'Sair',
             icon: {
               library: 'MaterialIcons',
-              name: 'exit-to-app',
-              size: 20,
+              name: 'arrow-back',
+              size: 16,
               color: Pallete.primary,
             },
-            type: 'outlined',
-            mode: 'icon',
-            containerStyle: { flex: 0, width: 44, height: 44, borderRadius: 22 },
+            type: 'text',
+            containerStyle: { flex: 0, paddingHorizontal: 12 },
             onPress: () => {
               router.push({ pathname: '/ministerios/escalas', params: { ministerioId } });
             },
