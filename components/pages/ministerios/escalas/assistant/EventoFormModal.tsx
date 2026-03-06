@@ -10,7 +10,7 @@ import { format } from 'date-fns';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Alert, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import ControlledSearchSelect from '../../../../forms/ControlledSearchSelect';
 import FancyVerticalSpacer from '../../../../FancyVerticalSpacer';
 import { EnumUtils } from '../../../../../utils/enum_utils';
@@ -193,7 +193,7 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
         return;
       }
 
-      Alert.alert(
+      FancyAlert.alert(
         'Edição',
         'A mudança de template base vai acarretar a perda dos dados inseridos, realmente deseja prosseguir?',
         [
@@ -292,7 +292,7 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
                   value={value}
                   onChange={(newValue) => {
                     if (value === newValue && !value) return;
-                    Alert.alert(
+                    FancyAlert.alert(
                       'Alteração de tipo',
                       'Essa mudança vai resultar em excluir toda a equipe, deseja continuar?',
                       [
