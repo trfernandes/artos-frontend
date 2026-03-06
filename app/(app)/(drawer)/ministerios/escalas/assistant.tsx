@@ -567,6 +567,19 @@ function AssistenteWrapper() {
         content: <AssistenteResultadoStep />,
         actions: [
           {
+            label: 'Sair',
+            icon: {
+              library: 'MaterialIcons',
+              name: 'exit-to-app',
+              size: 15,
+              style: { borderWidth: 0, width: 13, lineHeight: 13 },
+            },
+            type: 'outlined',
+            onPress: () => {
+              router.push({ pathname: '/ministerios/escalas', params: { ministerioId } });
+            },
+          },
+          {
             label: 'Reiniciar',
             icon: {
               library: 'MaterialCommunityIcons',
