@@ -570,12 +570,12 @@ function AssistenteWrapper() {
             label: 'Sair',
             icon: {
               library: 'MaterialIcons',
-              name: 'arrow-back',
+              name: 'exit-to-app',
               size: 16,
               color: Pallete.primary,
             },
-            type: 'text',
-            containerStyle: { flex: 0, paddingHorizontal: 12 },
+            type: 'light',
+            containerStyle: { flex: 0, paddingHorizontal: 14, borderWidth: 1.5 },
             onPress: () => {
               router.push({ pathname: '/ministerios/escalas', params: { ministerioId } });
             },
