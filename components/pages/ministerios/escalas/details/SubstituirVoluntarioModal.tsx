@@ -32,6 +32,7 @@ export interface SubstituirVoluntarioModalProps {
       dataTermino: Date;
     };
   };
+  currentEquipe?: EscalaItemEquipeType[];
 }
 
 export interface SubstituicaoConfirmDialog {
@@ -40,7 +41,7 @@ export interface SubstituicaoConfirmDialog {
   idSubstituto: string;
 }
 
-export default function SubstituirVoluntarioModal({ data, ...props }: SubstituirVoluntarioModalProps & FancyModalDialogProps<any>) {
+export default function SubstituirVoluntarioModal({ data, currentEquipe, ...props }: SubstituirVoluntarioModalProps & FancyModalDialogProps<any>) {
   const palette = usePallete();
   const [disponiveisNaData, setDisponiveisNaData] = useState(false);
   const [temMesmaFuncao, setTemMesmaFuncao] = useState(false);
@@ -63,8 +64,19 @@ export default function SubstituirVoluntarioModal({ data, ...props }: Substituir
   const funcaoId = useMemo(() => data.funcao?.id, [data.funcao?.id]);
   const currentVoluntarioId = useMemo(() => data.voluntario?.minVoluntarioId, [data.voluntario?.minVoluntarioId]);
 
+  const alreadyAssignedIds = useMemo(() => {
+    if (!currentEquipe) return new Set<string>();
+    return new Set(
+      currentEquipe
+        .filter((e) => !!e.voluntario?.minVoluntarioId && e.voluntario.minVoluntarioId !== currentVoluntarioId)
+        .map((e) => e.voluntario!.minVoluntarioId),
+    );
+  }, [currentEquipe, currentVoluntarioId]);
+
   useEffect(() => {
-    const dropDownListWithoutCurrentVoluntario = dropDownList.filter((v) => v.value !== currentVoluntarioId);
+    const dropDownListWithoutCurrentVoluntario = dropDownList.filter(
+      (v) => v.value !== currentVoluntarioId && !alreadyAssignedIds.has(v.value as string),
+    );
 
     if (!data) {
       setVoluntariosDropDownList(dropDownListWithoutCurrentVoluntario);
@@ -80,7 +92,9 @@ export default function SubstituirVoluntarioModal({ data, ...props }: Substituir
       try {
         setIsLoadingSubstitutos(true);
 
-        const listWithoutCurrentVoluntario = ministerioVoluntariosList.filter((v) => v.id !== currentVoluntarioId);
+        const listWithoutCurrentVoluntario = ministerioVoluntariosList.filter(
+          (v) => v.id !== currentVoluntarioId && !alreadyAssignedIds.has(v.id!),
+        );
 
         let newList = [...listWithoutCurrentVoluntario];
 
@@ -174,7 +188,7 @@ export default function SubstituirVoluntarioModal({ data, ...props }: Substituir
     }
 
     filtrarVoluntarios();
-  }, [ministerioVoluntariosList, disponiveisNaData, temMesmaFuncao, dataOcorrenciaString, funcaoId, currentVoluntarioId, igrejaId]);
+  }, [ministerioVoluntariosList, disponiveisNaData, temMesmaFuncao, dataOcorrenciaString, funcaoId, currentVoluntarioId, igrejaId, alreadyAssignedIds]);
 
   const [selectedSubstituto, setSelectedSubstituto] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});

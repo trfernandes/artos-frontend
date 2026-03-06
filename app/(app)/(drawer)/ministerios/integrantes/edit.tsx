@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { FormProvider, useForm } from 'react-hook-form';
 import { MinVoluntarioFormData, minVoluntarioSchema } from '../../../../../domain/schemas/ministerioVoluntariosSchema';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { DynamicQuery, Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
 import IntegranteFormFields from '../../../../../components/pages/ministerios/integrantes/FormFields';
@@ -24,7 +24,6 @@ import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterio
 import { useMinisterioVoluntarioFuncoesCrud } from '../../../../../hooks/useMinisterioVoluntarioFuncoesCrud';
 import { ResponseMinisterioFuncaoDto } from '../../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.response';
 import { useFuncoesDoMinisterio } from '../../../../../hooks/useFuncoesDoMinisterio';
-import { strfyObj } from '../../../../../utils/text_utils';
 
 export default function MinisterioIntegrantesEditPage() {
   const params = useLocalSearchParams<{
@@ -94,8 +93,10 @@ export default function MinisterioIntegrantesEditPage() {
     isLoadingMutation: isUpdatingFuncoesMutation,
   } = useMinisterioVoluntarioFuncoesCrud({ autoFetch: true, initialParams: funcoesSearchParams });
 
+  const hasInitialized = useRef(false);
+
   useEffect(() => {
-    if (!voluntarioAtual) return;
+    if (!voluntarioAtual || isLoadingFuncoes || hasInitialized.current) return;
 
     const funcoes = funcoesData?.map((f) => ({
       id: f.funcao?.id,
@@ -103,8 +104,6 @@ export default function MinisterioIntegrantesEditPage() {
       status: MinisterioVoluntarioFuncaoStatusEnumMap[f.status] || MinisterioVoluntarioFuncaoStatusEnum.Ativo,
       experiencia: EscalaTemplateExperienciaEnumMap[f.experiencia] || EscalaTemplateExperienciaEnum.Iniciante,
     }));
-
-    console.log('Voluntario Atual: ', strfyObj({ voluntarioAtual, funcoesData, funcoes }));
 
     form.reset({
       voluntarioId: voluntarioAtual.id || '',
@@ -114,7 +113,9 @@ export default function MinisterioIntegrantesEditPage() {
       voluntarioStatus: voluntarioAtual.status || MinisterioVoluntarioStatusEnum.Ativo,
       funcoes,
     });
-  }, [voluntarioAtual, funcoesData]);
+
+    hasInitialized.current = true;
+  }, [voluntarioAtual, funcoesData, isLoadingFuncoes]);
 
   const handleSave = form.handleSubmit(
     async (data) => {

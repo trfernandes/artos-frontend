@@ -14,7 +14,10 @@
     "ios:staging": "dotenv -e .env.staging -- expo run:ios",
     "web": "expo start --web",
     "format": "prettier . --write",
-    "format:check": "prettier . --check"
+    "format:check": "prettier . --check",
+    "submit:ios": "eas build --platform ios --auto-submit --non-interactive",
+    "submit:android": "eas build --platform android --auto-submit --non-interactive",
+    "submit:all": "eas build --platform all --auto-submit --non-interactive"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

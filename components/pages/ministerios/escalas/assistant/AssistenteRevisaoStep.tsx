@@ -233,7 +233,7 @@ export default function AssistenteRevisaoStep() {
 
   const { funcoesList } = useFuncoesDoMinisterio(ministerioId);
   // Carrega dados para resolver IDs (nomes, fotos, funções)
-  const { ministerioVoluntariosList } = useVoluntariosDoMinisterioCrud(ministerioId);
+  const { ministerioVoluntariosList = [] } = useVoluntariosDoMinisterioCrud(ministerioId);
 
   // --- Dados Processados ---
 
@@ -574,7 +574,6 @@ function createStyles(palette: ThemePalette) {
       borderStyle: 'dashed',
       borderWidth: 1,
       borderColor: palette.borderCard,
-      borderRadius: 8,
     },
   });
 }

@@ -187,10 +187,6 @@ export default function MinisterioIntegrantesIndex() {
                     size='extraSmall'
                     type='semiBold'
                     color={palette.fonts.inactive}
-                    numberOfLines={1}
-                    ellipsizeMode='middle'
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.82}
                     style={{ flex: 1, opacity: 0.85 }}
                   >
                     {item.voluntario?.email}

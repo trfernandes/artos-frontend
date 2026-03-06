@@ -561,7 +561,7 @@ export default function MinisterioEscalasDetailsPage() {
       {isBlockingScreen && (
         <View style={styles.blockingOverlay} pointerEvents='auto'>
           <View style={styles.blockingOverlayContent}>
-            <FancyLoading label={blockingLabel} />
+            <FancyLoading label={blockingLabel} containerStyle={{ flex: 0 }} />
           </View>
         </View>
       )}

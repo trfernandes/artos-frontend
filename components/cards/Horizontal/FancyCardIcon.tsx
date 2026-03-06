@@ -1,5 +1,5 @@
 import { StyleSheet, View } from 'react-native';
-import FancyBaseCard from './FancyBaseCard';
+import FancyBaseCard, { FancyBaseCardProps } from './FancyBaseCard';
 import { isValidElement } from 'react';
 import { FancyActionButtons } from './FancyCardActionButtons';
 import { ThemePalette } from '../../../constants/colors';
@@ -10,6 +10,7 @@ import { useThemedStyles } from '../../../hooks/useThemedStyles';
 
 export type FancyCardIconProps = {
   cardIcon?: CustomIconProps & { backgroundColor?: string };
+  titleProps?: FancyBaseCardProps['titleProps'];
 } & Pick<
   FancyCardImageBaseProps,
   | 'actionButtons'

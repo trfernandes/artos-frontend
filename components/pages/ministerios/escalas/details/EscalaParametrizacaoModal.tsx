@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import FancyLoading from '../../../../FancyLoading';
 import FancyBottomSheetModal from '../../../../modal/FancyBottomSheetModal';
 import FancyTabs, { TabItem } from '../../../../tabs/FancyTabs';
 import FancyText from '../../../../FancyText';
@@ -125,6 +126,8 @@ export default function EscalaParametrizacaoModal({
                     title={evento.name}
                     subtitle={evento.date ? format(new Date(evento.date), 'dd/MM/yyyy') : undefined}
                     centerContainerStyle={{ gap: 1 }}
+                    titleProps={{ size: 'extraSmall' }}
+                    containerStyle={{ paddingVertical: 6 }}
                     cardIcon={{
                       ...DefaultIconsNames['calendar-month'],
                       size: 18,
@@ -178,12 +181,7 @@ export default function EscalaParametrizacaoModal({
   return (
     <FancyBottomSheetModal visible={visible} onClose={onClose} title='Parâmetros da Geração'>
       {isLoading ? (
-        <View style={{ alignItems: 'center', paddingVertical: 28, gap: 10 }}>
-          <ActivityIndicator size='small' color={palette.primary} />
-          <FancyText size='small' type='mediumItalic' color={palette.fonts.inactive}>
-            Carregando...
-          </FancyText>
-        </View>
+        <FancyLoading containerStyle={{ paddingVertical: 28 }} />
       ) : hasError ? (
         <FancyText size='small' type='mediumItalic' style={{ textAlign: 'center', paddingVertical: 20 }}>
           Não foi possível carregar os parâmetros. Verifique se o backend está atualizado.
@@ -205,7 +203,7 @@ function createStyles(palette: ThemePalette) {
       flexDirection: 'row',
       flexWrap: 'wrap',
       columnGap: 8,
-      rowGap: 12,
+      rowGap: 17,
       marginTop: 12,
     },
     participantGridItem: {
@@ -224,7 +222,7 @@ function createStyles(palette: ThemePalette) {
       gap: 8,
     },
     funcaoList: {
-      gap: 5,
+      gap: 8,
       paddingTop: 4,
     },
     funcaoRow: {

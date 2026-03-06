@@ -283,6 +283,7 @@ export default function EventoTable({
             },
             ministerioId,
           }}
+          currentEquipe={data.equipe}
           onButton2Press={async (data) => {
             const result = await onChangeVoluntario?.(data);
             if (result) {

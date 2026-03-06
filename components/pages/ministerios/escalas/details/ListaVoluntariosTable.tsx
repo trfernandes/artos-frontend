@@ -149,6 +149,7 @@ export default function ListaVoluntariosTable({
                 {/* Avatar ou placeholder */}
                 {hasVoluntario ? (
                   <TouchableOpacity
+                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                     onPress={() =>
                       handleVoluntarioClick(
                         equipeItem.voluntario?.minVoluntarioId!,

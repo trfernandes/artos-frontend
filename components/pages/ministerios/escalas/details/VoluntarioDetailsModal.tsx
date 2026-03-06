@@ -18,7 +18,6 @@ import { AppImages } from '../../../../../assets/app_images';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 import { ThemePalette } from '../../../../../constants/colors';
-import FancyChips from '../../../../FancyChips';
 
 function EmptyState({ text }: { text: string }) {
   return (
@@ -326,34 +325,28 @@ export default function VoluntarioDetailsModal({
       ) : (
         <View style={styles.content}>
           {/* Profile card */}
-          <View style={[styles.profileCard, { backgroundColor: palette.backgroundColor2, borderColor: palette.borderCard }]}>
-            <View style={[styles.profileAccentBar, { backgroundColor: palette.primary }]} />
+          <View style={[styles.profileCard, { backgroundColor: palette.primary }]}>
             <View style={styles.profileInner}>
-              <View style={[styles.avatarRing, { borderColor: palette.primary }]}>
+              <View style={styles.avatarRing}>
                 <FancyAvatarImage
                   source={
                     voluntario.voluntario?.fotoThumbUrl || voluntario.voluntario?.fotoUrl
                       ? { uri: voluntario.voluntario.fotoThumbUrl || voluntario.voluntario.fotoUrl }
                       : AppImages.emptyProfile
                   }
-                  size={36}
-                  style={styles.avatar}
+                  size={40}
                 />
               </View>
               <View style={styles.profileInfo}>
-                <FancyText type='bold' size='medium' color={palette.fonts.dark} numberOfLines={1}>
-                  {voluntario.voluntario?.nome ?? '-'}
+                <FancyText type='bold' size='medium' color='#fff' numberOfLines={1}>
+                  {(() => {
+                    const parts = (voluntario.voluntario?.nome ?? '').trim().split(/\s+/);
+                    return parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1]}` : parts[0] || '-';
+                  })()}
                 </FancyText>
-                <FancyText type='medium' size='extraSmall' color={palette.fonts.inactive} numberOfLines={1}>
+                <FancyText type='medium' size='extraSmall' color='rgba(255,255,255,0.75)' numberOfLines={1}>
                   {voluntario.voluntario?.email ?? ''}
                 </FancyText>
-                {(voluntario.funcoes?.length ?? 0) > 0 && (
-                  <View style={styles.funcoesPills}>
-                    {voluntario.funcoes!.slice(0, 3).map((f, i) => (
-                      <FancyChips key={f.id ?? i} label={f.funcao?.nome ?? '?'} size='small' />
-                    ))}
-                  </View>
-                )}
               </View>
             </View>
           </View>
@@ -372,6 +365,7 @@ export default function VoluntarioDetailsModal({
           <FancySection
             icon={{ library: 'Entypo', name: 'modern-mic', size: 23, color: '#8E7AEF' }}
             title='Habilidades'
+            contentStyle={{ alignItems: 'flex-start' }}
           >
             <View style={styles.sectionBody}>{habilidadesContent}</View>
           </FancySection>
@@ -423,37 +417,24 @@ function createStyles(palette: ThemePalette) {
     },
     profileCard: {
       borderRadius: 16,
-      borderWidth: 1,
       overflow: 'hidden',
-    },
-    profileAccentBar: {
-      height: 4,
     },
     profileInner: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 12,
-      paddingHorizontal: 14,
-      paddingTop: 12,
-      paddingBottom: 12,
+      gap: 14,
+      paddingHorizontal: 16,
+      paddingVertical: 16,
     },
     avatarRing: {
+      borderRadius: 24,
       borderWidth: 2,
-      borderRadius: 22,
+      borderColor: 'rgba(255,255,255,0.6)',
       padding: 2,
-    },
-    avatar: {
-      borderRadius: 18,
     },
     profileInfo: {
       flex: 1,
-      gap: 2,
-    },
-    funcoesPills: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
       gap: 3,
-      marginTop: 1,
     },
     sectionBody: {
       gap: 4,

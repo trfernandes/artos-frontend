@@ -1,39 +1,28 @@
 {
   "cli": {
-    "version": ">= 16.0.0",
+    "version": ">= 12.0.0",
     "appVersionSource": "remote"
   },
   "build": {
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal",
-      "channel": "development",
-      "ios": {
-        "simulator": true
-      }
-    },
-    "preview": {
-      "distribution": "internal",
-      "channel": "preview",
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://artos-backend-nwg5.onrender.com",
-        "EXPO_PUBLIC_APP_SECRET_KEY": "chave-secreta-do-app"
-      },
-      "ios": {
-        "simulator": false
-      }
-    },
     "production": {
-      "autoIncrement": true,
-      "channel": "production",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://artos-backend-nwg5.onrender.com",
-        "EXPO_PUBLIC_APP_SECRET_KEY": "chave-secreta-do-app",
         "SENTRY_DISABLE_AUTO_UPLOAD": "true"
-      }
+      },
+      "android": {},
+      "ios": {}
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "ascAppId": "6759353187",
+        "ascApiKeyPath": "./ios.p8",
+        "ascApiKeyId": "C5MF5W6DSK",
+        "ascApiKeyIssuerId": "4d3e55d5-6f5a-4fbc-9f30-f2a3ed29090a"
+      },
+      "android": {
+        "track": "internal"
+      }
+    }
   }
 }

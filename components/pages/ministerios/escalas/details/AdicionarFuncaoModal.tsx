@@ -121,6 +121,7 @@ export default function AdicionarFuncaoModal({ ministerioId, eventoNome, eventoI
               });
             }}
             listItems={funcoesSearchList}
+            isLoading={isLoadingFuncoes}
             disabled={isSubmitting || isLoadingFuncoes}
           />
           {errors && <FancyErrorText message={errors['funcao']} />}

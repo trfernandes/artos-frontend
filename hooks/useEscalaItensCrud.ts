@@ -10,6 +10,8 @@ export function useEscalaItensCrud({
   autoFetch = false,
   initialParams = undefined,
   includeFotos = false,
+  muteMessages = false,
+  messages,
 }: ExternalUseCrudParams & {
   includeFotos?: boolean;
 } = {}) {
@@ -23,6 +25,8 @@ export function useEscalaItensCrud({
     queryKey: 'escalas-itens',
     autoFetch,
     initialParams,
+    muteMessages,
+    messages,
     fetchAll: () => EscalaItensRepository.getAll(),
     search: (query) => EscalaItensRepository.search({ ...query, igrejaId: igrejaAtiva.id }, includeFotos),
     fetchOne: async (id) => {
