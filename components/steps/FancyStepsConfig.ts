@@ -1,7 +1,7 @@
 import { CustomIconProps } from '../FancyIcons';
 
 export type FancyStepAction = {
-  label: string;
+  label?: string;
   enabled?: boolean;
   icon?: CustomIconProps;
   iconPosition?: 'left' | 'right';
