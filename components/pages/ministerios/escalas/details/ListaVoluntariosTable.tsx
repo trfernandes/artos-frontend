@@ -187,9 +187,11 @@ export default function ListaVoluntariosTable({
                     numberOfLines={1}
                   >
                     {equipeItem.funcao?.nome}
-                    {equipeItem.funcao?.experiencia
+                    {hasVoluntario && equipeItem.funcao?.experiencia
                       ? ` · ${EscalaTemplateExperienciaLabel[equipeItem.funcao.experiencia]}`
-                      : ''}
+                      : !hasVoluntario && equipeItem.funcao?.expMinima
+                        ? ` · mín: ${EscalaTemplateExperienciaLabel[equipeItem.funcao.expMinima]}`
+                        : ''}
                   </FancyText>
                   {hasVoluntario ? (
                     <FancyText type='semiBold' size={Platform.OS === 'ios' ? 11 : 10}>

@@ -19,6 +19,7 @@ import { useAuth } from '../../../../../contexts/AuthContext';
 import Toast from 'react-native-toast-message';
 import EscalaParametrizacaoModal from '../../../../../components/pages/ministerios/escalas/details/EscalaParametrizacaoModal';
 import { EscalaTemplateExperienciaEnum } from '../../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
+import { EscalaParametrizacaoType } from '../../../../../domain/dtos/Escala/escala.response';
 
 export type EscalaItemDataType = {
   dataOcorrencia: string;
@@ -51,7 +52,7 @@ export type EscalaItemEventoDataType = {
 export type EscalaItemEquipeType = {
   idEscalaItem: string;
   voluntario?: EscalaItemEventoDataType['voluntario'];
-  funcao?: { id: string; nome: string; experiencia?: EscalaTemplateExperienciaEnum };
+  funcao?: { id: string; nome: string; experiencia?: EscalaTemplateExperienciaEnum; expMinima?: EscalaTemplateExperienciaEnum };
   status: EscalaItemEventoDataType['status'];
 };
 
@@ -166,6 +167,20 @@ export default function MinisterioEscalasDetailsPage() {
       return cacheEventos.get(e?.id)!;
     };
 
+    // 🔹 Lookup de expMinima por eventoId-funcaoId via parametrizacao
+    const expMinimaLookup = new Map<string, EscalaTemplateExperienciaEnum>();
+    const rawParam = (escalaData?.[0] as any)?.parametrizacao;
+    if (rawParam) {
+      const param: EscalaParametrizacaoType = typeof rawParam === 'string' ? JSON.parse(rawParam) : rawParam;
+      for (const ev of param.eventos ?? []) {
+        for (const f of ev.equipe?.funcoes ?? []) {
+          if (f.expMinima != null) {
+            expMinimaLookup.set(`${ev.id}-${f.id}`, f.expMinima as EscalaTemplateExperienciaEnum);
+          }
+        }
+      }
+    }
+
     // 🔹 Agrupamento otimizado
     for (let i = 0; i < escalaItens.length; i++) {
       const item = escalaItens[i];
@@ -186,6 +201,8 @@ export default function MinisterioEscalasDetailsPage() {
         (f: any) => f.funcaoId === item.funcao?.id,
       )?.experiencia as EscalaTemplateExperienciaEnum | undefined;
 
+      const expMinima = expMinimaLookup.get(`${item.evento?.id}-${item.funcao?.id}`);
+
       grupo.equipe.push({
         idEscalaItem: item?.id!,
         voluntario: {
@@ -199,6 +216,7 @@ export default function MinisterioEscalasDetailsPage() {
           id: item.funcao?.id!,
           nome: item.funcao?.nome!,
           experiencia: expDoVoluntario,
+          expMinima,
         },
         status: item.status,
       });
