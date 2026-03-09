@@ -10,10 +10,28 @@ export type NotificationNavigationTarget = {
   params?: Record<string, string | number | boolean>;
 };
 
+const ROUTABLE_PREFIXES = [
+  '/(',
+  '/notifications',
+  '/admin',
+  '/ministerios',
+  '/pessoal',
+  '/join-church',
+  '/invite',
+  '/inicio',
+  '/configuracoes',
+] as const;
+
 function normalizePath(path: string): string | null {
   const trimmed = path.trim();
   if (!trimmed) return null;
   return trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+}
+
+function isExpoRouterPath(pathname: string): boolean {
+  return ROUTABLE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
 }
 
 function coercePayload(rawPayload: NotificationPayload): Record<string, any> | null {
@@ -31,7 +49,20 @@ function coercePayload(rawPayload: NotificationPayload): Record<string, any> | n
   return payload;
 }
 
-function normalizeParams(params?: Record<string, any>): Record<string, string | number | boolean> | undefined {
+function getNotificationType(payload: Record<string, any>): string | undefined {
+  const rawType =
+    typeof payload.tipo === 'string'
+      ? payload.tipo
+      : typeof payload.type === 'string'
+        ? payload.type
+        : undefined;
+
+  return rawType?.toUpperCase();
+}
+
+function normalizeParams(
+  params?: Record<string, any>,
+): Record<string, string | number | boolean> | undefined {
   if (!params || typeof params !== 'object') return undefined;
 
   const normalized: Record<string, string | number | boolean> = {};
@@ -50,6 +81,7 @@ function parseRouteWithQuery(route: string): NotificationNavigationTarget | null
   const [rawPath, rawQuery] = route.split('?');
   const pathname = normalizePath(rawPath || '');
   if (!pathname) return null;
+  if (!isExpoRouterPath(pathname)) return null;
 
   if (!rawQuery) {
     return { pathname };
@@ -64,6 +96,38 @@ function parseRouteWithQuery(route: string): NotificationNavigationTarget | null
   return { pathname, params: Object.keys(params).length ? params : undefined };
 }
 
+function resolveLegacyDeepLinkPath(path: string): NotificationNavigationTarget | null {
+  const normalized = path.replace(/^\/+/, '');
+
+  if (/^igrejas\/[^/]+\/solicitacoes\/[^/]+$/i.test(normalized)) {
+    return { pathname: '/(app)/(drawer)/admin/solicitacoes' };
+  }
+
+  if (/^igrejas\/[^/]+\/escalas\/[^/]+(?:\/eventos\/[^/]+)?$/i.test(normalized)) {
+    return { pathname: '/(app)/(drawer)/pessoal/escalas' };
+  }
+
+  if (/^minhas-solicitacoes\/[^/]+$/i.test(normalized)) {
+    return { pathname: '/(app)/join-church/requests' };
+  }
+
+  return null;
+}
+
+function resolveLegacyRouteName(route: string): NotificationNavigationTarget | null {
+  switch (route.trim()) {
+    case 'EscalaDetalhe':
+    case 'Escalas':
+      return { pathname: '/(app)/(drawer)/pessoal/escalas' };
+    case 'IgrejaSolicitacoes':
+      return { pathname: '/(app)/(drawer)/admin/solicitacoes' };
+    case 'MinhasSolicitacoes':
+      return { pathname: '/(app)/join-church/requests' };
+    default:
+      return null;
+  }
+}
+
 function resolveFromDeepLink(deepLink: string): NotificationNavigationTarget | null {
   const trimmed = deepLink.trim();
   if (!trimmed) return null;
@@ -72,59 +136,65 @@ function resolveFromDeepLink(deepLink: string): NotificationNavigationTarget | n
     const parsed = Linking.parse(trimmed);
     const parsedPath = parsed.path || '';
     const fromPath = parseRouteWithQuery(parsedPath);
-    if (!fromPath) return null;
+    if (!fromPath) {
+      return resolveLegacyDeepLinkPath(parsedPath);
+    }
     return {
       pathname: fromPath.pathname,
       params: normalizeParams(parsed.queryParams as Record<string, any>),
     };
   }
 
-  return parseRouteWithQuery(trimmed);
+  return parseRouteWithQuery(trimmed) ?? resolveLegacyDeepLinkPath(trimmed);
 }
 
 function resolveByTipo(payload: Record<string, any>): NotificationNavigationTarget {
-  const tipo = payload.tipo as NotificacaoTipoEnum | undefined;
+  const tipo = getNotificationType(payload);
 
   switch (tipo) {
-    // Escalas: navegar para a tela de escalas pessoais
     case NotificacaoTipoEnum.EscalaLembrete:
     case NotificacaoTipoEnum.EscalaPublicada:
+    case 'ESCALA_ATUALIZADA':
     case NotificacaoTipoEnum.EscalaAlterada:
     case NotificacaoTipoEnum.EscalaCancelada:
+    case 'ESCALA_CONFIRMACAO_SOLICITADA':
     case NotificacaoTipoEnum.EscalaConfirmacaoPendente:
     case NotificacaoTipoEnum.EscalaSubstituicaoSolicitada:
+    case 'ESCALA_TROCA_SOLICITADA':
     case NotificacaoTipoEnum.EscalaSubstituicaoAceita:
+    case 'ESCALA_TROCA_APROVADA':
     case NotificacaoTipoEnum.EscalaSubstituicaoRecusada:
     case NotificacaoTipoEnum.EscalaVoluntarioConfirmou:
     case NotificacaoTipoEnum.EscalaVoluntarioRecusou:
     case NotificacaoTipoEnum.EscalaSubstituicaoSolicitadaLider:
     case NotificacaoTipoEnum.EscalaSubstituicaoResolvidaLider:
     case NotificacaoTipoEnum.IndisponibilidadeConflito:
+    case 'TESTE_LOCAL':
       return { pathname: '/(app)/(drawer)/pessoal/escalas' };
 
-    // Ministério: navegar para a listagem de ministérios
     case NotificacaoTipoEnum.MinisterioNovoIntegrante:
+    case 'COMUNICADO_LIDER':
       return { pathname: '/(app)/(drawer)/ministerios' };
 
-    // Admin: solicitações de vínculo
     case NotificacaoTipoEnum.IgrejaVinculoSolicitado:
       return { pathname: '/(app)/(drawer)/admin/solicitacoes' };
 
-    // Admin: novos voluntários
+    case NotificacaoTipoEnum.IgrejaConviteAceito:
     case NotificacaoTipoEnum.IgrejaNovoVoluntario:
       return { pathname: '/(app)/(drawer)/admin/voluntarios' };
 
-    // Demais tipos: permanecer na tela de notificações
-    case NotificacaoTipoEnum.IgrejaConviteAceito:
     case NotificacaoTipoEnum.IgrejaVinculoAprovado:
     case NotificacaoTipoEnum.IgrejaVinculoNegado:
     case NotificacaoTipoEnum.IgrejaConviteExpirado:
+    case 'GENERIC':
     default:
       return { pathname: '/notifications' };
   }
 }
 
-export function resolveNotificationTarget(rawPayload: NotificationPayload): NotificationNavigationTarget | null {
+export function resolveNotificationTarget(
+  rawPayload: NotificationPayload,
+): NotificationNavigationTarget | null {
   const payload = coercePayload(rawPayload);
   if (!payload) return null;
 
@@ -141,7 +211,7 @@ export function resolveNotificationTarget(rawPayload: NotificationPayload): Noti
 
   const route = typeof payload.route === 'string' ? payload.route : undefined;
   if (route) {
-    const routeTarget = parseRouteWithQuery(route);
+    const routeTarget = parseRouteWithQuery(route) ?? resolveLegacyRouteName(route);
     if (routeTarget) {
       return {
         pathname: routeTarget.pathname,

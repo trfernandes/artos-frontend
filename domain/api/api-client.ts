@@ -2,8 +2,11 @@ import axios from 'axios';
 import { triggerUnauthorized } from '../../core/network/authBridge';
 import { getAuthToken } from '../../core/storage/authTokenStorage';
 
+const DEFAULT_API_URL = 'https://artos-backend-nwg5.onrender.com';
+const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL || DEFAULT_API_URL;
+
 const apiClient = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL,
+  baseURL: apiBaseUrl,
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',

@@ -32,15 +32,11 @@
         "foregroundImage": "./assets/images/icon-android.png",
         "backgroundColor": "#ffffff"
       },
+      "googleServicesFile": "./google-services.json",
       "edgeToEdgeEnabled": true,
       "package": "com.church.artos",
       "versionCode": 1,
-      "permissions": [
-        "INTERNET",
-        "VIBRATE",
-        "INTERNET",
-        "VIBRATE"
-      ],
+      "permissions": ["INTERNET", "VIBRATE", "INTERNET", "VIBRATE"],
       "blockedPermissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
@@ -62,10 +58,7 @@
               "pathPrefix": "/invite"
             }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         },
         {
           "action": "VIEW",
@@ -77,10 +70,7 @@
               "pathPrefix": "/invite"
             }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         }
       ]
     },
@@ -90,7 +80,20 @@
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-notifications",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Permita que o Diakonia acesse suas fotos para atualizar seu perfil.",
+          "cameraPermission": "Permita que o Diakonia use sua câmera para tirar a foto do perfil."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#73D1C0"
+        }
+      ],
       [
         "@sentry/react-native/expo",
         {

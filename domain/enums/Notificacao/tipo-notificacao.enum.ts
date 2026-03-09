@@ -27,4 +27,5 @@ export enum NotificacaoTipoEnum {
 
   // Dev
   TesteLocal = 'TESTE_LOCAL',
+  Generic = 'GENERIC',
 }

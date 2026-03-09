@@ -19,6 +19,8 @@ ios/
 *.p12
 *.key
 *.mobileprovision
+android.json
+google-services.json
 
 # Metro
 .metro-health-check*

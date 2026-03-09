@@ -22,6 +22,10 @@ class NotificaoesApiClass extends BaseApi<ResponseNotificacaoDto> {
     const res = await apiClient.get('/notificacoes/nao-lidas/count');
     return res.data.data.count || 0;
   }
+
+  async enviarTestePush(): Promise<void> {
+    await apiClient.post('/me/push-test');
+  }
 }
 
 export const NotificacoesApi = new NotificaoesApiClass('notificacoes');

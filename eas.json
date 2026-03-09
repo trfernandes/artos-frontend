@@ -5,8 +5,11 @@
   },
   "build": {
     "production": {
+      "autoIncrement": true,
       "env": {
-        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
+        "EXPO_PUBLIC_API_URL": "https://artos-backend-nwg5.onrender.com",
+        "EXPO_PUBLIC_APP_SECRET_KEY": "chave-secreta-do-app"
       },
       "android": {},
       "ios": {}
@@ -21,7 +24,8 @@
         "ascApiKeyIssuerId": "4d3e55d5-6f5a-4fbc-9f30-f2a3ed29090a"
       },
       "android": {
-        "track": "internal"
+        "track": "internal",
+        "serviceAccountKeyPath": "./android.json"
       }
     }
   }

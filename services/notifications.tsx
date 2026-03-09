@@ -26,6 +26,21 @@ function getCurrentAppVersion() {
   return String(Constants.nativeAppVersion || Constants.expoConfig?.version || 'unknown');
 }
 
+function getExpoProjectId() {
+  const expoProjectId = Constants.expoConfig?.extra?.eas?.projectId;
+  const easProjectId = Constants.easConfig?.projectId;
+
+  if (typeof easProjectId === 'string' && easProjectId.length > 0) {
+    return easProjectId;
+  }
+
+  if (typeof expoProjectId === 'string' && expoProjectId.length > 0) {
+    return expoProjectId;
+  }
+
+  return undefined;
+}
+
 function createDeviceId() {
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).slice(2, 12);
@@ -67,7 +82,9 @@ Notifications.setNotificationHandler({
   }),
 });
 
-export async function registerForPushNotificationsAsync(voluntarioId: string): Promise<string | null> {
+export async function registerForPushNotificationsAsync(
+  voluntarioId: string,
+): Promise<string | null> {
   // 1) Não tenta registrar push em emulador
   if (!Device.isDevice) {
     console.log('[Notifications] Emulador: não vou tentar registrar push token.');
@@ -92,7 +109,10 @@ export async function registerForPushNotificationsAsync(voluntarioId: string): P
   let expoPushToken: string | null = null;
 
   try {
-    const { data } = await Notifications.getExpoPushTokenAsync();
+    const projectId = getExpoProjectId();
+    const { data } = projectId
+      ? await Notifications.getExpoPushTokenAsync({ projectId })
+      : await Notifications.getExpoPushTokenAsync();
     expoPushToken = data;
     console.log('[Notifications] Expo push token:', expoPushToken);
   } catch (error: any) {
@@ -133,9 +153,9 @@ export async function registerForPushNotificationsAsync(voluntarioId: string): P
 
   // 6) Enviar token para API
   try {
-    await apiClient.post(`/notificacoes/device-tokens/${voluntarioId}`, {
+    await apiClient.post('/me/push-tokens', {
       expoPushToken,
-      plataforma: Platform.OS,
+      plataform: Platform.OS,
       previousToken: previousMetadata?.expoPushToken || previousToken || undefined,
       deviceId,
       appVersion,
@@ -158,31 +178,14 @@ export async function registerForPushNotificationsAsync(voluntarioId: string): P
 
 export async function deregisterPushToken(): Promise<void> {
   const storedMetadata = await getStoredRegistrationMetadata();
-  const storedToken = (await SecureStore.getItemAsync(PUSH_TOKEN_STORAGE_KEY)) || storedMetadata?.expoPushToken;
-  const storedDeviceId = (await AsyncStorage.getItem(PUSH_DEVICE_ID_STORAGE_KEY)) || storedMetadata?.deviceId;
+  const storedToken =
+    (await SecureStore.getItemAsync(PUSH_TOKEN_STORAGE_KEY)) || storedMetadata?.expoPushToken;
 
   try {
-    let removed = false;
-
-    if (storedDeviceId) {
-      try {
-        await apiClient.delete('/notificacoes/device-tokens', {
-          data: { deviceId: storedDeviceId },
-        });
-        removed = true;
-      } catch (error) {
-        console.log('[Notifications] Falha ao remover token por deviceId:', error);
-      }
-    }
-
-    if (!removed && storedToken) {
-      await apiClient.delete('/notificacoes/device-tokens', {
+    if (storedToken) {
+      await apiClient.delete('/me/push-tokens', {
         data: { expoPushToken: storedToken },
       });
-      removed = true;
-    }
-
-    if (removed) {
       console.log('[Notifications] Token removido com sucesso.');
     }
   } catch (error) {

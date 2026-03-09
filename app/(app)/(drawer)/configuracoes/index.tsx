@@ -1,10 +1,10 @@
 import {
-    StyleSheet,
-    View,
-    TouchableOpacity,
-    ActivityIndicator,
-    Platform,
-    ScrollView,
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  ActivityIndicator,
+  Platform,
+  ScrollView,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { uploadToCloudinaryUnsigned } from '../../../../services/cloudinary_upload';
@@ -18,12 +18,12 @@ import { useAuth } from '../../../../contexts/AuthContext';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
-    dadosSchema,
-    modoEntradaSchema,
-    notificacoesSchema,
-    DadosFormData,
-    ModoEntradaFormData,
-    NotificacoesFormData,
+  dadosSchema,
+  modoEntradaSchema,
+  notificacoesSchema,
+  DadosFormData,
+  ModoEntradaFormData,
+  NotificacoesFormData,
 } from '../../../../domain/schemas/igreja-configuracoes.schema';
 import ControlledTextInput from '../../../../components/forms/ControlledTextInput';
 import ControlledDropDown from '../../../../components/forms/ControlledDropDown';
@@ -38,7 +38,10 @@ import ControlledFancyToggle from '../../../../components/forms/ControlledFancyT
 import FancyCheckbox from '../../../../components/FancyCheckbox';
 import * as Clipboard from 'expo-clipboard';
 import Toast from 'react-native-toast-message';
-import { ControlledImagePicker, FormImageFile } from '../../../../components/forms/ControlledImagePicker';
+import {
+  ControlledImagePicker,
+  FormImageFile,
+} from '../../../../components/forms/ControlledImagePicker';
 import { usePallete } from '../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../hooks/useThemedStyles';
 import { ColorUtils } from '../../../../utils/color_utils';
@@ -46,6 +49,11 @@ import FancyChips from '../../../../components/FancyChips';
 import { UF_LIST } from '../../../../domain/utils/uf-list';
 import { getCidadesPorUf } from '../../../../domain/utils/cidades-list';
 import { DropDownItemProps } from '../../../../components/fields/FancyDropDownItem';
+import {
+  registerForPushNotificationsAsync,
+  scheduleLocalTestNotification,
+} from '../../../../services/notifications';
+import { NotificacoesApi } from '../../../../domain/api/NotificacoesApi';
 
 const ANTECEDENCIA_OPTIONS = [
   { title: '24 horas antes', value: 24 },
@@ -77,9 +85,9 @@ export default function ConfiguracoesPage() {
                   // Preservar os ministérios da igreja atual
                   ministerios: igreja.ministerios,
                 }
-              : igreja
+              : igreja,
           );
-          
+
           await updateUser({ igrejas: igrejasAtualizadas });
         }
       },
@@ -87,6 +95,10 @@ export default function ConfiguracoesPage() {
 
   // State para controlar upload de imagem
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isRegisteringPushTest, setIsRegisteringPushTest] = useState(false);
+  const [isSendingPushTest, setIsSendingPushTest] = useState(false);
+  const [isRunningLocalPushTest, setIsRunningLocalPushTest] = useState(false);
+  const [lastPushToken, setLastPushToken] = useState<string | null>(null);
 
   // Forms
   const dadosForm = useForm<DadosFormData>({
@@ -130,10 +142,12 @@ export default function ConfiguracoesPage() {
 
   // States para checkboxes
   const [canaisPush, setCanaisPush] = useState(
-    data?.configuracoes?.notificacoes?.canais?.push ?? data?.notificacoes?.canais?.push ?? true
+    data?.configuracoes?.notificacoes?.canais?.push ?? data?.notificacoes?.canais?.push ?? true,
   );
   const [canaisWhatsapp, setCanaisWhatsapp] = useState(
-    data?.configuracoes?.notificacoes?.canais?.whatsapp ?? data?.notificacoes?.canais?.whatsapp ?? false
+    data?.configuracoes?.notificacoes?.canais?.whatsapp ??
+      data?.notificacoes?.canais?.whatsapp ??
+      false,
   );
   const ufSelecionada = dadosForm.watch('endereco.uf');
   const [cidadesList, setCidadesList] = useState<DropDownItemProps<string>[]>([]);
@@ -171,12 +185,19 @@ export default function ConfiguracoesPage() {
   // Atualizar forms quando data carregar
   useEffect(() => {
     if (data) {
-      console.log('🔄 useEffect - Dados recebidos para reset do form:', JSON.stringify({
-        telefone: data.telefone,
-        email: data.email,
-        nome: data.nome,
-      }, null, 2));
-      
+      console.log(
+        '🔄 useEffect - Dados recebidos para reset do form:',
+        JSON.stringify(
+          {
+            telefone: data.telefone,
+            email: data.email,
+            nome: data.nome,
+          },
+          null,
+          2,
+        ),
+      );
+
       dadosForm.reset({
         nome: data.nome || '',
         endereco: {
@@ -215,12 +236,12 @@ export default function ConfiguracoesPage() {
   // Handlers
   const handleSalvarDados = dadosForm.handleSubmit(async (formData: DadosFormData) => {
     console.log('📤 Dados do form a serem enviados:', JSON.stringify(formData, null, 2));
-    
+
     // Fazer upload da imagem se houver uma nova
     const logoFile = dadosForm.getValues('logoFile' as any) as FormImageFile | null | undefined;
-    
+
     let finalLogoUrl = formData.logoUrl;
-    
+
     if (logoFile?.uri) {
       setIsUploadingImage(true);
       try {
@@ -290,6 +311,99 @@ export default function ConfiguracoesPage() {
     }
   };
 
+  const handleRegistrarPushTeste = async () => {
+    if (!user?.user?.id) {
+      Toast.show({
+        type: 'error',
+        text1: 'Sessão indisponível',
+        text2: 'Faça login novamente para registrar o push.',
+      });
+      return;
+    }
+
+    try {
+      setIsRegisteringPushTest(true);
+      const token = await registerForPushNotificationsAsync(user.user.id);
+
+      if (!token) {
+        Toast.show({
+          type: 'info',
+          text1: 'Token não disponível',
+          text2: 'Verifique a permissão de notificações e use um aparelho físico.',
+        });
+        return;
+      }
+
+      setLastPushToken(token);
+      Toast.show({
+        type: 'success',
+        text1: 'Push registrado',
+        text2: 'O token do dispositivo foi registrado com sucesso.',
+      });
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Falha ao registrar push',
+        text2: 'Revise as permissões e tente novamente.',
+      });
+    } finally {
+      setIsRegisteringPushTest(false);
+    }
+  };
+
+  const handleExecutarPushLocalTeste = async () => {
+    try {
+      setIsRunningLocalPushTest(true);
+      await scheduleLocalTestNotification();
+      Toast.show({
+        type: 'success',
+        text1: 'Teste local disparado',
+        text2: 'Se as permissões estiverem corretas, a notificação aparece em seguida.',
+      });
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Falha no teste local',
+        text2: 'Não foi possível disparar a notificação local.',
+      });
+    } finally {
+      setIsRunningLocalPushTest(false);
+    }
+  };
+
+  const handleEnviarPushTeste = async () => {
+    try {
+      setIsSendingPushTest(true);
+      await NotificacoesApi.enviarTestePush();
+      Toast.show({
+        type: 'success',
+        text1: 'Push de teste enfileirado',
+        text2: 'O worker do backend pode levar até 1 minuto para enviar.',
+      });
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Falha ao enfileirar push',
+        text2: 'Verifique o backend e o registro do token.',
+      });
+    } finally {
+      setIsSendingPushTest(false);
+    }
+  };
+
+  const handleCopiarPushToken = async () => {
+    if (!lastPushToken) return;
+
+    await Clipboard.setStringAsync(lastPushToken);
+    if (Platform.OS !== 'android') {
+      Toast.show({
+        type: 'success',
+        text1: 'Token copiado',
+        text2: 'O token push foi copiado para a área de transferência.',
+      });
+    }
+  };
+
   // Verificar se há igreja ativa
   if (!igrejaId) {
     return (
@@ -305,7 +419,7 @@ export default function ConfiguracoesPage() {
     return (
       <FancyPageView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={palette.primary} />
+          <ActivityIndicator size='large' color={palette.primary} />
         </View>
       </FancyPageView>
     );
@@ -323,312 +437,396 @@ export default function ConfiguracoesPage() {
 
   // Tabs - criado após validação de data
   const TAB_DATA: TabItem[] = [
-      {
-        title: 'Dados',
-        icon: { ...DefaultIconsNames.info, size: 16 },
-        content: (
-          <View style={styles.tabWrapper}>
-            <KeyboardAwareScrollView
-              style={styles.scrollView}
-              contentContainerStyle={styles.tabContent}
-              showsVerticalScrollIndicator={false}
-              enableOnAndroid={true}
-              extraScrollHeight={100}
-            >
-              {/* Avatar / Logo */}
-              <View style={styles.avatarContainer}>
-                <ControlledImagePicker
-                  control={dadosForm.control}
-                  name="logoUrl"
-                  setValue={dadosForm.setValue}
-                  uploadFieldName={'logoFile' as any}
-                />
-              </View>
-
-              {/* Formulário */}
-              <ControlledTextInput control={dadosForm.control} name="nome" label="Nome da Igreja" />
-
-              <ControlledMaskedTextInput
-                control={dadosForm.control}
-                name="endereco.cep"
-                label="CEP"
-                maskType="cep"
-              />
-
-              <ControlledTextInput control={dadosForm.control} name="endereco.rua" label="Rua" />
-
-              <ControlledTextInput
-                control={dadosForm.control}
-                name="endereco.numero"
-                label="Número"
-                keyboardType="numeric"
-              />
-
-              <ControlledTextInput control={dadosForm.control} name="endereco.complemento" label="Complemento" />
-
-              <ControlledSearchSelect
-                control={dadosForm.control}
-                name="endereco.uf"
-                label="Estado"
-                listItems={UF_LIST}
-                placeholder="Selecione o estado"
-                searchPlaceholder="Buscar estado..."
-              />
-
-              <ControlledSearchSelect
-                control={dadosForm.control}
-                name="endereco.cidade"
-                label="Cidade"
-                listItems={cidadesList}
-                placeholder={isLoadingCidades ? 'Carregando cidades...' : 'Selecione a cidade'}
-                searchPlaceholder="Buscar cidade..."
-                disabled={!ufSelecionada || isLoadingCidades}
-                isLoading={isLoadingCidades}
-              />
-
-              <ControlledMaskedTextInput
-                control={dadosForm.control}
-                name="telefone"
-                label="Telefone"
-                maskType="phone"
-              />
-
-              <ControlledTextInput
-                control={dadosForm.control}
-                name="email"
-                label="Email"
-                keyboardType="email-address"
-              />
-
-              {/* Código da Igreja */}
-              <View style={styles.codigoCard}>
-                <View style={styles.codigoHeader}>
-                  <DefaultIcons.Custom library="MaterialCommunityIcons" name="qrcode" size={20} color={palette.primary} />
-                  <FancyText type="medium" size="small" style={styles.codigoTitulo}>
-                    Código da Igreja
-                  </FancyText>
-                </View>
-                <View style={styles.codigoBody}>
-                  <FancyText type="bold" size="extraLarge" style={styles.codigoTexto}>
-                    {data?.codigo || '---'}
-                  </FancyText>
-                  <FancyText type="normal" size="extraSmall" style={styles.codigoDesc}>
-                    Compartilhe este código para convidar pessoas
-                  </FancyText>
-                </View>
-                <TouchableOpacity style={styles.codigoCopyButton} onPress={handleCopiarCodigo}>
-                  <DefaultIcons.Custom library="MaterialCommunityIcons" name="content-copy" size={16} color={palette.primary} />
-                  <FancyText type="medium" size="small" style={styles.codigoCopyText}>
-                    Copiar Código
-                  </FancyText>
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.buttonContainer}>
-                <FancyButton
-                  label="Salvar Alterações"
-                  icon={{ library: 'MaterialCommunityIcons', name: 'content-save', size: 14 }}
-                  onPress={handleSalvarDados}
-                  disabled={isUpdating || isUploadingImage}
-                  isLoading={isUpdating || isUploadingImage}
-                />
-              </View>
-            </KeyboardAwareScrollView>
-          </View>
-        ),
-      },
-      {
-        title: 'Acesso',
-        icon: { library: 'MaterialCommunityIcons', name: 'shield-account', size: 16 },
-        content: (
-          <View style={styles.tabWrapper}>
-            <KeyboardAwareScrollView
-              style={styles.scrollView}
-              contentContainerStyle={styles.tabContent}
-              showsVerticalScrollIndicator={false}
-              enableOnAndroid={true}
-              extraScrollHeight={100}
-            >
-              <TouchableOpacity
-                style={[
-                  styles.modoCard,
-                  modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.APENAS_CONVITE &&
-                    [styles.modoCardSelected, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.16) }],
-                ]}
-                onPress={() => modoEntradaForm.setValue('modoEntrada', ModoEntradaEnum.APENAS_CONVITE)}
-              >
-                <DefaultIcons.Custom
-                  library="MaterialCommunityIcons"
-                  name="account-key"
-                  size={32}
-                  color={
-                    modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.APENAS_CONVITE
-                      ? palette.primary
-                      : palette.fonts.inactive
-                  }
-                />
-                <FancyText type="bold" size="medium" style={styles.modoCardTitle}>
-                  Apenas Convite
-                </FancyText>
-                <FancyText type="normal" size="small" style={styles.modoCardDesc}>
-                  Somente pessoas com convite podem entrar na igreja
-                </FancyText>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.modoCard,
-                  modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_COM_APROVACAO &&
-                    [styles.modoCardSelected, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.16) }],
-                ]}
-                onPress={() => modoEntradaForm.setValue('modoEntrada', ModoEntradaEnum.CODIGO_COM_APROVACAO)}
-              >
-                <DefaultIcons.Custom
-                  library="MaterialCommunityIcons"
-                  name="shield-check"
-                  size={32}
-                  color={
-                    modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_COM_APROVACAO
-                      ? palette.primary
-                      : palette.fonts.inactive
-                  }
-                />
-                <FancyText type="bold" size="medium" style={styles.modoCardTitle}>
-                  Código com Aprovação
-                </FancyText>
-                <FancyText type="normal" size="small" style={styles.modoCardDesc}>
-                  Qualquer um com código pode solicitar entrada. Um administrador deve aprovar.
-                </FancyText>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.modoCard,
-                  modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_LIVRE &&
-                    [styles.modoCardSelected, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.16) }],
-                ]}
-                onPress={() => modoEntradaForm.setValue('modoEntrada', ModoEntradaEnum.CODIGO_LIVRE)}
-              >
-                <DefaultIcons.Custom
-                  library="MaterialCommunityIcons"
-                  name="door-open"
-                  size={32}
-                  color={
-                    modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_LIVRE
-                      ? palette.primary
-                      : palette.fonts.inactive
-                  }
-                />
-                <FancyText type="bold" size="medium" style={styles.modoCardTitle}>
-                  Código Livre
-                </FancyText>
-                <FancyText type="normal" size="small" style={styles.modoCardDesc}>
-                  Qualquer um com o código entra automaticamente na igreja
-                </FancyText>
-              </TouchableOpacity>
-
-              <View style={styles.buttonContainer}>
-                <FancyButton
-                  label="Salvar"
-                  icon={{ library: 'MaterialCommunityIcons', name: 'shield-check', size: 14 }}
-                  onPress={handleSalvarModoEntrada}
-                  disabled={isUpdating}
-                  isLoading={isUpdating}
-                />
-              </View>
-            </KeyboardAwareScrollView>
-          </View>
-        ),
-      },
-      {
-        title: 'Notificações',
-        icon: { library: 'MaterialCommunityIcons', name: 'bell', size: 16 },
-        content: (
-          <View style={styles.tabWrapper}>
-            <KeyboardAwareScrollView
-              style={styles.scrollView}
-              contentContainerStyle={styles.tabContent}
-              showsVerticalScrollIndicator={false}
-              enableOnAndroid={true}
-              extraScrollHeight={100}
-            >
-              <ControlledFancyToggle
-                control={notificacoesForm.control}
-                name="notificacoesHabilitadas"
-                label="Lembretes automáticos"
-                option1={{ title: 'Habilitado', value: true }}
-                option2={{ title: 'Desabilitado', value: false }}
-              />
-
-              <ControlledDropDown
-                control={notificacoesForm.control}
-                name="antecedenciaHoras"
-                label="Antecedência padrão"
-                listItems={ANTECEDENCIA_OPTIONS}
-              />
-
-              <View style={styles.canaisContainer}>
-                <FancyText type="medium" size="small" style={styles.canaisLabel}>
-                  Canais de notificação:
-                </FancyText>
-
-                <View style={styles.checkboxesContainer}>
-                  <FancyCheckbox
-                    label="Notificações Push"
-                    value={canaisPush}
-                    onChangeValue={setCanaisPush}
-                  />
-                  <FancyCheckbox
-                    label="WhatsApp"
-                    value={canaisWhatsapp}
-                    onChangeValue={setCanaisWhatsapp}
-                  />
-                </View>
-              </View>
-
-              <View style={styles.buttonContainer}>
-                <FancyButton
-                  label="Salvar"
-                  icon={{ library: 'MaterialCommunityIcons', name: 'bell-check', size: 14 }}
-                  onPress={handleSalvarNotificacoes}
-                  disabled={isUpdating}
-                  isLoading={isUpdating}
-                />
-              </View>
-            </KeyboardAwareScrollView>
-          </View>
-        ),
-      },
-      {
-        title: 'Assinatura',
-        icon: { library: 'MaterialCommunityIcons', name: 'credit-card', size: 16 },
-        content: (
-          <ScrollView
+    {
+      title: 'Dados',
+      icon: { ...DefaultIconsNames.info, size: 16 },
+      content: (
+        <View style={styles.tabWrapper}>
+          <KeyboardAwareScrollView
             style={styles.scrollView}
-            contentContainerStyle={styles.assinaturaContainer}
+            contentContainerStyle={styles.tabContent}
             showsVerticalScrollIndicator={false}
+            enableOnAndroid={true}
+            extraScrollHeight={100}
           >
-            <View style={styles.assinaturaCard}>
-              <View style={styles.assinaturaHeader}>
-                <FancyText type="bold" size="large">
-                  Plano Gratuito
-                </FancyText>
-                <FancyChips label="Ativo" size="small" />
-              </View>
-              <FancyText type="normal" size="small" style={styles.assinaturaDesc}>
-                Em breve você poderá fazer upgrade para planos com mais recursos
-              </FancyText>
-              <FancyButton
-                label="Gerenciar Plano"
-                disabled={true}
-                type="outlined"
-                containerStyle={styles.gerenciarButton}
+            {/* Avatar / Logo */}
+            <View style={styles.avatarContainer}>
+              <ControlledImagePicker
+                control={dadosForm.control}
+                name='logoUrl'
+                setValue={dadosForm.setValue}
+                uploadFieldName={'logoFile' as any}
               />
             </View>
-          </ScrollView>
-        ),
-      },
-    ];
+
+            {/* Formulário */}
+            <ControlledTextInput control={dadosForm.control} name='nome' label='Nome da Igreja' />
+
+            <ControlledMaskedTextInput
+              control={dadosForm.control}
+              name='endereco.cep'
+              label='CEP'
+              maskType='cep'
+            />
+
+            <ControlledTextInput control={dadosForm.control} name='endereco.rua' label='Rua' />
+
+            <ControlledTextInput
+              control={dadosForm.control}
+              name='endereco.numero'
+              label='Número'
+              keyboardType='numeric'
+            />
+
+            <ControlledTextInput
+              control={dadosForm.control}
+              name='endereco.complemento'
+              label='Complemento'
+            />
+
+            <ControlledSearchSelect
+              control={dadosForm.control}
+              name='endereco.uf'
+              label='Estado'
+              listItems={UF_LIST}
+              placeholder='Selecione o estado'
+              searchPlaceholder='Buscar estado...'
+            />
+
+            <ControlledSearchSelect
+              control={dadosForm.control}
+              name='endereco.cidade'
+              label='Cidade'
+              listItems={cidadesList}
+              placeholder={isLoadingCidades ? 'Carregando cidades...' : 'Selecione a cidade'}
+              searchPlaceholder='Buscar cidade...'
+              disabled={!ufSelecionada || isLoadingCidades}
+              isLoading={isLoadingCidades}
+            />
+
+            <ControlledMaskedTextInput
+              control={dadosForm.control}
+              name='telefone'
+              label='Telefone'
+              maskType='phone'
+            />
+
+            <ControlledTextInput
+              control={dadosForm.control}
+              name='email'
+              label='Email'
+              keyboardType='email-address'
+            />
+
+            {/* Código da Igreja */}
+            <View style={styles.codigoCard}>
+              <View style={styles.codigoHeader}>
+                <DefaultIcons.Custom
+                  library='MaterialCommunityIcons'
+                  name='qrcode'
+                  size={20}
+                  color={palette.primary}
+                />
+                <FancyText type='medium' size='small' style={styles.codigoTitulo}>
+                  Código da Igreja
+                </FancyText>
+              </View>
+              <View style={styles.codigoBody}>
+                <FancyText type='bold' size='extraLarge' style={styles.codigoTexto}>
+                  {data?.codigo || '---'}
+                </FancyText>
+                <FancyText type='normal' size='extraSmall' style={styles.codigoDesc}>
+                  Compartilhe este código para convidar pessoas
+                </FancyText>
+              </View>
+              <TouchableOpacity style={styles.codigoCopyButton} onPress={handleCopiarCodigo}>
+                <DefaultIcons.Custom
+                  library='MaterialCommunityIcons'
+                  name='content-copy'
+                  size={16}
+                  color={palette.primary}
+                />
+                <FancyText type='medium' size='small' style={styles.codigoCopyText}>
+                  Copiar Código
+                </FancyText>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.buttonContainer}>
+              <FancyButton
+                label='Salvar Alterações'
+                icon={{ library: 'MaterialCommunityIcons', name: 'content-save', size: 14 }}
+                onPress={handleSalvarDados}
+                disabled={isUpdating || isUploadingImage}
+                isLoading={isUpdating || isUploadingImage}
+              />
+            </View>
+          </KeyboardAwareScrollView>
+        </View>
+      ),
+    },
+    {
+      title: 'Acesso',
+      icon: { library: 'MaterialCommunityIcons', name: 'shield-account', size: 16 },
+      content: (
+        <View style={styles.tabWrapper}>
+          <KeyboardAwareScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.tabContent}
+            showsVerticalScrollIndicator={false}
+            enableOnAndroid={true}
+            extraScrollHeight={100}
+          >
+            <TouchableOpacity
+              style={[
+                styles.modoCard,
+                modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.APENAS_CONVITE && [
+                  styles.modoCardSelected,
+                  { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.16) },
+                ],
+              ]}
+              onPress={() =>
+                modoEntradaForm.setValue('modoEntrada', ModoEntradaEnum.APENAS_CONVITE)
+              }
+            >
+              <DefaultIcons.Custom
+                library='MaterialCommunityIcons'
+                name='account-key'
+                size={32}
+                color={
+                  modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.APENAS_CONVITE
+                    ? palette.primary
+                    : palette.fonts.inactive
+                }
+              />
+              <FancyText type='bold' size='medium' style={styles.modoCardTitle}>
+                Apenas Convite
+              </FancyText>
+              <FancyText type='normal' size='small' style={styles.modoCardDesc}>
+                Somente pessoas com convite podem entrar na igreja
+              </FancyText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.modoCard,
+                modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_COM_APROVACAO && [
+                  styles.modoCardSelected,
+                  { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.16) },
+                ],
+              ]}
+              onPress={() =>
+                modoEntradaForm.setValue('modoEntrada', ModoEntradaEnum.CODIGO_COM_APROVACAO)
+              }
+            >
+              <DefaultIcons.Custom
+                library='MaterialCommunityIcons'
+                name='shield-check'
+                size={32}
+                color={
+                  modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_COM_APROVACAO
+                    ? palette.primary
+                    : palette.fonts.inactive
+                }
+              />
+              <FancyText type='bold' size='medium' style={styles.modoCardTitle}>
+                Código com Aprovação
+              </FancyText>
+              <FancyText type='normal' size='small' style={styles.modoCardDesc}>
+                Qualquer um com código pode solicitar entrada. Um administrador deve aprovar.
+              </FancyText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.modoCard,
+                modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_LIVRE && [
+                  styles.modoCardSelected,
+                  { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.16) },
+                ],
+              ]}
+              onPress={() => modoEntradaForm.setValue('modoEntrada', ModoEntradaEnum.CODIGO_LIVRE)}
+            >
+              <DefaultIcons.Custom
+                library='MaterialCommunityIcons'
+                name='door-open'
+                size={32}
+                color={
+                  modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_LIVRE
+                    ? palette.primary
+                    : palette.fonts.inactive
+                }
+              />
+              <FancyText type='bold' size='medium' style={styles.modoCardTitle}>
+                Código Livre
+              </FancyText>
+              <FancyText type='normal' size='small' style={styles.modoCardDesc}>
+                Qualquer um com o código entra automaticamente na igreja
+              </FancyText>
+            </TouchableOpacity>
+
+            <View style={styles.buttonContainer}>
+              <FancyButton
+                label='Salvar'
+                icon={{ library: 'MaterialCommunityIcons', name: 'shield-check', size: 14 }}
+                onPress={handleSalvarModoEntrada}
+                disabled={isUpdating}
+                isLoading={isUpdating}
+              />
+            </View>
+          </KeyboardAwareScrollView>
+        </View>
+      ),
+    },
+    {
+      title: 'Notificações',
+      icon: { library: 'MaterialCommunityIcons', name: 'bell', size: 16 },
+      content: (
+        <View style={styles.tabWrapper}>
+          <KeyboardAwareScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.tabContent}
+            showsVerticalScrollIndicator={false}
+            enableOnAndroid={true}
+            extraScrollHeight={100}
+          >
+            <ControlledFancyToggle
+              control={notificacoesForm.control}
+              name='notificacoesHabilitadas'
+              label='Lembretes automáticos'
+              option1={{ title: 'Habilitado', value: true }}
+              option2={{ title: 'Desabilitado', value: false }}
+            />
+
+            <ControlledDropDown
+              control={notificacoesForm.control}
+              name='antecedenciaHoras'
+              label='Antecedência padrão'
+              listItems={ANTECEDENCIA_OPTIONS}
+            />
+
+            <View style={styles.canaisContainer}>
+              <FancyText type='medium' size='small' style={styles.canaisLabel}>
+                Canais de notificação:
+              </FancyText>
+
+              <View style={styles.checkboxesContainer}>
+                <FancyCheckbox
+                  label='Notificações Push'
+                  value={canaisPush}
+                  onChangeValue={setCanaisPush}
+                />
+                <FancyCheckbox
+                  label='WhatsApp'
+                  value={canaisWhatsapp}
+                  onChangeValue={setCanaisWhatsapp}
+                />
+              </View>
+            </View>
+
+            <View style={styles.pushTestCard}>
+              <View style={styles.pushTestHeader}>
+                <DefaultIcons.Custom
+                  library='MaterialCommunityIcons'
+                  name='flask-outline'
+                  size={20}
+                  color={palette.primary}
+                />
+                <FancyText type='bold' size='small'>
+                  Testes rápidos
+                </FancyText>
+              </View>
+
+              <FancyText type='normal' size='extraSmall' style={styles.pushTestDescription}>
+                Use estes atalhos para validar permissão, registro do token e envio ponta a ponta
+                antes dos testes normais no iPhone e Android.
+              </FancyText>
+
+              <FancyButton
+                label='Registrar Push Neste Aparelho'
+                icon={{ library: 'MaterialCommunityIcons', name: 'cellphone-arrow-down', size: 14 }}
+                onPress={handleRegistrarPushTeste}
+                disabled={isRegisteringPushTest}
+                isLoading={isRegisteringPushTest}
+                type='outlined'
+              />
+
+              <FancyButton
+                label='Disparar Notificação Local'
+                icon={{ library: 'MaterialCommunityIcons', name: 'bell-ring-outline', size: 14 }}
+                onPress={handleExecutarPushLocalTeste}
+                disabled={isRunningLocalPushTest}
+                isLoading={isRunningLocalPushTest}
+                type='outlined'
+              />
+
+              <FancyButton
+                label='Enviar Push de Teste'
+                icon={{ library: 'MaterialCommunityIcons', name: 'send-outline', size: 14 }}
+                onPress={handleEnviarPushTeste}
+                disabled={isSendingPushTest}
+                isLoading={isSendingPushTest}
+                type='outlined'
+              />
+
+              {lastPushToken ? (
+                <TouchableOpacity style={styles.pushTokenBox} onPress={handleCopiarPushToken}>
+                  <FancyText type='semiBold' size='extraSmall' style={styles.pushTokenLabel}>
+                    Token atual
+                  </FancyText>
+                  <FancyText type='normal' size='extraSmall' style={styles.pushTokenValue}>
+                    {lastPushToken}
+                  </FancyText>
+                  <FancyText type='medium' size='extraSmall' style={styles.pushTokenAction}>
+                    Toque para copiar
+                  </FancyText>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+
+            <View style={styles.buttonContainer}>
+              <FancyButton
+                label='Salvar'
+                icon={{ library: 'MaterialCommunityIcons', name: 'bell-check', size: 14 }}
+                onPress={handleSalvarNotificacoes}
+                disabled={isUpdating}
+                isLoading={isUpdating}
+              />
+            </View>
+          </KeyboardAwareScrollView>
+        </View>
+      ),
+    },
+    {
+      title: 'Assinatura',
+      icon: { library: 'MaterialCommunityIcons', name: 'credit-card', size: 16 },
+      content: (
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.assinaturaContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.assinaturaCard}>
+            <View style={styles.assinaturaHeader}>
+              <FancyText type='bold' size='large'>
+                Plano Gratuito
+              </FancyText>
+              <FancyChips label='Ativo' size='small' />
+            </View>
+            <FancyText type='normal' size='small' style={styles.assinaturaDesc}>
+              Em breve você poderá fazer upgrade para planos com mais recursos
+            </FancyText>
+            <FancyButton
+              label='Gerenciar Plano'
+              disabled={true}
+              type='outlined'
+              containerStyle={styles.gerenciarButton}
+            />
+          </View>
+        </ScrollView>
+      ),
+    },
+  ];
 
   return (
     <FancyPageView style={styles.container}>
@@ -643,143 +841,177 @@ export default function ConfiguracoesPage() {
 
 function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  tabsContainer: {
-    flex: 1,
-    paddingHorizontal: 15,
-  },
-  tabContentContainer: {
-    flex: 1,
-  },
-  tabWrapper: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  tabContent: {
-    paddingVertical: 15,
-    gap: 16,
-  },
-  buttonContainer: {
-    marginTop: 10,
-    paddingBottom: 20,
-  },
+    container: {
+      flex: 1,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    tabsContainer: {
+      flex: 1,
+      paddingHorizontal: 15,
+    },
+    tabContentContainer: {
+      flex: 1,
+    },
+    tabWrapper: {
+      flex: 1,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    tabContent: {
+      paddingVertical: 15,
+      gap: 16,
+    },
+    buttonContainer: {
+      marginTop: 10,
+      paddingBottom: 20,
+    },
 
-  // Avatar / Logo
-  avatarContainer: {
-    alignItems: 'center',
-    marginBottom: 8,
-  },
+    // Avatar / Logo
+    avatarContainer: {
+      alignItems: 'center',
+      marginBottom: 8,
+    },
 
-  // Código da Igreja - Novo Layout
-  codigoCard: {
-    backgroundColor: palette.backgroundColor2,
-    borderRadius: 12,
-    padding: 16,
-    gap: 12,
-    borderWidth: 1,
-    borderColor: palette.borderCard,
-    ...palette.shadows[100],
-  },
-  codigoHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  codigoTitulo: {
-    opacity: 0.7,
-  },
-  codigoBody: {
-    alignItems: 'center',
-    paddingVertical: 12,
-    gap: 4,
-  },
-  codigoTexto: {
-    letterSpacing: 2,
-    color: palette.primary,
-  },
-  codigoDesc: {
-    opacity: 0.6,
-    textAlign: 'center',
-  },
-  codigoCopyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14),
-    borderRadius: 8,
-  },
-  codigoCopyText: {
-    color: palette.primary,
-  },
+    // Código da Igreja - Novo Layout
+    codigoCard: {
+      backgroundColor: palette.backgroundColor2,
+      borderRadius: 12,
+      padding: 16,
+      gap: 12,
+      borderWidth: 1,
+      borderColor: palette.borderCard,
+      ...palette.shadows[100],
+    },
+    codigoHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    codigoTitulo: {
+      opacity: 0.7,
+    },
+    codigoBody: {
+      alignItems: 'center',
+      paddingVertical: 12,
+      gap: 4,
+    },
+    codigoTexto: {
+      letterSpacing: 2,
+      color: palette.primary,
+    },
+    codigoDesc: {
+      opacity: 0.6,
+      textAlign: 'center',
+    },
+    codigoCopyButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14),
+      borderRadius: 8,
+    },
+    codigoCopyText: {
+      color: palette.primary,
+    },
 
-  // Modo de Entrada Cards
-  modoCard: {
-    padding: 20,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: ColorUtils.withAlpha(palette.primary, 0.22),
-    backgroundColor: palette.backgroundColor4,
-    gap: 8,
-  },
-  modoCardSelected: {
-    borderWidth: 2,
-    borderColor: palette.primary,
-    backgroundColor: ColorUtils.withAlpha(palette.primary, 0.16),
-  },
-  modoCardTitle: {
-    marginTop: 8,
-  },
-  modoCardDesc: {
-    opacity: 0.7,
-    lineHeight: 18,
-  },
+    // Modo de Entrada Cards
+    modoCard: {
+      padding: 20,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.primary, 0.22),
+      backgroundColor: palette.backgroundColor4,
+      gap: 8,
+    },
+    modoCardSelected: {
+      borderWidth: 2,
+      borderColor: palette.primary,
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.16),
+    },
+    modoCardTitle: {
+      marginTop: 8,
+    },
+    modoCardDesc: {
+      opacity: 0.7,
+      lineHeight: 18,
+    },
 
-  // Notificações
-  canaisContainer: {
-    gap: 12,
-  },
-  canaisLabel: {
-    opacity: 0.7,
-  },
-  checkboxesContainer: {
-    gap: 12,
-  },
+    // Notificações
+    canaisContainer: {
+      gap: 12,
+    },
+    canaisLabel: {
+      opacity: 0.7,
+    },
+    checkboxesContainer: {
+      gap: 12,
+    },
+    pushTestCard: {
+      gap: 12,
+      padding: 16,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.primary, 0.22),
+      backgroundColor: palette.backgroundColor2,
+      ...palette.shadows[100],
+    },
+    pushTestHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    pushTestDescription: {
+      opacity: 0.75,
+      lineHeight: 18,
+    },
+    pushTokenBox: {
+      gap: 6,
+      borderRadius: 10,
+      padding: 12,
+      backgroundColor: palette.backgroundColor4,
+      borderWidth: 1,
+      borderColor: palette.borderCard,
+    },
+    pushTokenLabel: {
+      opacity: 0.7,
+    },
+    pushTokenValue: {
+      color: palette.primary,
+    },
+    pushTokenAction: {
+      opacity: 0.7,
+    },
 
-  // Assinatura
-  assinaturaContainer: {
-  },
-  assinaturaCard: {
-    backgroundColor: palette.backgroundColor2,
-    padding: 5,
-    paddingTop:15,
-    borderRadius: 16,
-    gap: 16,
-    borderWidth: 1,
-    borderColor: palette.borderCard,
-  },
-  assinaturaHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  assinaturaDesc: {
-    opacity: 0.7,
-    lineHeight: 20,
-  },
-  gerenciarButton: {
-    marginTop: 8,
-  },
+    // Assinatura
+    assinaturaContainer: {},
+    assinaturaCard: {
+      backgroundColor: palette.backgroundColor2,
+      padding: 5,
+      paddingTop: 15,
+      borderRadius: 16,
+      gap: 16,
+      borderWidth: 1,
+      borderColor: palette.borderCard,
+    },
+    assinaturaHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    assinaturaDesc: {
+      opacity: 0.7,
+      lineHeight: 20,
+    },
+    gerenciarButton: {
+      marginTop: 8,
+    },
   });
 }

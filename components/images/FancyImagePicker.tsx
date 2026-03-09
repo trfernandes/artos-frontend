@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Pallete } from '../../constants/colors';
@@ -14,35 +13,78 @@ export interface FancyImagePickerProps {
 }
 
 export default function FancyImagePicker({ value, size = 120, disabled, onChange }: FancyImagePickerProps) {
-  useEffect(() => {
-    (async () => {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permissão negada', 'Precisamos de permissão para acessar suas fotos.');
-      }
-    })();
-  }, []);
+  const ensureMediaLibraryPermission = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permissão negada', 'Precisamos de permissão para acessar suas fotos.');
+      return false;
+    }
+    return true;
+  };
 
-  const pickImage = async () => {
+  const ensureCameraPermission = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permissão negada', 'Precisamos de permissão para usar a câmera.');
+      return false;
+    }
+    return true;
+  };
+
+  const handlePickerResult = (result: ImagePicker.ImagePickerResult) => {
+    if (result.canceled) {
+      onChange?.(undefined);
+      return;
+    }
+
+    onChange?.(result.assets[0]);
+  };
+
+  const pickImageFromLibrary = async () => {
     try {
+      const hasPermission = await ensureMediaLibraryPermission();
+      if (!hasPermission) return;
+
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
-        // base64: true, // ❌ tira isso
       });
 
-      if (result.canceled) {
-        onChange?.(undefined);
-        return;
-      }
-
-      onChange?.(result.assets[0]);
+      handlePickerResult(result);
     } catch (error) {
-      console.log('Erro ao selecionar imagem:', error);
+      console.log('Erro ao selecionar imagem da galeria:', error);
       onChange?.(undefined);
     }
+  };
+
+  const pickImageFromCamera = async () => {
+    try {
+      const hasPermission = await ensureCameraPermission();
+      if (!hasPermission) return;
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+        cameraType: ImagePicker.CameraType.front,
+      });
+
+      handlePickerResult(result);
+    } catch (error) {
+      console.log('Erro ao capturar imagem:', error);
+      onChange?.(undefined);
+    }
+  };
+
+  const pickImage = () => {
+    Alert.alert('Selecionar foto', 'Escolha como deseja atualizar sua foto de perfil.', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Câmera', onPress: pickImageFromCamera },
+      { text: 'Galeria', onPress: pickImageFromLibrary },
+    ]);
   };
 
   const removeImage = () => {

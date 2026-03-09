@@ -1,0 +1,12 @@
+[08/03/2026 13:26:09,66] Iniciando submit Android
+Resolved "production" environment for the build. Learn more: https://docs.expo.dev/eas/environment-variables/#setting-the-environment-for-your-builds
+No environment variables with visibility "Plain text" and "Sensitive" found for the "production" environment on EAS.
+Environment variables loaded from the "production" build profile "env" configuration: SENTRY_DISABLE_AUTO_UPLOAD.
+
+
+
+android.versionCode field in app config is ignored when version source is set to remote, but this value will still be in the manifest available via expo-constants. It's recommended to remove this value from app config.
+v Using remote Android credentials (Expo server)
+v Using Keystore from configuration: Build Credentials svxkmmrzkN (default)
+
+Compressing project files and uploading to EAS Build. Learn more: https://expo.fyi/eas-build-archive
