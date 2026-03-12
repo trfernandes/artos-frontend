@@ -20,7 +20,33 @@ type PushRegistrationMetadata = {
   appVersion: string;
   platform: string;
   deviceId: string;
+  registeredAt: string;
 };
+
+type RegisterPushOptions = {
+  forceRefresh?: boolean;
+};
+
+const PUSH_REGISTRATION_REFRESH_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+function toErrorMessage(error: unknown) {
+  if (typeof error === 'object' && error !== null) {
+    const responseMessage = (error as any)?.response?.data?.message;
+    if (Array.isArray(responseMessage)) {
+      return responseMessage.join(', ');
+    }
+    if (typeof responseMessage === 'string' && responseMessage.length > 0) {
+      return responseMessage;
+    }
+
+    const message = (error as any)?.message;
+    if (typeof message === 'string' && message.length > 0) {
+      return message;
+    }
+  }
+
+  return 'Falha ao registrar o token push no backend.';
+}
 
 function getCurrentAppVersion() {
   return String(Constants.nativeAppVersion || Constants.expoConfig?.version || 'unknown');
@@ -72,6 +98,26 @@ async function saveRegistrationMetadata(metadata: PushRegistrationMetadata) {
   await AsyncStorage.setItem(PUSH_REGISTRATION_METADATA_STORAGE_KEY, JSON.stringify(metadata));
 }
 
+function shouldRefreshRegistration(
+  previousMetadata: PushRegistrationMetadata | null,
+  options?: RegisterPushOptions,
+) {
+  if (options?.forceRefresh) {
+    return true;
+  }
+
+  if (!previousMetadata?.registeredAt) {
+    return true;
+  }
+
+  const registeredAt = Date.parse(previousMetadata.registeredAt);
+  if (Number.isNaN(registeredAt)) {
+    return true;
+  }
+
+  return Date.now() - registeredAt >= PUSH_REGISTRATION_REFRESH_WINDOW_MS;
+}
+
 // Handler global: como a notificação se comporta em foreground
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -84,6 +130,7 @@ Notifications.setNotificationHandler({
 
 export async function registerForPushNotificationsAsync(
   voluntarioId: string,
+  options?: RegisterPushOptions,
 ): Promise<string | null> {
   // 1) Não tenta registrar push em emulador
   if (!Device.isDevice) {
@@ -138,13 +185,15 @@ export async function registerForPushNotificationsAsync(
   const previousMetadata = await getStoredRegistrationMetadata();
   const deviceId = await getOrCreateDeviceId();
   const appVersion = getCurrentAppVersion();
+  const shouldRefresh = shouldRefreshRegistration(previousMetadata, options);
 
   const shouldRegister =
     !previousMetadata ||
     previousMetadata.expoPushToken !== expoPushToken ||
     previousMetadata.voluntarioId !== voluntarioId ||
     previousMetadata.appVersion !== appVersion ||
-    previousMetadata.deviceId !== deviceId;
+    previousMetadata.deviceId !== deviceId ||
+    shouldRefresh;
 
   if (!shouldRegister && previousToken === expoPushToken) {
     console.log('[Notifications] Registro de push em dia, sem re-registro.');
@@ -167,10 +216,12 @@ export async function registerForPushNotificationsAsync(
       appVersion,
       platform: Platform.OS,
       deviceId,
+      registeredAt: new Date().toISOString(),
     });
     console.log('[Notifications] Token registrado com sucesso.');
   } catch (error) {
     console.log('[Notifications] Erro ao enviar token para API:', error);
+    throw new Error(toErrorMessage(error));
   }
 
   return expoPushToken;

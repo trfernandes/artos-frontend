@@ -24,6 +24,7 @@
         "ascApiKeyIssuerId": "4d3e55d5-6f5a-4fbc-9f30-f2a3ed29090a"
       },
       "android": {
+        "releaseStatus": "draft",
         "track": "internal",
         "serviceAccountKeyPath": "./android.json"
       }

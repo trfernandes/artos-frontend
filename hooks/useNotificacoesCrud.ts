@@ -3,9 +3,9 @@ import { useCallback } from 'react';
 import { NotificacoesApi } from '../domain/api/NotificacoesApi';
 import { ResponseNotificacaoDto } from '../domain/dtos/Notificacao/notificacao.response';
 import { emitNotificationEvent } from '../core/events/notification-events';
+import { useAuth } from '../contexts/AuthContext';
 
 const NOTIFICACOES_QUERY_KEY = ['notificacoes'] as const;
-const NOTIFICACOES_COUNT_QUERY_KEY = ['notificacoes', 'unread-count'] as const;
 const NOTIFICATIONS_STALE_TIME_MS = 60_000;
 
 type QuerySnapshot = Array<[readonly unknown[], ResponseNotificacaoDto[] | undefined]>;
@@ -16,6 +16,30 @@ type MutationContext = {
 
 function isUnread(notification: ResponseNotificacaoDto) {
   return !notification.lidaEm;
+}
+
+function getNotificationChurchId(notification: ResponseNotificacaoDto): string | null {
+  const payload = notification.data;
+  if (!payload || typeof payload !== 'object') return null;
+
+  const churchId = typeof payload.churchId === 'string' ? payload.churchId : undefined;
+  if (churchId) return churchId;
+
+  const params = payload.params;
+  if (params && typeof params === 'object' && typeof params.igrejaId === 'string') {
+    return params.igrejaId;
+  }
+
+  return null;
+}
+
+function filterNotificationsByChurch(notifications: ResponseNotificacaoDto[], igrejaId?: string) {
+  if (!igrejaId) return notifications;
+
+  return notifications.filter((notification) => {
+    const notificationChurchId = getNotificationChurchId(notification);
+    return !notificationChurchId || notificationChurchId === igrejaId;
+  });
 }
 
 function getFlagFromQueryKey(queryKey: readonly unknown[]) {
@@ -70,17 +94,23 @@ export function useNotificacoesCrud({
   includeUnreadCount?: boolean;
 } = {}) {
   const qc = useQueryClient();
+  const { igrejaAtiva } = useAuth();
+  const igrejaId = igrejaAtiva?.id;
+  const unreadCountQueryKey = ['notificacoes', 'unread-count', igrejaId] as const;
 
   const listarQuery = useQuery({
-    queryKey: ['notificacoes', apenasNaoLidas],
-    queryFn: () => NotificacoesApi.listar(apenasNaoLidas),
+    queryKey: ['notificacoes', apenasNaoLidas, igrejaId],
+    queryFn: async () => filterNotificationsByChurch(await NotificacoesApi.listar(apenasNaoLidas), igrejaId),
     enabled: enabled && includeList,
     staleTime: NOTIFICATIONS_STALE_TIME_MS,
   });
 
   const contarNaoLidasQuery = useQuery({
-    queryKey: NOTIFICACOES_COUNT_QUERY_KEY,
-    queryFn: async () => NotificacoesApi.contarNaoLidas(),
+    queryKey: unreadCountQueryKey,
+    queryFn: async () => {
+      const notificacoesNaoLidas = await NotificacoesApi.listar(true);
+      return filterNotificationsByChurch(notificacoesNaoLidas, igrejaId).length;
+    },
     enabled: enabled && includeUnreadCount,
     staleTime: NOTIFICATIONS_STALE_TIME_MS,
   });
@@ -89,12 +119,12 @@ export function useNotificacoesCrud({
     mutationFn: (id: string) => NotificacoesApi.marcarComoLido(id),
     onMutate: async (id) => {
       await qc.cancelQueries({ queryKey: NOTIFICACOES_QUERY_KEY });
-      await qc.cancelQueries({ queryKey: NOTIFICACOES_COUNT_QUERY_KEY });
+      await qc.cancelQueries({ queryKey: ['notificacoes', 'unread-count'] });
 
       const previousLists = qc.getQueriesData<ResponseNotificacaoDto[]>({
         queryKey: NOTIFICACOES_QUERY_KEY,
       });
-      const previousUnreadCount = qc.getQueryData<number>(NOTIFICACOES_COUNT_QUERY_KEY);
+      const previousUnreadCount = qc.getQueryData<number>(unreadCountQueryKey);
 
       const readAt = new Date().toISOString();
       let hadUnreadTarget = false;
@@ -112,7 +142,7 @@ export function useNotificacoesCrud({
 
       if (hadUnreadTarget) {
         const baselineCount = previousUnreadCount ?? getUnreadCountFromSnapshots(previousLists);
-        qc.setQueryData(NOTIFICACOES_COUNT_QUERY_KEY, Math.max(0, baselineCount - 1));
+        qc.setQueryData(unreadCountQueryKey, Math.max(0, baselineCount - 1));
         emitNotificationEvent('notification_marked_read', { id });
       }
 
@@ -124,12 +154,12 @@ export function useNotificacoesCrud({
         qc.setQueryData(queryKey, data);
       }
       if (context.previousUnreadCount !== undefined) {
-        qc.setQueryData(NOTIFICACOES_COUNT_QUERY_KEY, context.previousUnreadCount);
+        qc.setQueryData(unreadCountQueryKey, context.previousUnreadCount);
       }
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: NOTIFICACOES_QUERY_KEY });
-      qc.invalidateQueries({ queryKey: NOTIFICACOES_COUNT_QUERY_KEY });
+      qc.invalidateQueries({ queryKey: ['notificacoes', 'unread-count'] });
     },
   });
 
@@ -137,12 +167,12 @@ export function useNotificacoesCrud({
     mutationFn: () => NotificacoesApi.marcarTodasComoLidas(),
     onMutate: async () => {
       await qc.cancelQueries({ queryKey: NOTIFICACOES_QUERY_KEY });
-      await qc.cancelQueries({ queryKey: NOTIFICACOES_COUNT_QUERY_KEY });
+      await qc.cancelQueries({ queryKey: ['notificacoes', 'unread-count'] });
 
       const previousLists = qc.getQueriesData<ResponseNotificacaoDto[]>({
         queryKey: NOTIFICACOES_QUERY_KEY,
       });
-      const previousUnreadCount = qc.getQueryData<number>(NOTIFICACOES_COUNT_QUERY_KEY);
+      const previousUnreadCount = qc.getQueryData<number>(unreadCountQueryKey);
       const readAt = new Date().toISOString();
 
       for (const [queryKey, list] of previousLists) {
@@ -151,7 +181,7 @@ export function useNotificacoesCrud({
         qc.setQueryData(queryKey, markAllAsReadOnList(list, readAt, onlyUnreadList));
       }
 
-      qc.setQueryData(NOTIFICACOES_COUNT_QUERY_KEY, 0);
+      qc.setQueryData(unreadCountQueryKey, 0);
       emitNotificationEvent('notifications_marked_all_read', {});
 
       return { previousLists, previousUnreadCount };
@@ -162,12 +192,12 @@ export function useNotificacoesCrud({
         qc.setQueryData(queryKey, data);
       }
       if (context.previousUnreadCount !== undefined) {
-        qc.setQueryData(NOTIFICACOES_COUNT_QUERY_KEY, context.previousUnreadCount);
+        qc.setQueryData(unreadCountQueryKey, context.previousUnreadCount);
       }
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: NOTIFICACOES_QUERY_KEY });
-      qc.invalidateQueries({ queryKey: NOTIFICACOES_COUNT_QUERY_KEY });
+      qc.invalidateQueries({ queryKey: ['notificacoes', 'unread-count'] });
     },
   });
 

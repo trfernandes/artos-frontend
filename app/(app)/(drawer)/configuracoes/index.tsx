@@ -49,11 +49,6 @@ import FancyChips from '../../../../components/FancyChips';
 import { UF_LIST } from '../../../../domain/utils/uf-list';
 import { getCidadesPorUf } from '../../../../domain/utils/cidades-list';
 import { DropDownItemProps } from '../../../../components/fields/FancyDropDownItem';
-import {
-  registerForPushNotificationsAsync,
-  scheduleLocalTestNotification,
-} from '../../../../services/notifications';
-import { NotificacoesApi } from '../../../../domain/api/NotificacoesApi';
 
 const ANTECEDENCIA_OPTIONS = [
   { title: '24 horas antes', value: 24 },
@@ -95,10 +90,6 @@ export default function ConfiguracoesPage() {
 
   // State para controlar upload de imagem
   const [isUploadingImage, setIsUploadingImage] = useState(false);
-  const [isRegisteringPushTest, setIsRegisteringPushTest] = useState(false);
-  const [isSendingPushTest, setIsSendingPushTest] = useState(false);
-  const [isRunningLocalPushTest, setIsRunningLocalPushTest] = useState(false);
-  const [lastPushToken, setLastPushToken] = useState<string | null>(null);
 
   // Forms
   const dadosForm = useForm<DadosFormData>({
@@ -308,99 +299,6 @@ export default function ConfiguracoesPage() {
           text2: 'O código foi copiado para a área de transferência',
         });
       }
-    }
-  };
-
-  const handleRegistrarPushTeste = async () => {
-    if (!user?.user?.id) {
-      Toast.show({
-        type: 'error',
-        text1: 'Sessão indisponível',
-        text2: 'Faça login novamente para registrar o push.',
-      });
-      return;
-    }
-
-    try {
-      setIsRegisteringPushTest(true);
-      const token = await registerForPushNotificationsAsync(user.user.id);
-
-      if (!token) {
-        Toast.show({
-          type: 'info',
-          text1: 'Token não disponível',
-          text2: 'Verifique a permissão de notificações e use um aparelho físico.',
-        });
-        return;
-      }
-
-      setLastPushToken(token);
-      Toast.show({
-        type: 'success',
-        text1: 'Push registrado',
-        text2: 'O token do dispositivo foi registrado com sucesso.',
-      });
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Falha ao registrar push',
-        text2: 'Revise as permissões e tente novamente.',
-      });
-    } finally {
-      setIsRegisteringPushTest(false);
-    }
-  };
-
-  const handleExecutarPushLocalTeste = async () => {
-    try {
-      setIsRunningLocalPushTest(true);
-      await scheduleLocalTestNotification();
-      Toast.show({
-        type: 'success',
-        text1: 'Teste local disparado',
-        text2: 'Se as permissões estiverem corretas, a notificação aparece em seguida.',
-      });
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Falha no teste local',
-        text2: 'Não foi possível disparar a notificação local.',
-      });
-    } finally {
-      setIsRunningLocalPushTest(false);
-    }
-  };
-
-  const handleEnviarPushTeste = async () => {
-    try {
-      setIsSendingPushTest(true);
-      await NotificacoesApi.enviarTestePush();
-      Toast.show({
-        type: 'success',
-        text1: 'Push de teste enfileirado',
-        text2: 'O worker do backend pode levar até 1 minuto para enviar.',
-      });
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Falha ao enfileirar push',
-        text2: 'Verifique o backend e o registro do token.',
-      });
-    } finally {
-      setIsSendingPushTest(false);
-    }
-  };
-
-  const handleCopiarPushToken = async () => {
-    if (!lastPushToken) return;
-
-    await Clipboard.setStringAsync(lastPushToken);
-    if (Platform.OS !== 'android') {
-      Toast.show({
-        type: 'success',
-        text1: 'Token copiado',
-        text2: 'O token push foi copiado para a área de transferência.',
-      });
     }
   };
 
@@ -724,66 +622,6 @@ export default function ConfiguracoesPage() {
               </View>
             </View>
 
-            <View style={styles.pushTestCard}>
-              <View style={styles.pushTestHeader}>
-                <DefaultIcons.Custom
-                  library='MaterialCommunityIcons'
-                  name='flask-outline'
-                  size={20}
-                  color={palette.primary}
-                />
-                <FancyText type='bold' size='small'>
-                  Testes rápidos
-                </FancyText>
-              </View>
-
-              <FancyText type='normal' size='extraSmall' style={styles.pushTestDescription}>
-                Use estes atalhos para validar permissão, registro do token e envio ponta a ponta
-                antes dos testes normais no iPhone e Android.
-              </FancyText>
-
-              <FancyButton
-                label='Registrar Push Neste Aparelho'
-                icon={{ library: 'MaterialCommunityIcons', name: 'cellphone-arrow-down', size: 14 }}
-                onPress={handleRegistrarPushTeste}
-                disabled={isRegisteringPushTest}
-                isLoading={isRegisteringPushTest}
-                type='outlined'
-              />
-
-              <FancyButton
-                label='Disparar Notificação Local'
-                icon={{ library: 'MaterialCommunityIcons', name: 'bell-ring-outline', size: 14 }}
-                onPress={handleExecutarPushLocalTeste}
-                disabled={isRunningLocalPushTest}
-                isLoading={isRunningLocalPushTest}
-                type='outlined'
-              />
-
-              <FancyButton
-                label='Enviar Push de Teste'
-                icon={{ library: 'MaterialCommunityIcons', name: 'send-outline', size: 14 }}
-                onPress={handleEnviarPushTeste}
-                disabled={isSendingPushTest}
-                isLoading={isSendingPushTest}
-                type='outlined'
-              />
-
-              {lastPushToken ? (
-                <TouchableOpacity style={styles.pushTokenBox} onPress={handleCopiarPushToken}>
-                  <FancyText type='semiBold' size='extraSmall' style={styles.pushTokenLabel}>
-                    Token atual
-                  </FancyText>
-                  <FancyText type='normal' size='extraSmall' style={styles.pushTokenValue}>
-                    {lastPushToken}
-                  </FancyText>
-                  <FancyText type='medium' size='extraSmall' style={styles.pushTokenAction}>
-                    Toque para copiar
-                  </FancyText>
-                </TouchableOpacity>
-              ) : null}
-            </View>
-
             <View style={styles.buttonContainer}>
               <FancyButton
                 label='Salvar'
@@ -953,41 +791,6 @@ function createStyles(palette: ThemePalette) {
     },
     checkboxesContainer: {
       gap: 12,
-    },
-    pushTestCard: {
-      gap: 12,
-      padding: 16,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: ColorUtils.withAlpha(palette.primary, 0.22),
-      backgroundColor: palette.backgroundColor2,
-      ...palette.shadows[100],
-    },
-    pushTestHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
-    pushTestDescription: {
-      opacity: 0.75,
-      lineHeight: 18,
-    },
-    pushTokenBox: {
-      gap: 6,
-      borderRadius: 10,
-      padding: 12,
-      backgroundColor: palette.backgroundColor4,
-      borderWidth: 1,
-      borderColor: palette.borderCard,
-    },
-    pushTokenLabel: {
-      opacity: 0.7,
-    },
-    pushTokenValue: {
-      color: palette.primary,
-    },
-    pushTokenAction: {
-      opacity: 0.7,
     },
 
     // Assinatura

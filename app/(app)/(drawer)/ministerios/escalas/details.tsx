@@ -151,6 +151,11 @@ export default function MinisterioEscalasDetailsPage() {
 
     const mapa = new Map<string, EscalaItemDataType>();
     const cacheEventos = new Map<string, EscalaItemDataType['evento']>();
+    const getEventStartTime = (grupo: EscalaItemDataType) => {
+      const candidate = grupo.evento.dataInicio ?? grupo.dataOcorrencia;
+      const timestamp = new Date(candidate).getTime();
+      return Number.isNaN(timestamp) ? 0 : timestamp;
+    };
 
     // 🔹 Função auxiliar para mapear e cachear eventos
     const mapEvento = (e: any): EscalaItemDataType['evento'] => {
@@ -226,7 +231,7 @@ export default function MinisterioEscalasDetailsPage() {
     const gruposOrdenados = Array.from(mapa.values()) as (EscalaItemDataType & {
       _t: number;
     })[];
-    for (const g of gruposOrdenados) g._t = new Date(g.dataOcorrencia).getTime();
+    for (const g of gruposOrdenados) g._t = getEventStartTime(g);
 
     gruposOrdenados.sort((a, b) => {
       if (a._t !== b._t) return a._t - b._t;
