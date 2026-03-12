@@ -22,21 +22,29 @@ export interface ResponseIgrejaConfiguracoesDto {
   configuracoes?: {
     notificacoes?: {
       habilitadas?: boolean;
+      notificacoesHabilitadas?: boolean;
       antecedenciaHoras?: number;
+      lembretesHoras?: number[];
       canais?: {
         push?: boolean;
         whatsapp?: boolean;
       };
+      canaisPush?: boolean;
+      canaisWhatsapp?: boolean;
       preferenciasPorTipo?: Record<string, NotificacaoTipoPreferenciaDto>;
     };
   };
   notificacoes?: {
     habilitadas?: boolean;
+    notificacoesHabilitadas?: boolean;
     antecedenciaHoras?: number;
+    lembretesHoras?: number[];
     canais?: {
       push?: boolean;
       whatsapp?: boolean;
     };
+    canaisPush?: boolean;
+    canaisWhatsapp?: boolean;
     preferenciasPorTipo?: Record<string, NotificacaoTipoPreferenciaDto>;
   };
 }

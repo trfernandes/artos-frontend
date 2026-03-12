@@ -40,7 +40,9 @@ export const modoEntradaSchema = z.object({
 // Schema para validação de notificações
 export const notificacoesSchema = z.object({
   notificacoesHabilitadas: z.boolean(),
-  antecedenciaHoras: z.number().min(1, 'Antecedência deve ser maior que 0'),
+  lembretesHoras: z
+    .array(z.number().int().min(1).max(168))
+    .min(1, 'Selecione ao menos um lembrete'),
   canaisPush: z.boolean(),
   canaisWhatsapp: z.boolean(),
 });

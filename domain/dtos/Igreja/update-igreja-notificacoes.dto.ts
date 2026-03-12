@@ -5,7 +5,8 @@ export interface NotificacaoTipoPreferenciaDto {
 
 export interface UpdateIgrejaNotificacoesDto {
   notificacoesHabilitadas: boolean;
-  antecedenciaHoras: number;
+  antecedenciaHoras?: number;
+  lembretesHoras: number[];
   canaisPush: boolean;
   canaisWhatsapp: boolean;
   preferenciasPorTipo?: Record<string, NotificacaoTipoPreferenciaDto>;

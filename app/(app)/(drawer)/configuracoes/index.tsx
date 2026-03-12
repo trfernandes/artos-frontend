@@ -12,7 +12,7 @@ import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../../../../con
 import FancyPageView from '../../../../components/containers/FancyPageView';
 import FancyTabs, { TabItem } from '../../../../components/tabs/FancyTabs';
 import { DefaultIconsNames } from '../../../../constants/icons';
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useIgrejaConfiguracoes } from '../../../../hooks/useIgrejaConfiguracoes';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useForm } from 'react-hook-form';
@@ -26,7 +26,6 @@ import {
   NotificacoesFormData,
 } from '../../../../domain/schemas/igreja-configuracoes.schema';
 import ControlledTextInput from '../../../../components/forms/ControlledTextInput';
-import ControlledDropDown from '../../../../components/forms/ControlledDropDown';
 import ControlledSearchSelect from '../../../../components/forms/ControlledSearchSelect';
 import ControlledMaskedTextInput from '../../../../components/forms/ControlledMaskedTextInput';
 import FancyButton from '../../../../components/buttons/FancyButton';
@@ -50,12 +49,18 @@ import { UF_LIST } from '../../../../domain/utils/uf-list';
 import { getCidadesPorUf } from '../../../../domain/utils/cidades-list';
 import { DropDownItemProps } from '../../../../components/fields/FancyDropDownItem';
 
-const ANTECEDENCIA_OPTIONS = [
-  { title: '24 horas antes', value: 24 },
-  { title: '48 horas antes', value: 48 },
-  { title: '72 horas antes', value: 72 },
-  { title: '1 semana antes', value: 168 },
-];
+const REMINDER_OPTIONS = [
+  { title: '1 semana antes', value: 168, description: 'Ideal para escalas semanais e eventos maiores.' },
+  { title: '72 horas antes', value: 72, description: 'Ajuda quem se organiza com alguns dias de antecedência.' },
+  { title: '48 horas antes', value: 48, description: 'Lembrete intermediário bastante comum.' },
+  { title: '24 horas antes', value: 24, description: 'O padrão mais usado para escalas de igreja.' },
+  { title: '12 horas antes', value: 12, description: 'Bom para reforçar no dia anterior.' },
+  { title: '3 horas antes', value: 3, description: 'Útil para confirmar deslocamento e preparação.' },
+  { title: '2 horas antes', value: 2, description: 'Boa janela para quem precisa sair de casa.' },
+  { title: '1 hora antes', value: 1, description: 'Último lembrete antes do compromisso.' },
+] as const;
+
+const DEFAULT_REMINDER_HOURS = [24, 2, 1];
 
 export default function ConfiguracoesPage() {
   const { igrejaAtiva, user, updateUser } = useAuth();
@@ -125,24 +130,54 @@ export default function ConfiguracoesPage() {
     resolver: zodResolver(notificacoesSchema),
     defaultValues: {
       notificacoesHabilitadas: false,
-      antecedenciaHoras: 24,
+      lembretesHoras: DEFAULT_REMINDER_HOURS,
       canaisPush: true,
       canaisWhatsapp: false,
     },
   });
+  const selectedReminderHours = notificacoesForm.watch('lembretesHoras');
 
   // States para checkboxes
   const [canaisPush, setCanaisPush] = useState(
-    data?.configuracoes?.notificacoes?.canais?.push ?? data?.notificacoes?.canais?.push ?? true,
+    data?.configuracoes?.notificacoes?.canais?.push ??
+      data?.notificacoes?.canais?.push ??
+      data?.notificacoes?.canaisPush ??
+      true,
   );
   const [canaisWhatsapp, setCanaisWhatsapp] = useState(
     data?.configuracoes?.notificacoes?.canais?.whatsapp ??
       data?.notificacoes?.canais?.whatsapp ??
+      data?.notificacoes?.canaisWhatsapp ??
       false,
   );
   const ufSelecionada = dadosForm.watch('endereco.uf');
   const [cidadesList, setCidadesList] = useState<DropDownItemProps<string>[]>([]);
   const [isLoadingCidades, setIsLoadingCidades] = useState(false);
+  const reminderLabel = useMemo(() => {
+    const values = [...(selectedReminderHours ?? [])].sort((a, b) => b - a);
+    if (values.length === 0) return 'Nenhum lembrete selecionado';
+
+    return values
+      .map((value) => {
+        if (value === 168) return '1 semana';
+        if (value === 1) return '1 hora';
+        return `${value} horas`;
+      })
+      .join(', ');
+  }, [selectedReminderHours]);
+
+  const toggleReminderHour = (hour: number) => {
+    const current = notificacoesForm.getValues('lembretesHoras') ?? [];
+    const next = current.includes(hour)
+      ? current.filter((value) => value !== hour)
+      : [...current, hour].sort((a, b) => b - a);
+
+    notificacoesForm.setValue('lembretesHoras', next, {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+    });
+  };
 
   useEffect(() => {
     if (!ufSelecionada) {
@@ -211,15 +246,23 @@ export default function ConfiguracoesPage() {
       // Suporte para ambas estruturas: configuracoes.notificacoes ou notificacoes diretamente
       const notificacoes = data.configuracoes?.notificacoes || data.notificacoes;
       if (notificacoes) {
+        const lembretesHoras =
+          notificacoes.lembretesHoras?.length
+            ? [...notificacoes.lembretesHoras].sort((a, b) => b - a)
+            : notificacoes.antecedenciaHoras
+              ? [notificacoes.antecedenciaHoras]
+              : DEFAULT_REMINDER_HOURS;
+
         notificacoesForm.reset({
-          notificacoesHabilitadas: notificacoes.habilitadas ?? false,
-          antecedenciaHoras: notificacoes.antecedenciaHoras ?? 24,
-          canaisPush: notificacoes.canais?.push ?? true,
-          canaisWhatsapp: notificacoes.canais?.whatsapp ?? false,
+          notificacoesHabilitadas:
+            notificacoes.habilitadas ?? notificacoes.notificacoesHabilitadas ?? false,
+          lembretesHoras,
+          canaisPush: notificacoes.canais?.push ?? notificacoes.canaisPush ?? true,
+          canaisWhatsapp: notificacoes.canais?.whatsapp ?? notificacoes.canaisWhatsapp ?? false,
         });
 
-        setCanaisPush(notificacoes.canais?.push ?? true);
-        setCanaisWhatsapp(notificacoes.canais?.whatsapp ?? false);
+        setCanaisPush(notificacoes.canais?.push ?? notificacoes.canaisPush ?? true);
+        setCanaisWhatsapp(notificacoes.canais?.whatsapp ?? notificacoes.canaisWhatsapp ?? false);
       }
     }
   }, [data]);
@@ -277,11 +320,13 @@ export default function ConfiguracoesPage() {
   });
 
   const handleSalvarNotificacoes = notificacoesForm.handleSubmit((formData) => {
+    const lembretesHoras = [...formData.lembretesHoras].sort((a, b) => b - a);
     updateNotificacoes({
       igrejaId: igrejaId!,
       dto: {
         notificacoesHabilitadas: formData.notificacoesHabilitadas,
-        antecedenciaHoras: formData.antecedenciaHoras,
+        antecedenciaHoras: lembretesHoras[0],
+        lembretesHoras,
         canaisPush,
         canaisWhatsapp,
       },
@@ -596,12 +641,64 @@ export default function ConfiguracoesPage() {
               option2={{ title: 'Desabilitado', value: false }}
             />
 
-            <ControlledDropDown
-              control={notificacoesForm.control}
-              name='antecedenciaHoras'
-              label='Antecedência padrão'
-              listItems={ANTECEDENCIA_OPTIONS}
-            />
+            <View style={styles.remindersContainer}>
+              <View style={styles.remindersHeader}>
+                <FancyText type='medium' size='small' style={styles.canaisLabel}>
+                  Horários dos lembretes
+                </FancyText>
+                <FancyText type='normal' size='extraSmall' style={styles.remindersSummary}>
+                  {reminderLabel}
+                </FancyText>
+              </View>
+
+              <FancyText type='normal' size='extraSmall' style={styles.remindersHelp}>
+                Escolha um ou mais horários. Recomendado: 24h, 2h e 1h antes.
+              </FancyText>
+
+              <View style={styles.remindersList}>
+                {REMINDER_OPTIONS.map((option) => {
+                  const selected = selectedReminderHours?.includes(option.value) ?? false;
+
+                  return (
+                    <TouchableOpacity
+                      key={option.value}
+                      style={[
+                        styles.reminderOption,
+                        selected && styles.reminderOptionSelected,
+                        selected && {
+                          borderColor: palette.primary,
+                          backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12),
+                        },
+                      ]}
+                      onPress={() => toggleReminderHour(option.value)}
+                      activeOpacity={0.85}
+                    >
+                      <View pointerEvents='none'>
+                        <FancyCheckbox value={selected} />
+                      </View>
+                      <View style={styles.reminderOptionText}>
+                        <FancyText type='semiBold' size='small'>
+                          {option.title}
+                        </FancyText>
+                        <FancyText
+                          type='normal'
+                          size='extraSmall'
+                          style={styles.reminderOptionDescription}
+                        >
+                          {option.description}
+                        </FancyText>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {!!notificacoesForm.formState.errors.lembretesHoras?.message && (
+                <FancyText type='normal' size='extraSmall' style={styles.errorText}>
+                  {notificacoesForm.formState.errors.lembretesHoras.message}
+                </FancyText>
+              )}
+            </View>
 
             <View style={styles.canaisContainer}>
               <FancyText type='medium' size='small' style={styles.canaisLabel}>
@@ -786,11 +883,52 @@ function createStyles(palette: ThemePalette) {
     canaisContainer: {
       gap: 12,
     },
+    remindersContainer: {
+      gap: 10,
+    },
+    remindersHeader: {
+      gap: 4,
+    },
+    remindersSummary: {
+      opacity: 0.72,
+      lineHeight: 18,
+    },
+    remindersHelp: {
+      opacity: 0.72,
+      lineHeight: 18,
+    },
+    remindersList: {
+      gap: 10,
+    },
+    reminderOption: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 12,
+      padding: 14,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: palette.borderCard,
+      backgroundColor: palette.backgroundColor4,
+    },
+    reminderOptionSelected: {
+      borderWidth: 1.5,
+    },
+    reminderOptionText: {
+      flex: 1,
+      gap: 4,
+    },
+    reminderOptionDescription: {
+      opacity: 0.7,
+      lineHeight: 18,
+    },
     canaisLabel: {
       opacity: 0.7,
     },
     checkboxesContainer: {
       gap: 12,
+    },
+    errorText: {
+      color: palette.error,
     },
 
     // Assinatura

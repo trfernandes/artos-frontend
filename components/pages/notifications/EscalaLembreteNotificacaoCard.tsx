@@ -16,6 +16,18 @@ export default function EscalaLembreteNotificacaoCard({
 }) {
   const createdAt = data.criadaEm || data.createdAt;
   const timeLabel = createdAt ? DateUtils.timeAgoText(new Date(createdAt)) : '';
+  const payload = data.data ?? {};
+  const hasOccurrence = typeof payload.dataOcorrencia === 'string' && payload.dataOcorrencia.length > 0;
+  const occurrenceLabel = hasOccurrence
+    ? formatInTimeZone(payload.dataOcorrencia, 'America/Sao_Paulo', "dd/MM 'às' HH:mm")
+    : null;
+  const subtitle = [
+    payload.eventoNome ? `Evento: ${payload.eventoNome}` : null,
+    payload.funcaoNome ? `Função: ${payload.funcaoNome}` : null,
+    occurrenceLabel ? `Horário: ${occurrenceLabel}` : null,
+  ]
+    .filter(Boolean)
+    .join(' • ');
 
   const title = data.titulo?.trim() ? data.titulo : 'Lembrete de Escala';
 
@@ -46,9 +58,7 @@ export default function EscalaLembreteNotificacaoCard({
         }
         subtitle={
           <FancyText type='medium' size='extraSmall' style={{ lineHeight: 13 }}>
-            {`Você está escalado amanhã às "${formatInTimeZone(data.data?.dataOcorrencia, 'America/Sao_Paulo', 'HH:mm')}" no evento: "${
-              data.data?.eventoNome
-            }" como "${data.data?.funcaoNome}".`}
+            {subtitle || data.mensagem || 'Você tem um lembrete de escala pendente.'}
           </FancyText>
         }
         actionButtons={[
