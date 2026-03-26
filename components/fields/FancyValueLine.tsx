@@ -37,14 +37,13 @@ export default function FancyValueLine({
 }
 
 const styles = StyleSheet.create({
-  dataContainer: { flexDirection: 'row', gap: 10, justifyContent: 'flex-start', alignItems: 'center', borderWidth: 0 },
+  dataContainer: { flexDirection: 'row', gap: 10, justifyContent: 'flex-start', alignItems: 'flex-start', borderWidth: 0 },
   dataContainerMultiline: { flexDirection: 'column', gap: 4, justifyContent: 'flex-start', borderWidth: 0 },
   dataDisplay: { width: '100%', justifyContent: 'space-between' },
   keyText: {
-    lineHeight: 12,
     borderWidth: 0,
     opacity: 0.9,
   },
-  valueText: { textAlign: 'right', flex: 1, lineHeight: 12, flexShrink: 1, borderWidth: 0 },
-  valueTextMultiline: { lineHeight: 18, borderWidth: 0 },
+  valueText: { textAlign: 'right', flex: 1, flexShrink: 1, borderWidth: 0 },
+  valueTextMultiline: { borderWidth: 0 },
 });

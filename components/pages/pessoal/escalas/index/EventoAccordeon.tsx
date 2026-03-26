@@ -61,6 +61,10 @@ export default function EventoAccordeon({
               params: {
                 evento: JSON.stringify(data.evento),
                 dataOcorrencia: data.dataOcorrencia.toISOString(),
+                horarioEnsaio: data.horarioEnsaio ?? '',
+                ministerioNome: data.ministerio?.nome ?? '',
+                ministerioId: data.ministerio?.id ?? '',
+                responsavelSetlistVoluntarioId: data.responsavelSetlistVoluntarioId ?? '',
               },
             });
           }}
@@ -77,6 +81,11 @@ export default function EventoAccordeon({
           }}
         >
           <View style={{ gap: 3 }}>
+            {!!data.ministerio?.nome && (
+              <FancyText type='medium' size='extraSmall' color={Pallete.fonts.inactive}>
+                {data.ministerio.nome}
+              </FancyText>
+            )}
             <FancyText type='bold' size='small'>
               {data.evento?.nome}
             </FancyText>
@@ -88,6 +97,11 @@ export default function EventoAccordeon({
               data.evento?.dataTermino!,
               'HH:mm',
             )}`}`}</FancyText>
+            {data.horarioEnsaio && (
+              <FancyText type='medium' size='extraSmall' color={Pallete.fonts.inactive}>
+                {`Ensaio às ${data.horarioEnsaio}`}
+              </FancyText>
+            )}
           </View>
         </View>
       }

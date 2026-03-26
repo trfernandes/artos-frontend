@@ -21,4 +21,6 @@ export type ResponseEscalaItemDto = {
   status: EscalaItemStatusEnum;
   substituicaoId?: string;
   substituicao?: ResponseEscalaSubstituicaoDto;
+  horarioEnsaio?: string;
+  responsavelSetlistVoluntarioId?: string;
 };

@@ -20,6 +20,7 @@ import Toast from 'react-native-toast-message';
 import EscalaParametrizacaoModal from '../../../../../components/pages/ministerios/escalas/details/EscalaParametrizacaoModal';
 import { EscalaTemplateExperienciaEnum } from '../../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
 import { EscalaParametrizacaoType } from '../../../../../domain/dtos/Escala/escala.response';
+import { DateUtilsApi } from '../../../../../utils/date_utils';
 
 export type EscalaItemDataType = {
   dataOcorrencia: string;
@@ -55,6 +56,32 @@ export type EscalaItemEquipeType = {
   funcao?: { id: string; nome: string; experiencia?: EscalaTemplateExperienciaEnum; expMinima?: EscalaTemplateExperienciaEnum };
   status: EscalaItemEventoDataType['status'];
 };
+
+function combineOccurrenceWithEventTime(
+  dataOcorrencia: string,
+  timeSource?: Date,
+  dayOffset: number = 0,
+) {
+  const occurrenceDate = DateUtilsApi.dateOnlyFromApi(dataOcorrencia);
+  const combined = new Date(occurrenceDate);
+
+  combined.setHours(
+    timeSource?.getHours?.() ?? 0,
+    timeSource?.getMinutes?.() ?? 0,
+    timeSource?.getSeconds?.() ?? 0,
+    timeSource?.getMilliseconds?.() ?? 0,
+  );
+
+  if (dayOffset !== 0) {
+    combined.setDate(combined.getDate() + dayOffset);
+  }
+
+  return combined;
+}
+
+function getOccurrenceStartTimestamp(grupo: EscalaItemDataType) {
+  return combineOccurrenceWithEventTime(grupo.dataOcorrencia, grupo.evento.dataInicio).getTime();
+}
 
 export default function MinisterioEscalasDetailsPage() {
   const { ministerioId, escalaId, viewMode } = useLocalSearchParams<{
@@ -151,11 +178,6 @@ export default function MinisterioEscalasDetailsPage() {
 
     const mapa = new Map<string, EscalaItemDataType>();
     const cacheEventos = new Map<string, EscalaItemDataType['evento']>();
-    const getEventStartTime = (grupo: EscalaItemDataType) => {
-      const candidate = grupo.evento.dataInicio ?? grupo.dataOcorrencia;
-      const timestamp = new Date(candidate).getTime();
-      return Number.isNaN(timestamp) ? 0 : timestamp;
-    };
 
     // 🔹 Função auxiliar para mapear e cachear eventos
     const mapEvento = (e: any): EscalaItemDataType['evento'] => {
@@ -231,7 +253,7 @@ export default function MinisterioEscalasDetailsPage() {
     const gruposOrdenados = Array.from(mapa.values()) as (EscalaItemDataType & {
       _t: number;
     })[];
-    for (const g of gruposOrdenados) g._t = getEventStartTime(g);
+    for (const g of gruposOrdenados) g._t = getOccurrenceStartTimestamp(g);
 
     gruposOrdenados.sort((a, b) => {
       if (a._t !== b._t) return a._t - b._t;

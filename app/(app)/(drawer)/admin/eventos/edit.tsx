@@ -70,7 +70,7 @@ export default function EventosEditPage() {
   const handleSubmit = async () => {
     eventoForm.handleSubmit(
       async (data) => {
-        const { id, ...payload } = data;
+        const { id, horarioEnsaioPadrao: _horarioEnsaioPadrao, ...payload } = data;
 
         await updateEvento?.({
           id: id!,

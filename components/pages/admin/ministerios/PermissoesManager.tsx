@@ -7,6 +7,7 @@ import DefaultIcons from '../../../FancyIcons';
 import { ResponseMinisterioVoluntarioPermissaoDto } from '../../../../domain/dtos/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.response';
 import {
   RecursoPermissaoEnum,
+  RecursoPermissaoEnumLabel,
   RecursosPermissoesTable,
   TipoPermissaoEnumLabel,
 } from '../../../../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
@@ -14,14 +15,16 @@ import {
 export default function PermissoesManager(props: { data: ResponseMinisterioVoluntarioPermissaoDto[]; disabled?: boolean }) {
   return (
     <FancyContainerList
-      data={Object.entries(RecursosPermissoesTable).filter(([_, permissoes]) => permissoes && permissoes.length > 0)}
+      data={(Object.entries(RecursosPermissoesTable) as [RecursoPermissaoEnum, (typeof RecursosPermissoesTable)[RecursoPermissaoEnum]][]).filter(
+        ([_, permissoes]) => permissoes && permissoes.length > 0,
+      )}
       contentContainerStyle={{ paddingVertical: 5 }}
       renderItem={({ item: [recurso, permissoes] }) => (
         <View style={styles.permissaoContainer}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <DefaultIcons.Custom library='MaterialIcons' name='arrow-right' style={{ borderWidth: 0, marginLeft: -8 }} />
             <FancyText type='bold' size={'small'} color={props.disabled ? Pallete.icons.inactive : Pallete.icons.dark}>
-              {RecursoPermissaoEnum[Number(recurso)]}
+              {RecursoPermissaoEnumLabel[recurso]}
             </FancyText>
           </View>
           <View style={styles.permissaoItemContainer}>
@@ -52,7 +55,7 @@ export default function PermissoesManager(props: { data: ResponseMinisterioVolun
                     disabled={props.disabled}
                     size={16}
                     value={props.data.some(
-                      (permissao) => permissao.recurso === Number(recurso) && permissao.permissoes?.includes(item),
+                      (permissao) => permissao.recurso === recurso && permissao.permissoes?.includes(item),
                     )}
                   />
                 </View>

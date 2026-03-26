@@ -1,6 +1,7 @@
 import { MinisterioTipoEnum } from '../../enums/Ministerio/ministerio-tipo.enum';
 import { VoluntarioHierarquiaEnum } from '../../enums/MinisterioVoluntario/hierarquia.enum';
 import { IgrejaVoluntarioRoleEnum } from '../../enums/Igreja/voluntario-role.enum';
+import { ResponseMinisterioVoluntarioPermissaoDto } from '../MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.response';
 
 export type ResponseLoginMinisterioDto = {
   id: string;
@@ -9,6 +10,8 @@ export type ResponseLoginMinisterioDto = {
   logoUrl?: string | null;
   logoThumbUrl?: string | null;
   tipo?: MinisterioTipoEnum;
+  permissoes?: ResponseMinisterioVoluntarioPermissaoDto[];
+  isDelegado?: boolean;
 };
 
 export type ResponseLoginIgrejaDto = {

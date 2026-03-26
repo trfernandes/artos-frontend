@@ -5,6 +5,7 @@ import { VoluntarioHierarquiaEnum } from '../../enums/MinisterioVoluntario/hiera
 import { ResponseMinisterioVoluntarioHistoricoDto } from './ministerio-voluntario-historico.response';
 import { ResponseMinisterioVoluntarioFuncaoHistDto } from '../MinisterioVoluntarioFuncao/ministerio-voluntario-funcao-hist.response';
 import { MinisterioVoluntarioStatusEnum } from '../../enums/MinisterioVoluntario/ministerio-voluntario-status.enum';
+import { ResponseMinisterioVoluntarioPermissaoDto } from '../MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.response';
 
 export type ResponseMinisterioVoluntarioDto = {
   id: string;
@@ -17,7 +18,8 @@ export type ResponseMinisterioVoluntarioDto = {
   ministerio?: ResponseMinisterioDto;
   status: MinisterioVoluntarioStatusEnum;
   dataInicio: string;
-  //   permissoes?: ResponseMinisterioVoluntarioPermissaoDto[];
+  permissoes?: ResponseMinisterioVoluntarioPermissaoDto[];
+  isDelegado?: boolean;
   funcoes?: ResponseMinisterioVoluntarioFuncaoDto[];
   historico?: ResponseMinisterioVoluntarioHistoricoDto[];
   historicoFuncoes?: ResponseMinisterioVoluntarioFuncaoHistDto[];

@@ -25,6 +25,7 @@ export default function EscalaLembreteNotificacaoCard({
     payload.eventoNome ? `Evento: ${payload.eventoNome}` : null,
     payload.funcaoNome ? `Função: ${payload.funcaoNome}` : null,
     occurrenceLabel ? `Horário: ${occurrenceLabel}` : null,
+    payload.horarioEnsaio ? `Ensaio: ${payload.horarioEnsaio}` : null,
   ]
     .filter(Boolean)
     .join(' • ');

@@ -44,6 +44,8 @@ export type EscalaDoDiaAgrupada = {
   ministerio: NonNullable<ResponseEscalaItemDto['voluntario']>['ministerio'];
   voluntario: ResponseEscalaItemDto['voluntario'];
   itens: ResponseEscalaItemDto[];
+  horarioEnsaio?: string;
+  responsavelSetlistVoluntarioId?: string;
 };
 
 export default function MinhasEscalasIndexPage() {
@@ -230,8 +232,17 @@ export default function MinhasEscalasIndexPage() {
               ministerio: item.voluntario?.ministerio,
               voluntario: item.voluntario,
               itens: [],
+              horarioEnsaio: item.horarioEnsaio ?? item.evento?.horarioEnsaioPadrao,
+              responsavelSetlistVoluntarioId: item.responsavelSetlistVoluntarioId,
             };
             map.set(key, agrupado);
+          }
+
+          if (!agrupado.horarioEnsaio) {
+            agrupado.horarioEnsaio = item.horarioEnsaio ?? item.evento?.horarioEnsaioPadrao;
+          }
+          if (!agrupado.responsavelSetlistVoluntarioId) {
+            agrupado.responsavelSetlistVoluntarioId = item.responsavelSetlistVoluntarioId;
           }
 
           // 3) sempre adiciona o registro no grupo

@@ -3,7 +3,6 @@ import FancyList, { FancyListProps } from '../../../list/FancyList';
 import { Pallete } from '../../../../constants/colors';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import { generateRecorrenciaJoinableDescription } from '../../../../hooks/useEventosCrud';
-import { format } from 'date-fns';
 import { ResponseEventoDto } from '../../../../domain/dtos/Evento/evento.response';
 import { RecorrenciaDiaSemanaEnumMap } from '../../../../domain/enums/Evento/recorrencia-dia-semana.enum';
 import { RecorrenciaSemanaMesEnumMap } from '../../../../domain/enums/Evento/recorrencia-semana-mes.enum';
@@ -16,6 +15,8 @@ import {
     ActionButtonProps,
     FancyActionButtons,
 } from '../../../cards/Horizontal/FancyCardActionButtons';
+import { formatInTimeZone } from 'date-fns-tz';
+import { APP_TZ } from '../../../../utils/date_utils';
 
 export type EventosListProps = {
   data: ResponseEventoDto[];
@@ -35,6 +36,8 @@ export default function EventosListView({
   onEditItem,
 }: EventosListProps) {
   const { containerStyle: listContainerStyle, listEmptyProps, ...restListProps } = listProps || {};
+  const formatEventoDateTime = (value?: string) =>
+    value ? formatInTimeZone(DateUtilsApi.dateTimeFromApi(value), APP_TZ, 'dd/MM/yyyy HH:mm') : 'Sem término';
 
   return (
     <View style={[styles.container, containerStyle]}>
@@ -97,10 +100,7 @@ export default function EventosListView({
               subtitle={
                 <View style={styles.firstInfoRow}>
                   <FancyTextDisplayCard
-                  value={format(
-                      DateUtilsApi.dateTimeFromApi(item.dataInicio),
-                      'dd/MM/yyyy HH:mm',
-                    )}
+                    value={formatEventoDateTime(item.dataInicio)}
                     icon={{
                       library: 'MaterialCommunityIcons',
                       name: 'calendar-clock',
@@ -115,11 +115,7 @@ export default function EventosListView({
               }
               additionalData1={
                 <FancyTextDisplayCard
-                  value={
-                    item.dataTermino
-                      ? format(DateUtilsApi.dateTimeFromApi(item.dataTermino), 'dd/MM/yyyy HH:mm')
-                      : 'Sem término'
-                  }
+                  value={formatEventoDateTime(item.dataTermino)}
                     icon={{
                       library: 'MaterialCommunityIcons',
                       name: 'calendar-check',

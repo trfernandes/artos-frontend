@@ -118,6 +118,7 @@ export default function ListaVoluntariosTable({
   const { isDark } = useAppTheme();
   const voluntarioStatusChipParams = getVoluntarioStatusChipParams(isDark);
   const { data: voluntariosData } = useVoluntariosCrud({ autoFetch: true });
+  const voluntariosList = voluntariosData ?? [];
   const [voluntarioDetailsProps, setVoluntarioDetailsProps] = useState<{
     isVisible: boolean;
     ministerioVoluntarioId?: string;
@@ -138,7 +139,7 @@ export default function ListaVoluntariosTable({
     <>
       <View style={styles.container}>
         {data?.map((equipeItem, index) => {
-          const voluntarioData = voluntariosData.find(
+          const voluntarioData = voluntariosList.find(
             (v) => v.id === equipeItem.voluntario?.voluntarioId,
           );
           const hasVoluntario = !!equipeItem.voluntario?.nome;

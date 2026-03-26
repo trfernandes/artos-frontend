@@ -5,6 +5,15 @@ import { ResponseLoginIgrejaDto, ResponseLoginMinisterioDto } from '../domain/dt
 import { IgrejaVoluntarioRoleEnum } from '../domain/enums/Igreja/voluntario-role.enum';
 import { VoluntarioHierarquiaEnum } from '../domain/enums/MinisterioVoluntario/hierarquia.enum';
 import { useMemo } from 'react';
+import { RecursoPermissaoEnum, TipoPermissaoEnum } from '../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
+
+const fullPermissions = [
+  { recurso: RecursoPermissaoEnum.AgendaEventos, permissoes: [TipoPermissaoEnum.Visualizar, TipoPermissaoEnum.AlterarOcorrencia] },
+  { recurso: RecursoPermissaoEnum.Escalas, permissoes: [TipoPermissaoEnum.Visualizar, TipoPermissaoEnum.Gerar, TipoPermissaoEnum.Alterar, TipoPermissaoEnum.Publicar] },
+  { recurso: RecursoPermissaoEnum.Integrantes, permissoes: [TipoPermissaoEnum.Visualizar, TipoPermissaoEnum.Gerenciar] },
+  { recurso: RecursoPermissaoEnum.FuncoesTemplates, permissoes: [TipoPermissaoEnum.Visualizar, TipoPermissaoEnum.Gerenciar] },
+  { recurso: RecursoPermissaoEnum.RepertorioSetlist, permissoes: [TipoPermissaoEnum.Visualizar, TipoPermissaoEnum.Gerenciar] },
+];
 
 /**
  * Hook que retorna a igreja ativa com ministérios carregados.
@@ -37,6 +46,8 @@ export function useMinisteriosDrawer() {
         logoThumbUrl: m.logoThumbUrl || null,
         // Admin tem acesso de líder a todos os ministérios
         hierarquia: VoluntarioHierarquiaEnum.Lider,
+        permissoes: fullPermissions,
+        isDelegado: false,
       }));
 
       return mapped;

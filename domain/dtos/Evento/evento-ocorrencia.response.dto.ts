@@ -3,7 +3,9 @@ import { RecorrenciaSemanaMesEnum } from '../../enums/Evento/recorrencia-semana-
 import { RecorrenciaEnum } from '../../enums/Evento/recorrencia.enum';
 import { TemplatePadraoOrigemEnum } from '../../enums/Evento/template-padrao-origem.enum';
 import { ResponseEscalaTemplateDto } from '../EscalaTemplate/escala-template.response';
+import { ResponseVoluntarioDto } from '../Voluntario/voluntario.response';
 import { ResponseEventoDto } from './evento.response';
+import { ResponseEventoSetlistItemDto } from './evento-setlist-item.response';
 
 export type ResponseEventoOcorrenciaDto = {
   id: string;
@@ -21,4 +23,10 @@ export type ResponseEventoOcorrenciaDto = {
   templatePadraoId?: string;
   templatePadrao?: ResponseEscalaTemplateDto;
   templatePadraoOrigem?: TemplatePadraoOrigemEnum;
+  horarioEnsaio?: string;
+  horarioEnsaioOrigem?: TemplatePadraoOrigemEnum;
+  responsavelSetlistVoluntarioId?: string | null;
+  responsavelSetlistVoluntario?: ResponseVoluntarioDto | null;
+  responsavelSetlistOrigem?: TemplatePadraoOrigemEnum | null;
+  setlistResumo?: ResponseEventoSetlistItemDto[];
 };

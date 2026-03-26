@@ -19,6 +19,7 @@ export type FancyTabsProps = {
   headerStyle?: StyleProp<ViewStyle>;
   onTabChange?: (index: number) => void;
   initialIndex?: number;
+  keepMounted?: boolean;
 };
 
 export default function FancyTabs(props: FancyTabsProps) {
@@ -47,7 +48,15 @@ export default function FancyTabs(props: FancyTabsProps) {
       <View style={styles.headerContainer}>
         <FancyTabsHeader titles={props.items} index={index} onChangeTab={handleTabChange} headerStyle={props.headerStyle} />
       </View>
-      <View style={[styles.contentContainer, props.contentContainerStyle]}>{props.items[index]?.content}</View>
+      <View style={[styles.contentContainer, props.contentContainerStyle]}>
+        {props.keepMounted
+          ? props.items.map((item, itemIndex) => (
+              <View key={`${item.title}-${itemIndex}`} style={itemIndex === index ? styles.visibleContent : styles.hiddenContent}>
+                {item.content}
+              </View>
+            ))
+          : props.items[index]?.content}
+      </View>
     </View>
   );
 }
@@ -63,5 +72,7 @@ function createStyles(Pallete: ThemePalette) {
     },
     headerContainer: { paddingHorizontal: 0 },
     contentContainer: { borderWidth: 0 },
+    visibleContent: { flex: 1 },
+    hiddenContent: { display: 'none' },
   });
 }

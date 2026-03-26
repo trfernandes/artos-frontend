@@ -1,12 +1,12 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
 import FancyCalendar from '../../../../../components/calendar/FancyCalendar';
 import FancyList from '../../../../../components/list/FancyList';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
-import { formatDate, lastDayOfMonth, startOfMonth } from 'date-fns';
+import { lastDayOfMonth, startOfMonth } from 'date-fns';
 import FancyLoading from '../../../../../components/FancyLoading';
-import DateUtils, { DateUtilsApi } from '../../../../../utils/date_utils';
+import DateUtils, { APP_TZ, DateUtilsApi } from '../../../../../utils/date_utils';
 import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import FancySeparator from '../../../../../components/FancySeparator';
@@ -14,6 +14,8 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { ResponseEventoOcorrenciaDto } from '../../../../../domain/dtos/Evento/evento-ocorrencia.response.dto';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { usePallete } from '../../../../../hooks/usePallete';
+import { formatInTimeZone } from 'date-fns-tz';
+import FancyText from '../../../../../components/FancyText';
 
 export default function MinisterioAgendaIndexPage() {
   const palette = usePallete();
@@ -25,6 +27,12 @@ export default function MinisterioAgendaIndexPage() {
   const [eventos, setEventos] = useState<ResponseEventoOcorrenciaDto[]>();
 
   const { buscarPorIntervalo, isLoading } = useEventosCrud({ autoFetch: false });
+
+  const formatEventTime = useCallback(
+    (value?: string) =>
+      value ? formatInTimeZone(DateUtilsApi.dateTimeFromApi(value), APP_TZ, 'HH:mm') : undefined,
+    [],
+  );
 
   const carregarEventosMes = useCallback(async () => {
     if (!igrejaAtiva?.id) return;
@@ -75,11 +83,23 @@ export default function MinisterioAgendaIndexPage() {
         renderItem={({ item }) => {
           const eventoId = item.eventoId || item.id;
           const subtitle =
-            item.evento?.dataTermino && `${formatDate(item.evento.dataInicio, 'HH:mm')} à ${formatDate(item.evento.dataTermino, 'HH:mm')}`;
+            item.evento?.dataInicio &&
+            item.evento?.dataTermino &&
+            `${formatEventTime(item.evento.dataInicio)} à ${formatEventTime(item.evento.dataTermino)}`;
           return (
             <FancyCard.Color
-              title={item.nome}
-              subtitle={subtitle}
+              title={
+                <View style={styles.eventCardTitleBlock}>
+                  <FancyText size='medium' type='bold' numberOfLines={2} style={styles.eventCardTitle}>
+                    {item.nome}
+                  </FancyText>
+                  {subtitle ? (
+                    <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                      {subtitle}
+                    </FancyText>
+                  ) : null}
+                </View>
+              }
               color={item.cor || palette.primary}
               actionButtons={[
                 {
@@ -113,4 +133,11 @@ const styles = StyleSheet.create({
   listContainer: { flex: 10 },
   calendarContainer: { borderWidth: 0, backgroundColor: 'transparent' },
   calendarSeparator: { marginTop: 0, marginBottom: 0 },
+  eventCardTitleBlock: {
+    gap: 2,
+  },
+  eventCardTitle: {
+    opacity: 0.78,
+    marginVertical: 0,
+  },
 });

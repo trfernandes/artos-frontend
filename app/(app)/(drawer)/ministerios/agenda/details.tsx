@@ -1,21 +1,39 @@
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
 import FancyTabs, { TabItem } from '../../../../../components/tabs/FancyTabs';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { StyleSheet } from 'react-native';
-import AgendaDetailsDadosTab from '../../../../../components/pages/ministerios/agenda/AgendaDetailsDadosTab';
+import AgendaDetailsDadosTab, { AgendaDetailsDadosTabActions } from '../../../../../components/pages/ministerios/agenda/AgendaDetailsDadosTab';
 import AgendaDetailsEscalaTab from '../../../../../components/pages/ministerios/agenda/AgendaDetailsEscalaTab';
+import EventoSetlistTab from '../../../../../components/pages/common/EventoSetlistTab';
 import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
 import FancyLoading from '../../../../../components/FancyLoading';
 import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ResponseEventoOcorrenciaDto } from '../../../../../domain/dtos/Evento/evento-ocorrencia.response.dto';
+import { FancyAlert } from '../../../../../components/modal/FancyAlert';
+import { useAuth } from '../../../../../contexts/AuthContext';
+import { MinisterioTipoEnum } from '../../../../../domain/enums/Ministerio/ministerio-tipo.enum';
+
+type ExitChoice = 'cancel' | 'discard' | 'save';
 
 export default function MinisterioAgendaDetailsPage() {
   const params = useLocalSearchParams<{ id?: string; eventoId?: string; dataOcorrencia: string; ministerioId: string }>();
+  const navigation = useNavigation<any>();
+  const { igrejaAtiva } = useAuth();
   const eventoId = params.eventoId || params.id || '';
+  const isLouvorMinisterio = useMemo(
+    () => igrejaAtiva?.ministerios?.some((ministerio) => ministerio.id === params.ministerioId && ministerio.tipo === MinisterioTipoEnum.Louvor) ?? false,
+    [igrejaAtiva?.ministerios, params.ministerioId],
+  );
   const [ocorrenciaAtual, setOcorrenciaAtual] = useState<ResponseEventoOcorrenciaDto | null>(null);
   const [isLoadingOcorrencia, setIsLoadingOcorrencia] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const actionsRef = useRef<AgendaDetailsDadosTabActions>({
+    saveAllChanges: async () => true,
+    discardUnsavedChanges: () => undefined,
+  });
+  const isHandlingExitRef = useRef(false);
 
   const { data, isLoading, buscarPorIntervalo } = useEventosCrud({
     autoFetch: true,
@@ -70,8 +88,63 @@ export default function MinisterioAgendaDetailsPage() {
     void carregarOcorrenciaAtual();
   }, [carregarOcorrenciaAtual]);
 
-  const tab_items: TabItem[] = useMemo(
-    () => [
+  const promptExitConfirmation = useCallback((): Promise<ExitChoice> => {
+    return new Promise((resolve) => {
+      FancyAlert.alert(
+        'Existem alterações pendentes',
+        'Você pode salvar antes de sair ou descartar o que ainda não foi salvo.',
+        [
+          { text: 'Cancelar', style: 'default', onPress: () => resolve('cancel') },
+          { text: 'Descartar', style: 'destructive', onPress: () => resolve('discard') },
+          { text: 'Salvar', onPress: () => resolve('save') },
+        ],
+      );
+    });
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (event: any) => {
+      if (!hasUnsavedChanges || isHandlingExitRef.current) {
+        return;
+      }
+
+      event.preventDefault();
+
+      if (isHandlingExitRef.current) {
+        return;
+      }
+
+      isHandlingExitRef.current = true;
+
+      void (async () => {
+        try {
+          const choice = await promptExitConfirmation();
+
+          if (choice === 'discard') {
+            actionsRef.current.discardUnsavedChanges();
+            setHasUnsavedChanges(false);
+            navigation.dispatch(event.data.action);
+            return;
+          }
+
+          if (choice === 'save') {
+            const saved = await actionsRef.current.saveAllChanges();
+            if (saved) {
+              setHasUnsavedChanges(false);
+              navigation.dispatch(event.data.action);
+            }
+          }
+        } finally {
+          isHandlingExitRef.current = false;
+        }
+      })();
+    });
+
+    return unsubscribe;
+  }, [hasUnsavedChanges, navigation, promptExitConfirmation]);
+
+  const tab_items: TabItem[] = useMemo(() => {
+    const tabs: TabItem[] = [
       {
         title: 'Dados',
         icon: { ...DefaultIconsNames.info, size: 14 },
@@ -83,6 +156,10 @@ export default function MinisterioAgendaDetailsPage() {
             ocorrencia={ocorrenciaAtual || undefined}
             evento={data[0]}
             onTemplateSaved={carregarOcorrenciaAtual}
+            onUnsavedChangesChange={setHasUnsavedChanges}
+            onRegisterActions={(actions) => {
+              actionsRef.current = actions;
+            }}
           />
         ),
       },
@@ -91,9 +168,25 @@ export default function MinisterioAgendaDetailsPage() {
         icon: { ...DefaultIconsNames.group, size: 20 },
         content: <AgendaDetailsEscalaTab eventoId={eventoId} dataOcorrencia={new Date(params.dataOcorrencia)} />,
       },
-    ],
-    [carregarOcorrenciaAtual, data, eventoId, ocorrenciaAtual, params.dataOcorrencia, params.ministerioId],
-  );
+    ];
+
+    if (isLouvorMinisterio) {
+      tabs.push({
+        title: 'SetList',
+        icon: { library: 'MaterialCommunityIcons', name: 'playlist-music-outline', size: 18 },
+        content: (
+          <EventoSetlistTab
+            eventoId={eventoId}
+            dataOcorrencia={new Date(params.dataOcorrencia)}
+            ministerioId={params.ministerioId}
+            canEdit={true}
+          />
+        ),
+      });
+    }
+
+    return tabs;
+  }, [carregarOcorrenciaAtual, data, eventoId, isLouvorMinisterio, ocorrenciaAtual, params.dataOcorrencia, params.ministerioId]);
 
   if (isLoading || isLoadingOcorrencia || !eventoId || !data[0]) return <FancyLoading />;
 
@@ -104,6 +197,7 @@ export default function MinisterioAgendaDetailsPage() {
         contentContainerStyle={{ flex: 1 }}
         containerStyle={{ flex: 1 }}
         headerStyle={{ paddingHorizontal: 0 }}
+        keepMounted={true}
       />
     </FancyPageView>
   );

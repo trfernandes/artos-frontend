@@ -1,19 +1,24 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Pallete } from '../../../constants/colors';
-import { ResponseDashboardDto } from '../../../domain/dtos/Dashboard/dashboard.response';
+import { DashboardEscalaItemDto, ResponseDashboardDto } from '../../../domain/dtos/Dashboard/dashboard.response';
 import { router } from 'expo-router';
 import DashboardSection from './DashboardSection';
 import DashboardCard from './DashboardCard';
 import DashboardEmpty from './DashboardEmpty';
 import ProximaEscalaCard from './ProximaEscalaCard';
 import DashboardMiniCalendar from './DashboardMiniCalendar';
+import FancyBottomSheetModal from '../../modal/FancyBottomSheetModal';
+import FancyText from '../../FancyText';
+import FancyButton from '../../buttons/FancyButton';
+import EventoInfoCard from '../common/EventoInfoCard';
 
 type DashboardEscalasSectionProps = {
   data: ResponseDashboardDto;
 };
 
 export default function DashboardEscalasSection({ data }: DashboardEscalasSectionProps) {
+  const [selectedEscala, setSelectedEscala] = useState<DashboardEscalaItemDto | null>(null);
   const proximasEscalasUnicas = useMemo(() => {
     const escalas = data?.proximasEscalas ?? [];
     const seen = new Set<string>();
@@ -74,7 +79,7 @@ export default function DashboardEscalasSection({ data }: DashboardEscalasSectio
             contentContainerStyle={styles.horizontalScroll}
           >
             {proximasEscalasUnicas.map((escala, index) => (
-              <ProximaEscalaCard key={`${escala.id}-${escala.eventoData}-${index}`} escala={escala} />
+              <ProximaEscalaCard key={`${escala.id}-${escala.eventoData}-${index}`} escala={escala} onPress={() => setSelectedEscala(escala)} />
             ))}
           </ScrollView>
         ) : (
@@ -86,6 +91,58 @@ export default function DashboardEscalasSection({ data }: DashboardEscalasSectio
       <DashboardSection title="Calendário">
         <DashboardMiniCalendar escalas={data?.proximasEscalas} />
       </DashboardSection>
+
+      <FancyBottomSheetModal
+        visible={!!selectedEscala}
+        onClose={() => setSelectedEscala(null)}
+        title='Próxima escala'
+        footer={
+          selectedEscala ? (
+            <FancyButton
+              label='Abrir detalhes'
+              onPress={() => {
+                router.push({
+                  pathname: '/pessoal/escalas/evento',
+                  params: {
+                    evento: JSON.stringify({
+                      id: selectedEscala.eventoId,
+                      nome: selectedEscala.eventoNome,
+                      descricao: selectedEscala.eventoDescricao,
+                      local: selectedEscala.eventoLocal,
+                      cor: selectedEscala.eventoCor,
+                    }),
+                    dataOcorrencia: selectedEscala.eventoData,
+                    horarioEnsaio: selectedEscala.horarioEnsaio || '',
+                    ministerioId: selectedEscala.ministerioId || '',
+                    ministerioNome: selectedEscala.ministerioNome,
+                  },
+                });
+                setSelectedEscala(null);
+              }}
+            />
+          ) : undefined
+        }
+      >
+        {selectedEscala ? (
+          <View style={styles.sheetContent}>
+            <EventoInfoCard
+              eventoCor={selectedEscala.eventoCor || Pallete.primary}
+              eventoNome={selectedEscala.eventoNome}
+              dataOcorrencia={new Date(selectedEscala.eventoData)}
+              local={selectedEscala.eventoLocal}
+              descricao={selectedEscala.eventoDescricao}
+              horarioEnsaio={selectedEscala.horarioEnsaio}
+              ministerioNome={selectedEscala.ministerioNome}
+            />
+            <FancyText size='small' type='semiBold'>
+              {`Função: ${selectedEscala.funcaoNome}`}
+            </FancyText>
+            <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive}>
+              {selectedEscala.isConfirmado ? 'Status: Confirmada' : 'Status: Pendente'}
+            </FancyText>
+          </View>
+        ) : null}
+      </FancyBottomSheetModal>
     </>
   );
 }
@@ -98,5 +155,8 @@ const styles = StyleSheet.create({
   horizontalScroll: {
     gap: 10,
     paddingRight: 5,
+  },
+  sheetContent: {
+    gap: 14,
   },
 });

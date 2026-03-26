@@ -63,7 +63,7 @@ export default function LiderancaTab() {
             color={palette.fonts.inactive2}
           />
           <View style={styles.emptyTextContainer}>
-            <FancyText type='bold' size='largeMedium' style={[styles.emptyTitle, { color: palette.fonts.primary }]}>
+            <FancyText type='bold' size='largeMedium' style={[styles.emptyTitle, { color: palette.fonts.dark }]}>
               Adicione ao menos um líder
             </FancyText>
             <FancyText size='small' style={[styles.emptySubtitle, { color: palette.fonts.inactive2 }]}>

@@ -52,13 +52,14 @@ export default function EventosAddPage() {
   const handleSubmit = async () => {
     form.handleSubmit(
       async (data) => {
+        const { horarioEnsaioPadrao: _horarioEnsaioPadrao, ...payload } = data;
         const newEvento: CreateEventoDto = {
-          ...data,
+          ...payload,
           igrejaId: igrejaAtiva!.id,
-          cor: data.cor,
-          dataInicio: DateUtilsApi.dateTimeToApi(data.dataInicio),
-          dataTermino: data.dataTermino && DateUtilsApi.dateTimeToApi(data.dataTermino),
-          recorrencia: data.recorrencia || RecorrenciaEnum.Nunca,
+          cor: payload.cor,
+          dataInicio: DateUtilsApi.dateTimeToApi(payload.dataInicio),
+          dataTermino: payload.dataTermino && DateUtilsApi.dateTimeToApi(payload.dataTermino),
+          recorrencia: payload.recorrencia || RecorrenciaEnum.Nunca,
         };
         await add(newEvento);
         router.back();

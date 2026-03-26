@@ -25,6 +25,12 @@ export const eventoSchema = z
       .max(12, 'O número de meses deve ser menor igual a 12')
       .optional(),
     recorrenciaSemanasMes: z.array(z.enum(RecorrenciaSemanaMesEnum)).optional(),
+    horarioEnsaioPadrao: z
+      .object({
+        hour: z.number().int().min(0).max(23),
+        minute: z.number().int().min(0).max(59),
+      })
+      .optional(),
   })
   .superRefine((data, ctx) => {
     // Data término > data início

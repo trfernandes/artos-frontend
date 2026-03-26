@@ -1,11 +1,16 @@
 export type DashboardEscalaItemDto = {
   id: string;
+  eventoId: string;
   eventoNome: string;
   eventoData: string;
   funcaoNome: string;
+  ministerioId?: string;
   ministerioNome: string;
   ministerioLogoUrl?: string;
   eventoLocal?: string;
+  eventoDescricao?: string;
+  eventoCor?: string;
+  horarioEnsaio?: string;
   isConfirmado: boolean;
 };
 

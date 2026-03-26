@@ -9,11 +9,21 @@ export interface EventoInfoCardProps {
   eventoNome: string;
   eventoCor: string;
   dataOcorrencia: Date;
+  ministerioNome?: string;
   local?: string;
   descricao?: string;
+  horarioEnsaio?: string;
 }
 
-export default function EventoInfoCard({ eventoNome, eventoCor, dataOcorrencia, local, descricao }: EventoInfoCardProps) {
+export default function EventoInfoCard({
+  eventoNome,
+  eventoCor,
+  dataOcorrencia,
+  ministerioNome,
+  local,
+  descricao,
+  horarioEnsaio,
+}: EventoInfoCardProps) {
   return (
     <FancyContainer
       title={
@@ -40,10 +50,37 @@ export default function EventoInfoCard({ eventoNome, eventoCor, dataOcorrencia, 
             dataContainerStyle={styles.dataContainer}
             title='Data/Hora:'
             value={format(dataOcorrencia, "EEE, d 'de' MMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
+            multiline={true}
             showSeparator={true}
           />
-          <FancyValueLine title='Descrição:' value={descricao ?? 'Não definida'} showSeparator={true} dataContainerStyle={styles.dataContainer} multiline={true} />
-          <FancyValueLine title='Local:' value={local ?? 'Não definido'} dataContainerStyle={styles.dataContainer} />
+          {ministerioNome ? (
+            <FancyValueLine
+              title='Ministério:'
+              value={ministerioNome}
+              showSeparator={true}
+              dataContainerStyle={styles.dataContainer}
+            />
+          ) : null}
+          <FancyValueLine
+            title='Descrição:'
+            value={descricao ?? 'Não definida'}
+            showSeparator={true}
+            dataContainerStyle={styles.dataContainer}
+            multiline={true}
+          />
+          <FancyValueLine
+            title='Local:'
+            value={local ?? 'Não definido'}
+            dataContainerStyle={styles.dataContainer}
+            showSeparator={!!horarioEnsaio}
+          />
+          {horarioEnsaio && (
+            <FancyValueLine
+              title='Horário de ensaio:'
+              value={`às ${horarioEnsaio}`}
+              dataContainerStyle={styles.dataContainer}
+            />
+          )}
         </View>
       }
     />

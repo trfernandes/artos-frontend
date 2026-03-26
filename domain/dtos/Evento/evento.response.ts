@@ -24,4 +24,5 @@ export type ResponseEventoDto = {
   templatePadraoId?: string;
   templatePadrao?: ResponseEscalaTemplateDto;
   templatePadraoOrigem?: TemplatePadraoOrigemEnum;
+  horarioEnsaioPadrao?: string;
 };

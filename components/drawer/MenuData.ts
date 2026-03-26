@@ -3,6 +3,7 @@ import { CustomIconProps } from '../FancyIcons';
 import { MinisterioTipoEnum } from '../../domain/enums/Ministerio/ministerio-tipo.enum';
 import { IgrejaVoluntarioRoleEnum } from '../../domain/enums/Igreja/voluntario-role.enum';
 import { VoluntarioHierarquiaEnum, VoluntarioHierarquiaEnumLabel } from '../../domain/enums/MinisterioVoluntario/hierarquia.enum';
+import { RecursoPermissaoEnum, TipoPermissaoEnum } from '../../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
 
 const normalizeMinisterioTipo = (tipo: ResponseLoginMinisterioDto['tipo']): MinisterioTipoEnum => {
   const rawTipo = tipo?.toString() ?? '';
@@ -107,6 +108,14 @@ const getMinisterioBasicItems = (ministerioId: string): DrawerItemData[] => {
   ];
 };
 
+const hasMinisterioPermission = (
+  ministerio: ResponseLoginMinisterioDto,
+  recurso: RecursoPermissaoEnum,
+  permissao: TipoPermissaoEnum,
+) => {
+  return (ministerio.permissoes ?? []).some((item) => item.recurso === recurso && item.permissoes?.includes(permissao));
+};
+
 // Menus completos do ministério - para líderes e admin
 const getMinisterioFullItems = (ministerio: ResponseLoginMinisterioDto): DrawerItemData[] => {
   const ministerioTipo = normalizeMinisterioTipo(ministerio.tipo);
@@ -115,6 +124,14 @@ const getMinisterioFullItems = (ministerio: ResponseLoginMinisterioDto): DrawerI
   const baseItems = getMinisterioBasicItems(ministerio.id);
 
   const commonItems: DrawerItemData[] = [
+    {
+      title: 'Acessos',
+      logo: {
+        type: 'icon',
+        value: { name: 'shield-account-outline', library: 'MaterialCommunityIcons', size: 17 },
+      },
+      onPress: { type: 'GoToRoute', routeName: `/ministerios/acessos${routeParams}` },
+    },
     {
       title: 'Indisponibilidades',
       logo: {
@@ -147,6 +164,21 @@ const getMinisterioFullItems = (ministerio: ResponseLoginMinisterioDto): DrawerI
         ...baseItems,
         ...commonItems,
         {
+          title: 'Repertório',
+          logo: {
+            type: 'icon',
+            value: {
+              name: 'queue-music',
+              library: 'MaterialIcons',
+              size: 17,
+            },
+          },
+          onPress: {
+            type: 'GoToRoute',
+            routeName: `/ministerios/louvor/repertorio${routeParams}`,
+          },
+        },
+        {
           title: 'Templates de Equipe',
           logo: {
             type: 'icon',
@@ -176,18 +208,103 @@ const getMenuForMinisterio = (
 ): DrawerItemData[] => {
   // Comparação robusta da hierarquia
   const hierarquia = ministerio.hierarquia?.toString();
-  const isLider =
-    hierarquia === VoluntarioHierarquiaEnum.Lider ||
-    hierarquia === VoluntarioHierarquiaEnum.Auxiliar ||
-    hierarquia === '1' ||
-    hierarquia === '2';
+  const isLider = hierarquia === VoluntarioHierarquiaEnum.Lider || hierarquia === '1';
+  const isAuxiliar = hierarquia === VoluntarioHierarquiaEnum.Auxiliar || hierarquia === '2';
 
   // Admin ou líder do ministério: todos os menus
   const showFullMenu = isAdmin || isLider;
 
   let items = showFullMenu ? getMinisterioFullItems(ministerio) : getMinisterioBasicItems(ministerio.id);
 
-  if (isVoluntarioRole) {
+  if (isAuxiliar && !isAdmin) {
+    const routeParams = `?ministerioId=${ministerio.id}`;
+    const ministerioTipo = normalizeMinisterioTipo(ministerio.tipo);
+    const filteredItems: DrawerItemData[] = [];
+
+    if (hasMinisterioPermission(ministerio, RecursoPermissaoEnum.AgendaEventos, TipoPermissaoEnum.Visualizar)) {
+      filteredItems.push({
+        title: 'Agenda',
+        logo: {
+          type: 'icon',
+          value: { name: 'calendar-month', library: 'MaterialCommunityIcons', size: 17 },
+        },
+        onPress: { type: 'GoToRoute', routeName: `/ministerios/agenda${routeParams}` },
+      });
+    }
+
+    if (hasMinisterioPermission(ministerio, RecursoPermissaoEnum.Escalas, TipoPermissaoEnum.Visualizar)) {
+      filteredItems.push({
+        title: 'Escalas',
+        logo: {
+          type: 'icon',
+          value: { name: 'calendar-account', library: 'MaterialCommunityIcons', size: 17 },
+        },
+        onPress: { type: 'GoToRoute', routeName: `/ministerios/escalas${routeParams}` },
+      });
+    }
+
+    if (hasMinisterioPermission(ministerio, RecursoPermissaoEnum.Integrantes, TipoPermissaoEnum.Visualizar)) {
+      filteredItems.push({
+        title: 'Integrantes',
+        logo: { type: 'icon', value: { name: 'people', library: 'Octicons', size: 14 } },
+        onPress: {
+          type: 'GoToRoute',
+          routeName: `/ministerios/integrantes${routeParams}`,
+        },
+      });
+    }
+
+    if (hasMinisterioPermission(ministerio, RecursoPermissaoEnum.FuncoesTemplates, TipoPermissaoEnum.Visualizar)) {
+      filteredItems.push({
+        title: 'Funções',
+        logo: {
+          type: 'icon',
+          value: { library: 'FontAwesome6', name: 'person-rays', size: 14 },
+        },
+        onPress: { type: 'GoToRoute', routeName: `/ministerios/funcoes${routeParams}` },
+      });
+      filteredItems.push({
+        title: 'Templates de Equipe',
+        logo: {
+          type: 'icon',
+          value: {
+            name: 'file-document-outline',
+            library: 'MaterialCommunityIcons',
+            size: 16,
+          },
+        },
+        onPress: {
+          type: 'GoToRoute',
+          routeName: `/ministerios/templates_equipe${routeParams}`,
+        },
+      });
+    }
+
+    if (
+      ministerioTipo === MinisterioTipoEnum.Louvor &&
+      hasMinisterioPermission(ministerio, RecursoPermissaoEnum.RepertorioSetlist, TipoPermissaoEnum.Visualizar)
+    ) {
+      filteredItems.push({
+        title: 'Repertório',
+        logo: {
+          type: 'icon',
+          value: {
+            name: 'queue-music',
+            library: 'MaterialIcons',
+            size: 17,
+          },
+        },
+        onPress: {
+          type: 'GoToRoute',
+          routeName: `/ministerios/louvor/repertorio${routeParams}`,
+        },
+      });
+    }
+
+    items = filteredItems;
+  }
+
+  if (isVoluntarioRole && !isAuxiliar && !showFullMenu) {
     items = items.filter((item) => item.title !== 'Escalas');
   }
 

@@ -20,6 +20,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useProtectedRoute } from '../hooks/useProtectedRoute';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { useAppTheme } from '../hooks/useAppTheme';
+import { GlobalErrorBoundary } from '../components/debug/GlobalErrorBoundary';
 
 const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
 
@@ -41,17 +42,19 @@ export default Sentry.wrap(function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <ThemeProvider>
-          <QueryClientProvider client={queryClient}>
-            <AuthProvider>
-              <ConnectivityProvider>
-                <RootLayoutNav />
-              </ConnectivityProvider>
-            </AuthProvider>
-          </QueryClientProvider>
-        </ThemeProvider>
-      </SafeAreaProvider>
+      <GlobalErrorBoundary>
+        <SafeAreaProvider>
+          <ThemeProvider>
+            <QueryClientProvider client={queryClient}>
+              <AuthProvider>
+                <ConnectivityProvider>
+                  <RootLayoutNav />
+                </ConnectivityProvider>
+              </AuthProvider>
+            </QueryClientProvider>
+          </ThemeProvider>
+        </SafeAreaProvider>
+      </GlobalErrorBoundary>
     </GestureHandlerRootView>
   );
 });

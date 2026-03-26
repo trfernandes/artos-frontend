@@ -24,6 +24,7 @@ import { usePallete } from '../../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 import { useAppTheme } from '../../../../../hooks/useAppTheme';
 import FancyLoading from '../../../../FancyLoading';
+import FancyChips from '../../../../FancyChips';
 
 export interface EventoTableProps {
   data: EscalaItemDataType;
@@ -116,6 +117,26 @@ export default function EventoTable({
     return { eventConfirmed: confirmed, eventTotal: assigned.length };
   }, [data.equipe]);
 
+  const hasEventPassed = useMemo(() => {
+    const occurrenceDate = DateUtilsApi.dateOnlyFromApi(data.dataOcorrencia);
+    const endAt = new Date(occurrenceDate);
+    const startHour = data.evento.dataInicio?.getHours?.() ?? 0;
+    const startMinute = data.evento.dataInicio?.getMinutes?.() ?? 0;
+    const endHour = data.evento.dataTermino?.getHours?.() ?? 0;
+    const endMinute = data.evento.dataTermino?.getMinutes?.() ?? 0;
+
+    endAt.setHours(endHour, endMinute, 0, 0);
+
+    const crossesMidnight =
+      endHour < startHour || (endHour === startHour && endMinute <= startMinute);
+
+    if (crossesMidnight) {
+      endAt.setDate(endAt.getDate() + 1);
+    }
+
+    return endAt.getTime() < Date.now();
+  }, [data.dataOcorrencia, data.evento.dataInicio, data.evento.dataTermino]);
+
   const eventProgressColor = ColorUtils.darkenColor(data.evento.cor || palette.primary, 0.25);
 
   const eventSubtitle: ReactNode | undefined =
@@ -186,6 +207,15 @@ export default function EventoTable({
                     'HH:mm',
                   )} - ${format(data.evento.dataTermino!, 'HH:mm')}`}</FancyText>
                 </View>
+                {hasEventPassed ? (
+                  <FancyChips
+                    label='Já passou'
+                    size='small'
+                    color={palette.warning}
+                    backgroundColor={ColorUtils.withAlpha(palette.warning, 0.12)}
+                    style={styles.pastChip}
+                  />
+                ) : null}
               </View>
             </View>
           </View>
@@ -372,6 +402,9 @@ function createStyles(palette: ThemePalette) {
       alignItems: 'center',
       flexWrap: 'wrap',
       gap: 8,
+    },
+    pastChip: {
+      marginTop: 1,
     },
     metaGroup: {
       flexDirection: 'row',

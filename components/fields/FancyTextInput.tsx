@@ -180,6 +180,7 @@ function createStyles(Pallete: ThemePalette) {
       justifyContent: 'center',
       borderColor: 'deepskyblue',
       alignItems: 'center',
+      paddingRight: 10,
     },
     errorContainer: { paddingLeft: 2 },
     errorText: { color: Pallete.error },

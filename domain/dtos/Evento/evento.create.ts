@@ -15,4 +15,5 @@ export type CreateEventoDto = {
   recorrenciaACadaMeses?: number;
   recorrenciaSemanasMes?: RecorrenciaSemanaMesEnum[];
   templatePadraoId?: string;
+  horarioEnsaioPadrao?: string;
 };

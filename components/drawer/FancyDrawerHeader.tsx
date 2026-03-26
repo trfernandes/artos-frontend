@@ -61,7 +61,7 @@ export default function FancyDrawerHeader() {
               <FancyText size={'medium'} type='bold' color={palette.fonts.light}>
                 {auth.user?.user?.nome}
               </FancyText>
-              <FancyText size={'extraSmall'} type='italic' color={palette.fonts.light} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} style={{ marginTop: 3 }}>
+              <FancyText size={'extraSmall'} type='mediumItalic' color={palette.fonts.light} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} style={{ marginTop: 3 }}>
                 {auth.user?.user?.email}
               </FancyText>
             </View>

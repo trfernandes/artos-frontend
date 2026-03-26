@@ -239,7 +239,12 @@ export default function EscalaHeader({
           value={periodLabel}
         />
         {hasHealth && (
-          <EscalaHealthIndicator confirmedCount={confirmedCount} totalCount={totalCount} compact />
+          <EscalaHealthIndicator
+            confirmedCount={confirmedCount}
+            totalCount={totalCount}
+            compact
+            displayMode='percent-only'
+          />
         )}
       </View>
 

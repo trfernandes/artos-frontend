@@ -1,68 +1,75 @@
 export enum RecursoPermissaoEnum {
-  Ministerios = 1,
-  Voluntarios = 2,
-  Eventos = 3,
-  Repertorio = 4,
+  AgendaEventos = 'AGENDA_EVENTOS',
+  Escalas = 'ESCALAS',
+  Integrantes = 'INTEGRANTES',
+  FuncoesTemplates = 'FUNCOES_TEMPLATES',
+  RepertorioSetlist = 'REPERTORIO_SETLIST',
 }
 
-export const RecursoPermissaoEnumMap: Record<number, RecursoPermissaoEnum> = {
-  1: RecursoPermissaoEnum.Ministerios,
-  2: RecursoPermissaoEnum.Voluntarios,
-  3: RecursoPermissaoEnum.Eventos,
-  4: RecursoPermissaoEnum.Repertorio,
+export const RecursoPermissaoEnumMap: Record<string, RecursoPermissaoEnum> = {
+  [RecursoPermissaoEnum.AgendaEventos]: RecursoPermissaoEnum.AgendaEventos,
+  [RecursoPermissaoEnum.Escalas]: RecursoPermissaoEnum.Escalas,
+  [RecursoPermissaoEnum.Integrantes]: RecursoPermissaoEnum.Integrantes,
+  [RecursoPermissaoEnum.FuncoesTemplates]: RecursoPermissaoEnum.FuncoesTemplates,
+  [RecursoPermissaoEnum.RepertorioSetlist]: RecursoPermissaoEnum.RepertorioSetlist,
 };
 
 export const RecursoPermissaoEnumLabel: Record<RecursoPermissaoEnum, string> = {
-  [RecursoPermissaoEnum.Ministerios]: 'Minist‚rios',
-  [RecursoPermissaoEnum.Voluntarios]: 'Volunt rios',
-  [RecursoPermissaoEnum.Eventos]: 'Eventos',
-  [RecursoPermissaoEnum.Repertorio]: 'Repert¢rio',
+  [RecursoPermissaoEnum.AgendaEventos]: 'Agenda e eventos',
+  [RecursoPermissaoEnum.Escalas]: 'Escalas',
+  [RecursoPermissaoEnum.Integrantes]: 'Integrantes',
+  [RecursoPermissaoEnum.FuncoesTemplates]: 'Funções e templates',
+  [RecursoPermissaoEnum.RepertorioSetlist]: 'Repertório e setlist',
 };
 
 export enum TipoPermissaoEnum {
-  Visualizar = 1,
-  Incluir = 2,
-  Alterar = 3,
-  Remover = 4,
+  Visualizar = 'VISUALIZAR',
+  AlterarOcorrencia = 'ALTERAR_OCORRENCIA',
+  Gerar = 'GERAR',
+  Alterar = 'ALTERAR',
+  Publicar = 'PUBLICAR',
+  Gerenciar = 'GERENCIAR',
 }
 
-export const TipoPermissaoEnumMap: Record<number, TipoPermissaoEnum> = {
-  1: TipoPermissaoEnum.Visualizar,
-  2: TipoPermissaoEnum.Incluir,
-  3: TipoPermissaoEnum.Alterar,
-  4: TipoPermissaoEnum.Remover,
+export const TipoPermissaoEnumMap: Record<string, TipoPermissaoEnum> = {
+  [TipoPermissaoEnum.Visualizar]: TipoPermissaoEnum.Visualizar,
+  [TipoPermissaoEnum.AlterarOcorrencia]: TipoPermissaoEnum.AlterarOcorrencia,
+  [TipoPermissaoEnum.Gerar]: TipoPermissaoEnum.Gerar,
+  [TipoPermissaoEnum.Alterar]: TipoPermissaoEnum.Alterar,
+  [TipoPermissaoEnum.Publicar]: TipoPermissaoEnum.Publicar,
+  [TipoPermissaoEnum.Gerenciar]: TipoPermissaoEnum.Gerenciar,
 };
 
 export const TipoPermissaoEnumLabel: Record<TipoPermissaoEnum, string> = {
   [TipoPermissaoEnum.Visualizar]: 'Visualizar',
-  [TipoPermissaoEnum.Incluir]: 'Incluir',
+  [TipoPermissaoEnum.AlterarOcorrencia]: 'Alterar ocorrência',
+  [TipoPermissaoEnum.Gerar]: 'Gerar',
   [TipoPermissaoEnum.Alterar]: 'Alterar',
-  [TipoPermissaoEnum.Remover]: 'Remover',
+  [TipoPermissaoEnum.Publicar]: 'Publicar',
+  [TipoPermissaoEnum.Gerenciar]: 'Gerenciar',
 };
 
 export const RecursosPermissoesTable: Record<RecursoPermissaoEnum, TipoPermissaoEnum[]> = {
-  [RecursoPermissaoEnum.Ministerios]: [
+  [RecursoPermissaoEnum.AgendaEventos]: [
     TipoPermissaoEnum.Visualizar,
-    TipoPermissaoEnum.Incluir,
-    TipoPermissaoEnum.Alterar,
-    TipoPermissaoEnum.Remover,
+    TipoPermissaoEnum.AlterarOcorrencia,
   ],
-  [RecursoPermissaoEnum.Voluntarios]: [
+  [RecursoPermissaoEnum.Escalas]: [
     TipoPermissaoEnum.Visualizar,
-    TipoPermissaoEnum.Incluir,
+    TipoPermissaoEnum.Gerar,
     TipoPermissaoEnum.Alterar,
-    TipoPermissaoEnum.Remover,
+    TipoPermissaoEnum.Publicar,
   ],
-  [RecursoPermissaoEnum.Eventos]: [
+  [RecursoPermissaoEnum.Integrantes]: [
     TipoPermissaoEnum.Visualizar,
-    TipoPermissaoEnum.Incluir,
-    TipoPermissaoEnum.Alterar,
-    TipoPermissaoEnum.Remover,
+    TipoPermissaoEnum.Gerenciar,
   ],
-  [RecursoPermissaoEnum.Repertorio]: [
+  [RecursoPermissaoEnum.FuncoesTemplates]: [
     TipoPermissaoEnum.Visualizar,
-    TipoPermissaoEnum.Incluir,
-    TipoPermissaoEnum.Alterar,
-    TipoPermissaoEnum.Remover,
+    TipoPermissaoEnum.Gerenciar,
+  ],
+  [RecursoPermissaoEnum.RepertorioSetlist]: [
+    TipoPermissaoEnum.Visualizar,
+    TipoPermissaoEnum.Gerenciar,
   ],
 };

@@ -6,6 +6,8 @@ import {
   Animated,
   Dimensions,
   PanResponder,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -86,50 +88,56 @@ export default function FancyBottomSheetModal({ visible, onClose, title, childre
           </Animated.View>
 
           {/* Sheet */}
-          <Animated.View
-            style={[
-              styles.sheet,
-              {
-                maxHeight: SCREEN_HEIGHT * 0.88,
-                paddingBottom: insets.bottom + 16,
-                opacity: sheetOpacity,
-                backgroundColor: palette.backgroundColor,
-                transform: [{ translateY: dragY }],
-              },
-            ]}
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? insets.bottom : 0}
           >
-            {/* Handle */}
-            <View style={styles.handleContainer} {...panResponder.panHandlers}>
-              <View style={[styles.handle, { backgroundColor: palette.border }]} />
-            </View>
-
-            {/* Header */}
-            <View style={[styles.header, { borderBottomColor: ColorUtils.lightenColor(palette.border, 0.5) }]}>
-              <TouchableOpacity
-                style={[styles.closeBtn, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14) }]}
-                onPress={handleClose}
-              >
-                <DefaultIcons.Custom library='Feather' name='x' size={20} color={palette.fonts.dark} />
-              </TouchableOpacity>
-              <FancyText type='bold' size='medium' color={palette.fonts.dark} style={styles.headerTitle}>
-                {title}
-              </FancyText>
-              <View style={{ width: 34 }} />
-            </View>
-
-            {/* Body */}
-            <ScrollView
-              style={{ flexShrink: 1, width: '100%' }}
-              contentContainerStyle={styles.body}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps='handled'
+            <Animated.View
+              style={[
+                styles.sheet,
+                {
+                  maxHeight: SCREEN_HEIGHT * 0.88,
+                  paddingBottom: insets.bottom + 16,
+                  opacity: sheetOpacity,
+                  backgroundColor: palette.backgroundColor,
+                  transform: [{ translateY: dragY }],
+                },
+              ]}
             >
-              {children}
-            </ScrollView>
+              {/* Handle */}
+              <View style={styles.handleContainer} {...panResponder.panHandlers}>
+                <View style={[styles.handle, { backgroundColor: palette.border }]} />
+              </View>
 
-            {/* Footer */}
-            {footer && <View style={styles.footer}>{footer}</View>}
-          </Animated.View>
+              {/* Header */}
+              <View style={[styles.header, { borderBottomColor: ColorUtils.lightenColor(palette.border, 0.5) }]}>
+                <TouchableOpacity
+                  style={[styles.closeBtn, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14) }]}
+                  onPress={handleClose}
+                >
+                  <DefaultIcons.Custom library='Feather' name='x' size={20} color={palette.fonts.dark} />
+                </TouchableOpacity>
+                <FancyText type='bold' size='medium' color={palette.fonts.dark} style={styles.headerTitle}>
+                  {title}
+                </FancyText>
+                <View style={{ width: 34 }} />
+              </View>
+
+              {/* Body */}
+              <ScrollView
+                style={{ flexShrink: 1, width: '100%' }}
+                contentContainerStyle={styles.body}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps='handled'
+                keyboardDismissMode='on-drag'
+              >
+                {children}
+              </ScrollView>
+
+              {/* Footer */}
+              {footer && <View style={styles.footer}>{footer}</View>}
+            </Animated.View>
+          </KeyboardAvoidingView>
         </View>
       </GestureHandlerRootView>
     </Modal>

@@ -12,6 +12,7 @@ type ScaleFillIndicatorProps = {
   filledCount: number;
   totalCount: number;
   label: string;
+  displayMode?: 'counts-and-percent' | 'percent-only';
   showContainer?: boolean;
   size?: 'compact' | 'default';
   trackColor?: string;
@@ -36,6 +37,7 @@ export default function ScaleFillIndicator({
   filledCount,
   totalCount,
   label,
+  displayMode = 'counts-and-percent',
   showContainer = true,
   size = 'default',
   trackColor,
@@ -99,7 +101,11 @@ export default function ScaleFillIndicator({
         style={label ? styles.label : undefined}
         numberOfLines={1}
       >
-        {label ? `${safeFilled}/${safeTotal} ${label}` : `${safeFilled}/${safeTotal}`}
+        {displayMode === 'counts-and-percent'
+          ? label
+            ? `${safeFilled}/${safeTotal} ${label}`
+            : `${safeFilled}/${safeTotal}`
+          : label}
       </FancyText>
 
       <FancyText type={textType} size={textSize} color={resolvedPercentColor}>

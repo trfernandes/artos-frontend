@@ -95,8 +95,8 @@ export default function MinisterioEscalasIndexPage() {
   if (isLoadingEscalasMutation) return <FancyLoading label='Processando...' />;
 
   const formatPeriodo = (dataInicio: string, dataTermino: string) => {
-    const inicio = new Date(dataInicio).toLocaleDateString();
-    const termino = new Date(dataTermino).toLocaleDateString();
+    const inicio = new Date(dataInicio).toLocaleDateString('pt-BR');
+    const termino = new Date(dataTermino).toLocaleDateString('pt-BR');
     return `${inicio} - ${termino}`;
   };
 
@@ -127,6 +127,8 @@ export default function MinisterioEscalasIndexPage() {
           const confirmedCount = assignedItems.filter(
             (i) => i.status === EscalaItemStatusEnum.Confirmado,
           ).length;
+          const confirmedPercent =
+            totalCount > 0 ? Math.round((confirmedCount / totalCount) * 100) : 0;
           const itemsWithEvento = (item.itens ?? []).filter((i) => Boolean(i.eventoId));
           const occurrencesCount = new Set(
             itemsWithEvento.map((i) => `${i.eventoId}::${i.dataOcorrencia}`),
@@ -181,7 +183,7 @@ export default function MinisterioEscalasIndexPage() {
                             type='semiBold'
                             color={palette.fonts.inactive}
                           >
-                            {`${confirmedCount}/${totalCount} confirmações`}
+                            {`${confirmedPercent}% confirmações`}
                           </FancyText>
                         </View>
                       )}

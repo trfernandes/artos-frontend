@@ -78,14 +78,20 @@ function getMinisterioIdFromEscalaItem(item: ResponseEscalaItemDto): string | un
 }
 
 function mapEscalaItemToDashboard(item: ResponseEscalaItemDto) {
+  const ministerioId = getMinisterioIdFromEscalaItem(item);
   return {
     id: item.id,
+    eventoId: item.eventoId,
     eventoNome: item.evento?.nome || 'Evento',
     eventoData: item.dataOcorrencia,
     funcaoNome: item.funcao?.nome || 'Sem função',
+    ministerioId,
     ministerioNome: item.voluntario?.ministerio?.nome || item.funcao?.ministerio?.nome || 'Ministério',
     ministerioLogoUrl: item.voluntario?.ministerio?.logoThumbUrl || item.voluntario?.ministerio?.logoUrl || undefined,
     eventoLocal: item.evento?.local,
+    eventoDescricao: item.evento?.descricao,
+    eventoCor: item.evento?.cor,
+    horarioEnsaio: item.horarioEnsaio ?? item.evento?.horarioEnsaioPadrao,
     isConfirmado: item.status === EscalaItemStatusEnum.Confirmado,
   };
 }
