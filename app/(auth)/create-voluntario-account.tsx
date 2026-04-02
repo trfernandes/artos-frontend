@@ -44,6 +44,7 @@ export default function CreateVoluntarioAccountPage() {
 
   const [fieldsViewportHeight, setFieldsViewportHeight] = useState(0);
   const [fieldsContentHeight, setFieldsContentHeight] = useState(0);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const shouldEnableFieldsScroll = fieldsContentHeight > fieldsViewportHeight + 1;
 
   useEffect(() => {
@@ -84,9 +85,7 @@ export default function CreateVoluntarioAccountPage() {
         senha: data.senha,
       };
 
-      if (data.codigoIgreja?.trim()) {
-        payload.codigoIgreja = data.codigoIgreja.trim();
-      }
+      payload.codigoIgreja = data.codigoIgreja.trim();
 
       try {
         const result = await add(payload);
@@ -179,7 +178,7 @@ export default function CreateVoluntarioAccountPage() {
               color='white'
               style={{ lineHeight: EXTRA_LARGE_SIZE_FONT * 1.2 }}
             >
-              Criação de Conta
+              Entrar como voluntário
             </FancyText>
             <FancyText
               size='medium'
@@ -187,7 +186,7 @@ export default function CreateVoluntarioAccountPage() {
               color='white'
               style={{ lineHeight: MEDIUM_SIZE_FONT * 1.3 }}
             >
-              Crie uma conta e aproveite todas as funcionalidades
+              Use o código da sua igreja para criar a conta já no contexto certo.
             </FancyText>
           </View>
         )}
@@ -204,58 +203,91 @@ export default function CreateVoluntarioAccountPage() {
             },
           ]}
         >
-          <View
-            style={[styles.fieldsArea, keyboardVisible ? styles.fieldsAreaKeyboard : undefined]}
-            onLayout={(event) => setFieldsViewportHeight(event.nativeEvent.layout.height)}
-          >
-            <ScrollView
-              style={keyboardVisible ? { flex: 1 } : undefined}
-              contentContainerStyle={{ gap: 10, paddingBottom: 4 }}
-              showsVerticalScrollIndicator={false}
-              scrollEnabled={keyboardVisible ? shouldEnableFieldsScroll : false}
-              bounces={keyboardVisible && shouldEnableFieldsScroll}
-              onContentSizeChange={(_, height) => setFieldsContentHeight(height)}
-            >
-              <ControlledTextInput label='Nome' name='nome' control={createForm.control} />
-              <ControlledTextInput
-                label='E-mail'
-                name='email'
-                control={createForm.control}
-                inputProps={{ autoCapitalize: 'none' }}
-              />
-              <ControlledPasswordInput
-                label='Senha'
-                name='senha'
-                control={createForm.control}
-                inputProps={{ secureTextEntry: true }}
-              />
-              <ControlledPasswordInput
-                label='Confirmar a Senha'
-                name='confirmarSenha'
-                control={createForm.control}
-                inputProps={{ secureTextEntry: true }}
-              />
-              <ControlledTextInput
-                label='Código da igreja (opcional)'
-                name='codigoIgreja'
-                control={createForm.control}
-                inputProps={{
-                  autoCapitalize: 'none',
-                  placeholder: 'Digite o código da igreja',
-                  placeholderTextColor: Pallete.fonts.inactive2,
-                }}
-              />
-            </ScrollView>
-          </View>
+          {!mostrarFormulario ? (
+            <View style={styles.entryState}>
+              <View style={[styles.infoBox, { backgroundColor: Pallete.backgroundColor4 }]}>
+                <FancyText type='semiBold' size='small'>
+                  Você já tem o código ou convite da igreja?
+                </FancyText>
+                <FancyText size='extraSmall' color={Pallete.fonts.inactive}>
+                  Se ainda não recebeu, peça ao responsável da igreja. Sem esse código, o cadastro não
+                  consegue te vincular ao lugar certo.
+                </FancyText>
+              </View>
 
-          <View style={styles.actionsFooter}>
-            <FancyButton
-              label={isLoadingMutation ? 'Confirmando...' : 'Confirmar'}
-              onPress={handleSubmit}
-              disabled={isLoadingMutation || isServerUnavailable}
-              icon={{ library: 'Feather', name: 'check', size: 16 }}
-            />
-          </View>
+              <FancyButton
+                label='Tenho o código'
+                onPress={() => setMostrarFormulario(true)}
+                icon={{ library: 'MaterialCommunityIcons', name: 'arrow-right', size: 16 }}
+                iconPosition='right'
+              />
+              <FancyButton
+                type='text'
+                label='Já tenho conta'
+                onPress={() => router.push('/(auth)/login')}
+              />
+            </View>
+          ) : (
+            <>
+              <View
+                style={[styles.fieldsArea, keyboardVisible ? styles.fieldsAreaKeyboard : undefined]}
+                onLayout={(event) => setFieldsViewportHeight(event.nativeEvent.layout.height)}
+              >
+                <ScrollView
+                  style={keyboardVisible ? { flex: 1 } : undefined}
+                  contentContainerStyle={{ gap: 10, paddingBottom: 4 }}
+                  showsVerticalScrollIndicator={false}
+                  scrollEnabled={keyboardVisible ? shouldEnableFieldsScroll : false}
+                  bounces={keyboardVisible && shouldEnableFieldsScroll}
+                  onContentSizeChange={(_, height) => setFieldsContentHeight(height)}
+                >
+                  <ControlledTextInput
+                    label='Código da igreja'
+                    name='codigoIgreja'
+                    control={createForm.control}
+                    inputProps={{
+                      autoCapitalize: 'none',
+                      placeholder: 'Digite o código recebido',
+                      placeholderTextColor: Pallete.fonts.inactive2,
+                    }}
+                  />
+                  <ControlledTextInput label='Nome' name='nome' control={createForm.control} />
+                  <ControlledTextInput
+                    label='E-mail'
+                    name='email'
+                    control={createForm.control}
+                    inputProps={{ autoCapitalize: 'none' }}
+                  />
+                  <ControlledPasswordInput
+                    label='Senha'
+                    name='senha'
+                    control={createForm.control}
+                    inputProps={{ secureTextEntry: true }}
+                  />
+                  <ControlledPasswordInput
+                    label='Confirmar a Senha'
+                    name='confirmarSenha'
+                    control={createForm.control}
+                    inputProps={{ secureTextEntry: true }}
+                  />
+                </ScrollView>
+              </View>
+
+              <View style={styles.actionsFooter}>
+                <FancyButton
+                  label={isLoadingMutation ? 'Confirmando...' : 'Criar conta'}
+                  onPress={handleSubmit}
+                  disabled={isLoadingMutation || isServerUnavailable}
+                  icon={{ library: 'Feather', name: 'check', size: 16 }}
+                />
+                <FancyButton
+                  type='text'
+                  label='Ainda não tenho o código'
+                  onPress={() => setMostrarFormulario(false)}
+                />
+              </View>
+            </>
+          )}
         </View>
       </KeyboardAwareScrollView>
     </LoginBase>
@@ -293,5 +325,14 @@ const styles = StyleSheet.create({
   },
   actionsFooter: {
     paddingTop: 10,
+    gap: 8,
+  },
+  entryState: {
+    gap: 16,
+  },
+  infoBox: {
+    borderRadius: 16,
+    padding: 16,
+    gap: 6,
   },
 });

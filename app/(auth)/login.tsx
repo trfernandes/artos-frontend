@@ -365,7 +365,7 @@ export default function LoginIndexPage() {
             </FancyText>
             <FancyButton
               type='text'
-              label='Cadastre-se'
+              label='Começar'
               onPress={() => router.push('/(auth)/create-account')}
               containerStyle={{
                 paddingHorizontal: 0,

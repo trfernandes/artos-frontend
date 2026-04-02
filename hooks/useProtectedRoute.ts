@@ -6,6 +6,7 @@ import { usePathname, useRootNavigationState, useRouter } from 'expo-router';
 const PUBLIC_ROUTE_PREFIXES = [
   '/login',
   '/create-account',
+  '/admin-discovery',
   '/create-igreja-account',
   '/create-voluntario-account',
   '/forgot-password',
@@ -24,7 +25,7 @@ function isPublic(pathname: string) {
 }
 
 export function useProtectedRoute() {
-  const { user, loading } = useAuth();
+  const { user, loading, hasAuthenticatedBefore } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const navState = useRootNavigationState(); // só fica definido quando o Navigator montou
@@ -37,7 +38,8 @@ export function useProtectedRoute() {
 
     // 2) não logado tentando rota privada → manda pro login
     if (!user && !onPublic) {
-      if (pathname !== '/login') router.replace('/login');
+      const target = hasAuthenticatedBefore ? '/login' : '/create-account';
+      if (pathname !== target) router.replace(target);
       return;
     }
 
@@ -48,5 +50,5 @@ export function useProtectedRoute() {
     }
 
     // 4) caso normal: não faz nada
-  }, [user, loading, pathname, navState?.key, router]);
+  }, [user, loading, pathname, navState?.key, router, hasAuthenticatedBefore]);
 }

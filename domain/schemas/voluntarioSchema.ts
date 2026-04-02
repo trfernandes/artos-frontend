@@ -21,7 +21,9 @@ export const createAccountSchema = z
 
     confirmarSenha: z.string('Campo obrigatório'),
     
-    codigoIgreja: z.string().optional(),
+    codigoIgreja: z
+      .string('Campo obrigatório')
+      .min(1, 'Informe o código da igreja'),
   })
   .superRefine((data, ctx) => {
     if (data.senha !== data.confirmarSenha) {

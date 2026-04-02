@@ -13,6 +13,7 @@ import FancyPageView from '../../../../components/containers/FancyPageView';
 import FancyTabs, { TabItem } from '../../../../components/tabs/FancyTabs';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import { useMemo, useState, useEffect } from 'react';
+import { useLocalSearchParams } from 'expo-router';
 import { useIgrejaConfiguracoes } from '../../../../hooks/useIgrejaConfiguracoes';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useForm } from 'react-hook-form';
@@ -44,10 +45,12 @@ import {
 import { usePallete } from '../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../hooks/useThemedStyles';
 import { ColorUtils } from '../../../../utils/color_utils';
-import FancyChips from '../../../../components/FancyChips';
 import { UF_LIST } from '../../../../domain/utils/uf-list';
 import { getCidadesPorUf } from '../../../../domain/utils/cidades-list';
 import { DropDownItemProps } from '../../../../components/fields/FancyDropDownItem';
+import { useIgrejaAssinatura } from '../../../../hooks/useIgrejaAssinatura';
+import BillingStatusPanel from '../../../../components/billing/BillingStatusPanel';
+import { AssinaturaPeriodicidadeEnum } from '../../../../domain/enums/Igreja/assinatura-periodicidade.enum';
 
 const REMINDER_OPTIONS = [
   { title: '1 semana antes', value: 168, description: 'Ideal para escalas semanais e eventos maiores.' },
@@ -61,12 +64,52 @@ const REMINDER_OPTIONS = [
 ] as const;
 
 const DEFAULT_REMINDER_HOURS = [24, 2, 1];
+const BILLING_PLAN_OPTIONS = [
+  {
+    codigo: 'STARTER',
+    nome: 'Starter',
+    descricao: 'Até 30 voluntários ativos e 3 ministérios.',
+    mensal: 3990,
+    anual: 38300,
+  },
+  {
+    codigo: 'ESSENCIAL',
+    nome: 'Essencial',
+    descricao: 'Até 80 voluntários ativos e 6 ministérios.',
+    mensal: 5990,
+    anual: 57500,
+  },
+  {
+    codigo: 'CRESCIMENTO',
+    nome: 'Crescimento',
+    descricao: 'Até 180 voluntários ativos e 12 ministérios.',
+    mensal: 11990,
+    anual: 115100,
+  },
+] as const;
+
+function formatCurrency(cents: number) {
+  return (cents / 100).toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  });
+}
 
 export default function ConfiguracoesPage() {
   const { igrejaAtiva, user, updateUser } = useAuth();
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
   const igrejaId = igrejaAtiva?.id;
+  const { tab } = useLocalSearchParams<{ tab?: string }>();
+  const [billingPeriod, setBillingPeriod] = useState<AssinaturaPeriodicidadeEnum>(
+    AssinaturaPeriodicidadeEnum.MENSAL,
+  );
+  const {
+    data: assinatura,
+    isLoading: isLoadingAssinatura,
+    iniciarCheckout,
+    isAbrindoCheckout,
+  } = useIgrejaAssinatura({ igrejaId });
 
   // Não executar o hook se não houver igreja ativa
   const { data, isLoading, updateDados, updateModoEntrada, updateNotificacoes, isUpdating } =
@@ -165,6 +208,7 @@ export default function ConfiguracoesPage() {
       })
       .join(', ');
   }, [selectedReminderHours]);
+  const initialTabIndex = tab === 'plano' ? 3 : 0;
 
   const toggleReminderHour = (hour: number) => {
     const current = notificacoesForm.getValues('lembretesHoras') ?? [];
@@ -736,29 +780,119 @@ export default function ConfiguracoesPage() {
       title: 'Assinatura',
       icon: { library: 'MaterialCommunityIcons', name: 'credit-card', size: 16 },
       content: (
-        <ScrollView
+        <KeyboardAwareScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.assinaturaContainer}
           showsVerticalScrollIndicator={false}
+          enableOnAndroid={true}
+          extraScrollHeight={100}
         >
-          <View style={styles.assinaturaCard}>
-            <View style={styles.assinaturaHeader}>
-              <FancyText type='bold' size='large'>
-                Plano Gratuito
-              </FancyText>
-              <FancyChips label='Ativo' size='small' />
+          {assinatura ? (
+            <BillingStatusPanel assinatura={assinatura} />
+          ) : (
+            <View style={styles.billingLoadingCard}>
+              <ActivityIndicator size='small' color={palette.primary} />
             </View>
-            <FancyText type='normal' size='small' style={styles.assinaturaDesc}>
-              Em breve você poderá fazer upgrade para planos com mais recursos
-            </FancyText>
-            <FancyButton
-              label='Gerenciar Plano'
-              disabled={true}
-              type='outlined'
-              containerStyle={styles.gerenciarButton}
-            />
+          )}
+
+          <View style={styles.billingPeriodRow}>
+            {[AssinaturaPeriodicidadeEnum.MENSAL, AssinaturaPeriodicidadeEnum.ANUAL].map(
+              (item) => {
+                const selected = billingPeriod === item;
+                return (
+                  <TouchableOpacity
+                    key={item}
+                    onPress={() => setBillingPeriod(item)}
+                    style={[
+                      styles.periodButton,
+                      selected && {
+                        backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12),
+                        borderColor: ColorUtils.withAlpha(palette.primary, 0.28),
+                      },
+                    ]}
+                  >
+                    <FancyText
+                      size='extraSmall'
+                      type='semiBold'
+                      color={selected ? palette.primary : palette.fonts.inactive}
+                    >
+                      {item === AssinaturaPeriodicidadeEnum.ANUAL
+                        ? 'Anual com desconto'
+                        : 'Mensal'}
+                    </FancyText>
+                  </TouchableOpacity>
+                );
+              },
+            )}
           </View>
-        </ScrollView>
+
+          <View style={styles.planList}>
+            {BILLING_PLAN_OPTIONS.map((plan) => {
+              const isCurrent = assinatura?.planoAtual?.codigo === plan.codigo;
+              const isNext = assinatura?.nextPlano === plan.codigo;
+              const price =
+                billingPeriod === AssinaturaPeriodicidadeEnum.ANUAL ? plan.anual : plan.mensal;
+
+              return (
+                <View
+                  key={plan.codigo}
+                  style={[
+                    styles.planCard,
+                    {
+                      backgroundColor: palette.backgroundColor4,
+                      borderColor: isCurrent
+                        ? ColorUtils.withAlpha(palette.primary, 0.26)
+                        : palette.borderCard,
+                    },
+                  ]}
+                >
+                  <View style={styles.planHeader}>
+                    <View style={styles.planHeaderText}>
+                      <FancyText type='semiBold' size='small'>
+                        {plan.nome}
+                      </FancyText>
+                      <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                        {plan.descricao}
+                      </FancyText>
+                    </View>
+                    <View style={styles.planPriceBlock}>
+                      <FancyText type='bold' size='small'>
+                        {formatCurrency(price)}
+                      </FancyText>
+                      <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                        {billingPeriod === AssinaturaPeriodicidadeEnum.ANUAL
+                          ? 'por ano'
+                          : 'por mês'}
+                      </FancyText>
+                    </View>
+                  </View>
+
+                  {isCurrent ? (
+                    <FancyText size='extraSmall' type='semiBold' color={palette.primary}>
+                      Plano atual
+                    </FancyText>
+                  ) : isNext ? (
+                    <FancyText size='extraSmall' type='semiBold' color={palette.primary}>
+                      Já agendado para a próxima renovação
+                    </FancyText>
+                  ) : null}
+
+                  <FancyButton
+                    label={isCurrent ? 'Plano atual' : 'Escolher este plano'}
+                    type={isCurrent ? 'outlined' : 'contained'}
+                    disabled={isCurrent || isAbrindoCheckout || isLoadingAssinatura}
+                    onPress={() =>
+                      iniciarCheckout({
+                        plano: plan.codigo,
+                        periodicidade: billingPeriod,
+                      })
+                    }
+                  />
+                </View>
+              );
+            })}
+          </View>
+        </KeyboardAwareScrollView>
       ),
     },
   ];
@@ -769,6 +903,7 @@ export default function ConfiguracoesPage() {
         items={TAB_DATA}
         containerStyle={styles.tabsContainer}
         contentContainerStyle={styles.tabContentContainer}
+        initialIndex={initialTabIndex}
       />
     </FancyPageView>
   );
@@ -932,27 +1067,54 @@ function createStyles(palette: ThemePalette) {
     },
 
     // Assinatura
-    assinaturaContainer: {},
-    assinaturaCard: {
-      backgroundColor: palette.backgroundColor2,
-      padding: 5,
-      paddingTop: 15,
-      borderRadius: 16,
+    assinaturaContainer: {
+      paddingVertical: 15,
       gap: 16,
+    },
+    billingLoadingCard: {
+      minHeight: 120,
+      borderRadius: 18,
       borderWidth: 1,
       borderColor: palette.borderCard,
-    },
-    assinaturaHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
+      backgroundColor: palette.backgroundColor4,
+      justifyContent: 'center',
       alignItems: 'center',
     },
-    assinaturaDesc: {
-      opacity: 0.7,
-      lineHeight: 20,
+    billingPeriodRow: {
+      flexDirection: 'row',
+      gap: 10,
     },
-    gerenciarButton: {
-      marginTop: 8,
+    periodButton: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: palette.borderCard,
+      borderRadius: 999,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      alignItems: 'center',
+    },
+    planList: {
+      gap: 12,
+    },
+    planCard: {
+      borderWidth: 1,
+      borderRadius: 18,
+      padding: 16,
+      gap: 12,
+    },
+    planHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: 16,
+      alignItems: 'flex-start',
+    },
+    planHeaderText: {
+      flex: 1,
+      gap: 4,
+    },
+    planPriceBlock: {
+      alignItems: 'flex-end',
+      gap: 2,
     },
   });
 }

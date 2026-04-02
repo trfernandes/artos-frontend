@@ -14,10 +14,13 @@ import EventoProximoCard from './EventoProximoCard';
 import MinisterioStatsCard from './MinisterioStatsCard';
 import SolicitacaoCard from './SolicitacaoCard';
 import { router } from 'expo-router';
+import { useIgrejaAssinatura } from '../../../hooks/useIgrejaAssinatura';
+import BillingStatusPanel from '../../billing/BillingStatusPanel';
 
 export default function DashboardAdmin() {
   const { user, igrejaAtiva } = useAuth();
   const { data, isLoading, isError, error, hasServerData, refetch } = useDashboard();
+  const { data: assinatura } = useIgrejaAssinatura({ igrejaId: igrejaAtiva?.id });
 
   if (isLoading) return <FancyLoading />;
   if (isError && !hasServerData && error) {
@@ -36,6 +39,20 @@ export default function DashboardAdmin() {
         nome={nomeAdmin}
         subtitulo={igrejaAtiva?.nome}
       />
+
+      {assinatura ? (
+        <BillingStatusPanel
+          assinatura={assinatura}
+          compact
+          primaryLabel='Abrir assinatura'
+          onPrimaryPress={() =>
+            router.push({
+              pathname: '/(app)/(drawer)/configuracoes',
+              params: { tab: 'plano' },
+            })
+          }
+        />
+      ) : null}
 
       {/* KPIs da Igreja */}
       <DashboardSection title="Visão geral">

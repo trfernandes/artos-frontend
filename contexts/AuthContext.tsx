@@ -10,6 +10,7 @@ import { deregisterPushToken } from '../services/notifications';
 
 const IGREJA_ATIVA_KEY = 'igrejaAtivaId';
 const USER_STORAGE_KEY = 'user';
+const HAS_AUTHENTICATED_KEY = 'hasAuthenticatedBefore';
 
 type StoredUserPayload = {
   user: ResponseLoginDto['user'];
@@ -41,6 +42,7 @@ interface AuthContextData {
   user: ResponseLoginDto | null;
   token: string | null;
   loading: boolean;
+  hasAuthenticatedBefore: boolean;
   igrejaAtiva: ResponseLoginIgrejaDto | null;
   setIgrejaAtiva: (igreja: ResponseLoginIgrejaDto) => Promise<void>;
   signIn: (email: string, senha: string) => Promise<void>;
@@ -65,6 +67,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<ResponseLoginDto | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasAuthenticatedBefore, setHasAuthenticatedBefore] = useState(false);
   const [igrejaAtiva, setIgrejaAtivaState] = useState<ResponseLoginIgrejaDto | null>(null);
 
   const isSigningOutRef = useRef(false);
@@ -79,9 +82,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const storedToken = await getAuthToken();
         const storedUser = await AsyncStorage.getItem(USER_STORAGE_KEY);
         const storedIgrejaId = await AsyncStorage.getItem(IGREJA_ATIVA_KEY);
+        const storedHasAuthenticated = await AsyncStorage.getItem(HAS_AUTHENTICATED_KEY);
         const parsedStoredUser = storedUser ? parseStoredUserPayload(storedUser) : null;
         const legacyToken = parsedStoredUser?.access_token || null;
         const resolvedToken = storedToken || legacyToken;
+
+        setHasAuthenticatedBefore(storedHasAuthenticated === 'true' || !!resolvedToken);
 
         if (resolvedToken) {
           setToken(resolvedToken);
@@ -165,8 +171,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (!newToken) throw new Error('Token não retornado pelo servidor');
 
     setToken(newToken);
+    setHasAuthenticatedBefore(true);
     apiClient.defaults.headers.Authorization = `Bearer ${newToken}`;
     await setAuthToken(newToken);
+    await AsyncStorage.setItem(HAS_AUTHENTICATED_KEY, 'true');
 
     const userResponse = loginData?.user;
     if (!userResponse || !loginData) throw new Error('Dados de Usuario nao retornado pelo servidor');
@@ -194,8 +202,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (!newToken) throw new Error('Token não retornado');
 
     setToken(newToken);
+    setHasAuthenticatedBefore(true);
     apiClient.defaults.headers.Authorization = `Bearer ${newToken}`;
     await setAuthToken(newToken);
+    await AsyncStorage.setItem(HAS_AUTHENTICATED_KEY, 'true');
 
     setUser(loginData);
     await persistUser(loginData);
@@ -337,6 +347,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       user,
       token,
       loading,
+      hasAuthenticatedBefore,
       igrejaAtiva,
       setIgrejaAtiva,
       signIn,
@@ -348,7 +359,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       changePassword,
       deleteAccount,
     }),
-    [user, token, loading, igrejaAtiva],
+    [user, token, loading, hasAuthenticatedBefore, igrejaAtiva],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

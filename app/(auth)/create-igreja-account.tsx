@@ -14,7 +14,6 @@ import CreateIgrejaAccountTabDados, {
   useCodigoCheck,
 } from '../../components/pages/login/createAccount/create-igreja-account-tab-dados';
 import CreateIgrejaAccountTabResponsavel from '../../components/pages/login/createAccount/create-igreja-account-tab-responsavel';
-import CreateIgrejaAccountTabPlano from '../../components/pages/login/createAccount/create-igreja-account-tab-plano';
 import CreateIgrejaAccountTabPronto from '../../components/pages/login/createAccount/create-igreja-account-tab-pronto';
 import { FormProvider } from 'react-hook-form';
 import { LoginCreateIgrejaStepFields } from '../../domain/schemas/loginCreateIgrejaSchema';
@@ -100,7 +99,7 @@ function CreateIgrejaAccountPageContent() {
     const fieldsToValidate =
       LoginCreateIgrejaStepFields[stepIndex as keyof typeof LoginCreateIgrejaStepFields];
     const isValid = await form.trigger(fieldsToValidate as any);
-    if (isValid && stepIndex < 3) {
+    if (isValid && stepIndex < 2) {
       setStepIndex(stepIndex + 1);
     }
   };
@@ -172,31 +171,9 @@ function CreateIgrejaAccountPageContent() {
         ],
       },
       {
-        title: 'Plano',
-        content: (
-          <View onLayout={(e) => measureStep(2)(e.nativeEvent.layout.height)}>
-            <CreateIgrejaAccountTabPlano />
-          </View>
-        ),
-        actions: [
-          {
-            label: 'Voltar',
-            onPress: 'previous',
-            iconPosition: 'left',
-            icon: { library: 'Feather', name: 'arrow-left', size: 16 },
-          },
-          {
-            label: 'Próximo',
-            onPress: 'next',
-            iconPosition: 'right',
-            icon: { library: 'Feather', name: 'arrow-right', size: 16 },
-          },
-        ],
-      },
-      {
         title: 'Revisão',
         content: (
-          <View onLayout={(e) => measureStep(3)(e.nativeEvent.layout.height)}>
+          <View onLayout={(e) => measureStep(2)(e.nativeEvent.layout.height)}>
             <CreateIgrejaAccountTabPronto />
           </View>
         ),

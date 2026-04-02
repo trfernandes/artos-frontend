@@ -54,15 +54,10 @@ export default function ComecarScreen() {
             onPress={() => router.push('/(auth)/create-voluntario-account')}
             style={styles.cardWrapper}
           >
-            <View style={styles.badge}>
-              <FancyText size='extraSmall' type='semiBold' color={Pallete.fonts.light}>
-                Recomendado
-              </FancyText>
-            </View>
             <FancyCard.Image
               type='icon'
               props={{
-                title: 'Tenho convite',
+                title: 'Sou voluntário',
                 subtitle: (
                   <FancyText
                     size='extraSmall'
@@ -70,17 +65,17 @@ export default function ComecarScreen() {
                     color={Pallete.fonts.inactive}
                     numberOfLines={3}
                   >
-                    Recebi um link ou código da minha igreja para entrar como voluntário.
+                    Já tenho convite ou código da igreja para entrar na equipe.
                   </FancyText>
                 ),
                 additionalData1: (
                   <FancyText size='extraSmall' type='semiBold' color={Pallete.primary}>
-                    Entrar em 30 segundos
+                    Entrar com código ou convite
                   </FancyText>
                 ),
                 cardIcon: {
                   library: 'MaterialCommunityIcons',
-                  name: 'ticket-confirmation-outline',
+                  name: 'account-group-outline',
                   size: 20,
                   backgroundColor: Pallete.primary,
                   color: Pallete.fonts.light,
@@ -105,13 +100,13 @@ export default function ComecarScreen() {
 
           <TouchableOpacity
             activeOpacity={0.85}
-            onPress={() => router.push('/(auth)/create-igreja-account')}
+            onPress={() => router.push('/(auth)/admin-discovery')}
             style={styles.cardWrapper}
           >
             <FancyCard.Image
               type='icon'
               props={{
-                title: 'Cadastrar igreja',
+                title: 'Sou responsável pela igreja',
                 subtitle: (
                   <FancyText
                     size='extraSmall'
@@ -119,12 +114,12 @@ export default function ComecarScreen() {
                     color={Pallete.fonts.inactive}
                     numberOfLines={3}
                   >
-                    Sou responsável. Vou configurar a igreja e convidar voluntários.
+                    Quero organizar ministérios, voluntários e escalas no app.
                   </FancyText>
                 ),
                 additionalData1: (
-                  <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive}>
-                    Leva ~3 minutos
+                  <FancyText size='extraSmall' type='semiBold' color={Pallete.secondary}>
+                    Conhecer e criar minha igreja
                   </FancyText>
                 ),
                 cardIcon: {
@@ -155,6 +150,12 @@ export default function ComecarScreen() {
 
         <View style={styles.footer}>
           <FancyButton
+            type='outlined'
+            label='Já tenho conta'
+            onPress={() => router.push('/(auth)/login')}
+            containerStyle={styles.loginButton}
+          />
+          <FancyButton
             type='text'
             label='Não sabe qual escolher?'
             onPress={() => setIsHelpModalVisible(true)}
@@ -178,18 +179,18 @@ export default function ComecarScreen() {
         >
           <View style={styles.modalSection}>
             <FancyText size='small' type='semiBold'>
-              Tenho convite
+              Sou voluntário
             </FancyText>
             <FancyText size='small' type='medium' color={Pallete.fonts.inactive}>
-              Se você vai participar de escalas, normalmente entra por convite.
+              Se você participa de escalas, use o código ou convite enviado pela igreja.
             </FancyText>
           </View>
           <View style={styles.modalSection}>
             <FancyText size='small' type='semiBold'>
-              Cadastrar igreja
+              Sou responsável pela igreja
             </FancyText>
             <FancyText size='small' type='medium' color={Pallete.fonts.inactive}>
-              Se você organiza equipes e quer convidar pessoas, é por aqui.
+              Se você organiza equipes, primeiro conhece o fluxo e depois cria a igreja.
             </FancyText>
           </View>
         </FancyModalDialog>
@@ -239,16 +240,6 @@ function createStyles(Pallete: ThemePalette) {
     cardSoftBlueBorder: {
       borderColor: ColorUtils.withAlpha(Pallete.primary, 0.22),
     },
-    badge: {
-      position: 'absolute',
-      right: 14,
-      top: -8,
-      backgroundColor: Pallete.primary,
-      borderRadius: 12,
-      paddingHorizontal: 8,
-      paddingVertical: 3,
-      zIndex: 2,
-    },
     cardContent: {
       paddingTop: 10,
     },
@@ -258,7 +249,10 @@ function createStyles(Pallete: ThemePalette) {
     },
     footer: {
       alignItems: 'center',
-      gap: 6,
+      gap: 8,
+    },
+    loginButton: {
+      minWidth: 170,
     },
     footerLink: {
       fontSize: 12,

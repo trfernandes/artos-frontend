@@ -9,6 +9,8 @@ import { JoinByCodigoDto } from '../dtos/Igreja/join-by-codigo.dto';
 import { AprovarMembroDto } from '../dtos/Igreja/aprovar-membro.dto';
 import { ResponseIgrejaAssinaturaDto } from '../dtos/Igreja/response-igreja-assinatura.dto';
 import { AlterarPlanoDto } from '../dtos/Igreja/alterar-plano.dto';
+import { CriarCheckoutAssinaturaDto } from '../dtos/Igreja/criar-checkout-assinatura.dto';
+import { ResponseAssinaturaCheckoutDto } from '../dtos/Igreja/response-assinatura-checkout.dto';
 import { ResponseAceitarConviteDto } from '../dtos/Igreja/response-aceitar-convite.dto';
 import { ResponseConvitePreviewDto } from '../dtos/Igreja/response-convite-preview.dto';
 import { ResponseIgrejaConviteDto } from '../dtos/Igreja/response-igreja-convite.dto';
@@ -184,6 +186,16 @@ class IgrejaRepositoryClass extends BaseRepository<ResponseIgrejaDto, CreateIgre
    */
   alterarPlano(igrejaId: string, dto: AlterarPlanoDto): Promise<ResponseIgrejaAssinaturaDto> {
     return IgrejaApi.alterarPlano(igrejaId, dto);
+  }
+
+  /**
+   * Iniciar checkout da assinatura (JWT)
+   */
+  criarCheckoutAssinatura(
+    igrejaId: string,
+    dto: CriarCheckoutAssinaturaDto,
+  ): Promise<ResponseAssinaturaCheckoutDto> {
+    return IgrejaApi.criarCheckoutAssinatura(igrejaId, dto);
   }
 
   // ========== CONFIGURAÇÕES ==========
