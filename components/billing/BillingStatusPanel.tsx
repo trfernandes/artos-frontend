@@ -29,6 +29,7 @@ export default function BillingStatusPanel({
   const avisoPrincipal = assinatura.avisos?.[0];
   const planoAtual = assinatura.planoAtual;
   const usoAtual = assinatura.usoAtual;
+  const checkoutPendente = assinatura.checkoutPendente;
 
   return (
     <View
@@ -50,6 +51,11 @@ export default function BillingStatusPanel({
               ? `${planoAtual.nome} • ${assinatura.periodicidade.toLowerCase()}`
               : 'Plano em preparação'}
           </FancyText>
+          {checkoutPendente ? (
+            <FancyText size='extraSmall' color={palette.primary} type='semiBold'>
+              Pagamento pendente para {checkoutPendente.plano.toLowerCase()}
+            </FancyText>
+          ) : null}
         </View>
 
         <View
@@ -114,7 +120,21 @@ export default function BillingStatusPanel({
         )}
       </View>
 
-      {avisoPrincipal ? (
+      {checkoutPendente ? (
+        <View
+          style={[
+            styles.warningBox,
+            { backgroundColor: `${palette.primary}10`, borderColor: `${palette.primary}22` },
+          ]}
+        >
+          <FancyText size='extraSmall' type='semiBold'>
+            Upgrade aguardando confirmação
+          </FancyText>
+          <FancyText size='extraSmall' color={palette.fonts.inactive}>
+            O plano atual continua valendo até o Mercado Pago confirmar o pagamento.
+          </FancyText>
+        </View>
+      ) : avisoPrincipal ? (
         <View
           style={[
             styles.warningBox,

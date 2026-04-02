@@ -22,6 +22,14 @@ export type ResponseAssinaturaAvisoDto = {
   mensagem: string;
 };
 
+export type ResponseAssinaturaCheckoutPendenteDto = {
+  plano: string;
+  periodicidade: string;
+  cupomCodigo?: string | null;
+  externalReference: string;
+  amountCentavos: number;
+};
+
 export type ResponseIgrejaAssinaturaDto = {
   id: string;
   createdAt: string;
@@ -51,5 +59,6 @@ export type ResponseIgrejaAssinaturaDto = {
   proximoPlano?: ResponseAssinaturaPlanoDto | null;
   usoAtual?: ResponseAssinaturaUsoAtualDto;
   avisos?: ResponseAssinaturaAvisoDto[];
+  checkoutPendente?: ResponseAssinaturaCheckoutPendenteDto | null;
   metadata?: Record<string, any> | null;
 };

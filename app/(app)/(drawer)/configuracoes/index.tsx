@@ -6,6 +6,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import * as Linking from 'expo-linking';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { uploadToCloudinaryUnsigned } from '../../../../services/cloudinary_upload';
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../../../../config/cloudinary';
@@ -830,6 +831,9 @@ export default function ConfiguracoesPage() {
             {BILLING_PLAN_OPTIONS.map((plan) => {
               const isCurrent = assinatura?.planoAtual?.codigo === plan.codigo;
               const isNext = assinatura?.nextPlano === plan.codigo;
+              const isPending = assinatura?.checkoutPendente?.plano === plan.codigo;
+              const pendingPeriodMatches =
+                assinatura?.checkoutPendente?.periodicidade === billingPeriod;
               const price =
                 billingPeriod === AssinaturaPeriodicidadeEnum.ANUAL ? plan.anual : plan.mensal;
 
@@ -840,9 +844,10 @@ export default function ConfiguracoesPage() {
                     styles.planCard,
                     {
                       backgroundColor: palette.backgroundColor4,
-                      borderColor: isCurrent
-                        ? ColorUtils.withAlpha(palette.primary, 0.26)
-                        : palette.borderCard,
+                      borderColor:
+                        isCurrent || isPending
+                          ? ColorUtils.withAlpha(palette.primary, 0.26)
+                          : palette.borderCard,
                     },
                   ]}
                 >
@@ -871,6 +876,10 @@ export default function ConfiguracoesPage() {
                     <FancyText size='extraSmall' type='semiBold' color={palette.primary}>
                       Plano atual
                     </FancyText>
+                  ) : isPending ? (
+                    <FancyText size='extraSmall' type='semiBold' color={palette.primary}>
+                      Pagamento pendente de confirmação
+                    </FancyText>
                   ) : isNext ? (
                     <FancyText size='extraSmall' type='semiBold' color={palette.primary}>
                       Já agendado para a próxima renovação
@@ -878,15 +887,33 @@ export default function ConfiguracoesPage() {
                   ) : null}
 
                   <FancyButton
-                    label={isCurrent ? 'Plano atual' : 'Escolher este plano'}
-                    type={isCurrent ? 'outlined' : 'contained'}
-                    disabled={isCurrent || isAbrindoCheckout || isLoadingAssinatura}
-                    onPress={() =>
+                    label={
+                      isCurrent
+                        ? 'Plano atual'
+                        : isPending
+                          ? pendingPeriodMatches && assinatura?.checkoutUrl
+                            ? 'Continuar pagamento'
+                            : 'Pagamento pendente'
+                          : 'Escolher este plano'
+                    }
+                    type={isCurrent || isPending ? 'outlined' : 'contained'}
+                    disabled={
+                      isCurrent ||
+                      isLoadingAssinatura ||
+                      (isAbrindoCheckout && !isPending) ||
+                      (isPending && (!pendingPeriodMatches || !assinatura?.checkoutUrl))
+                    }
+                    onPress={() => {
+                      if (isPending && pendingPeriodMatches && assinatura?.checkoutUrl) {
+                        Linking.openURL(assinatura.checkoutUrl);
+                        return;
+                      }
+
                       iniciarCheckout({
                         plano: plan.codigo,
                         periodicidade: billingPeriod,
-                      })
-                    }
+                      });
+                    }}
                   />
                 </View>
               );
