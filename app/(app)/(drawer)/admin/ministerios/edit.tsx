@@ -9,7 +9,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import DadosTab from '../../../../../components/pages/admin/ministerios/DadosTab';
 import { useEffect, useMemo, useCallback, useState, useRef } from 'react';
 import { strfyObj } from '../../../../../utils/text_utils';
-import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
 import { useMinisteriosCrud } from '../../../../../hooks/useMinisteriosCrud';
 import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import { useAuth } from '../../../../../contexts/AuthContext';
@@ -21,6 +20,7 @@ import { useLoading } from '../../../../../contexts/LoadingContext';
 import { sendImageToServer } from '../../../../../utils/image_utils';
 import { UpdateMinisterioDto } from '../../../../../domain/dtos/Ministerio/ministerio.update';
 import { EditMinisterioFormData, EditMinisterioSchema } from '../../../../../domain/schemas/ministerioAdminSchema';
+import LiderancaEAcessosTab from '../../../../../components/pages/admin/ministerios/LiderancaEAcessosTab';
 
 export default function MinisteriosEditPage() {
   const params = useLocalSearchParams<{ id: string }>();
@@ -48,12 +48,6 @@ export default function MinisteriosEditPage() {
     update: updateMinisterio,
   } = useMinisteriosCrud({ initialParams: ministerioSearchParams });
 
-  const {
-    add: addVoluntario,
-    update: updateVoluntario,
-    remove: removeVoluntario,
-  } = useMinisterioVoluntariosCrud({ autoFetch: false });
-
   const { user, updateUser, igrejaAtiva } = useAuth();
 
   const [tabIndex, setTabIndex] = useState(0);
@@ -78,38 +72,6 @@ export default function MinisteriosEditPage() {
     });
   }, [ministeriosData, form]);
 
-  const handleAddLider = useCallback(
-    (data: { hierarquia: VoluntarioHierarquiaEnum; ministerioId: string; voluntarioId: string }) => {
-      addVoluntario?.({
-        voluntarioId: data.voluntarioId,
-        hierarquia: data.hierarquia,
-        ministerioId: data.ministerioId,
-      });
-    },
-    [addVoluntario, params.id],
-  );
-
-  const handleEditLider = useCallback(
-    (data: any) => {
-      updateVoluntario?.({
-        id: data.id!,
-        data: {
-          hierarquia: data.hierarquia,
-          voluntarioId: data.voluntarioId,
-          ministerioId: data.ministerioId,
-        },
-      });
-    },
-    [updateVoluntario, params.id],
-  );
-
-  const handleDeleteLider = useCallback(
-    (id: string) => {
-      removeVoluntario?.(id);
-    },
-    [removeVoluntario],
-  );
-
   const tabsConfig: TabItem[] = useMemo(
     () => [
       {
@@ -126,8 +88,13 @@ export default function MinisteriosEditPage() {
         icon: { library: 'Octicons', name: 'people', size: 14 },
         content: <VoluntarioTab ministerioId={params.id} />,
       },
+      {
+        title: 'Liderança e acessos',
+        icon: { library: 'MaterialCommunityIcons', name: 'account-key-outline', size: 16 },
+        content: <LiderancaEAcessosTab mode='edit' ministerioId={params.id} />,
+      },
     ],
-    [params.id, handleAddLider, handleEditLider, handleDeleteLider],
+    [params.id],
   );
 
   const handleSubmit = useCallback(() => {
@@ -225,7 +192,7 @@ export default function MinisteriosEditPage() {
         <FancyTabs
           onTabChange={setTabIndex}
           items={tabsConfig}
-          headerStyle={{ paddingHorizontal: 15 }}
+          headerStyle={{ paddingHorizontal: 20 }}
           containerStyle={styles.tabsContainer}
           contentContainerStyle={styles.tabContent}          
         />
@@ -253,5 +220,5 @@ const styles = StyleSheet.create({
   container: { gap: 30 },
   tabsContainer: { flex: 1, gap: 15 },
   tabContent: { flex: 1, paddingHorizontal: 20, paddingTop: 5 },
-  buttonsContainer: { flexDirection: 'column', gap: 10, paddingHorizontal: 15 },
+  buttonsContainer: { flexDirection: 'column', gap: 10, paddingHorizontal: 20 },
 });

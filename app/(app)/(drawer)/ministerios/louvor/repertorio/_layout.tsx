@@ -14,6 +14,7 @@ export default function MinisterioLouvorRepertorioLayout() {
         name='index'
         options={{
           title: 'Repertório',
+          header: (props) => <FancyPageHeader leftButton='menu' {...props} />,
           headerRight: () => <MainHeaderButtons />,
         }}
       />

@@ -8,6 +8,8 @@ import FancyButton from '../../../../../../components/buttons/FancyButton';
 import RepertorioCategoriasManagerSheet from '../../../../../../components/pages/ministerios/louvor/repertorio/RepertorioCategoriasManagerSheet';
 import { useAuth } from '../../../../../../contexts/AuthContext';
 import { MinisterioTipoEnum } from '../../../../../../domain/enums/Ministerio/ministerio-tipo.enum';
+import { VoluntarioHierarquiaEnum } from '../../../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
+import { RecursoPermissaoEnum, TipoPermissaoEnum } from '../../../../../../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
 import { useRepertorioCategorias, useRepertorioMusicas } from '../../../../../../hooks/useRepertorio';
 import { Pallete } from '../../../../../../constants/colors';
 import { DefaultIconsNames } from '../../../../../../constants/icons';
@@ -16,11 +18,23 @@ export default function MinisterioLouvorRepertorioIndexPage() {
   const params = useLocalSearchParams<{ ministerioId?: string }>();
   const { igrejaAtiva } = useAuth();
   const ministerioId = params.ministerioId || igrejaAtiva?.ministerios?.find((ministerio) => ministerio.tipo === MinisterioTipoEnum.Louvor)?.id;
+  const ministerioAtual = igrejaAtiva?.ministerios?.find((ministerio) => ministerio.id === ministerioId);
   const { data: categorias = [] } = useRepertorioCategorias();
   const { data: musicas = [], removerMusica } = useRepertorioMusicas(ministerioId);
   const [search, setSearch] = useState('');
   const [categoriaId, setCategoriaId] = useState('');
   const [categoriasVisible, setCategoriasVisible] = useState(false);
+
+  const canManageRepertorio = useMemo(() => {
+    const hierarquia = ministerioAtual?.hierarquia?.toString();
+    if (hierarquia === VoluntarioHierarquiaEnum.Lider || hierarquia === '1') {
+      return true;
+    }
+
+    return (ministerioAtual?.permissoes ?? []).some(
+      (item) => item.recurso === RecursoPermissaoEnum.RepertorioSetlist && item.permissoes?.includes(TipoPermissaoEnum.Gerenciar),
+    );
+  }, [ministerioAtual]);
 
   const categoryOptions = useMemo(
     () => [{ title: 'Todas', value: '' }, ...categorias.filter((item) => item.ativo !== false).map((item) => ({ title: item.nome, value: item.id }))],
@@ -66,6 +80,7 @@ export default function MinisterioLouvorRepertorioIndexPage() {
               type='light'
               containerStyle={styles.categoriesButton}
               onPress={() => setCategoriasVisible(true)}
+              disabled={!canManageRepertorio}
             />
           </View>
         ),
@@ -82,34 +97,42 @@ export default function MinisterioLouvorRepertorioIndexPage() {
                 .join(' • '),
               cardIcon: { library: 'MaterialIcons', name: 'queue-music', size: 20 },
               actionButtons: [
-                {
-                  icon: { ...DefaultIconsNames.edit, size: 18 },
-                  onPress: () => {
-                    router.push({
-                      pathname: '/ministerios/louvor/repertorio/edit',
-                      params: { id: item.id, ministerioId },
-                    });
-                  },
-                },
-                {
-                  icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error },
-                  onPress: () => {
-                    void removerMusica(item.id);
-                  },
-                },
+                ...(canManageRepertorio
+                  ? [
+                      {
+                        icon: { ...DefaultIconsNames.edit, size: 18 },
+                        onPress: () => {
+                          router.push({
+                            pathname: '/ministerios/louvor/repertorio/edit',
+                            params: { id: item.id, ministerioId },
+                          });
+                        },
+                      },
+                      {
+                        icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error },
+                        onPress: () => {
+                          void removerMusica(item.id);
+                        },
+                      },
+                    ]
+                  : []),
               ],
             }}
           />
         ),
       }}
-      fabProps={{
-        onPress: () => {
-          router.push({
-            pathname: '/ministerios/louvor/repertorio/add',
-            params: { ministerioId },
-          });
-        },
-      }}
+      fabProps={
+        canManageRepertorio
+          ? {
+              onPress: () => {
+                router.push({
+                  pathname: '/ministerios/louvor/repertorio/add',
+                  params: { ministerioId },
+                });
+              },
+            }
+          : undefined
+      }
     />
       <RepertorioCategoriasManagerSheet visible={categoriasVisible} onClose={() => setCategoriasVisible(false)} />
     </>

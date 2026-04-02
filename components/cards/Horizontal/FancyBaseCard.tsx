@@ -1,4 +1,4 @@
-import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
+import { View, StyleSheet, StyleProp, ViewStyle, TouchableOpacity } from 'react-native';
 import FancyText, { FancyTextProps } from '../../FancyText';
 import { ThemePalette } from '../../../constants/colors';
 import FancyButton from '../../buttons/FancyButton';
@@ -21,6 +21,7 @@ export type FancyBaseCardProps = {
   isCollapsable?: boolean;
   centerContainerStyle?: StyleProp<ViewStyle>;
   backgroundColor?: string;
+  onPress?: () => void;
 };
 
 export const titleTextProps: FancyTextProps = {
@@ -64,8 +65,10 @@ export default function FancyBaseCard({ isCollapsable = false, ...props }: Fancy
     color: palette.fonts.inactive,
   };
 
+  const ContainerComponent = props.onPress ? TouchableOpacity : View;
+
   return (
-    <View
+    <ContainerComponent
       style={[
         styles.container,
         ((isCollapsable && !collapsed) || !isCollapsable) && {
@@ -74,6 +77,7 @@ export default function FancyBaseCard({ isCollapsable = false, ...props }: Fancy
         },
         props.containerStyle,
       ]}
+      {...(props.onPress ? { onPress: props.onPress, activeOpacity: 0.9 } : {})}
     >
       <View style={[styles.innerContainer, props.contentContainerStyle]}>
         <View style={styles.headerContainer}>
@@ -137,7 +141,7 @@ export default function FancyBaseCard({ isCollapsable = false, ...props }: Fancy
         </View>
         {((isCollapsable && !collapsed) || !isCollapsable) && props.content && props.content}
       </View>
-    </View>
+    </ContainerComponent>
   );
 }
 

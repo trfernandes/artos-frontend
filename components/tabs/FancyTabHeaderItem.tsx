@@ -29,7 +29,9 @@ export default function FancyTabHeaderItem({ status = 'active', multiRow, ...pro
         style={{
           flexDirection: 'row',
           alignItems: 'center',
+          justifyContent: 'center',
           gap: 6,
+          width: '100%',
         }}
       >
         {props.icon && (

@@ -5,7 +5,7 @@ import { CreateEventoSetlistItemDto } from '../domain/dtos/Evento/evento-setlist
 import { UpdateEventoSetlistItemDto } from '../domain/dtos/Evento/evento-setlist-item.update';
 import { ReorderEventoSetlistDto } from '../domain/dtos/Evento/reorder-evento-setlist.dto';
 
-export function useEventoSetlist(eventoId?: string, dataOcorrencia?: string) {
+export function useEventoSetlist(eventoId?: string, dataOcorrencia?: string, ministerioId?: string) {
   const { igrejaAtiva } = useAuth();
   const queryClient = useQueryClient();
 
@@ -13,12 +13,12 @@ export function useEventoSetlist(eventoId?: string, dataOcorrencia?: string) {
     throw new Error('Nenhuma igreja ativa selecionada');
   }
 
-  const queryKey = ['evento-setlist', igrejaAtiva.id, eventoId, dataOcorrencia];
+  const queryKey = ['evento-setlist', igrejaAtiva.id, ministerioId, eventoId, dataOcorrencia];
 
   const query = useQuery({
     queryKey,
-    enabled: !!eventoId && !!dataOcorrencia,
-    queryFn: () => IgrejaEventosRepository.listarSetlist(igrejaAtiva.id, eventoId!, dataOcorrencia!),
+    enabled: !!eventoId && !!dataOcorrencia && !!ministerioId,
+    queryFn: () => IgrejaEventosRepository.listarSetlist(igrejaAtiva.id, eventoId!, ministerioId!, dataOcorrencia!),
   });
 
   const invalidate = async () => {
@@ -36,7 +36,8 @@ export function useEventoSetlist(eventoId?: string, dataOcorrencia?: string) {
     onSuccess: invalidate,
   });
   const deleteMutation = useMutation({
-    mutationFn: (itemId: string) => IgrejaEventosRepository.removerSetlistItem(igrejaAtiva.id, eventoId!, itemId, dataOcorrencia!),
+    mutationFn: (itemId: string) =>
+      IgrejaEventosRepository.removerSetlistItem(igrejaAtiva.id, eventoId!, itemId, ministerioId!, dataOcorrencia!),
     onSuccess: invalidate,
   });
   const reorderMutation = useMutation({

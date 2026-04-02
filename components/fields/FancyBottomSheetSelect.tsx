@@ -4,6 +4,7 @@ import {
     StyleSheet,
     Pressable,
     Modal,
+    ScrollView,
     StyleProp,
     ViewStyle,
     TextInputProps,
@@ -345,7 +346,13 @@ function FancyBottomSheetSelectInner<ValueItem>(
               </View>
 
               {/* List */}
-              <View style={styles.list}>
+              <ScrollView
+                style={styles.list}
+                contentContainerStyle={styles.listContent}
+                showsVerticalScrollIndicator={false}
+                bounces={false}
+                nestedScrollEnabled
+              >
                 {listItems?.map((item, index) => (
                   <View key={String(item.value ?? index)}>
                     {renderItem({ item, index })}
@@ -354,7 +361,7 @@ function FancyBottomSheetSelectInner<ValueItem>(
                     )}
                   </View>
                 ))}
-              </View>
+              </ScrollView>
             </Animated.View>
           </View>
         </GestureHandlerRootView>

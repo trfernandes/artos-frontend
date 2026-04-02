@@ -18,11 +18,13 @@ import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterio
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { MinisterioStatusEnum } from '../../../../../domain/enums/Ministerio/ministerio-status.enum';
 import { ResponseMinisterioDto } from '../../../../../domain/dtos/Ministerio/ministerio.response';
-import LiderancaTab from '../../../../../components/pages/admin/ministerios/LiderancaTab';
 import { AddMinisterioFormData, AddMinisterioSchema } from '../../../../../domain/schemas/ministerioAdminSchema';
 import { sendImageToServer } from '../../../../../utils/image_utils';
 import { CreateMinisterioDto } from '../../../../../domain/dtos/Ministerio/ministerio.create';
 import { useLoading } from '../../../../../contexts/LoadingContext';
+import LiderancaEAcessosTab from '../../../../../components/pages/admin/ministerios/LiderancaEAcessosTab';
+import { VoluntarioHierarquiaEnum } from '../../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
+import { MinisterioAcessosRepository } from '../../../../../domain/services/MinisterioAcessosRepository';
 
 export default function MinisteriosAddPage() {
   const [stepIndex, setStepIndex] = useState(0);
@@ -31,7 +33,14 @@ export default function MinisteriosAddPage() {
 
   const form = useForm<AddMinisterioFormData>({
     resolver: zodResolver(AddMinisterioSchema),
-    defaultValues: { status: MinisterioStatusEnum.Ativo, logoUpload: null, logoUrl: null, logoThumbUrl: null },
+    defaultValues: {
+      status: MinisterioStatusEnum.Ativo,
+      logoUpload: null,
+      logoUrl: null,
+      logoThumbUrl: null,
+      lideres: [],
+      auxiliares: [],
+    },
   });
 
   const { user, updateUser, igrejaAtiva } = useAuth();
@@ -45,7 +54,7 @@ export default function MinisteriosAddPage() {
         showLoading('Salvando');
 
         try {
-          const { voluntarios, ...ministerio } = data;
+          const { lideres, auxiliares, ...ministerio } = data;
 
           const newMinisterioData: CreateMinisterioDto = {
             igrejaId: igrejaAtiva!.id,
@@ -71,16 +80,26 @@ export default function MinisteriosAddPage() {
 
           const newMinisterio: ResponseMinisterioDto = await addMinisterios(newMinisterioData);
 
-          // Adiciona voluntários ao ministério
-          await Promise.all(
-            voluntarios.map((voluntario) =>
-              addVoluntarios({
-                ministerioId: newMinisterio.id,
-                voluntarioId: voluntario.voluntarioId,
-                hierarquia: voluntario.hierarquia,
-              }),
-            ),
-          );
+          for (const lider of lideres) {
+            await addVoluntarios({
+              ministerioId: newMinisterio.id,
+              voluntarioId: lider.voluntarioId,
+              hierarquia: VoluntarioHierarquiaEnum.Lider,
+            });
+          }
+
+          for (const auxiliar of auxiliares) {
+            await addVoluntarios({
+              ministerioId: newMinisterio.id,
+              voluntarioId: auxiliar.voluntarioId,
+              hierarquia: VoluntarioHierarquiaEnum.Auxiliar,
+            });
+
+            await MinisterioAcessosRepository.addAuxiliar(igrejaAtiva!.id, newMinisterio.id, {
+              voluntarioId: auxiliar.voluntarioId,
+              permissoes: auxiliar.permissoes,
+            });
+          }
 
           // Atualiza o usuário logado com o novo ministério na igreja ativa
           if (igrejaAtiva) {
@@ -92,7 +111,12 @@ export default function MinisteriosAddPage() {
                   id: newMinisterio.id!,
                   nome: newMinisterio.nome,
                   tipo: newMinisterio.tipo,
-                  hierarquia: voluntarios[0]?.hierarquia, // ou lógica adequada
+                  hierarquia:
+                    lideres.some((item: AddMinisterioFormData['lideres'][number]) => item.voluntarioId === user?.user.id)
+                      ? VoluntarioHierarquiaEnum.Lider
+                      : auxiliares.some((item: AddMinisterioFormData['auxiliares'][number]) => item.voluntarioId === user?.user.id)
+                        ? VoluntarioHierarquiaEnum.Auxiliar
+                        : VoluntarioHierarquiaEnum.Voluntario,
                   logoUrl: newMinisterio.logoUrl,
                   logoThumbUrl: newMinisterio.logoThumbUrl,
                 },
@@ -113,7 +137,7 @@ export default function MinisteriosAddPage() {
         Toast.show({
           type: 'error',
           text1: 'Erro',
-          text2: errors.voluntarios?.message || 'Erro ao submeter o formulário',
+          text2: errors.lideres?.message || errors.auxiliares?.message || 'Erro ao submeter o formulário',
         });
       },
     )();
@@ -152,8 +176,8 @@ export default function MinisteriosAddPage() {
         ],
       },
       {
-        title: 'Liderança',
-        content: <LiderancaTab />,
+        title: 'Liderança e acessos',
+        content: <LiderancaEAcessosTab mode='add' />,
         actions: [
           {
             label: 'Anterior',
@@ -178,7 +202,7 @@ export default function MinisteriosAddPage() {
 
   return (
     <FancyPageView style={styles.container}>
-      <FancyStepsHeader index={stepIndex} config={STEPS} containerStyle={{ paddingHorizontal: 15 }} />
+      <FancyStepsHeader index={stepIndex} config={STEPS} containerStyle={{ paddingHorizontal: 20 }} />
       <FormProvider {...form}>
         <View style={styles.contentContainer}>{STEPS.steps[stepIndex].content}</View>
       </FormProvider>
@@ -186,7 +210,7 @@ export default function MinisteriosAddPage() {
         config={STEPS}
         stepIndex={stepIndex}
         setStepIndex={setStepIndex}
-        containerStyle={{ paddingHorizontal: 15 }}
+        containerStyle={{ paddingHorizontal: 20 }}
       />
     </FancyPageView>
   );
@@ -194,7 +218,7 @@ export default function MinisteriosAddPage() {
 
 const styles = StyleSheet.create({
   container: { paddingVertical: 5, gap: 20, alignItems: 'center' },
-  contentContainer: { width: '100%', gap: 20, flex: 1, paddingHorizontal: 15 },
+  contentContainer: { width: '100%', gap: 20, flex: 1, paddingHorizontal: 20 },
   buttonsContainer: { width: '100%', gap: 10, flexDirection: 'row' },
   button: {
     flex: 1,

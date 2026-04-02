@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import FancyAccordeon from '../../../../FancyAccordeon';
 import FancyText from '../../../../FancyText';
@@ -11,6 +11,7 @@ import FancyButton from '../../../../buttons/FancyButton';
 import { BOLD_FONT, SMALL_SIZE_FONT } from '../../../../../constants/font';
 import { router } from 'expo-router';
 import { ResponseEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.response';
+import FancyLoading from '../../../../FancyLoading';
 
 export default function EventoAccordeon({
   data,
@@ -21,6 +22,7 @@ export default function EventoAccordeon({
   onConfirmButtonPress: (dadosEscala: ResponseEscalaItemDto) => void;
   onSubButtonPress: (dadosEscala: ResponseEscalaItemDto) => void;
 }) {
+  const [isOpeningEvento, setIsOpeningEvento] = useState(false);
   const { borderColor, expandableIconColor, lightenColor, textColor, headerBackgroundColor } =
     useMemo(() => {
       const border = ColorUtils.darkenColor(data.evento?.cor || Pallete.primary, 0);
@@ -56,16 +58,19 @@ export default function EventoAccordeon({
             color: Pallete.fonts.link,
           }}
           onPress={() => {
-            router.push({
-              pathname: '/pessoal/escalas/evento',
-              params: {
-                evento: JSON.stringify(data.evento),
-                dataOcorrencia: data.dataOcorrencia.toISOString(),
-                horarioEnsaio: data.horarioEnsaio ?? '',
-                ministerioNome: data.ministerio?.nome ?? '',
-                ministerioId: data.ministerio?.id ?? '',
-                responsavelSetlistVoluntarioId: data.responsavelSetlistVoluntarioId ?? '',
-              },
+            setIsOpeningEvento(true);
+            requestAnimationFrame(() => {
+              router.push({
+                pathname: '/pessoal/escalas/evento',
+                params: {
+                  evento: JSON.stringify(data.evento),
+                  dataOcorrencia: data.dataOcorrencia.toISOString(),
+                  horarioEnsaio: data.horarioEnsaio ?? '',
+                  ministerioNome: data.ministerio?.nome ?? '',
+                  ministerioId: data.ministerio?.id ?? '',
+                  responsavelSetlistVoluntarioId: data.responsavelSetlistVoluntarioId ?? '',
+                },
+              });
             });
           }}
         />
@@ -138,6 +143,7 @@ export default function EventoAccordeon({
         onConfirmButtonPress={onConfirmButtonPress}
         onSubButtonPress={onSubButtonPress}
       />
+      {isOpeningEvento ? <FancyLoading label='Abrindo evento...' /> : null}
     </FancyAccordeon>
   );
 }

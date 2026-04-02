@@ -11,7 +11,7 @@ import {
   EscalaItemDataType,
   EscalaItemEquipeType as EscalaItemEquipeType,
 } from '../../../../../app/(app)/(drawer)/ministerios/escalas/details';
-import { useMemo, useState, ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, ReactNode } from 'react';
 import { EscalaItemStatusEnum } from '../../../../../domain/enums/Escala/escala-item-status.enum';
 import ScaleFillIndicator from '../../../../indicators/ScaleFillIndicator';
 import SubstituirVoluntarioModal, { SubstituicaoConfirmDialog } from './SubstituirVoluntarioModal';
@@ -24,7 +24,10 @@ import { usePallete } from '../../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 import { useAppTheme } from '../../../../../hooks/useAppTheme';
 import FancyLoading from '../../../../FancyLoading';
-import FancyChips from '../../../../FancyChips';
+import FancyButton from '../../../../buttons/FancyButton';
+import FancyBottomSheetSelect, { FancyBottomSheetSelectRef } from '../../../../fields/FancyBottomSheetSelect';
+import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
+import FancyImage from '../../../../images/FancyImage';
 
 export interface EventoTableProps {
   data: EscalaItemDataType;
@@ -37,6 +40,13 @@ export interface EventoTableProps {
   onDeleteEvento?: (eventoId: string, dataOcorrencia: string) => Promise<boolean>;
   onAdicionarFuncao?: (data: AdicionarFuncaoConfirmDialog) => Promise<boolean>;
   onExcluirFuncao?: (funcaoId: string, eventoId: string, dataOcorrencia: string) => Promise<void>;
+  canEditSetlistOwner?: boolean;
+  isUpdatingSetlistOwner?: boolean;
+  onUpdateResponsavelSetlist?: (data: {
+    eventoId: string;
+    dataOcorrencia: string;
+    responsavelVoluntarioId: string | null;
+  }) => Promise<boolean>;
 }
 
 export default function EventoTable({
@@ -50,11 +60,13 @@ export default function EventoTable({
   onDeleteEvento,
   onAdicionarFuncao,
   onExcluirFuncao,
+  canEditSetlistOwner,
+  isUpdatingSetlistOwner,
+  onUpdateResponsavelSetlist,
 }: EventoTableProps) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
   const { isDark } = useAppTheme();
-  const eventMetaColor = ColorUtils.withAlpha(palette.fonts.dark, 0.7);
 
   const [substituicaoModalProps, setSubstituicaoModalProps] = useState<{
     isOpen: boolean;
@@ -70,52 +82,14 @@ export default function EventoTable({
   });
   const [adicionarFuncaoModalOpen, setAdicionarFuncaoModalOpen] = useState(false);
   const [loadingAction, setLoadingAction] = useState<{ visible: boolean; label: string }>({ visible: false, label: '' });
+  const responsavelSelectRef = useRef<FancyBottomSheetSelectRef>(null);
+  const [responsavelSetlistValue, setResponsavelSetlistValue] = useState(
+    data.responsavelSetlistVoluntarioId ?? '',
+  );
 
-  const {
-    borderColor,
-    expandableIconColor,
-    headerBackgroundColor,
-    headerExpandedBackgroundColor,
-    headerGradientColors,
-    headerExpandedGradientColors,
-  } = useMemo(() => {
-    const accentColor = data.evento.cor || palette.primary;
-    const darkStart = isDark
-      ? ColorUtils.withAlpha(accentColor, 0.32)
-      : ColorUtils.lightenColor(accentColor, 0.62);
-    const midStart = isDark
-      ? ColorUtils.withAlpha(accentColor, 0.26)
-      : ColorUtils.lightenColor(accentColor, 0.72);
-    const mid = isDark
-      ? ColorUtils.withAlpha(accentColor, 0.22)
-      : ColorUtils.lightenColor(accentColor, 0.76);
-    const midEnd = isDark
-      ? ColorUtils.withAlpha(accentColor, 0.18)
-      : ColorUtils.lightenColor(accentColor, 0.8);
-    const lightEnd = isDark
-      ? ColorUtils.withAlpha(accentColor, 0.16)
-      : ColorUtils.lightenColor(accentColor, 0.84);
-
-    return {
-      borderColor: accentColor,
-      expandableIconColor:
-        ColorUtils.getTextColorForBackground(accentColor) === '#FFFFFF'
-          ? palette.fonts.light
-          : ColorUtils.darkenColor(accentColor, 0.25),
-      headerBackgroundColor: lightEnd,
-      headerExpandedBackgroundColor: lightEnd,
-      headerGradientColors: [lightEnd, midEnd, mid, midStart, darkStart],
-      headerExpandedGradientColors: [lightEnd, midEnd, mid, midStart, darkStart],
-    };
-  }, [data.evento.cor, isDark, palette.primary, palette.fonts.light]);
-
-  const { eventConfirmed, eventTotal } = useMemo(() => {
-    const assigned = data.equipe.filter((item) => Boolean(item.voluntario));
-    const confirmed = assigned.filter(
-      (item) => item.status === EscalaItemStatusEnum.Confirmado,
-    ).length;
-    return { eventConfirmed: confirmed, eventTotal: assigned.length };
-  }, [data.equipe]);
+  useEffect(() => {
+    setResponsavelSetlistValue(data.responsavelSetlistVoluntarioId ?? '');
+  }, [data.responsavelSetlistVoluntarioId]);
 
   const hasEventPassed = useMemo(() => {
     const occurrenceDate = DateUtilsApi.dateOnlyFromApi(data.dataOcorrencia);
@@ -137,7 +111,100 @@ export default function EventoTable({
     return endAt.getTime() < Date.now();
   }, [data.dataOcorrencia, data.evento.dataInicio, data.evento.dataTermino]);
 
-  const eventProgressColor = ColorUtils.darkenColor(data.evento.cor || palette.primary, 0.25);
+  const {
+    borderColor,
+    expandableIconColor,
+    headerBackgroundColor,
+    headerExpandedBackgroundColor,
+    headerGradientColors,
+    headerExpandedGradientColors,
+  } = useMemo(() => {
+    const baseAccentColor = data.evento.cor || palette.primary;
+    const accentHsl = ColorUtils.hexToHsl(baseAccentColor);
+    const accentColor =
+      hasEventPassed && accentHsl
+        ? ColorUtils.hslToHex(accentHsl[0], Math.max(10, Math.round(accentHsl[1] * 0.26)), Math.min(88, accentHsl[2] + 6))
+        : baseAccentColor;
+    const darkStart = isDark
+      ? ColorUtils.withAlpha(accentColor, 0.32)
+      : ColorUtils.lightenColor(accentColor, hasEventPassed ? 0.74 : 0.62);
+    const midStart = isDark
+      ? ColorUtils.withAlpha(accentColor, 0.26)
+      : ColorUtils.lightenColor(accentColor, hasEventPassed ? 0.81 : 0.72);
+    const mid = isDark
+      ? ColorUtils.withAlpha(accentColor, 0.22)
+      : ColorUtils.lightenColor(accentColor, hasEventPassed ? 0.84 : 0.76);
+    const midEnd = isDark
+      ? ColorUtils.withAlpha(accentColor, 0.18)
+      : ColorUtils.lightenColor(accentColor, hasEventPassed ? 0.87 : 0.8);
+    const lightEnd = isDark
+      ? ColorUtils.withAlpha(accentColor, 0.16)
+      : ColorUtils.lightenColor(accentColor, hasEventPassed ? 0.9 : 0.84);
+
+    return {
+      borderColor: accentColor,
+      expandableIconColor:
+        ColorUtils.getTextColorForBackground(accentColor) === '#FFFFFF'
+          ? palette.fonts.light
+          : ColorUtils.darkenColor(accentColor, 0.25),
+      headerBackgroundColor: lightEnd,
+      headerExpandedBackgroundColor: lightEnd,
+      headerGradientColors: [lightEnd, midEnd, mid, midStart, darkStart],
+      headerExpandedGradientColors: [lightEnd, midEnd, mid, midStart, darkStart],
+    };
+  }, [data.evento.cor, hasEventPassed, isDark, palette.primary, palette.fonts.light]);
+
+  const eventMetaColor = hasEventPassed
+    ? ColorUtils.withAlpha(palette.fonts.dark, 0.52)
+    : ColorUtils.withAlpha(palette.fonts.dark, 0.7);
+  const eventTitleColor = hasEventPassed
+    ? ColorUtils.withAlpha(palette.fonts.dark, 0.76)
+    : palette.fonts.dark;
+  const canEditSetlistOwnerHere = Boolean(canEditSetlistOwner && !hasEventPassed);
+
+  const { eventConfirmed, eventTotal } = useMemo(() => {
+    const assigned = data.equipe.filter((item) => Boolean(item.voluntario));
+    const confirmed = assigned.filter(
+      (item) => item.status === EscalaItemStatusEnum.Confirmado,
+    ).length;
+    return { eventConfirmed: confirmed, eventTotal: assigned.length };
+  }, [data.equipe]);
+
+  const eventProgressColor = hasEventPassed
+    ? ColorUtils.withAlpha(ColorUtils.darkenColor(borderColor, 0.08), 0.7)
+    : ColorUtils.darkenColor(data.evento.cor || palette.primary, 0.25);
+  const responsavelSetlistOptions = useMemo<DropDownItemProps<string>[]>(
+    () => [
+      { title: 'Nenhum', value: '' },
+      ...data.equipe
+        .filter((item) => item.voluntario?.voluntarioId)
+        .map((item) => ({
+          title: item.voluntario?.nome || 'Voluntário',
+          subtitle: item.funcao?.nome || '',
+          value: item.voluntario?.voluntarioId || '',
+        }))
+        .filter(
+          (item, index, array) =>
+            item.value && array.findIndex((entry) => entry.value === item.value) === index,
+        )
+        .sort((a, b) => a.title.localeCompare(b.title, 'pt-BR', { sensitivity: 'base' })),
+    ],
+    [data.equipe],
+  );
+  const hasResponsavelSetlist = Boolean(responsavelSetlistValue);
+  const responsavelSetlistNome = useMemo(
+    () =>
+      data.equipe.find((item) => item.voluntario?.voluntarioId === responsavelSetlistValue)?.voluntario
+        ?.nome ?? 'Não definido',
+    [data.equipe, responsavelSetlistValue],
+  );
+  const responsavelSetlistFoto = useMemo(() => {
+    const voluntario = data.equipe.find(
+      (item) => item.voluntario?.voluntarioId === responsavelSetlistValue,
+    )?.voluntario;
+
+    return voluntario?.fotoThumbUrl || voluntario?.fotoUrl || undefined;
+  }, [data.equipe, responsavelSetlistValue]);
 
   const eventSubtitle: ReactNode | undefined =
     eventTotal > 0 ? (
@@ -172,6 +239,50 @@ export default function EventoTable({
     ]);
   };
 
+  const handleSelectResponsavelSetlist = useCallback(
+    (value: string) => {
+      const nextValue = String(value || '');
+      const previousValue = responsavelSetlistValue;
+      setResponsavelSetlistValue(nextValue);
+
+      void (async () => {
+        setLoadingAction({ visible: true, label: 'Salvando responsável...' });
+        const ok =
+          (await onUpdateResponsavelSetlist?.({
+            eventoId: data.evento.id,
+            dataOcorrencia: data.dataOcorrencia,
+            responsavelVoluntarioId: nextValue || null,
+          })) ?? false;
+
+        if (!ok) {
+          setResponsavelSetlistValue(previousValue);
+        }
+        setLoadingAction({ visible: false, label: '' });
+      })();
+    },
+    [
+      data.dataOcorrencia,
+      data.evento.id,
+      onUpdateResponsavelSetlist,
+      responsavelSetlistValue,
+    ],
+  );
+
+  const handleClearResponsavelSetlist = useCallback(() => {
+    FancyAlert.alert(
+      'Limpar responsável',
+      'Deseja remover quem define o setlist deste evento?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Limpar',
+          style: 'destructive',
+          onPress: () => handleSelectResponsavelSetlist(''),
+        },
+      ],
+    );
+  }, [handleSelectResponsavelSetlist]);
+
   return (
     <>
       <FancyAccordeon
@@ -179,7 +290,7 @@ export default function EventoTable({
         title={
           <View style={styles.titleContainer}>
             <View style={styles.titleTextContainer}>
-              <FancyText type='bold' size='extraSmall' color={palette.fonts.dark} numberOfLines={1}>
+              <FancyText type='bold' size='extraSmall' color={eventTitleColor} numberOfLines={1}>
                 {data.evento.nome}
               </FancyText>
 
@@ -207,15 +318,6 @@ export default function EventoTable({
                     'HH:mm',
                   )} - ${format(data.evento.dataTermino!, 'HH:mm')}`}</FancyText>
                 </View>
-                {hasEventPassed ? (
-                  <FancyChips
-                    label='Já passou'
-                    size='small'
-                    color={palette.warning}
-                    backgroundColor={ColorUtils.withAlpha(palette.warning, 0.12)}
-                    style={styles.pastChip}
-                  />
-                ) : null}
               </View>
             </View>
           </View>
@@ -248,6 +350,122 @@ export default function EventoTable({
         ]}
         iconProps={{ color: expandableIconColor, size: 18 }}
       >
+        <View style={styles.setlistOwnerSection}>
+          <FancyText
+            size='extraSmall'
+            type='semiBold'
+            color={palette.fonts.dark}
+            style={styles.setlistOwnerLabel}
+          >
+            Quem define o Setlist?
+          </FancyText>
+
+          <View style={styles.setlistOwnerContentRow}>
+            <View style={styles.setlistOwnerPersonRow}>
+              {hasResponsavelSetlist ? (
+                <FancyImage
+                  source={responsavelSetlistFoto ? { uri: responsavelSetlistFoto } : undefined}
+                  size={30}
+                  style={styles.setlistOwnerAvatar}
+                />
+              ) : (
+                <View style={styles.setlistOwnerAvatarPlaceholder}>
+                  <DefaultIcons.Custom
+                    library='MaterialCommunityIcons'
+                    name='account-outline'
+                    size={16}
+                    color={palette.fonts.inactive}
+                  />
+                </View>
+              )}
+
+              <View style={styles.setlistOwnerTextBlock}>
+                <FancyText
+                  type='medium'
+                  size={10}
+                  color={palette.fonts.inactive}
+                  style={styles.setlistOwnerMetaText}
+                >
+                  Responsável atual
+                </FancyText>
+                <FancyText
+                  type='bold'
+                  size='extraSmall'
+                  color={hasResponsavelSetlist ? palette.fonts.dark : palette.fonts.inactive}
+                  style={styles.setlistOwnerValueText}
+                >
+                  {responsavelSetlistNome}
+                </FancyText>
+              </View>
+            </View>
+
+            {canEditSetlistOwnerHere ? (
+              <View style={styles.setlistOwnerActions}>
+                <FancyButton
+                  type='contained'
+                  mode='icon'
+                  size={{ w: 32, h: 28 }}
+                  icon={{
+                    library: 'MaterialCommunityIcons',
+                    name: responsavelSetlistValue ? 'swap-horizontal' : 'account-plus-outline',
+                    size: 15,
+                    color: ColorUtils.darkenColor(borderColor, 0.12),
+                  }}
+                  containerStyle={[
+                    styles.setlistOwnerButton,
+                    {
+                      backgroundColor: ColorUtils.withAlpha(borderColor, 0.14),
+                      borderWidth: 1,
+                      borderColor: ColorUtils.withAlpha(borderColor, 0.22),
+                    },
+                  ]}
+                  accessibilityLabel={responsavelSetlistValue ? 'Trocar responsável do setlist' : 'Selecionar responsável do setlist'}
+                  disabled={isUpdatingSetlistOwner}
+                  onPress={() => responsavelSelectRef.current?.open()}
+                />
+
+                {hasResponsavelSetlist ? (
+                  <FancyButton
+                    type='light'
+                    mode='icon'
+                    size={{ w: 32, h: 28 }}
+                    icon={{
+                      library: 'MaterialCommunityIcons',
+                      name: 'close-circle-outline',
+                      size: 15,
+                      color: ColorUtils.withAlpha(palette.fonts.dark, 0.72),
+                    }}
+                    containerStyle={[
+                      styles.setlistOwnerButton,
+                      {
+                        backgroundColor: ColorUtils.withAlpha(palette.fonts.dark, 0.08),
+                        borderWidth: 1,
+                        borderColor: ColorUtils.withAlpha(palette.fonts.dark, 0.1),
+                      },
+                    ]}
+                    accessibilityLabel='Limpar responsável do setlist'
+                    disabled={isUpdatingSetlistOwner}
+                    onPress={handleClearResponsavelSetlist}
+                  />
+                ) : null}
+              </View>
+            ) : null}
+          </View>
+
+          <View style={styles.hiddenSelectWrapper}>
+            <FancyBottomSheetSelect
+              ref={responsavelSelectRef}
+              listItems={responsavelSetlistOptions}
+              value={responsavelSetlistValue}
+              onChange={(value) => handleSelectResponsavelSetlist(String(value || ''))}
+              title='Responsável pelo setlist'
+              placeholder='Selecione um voluntário'
+              disabled={isUpdatingSetlistOwner}
+              containerStyle={styles.hiddenSelect}
+            />
+          </View>
+        </View>
+
         <ListaVoluntariosTable
           data={data.equipe}
           viewMode={viewMode}
@@ -417,6 +635,77 @@ function createStyles(palette: ThemePalette) {
       paddingBottom: 4,
       borderWidth: 0,
       backgroundColor: palette.backgroundColor2,
+    },
+    setlistOwnerSection: {
+      marginHorizontal: 6,
+      marginTop: 9,
+      marginBottom: 9,
+      paddingHorizontal: 11,
+      paddingTop: 6,
+      paddingBottom: 3,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.primary, 0.14),
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
+      gap: 8,
+    },
+    setlistOwnerLabel: {
+      lineHeight: 16,
+    },
+    setlistOwnerContentRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+    },
+    setlistOwnerPersonRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+      minWidth: 0,
+      gap: 9,
+    },
+    setlistOwnerAvatar: {
+      borderRadius: 15,
+    },
+    setlistOwnerAvatarPlaceholder: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12),
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.primary, 0.16),
+    },
+    setlistOwnerTextBlock: {
+      flex: 1,
+      minWidth: 0,
+      gap: 1,
+    },
+    setlistOwnerMetaText: {
+      lineHeight: 14,
+    },
+    setlistOwnerActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    setlistOwnerButton: {
+      alignSelf: 'center',
+      borderRadius: 999,
+    },
+    setlistOwnerValueText: {
+      lineHeight: 18,
+    },
+    hiddenSelectWrapper: {
+      height: 0,
+      opacity: 0,
+      overflow: 'hidden',
+    },
+    hiddenSelect: {
+      height: 0,
+      minHeight: 0,
     },
     headerContainer: {
       borderRadius: 12,

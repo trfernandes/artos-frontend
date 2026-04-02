@@ -22,7 +22,8 @@ export type FancyCardLetterProps = {
   | 'contentContainerStyle'
   | 'isCollapsable'
   | 'centerContainerStyle'
-    | 'backgroundColor'
+  | 'backgroundColor'
+  | 'onPress'
 >;
 
 export default function FancyCardLetter({ letter = 'A', ...props }: FancyCardLetterProps) {

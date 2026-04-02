@@ -131,10 +131,15 @@ class IgrejaEventosApiClass {
     return response.data?.data ?? null;
   }
 
-  async listarSetlist(igrejaId: string, eventoId: string, dataOcorrencia: string): Promise<ResponseEventoSetlistItemDto[]> {
+  async listarSetlist(
+    igrejaId: string,
+    eventoId: string,
+    ministerioId: string,
+    dataOcorrencia: string,
+  ): Promise<ResponseEventoSetlistItemDto[]> {
     const response = await apiClient.get<ApiEnvelope<ResponseEventoSetlistItemDto[]>>(
       `/${this.resourceName}/${igrejaId}/eventos/${eventoId}/setlist`,
-      { params: { dataOcorrencia } },
+      { params: { ministerioId, dataOcorrencia } },
     );
     return response.data.data;
   }
@@ -160,9 +165,15 @@ class IgrejaEventosApiClass {
     return response.data.data;
   }
 
-  async removerSetlistItem(igrejaId: string, eventoId: string, itemId: string, dataOcorrencia: string): Promise<void> {
+  async removerSetlistItem(
+    igrejaId: string,
+    eventoId: string,
+    itemId: string,
+    ministerioId: string,
+    dataOcorrencia: string,
+  ): Promise<void> {
     await apiClient.delete(`/${this.resourceName}/${igrejaId}/eventos/${eventoId}/setlist/${itemId}`, {
-      params: { dataOcorrencia },
+      params: { ministerioId, dataOcorrencia },
     });
   }
 

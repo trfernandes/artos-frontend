@@ -96,8 +96,13 @@ class IgrejaEventosRepositoryClass {
     return IgrejaEventosApi.removerResponsavelSetlist(igrejaId, eventoId, params);
   }
 
-  listarSetlist(igrejaId: string, eventoId: string, dataOcorrencia: string): Promise<ResponseEventoSetlistItemDto[]> {
-    return IgrejaEventosApi.listarSetlist(igrejaId, eventoId, dataOcorrencia);
+  listarSetlist(
+    igrejaId: string,
+    eventoId: string,
+    ministerioId: string,
+    dataOcorrencia: string,
+  ): Promise<ResponseEventoSetlistItemDto[]> {
+    return IgrejaEventosApi.listarSetlist(igrejaId, eventoId, ministerioId, dataOcorrencia);
   }
 
   criarSetlistItem(igrejaId: string, eventoId: string, dto: CreateEventoSetlistItemDto): Promise<ResponseEventoSetlistItemDto> {
@@ -113,8 +118,14 @@ class IgrejaEventosRepositoryClass {
     return IgrejaEventosApi.atualizarSetlistItem(igrejaId, eventoId, itemId, dto);
   }
 
-  removerSetlistItem(igrejaId: string, eventoId: string, itemId: string, dataOcorrencia: string): Promise<void> {
-    return IgrejaEventosApi.removerSetlistItem(igrejaId, eventoId, itemId, dataOcorrencia);
+  removerSetlistItem(
+    igrejaId: string,
+    eventoId: string,
+    itemId: string,
+    ministerioId: string,
+    dataOcorrencia: string,
+  ): Promise<void> {
+    return IgrejaEventosApi.removerSetlistItem(igrejaId, eventoId, itemId, ministerioId, dataOcorrencia);
   }
 
   reordenarSetlist(igrejaId: string, eventoId: string, dto: ReorderEventoSetlistDto): Promise<ResponseEventoSetlistItemDto[]> {

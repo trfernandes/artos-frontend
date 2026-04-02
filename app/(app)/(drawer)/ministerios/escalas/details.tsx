@@ -21,12 +21,17 @@ import EscalaParametrizacaoModal from '../../../../../components/pages/ministeri
 import { EscalaTemplateExperienciaEnum } from '../../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
 import { EscalaParametrizacaoType } from '../../../../../domain/dtos/Escala/escala.response';
 import { DateUtilsApi } from '../../../../../utils/date_utils';
+import { useEventoSetlistResponsavel } from '../../../../../hooks/useEventoSetlistResponsavel';
+import { TemplatePadraoEscopoEnum } from '../../../../../domain/enums/Evento/template-padrao-escopo.enum';
+import { getApiErrorMessage } from '../../../../../domain/api/api-error';
+import { canManageEventoOcorrencia } from '../../../../../utils/ministerio_permissoes';
 
 export type EscalaItemDataType = {
   dataOcorrencia: string;
   evento: EscalaItemEventoDataType['evento'];
   equipe: EscalaItemEquipeType[];
   escalaItemId: string;
+  responsavelSetlistVoluntarioId?: string | null;
 };
 
 export type EscalaItemEventoDataType = {
@@ -92,6 +97,8 @@ export default function MinisterioEscalasDetailsPage() {
   const { igrejaAtiva } = useAuth();
   const [isPublishing, setIsPublishing] = useState(false);
   const [isParametrizacaoOpen, setIsParametrizacaoOpen] = useState(false);
+  const { salvarResponsavelSetlist, isSavingResponsavelSetlist } = useEventoSetlistResponsavel();
+  const canEditSetlistOwner = canManageEventoOcorrencia(igrejaAtiva, ministerioId) && viewMode !== 'view';
 
   const initialParams = useMemo<DynamicQuery>(
     () => ({
@@ -220,8 +227,13 @@ export default function MinisterioEscalasDetailsPage() {
           evento: mapEvento(item.evento),
           equipe: [],
           escalaItemId: item.id!,
+          responsavelSetlistVoluntarioId: item.responsavelSetlistVoluntarioId ?? null,
         } as EscalaItemDataType;
         mapa.set(chave, grupo);
+      }
+
+      if (!grupo.responsavelSetlistVoluntarioId && item.responsavelSetlistVoluntarioId) {
+        grupo.responsavelSetlistVoluntarioId = item.responsavelSetlistVoluntarioId;
       }
 
       const expDoVoluntario = item.voluntario?.funcoes?.find(
@@ -381,6 +393,44 @@ export default function MinisterioEscalasDetailsPage() {
       }
     },
     [escalaId, refetchEscala, igrejaAtiva?.id],
+  );
+
+  const handleUpdateResponsavelSetlist = useCallback(
+    async ({
+      eventoId,
+      dataOcorrencia,
+      responsavelVoluntarioId,
+    }: {
+      eventoId: string;
+      dataOcorrencia: string;
+      responsavelVoluntarioId: string | null;
+    }): Promise<boolean> => {
+      try {
+        await salvarResponsavelSetlist({
+          eventoId,
+          data: {
+            ministerioId,
+            dataOcorrencia,
+            escopo: TemplatePadraoEscopoEnum.OCORRENCIA,
+            responsavelVoluntarioId,
+          },
+        });
+        await refetchEscala();
+        Toast.show({
+          type: 'success',
+          text1: 'Responsável do setlist atualizado',
+        });
+        return true;
+      } catch (error) {
+        Toast.show({
+          type: 'error',
+          text1: 'Erro ao salvar responsável do setlist',
+          text2: getApiErrorMessage(error, 'Não foi possível salvar o responsável do setlist.'),
+        });
+        return false;
+      }
+    },
+    [refetchEscala, salvarResponsavelSetlist],
   );
 
   const handleAdicionarFuncao = useCallback(
@@ -579,6 +629,9 @@ export default function MinisterioEscalasDetailsPage() {
                 viewMode={viewMode}
                 ministerioId={ministerioId}
                 escalaId={escalaId}
+                canEditSetlistOwner={canEditSetlistOwner}
+                isUpdatingSetlistOwner={isSavingResponsavelSetlist}
+                onUpdateResponsavelSetlist={handleUpdateResponsavelSetlist}
                 onChangeVoluntario={async (data) => {
                   return await handleSubstituirVoluntario(data);
                 }}

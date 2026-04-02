@@ -1,6 +1,6 @@
 import { ResponseLoginIgrejaDto, ResponseLoginMinisterioDto } from '../../domain/dtos/login/login.response';
 import { CustomIconProps } from '../FancyIcons';
-import { MinisterioTipoEnum } from '../../domain/enums/Ministerio/ministerio-tipo.enum';
+import { MinisterioTipoEnum, MinisterioTipoLabel } from '../../domain/enums/Ministerio/ministerio-tipo.enum';
 import { IgrejaVoluntarioRoleEnum } from '../../domain/enums/Igreja/voluntario-role.enum';
 import { VoluntarioHierarquiaEnum, VoluntarioHierarquiaEnumLabel } from '../../domain/enums/MinisterioVoluntario/hierarquia.enum';
 import { RecursoPermissaoEnum, TipoPermissaoEnum } from '../../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
@@ -24,6 +24,9 @@ export type DrawerItemData = {
   type?: 'RunMethod' | 'GoToRoute';
   onPress?: { type: 'RunMethod'; method: () => void } | { type: 'GoToRoute'; routeName: string };
 };
+
+const sortDrawerItemsByTitle = (items: DrawerItemData[]) =>
+  [...items].sort((a, b) => a.title.localeCompare(b.title, 'pt-BR', { sensitivity: 'base' }));
 
 // Menu pessoal - disponível para todos
 const BASE_MENU: DrawerItemData[] = [
@@ -86,9 +89,11 @@ const getIgrejaMenu = (): DrawerItemData[] => [
 ];
 
 // Menus básicos do ministério (apenas Agenda e Escalas) - para voluntários comuns
-const getMinisterioBasicItems = (ministerioId: string): DrawerItemData[] => {
+const getMinisterioBasicItems = (ministerio: ResponseLoginMinisterioDto): DrawerItemData[] => {
+  const ministerioId = ministerio.id;
+  const ministerioTipo = normalizeMinisterioTipo(ministerio.tipo);
   const routeParams = `?ministerioId=${ministerioId}`;
-  return [
+  const items: DrawerItemData[] = [
     {
       title: 'Agenda',
       logo: {
@@ -106,6 +111,26 @@ const getMinisterioBasicItems = (ministerioId: string): DrawerItemData[] => {
       onPress: { type: 'GoToRoute', routeName: `/ministerios/escalas${routeParams}` },
     },
   ];
+
+  if (ministerioTipo === MinisterioTipoEnum.Louvor) {
+    items.push({
+      title: 'Repertório',
+      logo: {
+        type: 'icon',
+        value: {
+          name: 'queue-music',
+          library: 'MaterialIcons',
+          size: 17,
+        },
+      },
+      onPress: {
+        type: 'GoToRoute',
+        routeName: `/ministerios/louvor/repertorio${routeParams}`,
+      },
+    });
+  }
+
+  return sortDrawerItemsByTitle(items);
 };
 
 const hasMinisterioPermission = (
@@ -121,7 +146,7 @@ const getMinisterioFullItems = (ministerio: ResponseLoginMinisterioDto): DrawerI
   const ministerioTipo = normalizeMinisterioTipo(ministerio.tipo);
   const routeParams = `?ministerioId=${ministerio.id}`;
 
-  const baseItems = getMinisterioBasicItems(ministerio.id);
+  const baseItems = getMinisterioBasicItems(ministerio);
 
   const commonItems: DrawerItemData[] = [
     {
@@ -160,7 +185,7 @@ const getMinisterioFullItems = (ministerio: ResponseLoginMinisterioDto): DrawerI
 
   switch (ministerioTipo) {
     case MinisterioTipoEnum.Louvor:
-      return [
+      return sortDrawerItemsByTitle([
         ...baseItems,
         ...commonItems,
         {
@@ -193,10 +218,10 @@ const getMinisterioFullItems = (ministerio: ResponseLoginMinisterioDto): DrawerI
             routeName: `/ministerios/templates_equipe${routeParams}`,
           },
         },
-      ];
+      ]);
     case MinisterioTipoEnum.Padrao:
     default:
-      return [...baseItems, ...commonItems];
+      return sortDrawerItemsByTitle([...baseItems, ...commonItems]);
   }
 };
 
@@ -214,7 +239,7 @@ const getMenuForMinisterio = (
   // Admin ou líder do ministério: todos os menus
   const showFullMenu = isAdmin || isLider;
 
-  let items = showFullMenu ? getMinisterioFullItems(ministerio) : getMinisterioBasicItems(ministerio.id);
+  let items = showFullMenu ? getMinisterioFullItems(ministerio) : getMinisterioBasicItems(ministerio);
 
   if (isAuxiliar && !isAdmin) {
     const routeParams = `?ministerioId=${ministerio.id}`;
@@ -280,10 +305,7 @@ const getMenuForMinisterio = (
       });
     }
 
-    if (
-      ministerioTipo === MinisterioTipoEnum.Louvor &&
-      hasMinisterioPermission(ministerio, RecursoPermissaoEnum.RepertorioSetlist, TipoPermissaoEnum.Visualizar)
-    ) {
+    if (ministerioTipo === MinisterioTipoEnum.Louvor) {
       filteredItems.push({
         title: 'Repertório',
         logo: {
@@ -301,7 +323,7 @@ const getMenuForMinisterio = (
       });
     }
 
-    items = filteredItems;
+    items = sortDrawerItemsByTitle(filteredItems);
   }
 
   if (isVoluntarioRole && !isAuxiliar && !showFullMenu) {
@@ -318,7 +340,11 @@ const getMenuForMinisterio = (
     {
       logo: ministerio.logoThumbUrl ? { type: 'logo', value: ministerio.logoThumbUrl } : { type: 'icon', value: defaultIcon },
       title: ministerio.nome ?? 'Ministério',
-      subtitle: ministerio.hierarquia ? VoluntarioHierarquiaEnumLabel[ministerio.hierarquia] : '',
+      subtitle: isAdmin
+        ? MinisterioTipoLabel[ministerioTipo]
+        : ministerio.hierarquia
+          ? VoluntarioHierarquiaEnumLabel[ministerio.hierarquia]
+          : '',
       items,
     },
   ];

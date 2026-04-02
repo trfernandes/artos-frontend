@@ -22,6 +22,8 @@ import { ColorUtils } from '../../../../utils/color_utils';
 import { AddMinisterioVoluntarioFormData, EditMinisterioVoluntarioFormData } from '../../../../domain/schemas/ministerioAdminSchema';
 import { AppImages } from '../../../../assets/app_images';
 import { FancyAlert } from '../../../modal/FancyAlert';
+import VoluntarioSummarySheet from '../../common/VoluntarioSummarySheet';
+import { MinisterioVoluntarioStatusEnumLabel } from '../../../../domain/enums/MinisterioVoluntario/ministerio-voluntario-status.enum';
 
 export type VoluntarioTabProps = {
   ministerioId: string;
@@ -52,6 +54,7 @@ export default function VoluntarioTab({ ministerioId }: VoluntarioTabProps) {
   }>();
 
   const [addFormParams, setAddFormParams] = useState<{ visible: boolean }>({ visible: false });
+  const [selectedVoluntario, setSelectedVoluntario] = useState<any | null>(null);
 
   const { showLoading, hideLoading } = useLoading();
 
@@ -129,11 +132,22 @@ export default function VoluntarioTab({ ministerioId }: VoluntarioTabProps) {
               ? ColorUtils.lightenColor(Pallete.primary, 0.8)
               : undefined,
             title: item.voluntario?.nome,
-            subtitle: <FancyTextDisplayCard title='Função:' value={VoluntarioHierarquiaEnumLabel[item.hierarquia]} />,
+            subtitle: item.voluntario?.email || <FancyTextDisplayCard title='Função:' value={VoluntarioHierarquiaEnumLabel[item.hierarquia]} />,
+            additionalData1: item.voluntario?.email ? <FancyTextDisplayCard title='Função:' value={VoluntarioHierarquiaEnumLabel[item.hierarquia]} /> : undefined,
             source:
               item.voluntario?.fotoUrl || item.voluntario?.fotoThumbUrl
                 ? { uri: item.voluntario?.fotoThumbUrl || item.voluntario?.fotoUrl }
                 : AppImages.emptyProfile,
+            onPress: () =>
+              setSelectedVoluntario({
+                nome: item.voluntario?.nome || '-',
+                email: item.voluntario?.email || null,
+                telefone: item.voluntario?.telefone || null,
+                fotoUrl: item.voluntario?.fotoUrl || null,
+                fotoThumbUrl: item.voluntario?.fotoThumbUrl || null,
+                papelLabel: VoluntarioHierarquiaEnumLabel[item.hierarquia],
+                statusLabel: MinisterioVoluntarioStatusEnumLabel[item.status],
+              }),
             actionButtons: (
               <FancyActionButtons
                 actions={[
@@ -209,6 +223,7 @@ export default function VoluntarioTab({ ministerioId }: VoluntarioTabProps) {
           }}
         />
       )}
+      <VoluntarioSummarySheet visible={!!selectedVoluntario} onClose={() => setSelectedVoluntario(null)} data={selectedVoluntario} />
     </View>
   );
 }

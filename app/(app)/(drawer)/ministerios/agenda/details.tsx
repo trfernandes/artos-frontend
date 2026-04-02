@@ -180,6 +180,7 @@ export default function MinisterioAgendaDetailsPage() {
             dataOcorrencia={new Date(params.dataOcorrencia)}
             ministerioId={params.ministerioId}
             canEdit={true}
+            responsavelSetlistNome={ocorrenciaAtual?.responsavelSetlistVoluntario?.nome ?? null}
           />
         ),
       });

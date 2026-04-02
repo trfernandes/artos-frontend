@@ -7,7 +7,6 @@ import { useMinisteriosCrud } from '../../../../../hooks/useMinisteriosCrud';
 import { useCallback, useState } from 'react';
 import { Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
-import { FancyTextDisplayCard } from '../../../../../components/cards/FancyTextDisplayCard';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import Toast from 'react-native-toast-message';
 import { MinisterioStatusEnum, MinisterioStatusEnumMap, MinisterioStatusLabel } from '../../../../../domain/enums/Ministerio/ministerio-status.enum';
@@ -151,16 +150,11 @@ export default function MinisteriosIndex() {
         renderItem: ({ item, index }) => {
           const commonProps: FancyCardImageBaseProps = {
             title: item.nome,
-            subtitle: (
-              <FancyTextDisplayCard
-                value={MinisterioTipoLabel[item.tipo]}
-                icon={{ library: 'MaterialCommunityIcons', name: 'tag-outline', size: 12, color: Pallete.primary }}
-                containerStyle={{ marginVertical: 2 }}
-              />
-            ),
+            subtitle: MinisterioTipoLabel[item.tipo],
+            centerContainerStyle: { gap: 3 },
             additionalData1: (
               <FancyChips
-                style={{ marginTop: 2 }}
+                style={{ marginTop: 1 }}
                 size='small'
                 label={MinisterioStatusLabel[item.status]}
                 color={MinisterioStatusEnumMap[item.status] === MinisterioStatusEnum.Ativo ? Pallete.primary : Pallete.error}

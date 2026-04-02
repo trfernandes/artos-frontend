@@ -2,6 +2,7 @@ import z from 'zod';
 import { MinisterioStatusEnum } from '../enums/Ministerio/ministerio-status.enum';
 import { MinisterioTipoEnum } from '../enums/Ministerio/ministerio-tipo.enum';
 import { VoluntarioHierarquiaEnum } from '../enums/MinisterioVoluntario/hierarquia.enum';
+import { RecursoPermissaoEnum, TipoPermissaoEnum } from '../enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
 
 export const AddLiderSchema = z.object({
   id: z.uuidv4('O Id do voluntário deve ser válido').optional(),
@@ -13,6 +14,22 @@ export const AddLiderSchema = z.object({
 });
 
 export type AddLiderFormData = z.infer<typeof AddLiderSchema>;
+
+export const AuxiliarPermissaoSchema = z.object({
+  recurso: z.enum(RecursoPermissaoEnum, { message: 'Campo obrigatório' }),
+  permissoes: z.array(z.enum(TipoPermissaoEnum, { message: 'Campo obrigatório' })),
+});
+
+export const AddAuxiliarSchema = z.object({
+  id: z.uuidv4('O Id do voluntário deve ser válido').optional(),
+  voluntarioId: z.uuidv4('Campo Obrigatório'),
+  voluntarioNome: z.string().min(1, { message: 'Campo obrigatório' }),
+  fotoUrl: z.string().nullable().optional(),
+  fotoThumbUrl: z.string().nullable().optional(),
+  permissoes: z.array(AuxiliarPermissaoSchema),
+});
+
+export type AddAuxiliarFormData = z.infer<typeof AddAuxiliarSchema>;
 
 export const AddMinisterioVoluntarioSchema = z.object({
   voluntarioId: z.uuidv4('Campo Obrigatório'),
@@ -33,7 +50,8 @@ export const EditMinisterioVoluntarioSchema = z.object({
 });
 export type EditMinisterioVoluntarioFormData = z.infer<typeof EditMinisterioVoluntarioSchema>;
 
-export const AddMinisterioSchema = z.object({
+export const AddMinisterioSchema = z
+  .object({
   id: z.uuidv4().nullable().optional(),
   nome: z
     .string({
@@ -62,7 +80,7 @@ export const AddMinisterioSchema = z.object({
   status: z.enum(MinisterioStatusEnum, {
     message: 'Campo obrigatório',
   }),
-  voluntarios: z
+  lideres: z
     .array(AddLiderSchema)
     .min(1, { message: 'É obrigatório informar pelo menos um líder' })
     .refine(
@@ -73,8 +91,27 @@ export const AddMinisterioSchema = z.object({
       },
       { error: 'Esse líder já foi incluído' },
     ),
-  //   permissoes: z.array(permissoesSchema),
-});
+  auxiliares: z
+    .array(AddAuxiliarSchema)
+    .refine(
+      (auxiliares) => {
+        const ids = auxiliares.map((auxiliar) => auxiliar.voluntarioId);
+        const uniqueIds = new Set(ids);
+        return uniqueIds.size === auxiliares.length;
+      },
+      { error: 'Esse auxiliar já foi incluído' },
+    ),
+  })
+  .refine(
+    (data) => {
+      const liderIds = new Set(data.lideres.map((lider) => lider.voluntarioId));
+      return data.auxiliares.every((auxiliar) => !liderIds.has(auxiliar.voluntarioId));
+    },
+    {
+      path: ['auxiliares'],
+      error: 'O mesmo voluntário não pode ser líder e auxiliar ao mesmo tempo',
+    },
+  );
 
 export const EditMinisterioSchema = z.object({
   id: z.uuidv4().nullable().optional(),

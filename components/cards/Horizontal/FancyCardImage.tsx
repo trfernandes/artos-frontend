@@ -24,6 +24,7 @@ export type FancyCardImageProps = {
   | 'isCollapsable'
   | 'centerContainerStyle'
   | 'backgroundColor'
+  | 'onPress'
 >;
 
 export default function FancyCardImage(props: FancyCardImageProps) {

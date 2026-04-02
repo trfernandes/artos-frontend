@@ -12,6 +12,8 @@ import SongTextEditorField from '../../../../song/SongTextEditorField';
 import RepertorioCategoriasManagerSheet from './RepertorioCategoriasManagerSheet';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { MinisterioTipoEnum } from '../../../../../domain/enums/Ministerio/ministerio-tipo.enum';
+import { VoluntarioHierarquiaEnum } from '../../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
+import { RecursoPermissaoEnum, TipoPermissaoEnum } from '../../../../../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
 import { useRepertorioCategorias, useRepertorioMusicas } from '../../../../../hooks/useRepertorio';
 import { RepertorioRepository } from '../../../../../domain/services/RepertorioRepository';
 import Toast from 'react-native-toast-message';
@@ -32,9 +34,20 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
   const palette = usePallete();
   const fallbackMinisterioId = igrejaAtiva?.ministerios?.find((ministerio) => ministerio.tipo === MinisterioTipoEnum.Louvor)?.id;
   const ministerioId = ministerioIdProp || fallbackMinisterioId;
+  const ministerioAtual = igrejaAtiva?.ministerios?.find((ministerio) => ministerio.id === ministerioId);
   const { data: categorias = [] } = useRepertorioCategorias();
   const { criarMusica, atualizarMusica, isMutatingMusica } = useRepertorioMusicas(ministerioId);
   const [categoriasVisible, setCategoriasVisible] = useState(false);
+  const canManageRepertorio = useMemo(() => {
+    const hierarquia = ministerioAtual?.hierarquia?.toString();
+    if (hierarquia === VoluntarioHierarquiaEnum.Lider || hierarquia === '1') {
+      return true;
+    }
+
+    return (ministerioAtual?.permissoes ?? []).some(
+      (item) => item.recurso === RecursoPermissaoEnum.RepertorioSetlist && item.permissoes?.includes(TipoPermissaoEnum.Gerenciar),
+    );
+  }, [ministerioAtual]);
 
   const musicaQuery = useQuery({
     queryKey: ['repertorio-musica', igrejaAtiva?.id, ministerioId, musicaId],
@@ -79,6 +92,10 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
 
   const handleSave = async () => {
     if (!igrejaAtiva?.id || !ministerioId) return;
+    if (!canManageRepertorio) {
+      FancyAlert.alert('Sem permissão', 'Você pode visualizar o repertório, mas não possui permissão para editar músicas.');
+      return;
+    }
     if (!nome.trim() || !categoriaId) {
       FancyAlert.alert('Campos obrigatórios', 'Nome da música e categoria são obrigatórios.');
       return;
@@ -119,14 +136,6 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
       content: (
         <View style={styles.formSection}>
           <View style={styles.sectionBlock}>
-            <View style={styles.sectionHeader}>
-              <FancyText size='small' type='bold'>
-                Identificação
-              </FancyText>
-              <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
-                Dados base da música
-              </FancyText>
-            </View>
           <FancyTextInput label='Nome da música' value={nome} inputProps={{ onChangeText: setNome }} />
           <FancyTextInput label='Intérprete' value={interprete} inputProps={{ onChangeText: setInterprete }} />
           <View style={styles.fieldBlock}>
@@ -144,6 +153,7 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
                 labelStyle={styles.categoryManageLinkLabel}
                 containerStyle={styles.categoryManageLink}
                 onPress={() => setCategoriasVisible(true)}
+                disabled={!canManageRepertorio}
               />
             </View>
             <FancyBottomSheetSelect
@@ -237,8 +247,10 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
       />
       <FancyButton
         label='Salvar'
+        icon={{ library: 'Feather', name: 'save', size: 16 }}
         isLoading={isMutatingMusica}
         containerStyle={styles.saveButton}
+        disabled={!canManageRepertorio}
         onPress={() => {
           void handleSave();
         }}
@@ -251,23 +263,23 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
 const styles = StyleSheet.create({
   container: { flex: 1, paddingBottom: 16, gap: 12 },
   tabsHeader: { paddingHorizontal: 20 },
-  formSection: { gap: 14, paddingTop: 8 },
-  markdownTabContent: { flex: 1, paddingTop: 8 },
+  formSection: { gap: 14, paddingTop: 8, paddingBottom: 92 },
+  markdownTabContent: { flex: 1, paddingTop: 8, paddingBottom: 92 },
   sectionBlock: {
     gap: 14,
   },
   sectionHeader: { gap: 2, paddingLeft: 2 },
-  fieldBlock: { gap: 7 },
+  fieldBlock: { gap: 4 },
   fieldHeaderRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     justifyContent: 'space-between',
     gap: 12,
     paddingLeft: 2,
   },
   fullWidthField: { width: '100%' },
   inlineRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-end' },
-  saveButton: { marginHorizontal: 20, height: 44 },
+  saveButton: { marginHorizontal: 20, height: 44, marginTop: 4 },
   categoryManageLink: {
     minWidth: 0,
     paddingHorizontal: 0,

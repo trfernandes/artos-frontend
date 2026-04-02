@@ -25,6 +25,7 @@ export default function MinisterioAgendaIndexPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [currentMonth, setCurrenMonth] = useState(new Date());
   const [eventos, setEventos] = useState<ResponseEventoOcorrenciaDto[]>();
+  const [isOpeningEvento, setIsOpeningEvento] = useState(false);
 
   const { buscarPorIntervalo, isLoading } = useEventosCrud({ autoFetch: false });
 
@@ -49,6 +50,7 @@ export default function MinisterioAgendaIndexPage() {
 
   useFocusEffect(
     useCallback(() => {
+      setIsOpeningEvento(false);
       void carregarEventosMes();
     }, [carregarEventosMes]),
   );
@@ -108,13 +110,16 @@ export default function MinisterioAgendaIndexPage() {
                     size: 20,
                   },
                   onPress: () => {
-                    router.push({
-                      pathname: '/ministerios/agenda/details',
-                      params: {
-                        eventoId,
-                        dataOcorrencia: item.dataOcorrencia,
-                        ministerioId: params.ministerioId,
-                      },
+                    setIsOpeningEvento(true);
+                    requestAnimationFrame(() => {
+                      router.push({
+                        pathname: '/ministerios/agenda/details',
+                        params: {
+                          eventoId,
+                          dataOcorrencia: item.dataOcorrencia,
+                          ministerioId: params.ministerioId,
+                        },
+                      });
                     });
                   },
                 },
@@ -124,6 +129,7 @@ export default function MinisterioAgendaIndexPage() {
         }}
         containerStyle={styles.listContainer}
       />
+      {isOpeningEvento ? <FancyLoading label='Abrindo evento...' /> : null}
     </FancyPageView>
   );
 }

@@ -14,6 +14,7 @@ export function useMinisterioAcessos(igrejaId?: string, ministerioId?: string) {
 
   const invalidate = async () => {
     await queryClient.invalidateQueries({ queryKey });
+    await queryClient.refetchQueries({ queryKey, exact: true });
   };
 
   const addAuxiliar = useMutation({

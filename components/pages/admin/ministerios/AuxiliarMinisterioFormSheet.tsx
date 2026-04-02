@@ -2,29 +2,21 @@ import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import FancyBottomSheetModal from '../../../modal/FancyBottomSheetModal';
 import FancyButton from '../../../buttons/FancyButton';
-import FancyBottomSheetSelect from '../../../fields/FancyBottomSheetSelect';
 import FancyCheckbox from '../../../FancyCheckbox';
+import FancySearchSelect from '../../../fields/FancySearchSelect';
 import FancyText from '../../../FancyText';
-import { ResponseMinisterioAcessoDto, ResponseMinisterioAcessoMemberDto } from '../../../../domain/dtos/MinisterioAcesso/ministerio-acesso.response';
+import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
+import { usePallete } from '../../../../hooks/usePallete';
 import { ResponseVoluntarioDto } from '../../../../domain/dtos/Voluntario/voluntario.response';
 import {
+  DefaultAuxiliarPermissionRows,
   RecursoPermissaoEnum,
   RecursoPermissaoEnumLabel,
   RecursosPermissoesTable,
   TipoPermissaoEnum,
   TipoPermissaoEnumLabel,
 } from '../../../../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
-import { UpsertMinisterioAuxiliarDto } from '../../../../domain/dtos/MinisterioAcesso/ministerio-acesso.upsert';
-import { usePallete } from '../../../../hooks/usePallete';
-
-type Props = {
-  visible: boolean;
-  mode: 'create' | 'edit';
-  accessData?: ResponseMinisterioAcessoDto;
-  auxiliar?: ResponseMinisterioAcessoMemberDto | null;
-  onClose: () => void;
-  onSave: (payload: UpsertMinisterioAuxiliarDto) => Promise<void>;
-};
+import { AddAuxiliarFormData } from '../../../../domain/schemas/ministerioAdminSchema';
 
 type PermissionMap = Record<RecursoPermissaoEnum, Set<TipoPermissaoEnum>>;
 
@@ -36,31 +28,51 @@ const createEmptyPermissionMap = (): PermissionMap => ({
   [RecursoPermissaoEnum.RepertorioSetlist]: new Set<TipoPermissaoEnum>(),
 });
 
-export default function AuxiliarAcessosEditorSheet({ visible, mode, accessData, auxiliar, onClose, onSave }: Props) {
+const createDefaultPermissionMap = () => {
+  const next = createEmptyPermissionMap();
+  DefaultAuxiliarPermissionRows.forEach((row) => {
+    next[row.recurso] = new Set(row.permissoes);
+  });
+  return next;
+};
+
+type Props = {
+  visible: boolean;
+  mode: 'create' | 'edit';
+  volunteers: ResponseVoluntarioDto[];
+  auxiliar?: AddAuxiliarFormData | null;
+  onClose: () => void;
+  onSave: (payload: AddAuxiliarFormData) => void | Promise<void>;
+};
+
+export default function AuxiliarMinisterioFormSheet({ visible, mode, volunteers, auxiliar, onClose, onSave }: Props) {
   const palette = usePallete();
   const [voluntarioId, setVoluntarioId] = useState('');
+  const [permissionMap, setPermissionMap] = useState<PermissionMap>(createDefaultPermissionMap);
   const [isSaving, setIsSaving] = useState(false);
-  const [permissionMap, setPermissionMap] = useState<PermissionMap>(createEmptyPermissionMap);
 
   useEffect(() => {
     if (!visible) return;
     const nextMap = createEmptyPermissionMap();
-    const sourceRows = (auxiliar?.permissoes?.length ? auxiliar.permissoes : accessData?.pacoteAuxiliarPadrao) ?? [];
-    sourceRows.forEach((row) => {
+    const rows = auxiliar?.permissoes?.length ? auxiliar.permissoes : DefaultAuxiliarPermissionRows;
+    rows.forEach((row) => {
       nextMap[row.recurso] = new Set(row.permissoes ?? []);
     });
     setPermissionMap(nextMap);
     setVoluntarioId(auxiliar?.voluntarioId ?? '');
-  }, [visible, auxiliar, accessData]);
+  }, [auxiliar, visible]);
 
-  const elegiveis = accessData?.elegiveis ?? [];
-  const volunteerOptions = useMemo(
+  const volunteerOptions = useMemo<DropDownItemProps<string>[]>(
     () =>
-      elegiveis.map((item: ResponseVoluntarioDto) => ({
+      volunteers.map((item) => ({
         title: item.nome,
         value: item.id,
+        left: {
+          type: 'image',
+          source: item.fotoThumbUrl || item.fotoUrl ? { uri: item.fotoThumbUrl || item.fotoUrl || '' } : undefined,
+        } as any,
       })),
-    [elegiveis],
+    [volunteers],
   );
 
   const togglePermission = (recurso: RecursoPermissaoEnum, permissao: TipoPermissaoEnum) => {
@@ -87,11 +99,15 @@ export default function AuxiliarAcessosEditorSheet({ visible, mode, accessData, 
   );
 
   const handleSave = async () => {
-    if (!voluntarioId) return;
+    const selected = volunteers.find((item) => item.id === voluntarioId);
+    if (!selected) return;
     setIsSaving(true);
     try {
       await onSave({
-        voluntarioId,
+        voluntarioId: selected.id,
+        voluntarioNome: selected.nome,
+        fotoUrl: selected.fotoUrl || null,
+        fotoThumbUrl: selected.fotoThumbUrl || null,
         permissoes: normalizedPermissions,
       });
       onClose();
@@ -104,10 +120,10 @@ export default function AuxiliarAcessosEditorSheet({ visible, mode, accessData, 
     <FancyBottomSheetModal
       visible={visible}
       onClose={onClose}
-      title={mode === 'create' ? 'Adicionar auxiliar' : 'Editar acessos'}
+      title={mode === 'create' ? 'Adicionar auxiliar' : 'Editar acessos do auxiliar'}
       footer={
         <FancyButton
-          label={mode === 'create' ? 'Adicionar auxiliar' : 'Salvar'}
+          label={mode === 'create' ? 'Adicionar auxiliar' : 'Salvar acessos'}
           type='contained'
           icon={{
             library: mode === 'create' ? 'Feather' : 'MaterialCommunityIcons',
@@ -123,31 +139,22 @@ export default function AuxiliarAcessosEditorSheet({ visible, mode, accessData, 
     >
       <View style={styles.headerBlock}>
         <FancyText type='bold' size='medium'>
-          {mode === 'create' ? 'Defina o auxiliar e os acessos operacionais' : auxiliar?.voluntario?.nome}
+          {mode === 'create' ? 'Escolha o auxiliar e os acessos' : auxiliar?.voluntarioNome}
         </FancyText>
         <FancyText size='small' color={palette.fonts.inactive}>
-          Auxiliares ajudam na operação do ministério com acessos definidos pela liderança.
+          Defina quais áreas do ministério esse auxiliar poderá operar.
         </FancyText>
       </View>
 
-      {mode === 'create' ? (
-        <FancyBottomSheetSelect
-          title='Integrante'
-          label='Integrante'
-          value={voluntarioId}
-          onChange={(value) => setVoluntarioId(String(value))}
-          listItems={volunteerOptions}
-        />
-      ) : (
-        <View style={styles.memberSummary}>
-          <FancyText type='semiBold' size='small'>
-            Auxiliar
-          </FancyText>
-          <FancyText size='small' color={palette.fonts.inactive}>
-            {auxiliar?.voluntario?.nome}
-          </FancyText>
-        </View>
-      )}
+      <FancySearchSelect
+        title='Auxiliar'
+        label='Auxiliar'
+        value={voluntarioId}
+        onChange={(value) => setVoluntarioId(String(value))}
+        listItems={volunteerOptions}
+        searchPlaceholder='Buscar voluntário...'
+        disabled={mode === 'edit'}
+      />
 
       <View style={styles.groupsContainer}>
         {(Object.values(RecursoPermissaoEnum) as RecursoPermissaoEnum[]).map((recurso) => (
@@ -155,14 +162,15 @@ export default function AuxiliarAcessosEditorSheet({ visible, mode, accessData, 
             <FancyText type='bold' size='small'>
               {RecursoPermissaoEnumLabel[recurso]}
             </FancyText>
-            <View style={styles.permissionsList}>
+            <View style={styles.permissionsGrid}>
               {RecursosPermissoesTable[recurso].map((permissao) => (
-                <FancyCheckbox
-                  key={`${recurso}-${permissao}`}
-                  value={permissionMap[recurso]?.has(permissao) ?? false}
-                  label={TipoPermissaoEnumLabel[permissao]}
-                  onChangeValue={() => togglePermission(recurso, permissao)}
-                />
+                <View key={`${recurso}-${permissao}`} style={styles.permissionCell}>
+                  <FancyCheckbox
+                    value={permissionMap[recurso]?.has(permissao) ?? false}
+                    label={TipoPermissaoEnumLabel[permissao]}
+                    onChangeValue={() => togglePermission(recurso, permissao)}
+                  />
+                </View>
               ))}
             </View>
           </View>
@@ -176,9 +184,6 @@ const styles = StyleSheet.create({
   headerBlock: {
     gap: 6,
   },
-  memberSummary: {
-    gap: 4,
-  },
   groupsContainer: {
     gap: 12,
   },
@@ -189,7 +194,13 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     gap: 12,
   },
-  permissionsList: {
-    gap: 12,
+  permissionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    rowGap: 12,
+    columnGap: 8,
+  },
+  permissionCell: {
+    width: '48%',
   },
 });

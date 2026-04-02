@@ -73,3 +73,27 @@ export const RecursosPermissoesTable: Record<RecursoPermissaoEnum, TipoPermissao
     TipoPermissaoEnum.Gerenciar,
   ],
 };
+
+export const DefaultAuxiliarPermissionRows = [
+  {
+    recurso: RecursoPermissaoEnum.AgendaEventos,
+    permissoes: [TipoPermissaoEnum.Visualizar, TipoPermissaoEnum.AlterarOcorrencia],
+  },
+  {
+    recurso: RecursoPermissaoEnum.Escalas,
+    permissoes: [
+      TipoPermissaoEnum.Visualizar,
+      TipoPermissaoEnum.Gerar,
+      TipoPermissaoEnum.Alterar,
+      TipoPermissaoEnum.Publicar,
+    ],
+  },
+  {
+    recurso: RecursoPermissaoEnum.Integrantes,
+    permissoes: [TipoPermissaoEnum.Visualizar],
+  },
+  {
+    recurso: RecursoPermissaoEnum.RepertorioSetlist,
+    permissoes: [TipoPermissaoEnum.Visualizar, TipoPermissaoEnum.Gerenciar],
+  },
+];

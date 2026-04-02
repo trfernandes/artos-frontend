@@ -23,7 +23,8 @@ export type FancyCardIconProps = {
   | 'contentContainerStyle'
   | 'isCollapsable'
   | 'centerContainerStyle'
-    | 'backgroundColor'
+  | 'backgroundColor'
+  | 'onPress'
 >;
 
 export default function FancyCardIcon(props: FancyCardIconProps) {

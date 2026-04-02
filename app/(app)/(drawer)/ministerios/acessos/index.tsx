@@ -16,6 +16,7 @@ import { usePallete } from '../../../../../hooks/usePallete';
 import { ResponseLoginMinisterioDto } from '../../../../../domain/dtos/login/login.response';
 import { RecursoPermissaoEnumLabel } from '../../../../../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
 import { ResponseMinisterioAcessoMemberDto } from '../../../../../domain/dtos/MinisterioAcesso/ministerio-acesso.response';
+import VoluntarioSummarySheet from '../../../../../components/pages/common/VoluntarioSummarySheet';
 
 const summarizePermissions = (member: ResponseMinisterioAcessoMemberDto) => {
   const labels = (member.permissoes ?? []).map((item) => RecursoPermissaoEnumLabel[item.recurso]);
@@ -37,7 +38,7 @@ export default function MinisterioAcessosIndexPage() {
     return role === 'ADMIN' || hierarquia === '1';
   }, [igrejaAtiva?.role, ministerio?.hierarquia]);
 
-  const { data, isLoading, addAuxiliar, updateAuxiliar, removeAuxiliar, isLoadingMutation } = useMinisterioAcessos(
+  const { data, isLoading, isError, error, refetch, addAuxiliar, updateAuxiliar, removeAuxiliar, isLoadingMutation } = useMinisterioAcessos(
     igrejaAtiva?.id,
     params.ministerioId,
   );
@@ -45,6 +46,7 @@ export default function MinisterioAcessosIndexPage() {
   const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
   const [editorVisible, setEditorVisible] = useState(false);
   const [selectedAuxiliar, setSelectedAuxiliar] = useState<ResponseMinisterioAcessoMemberDto | null>(null);
+  const [selectedVoluntario, setSelectedVoluntario] = useState<any | null>(null);
 
   if (!canManage) {
     router.back();
@@ -75,22 +77,53 @@ export default function MinisterioAcessosIndexPage() {
 
         <View style={styles.section}>
           <FancySectionHeader title='Líderes' containerStyle={{ marginLeft: 0 }} />
-          <View style={styles.cards}>
-            {(data?.lideres ?? []).map((item) => (
-              <FancyCard.Image
-                key={item.id}
-                type='image'
-                props={{
-                  title: item.voluntario?.nome,
-                  subtitle: 'Acesso total ao ministério',
-                  source:
-                    item.voluntario?.fotoThumbUrl || item.voluntario?.fotoUrl
-                      ? { uri: item.voluntario?.fotoThumbUrl || item.voluntario?.fotoUrl }
-                      : AppImages.emptyProfile,
-                }}
-              />
-            ))}
-          </View>
+          {isError ? (
+            <View style={[styles.emptyState, { backgroundColor: palette.backgroundColor2 }]}>
+              <FancyText type='semiBold' size='small'>
+                Não foi possível carregar os acessos
+              </FancyText>
+              <FancyText size='small' color={palette.fonts.inactive}>
+                {(error as Error | undefined)?.message || 'O backend pode estar sem deploy ou o endpoint pode ter falhado.'}
+              </FancyText>
+              <FancyButton label='Tentar novamente' type='contained' onPress={() => void refetch()} containerStyle={{ marginTop: 8, height: 38 }} />
+            </View>
+          ) : data?.lideres?.length ? (
+            <View style={styles.cards}>
+              {data.lideres.map((item) => (
+                <FancyCard.Image
+                  key={item.id}
+                  type='image'
+                  props={{
+                    title: item.voluntario?.nome,
+                    subtitle: 'Acesso total ao ministério',
+                    centerContainerStyle: styles.personCardCenter,
+                    source:
+                      item.voluntario?.fotoThumbUrl || item.voluntario?.fotoUrl
+                        ? { uri: item.voluntario?.fotoThumbUrl || item.voluntario?.fotoUrl }
+                        : AppImages.emptyProfile,
+                    onPress: () =>
+                      setSelectedVoluntario({
+                        nome: item.voluntario?.nome || '-',
+                        email: item.voluntario?.email || null,
+                        telefone: item.voluntario?.telefone || null,
+                        fotoUrl: item.voluntario?.fotoUrl || null,
+                        fotoThumbUrl: item.voluntario?.fotoThumbUrl || null,
+                        papelLabel: 'Líder',
+                      }),
+                  }}
+                />
+              ))}
+            </View>
+          ) : (
+            <View style={[styles.emptyState, { backgroundColor: palette.backgroundColor2 }]}>
+              <FancyText type='semiBold' size='small'>
+                Nenhum líder encontrado
+              </FancyText>
+              <FancyText size='small' color={palette.fonts.inactive}>
+                Este ministério ainda não possui liderança configurada.
+              </FancyText>
+            </View>
+          )}
         </View>
 
         <View style={styles.section}>
@@ -118,11 +151,21 @@ export default function MinisterioAcessosIndexPage() {
                   props={{
                     title: item.voluntario?.nome,
                     subtitle: summarizePermissions(item),
-                    additionalData1: 'Auxiliar',
+                    centerContainerStyle: styles.personCardCenter,
                     source:
                       item.voluntario?.fotoThumbUrl || item.voluntario?.fotoUrl
                         ? { uri: item.voluntario?.fotoThumbUrl || item.voluntario?.fotoUrl }
                         : AppImages.emptyProfile,
+                    onPress: () =>
+                      setSelectedVoluntario({
+                        nome: item.voluntario?.nome || '-',
+                        email: item.voluntario?.email || null,
+                        telefone: item.voluntario?.telefone || null,
+                        fotoUrl: item.voluntario?.fotoUrl || null,
+                        fotoThumbUrl: item.voluntario?.fotoThumbUrl || null,
+                        papelLabel: 'Auxiliar',
+                        permissionSummary: summarizePermissions(item),
+                      }),
                     actionButtons: [
                       {
                         icon: { library: 'MaterialIcons', name: 'edit', size: 18 },
@@ -178,6 +221,7 @@ export default function MinisterioAcessosIndexPage() {
         }}
       />
 
+      <VoluntarioSummarySheet visible={!!selectedVoluntario} onClose={() => setSelectedVoluntario(null)} data={selectedVoluntario} />
       {isLoadingMutation && <FancyLoading />}
     </FancyPageView>
   );
@@ -211,6 +255,9 @@ const styles = StyleSheet.create({
   },
   cards: {
     gap: 10,
+  },
+  personCardCenter: {
+    gap: 2,
   },
   emptyState: {
     borderRadius: 24,

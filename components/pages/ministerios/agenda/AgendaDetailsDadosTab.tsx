@@ -26,9 +26,9 @@ import { TemplatePadraoEscopoEnum } from '../../../../domain/enums/Evento/templa
 import { MinisterioTipoEnum } from '../../../../domain/enums/Ministerio/ministerio-tipo.enum';
 import { getApiErrorMessage } from '../../../../domain/api/api-error';
 import { useAuth } from '../../../../contexts/AuthContext';
-import { IgrejaVoluntarioRoleEnum } from '../../../../domain/enums/Igreja/voluntario-role.enum';
 import { useEscalaItensCrud } from '../../../../hooks/useEscalaItensCrud';
 import { DateUtilsApi } from '../../../../utils/date_utils';
+import { canManageEventoOcorrencia } from '../../../../utils/ministerio_permissoes';
 
 const TemplatePadraoOrigemLabel = {
   EVENTO: 'Padrão do evento',
@@ -133,7 +133,7 @@ export default function AgendaDetailsDadosTab(props: {
   onRegisterActions?: (actions: AgendaDetailsDadosTabActions) => void;
 }) {
   const { igrejaAtiva } = useAuth();
-  const canUpdateTemplate = igrejaAtiva?.role !== IgrejaVoluntarioRoleEnum.VOLUNTARIO;
+  const canManageOccurrence = canManageEventoOcorrencia(igrejaAtiva, props.ministerioId);
   const isLouvorMinisterio = useMemo(
     () => igrejaAtiva?.ministerios?.some((ministerio) => ministerio.id === props.ministerioId && ministerio.tipo === MinisterioTipoEnum.Louvor) ?? false,
     [igrejaAtiva?.ministerios, props.ministerioId],
@@ -272,7 +272,7 @@ export default function AgendaDetailsDadosTab(props: {
   const templateDirty = templateId !== resolvedTemplateId;
   const ensaioDirty = serializeHourMinute(ensaioTime) !== serializeHourMinute(resolvedEnsaio);
   const responsavelSetlistDirty = isLouvorMinisterio && responsavelSetlistId !== resolvedResponsavelSetlistId;
-  const hasUnsavedChanges = canUpdateTemplate && (templateDirty || ensaioDirty || responsavelSetlistDirty);
+  const hasUnsavedChanges = canManageOccurrence && (templateDirty || ensaioDirty || responsavelSetlistDirty);
   const pendingChangesCount = Number(templateDirty) + Number(ensaioDirty) + Number(responsavelSetlistDirty);
   const isMutating = isSavingAll || isSavingTemplatePadrao || isSavingEnsaio || isSavingResponsavelSetlist;
 
@@ -296,18 +296,39 @@ export default function AgendaDetailsDadosTab(props: {
     return ResponsavelSetlistOrigemLabel[origem as keyof typeof ResponsavelSetlistOrigemLabel] || null;
   }, [props.ocorrencia?.responsavelSetlistOrigem]);
 
+  const resolvedResponsavelSetlistName = useMemo(() => {
+    if (props.ocorrencia?.responsavelSetlistVoluntario?.nome) {
+      return props.ocorrencia.responsavelSetlistVoluntario.nome;
+    }
+
+    const selectedOption = escalaItens.find(
+      (item) => item.voluntario?.voluntario?.id === resolvedResponsavelSetlistId,
+    );
+
+    return selectedOption?.voluntario?.voluntario?.nome ?? 'Não definido';
+  }, [
+    escalaItens,
+    props.ocorrencia?.responsavelSetlistVoluntario?.nome,
+    resolvedResponsavelSetlistId,
+  ]);
+
   const voluntariosEscaladosOptions = useMemo<DropDownItemProps<string>[]>(
-    () => [
-      { title: 'Nenhum', value: '' },
-      ...escalaItens
+    () => {
+      const unique = escalaItens
         .filter((item) => item.voluntario?.voluntario?.id)
         .map((item) => ({
           title: item.voluntario?.voluntario?.nome || 'Voluntário',
           subtitle: item.funcao?.nome || '',
           value: item.voluntario?.voluntario?.id || '',
         }))
-        .filter((item, index, array) => item.value && array.findIndex((entry) => entry.value === item.value) === index),
-    ],
+        .filter(
+          (item, index, array) =>
+            item.value && array.findIndex((entry) => entry.value === item.value) === index,
+        )
+        .sort((a, b) => a.title.localeCompare(b.title, 'pt-BR', { sensitivity: 'base' }));
+
+      return [{ title: 'Nenhum', value: '' }, ...unique];
+    },
     [escalaItens],
   );
 
@@ -316,8 +337,12 @@ export default function AgendaDetailsDadosTab(props: {
       if (!nextTemplateId) return '';
       const selectedTemplate = templates.find((template) => template.id === nextTemplateId);
       if (!selectedTemplate) return '';
-      if (selectedTemplate.respSetListVoluntarios?.id) {
-        return selectedTemplate.respSetListVoluntarios.id;
+      const explicitResponsavelId = selectedTemplate.respSetListVoluntarios?.id;
+      const explicitResponsavelEscalado = escalaItens.some(
+        (item) => item.voluntario?.voluntario?.id === explicitResponsavelId,
+      );
+      if (explicitResponsavelId && explicitResponsavelEscalado) {
+        return explicitResponsavelId;
       }
       const funcaoId = selectedTemplate.respSetListFuncoes?.id;
       if (!funcaoId) return '';
@@ -455,6 +480,7 @@ export default function AgendaDetailsDadosTab(props: {
         await salvarResponsavelSetlist({
           eventoId,
           data: {
+            ministerioId: props.ministerioId,
             dataOcorrencia: props.dataOcorrenciaIso,
             escopo,
             responsavelVoluntarioId: responsavelSetlistId || null,
@@ -474,11 +500,11 @@ export default function AgendaDetailsDadosTab(props: {
   );
 
   const saveAllChanges = useCallback(async (): Promise<boolean> => {
-    if (!canUpdateTemplate) {
+    if (!canManageOccurrence) {
       Toast.show({
         type: 'error',
         text1: 'Permissão insuficiente',
-        text2: 'Somente líderes e administradores podem alterar os dados da ocorrência.',
+        text2: 'Você não tem permissão para alterar os dados desta ocorrência.',
       });
       return false;
     }
@@ -570,7 +596,7 @@ export default function AgendaDetailsDadosTab(props: {
       setIsSavingAll(false);
     }
   }, [
-    canUpdateTemplate,
+    canManageOccurrence,
     ensaioDirty,
     pendingChangesCount,
     promptScope,
@@ -600,10 +626,10 @@ export default function AgendaDetailsDadosTab(props: {
         eventoNome={props.evento.nome}
         descricao={props.evento.descricao}
         local={props.evento.local}
-        horarioEnsaio={!canUpdateTemplate && resolvedEnsaioDisplay !== 'Não definido' ? resolvedEnsaioDisplay : undefined}
+        horarioEnsaio={!canManageOccurrence && resolvedEnsaioDisplay !== 'Não definido' ? resolvedEnsaioDisplay : undefined}
       />
 
-      {canUpdateTemplate && (
+      {(canManageOccurrence || isLouvorMinisterio) && (
         <FancyContainer
           containerStyle={styles.occurrenceContainer}
           headerContainerStyle={styles.occurrenceHeader}
@@ -617,15 +643,21 @@ export default function AgendaDetailsDadosTab(props: {
                   dirty={templateDirty}
                   editor={
                     <View style={styles.editorGroup}>
-                      <FancyBottomSheetSelect
-                        containerStyle={styles.editorControl}
-                        listItems={templatesList}
-                        value={templateId}
-                        onChange={setTemplateId}
-                        placeholder='Selecione um template'
-                        title='Template da equipe'
-                        disabled={isMutating}
-                      />
+                      {canManageOccurrence ? (
+                        <FancyBottomSheetSelect
+                          containerStyle={styles.editorControl}
+                          listItems={templatesList}
+                          value={templateId}
+                          onChange={setTemplateId}
+                          placeholder='Selecione um template'
+                          title='Template da equipe'
+                          disabled={isMutating}
+                        />
+                      ) : (
+                        <FancyText type='medium' size='small' color={Pallete.fonts.dark}>
+                          {resolvedTemplateName}
+                        </FancyText>
+                      )}
                     </View>
                   }
                 />
@@ -637,15 +669,21 @@ export default function AgendaDetailsDadosTab(props: {
                     dirty={responsavelSetlistDirty}
                     editor={
                       <View style={styles.editorGroup}>
-                        <FancyBottomSheetSelect
-                          containerStyle={styles.editorControl}
-                          listItems={voluntariosEscaladosOptions}
-                          value={responsavelSetlistId}
-                          onChange={(value) => setResponsavelSetlistId(String(value || ''))}
-                          placeholder='Selecione um voluntário'
-                          title='Responsável pelo setlist'
-                          disabled={isMutating}
-                        />
+                        {canManageOccurrence ? (
+                          <FancyBottomSheetSelect
+                            containerStyle={styles.editorControl}
+                            listItems={voluntariosEscaladosOptions}
+                            value={responsavelSetlistId}
+                            onChange={(value) => setResponsavelSetlistId(String(value || ''))}
+                            placeholder='Selecione um voluntário'
+                            title='Responsável pelo setlist'
+                            disabled={isMutating}
+                          />
+                        ) : (
+                          <FancyText type='medium' size='small' color={Pallete.fonts.dark}>
+                            {resolvedResponsavelSetlistName}
+                          </FancyText>
+                        )}
                       </View>
                     }
                   />
@@ -657,40 +695,48 @@ export default function AgendaDetailsDadosTab(props: {
                   dirty={ensaioDirty}
                   editor={
                     <View style={styles.editorGroup}>
-                      <ModernTimePickerField
-                        containerStyle={styles.editorControl}
-                        value={ensaioTime}
-                        onChange={setEnsaioTime}
-                        disabled={isMutating}
-                        panelProps={{
-                          buttonStyle: styles.timePickerButton,
-                          textStyle: styles.timePickerButtonText,
-                        }}
-                        sheetProps={{ title: 'Horário de ensaio' }}
-                      />
+                      {canManageOccurrence ? (
+                        <ModernTimePickerField
+                          containerStyle={styles.editorControl}
+                          value={ensaioTime}
+                          onChange={setEnsaioTime}
+                          disabled={isMutating}
+                          panelProps={{
+                            buttonStyle: styles.timePickerButton,
+                            textStyle: styles.timePickerButtonText,
+                          }}
+                          sheetProps={{ title: 'Horário de ensaio' }}
+                        />
+                      ) : (
+                        <FancyText type='medium' size='small' color={Pallete.fonts.dark}>
+                          {resolvedEnsaioDisplay}
+                        </FancyText>
+                      )}
                     </View>
                   }
                 />
               </View>
-              <View style={styles.footer}>
-                {hasUnsavedChanges ? (
-                  <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive} style={styles.footerStatus}>
-                    {`${pendingChangesCount} alteração${pendingChangesCount > 1 ? 'ões' : ''} pendente${pendingChangesCount > 1 ? 's' : ''}`}
-                  </FancyText>
-                ) : null}
-                <FancyButton
-                  label='Salvar alterações'
-                  type='contained'
-                  icon={{ ...DefaultIconsNames.save, size: 14 }}
-                  containerStyle={styles.saveAllButton}
-                  disabled={!hasUnsavedChanges || isMutating}
-                  isLoading={isMutating}
-                  loadingText='Salvando...'
-                  onPress={() => {
-                    void saveAllChanges();
-                  }}
-                />
-              </View>
+              {canManageOccurrence ? (
+                <View style={styles.footer}>
+                  {hasUnsavedChanges ? (
+                    <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive} style={styles.footerStatus}>
+                      {`${pendingChangesCount} alteração${pendingChangesCount > 1 ? 'ões' : ''} pendente${pendingChangesCount > 1 ? 's' : ''}`}
+                    </FancyText>
+                  ) : null}
+                  <FancyButton
+                    label='Salvar alterações'
+                    type='contained'
+                    icon={{ ...DefaultIconsNames.save, size: 14 }}
+                    containerStyle={styles.saveAllButton}
+                    disabled={!hasUnsavedChanges || isMutating}
+                    isLoading={isMutating}
+                    loadingText='Salvando...'
+                    onPress={() => {
+                      void saveAllChanges();
+                    }}
+                  />
+                </View>
+              ) : null}
             </>
           }
         />
