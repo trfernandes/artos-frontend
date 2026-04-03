@@ -11,25 +11,63 @@ type BillingStatusPanelProps = {
   primaryLabel?: string;
 };
 
-function formatCurrency(cents?: number | null) {
-  if (cents == null) return 'Sob consulta';
-  return (cents / 100).toLocaleString('pt-BR', {
+function formatCurrency(value: number) {
+  return value.toLocaleString('pt-BR', {
     style: 'currency',
     currency: 'BRL',
   });
+}
+
+function formatDate(value?: string | null) {
+  if (!value) return '—';
+  return new Date(value).toLocaleDateString('pt-BR');
+}
+
+function resolveStatusCopy(assinatura: ResponseIgrejaAssinaturaDto) {
+  switch (assinatura.status) {
+    case 'trial':
+      return {
+        title: 'Teste grátis ativo',
+        body: `${assinatura.daysRemainingInTrial} dia(s) restantes no período de teste.`,
+      };
+    case 'active':
+      return {
+        title: 'Plano ativo',
+        body: 'A assinatura da igreja está regularizada.',
+      };
+    case 'overdue':
+      return {
+        title: 'Pagamento pendente',
+        body: assinatura.inGracePeriod
+          ? 'A igreja segue em período de tolerância enquanto o pagamento é regularizado.'
+          : 'A assinatura está em atraso e pode limitar ações administrativas.',
+      };
+    case 'cancelled':
+      return {
+        title: 'Assinatura cancelada',
+        body: 'O acesso permanece até o fim do período já pago.',
+      };
+    case 'expired':
+      return {
+        title: 'Teste expirado',
+        body: 'Os recursos premium entraram em modo de leitura.',
+      };
+    default:
+      return {
+        title: 'Plano gratuito',
+        body: 'A igreja está usando o limite básico de voluntários.',
+      };
+  }
 }
 
 export default function BillingStatusPanel({
   assinatura,
   compact = false,
   onPrimaryPress,
-  primaryLabel = 'Ver assinatura',
+  primaryLabel = 'Abrir assinatura',
 }: BillingStatusPanelProps) {
   const palette = usePallete();
-  const avisoPrincipal = assinatura.avisos?.[0];
-  const planoAtual = assinatura.planoAtual;
-  const usoAtual = assinatura.usoAtual;
-  const checkoutPendente = assinatura.checkoutPendente;
+  const statusCopy = resolveStatusCopy(assinatura);
 
   return (
     <View
@@ -44,18 +82,11 @@ export default function BillingStatusPanel({
       <View style={styles.header}>
         <View style={styles.headerText}>
           <FancyText type='semiBold' size={compact ? 'small' : 'medium'}>
-            Status do plano
+            {statusCopy.title}
           </FancyText>
           <FancyText size='extraSmall' color={palette.fonts.inactive}>
-            {planoAtual
-              ? `${planoAtual.nome} • ${assinatura.periodicidade.toLowerCase()}`
-              : 'Plano em preparação'}
+            {statusCopy.body}
           </FancyText>
-          {checkoutPendente ? (
-            <FancyText size='extraSmall' color={palette.primary} type='semiBold'>
-              Pagamento pendente para {checkoutPendente.plano.toLowerCase()}
-            </FancyText>
-          ) : null}
         </View>
 
         <View
@@ -63,7 +94,7 @@ export default function BillingStatusPanel({
             styles.statusPill,
             {
               backgroundColor:
-                assinatura.status === 'ATIVA' || assinatura.status === 'ISENTA'
+                assinatura.status === 'active' || assinatura.status === 'trial'
                   ? `${palette.confirm}22`
                   : `${palette.primary}18`,
             },
@@ -73,12 +104,12 @@ export default function BillingStatusPanel({
             size='extraSmall'
             type='semiBold'
             color={
-              assinatura.status === 'ATIVA' || assinatura.status === 'ISENTA'
+              assinatura.status === 'active' || assinatura.status === 'trial'
                 ? palette.confirm
                 : palette.primary
             }
           >
-            {assinatura.status}
+            {assinatura.status.toUpperCase()}
           </FancyText>
         </View>
       </View>
@@ -86,41 +117,59 @@ export default function BillingStatusPanel({
       <View style={styles.metricsRow}>
         <View style={styles.metric}>
           <FancyText size='extraSmall' color={palette.fonts.inactive}>
-            Voluntários
+            Plano
           </FancyText>
           <FancyText type='bold' size='small'>
-            {usoAtual?.voluntariosAtivos ?? 0}
-            {planoAtual?.limiteVoluntarios != null ? ` / ${planoAtual.limiteVoluntarios}` : ''}
+            {assinatura.plan === 'annual' ? 'Anual' : assinatura.plan === 'pro' ? 'Pro' : 'Gratuito'}
           </FancyText>
         </View>
+
         <View style={styles.metric}>
           <FancyText size='extraSmall' color={palette.fonts.inactive}>
-            Ministérios
+            Ciclo
           </FancyText>
           <FancyText type='bold' size='small'>
-            {usoAtual?.ministeriosAtivos ?? 0}
-            {planoAtual?.limiteMinisterios != null ? ` / ${planoAtual.limiteMinisterios}` : ''}
+            {assinatura.cycle === 'YEARLY' ? 'Anual' : 'Mensal'}
           </FancyText>
         </View>
-        {!compact && (
+
+        {!compact ? (
           <View style={styles.metric}>
             <FancyText size='extraSmall' color={palette.fonts.inactive}>
-              Valor atual
+              Valor
             </FancyText>
             <FancyText type='bold' size='small'>
-              {planoAtual
-                ? formatCurrency(
-                    assinatura.periodicidade === 'ANUAL'
-                      ? planoAtual.precoAnualCentavos
-                      : planoAtual.precoMensalCentavos,
-                  )
-                : 'Sob consulta'}
+              {formatCurrency(Number(assinatura.amount ?? 0))}
             </FancyText>
           </View>
-        )}
+        ) : null}
       </View>
 
-      {checkoutPendente ? (
+      <View style={styles.timeline}>
+        {assinatura.status === 'trial' ? (
+          <View style={styles.metric}>
+            <FancyText size='extraSmall' color={palette.fonts.inactive}>
+              Trial termina em
+            </FancyText>
+            <FancyText type='semiBold' size='small'>
+              {formatDate(assinatura.trialEndsAt)}
+            </FancyText>
+          </View>
+        ) : null}
+
+        {assinatura.currentPeriodEnd ? (
+          <View style={styles.metric}>
+            <FancyText size='extraSmall' color={palette.fonts.inactive}>
+              Próxima renovação
+            </FancyText>
+            <FancyText type='semiBold' size='small'>
+              {formatDate(assinatura.currentPeriodEnd)}
+            </FancyText>
+          </View>
+        ) : null}
+      </View>
+
+      {assinatura.checkoutUrl ? (
         <View
           style={[
             styles.warningBox,
@@ -128,24 +177,10 @@ export default function BillingStatusPanel({
           ]}
         >
           <FancyText size='extraSmall' type='semiBold'>
-            Upgrade aguardando confirmação
+            Pagamento pendente
           </FancyText>
           <FancyText size='extraSmall' color={palette.fonts.inactive}>
-            O plano atual continua valendo até o Mercado Pago confirmar o pagamento.
-          </FancyText>
-        </View>
-      ) : avisoPrincipal ? (
-        <View
-          style={[
-            styles.warningBox,
-            { backgroundColor: `${palette.primary}10`, borderColor: `${palette.primary}22` },
-          ]}
-        >
-          <FancyText size='extraSmall' type='semiBold'>
-            {avisoPrincipal.titulo}
-          </FancyText>
-          <FancyText size='extraSmall' color={palette.fonts.inactive}>
-            {avisoPrincipal.mensagem}
+            O checkout continua disponível para você retomar quando quiser.
           </FancyText>
         </View>
       ) : null}
@@ -178,7 +213,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flex: 1,
-    gap: 3,
+    gap: 4,
   },
   statusPill: {
     borderRadius: 999,
@@ -189,9 +224,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 16,
   },
+  timeline: {
+    flexDirection: 'row',
+    gap: 16,
+    flexWrap: 'wrap',
+  },
   metric: {
     flex: 1,
     gap: 4,
+    minWidth: 100,
   },
   warningBox: {
     borderWidth: 1,

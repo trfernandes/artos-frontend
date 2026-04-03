@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 import Toast from 'react-native-toast-message';
 import { useLoading } from '../contexts/LoadingContext';
 import { CriarCheckoutAssinaturaDto } from '../domain/dtos/Igreja/criar-checkout-assinatura.dto';
@@ -28,24 +28,17 @@ export function useIgrejaAssinatura({
 
   const checkoutMutation = useMutation({
     mutationFn: async (dto: CriarCheckoutAssinaturaDto) => {
-      if (!igrejaId) throw new Error('igrejaId ausente');
-      return await IgrejaRepository.criarCheckoutAssinatura(igrejaId, dto);
+      return await IgrejaRepository.criarCheckoutAssinatura(dto);
     },
     onMutate: () => showLoading('Preparando pagamento...'),
     onSettled: () => hideLoading(),
     onSuccess: async (response) => {
-      queryClient.invalidateQueries({ queryKey: ['igreja-assinatura', igrejaId] });
-
-      if (!response.initPointUrl) {
-        Toast.show({
-          type: 'success',
-          text1: 'Plano atualizado',
-          text2: 'A assinatura foi atualizada sem precisar abrir checkout.',
-        });
-        return;
+      if (!response.checkoutUrl) {
+        throw new Error('checkoutUrl ausente');
       }
 
-      await Linking.openURL(response.initPointUrl);
+      await WebBrowser.openBrowserAsync(response.checkoutUrl);
+      await queryClient.invalidateQueries({ queryKey: ['igreja-assinatura', igrejaId] });
     },
     onError: (error: any) => {
       const message =
@@ -58,9 +51,37 @@ export function useIgrejaAssinatura({
     },
   });
 
+  const cancelMutation = useMutation({
+    mutationFn: async () => {
+      if (!igrejaId) throw new Error('igrejaId ausente');
+      return await IgrejaRepository.cancelarAssinatura(igrejaId);
+    },
+    onMutate: () => showLoading('Cancelando assinatura...'),
+    onSettled: () => hideLoading(),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['igreja-assinatura', igrejaId] });
+      Toast.show({
+        type: 'success',
+        text1: 'Assinatura cancelada',
+        text2: 'O acesso fica liberado até o fim do período já pago.',
+      });
+    },
+    onError: (error: any) => {
+      const message =
+        error?.response?.data?.message || 'Não foi possível cancelar a assinatura agora.';
+      Toast.show({
+        type: 'error',
+        text1: 'Falha ao cancelar',
+        text2: message,
+      });
+    },
+  });
+
   return {
     ...query,
     iniciarCheckout: checkoutMutation.mutate,
+    cancelarAssinatura: cancelMutation.mutate,
     isAbrindoCheckout: checkoutMutation.isPending,
+    isCancelandoAssinatura: cancelMutation.isPending,
   };
 }

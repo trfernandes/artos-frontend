@@ -5,8 +5,8 @@ import {
   ActivityIndicator,
   Platform,
   ScrollView,
+  Alert,
 } from 'react-native';
-import * as Linking from 'expo-linking';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { uploadToCloudinaryUnsigned } from '../../../../services/cloudinary_upload';
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../../../../config/cloudinary';
@@ -51,7 +51,6 @@ import { getCidadesPorUf } from '../../../../domain/utils/cidades-list';
 import { DropDownItemProps } from '../../../../components/fields/FancyDropDownItem';
 import { useIgrejaAssinatura } from '../../../../hooks/useIgrejaAssinatura';
 import BillingStatusPanel from '../../../../components/billing/BillingStatusPanel';
-import { AssinaturaPeriodicidadeEnum } from '../../../../domain/enums/Igreja/assinatura-periodicidade.enum';
 
 const REMINDER_OPTIONS = [
   { title: '1 semana antes', value: 168, description: 'Ideal para escalas semanais e eventos maiores.' },
@@ -67,34 +66,18 @@ const REMINDER_OPTIONS = [
 const DEFAULT_REMINDER_HOURS = [24, 2, 1];
 const BILLING_PLAN_OPTIONS = [
   {
-    codigo: 'STARTER',
-    nome: 'Starter',
-    descricao: 'Até 30 voluntários ativos e 3 ministérios.',
-    mensal: 3990,
-    anual: 38300,
+    codigo: 'pro',
+    nome: 'Plano Pro',
+    descricao: 'Assinatura mensal com todos os recursos premium liberados.',
+    price: 'R$49/mês',
   },
   {
-    codigo: 'ESSENCIAL',
-    nome: 'Essencial',
-    descricao: 'Até 80 voluntários ativos e 6 ministérios.',
-    mensal: 5990,
-    anual: 57500,
-  },
-  {
-    codigo: 'CRESCIMENTO',
-    nome: 'Crescimento',
-    descricao: 'Até 180 voluntários ativos e 12 ministérios.',
-    mensal: 11990,
-    anual: 115100,
+    codigo: 'annual',
+    nome: 'Plano Anual',
+    descricao: 'Mesmo plano premium com cobrança anual e desconto.',
+    price: 'R$468/ano',
   },
 ] as const;
-
-function formatCurrency(cents: number) {
-  return (cents / 100).toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  });
-}
 
 export default function ConfiguracoesPage() {
   const { igrejaAtiva, user, updateUser } = useAuth();
@@ -102,14 +85,13 @@ export default function ConfiguracoesPage() {
   const styles = useThemedStyles(createStyles);
   const igrejaId = igrejaAtiva?.id;
   const { tab } = useLocalSearchParams<{ tab?: string }>();
-  const [billingPeriod, setBillingPeriod] = useState<AssinaturaPeriodicidadeEnum>(
-    AssinaturaPeriodicidadeEnum.MENSAL,
-  );
   const {
     data: assinatura,
     isLoading: isLoadingAssinatura,
     iniciarCheckout,
+    cancelarAssinatura,
     isAbrindoCheckout,
+    isCancelandoAssinatura,
   } = useIgrejaAssinatura({ igrejaId });
 
   // Não executar o hook se não houver igreja ativa
@@ -210,6 +192,19 @@ export default function ConfiguracoesPage() {
       .join(', ');
   }, [selectedReminderHours]);
   const initialTabIndex = tab === 'plano' ? 3 : 0;
+
+  const handleCancelarAssinatura = () => {
+    if (!igrejaId) return;
+
+    Alert.alert(
+      'Cancelar assinatura',
+      'A igreja mantém acesso até o fim do período já pago. Deseja continuar?',
+      [
+        { text: 'Voltar', style: 'cancel' },
+        { text: 'Cancelar assinatura', style: 'destructive', onPress: () => cancelarAssinatura() },
+      ],
+    );
+  };
 
   const toggleReminderHour = (hour: number) => {
     const current = notificacoesForm.getValues('lembretesHoras') ?? [];
@@ -796,46 +791,23 @@ export default function ConfiguracoesPage() {
             </View>
           )}
 
-          <View style={styles.billingPeriodRow}>
-            {[AssinaturaPeriodicidadeEnum.MENSAL, AssinaturaPeriodicidadeEnum.ANUAL].map(
-              (item) => {
-                const selected = billingPeriod === item;
-                return (
-                  <TouchableOpacity
-                    key={item}
-                    onPress={() => setBillingPeriod(item)}
-                    style={[
-                      styles.periodButton,
-                      selected && {
-                        backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12),
-                        borderColor: ColorUtils.withAlpha(palette.primary, 0.28),
-                      },
-                    ]}
-                  >
-                    <FancyText
-                      size='extraSmall'
-                      type='semiBold'
-                      color={selected ? palette.primary : palette.fonts.inactive}
-                    >
-                      {item === AssinaturaPeriodicidadeEnum.ANUAL
-                        ? 'Anual com desconto'
-                        : 'Mensal'}
-                    </FancyText>
-                  </TouchableOpacity>
-                );
-              },
-            )}
+          <View style={styles.billingInfoCard}>
+            <FancyText type='semiBold' size='small'>
+              Gestão da assinatura
+            </FancyText>
+            <FancyText size='extraSmall' color={palette.fonts.inactive}>
+              {Platform.OS === 'ios'
+                ? 'Para manter conformidade com a App Store, a ativação e a regularização são concluídas no navegador do sistema.'
+                : 'O pagamento é concluído no navegador do sistema e o status volta sincronizado quando você retornar ao app.'}
+            </FancyText>
           </View>
 
           <View style={styles.planList}>
             {BILLING_PLAN_OPTIONS.map((plan) => {
-              const isCurrent = assinatura?.planoAtual?.codigo === plan.codigo;
-              const isNext = assinatura?.nextPlano === plan.codigo;
-              const isPending = assinatura?.checkoutPendente?.plano === plan.codigo;
-              const pendingPeriodMatches =
-                assinatura?.checkoutPendente?.periodicidade === billingPeriod;
-              const price =
-                billingPeriod === AssinaturaPeriodicidadeEnum.ANUAL ? plan.anual : plan.mensal;
+              const isCurrent = assinatura?.plan === plan.codigo;
+              const isPending = assinatura?.checkoutUrl && assinatura.plan === plan.codigo;
+              const switchLocked =
+                assinatura?.status === 'active' && assinatura.plan !== plan.codigo;
 
               return (
                 <View
@@ -860,16 +832,13 @@ export default function ConfiguracoesPage() {
                         {plan.descricao}
                       </FancyText>
                     </View>
-                    <View style={styles.planPriceBlock}>
-                      <FancyText type='bold' size='small'>
-                        {formatCurrency(price)}
-                      </FancyText>
-                      <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                        {billingPeriod === AssinaturaPeriodicidadeEnum.ANUAL
-                          ? 'por ano'
-                          : 'por mês'}
-                      </FancyText>
-                    </View>
+                    {Platform.OS !== 'ios' ? (
+                      <View style={styles.planPriceBlock}>
+                        <FancyText type='bold' size='small'>
+                          {plan.price}
+                        </FancyText>
+                      </View>
+                    ) : null}
                   </View>
 
                   {isCurrent ? (
@@ -878,11 +847,7 @@ export default function ConfiguracoesPage() {
                     </FancyText>
                   ) : isPending ? (
                     <FancyText size='extraSmall' type='semiBold' color={palette.primary}>
-                      Pagamento pendente de confirmação
-                    </FancyText>
-                  ) : isNext ? (
-                    <FancyText size='extraSmall' type='semiBold' color={palette.primary}>
-                      Já agendado para a próxima renovação
+                      Checkout pendente disponível para retomar
                     </FancyText>
                   ) : null}
 
@@ -891,27 +856,25 @@ export default function ConfiguracoesPage() {
                       isCurrent
                         ? 'Plano atual'
                         : isPending
-                          ? pendingPeriodMatches && assinatura?.checkoutUrl
-                            ? 'Continuar pagamento'
-                            : 'Pagamento pendente'
-                          : 'Escolher este plano'
+                          ? 'Continuar no navegador'
+                          : switchLocked
+                            ? 'Troca de plano em breve'
+                          : Platform.OS === 'ios'
+                            ? 'Gerenciar no navegador'
+                            : 'Ativar no navegador'
                     }
                     type={isCurrent || isPending ? 'outlined' : 'contained'}
                     disabled={
                       isCurrent ||
+                      switchLocked ||
                       isLoadingAssinatura ||
-                      (isAbrindoCheckout && !isPending) ||
-                      (isPending && (!pendingPeriodMatches || !assinatura?.checkoutUrl))
+                      isAbrindoCheckout ||
+                      !!(isPending && !assinatura?.checkoutUrl)
                     }
                     onPress={() => {
-                      if (isPending && pendingPeriodMatches && assinatura?.checkoutUrl) {
-                        Linking.openURL(assinatura.checkoutUrl);
-                        return;
-                      }
-
                       iniciarCheckout({
-                        plano: plan.codigo,
-                        periodicidade: billingPeriod,
+                        churchId: igrejaId!,
+                        plan: plan.codigo,
                       });
                     }}
                   />
@@ -919,6 +882,18 @@ export default function ConfiguracoesPage() {
               );
             })}
           </View>
+
+          {assinatura?.canManageBilling ? (
+            <View style={styles.billingActions}>
+              <FancyButton
+                label='Cancelar assinatura'
+                type='outlined'
+                onPress={handleCancelarAssinatura}
+                disabled={isCancelandoAssinatura}
+                isLoading={isCancelandoAssinatura}
+              />
+            </View>
+          ) : null}
         </KeyboardAwareScrollView>
       ),
     },
@@ -1107,6 +1082,14 @@ function createStyles(palette: ThemePalette) {
       justifyContent: 'center',
       alignItems: 'center',
     },
+    billingInfoCard: {
+      borderWidth: 1,
+      borderColor: palette.borderCard,
+      backgroundColor: palette.backgroundColor4,
+      borderRadius: 18,
+      padding: 16,
+      gap: 6,
+    },
     billingPeriodRow: {
       flexDirection: 'row',
       gap: 10,
@@ -1142,6 +1125,9 @@ function createStyles(palette: ThemePalette) {
     planPriceBlock: {
       alignItems: 'flex-end',
       gap: 2,
+    },
+    billingActions: {
+      paddingBottom: 20,
     },
   });
 }

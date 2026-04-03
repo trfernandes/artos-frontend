@@ -36,7 +36,12 @@
       "edgeToEdgeEnabled": true,
       "package": "com.church.artos",
       "versionCode": 1,
-      "permissions": ["INTERNET", "VIBRATE", "INTERNET", "VIBRATE"],
+      "permissions": [
+        "INTERNET",
+        "VIBRATE",
+        "INTERNET",
+        "VIBRATE"
+      ],
       "blockedPermissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
@@ -58,7 +63,10 @@
               "pathPrefix": "/invite"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         },
         {
           "action": "VIEW",
@@ -70,7 +78,10 @@
               "pathPrefix": "/invite"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -102,7 +113,8 @@
           "organization": "artos-uw"
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-web-browser"
     ],
     "extra": {
       "router": {},

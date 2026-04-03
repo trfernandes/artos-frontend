@@ -10,7 +10,6 @@ import { JoinByCodigoDto } from '../dtos/Igreja/join-by-codigo.dto';
 import { ResponseIgrejaVoluntarioDto } from '../dtos/Igreja/response-igreja-voluntario.dto';
 import { AprovarMembroDto } from '../dtos/Igreja/aprovar-membro.dto';
 import { ResponseIgrejaAssinaturaDto } from '../dtos/Igreja/response-igreja-assinatura.dto';
-import { AlterarPlanoDto } from '../dtos/Igreja/alterar-plano.dto';
 import { CriarCheckoutAssinaturaDto } from '../dtos/Igreja/criar-checkout-assinatura.dto';
 import { ResponseAssinaturaCheckoutDto } from '../dtos/Igreja/response-assinatura-checkout.dto';
 import { ResponseAceitarConviteDto } from '../dtos/Igreja/response-aceitar-convite.dto';
@@ -269,40 +268,32 @@ class IgrejaApiClass extends BaseApi<ResponseIgrejaDto, CreateIgrejaDto, UpdateI
 
   /**
    * Obter assinatura da igreja (JWT)
-   * GET /igrejas/{igrejaId}/assinatura
+   * GET /billing/status?churchId={igrejaId}
    */
   async getAssinatura(igrejaId: string): Promise<ResponseIgrejaAssinaturaDto> {
     const response = await apiClient.get<ApiEnvelope<ResponseIgrejaAssinaturaDto>>(
-      `/${this.resourceName}/${igrejaId}/assinatura`,
-    );
-    return response.data.data;
-  }
-
-  /**
-   * Alterar plano da assinatura (JWT)
-   * PATCH /igrejas/{igrejaId}/assinatura/plano
-   */
-  async alterarPlano(igrejaId: string, dto: AlterarPlanoDto): Promise<ResponseIgrejaAssinaturaDto> {
-    const response = await apiClient.patch<ApiEnvelope<ResponseIgrejaAssinaturaDto>>(
-      `/${this.resourceName}/${igrejaId}/assinatura/plano`,
-      dto,
+      `/billing/status`,
+      {
+        params: { churchId: igrejaId },
+      },
     );
     return response.data.data;
   }
 
   /**
    * Iniciar checkout da assinatura (JWT)
-   * POST /igrejas/{igrejaId}/assinatura/checkout
+   * POST /billing/checkout
    */
-  async criarCheckoutAssinatura(
-    igrejaId: string,
-    dto: CriarCheckoutAssinaturaDto,
-  ): Promise<ResponseAssinaturaCheckoutDto> {
+  async criarCheckoutAssinatura(dto: CriarCheckoutAssinaturaDto): Promise<ResponseAssinaturaCheckoutDto> {
     const response = await apiClient.post<ApiEnvelope<ResponseAssinaturaCheckoutDto>>(
-      `/${this.resourceName}/${igrejaId}/assinatura/checkout`,
+      `/billing/checkout`,
       dto,
     );
     return response.data.data;
+  }
+
+  async cancelarAssinatura(igrejaId: string): Promise<void> {
+    await apiClient.post('/billing/cancel', { churchId: igrejaId });
   }
 
   // ========== CONFIGURAÇÕES ==========
