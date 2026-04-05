@@ -65,6 +65,23 @@ function resolveCycleLabel(cycle?: string | null) {
   return cycle === 'YEARLY' ? 'Cobrança anual' : 'Cobrança mensal';
 }
 
+function resolveStatusPillLabel(status: ResponseIgrejaAssinaturaDto['status']) {
+  switch (status) {
+    case 'trial':
+      return 'TESTE';
+    case 'active':
+      return 'ATIVA';
+    case 'overdue':
+      return 'EM ATRASO';
+    case 'cancelled':
+      return 'CANCELADA';
+    case 'expired':
+      return 'EXPIRADA';
+    default:
+      return 'GRATUITA';
+  }
+}
+
 export default function BillingStatusPanel({
   assinatura,
   compact = false,
@@ -114,7 +131,7 @@ export default function BillingStatusPanel({
                 : palette.primary
             }
           >
-            {assinatura.status.toUpperCase()}
+            {resolveStatusPillLabel(assinatura.status)}
           </FancyText>
         </View>
       </View>
@@ -174,7 +191,7 @@ export default function BillingStatusPanel({
         {assinatura.status === 'trial' ? (
           <View style={styles.metric}>
             <FancyText size='extraSmall' color={palette.fonts.inactive}>
-              Trial termina em
+              Teste termina em
             </FancyText>
             <FancyText type='semiBold' size='small'>
               {formatDate(assinatura.trialEndsAt)}
