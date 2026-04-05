@@ -834,8 +834,8 @@ export default function ConfiguracoesPage() {
             containerStyle={[
               styles.billingModalContainer,
               {
-                marginTop: insets.top + 8,
-                marginBottom: insets.bottom + 8,
+                marginTop: insets.top + 20,
+                marginBottom: insets.bottom + 20,
               },
             ]}
             top={
@@ -939,7 +939,7 @@ export default function ConfiguracoesPage() {
                           <View style={styles.planHeaderText}>
                             <FancyText
                               type='semiBold'
-                              size='small'
+                              size='medium'
                               color={isRecommended ? palette.primary : undefined}
                             >
                               {plan.nome}
