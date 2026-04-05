@@ -4,8 +4,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Platform,
-  ScrollView,
-  Alert,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { uploadToCloudinaryUnsigned } from '../../../../services/cloudinary_upload';
@@ -21,9 +19,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   dadosSchema,
+  faturamentoSchema,
   modoEntradaSchema,
   notificacoesSchema,
   DadosFormData,
+  FaturamentoFormData,
   ModoEntradaFormData,
   NotificacoesFormData,
 } from '../../../../domain/schemas/igreja-configuracoes.schema';
@@ -47,7 +47,10 @@ import { usePallete } from '../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../hooks/useThemedStyles';
 import { ColorUtils } from '../../../../utils/color_utils';
 import { UF_LIST } from '../../../../domain/utils/uf-list';
-import { getCidadesPorUf } from '../../../../domain/utils/cidades-list';
+import {
+  getCidadesComCodigoPorUf,
+  getCidadesPorUf,
+} from '../../../../domain/utils/cidades-list';
 import { DropDownItemProps } from '../../../../components/fields/FancyDropDownItem';
 import { useIgrejaAssinatura } from '../../../../hooks/useIgrejaAssinatura';
 import BillingStatusPanel from '../../../../components/billing/BillingStatusPanel';
@@ -55,8 +58,8 @@ import {
   BILLING_PLAN_OPTIONS,
   BillingCycleCode,
 } from '../../../../domain/utils/billing-plan-catalog';
-import FancyModal from '../../../../components/modal/FancyModal';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import FancyBottomSheetModal from '../../../../components/modal/FancyBottomSheetModal';
+import { FancyAlert } from '../../../../components/modal/FancyAlert';
 
 const REMINDER_OPTIONS = [
   { title: '1 semana antes', value: 168, description: 'Ideal para escalas semanais e eventos maiores.' },
@@ -71,11 +74,29 @@ const REMINDER_OPTIONS = [
 
 const DEFAULT_REMINDER_HOURS = [24, 2, 1];
 
+const normalizeOptionalValue = (value?: string | null) => {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+};
+
+const isFaturamentoCompleto = (faturamento?: Partial<FaturamentoFormData> | null) =>
+  Boolean(
+    faturamento?.cnpj &&
+      faturamento?.telefoneCobranca &&
+      faturamento?.cep &&
+      faturamento?.rua &&
+      faturamento?.numero &&
+      faturamento?.bairro &&
+      faturamento?.cidade &&
+      faturamento?.cidadeIbge &&
+      faturamento?.uf,
+  );
+
 export default function ConfiguracoesPage() {
   const { igrejaAtiva, user, updateUser } = useAuth();
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
-  const insets = useSafeAreaInsets();
   const igrejaId = igrejaAtiva?.id;
   const { tab } = useLocalSearchParams<{ tab?: string }>();
   const {
@@ -136,6 +157,25 @@ export default function ConfiguracoesPage() {
       : undefined,
   });
 
+  const faturamentoForm = useForm<FaturamentoFormData>({
+    resolver: zodResolver(faturamentoSchema),
+    defaultValues: data
+      ? {
+          cnpj: data.faturamento?.cnpj || '',
+          telefoneCobranca: data.faturamento?.telefoneCobranca || '',
+          emailCobranca: data.faturamento?.emailCobranca || '',
+          cep: data.faturamento?.cep || '',
+          rua: data.faturamento?.rua || '',
+          numero: data.faturamento?.numero || '',
+          bairro: data.faturamento?.bairro || '',
+          cidade: data.faturamento?.cidade || '',
+          cidadeIbge: data.faturamento?.cidadeIbge || '',
+          uf: data.faturamento?.uf || '',
+          complemento: data.faturamento?.complemento || '',
+        }
+      : undefined,
+  });
+
   const modoEntradaForm = useForm<ModoEntradaFormData>({
     resolver: zodResolver(modoEntradaSchema),
     defaultValues: data
@@ -157,6 +197,7 @@ export default function ConfiguracoesPage() {
   const selectedReminderHours = notificacoesForm.watch('lembretesHoras');
   const [billingCycle, setBillingCycle] = useState<BillingCycleCode>('MONTHLY');
   const [billingPlansModalVisible, setBillingPlansModalVisible] = useState(false);
+  const [activeTabIndex, setActiveTabIndex] = useState(tab === 'plano' ? 3 : 0);
 
   // States para checkboxes
   const [canaisPush, setCanaisPush] = useState(
@@ -172,8 +213,16 @@ export default function ConfiguracoesPage() {
       false,
   );
   const ufSelecionada = dadosForm.watch('endereco.uf');
+  const ufFaturamentoSelecionada = faturamentoForm.watch('uf');
   const [cidadesList, setCidadesList] = useState<DropDownItemProps<string>[]>([]);
   const [isLoadingCidades, setIsLoadingCidades] = useState(false);
+  const [billingCitiesList, setBillingCitiesList] = useState<DropDownItemProps<string>[]>([]);
+  const [isLoadingBillingCities, setIsLoadingBillingCities] = useState(false);
+  const faturamentoValues = faturamentoForm.watch();
+  const billingProfileComplete = useMemo(
+    () => isFaturamentoCompleto(faturamentoValues),
+    [faturamentoValues],
+  );
   const reminderLabel = useMemo(() => {
     const values = [...(selectedReminderHours ?? [])].sort((a, b) => b - a);
     if (values.length === 0) return 'Nenhum lembrete selecionado';
@@ -186,23 +235,27 @@ export default function ConfiguracoesPage() {
       })
       .join(', ');
   }, [selectedReminderHours]);
-  const initialTabIndex = tab === 'plano' ? 3 : 0;
-
   useEffect(() => {
     if (assinatura?.cycle === 'MONTHLY' || assinatura?.cycle === 'YEARLY') {
       setBillingCycle(assinatura.cycle);
     }
   }, [assinatura?.cycle]);
 
+  useEffect(() => {
+    if (tab === 'plano') {
+      setActiveTabIndex(3);
+    }
+  }, [tab]);
+
   const handleCancelarAssinatura = () => {
     if (!igrejaId) return;
 
-    Alert.alert(
+    FancyAlert.alert(
       'Cancelar assinatura',
       'A igreja mantém acesso até o fim do período já pago. Deseja continuar?',
       [
-        { text: 'Voltar', style: 'cancel' },
-        { text: 'Cancelar assinatura', style: 'destructive', onPress: () => cancelarAssinatura() },
+        { text: 'Voltar', style: 'default' },
+        { text: 'Sim', style: 'destructive', onPress: () => cancelarAssinatura() },
       ],
     );
   };
@@ -244,6 +297,27 @@ export default function ConfiguracoesPage() {
   }, [ufSelecionada, dadosForm]);
 
   useEffect(() => {
+    if (!ufFaturamentoSelecionada) {
+      setBillingCitiesList([]);
+      faturamentoForm.setValue('cidadeIbge', '');
+      faturamentoForm.setValue('cidade', '');
+      return;
+    }
+
+    setIsLoadingBillingCities(true);
+    getCidadesComCodigoPorUf(ufFaturamentoSelecionada)
+      .then((cidades) => {
+        setBillingCitiesList(cidades);
+      })
+      .catch(() => {
+        setBillingCitiesList([]);
+      })
+      .finally(() => {
+        setIsLoadingBillingCities(false);
+      });
+  }, [ufFaturamentoSelecionada, faturamentoForm]);
+
+  useEffect(() => {
     const cidadeAtual = dadosForm.getValues('endereco.cidade');
     if (!cidadeAtual) return;
     const cidadeExiste = cidadesList.some((cidade) => cidade.value === cidadeAtual);
@@ -251,6 +325,22 @@ export default function ConfiguracoesPage() {
       dadosForm.setValue('endereco.cidade', '');
     }
   }, [cidadesList, dadosForm]);
+
+  useEffect(() => {
+    const cidadeAtual = faturamentoForm.getValues('cidadeIbge');
+    if (!cidadeAtual) return;
+    const cidadeSelecionada = billingCitiesList.find((cidade) => cidade.value === cidadeAtual);
+
+    if (!cidadeSelecionada) {
+      faturamentoForm.setValue('cidadeIbge', '');
+      faturamentoForm.setValue('cidade', '');
+      return;
+    }
+
+    if (faturamentoForm.getValues('cidade') !== cidadeSelecionada.title) {
+      faturamentoForm.setValue('cidade', cidadeSelecionada.title);
+    }
+  }, [billingCitiesList, faturamentoForm]);
 
   // Atualizar forms quando data carregar
   useEffect(() => {
@@ -283,6 +373,20 @@ export default function ConfiguracoesPage() {
         logoUrl: data.logoUrl || '',
       });
 
+      faturamentoForm.reset({
+        cnpj: data.faturamento?.cnpj || '',
+        telefoneCobranca: data.faturamento?.telefoneCobranca || '',
+        emailCobranca: data.faturamento?.emailCobranca || '',
+        cep: data.faturamento?.cep || '',
+        rua: data.faturamento?.rua || '',
+        numero: data.faturamento?.numero || '',
+        bairro: data.faturamento?.bairro || '',
+        cidade: data.faturamento?.cidade || '',
+        cidadeIbge: data.faturamento?.cidadeIbge || '',
+        uf: data.faturamento?.uf || '',
+        complemento: data.faturamento?.complemento || '',
+      });
+
       modoEntradaForm.reset({
         modoEntrada: data.modoEntrada,
       });
@@ -309,7 +413,7 @@ export default function ConfiguracoesPage() {
         setCanaisWhatsapp(notificacoes.canais?.whatsapp ?? notificacoes.canaisWhatsapp ?? false);
       }
     }
-  }, [data]);
+  }, [data, faturamentoForm]);
 
   // Handlers
   const handleSalvarDados = dadosForm.handleSubmit(async (formData: DadosFormData) => {
@@ -348,7 +452,26 @@ export default function ConfiguracoesPage() {
         igrejaId: igrejaId!,
         dto: {
           ...formData,
+          telefone: normalizeOptionalValue(formData.telefone),
+          email: normalizeOptionalValue(formData.email),
           logoUrl: finalLogoUrl ?? undefined,
+        },
+      });
+    } catch (error) {
+      // Erro já tratado pelo hook
+    }
+  });
+
+  const handleSalvarFaturamento = faturamentoForm.handleSubmit(async (formData) => {
+    try {
+      await updateDados({
+        igrejaId: igrejaId!,
+        dto: {
+          faturamento: {
+            ...formData,
+            emailCobranca: normalizeOptionalValue(formData.emailCobranca),
+            complemento: normalizeOptionalValue(formData.complemento),
+          },
         },
       });
     } catch (error) {
@@ -389,6 +512,30 @@ export default function ConfiguracoesPage() {
         });
       }
     }
+  };
+
+  const handleAbrirConfiguracaoFaturamento = () => {
+    closeBillingPlansModal();
+    setActiveTabIndex(0);
+  };
+
+  const handleIniciarCheckout = (plan: (typeof BILLING_PLAN_OPTIONS)[number]['codigo']) => {
+    if (!billingProfileComplete) {
+      closeBillingPlansModal();
+      setActiveTabIndex(0);
+      FancyAlert.alert(
+        'Dados de faturamento pendentes',
+        'Complete os dados de faturamento da igreja antes de iniciar a assinatura.',
+        [{ text: 'Ok', style: 'default' }],
+      );
+      return;
+    }
+
+    iniciarCheckout({
+      churchId: igrejaId!,
+      plan,
+      cycle: billingCycle,
+    });
   };
 
   // Verificar se há igreja ativa
@@ -504,6 +651,145 @@ export default function ConfiguracoesPage() {
               label='Email'
               keyboardType='email-address'
             />
+
+            <View
+              style={[
+                styles.billingProfileCard,
+                {
+                  backgroundColor: palette.backgroundColor4,
+                  borderColor: billingProfileComplete
+                    ? ColorUtils.withAlpha(palette.confirm, 0.28)
+                    : ColorUtils.withAlpha(palette.primary, 0.24),
+                },
+              ]}
+            >
+              <View style={styles.billingProfileHeader}>
+                <View style={styles.billingProfileHeaderText}>
+                  <FancyText type='semiBold' size='small'>
+                    Dados de faturamento
+                  </FancyText>
+                  <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                    Esses dados são usados para criar o cliente da igreja no checkout do Asaas.
+                  </FancyText>
+                </View>
+                <View
+                  style={[
+                    styles.billingProfilePill,
+                    {
+                      backgroundColor: billingProfileComplete
+                        ? ColorUtils.withAlpha(palette.confirm, 0.12)
+                        : ColorUtils.withAlpha(palette.primary, 0.12),
+                    },
+                  ]}
+                >
+                  <FancyText
+                    size='extraSmall'
+                    type='semiBold'
+                    color={billingProfileComplete ? palette.confirm : palette.primary}
+                  >
+                    {billingProfileComplete ? 'Completo' : 'Pendente'}
+                  </FancyText>
+                </View>
+              </View>
+
+              <ControlledMaskedTextInput
+                control={faturamentoForm.control}
+                name='cnpj'
+                label='CNPJ'
+                maskType='cnpj'
+              />
+
+              <ControlledMaskedTextInput
+                control={faturamentoForm.control}
+                name='telefoneCobranca'
+                label='Telefone de cobrança'
+                maskType='phone'
+              />
+
+              <ControlledTextInput
+                control={faturamentoForm.control}
+                name='emailCobranca'
+                label='Email de cobrança'
+                keyboardType='email-address'
+              />
+
+              <ControlledMaskedTextInput
+                control={faturamentoForm.control}
+                name='cep'
+                label='CEP de faturamento'
+                maskType='cep'
+              />
+
+              <ControlledTextInput
+                control={faturamentoForm.control}
+                name='rua'
+                label='Rua de faturamento'
+              />
+
+              <ControlledTextInput
+                control={faturamentoForm.control}
+                name='numero'
+                label='Número'
+                keyboardType='numeric'
+              />
+
+              <ControlledTextInput
+                control={faturamentoForm.control}
+                name='bairro'
+                label='Bairro'
+              />
+
+              <ControlledTextInput
+                control={faturamentoForm.control}
+                name='complemento'
+                label='Complemento'
+              />
+
+              <ControlledSearchSelect
+                control={faturamentoForm.control}
+                name='uf'
+                label='Estado de faturamento'
+                listItems={UF_LIST}
+                placeholder='Selecione o estado'
+                searchPlaceholder='Buscar estado...'
+              />
+
+              <ControlledSearchSelect
+                control={faturamentoForm.control}
+                name='cidadeIbge'
+                label='Cidade de faturamento'
+                listItems={billingCitiesList}
+                placeholder={
+                  isLoadingBillingCities ? 'Carregando cidades...' : 'Selecione a cidade'
+                }
+                searchPlaceholder='Buscar cidade...'
+                disabled={!ufFaturamentoSelecionada || isLoadingBillingCities}
+                isLoading={isLoadingBillingCities}
+                onChange={(cidadeId) => {
+                  const cidadeSelecionada = billingCitiesList.find(
+                    (cidade) => cidade.value === cidadeId,
+                  );
+                  faturamentoForm.setValue('cidade', cidadeSelecionada?.title ?? '', {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
+                }}
+              />
+
+              {!isLoadingBillingCities && ufFaturamentoSelecionada && billingCitiesList.length === 0 ? (
+                <FancyText size='extraSmall' color={palette.error}>
+                  Não foi possível carregar as cidades com código IBGE. Tente novamente antes de assinar.
+                </FancyText>
+              ) : null}
+
+              <FancyButton
+                label='Salvar faturamento'
+                icon={{ library: 'MaterialCommunityIcons', name: 'office-building-cog', size: 14 }}
+                onPress={handleSalvarFaturamento}
+                disabled={isUpdating}
+                isLoading={isUpdating}
+              />
+            </View>
 
             {/* Código da Igreja */}
             <View style={styles.codigoCard}>
@@ -787,257 +1073,264 @@ export default function ConfiguracoesPage() {
           enableOnAndroid={true}
           extraScrollHeight={100}
         >
+          {!billingProfileComplete ? (
+            <View
+              style={[
+                styles.billingMissingCard,
+                {
+                  backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
+                  borderColor: ColorUtils.withAlpha(palette.primary, 0.18),
+                },
+              ]}
+            >
+              <FancyText type='semiBold' size='small'>
+                Falta concluir o faturamento da igreja
+              </FancyText>
+              <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                Preencha CNPJ, telefone e endereço de cobrança na aba Dados antes de assinar.
+              </FancyText>
+              <FancyButton
+                label='Completar faturamento'
+                type='outlined'
+                onPress={handleAbrirConfiguracaoFaturamento}
+              />
+            </View>
+          ) : null}
+
           {assinatura ? (
-            <BillingStatusPanel assinatura={assinatura} />
+            <BillingStatusPanel
+              assinatura={assinatura}
+              onPrimaryPress={openBillingPlansModal}
+              primaryLabel={assinatura?.checkoutUrl ? 'Retomar pagamento' : 'Ver planos'}
+              onSecondaryPress={assinatura?.canManageBilling ? handleCancelarAssinatura : undefined}
+              isSecondaryLoading={isCancelandoAssinatura}
+            />
           ) : (
             <View style={styles.billingLoadingCard}>
               <ActivityIndicator size='small' color={palette.primary} />
             </View>
           )}
 
-          <View style={styles.billingInfoCard}>
-            <FancyText type='semiBold' size='small'>
-              Gestão da assinatura
-            </FancyText>
-            <FancyText size='extraSmall' color={palette.fonts.inactive}>
-              {assinatura?.checkoutUrl
-                ? 'Existe um pagamento pendente. Você pode retomar a cobrança ou revisar as outras faixas.'
-                : 'Revise o plano atual da igreja e abra as opções quando quiser ajustar a assinatura.'}
-            </FancyText>
-          </View>
-
-          {assinatura?.canManageBilling ? (
-            <View style={styles.billingActionsRow}>
-              <FancyButton
-                label={assinatura?.checkoutUrl ? 'Retomar pagamento' : 'Ver opções de assinatura'}
-                onPress={openBillingPlansModal}
-                containerStyle={styles.billingActionButton}
-                accessibilityLabel='Abrir opções de assinatura'
-              />
-              <FancyButton
-                label='Cancelar'
-                type='outlined'
-                onPress={handleCancelarAssinatura}
-                disabled={isCancelandoAssinatura}
-                isLoading={isCancelandoAssinatura}
-                containerStyle={styles.billingActionButton}
-              />
+          <FancyBottomSheetModal
+            visible={billingPlansModalVisible}
+            onClose={closeBillingPlansModal}
+            title='Opções de assinatura'
+          >
+            <View style={styles.planSheetIntro}>
+              <FancyText size='small' color={palette.fonts.inactive}>
+                Escolha o plano da igreja e siga para o pagamento quando quiser concluir.
+              </FancyText>
             </View>
-          ) : null}
 
-          <FancyModal
-            closeOnBackdropPress
-            modalProps={{
-              visible: billingPlansModalVisible,
-              onRequestClose: closeBillingPlansModal,
-            }}
-            containerStyle={[
-              styles.billingModalContainer,
-              {
-                marginTop: insets.top + 28,
-                marginBottom: insets.bottom + 28,
-              },
-            ]}
-            top={
-              <View style={styles.billingModalTop}>
-                <View style={styles.billingModalTopText}>
-                  <FancyText type='bold' size='medium'>
-                    Opções de assinatura
-                  </FancyText>
-                  <FancyText size='small' color={palette.fonts.inactive}>
-                    Escolha a faixa da igreja e conclua o pagamento no navegador quando estiver pronto.
-                  </FancyText>
-                </View>
+            <View style={styles.billingPeriodRow}>
+              {([
+                { code: 'MONTHLY', label: 'Mensal' },
+                { code: 'YEARLY', label: 'Anual' },
+              ] as const).map((period) => {
+                const selected = billingCycle === period.code;
+                return (
+                  <TouchableOpacity
+                    key={period.code}
+                    style={[
+                      styles.periodButton,
+                      {
+                        backgroundColor: selected
+                          ? ColorUtils.withAlpha(palette.primary, 0.12)
+                          : palette.backgroundColor4,
+                        borderColor: selected
+                          ? ColorUtils.withAlpha(palette.primary, 0.28)
+                          : palette.borderCard,
+                      },
+                    ]}
+                    onPress={() => setBillingCycle(period.code)}
+                  >
+                    <FancyText type={selected ? 'semiBold' : 'normal'} size='small'>
+                      {period.label}
+                    </FancyText>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
 
-                <TouchableOpacity
-                  onPress={closeBillingPlansModal}
-                  style={styles.billingModalClose}
-                  accessibilityRole='button'
-                  accessibilityLabel='Fechar opções de assinatura'
-                >
-                  {DefaultIcons.Custom({
-                    library: 'Ionicons',
-                    name: 'close',
-                    size: 22,
-                    color: palette.icons.dark,
-                  })}
-                </TouchableOpacity>
-              </View>
-            }
-            center={
-              <ScrollView
-                style={styles.billingModalScroll}
-                contentContainerStyle={styles.billingModalContent}
-                showsVerticalScrollIndicator={false}
-              >
-                <View style={styles.billingPeriodRow}>
-                  {([
-                    { code: 'MONTHLY', label: 'Mensal' },
-                    { code: 'YEARLY', label: 'Anual' },
-                  ] as const).map((period) => {
-                    const selected = billingCycle === period.code;
-                    return (
-                      <TouchableOpacity
-                        key={period.code}
-                        style={[
-                          styles.periodButton,
-                          {
-                            backgroundColor: selected
-                              ? ColorUtils.withAlpha(palette.primary, 0.12)
-                              : palette.backgroundColor4,
-                            borderColor: selected
-                              ? ColorUtils.withAlpha(palette.primary, 0.28)
-                              : palette.borderCard,
-                          },
-                        ]}
-                        onPress={() => setBillingCycle(period.code)}
-                      >
-                        <FancyText type={selected ? 'semiBold' : 'normal'} size='small'>
-                          {period.label}
+            <View style={styles.planList}>
+              {BILLING_PLAN_OPTIONS.map((plan) => {
+                const isCurrent =
+                  assinatura?.plan === plan.codigo && assinatura?.cycle === billingCycle;
+                const isPending =
+                  !!assinatura?.checkoutUrl &&
+                  assinatura.plan === plan.codigo &&
+                  assinatura.cycle === billingCycle;
+                const switchLocked = assinatura?.status === 'active' && !isCurrent;
+                const isRecommended = plan.codigo === 'essencial';
+                const priceLabel =
+                  billingCycle === 'YEARLY' ? plan.yearlyPrice : plan.monthlyPrice;
+                const [priceValue, priceSuffix] = priceLabel.split('/');
+                const planAccent =
+                  plan.codigo === 'starter'
+                    ? palette.primary
+                    : plan.codigo === 'essencial'
+                      ? palette.confirm
+                      : palette.terciary;
+                const buttonContainerStyle = isCurrent || isPending
+                  ? {
+                      borderColor: planAccent,
+                      backgroundColor: 'transparent',
+                    }
+                  : switchLocked
+                    ? {
+                        borderColor: ColorUtils.withAlpha(planAccent, 0.28),
+                        backgroundColor: 'transparent',
+                      }
+                    : {
+                        backgroundColor: planAccent,
+                        borderColor: planAccent,
+                      };
+                const buttonLabelStyle = {
+                  color:
+                    isCurrent || isPending
+                      ? planAccent
+                      : switchLocked
+                        ? palette.fonts.inactive
+                        : palette.fonts.light,
+                };
+
+                return (
+                  <View
+                    key={plan.codigo}
+                    style={[
+                      styles.planCard,
+                      isRecommended && styles.planCardRecommended,
+                      {
+                        backgroundColor: palette.backgroundColor,
+                        borderColor:
+                          isCurrent || isPending
+                            ? planAccent
+                            : isRecommended
+                              ? ColorUtils.withAlpha(planAccent, 0.5)
+                              : ColorUtils.withAlpha(planAccent, 0.24),
+                      },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.planAccentBar,
+                        { backgroundColor: ColorUtils.withAlpha(planAccent, 0.92) },
+                      ]}
+                    />
+
+                    <View style={styles.planHeader}>
+                      <View style={styles.planHeaderText}>
+                        <FancyText type='semiBold' size='large' color={planAccent}>
+                          {plan.nome}
                         </FancyText>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-
-                <View style={styles.planList}>
-                  {BILLING_PLAN_OPTIONS.map((plan) => {
-                    const isCurrent =
-                      assinatura?.plan === plan.codigo && assinatura?.cycle === billingCycle;
-                    const isPending =
-                      !!assinatura?.checkoutUrl &&
-                      assinatura.plan === plan.codigo &&
-                      assinatura.cycle === billingCycle;
-                    const switchLocked = assinatura?.status === 'active' && !isCurrent;
-                    const isRecommended = plan.codigo === 'essencial';
-                    const priceLabel =
-                      billingCycle === 'YEARLY' ? plan.yearlyPrice : plan.monthlyPrice;
-
-                    return (
-                      <View
-                        key={plan.codigo}
-                        style={[
-                          styles.planCard,
-                          isRecommended && styles.planCardRecommended,
-                          {
-                            backgroundColor:
-                              isCurrent || isPending
-                                ? ColorUtils.withAlpha(palette.primary, 0.12)
-                                : isRecommended
-                                  ? ColorUtils.withAlpha(palette.primary, 0.08)
-                                  : palette.backgroundColor4,
-                            borderColor:
-                              isCurrent || isPending
-                                ? ColorUtils.withAlpha(palette.primary, 0.32)
-                                : isRecommended
-                                  ? ColorUtils.withAlpha(palette.primary, 0.18)
-                                  : palette.borderCard,
-                          },
-                        ]}
-                      >
-                        <View style={styles.planHeader}>
-                          <View style={styles.planHeaderText}>
-                            <FancyText
-                              type='semiBold'
-                              size='large'
-                              color={isRecommended ? palette.primary : undefined}
-                            >
-                              {plan.nome}
-                            </FancyText>
-                            <FancyText size='small' color={palette.fonts.inactive}>
-                              {plan.descricao}
-                            </FancyText>
-                          </View>
-                          {Platform.OS !== 'ios' ? (
-                            <View style={styles.planPriceBlock}>
+                        <FancyText
+                          type='medium'
+                          size='small'
+                          color={ColorUtils.withAlpha(palette.fonts.dark, 0.82)}
+                        >
+                          {plan.descricao}
+                        </FancyText>
+                      </View>
+                      {Platform.OS !== 'ios' ? (
+                        <View style={styles.planPriceBlock}>
                           {plan.highlight ? (
                             <View
                               style={[
                                 styles.planBadge,
-                                { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14) },
-                                  ]}
-                                >
-                                <FancyText size='small' type='semiBold' color={palette.primary}>
-                                  {plan.highlight}
-                                </FancyText>
-                              </View>
-                            ) : null}
-                              <FancyText type='bold' size='medium'>
-                                {priceLabel}
+                                { backgroundColor: ColorUtils.withAlpha(planAccent, 0.1) },
+                              ]}
+                            >
+                              <FancyText size='small' type='semiBold' color={planAccent}>
+                                {plan.highlight}
                               </FancyText>
                             </View>
                           ) : null}
-                        </View>
-
-                        <View
-                          style={[
-                            styles.planDivider,
-                            { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08) },
-                          ]}
-                        />
-
-                        <View style={styles.planFeatureGrid}>
-                          <View style={styles.planFeatureColumn}>
-                            <FancyText size='small' color={palette.fonts.dark}>
-                              • Até {plan.maxVolunteers} voluntários ativos
+                          <View style={styles.planPriceTextBlock}>
+                            <FancyText
+                              type='bold'
+                              size='extraLarge'
+                              color={planAccent}
+                              style={styles.planPriceValue}
+                            >
+                              {priceValue}
                             </FancyText>
-                            <FancyText size='small' color={palette.fonts.dark}>
-                              • Cobrança {billingCycle === 'YEARLY' ? 'anual' : 'mensal'}
-                            </FancyText>
-                          </View>
-                          <View style={styles.planFeatureColumn}>
-                            <FancyText size='small' color={palette.fonts.dark}>
-                              • Até {plan.maxMinistries} ministérios ativos
-                            </FancyText>
-                            <FancyText size='small' color={palette.fonts.dark}>
-                              • Ajuste para o ritmo atual da igreja
-                            </FancyText>
+                            {priceSuffix ? (
+                              <FancyText
+                                type='semiBold'
+                                size='small'
+                                color={ColorUtils.withAlpha(planAccent, 0.9)}
+                              >
+                                /{priceSuffix}
+                              </FancyText>
+                            ) : null}
                           </View>
                         </View>
+                      ) : null}
+                    </View>
 
-                        {isCurrent ? (
-                          <FancyText size='extraSmall' type='semiBold' color={palette.primary}>
-                            Faixa atual
-                          </FancyText>
-                        ) : isPending ? (
-                          <FancyText size='extraSmall' type='semiBold' color={palette.primary}>
-                            Pagamento pendente para esta faixa
-                          </FancyText>
-                        ) : null}
+                    <View
+                      style={[
+                        styles.planDivider,
+                        { backgroundColor: ColorUtils.withAlpha(planAccent, 0.12) },
+                      ]}
+                    />
 
-                        <FancyButton
-                          label={
-                            isCurrent
-                              ? 'Faixa atual'
-                              : isPending
-                                ? 'Continuar pagamento'
-                                : switchLocked
-                                  ? 'Troca disponível em breve'
-                                  : 'Escolher esta faixa'
-                          }
-                          type={isCurrent || isPending ? 'outlined' : isRecommended ? 'contained' : 'light'}
-                          disabled={
-                            isCurrent ||
-                            switchLocked ||
-                            isLoadingAssinatura ||
-                            isAbrindoCheckout ||
-                            !!(isPending && !assinatura?.checkoutUrl)
-                          }
-                          onPress={() => {
-                            iniciarCheckout({
-                              churchId: igrejaId!,
-                              plan: plan.codigo,
-                              cycle: billingCycle,
-                            });
-                          }}
-                        />
+                    <View style={styles.planFeatureGrid}>
+                      <View style={styles.planFeatureColumn}>
+                        <FancyText size='small' color={palette.fonts.dark}>
+                          • Até {plan.maxVolunteers} voluntários ativos
+                        </FancyText>
+                        <FancyText size='small' color={palette.fonts.dark}>
+                          • Cobrança {billingCycle === 'YEARLY' ? 'anual' : 'mensal'}
+                        </FancyText>
                       </View>
-                    );
-                  })}
-                </View>
-              </ScrollView>
-            }
-          />
+                      <View style={styles.planFeatureColumn}>
+                        <FancyText size='small' color={palette.fonts.dark}>
+                          • Até {plan.maxMinistries} ministérios ativos
+                        </FancyText>
+                        <FancyText size='small' color={palette.fonts.dark}>
+                          • Ajuste para o ritmo atual da igreja
+                        </FancyText>
+                      </View>
+                    </View>
+
+                    {isCurrent ? (
+                      <FancyText size='extraSmall' type='semiBold' color={planAccent}>
+                        Plano atual
+                      </FancyText>
+                    ) : isPending ? (
+                      <FancyText size='extraSmall' type='semiBold' color={planAccent}>
+                        Pagamento pendente para esta faixa
+                      </FancyText>
+                    ) : null}
+
+                    <FancyButton
+                      label={
+                        isCurrent
+                          ? 'Plano atual'
+                          : isPending
+                            ? 'Continuar pagamento'
+                            : switchLocked
+                              ? 'Indisponível por enquanto'
+                              : 'Assinar plano'
+                      }
+                      type={isCurrent || isPending ? 'outlined' : 'contained'}
+                      disabled={
+                        isCurrent ||
+                        switchLocked ||
+                        isLoadingAssinatura ||
+                        isAbrindoCheckout ||
+                        !!(isPending && !assinatura?.checkoutUrl)
+                      }
+                      onPress={() => handleIniciarCheckout(plan.codigo)}
+                      containerStyle={buttonContainerStyle}
+                      labelStyle={buttonLabelStyle}
+                    />
+                  </View>
+                );
+              })}
+            </View>
+          </FancyBottomSheetModal>
         </KeyboardAwareScrollView>
       ),
     },
@@ -1049,7 +1342,8 @@ export default function ConfiguracoesPage() {
         items={TAB_DATA}
         containerStyle={styles.tabsContainer}
         contentContainerStyle={styles.tabContentContainer}
-        initialIndex={initialTabIndex}
+        initialIndex={activeTabIndex}
+        onTabChange={setActiveTabIndex}
       />
     </FancyPageView>
   );
@@ -1136,6 +1430,28 @@ function createStyles(palette: ThemePalette) {
     },
     codigoCopyText: {
       color: palette.primary,
+    },
+    billingProfileCard: {
+      borderWidth: 1,
+      borderRadius: 16,
+      padding: 16,
+      gap: 12,
+      ...palette.shadows[100],
+    },
+    billingProfileHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      gap: 12,
+    },
+    billingProfileHeaderText: {
+      flex: 1,
+      gap: 4,
+    },
+    billingProfilePill: {
+      borderRadius: 999,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
     },
 
     // Modo de Entrada Cards
@@ -1226,53 +1542,14 @@ function createStyles(palette: ThemePalette) {
       justifyContent: 'center',
       alignItems: 'center',
     },
-    billingInfoCard: {
+    billingMissingCard: {
       borderWidth: 1,
-      borderColor: palette.borderCard,
-      backgroundColor: palette.backgroundColor4,
       borderRadius: 18,
       padding: 16,
-      gap: 6,
+      gap: 10,
     },
-    billingModalContainer: {
-      width: '92%',
-      maxHeight: '90%',
-      paddingHorizontal: 0,
-      paddingVertical: 0,
-      overflow: 'hidden',
-      alignItems: 'stretch',
-    },
-    billingModalTop: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      justifyContent: 'space-between',
-      gap: 12,
-      paddingHorizontal: 18,
-      paddingTop: 18,
-      paddingBottom: 12,
-    },
-    billingModalTopText: {
-      flex: 1,
-      gap: 6,
-    },
-    billingModalClose: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: palette.backgroundColor2,
-    },
-    billingModalScroll: {
-      flexGrow: 0,
-    },
-    billingModalContent: {
-      gap: 16,
-      paddingHorizontal: 18,
-      paddingBottom: 18,
-    },
-    billingModalHeader: {
-      gap: 6,
+    planSheetIntro: {
+      marginTop: -4,
     },
     billingPeriodRow: {
       flexDirection: 'row',
@@ -1295,10 +1572,16 @@ function createStyles(palette: ThemePalette) {
       borderRadius: 18,
       padding: 16,
       gap: 12,
+      overflow: 'hidden',
       ...palette.shadows[100],
     },
     planCardRecommended: {
       borderWidth: 1.5,
+    },
+    planAccentBar: {
+      height: 6,
+      borderRadius: 999,
+      marginBottom: 2,
     },
     planHeader: {
       flexDirection: 'row',
@@ -1312,7 +1595,14 @@ function createStyles(palette: ThemePalette) {
     },
     planPriceBlock: {
       alignItems: 'flex-end',
-      gap: 6,
+      gap: 8,
+    },
+    planPriceTextBlock: {
+      alignItems: 'flex-end',
+      gap: 2,
+    },
+    planPriceValue: {
+      lineHeight: 28,
     },
     planBadge: {
       borderRadius: 999,
@@ -1330,14 +1620,6 @@ function createStyles(palette: ThemePalette) {
     planFeatureColumn: {
       flex: 1,
       gap: 6,
-    },
-    billingActionsRow: {
-      flexDirection: 'row',
-      gap: 12,
-      paddingBottom: 20,
-    },
-    billingActionButton: {
-      flex: 1,
     },
   });
 }

@@ -4,6 +4,7 @@ import Toast from 'react-native-toast-message';
 import { useLoading } from '../contexts/LoadingContext';
 import { CriarCheckoutAssinaturaDto } from '../domain/dtos/Igreja/criar-checkout-assinatura.dto';
 import { IgrejaRepository } from '../domain/services/IgrejaRepository';
+import { FancyAlert } from '../components/modal/FancyAlert';
 
 type UseIgrejaAssinaturaOptions = {
   igrejaId?: string;
@@ -43,6 +44,7 @@ export function useIgrejaAssinatura({
     onError: (error: any) => {
       const message =
         error?.response?.data?.message || 'Não foi possível iniciar o pagamento agora.';
+      FancyAlert.alert('Falha ao abrir pagamento', message);
       Toast.show({
         type: 'error',
         text1: 'Falha ao abrir pagamento',

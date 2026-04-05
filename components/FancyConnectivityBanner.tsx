@@ -10,6 +10,7 @@ export function ConnectivityBanner() {
   const palette = usePallete();
   const { status, recheck } = useConnectivity();
   const insets = useSafeAreaInsets();
+  const bottomOffset = Math.max(insets.bottom, 12);
 
   if (status === 'ok') return null;
 
@@ -20,11 +21,11 @@ export function ConnectivityBanner() {
     <View
       style={{
         position: 'absolute',
-        bottom: 0,
+        bottom: bottomOffset,
         left: 0,
         right: 0,
         zIndex: 9999,
-        paddingBottom: insets.bottom,
+        paddingBottom: 10,
         paddingTop: 10,
         paddingHorizontal: 16,
         backgroundColor: palette.error,
@@ -42,17 +43,23 @@ export function ConnectivityBanner() {
         </FancyText>
       </View>
 
-      {status === 'serverDown' ? (
-        <FancyButton
-          type='outlined'
-          containerStyle={{ borderColor: 'white', borderWidth: 0.8, height: 28, gap: 6, paddingHorizontal: 10 }}
-          labelStyle={{ color: 'white' }}
-          onPress={recheck}
-          labelProps={{ size: 'extraSmall' }}
-          label='Tentar novamente'
-          icon={{ ...DefaultIconsNames.refresh, color: 'white', size: 12 }}
-        />
-      ) : null}
+      <FancyButton
+        type='outlined'
+        containerStyle={{
+          borderColor: 'white',
+          borderWidth: 0.8,
+          height: 28,
+          gap: 6,
+          paddingHorizontal: 10,
+          marginLeft: 12,
+          flexShrink: 0,
+        }}
+        labelStyle={{ color: 'white' }}
+        onPress={recheck}
+        labelProps={{ size: 'extraSmall' }}
+        label='Atualizar'
+        icon={{ ...DefaultIconsNames.refresh, color: 'white', size: 12 }}
+      />
     </View>
   );
 }

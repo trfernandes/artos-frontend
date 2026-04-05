@@ -26,29 +26,31 @@ interface IbgeMunicipio {
   };
 }
 
-/**
- * Busca todos os municípios de um estado na API do IBGE
- * @param uf Sigla do estado (ex: 'SP', 'RJ')
- * @returns Array com os nomes das cidades
- */
-export async function fetchMunicipiosPorEstado(uf: string): Promise<string[]> {
+export interface IbgeMunicipioOption {
+  id: number;
+  nome: string;
+}
+
+export async function fetchMunicipiosPorEstadoComCodigo(
+  uf: string,
+): Promise<IbgeMunicipioOption[]> {
   try {
     const response = await axios.get<IbgeMunicipio[]>(
       `${IBGE_BASE_URL}/estados/${uf}/municipios`,
       {
         timeout: REQUEST_TIMEOUT,
         headers: {
-          'Accept': 'application/json',
+          Accept: 'application/json',
         },
       },
     );
 
-    // Extrai apenas os nomes das cidades e ordena alfabeticamente
-    const cidades = response.data
-      .map((municipio) => municipio.nome)
-      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
-
-    return cidades;
+    return response.data
+      .map((municipio) => ({
+        id: municipio.id,
+        nome: municipio.nome,
+      }))
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
   } catch (error) {
     if (axios.isAxiosError(error)) {
       if (error.code === 'ECONNABORTED') {
@@ -65,6 +67,16 @@ export async function fetchMunicipiosPorEstado(uf: string): Promise<string[]> {
     }
     throw new Error('Erro desconhecido ao buscar cidades');
   }
+}
+
+/**
+ * Busca todos os municípios de um estado na API do IBGE
+ * @param uf Sigla do estado (ex: 'SP', 'RJ')
+ * @returns Array com os nomes das cidades
+ */
+export async function fetchMunicipiosPorEstado(uf: string): Promise<string[]> {
+  const cidades = await fetchMunicipiosPorEstadoComCodigo(uf);
+  return cidades.map((municipio) => municipio.nome);
 }
 
 /**

@@ -13,6 +13,20 @@ export interface ResponseIgrejaConfiguracoesDto {
     cidade?: string | null;
     uf?: string | null;
   };
+  faturamento?: {
+    cnpj?: string | null;
+    telefoneCobranca?: string | null;
+    emailCobranca?: string | null;
+    cep?: string | null;
+    rua?: string | null;
+    numero?: string | null;
+    bairro?: string | null;
+    cidade?: string | null;
+    cidadeIbge?: string | null;
+    uf?: string | null;
+    complemento?: string | null;
+    completo?: boolean;
+  };
   telefone?: string | null;
   email?: string | null;
   logoUrl?: string | null;

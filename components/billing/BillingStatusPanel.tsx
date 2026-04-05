@@ -10,6 +10,9 @@ type BillingStatusPanelProps = {
   compact?: boolean;
   onPrimaryPress?: () => void;
   primaryLabel?: string;
+  onSecondaryPress?: () => void;
+  secondaryLabel?: string;
+  isSecondaryLoading?: boolean;
 };
 
 function formatCurrency(value: number) {
@@ -28,13 +31,13 @@ function resolveStatusCopy(assinatura: ResponseIgrejaAssinaturaDto) {
   switch (assinatura.status) {
     case 'trial':
       return {
-        title: 'Teste grátis ativo',
-        body: `${assinatura.daysRemainingInTrial} dia(s) restantes para validar a rotina da igreja antes da ativação.`,
+        title: 'Período de teste ativo',
+        body: `${assinatura.daysRemainingInTrial} dia(s) restantes para validar a rotina antes da cobrança começar.`,
       };
     case 'active':
       return {
-        title: 'Faixa ativa',
-        body: 'A assinatura da igreja está regularizada e liberada para operação.',
+        title: 'Assinatura em dia',
+        body: 'O plano atual está ativo e a operação da igreja segue liberada.',
       };
     case 'overdue':
       return {
@@ -62,7 +65,7 @@ function resolveStatusCopy(assinatura: ResponseIgrejaAssinaturaDto) {
 }
 
 function resolveCycleLabel(cycle?: string | null) {
-  return cycle === 'YEARLY' ? 'Cobrança anual' : 'Cobrança mensal';
+  return cycle === 'YEARLY' ? 'Anual' : 'Mensal';
 }
 
 function resolveStatusPillLabel(status: ResponseIgrejaAssinaturaDto['status']) {
@@ -86,7 +89,10 @@ export default function BillingStatusPanel({
   assinatura,
   compact = false,
   onPrimaryPress,
-  primaryLabel = 'Abrir assinatura',
+  primaryLabel = 'Ver planos',
+  onSecondaryPress,
+  secondaryLabel = 'Cancelar assinatura',
+  isSecondaryLoading = false,
 }: BillingStatusPanelProps) {
   const palette = usePallete();
   const statusCopy = resolveStatusCopy(assinatura);
@@ -139,7 +145,7 @@ export default function BillingStatusPanel({
       <View style={styles.metricsRow}>
         <View style={styles.metric}>
           <FancyText size='extraSmall' color={palette.fonts.inactive}>
-            Faixa atual
+            Plano atual
           </FancyText>
           <FancyText type='bold' size='small'>
             {resolveBillingPlanName(assinatura.plan)}
@@ -148,7 +154,7 @@ export default function BillingStatusPanel({
 
         <View style={styles.metric}>
           <FancyText size='extraSmall' color={palette.fonts.inactive}>
-            Ritmo
+            Cobrança
           </FancyText>
           <FancyText type='bold' size='small'>
             {resolveCycleLabel(assinatura.cycle)}
@@ -158,7 +164,7 @@ export default function BillingStatusPanel({
         {!compact ? (
           <View style={styles.metric}>
             <FancyText size='extraSmall' color={palette.fonts.inactive}>
-              Valor
+              Valor atual
             </FancyText>
             <FancyText type='bold' size='small'>
               {formatCurrency(Number(assinatura.amount ?? 0))}
@@ -170,19 +176,19 @@ export default function BillingStatusPanel({
       <View style={styles.usageBlock}>
         <View style={styles.metric}>
           <FancyText size='extraSmall' color={palette.fonts.inactive}>
-            Voluntários ativos
+            Voluntários
           </FancyText>
           <FancyText type='semiBold' size='small'>
-            {assinatura.currentVolunteers} de {assinatura.maxVolunteers}
+            {assinatura.currentVolunteers} / {assinatura.maxVolunteers}
           </FancyText>
         </View>
 
         <View style={styles.metric}>
           <FancyText size='extraSmall' color={palette.fonts.inactive}>
-            Ministérios ativos
+            Ministérios
           </FancyText>
           <FancyText type='semiBold' size='small'>
-            {assinatura.currentMinistries} de {assinatura.maxMinistries}
+            {assinatura.currentMinistries} / {assinatura.maxMinistries}
           </FancyText>
         </View>
       </View>
@@ -191,7 +197,7 @@ export default function BillingStatusPanel({
         {assinatura.status === 'trial' ? (
           <View style={styles.metric}>
             <FancyText size='extraSmall' color={palette.fonts.inactive}>
-              Teste termina em
+              Teste até
             </FancyText>
             <FancyText type='semiBold' size='small'>
               {formatDate(assinatura.trialEndsAt)}
@@ -234,6 +240,16 @@ export default function BillingStatusPanel({
             onPress={onPrimaryPress}
             type={compact ? 'outlined' : 'contained'}
           />
+          {onSecondaryPress ? (
+            <FancyButton
+              label={secondaryLabel}
+              onPress={onSecondaryPress}
+              type='text'
+              isLoading={isSecondaryLoading}
+              containerStyle={styles.secondaryAction}
+              labelStyle={{ color: palette.error }}
+            />
+          ) : null}
         </View>
       ) : null}
     </View>
@@ -265,9 +281,12 @@ const styles = StyleSheet.create({
   metricsRow: {
     flexDirection: 'row',
     gap: 16,
+    flexWrap: 'wrap',
   },
   usageBlock: {
-    gap: 10,
+    flexDirection: 'row',
+    gap: 16,
+    flexWrap: 'wrap',
   },
   timeline: {
     flexDirection: 'row',
@@ -287,5 +306,10 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingTop: 2,
+    gap: 4,
+  },
+  secondaryAction: {
+    alignSelf: 'center',
+    minHeight: 32,
   },
 });

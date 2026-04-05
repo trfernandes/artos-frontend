@@ -1,5 +1,8 @@
 import { DropDownItemProps } from '../../components/fields/FancyDropDownItem';
-import { fetchMunicipiosPorEstado } from '../services/IbgeService';
+import {
+  fetchMunicipiosPorEstado,
+  fetchMunicipiosPorEstadoComCodigo,
+} from '../services/IbgeService';
 import { getCachedData, setCachedData } from './cache-utils';
 
 const CACHE_KEY_PREFIX = 'cidades_';
@@ -280,6 +283,38 @@ export async function getCidadesPorUf(
     return fallbackCidades.sort((a, b) =>
       a.title.localeCompare(b.title, 'pt-BR'),
     );
+  }
+}
+
+export async function getCidadesComCodigoPorUf(
+  uf: string,
+): Promise<DropDownItemProps<string>[]> {
+  if (!uf) return [];
+
+  const cacheKey = `${CACHE_KEY_PREFIX}${uf}_codigos`;
+
+  try {
+    const cached = await getCachedData<Array<{ id: number; nome: string }>>(
+      cacheKey,
+      CACHE_EXPIRATION_DAYS,
+    );
+    if (cached) {
+      return cached.map((cidade) => ({
+        title: cidade.nome,
+        value: String(cidade.id),
+      }));
+    }
+
+    const cidades = await fetchMunicipiosPorEstadoComCodigo(uf);
+    await setCachedData(cacheKey, cidades);
+
+    return cidades.map((cidade) => ({
+      title: cidade.nome,
+      value: String(cidade.id),
+    }));
+  } catch (error) {
+    console.warn(`Erro ao buscar cidades com código do IBGE para ${uf}:`, error);
+    return [];
   }
 }
 
