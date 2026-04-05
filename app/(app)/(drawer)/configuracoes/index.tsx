@@ -51,6 +51,10 @@ import { getCidadesPorUf } from '../../../../domain/utils/cidades-list';
 import { DropDownItemProps } from '../../../../components/fields/FancyDropDownItem';
 import { useIgrejaAssinatura } from '../../../../hooks/useIgrejaAssinatura';
 import BillingStatusPanel from '../../../../components/billing/BillingStatusPanel';
+import {
+  BILLING_PLAN_OPTIONS,
+  BillingCycleCode,
+} from '../../../../domain/utils/billing-plan-catalog';
 
 const REMINDER_OPTIONS = [
   { title: '1 semana antes', value: 168, description: 'Ideal para escalas semanais e eventos maiores.' },
@@ -64,20 +68,6 @@ const REMINDER_OPTIONS = [
 ] as const;
 
 const DEFAULT_REMINDER_HOURS = [24, 2, 1];
-const BILLING_PLAN_OPTIONS = [
-  {
-    codigo: 'pro',
-    nome: 'Plano Pro',
-    descricao: 'Assinatura mensal com todos os recursos premium liberados.',
-    price: 'R$49/mês',
-  },
-  {
-    codigo: 'annual',
-    nome: 'Plano Anual',
-    descricao: 'Mesmo plano premium com cobrança anual e desconto.',
-    price: 'R$468/ano',
-  },
-] as const;
 
 export default function ConfiguracoesPage() {
   const { igrejaAtiva, user, updateUser } = useAuth();
@@ -162,6 +152,7 @@ export default function ConfiguracoesPage() {
     },
   });
   const selectedReminderHours = notificacoesForm.watch('lembretesHoras');
+  const [billingCycle, setBillingCycle] = useState<BillingCycleCode>('MONTHLY');
 
   // States para checkboxes
   const [canaisPush, setCanaisPush] = useState(
@@ -192,6 +183,12 @@ export default function ConfiguracoesPage() {
       .join(', ');
   }, [selectedReminderHours]);
   const initialTabIndex = tab === 'plano' ? 3 : 0;
+
+  useEffect(() => {
+    if (assinatura?.cycle === 'MONTHLY' || assinatura?.cycle === 'YEARLY') {
+      setBillingCycle(assinatura.cycle);
+    }
+  }, [assinatura?.cycle]);
 
   const handleCancelarAssinatura = () => {
     if (!igrejaId) return;
@@ -793,21 +790,56 @@ export default function ConfiguracoesPage() {
 
           <View style={styles.billingInfoCard}>
             <FancyText type='semiBold' size='small'>
-              Gestão da assinatura
+              Faixas da igreja
             </FancyText>
             <FancyText size='extraSmall' color={palette.fonts.inactive}>
               {Platform.OS === 'ios'
-                ? 'Para manter conformidade com a App Store, a ativação e a regularização são concluídas no navegador do sistema.'
-                : 'O pagamento é concluído no navegador do sistema e o status volta sincronizado quando você retornar ao app.'}
+                ? 'A assinatura continua no navegador do sistema e o app sincroniza o status quando voce voltar.'
+                : 'Escolha a faixa ideal da igreja. O pagamento acontece no navegador e o status volta sincronizado depois.'}
             </FancyText>
+          </View>
+
+          <View style={styles.billingPeriodRow}>
+            {([
+              { code: 'MONTHLY', label: 'Mensal' },
+              { code: 'YEARLY', label: 'Anual' },
+            ] as const).map((period) => {
+              const selected = billingCycle === period.code;
+              return (
+                <TouchableOpacity
+                  key={period.code}
+                  style={[
+                    styles.periodButton,
+                    {
+                      backgroundColor: selected
+                        ? ColorUtils.withAlpha(palette.primary, 0.12)
+                        : palette.backgroundColor4,
+                      borderColor: selected
+                        ? ColorUtils.withAlpha(palette.primary, 0.28)
+                        : palette.borderCard,
+                    },
+                  ]}
+                  onPress={() => setBillingCycle(period.code)}
+                >
+                  <FancyText type={selected ? 'semiBold' : 'normal'} size='small'>
+                    {period.label}
+                  </FancyText>
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
           <View style={styles.planList}>
             {BILLING_PLAN_OPTIONS.map((plan) => {
-              const isCurrent = assinatura?.plan === plan.codigo;
-              const isPending = assinatura?.checkoutUrl && assinatura.plan === plan.codigo;
-              const switchLocked =
-                assinatura?.status === 'active' && assinatura.plan !== plan.codigo;
+              const isCurrent =
+                assinatura?.plan === plan.codigo && assinatura?.cycle === billingCycle;
+              const isPending =
+                !!assinatura?.checkoutUrl &&
+                assinatura.plan === plan.codigo &&
+                assinatura.cycle === billingCycle;
+              const switchLocked = assinatura?.status === 'active' && !isCurrent;
+              const priceLabel =
+                billingCycle === 'YEARLY' ? plan.yearlyPrice : plan.monthlyPrice;
 
               return (
                 <View
@@ -834,16 +866,30 @@ export default function ConfiguracoesPage() {
                     </View>
                     {Platform.OS !== 'ios' ? (
                       <View style={styles.planPriceBlock}>
+                        {plan.highlight ? (
+                          <FancyText size='extraSmall' type='semiBold' color={palette.primary}>
+                            {plan.highlight}
+                          </FancyText>
+                        ) : null}
                         <FancyText type='bold' size='small'>
-                          {plan.price}
+                          {priceLabel}
                         </FancyText>
                       </View>
                     ) : null}
                   </View>
 
+                  <View style={styles.planFeatureList}>
+                    <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                      Até {plan.maxVolunteers} voluntários ativos
+                    </FancyText>
+                    <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                      Até {plan.maxMinistries} ministérios ativos
+                    </FancyText>
+                  </View>
+
                   {isCurrent ? (
                     <FancyText size='extraSmall' type='semiBold' color={palette.primary}>
-                      Plano atual
+                      Faixa atual
                     </FancyText>
                   ) : isPending ? (
                     <FancyText size='extraSmall' type='semiBold' color={palette.primary}>
@@ -875,6 +921,7 @@ export default function ConfiguracoesPage() {
                       iniciarCheckout({
                         churchId: igrejaId!,
                         plan: plan.codigo,
+                        cycle: billingCycle,
                       });
                     }}
                   />
@@ -1125,6 +1172,9 @@ function createStyles(palette: ThemePalette) {
     planPriceBlock: {
       alignItems: 'flex-end',
       gap: 2,
+    },
+    planFeatureList: {
+      gap: 4,
     },
     billingActions: {
       paddingBottom: 20,

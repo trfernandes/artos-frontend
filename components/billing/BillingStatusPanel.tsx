@@ -3,6 +3,7 @@ import FancyButton from '../buttons/FancyButton';
 import FancyText from '../FancyText';
 import { ResponseIgrejaAssinaturaDto } from '../../domain/dtos/Igreja/response-igreja-assinatura.dto';
 import { usePallete } from '../../hooks/usePallete';
+import { resolveBillingPlanName } from '../../domain/utils/billing-plan-catalog';
 
 type BillingStatusPanelProps = {
   assinatura: ResponseIgrejaAssinaturaDto;
@@ -28,12 +29,12 @@ function resolveStatusCopy(assinatura: ResponseIgrejaAssinaturaDto) {
     case 'trial':
       return {
         title: 'Teste grátis ativo',
-        body: `${assinatura.daysRemainingInTrial} dia(s) restantes no período de teste.`,
+        body: `${assinatura.daysRemainingInTrial} dia(s) restantes para validar a rotina da igreja antes da ativação.`,
       };
     case 'active':
       return {
-        title: 'Plano ativo',
-        body: 'A assinatura da igreja está regularizada.',
+        title: 'Faixa ativa',
+        body: 'A assinatura da igreja está regularizada e liberada para operação.',
       };
     case 'overdue':
       return {
@@ -45,19 +46,23 @@ function resolveStatusCopy(assinatura: ResponseIgrejaAssinaturaDto) {
     case 'cancelled':
       return {
         title: 'Assinatura cancelada',
-        body: 'O acesso permanece até o fim do período já pago.',
+        body: 'A igreja segue com acesso até o fim do período já pago.',
       };
     case 'expired':
       return {
         title: 'Teste expirado',
-        body: 'Os recursos premium entraram em modo de leitura.',
+        body: 'A igreja voltou para os limites gratuitos até reativar a assinatura.',
       };
     default:
       return {
-        title: 'Plano gratuito',
-        body: 'A igreja está usando o limite básico de voluntários.',
+        title: 'Faixa gratuita',
+        body: 'A igreja está operando no limite básico de ministérios e voluntários.',
       };
   }
+}
+
+function resolveCycleLabel(cycle?: string | null) {
+  return cycle === 'YEARLY' ? 'Cobrança anual' : 'Cobrança mensal';
 }
 
 export default function BillingStatusPanel({
@@ -117,19 +122,19 @@ export default function BillingStatusPanel({
       <View style={styles.metricsRow}>
         <View style={styles.metric}>
           <FancyText size='extraSmall' color={palette.fonts.inactive}>
-            Plano
+            Faixa atual
           </FancyText>
           <FancyText type='bold' size='small'>
-            {assinatura.plan === 'annual' ? 'Anual' : assinatura.plan === 'pro' ? 'Pro' : 'Gratuito'}
+            {resolveBillingPlanName(assinatura.plan)}
           </FancyText>
         </View>
 
         <View style={styles.metric}>
           <FancyText size='extraSmall' color={palette.fonts.inactive}>
-            Ciclo
+            Ritmo
           </FancyText>
           <FancyText type='bold' size='small'>
-            {assinatura.cycle === 'YEARLY' ? 'Anual' : 'Mensal'}
+            {resolveCycleLabel(assinatura.cycle)}
           </FancyText>
         </View>
 
@@ -143,6 +148,26 @@ export default function BillingStatusPanel({
             </FancyText>
           </View>
         ) : null}
+      </View>
+
+      <View style={styles.usageBlock}>
+        <View style={styles.metric}>
+          <FancyText size='extraSmall' color={palette.fonts.inactive}>
+            Voluntários ativos
+          </FancyText>
+          <FancyText type='semiBold' size='small'>
+            {assinatura.currentVolunteers} de {assinatura.maxVolunteers}
+          </FancyText>
+        </View>
+
+        <View style={styles.metric}>
+          <FancyText size='extraSmall' color={palette.fonts.inactive}>
+            Ministérios ativos
+          </FancyText>
+          <FancyText type='semiBold' size='small'>
+            {assinatura.currentMinistries} de {assinatura.maxMinistries}
+          </FancyText>
+        </View>
       </View>
 
       <View style={styles.timeline}>
@@ -223,6 +248,9 @@ const styles = StyleSheet.create({
   metricsRow: {
     flexDirection: 'row',
     gap: 16,
+  },
+  usageBlock: {
+    gap: 10,
   },
   timeline: {
     flexDirection: 'row',

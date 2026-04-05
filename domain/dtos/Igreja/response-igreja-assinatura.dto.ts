@@ -1,6 +1,6 @@
 export type ResponseIgrejaAssinaturaDto = {
   status: 'trial' | 'active' | 'overdue' | 'cancelled' | 'expired' | 'free';
-  plan: 'free' | 'pro' | 'annual';
+  plan: 'free' | 'starter' | 'essencial' | 'crescimento';
   amount: number;
   cycle: 'MONTHLY' | 'YEARLY';
   checkoutUrl?: string | null;
@@ -11,4 +11,8 @@ export type ResponseIgrejaAssinaturaDto = {
   daysRemainingInTrial: number;
   inGracePeriod: boolean;
   canManageBilling: boolean;
+  currentVolunteers: number;
+  currentMinistries: number;
+  maxVolunteers: number;
+  maxMinistries: number;
 };

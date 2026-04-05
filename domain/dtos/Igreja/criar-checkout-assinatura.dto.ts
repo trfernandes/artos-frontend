@@ -1,4 +1,5 @@
 export type CriarCheckoutAssinaturaDto = {
   churchId: string;
-  plan: 'pro' | 'annual';
+  plan: 'starter' | 'essencial' | 'crescimento';
+  cycle?: 'MONTHLY' | 'YEARLY';
 };
