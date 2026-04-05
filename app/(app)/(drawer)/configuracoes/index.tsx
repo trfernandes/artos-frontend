@@ -55,6 +55,7 @@ import {
   BILLING_PLAN_OPTIONS,
   BillingCycleCode,
 } from '../../../../domain/utils/billing-plan-catalog';
+import FancyModalDialog from '../../../../components/modal/FancyModalDialog';
 
 const REMINDER_OPTIONS = [
   { title: '1 semana antes', value: 168, description: 'Ideal para escalas semanais e eventos maiores.' },
@@ -153,6 +154,7 @@ export default function ConfiguracoesPage() {
   });
   const selectedReminderHours = notificacoesForm.watch('lembretesHoras');
   const [billingCycle, setBillingCycle] = useState<BillingCycleCode>('MONTHLY');
+  const [billingPlansModalVisible, setBillingPlansModalVisible] = useState(false);
 
   // States para checkboxes
   const [canaisPush, setCanaisPush] = useState(
@@ -202,6 +204,9 @@ export default function ConfiguracoesPage() {
       ],
     );
   };
+
+  const openBillingPlansModal = () => setBillingPlansModalVisible(true);
+  const closeBillingPlansModal = () => setBillingPlansModalVisible(false);
 
   const toggleReminderHour = (hour: number) => {
     const current = notificacoesForm.getValues('lembretesHoras') ?? [];
@@ -790,157 +795,185 @@ export default function ConfiguracoesPage() {
 
           <View style={styles.billingInfoCard}>
             <FancyText type='semiBold' size='small'>
-              Faixas da igreja
+              Gestão da assinatura
             </FancyText>
             <FancyText size='extraSmall' color={palette.fonts.inactive}>
-              {Platform.OS === 'ios'
-                ? 'A assinatura continua no navegador do sistema e o app sincroniza o status quando voce voltar.'
-                : 'Escolha a faixa ideal da igreja. O pagamento acontece no navegador e o status volta sincronizado depois.'}
+              {assinatura?.checkoutUrl
+                ? 'Existe um pagamento pendente. Você pode retomar a cobrança ou revisar as outras faixas.'
+                : 'Revise o plano atual da igreja e abra as opções quando quiser ajustar a assinatura.'}
             </FancyText>
-          </View>
-
-          <View style={styles.billingPeriodRow}>
-            {([
-              { code: 'MONTHLY', label: 'Mensal' },
-              { code: 'YEARLY', label: 'Anual' },
-            ] as const).map((period) => {
-              const selected = billingCycle === period.code;
-              return (
-                <TouchableOpacity
-                  key={period.code}
-                  style={[
-                    styles.periodButton,
-                    {
-                      backgroundColor: selected
-                        ? ColorUtils.withAlpha(palette.primary, 0.12)
-                        : palette.backgroundColor4,
-                      borderColor: selected
-                        ? ColorUtils.withAlpha(palette.primary, 0.28)
-                        : palette.borderCard,
-                    },
-                  ]}
-                  onPress={() => setBillingCycle(period.code)}
-                >
-                  <FancyText type={selected ? 'semiBold' : 'normal'} size='small'>
-                    {period.label}
-                  </FancyText>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          <View style={styles.planList}>
-            {BILLING_PLAN_OPTIONS.map((plan) => {
-              const isCurrent =
-                assinatura?.plan === plan.codigo && assinatura?.cycle === billingCycle;
-              const isPending =
-                !!assinatura?.checkoutUrl &&
-                assinatura.plan === plan.codigo &&
-                assinatura.cycle === billingCycle;
-              const switchLocked = assinatura?.status === 'active' && !isCurrent;
-              const priceLabel =
-                billingCycle === 'YEARLY' ? plan.yearlyPrice : plan.monthlyPrice;
-
-              return (
-                <View
-                  key={plan.codigo}
-                  style={[
-                    styles.planCard,
-                    {
-                      backgroundColor: palette.backgroundColor4,
-                      borderColor:
-                        isCurrent || isPending
-                          ? ColorUtils.withAlpha(palette.primary, 0.26)
-                          : palette.borderCard,
-                    },
-                  ]}
-                >
-                  <View style={styles.planHeader}>
-                    <View style={styles.planHeaderText}>
-                      <FancyText type='semiBold' size='small'>
-                        {plan.nome}
-                      </FancyText>
-                      <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                        {plan.descricao}
-                      </FancyText>
-                    </View>
-                    {Platform.OS !== 'ios' ? (
-                      <View style={styles.planPriceBlock}>
-                        {plan.highlight ? (
-                          <FancyText size='extraSmall' type='semiBold' color={palette.primary}>
-                            {plan.highlight}
-                          </FancyText>
-                        ) : null}
-                        <FancyText type='bold' size='small'>
-                          {priceLabel}
-                        </FancyText>
-                      </View>
-                    ) : null}
-                  </View>
-
-                  <View style={styles.planFeatureList}>
-                    <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                      Até {plan.maxVolunteers} voluntários ativos
-                    </FancyText>
-                    <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                      Até {plan.maxMinistries} ministérios ativos
-                    </FancyText>
-                  </View>
-
-                  {isCurrent ? (
-                    <FancyText size='extraSmall' type='semiBold' color={palette.primary}>
-                      Faixa atual
-                    </FancyText>
-                  ) : isPending ? (
-                    <FancyText size='extraSmall' type='semiBold' color={palette.primary}>
-                      Checkout pendente disponível para retomar
-                    </FancyText>
-                  ) : null}
-
-                  <FancyButton
-                    label={
-                      isCurrent
-                        ? 'Plano atual'
-                        : isPending
-                          ? 'Continuar no navegador'
-                          : switchLocked
-                            ? 'Troca de plano em breve'
-                          : Platform.OS === 'ios'
-                            ? 'Gerenciar no navegador'
-                            : 'Ativar no navegador'
-                    }
-                    type={isCurrent || isPending ? 'outlined' : 'contained'}
-                    disabled={
-                      isCurrent ||
-                      switchLocked ||
-                      isLoadingAssinatura ||
-                      isAbrindoCheckout ||
-                      !!(isPending && !assinatura?.checkoutUrl)
-                    }
-                    onPress={() => {
-                      iniciarCheckout({
-                        churchId: igrejaId!,
-                        plan: plan.codigo,
-                        cycle: billingCycle,
-                      });
-                    }}
-                  />
-                </View>
-              );
-            })}
           </View>
 
           {assinatura?.canManageBilling ? (
-            <View style={styles.billingActions}>
+            <View style={styles.billingActionsRow}>
               <FancyButton
-                label='Cancelar assinatura'
+                label={assinatura?.checkoutUrl ? 'Retomar pagamento' : 'Ver opções de assinatura'}
+                onPress={openBillingPlansModal}
+                containerStyle={styles.billingActionButton}
+                accessibilityLabel='Abrir opções de assinatura'
+              />
+              <FancyButton
+                label='Cancelar'
                 type='outlined'
                 onPress={handleCancelarAssinatura}
                 disabled={isCancelandoAssinatura}
                 isLoading={isCancelandoAssinatura}
+                containerStyle={styles.billingActionButton}
               />
             </View>
           ) : null}
+
+          <FancyModalDialog
+            title='Opções de assinatura'
+            showCloseButton
+            onButton1Press={closeBillingPlansModal}
+            button1={{ label: 'Fechar' }}
+            button2={{ visible: false }}
+            closeOnBackdropPress
+            titleAlign='left'
+            modalProps={{
+              visible: billingPlansModalVisible,
+            }}
+            centerContainerStyle={styles.billingModalContent}
+          >
+            <View style={styles.billingModalHeader}>
+              <FancyText type='semiBold' size='small'>
+                Escolha a faixa da igreja
+              </FancyText>
+              <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                O pagamento continua no navegador e o status volta sincronizado depois da confirmação.
+              </FancyText>
+            </View>
+
+            <View style={styles.billingPeriodRow}>
+              {([
+                { code: 'MONTHLY', label: 'Mensal' },
+                { code: 'YEARLY', label: 'Anual' },
+              ] as const).map((period) => {
+                const selected = billingCycle === period.code;
+                return (
+                  <TouchableOpacity
+                    key={period.code}
+                    style={[
+                      styles.periodButton,
+                      {
+                        backgroundColor: selected
+                          ? ColorUtils.withAlpha(palette.primary, 0.12)
+                          : palette.backgroundColor4,
+                        borderColor: selected
+                          ? ColorUtils.withAlpha(palette.primary, 0.28)
+                          : palette.borderCard,
+                      },
+                    ]}
+                    onPress={() => setBillingCycle(period.code)}
+                  >
+                    <FancyText type={selected ? 'semiBold' : 'normal'} size='small'>
+                      {period.label}
+                    </FancyText>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <View style={styles.planList}>
+              {BILLING_PLAN_OPTIONS.map((plan) => {
+                const isCurrent =
+                  assinatura?.plan === plan.codigo && assinatura?.cycle === billingCycle;
+                const isPending =
+                  !!assinatura?.checkoutUrl &&
+                  assinatura.plan === plan.codigo &&
+                  assinatura.cycle === billingCycle;
+                const switchLocked = assinatura?.status === 'active' && !isCurrent;
+                const priceLabel =
+                  billingCycle === 'YEARLY' ? plan.yearlyPrice : plan.monthlyPrice;
+
+                return (
+                  <View
+                    key={plan.codigo}
+                    style={[
+                      styles.planCard,
+                      {
+                        backgroundColor: palette.backgroundColor4,
+                        borderColor:
+                          isCurrent || isPending
+                            ? ColorUtils.withAlpha(palette.primary, 0.26)
+                            : palette.borderCard,
+                      },
+                    ]}
+                  >
+                    <View style={styles.planHeader}>
+                      <View style={styles.planHeaderText}>
+                        <FancyText type='semiBold' size='small'>
+                          {plan.nome}
+                        </FancyText>
+                        <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                          {plan.descricao}
+                        </FancyText>
+                      </View>
+                      {Platform.OS !== 'ios' ? (
+                        <View style={styles.planPriceBlock}>
+                          {plan.highlight ? (
+                            <FancyText size='extraSmall' type='semiBold' color={palette.primary}>
+                              {plan.highlight}
+                            </FancyText>
+                          ) : null}
+                          <FancyText type='bold' size='small'>
+                            {priceLabel}
+                          </FancyText>
+                        </View>
+                      ) : null}
+                    </View>
+
+                    <View style={styles.planFeatureList}>
+                      <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                        Até {plan.maxVolunteers} voluntários ativos
+                      </FancyText>
+                      <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                        Até {plan.maxMinistries} ministérios ativos
+                      </FancyText>
+                    </View>
+
+                    {isCurrent ? (
+                      <FancyText size='extraSmall' type='semiBold' color={palette.primary}>
+                        Faixa atual
+                      </FancyText>
+                    ) : isPending ? (
+                      <FancyText size='extraSmall' type='semiBold' color={palette.primary}>
+                        Pagamento pendente para esta faixa
+                      </FancyText>
+                    ) : null}
+
+                    <FancyButton
+                      label={
+                        isCurrent
+                          ? 'Faixa atual'
+                          : isPending
+                            ? 'Continuar pagamento'
+                            : switchLocked
+                              ? 'Troca disponível em breve'
+                              : 'Escolher esta faixa'
+                      }
+                      type={isCurrent || isPending ? 'outlined' : 'contained'}
+                      disabled={
+                        isCurrent ||
+                        switchLocked ||
+                        isLoadingAssinatura ||
+                        isAbrindoCheckout ||
+                        !!(isPending && !assinatura?.checkoutUrl)
+                      }
+                      onPress={() => {
+                        iniciarCheckout({
+                          churchId: igrejaId!,
+                          plan: plan.codigo,
+                          cycle: billingCycle,
+                        });
+                      }}
+                    />
+                  </View>
+                );
+              })}
+            </View>
+          </FancyModalDialog>
         </KeyboardAwareScrollView>
       ),
     },
@@ -1137,6 +1170,12 @@ function createStyles(palette: ThemePalette) {
       padding: 16,
       gap: 6,
     },
+    billingModalContent: {
+      gap: 16,
+    },
+    billingModalHeader: {
+      gap: 6,
+    },
     billingPeriodRow: {
       flexDirection: 'row',
       gap: 10,
@@ -1175,6 +1214,14 @@ function createStyles(palette: ThemePalette) {
     },
     planFeatureList: {
       gap: 4,
+    },
+    billingActionsRow: {
+      flexDirection: 'row',
+      gap: 12,
+      paddingBottom: 20,
+    },
+    billingActionButton: {
+      flex: 1,
     },
     billingActions: {
       paddingBottom: 20,
