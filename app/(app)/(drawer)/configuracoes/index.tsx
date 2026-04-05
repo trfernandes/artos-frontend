@@ -834,8 +834,8 @@ export default function ConfiguracoesPage() {
             containerStyle={[
               styles.billingModalContainer,
               {
-                marginTop: insets.top + 20,
-                marginBottom: insets.bottom + 20,
+                marginTop: insets.top + 28,
+                marginBottom: insets.bottom + 28,
               },
             ]}
             top={
@@ -844,7 +844,7 @@ export default function ConfiguracoesPage() {
                   <FancyText type='bold' size='medium'>
                     Opções de assinatura
                   </FancyText>
-                  <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                  <FancyText size='small' color={palette.fonts.inactive}>
                     Escolha a faixa da igreja e conclua o pagamento no navegador quando estiver pronto.
                   </FancyText>
                 </View>
@@ -939,33 +939,29 @@ export default function ConfiguracoesPage() {
                           <View style={styles.planHeaderText}>
                             <FancyText
                               type='semiBold'
-                              size='medium'
+                              size='large'
                               color={isRecommended ? palette.primary : undefined}
                             >
                               {plan.nome}
                             </FancyText>
-                            <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                            <FancyText size='small' color={palette.fonts.inactive}>
                               {plan.descricao}
                             </FancyText>
                           </View>
                           {Platform.OS !== 'ios' ? (
                             <View style={styles.planPriceBlock}>
-                              {plan.highlight ? (
-                                <View
-                                  style={[
-                                    styles.planBadge,
-                                    { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14) },
+                          {plan.highlight ? (
+                            <View
+                              style={[
+                                styles.planBadge,
+                                { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14) },
                                   ]}
                                 >
-                                  <FancyText
-                                    size='extraSmall'
-                                    type='semiBold'
-                                    color={palette.primary}
-                                  >
-                                    {plan.highlight}
-                                  </FancyText>
-                                </View>
-                              ) : null}
+                                <FancyText size='small' type='semiBold' color={palette.primary}>
+                                  {plan.highlight}
+                                </FancyText>
+                              </View>
+                            ) : null}
                               <FancyText type='bold' size='medium'>
                                 {priceLabel}
                               </FancyText>
@@ -982,18 +978,18 @@ export default function ConfiguracoesPage() {
 
                         <View style={styles.planFeatureGrid}>
                           <View style={styles.planFeatureColumn}>
-                            <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                            <FancyText size='small' color={palette.fonts.dark}>
                               • Até {plan.maxVolunteers} voluntários ativos
                             </FancyText>
-                            <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                            <FancyText size='small' color={palette.fonts.dark}>
                               • Cobrança {billingCycle === 'YEARLY' ? 'anual' : 'mensal'}
                             </FancyText>
                           </View>
                           <View style={styles.planFeatureColumn}>
-                            <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                            <FancyText size='small' color={palette.fonts.dark}>
                               • Até {plan.maxMinistries} ministérios ativos
                             </FancyText>
-                            <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                            <FancyText size='small' color={palette.fonts.dark}>
                               • Ajuste para o ritmo atual da igreja
                             </FancyText>
                           </View>
