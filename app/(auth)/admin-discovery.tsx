@@ -5,6 +5,11 @@ import FancyButton from '../../components/buttons/FancyButton';
 import FancyText from '../../components/FancyText';
 import DefaultIcons from '../../components/FancyIcons';
 import { usePallete } from '../../hooks/usePallete';
+import { EXTRA_LARGE_SIZE_FONT, MEDIUM_SIZE_FONT } from '../../constants/font';
+import {
+  AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
+  AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
+} from '../../constants/authTypography';
 
 const BENEFITS = [
   {
@@ -20,7 +25,7 @@ const BENEFITS = [
   {
     title: 'Louvor e repertório no mesmo fluxo',
     description: 'Setlist, repertório e operação do evento ficam no mesmo lugar.',
-    icon: 'music-note-eighth-outline',
+    icon: 'music-clef-treble',
   },
 ] as const;
 
@@ -41,10 +46,20 @@ export default function AdminDiscoveryPage() {
       ]}
       header={() => (
         <View style={styles.header}>
-          <FancyText size='extraLarge' type='bold' color='white'>
+          <FancyText
+            size='extraLarge'
+            type='bold'
+            color='white'
+            style={{ lineHeight: EXTRA_LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER }}
+          >
             Organize a igreja sem ruído
           </FancyText>
-          <FancyText size='medium' type='medium' color='white'>
+          <FancyText
+            size='medium'
+            type='medium'
+            color='white'
+            style={{ lineHeight: MEDIUM_SIZE_FONT * AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER }}
+          >
             Antes de cobrar, o app te deixa montar a base e sentir o fluxo funcionando.
           </FancyText>
         </View>
@@ -82,7 +97,7 @@ export default function AdminDiscoveryPage() {
 
         <View style={styles.footer}>
           <FancyButton
-            label='Criar minha igreja'
+            label='Cadastrar minha igreja'
             onPress={() => router.push('/(auth)/create-igreja-account')}
             icon={{ library: 'MaterialCommunityIcons', name: 'arrow-right', size: 16 }}
             iconPosition='right'

@@ -166,7 +166,13 @@ export default function MinisterioAgendaDetailsPage() {
       {
         title: 'Equipe',
         icon: { ...DefaultIconsNames.group, size: 20 },
-        content: <AgendaDetailsEscalaTab eventoId={eventoId} dataOcorrencia={new Date(params.dataOcorrencia)} />,
+        content: (
+          <AgendaDetailsEscalaTab
+            eventoId={eventoId}
+            dataOcorrencia={new Date(params.dataOcorrencia)}
+            ministerioId={params.ministerioId}
+          />
+        ),
       },
     ];
 
@@ -179,7 +185,7 @@ export default function MinisterioAgendaDetailsPage() {
             eventoId={eventoId}
             dataOcorrencia={new Date(params.dataOcorrencia)}
             ministerioId={params.ministerioId}
-            canEdit={true}
+            mode='lider'
             responsavelSetlistNome={ocorrenciaAtual?.responsavelSetlistVoluntario?.nome ?? null}
           />
         ),

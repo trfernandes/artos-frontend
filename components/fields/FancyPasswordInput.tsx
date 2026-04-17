@@ -23,7 +23,6 @@ export default function FancyPasswordInput(props: FancyTextInputProps) {
             color: Pallete.icons.inactive,
             style: { borderWidth: 0 },
           }}
-          containerStyle={{ marginRight: 10 }}
           accessibilityRole='button'
           accessibilityLabel={toggleLabel}
           accessibilityHint='Alterna a visibilidade da senha'

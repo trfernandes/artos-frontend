@@ -23,9 +23,7 @@ export default function FancyStepsText({ text, textColor, maxWidth, containerSty
       ]}
     >
       <FancyText
-        numberOfLines={1}
-        adjustsFontSizeToFit
-        minimumFontScale={0.7}
+        numberOfLines={2}
         maxFontSizeMultiplier={1}
         size="extraSmall"
         type="semiBold"
@@ -33,6 +31,7 @@ export default function FancyStepsText({ text, textColor, maxWidth, containerSty
         style={{
           textAlign: 'center',
           maxWidth,
+          lineHeight: 14,
         }}
       >
         {text}

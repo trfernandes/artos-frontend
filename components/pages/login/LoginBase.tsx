@@ -22,20 +22,26 @@ export function AuthGradientBackground({ style }: { style?: StyleProp<ViewStyle>
 export default function LoginBase({
   children,
   containerStyle,
+  enableDismissKeyboard = true,
 }: {
   children: React.ReactNode | React.ReactNode[];
   containerStyle?: StyleProp<ViewStyle>;
+  enableDismissKeyboard?: boolean;
 }) {
   const styles = useThemedStyles(createStyles);
 
-  return (
-    <DismissKeyboard>
-      <View style={[styles.container, containerStyle]}>
-        <AuthGradientBackground style={{ height: 800, width: 500 }} />
-        {children}
-      </View>
-    </DismissKeyboard>
+  const content = (
+    <View style={[styles.container, containerStyle]}>
+      <AuthGradientBackground style={{ height: 800, width: 500 }} />
+      {children}
+    </View>
   );
+
+  if (!enableDismissKeyboard) {
+    return content;
+  }
+
+  return <DismissKeyboard>{content}</DismissKeyboard>;
 }
 
 const DESIGN_MODE = 0;

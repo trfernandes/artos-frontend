@@ -11,6 +11,11 @@ import { useForm } from 'react-hook-form';
 import { useAuth } from '../../contexts/AuthContext';
 import { getApiErrorMessage } from '../../domain/api/api-error';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
+import { EXTRA_LARGE_SIZE_FONT, LARGE_SIZE_FONT, MEDIUM_SIZE_FONT, SMALL_SIZE_FONT } from '../../constants/font';
+import {
+  AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
+  AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
+} from '../../constants/authTypography';
 
 const forgotPasswordSchema = z.object({
   email: z
@@ -65,14 +70,30 @@ export default function ForgotPasswordPage() {
       compactTitleOnKeyboard='Recuperação de Senha'
       header={({ keyboardVisible }) => (
         <>
-          <FancyText size={!keyboardVisible ? 'extraLarge' : 'large'} type='bold' color='white'>
+          <FancyText
+            size={!keyboardVisible ? 'extraLarge' : 'large'}
+            type='bold'
+            color='white'
+            style={{
+              lineHeight:
+                !keyboardVisible
+                  ? EXTRA_LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER
+                  : LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
+            }}
+          >
             Recuperação de Senha
           </FancyText>
           <FancyText
             size={!keyboardVisible ? 'medium' : 'small'}
             type='medium'
             color='white'
-            style={{ borderWidth: 0 }}
+            style={{
+              borderWidth: 0,
+              lineHeight:
+                !keyboardVisible
+                  ? MEDIUM_SIZE_FONT * AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER
+                  : SMALL_SIZE_FONT * AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
+            }}
           >
             Informe seu e-mail para receber as instruções de recuperação.
           </FancyText>

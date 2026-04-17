@@ -10,6 +10,11 @@ import { UpdateEventoSetlistItemDto } from '../dtos/Evento/evento-setlist-item.u
 import { ReorderEventoSetlistDto } from '../dtos/Evento/reorder-evento-setlist.dto';
 import { RemoveEventoSetlistResponsavelDto, UpdateEventoSetlistResponsavelDto } from '../dtos/Evento/update-evento-setlist-responsavel.dto';
 import { DynamicQuery } from '../utils/query_utils';
+import { ResponseEquipeOcorrenciaDto } from '../dtos/Evento/evento-equipe.response';
+import { ResponseEventoSetlistObservacoesDto } from '../dtos/Evento/evento-setlist-observacoes.response';
+import { UpsertEventoSetlistObservacoesDto } from '../dtos/Evento/evento-setlist-observacoes.update';
+import { ResponseEventoSetlistItemEstruturaDto } from '../dtos/Evento/evento-setlist-item-estrutura.response';
+import { UpsertEventoSetlistItemEstruturaDto } from '../dtos/Evento/evento-setlist-item-estrutura.update';
 
 export interface EventosIntervaloParams {
   dataInicio: Date | string;
@@ -103,6 +108,61 @@ class IgrejaEventosRepositoryClass {
     dataOcorrencia: string,
   ): Promise<ResponseEventoSetlistItemDto[]> {
     return IgrejaEventosApi.listarSetlist(igrejaId, eventoId, ministerioId, dataOcorrencia);
+  }
+
+  listarEquipe(
+    igrejaId: string,
+    eventoId: string,
+    ministerioId: string,
+    dataOcorrencia: string,
+  ): Promise<ResponseEquipeOcorrenciaDto> {
+    return IgrejaEventosApi.listarEquipe(igrejaId, eventoId, ministerioId, dataOcorrencia);
+  }
+
+  obterObservacoesSetlist(
+    igrejaId: string,
+    eventoId: string,
+    ministerioId: string,
+    dataOcorrencia: string,
+  ): Promise<ResponseEventoSetlistObservacoesDto> {
+    return IgrejaEventosApi.obterObservacoesSetlist(igrejaId, eventoId, ministerioId, dataOcorrencia);
+  }
+
+  salvarObservacoesSetlist(
+    igrejaId: string,
+    eventoId: string,
+    dto: UpsertEventoSetlistObservacoesDto,
+  ): Promise<ResponseEventoSetlistObservacoesDto> {
+    return IgrejaEventosApi.salvarObservacoesSetlist(igrejaId, eventoId, dto);
+  }
+
+  obterEstruturaSetlistItem(
+    igrejaId: string,
+    eventoId: string,
+    itemId: string,
+    ministerioId: string,
+    dataOcorrencia: string,
+  ): Promise<ResponseEventoSetlistItemEstruturaDto> {
+    return IgrejaEventosApi.obterEstruturaSetlistItem(igrejaId, eventoId, itemId, ministerioId, dataOcorrencia);
+  }
+
+  substituirEstruturaSetlistItem(
+    igrejaId: string,
+    eventoId: string,
+    itemId: string,
+    dto: UpsertEventoSetlistItemEstruturaDto,
+  ): Promise<ResponseEventoSetlistItemEstruturaDto> {
+    return IgrejaEventosApi.substituirEstruturaSetlistItem(igrejaId, eventoId, itemId, dto);
+  }
+
+  removerEstruturaSetlistItem(
+    igrejaId: string,
+    eventoId: string,
+    itemId: string,
+    ministerioId: string,
+    dataOcorrencia: string,
+  ): Promise<ResponseEventoSetlistItemEstruturaDto> {
+    return IgrejaEventosApi.removerEstruturaSetlistItem(igrejaId, eventoId, itemId, ministerioId, dataOcorrencia);
   }
 
   criarSetlistItem(igrejaId: string, eventoId: string, dto: CreateEventoSetlistItemDto): Promise<ResponseEventoSetlistItemDto> {

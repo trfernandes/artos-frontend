@@ -11,6 +11,7 @@ export const dadosSchema = z.object({
       .regex(/^\d{5}-?\d{3}$/, 'CEP inválido'),
     rua: z.string().min(1, 'Campo obrigatório'),
     numero: z.string().min(1, 'Campo obrigatório'),
+    bairro: z.string().min(1, 'Campo obrigatório'),
     complemento: z.string().optional(),
     cidade: z.string().min(1, 'Campo obrigatório'),
     uf: z

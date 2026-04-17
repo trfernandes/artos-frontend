@@ -27,11 +27,20 @@ type Props = {
   item?: ResponseEventoSetlistItemDto | null;
   repertorio: ResponseRepertorioMusicaDto[];
   canEdit: boolean;
+  onOpenStructureEditor?: (itemId: string) => void;
 };
 
 const TONS = ['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B'];
 
-export default function EventoSetlistEditorSheet({ visible, onClose, onSave, item, repertorio, canEdit }: Props) {
+export default function EventoSetlistEditorSheet({
+  visible,
+  onClose,
+  onSave,
+  item,
+  repertorio,
+  canEdit,
+  onOpenStructureEditor,
+}: Props) {
   const [tipoOrigem, setTipoOrigem] = useState<EventoSetlistItemOrigemEnum>(EventoSetlistItemOrigemEnum.MANUAL);
   const [repertorioMusicaId, setRepertorioMusicaId] = useState<string>('');
   const [nome, setNome] = useState('');
@@ -185,6 +194,15 @@ export default function EventoSetlistEditorSheet({ visible, onClose, onSave, ite
           readonly={!canEdit}
           inputProps={{ multiline: true, onChangeText: setObservacoes, style: { minHeight: 110, textAlignVertical: 'top' } }}
         />
+
+        {canEdit && item?.id && onOpenStructureEditor ? (
+          <FancyButton
+            label='Editar arranjo e estrutura'
+            type='light'
+            icon={{ library: 'MaterialCommunityIcons', name: 'playlist-edit', size: 18 }}
+            onPress={() => onOpenStructureEditor(item.id)}
+          />
+        ) : null}
       </View>
     </FancyBottomSheetModal>
   );

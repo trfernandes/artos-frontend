@@ -26,7 +26,7 @@ export type ModernTimePickerSheetProps = {
 
 type TimeValue = { hour: number; minute: number };
 
-const WHEEL_ITEM_HEIGHT = 42;
+const WHEEL_ITEM_HEIGHT = 36;
 const DEFAULT_PRESET_TIMES: Array<{ hour: number; minute: number }> = [
   { hour: 8, minute: 0 },
   { hour: 9, minute: 0 },
@@ -80,7 +80,7 @@ export default function ModernTimePickerSheet({
   minuteStep = 5,
   quickActions = ['now', '+30m', '+1h'],
   presetTimes = DEFAULT_PRESET_TIMES,
-  wheelVisibleRows = 5,
+  wheelVisibleRows = 3,
 }: ModernTimePickerSheetProps) {
   const palette = usePallete();
   const [draftTime, setDraftTime] = useState<TimeValue>(clampTime(value ?? { hour: 0, minute: 0 }));
@@ -183,18 +183,6 @@ export default function ModernTimePickerSheet({
   return (
     <FancyBottomSheetModal visible={visible} onClose={onClose} title={title} footer={footer}>
       <View style={styles.container}>
-        <View style={[styles.previewCard, { backgroundColor: palette.backgroundColor4, borderColor: palette.borderCard }]}>
-          <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
-            Horário selecionado
-          </FancyText>
-          <FancyText size='large' type='bold' color={palette.fonts.dark} style={styles.previewValue}>
-            {DateUtils.formatHour(draftTime.hour, draftTime.minute)}
-          </FancyText>
-          <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
-            Toque em atalhos ou role para ajustar
-          </FancyText>
-        </View>
-
         {quickActions.length > 0 && (
           <View style={styles.block}>
             <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
@@ -217,7 +205,11 @@ export default function ModernTimePickerSheet({
             <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
               Horários sugeridos
             </FancyText>
-            <View style={styles.chipWrap}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalChipWrap}
+            >
               {normalizedPresets.map((preset, idx) => (
                 <TimeChip
                   key={`${preset.hour}:${preset.minute}:${idx}`}
@@ -226,7 +218,7 @@ export default function ModernTimePickerSheet({
                   onPress={() => syncDraftAndScroll(preset)}
                 />
               ))}
-            </View>
+            </ScrollView>
           </View>
         )}
 
@@ -239,7 +231,7 @@ export default function ModernTimePickerSheet({
             style={[
               styles.wheelCard,
               {
-                height: wheelHeight + 28,
+                height: wheelHeight + 50,
                 backgroundColor: palette.backgroundColor4,
                 borderColor: palette.borderCard,
               },
@@ -394,16 +386,6 @@ const styles = StyleSheet.create({
   container: {
     gap: 16,
   },
-  previewCard: {
-    borderWidth: 1,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    gap: 4,
-  },
-  previewValue: {
-    letterSpacing: 0.5,
-  },
   block: {
     gap: 8,
   },
@@ -411,6 +393,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+  },
+  horizontalChipWrap: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingRight: 8,
   },
   chip: {
     minWidth: 52,
@@ -427,8 +414,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingTop: 10,
-    paddingBottom: 12,
-    gap: 10,
+    paddingBottom: 10,
+    gap: 8,
     overflow: 'hidden',
   },
   wheelLabelsRow: {

@@ -1,96 +1,126 @@
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { LayoutChangeEvent, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { TabItem } from './FancyTabs';
 import FancyText from '../FancyText';
 import DefaultIcons from '../FancyIcons';
 import { ThemePalette } from '../../constants/colors';
 import { usePallete } from '../../hooks/usePallete';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
+import { ColorUtils } from '../../utils/color_utils';
 
 export type FancyTabHeaderItemProps = {
   status: 'active' | 'inactive';
   onPress?: () => void;
-  multiRow?: boolean;
+  onMeasuredLayout?: (layout: { x: number; width: number }) => void;
+  stretch?: boolean;
 } & TabItem;
 
-export default function FancyTabHeaderItem({ status = 'active', multiRow, ...props }: FancyTabHeaderItemProps) {
-  const Pallete = usePallete();
+const ACTIVE_SHADOW = Platform.select({
+  ios: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2.5,
+  },
+  android: {
+    elevation: 2,
+  },
+  default: {},
+});
+
+export default function FancyTabHeaderItem({
+  status = 'active',
+  onMeasuredLayout,
+  stretch = false,
+  ...props
+}: FancyTabHeaderItemProps) {
+  const palette = usePallete();
   const styles = useThemedStyles(createStyles);
+  const isActive = status === 'active';
+
+  const handleLayout = (event: LayoutChangeEvent) => {
+    const { x, width } = event.nativeEvent.layout;
+    onMeasuredLayout?.({ x, width });
+  };
 
   return (
-    <TouchableOpacity
+    <Pressable
+      onPress={props.onPress}
+      onLayout={handleLayout}
       style={[
         styles.container,
-        status === 'active' ? styles.containerActive : styles.containerInactive,
-        multiRow && styles.containerMultiRow,
+        stretch && styles.containerStretch,
+        isActive ? [styles.active, ACTIVE_SHADOW] : styles.inactive,
       ]}
-      onPress={props.onPress}
+      accessibilityRole='tab'
+      accessibilityState={{ selected: isActive }}
     >
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 6,
-          width: '100%',
-        }}
-      >
-        {props.icon && (
+      <View style={styles.innerContent}>
+        {props.icon ? (
           <View style={styles.iconContainer}>
             <DefaultIcons.Custom
               {...props.icon}
-              size={props.icon.size || 18}
-              color={props.icon.color || (status === 'active' ? Pallete.fonts.light : Pallete.fonts.inactive)}
+              size={16}
+              color={isActive ? palette.fonts.light : palette.fonts.inactive}
             />
           </View>
-        )}
-        <View style={styles.titleContaner}>
-          <FancyText
-            type={status === 'active' ? 'semiBold' : 'semiBoldItalic'}
-            size={'extraSmall'}
-            numberOfLines={1}
-            style={{
-              borderWidth: 0,
-              lineHeight: 17,
-              color: status === 'active' ? Pallete.fonts.light : Pallete.fonts.inactive,
-            }}
-          >
-            {props.title}
-          </FancyText>
-        </View>
+        ) : null}
+
+        <FancyText
+          type={isActive ? 'semiBold' : 'semiBoldItalic'}
+          size='extraSmall'
+          numberOfLines={1}
+          style={[
+            styles.title,
+            {
+              color: isActive ? palette.fonts.light : palette.fonts.inactive,
+            },
+          ]}
+        >
+          {props.title}
+        </FancyText>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
-function createStyles(Pallete: ThemePalette) {
+function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
     container: {
-      borderRadius: 50,
-      paddingVertical: 8,
-      paddingHorizontal: 16,
+      borderRadius: 16,
+      minHeight: 42,
+      justifyContent: 'center',
+      overflow: 'hidden',
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.border, 0.7),
+      backgroundColor: palette.backgroundColor2,
+    },
+    containerStretch: {
+      flex: 1,
+    },
+    active: {
+      backgroundColor: palette.primary,
+      borderColor: palette.primary,
+    },
+    inactive: {
+      backgroundColor: palette.backgroundColor2,
+    },
+    innerContent: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      flexGrow: 1,
-      flexShrink: 1,
-      flexBasis: 'auto',
-      minWidth: 80,
       gap: 6,
     },
-    containerMultiRow: {
-      flexGrow: 0,
-      flexShrink: 1,
-      flexBasis: '48%',
-      maxWidth: '48%',
-      minWidth: 0,
+    iconContainer: {
+      width: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
-    containerActive: { backgroundColor: Pallete.primary },
-    containerInactive: {
-      borderWidth: 0.2,
-      borderColor: Pallete.border,
-      backgroundColor: Pallete.backgroundColor2,
+    title: {
+      lineHeight: 16,
+      includeFontPadding: false,
+      paddingTop: 1,
     },
-    iconContainer: { justifyContent: 'center', alignItems: 'center' },
-    titleContaner: { justifyContent: 'center' },
   });
 }

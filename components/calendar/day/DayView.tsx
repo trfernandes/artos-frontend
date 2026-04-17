@@ -41,6 +41,7 @@ export type DayViewProps = {
   selectedDate?: Date;
   currentDate: Date;
   markedDatesType?: 'bottomPoint' | 'SurroundCircle';
+  visualStyle?: 'default' | 'agendaPremium';
   markedDates?: { date: Date; color?: string }[];
   containerStyle?: StyleProp<ViewStyle>;
   onSelectDate: (date: Date) => void;
@@ -54,6 +55,7 @@ export type DayViewProps = {
 export function DayView({
   markedDatesType = 'bottomPoint',
   showOtherMonthDays = true,
+  visualStyle = 'default',
   minimumDate,
   maximumDate,
   disablePastDates = false,
@@ -95,8 +97,8 @@ export function DayView({
 
   return (
     <View style={[styles.container, props.containerStyle]}>
-      <DayViewHeader />
-      <View style={styles.weekContainer}>
+      <DayViewHeader visualStyle={visualStyle} />
+      <View style={[styles.weekContainer, visualStyle === 'agendaPremium' ? styles.weekContainerAgenda : null]}>
         {daysMatrix.map((week, rowIndex) => (
           <View key={rowIndex} style={styles.weekRow}>
             {week.map((day, columnIndex) => {
@@ -164,6 +166,7 @@ export function DayView({
                   markerType={markedDatesType}
                   markerColor={markerColor}
                   disabled={isDisabled}
+                  visualStyle={visualStyle}
                   onPress={() => handlePress(cellDate, isDisabled)}
                 />
               );
@@ -177,13 +180,19 @@ export function DayView({
 
 const styles = StyleSheet.create({
   container: {
-    gap: 10,
+    gap: 6,
     width: '100%',
   },
-  weekContainer: {},
+  weekContainer: {
+    gap: 2,
+  },
+  weekContainerAgenda: {
+    gap: 0,
+  },
   weekRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
 });
 

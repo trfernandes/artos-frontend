@@ -6,6 +6,11 @@ import { UpdateRepertorioCategoriaDto } from '../dtos/Repertorio/repertorio-cate
 import { ResponseRepertorioMusicaDto } from '../dtos/Repertorio/repertorio-musica.response';
 import { CreateRepertorioMusicaDto } from '../dtos/Repertorio/repertorio-musica.create';
 import { UpdateRepertorioMusicaDto } from '../dtos/Repertorio/repertorio-musica.update';
+import { CreateRepertorioMusicaSecaoDto } from '../dtos/Repertorio/repertorio-musica-secao.create';
+import { UpdateRepertorioMusicaSecaoDto } from '../dtos/Repertorio/repertorio-musica-secao.update';
+import { ResponseRepertorioMusicaSecaoDto } from '../dtos/Repertorio/repertorio-musica-secao.response';
+import { ResponseRepertorioMusicaArranjoDto } from '../dtos/Repertorio/repertorio-musica-arranjo.response';
+import { UpsertRepertorioMusicaArranjoDto } from '../dtos/Repertorio/repertorio-musica-arranjo.update';
 
 type ApiEnvelope<T> = { data: T };
 
@@ -62,6 +67,48 @@ class RepertorioApiClass {
 
   async removeMusica(igrejaId: string, ministerioId: string, id: string) {
     await apiClient.delete(`/igrejas/${igrejaId}/ministerios/${ministerioId}/repertorio-musicas/${id}`);
+  }
+
+  async listSecoes(igrejaId: string, musicaId: string) {
+    const response = await apiClient.get<ApiEnvelope<ResponseRepertorioMusicaSecaoDto[]>>(
+      `/igrejas/${igrejaId}/repertorio/musicas/${musicaId}/secoes`,
+    );
+    return response.data.data;
+  }
+
+  async createSecao(igrejaId: string, musicaId: string, dto: CreateRepertorioMusicaSecaoDto) {
+    const response = await apiClient.post<ApiEnvelope<ResponseRepertorioMusicaSecaoDto>>(
+      `/igrejas/${igrejaId}/repertorio/musicas/${musicaId}/secoes`,
+      dto,
+    );
+    return response.data.data;
+  }
+
+  async updateSecao(igrejaId: string, musicaId: string, secaoId: string, dto: UpdateRepertorioMusicaSecaoDto) {
+    const response = await apiClient.patch<ApiEnvelope<ResponseRepertorioMusicaSecaoDto>>(
+      `/igrejas/${igrejaId}/repertorio/musicas/${musicaId}/secoes/${secaoId}`,
+      dto,
+    );
+    return response.data.data;
+  }
+
+  async removeSecao(igrejaId: string, musicaId: string, secaoId: string) {
+    await apiClient.delete(`/igrejas/${igrejaId}/repertorio/musicas/${musicaId}/secoes/${secaoId}`);
+  }
+
+  async getArranjo(igrejaId: string, musicaId: string) {
+    const response = await apiClient.get<ApiEnvelope<ResponseRepertorioMusicaArranjoDto[]>>(
+      `/igrejas/${igrejaId}/repertorio/musicas/${musicaId}/arranjo`,
+    );
+    return response.data.data;
+  }
+
+  async replaceArranjo(igrejaId: string, musicaId: string, dto: UpsertRepertorioMusicaArranjoDto) {
+    const response = await apiClient.put<ApiEnvelope<ResponseRepertorioMusicaArranjoDto[]>>(
+      `/igrejas/${igrejaId}/repertorio/musicas/${musicaId}/arranjo`,
+      dto,
+    );
+    return response.data.data;
   }
 }
 

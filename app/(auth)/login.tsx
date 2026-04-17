@@ -14,7 +14,7 @@ import FancyText from '../../components/FancyText';
 import FancyTextInput from '../../components/fields/FancyTextInput';
 import FancyPasswordInput from '../../components/fields/FancyPasswordInput';
 import LoginBase from '../../components/pages/login/LoginBase';
-import { EXTRA_SMALL_SIZE_FONT } from '../../constants/font';
+import { EXTRA_SMALL_SIZE_FONT, LARGE_SIZE_FONT, MEDIUM_SIZE_FONT } from '../../constants/font';
 import { router } from 'expo-router';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -30,6 +30,10 @@ import {
 } from '../../core/auth/pendingLoginAttemptStore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePallete } from '../../hooks/usePallete';
+import {
+  AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
+  AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
+} from '../../constants/authTypography';
 
 const REMEMBER_EMAIL_KEY = 'artos_remember_email';
 const REMEMBER_PASSWORD_KEY = 'artos_remember_password';
@@ -266,10 +270,20 @@ export default function LoginIndexPage() {
         ]}
       >
         <View style={styles.titleContainer}>
-          <FancyText size='large' type='semiBold' color='white'>
+          <FancyText
+            size='large'
+            type='semiBold'
+            color='white'
+            style={{ lineHeight: LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER }}
+          >
             Bem-vindo de volta!
           </FancyText>
-          <FancyText size='medium' type='medium' color='white'>
+          <FancyText
+            size='medium'
+            type='medium'
+            color='white'
+            style={{ lineHeight: MEDIUM_SIZE_FONT * AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER }}
+          >
             Entre para acessar todas as funcionalidades
           </FancyText>
         </View>

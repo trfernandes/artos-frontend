@@ -10,6 +10,11 @@ import { CreateEventoSetlistItemDto } from '../dtos/Evento/evento-setlist-item.c
 import { UpdateEventoSetlistItemDto } from '../dtos/Evento/evento-setlist-item.update';
 import { ReorderEventoSetlistDto } from '../dtos/Evento/reorder-evento-setlist.dto';
 import { DynamicQuery } from '../utils/query_utils';
+import { ResponseEventoSetlistItemEstruturaDto } from '../dtos/Evento/evento-setlist-item-estrutura.response';
+import { UpsertEventoSetlistItemEstruturaDto } from '../dtos/Evento/evento-setlist-item-estrutura.update';
+import { ResponseEventoSetlistObservacoesDto } from '../dtos/Evento/evento-setlist-observacoes.response';
+import { UpsertEventoSetlistObservacoesDto } from '../dtos/Evento/evento-setlist-observacoes.update';
+import { ResponseEquipeOcorrenciaDto } from '../dtos/Evento/evento-equipe.response';
 
 type ApiEnvelope<T> = {
   data: T;
@@ -139,6 +144,81 @@ class IgrejaEventosApiClass {
   ): Promise<ResponseEventoSetlistItemDto[]> {
     const response = await apiClient.get<ApiEnvelope<ResponseEventoSetlistItemDto[]>>(
       `/${this.resourceName}/${igrejaId}/eventos/${eventoId}/setlist`,
+      { params: { ministerioId, dataOcorrencia } },
+    );
+    return response.data.data;
+  }
+
+  async listarEquipe(
+    igrejaId: string,
+    eventoId: string,
+    ministerioId: string,
+    dataOcorrencia: string,
+  ) {
+    const response = await apiClient.get<ApiEnvelope<ResponseEquipeOcorrenciaDto>>(
+      `/${this.resourceName}/${igrejaId}/eventos/${eventoId}/equipe`,
+      { params: { ministerioId, dataOcorrencia } },
+    );
+    return response.data.data;
+  }
+
+  async obterObservacoesSetlist(
+    igrejaId: string,
+    eventoId: string,
+    ministerioId: string,
+    dataOcorrencia: string,
+  ) {
+    const response = await apiClient.get<ApiEnvelope<ResponseEventoSetlistObservacoesDto>>(
+      `/${this.resourceName}/${igrejaId}/eventos/${eventoId}/setlist/observacoes`,
+      { params: { ministerioId, dataOcorrencia } },
+    );
+    return response.data.data;
+  }
+
+  async salvarObservacoesSetlist(igrejaId: string, eventoId: string, dto: UpsertEventoSetlistObservacoesDto) {
+    const response = await apiClient.put<ApiEnvelope<ResponseEventoSetlistObservacoesDto>>(
+      `/${this.resourceName}/${igrejaId}/eventos/${eventoId}/setlist/observacoes`,
+      dto,
+    );
+    return response.data.data;
+  }
+
+  async obterEstruturaSetlistItem(
+    igrejaId: string,
+    eventoId: string,
+    itemId: string,
+    ministerioId: string,
+    dataOcorrencia: string,
+  ) {
+    const response = await apiClient.get<ApiEnvelope<ResponseEventoSetlistItemEstruturaDto>>(
+      `/${this.resourceName}/${igrejaId}/eventos/${eventoId}/setlist/${itemId}/estrutura`,
+      { params: { ministerioId, dataOcorrencia } },
+    );
+    return response.data.data;
+  }
+
+  async substituirEstruturaSetlistItem(
+    igrejaId: string,
+    eventoId: string,
+    itemId: string,
+    dto: UpsertEventoSetlistItemEstruturaDto,
+  ) {
+    const response = await apiClient.put<ApiEnvelope<ResponseEventoSetlistItemEstruturaDto>>(
+      `/${this.resourceName}/${igrejaId}/eventos/${eventoId}/setlist/${itemId}/estrutura`,
+      dto,
+    );
+    return response.data.data;
+  }
+
+  async removerEstruturaSetlistItem(
+    igrejaId: string,
+    eventoId: string,
+    itemId: string,
+    ministerioId: string,
+    dataOcorrencia: string,
+  ) {
+    const response = await apiClient.delete<ApiEnvelope<ResponseEventoSetlistItemEstruturaDto>>(
+      `/${this.resourceName}/${igrejaId}/eventos/${eventoId}/setlist/${itemId}/estrutura`,
       { params: { ministerioId, dataOcorrencia } },
     );
     return response.data.data;

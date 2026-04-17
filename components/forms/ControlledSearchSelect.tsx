@@ -6,7 +6,18 @@ import { View } from 'react-native';
 interface ControlledSearchSelectProps<TFormValues extends FieldValues, TName extends Path<TFormValues>>
   extends Pick<
     FancySearchSelectProps<PathValue<TFormValues, TName>>,
-    'placeholder' | 'listItems' | 'label' | 'onChange' | 'disabled' | 'isLoading' | 'title' | 'searchPlaceholder'
+    | 'placeholder'
+    | 'listItems'
+    | 'label'
+    | 'onChange'
+    | 'disabled'
+    | 'isLoading'
+    | 'title'
+    | 'searchPlaceholder'
+    | 'loadingMessage'
+    | 'errorMessage'
+    | 'onRetry'
+    | 'retryLabel'
   > {
   control: Control<TFormValues>;
   name: TName;

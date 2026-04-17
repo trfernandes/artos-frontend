@@ -1,4 +1,9 @@
 @echo off
+setlocal
 cd /d "%~dp0"
-powershell -NoProfile -ExecutionPolicy Bypass -File ".\scripts\launch-artos-android-debug.ps1" -EnvName staging -TargetMode device
-
+powershell -NoLogo -NoExit -ExecutionPolicy Bypass -File "%~dp0scripts\launch-artos-android-debug.ps1" -EnvName staging -TargetMode device
+if errorlevel 1 (
+  echo.
+  echo Falha ao iniciar o Diakonia no celular USB.
+  pause
+)

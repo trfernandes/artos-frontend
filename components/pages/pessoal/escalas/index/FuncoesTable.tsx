@@ -1,128 +1,422 @@
-import { View, StyleSheet } from 'react-native';
-import { Pallete } from '../../../../../constants/colors';
-
-import FancyChips from '../../../../FancyChips';
-import { IconLibrary } from '../../../../FancyIcons';
-import FancySeparator from '../../../../FancySeparator';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import FancyText from '../../../../FancyText';
-import FancyVerticalSpacer from '../../../../FancyVerticalSpacer';
-import { VoluntarioStatusChipParams } from '../../../ministerios/escalas/details/ListaVoluntariosTable';
-import { BOLD_FONT, SMALL_SIZE_FONT, SEMI_BOLD_FONT, MEDIUM_SIZE_FONT } from '../../../../../constants/font';
-import FancyButton from '../../../../buttons/FancyButton';
+import DefaultIcons, { IconLibrary } from '../../../../FancyIcons';
 import { ResponseEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.response';
-import { EscalaItemStatusEnum, EscalaItemStatusEnumLabel } from '../../../../../domain/enums/Escala/escala-item-status.enum';
+import {
+  EscalaItemStatusEnum,
+  EscalaItemStatusEnumLabel,
+} from '../../../../../domain/enums/Escala/escala-item-status.enum';
+import { VoluntarioStatusChipParams } from '../../../ministerios/escalas/details/ListaVoluntariosTable';
+import { Pallete } from '../../../../../constants/colors';
+import { ColorUtils } from '../../../../../utils/color_utils';
+import {
+  BOLD_FONT,
+  EXTRA_SMALL_SIZE_FONT,
+  MEDIUM_SIZE_FONT,
+  SMALL_SIZE_FONT,
+} from '../../../../../constants/font';
 
-export default function FuncoesTable({
-  data,
+export type FuncoesTableVariant =
+  | 'rowCompactPremium'
+  | 'editorialClean'
+  | 'quickActionsMobile';
+
+type FuncoesTableProps = {
+  data: ResponseEscalaItemDto[];
+  onConfirmButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void;
+  onSubButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void;
+  variant?: FuncoesTableVariant;
+};
+
+type ActionButtonProps = {
+  icon: { library: IconLibrary; name: string };
+  color: string;
+  backgroundColor: string;
+  disabled?: boolean;
+  onPress?: () => void;
+  subtle?: boolean;
+};
+
+const ROW_VARIANT_RENDER_ORDER: FuncoesTableVariant[] = [
+  'rowCompactPremium',
+  'editorialClean',
+  'quickActionsMobile',
+];
+
+function ActionButton({
+  icon,
+  color,
+  backgroundColor,
+  disabled,
+  onPress,
+  subtle = false,
+}: ActionButtonProps) {
+  return (
+    <TouchableOpacity
+      disabled={disabled}
+      onPress={onPress}
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      style={[
+        styles.actionButton,
+        subtle ? styles.actionButtonSubtle : null,
+        {
+          backgroundColor: disabled ? Pallete.icons.inactive2 : backgroundColor,
+          opacity: disabled ? 0.55 : 1,
+        },
+      ]}
+    >
+      <DefaultIcons.Custom
+        library={icon.library}
+        name={icon.name}
+        size={subtle ? 12 : 13}
+        color={disabled ? Pallete.icons.inactive : color}
+      />
+    </TouchableOpacity>
+  );
+}
+
+function StatusBadge({ status }: { status: EscalaItemStatusEnum }) {
+  const statusUi = VoluntarioStatusChipParams[status];
+
+  return (
+    <View
+      style={[
+        styles.statusBadge,
+        {
+          backgroundColor: statusUi.background,
+          borderColor: ColorUtils.withAlpha(statusUi.color, 0.18),
+        },
+      ]}
+    >
+      <FancyText
+        size='extraSmall'
+        type='semiBold'
+        style={[styles.statusBadgeText, { color: statusUi.color }]}
+        numberOfLines={1}
+      >
+        {EscalaItemStatusEnumLabel[status]}
+      </FancyText>
+    </View>
+  );
+}
+
+function getActionState(item: ResponseEscalaItemDto) {
+  const isPendente = item.status === EscalaItemStatusEnum.Pendente;
+  const canSubstitute = isPendente || item.status === EscalaItemStatusEnum.Confirmado;
+
+  return { isPendente, canSubstitute };
+}
+
+function renderActions(
+  item: ResponseEscalaItemDto,
+  onConfirmButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void,
+  onSubButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void,
+  subtle = false,
+) {
+  const { isPendente, canSubstitute } = getActionState(item);
+
+  return (
+    <View style={[styles.actionsRow, subtle ? styles.actionsRowTight : null]}>
+      <ActionButton
+        icon={{ library: 'MaterialCommunityIcons', name: 'check-bold' }}
+        color={Pallete.icons.light}
+        backgroundColor={Pallete.confirm}
+        disabled={!isPendente}
+        onPress={() => onConfirmButtonPress?.(item)}
+        subtle={subtle}
+      />
+      <ActionButton
+        icon={{ library: 'FontAwesome6', name: 'repeat' }}
+        color={Pallete.icons.light}
+        backgroundColor={Pallete.terciary}
+        disabled={!canSubstitute}
+        onPress={() => onSubButtonPress?.(item)}
+        subtle={subtle}
+      />
+    </View>
+  );
+}
+
+function RowCompactPremium({
+  item,
+  isLast,
   onConfirmButtonPress,
   onSubButtonPress,
 }: {
-  data: ResponseEscalaItemDto[];
+  item: ResponseEscalaItemDto;
+  isLast: boolean;
   onConfirmButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void;
   onSubButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void;
 }) {
   return (
-    <View>
-      <View style={styles.rowContainer}>
-        <FancyText style={[styles.headerItem, styles.column1]}>Função</FancyText>
-        <FancyText style={[styles.headerItem, styles.column2]}>Status</FancyText>
-        <FancyText style={[styles.headerItem, styles.column3, { textAlign: 'center' }]}>Ações</FancyText>
+    <View style={[styles.rowCard, !isLast ? styles.rowSpacing : null]}>
+      <View style={styles.rowHeader}>
+        <FancyText size='small' type='semiBold' style={styles.roleTitle} numberOfLines={1}>
+          {item.funcao?.nome || 'Função'}
+        </FancyText>
+        <StatusBadge status={item.status} />
       </View>
-      <FancyVerticalSpacer height={7} />
-      <FancySeparator />
-      <FancyVerticalSpacer height={9} />
-      <View style={styles.valuesContainer}>
-        {data?.map((equipeItem, index) => {
-          return (
-            <View style={{ gap: 10, borderWidth: 0, alignItems: 'center' }} key={index}>
-              <View style={styles.rowContainer}>
-                <View style={[styles.column1, { justifyContent: 'center' }]}>
-                  <FancyText style={[styles.valueItem]} ellipsizeMode='tail' numberOfLines={2}>
-                    {equipeItem.funcao?.nome}
-                  </FancyText>
-                </View>
-                <View style={[styles.column2, { justifyContent: 'center' }]}>
-                  <FancyChips
-                    label={EscalaItemStatusEnumLabel[equipeItem.status]}
-                    color={VoluntarioStatusChipParams[equipeItem.status].color}
-                    backgroundColor={VoluntarioStatusChipParams[equipeItem.status].background}
-                    size='medium'
-                    style={{ alignItems: 'center' }}
-                  />
-                </View>
-                <View
-                  style={[
-                    styles.column3,
-                    {
-                      borderWidth: 0,
-                      gap: 8,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      flexDirection: 'row',
-                    },
-                  ]}
-                >
-                  <FancyButton
-                    mode='icon'
-                    size={24}
-                    disabled={equipeItem.status !== EscalaItemStatusEnum.Pendente}
-                    icon={{
-                      library: 'MaterialCommunityIcons' as IconLibrary,
-                      name: 'check-bold',
-                      size: 15,
-                      color: equipeItem.status !== EscalaItemStatusEnum.Pendente ? Pallete.icons.inactive : Pallete.icons.light,
-                    }}
-                    containerStyle={{
-                      backgroundColor:
-                        equipeItem.status === EscalaItemStatusEnum.Pendente ? Pallete.confirm : Pallete.icons.inactive2,
-                      aspectRatio: 1,
-                      borderWidth: 0,
-                      marginVertical: 1,
-                    }}
-                    onPress={() => onConfirmButtonPress?.(equipeItem)}
-                  />
-                  <FancyButton
-                    mode='icon'
-                    size={24}
-                    disabled={equipeItem.status !== EscalaItemStatusEnum.Pendente && equipeItem.status !== EscalaItemStatusEnum.Confirmado}
-                    icon={{
-                      library: 'FontAwesome6' as IconLibrary,
-                      name: 'repeat',
-                      size: 12,
-                      color: equipeItem.status !== EscalaItemStatusEnum.Pendente && equipeItem.status !== EscalaItemStatusEnum.Confirmado ? Pallete.icons.inactive : Pallete.icons.light,
-                    }}
-                    containerStyle={{
-                      backgroundColor:
-                        equipeItem.status === EscalaItemStatusEnum.Pendente || equipeItem.status === EscalaItemStatusEnum.Confirmado ? Pallete.terciary : Pallete.icons.inactive2,
-                      aspectRatio: 1,
-                    }}
-                    onPress={() => onSubButtonPress?.(equipeItem)}
-                  />
-                </View>
-              </View>
-              {index < data.length - 1 && <FancySeparator />}
-            </View>
-          );
-        })}
+
+      <View style={styles.rowFooter}>
+        <FancyText
+          size='extraSmall'
+          type='medium'
+          style={styles.rowHint}
+          numberOfLines={1}
+        >
+          {item.status === EscalaItemStatusEnum.Pendente
+            ? 'Aguardando sua confirmação'
+            : item.status === EscalaItemStatusEnum.Confirmado
+              ? 'Confirmado para esta escala'
+              : item.status === EscalaItemStatusEnum.Ausente
+                ? 'Ausência registrada'
+                : 'Ajustado nesta escala'}
+        </FancyText>
+
+        {renderActions(item, onConfirmButtonPress, onSubButtonPress)}
       </View>
     </View>
   );
 }
 
+function EditorialClean({
+  item,
+  isLast,
+  onConfirmButtonPress,
+  onSubButtonPress,
+}: {
+  item: ResponseEscalaItemDto;
+  isLast: boolean;
+  onConfirmButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void;
+  onSubButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void;
+}) {
+  return (
+    <View style={[styles.editorialRow, !isLast ? styles.editorialDivider : null]}>
+      <View style={styles.editorialMain}>
+        <FancyText size='small' type='semiBold' style={styles.roleTitle} numberOfLines={1}>
+          {item.funcao?.nome || 'Função'}
+        </FancyText>
+        <View style={styles.editorialMeta}>
+          <FancyText
+            size='extraSmall'
+            type='medium'
+            style={styles.editorialMetaLabel}
+            numberOfLines={1}
+          >
+            {EscalaItemStatusEnumLabel[item.status]}
+          </FancyText>
+        </View>
+      </View>
+
+      {renderActions(item, onConfirmButtonPress, onSubButtonPress, true)}
+    </View>
+  );
+}
+
+function QuickActionsMobile({
+  item,
+  isLast,
+  onConfirmButtonPress,
+  onSubButtonPress,
+}: {
+  item: ResponseEscalaItemDto;
+  isLast: boolean;
+  onConfirmButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void;
+  onSubButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void;
+}) {
+  return (
+    <View style={[styles.quickRow, !isLast ? styles.rowSpacing : null]}>
+      <View style={styles.quickMain}>
+        <FancyText size='small' type='semiBold' style={styles.roleTitle} numberOfLines={1}>
+          {item.funcao?.nome || 'Função'}
+        </FancyText>
+        <StatusBadge status={item.status} />
+      </View>
+
+      <View style={styles.quickActionsCapsule}>
+        {renderActions(item, onConfirmButtonPress, onSubButtonPress, true)}
+      </View>
+    </View>
+  );
+}
+
+export default function FuncoesTable({
+  data,
+  onConfirmButtonPress,
+  onSubButtonPress,
+  variant = 'rowCompactPremium',
+}: FuncoesTableProps) {
+  const activeVariant = ROW_VARIANT_RENDER_ORDER.includes(variant)
+    ? variant
+    : 'rowCompactPremium';
+
+  return (
+    <View style={styles.container}>
+      {data?.map((item, index) => {
+        const isLast = index === data.length - 1;
+
+        if (activeVariant === 'editorialClean') {
+          return (
+            <EditorialClean
+              key={item.id || `${item.funcaoId}-${index}`}
+              item={item}
+              isLast={isLast}
+              onConfirmButtonPress={onConfirmButtonPress}
+              onSubButtonPress={onSubButtonPress}
+            />
+          );
+        }
+
+        if (activeVariant === 'quickActionsMobile') {
+          return (
+            <QuickActionsMobile
+              key={item.id || `${item.funcaoId}-${index}`}
+              item={item}
+              isLast={isLast}
+              onConfirmButtonPress={onConfirmButtonPress}
+              onSubButtonPress={onSubButtonPress}
+            />
+          );
+        }
+
+        return (
+          <RowCompactPremium
+            key={item.id || `${item.funcaoId}-${index}`}
+            item={item}
+            isLast={isLast}
+            onConfirmButtonPress={onConfirmButtonPress}
+            onSubButtonPress={onSubButtonPress}
+          />
+        );
+      })}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  column1: { flex: 3, borderWidth: 0 },
-  column2: { flex: 3, borderWidth: 0 },
-  column3: { flex: 1.5, borderWidth: 0 },
-  headerItem: {
+  container: {
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingTop: 4,
+  },
+  rowCard: {
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: Pallete.backgroundColor4,
+    borderWidth: 1,
+    borderColor: ColorUtils.withAlpha(Pallete.primary, 0.08),
+  },
+  rowSpacing: {
+    marginBottom: 0,
+  },
+  rowHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  rowFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginTop: 8,
+  },
+  roleTitle: {
     fontFamily: BOLD_FONT,
     fontSize: SMALL_SIZE_FONT,
+    lineHeight: MEDIUM_SIZE_FONT + 1,
+    color: Pallete.fonts.dark,
+    flex: 1,
   },
-  valueItem: {
-    fontFamily: SEMI_BOLD_FONT,
-    fontSize: SMALL_SIZE_FONT,
-    lineHeight: MEDIUM_SIZE_FONT + 2,
-    flexShrink: 1,
+  rowHint: {
+    fontSize: EXTRA_SMALL_SIZE_FONT,
+    lineHeight: EXTRA_SMALL_SIZE_FONT + 4,
+    color: Pallete.fonts.inactive,
+    flex: 1,
   },
-  valuesContainer: { gap: 10 },
-  rowContainer: { flexDirection: 'row', paddingHorizontal: 15, gap: 6 },
+  statusBadge: {
+    alignSelf: 'flex-start',
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderWidth: 1,
+  },
+  statusBadgeText: {
+    fontFamily: BOLD_FONT,
+    fontSize: EXTRA_SMALL_SIZE_FONT,
+    lineHeight: EXTRA_SMALL_SIZE_FONT + 2,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  actionsRowTight: {
+    gap: 6,
+  },
+  actionButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionButtonSubtle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+  },
+  editorialRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 4,
+    paddingVertical: 8,
+  },
+  editorialDivider: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: ColorUtils.withAlpha(Pallete.fonts.inactive, 0.22),
+  },
+  editorialMain: {
+    flex: 1,
+    minWidth: 0,
+    gap: 4,
+  },
+  editorialMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  editorialMetaLabel: {
+    fontSize: EXTRA_SMALL_SIZE_FONT,
+    lineHeight: EXTRA_SMALL_SIZE_FONT + 3,
+    color: Pallete.fonts.inactive,
+    letterSpacing: 0.2,
+  },
+  quickRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: ColorUtils.withAlpha(Pallete.primary, 0.08),
+  },
+  quickMain: {
+    flex: 1,
+    minWidth: 0,
+    gap: 6,
+  },
+  quickActionsCapsule: {
+    paddingHorizontal: 6,
+    paddingVertical: 5,
+    borderRadius: 999,
+    backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.06),
+    borderWidth: 1,
+    borderColor: ColorUtils.withAlpha(Pallete.primary, 0.08),
+  },
 });

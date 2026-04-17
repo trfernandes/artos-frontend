@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Toast from 'react-native-toast-message';
 import FancyContainer from '../../../FancyContainer';
@@ -7,8 +7,9 @@ import FancyButton from '../../../buttons/FancyButton';
 import FancyChips from '../../../FancyChips';
 import FancyLoading from '../../../FancyLoading';
 import FancyText from '../../../FancyText';
+import DefaultIcons from '../../../FancyIcons';
 import EventoInfoCard from '../../common/EventoInfoCard';
-import ModernTimePickerField from '../../../time_picker/ModernTimePickerField';
+import ModernTimePickerSheet from '../../../time_picker/ModernTimePickerSheet';
 import { FancyAlert } from '../../../modal/FancyAlert';
 import { useEscalaTemplatesCrud } from '../../../../useEscalaTemplatesCrud';
 import { Conjunction, Operator, OrderDirection, ValueType } from '../../../../domain/utils/query_utils';
@@ -77,6 +78,10 @@ function serializeHourMinute(value?: HourMinute): string {
   return value ? formatHourMinuteToTime(value) : '';
 }
 
+function getMinutesOfDay(value: HourMinute): number {
+  return value.hour * 60 + value.minute;
+}
+
 function normalizeSelectValue(value?: string | null) {
   return value ?? '';
 }
@@ -109,15 +114,18 @@ function OccurrenceFieldSection({
         ) : null}
       </View>
 
+      <View style={styles.sectionEditorField}>{editor}</View>
+
       {origin ? (
-        <View style={styles.sectionSummary}>
-          <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive}>
+        <View style={styles.originBadge}>
+          <View style={styles.originBadgeIcon}>
+            <DefaultIcons.Custom {...DefaultIconsNames.info} size={11} color={Pallete.fonts.inactive} />
+          </View>
+          <FancyText size='extraSmall' type='medium' color={Pallete.fonts.dark} style={styles.originBadgeText}>
             {origin}
           </FancyText>
         </View>
       ) : null}
-
-      <View style={styles.sectionEditorField}>{editor}</View>
     </View>
   );
 }
@@ -236,6 +244,7 @@ export default function AgendaDetailsDadosTab(props: {
   const [ensaioTime, setEnsaioTime] = useState<HourMinute | undefined>(resolvedEnsaio);
   const [responsavelSetlistId, setResponsavelSetlistId] = useState<string>(resolvedResponsavelSetlistId);
   const [isSavingAll, setIsSavingAll] = useState(false);
+  const [isTimePickerVisible, setIsTimePickerVisible] = useState(false);
 
   const previousResolvedTemplateIdRef = useRef(resolvedTemplateId);
   const previousResolvedEnsaioRef = useRef(serializeHourMinute(resolvedEnsaio));
@@ -275,6 +284,43 @@ export default function AgendaDetailsDadosTab(props: {
   const hasUnsavedChanges = canManageOccurrence && (templateDirty || ensaioDirty || responsavelSetlistDirty);
   const pendingChangesCount = Number(templateDirty) + Number(ensaioDirty) + Number(responsavelSetlistDirty);
   const isMutating = isSavingAll || isSavingTemplatePadrao || isSavingEnsaio || isSavingResponsavelSetlist;
+  const currentEnsaioDisplay = useMemo(() => {
+    if (ensaioTime) return formatHourMinuteToTime(ensaioTime);
+    return resolvedEnsaioDisplay;
+  }, [ensaioTime, resolvedEnsaioDisplay]);
+  const defaultSuggestedEnsaio = useMemo<HourMinute>(() => {
+    const occurrenceDate = new Date(props.dataOcorrenciaDate);
+    occurrenceDate.setMinutes(occurrenceDate.getMinutes() - 30);
+    return {
+      hour: occurrenceDate.getHours(),
+      minute: occurrenceDate.getMinutes(),
+    };
+  }, [props.dataOcorrenciaDate]);
+  const occurrenceTimeLabel = useMemo(
+    () =>
+      `${String(props.dataOcorrenciaDate.getHours()).padStart(2, '0')}:${String(props.dataOcorrenciaDate.getMinutes()).padStart(2, '0')}`,
+    [props.dataOcorrenciaDate],
+  );
+
+  const validateEnsaioTime = useCallback(
+    (candidate?: HourMinute, showToast = true) => {
+      if (!candidate) return true;
+
+      const eventMinutes = props.dataOcorrenciaDate.getHours() * 60 + props.dataOcorrenciaDate.getMinutes();
+      const candidateMinutes = getMinutesOfDay(candidate);
+      const isValid = candidateMinutes <= eventMinutes - 30;
+
+      if (!isValid && showToast) {
+        FancyAlert.alert(
+          'Horário inválido',
+          `O ensaio precisa começar ao menos 30 min antes da ocorrência às ${occurrenceTimeLabel}.`,
+        );
+      }
+
+      return isValid;
+    },
+    [occurrenceTimeLabel, props.dataOcorrenciaDate],
+  );
 
   const origemEnsaioLabel = useMemo(() => {
     const origem =
@@ -433,6 +479,7 @@ export default function AgendaDetailsDadosTab(props: {
     async (escopo: TemplatePadraoEscopoEnum) => {
       const eventoId = props.ocorrencia?.eventoId || props.evento.id;
       if (!eventoId || !ensaioTime) return false;
+      if (!validateEnsaioTime(ensaioTime)) return false;
 
       try {
         const response = await salvarEnsaio({
@@ -468,7 +515,7 @@ export default function AgendaDetailsDadosTab(props: {
         return false;
       }
     },
-    [ensaioTime, props.dataOcorrenciaIso, props.evento.id, props.ocorrencia?.eventoId, removerEnsaio, salvarEnsaio],
+    [ensaioTime, props.dataOcorrenciaIso, props.evento.id, props.ocorrencia?.eventoId, removerEnsaio, salvarEnsaio, validateEnsaioTime],
   );
 
   const saveResponsavelSetlistByScope = useCallback(
@@ -619,14 +666,18 @@ export default function AgendaDetailsDadosTab(props: {
   if (isLoadingTemplates) return <FancyLoading />;
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.containerContent}
+      showsVerticalScrollIndicator={false}
+      nestedScrollEnabled
+    >
       <EventoInfoCard
         dataOcorrencia={props.dataOcorrenciaDate}
         eventoCor={props.evento.cor || Pallete.primary}
         eventoNome={props.evento.nome}
         descricao={props.evento.descricao}
         local={props.evento.local}
-        horarioEnsaio={!canManageOccurrence && resolvedEnsaioDisplay !== 'Não definido' ? resolvedEnsaioDisplay : undefined}
       />
 
       {(canManageOccurrence || isLouvorMinisterio) && (
@@ -696,17 +747,61 @@ export default function AgendaDetailsDadosTab(props: {
                   editor={
                     <View style={styles.editorGroup}>
                       {canManageOccurrence ? (
-                        <ModernTimePickerField
-                          containerStyle={styles.editorControl}
-                          value={ensaioTime}
-                          onChange={setEnsaioTime}
-                          disabled={isMutating}
-                          panelProps={{
-                            buttonStyle: styles.timePickerButton,
-                            textStyle: styles.timePickerButtonText,
-                          }}
-                          sheetProps={{ title: 'Horário de ensaio' }}
-                        />
+                        <>
+                          <Pressable
+                            disabled={isMutating}
+                            onPress={() => setIsTimePickerVisible(true)}
+                            style={[
+                              styles.timePickerTrigger,
+                              ensaioDirty && styles.timePickerTriggerDirty,
+                              isMutating && styles.timePickerTriggerDisabled,
+                            ]}
+                          >
+                            <View style={styles.timePickerIconWrap}>
+                              <DefaultIcons.Custom
+                                {...DefaultIconsNames.time}
+                                size={18}
+                                color={Pallete.primary}
+                              />
+                            </View>
+
+                            <View style={styles.timePickerContent}>
+                              <View style={styles.timePickerTitleRow}>
+                                <FancyText size='extraSmall' type='semiBold' color={Pallete.fonts.inactive}>
+                                  Horário selecionado
+                                </FancyText>
+                              </View>
+
+                              <FancyText size='medium' type='bold' color={Pallete.fonts.dark}>
+                                {currentEnsaioDisplay !== 'Não definido' ? currentEnsaioDisplay : 'Selecionar horário'}
+                              </FancyText>
+
+                              <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive} style={styles.timePickerHint}>
+                                Mínimo de 30 min antes da ocorrência.
+                              </FancyText>
+                            </View>
+
+                            <View style={styles.timePickerChevronWrap}>
+                              <DefaultIcons.Custom
+                                {...DefaultIconsNames['chevron-down']}
+                                size={16}
+                                color={Pallete.fonts.inactive}
+                              />
+                            </View>
+                          </Pressable>
+
+                          <ModernTimePickerSheet
+                            visible={isTimePickerVisible}
+                            value={ensaioTime ?? defaultSuggestedEnsaio}
+                            onClose={() => setIsTimePickerVisible(false)}
+                            onConfirm={(time) => {
+                              if (!validateEnsaioTime(time)) return;
+                              setEnsaioTime(time);
+                              setIsTimePickerVisible(false);
+                            }}
+                            title='Horário de ensaio'
+                          />
+                        </>
                       ) : (
                         <FancyText type='medium' size='small' color={Pallete.fonts.dark}>
                           {resolvedEnsaioDisplay}
@@ -741,12 +836,18 @@ export default function AgendaDetailsDadosTab(props: {
           }
         />
       )}
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 15 },
+  container: {
+    flex: 1,
+  },
+  containerContent: {
+    gap: 15,
+    paddingBottom: 24,
+  },
   occurrenceContainer: {
     paddingBottom: 18,
   },
@@ -767,9 +868,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 10,
   },
-  sectionSummary: {
-    marginTop: 6,
-  },
   sectionEditorField: {
     marginTop: 12,
   },
@@ -784,6 +882,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderWidth: 1,
     minHeight: 0,
+  },
+  originBadge: {
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    backgroundColor: 'rgba(62, 62, 62, 0.05)',
+  },
+  originBadgeIcon: {
+    width: 16,
+    height: 16,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(62, 62, 62, 0.06)',
+  },
+  originBadgeText: {
+    lineHeight: 15,
+    opacity: 0.78,
   },
   footer: {
     paddingHorizontal: 15,
@@ -809,5 +930,49 @@ const styles = StyleSheet.create({
   },
   timePickerButtonText: {
     textAlign: 'left',
+  },
+  timePickerTrigger: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderWidth: 1,
+    borderColor: Pallete.borderCard,
+    backgroundColor: Pallete.backgroundColor4,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  timePickerTriggerDirty: {
+    borderColor: Pallete.primary,
+  },
+  timePickerTriggerDisabled: {
+    opacity: 0.72,
+  },
+  timePickerIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E8F0FF',
+  },
+  timePickerContent: {
+    flex: 1,
+    gap: 2,
+  },
+  timePickerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  timePickerHint: {
+    lineHeight: 16,
+  },
+  timePickerChevronWrap: {
+    width: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

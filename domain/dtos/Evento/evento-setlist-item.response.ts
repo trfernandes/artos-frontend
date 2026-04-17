@@ -20,4 +20,6 @@ export type ResponseEventoSetlistItemDto = {
   letraMarkdown?: string | null;
   cifraMarkdown?: string | null;
   observacoes?: string | null;
+  hasEstruturaOverride?: boolean;
+  totalSecoes?: number;
 };

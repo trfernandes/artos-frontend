@@ -34,6 +34,15 @@ export const LoginCreateIgrejaSchema = z
       .string('Campo obrigatório')
       .min(1, 'Campo obrigatório')
       .refine(validarCelularBrasil, { message: 'Número de celular inválido. Use o formato (XX) 9XXXX-XXXX' }),
+    plano: z.enum(['starter', 'essencial', 'crescimento'], {
+      message: 'Selecione um plano',
+    }),
+    ciclo: z.enum(['MONTHLY', 'YEARLY'], {
+      message: 'Selecione a cobrança',
+    }),
+    modoCadastroPlano: z.enum(['avaliacao', 'plano'], {
+      message: 'Selecione como deseja começar',
+    }),
   })
   .refine((data) => data.responsavelSenha === data.responsavelConfirmarSenha, {
     message: 'As senhas não coincidem',
@@ -44,7 +53,8 @@ export const LoginCreateIgrejaSchema = z
 export const LoginCreateIgrejaStepFields = {
   0: ['nome', 'cidade', 'uf', 'codigo'] as const,
   1: ['responsavelNome', 'responsavelEmail', 'responsavelSenha', 'responsavelConfirmarSenha', 'responsavelWhatsapp'] as const,
-  2: [] as const,
+  2: ['plano', 'ciclo', 'modoCadastroPlano'] as const,
+  3: [] as const,
 };
 
 export type LoginCreateIgrejaFormData = z.infer<typeof LoginCreateIgrejaSchema>;

@@ -16,7 +16,7 @@ export const BILLING_PLAN_OPTIONS: readonly BillingPlanOption[] = [
   {
     codigo: 'starter',
     nome: 'Starter',
-    descricao: 'Para igrejas que estao organizando a operacao inicial.',
+    descricao: 'Para igrejas que estão organizando a operação inicial.',
     monthlyPrice: 'R$ 39,90/mês',
     yearlyPrice: 'R$ 383,00/ano',
     maxVolunteers: 30,
@@ -35,7 +35,7 @@ export const BILLING_PLAN_OPTIONS: readonly BillingPlanOption[] = [
   {
     codigo: 'crescimento',
     nome: 'Crescimento',
-    descricao: 'Para operacoes maiores, com mais ministerios e escala recorrente.',
+    descricao: 'Para operações maiores, com mais ministérios e escala recorrente.',
     monthlyPrice: 'R$ 119,90/mês',
     yearlyPrice: 'R$ 1.151,00/ano',
     maxVolunteers: 180,

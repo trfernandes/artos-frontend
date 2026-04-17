@@ -16,10 +16,13 @@ import { useAuth } from '../../../../../contexts/AuthContext';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { Pallete } from '../../../../../constants/colors';
 import FancyChips from '../../../../../components/FancyChips';
+import BillingNoticeBanner from '../../../../../components/billing/BillingNoticeBanner';
+import { useIgrejaAssinatura } from '../../../../../hooks/useIgrejaAssinatura';
 
 export default function MinisteriosIndex() {
   const { showLoading } = useLoading();
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, igrejaAtiva } = useAuth();
+  const { data: assinatura } = useIgrejaAssinatura({ igrejaId: igrejaAtiva?.id });
 
   const [searchText, setSearchText] = useState('');
 
@@ -139,6 +142,18 @@ export default function MinisteriosIndex() {
           }
         },
       }}
+      topContent={
+        <BillingNoticeBanner
+          compact
+          assinatura={assinatura}
+          onPress={() =>
+            router.push({
+              pathname: '/(app)/(drawer)/configuracoes',
+              params: { tab: 'plano', openPlans: '1' },
+            })
+          }
+        />
+      }
       listProps={{
         onRefresh: refetch,
         listEmptyProps: {
@@ -151,10 +166,23 @@ export default function MinisteriosIndex() {
           const commonProps: FancyCardImageBaseProps = {
             title: item.nome,
             subtitle: MinisterioTipoLabel[item.tipo],
-            centerContainerStyle: { gap: 3 },
+            containerStyle: {
+              borderRadius: 28,
+              paddingVertical: 12,
+              marginBottom: 2,
+            },
+            contentContainerStyle: {
+              paddingHorizontal: 16,
+              paddingVertical: 4,
+            },
+            centerContainerStyle: {
+              gap: 2,
+              justifyContent: 'center',
+              paddingRight: 8,
+            },
             additionalData1: (
               <FancyChips
-                style={{ marginTop: 1 }}
+                style={{ marginTop: 3, alignSelf: 'flex-start' }}
                 size='small'
                 label={MinisterioStatusLabel[item.status]}
                 color={MinisterioStatusEnumMap[item.status] === MinisterioStatusEnum.Ativo ? Pallete.primary : Pallete.error}
@@ -163,6 +191,7 @@ export default function MinisteriosIndex() {
             actionButtons: [
               {
                 icon: { ...DefaultIconsNames.edit, size: 17 },
+                size: 'small',
                 onPress: () => {
                   showLoading();
                   router.push({
@@ -176,6 +205,7 @@ export default function MinisteriosIndex() {
               {
                 type: 'menu',
                 icon: { library: 'Entypo', name: 'dots-three-vertical', size: 15, backgroundColor: Pallete.secondary },
+                size: 'small',
                 options: [
                   {
                     label: MinisterioStatusEnumMap[item.status] == MinisterioStatusEnum.Ativo ? 'Desativar' : 'Ativar',

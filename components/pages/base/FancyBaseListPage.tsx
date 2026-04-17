@@ -5,6 +5,7 @@ import FancyBasePage, { FancyBasePageProps } from './FancyBasePage';
 type FancyBaseListPageProps<ItemT> = {
   listProps: FancyListProps<ItemT>;
   children?: React.ReactNode;
+  topContent?: React.ReactNode;
 };
 
 export default function FancyListPage<ItemT>(props: FancyBasePageProps & FancyBaseListPageProps<ItemT>) {
@@ -13,6 +14,7 @@ export default function FancyListPage<ItemT>(props: FancyBasePageProps & FancyBa
       {...props}
       children={
         <>
+          {props.topContent}
           <FancyList
             {...props.listProps}
             contentContainerStyle={{ gap: 10, paddingHorizontal: 15 }}

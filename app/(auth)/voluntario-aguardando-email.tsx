@@ -6,7 +6,12 @@ import FancyText from '../../components/FancyText';
 import FancyButton from '../../components/buttons/FancyButton';
 import DefaultIcons from '../../components/FancyIcons';
 import { ThemePalette } from '../../constants/colors';
-import { EXTRA_LARGE_SIZE_FONT, LARGE_SIZE_FONT } from '../../constants/font';
+import {
+  EXTRA_LARGE_SIZE_FONT,
+  LARGE_SIZE_FONT,
+  MEDIUM_SIZE_FONT,
+  SMALL_SIZE_FONT,
+} from '../../constants/font';
 import { VoluntarioEmailRepository } from '../../domain/services/VoluntarioEmailRepository';
 import { useConnectivity } from '../../core/network/connectivity/ConnectivityProvider';
 import { usePallete } from '../../hooks/usePallete';
@@ -17,6 +22,10 @@ import {
   clearPendingLoginAttempt,
   getPendingLoginAttempt,
 } from '../../core/auth/pendingLoginAttemptStore';
+import {
+  AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
+  AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
+} from '../../constants/authTypography';
 
 const POLLING_INTERVAL_MS = 15000;
 const AUTO_CHECK_INTERVAL_SECONDS = Math.floor(POLLING_INTERVAL_MS / 1000);
@@ -165,12 +174,25 @@ export default function VoluntarioAguardandoEmailPage() {
             type='bold'
             color='white'
             style={{
-              lineHeight: !keyboardVisible ? EXTRA_LARGE_SIZE_FONT * 1.2 : LARGE_SIZE_FONT * 1.2,
+              lineHeight:
+                !keyboardVisible
+                  ? EXTRA_LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER
+                  : LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
             }}
           >
             Confirme seu e-mail
           </FancyText>
-          <FancyText size={!keyboardVisible ? 'medium' : 'small'} type='medium' color='white'>
+          <FancyText
+            size={!keyboardVisible ? 'medium' : 'small'}
+            type='medium'
+            color='white'
+            style={{
+              lineHeight:
+                !keyboardVisible
+                  ? MEDIUM_SIZE_FONT * AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER
+                  : SMALL_SIZE_FONT * AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
+            }}
+          >
             Enviamos um link de ativação para sua conta
           </FancyText>
         </View>

@@ -51,7 +51,13 @@ export default function EventoDetails(props: {
       {
         title: 'Equipe',
         icon: { ...DefaultIconsNames.group, size: 20, style: { marginTop: 0 } },
-        content: <EscalaEventoEquipeTab eventoId={props.evento.id!} dataOcorrencia={props.dataOcorrencia} />,
+        content: (
+          <EscalaEventoEquipeTab
+            eventoId={props.evento.id!}
+            dataOcorrencia={props.dataOcorrencia}
+            ministerioId={props.ministerioId}
+          />
+        ),
       },
     ];
 
@@ -64,7 +70,7 @@ export default function EventoDetails(props: {
             eventoId={props.evento.id!}
             dataOcorrencia={props.dataOcorrencia}
             ministerioId={props.ministerioId}
-            canEdit={!!canEditSetlist}
+            mode={canEditSetlist ? 'responsavel' : 'leitura'}
           />
         ),
       });

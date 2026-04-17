@@ -66,8 +66,6 @@ function createStyles(Pallete: ThemePalette) {
     container: {
       paddingTop: 2,
       gap: 10,
-      borderWidth: 0,
-      borderColor: 'red',
       backgroundColor: Pallete.backgroundColor,
     },
     headerContainer: { paddingHorizontal: 0 },

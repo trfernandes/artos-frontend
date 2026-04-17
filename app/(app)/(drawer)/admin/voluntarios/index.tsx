@@ -18,11 +18,14 @@ import {
 import { AppImages } from '../../../../../assets/app_images';
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import FancyChips from '../../../../../components/FancyChips';
+import BillingNoticeBanner from '../../../../../components/billing/BillingNoticeBanner';
+import { useIgrejaAssinatura } from '../../../../../hooks/useIgrejaAssinatura';
 
 export default function VoluntariosIndexPage() {
   const [searchText, setSearchText] = useState('');
-  const { user } = useAuth();
+  const { user, igrejaAtiva } = useAuth();
   const { showLoading } = useLoading();
+  const { data: assinatura } = useIgrejaAssinatura({ igrejaId: igrejaAtiva?.id });
 
   const {
     data,
@@ -125,6 +128,18 @@ export default function VoluntariosIndexPage() {
           setSearchText(text.trim());
         },
       }}
+      topContent={
+        <BillingNoticeBanner
+          compact
+          assinatura={assinatura}
+          onPress={() =>
+            router.push({
+              pathname: '/(app)/(drawer)/configuracoes',
+              params: { tab: 'plano', openPlans: '1' },
+            })
+          }
+        />
+      }
       listProps={{
         onRefresh: refetch,
         listEmptyProps:

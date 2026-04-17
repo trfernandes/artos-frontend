@@ -23,6 +23,8 @@ import LoginBase from './LoginBase';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePallete } from '../../../hooks/usePallete';
 import { useThemedStyles } from '../../../hooks/useThemedStyles';
+import { LARGE_SIZE_FONT } from '../../../constants/font';
+import { AUTH_TITLE_LINE_HEIGHT_MULTIPLIER } from '../../../constants/authTypography';
 
 const AUTH_HORIZONTAL_GUTTER = 30;
 const BACK_BUTTON_SIZE = 35;
@@ -281,7 +283,7 @@ export default function AuthScreen({
         >
           <FancyButton
             icon={{ ...DefaultIconsNames['chevron-left'], color: Pallete.icons.dark }}
-            size={25}
+            size={30}
             onPress={onPressBack || (() => router.back())}
             containerStyle={{
               backgroundColor: Pallete.backgroundColor3,
@@ -293,7 +295,13 @@ export default function AuthScreen({
             }}
           />
           {isCompactKeyboardMode && (
-            <FancyText type='bold' size='large' color='white' numberOfLines={1}>
+            <FancyText
+              type='bold'
+              size='medium'
+              color='white'
+              numberOfLines={1}
+              style={styles.compactHeaderTitle}
+            >
               {compactTitleOnKeyboard}
             </FancyText>
           )}
@@ -390,6 +398,11 @@ function createStyles(Pallete: ThemePalette) {
       elevation: 1000,
       justifyContent: 'center' as const,
       alignItems: 'center' as const,
+    },
+    compactHeaderTitle: {
+      flexShrink: 1,
+      maxWidth: '82%',
+      lineHeight: LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
     },
   });
 }

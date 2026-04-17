@@ -42,9 +42,9 @@ export default Sentry.wrap(function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <GlobalErrorBoundary>
-        <SafeAreaProvider>
-          <ThemeProvider>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <GlobalErrorBoundary>
             <QueryClientProvider client={queryClient}>
               <AuthProvider>
                 <ConnectivityProvider>
@@ -52,9 +52,9 @@ export default Sentry.wrap(function RootLayout() {
                 </ConnectivityProvider>
               </AuthProvider>
             </QueryClientProvider>
-          </ThemeProvider>
-        </SafeAreaProvider>
-      </GlobalErrorBoundary>
+          </GlobalErrorBoundary>
+        </ThemeProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 });

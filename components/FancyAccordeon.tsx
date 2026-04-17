@@ -1,4 +1,11 @@
-import { View, StyleSheet, StyleProp, ViewStyle, TouchableOpacity } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  StyleProp,
+  ViewStyle,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import { ThemePalette } from '../constants/colors';
 import FancyText from './FancyText';
 import DefaultIcons, { CustomIconProps } from './FancyIcons';
@@ -12,6 +19,9 @@ import { useThemedStyles } from '../hooks/useThemedStyles';
 export type FancyAccordeonProps = {
   title: string | React.ReactNode;
   subtitle?: string | React.ReactNode;
+  hideChevron?: boolean;
+  disabled?: boolean;
+  isLoading?: boolean;
   isExpanded?: boolean;
   expanded?: boolean;
   onExpandedChange?: (expanded: boolean) => void;
@@ -33,6 +43,9 @@ export type FancyAccordeonProps = {
 export default function FancyAccordeon({
   title,
   subtitle,
+  hideChevron = false,
+  disabled = false,
+  isLoading = false,
   isExpanded = false,
   expanded: controlledExpanded,
   onExpandedChange,
@@ -63,6 +76,7 @@ export default function FancyAccordeon({
   }, [isExpanded, isControlled]);
 
   const toggleExpand = useCallback(() => {
+    if (disabled || isLoading) return;
     const nextExpanded = !expanded;
 
     if (!isControlled) {
@@ -76,13 +90,44 @@ export default function FancyAccordeon({
       ? headerExpandedGradientColors
       : headerGradientColors;
   const resolvedHeaderColor = expanded ? expandedHeaderColor ?? headerColor : headerColor;
+  const shouldRenderTrailing = !!subtitle || isLoading || !hideChevron;
+
+  const renderTrailingContent = () => {
+    if (typeof subtitle === 'string') {
+      return (
+        <FancyText
+          size='extraSmall'
+          color={Pallete.fonts.inactive}
+          type='medium'
+          style={styles.subtitleText}
+          numberOfLines={2}
+        >
+          {subtitle}
+        </FancyText>
+      );
+    }
+
+    if (subtitle) {
+      return <View style={styles.subtitleNode}>{subtitle}</View>;
+    }
+
+    return null;
+  };
 
   return (
-    <FancyContainer containerStyle={[styles.container, containerContainerStyle, expanded && containerExpandedContainerStyle]}>
+    <FancyContainer
+      containerStyle={[
+        styles.container,
+        containerContainerStyle,
+        expanded && containerExpandedContainerStyle,
+      ]}
+    >
       <TouchableOpacity
         onPress={toggleExpand}
+        disabled={disabled || isLoading}
         style={[
           styles.header,
+          disabled && styles.headerDisabled,
           resolvedHeaderColor ? { backgroundColor: resolvedHeaderColor } : undefined,
           {
             borderRadius: 10,
@@ -102,49 +147,39 @@ export default function FancyAccordeon({
             pointerEvents='none'
           />
         ) : null}
-        {typeof title === 'string' ? (
-          <FancyText size={'small'} type='bold' style={{ lineHeight: 16, borderWidth: 0, opacity: 0.9 }}>
-            {title}
-          </FancyText>
-        ) : (
-          title
-        )}
-        {typeof subtitle === 'string' ? (
-          <FancyText
-            size={'extraSmall'}
-            color={Pallete.fonts.inactive}
-            type='medium'
-            style={{ lineHeight: 16, paddingTop: 2, flex: 1, borderWidth: 0, textAlign: 'right' }}
-            numberOfLines={2}
-          >
-            {subtitle}
-          </FancyText>
-        ) : subtitle ? (
-          <View style={{ flexShrink: 1, alignItems: 'flex-end' }}>
-            {subtitle}
+        <View style={styles.headerLeft}>
+          {typeof title === 'string' ? (
+            <FancyText size='small' type='bold' style={styles.titleText}>
+              {title}
+            </FancyText>
+          ) : (
+            title
+          )}
+        </View>
+        {shouldRenderTrailing ? (
+          <View style={styles.headerRight}>
+            {renderTrailingContent()}
+            {isLoading ? (
+              <ActivityIndicator size='small' color={iconProps?.color ?? Pallete.primary} />
+            ) : hideChevron ? null : (
+              <DefaultIcons.Custom
+                library={
+                  expanded
+                    ? DefaultIconsNames['chevron-up'].library
+                    : DefaultIconsNames['chevron-down'].library
+                }
+                name={
+                  expanded
+                    ? DefaultIconsNames['chevron-up'].name
+                    : DefaultIconsNames['chevron-down'].name
+                }
+                size={20}
+                color={Pallete.icons.inactive}
+                {...iconProps}
+              />
+            )}
           </View>
         ) : null}
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 5,
-            borderColor: 'coral',
-            paddingLeft: 20,
-            paddingRight: 13,
-            paddingTop: 15,
-            paddingBottom: 13,
-          }}
-        >
-          <DefaultIcons.Custom
-            library={expanded ? DefaultIconsNames['chevron-up'].library : DefaultIconsNames['chevron-down'].library}
-            name={expanded ? DefaultIconsNames['chevron-up'].name : DefaultIconsNames['chevron-down'].name}
-            size={20}
-            color={Pallete.icons.inactive}
-            style={{}}
-            {...iconProps}
-          />
-        </View>
       </TouchableOpacity>
       {expanded && <View style={contentContainerStyle}>{children}</View>}
     </FancyContainer>
@@ -163,12 +198,43 @@ function createStyles(Pallete: ThemePalette) {
     header: {
       borderColor: Pallete.border,
       paddingLeft: 15,
+      paddingRight: 13,
+      paddingVertical: 12,
       backgroundColor: Pallete.backgroundColor2,
       justifyContent: 'space-between',
       alignItems: 'center',
-      gap: 15,
+      gap: 12,
       flexDirection: 'row',
       overflow: 'hidden',
+    },
+    headerDisabled: {
+      opacity: 0.92,
+    },
+    headerLeft: {
+      flex: 1,
+      minWidth: 0,
+    },
+    headerRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+      gap: 10,
+      flexShrink: 0,
+      minHeight: 24,
+    },
+    titleText: {
+      lineHeight: 16,
+      opacity: 0.9,
+    },
+    subtitleText: {
+      lineHeight: 16,
+      textAlign: 'right',
+      maxWidth: 180,
+    },
+    subtitleNode: {
+      flexShrink: 1,
+      alignItems: 'flex-end',
+      justifyContent: 'center',
     },
     headerGradient: {
       ...StyleSheet.absoluteFillObject,

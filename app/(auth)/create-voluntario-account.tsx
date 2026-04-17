@@ -16,12 +16,18 @@ import { createAccountSchema } from '../../domain/schemas/voluntarioSchema';
 import {
   EXTRA_LARGE_SIZE_FONT,
   MEDIUM_SIZE_FONT,
+  SMALL_SIZE_FONT,
 } from '../../constants/font';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useConnectivity } from '../../core/network/connectivity/ConnectivityProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePallete } from '../../hooks/usePallete';
 import { useKeyboardMetrics } from '../../hooks/useKeyboardMetrics';
+import { ColorUtils } from '../../utils/color_utils';
+import {
+  AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
+  AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
+} from '../../constants/authTypography';
 
 const HORIZONTAL_PADDING = 30;
 const BACK_BUTTON_SIZE = 35;
@@ -129,10 +135,15 @@ export default function CreateVoluntarioAccountPage() {
 
   return (
     <LoginBase>
-      <View style={[styles.backButtonContainer, { top: backButtonTop, left: HORIZONTAL_PADDING }]}>
+      <View
+        style={[
+          styles.backButtonContainer,
+          { top: backButtonTop, left: HORIZONTAL_PADDING, right: HORIZONTAL_PADDING },
+        ]}
+      >
         <FancyButton
           icon={{ library: 'Entypo', name: 'chevron-left', color: Pallete.icons.dark }}
-          size={25}
+          size={30}
           onPress={() => router.back()}
           containerStyle={{
             backgroundColor: Pallete.backgroundColor3,
@@ -144,7 +155,13 @@ export default function CreateVoluntarioAccountPage() {
           }}
         />
         {keyboardVisible && (
-          <FancyText type='bold' size='large' color='white' numberOfLines={1}>
+          <FancyText
+            type='bold'
+            size='medium'
+            color='white'
+            numberOfLines={1}
+            style={styles.compactHeaderTitle}
+          >
             Criação de Conta
           </FancyText>
         )}
@@ -164,7 +181,7 @@ export default function CreateVoluntarioAccountPage() {
         contentContainerStyle={[
           styles.scrollContent,
           {
-            paddingTop: keyboardVisible ? contentTopPadding : 0,
+            paddingTop: contentTopPadding,
             paddingBottom: keyboardVisible ? 0 : 16,
             justifyContent: keyboardVisible ? 'flex-start' : 'center',
           },
@@ -176,7 +193,7 @@ export default function CreateVoluntarioAccountPage() {
               size='extraLarge'
               type='bold'
               color='white'
-              style={{ lineHeight: EXTRA_LARGE_SIZE_FONT * 1.2 }}
+              style={{ lineHeight: EXTRA_LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER }}
             >
               Entrar como voluntário
             </FancyText>
@@ -184,7 +201,11 @@ export default function CreateVoluntarioAccountPage() {
               size='medium'
               type='medium'
               color='white'
-              style={{ lineHeight: MEDIUM_SIZE_FONT * 1.3 }}
+              style={{
+                lineHeight:
+                  (keyboardVisible ? SMALL_SIZE_FONT : MEDIUM_SIZE_FONT) *
+                  AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
+              }}
             >
               Use o código da sua igreja para criar a conta já no contexto certo.
             </FancyText>
@@ -209,7 +230,11 @@ export default function CreateVoluntarioAccountPage() {
                 <FancyText type='semiBold' size='small'>
                   Você já tem o código ou convite da igreja?
                 </FancyText>
-                <FancyText size='extraSmall' color={Pallete.fonts.inactive}>
+                <FancyText
+                  size='extraSmall'
+                  type='medium'
+                  style={{ color: ColorUtils.withAlpha(Pallete.fonts.dark, 0.78) }}
+                >
                   Se ainda não recebeu, peça ao responsável da igreja. Sem esse código, o cadastro não
                   consegue te vincular ao lugar certo.
                 </FancyText>
@@ -225,6 +250,7 @@ export default function CreateVoluntarioAccountPage() {
                 type='text'
                 label='Já tenho conta'
                 onPress={() => router.push('/(auth)/login')}
+                containerStyle={styles.secondaryActionButton}
               />
             </View>
           ) : (
@@ -328,11 +354,19 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   entryState: {
-    gap: 16,
+    gap: 10,
   },
   infoBox: {
     borderRadius: 16,
     padding: 16,
     gap: 6,
+  },
+  compactHeaderTitle: {
+    flexShrink: 1,
+    maxWidth: '82%',
+  },
+  secondaryActionButton: {
+    minHeight: 30,
+    marginTop: -2,
   },
 });

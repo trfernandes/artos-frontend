@@ -19,4 +19,18 @@ if (Test-Path $resetScriptPath) {
   & $resetScriptPath
 }
 
-& $scriptPath -EnvName $EnvName -TargetMode $TargetMode -OpenLogcat -PreferredAvdName $PreferredAvdName
+try {
+  & $scriptPath -EnvName $EnvName -TargetMode $TargetMode -OpenLogcat -PreferredAvdName $PreferredAvdName
+} catch {
+  Write-Host ""
+  Write-Host "Falha ao iniciar o Diakonia Android em modo debug." -ForegroundColor Red
+  Write-Host $_.Exception.Message -ForegroundColor Red
+
+  if ($_.ScriptStackTrace) {
+    Write-Host ""
+    Write-Host "Stack trace:" -ForegroundColor DarkRed
+    Write-Host $_.ScriptStackTrace -ForegroundColor DarkRed
+  }
+
+  exit 1
+}

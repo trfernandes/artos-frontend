@@ -20,6 +20,11 @@ export type FancyScrollViewProps = ScrollViewProps & {
   children?: React.ReactNode;
   fill?: boolean; // <= NOVO: controla se deve ocupar o espaço do pai
   containerStyle?: StyleProp<ViewStyle>;
+  enableOnAndroid?: boolean;
+  extraScrollHeight?: number;
+  extraHeight?: number;
+  enableAutomaticScroll?: boolean;
+  keyboardOpeningTime?: number;
 
   topFade?: { active?: boolean; style?: StyleProp<ViewStyle> };
   bottomFade?: { active?: boolean; style?: StyleProp<ViewStyle> };

@@ -3,10 +3,8 @@ import {
   View,
   Platform,
   StatusBar as RNStatusBar,
-  useWindowDimensions,
 } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import LoginBase from '../../components/pages/login/LoginBase';
 import { FancyStepsConfig } from '../../components/steps/FancyStepsConfig';
 import CreateIgrejaAccountTabDados, {
@@ -14,11 +12,12 @@ import CreateIgrejaAccountTabDados, {
   useCodigoCheck,
 } from '../../components/pages/login/createAccount/create-igreja-account-tab-dados';
 import CreateIgrejaAccountTabResponsavel from '../../components/pages/login/createAccount/create-igreja-account-tab-responsavel';
+import CreateIgrejaAccountTabPlano from '../../components/pages/login/createAccount/create-igreja-account-tab-plano';
 import CreateIgrejaAccountTabPronto from '../../components/pages/login/createAccount/create-igreja-account-tab-pronto';
 import { FormProvider } from 'react-hook-form';
 import { LoginCreateIgrejaStepFields } from '../../domain/schemas/loginCreateIgrejaSchema';
 import FancyText from '../../components/FancyText';
-import { EXTRA_LARGE_SIZE_FONT } from '../../constants/font';
+import { EXTRA_LARGE_SIZE_FONT, MEDIUM_SIZE_FONT } from '../../constants/font';
 import { router } from 'expo-router';
 import { useIgrejaCrud } from '../../hooks/useIgrejaCrud';
 import FancySteps from '../../components/steps/FancySteps';
@@ -27,13 +26,57 @@ import { usePallete } from '../../hooks/usePallete';
 import FancyButton from '../../components/buttons/FancyButton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardMetrics } from '../../hooks/useKeyboardMetrics';
+import {
+  AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
+  AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
+} from '../../constants/authTypography';
 
-const HORIZONTAL_PADDING = 30;
-const BACK_BUTTON_SIZE = 35;
+const HORIZONTAL_PADDING = 24;
+const BACK_BUTTON_SIZE = 34;
+
+function gerarMockCadastroData() {
+  const nomesIgreja = ['Diakonia', 'Nova Vida', 'Fonte de Esperança', 'Casa de Oração', 'Vida Plena'];
+  const cidades = [
+    { cidade: 'Caxias do Sul', uf: 'RS' },
+    { cidade: 'Porto Alegre', uf: 'RS' },
+    { cidade: 'Curitiba', uf: 'PR' },
+    { cidade: 'Campinas', uf: 'SP' },
+    { cidade: 'Florianópolis', uf: 'SC' },
+  ];
+  const responsaveis = ['Thiago', 'Mariana', 'Renato', 'Camila', 'Lucas'];
+  const sobrenomes = ['Silva', 'Barbosa', 'Ferreira', 'Almeida', 'Souza'];
+  const planos: Array<'starter' | 'essencial' | 'crescimento'> = ['starter', 'essencial', 'crescimento'];
+  const ciclos: Array<'MONTHLY' | 'YEARLY'> = ['MONTHLY', 'YEARLY'];
+
+  const igrejaBase = nomesIgreja[Math.floor(Math.random() * nomesIgreja.length)];
+  const local = cidades[Math.floor(Math.random() * cidades.length)];
+  const primeiroNome = responsaveis[Math.floor(Math.random() * responsaveis.length)];
+  const sobrenome = sobrenomes[Math.floor(Math.random() * sobrenomes.length)];
+  const sufixo = Math.floor(1000 + Math.random() * 9000);
+  const igrejaNome = `${igrejaBase} ${sufixo}`;
+  const codigo = `${igrejaBase.toLowerCase().replace(/\s+/g, '-')}-${sufixo}`;
+  const email = `${primeiroNome.toLowerCase()}.${sobrenome.toLowerCase()}.${sufixo}@teste.diakonia.app`;
+  const ddd = ['11', '21', '31', '41', '51'][Math.floor(Math.random() * 5)];
+  const numero = Math.floor(100000000 + Math.random() * 899999999).toString();
+
+  return {
+    nome: igrejaNome,
+    cidade: local.cidade,
+    uf: local.uf,
+    codigo,
+    responsavelNome: `${primeiroNome} ${sobrenome}`,
+    responsavelEmail: email,
+    responsavelWhatsapp: `${ddd}9${numero}`,
+      responsavelSenha: '123456',
+      responsavelConfirmarSenha: '123456',
+      plano: planos[Math.floor(Math.random() * planos.length)],
+      ciclo: ciclos[Math.floor(Math.random() * ciclos.length)],
+      modoCadastroPlano: 'avaliacao',
+  } as const;
+}
 
 function CreateIgrejaAccountPageContent() {
   const Pallete = usePallete();
-  const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const androidStatusBarHeight = Platform.OS === 'android' ? (RNStatusBar.currentHeight ?? 0) : 0;
   const safeTopInset = Math.max(insets.top, androidStatusBarHeight);
@@ -41,38 +84,9 @@ function CreateIgrejaAccountPageContent() {
   const contentTopPadding = backButtonTop + BACK_BUTTON_SIZE + 16;
 
   const [stepIndex, setStepIndex] = useState(0);
-  const { visible: keyboardVisible, height: keyboardHeight } = useKeyboardMetrics();
-  const [viewportHeight, setViewportHeight] = useState(0);
-  const [baselineViewportHeight, setBaselineViewportHeight] = useState(0);
-  const [baselineWindowHeight, setBaselineWindowHeight] = useState(windowHeight);
+  const { visible: keyboardVisible } = useKeyboardMetrics();
   const [showSlowText, setShowSlowText] = useState(false);
   const slowTimer = useRef<NodeJS.Timeout | null>(null);
-  // Altura medida de cada step (atualizada via onLayout do conteúdo)
-  const [measuredStepHeights, setMeasuredStepHeights] = useState<Record<number, number>>({});
-  const CARD_PADDING = 44; // padding: 22 × 2
-  const STEPS_CHROME = 80; // header dos steps + navegação + gaps ≈ 80px
-  const measuredHeight = measuredStepHeights[stepIndex];
-  const formCardMinHeight = measuredHeight ? measuredHeight + CARD_PADDING + STEPS_CHROME : 300;
-  useEffect(() => {
-    if (!keyboardVisible) {
-      setBaselineWindowHeight(windowHeight);
-    }
-  }, [keyboardVisible, windowHeight]);
-
-  useEffect(() => {
-    if (!keyboardVisible && viewportHeight > 0) {
-      setBaselineViewportHeight(viewportHeight);
-    }
-  }, [keyboardVisible, viewportHeight]);
-
-  const effectiveViewportHeight = viewportHeight || windowHeight;
-  const windowResizeDelta = Math.max(0, baselineWindowHeight - windowHeight);
-  const viewportResizeDelta = Math.max(0, baselineViewportHeight - effectiveViewportHeight);
-  const resizeDelta = Math.max(windowResizeDelta, viewportResizeDelta);
-  const overlayKeyboardInset = keyboardVisible ? Math.max(0, keyboardHeight - resizeDelta) : 0;
-  const availableCardHeight =
-    effectiveViewportHeight - contentTopPadding - overlayKeyboardInset - 8;
-  const expandedCardHeight = Math.max(0, availableCardHeight);
 
   const { status: connectivityStatus } = useConnectivity();
   const isServerUnavailable = connectivityStatus !== 'ok';
@@ -89,6 +103,9 @@ function CreateIgrejaAccountPageContent() {
       responsavelWhatsapp: '',
       responsavelSenha: '',
       responsavelConfirmarSenha: '',
+      plano: 'starter',
+      ciclo: 'MONTHLY',
+      modoCadastroPlano: 'avaliacao',
     },
     onSuccess: () => {
       router.replace('/(auth)/igreja-cadastro-aguardando-email');
@@ -99,7 +116,7 @@ function CreateIgrejaAccountPageContent() {
     const fieldsToValidate =
       LoginCreateIgrejaStepFields[stepIndex as keyof typeof LoginCreateIgrejaStepFields];
     const isValid = await form.trigger(fieldsToValidate as any);
-    if (isValid && stepIndex < 2) {
+    if (isValid && stepIndex < 3) {
       setStepIndex(stepIndex + 1);
     }
   };
@@ -122,22 +139,11 @@ function CreateIgrejaAccountPageContent() {
     };
   }, [isSubmitting]);
 
-  const measureStep = (index: number) => (height: number) => {
-    setMeasuredStepHeights((prev) => {
-      if (prev[index] === height) return prev;
-      return { ...prev, [index]: height };
-    });
-  };
-
   const stepsConfig: FancyStepsConfig = {
     steps: [
       {
         title: 'Igreja',
-        content: (
-          <View onLayout={(e) => measureStep(0)(e.nativeEvent.layout.height)}>
-            <CreateIgrejaAccountTabDados />
-          </View>
-        ),
+        content: <CreateIgrejaAccountTabDados />,
         actions: [
           {
             label: 'Próximo',
@@ -149,12 +155,26 @@ function CreateIgrejaAccountPageContent() {
         ],
       },
       {
-        title: 'Responsável',
-        content: (
-          <View onLayout={(e) => measureStep(1)(e.nativeEvent.layout.height)}>
-            <CreateIgrejaAccountTabResponsavel />
-          </View>
-        ),
+        title: 'Contato',
+        content: <CreateIgrejaAccountTabResponsavel />,
+        actions: [
+          {
+            label: 'Voltar',
+            onPress: 'previous',
+            iconPosition: 'left',
+            icon: { library: 'Feather', name: 'arrow-left', size: 16 },
+          },
+          {
+            label: 'Próximo',
+            onPress: () => handleNext(),
+            iconPosition: 'right',
+            icon: { library: 'Feather', name: 'arrow-right', size: 16 },
+          },
+        ],
+      },
+      {
+        title: 'Plano',
+        content: <CreateIgrejaAccountTabPlano />,
         actions: [
           {
             label: 'Voltar',
@@ -172,11 +192,7 @@ function CreateIgrejaAccountPageContent() {
       },
       {
         title: 'Revisão',
-        content: (
-          <View onLayout={(e) => measureStep(2)(e.nativeEvent.layout.height)}>
-            <CreateIgrejaAccountTabPronto />
-          </View>
-        ),
+        content: <CreateIgrejaAccountTabPronto />,
         actions: [
           {
             label: 'Voltar',
@@ -204,32 +220,38 @@ function CreateIgrejaAccountPageContent() {
     ],
   };
 
-  const renderCard = (expandToFill: boolean) => (
+  const renderCard = () => (
     <View
       style={[
         styles.card,
         {
           backgroundColor: Pallete.backgroundColor,
           ...Pallete.shadows[200],
-          ...(expandToFill
-            ? {
-                minHeight: 0,
-                height: expandedCardHeight,
-                marginBottom: 8,
-              }
-            : { minHeight: formCardMinHeight }),
+          ...(keyboardVisible ? styles.cardKeyboard : null),
         },
       ]}
     >
       <FormProvider {...form}>
+        {__DEV__ && stepIndex === 0 && (
+          <View style={styles.devActions}>
+            <FancyButton
+              type='light'
+              label='Preencher teste'
+              icon={{ library: 'MaterialCommunityIcons', name: 'flask-outline', size: 14 }}
+              onPress={() => {
+                form.reset(gerarMockCadastroData());
+                setStepIndex(0);
+              }}
+              labelProps={{ size: 'extraSmall' }}
+              containerStyle={styles.devButton}
+            />
+          </View>
+        )}
         <FancySteps
           size='small'
           overflowBehavior='fitThenScroll'
-          containerStyle={
-            expandToFill
-              ? { flex: 1, minHeight: 0 }
-              : { minHeight: formCardMinHeight - CARD_PADDING }
-          }
+          containerStyle={styles.stepsContainer}
+          contentContainerStyle={styles.stepsContentCentered}
           config={stepsConfig}
           index={stepIndex}
           setIndex={setStepIndex}
@@ -251,66 +273,76 @@ function CreateIgrejaAccountPageContent() {
   );
 
   return (
-    <LoginBase>
-      {/* Botão voltar + título compacto — absoluto, acima de tudo */}
-      <View style={[styles.backButtonContainer, { top: backButtonTop, left: HORIZONTAL_PADDING }]}>
-        <FancyButton
-          icon={{ library: 'Entypo', name: 'chevron-left', color: Pallete.icons.dark }}
-          size={25}
-          onPress={() => router.back()}
-          containerStyle={{
-            backgroundColor: Pallete.backgroundColor3,
-            width: BACK_BUTTON_SIZE,
-            height: BACK_BUTTON_SIZE,
-            borderRadius: BACK_BUTTON_SIZE / 2,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        />
-        {keyboardVisible && (
-          <FancyText type='bold' size='large' color='white' numberOfLines={1}>
-            Criar sua igreja
-          </FancyText>
-        )}
-      </View>
+    <LoginBase enableDismissKeyboard={false}>
+      <View style={[styles.screen, { paddingTop: safeTopInset + 10 }]}>
+        <View
+          style={[
+            styles.backButtonContainer,
+            keyboardVisible ? styles.backButtonContainerKeyboard : styles.backButtonContainerStatic,
+            keyboardVisible
+              ? { top: backButtonTop, left: HORIZONTAL_PADDING }
+              : { left: 0 },
+          ]}
+        >
+          <FancyButton
+            icon={{ library: 'Entypo', name: 'chevron-left', color: Pallete.icons.dark }}
+            size={30}
+            onPress={() => router.back()}
+            containerStyle={{
+              backgroundColor: Pallete.backgroundColor3,
+              width: BACK_BUTTON_SIZE,
+              height: BACK_BUTTON_SIZE,
+              borderRadius: BACK_BUTTON_SIZE / 2,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          />
+          {keyboardVisible && (
+            <FancyText type='bold' size='medium' color='white' numberOfLines={1}>
+              Cadastrar minha igreja
+            </FancyText>
+          )}
+        </View>
 
-      <KeyboardAwareScrollView
-        style={{ flex: 1 }}
-        onLayout={(event) => setViewportHeight(event.nativeEvent.layout.height)}
-        enableOnAndroid
-        enableAutomaticScroll={false}
-        extraScrollHeight={0}
-        extraHeight={0}
-        scrollEnabled
-        keyboardShouldPersistTaps='handled'
-        keyboardDismissMode='none'
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.scrollContent,
-          {
-            paddingTop: keyboardVisible ? contentTopPadding : 0,
-            paddingBottom: keyboardVisible ? 0 : 16,
-            justifyContent: keyboardVisible ? 'flex-start' : 'center',
-          },
-        ]}
-      >
-        {!keyboardVisible && (
-          <View style={styles.titleBlock}>
-            <FancyText
-              size='extraLarge'
-              type='bold'
-              color='white'
-              style={{ lineHeight: EXTRA_LARGE_SIZE_FONT * 1.2 }}
-            >
-              Criar sua igreja
-            </FancyText>
-            <FancyText size='medium' type='medium' color='white'>
-              Cadastre sua igreja e comece a organizar seus ministérios e voluntários
-            </FancyText>
-          </View>
-        )}
-        {renderCard(keyboardVisible)}
-      </KeyboardAwareScrollView>
+        <View
+          style={[
+            styles.titleBlock,
+            keyboardVisible ? styles.titleBlockHidden : null,
+          ]}
+        >
+          <FancyText
+            size='large'
+            type='bold'
+            color='white'
+            style={{
+              lineHeight: EXTRA_LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
+              maxWidth: '92%',
+            }}
+          >
+            Cadastrar minha igreja
+          </FancyText>
+          <FancyText
+            size='medium'
+            type='medium'
+            color='white'
+            style={{ lineHeight: MEDIUM_SIZE_FONT * AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER }}
+          >
+            Cadastre sua igreja e comece a organizar seus ministérios e voluntários
+          </FancyText>
+        </View>
+
+        <View
+          style={[
+            styles.cardArea,
+            {
+              paddingTop: keyboardVisible ? contentTopPadding - (safeTopInset + 10) : 0,
+              paddingBottom: keyboardVisible ? 8 : 16,
+            },
+          ]}
+        >
+          {renderCard()}
+        </View>
+      </View>
     </LoginBase>
   );
 }
@@ -324,26 +356,69 @@ export default function CreateIgrejaAccountPage() {
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    paddingHorizontal: HORIZONTAL_PADDING,
+  },
   backButtonContainer: {
-    position: 'absolute',
     zIndex: 1000,
     elevation: 1000,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: HORIZONTAL_PADDING,
-    gap: 16,
+  backButtonContainerStatic: {
+    position: 'relative',
+    alignSelf: 'flex-start',
+  },
+  backButtonContainerKeyboard: {
+    position: 'absolute',
   },
   titleBlock: {
-    gap: 5,
+    gap: 10,
+    paddingTop: 10,
+    paddingBottom: 16,
+  },
+  titleBlockHidden: {
+    height: 0,
+    opacity: 0,
+    overflow: 'hidden',
+    paddingTop: 0,
+    paddingBottom: 0,
+  },
+  topNav: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  cardArea: {
+    flex: 1,
+    minHeight: 0,
   },
   card: {
     borderRadius: 15,
-    padding: 22,
-    gap: 10,
+    padding: 18,
+    gap: 8,
     overflow: 'hidden',
+    flexShrink: 1,
+    flex: 1,
+    minHeight: 0,
+  },
+  cardKeyboard: {
+    flex: 1,
+    minHeight: 0,
+  },
+  devActions: {
+    alignItems: 'flex-end',
+  },
+  devButton: {
+    minHeight: 30,
+    paddingHorizontal: 10,
+  },
+  stepsContainer: {
+    flex: 1,
+    minHeight: 0,
+  },
+  stepsContentCentered: {
+    justifyContent: 'center',
   },
 });

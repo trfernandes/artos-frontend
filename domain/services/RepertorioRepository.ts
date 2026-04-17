@@ -4,6 +4,9 @@ import { UpdateRepertorioCategoriaDto } from '../dtos/Repertorio/repertorio-cate
 import { CreateRepertorioMusicaDto } from '../dtos/Repertorio/repertorio-musica.create';
 import { UpdateRepertorioMusicaDto } from '../dtos/Repertorio/repertorio-musica.update';
 import { DynamicQuery } from '../utils/query_utils';
+import { CreateRepertorioMusicaSecaoDto } from '../dtos/Repertorio/repertorio-musica-secao.create';
+import { UpdateRepertorioMusicaSecaoDto } from '../dtos/Repertorio/repertorio-musica-secao.update';
+import { UpsertRepertorioMusicaArranjoDto } from '../dtos/Repertorio/repertorio-musica-arranjo.update';
 
 class RepertorioRepositoryClass {
   searchCategorias(igrejaId: string, query?: DynamicQuery) {
@@ -40,6 +43,30 @@ class RepertorioRepositoryClass {
 
   removeMusica(igrejaId: string, ministerioId: string, id: string) {
     return RepertorioApi.removeMusica(igrejaId, ministerioId, id);
+  }
+
+  listSecoes(igrejaId: string, musicaId: string) {
+    return RepertorioApi.listSecoes(igrejaId, musicaId);
+  }
+
+  createSecao(igrejaId: string, musicaId: string, dto: CreateRepertorioMusicaSecaoDto) {
+    return RepertorioApi.createSecao(igrejaId, musicaId, dto);
+  }
+
+  updateSecao(igrejaId: string, musicaId: string, secaoId: string, dto: UpdateRepertorioMusicaSecaoDto) {
+    return RepertorioApi.updateSecao(igrejaId, musicaId, secaoId, dto);
+  }
+
+  removeSecao(igrejaId: string, musicaId: string, secaoId: string) {
+    return RepertorioApi.removeSecao(igrejaId, musicaId, secaoId);
+  }
+
+  getArranjo(igrejaId: string, musicaId: string) {
+    return RepertorioApi.getArranjo(igrejaId, musicaId);
+  }
+
+  replaceArranjo(igrejaId: string, musicaId: string, dto: UpsertRepertorioMusicaArranjoDto) {
+    return RepertorioApi.replaceArranjo(igrejaId, musicaId, dto);
   }
 }
 

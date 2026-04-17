@@ -82,6 +82,10 @@ export default function EventoTable({
   });
   const [adicionarFuncaoModalOpen, setAdicionarFuncaoModalOpen] = useState(false);
   const [loadingAction, setLoadingAction] = useState<{ visible: boolean; label: string }>({ visible: false, label: '' });
+  const [isAccordionExpanded, setIsAccordionExpanded] = useState(false);
+  const [isAccordionPending, setIsAccordionPending] = useState(false);
+  const openFrameRef = useRef<number | null>(null);
+  const clearPendingFrameRef = useRef<number | null>(null);
   const responsavelSelectRef = useRef<FancyBottomSheetSelectRef>(null);
   const [responsavelSetlistValue, setResponsavelSetlistValue] = useState(
     data.responsavelSetlistVoluntarioId ?? '',
@@ -90,6 +94,17 @@ export default function EventoTable({
   useEffect(() => {
     setResponsavelSetlistValue(data.responsavelSetlistVoluntarioId ?? '');
   }, [data.responsavelSetlistVoluntarioId]);
+
+  useEffect(() => {
+    return () => {
+      if (openFrameRef.current !== null) {
+        cancelAnimationFrame(openFrameRef.current);
+      }
+      if (clearPendingFrameRef.current !== null) {
+        cancelAnimationFrame(clearPendingFrameRef.current);
+      }
+    };
+  }, []);
 
   const hasEventPassed = useMemo(() => {
     const occurrenceDate = DateUtilsApi.dateOnlyFromApi(data.dataOcorrencia);
@@ -283,9 +298,31 @@ export default function EventoTable({
     );
   }, [handleSelectResponsavelSetlist]);
 
+  const handleAccordionChange = useCallback((expanded: boolean) => {
+    if (isAccordionPending) return;
+
+    if (openFrameRef.current !== null) {
+      cancelAnimationFrame(openFrameRef.current);
+    }
+    if (clearPendingFrameRef.current !== null) {
+      cancelAnimationFrame(clearPendingFrameRef.current);
+    }
+
+    setIsAccordionPending(true);
+    openFrameRef.current = requestAnimationFrame(() => {
+      setIsAccordionExpanded(expanded);
+      clearPendingFrameRef.current = requestAnimationFrame(() => {
+        setIsAccordionPending(false);
+      });
+    });
+  }, [isAccordionPending]);
+
   return (
     <>
       <FancyAccordeon
+        expanded={isAccordionExpanded}
+        onExpandedChange={handleAccordionChange}
+        isLoading={isAccordionPending}
         subtitle={eventSubtitle}
         title={
           <View style={styles.titleContainer}>

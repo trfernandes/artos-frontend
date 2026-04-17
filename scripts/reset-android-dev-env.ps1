@@ -35,7 +35,18 @@ try {
 } catch {}
 
 try {
-  adb reverse --remove-all | Out-Null
+  $deviceLines = adb devices | Select-Object -Skip 1
+  foreach ($line in $deviceLines) {
+    if ($line -match "^(?<serial>\S+)\s+device") {
+      adb -s $matches.serial reverse --remove-all | Out-Null
+    }
+  }
+} catch {}
+
+try {
+  adb kill-server | Out-Null
+  Start-Sleep -Milliseconds 800
+  adb start-server | Out-Null
 } catch {}
 
 Write-Host "Reset concluido." -ForegroundColor DarkGreen

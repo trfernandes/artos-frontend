@@ -23,6 +23,8 @@ export interface MarkedDate {
   color?: string;
 }
 
+export type CalendarVisualStyle = 'default' | 'agendaPremium';
+
 export type FancyCalendarProps = {
   maximumDate?: Date;
   minimumDate?: Date;
@@ -37,6 +39,7 @@ export type FancyCalendarProps = {
   selectDateOnPress?: boolean;
   markedDatesType?: DayViewProps['markedDatesType'];
   dayModeTopPadding?: number;
+  visualStyle?: CalendarVisualStyle;
 };
 
 export default function FancyCalendar({
@@ -53,6 +56,7 @@ export default function FancyCalendar({
   selectDateOnPress = true,
   markedDatesType = 'bottomPoint',
   dayModeTopPadding = 16,
+  visualStyle = 'default',
 }: FancyCalendarProps) {
   const styles = useThemedStyles(createStyles);
   const dayViewMaximum = dayViewProps?.maximumDate;
@@ -68,8 +72,12 @@ export default function FancyCalendar({
     return {
       ...dayViewProps,
       markedDatesType: dayViewProps?.markedDatesType ?? markedDatesType,
+      visualStyle: dayViewProps?.visualStyle ?? visualStyle,
     };
-  }, [dayViewProps, markedDatesType]);
+  }, [dayViewProps, markedDatesType, visualStyle]);
+
+  const resolvedDayModeTopPadding =
+    visualStyle === 'agendaPremium' ? Math.min(dayModeTopPadding, 8) : dayModeTopPadding;
 
   useEffect(() => {
     if (isControlled) setInternalDate(value);
@@ -201,8 +209,20 @@ export default function FancyCalendar({
   );
 
   return (
-    <View style={[styles.container, containerStyle, border && styles.border]}>
-      <View style={styles.headerContainer}>
+    <View
+      style={[
+        styles.container,
+        visualStyle === 'agendaPremium' ? styles.containerAgendaPremium : null,
+        containerStyle,
+        border && styles.border,
+      ]}
+    >
+      <View
+        style={[
+          styles.headerContainer,
+          visualStyle === 'agendaPremium' ? styles.headerContainerAgendaPremium : null,
+        ]}
+      >
         <FancyCalendarHeader
           visualization={visualization}
           currentDate={currentDate}
@@ -216,6 +236,7 @@ export default function FancyCalendar({
           onNextMonth={() => changeMonth(+1)}
           onPreviousMonth={() => changeMonth(-1)}
           calendarProps={{ minimumDate: minDate, maximumDate: maxDate }}
+          visualStyle={visualStyle}
         />
       </View>
 
@@ -224,9 +245,10 @@ export default function FancyCalendar({
           style={[
             styles.contentContainerBase,
             isDayVisualization ? styles.contentContainerDay : styles.contentContainerFixed,
+            visualStyle === 'agendaPremium' ? styles.contentContainerAgendaPremium : null,
             isDayVisualization && {
-              paddingTop: dayModeTopPadding,
-              paddingBottom: dayModeTopPadding,
+              paddingTop: resolvedDayModeTopPadding,
+              paddingBottom: resolvedDayModeTopPadding - (visualStyle === 'agendaPremium' ? 2 : 0),
             },
           ]}
         >
@@ -247,6 +269,7 @@ export default function FancyCalendar({
               currentDate={currentDate}
               minimumDate={minDate}
               maximumDate={maxDate}
+              visualStyle={visualStyle}
               onSelectMonth={(month) => {
                 const candidate = new Date(currentDate.getFullYear(), month, 1);
                 const minMonth = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
@@ -270,6 +293,7 @@ export default function FancyCalendar({
               minimumDate={minDate}
               maximumDate={maxDate}
               currentDate={currentDate}
+              visualStyle={visualStyle}
               onSelectYear={(year) => {
                 const candidate = new Date(year, currentDate.getMonth(), 1);
                 const minMonth = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
@@ -297,6 +321,9 @@ export default function FancyCalendar({
 function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
     container: { backgroundColor: palette.backgroundColor2, gap: 0 },
+    containerAgendaPremium: {
+      backgroundColor: 'transparent',
+    },
     headerContainer: {
       width: '100%',
       paddingHorizontal: 0,
@@ -305,11 +332,19 @@ function createStyles(palette: ThemePalette) {
       paddingBottom: 0,
       zIndex: 1,
     },
+    headerContainerAgendaPremium: {
+      paddingLeft: 0,
+      paddingTop: 0,
+      paddingBottom: 4,
+    },
     contentContainerBase: {
       justifyContent: 'flex-start',
       alignItems: 'center',
       paddingLeft: 2,
       paddingBottom: 0,
+    },
+    contentContainerAgendaPremium: {
+      paddingLeft: 0,
     },
     contentContainerDay: {
       width: '100%',

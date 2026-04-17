@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { endOfMonth, format, startOfMonth, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -201,15 +201,57 @@ export default function EscalaInsightsView({
   const styles = useThemedStyles(createStyles);
   const [openSections, setOpenSections] = useState<Set<InsightsSectionKey>>(new Set(['resumo']));
   const [activeInfo, setActiveInfo] = useState<ActiveInfo | null>(null);
+  const [pendingSection, setPendingSection] = useState<InsightsSectionKey | null>(null);
+  const openFrameRef = useRef<number | null>(null);
+  const clearPendingFrameRef = useRef<number | null>(null);
 
   useEffect(() => {
     setOpenSections(new Set(['resumo']));
     setActiveInfo(null);
+    setPendingSection(null);
   }, [escala.id]);
+
+  useEffect(() => {
+    return () => {
+      if (openFrameRef.current !== null) {
+        cancelAnimationFrame(openFrameRef.current);
+      }
+      if (clearPendingFrameRef.current !== null) {
+        cancelAnimationFrame(clearPendingFrameRef.current);
+      }
+    };
+  }, []);
 
   const openInfo = useCallback((key: InfoKey, anchor: InfoAnchor) => {
     setActiveInfo((prev) => (prev?.key === key ? null : { key, anchor }));
   }, []);
+
+  const handleAccordionChange = useCallback((section: InsightsSectionKey, expanded: boolean) => {
+    if (pendingSection) return;
+
+    if (openFrameRef.current !== null) {
+      cancelAnimationFrame(openFrameRef.current);
+    }
+    if (clearPendingFrameRef.current !== null) {
+      cancelAnimationFrame(clearPendingFrameRef.current);
+    }
+
+    setPendingSection(section);
+    openFrameRef.current = requestAnimationFrame(() => {
+      setOpenSections((prev) => {
+        const next = new Set(prev);
+        if (expanded) {
+          next.add(section);
+        } else {
+          next.delete(section);
+        }
+        return next;
+      });
+      clearPendingFrameRef.current = requestAnimationFrame(() => {
+        setPendingSection(null);
+      });
+    });
+  }, [pendingSection]);
 
   const currentInsights = useMemo(() => buildCurrentEscalaInsights(escala.itens ?? []), [escala.itens]);
 
@@ -296,11 +338,9 @@ export default function EscalaInsightsView({
           <FancyAccordeon
             title={renderTitle('Resumo da escala atual')}
             expanded={openSections.has('resumo')}
-            onExpandedChange={(expanded) => setOpenSections(prev => {
-              const next = new Set(prev);
-              expanded ? next.add('resumo') : next.delete('resumo');
-              return next;
-            })}
+            onExpandedChange={(expanded) => handleAccordionChange('resumo', expanded)}
+            disabled={pendingSection !== null && pendingSection !== 'resumo'}
+            isLoading={pendingSection === 'resumo'}
             headerColor={accordionHeaderColor}
             expandedHeaderColor={accordionHeaderColor}
             contentContainerStyle={styles.accordeonContent}
@@ -330,11 +370,9 @@ export default function EscalaInsightsView({
           <FancyAccordeon
             title={renderTitle('Cobertura')}
             expanded={openSections.has('cobertura')}
-            onExpandedChange={(expanded) => setOpenSections(prev => {
-              const next = new Set(prev);
-              expanded ? next.add('cobertura') : next.delete('cobertura');
-              return next;
-            })}
+            onExpandedChange={(expanded) => handleAccordionChange('cobertura', expanded)}
+            disabled={pendingSection !== null && pendingSection !== 'cobertura'}
+            isLoading={pendingSection === 'cobertura'}
             headerColor={accordionHeaderColor}
             expandedHeaderColor={accordionHeaderColor}
             contentContainerStyle={styles.accordeonContent}
@@ -364,11 +402,9 @@ export default function EscalaInsightsView({
           <FancyAccordeon
             title={renderTitle('Pessoas')}
             expanded={openSections.has('pessoas')}
-            onExpandedChange={(expanded) => setOpenSections(prev => {
-              const next = new Set(prev);
-              expanded ? next.add('pessoas') : next.delete('pessoas');
-              return next;
-            })}
+            onExpandedChange={(expanded) => handleAccordionChange('pessoas', expanded)}
+            disabled={pendingSection !== null && pendingSection !== 'pessoas'}
+            isLoading={pendingSection === 'pessoas'}
             headerColor={accordionHeaderColor}
             expandedHeaderColor={accordionHeaderColor}
             contentContainerStyle={styles.accordeonContent}
@@ -432,11 +468,9 @@ export default function EscalaInsightsView({
           <FancyAccordeon
             title={renderTitle('Equilíbrio')}
             expanded={openSections.has('equilibrio')}
-            onExpandedChange={(expanded) => setOpenSections(prev => {
-              const next = new Set(prev);
-              expanded ? next.add('equilibrio') : next.delete('equilibrio');
-              return next;
-            })}
+            onExpandedChange={(expanded) => handleAccordionChange('equilibrio', expanded)}
+            disabled={pendingSection !== null && pendingSection !== 'equilibrio'}
+            isLoading={pendingSection === 'equilibrio'}
             headerColor={accordionHeaderColor}
             expandedHeaderColor={accordionHeaderColor}
             contentContainerStyle={styles.accordeonContent}

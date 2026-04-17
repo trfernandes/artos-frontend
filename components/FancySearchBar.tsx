@@ -10,6 +10,7 @@ export type FancySearchBarProps = {
   onSearch?: (text: string) => void;
   onOptionsButtonPress?: () => void;
   containerStyle?: StyleProp<ViewStyle>;
+  placeholder?: string;
 };
 
 export default function FancySearchBar(props: FancySearchBarProps) {
@@ -67,7 +68,7 @@ export default function FancySearchBar(props: FancySearchBarProps) {
     <View style={[styles.container, props.containerStyle]}>
       <View style={styles.inputContainer}>
         <FancyTextInput
-          placeholder='Digite aqui para pesquisar....'
+          placeholder={props.placeholder ?? 'Digite aqui para pesquisar....'}
           inputProps={{
             onChangeText: setInternalValue,
             style: {

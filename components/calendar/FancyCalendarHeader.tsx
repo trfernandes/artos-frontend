@@ -1,5 +1,5 @@
 import { View, StyleSheet, Pressable } from 'react-native';
-import { CalendarVisualization, FancyCalendarProps } from './FancyCalendar';
+import { CalendarVisualization, CalendarVisualStyle, FancyCalendarProps } from './FancyCalendar';
 import { MONTH_NAMES } from '../../constants/calendar';
 import FancyText from '../FancyText';
 import DefaultIcons from '../FancyIcons';
@@ -7,6 +7,11 @@ import { ThemePalette } from '../../constants/colors';
 import { usePallete } from '../../hooks/usePallete';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { ColorUtils } from '../../utils/color_utils';
+import {
+  BOLD_FONT,
+  EXTRA_SMALL_SIZE_FONT,
+  LARGE_SIZE_FONT,
+} from '../../constants/font';
 
 export type FancyCalendarHeaderProps = {
   currentDate: Date;
@@ -17,11 +22,12 @@ export type FancyCalendarHeaderProps = {
   onNextMonth: () => void;
   onGoToToday: () => void;
   calendarProps?: FancyCalendarProps;
+  visualStyle?: CalendarVisualStyle;
 };
 
 export default function FancyCalendarHeader({
   visualization = CalendarVisualization.Day,
-  selectedDate,
+  visualStyle = 'default',
   ...props
 }: FancyCalendarHeaderProps) {
   const palette = usePallete();
@@ -52,45 +58,81 @@ export default function FancyCalendarHeader({
 
   const prevEnabled = canGoToPreviousMonth();
   const nextEnabled = canGoToNextMonth();
+  const isAgendaPremium = visualStyle === 'agendaPremium';
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isAgendaPremium ? styles.containerAgendaPremium : null]}>
       <Pressable
-        style={styles.actualDateContainer}
+        style={[styles.actualDateContainer, isAgendaPremium ? styles.actualDateContainerAgenda : null]}
         onPress={() => {
           if (visualization === CalendarVisualization.Day) props.onChangeVisualization(CalendarVisualization.Month);
           else if (visualization === CalendarVisualization.Month) props.onChangeVisualization(CalendarVisualization.Year);
         }}
       >
-        <FancyText size='large' type='bold' color={palette.fonts.inactive} numberOfLines={1} ellipsizeMode='tail'>
-          {displayDate.getFullYear()}
-        </FancyText>
-        <FancyText size='large' type='bold' numberOfLines={1} ellipsizeMode='tail'>
-          {MONTH_NAMES[displayDate.getMonth()]}
-        </FancyText>
+        {isAgendaPremium ? (
+          <>
+            <FancyText
+              size='extraSmall'
+              type='semiBold'
+              color={palette.fonts.inactive}
+              numberOfLines={1}
+              style={styles.yearTextAgenda}
+            >
+              {displayDate.getFullYear()}
+            </FancyText>
+            <View style={styles.monthRowAgenda}>
+              <FancyText numberOfLines={1} ellipsizeMode='tail' style={styles.monthTextAgenda}>
+                {MONTH_NAMES[displayDate.getMonth()]}
+              </FancyText>
+              <DefaultIcons.Custom
+                library='MaterialCommunityIcons'
+                name='chevron-down'
+                size={15}
+                color={palette.icons.inactive}
+              />
+            </View>
+          </>
+        ) : (
+          <>
+            <FancyText size='large' type='bold' color={palette.fonts.inactive} numberOfLines={1} ellipsizeMode='tail'>
+              {displayDate.getFullYear()}
+            </FancyText>
+            <FancyText size='large' type='bold' numberOfLines={1} ellipsizeMode='tail'>
+              {MONTH_NAMES[displayDate.getMonth()]}
+            </FancyText>
+          </>
+        )}
       </Pressable>
-      <View style={styles.buttonsContainer}>
+      <View style={[styles.buttonsContainer, isAgendaPremium ? styles.buttonsContainerAgenda : null]}>
         <Pressable
           disabled={!prevEnabled}
           onPress={props.onPreviousMonth}
-          style={[styles.navButton, !prevEnabled && styles.navButtonDisabled]}
+          style={[
+            styles.navButton,
+            isAgendaPremium ? styles.navButtonAgenda : null,
+            !prevEnabled && styles.navButtonDisabled,
+          ]}
         >
           <DefaultIcons.Custom
             library="Entypo"
             name="chevron-left"
-            size={18}
+            size={isAgendaPremium ? 16 : 18}
             color={prevEnabled ? palette.primary : palette.icons.inactive2}
           />
         </Pressable>
         <Pressable
           disabled={!nextEnabled}
           onPress={props.onNextMonth}
-          style={[styles.navButton, !nextEnabled && styles.navButtonDisabled]}
+          style={[
+            styles.navButton,
+            isAgendaPremium ? styles.navButtonAgenda : null,
+            !nextEnabled && styles.navButtonDisabled,
+          ]}
         >
           <DefaultIcons.Custom
             library="Entypo"
             name="chevron-right"
-            size={18}
+            size={isAgendaPremium ? 16 : 18}
             color={nextEnabled ? palette.primary : palette.icons.inactive2}
           />
         </Pressable>
@@ -102,6 +144,11 @@ export default function FancyCalendarHeader({
 function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
     container: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 34 },
+    containerAgendaPremium: {
+      minHeight: 46,
+      alignItems: 'flex-end',
+      paddingHorizontal: 2,
+    },
     actualDateContainer: {
       flexDirection: 'row',
       gap: 10,
@@ -110,7 +157,39 @@ function createStyles(palette: ThemePalette) {
       flexShrink: 1,
       minWidth: 0,
     },
+    actualDateContainerAgenda: {
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      gap: 1,
+    },
+    yearTextAgenda: {
+      letterSpacing: 0.55,
+      textTransform: 'uppercase',
+      opacity: 0.85,
+      lineHeight: EXTRA_SMALL_SIZE_FONT + 2,
+    },
+    monthRowAgenda: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      minWidth: 0,
+    },
+    monthTextAgenda: {
+      fontFamily: BOLD_FONT,
+      fontSize: LARGE_SIZE_FONT,
+      lineHeight: LARGE_SIZE_FONT + 2,
+      color: palette.fonts.dark,
+      letterSpacing: -0.35,
+    },
     buttonsContainer: { flexDirection: 'row', gap: 8, flexShrink: 0 },
+    buttonsContainerAgenda: {
+      gap: 0,
+      padding: 3,
+      borderRadius: 999,
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.065),
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.primary, 0.08),
+    },
     navButton: {
       width: 32,
       height: 32,
@@ -118,6 +197,12 @@ function createStyles(palette: ThemePalette) {
       backgroundColor: ColorUtils.withAlpha(palette.primary, 0.1),
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    navButtonAgenda: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: 'transparent',
     },
     navButtonDisabled: {
       backgroundColor: palette.disabled,

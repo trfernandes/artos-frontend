@@ -5,14 +5,18 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { uploadToCloudinaryUnsigned } from '../../../../services/cloudinary_upload';
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../../../../config/cloudinary';
 import FancyPageView from '../../../../components/containers/FancyPageView';
 import FancyTabs, { TabItem } from '../../../../components/tabs/FancyTabs';
+import FancyTabHeaderItem from '../../../../components/tabs/FancyTabHeaderItem';
+import FancyAccordeon from '../../../../components/FancyAccordeon';
+import FancyScrollView from '../../../../components/FancyScrollView';
 import { DefaultIconsNames } from '../../../../constants/icons';
-import { useMemo, useState, useEffect } from 'react';
-import { useLocalSearchParams } from 'expo-router';
+import { useMemo, useState, useEffect, useRef } from 'react';
+import { useCallback } from 'react';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIgrejaConfiguracoes } from '../../../../hooks/useIgrejaConfiguracoes';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useForm } from 'react-hook-form';
@@ -58,6 +62,7 @@ import {
   BILLING_PLAN_OPTIONS,
   BillingCycleCode,
 } from '../../../../domain/utils/billing-plan-catalog';
+import { resolveBillingPrimaryActionLabel } from '../../../../domain/utils/billing-notice';
 import FancyBottomSheetModal from '../../../../components/modal/FancyBottomSheetModal';
 import { FancyAlert } from '../../../../components/modal/FancyAlert';
 
@@ -73,12 +78,19 @@ const REMINDER_OPTIONS = [
 ] as const;
 
 const DEFAULT_REMINDER_HOURS = [24, 2, 1];
+type DataSectionKey = 'general' | 'address' | 'billing';
 
 const normalizeOptionalValue = (value?: string | null) => {
   if (typeof value !== 'string') return undefined;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
 };
+
+const normalizeComparableValue = (value?: string | null) =>
+  (value ?? '').trim().toLowerCase();
+
+const COMPLETE_STATUS_LABEL = 'Completo';
+const PENDING_STATUS_LABEL = 'Incompleto';
 
 const isFaturamentoCompleto = (faturamento?: Partial<FaturamentoFormData> | null) =>
   Boolean(
@@ -93,16 +105,60 @@ const isFaturamentoCompleto = (faturamento?: Partial<FaturamentoFormData> | null
       faturamento?.uf,
   );
 
+const isEnderecoCobrancaIgualAoDaIgreja = (
+  endereco?:
+    | Partial<{
+        cep: string | null;
+        rua: string | null;
+        numero: string | null;
+        bairro: string | null;
+        complemento: string | null;
+        cidade: string | null;
+        uf: string | null;
+      }>
+    | null,
+  faturamento?:
+    | Partial<{
+        cnpj: string | null;
+        telefoneCobranca: string | null;
+        emailCobranca: string | null;
+        cep: string | null;
+        rua: string | null;
+        numero: string | null;
+        bairro: string | null;
+        cidade: string | null;
+        cidadeIbge: string | null;
+        uf: string | null;
+        complemento: string | null;
+      }>
+    | null,
+) =>
+  Boolean(
+    endereco &&
+      faturamento &&
+      normalizeComparableValue(endereco.cep) === normalizeComparableValue(faturamento.cep) &&
+      normalizeComparableValue(endereco.rua) === normalizeComparableValue(faturamento.rua) &&
+      normalizeComparableValue(endereco.numero) === normalizeComparableValue(faturamento.numero) &&
+      normalizeComparableValue(endereco.bairro) === normalizeComparableValue(faturamento.bairro) &&
+      normalizeComparableValue(endereco.complemento) ===
+        normalizeComparableValue(faturamento.complemento) &&
+      normalizeComparableValue(endereco.cidade) === normalizeComparableValue(faturamento.cidade) &&
+      normalizeComparableValue(endereco.uf) === normalizeComparableValue(faturamento.uf),
+  );
+
 export default function ConfiguracoesPage() {
   const { igrejaAtiva, user, updateUser } = useAuth();
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
+  const insets = useSafeAreaInsets();
   const igrejaId = igrejaAtiva?.id;
-  const { tab } = useLocalSearchParams<{ tab?: string }>();
+  const { tab, openPlans } = useLocalSearchParams<{ tab?: string; openPlans?: string }>();
   const {
     data: assinatura,
     isLoading: isLoadingAssinatura,
+    refetch: refetchAssinatura,
     iniciarCheckout,
+    retomarCheckout,
     cancelarAssinatura,
     isAbrindoCheckout,
     isCancelandoAssinatura,
@@ -142,14 +198,15 @@ export default function ConfiguracoesPage() {
     defaultValues: data
       ? {
           nome: data.nome,
-          endereco: {
-            cep: data.endereco?.cep || '',
-            rua: data.endereco?.rua || '',
-            numero: data.endereco?.numero || '',
-            complemento: data.endereco?.complemento || '',
-            cidade: data.endereco?.cidade || '',
-            uf: data.endereco?.uf || '',
-          },
+        endereco: {
+          cep: data.endereco?.cep || '',
+          rua: data.endereco?.rua || '',
+          numero: data.endereco?.numero || '',
+          bairro: data.endereco?.bairro || '',
+          complemento: data.endereco?.complemento || '',
+          cidade: data.endereco?.cidade || '',
+          uf: data.endereco?.uf || '',
+        },
           telefone: data.telefone || '',
           email: data.email || '',
           logoUrl: data.logoUrl,
@@ -198,6 +255,16 @@ export default function ConfiguracoesPage() {
   const [billingCycle, setBillingCycle] = useState<BillingCycleCode>('MONTHLY');
   const [billingPlansModalVisible, setBillingPlansModalVisible] = useState(false);
   const [activeTabIndex, setActiveTabIndex] = useState(tab === 'plano' ? 3 : 0);
+  const [accordionOpenSection, setAccordionOpenSection] = useState<DataSectionKey | null>(null);
+  const [hasAttemptedDadosSave, setHasAttemptedDadosSave] = useState(false);
+  const [highlightedAccordionSection, setHighlightedAccordionSection] =
+    useState<DataSectionKey | null>(null);
+  const [pendingAccordionSection, setPendingAccordionSection] = useState<DataSectionKey | null>(
+    null,
+  );
+  const accordionOpenFrameRef = useRef<number | null>(null);
+  const accordionClearPendingFrameRef = useRef<number | null>(null);
+  const [useChurchAddressForBilling, setUseChurchAddressForBilling] = useState(false);
 
   // States para checkboxes
   const [canaisPush, setCanaisPush] = useState(
@@ -213,16 +280,149 @@ export default function ConfiguracoesPage() {
       false,
   );
   const ufSelecionada = dadosForm.watch('endereco.uf');
+  const enderecoValues = dadosForm.watch('endereco');
+  const nomeValue = dadosForm.watch('nome');
+  const telefoneValue = dadosForm.watch('telefone');
+  const emailValue = dadosForm.watch('email');
   const ufFaturamentoSelecionada = faturamentoForm.watch('uf');
   const [cidadesList, setCidadesList] = useState<DropDownItemProps<string>[]>([]);
   const [isLoadingCidades, setIsLoadingCidades] = useState(false);
+  const [cidadesError, setCidadesError] = useState<string | null>(null);
   const [billingCitiesList, setBillingCitiesList] = useState<DropDownItemProps<string>[]>([]);
   const [isLoadingBillingCities, setIsLoadingBillingCities] = useState(false);
+  const [billingCitiesError, setBillingCitiesError] = useState<string | null>(null);
   const faturamentoValues = faturamentoForm.watch();
   const billingProfileComplete = useMemo(
     () => isFaturamentoCompleto(faturamentoValues),
     [faturamentoValues],
   );
+  const dadosDirtyFields = dadosForm.formState.dirtyFields;
+  const hasUnsavedDadosChanges =
+    dadosForm.formState.isDirty || faturamentoForm.formState.isDirty || isUploadingImage;
+  const generalSectionComplete = Boolean(
+    nomeValue?.trim() && telefoneValue?.trim() && emailValue?.trim(),
+  );
+  const addressSectionComplete = Boolean(
+    enderecoValues?.cep?.trim() &&
+      enderecoValues?.rua?.trim() &&
+      enderecoValues?.numero?.trim() &&
+      enderecoValues?.bairro?.trim() &&
+      enderecoValues?.cidade?.trim() &&
+      enderecoValues?.uf?.trim(),
+  );
+  const generalSectionHasInteraction = Boolean(
+    hasAttemptedDadosSave ||
+      dadosDirtyFields.nome ||
+      dadosDirtyFields.telefone ||
+      dadosDirtyFields.email,
+  );
+  const addressSectionHasInteraction = Boolean(
+    hasAttemptedDadosSave ||
+      dadosDirtyFields.endereco?.cep ||
+      dadosDirtyFields.endereco?.rua ||
+      dadosDirtyFields.endereco?.numero ||
+      dadosDirtyFields.endereco?.bairro ||
+      dadosDirtyFields.endereco?.complemento ||
+      dadosDirtyFields.endereco?.cidade ||
+      dadosDirtyFields.endereco?.uf,
+  );
+  const generalSectionShowIncomplete = !generalSectionComplete && generalSectionHasInteraction;
+  const addressSectionShowIncomplete = !addressSectionComplete && addressSectionHasInteraction;
+  const billingStatusLabel = billingProfileComplete ? 'Cobrança completa' : 'Cobrança incompleta';
+  const billingAddressSummary = useMemo(() => {
+    const parts = [
+      faturamentoForm.getValues('rua'),
+      faturamentoForm.getValues('numero'),
+      faturamentoForm.getValues('bairro'),
+      faturamentoForm.getValues('complemento'),
+      faturamentoForm.getValues('cidade'),
+      faturamentoForm.getValues('uf'),
+      faturamentoForm.getValues('cep'),
+    ].filter((value) => typeof value === 'string' && value.trim().length > 0);
+
+    return parts.join(', ');
+  }, [faturamentoValues, faturamentoForm]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!igrejaId) return undefined;
+
+      void refetchAssinatura();
+
+      const intervalId = setInterval(() => {
+        void refetchAssinatura();
+      }, 30000);
+
+      return () => clearInterval(intervalId);
+    }, [igrejaId, refetchAssinatura]),
+  );
+  const generalSectionSummary = useMemo(() => {
+    const fallback = 'Nome, telefone e email da igreja';
+    const values = [telefoneValue, emailValue].filter(
+      (value): value is string => typeof value === 'string' && value.trim().length > 0,
+    );
+
+    if (nomeValue?.trim()) {
+      return values.length > 0 ? `${nomeValue.trim()} · ${values.join(' · ')}` : nomeValue.trim();
+    }
+
+    return values.length > 0 ? values.join(' · ') : fallback;
+  }, [emailValue, nomeValue, telefoneValue]);
+  const addressSectionSummary = useMemo(() => {
+    const parts = [
+      enderecoValues?.rua,
+      enderecoValues?.numero,
+      enderecoValues?.bairro,
+      enderecoValues?.cidade,
+      enderecoValues?.uf,
+    ].filter((value): value is string => typeof value === 'string' && value.trim().length > 0);
+
+    return parts.length > 0 ? parts.join(', ') : 'CEP, rua, número, bairro, estado e cidade';
+  }, [enderecoValues]);
+  const billingSectionSummary = useMemo(() => {
+    if (!billingProfileComplete) {
+      return 'Complete os dados para liberar a assinatura';
+    }
+
+    if (useChurchAddressForBilling) {
+      return billingAddressSummary || 'Usando o endereço principal da igreja';
+    }
+
+    return billingAddressSummary || 'Perfil pronto para checkout';
+  }, [billingAddressSummary, billingProfileComplete, useChurchAddressForBilling]);
+  const canResumePendingCheckout = Boolean(
+    assinatura?.checkoutUrl && assinatura.status !== 'cancelled',
+  );
+  const hasExceededPlanCapacity = Boolean(
+    assinatura &&
+      (assinatura.currentVolunteers > assinatura.maxVolunteers ||
+        assinatura.currentMinistries > assinatura.maxMinistries),
+  );
+  const canCancelCurrentSubscription = Boolean(
+    assinatura?.canManageBilling &&
+      assinatura?.status &&
+      ['active', 'trial', 'overdue'].includes(assinatura.status),
+  );
+  const billingPrimaryLabel = resolveBillingPrimaryActionLabel(assinatura);
+  const recommendedUpgradePlan = useMemo(() => {
+    if (!hasExceededPlanCapacity || !assinatura) return null;
+
+    return (
+      BILLING_PLAN_OPTIONS.find(
+        (option) =>
+          option.maxVolunteers >= assinatura.currentVolunteers &&
+          option.maxMinistries >= assinatura.currentMinistries,
+      ) ?? BILLING_PLAN_OPTIONS[BILLING_PLAN_OPTIONS.length - 1]
+    );
+  }, [assinatura, hasExceededPlanCapacity]);
+  const handlePrimaryBillingAction = () => {
+    if (canResumePendingCheckout && assinatura?.checkoutUrl) {
+      retomarCheckout(assinatura.checkoutUrl);
+      return;
+    }
+
+    openBillingPlansModal();
+  };
   const reminderLabel = useMemo(() => {
     const values = [...(selectedReminderHours ?? [])].sort((a, b) => b - a);
     if (values.length === 0) return 'Nenhum lembrete selecionado';
@@ -235,6 +435,94 @@ export default function ConfiguracoesPage() {
       })
       .join(', ');
   }, [selectedReminderHours]);
+
+  const setAccordionSectionState = (
+    section: DataSectionKey,
+    expanded: boolean,
+    highlight = false,
+  ) => {
+    if (highlight) {
+      setHighlightedAccordionSection(section);
+    }
+
+    if (
+      pendingAccordionSection === null &&
+      ((expanded && accordionOpenSection === section) || (!expanded && accordionOpenSection !== section))
+    ) {
+      return;
+    }
+
+    if (accordionOpenFrameRef.current !== null) {
+      cancelAnimationFrame(accordionOpenFrameRef.current);
+    }
+    if (accordionClearPendingFrameRef.current !== null) {
+      cancelAnimationFrame(accordionClearPendingFrameRef.current);
+    }
+
+    setPendingAccordionSection(section);
+    accordionOpenFrameRef.current = requestAnimationFrame(() => {
+      setAccordionOpenSection(expanded ? section : null);
+      accordionClearPendingFrameRef.current = requestAnimationFrame(() => {
+        setPendingAccordionSection(null);
+      });
+    });
+  };
+
+  const openAccordionSection = (section: DataSectionKey, highlight = false) => {
+    setAccordionSectionState(section, true, highlight);
+  };
+
+  const syncBillingAddressWithChurch = (markDirty: boolean) => {
+    const endereco = dadosForm.getValues('endereco');
+    const cidadeSelecionada = billingCitiesList.find(
+      (cidade) => cidade.title === (endereco?.cidade ?? ''),
+    );
+
+    faturamentoForm.setValue('cep', endereco?.cep || '', { shouldDirty: markDirty });
+    faturamentoForm.setValue('rua', endereco?.rua || '', { shouldDirty: markDirty });
+    faturamentoForm.setValue('numero', endereco?.numero || '', { shouldDirty: markDirty });
+    faturamentoForm.setValue('bairro', endereco?.bairro || '', { shouldDirty: markDirty });
+    faturamentoForm.setValue('complemento', endereco?.complemento || '', { shouldDirty: markDirty });
+    faturamentoForm.setValue('uf', endereco?.uf || '', { shouldDirty: markDirty });
+    faturamentoForm.setValue('cidade', endereco?.cidade || '', { shouldDirty: markDirty });
+    faturamentoForm.setValue('cidadeIbge', cidadeSelecionada?.value || '', {
+      shouldDirty: markDirty,
+      shouldValidate: true,
+    });
+  };
+
+  const loadChurchCities = async (uf: string) => {
+    if (!uf) return;
+    setIsLoadingCidades(true);
+    setCidadesError(null);
+    try {
+      const cidades = await getCidadesPorUf(uf);
+      setCidadesList(cidades);
+    } catch {
+      setCidadesList([]);
+      setCidadesError('Não foi possível carregar as cidades agora.');
+    } finally {
+      setIsLoadingCidades(false);
+    }
+  };
+
+  const loadBillingCities = async (uf: string) => {
+    if (!uf) return;
+    setIsLoadingBillingCities(true);
+    setBillingCitiesError(null);
+    try {
+      const cidades = await getCidadesComCodigoPorUf(uf);
+      setBillingCitiesList(cidades);
+      if (cidades.length === 0) {
+        setBillingCitiesError('Não foi possível carregar as cidades agora.');
+      }
+    } catch {
+      setBillingCitiesList([]);
+      setBillingCitiesError('Não foi possível carregar as cidades agora.');
+    } finally {
+      setIsLoadingBillingCities(false);
+    }
+  };
   useEffect(() => {
     if (assinatura?.cycle === 'MONTHLY' || assinatura?.cycle === 'YEARLY') {
       setBillingCycle(assinatura.cycle);
@@ -261,6 +549,12 @@ export default function ConfiguracoesPage() {
   };
 
   const openBillingPlansModal = () => setBillingPlansModalVisible(true);
+
+  useEffect(() => {
+    if (tab === 'plano' && openPlans === '1' && activeTabIndex === 3) {
+      setBillingPlansModalVisible(true);
+    }
+  }, [activeTabIndex, openPlans, tab]);
   const closeBillingPlansModal = () => setBillingPlansModalVisible(false);
 
   const toggleReminderHour = (hour: number) => {
@@ -279,42 +573,24 @@ export default function ConfiguracoesPage() {
   useEffect(() => {
     if (!ufSelecionada) {
       setCidadesList([]);
+      setCidadesError(null);
       dadosForm.setValue('endereco.cidade', '');
       return;
     }
 
-    setIsLoadingCidades(true);
-    getCidadesPorUf(ufSelecionada)
-      .then((cidades) => {
-        setCidadesList(cidades);
-      })
-      .catch(() => {
-        setCidadesList([]);
-      })
-      .finally(() => {
-        setIsLoadingCidades(false);
-      });
+    loadChurchCities(ufSelecionada);
   }, [ufSelecionada, dadosForm]);
 
   useEffect(() => {
     if (!ufFaturamentoSelecionada) {
       setBillingCitiesList([]);
+      setBillingCitiesError(null);
       faturamentoForm.setValue('cidadeIbge', '');
       faturamentoForm.setValue('cidade', '');
       return;
     }
 
-    setIsLoadingBillingCities(true);
-    getCidadesComCodigoPorUf(ufFaturamentoSelecionada)
-      .then((cidades) => {
-        setBillingCitiesList(cidades);
-      })
-      .catch(() => {
-        setBillingCitiesList([]);
-      })
-      .finally(() => {
-        setIsLoadingBillingCities(false);
-      });
+    loadBillingCities(ufFaturamentoSelecionada);
   }, [ufFaturamentoSelecionada, faturamentoForm]);
 
   useEffect(() => {
@@ -342,6 +618,32 @@ export default function ConfiguracoesPage() {
     }
   }, [billingCitiesList, faturamentoForm]);
 
+  useEffect(() => {
+    if (!useChurchAddressForBilling) return;
+    syncBillingAddressWithChurch(false);
+  }, [useChurchAddressForBilling, enderecoValues, billingCitiesList]);
+
+  useEffect(() => {
+    if (!highlightedAccordionSection) return;
+
+    const timeout = setTimeout(() => {
+      setHighlightedAccordionSection(null);
+    }, 2200);
+
+    return () => clearTimeout(timeout);
+  }, [highlightedAccordionSection]);
+
+  useEffect(() => {
+    return () => {
+      if (accordionOpenFrameRef.current !== null) {
+        cancelAnimationFrame(accordionOpenFrameRef.current);
+      }
+      if (accordionClearPendingFrameRef.current !== null) {
+        cancelAnimationFrame(accordionClearPendingFrameRef.current);
+      }
+    };
+  }, []);
+
   // Atualizar forms quando data carregar
   useEffect(() => {
     if (data) {
@@ -364,6 +666,7 @@ export default function ConfiguracoesPage() {
           cep: data.endereco?.cep || '',
           rua: data.endereco?.rua || '',
           numero: data.endereco?.numero || '',
+          bairro: data.endereco?.bairro || '',
           complemento: data.endereco?.complemento || '',
           cidade: data.endereco?.cidade || '',
           uf: data.endereco?.uf || '',
@@ -386,6 +689,9 @@ export default function ConfiguracoesPage() {
         uf: data.faturamento?.uf || '',
         complemento: data.faturamento?.complemento || '',
       });
+      setUseChurchAddressForBilling(
+        isEnderecoCobrancaIgualAoDaIgreja(data.endereco, data.faturamento),
+      );
 
       modoEntradaForm.reset({
         modoEntrada: data.modoEntrada,
@@ -416,10 +722,32 @@ export default function ConfiguracoesPage() {
   }, [data, faturamentoForm]);
 
   // Handlers
-  const handleSalvarDados = dadosForm.handleSubmit(async (formData: DadosFormData) => {
-    console.log('📤 Dados do form a serem enviados:', JSON.stringify(formData, null, 2));
+  const handleSalvarDados = async () => {
+    setHasAttemptedDadosSave(true);
+    const dadosValid = await dadosForm.trigger();
+    if (!dadosValid) {
+      const dataErrors = dadosForm.formState.errors;
+      const hasAddressErrors = Boolean(
+        dataErrors.endereco?.cep ||
+          dataErrors.endereco?.rua ||
+          dataErrors.endereco?.numero ||
+          dataErrors.endereco?.bairro ||
+          dataErrors.endereco?.complemento ||
+          dataErrors.endereco?.cidade ||
+          dataErrors.endereco?.uf,
+      );
+      openAccordionSection(hasAddressErrors ? 'address' : 'general');
+      return;
+    }
 
-    // Fazer upload da imagem se houver uma nova
+    const faturamentoValido = await faturamentoForm.trigger();
+    if (!faturamentoValido) {
+      openAccordionSection('billing');
+      return;
+    }
+
+    const formData = dadosForm.getValues();
+    const billingData = faturamentoForm.getValues();
     const logoFile = dadosForm.getValues('logoFile' as any) as FormImageFile | null | undefined;
 
     let finalLogoUrl = formData.logoUrl;
@@ -455,29 +783,17 @@ export default function ConfiguracoesPage() {
           telefone: normalizeOptionalValue(formData.telefone),
           email: normalizeOptionalValue(formData.email),
           logoUrl: finalLogoUrl ?? undefined,
-        },
-      });
-    } catch (error) {
-      // Erro já tratado pelo hook
-    }
-  });
-
-  const handleSalvarFaturamento = faturamentoForm.handleSubmit(async (formData) => {
-    try {
-      await updateDados({
-        igrejaId: igrejaId!,
-        dto: {
           faturamento: {
-            ...formData,
-            emailCobranca: normalizeOptionalValue(formData.emailCobranca),
-            complemento: normalizeOptionalValue(formData.complemento),
+            ...billingData,
+            emailCobranca: normalizeOptionalValue(billingData.emailCobranca),
+            complemento: normalizeOptionalValue(billingData.complemento),
           },
         },
       });
     } catch (error) {
       // Erro já tratado pelo hook
     }
-  });
+  };
 
   const handleSalvarModoEntrada = modoEntradaForm.handleSubmit((formData) => {
     updateModoEntrada({
@@ -517,25 +833,36 @@ export default function ConfiguracoesPage() {
   const handleAbrirConfiguracaoFaturamento = () => {
     closeBillingPlansModal();
     setActiveTabIndex(0);
+    openAccordionSection('billing', true);
   };
 
   const handleIniciarCheckout = (plan: (typeof BILLING_PLAN_OPTIONS)[number]['codigo']) => {
     if (!billingProfileComplete) {
       closeBillingPlansModal();
       setActiveTabIndex(0);
+      openAccordionSection('billing', true);
       FancyAlert.alert(
-        'Dados de faturamento pendentes',
-        'Complete os dados de faturamento da igreja antes de iniciar a assinatura.',
+        'Cobrança incompleta',
+        'Complete os dados de cobrança da igreja antes de iniciar a assinatura.',
         [{ text: 'Ok', style: 'default' }],
       );
       return;
     }
 
+    closeBillingPlansModal();
     iniciarCheckout({
       churchId: igrejaId!,
       plan,
       cycle: billingCycle,
     });
+  };
+
+  const handleToggleUseChurchAddress = (nextValue: boolean) => {
+    setUseChurchAddressForBilling(nextValue);
+    if (nextValue) {
+      syncBillingAddressWithChurch(true);
+      openAccordionSection('billing');
+    }
   };
 
   // Verificar se há igreja ativa
@@ -575,266 +902,594 @@ export default function ConfiguracoesPage() {
       title: 'Dados',
       icon: { ...DefaultIconsNames.info, size: 16 },
       content: (
-        <View style={styles.tabWrapper}>
-          <KeyboardAwareScrollView
+        <View style={styles.dataTabLayout}>
+          <FancyScrollView
             style={styles.scrollView}
-            contentContainerStyle={styles.tabContent}
+            contentContainerStyle={styles.dataScrollContent}
             showsVerticalScrollIndicator={false}
             enableOnAndroid={true}
             extraScrollHeight={100}
+            keyboardShouldPersistTaps='handled'
+            fill
           >
-            {/* Avatar / Logo */}
-            <View style={styles.avatarContainer}>
-              <ControlledImagePicker
-                control={dadosForm.control}
-                name='logoUrl'
-                setValue={dadosForm.setValue}
-                uploadFieldName={'logoFile' as any}
-              />
-            </View>
-
-            {/* Formulário */}
-            <ControlledTextInput control={dadosForm.control} name='nome' label='Nome da Igreja' />
-
-            <ControlledMaskedTextInput
-              control={dadosForm.control}
-              name='endereco.cep'
-              label='CEP'
-              maskType='cep'
-            />
-
-            <ControlledTextInput control={dadosForm.control} name='endereco.rua' label='Rua' />
-
-            <ControlledTextInput
-              control={dadosForm.control}
-              name='endereco.numero'
-              label='Número'
-              keyboardType='numeric'
-            />
-
-            <ControlledTextInput
-              control={dadosForm.control}
-              name='endereco.complemento'
-              label='Complemento'
-            />
-
-            <ControlledSearchSelect
-              control={dadosForm.control}
-              name='endereco.uf'
-              label='Estado'
-              listItems={UF_LIST}
-              placeholder='Selecione o estado'
-              searchPlaceholder='Buscar estado...'
-            />
-
-            <ControlledSearchSelect
-              control={dadosForm.control}
-              name='endereco.cidade'
-              label='Cidade'
-              listItems={cidadesList}
-              placeholder={isLoadingCidades ? 'Carregando cidades...' : 'Selecione a cidade'}
-              searchPlaceholder='Buscar cidade...'
-              disabled={!ufSelecionada || isLoadingCidades}
-              isLoading={isLoadingCidades}
-            />
-
-            <ControlledMaskedTextInput
-              control={dadosForm.control}
-              name='telefone'
-              label='Telefone'
-              maskType='phone'
-            />
-
-            <ControlledTextInput
-              control={dadosForm.control}
-              name='email'
-              label='Email'
-              keyboardType='email-address'
-            />
-
-            <View
-              style={[
-                styles.billingProfileCard,
-                {
-                  backgroundColor: palette.backgroundColor4,
-                  borderColor: billingProfileComplete
-                    ? ColorUtils.withAlpha(palette.confirm, 0.28)
-                    : ColorUtils.withAlpha(palette.primary, 0.24),
-                },
-              ]}
-            >
-              <View style={styles.billingProfileHeader}>
-                <View style={styles.billingProfileHeaderText}>
-                  <FancyText type='semiBold' size='small'>
-                    Dados de faturamento
-                  </FancyText>
-                  <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                    Esses dados são usados para criar o cliente da igreja no checkout do Asaas.
-                  </FancyText>
-                </View>
-                <View
-                  style={[
-                    styles.billingProfilePill,
-                    {
-                      backgroundColor: billingProfileComplete
-                        ? ColorUtils.withAlpha(palette.confirm, 0.12)
-                        : ColorUtils.withAlpha(palette.primary, 0.12),
-                    },
-                  ]}
-                >
-                  <FancyText
-                    size='extraSmall'
-                    type='semiBold'
-                    color={billingProfileComplete ? palette.confirm : palette.primary}
-                  >
-                    {billingProfileComplete ? 'Completo' : 'Pendente'}
-                  </FancyText>
-                </View>
-              </View>
-
-              <ControlledMaskedTextInput
-                control={faturamentoForm.control}
-                name='cnpj'
-                label='CNPJ'
-                maskType='cnpj'
-              />
-
-              <ControlledMaskedTextInput
-                control={faturamentoForm.control}
-                name='telefoneCobranca'
-                label='Telefone de cobrança'
-                maskType='phone'
-              />
-
-              <ControlledTextInput
-                control={faturamentoForm.control}
-                name='emailCobranca'
-                label='Email de cobrança'
-                keyboardType='email-address'
-              />
-
-              <ControlledMaskedTextInput
-                control={faturamentoForm.control}
-                name='cep'
-                label='CEP de faturamento'
-                maskType='cep'
-              />
-
-              <ControlledTextInput
-                control={faturamentoForm.control}
-                name='rua'
-                label='Rua de faturamento'
-              />
-
-              <ControlledTextInput
-                control={faturamentoForm.control}
-                name='numero'
-                label='Número'
-                keyboardType='numeric'
-              />
-
-              <ControlledTextInput
-                control={faturamentoForm.control}
-                name='bairro'
-                label='Bairro'
-              />
-
-              <ControlledTextInput
-                control={faturamentoForm.control}
-                name='complemento'
-                label='Complemento'
-              />
-
-              <ControlledSearchSelect
-                control={faturamentoForm.control}
-                name='uf'
-                label='Estado de faturamento'
-                listItems={UF_LIST}
-                placeholder='Selecione o estado'
-                searchPlaceholder='Buscar estado...'
-              />
-
-              <ControlledSearchSelect
-                control={faturamentoForm.control}
-                name='cidadeIbge'
-                label='Cidade de faturamento'
-                listItems={billingCitiesList}
-                placeholder={
-                  isLoadingBillingCities ? 'Carregando cidades...' : 'Selecione a cidade'
+            <View style={styles.dataSectionsStack}>
+                <FancyAccordeon
+                  expanded={accordionOpenSection === 'general'}
+                  onExpandedChange={(expanded) => {
+                    setAccordionSectionState('general', expanded);
+                  }}
+                disabled={pendingAccordionSection !== null && pendingAccordionSection !== 'general'}
+                isLoading={pendingAccordionSection === 'general'}
+                title={
+                  <View style={styles.accordionHeaderMain}>
+                    <View
+                      style={[
+                        styles.accordionIconBadge,
+                        {
+                          backgroundColor: generalSectionComplete
+                            ? ColorUtils.withAlpha(palette.confirm, 0.12)
+                            : generalSectionShowIncomplete
+                              ? ColorUtils.withAlpha(palette.warning, 0.12)
+                              : ColorUtils.withAlpha(palette.primary, 0.1),
+                        },
+                      ]}
+                    >
+                      <DefaultIcons.Custom
+                        library='MaterialCommunityIcons'
+                        name='information-outline'
+                        size={18}
+                        color={
+                          generalSectionComplete
+                            ? palette.confirm
+                            : generalSectionShowIncomplete
+                              ? palette.warning
+                              : palette.primary
+                        }
+                      />
+                    </View>
+                    <View style={styles.accordionHeaderText}>
+                      <FancyText type='semiBold' size='small'>
+                        Geral
+                      </FancyText>
+                      <FancyText
+                        size='extraSmall'
+                        color={palette.fonts.inactive}
+                        numberOfLines={1}
+                      >
+                        {generalSectionSummary}
+                      </FancyText>
+                    </View>
+                  </View>
                 }
-                searchPlaceholder='Buscar cidade...'
-                disabled={!ufFaturamentoSelecionada || isLoadingBillingCities}
-                isLoading={isLoadingBillingCities}
-                onChange={(cidadeId) => {
-                  const cidadeSelecionada = billingCitiesList.find(
-                    (cidade) => cidade.value === cidadeId,
-                  );
-                  faturamentoForm.setValue('cidade', cidadeSelecionada?.title ?? '', {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  });
-                }}
-              />
+                subtitle={
+                  generalSectionComplete || generalSectionShowIncomplete ? (
+                    <View
+                      style={[
+                        styles.accordionStatusPill,
+                        {
+                          backgroundColor: generalSectionComplete
+                            ? ColorUtils.withAlpha(palette.confirm, 0.12)
+                            : ColorUtils.withAlpha(palette.warning, 0.14),
+                        },
+                      ]}
+                    >
+                      <FancyText
+                        size='extraSmall'
+                        type='semiBold'
+                        color={generalSectionComplete ? palette.confirm : palette.warning}
+                      >
+                        {generalSectionComplete ? COMPLETE_STATUS_LABEL : PENDING_STATUS_LABEL}
+                      </FancyText>
+                    </View>
+                  ) : undefined
+                }
+                contentContainerStyle={styles.accordionContent}
+                headerContainerStyle={styles.accordionHeader}
+                headerExpandedContainerStyle={styles.accordionHeaderExpanded}
+                containerContainerStyle={[
+                  styles.accordionSection,
+                  {
+                    borderColor:
+                      accordionOpenSection === 'general'
+                        ? ColorUtils.withAlpha(palette.primary, 0.24)
+                        : palette.borderCard,
+                  },
+                ]}
+                containerExpandedContainerStyle={[
+                  styles.accordionSection,
+                  {
+                    borderColor: ColorUtils.withAlpha(palette.primary, 0.24),
+                  },
+                ]}
+                iconProps={{ size: 22, color: palette.fonts.inactive }}
+              >
+                    <View style={styles.avatarContainer}>
+                      <ControlledImagePicker
+                        control={dadosForm.control}
+                        name='logoUrl'
+                        setValue={dadosForm.setValue}
+                        uploadFieldName={'logoFile' as any}
+                      />
+                    </View>
 
-              {!isLoadingBillingCities && ufFaturamentoSelecionada && billingCitiesList.length === 0 ? (
-                <FancyText size='extraSmall' color={palette.error}>
-                  Não foi possível carregar as cidades com código IBGE. Tente novamente antes de assinar.
-                </FancyText>
-              ) : null}
+                    <View style={styles.sectionCopyBlock}>
+                      <FancyText type='semiBold' size='small'>
+                        Informações principais
+                      </FancyText>
+                      <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                        Ajuste o que a equipe vê primeiro ao entrar na igreja.
+                      </FancyText>
+                    </View>
 
-              <FancyButton
-                label='Salvar faturamento'
-                icon={{ library: 'MaterialCommunityIcons', name: 'office-building-cog', size: 14 }}
-                onPress={handleSalvarFaturamento}
-                disabled={isUpdating}
-                isLoading={isUpdating}
-              />
+                    <ControlledTextInput control={dadosForm.control} name='nome' label='Nome da Igreja' />
+
+                    <ControlledMaskedTextInput
+                      control={dadosForm.control}
+                      name='telefone'
+                      label='Telefone'
+                      maskType='phone'
+                    />
+
+                    <ControlledTextInput
+                      control={dadosForm.control}
+                      name='email'
+                      label='Email'
+                      keyboardType='email-address'
+                    />
+
+                    <View style={styles.codigoCard}>
+                      <View style={styles.codigoHeader}>
+                        <DefaultIcons.Custom
+                          library='MaterialCommunityIcons'
+                          name='qrcode'
+                          size={20}
+                          color={palette.primary}
+                        />
+                        <FancyText type='medium' size='small' style={styles.codigoTitulo}>
+                          Código da Igreja
+                        </FancyText>
+                      </View>
+                      <View style={styles.codigoBody}>
+                        <FancyText type='bold' size='extraLarge' style={styles.codigoTexto}>
+                          {data?.codigo || '---'}
+                        </FancyText>
+                        <FancyText type='normal' size='extraSmall' style={styles.codigoDesc}>
+                          Compartilhe este código para convidar pessoas
+                        </FancyText>
+                      </View>
+                      <TouchableOpacity style={styles.codigoCopyButton} onPress={handleCopiarCodigo}>
+                        <DefaultIcons.Custom
+                          library='MaterialCommunityIcons'
+                          name='content-copy'
+                          size={16}
+                          color={palette.primary}
+                        />
+                        <FancyText type='medium' size='small' style={styles.codigoCopyText}>
+                          Copiar Código
+                        </FancyText>
+                      </TouchableOpacity>
+                    </View>
+              </FancyAccordeon>
+                <FancyAccordeon
+                  expanded={accordionOpenSection === 'address'}
+                  onExpandedChange={(expanded) => {
+                    setAccordionSectionState('address', expanded);
+                  }}
+                disabled={pendingAccordionSection !== null && pendingAccordionSection !== 'address'}
+                isLoading={pendingAccordionSection === 'address'}
+                title={
+                  <View style={styles.accordionHeaderMain}>
+                    <View
+                      style={[
+                        styles.accordionIconBadge,
+                        {
+                          backgroundColor: addressSectionComplete
+                            ? ColorUtils.withAlpha(palette.confirm, 0.12)
+                            : addressSectionShowIncomplete
+                              ? ColorUtils.withAlpha(palette.warning, 0.12)
+                              : ColorUtils.withAlpha(palette.primary, 0.1),
+                        },
+                      ]}
+                    >
+                      <DefaultIcons.Custom
+                        library='MaterialCommunityIcons'
+                        name='map-marker-outline'
+                        size={18}
+                        color={
+                          addressSectionComplete
+                            ? palette.confirm
+                            : addressSectionShowIncomplete
+                              ? palette.warning
+                              : palette.primary
+                        }
+                      />
+                    </View>
+                    <View style={styles.accordionHeaderText}>
+                      <FancyText type='semiBold' size='small'>
+                        Endereço
+                      </FancyText>
+                      <FancyText
+                        size='extraSmall'
+                        color={palette.fonts.inactive}
+                        numberOfLines={1}
+                      >
+                        {addressSectionSummary}
+                      </FancyText>
+                    </View>
+                  </View>
+                }
+                subtitle={
+                  addressSectionComplete || addressSectionShowIncomplete ? (
+                    <View
+                      style={[
+                        styles.accordionStatusPill,
+                        {
+                          backgroundColor: addressSectionComplete
+                            ? ColorUtils.withAlpha(palette.confirm, 0.12)
+                            : ColorUtils.withAlpha(palette.warning, 0.14),
+                        },
+                      ]}
+                    >
+                      <FancyText
+                        size='extraSmall'
+                        type='semiBold'
+                        color={addressSectionComplete ? palette.confirm : palette.warning}
+                      >
+                        {addressSectionComplete ? COMPLETE_STATUS_LABEL : PENDING_STATUS_LABEL}
+                      </FancyText>
+                    </View>
+                  ) : undefined
+                }
+                contentContainerStyle={styles.accordionContent}
+                headerContainerStyle={styles.accordionHeader}
+                headerExpandedContainerStyle={styles.accordionHeaderExpanded}
+                containerContainerStyle={[
+                  styles.accordionSection,
+                  {
+                    borderColor:
+                      accordionOpenSection === 'address'
+                        ? ColorUtils.withAlpha(palette.primary, 0.24)
+                        : palette.borderCard,
+                  },
+                ]}
+                containerExpandedContainerStyle={[
+                  styles.accordionSection,
+                  {
+                    borderColor: ColorUtils.withAlpha(palette.primary, 0.24),
+                  },
+                ]}
+                iconProps={{ size: 22, color: palette.fonts.inactive }}
+              >
+                    <View style={styles.sectionCopyBlock}>
+                      <FancyText type='semiBold' size='small'>
+                        Endereço da igreja
+                      </FancyText>
+                      <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                        Esse é o endereço principal da igreja.
+                      </FancyText>
+                    </View>
+
+                    <ControlledMaskedTextInput
+                      control={dadosForm.control}
+                      name='endereco.cep'
+                      label='CEP'
+                      maskType='cep'
+                    />
+
+                    <ControlledTextInput control={dadosForm.control} name='endereco.rua' label='Rua' />
+
+                    <ControlledTextInput
+                      control={dadosForm.control}
+                      name='endereco.numero'
+                      label='Número'
+                      keyboardType='numeric'
+                    />
+
+                    <ControlledTextInput
+                      control={dadosForm.control}
+                      name='endereco.bairro'
+                      label='Bairro'
+                    />
+
+                    <ControlledTextInput
+                      control={dadosForm.control}
+                      name='endereco.complemento'
+                      label='Complemento'
+                    />
+
+                    <ControlledSearchSelect
+                      control={dadosForm.control}
+                      name='endereco.uf'
+                      label='Estado'
+                      listItems={UF_LIST}
+                      placeholder='Selecione o estado'
+                      searchPlaceholder='Buscar estado...'
+                    />
+
+                    <ControlledSearchSelect
+                      control={dadosForm.control}
+                      name='endereco.cidade'
+                      label='Cidade'
+                      listItems={cidadesList}
+                      placeholder={isLoadingCidades ? 'Carregando cidades...' : 'Selecione a cidade'}
+                      searchPlaceholder='Buscar cidade...'
+                      disabled={!ufSelecionada}
+                      isLoading={isLoadingCidades}
+                      loadingMessage='Carregando cidades...'
+                      errorMessage={cidadesError}
+                      onRetry={() => {
+                        if (ufSelecionada) {
+                          loadChurchCities(ufSelecionada);
+                        }
+                      }}
+                    />
+              </FancyAccordeon>
+                <FancyAccordeon
+                  expanded={accordionOpenSection === 'billing'}
+                  onExpandedChange={(expanded) => {
+                    setAccordionSectionState('billing', expanded);
+                  }}
+                disabled={pendingAccordionSection !== null && pendingAccordionSection !== 'billing'}
+                isLoading={pendingAccordionSection === 'billing'}
+                title={
+                  <View style={styles.accordionHeaderMain}>
+                    <View
+                      style={[
+                        styles.accordionIconBadge,
+                        {
+                          backgroundColor: billingProfileComplete
+                            ? ColorUtils.withAlpha(palette.confirm, 0.12)
+                            : ColorUtils.withAlpha(palette.warning, 0.12),
+                        },
+                      ]}
+                    >
+                      <DefaultIcons.Custom
+                        library='MaterialCommunityIcons'
+                        name='credit-card-outline'
+                        size={18}
+                        color={billingProfileComplete ? palette.confirm : palette.warning}
+                      />
+                    </View>
+                    <View style={styles.accordionHeaderText}>
+                      <FancyText type='semiBold' size='small'>
+                        Cobrança
+                      </FancyText>
+                      <FancyText
+                        size='extraSmall'
+                        color={palette.fonts.inactive}
+                        numberOfLines={2}
+                      >
+                        {billingSectionSummary}
+                      </FancyText>
+                    </View>
+                  </View>
+                }
+                subtitle={
+                  <View
+                    style={[
+                      styles.accordionStatusPill,
+                      {
+                        backgroundColor: billingProfileComplete
+                          ? ColorUtils.withAlpha(palette.confirm, 0.12)
+                          : ColorUtils.withAlpha(palette.warning, 0.14),
+                      },
+                    ]}
+                  >
+                    <FancyText
+                      size='extraSmall'
+                      type='semiBold'
+                      color={billingProfileComplete ? palette.confirm : palette.warning}
+                    >
+                      {billingProfileComplete ? COMPLETE_STATUS_LABEL : PENDING_STATUS_LABEL}
+                    </FancyText>
+                  </View>
+                }
+                contentContainerStyle={styles.accordionContent}
+                headerContainerStyle={styles.accordionHeader}
+                headerExpandedContainerStyle={styles.accordionHeaderExpanded}
+                containerContainerStyle={[
+                  styles.accordionSection,
+                  highlightedAccordionSection === 'billing' && styles.accordionSectionHighlighted,
+                  {
+                    borderColor:
+                      accordionOpenSection === 'billing' || highlightedAccordionSection === 'billing'
+                        ? ColorUtils.withAlpha(palette.primary, 0.32)
+                        : palette.borderCard,
+                  },
+                ]}
+                containerExpandedContainerStyle={[
+                  styles.accordionSection,
+                  highlightedAccordionSection === 'billing' && styles.accordionSectionHighlighted,
+                  {
+                    borderColor: ColorUtils.withAlpha(palette.primary, 0.32),
+                  },
+                ]}
+                iconProps={{ size: 22, color: palette.fonts.inactive }}
+              >
+                    <View style={styles.billingContentHeader}>
+                      <View style={styles.sectionCopyBlock}>
+                        <FancyText type='semiBold' size='small'>
+                          Dados de cobrança
+                        </FancyText>
+                        <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                          Esses dados são usados no checkout da assinatura.
+                        </FancyText>
+                      </View>
+                      <View
+                        style={[
+                          styles.billingProfilePill,
+                          {
+                            backgroundColor: billingProfileComplete
+                              ? ColorUtils.withAlpha(palette.confirm, 0.12)
+                              : ColorUtils.withAlpha(palette.warning, 0.14),
+                          },
+                        ]}
+                      >
+                        <FancyText
+                          size='extraSmall'
+                          type='semiBold'
+                          color={billingProfileComplete ? palette.confirm : palette.warning}
+                        >
+                          {billingStatusLabel}
+                        </FancyText>
+                      </View>
+                    </View>
+
+                    <ControlledMaskedTextInput
+                      control={faturamentoForm.control}
+                      name='cnpj'
+                      label='CNPJ'
+                      maskType='cnpj'
+                    />
+
+                    <ControlledMaskedTextInput
+                      control={faturamentoForm.control}
+                      name='telefoneCobranca'
+                      label='Telefone'
+                      maskType='phone'
+                    />
+
+                    <ControlledTextInput
+                      control={faturamentoForm.control}
+                      name='emailCobranca'
+                      label='Email'
+                      keyboardType='email-address'
+                    />
+
+                    <TouchableOpacity
+                      style={[
+                        styles.sameAddressRow,
+                        {
+                          backgroundColor: useChurchAddressForBilling
+                            ? ColorUtils.withAlpha(palette.primary, 0.08)
+                            : palette.backgroundColor,
+                          borderColor: useChurchAddressForBilling
+                            ? ColorUtils.withAlpha(palette.primary, 0.22)
+                            : palette.borderCard,
+                        },
+                      ]}
+                      activeOpacity={0.85}
+                      onPress={() => handleToggleUseChurchAddress(!useChurchAddressForBilling)}
+                    >
+                      <View pointerEvents='none'>
+                        <FancyCheckbox value={useChurchAddressForBilling} />
+                      </View>
+                      <View style={styles.sameAddressText}>
+                        <FancyText type='semiBold' size='small'>
+                          Usar o mesmo endereço da igreja
+                        </FancyText>
+                        <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                          Reaproveita o endereço principal já cadastrado.
+                        </FancyText>
+                      </View>
+                    </TouchableOpacity>
+
+                    {useChurchAddressForBilling ? (
+                      <>
+                        <View style={styles.addressPreviewCard}>
+                          <FancyText type='medium' size='small'>
+                            Endereço em uso
+                          </FancyText>
+                          <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                            {billingAddressSummary ||
+                              'Preencha o endereço da igreja para reutilizar aqui.'}
+                          </FancyText>
+                        </View>
+                      </>
+                    ) : (
+                      <>
+                        <ControlledMaskedTextInput
+                          control={faturamentoForm.control}
+                          name='cep'
+                          label='CEP'
+                          maskType='cep'
+                        />
+
+                        <ControlledTextInput
+                          control={faturamentoForm.control}
+                          name='rua'
+                          label='Rua'
+                        />
+
+                        <ControlledTextInput
+                          control={faturamentoForm.control}
+                          name='numero'
+                          label='Número'
+                          keyboardType='numeric'
+                        />
+
+                        <ControlledTextInput
+                          control={faturamentoForm.control}
+                          name='bairro'
+                          label='Bairro'
+                        />
+
+                        <ControlledTextInput
+                          control={faturamentoForm.control}
+                          name='complemento'
+                          label='Complemento'
+                        />
+
+                        <ControlledSearchSelect
+                          control={faturamentoForm.control}
+                          name='uf'
+                          label='Estado'
+                          listItems={UF_LIST}
+                          placeholder='Selecione o estado'
+                          searchPlaceholder='Buscar estado...'
+                        />
+
+                        <ControlledSearchSelect
+                          control={faturamentoForm.control}
+                          name='cidadeIbge'
+                          label='Cidade'
+                          listItems={billingCitiesList}
+                          placeholder={
+                            isLoadingBillingCities ? 'Carregando cidades...' : 'Selecione a cidade'
+                          }
+                          searchPlaceholder='Buscar cidade...'
+                          disabled={!ufFaturamentoSelecionada}
+                          isLoading={isLoadingBillingCities}
+                          loadingMessage='Carregando cidades...'
+                          errorMessage={billingCitiesError}
+                          onRetry={() => {
+                            if (ufFaturamentoSelecionada) {
+                              loadBillingCities(ufFaturamentoSelecionada);
+                            }
+                          }}
+                          onChange={(cidadeId) => {
+                            const cidadeSelecionada = billingCitiesList.find(
+                              (cidade) => cidade.value === cidadeId,
+                            );
+                            faturamentoForm.setValue('cidade', cidadeSelecionada?.title ?? '', {
+                              shouldValidate: true,
+                              shouldDirty: true,
+                            });
+                          }}
+                        />
+                      </>
+                    )}
+              </FancyAccordeon>
             </View>
-
-            {/* Código da Igreja */}
-            <View style={styles.codigoCard}>
-              <View style={styles.codigoHeader}>
-                <DefaultIcons.Custom
-                  library='MaterialCommunityIcons'
-                  name='qrcode'
-                  size={20}
-                  color={palette.primary}
-                />
-                <FancyText type='medium' size='small' style={styles.codigoTitulo}>
-                  Código da Igreja
-                </FancyText>
-              </View>
-              <View style={styles.codigoBody}>
-                <FancyText type='bold' size='extraLarge' style={styles.codigoTexto}>
-                  {data?.codigo || '---'}
-                </FancyText>
-                <FancyText type='normal' size='extraSmall' style={styles.codigoDesc}>
-                  Compartilhe este código para convidar pessoas
-                </FancyText>
-              </View>
-              <TouchableOpacity style={styles.codigoCopyButton} onPress={handleCopiarCodigo}>
-                <DefaultIcons.Custom
-                  library='MaterialCommunityIcons'
-                  name='content-copy'
-                  size={16}
-                  color={palette.primary}
-                />
-                <FancyText type='medium' size='small' style={styles.codigoCopyText}>
-                  Copiar Código
-                </FancyText>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.buttonContainer}>
-              <FancyButton
-                label='Salvar Alterações'
-                icon={{ library: 'MaterialCommunityIcons', name: 'content-save', size: 14 }}
-                onPress={handleSalvarDados}
-                disabled={isUpdating || isUploadingImage}
-                isLoading={isUpdating || isUploadingImage}
-              />
-            </View>
-          </KeyboardAwareScrollView>
+          </FancyScrollView>
+          <View
+            style={[
+              styles.dataFooter,
+              {
+                paddingBottom: 10,
+              },
+            ]}
+          >
+            <FancyButton
+              label='Salvar alterações'
+              icon={{ library: 'MaterialCommunityIcons', name: 'content-save', size: 14 }}
+              onPress={handleSalvarDados}
+              disabled={!hasUnsavedDadosChanges || isUpdating || isUploadingImage}
+              isLoading={isUpdating || isUploadingImage}
+              containerStyle={styles.dataSaveButton}
+              labelProps={{ size: 'small' }}
+            />
+          </View>
         </View>
       ),
     },
@@ -843,12 +1498,13 @@ export default function ConfiguracoesPage() {
       icon: { library: 'MaterialCommunityIcons', name: 'shield-account', size: 16 },
       content: (
         <View style={styles.tabWrapper}>
-          <KeyboardAwareScrollView
+          <FancyScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.tabContent}
             showsVerticalScrollIndicator={false}
             enableOnAndroid={true}
             extraScrollHeight={100}
+            fill
           >
             <TouchableOpacity
               style={[
@@ -947,7 +1603,7 @@ export default function ConfiguracoesPage() {
                 isLoading={isUpdating}
               />
             </View>
-          </KeyboardAwareScrollView>
+          </FancyScrollView>
         </View>
       ),
     },
@@ -956,12 +1612,13 @@ export default function ConfiguracoesPage() {
       icon: { library: 'MaterialCommunityIcons', name: 'bell', size: 16 },
       content: (
         <View style={styles.tabWrapper}>
-          <KeyboardAwareScrollView
+          <FancyScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.tabContent}
             showsVerticalScrollIndicator={false}
             enableOnAndroid={true}
             extraScrollHeight={100}
+            fill
           >
             <ControlledFancyToggle
               control={notificacoesForm.control}
@@ -1058,7 +1715,7 @@ export default function ConfiguracoesPage() {
                 isLoading={isUpdating}
               />
             </View>
-          </KeyboardAwareScrollView>
+          </FancyScrollView>
         </View>
       ),
     },
@@ -1066,12 +1723,16 @@ export default function ConfiguracoesPage() {
       title: 'Assinatura',
       icon: { library: 'MaterialCommunityIcons', name: 'credit-card', size: 16 },
       content: (
-        <KeyboardAwareScrollView
+        <FancyScrollView
           style={styles.scrollView}
-          contentContainerStyle={styles.assinaturaContainer}
+          contentContainerStyle={[
+            styles.assinaturaContainer,
+            { paddingBottom: Math.max(insets.bottom + 24, 36) },
+          ]}
           showsVerticalScrollIndicator={false}
           enableOnAndroid={true}
           extraScrollHeight={100}
+          fill
         >
           {!billingProfileComplete ? (
             <View
@@ -1100,9 +1761,9 @@ export default function ConfiguracoesPage() {
           {assinatura ? (
             <BillingStatusPanel
               assinatura={assinatura}
-              onPrimaryPress={openBillingPlansModal}
-              primaryLabel={assinatura?.checkoutUrl ? 'Retomar pagamento' : 'Ver planos'}
-              onSecondaryPress={assinatura?.canManageBilling ? handleCancelarAssinatura : undefined}
+              onPrimaryPress={handlePrimaryBillingAction}
+              primaryLabel={billingPrimaryLabel}
+              onSecondaryPress={canCancelCurrentSubscription ? handleCancelarAssinatura : undefined}
               isSecondaryLoading={isCancelandoAssinatura}
             />
           ) : (
@@ -1114,7 +1775,7 @@ export default function ConfiguracoesPage() {
           <FancyBottomSheetModal
             visible={billingPlansModalVisible}
             onClose={closeBillingPlansModal}
-            title='Opções de assinatura'
+            title='Opções de Planos'
           >
             <View style={styles.planSheetIntro}>
               <FancyText size='small' color={palette.fonts.inactive}>
@@ -1123,54 +1784,65 @@ export default function ConfiguracoesPage() {
             </View>
 
             <View style={styles.billingPeriodRow}>
-              {([
-                { code: 'MONTHLY', label: 'Mensal' },
-                { code: 'YEARLY', label: 'Anual' },
-              ] as const).map((period) => {
-                const selected = billingCycle === period.code;
-                return (
-                  <TouchableOpacity
-                    key={period.code}
-                    style={[
-                      styles.periodButton,
-                      {
-                        backgroundColor: selected
-                          ? ColorUtils.withAlpha(palette.primary, 0.12)
-                          : palette.backgroundColor4,
-                        borderColor: selected
-                          ? ColorUtils.withAlpha(palette.primary, 0.28)
-                          : palette.borderCard,
-                      },
-                    ]}
-                    onPress={() => setBillingCycle(period.code)}
-                  >
-                    <FancyText type={selected ? 'semiBold' : 'normal'} size='small'>
-                      {period.label}
-                    </FancyText>
-                  </TouchableOpacity>
-                );
-              })}
+              <FancyTabHeaderItem
+                title='Mensal'
+                status={billingCycle === 'MONTHLY' ? 'active' : 'inactive'}
+                onPress={() => setBillingCycle('MONTHLY')}
+              />
+              <FancyTabHeaderItem
+                title='Anual'
+                status={billingCycle === 'YEARLY' ? 'active' : 'inactive'}
+                onPress={() => setBillingCycle('YEARLY')}
+              />
             </View>
 
             <View style={styles.planList}>
               {BILLING_PLAN_OPTIONS.map((plan) => {
-                const isCurrent =
+                const matchesCurrentSelection =
                   assinatura?.plan === plan.codigo && assinatura?.cycle === billingCycle;
+                const isCurrent =
+                  matchesCurrentSelection &&
+                  ['active', 'trial', 'overdue'].includes(assinatura?.status ?? '');
                 const isPending =
                   !!assinatura?.checkoutUrl &&
+                  assinatura.status !== 'cancelled' &&
                   assinatura.plan === plan.codigo &&
                   assinatura.cycle === billingCycle;
                 const switchLocked = assinatura?.status === 'active' && !isCurrent;
+                const isReactivationOption =
+                  assinatura?.status === 'cancelled' && matchesCurrentSelection;
                 const isRecommended = plan.codigo === 'essencial';
+                const isUpgradeRecommendation =
+                  hasExceededPlanCapacity && recommendedUpgradePlan?.codigo === plan.codigo;
+                const planBadgeLabel = isUpgradeRecommendation
+                  ? 'Recomendado para o uso atual'
+                  : plan.highlight;
                 const priceLabel =
                   billingCycle === 'YEARLY' ? plan.yearlyPrice : plan.monthlyPrice;
                 const [priceValue, priceSuffix] = priceLabel.split('/');
+                const pricePeriodLabel =
+                  billingCycle === 'YEARLY' ? 'por ano' : 'por mês';
+                const resolvedPriceMeta = priceSuffix
+                  ? priceSuffix === 'mês' || priceSuffix === 'ano'
+                    ? pricePeriodLabel
+                    : `${priceSuffix} · ${pricePeriodLabel}`
+                  : pricePeriodLabel;
                 const planAccent =
                   plan.codigo === 'starter'
                     ? palette.primary
                     : plan.codigo === 'essencial'
                       ? palette.confirm
                       : palette.terciary;
+                const featureColumns = [
+                  [
+                    `Até ${plan.maxVolunteers} voluntários ativos`,
+                    `Cobrança ${billingCycle === 'YEARLY' ? 'anual' : 'mensal'}`,
+                  ],
+                  [
+                    `Até ${plan.maxMinistries} ministérios ativos`,
+                    'Feito para o ritmo atual da igreja',
+                  ],
+                ];
                 const buttonContainerStyle = isCurrent || isPending
                   ? {
                       borderColor: planAccent,
@@ -1193,18 +1865,47 @@ export default function ConfiguracoesPage() {
                         ? palette.fonts.inactive
                         : palette.fonts.light,
                 };
+                const planButtonIcon = isCurrent
+                  ? {
+                      library: 'MaterialCommunityIcons' as const,
+                      name: 'check-circle-outline',
+                      size: 16,
+                      color: planAccent,
+                    }
+                  : isPending
+                    ? {
+                        library: 'MaterialCommunityIcons' as const,
+                        name: 'credit-card-outline',
+                        size: 16,
+                        color: planAccent,
+                      }
+                    : switchLocked
+                      ? {
+                          library: 'MaterialCommunityIcons' as const,
+                          name: 'lock-outline',
+                          size: 16,
+                          color: palette.fonts.inactive,
+                        }
+                      : {
+                          library: 'MaterialCommunityIcons' as const,
+                          name: 'credit-card-check-outline',
+                          size: 16,
+                          color: palette.fonts.light,
+                        };
 
                 return (
                   <View
                     key={plan.codigo}
                     style={[
                       styles.planCard,
-                      isRecommended && styles.planCardRecommended,
+                      (isRecommended || isUpgradeRecommendation) && styles.planCardRecommended,
                       {
                         backgroundColor: palette.backgroundColor,
                         borderColor:
                           isCurrent || isPending
                             ? planAccent
+                            : isUpgradeRecommendation
+                              ? ColorUtils.withAlpha(planAccent, 0.68)
                             : isRecommended
                               ? ColorUtils.withAlpha(planAccent, 0.5)
                               : ColorUtils.withAlpha(planAccent, 0.24),
@@ -1233,7 +1934,7 @@ export default function ConfiguracoesPage() {
                       </View>
                       {Platform.OS !== 'ios' ? (
                         <View style={styles.planPriceBlock}>
-                          {plan.highlight ? (
+                          {planBadgeLabel ? (
                             <View
                               style={[
                                 styles.planBadge,
@@ -1241,7 +1942,7 @@ export default function ConfiguracoesPage() {
                               ]}
                             >
                               <FancyText size='small' type='semiBold' color={planAccent}>
-                                {plan.highlight}
+                                {planBadgeLabel}
                               </FancyText>
                             </View>
                           ) : null}
@@ -1254,15 +1955,14 @@ export default function ConfiguracoesPage() {
                             >
                               {priceValue}
                             </FancyText>
-                            {priceSuffix ? (
-                              <FancyText
-                                type='semiBold'
-                                size='small'
-                                color={ColorUtils.withAlpha(planAccent, 0.9)}
-                              >
-                                /{priceSuffix}
-                              </FancyText>
-                            ) : null}
+                            <FancyText
+                              type='semiBold'
+                              size='extraSmall'
+                              color={ColorUtils.withAlpha(planAccent, 0.82)}
+                              style={styles.planPricePeriod}
+                            >
+                              {resolvedPriceMeta}
+                            </FancyText>
                           </View>
                         </View>
                       ) : null}
@@ -1276,27 +1976,49 @@ export default function ConfiguracoesPage() {
                     />
 
                     <View style={styles.planFeatureGrid}>
-                      <View style={styles.planFeatureColumn}>
-                        <FancyText size='small' color={palette.fonts.dark}>
-                          • Até {plan.maxVolunteers} voluntários ativos
-                        </FancyText>
-                        <FancyText size='small' color={palette.fonts.dark}>
-                          • Cobrança {billingCycle === 'YEARLY' ? 'anual' : 'mensal'}
-                        </FancyText>
-                      </View>
-                      <View style={styles.planFeatureColumn}>
-                        <FancyText size='small' color={palette.fonts.dark}>
-                          • Até {plan.maxMinistries} ministérios ativos
-                        </FancyText>
-                        <FancyText size='small' color={palette.fonts.dark}>
-                          • Ajuste para o ritmo atual da igreja
-                        </FancyText>
-                      </View>
+                      {featureColumns.map((column, columnIndex) => (
+                        <View key={`${plan.codigo}-feature-column-${columnIndex}`} style={styles.planFeatureColumn}>
+                          {column.map((feature) => (
+                            <View
+                              key={`${plan.codigo}-${feature}`}
+                              style={styles.planFeatureItem}
+                            >
+                              <View
+                                style={[
+                                  styles.planFeatureMarker,
+                                  {
+                                    backgroundColor: ColorUtils.withAlpha(planAccent, 0.12),
+                                    borderColor: ColorUtils.withAlpha(planAccent, 0.22),
+                                  },
+                                ]}
+                              >
+                                <View
+                                  style={[
+                                    styles.planFeatureMarkerDot,
+                                    { backgroundColor: ColorUtils.withAlpha(planAccent, 0.9) },
+                                  ]}
+                                />
+                              </View>
+                              <FancyText size='extraSmall' color={palette.fonts.dark}>
+                                {feature}
+                              </FancyText>
+                            </View>
+                          ))}
+                        </View>
+                      ))}
                     </View>
 
                     {isCurrent ? (
                       <FancyText size='extraSmall' type='semiBold' color={planAccent}>
                         Plano atual
+                      </FancyText>
+                    ) : isUpgradeRecommendation ? (
+                      <FancyText size='extraSmall' type='semiBold' color={planAccent}>
+                        Resolve o uso atual da igreja
+                      </FancyText>
+                    ) : isReactivationOption ? (
+                      <FancyText size='extraSmall' type='semiBold' color={planAccent}>
+                        Último plano usado
                       </FancyText>
                     ) : isPending ? (
                       <FancyText size='extraSmall' type='semiBold' color={planAccent}>
@@ -1308,11 +2030,13 @@ export default function ConfiguracoesPage() {
                       label={
                         isCurrent
                           ? 'Plano atual'
+                          : isReactivationOption
+                            ? 'Assinar'
                           : isPending
-                            ? 'Continuar pagamento'
+                            ? 'Continuar'
                             : switchLocked
                               ? 'Indisponível por enquanto'
-                              : 'Assinar plano'
+                              : 'Assinar'
                       }
                       type={isCurrent || isPending ? 'outlined' : 'contained'}
                       disabled={
@@ -1323,6 +2047,7 @@ export default function ConfiguracoesPage() {
                         !!(isPending && !assinatura?.checkoutUrl)
                       }
                       onPress={() => handleIniciarCheckout(plan.codigo)}
+                      icon={planButtonIcon}
                       containerStyle={buttonContainerStyle}
                       labelStyle={buttonLabelStyle}
                     />
@@ -1331,7 +2056,7 @@ export default function ConfiguracoesPage() {
               })}
             </View>
           </FancyBottomSheetModal>
-        </KeyboardAwareScrollView>
+        </FancyScrollView>
       ),
     },
   ];
@@ -1375,6 +2100,90 @@ function createStyles(palette: ThemePalette) {
     tabContent: {
       paddingVertical: 15,
       gap: 16,
+    },
+    dataTabLayout: {
+      flex: 1,
+    },
+    dataScrollContent: {
+      paddingTop: 8,
+      paddingBottom: 12,
+    },
+    dataSectionsStack: {
+      gap: 12,
+    },
+    sectionCopyBlock: {
+      gap: 4,
+    },
+    dataFooter: {
+      paddingTop: 10,
+      backgroundColor: palette.backgroundColor,
+      alignItems: 'stretch',
+    },
+    dataSaveButton: {
+      width: '100%',
+      minHeight: 42,
+      borderRadius: 16,
+      paddingHorizontal: 18,
+      ...palette.shadows[100],
+    },
+    accordionSection: {
+      borderWidth: 1,
+      borderRadius: 18,
+      backgroundColor: palette.backgroundColor4,
+      overflow: 'hidden',
+      ...palette.shadows[100],
+    },
+    accordionSectionHighlighted: {
+      shadowColor: palette.primary,
+      shadowOpacity: 0.18,
+      shadowRadius: 10,
+      elevation: 2,
+    },
+    accordionHeader: {
+      backgroundColor: palette.backgroundColor4,
+    },
+    accordionHeaderExpanded: {
+      backgroundColor: palette.backgroundColor4,
+    },
+    accordionHeaderMain: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    accordionIconBadge: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    accordionHeaderText: {
+      flex: 1,
+      minHeight: 38,
+      justifyContent: 'center',
+      gap: 2,
+    },
+    accordionHeaderTitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 10,
+    },
+    accordionStatusPill: {
+      borderRadius: 999,
+      minWidth: 72,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      alignItems: 'center',
+    },
+    accordionContent: {
+      gap: 14,
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+      paddingTop: 14,
+      borderTopWidth: 1,
+      borderTopColor: ColorUtils.withAlpha(palette.borderCard, 0.7),
     },
     buttonContainer: {
       marginTop: 10,
@@ -1452,6 +2261,30 @@ function createStyles(palette: ThemePalette) {
       borderRadius: 999,
       paddingHorizontal: 10,
       paddingVertical: 5,
+    },
+    billingContentHeader: {
+      gap: 8,
+    },
+    sameAddressRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 12,
+      borderWidth: 1,
+      borderRadius: 14,
+      paddingHorizontal: 14,
+      paddingVertical: 14,
+    },
+    sameAddressText: {
+      flex: 1,
+      gap: 4,
+    },
+    addressPreviewCard: {
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: palette.borderCard,
+      backgroundColor: palette.backgroundColor,
+      padding: 14,
+      gap: 6,
     },
 
     // Modo de Entrada Cards
@@ -1571,7 +2404,7 @@ function createStyles(palette: ThemePalette) {
       borderWidth: 1,
       borderRadius: 18,
       padding: 16,
-      gap: 12,
+      gap: 14,
       overflow: 'hidden',
       ...palette.shadows[100],
     },
@@ -1586,23 +2419,28 @@ function createStyles(palette: ThemePalette) {
     planHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      gap: 16,
+      gap: 14,
       alignItems: 'flex-start',
     },
     planHeaderText: {
       flex: 1,
-      gap: 4,
+      gap: 6,
     },
     planPriceBlock: {
       alignItems: 'flex-end',
-      gap: 8,
+      gap: 10,
+      minWidth: 128,
     },
     planPriceTextBlock: {
       alignItems: 'flex-end',
-      gap: 2,
+      gap: 0,
     },
     planPriceValue: {
-      lineHeight: 28,
+      lineHeight: 38,
+    },
+    planPricePeriod: {
+      letterSpacing: 0.2,
+      marginTop: -4,
     },
     planBadge: {
       borderRadius: 999,
@@ -1615,11 +2453,30 @@ function createStyles(palette: ThemePalette) {
     },
     planFeatureGrid: {
       flexDirection: 'row',
-      gap: 12,
+      gap: 14,
     },
     planFeatureColumn: {
       flex: 1,
-      gap: 6,
+      gap: 12,
+    },
+    planFeatureItem: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 10,
+    },
+    planFeatureMarker: {
+      width: 18,
+      height: 18,
+      borderRadius: 999,
+      borderWidth: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 1,
+    },
+    planFeatureMarkerDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 999,
     },
   });
 }

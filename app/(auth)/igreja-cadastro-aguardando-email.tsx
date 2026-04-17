@@ -8,7 +8,12 @@ import FancyButton from '../../components/buttons/FancyButton';
 import DefaultIcons from '../../components/FancyIcons';
 import FancyLoading from '../../components/FancyLoading';
 import { ThemePalette } from '../../constants/colors';
-import { EXTRA_LARGE_SIZE_FONT, LARGE_SIZE_FONT } from '../../constants/font';
+import {
+  EXTRA_LARGE_SIZE_FONT,
+  LARGE_SIZE_FONT,
+  MEDIUM_SIZE_FONT,
+  SMALL_SIZE_FONT,
+} from '../../constants/font';
 import { useCadastroIgrejaEmail } from '../../hooks/useCadastroIgrejaEmail';
 import { ColorUtils } from '../../utils/color_utils';
 import FancyTextInput from '../../components/fields/FancyTextInput';
@@ -17,6 +22,10 @@ import { ResponseLoginDto } from '../../domain/dtos/login/login.response';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePallete } from '../../hooks/usePallete';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
+import {
+  AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
+  AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
+} from '../../constants/authTypography';
 
 export default function IgrejaCadastroAguardandoEmailPage() {
   const Pallete = usePallete();
@@ -194,7 +203,10 @@ export default function IgrejaCadastroAguardandoEmailPage() {
             type='bold'
             color='white'
             style={{
-              lineHeight: !keyboardVisible ? EXTRA_LARGE_SIZE_FONT * 1.2 : LARGE_SIZE_FONT * 1.2,
+              lineHeight:
+                !keyboardVisible
+                  ? EXTRA_LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER
+                  : LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
               textAlign: 'center',
             }}
           >
@@ -204,7 +216,13 @@ export default function IgrejaCadastroAguardandoEmailPage() {
             size={!keyboardVisible ? 'medium' : 'small'}
             type='medium'
             color='white'
-            style={{ textAlign: 'center' }}
+            style={{
+              textAlign: 'center',
+              lineHeight:
+                !keyboardVisible
+                  ? MEDIUM_SIZE_FONT * AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER
+                  : SMALL_SIZE_FONT * AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
+            }}
           >
             Enviamos um link de confirmação para ativar sua igreja
           </FancyText>

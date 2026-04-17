@@ -4,6 +4,7 @@ import FancyText from '../../FancyText';
 import { ThemePalette } from '../../../constants/colors';
 import { usePallete } from '../../../hooks/usePallete';
 import { useThemedStyles } from '../../../hooks/useThemedStyles';
+import { ColorUtils } from '../../../utils/color_utils';
 
 export type DayProps = {
   day: number;
@@ -14,6 +15,7 @@ export type DayProps = {
   markerType?: 'bottomPoint' | 'SurroundCircle';
   disabled?: boolean;
   markerColor?: string | string[];
+  visualStyle?: 'default' | 'agendaPremium';
 };
 
 function DayComponent({
@@ -25,6 +27,7 @@ function DayComponent({
   markerType = 'bottomPoint',
   markerColor,
   disabled = false,
+  visualStyle = 'default',
 }: DayProps) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
@@ -32,6 +35,7 @@ function DayComponent({
   const isSelected = selected;
   const isToday = type === 'actual';
   const isInactive = type === 'inactive';
+  const isAgendaPremium = visualStyle === 'agendaPremium';
 
   const textColor = useMemo(() => {
     if (isSelected && markerType !== 'SurroundCircle') return palette.fonts.light;
@@ -40,9 +44,12 @@ function DayComponent({
     return palette.fonts.dark;
   }, [isSelected, isToday, isInactive, markerType, palette]);
 
-  const textWeight: 'bold' | 'semiBold' = isSelected ? 'bold' : 'semiBold';
+  const textWeight: 'bold' | 'semiBold' = isSelected || isToday ? 'bold' : 'semiBold';
 
-  const containerStyles: StyleProp<ViewStyle> = [styles.container];
+  const containerStyles: StyleProp<ViewStyle> = [
+    styles.container,
+    isAgendaPremium ? styles.containerAgendaPremium : null,
+  ];
 
   // 👇 pega a cor vinda das markedDates (string ou primeiro item do array)
   const resolvedMarkerColor = useMemo(() => {
@@ -54,19 +61,26 @@ function DayComponent({
   const showSelectedBubble = markerType === 'bottomPoint' && isSelected;
   const showSelectedState = showCircle || showSelectedBubble;
   const shouldRenderBottomMarker = showMarker && markerType === 'bottomPoint';
-  const showInlineSelectedMarkers = showSelectedBubble && shouldRenderBottomMarker;
+  const showInlineSelectedMarkers = false;
+  const showTodaySurface = isAgendaPremium && isToday && !showSelectedState;
 
   const circleStyles: StyleProp<ViewStyle> = [
     styles.circle,
-    showInlineSelectedMarkers && styles.circleWithMarkers,
+    isAgendaPremium ? styles.circleAgendaPremium : null,
     showSelectedState &&
       !isDisabled && {
         backgroundColor: showCircle ? (resolvedMarkerColor || palette.primary) : palette.primary,
       },
     showSelectedState && isDisabled && styles.circleDisabled,
+    showTodaySurface && {
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.06),
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.primary, 0.22),
+    },
+    showSelectedState && isAgendaPremium && styles.circleAgendaPremiumSelected,
   ];
 
-  const shouldRenderExternalMarker = shouldRenderBottomMarker && !showInlineSelectedMarkers;
+  const shouldRenderExternalMarker = shouldRenderBottomMarker && !showSelectedBubble;
 
   const handlePress = () => {
     if (isDisabled) return;
@@ -82,14 +96,18 @@ function DayComponent({
     };
 
     const markerStyle = inline ? styles.selectedMarked : styles.marked;
+    const premiumMarkerStyle = inline ? styles.selectedMarkedAgendaPremium : styles.markedAgendaPremium;
+    const baseMarkerStyle = isAgendaPremium ? premiumMarkerStyle : markerStyle;
+
+    const normalizedColors = Array.isArray(markerColor) ? markerColor : [markerColor];
 
     if (Array.isArray(markerColor)) {
-      return markerColor.map((c, index) => (
-        <View key={`marker-${index}`} style={[markerStyle, { backgroundColor: resolveColor(c) }]} />
+      return normalizedColors.map((c, index) => (
+        <View key={`marker-${index}`} style={[baseMarkerStyle, { backgroundColor: resolveColor(c) }]} />
       ));
     }
 
-    return <View style={[markerStyle, { backgroundColor: resolveColor(markerColor) }]} />;
+    return <View style={[baseMarkerStyle, { backgroundColor: resolveColor(markerColor) }]} />;
   };
 
   return (
@@ -102,7 +120,7 @@ function DayComponent({
           {showInlineSelectedMarkers && <View style={styles.selectedMarkerContainer}>{renderMarkers(true)}</View>}
         </View>
       ) : (
-        <FancyText size='medium' type={textWeight} color={textColor}>
+        <FancyText size='small' type={textWeight} color={textColor}>
           {day}
         </FancyText>
       )}
@@ -112,7 +130,8 @@ function DayComponent({
   );
 }
 
-const DAY_WIDTH = `${100 / 9}%`; // mantém alinhado com o header (do jeito que você definiu)
+const DAY_WIDTH = `${100 / 9}%`;
+const DAY_WIDTH_PREMIUM = `${100 / 7}%`;
 
 function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
@@ -124,6 +143,11 @@ function createStyles(palette: ThemePalette) {
       borderRadius: 999,
       // borderWidth: 1,
     },
+    containerAgendaPremium: {
+      width: DAY_WIDTH_PREMIUM,
+      aspectRatio: 1.16,
+      paddingVertical: 0,
+    },
     circle: {
       width: '78%',
       aspectRatio: 1,
@@ -131,23 +155,36 @@ function createStyles(palette: ThemePalette) {
       alignItems: 'center',
       justifyContent: 'center',
     },
+    circleAgendaPremium: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+    },
+    circleAgendaPremiumSelected: {
+      shadowColor: palette.primary,
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.14,
+      shadowRadius: 7,
+      elevation: 2,
+    },
     circleWithMarkers: {
-      paddingBottom: 6,
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 1,
     },
     markerContainer: {
       flexDirection: 'row',
-      flexWrap: 'wrap',
       justifyContent: 'center',
-      gap: 2,
-      paddingBottom: 2,
-      marginHorizontal: 6,
+      gap: 3,
+      paddingBottom: 1,
+      marginTop: 1,
+      marginHorizontal: 4,
     },
     selectedMarkerContainer: {
-      position: 'absolute',
-      bottom: 5,
       flexDirection: 'row',
       justifyContent: 'center',
-      gap: 2,
+      gap: 3,
     },
     circleDisabled: {
       backgroundColor: palette.disabled3,
@@ -163,6 +200,18 @@ function createStyles(palette: ThemePalette) {
       height: 4,
       width: 4,
       borderRadius: 2,
+      backgroundColor: palette.fonts.light,
+    },
+    markedAgendaPremium: {
+      height: 5,
+      width: 5,
+      borderRadius: 999,
+      backgroundColor: palette.warning,
+    },
+    selectedMarkedAgendaPremium: {
+      height: 4,
+      width: 4,
+      borderRadius: 999,
       backgroundColor: palette.fonts.light,
     },
   });

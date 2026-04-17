@@ -9,6 +9,7 @@ export interface ResponseIgrejaConfiguracoesDto {
     cep?: string | null;
     rua?: string | null;
     numero?: string | null;
+    bairro?: string | null;
     complemento?: string | null;
     cidade?: string | null;
     uf?: string | null;

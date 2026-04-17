@@ -1,5 +1,6 @@
-import { View, StyleProp, ViewStyle, StyleSheet, ScrollView } from 'react-native';
-import React, { useState } from 'react';
+import { View, StyleProp, ViewStyle, StyleSheet } from 'react-native';
+import React from 'react';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { FancyStepsConfig } from './FancyStepsConfig';
 import FancyStepsHeader, { FancyStepsHeaderProps } from './FancyStepsHeader';
 import FancyStepsNavigation, { FancyStepsNavigationProps } from './FancyStepsNavigation';
@@ -28,13 +29,9 @@ export type FancyStepsProps = {
 
 export default function FancySteps(props: FancyStepsProps) {
   const styles = useThemedStyles(createStyles);
-  const { size = 'normal', overflowBehavior = 'always' } = props;
-  const [contentViewportHeight, setContentViewportHeight] = useState(0);
-  const [contentHeight, setContentHeight] = useState(0);
+  const { size = 'normal' } = props;
 
   const stepContent = props.config.steps[props.index].content;
-  const shouldEnableScroll =
-    overflowBehavior === 'fitThenScroll' ? contentHeight > contentViewportHeight + 1 : true;
 
   return (
     <View style={[styles.container, props.containerStyle]}>
@@ -45,20 +42,23 @@ export default function FancySteps(props: FancyStepsProps) {
         size={size}
       />
 
-      <View
-        style={[styles.body, props.content?.containerStyle]}
-        onLayout={(event) => setContentViewportHeight(event.nativeEvent.layout.height)}
-      >
-        <ScrollView
+      <View style={[styles.body, props.content?.containerStyle]}>
+        <KeyboardAwareScrollView
           style={styles.scroll}
-          scrollEnabled={shouldEnableScroll}
-          bounces={shouldEnableScroll}
-          onContentSizeChange={(_, height) => setContentHeight(height)}
+          enableOnAndroid
+          enableAutomaticScroll
+          extraScrollHeight={24}
+          extraHeight={0}
+          nestedScrollEnabled
+          scrollEnabled
+          bounces={false}
+          keyboardShouldPersistTaps='handled'
+          keyboardDismissMode='interactive'
           contentContainerStyle={[styles.scrollContent, props.contentContainerStyle]}
           showsVerticalScrollIndicator={false}
         >
           {stepContent}
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </View>
 
       <FancyStepsNavigation
@@ -77,8 +77,8 @@ function createStyles(palette: ThemePalette) {
     container: {
       backgroundColor: palette.backgroundColor,
       flexDirection: 'column',
-      flexGrow: 1,
-      flexShrink: 1,
+      flex: 1,
+      minHeight: 0,
       gap: 20,
     },
     body: {
@@ -90,6 +90,7 @@ function createStyles(palette: ThemePalette) {
       minHeight: 0,
     },
     scrollContent: {
+      flexGrow: 1,
       gap: 10,
       paddingBottom: 10,
     },

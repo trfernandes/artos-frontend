@@ -16,6 +16,8 @@ import SolicitacaoCard from './SolicitacaoCard';
 import { router } from 'expo-router';
 import { useIgrejaAssinatura } from '../../../hooks/useIgrejaAssinatura';
 import BillingStatusPanel from '../../billing/BillingStatusPanel';
+import BillingNoticeBanner from '../../billing/BillingNoticeBanner';
+import { resolveBillingPrimaryActionLabel } from '../../../domain/utils/billing-notice';
 
 export default function DashboardAdmin() {
   const { user, igrejaAtiva } = useAuth();
@@ -40,19 +42,15 @@ export default function DashboardAdmin() {
         subtitulo={igrejaAtiva?.nome}
       />
 
-      {assinatura ? (
-        <BillingStatusPanel
-          assinatura={assinatura}
-          compact
-          primaryLabel='Abrir assinatura'
-          onPrimaryPress={() =>
-            router.push({
-              pathname: '/(app)/(drawer)/configuracoes',
-              params: { tab: 'plano' },
-            })
-          }
-        />
-      ) : null}
+      <BillingNoticeBanner
+        assinatura={assinatura}
+        onPress={() =>
+          router.push({
+            pathname: '/(app)/(drawer)/configuracoes',
+            params: { tab: 'plano', openPlans: '1' },
+          })
+        }
+      />
 
       {/* KPIs da Igreja */}
       <DashboardSection title="Visão geral">
@@ -124,6 +122,20 @@ export default function DashboardAdmin() {
 
       {/* Minhas Escalas - widget reutilizável */}
       <DashboardEscalasSection data={data} />
+
+      {assinatura ? (
+        <BillingStatusPanel
+          assinatura={assinatura}
+          compact
+          primaryLabel={resolveBillingPrimaryActionLabel(assinatura)}
+          onPrimaryPress={() =>
+            router.push({
+              pathname: '/(app)/(drawer)/configuracoes',
+              params: { tab: 'plano', openPlans: '1' },
+            })
+          }
+        />
+      ) : null}
     </FancyScrollView>
   );
 }

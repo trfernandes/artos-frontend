@@ -59,6 +59,10 @@ export interface FancySearchSelectProps<T>
   searchPlaceholder?: string;
   title?: string;
   emptyMessage?: string;
+  loadingMessage?: string;
+  errorMessage?: string | null;
+  onRetry?: () => void;
+  retryLabel?: string;
   multiSelect?: boolean;
 }
 
@@ -80,6 +84,10 @@ function FancySearchSelectInner<ValueItem>(
     searchPlaceholder = 'Buscar...',
     title,
     emptyMessage = 'Nenhum item encontrado',
+    loadingMessage = 'Carregando...',
+    errorMessage,
+    onRetry,
+    retryLabel = 'Tentar novamente',
     multiSelect = false,
   }: FancySearchSelectProps<ValueItem>,
   ref: React.Ref<FancySearchSelectRef>,
@@ -104,7 +112,7 @@ function FancySearchSelectInner<ValueItem>(
     : ColorUtils.lightenColor(palette.primary, 0.85);
   const selectedItem = multiSelect ? undefined : listItems?.find((item) => item.value === value);
   const selectedCount = multiSelect && Array.isArray(value) ? value.length : 0;
-  const innerDisabled = disabled || isLoading || listItems?.length === 0;
+  const innerDisabled = disabled;
 
   const filteredItems = useMemo(() => {
     if (!search.trim()) return listItems ?? [];
@@ -236,8 +244,42 @@ function FancySearchSelectInner<ValueItem>(
     }),
   ).current;
 
-  const ListEmptyComponent = useCallback(
-    () => (
+  const ListEmptyComponent = useCallback(() => {
+    if (isLoading) {
+      return (
+        <View style={styles.stateContainer}>
+          <ActivityIndicator size='small' color={palette.primary} />
+          <FancyText color={palette.fonts.inactive} style={styles.stateText}>
+            {loadingMessage}
+          </FancyText>
+        </View>
+      );
+    }
+
+    if (errorMessage) {
+      return (
+        <View style={styles.stateContainer}>
+          <DefaultIcons.Custom
+            library='MaterialCommunityIcons'
+            name='alert-circle-outline'
+            size={36}
+            color={palette.error}
+          />
+          <FancyText color={palette.fonts.inactive} style={styles.stateText}>
+            {errorMessage}
+          </FancyText>
+          {onRetry ? (
+            <TouchableOpacity style={styles.retryButton} activeOpacity={0.8} onPress={onRetry}>
+              <FancyText type='semiBold' size='small' color={palette.primary}>
+                {retryLabel}
+              </FancyText>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      );
+    }
+
+    return (
       <View style={styles.emptyContainer}>
         <DefaultIcons.Custom
           library='MaterialCommunityIcons'
@@ -245,13 +287,26 @@ function FancySearchSelectInner<ValueItem>(
           size={48}
           color={palette.fonts.inactive}
         />
-        <FancyText color={palette.fonts.inactive} style={{ textAlign: 'center' }}>
+        <FancyText color={palette.fonts.inactive} style={styles.stateText}>
           {emptyMessage}
         </FancyText>
       </View>
-    ),
-    [emptyMessage, palette.fonts.inactive],
-  );
+    );
+  }, [
+    emptyMessage,
+    errorMessage,
+    isLoading,
+    loadingMessage,
+    onRetry,
+    palette.error,
+    palette.fonts.inactive,
+    palette.primary,
+    retryLabel,
+    styles.emptyContainer,
+    styles.retryButton,
+    styles.stateContainer,
+    styles.stateText,
+  ]);
 
   return (
     <View style={[styles.container, containerStyle]}>
@@ -389,7 +444,11 @@ function FancySearchSelectInner<ValueItem>(
 
                 {/* Search Bar */}
                 <View style={styles.searchContainer}>
-                  <FancySearchBar value={search} onSearch={setSearch} />
+                  <FancySearchBar
+                    value={search}
+                    onSearch={setSearch}
+                    placeholder={searchPlaceholder}
+                  />
                 </View>
               </View>
 
@@ -608,6 +667,28 @@ function createStyles(palette: ThemePalette) {
       justifyContent: 'center',
       paddingVertical: 60,
       gap: 12,
+    },
+    stateContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 60,
+      paddingHorizontal: 24,
+      gap: 12,
+    },
+    stateText: {
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+    retryButton: {
+      minHeight: 40,
+      paddingHorizontal: 16,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.primary, 0.24),
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
+      alignItems: 'center',
+      justifyContent: 'center',
     },
   });
 }

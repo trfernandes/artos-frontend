@@ -28,6 +28,7 @@ import { EscalaSubstituicaoStatusEnum } from '../../../../../domain/enums/Escala
 import { getApiErrorMessage } from '../../../../../domain/api/api-error';
 import { DateUtilsApi } from '../../../../../utils/date_utils';
 import { ResponseEscalaSubstituicaoDto } from '../../../../../domain/dtos/Escala/escala-substituicao.response';
+import { resolveEventoEnsaioInfo } from '../../../../../utils/evento-ensaio';
 
 export const StatusColorMap: Record<EscalaItemStatusEnum, string> = {
   [EscalaItemStatusEnum.Pendente]: '#F59E0B', // Amber 500
@@ -229,17 +230,26 @@ export default function MinhasEscalasIndexPage() {
               eventoId,
               evento: item.evento,
               dataOcorrencia: dataDate,
-              ministerio: item.voluntario?.ministerio,
+              ministerio: item.voluntario?.ministerio ?? item.escala?.ministerio,
               voluntario: item.voluntario,
               itens: [],
-              horarioEnsaio: item.horarioEnsaio ?? item.evento?.horarioEnsaioPadrao,
+              horarioEnsaio: resolveEventoEnsaioInfo({
+                horarioEnsaio: item.horarioEnsaio,
+                horarioEnsaioPadrao: item.evento?.horarioEnsaioPadrao,
+              }).horario,
               responsavelSetlistVoluntarioId: item.responsavelSetlistVoluntarioId,
             };
             map.set(key, agrupado);
           }
 
           if (!agrupado.horarioEnsaio) {
-            agrupado.horarioEnsaio = item.horarioEnsaio ?? item.evento?.horarioEnsaioPadrao;
+            agrupado.horarioEnsaio = resolveEventoEnsaioInfo({
+              horarioEnsaio: item.horarioEnsaio,
+              horarioEnsaioPadrao: item.evento?.horarioEnsaioPadrao,
+            }).horario;
+          }
+          if (!agrupado.ministerio) {
+            agrupado.ministerio = item.voluntario?.ministerio ?? item.escala?.ministerio;
           }
           if (!agrupado.responsavelSetlistVoluntarioId) {
             agrupado.responsavelSetlistVoluntarioId = item.responsavelSetlistVoluntarioId;
@@ -392,6 +402,7 @@ export default function MinhasEscalasIndexPage() {
 
       <FancyCalendar
         containerStyle={styles.calendarContainer}
+        visualStyle='agendaPremium'
         value={selectedDate}
         markedDates={markedDates}
         onChangeSelectedDate={setSelectedDate}
@@ -458,9 +469,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingBottom: 15,
     borderWidth: 0,
-    gap: 10,
+    gap: 8,
   },
   calendarContainer: { backgroundColor: 'transparent', borderWidth: 0 },
-  calendarSeparator: { marginTop: 0, marginBottom: 0 },
-  eventsListContainer: { flex: 1, paddingTop: 5 },
+  calendarSeparator: { marginTop: -2, marginBottom: 0, opacity: 0.55 },
+  eventsListContainer: { flex: 1, paddingTop: 2 },
 });

@@ -14,6 +14,8 @@ export type CreateCadastroIgrejaDto = {
   igrejaCidade?: string | null;
   igrejaUf?: string | null;
   igrejaCodigo?: string | null;
+  plan: 'starter' | 'essencial' | 'crescimento';
+  cycle: 'MONTHLY' | 'YEARLY';
   responsavelNome: string;
   responsavelEmail: string;
   responsavelSenha: string;

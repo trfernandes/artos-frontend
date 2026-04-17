@@ -102,6 +102,8 @@ export function useIgrejaCrud({
       igrejaCidade: data.cidade,
       igrejaUf: data.uf,
       igrejaCodigo: data.codigo,
+      plan: data.plano,
+      cycle: data.ciclo,
       responsavelNome: data.responsavelNome,
       responsavelEmail: data.responsavelEmail,
       responsavelSenha: data.responsavelSenha,

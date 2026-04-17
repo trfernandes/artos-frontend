@@ -1,4 +1,6 @@
 import { ResponseRepertorioCategoriaDto } from './repertorio-categoria.response';
+import { ResponseRepertorioMusicaSecaoDto } from './repertorio-musica-secao.response';
+import { ResponseRepertorioMusicaArranjoDto } from './repertorio-musica-arranjo.response';
 
 export type ResponseRepertorioMusicaDto = {
   id: string;
@@ -17,4 +19,6 @@ export type ResponseRepertorioMusicaDto = {
   cifraMarkdown?: string | null;
   observacoes?: string | null;
   ativo: boolean;
+  secoes?: ResponseRepertorioMusicaSecaoDto[];
+  arranjo?: ResponseRepertorioMusicaArranjoDto[];
 };

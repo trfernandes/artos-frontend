@@ -4,6 +4,7 @@ export interface UpdateIgrejaDadosDto {
     cep?: string;
     rua?: string;
     numero?: string;
+    bairro?: string;
     complemento?: string;
     cidade?: string;
     uf?: string;
