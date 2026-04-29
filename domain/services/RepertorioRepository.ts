@@ -25,6 +25,10 @@ class RepertorioRepositoryClass {
     return RepertorioApi.removeCategoria(igrejaId, id);
   }
 
+  searchYoutubeVersions(igrejaId: string, query: string, limit = 6) {
+    return RepertorioApi.searchYoutubeVersions(igrejaId, query, limit);
+  }
+
   searchMusicas(igrejaId: string, ministerioId: string, query?: DynamicQuery) {
     return RepertorioApi.searchMusicas(igrejaId, ministerioId, query);
   }

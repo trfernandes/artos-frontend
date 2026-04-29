@@ -9,5 +9,5 @@ const TABS_DATA: TabItem[] = [
 ];
 
 export default function Details() {
-  return <FancyTabs items={TABS_DATA} containerStyle={{ flex: 1 }} contentContainerStyle={{ flex: 1 }} />;
+  return <FancyTabs items={TABS_DATA} />;
 }

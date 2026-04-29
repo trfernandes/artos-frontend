@@ -447,9 +447,6 @@ export default function EventoSetlistItemDetailsView({
       <FancyPageView style={styles.page}>
         <FancyTabs
           items={tabs}
-          containerStyle={{ flex: 1 }}
-          headerStyle={styles.headerStyle}
-          contentContainerStyle={{ flex: 1, paddingHorizontal: 18 }}
         />
       </FancyPageView>
 

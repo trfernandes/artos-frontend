@@ -89,3 +89,19 @@ export function useRepertorioMusicas(ministerioId?: string, query?: DynamicQuery
     isMutatingMusica: createMutation.isPending || updateMutation.isPending || deleteMutation.isPending,
   };
 }
+
+export function useYoutubeVersionSearch(query?: string, enabled = true, limit = 6) {
+  const { igrejaAtiva } = useAuth();
+
+  if (!igrejaAtiva) {
+    throw new Error('Nenhuma igreja ativa selecionada');
+  }
+
+  const normalizedQuery = query?.trim() ?? '';
+
+  return useQuery({
+    queryKey: ['youtube-version-search', igrejaAtiva.id, normalizedQuery, limit],
+    enabled: enabled && normalizedQuery.length >= 2,
+    queryFn: () => RepertorioRepository.searchYoutubeVersions(igrejaAtiva.id, normalizedQuery, limit),
+  });
+}

@@ -126,6 +126,7 @@ export default function EventoAccordeon({
             ministerioNome: data.ministerio?.nome ?? '',
             ministerioId: data.ministerio?.id ?? '',
             responsavelSetlistVoluntarioId: data.responsavelSetlistVoluntarioId ?? '',
+            responsavelSetlistNome: data.responsavelSetlistVoluntario?.nome ?? '',
           },
         });
       } finally {

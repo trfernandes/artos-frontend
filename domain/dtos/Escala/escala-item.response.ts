@@ -4,6 +4,7 @@ import { ResponseEventoDto } from '../Evento/evento.response';
 import { ResponseMinisterioVoluntarioDto } from '../MinisterioVoluntario/ministerio-voluntario.response';
 import { ResponseMinisterioFuncaoDto } from '../MinisterioFuncao/ministerio-funcao.response';
 import { EscalaItemStatusEnum } from '../../enums/Escala/escala-item-status.enum';
+import { ResponseVoluntarioDto } from '../Voluntario/voluntario.response';
 
 export type ResponseEscalaItemDto = {
   id: string;
@@ -23,4 +24,5 @@ export type ResponseEscalaItemDto = {
   substituicao?: ResponseEscalaSubstituicaoDto;
   horarioEnsaio?: string;
   responsavelSetlistVoluntarioId?: string;
+  responsavelSetlistVoluntario?: ResponseVoluntarioDto | null;
 };

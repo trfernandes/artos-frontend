@@ -107,9 +107,6 @@ export default function NotificationsPage() {
     <FancyPageView style={styles.container}>
       <FancyTabs
         items={TAB_ITEMS}
-        containerStyle={{ flex: 1 }}
-        headerStyle={{ paddingHorizontal: 15 }}
-        contentContainerStyle={{ flex: 1 }}
       />
     </FancyPageView>
   );

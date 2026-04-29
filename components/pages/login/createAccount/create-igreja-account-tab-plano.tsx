@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useFormContext } from 'react-hook-form';
 import FancyText from '../../../FancyText';
-import FancyTabHeaderItem from '../../../tabs/FancyTabHeaderItem';
+import FancySegmentedTabs from '../../../tabs/FancySegmentedTabs';
 import DefaultIcons from '../../../FancyIcons';
 import { usePallete } from '../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../hooks/useThemedStyles';
@@ -153,17 +153,13 @@ export default function CreateIgrejaAccountTabPlano() {
       </View>
 
       <View style={styles.cycleTabs}>
-        <FancyTabHeaderItem
-          title='Mensal'
-          status={cicloSelecionado === 'MONTHLY' ? 'active' : 'inactive'}
-          onPress={() => setValue('ciclo', 'MONTHLY', { shouldDirty: true, shouldValidate: true })}
-          icon={{ library: 'MaterialCommunityIcons', name: 'calendar-month-outline', size: 16 }}
-        />
-        <FancyTabHeaderItem
-          title='Anual'
-          status={cicloSelecionado === 'YEARLY' ? 'active' : 'inactive'}
-          onPress={() => setValue('ciclo', 'YEARLY', { shouldDirty: true, shouldValidate: true })}
-          icon={{ library: 'MaterialCommunityIcons', name: 'calendar-star', size: 16 }}
+        <FancySegmentedTabs<BillingCycleCode>
+          value={cicloSelecionado}
+          onChange={(value) => setValue('ciclo', value, { shouldDirty: true, shouldValidate: true })}
+          options={[
+            { title: 'Mensal', value: 'MONTHLY', icon: { library: 'MaterialCommunityIcons', name: 'calendar-month-outline', size: 16 } },
+            { title: 'Anual', value: 'YEARLY', icon: { library: 'MaterialCommunityIcons', name: 'calendar-star', size: 16 } },
+          ]}
         />
       </View>
 

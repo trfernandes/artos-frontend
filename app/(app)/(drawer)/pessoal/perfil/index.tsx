@@ -33,9 +33,6 @@ export default function PerfilIndexPage() {
     <FancyPageView style={styles.container}>
       <FancyTabs
         items={TAB_DATA}
-        containerStyle={{ flex: 1 }}
-        headerStyle={{ paddingHorizontal: 15 }}
-        contentContainerStyle={{ flex: 1, paddingTop: 0, paddingHorizontal: 15 }}
       />
       {isChangePasswordModalVisible && (
         <ChangePasswordModal

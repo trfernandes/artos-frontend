@@ -38,16 +38,7 @@ export default function FancyNumberInput({
           {title}
         </FancyText>
       )}
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: 16,
-          borderWidth: 0,
-          borderColor: palette.primary,
-          borderRadius: 12,
-        }}
-      >
+      <View style={styles.controlsRow}>
         <FancyButton
           type='contained'
           mode='icon'
@@ -62,9 +53,11 @@ export default function FancyNumberInput({
             onChange?.(value ? Math.max(min ?? 0, value - 1) : 0);
           }}
         />
-        <FancyText size={'large'} type='semiBold' color={palette.fonts.inactive}>
-          {value ?? '0'}
-        </FancyText>
+        <View style={styles.valueWrap}>
+          <FancyText size={'large'} type='semiBold' color={palette.fonts.inactive} style={styles.valueText}>
+            {value ?? '0'}
+          </FancyText>
+        </View>
         <FancyButton
           type='contained'
           mode='icon'
@@ -91,6 +84,23 @@ function createStyles(palette: ThemePalette) {
       borderColor: palette.border,
       borderRadius: 10,
       paddingHorizontal: 10,
+    },
+    controlsRow: {
+      flex: 1,
+      width: '100%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 10,
+    },
+    valueWrap: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    valueText: {
+      includeFontPadding: false,
+      textAlign: 'center',
     },
   });
 }

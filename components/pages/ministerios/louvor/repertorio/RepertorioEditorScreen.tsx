@@ -1,15 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Linking, StyleSheet, View } from 'react-native';
+import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { FancyAlert } from '../../../../modal/FancyAlert';
 import FancyBottomSheetSelect from '../../../../fields/FancyBottomSheetSelect';
+import FancyBpmField from '../../../../fields/FancyBpmField';
 import FancyButton from '../../../../buttons/FancyButton';
 import FancyPageView from '../../../../containers/FancyPageView';
 import FancyTabs, { TabItem } from '../../../../tabs/FancyTabs';
 import FancyTextInput from '../../../../fields/FancyTextInput';
 import FancyLoading from '../../../../FancyLoading';
+import FancyScrollView from '../../../../FancyScrollView';
 import SongTextEditorField from '../../../../song/SongTextEditorField';
 import RepertorioCategoriasManagerSheet from './RepertorioCategoriasManagerSheet';
+import { DefaultIconsNames } from '../../../../../constants/icons';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { MinisterioTipoEnum } from '../../../../../domain/enums/Ministerio/ministerio-tipo.enum';
 import { VoluntarioHierarquiaEnum } from '../../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
@@ -20,6 +24,9 @@ import Toast from 'react-native-toast-message';
 import { getApiErrorMessage } from '../../../../../domain/api/api-error';
 import FancyText from '../../../../FancyText';
 import { usePallete } from '../../../../../hooks/usePallete';
+import { ColorUtils } from '../../../../../utils/color_utils';
+import YoutubeVersionSearchSheet from '../../../common/YoutubeVersionSearchSheet';
+import { ResponseYoutubeSearchItemDto } from '../../../../../domain/dtos/Repertorio/youtube-search-item.response';
 
 const TONS = ['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B'];
 
@@ -38,12 +45,13 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
   const { data: categorias = [] } = useRepertorioCategorias();
   const { criarMusica, atualizarMusica, isMutatingMusica } = useRepertorioMusicas(ministerioId);
   const [categoriasVisible, setCategoriasVisible] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+
   const canManageRepertorio = useMemo(() => {
     const hierarquia = ministerioAtual?.hierarquia?.toString();
     if (hierarquia === VoluntarioHierarquiaEnum.Lider || hierarquia === '1') {
       return true;
     }
-
     return (ministerioAtual?.permissoes ?? []).some(
       (item) => item.recurso === RecursoPermissaoEnum.RepertorioSetlist && item.permissoes?.includes(TipoPermissaoEnum.Gerenciar),
     );
@@ -61,10 +69,11 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
   const [versaoUrl, setVersaoUrl] = useState(musica?.versaoUrl || '');
   const [categoriaId, setCategoriaId] = useState(musica?.categoriaId || '');
   const [tomOriginal, setTomOriginal] = useState(musica?.tomOriginal || '');
-  const [bpmOriginal, setBpmOriginal] = useState(musica?.bpmOriginal ? String(musica.bpmOriginal) : '');
+  const [bpmOriginal, setBpmOriginal] = useState<number>(musica?.bpmOriginal ?? 0);
   const [letraMarkdown, setLetraMarkdown] = useState(musica?.letraMarkdown || '');
   const [cifraMarkdown, setCifraMarkdown] = useState(musica?.cifraMarkdown || '');
   const [observacoes, setObservacoes] = useState(musica?.observacoes || '');
+  const [youtubeSearchVisible, setYoutubeSearchVisible] = useState(false);
 
   useEffect(() => {
     if (!musica) return;
@@ -73,7 +82,7 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
     setVersaoUrl(musica.versaoUrl || '');
     setCategoriaId(musica.categoriaId || '');
     setTomOriginal(musica.tomOriginal || '');
-    setBpmOriginal(musica.bpmOriginal ? String(musica.bpmOriginal) : '');
+    setBpmOriginal(musica.bpmOriginal ?? 0);
     setLetraMarkdown(musica.letraMarkdown || '');
     setCifraMarkdown(musica.cifraMarkdown || '');
     setObservacoes(musica.observacoes || '');
@@ -84,6 +93,7 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
     [categorias],
   );
   const toneOptions = useMemo(() => TONS.map((tone) => ({ title: tone, value: tone })), []);
+  const youtubeInitialQuery = useMemo(() => [nome, interprete].filter((entry) => entry.trim()).join(' ').trim(), [nome, interprete]);
   const versaoUrlNormalizada = useMemo(() => {
     const rawUrl = versaoUrl.trim();
     if (!rawUrl) return '';
@@ -109,7 +119,7 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
         interprete: interprete || undefined,
         versaoUrl: versaoUrl || undefined,
         tomOriginal: tomOriginal || undefined,
-        bpmOriginal: bpmOriginal ? Number(bpmOriginal) : undefined,
+        bpmOriginal: bpmOriginal > 0 ? bpmOriginal : undefined,
         letraMarkdown: letraMarkdown || undefined,
         cifraMarkdown: cifraMarkdown || undefined,
         observacoes: observacoes || undefined,
@@ -129,108 +139,219 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
     }
   };
 
+  const handleYoutubeVersionSelect = (selectedVideo: ResponseYoutubeSearchItemDto) => {
+    setVersaoUrl(selectedVideo.watchUrl);
+    if (!nome.trim()) {
+      setNome(selectedVideo.title);
+    }
+    if (!interprete.trim()) {
+      setInterprete(selectedVideo.channelTitle);
+    }
+  };
+
   const tabs: TabItem[] = [
     {
       title: 'Dados',
       icon: { library: 'Feather', name: 'info', size: 16 },
       content: (
-        <View style={styles.formSection}>
-          <View style={styles.sectionBlock}>
-          <FancyTextInput label='Nome da música' value={nome} inputProps={{ onChangeText: setNome }} />
-          <FancyTextInput label='Intérprete' value={interprete} inputProps={{ onChangeText: setInterprete }} />
-          <View style={styles.fieldBlock}>
-            <View style={styles.fieldHeaderRow}>
-              <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
-                Categoria
-              </FancyText>
+        <FancyScrollView fill contentContainerStyle={styles.formSection} showsVerticalScrollIndicator={false}>
+
+          {!bannerDismissed && (
+            <View
+              style={[
+                styles.introCard,
+                {
+                  backgroundColor: palette.backgroundColor4,
+                  borderColor: ColorUtils.withAlpha(palette.primary, 0.12),
+                  ...palette.shadows[100],
+                },
+              ]}
+            >
+              <View
+                style={[
+                  styles.introIconWrap,
+                  { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.1) },
+                ]}
+              >
+                <MaterialCommunityIcons name='music-note-eighth' size={18} color={palette.primary} />
+              </View>
+              <View style={styles.introTextBlock}>
+                <FancyText size='small' type='bold'>
+                  Base da música
+                </FancyText>
+                <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                  Organize identidade, categoria e referência musical antes de completar letra e cifra.
+                </FancyText>
+              </View>
               <FancyButton
-                label='Gerenciar'
                 type='text'
+                mode='icon'
                 size={28}
-                icon={{ library: 'MaterialCommunityIcons', name: 'shape-outline', size: 14, color: palette.primary }}
-                iconPosition='left'
-                labelProps={{ size: 'extraSmall' }}
-                labelStyle={styles.categoryManageLinkLabel}
-                containerStyle={styles.categoryManageLink}
-                onPress={() => setCategoriasVisible(true)}
-                disabled={!canManageRepertorio}
+                icon={{ library: 'MaterialCommunityIcons', name: 'close', size: 16, color: palette.fonts.inactive }}
+                containerStyle={styles.introDismissBtn}
+                onPress={() => setBannerDismissed(true)}
+                accessibilityLabel='Fechar aviso'
               />
             </View>
-            <FancyBottomSheetSelect
-              containerStyle={styles.fullWidthField}
-              title='Categoria'
-              value={categoriaId}
-              onChange={(value) => setCategoriaId(String(value || ''))}
-              listItems={categoryOptions}
-            />
-          </View>
-          <FancyTextInput
-            label='Link da versão'
-            value={versaoUrl}
-            inputProps={{ onChangeText: setVersaoUrl }}
-            rightContainer={[
+          )}
+
+          <View
+            style={[
+              styles.formCard,
               {
-                icon: {
-                  library: 'Feather',
-                  name: 'external-link',
-                  size: 18,
-                  color: versaoUrlNormalizada ? palette.primary : palette.icons.inactive2,
-                },
-                onPress: versaoUrlNormalizada ? () => Linking.openURL(versaoUrlNormalizada) : undefined,
+                backgroundColor: palette.backgroundColor,
+                borderColor: ColorUtils.withAlpha(palette.borderCard, 0.72),
+                ...palette.shadows[100],
               },
             ]}
-          />
-          </View>
-          <View style={styles.sectionBlock}>
-            <View style={styles.sectionHeader}>
-              <FancyText size='small' type='bold'>
-                Referência musical
-              </FancyText>
-              <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
-                Ajustes originais e observações
-              </FancyText>
+          >
+            <View style={styles.cardHeader}>
+              <View style={styles.cardHeaderText}>
+                <FancyText size='small' type='bold'>
+                  Identidade
+                </FancyText>
+                <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                  Nome, intérprete e origem da versão.
+                </FancyText>
+              </View>
             </View>
-          <View style={styles.inlineRow}>
-            <FancyBottomSheetSelect
-              containerStyle={{ flex: 1 }}
-              label='Tom original'
-              title='Tom original'
-              value={tomOriginal}
-              onChange={(value) => setTomOriginal(String(value || ''))}
-              listItems={toneOptions}
-            />
-            <FancyTextInput
-              label='BPM original'
-              containerStyle={{ flex: 1 }}
-              value={bpmOriginal}
-              inputProps={{ keyboardType: 'numeric', onChangeText: setBpmOriginal }}
-            />
+
+            <View style={styles.sectionBlock}>
+              <FancyTextInput label='Nome da música' value={nome} inputProps={{ onChangeText: setNome }} />
+              <FancyTextInput label='Intérprete' value={interprete} inputProps={{ onChangeText: setInterprete }} />
+
+              <View style={styles.fieldBlock}>
+                <View style={styles.fieldHeaderRow}>
+                  <View style={styles.fieldHeaderInfo}>
+                    <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
+                      Categoria
+                    </FancyText>
+                  </View>
+                  <FancyButton
+                    label='Gerenciar'
+                    type='outlined'
+                    size={24}
+                    icon={{ library: 'MaterialCommunityIcons', name: 'tune-variant', size: 12 }}
+                    iconPosition='left'
+                    labelProps={{ size: 10 }}
+                    containerStyle={{ gap: 4, borderWidth: 1 }}
+                    onPress={() => setCategoriasVisible(true)}
+                    disabled={!canManageRepertorio}
+                  />
+                </View>
+                <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive2} style={styles.fieldHelperText}>
+                  Organize esta música no repertório.
+                </FancyText>
+                <FancyBottomSheetSelect
+                  containerStyle={styles.fullWidthField}
+                  title='Categoria'
+                  value={categoriaId}
+                  onChange={(value) => setCategoriaId(String(value || ''))}
+                  listItems={categoryOptions}
+                />
+              </View>
+
+              <FancyTextInput
+                label='Link da versão'
+                value={versaoUrl}
+                inputProps={{ onChangeText: setVersaoUrl }}
+                rightContainer={
+                  <View style={styles.versaoUrlIcons}>
+                    <TouchableOpacity
+                      onPress={canManageRepertorio ? () => setYoutubeSearchVisible(true) : undefined}
+                      style={styles.versaoUrlIconButton}
+                    >
+                      <MaterialCommunityIcons
+                        name='youtube'
+                        size={20}
+                        color={canManageRepertorio ? palette.primary : palette.icons.inactive2}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={versaoUrlNormalizada ? () => Linking.openURL(versaoUrlNormalizada) : undefined}
+                      style={styles.versaoUrlIconButton}
+                    >
+                      <MaterialCommunityIcons
+                        name='web'
+                        size={15}
+                        color={versaoUrlNormalizada ? palette.primary : palette.icons.inactive2}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                }
+              />
+            </View>
           </View>
-          <FancyTextInput
-            label='Observações'
-            value={observacoes}
-            inputProps={{ onChangeText: setObservacoes, multiline: true, style: { minHeight: 100, textAlignVertical: 'top' } }}
-          />
+
+          <View
+            style={[
+              styles.formCard,
+              {
+                backgroundColor: palette.backgroundColor,
+                borderColor: ColorUtils.withAlpha(palette.borderCard, 0.72),
+                ...palette.shadows[100],
+              },
+            ]}
+          >
+            <View style={styles.cardHeader}>
+              <View style={styles.cardHeaderText}>
+                <FancyText size='small' type='bold'>
+                  Referência musical
+                </FancyText>
+                <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                  Ajustes originais usados pela equipe.
+                </FancyText>
+              </View>
+            </View>
+
+            <View style={styles.sectionBlock}>
+              <View style={styles.inlineRow}>
+                <FancyBottomSheetSelect
+                  containerStyle={{ flex: 1 }}
+                  label='Tom original'
+                  title='Tom original'
+                  value={tomOriginal}
+                  onChange={(value) => setTomOriginal(String(value || ''))}
+                  listItems={toneOptions}
+                  disabled={!canManageRepertorio}
+                />
+                <FancyBpmField
+                  containerStyle={{ flex: 1 }}
+                  label='BPM original'
+                  title='BPM original'
+                  value={bpmOriginal}
+                  onChange={setBpmOriginal}
+                  min={0}
+                  max={300}
+                  disabled={!canManageRepertorio}
+                />
+              </View>
+              <FancyTextInput
+                label='Observações'
+                value={observacoes}
+                inputProps={{ onChangeText: setObservacoes, multiline: true, style: { minHeight: 100, textAlignVertical: 'top' } }}
+              />
+            </View>
           </View>
-        </View>
+        </FancyScrollView>
       ),
     },
     {
       title: 'Letra',
       icon: { library: 'Entypo', name: 'text', size: 16 },
       content: (
-        <View style={styles.markdownTabContent}>
+        <FancyScrollView fill contentContainerStyle={styles.markdownTabContent} showsVerticalScrollIndicator={false}>
           <SongTextEditorField label='Letra' value={letraMarkdown} onChange={setLetraMarkdown} placeholder='Digite a letra da música...' />
-        </View>
+        </FancyScrollView>
       ),
     },
     {
       title: 'Cifra',
       icon: { library: 'MaterialCommunityIcons', name: 'music-clef-treble', size: 18 },
       content: (
-        <View style={styles.markdownTabContent}>
+        <FancyScrollView fill contentContainerStyle={styles.markdownTabContent} showsVerticalScrollIndicator={false}>
           <SongTextEditorField label='Cifra' value={cifraMarkdown} onChange={setCifraMarkdown} placeholder='Digite a cifra da música...' />
-        </View>
+        </FancyScrollView>
       ),
     },
   ];
@@ -241,13 +362,10 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
     <FancyPageView style={styles.container}>
       <FancyTabs
         items={tabs}
-        containerStyle={{ flex: 1 }}
-        headerStyle={styles.tabsHeader}
-        contentContainerStyle={{ flex: 1, paddingHorizontal: 20 }}
       />
       <FancyButton
         label='Salvar'
-        icon={{ library: 'Feather', name: 'save', size: 16 }}
+        icon={{ ...DefaultIconsNames.save, size: 16 }}
         isLoading={isMutatingMusica}
         containerStyle={styles.saveButton}
         disabled={!canManageRepertorio}
@@ -256,33 +374,79 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
         }}
       />
       <RepertorioCategoriasManagerSheet visible={categoriasVisible} onClose={() => setCategoriasVisible(false)} />
+      <YoutubeVersionSearchSheet
+        visible={youtubeSearchVisible}
+        onClose={() => setYoutubeSearchVisible(false)}
+        initialQuery={youtubeInitialQuery}
+        onSelect={handleYoutubeVersionSelect}
+      />
     </FancyPageView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingBottom: 16, gap: 12 },
-  tabsHeader: { paddingHorizontal: 20 },
-  formSection: { gap: 14, paddingTop: 8, paddingBottom: 92 },
-  markdownTabContent: { flex: 1, paddingTop: 8, paddingBottom: 92 },
+  formSection: { gap: 14, paddingTop: 8, paddingBottom: 32 },
+  markdownTabContent: { flexGrow: 1, paddingTop: 8, paddingBottom: 20 },
+  introCard: {
+    borderWidth: 1,
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  introIconWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  introTextBlock: {
+    flex: 1,
+    gap: 2,
+  },
+  introDismissBtn: {
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 14,
+  },
+  formCard: {
+    borderWidth: 1,
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    gap: 14,
+  },
+  cardHeader: {
+    gap: 2,
+  },
+  cardHeaderText: {
+    gap: 2,
+  },
   sectionBlock: {
     gap: 14,
   },
-  sectionHeader: { gap: 2, paddingLeft: 2 },
   fieldBlock: { gap: 4 },
   fieldHeaderRow: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
     paddingLeft: 2,
   },
-  fullWidthField: { width: '100%' },
-  inlineRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-end' },
-  saveButton: { marginHorizontal: 20, height: 44, marginTop: 4 },
-  categoryManageLink: {
-    minWidth: 0,
-    paddingHorizontal: 0,
+  fieldHeaderInfo: {
+    flex: 1,
+    gap: 1,
   },
-  categoryManageLinkLabel: { marginLeft: -4 },
+  fieldHelperText: { paddingLeft: 2 },
+  fullWidthField: { width: '100%' },
+  inlineRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
+  versaoUrlIcons: { flexDirection: 'row', alignItems: 'center', gap: 12, height: '100%' },
+  versaoUrlIconButton: { justifyContent: 'center', alignItems: 'center' },
+  saveButton: { marginHorizontal: 20, height: 44, marginTop: 4 },
 });

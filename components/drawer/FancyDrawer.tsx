@@ -73,9 +73,7 @@ export default function FancyDrawer(props: FancyDrawerProps) {
         style={{
           width: '100%',
           flex: 1,
-          borderColor: 'red',
           zIndex: 10,
-          marginTop: -15,
         }}
       >
         <FancyScrollView

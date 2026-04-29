@@ -1,12 +1,25 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Linking, StyleSheet, View } from 'react-native';
+import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+
+import Toast from 'react-native-toast-message';
+
 import FancyBottomSheetModal from '../../modal/FancyBottomSheetModal';
 import FancyButton from '../../buttons/FancyButton';
 import FancyBottomSheetSelect from '../../fields/FancyBottomSheetSelect';
+import FancyBpmField from '../../fields/FancyBpmField';
 import FancyTextInput from '../../fields/FancyTextInput';
 import SongTextEditorField from '../../song/SongTextEditorField';
+import FancyTabs, { TabItem } from '../../tabs/FancyTabs';
+import FancyToggle from '../../fields/FancyToggle';
+import FancyText from '../../FancyText';
+import YoutubeVersionSearchSheet from './YoutubeVersionSearchSheet';
+import { usePallete } from '../../../hooks/usePallete';
+import { DefaultIconsNames } from '../../../constants/icons';
+import { ColorUtils } from '../../../utils/color_utils';
 import { ResponseEventoSetlistItemDto, EventoSetlistItemOrigemEnum } from '../../../domain/dtos/Evento/evento-setlist-item.response';
 import { ResponseRepertorioMusicaDto } from '../../../domain/dtos/Repertorio/repertorio-musica.response';
+import { ResponseYoutubeSearchItemDto } from '../../../domain/dtos/Repertorio/youtube-search-item.response';
 
 type Props = {
   visible: boolean;
@@ -27,7 +40,6 @@ type Props = {
   item?: ResponseEventoSetlistItemDto | null;
   repertorio: ResponseRepertorioMusicaDto[];
   canEdit: boolean;
-  onOpenStructureEditor?: (itemId: string) => void;
 };
 
 const TONS = ['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B'];
@@ -39,19 +51,21 @@ export default function EventoSetlistEditorSheet({
   item,
   repertorio,
   canEdit,
-  onOpenStructureEditor,
 }: Props) {
+  const palette = usePallete();
   const [tipoOrigem, setTipoOrigem] = useState<EventoSetlistItemOrigemEnum>(EventoSetlistItemOrigemEnum.MANUAL);
   const [repertorioMusicaId, setRepertorioMusicaId] = useState<string>('');
   const [nome, setNome] = useState('');
   const [interprete, setInterprete] = useState('');
   const [versaoUrl, setVersaoUrl] = useState('');
   const [tom, setTom] = useState('');
-  const [bpm, setBpm] = useState('');
+  const [bpm, setBpm] = useState<number>(0);
   const [letraMarkdown, setLetraMarkdown] = useState('');
   const [cifraMarkdown, setCifraMarkdown] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [nomeError, setNomeError] = useState(false);
+  const [youtubeSearchVisible, setYoutubeSearchVisible] = useState(false);
 
   useEffect(() => {
     setTipoOrigem(item?.tipoOrigem ?? EventoSetlistItemOrigemEnum.MANUAL);
@@ -60,10 +74,11 @@ export default function EventoSetlistEditorSheet({
     setInterprete(item?.interprete ?? '');
     setVersaoUrl(item?.versaoUrl ?? '');
     setTom(item?.tom ?? '');
-    setBpm(item?.bpm ? String(item.bpm) : '');
+    setBpm(item?.bpm ?? 0);
     setLetraMarkdown(item?.letraMarkdown ?? '');
     setCifraMarkdown(item?.cifraMarkdown ?? '');
     setObservacoes(item?.observacoes ?? '');
+    setNomeError(false);
   }, [item, visible]);
 
   const repertorioOptions = useMemo(
@@ -77,6 +92,7 @@ export default function EventoSetlistEditorSheet({
   );
 
   const toneOptions = useMemo(() => TONS.map((tone) => ({ title: tone, value: tone })), []);
+  const youtubeInitialQuery = useMemo(() => [nome, interprete].filter((entry) => entry.trim()).join(' ').trim(), [nome, interprete]);
 
   const hydrateFromRepertorio = (musicId: string) => {
     setRepertorioMusicaId(musicId);
@@ -86,27 +102,43 @@ export default function EventoSetlistEditorSheet({
     setInterprete(musica.interprete || '');
     setVersaoUrl(musica.versaoUrl || '');
     setTom(musica.tomOriginal || '');
-    setBpm(musica.bpmOriginal ? String(musica.bpmOriginal) : '');
+    setBpm(musica.bpmOriginal ?? 0);
     setLetraMarkdown(musica.letraMarkdown || '');
     setCifraMarkdown(musica.cifraMarkdown || '');
     setObservacoes(musica.observacoes || '');
   };
 
+  const origemDescription =
+    tipoOrigem === EventoSetlistItemOrigemEnum.REPERTORIO
+      ? 'Puxa nome, intérprete, tom, bpm e textos a partir de uma música já cadastrada no repertório.'
+      : 'Cria uma canção livre para esta ocorrência, ideal quando a música ainda não existe no repertório.';
+
   const handleSave = async () => {
+    if (!nome.trim()) {
+      setNomeError(true);
+      Toast.show({
+        type: 'error',
+        text1: 'Nome obrigatório',
+        text2: 'Informe o nome da música antes de salvar.',
+      });
+      return;
+    }
+    setNomeError(false);
+
     setIsSaving(true);
     try {
       await onSave({
         itemId: item?.id,
         tipoOrigem,
         repertorioMusicaId: repertorioMusicaId || null,
-        nome,
-        interprete: interprete || undefined,
-        versaoUrl: versaoUrl || undefined,
+        nome: nome.trim(),
+        interprete: interprete.trim() || undefined,
+        versaoUrl: versaoUrl.trim() || undefined,
         tom: tom || undefined,
-        bpm: bpm ? Number(bpm) : undefined,
+        bpm: bpm > 0 ? bpm : undefined,
         letraMarkdown: letraMarkdown || undefined,
         cifraMarkdown: cifraMarkdown || undefined,
-        observacoes: observacoes || undefined,
+        observacoes: observacoes.trim() || undefined,
       });
       onClose();
     } finally {
@@ -114,101 +146,289 @@ export default function EventoSetlistEditorSheet({
     }
   };
 
-  return (
-    <FancyBottomSheetModal
-      visible={visible}
-      onClose={onClose}
-      title={item ? 'Detalhes da música' : 'Nova música do setlist'}
-      footer={
-        canEdit ? (
-          <FancyButton
-            label='Salvar'
-            isLoading={isSaving}
-            onPress={() => {
-              void handleSave();
-            }}
+  const handleYoutubeVersionSelect = (selectedVideo: ResponseYoutubeSearchItemDto) => {
+    setVersaoUrl(selectedVideo.watchUrl);
+    if (!interprete.trim()) {
+      setInterprete(selectedVideo.channelTitle);
+    }
+  };
+
+  // Bloqueia edição durante o saving para evitar mutações concorrentes
+  const isEditingEnabled = canEdit && !isSaving;
+
+  const dadosTab = (
+    <View style={styles.tabSection}>
+      {canEdit ? (
+        <View
+          style={[
+            styles.originCard,
+            {
+              backgroundColor: ColorUtils.withAlpha(palette.backgroundColor4, 0.92),
+              borderColor: ColorUtils.withAlpha(palette.primary, 0.12),
+            },
+          ]}
+        >
+          <View style={styles.originHeader}>
+            <FancyText type='semiBold' size='small'>
+              Como adicionar esta canção
+            </FancyText>
+            <FancyText size='extraSmall' color={palette.fonts.inactive} style={styles.originHelperText}>
+              {origemDescription}
+            </FancyText>
+          </View>
+
+          <FancyToggle<EventoSetlistItemOrigemEnum>
+            label='Origem'
+            value={tipoOrigem}
+            onChange={isEditingEnabled ? setTipoOrigem : () => undefined}
+            option1={{ title: 'Manual', value: EventoSetlistItemOrigemEnum.MANUAL }}
+            option2={{ title: 'Repertório', value: EventoSetlistItemOrigemEnum.REPERTORIO }}
           />
-        ) : undefined
-      }
-    >
-      <View style={styles.form}>
-        {canEdit && (
-          <>
-            <FancyBottomSheetSelect
-              title='Origem'
-              value={tipoOrigem}
-              onChange={(value) => setTipoOrigem(value as EventoSetlistItemOrigemEnum)}
-              listItems={[
-                { title: 'Manual', value: EventoSetlistItemOrigemEnum.MANUAL },
-                { title: 'Do repertório', value: EventoSetlistItemOrigemEnum.REPERTORIO },
-              ]}
-            />
-            {tipoOrigem === EventoSetlistItemOrigemEnum.REPERTORIO && (
+
+          {tipoOrigem === EventoSetlistItemOrigemEnum.REPERTORIO ? (
+            <>
               <FancyBottomSheetSelect
-                title='Música do repertório'
+                label='Música do repertório'
+                title='Selecionar música do repertório'
                 value={repertorioMusicaId}
                 onChange={(value) => hydrateFromRepertorio(String(value))}
                 listItems={repertorioOptions}
+                disabled={!isEditingEnabled || !!item?.id}
               />
-            )}
-          </>
-        )}
+              {!isEditingEnabled && isSaving ? (
+                <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                  Aguarde, salvando…
+                </FancyText>
+              ) : null}
+            </>
+          ) : null}
+        </View>
+      ) : null}
 
-        <FancyTextInput label='Nome' value={nome} readonly={!canEdit} inputProps={{ onChangeText: setNome }} />
-        <FancyTextInput label='Intérprete' value={interprete} readonly={!canEdit} inputProps={{ onChangeText: setInterprete }} />
-        <FancyTextInput
-          label='Link da versão'
-          value={versaoUrl}
-          readonly={!canEdit}
-          inputProps={{ onChangeText: setVersaoUrl }}
-          rightContainer={
-            versaoUrl
-              ? [{ icon: { library: 'Feather', name: 'external-link', size: 18 }, onPress: () => Linking.openURL(versaoUrl) }]
-              : undefined
-          }
+      <FancyTextInput
+        label='Nome *'
+        value={nome}
+        readonly={!isEditingEnabled}
+        errorMessage={nomeError ? 'Informe o nome da música' : undefined}
+        inputProps={{
+          onChangeText: isEditingEnabled ? (text) => { setNome(text); if (text.trim()) setNomeError(false); } : undefined,
+          editable: isEditingEnabled,
+          placeholder: 'Ex: Grato Sou — sem versão ou canal',
+        }}
+      />
+      <FancyTextInput
+        label='Intérprete'
+        value={interprete}
+        readonly={!isEditingEnabled}
+        inputProps={{ onChangeText: isEditingEnabled ? setInterprete : undefined, editable: isEditingEnabled }}
+      />
+      <FancyTextInput
+        label='Link da versão'
+        value={versaoUrl}
+        readonly={!isEditingEnabled}
+        inputProps={{ onChangeText: isEditingEnabled ? setVersaoUrl : undefined, editable: isEditingEnabled }}
+        rightContainer={
+          <View style={styles.versaoUrlIcons}>
+            {canEdit ? (
+              <TouchableOpacity
+                onPress={isEditingEnabled ? () => setYoutubeSearchVisible(true) : undefined}
+                style={styles.versaoUrlIconButton}
+              >
+                <MaterialCommunityIcons
+                  name='youtube'
+                  size={20}
+                  color={isEditingEnabled ? palette.primary : palette.icons.inactive2}
+                />
+              </TouchableOpacity>
+            ) : null}
+            <TouchableOpacity
+              onPress={versaoUrl ? () => void Linking.openURL(versaoUrl) : undefined}
+              style={styles.versaoUrlIconButton}
+            >
+              <MaterialCommunityIcons
+                name='web'
+                size={15}
+                color={versaoUrl ? palette.primary : palette.icons.inactive2}
+              />
+            </TouchableOpacity>
+          </View>
+        }
+      />
+
+      <View style={styles.inlineRow}>
+        <FancyBottomSheetSelect
+          label='Tom'
+          title='Selecionar tom'
+          containerStyle={styles.inlineField}
+          value={tom}
+          onChange={(value) => setTom(String(value || ''))}
+          listItems={toneOptions}
+          disabled={!isEditingEnabled}
         />
+        <FancyBpmField
+          containerStyle={styles.inlineField}
+          label='BPM'
+          title='Selecionar BPM'
+          value={bpm}
+          onChange={isEditingEnabled ? setBpm : undefined}
+          min={0}
+          max={300}
+          disabled={!isEditingEnabled}
+        />
+      </View>
 
-        <View style={styles.inlineRow}>
-          <FancyBottomSheetSelect
-            title='Tom'
-            containerStyle={{ flex: 1 }}
-            value={tom}
-            onChange={(value) => setTom(String(value || ''))}
-            listItems={toneOptions}
-            disabled={!canEdit}
-          />
-          <FancyTextInput
-            label='BPM'
-            value={bpm}
-            readonly={!canEdit}
-            containerStyle={{ flex: 1 }}
-            inputProps={{ keyboardType: 'numeric', onChangeText: setBpm }}
+      <FancyTextInput
+        label='Observações'
+        value={observacoes}
+        readonly={!isEditingEnabled}
+        inputProps={{
+          multiline: true,
+          onChangeText: isEditingEnabled ? setObservacoes : undefined,
+          editable: isEditingEnabled,
+          style: { minHeight: 100, textAlignVertical: 'top' },
+        }}
+      />
+    </View>
+  );
+
+  const letraTab = (
+    <View style={styles.tabSection}>
+      <FancyText size='extraSmall' color={palette.fonts.inactive} style={styles.tabIntro}>
+        Defina a letra que será usada nesta ocorrência. Você pode adaptar o conteúdo para esta apresentação.
+      </FancyText>
+      <SongTextEditorField
+        label='Letra'
+        value={letraMarkdown}
+        onChange={setLetraMarkdown}
+        disabled={!isEditingEnabled}
+        placeholder='Digite a letra da música...'
+      />
+    </View>
+  );
+
+  const cifraTab = (
+    <View style={styles.tabSection}>
+      <FancyText size='extraSmall' color={palette.fonts.inactive} style={styles.tabIntro}>
+        Ajuste a cifra da forma como a equipe vai tocar nesta ocorrência.
+      </FancyText>
+      <SongTextEditorField
+        label='Cifra'
+        value={cifraMarkdown}
+        onChange={setCifraMarkdown}
+        disabled={!isEditingEnabled}
+        placeholder='Digite a cifra da música...'
+      />
+    </View>
+  );
+
+  const tabs: TabItem[] = [
+    {
+      title: 'Dados',
+      icon: { library: 'MaterialCommunityIcons', name: 'text-box-outline', size: 16 },
+      content: dadosTab,
+    },
+    {
+      title: 'Cifra',
+      icon: { library: 'MaterialCommunityIcons', name: 'music-note-outline', size: 16 },
+      content: cifraTab,
+    },
+    {
+      title: 'Letra',
+      icon: { library: 'MaterialCommunityIcons', name: 'script-text-outline', size: 16 },
+      content: letraTab,
+    },
+  ];
+
+  return (
+    <>
+      <FancyBottomSheetModal
+        visible={visible}
+        onClose={onClose}
+        title={item ? 'Editar música' : 'Adicionar música'}
+        footer={
+          canEdit ? (
+            <FancyButton
+              label='Salvar'
+              icon={{ ...DefaultIconsNames.save, size: 16 }}
+              isLoading={isSaving}
+              onPress={() => {
+                void handleSave();
+              }}
+            />
+          ) : undefined
+        }
+      >
+        <View style={styles.sheetContent}>
+          <FancyText size='small' color={palette.fonts.inactive} style={styles.sheetSubtitle}>
+            Organize os dados principais da música e ajuste letra ou cifra por ocorrência quando necessário.
+          </FancyText>
+
+          <FancyTabs
+            items={tabs}
+            keepMounted
+            variant='compact'
           />
         </View>
+      </FancyBottomSheetModal>
 
-        <SongTextEditorField label='Letra' value={letraMarkdown} onChange={setLetraMarkdown} disabled={!canEdit} placeholder='Digite a letra da música...' />
-        <SongTextEditorField label='Cifra' value={cifraMarkdown} onChange={setCifraMarkdown} disabled={!canEdit} placeholder='Digite a cifra da música...' />
-        <FancyTextInput
-          label='Observações'
-          value={observacoes}
-          readonly={!canEdit}
-          inputProps={{ multiline: true, onChangeText: setObservacoes, style: { minHeight: 110, textAlignVertical: 'top' } }}
-        />
-
-        {canEdit && item?.id && onOpenStructureEditor ? (
-          <FancyButton
-            label='Editar arranjo e estrutura'
-            type='light'
-            icon={{ library: 'MaterialCommunityIcons', name: 'playlist-edit', size: 18 }}
-            onPress={() => onOpenStructureEditor(item.id)}
-          />
-        ) : null}
-      </View>
-    </FancyBottomSheetModal>
+      <YoutubeVersionSearchSheet
+        visible={youtubeSearchVisible}
+        onClose={() => setYoutubeSearchVisible(false)}
+        initialQuery={youtubeInitialQuery}
+        onSelect={handleYoutubeVersionSelect}
+      />
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  form: { gap: 14 },
-  inlineRow: { flexDirection: 'row', gap: 10 },
+  sheetContent: {
+    gap: 14,
+  },
+  sheetSubtitle: {
+    lineHeight: 19,
+  },
+  tabsContainer: {
+    gap: 12,
+  },
+  tabsContent: {
+    paddingTop: 2,
+  },
+  tabSection: {
+    gap: 14,
+  },
+  originCard: {
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    gap: 12,
+  },
+  originHeader: {
+    gap: 4,
+  },
+  originHelperText: {
+    lineHeight: 18,
+  },
+  inlineRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+  },
+  inlineField: {
+    flex: 1,
+  },
+  versaoUrlIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    height: '100%',
+  },
+  versaoUrlIconButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tabIntro: {
+    lineHeight: 18,
+  },
 });

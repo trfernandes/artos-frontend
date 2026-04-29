@@ -1,4 +1,4 @@
-import { StyleSheet, View, TouchableOpacity, Modal, Pressable, ScrollView } from 'react-native';
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import { MenuProvider } from 'react-native-popup-menu';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -12,6 +12,7 @@ import { useSairDaIgreja } from '../../hooks/useSairDaIgreja';
 import { FancyAlert } from '../modal/FancyAlert';
 import { usePallete } from '../../hooks/usePallete';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
+import FancyBottomSheetModal from '../modal/FancyBottomSheetModal';
 
 interface FancyDrawerIgrejaSelectorModalProps {
   visible: boolean;
@@ -59,180 +60,144 @@ export default function FancyDrawerIgrejaSelectorModal({
   };
 
   return (
-    <Modal visible={visible} transparent={true} animationType='fade' onRequestClose={onClose}>
+    <FancyBottomSheetModal visible={visible} onClose={onClose} title='Selecionar igreja' avoidKeyboard={false}>
       <MenuProvider skipInstanceCheck>
-        {/* Backdrop */}
-        <Pressable style={styles.backdrop} onPress={onClose}>
-          {/* Modal Content */}
-          <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
-            {/* Header */}
-            <View style={styles.modalHeader}>
-              <FancyText size='extraSmall' type='semiBold' color={Pallete.fonts.inactive}>
-                SUAS IGREJAS
+        <View style={styles.content}>
+          <FancyText size='extraSmall' type='semiBold' color={Pallete.fonts.inactive}>
+            SUAS IGREJAS
+          </FancyText>
+
+          {igrejas.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <FancyText type='normal' size='medium' style={styles.emptyText}>
+                Nenhuma igreja cadastrada
               </FancyText>
             </View>
+          ) : (
+            <View style={styles.igrejasList}>
+              {igrejas.map((igreja, index) => {
+                const isAtiva = igreja.id === igrejaAtiva?.id;
+                const isLast = index === igrejas.length - 1;
 
-            {/* Lista de Igrejas */}
-            <ScrollView style={styles.modalScrollView}>
-              {igrejas.length === 0 ? (
-                <View style={styles.emptyContainer}>
-                  <FancyText type='normal' size='medium' style={styles.emptyText}>
-                    Nenhuma igreja cadastrada
-                  </FancyText>
-                </View>
-              ) : (
-                <View style={{ marginVertical: 5 }}>
-                  {igrejas.map((igreja, index) => {
-                    const isAtiva = igreja.id === igrejaAtiva?.id;
-                    const isLast = index === igrejas.length - 1;
-
-                    return (
-                      <View key={igreja.id} style={[styles.igrejaItem, !isLast && styles.igrejaItemBorder]}>
-                        <TouchableOpacity
-                          onPress={() => onSelectIgreja(igreja)}
-                          activeOpacity={0.7}
-                          style={styles.igrejaItemMain}
-                        >
-                          {/* Logo */}
-                          {igreja.logoThumbUrl || igreja.logoUrl ? (
-                            <FancyImage
-                              source={{
-                                uri: (igreja.logoThumbUrl || igreja.logoUrl) as string,
-                              }}
-                              size={28}
-                              style={styles.igrejaLogo}
-                            />
-                          ) : (
-                            <View style={styles.igrejaLogoPlaceholder}>
-                              <DefaultIcons.Custom
-                                library='MaterialCommunityIcons'
-                                name='church'
-                                size={19}
-                                color={Pallete.icons.inactive}
-                                style={{ marginBottom: 2 }}
-                              />
-                            </View>
-                          )}
-
-                          {/* Nome */}
-                          <FancyText
-                            size={'small'}
-                            type='semiBold'
-                            style={styles.igrejaNomeText}
-                            numberOfLines={1}
-                          >
-                            {igreja.nome}
-                          </FancyText>
-                        </TouchableOpacity>
-
-                        <View style={styles.igrejaItemActions}>
-                          {isAtiva && (
-                            <DefaultIcons.Custom
-                              library='MaterialCommunityIcons'
-                              name='check-bold'
-                              size={16}
-                              color={Pallete.icons.inactive}
-                            />
-                          )}
-                        <FancyPopup
-                          disabled={isPending}
-                          items={[
-                            {
-                              label: 'Sair da igreja',
-                              onPress: () => handleSairDaIgreja(igreja),
-                              icon: { library: 'Feather', name: 'log-out', size: 16, color: Pallete.fonts.dark },
-                            },
-                          ]}
-                          triggerComponent={
-                            <View style={styles.menuTrigger}>
-                              <Feather name='more-vertical' size={18} color={Pallete.icons.inactive} />
-                            </View>
-                          }
+                return (
+                  <View key={igreja.id} style={[styles.igrejaItem, !isLast && styles.igrejaItemBorder]}>
+                    <TouchableOpacity
+                      onPress={() => onSelectIgreja(igreja)}
+                      activeOpacity={0.7}
+                      style={styles.igrejaItemMain}
+                    >
+                      {igreja.logoThumbUrl || igreja.logoUrl ? (
+                        <FancyImage
+                          source={{
+                            uri: (igreja.logoThumbUrl || igreja.logoUrl) as string,
+                          }}
+                          size={28}
+                          style={styles.igrejaLogo}
                         />
+                      ) : (
+                        <View style={styles.igrejaLogoPlaceholder}>
+                          <DefaultIcons.Custom
+                            library='MaterialCommunityIcons'
+                            name='church'
+                            size={19}
+                            color={Pallete.icons.inactive}
+                            style={{ marginBottom: 2 }}
+                          />
                         </View>
+                      )}
+
+                      <View style={styles.igrejaTextColumn}>
+                        <FancyText
+                          size='small'
+                          type='semiBold'
+                          style={styles.igrejaNomeText}
+                          numberOfLines={1}
+                        >
+                          {igreja.nome}
+                        </FancyText>
+                        {isAtiva && (
+                          <FancyText size='extraSmall' type='medium' color={Pallete.primary} numberOfLines={1}>
+                            Igreja ativa
+                          </FancyText>
+                        )}
                       </View>
-                    );
-                  })}
-                </View>
-              )}
+                    </TouchableOpacity>
 
-              {/* Divisor */}
-              <View style={styles.divisor} />
+                    <View style={styles.igrejaItemActions}>
+                      {isAtiva && (
+                        <DefaultIcons.Custom
+                          library='MaterialCommunityIcons'
+                          name='check-circle'
+                          size={18}
+                          color={Pallete.primary}
+                        />
+                      )}
+                      <FancyPopup
+                        disabled={isPending}
+                        items={[
+                          {
+                            label: 'Sair da igreja',
+                            onPress: () => handleSairDaIgreja(igreja),
+                            icon: { library: 'Feather', name: 'log-out', size: 16, color: Pallete.fonts.dark },
+                          },
+                        ]}
+                        triggerComponent={
+                          <View style={styles.menuTrigger}>
+                            <Feather name='more-vertical' size={18} color={Pallete.icons.inactive} />
+                          </View>
+                        }
+                      />
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          )}
 
-              {/* Entrar em uma nova igreja */}
-              <TouchableOpacity
-                onPress={handleAdicionarIgreja}
-                activeOpacity={0.7}
-                style={styles.actionItem}
-              >
-                <DefaultIcons.Custom
-                  library='MaterialIcons'
-                  name='login'
-                  size={16}
-                  color={Pallete.icons.inactive}
-                />
-                <FancyText size='small' type='medium'>
-                  Entrar em uma nova igreja
-                </FancyText>
-              </TouchableOpacity>
+          <View style={styles.actionsBlock}>
+            <TouchableOpacity
+              onPress={handleAdicionarIgreja}
+              activeOpacity={0.7}
+              style={styles.actionItem}
+            >
+              <DefaultIcons.Custom
+                library='MaterialIcons'
+                name='login'
+                size={16}
+                color={Pallete.icons.inactive}
+              />
+              <FancyText size='small' type='medium'>
+                Entrar em uma nova igreja
+              </FancyText>
+            </TouchableOpacity>
 
-              {/* Minhas Solicitações */}
-              <TouchableOpacity
-                onPress={handleMinhasSolicitacoes}
-                activeOpacity={0.7}
-                style={styles.actionItemLast}
-              >
-                <DefaultIcons.Custom
-                  library='MaterialIcons'
-                  name='history'
-                  size={16}
-                  color={Pallete.icons.inactive}
-                />
-                <FancyText size='small' type='medium'>
-                  Minhas solicitações
-                </FancyText>
-              </TouchableOpacity>
-            </ScrollView>
-          </Pressable>
-        </Pressable>
+            <TouchableOpacity
+              onPress={handleMinhasSolicitacoes}
+              activeOpacity={0.7}
+              style={styles.actionItem}
+            >
+              <DefaultIcons.Custom
+                library='MaterialIcons'
+                name='history'
+                size={16}
+                color={Pallete.icons.inactive}
+              />
+              <FancyText size='small' type='medium'>
+                Minhas solicitações
+              </FancyText>
+            </TouchableOpacity>
+          </View>
+        </View>
       </MenuProvider>
-    </Modal>
+    </FancyBottomSheetModal>
   );
 }
 
 function createStyles(Pallete: ThemePalette) {
   return StyleSheet.create({
-  // MODAL
-  backdrop: {
-    flex: 1,
-    backgroundColor: Pallete.overlays.backdrop,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
+  content: {
+    gap: 12,
   },
-  modalContent: {
-    width: '100%',
-    maxWidth: 320,
-    backgroundColor: Pallete.backgroundColor,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 8,
-  },
-  modalHeader: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Pallete.border,
-  },
-  modalScrollView: {
-    maxHeight: 400,
-  },
-
-  // EMPTY STATE
   emptyContainer: {
     paddingVertical: 32,
     alignItems: 'center',
@@ -241,20 +206,25 @@ function createStyles(Pallete: ThemePalette) {
     fontWeight: '400',
     color: Pallete.fonts.inactive,
   },
-
-  // ITEM DA LISTA
+  igrejasList: {
+    borderRadius: 8,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: Pallete.borderCard,
+    backgroundColor: Pallete.backgroundColor4,
+  },
   igrejaItem: {
-    height: 52,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    minHeight: 56,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'transparent',
   },
   igrejaItemMain: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    minWidth: 0,
   },
   igrejaItemActions: {
     flexDirection: 'row',
@@ -263,7 +233,7 @@ function createStyles(Pallete: ThemePalette) {
   },
   igrejaItemBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: Pallete.border,
+    borderBottomColor: Pallete.borderCard,
   },
   igrejaLogo: {
     ...Pallete.shadows[200],
@@ -283,6 +253,11 @@ function createStyles(Pallete: ThemePalette) {
     alignItems: 'center',
     marginRight: 12,
   },
+  igrejaTextColumn: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2,
+  },
   igrejaNomeText: {
     flex: 1,
     opacity: 0.8,
@@ -291,43 +266,20 @@ function createStyles(Pallete: ThemePalette) {
     paddingLeft: 6,
     paddingVertical: 6,
   },
-  // DIVISOR
-  divisor: {
-    height: 1,
-    backgroundColor: Pallete.border,
-  },
-
-  // ADICIONAR IGREJA
-  adicionarItem: {
-    height: 52,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
+  actionsBlock: {
+    borderRadius: 8,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: Pallete.borderCard,
+    backgroundColor: Pallete.backgroundColor,
   },
   actionItem: {
-    height: 40,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    minHeight: 44,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-  },
-  actionItemLast: {
-    height: 40,
-    paddingHorizontal: 16,
-    paddingTop: 3,
-    paddingBottom: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  adicionarText: {
-    marginLeft: 12,
-    fontSize: 15,
-    fontWeight: '500',
-    color: Pallete.primary,
   },
   });
 }

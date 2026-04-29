@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import Toast from 'react-native-toast-message';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import FancyBottomSheetModal from '../../modal/FancyBottomSheetModal';
+import FancySeparator from '../../FancySeparator';
 import FancyButton from '../../buttons/FancyButton';
+import FancyBottomSheetSelect from '../../fields/FancyBottomSheetSelect';
 import FancyChips from '../../FancyChips';
 import DefaultIcons from '../../FancyIcons';
 import FancyListEmpty from '../../list/FancyListEmpty';
@@ -13,14 +15,18 @@ import FancyLoading from '../../FancyLoading';
 import FancyText from '../../FancyText';
 import FancyTextInput from '../../fields/FancyTextInput';
 import EventoSetlistEditorSheet from './EventoSetlistEditorSheet';
+import SetListItem from './SetListItem';
 import { getApiErrorMessage } from '../../../domain/api/api-error';
 import { EventoSetlistItemOrigemEnum, ResponseEventoSetlistItemDto } from '../../../domain/dtos/Evento/evento-setlist-item.response';
+import { useAuth } from '../../../contexts/AuthContext';
 import { usePallete } from '../../../hooks/usePallete';
 import { useEventoSetlist } from '../../../hooks/useEventoSetlist';
+import { useEventoEquipe } from '../../../hooks/useEventoEquipe';
 import { useEventoSetlistObservacoes } from '../../../hooks/useEventoSetlistObservacoes';
+import { useEventoSetlistResponsavel } from '../../../hooks/useEventoSetlistResponsavel';
 import { useRepertorioMusicas } from '../../../hooks/useRepertorio';
-import { estimarDuracaoMusica } from '../../../utils/estimarDuracaoMusica';
 import { ColorUtils } from '../../../utils/color_utils';
+import { DefaultIconsNames } from '../../../constants/icons';
 
 type Props = {
   eventoId: string;
@@ -37,10 +43,12 @@ export default function EventoSetlistTab({
   mode = 'leitura',
   responsavelSetlistNome,
 }: Props) {
-  const router = useRouter();
   const palette = usePallete();
+  const { user } = useAuth();
   const dataOcorrenciaIso = dataOcorrencia.toISOString();
   const isEditable = mode !== 'leitura';
+  const canManageResponsavel = mode === 'lider';
+  const canAddMusic = mode === 'lider' || mode === 'responsavel';
 
   const {
     data,
@@ -57,12 +65,18 @@ export default function EventoSetlistTab({
     salvarObservacoes,
     isSavingObservacoes,
   } = useEventoSetlistObservacoes(eventoId, dataOcorrenciaIso, ministerioId);
+  const { data: equipeData, refetch: refetchEquipe } = useEventoEquipe(eventoId, dataOcorrenciaIso, ministerioId);
+  const { salvarResponsavelSetlist, isSavingResponsavelSetlist } = useEventoSetlistResponsavel();
 
   const [editorVisible, setEditorVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ResponseEventoSetlistItemDto | null>(null);
   const [observacoesVisible, setObservacoesVisible] = useState(false);
   const [observacoesDraft, setObservacoesDraft] = useState('');
+  const [responsavelVisible, setResponsavelVisible] = useState(false);
+  const [responsavelSelecionadoId, setResponsavelSelecionadoId] = useState('');
+  const [isSalvandoResponsavel, setIsSalvandoResponsavel] = useState(false);
   const [orderedItems, setOrderedItems] = useState<ResponseEventoSetlistItemDto[]>([]);
+  const [actionsItem, setActionsItem] = useState<ResponseEventoSetlistItemDto | null>(null);
 
   const repertorio = useMemo(() => (repertorioData ?? []).filter((item) => item.ativo !== false), [repertorioData]);
 
@@ -72,14 +86,50 @@ export default function EventoSetlistTab({
     setOrderedItems(items);
   }, [items]);
 
-  const estimativa = useMemo(() => {
-    const totalSecoes = orderedItems.reduce((total, item) => total + Math.max(item.totalSecoes || 1, 1), 0);
-    return estimarDuracaoMusica({
-      bpm: orderedItems.find((item) => item.bpm)?.bpm ?? undefined,
-      totalSecoes,
-      repeticoes: totalSecoes,
-    });
-  }, [orderedItems]);
+  const integrantesEquipeOptions = useMemo(() => {
+    const seen = new Set<string>();
+    return (
+      equipeData?.grupos.flatMap((grupo) =>
+        grupo.integrantes
+          .filter((integrante) => integrante.voluntario?.id)
+          .map((integrante) => integrante.voluntario!)
+          .filter((voluntario) => {
+            if (seen.has(voluntario.id)) return false;
+            seen.add(voluntario.id);
+            return true;
+          })
+          .map((voluntario) => ({
+            title: voluntario.nome,
+            value: voluntario.id,
+            left: voluntario.fotoThumbUrl || voluntario.fotoUrl
+              ? {
+                  type: 'image' as const,
+                  source: voluntario.fotoThumbUrl || voluntario.fotoUrl || '',
+                }
+              : {
+                  type: 'icon' as const,
+                  icon: {
+                    library: 'MaterialCommunityIcons' as const,
+                    name: 'account-circle-outline',
+                    size: 20,
+                    color: palette.fonts.inactive,
+                  },
+                },
+          })),
+      ) ?? []
+    );
+  }, [equipeData?.grupos, palette.fonts.inactive]);
+
+  const responsavelAtualId = equipeData?.responsavelSetlistVoluntario?.id || equipeData?.responsavelSetlistVoluntarioId || '';
+  const responsavelAtualNome = equipeData?.responsavelSetlistVoluntario?.nome || responsavelSetlistNome || null;
+  const isCurrentUserResponsavel = !!responsavelAtualId && responsavelAtualId === user?.user?.id;
+  const responsavelDescricao = responsavelAtualNome
+    ? isCurrentUserResponsavel
+      ? 'Você define a seleção musical desta ocorrência.'
+      : `${responsavelAtualNome} define a seleção musical desta ocorrência.`
+    : canManageResponsavel
+      ? 'Defina quem escolhe as músicas desta ocorrência.'
+      : 'O líder ainda não definiu quem escolhe as músicas desta ocorrência.';
 
   const openItemEditor = (item?: ResponseEventoSetlistItemDto | null) => {
     setSelectedItem(item ?? null);
@@ -91,22 +141,14 @@ export default function EventoSetlistTab({
     setObservacoesVisible(true);
   };
 
-  const openItemDetails = (item: ResponseEventoSetlistItemDto) => {
-    if (!ministerioId) return;
+  const openResponsavel = () => {
+    setResponsavelSelecionadoId(responsavelAtualId);
+    setResponsavelVisible(true);
+  };
 
-    router.push({
-      pathname:
-        mode === 'lider'
-          ? '/ministerios/agenda/setlist/[itemId]'
-          : '/pessoal/escalas/setlist/[itemId]',
-      params: {
-        itemId: item.id,
-        eventoId,
-        ministerioId,
-        dataOcorrencia: dataOcorrenciaIso,
-        modo: mode,
-      },
-    });
+  const openItemDetails = (item: ResponseEventoSetlistItemDto) => {
+    if (!isEditable) return;
+    openItemEditor(item);
   };
 
   const handleSalvarObservacoes = async () => {
@@ -129,6 +171,37 @@ export default function EventoSetlistTab({
         text1: 'Erro ao salvar observações',
         text2: getApiErrorMessage(error, 'Não foi possível salvar as observações do setlist.'),
       });
+    }
+  };
+
+  const handleSalvarResponsavel = async () => {
+    if (!ministerioId || !responsavelSelecionadoId) return;
+
+    setIsSalvandoResponsavel(true);
+    try {
+      await salvarResponsavelSetlist({
+        eventoId,
+        data: {
+          ministerioId,
+          dataOcorrencia: dataOcorrenciaIso,
+          responsavelVoluntarioId: responsavelSelecionadoId,
+          escopo: 'OCORRENCIA' as any,
+        },
+      });
+      await refetchEquipe();
+      setResponsavelVisible(false);
+      Toast.show({
+        type: 'success',
+        text1: 'Responsável do SetList atualizado',
+      });
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Erro ao salvar responsável',
+        text2: getApiErrorMessage(error, 'Não foi possível atualizar o responsável do SetList.'),
+      });
+    } finally {
+      setIsSalvandoResponsavel(false);
     }
   };
 
@@ -169,22 +242,139 @@ export default function EventoSetlistTab({
     }
   };
 
+  const openItemActions = (item: ResponseEventoSetlistItemDto) => {
+    setActionsItem(item);
+  };
+
+  const closeItemActions = () => {
+    setActionsItem(null);
+  };
+
+  const selectedItemIndex = useMemo(() => {
+    if (!actionsItem) return -1;
+    return orderedItems.findIndex((entry) => entry.id === actionsItem.id);
+  }, [actionsItem, orderedItems]);
+
+  const moveItemBySheet = async (direction: 'up' | 'down') => {
+    if (!actionsItem) return;
+
+    const currentIndex = orderedItems.findIndex((entry) => entry.id === actionsItem.id);
+    if (currentIndex < 0) return;
+
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= orderedItems.length) return;
+
+    const nextItems = [...orderedItems];
+    const [movedItem] = nextItems.splice(currentIndex, 1);
+    nextItems.splice(targetIndex, 0, movedItem);
+
+    closeItemActions();
+    await handleDragEnd(nextItems);
+  };
+
+  const confirmDeleteItem = (item: ResponseEventoSetlistItemDto) => {
+    Alert.alert(
+      'Excluir música?',
+      'Essa ação não pode ser desfeita.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: () => {
+            closeItemActions();
+            void handleDeleteItem(item.id);
+          },
+        },
+      ],
+    );
+  };
+
   const renderHeader = () => (
     <View style={styles.headerContainer}>
-      {responsavelSetlistNome ? (
-        <View style={styles.ownerRow}>
-          <FancyChips
-            label='Responsável'
-            size='small'
-            color={palette.secondary}
-            backgroundColor={ColorUtils.withAlpha(palette.secondary, 0.1)}
-            icon={{ library: 'MaterialCommunityIcons', name: 'music-clef-treble', size: 12 }}
-          />
-          <FancyText type='medium' size='small'>
-            {responsavelSetlistNome}
-          </FancyText>
+      <View
+        style={[
+          styles.ownerCard,
+          {
+            backgroundColor: ColorUtils.lightenColor(palette.secondary, 0.955),
+            borderColor: ColorUtils.withAlpha(palette.secondary, 0.16),
+            ...palette.shadows[200],
+          },
+        ]}
+      >
+        <View style={styles.ownerLeading}>
+          <View
+            style={[
+              styles.ownerIconWrap,
+              {
+                backgroundColor: ColorUtils.withAlpha('#FFFFFF', 0.92),
+                borderColor: ColorUtils.withAlpha(palette.secondary, 0.14),
+              },
+            ]}
+          >
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name={responsavelAtualNome ? 'music-clef-treble' : 'account-question-outline'}
+              size={14}
+              color={palette.secondary}
+            />
+          </View>
+          <View style={styles.ownerTextBlock}>
+            {/* Eyebrow: rótulo fixo da seção + chip "Você" */}
+            <View style={styles.ownerEyebrowRow}>
+              <FancyText
+                size='extraSmall'
+                type='semiBold'
+                style={[styles.ownerEyebrow, { color: ColorUtils.withAlpha(palette.secondary, 0.88) }]}
+              >
+                Responsável
+              </FancyText>
+              {isCurrentUserResponsavel ? (
+                <FancyChips
+                  label='Você'
+                  size='small'
+                  color={palette.secondary}
+                  backgroundColor={ColorUtils.withAlpha(palette.secondary, 0.12)}
+                />
+              ) : null}
+            </View>
+            {/* Título: nome do responsável ou estado vazio */}
+            <FancyText
+              size='small'
+              type='semiBold'
+              numberOfLines={1}
+              color={responsavelAtualNome ? palette.fonts.dark : palette.fonts.inactive}
+              style={styles.ownerTitle}
+            >
+              {isCurrentUserResponsavel
+                ? 'Você'
+                : responsavelAtualNome || 'Nenhum responsável'}
+            </FancyText>
+          </View>
         </View>
-      ) : null}
+
+        {canManageResponsavel ? (
+          <Pressable
+            onPress={openResponsavel}
+            accessibilityRole='button'
+            accessibilityLabel='Definir responsável do SetList'
+            hitSlop={8}
+            style={[
+              styles.ownerActionButton,
+              {
+                backgroundColor: ColorUtils.withAlpha('#FFFFFF', 0.94),
+                borderColor: ColorUtils.withAlpha(palette.secondary, 0.14),
+              },
+            ]}
+          >
+            <MaterialCommunityIcons
+              name={responsavelAtualNome ? 'account-switch-outline' : 'account-plus-outline'}
+              size={15}
+              color={palette.secondary}
+            />
+          </Pressable>
+        ) : null}
+      </View>
 
       {(observacoesData?.observacoes || isEditable) && (
         <Pressable
@@ -193,174 +383,110 @@ export default function EventoSetlistTab({
           style={[
             styles.observacoesCard,
             {
-              backgroundColor: ColorUtils.withAlpha(palette.backgroundColor4, 0.95),
-              borderColor: ColorUtils.withAlpha(palette.primary, 0.14),
-              ...palette.shadows[100],
+              backgroundColor: ColorUtils.lightenColor(palette.primary, 0.94),
+              borderColor: ColorUtils.withAlpha(palette.primary, 0.18),
+              ...palette.shadows[200],
             },
           ]}
         >
-          <View style={styles.observacoesHeader}>
-            <View style={styles.observacoesTitleRow}>
+          <View style={styles.observacoesLeading}>
+            <View
+              style={[
+                styles.observacoesIconWrap,
+                { backgroundColor: ColorUtils.withAlpha('#FFFFFF', 0.92), borderColor: ColorUtils.withAlpha(palette.primary, 0.14) },
+              ]}
+            >
               <DefaultIcons.Custom
                 library='MaterialCommunityIcons'
-                name='notebook-outline'
-                size={17}
+                name={isEditable ? 'text-box-outline' : 'information-outline'}
+                size={14}
                 color={palette.primary}
               />
-              <FancyText type='semiBold' size='small'>
-                Orientações do setlist
-              </FancyText>
             </View>
-
-            {isEditable ? (
-              <FancyButton
-                type='text'
-                mode='icon'
-                icon={{ library: 'Feather', name: 'edit-2', size: 15, color: palette.primary }}
-                containerStyle={styles.iconButton}
-                onPress={openObservacoes}
-              />
-            ) : null}
+            <View style={styles.observacoesInfo}>
+              {/* Eyebrow: rótulo fixo */}
+              <FancyText
+                size='extraSmall'
+                type='semiBold'
+                style={[styles.ownerEyebrow, { color: ColorUtils.withAlpha(palette.primary, 0.86) }]}
+              >
+                Orientações gerais
+              </FancyText>
+              {/* Título: preview do conteúdo ou estado vazio */}
+            <FancyText
+              size='small'
+              type='semiBold'
+              numberOfLines={2}
+              color={observacoesData?.observacoes?.trim() ? palette.fonts.dark : palette.fonts.inactive}
+              style={styles.observacoesTitle}
+            >
+              {observacoesData?.observacoes?.trim() || 'Nenhuma orientação'}
+            </FancyText>
           </View>
+        </View>
 
-          <FancyText size='small' color={palette.fonts.inactive} numberOfLines={3} style={styles.observacoesText}>
-            {observacoesData?.observacoes?.trim() ||
-              'Adicione observações gerais para alinhar a equipe nesta ocorrência.'}
-          </FancyText>
+          {isEditable ? (
+            <Pressable
+              onPress={openObservacoes}
+              accessibilityRole='button'
+              accessibilityLabel='Editar orientações do SetList'
+              hitSlop={8}
+              style={[
+                styles.observacoesActionButton,
+                {
+                  backgroundColor: ColorUtils.withAlpha('#FFFFFF', 0.94),
+                  borderColor: ColorUtils.withAlpha(palette.primary, 0.14),
+                },
+              ]}
+            >
+              <MaterialCommunityIcons name='pencil-outline' size={15} color={palette.primary} />
+            </Pressable>
+          ) : null}
         </Pressable>
       )}
 
-      <View style={styles.listHeader}>
-        <View style={styles.listHeaderInfo}>
-          <FancyText type='bold' size='small'>
-            {orderedItems.length} {orderedItems.length === 1 ? 'música' : 'músicas'}
-          </FancyText>
-          <FancyText size='extraSmall' color={palette.fonts.inactive}>
-            Duração estimada ~{estimativa}
-          </FancyText>
-        </View>
+      {orderedItems.length > 0 && (
+        <FancySeparator style={styles.sectionDivider} />
+      )}
 
-        {isEditable ? (
+      {canAddMusic && (
+        <View style={styles.listHeader}>
           <FancyButton
-            label='Adicionar música'
-            type='light'
-            icon={{ library: 'Feather', name: 'plus', size: 16, color: palette.primary }}
-            containerStyle={styles.addButton}
+            label='Nova música'
+            type='contained'
+            size={34}
+            icon={{
+              library: 'MaterialCommunityIcons',
+              name: 'music-note-plus',
+              size: 15,
+              color: palette.fonts.light,
+            }}
+            containerStyle={styles.addMusicButton}
             onPress={() => openItemEditor(null)}
           />
-        ) : null}
-      </View>
+        </View>
+      )}
     </View>
   );
 
   const renderItem = ({ item, drag, isActive, getIndex }: RenderItemParams<ResponseEventoSetlistItemDto>) => {
-    const color = item.hasEstruturaOverride ? palette.terciary : palette.primary;
     const index = (getIndex?.() ?? 0) + 1;
-
     return (
-      <Pressable
+      <SetListItem
+        order={index}
+        total={orderedItems.length}
+        name={item.nome}
+        artist={item.interprete}
+        tipoOrigem={item.tipoOrigem}
+        totalSecoes={item.totalSecoes}
+        tom={item.tom}
+        bpm={item.bpm}
         onPress={() => openItemDetails(item)}
-        style={[
-          styles.songCard,
-          {
-            backgroundColor: isActive ? ColorUtils.withAlpha(palette.backgroundColor4, 0.94) : palette.backgroundColor2,
-            borderColor: ColorUtils.withAlpha(color, isActive ? 0.24 : 0.14),
-            ...palette.shadows[100],
-          },
-        ]}
-      >
-        <View style={[styles.songAccent, { backgroundColor: ColorUtils.withAlpha(color, 0.9) }]} />
-
-        <View style={styles.songContent}>
-          <View style={styles.songTopRow}>
-            <View style={styles.songTitleBlock}>
-              <View style={[styles.orderBadge, { backgroundColor: ColorUtils.withAlpha(color, 0.1) }]}>
-                <FancyText type='semiBold' size='extraSmall' color={color}>
-                  {String(index).padStart(2, '0')}
-                </FancyText>
-              </View>
-
-              <View style={styles.songTextBlock}>
-                <FancyText type='semiBold' size='small' numberOfLines={1}>
-                  {item.nome}
-                </FancyText>
-                <FancyText size='extraSmall' color={palette.fonts.inactive} numberOfLines={1}>
-                  {item.interprete || 'Sem intérprete informado'}
-                </FancyText>
-              </View>
-            </View>
-
-            <View style={styles.songTopActions}>
-              <FancyChips
-                label={item.tipoOrigem === EventoSetlistItemOrigemEnum.REPERTORIO ? 'Repertório' : 'Manual'}
-                size='small'
-                color={color}
-                backgroundColor={ColorUtils.withAlpha(color, 0.08)}
-              />
-
-              {isEditable ? (
-                <Pressable onLongPress={drag} hitSlop={8} style={styles.handleButton}>
-                  <DefaultIcons.Custom
-                    library='MaterialCommunityIcons'
-                    name='drag-vertical'
-                    size={18}
-                    color={palette.fonts.inactive}
-                  />
-                </Pressable>
-              ) : (
-                <DefaultIcons.Custom
-                  library='Feather'
-                  name='chevron-right'
-                  size={18}
-                  color={palette.fonts.inactive}
-                />
-              )}
-            </View>
-          </View>
-
-          <View style={styles.songMetaRow}>
-            {item.tom ? (
-              <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                Tom {item.tom}
-              </FancyText>
-            ) : null}
-            {item.bpm ? (
-              <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                {item.bpm} bpm
-              </FancyText>
-            ) : null}
-            {item.totalSecoes ? (
-              <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                {item.totalSecoes} seções
-              </FancyText>
-            ) : null}
-            {item.hasEstruturaOverride ? (
-              <FancyText size='extraSmall' color={color} type='medium'>
-                Arranjo próprio
-              </FancyText>
-            ) : null}
-          </View>
-
-          {isEditable ? (
-            <View style={styles.songActionsRow}>
-              <FancyButton
-                type='text'
-                mode='icon'
-                icon={{ library: 'Feather', name: 'edit-2', size: 15, color: palette.primary }}
-                containerStyle={styles.iconButton}
-                onPress={() => openItemEditor(item)}
-              />
-              <FancyButton
-                type='text'
-                mode='icon'
-                icon={{ library: 'Feather', name: 'trash-2', size: 15, color: palette.error }}
-                containerStyle={styles.iconButton}
-                onPress={() => void handleDeleteItem(item.id)}
-              />
-            </View>
-          ) : null}
-        </View>
-      </Pressable>
+        onActionsPress={isEditable ? () => openItemActions(item) : undefined}
+        onLongPress={isEditable ? drag : undefined}
+        isEditable={isEditable}
+        isActive={isActive}
+      />
     );
   };
 
@@ -379,14 +505,24 @@ export default function EventoSetlistTab({
           activationDistance={16}
           dragItemOverflow={false}
           containerStyle={styles.list}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[
+            styles.listContent,
+            orderedItems.length === 0 && styles.listContentEmpty,
+          ]}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={renderHeader}
           ListEmptyComponent={
-            <FancyListEmpty
-              label='Nenhuma música definida para esta ocorrência.'
-              icon={{ library: 'MaterialCommunityIcons', name: 'playlist-music-outline', size: 56 }}
-            />
+            <View style={styles.emptyState}>
+              <FancyListEmpty
+                label='Nenhuma música adicionada'
+                helperText='Adicione as músicas desta ocorrência para definir a sequência e acompanhar a duração total.'
+                icon={{ library: 'MaterialCommunityIcons', name: 'playlist-music-outline', size: 56 }}
+                actionLabel={canAddMusic ? 'Adicionar música' : undefined}
+                onActionPress={canAddMusic ? () => openItemEditor(null) : undefined}
+                actionIcon={canAddMusic ? { library: 'MaterialCommunityIcons', name: 'music-note-plus', size: 16 } : undefined}
+                muted={false}
+              />
+            </View>
           }
         />
       </View>
@@ -397,13 +533,6 @@ export default function EventoSetlistTab({
         repertorio={repertorio}
         canEdit={isEditable}
         onClose={() => setEditorVisible(false)}
-        onOpenStructureEditor={(itemId) => {
-          const item = orderedItems.find((entry) => entry.id === itemId);
-          if (item) {
-            setEditorVisible(false);
-            openItemDetails(item);
-          }
-        }}
         onSave={async (payload) => {
           try {
             if (payload.itemId) {
@@ -453,10 +582,11 @@ export default function EventoSetlistTab({
       <FancyBottomSheetModal
         visible={observacoesVisible}
         onClose={() => setObservacoesVisible(false)}
-        title='Observações do setlist'
+        title='Orientações'
         footer={
           <FancyButton
-            label='Salvar observações'
+            label='Salvar'
+            icon={{ ...DefaultIconsNames.save, size: 16 }}
             isLoading={isSavingObservacoes}
             onPress={() => void handleSalvarObservacoes()}
           />
@@ -469,12 +599,107 @@ export default function EventoSetlistTab({
           <FancyTextInput
             label='Observações'
             value={observacoesDraft}
+            readonly={isSavingObservacoes}
             inputProps={{
-              onChangeText: setObservacoesDraft,
+              onChangeText: isSavingObservacoes ? undefined : setObservacoesDraft,
               multiline: true,
               style: { minHeight: 140, textAlignVertical: 'top' },
+              editable: !isSavingObservacoes,
             }}
           />
+        </View>
+      </FancyBottomSheetModal>
+
+      <FancyBottomSheetModal
+        visible={responsavelVisible}
+        onClose={() => setResponsavelVisible(false)}
+        title='Responsável do SetList'
+        footer={
+          <FancyButton
+            label='Salvar'
+            icon={{ ...DefaultIconsNames.save, size: 16 }}
+            isLoading={isSalvandoResponsavel}
+            disabled={!responsavelSelecionadoId}
+            onPress={() => void handleSalvarResponsavel()}
+          />
+        }
+      >
+        <View style={styles.sheetContent}>
+          <FancyText size='small' color={palette.fonts.inactive}>
+            Escolha quem conduz o SetList desta ocorrência.
+          </FancyText>
+          <FancyBottomSheetSelect
+            label='Voluntário'
+            title='Selecionar responsável'
+            value={responsavelSelecionadoId}
+            onChange={(value) => setResponsavelSelecionadoId(String(value || ''))}
+            listItems={integrantesEquipeOptions}
+            disabled={isSalvandoResponsavel}
+          />
+        </View>
+      </FancyBottomSheetModal>
+
+      <FancyBottomSheetModal
+        visible={!!actionsItem}
+        onClose={closeItemActions}
+        title='Opções'
+      >
+        <View style={styles.actionsSheetContent}>
+          <Pressable
+            onPress={() => {
+              if (!actionsItem) return;
+              closeItemActions();
+              openItemEditor(actionsItem);
+            }}
+            style={styles.actionRow}
+          >
+            <MaterialCommunityIcons name='pencil-outline' size={18} color={palette.fonts.dark} />
+            <FancyText type='semiBold' size='small' style={styles.actionLabel}>
+              Editar
+            </FancyText>
+          </Pressable>
+
+          <Pressable
+            onPress={selectedItemIndex > 0 ? () => void moveItemBySheet('up') : undefined}
+            disabled={selectedItemIndex <= 0}
+            style={[styles.actionRow, selectedItemIndex <= 0 && styles.actionRowDisabled]}
+          >
+            <MaterialCommunityIcons name='arrow-up' size={18} color={palette.fonts.dark} />
+            <FancyText type='semiBold' size='small' style={styles.actionLabel}>
+              Mover para cima
+            </FancyText>
+          </Pressable>
+
+          <Pressable
+            onPress={
+              selectedItemIndex >= 0 && selectedItemIndex < orderedItems.length - 1
+                ? () => void moveItemBySheet('down')
+                : undefined
+            }
+            disabled={selectedItemIndex < 0 || selectedItemIndex >= orderedItems.length - 1}
+            style={[
+              styles.actionRow,
+              (selectedItemIndex < 0 || selectedItemIndex >= orderedItems.length - 1) && styles.actionRowDisabled,
+            ]}
+          >
+            <MaterialCommunityIcons name='arrow-down' size={18} color={palette.fonts.dark} />
+            <FancyText type='semiBold' size='small' style={styles.actionLabel}>
+              Mover para baixo
+            </FancyText>
+          </Pressable>
+
+          <Pressable
+            onPress={() => {
+              if (!actionsItem) return;
+              confirmDeleteItem(actionsItem);
+            }}
+            style={styles.actionRow}
+          >
+            <MaterialCommunityIcons name='trash-can-outline' size={18} color='#EF4444' />
+            <FancyText type='semiBold' size='small' style={styles.actionLabelDanger}>
+              Excluir
+            </FancyText>
+          </Pressable>
         </View>
       </FancyBottomSheetModal>
     </>
@@ -489,126 +714,168 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
+    flexGrow: 1,
     paddingBottom: 28,
     gap: 12,
   },
+  listContentEmpty: {
+    paddingBottom: 10,
+  },
   headerContainer: {
     paddingTop: 8,
-    paddingBottom: 10,
+    paddingBottom: 4,
     gap: 12,
   },
-  ownerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  observacoesCard: {
-    borderWidth: 1,
-    borderRadius: 22,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    gap: 8,
-  },
-  observacoesHeader: {
+  ownerCard: {
+    borderWidth: 0.6,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: 10,
   },
-  observacoesTitleRow: {
+  ownerLeading: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
+    minWidth: 0,
   },
-  observacoesText: {
-    lineHeight: 19,
+  ownerIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ownerTextBlock: {
+    flex: 1,
+    gap: 2,
+    minWidth: 0,
+  },
+  ownerEyebrowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  ownerEyebrow: {
+    fontSize: 11,
+    lineHeight: 13,
+    letterSpacing: 0.16,
+    includeFontPadding: false,
+  },
+  ownerTitle: {
+    fontSize: 12.5,
+    lineHeight: 15,
+    includeFontPadding: false,
+  },
+  ownerSubtitle: {
+    // tamanho definido via prop size no FancyText
+  },
+  ownerActionButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  observacoesCard: {
+    borderWidth: 0.6,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  observacoesLeading: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingRight: 8,
+  },
+  observacoesIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  observacoesInfo: {
+    flex: 1,
+    gap: 1,
+    minWidth: 0,
+  },
+  observacoesTitle: {
+    flexShrink: 1,
+    fontSize: 12.5,
+    lineHeight: 15,
+    includeFontPadding: false,
+  },
+  observacoesSubtitle: {
+    flexShrink: 1,
+  },
+  observacoesActionButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sectionDivider: {
+    marginVertical: 6,
   },
   listHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  listHeaderInfo: {
-    flex: 1,
-    gap: 2,
-  },
-  addButton: {
-    minWidth: 0,
-    height: 38,
-  },
-  songCard: {
-    minHeight: 92,
-    borderWidth: 1,
-    borderRadius: 22,
-    flexDirection: 'row',
-    alignItems: 'stretch',
-    overflow: 'hidden',
-  },
-  songAccent: {
-    width: 4,
-  },
-  songContent: {
-    flex: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    gap: 10,
-  },
-  songTopRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  songTitleBlock: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    minWidth: 0,
-  },
-  orderBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  songTextBlock: {
-    flex: 1,
-    minWidth: 0,
-    gap: 2,
-  },
-  songTopActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  handleButton: {
-    width: 22,
-    height: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  songMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  songActionsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'flex-end',
-    gap: 8,
-    marginTop: -2,
   },
-  iconButton: {
-    minWidth: 32,
-    width: 32,
+  addMusicButton: {
+    minWidth: 0,
     height: 32,
+    paddingHorizontal: 12,
+    borderRadius: 50,
+  },
+  emptyState: {
+    flexGrow: 1,
+    minHeight: 188,
+    justifyContent: 'flex-start',
+    paddingTop: 18,
   },
   sheetContent: {
     gap: 14,
+  },
+  actionsSheetContent: {
+    gap: 2,
+    marginTop: -6,
+    marginBottom: -16,
+  },
+  actionRow: {
+    minHeight: 42,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  actionRowDisabled: {
+    opacity: 0.4,
+  },
+  actionLabel: {
+    flex: 1,
+  },
+  actionLabelDanger: {
+    flex: 1,
+    color: '#EF4444',
   },
 });

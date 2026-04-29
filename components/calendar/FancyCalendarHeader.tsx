@@ -107,6 +107,9 @@ export default function FancyCalendarHeader({
         <Pressable
           disabled={!prevEnabled}
           onPress={props.onPreviousMonth}
+          accessibilityRole='button'
+          accessibilityLabel='Mês anterior'
+          hitSlop={isAgendaPremium ? { top: 8, bottom: 8, left: 8, right: 3 } : undefined}
           style={[
             styles.navButton,
             isAgendaPremium ? styles.navButtonAgenda : null,
@@ -116,13 +119,16 @@ export default function FancyCalendarHeader({
           <DefaultIcons.Custom
             library="Entypo"
             name="chevron-left"
-            size={isAgendaPremium ? 16 : 18}
+            size={isAgendaPremium ? 20 : 18}
             color={prevEnabled ? palette.primary : palette.icons.inactive2}
           />
         </Pressable>
         <Pressable
           disabled={!nextEnabled}
           onPress={props.onNextMonth}
+          accessibilityRole='button'
+          accessibilityLabel='Próximo mês'
+          hitSlop={isAgendaPremium ? { top: 8, bottom: 8, left: 3, right: 8 } : undefined}
           style={[
             styles.navButton,
             isAgendaPremium ? styles.navButtonAgenda : null,
@@ -132,7 +138,7 @@ export default function FancyCalendarHeader({
           <DefaultIcons.Custom
             library="Entypo"
             name="chevron-right"
-            size={isAgendaPremium ? 16 : 18}
+            size={isAgendaPremium ? 20 : 18}
             color={nextEnabled ? palette.primary : palette.icons.inactive2}
           />
         </Pressable>
@@ -199,9 +205,9 @@ function createStyles(palette: ThemePalette) {
       alignItems: 'center',
     },
     navButtonAgenda: {
-      width: 28,
-      height: 28,
-      borderRadius: 14,
+      width: 34,
+      height: 34,
+      borderRadius: 17,
       backgroundColor: 'transparent',
     },
     navButtonDisabled: {

@@ -189,21 +189,6 @@ const getMinisterioFullItems = (ministerio: ResponseLoginMinisterioDto): DrawerI
         ...baseItems,
         ...commonItems,
         {
-          title: 'Repertório',
-          logo: {
-            type: 'icon',
-            value: {
-              name: 'queue-music',
-              library: 'MaterialIcons',
-              size: 17,
-            },
-          },
-          onPress: {
-            type: 'GoToRoute',
-            routeName: `/ministerios/louvor/repertorio${routeParams}`,
-          },
-        },
-        {
           title: 'Templates de Equipe',
           logo: {
             type: 'icon',

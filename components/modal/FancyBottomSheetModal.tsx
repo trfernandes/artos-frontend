@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 import {
   View,
   Modal,
@@ -6,9 +6,9 @@ import {
   Animated,
   Dimensions,
   PanResponder,
-  KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Keyboard,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { GestureHandlerRootView, TouchableOpacity } from 'react-native-gesture-handler';
@@ -27,14 +27,32 @@ type Props = {
   title?: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  avoidKeyboard?: boolean;
+  keyboardExtraOffset?: number;
 };
 
-export default function FancyBottomSheetModal({ visible, onClose, title, children, footer }: Props) {
+export default function FancyBottomSheetModal({
+  visible,
+  onClose,
+  title,
+  children,
+  footer,
+  avoidKeyboard = true,
+  keyboardExtraOffset = 10,
+}: Props) {
   const palette = usePallete();
   const insets = useSafeAreaInsets();
   const backdropAnim = useRef(new Animated.Value(0)).current;
   const sheetOpacity = useRef(new Animated.Value(0)).current;
   const dragY = useRef(new Animated.Value(0)).current;
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const keyboardOffset = avoidKeyboard && visible && keyboardHeight > 0
+    ? Math.max(0, keyboardHeight - insets.bottom + keyboardExtraOffset)
+    : 0;
+  const sheetMaxHeight = keyboardOffset > 0
+    ? Math.max(180, SCREEN_HEIGHT * 0.88 - keyboardOffset)
+    : SCREEN_HEIGHT * 0.88;
+  const sheetBottomPadding = keyboardOffset > 0 ? 16 : insets.bottom + 16;
 
   useEffect(() => {
     if (visible) {
@@ -47,6 +65,25 @@ export default function FancyBottomSheetModal({ visible, onClose, title, childre
       ]).start();
     }
   }, [visible]);
+
+  useEffect(() => {
+    if (!visible || !avoidKeyboard) {
+      setKeyboardHeight(0);
+      return;
+    }
+
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const showSubscription = Keyboard.addListener(showEvent, (event) => {
+      setKeyboardHeight(event.endCoordinates?.height ?? 0);
+    });
+    const hideSubscription = Keyboard.addListener(hideEvent, () => setKeyboardHeight(0));
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, [avoidKeyboard, visible]);
 
   const handleClose = useCallback(() => {
     Animated.parallel([
@@ -88,56 +125,53 @@ export default function FancyBottomSheetModal({ visible, onClose, title, childre
           </Animated.View>
 
           {/* Sheet */}
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? insets.bottom : 0}
+          <Animated.View
+            style={[
+              styles.sheet,
+              {
+                maxHeight: sheetMaxHeight,
+                marginBottom: keyboardOffset,
+                paddingBottom: sheetBottomPadding,
+                opacity: sheetOpacity,
+                backgroundColor: palette.backgroundColor,
+                transform: [{ translateY: dragY }],
+              },
+            ]}
           >
-            <Animated.View
-              style={[
-                styles.sheet,
-                {
-                  maxHeight: SCREEN_HEIGHT * 0.88,
-                  paddingBottom: insets.bottom + 16,
-                  opacity: sheetOpacity,
-                  backgroundColor: palette.backgroundColor,
-                  transform: [{ translateY: dragY }],
-                },
-              ]}
-            >
-              {/* Handle */}
-              <View style={styles.handleContainer} {...panResponder.panHandlers}>
-                <View style={[styles.handle, { backgroundColor: palette.border }]} />
-              </View>
+            {/* Handle */}
+            <View style={styles.handleContainer} {...panResponder.panHandlers}>
+              <View style={[styles.handle, { backgroundColor: palette.border }]} />
+            </View>
 
-              {/* Header */}
-              <View style={[styles.header, { borderBottomColor: ColorUtils.lightenColor(palette.border, 0.5) }]}>
-                <TouchableOpacity
-                  style={[styles.closeBtn, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14) }]}
-                  onPress={handleClose}
-                >
-                  <DefaultIcons.Custom library='Feather' name='x' size={20} color={palette.fonts.dark} />
-                </TouchableOpacity>
-                <FancyText type='bold' size='medium' color={palette.fonts.dark} style={styles.headerTitle}>
-                  {title}
-                </FancyText>
-                <View style={{ width: 34 }} />
-              </View>
-
-              {/* Body */}
-              <ScrollView
-                style={{ flexShrink: 1, width: '100%' }}
-                contentContainerStyle={styles.body}
-                showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps='handled'
-                keyboardDismissMode='on-drag'
+            {/* Header */}
+            <View style={[styles.header, { borderBottomColor: ColorUtils.lightenColor(palette.border, 0.5) }]}>
+              <TouchableOpacity
+                style={[styles.closeBtn, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14) }]}
+                onPress={handleClose}
               >
-                {children}
-              </ScrollView>
+                <DefaultIcons.Custom library='Feather' name='x' size={20} color={palette.fonts.dark} />
+              </TouchableOpacity>
+              <FancyText type='bold' size='medium' color={palette.fonts.dark} style={styles.headerTitle}>
+                {title}
+              </FancyText>
+              <View style={{ width: 34 }} />
+            </View>
 
-              {/* Footer */}
-              {footer && <View style={styles.footer}>{footer}</View>}
-            </Animated.View>
-          </KeyboardAvoidingView>
+            {/* Body */}
+            <ScrollView
+              style={{ flexShrink: 1, width: '100%' }}
+              contentContainerStyle={styles.body}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps='handled'
+              keyboardDismissMode='interactive'
+              automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+            >
+              {children}
+            </ScrollView>
+
+            {/* Footer */}
+            {footer && <View style={styles.footer}>{footer}</View>}
+          </Animated.View>
         </View>
       </GestureHandlerRootView>
     </Modal>

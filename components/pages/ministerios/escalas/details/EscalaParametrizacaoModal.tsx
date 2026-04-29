@@ -191,7 +191,7 @@ export default function EscalaParametrizacaoModal({
           Esta escala não possui parametrização salva.
         </FancyText>
       ) : (
-        <FancyTabs items={tabs} contentContainerStyle={{ paddingTop: 4 }} />
+        <FancyTabs items={tabs} variant='compact' />
       )}
     </FancyBottomSheetModal>
   );

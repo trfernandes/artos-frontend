@@ -9,6 +9,7 @@ import { useTopSafeInset } from '../../hooks/useTopSafeInset';
 import { usePallete } from '../../hooks/usePallete';
 
 const HEADER_CONTENT_HEIGHT = 40;
+const HEADER_HORIZONTAL_GUTTER = 15;
 
 export type FancyHeaderProps = {
   leftButton?: 'menu' | 'back' | 'close' | React.ReactNode;
@@ -68,7 +69,7 @@ export default function FancyPageHeader({
 }
 
 const HeaderMenuButton = (props: { title?: string; onPress?: () => void; color: string }) => (
-  <View style={[styles.buttonContainer, { position: 'absolute', left: 13, gap: 10 }]}>
+  <View style={[styles.buttonContainer, { position: 'absolute', left: HEADER_HORIZONTAL_GUTTER, gap: 10 }]}>
     <FancyHeaderButton
       icon={{ ...DefaultIconsNames.menu, size: 24 }}
       onPress={props.onPress!}
@@ -88,7 +89,7 @@ const HeaderMenuButton = (props: { title?: string; onPress?: () => void; color: 
 );
 
 const HeaderBackButton = (props: { title?: string; onPress: () => void; color: string }) => (
-  <View style={[styles.buttonContainer, { position: 'absolute', left: 13, gap: 10, borderWidth: 0 }]}>
+  <View style={[styles.buttonContainer, { position: 'absolute', left: HEADER_HORIZONTAL_GUTTER, gap: 10, borderWidth: 0 }]}>
     <FancyHeaderButton
       icon={{ library: 'MaterialCommunityIcons', name: 'arrow-left-thin', size: 28 }}
       onPress={props.onPress}
@@ -137,7 +138,7 @@ const styles = StyleSheet.create({
     borderColor: 'blue',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 13,
+    marginRight: HEADER_HORIZONTAL_GUTTER,
   },
   headerTitle: {
     alignItems: 'center',

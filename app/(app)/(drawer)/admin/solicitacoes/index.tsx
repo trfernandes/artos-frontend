@@ -391,9 +391,6 @@ export default function SolicitacoesConvitesPage() {
           items={tabItems}
           initialIndex={initialTabIndex}
           onTabChange={setTabIndex}
-          containerStyle={styles.tabsContainer}
-          contentContainerStyle={styles.tabContentContainer}
-          headerStyle={styles.tabsHeader}
         />
       </View>
 

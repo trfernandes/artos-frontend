@@ -11,7 +11,9 @@ export type FancyTabHeaderItemProps = {
   status: 'active' | 'inactive';
   onPress?: () => void;
   onMeasuredLayout?: (layout: { x: number; width: number }) => void;
-  stretch?: boolean;
+  equalWidth?: boolean;
+  calculatedWidth?: number;
+  compact?: boolean;
 } & TabItem;
 
 const ACTIVE_SHADOW = Platform.select({
@@ -22,7 +24,7 @@ const ACTIVE_SHADOW = Platform.select({
     shadowRadius: 2.5,
   },
   android: {
-    elevation: 2,
+    elevation: 1,
   },
   default: {},
 });
@@ -30,7 +32,9 @@ const ACTIVE_SHADOW = Platform.select({
 export default function FancyTabHeaderItem({
   status = 'active',
   onMeasuredLayout,
-  stretch = false,
+  equalWidth = false,
+  calculatedWidth,
+  compact = false,
   ...props
 }: FancyTabHeaderItemProps) {
   const palette = usePallete();
@@ -48,7 +52,9 @@ export default function FancyTabHeaderItem({
       onLayout={handleLayout}
       style={[
         styles.container,
-        stretch && styles.containerStretch,
+        equalWidth && styles.containerEqualWidth,
+        calculatedWidth ? { width: calculatedWidth } : undefined,
+        compact && styles.containerCompact,
         isActive ? [styles.active, ACTIVE_SHADOW] : styles.inactive,
       ]}
       accessibilityRole='tab'
@@ -59,18 +65,19 @@ export default function FancyTabHeaderItem({
           <View style={styles.iconContainer}>
             <DefaultIcons.Custom
               {...props.icon}
-              size={16}
+              size={compact ? 12 : 14}
               color={isActive ? palette.fonts.light : palette.fonts.inactive}
             />
           </View>
         ) : null}
 
         <FancyText
-          type={isActive ? 'semiBold' : 'semiBoldItalic'}
+          type='semiBold'
           size='extraSmall'
           numberOfLines={1}
           style={[
             styles.title,
+            compact && styles.titleCompact,
             {
               color: isActive ? palette.fonts.light : palette.fonts.inactive,
             },
@@ -86,18 +93,24 @@ export default function FancyTabHeaderItem({
 function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
     container: {
-      borderRadius: 16,
-      minHeight: 42,
+      borderRadius: 12,
+      minHeight: 34,
       justifyContent: 'center',
       overflow: 'hidden',
-      paddingHorizontal: 14,
-      paddingVertical: 10,
+      paddingHorizontal: 11,
+      paddingVertical: 5,
       borderWidth: 1,
       borderColor: ColorUtils.withAlpha(palette.border, 0.7),
       backgroundColor: palette.backgroundColor2,
     },
-    containerStretch: {
+    containerEqualWidth: {
       flex: 1,
+    },
+    containerCompact: {
+      minHeight: 30,
+      borderRadius: 10,
+      paddingHorizontal: 9,
+      paddingVertical: 4,
     },
     active: {
       backgroundColor: palette.primary,
@@ -110,17 +123,21 @@ function createStyles(palette: ThemePalette) {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 6,
+      gap: 5,
     },
     iconContainer: {
-      width: 16,
+      width: 14,
       alignItems: 'center',
       justifyContent: 'center',
     },
     title: {
-      lineHeight: 16,
+      lineHeight: 14,
       includeFontPadding: false,
-      paddingTop: 1,
+      paddingTop: 0,
+    },
+    titleCompact: {
+      lineHeight: 12,
+      paddingTop: 0,
     },
   });
 }

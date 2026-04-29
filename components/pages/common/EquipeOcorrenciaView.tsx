@@ -1,90 +1,77 @@
 import { useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import FancyBottomSheetModal from '../../modal/FancyBottomSheetModal';
 import FancyBottomSheetSelect from '../../fields/FancyBottomSheetSelect';
 import FancyButton from '../../buttons/FancyButton';
-import FancyChips from '../../FancyChips';
-import DefaultIcons from '../../FancyIcons';
-import FancyImage from '../../images/FancyImage';
 import FancyListEmpty from '../../list/FancyListEmpty';
 import FancyLoading from '../../FancyLoading';
-import FancyScrollView from '../../FancyScrollView';
 import FancyText from '../../FancyText';
 import FancyTextInput from '../../fields/FancyTextInput';
+import EquipeMemberCard from './EquipeMemberCard';
 import { AppImages } from '../../../assets/app_images';
 import { getApiErrorMessage } from '../../../domain/api/api-error';
-import { EscalaItemStatusEnum, EscalaItemStatusEnumLabel } from '../../../domain/enums/Escala/escala-item-status.enum';
+import { EscalaItemStatusEnum } from '../../../domain/enums/Escala/escala-item-status.enum';
 import { MinisterioVoluntarioStatusEnum } from '../../../domain/enums/MinisterioVoluntario/ministerio-voluntario-status.enum';
 import { useAuth } from '../../../contexts/AuthContext';
 import { usePallete } from '../../../hooks/usePallete';
 import { useEscalaItensCrud } from '../../../hooks/useEscalaItensCrud';
 import { useEventoEquipe } from '../../../hooks/useEventoEquipe';
-import { useEventoSetlistResponsavel } from '../../../hooks/useEventoSetlistResponsavel';
 import { useVoluntariosDoMinisterioCrud } from '../../../hooks/useVoluntariosDoMinisterioCrud';
 import { ColorUtils } from '../../../utils/color_utils';
+import { ResponseEquipeOcorrenciaIntegranteDto } from '../../../domain/dtos/Evento/evento-equipe.response';
+
+type Integrante = ResponseEquipeOcorrenciaIntegranteDto & { nomeFuncao: string };
 
 type Props = {
   eventoId: string;
   dataOcorrencia: Date;
   ministerioId?: string;
   modo: 'lider' | 'voluntario';
+  responsavelSetlistVoluntarioIdFallback?: string;
+  responsavelSetlistVoluntarioNomeFallback?: string;
 };
 
-const STATUS_VISUALS: Record<
-  EscalaItemStatusEnum,
-  {
-    color: string;
-    background: string;
-    label: string;
-  }
-> = {
-  [EscalaItemStatusEnum.Pendente]: {
-    color: '#A16207',
-    background: '#FEF3C7',
-    label: EscalaItemStatusEnumLabel[EscalaItemStatusEnum.Pendente],
-  },
-  [EscalaItemStatusEnum.Confirmado]: {
-    color: '#166534',
-    background: '#DCFCE7',
-    label: EscalaItemStatusEnumLabel[EscalaItemStatusEnum.Confirmado],
-  },
-  [EscalaItemStatusEnum.Ausente]: {
-    color: '#B91C1C',
-    background: '#FEE2E2',
-    label: EscalaItemStatusEnumLabel[EscalaItemStatusEnum.Ausente],
-  },
-  [EscalaItemStatusEnum.Substituido]: {
-    color: '#7C2D12',
-    background: '#FFEDD5',
-    label: EscalaItemStatusEnumLabel[EscalaItemStatusEnum.Substituido],
-  },
-  [EscalaItemStatusEnum.SubstituicaoSolicitada]: {
-    color: '#6D28D9',
-    background: '#EDE9FE',
-    label: EscalaItemStatusEnumLabel[EscalaItemStatusEnum.SubstituicaoSolicitada],
-  },
-};
+type TeamStatusFilter = 'all' | EscalaItemStatusEnum;
 
-export default function EquipeOcorrenciaView({ eventoId, dataOcorrencia, ministerioId, modo }: Props) {
+const GRID_GAP = 10;
+const GRID_PADDING_H = 0; // padding horizontal já vem do contentContainerStyle das FancyTabs (20px)
+
+/** Número de colunas baseado na largura da tela */
+function getColumnCount(screenWidth: number): number {
+  if (screenWidth >= 768) return 4;
+  if (screenWidth < 360) return 2;
+  return 3;
+}
+
+export default function EquipeOcorrenciaView({
+  eventoId,
+  dataOcorrencia,
+  ministerioId,
+  modo,
+  responsavelSetlistVoluntarioIdFallback,
+  responsavelSetlistVoluntarioNomeFallback,
+}: Props) {
   const palette = usePallete();
   const queryClient = useQueryClient();
   const { user, igrejaAtiva } = useAuth();
+  const { width: screenWidth } = useWindowDimensions();
+
+  const columnCount = getColumnCount(screenWidth);
   const isLeaderMode = modo === 'lider';
   const dataOcorrenciaIso = dataOcorrencia.toISOString();
 
   const { data, isLoading, refetch } = useEventoEquipe(eventoId, dataOcorrenciaIso, ministerioId);
-  const { voluntariosList, ministerioVoluntariosList, isLoadingMinisterioVoluntarios } = useVoluntariosDoMinisterioCrud(
+  const { ministerioVoluntariosList, isLoadingMinisterioVoluntarios } = useVoluntariosDoMinisterioCrud(
     ministerioId,
     MinisterioVoluntarioStatusEnum.Ativo,
   );
   const { update } = useEscalaItensCrud();
-  const { salvarResponsavelSetlist, isSavingResponsavelSetlist } = useEventoSetlistResponsavel();
 
-  const [responsavelVisible, setResponsavelVisible] = useState(false);
-  const [responsavelSelecionadoId, setResponsavelSelecionadoId] = useState('');
+  const [statusFilter, setStatusFilter] = useState<TeamStatusFilter>('all');
   const [substituicaoVisible, setSubstituicaoVisible] = useState(false);
   const [escalaItemSelecionadoId, setEscalaItemSelecionadoId] = useState<string | null>(null);
   const [novoVoluntarioId, setNovoVoluntarioId] = useState('');
@@ -94,26 +81,82 @@ export default function EquipeOcorrenciaView({ eventoId, dataOcorrencia, ministe
   const integrantesEscaladosIds = useMemo(
     () =>
       new Set(
-        data?.grupos.flatMap((grupo) => grupo.integrantes.map((integrante) => integrante.voluntarioId).filter(Boolean)) ?? [],
+        data?.grupos
+          .flatMap((grupo) => grupo.integrantes.map((integrante) => integrante.voluntarioId))
+          .filter(Boolean) ?? [],
       ),
     [data?.grupos],
   );
 
-  const responsavelOptions = useMemo(
+  const integrantesFlat = useMemo<Integrante[]>(
     () =>
-      voluntariosList.map((voluntario) => ({
-        title: voluntario.nome,
-        value: voluntario.id,
-        left: {
-          type: 'image' as const,
-          source:
-            voluntario.fotoThumbUrl || voluntario.fotoUrl
-              ? { uri: voluntario.fotoThumbUrl || voluntario.fotoUrl || '' }
-              : AppImages.emptyProfile,
-        },
-      })),
-    [voluntariosList],
+      data?.grupos.flatMap((grupo) =>
+        grupo.integrantes.map((integrante) => ({
+          ...integrante,
+          nomeFuncao: grupo.nomeFuncao,
+        })),
+      ) ?? [],
+    [data?.grupos],
   );
+
+  const statusSummary = useMemo(() => {
+    const confirmed = integrantesFlat.filter((item) => item.status === EscalaItemStatusEnum.Confirmado).length;
+    const pending = integrantesFlat.filter((item) => item.status === EscalaItemStatusEnum.Pendente).length;
+    const absent = integrantesFlat.filter(
+      (item) =>
+        item.status === EscalaItemStatusEnum.Ausente || item.status === EscalaItemStatusEnum.Substituido,
+    ).length;
+
+    return [
+      {
+        key: EscalaItemStatusEnum.Confirmado as TeamStatusFilter,
+        label: 'Confirmados',
+        count: confirmed,
+        icon: 'check-circle-outline' as const,
+        color: palette.confirm,
+      },
+      {
+        key: EscalaItemStatusEnum.Pendente as TeamStatusFilter,
+        label: 'Pendentes',
+        count: pending,
+        icon: 'clock-outline' as const,
+        color: palette.warning,
+      },
+      {
+        key: EscalaItemStatusEnum.Ausente as TeamStatusFilter,
+        label: 'Ausentes',
+        count: absent,
+        icon: 'close-circle-outline' as const,
+        color: palette.error,
+      },
+    ];
+  }, [integrantesFlat, palette.confirm, palette.error, palette.warning]);
+
+  const integrantesExibidos = useMemo<Integrante[]>(() => {
+    let lista = integrantesFlat;
+
+    if (statusFilter !== 'all') {
+      if (statusFilter === EscalaItemStatusEnum.Ausente) {
+        lista = lista.filter(
+          (item) =>
+            item.status === EscalaItemStatusEnum.Ausente ||
+            item.status === EscalaItemStatusEnum.Substituido,
+        );
+      } else {
+        lista = lista.filter((item) => item.status === statusFilter);
+      }
+    }
+
+    // Ordena por nome do voluntário (locale pt-BR); vagas abertas ficam no final
+    return [...lista].sort((a, b) => {
+      const nomeA = a.voluntario?.nome ?? '';
+      const nomeB = b.voluntario?.nome ?? '';
+      if (!nomeA && !nomeB) return 0;
+      if (!nomeA) return 1;
+      if (!nomeB) return -1;
+      return nomeA.localeCompare(nomeB, 'pt-BR', { sensitivity: 'base' });
+    });
+  }, [integrantesFlat, statusFilter]);
 
   const substituicaoOptions = useMemo(() => {
     const integranteAtual = data?.grupos
@@ -123,36 +166,26 @@ export default function EquipeOcorrenciaView({ eventoId, dataOcorrencia, ministe
     const funcaoAtualId = integranteAtual?.funcaoId ?? null;
 
     return ministerioVoluntariosList
-      .filter((ministerioVoluntario) => {
-        const voluntarioId = ministerioVoluntario.voluntarioId;
+      .filter((mv) => {
+        const voluntarioId = mv.voluntarioId;
         if (!voluntarioId || voluntarioId === integranteAtual?.voluntarioId) return false;
         if (integrantesEscaladosIds.has(voluntarioId)) return false;
         if (!funcaoAtualId) return true;
-        const funcoes = ministerioVoluntario.funcoes ?? [];
-        return funcoes.length === 0 || funcoes.some((funcao) => funcao.funcaoId === funcaoAtualId);
+        const funcoes = mv.funcoes ?? [];
+        return funcoes.length === 0 || funcoes.some((f) => f.funcaoId === funcaoAtualId);
       })
-      .map((ministerioVoluntario) => ({
-        title: ministerioVoluntario.voluntario?.nome || 'Voluntário',
-        value: ministerioVoluntario.voluntarioId,
+      .map((mv) => ({
+        title: mv.voluntario?.nome || 'Voluntário',
+        value: mv.voluntarioId,
         left: {
           type: 'image' as const,
           source:
-            ministerioVoluntario.voluntario?.fotoThumbUrl || ministerioVoluntario.voluntario?.fotoUrl
-              ? {
-                  uri:
-                    ministerioVoluntario.voluntario?.fotoThumbUrl ||
-                    ministerioVoluntario.voluntario?.fotoUrl ||
-                    '',
-                }
+            mv.voluntario?.fotoThumbUrl || mv.voluntario?.fotoUrl
+              ? { uri: mv.voluntario?.fotoThumbUrl || mv.voluntario?.fotoUrl || '' }
               : AppImages.emptyProfile,
         },
       }));
   }, [data?.grupos, escalaItemSelecionadoId, integrantesEscaladosIds, ministerioVoluntariosList]);
-
-  const openResponsavelSheet = () => {
-    setResponsavelSelecionadoId(data?.responsavelSetlistVoluntarioId || '');
-    setResponsavelVisible(true);
-  };
 
   const openSubstituicaoSheet = (escalaItemId: string) => {
     setEscalaItemSelecionadoId(escalaItemId);
@@ -173,31 +206,6 @@ export default function EquipeOcorrenciaView({ eventoId, dataOcorrencia, ministe
     await refetch();
   };
 
-  const handleSalvarResponsavel = async () => {
-    if (!ministerioId || !responsavelSelecionadoId) return;
-
-    try {
-      await salvarResponsavelSetlist({
-        eventoId,
-        data: {
-          ministerioId,
-          dataOcorrencia: dataOcorrenciaIso,
-          responsavelVoluntarioId: responsavelSelecionadoId,
-          escopo: 'OCORRENCIA' as any,
-        },
-      });
-      await invalidateEquipe();
-      setResponsavelVisible(false);
-      Toast.show({ type: 'success', text1: 'Responsável do setlist atualizado' });
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Erro ao atualizar responsável',
-        text2: getApiErrorMessage(error, 'Não foi possível salvar o responsável do setlist.'),
-      });
-    }
-  };
-
   const handleSubstituir = async () => {
     if (!escalaItemSelecionadoId || !novoVoluntarioId) return;
 
@@ -205,9 +213,7 @@ export default function EquipeOcorrenciaView({ eventoId, dataOcorrencia, ministe
       setIsSalvandoSubstituicao(true);
       await update?.({
         id: escalaItemSelecionadoId,
-        data: {
-          voluntarioId: novoVoluntarioId,
-        },
+        data: { voluntarioId: novoVoluntarioId },
       });
       await invalidateEquipe();
       setSubstituicaoVisible(false);
@@ -227,6 +233,72 @@ export default function EquipeOcorrenciaView({ eventoId, dataOcorrencia, ministe
     }
   };
 
+  // ── Componente de cabeçalho da lista (painel de filtros, modo líder) ──
+  const ListHeader = useMemo(() => {
+    if (!isLeaderMode) return null;
+    return (
+      <View
+        style={[
+          styles.summaryPanel,
+          {
+            backgroundColor: palette.backgroundColor4,
+            borderColor: ColorUtils.withAlpha(palette.borderCard, 0.5),
+          },
+          palette.shadows[100],
+        ]}
+      >
+        {statusSummary.map((item, index) => {
+          const isActive = statusFilter === item.key;
+          return (
+            <Pressable
+              key={item.key}
+              onPress={() => setStatusFilter((current) => (current === item.key ? 'all' : item.key))}
+              style={[
+                styles.summaryStat,
+                index < statusSummary.length - 1 && {
+                  borderRightWidth: 1,
+                  borderRightColor: ColorUtils.withAlpha(palette.borderCard, 0.34),
+                },
+                isActive && { backgroundColor: ColorUtils.withAlpha(item.color, 0.08) },
+              ]}
+            >
+              <View style={styles.summaryStatTop}>
+                <MaterialCommunityIcons
+                  name={item.icon}
+                  size={15}
+                  color={isActive ? item.color : ColorUtils.withAlpha(item.color, 0.92)}
+                />
+                <FancyText
+                  type='bold'
+                  size='small'
+                  style={[styles.summaryCount, { color: isActive ? item.color : palette.fonts.dark }]}
+                >
+                  {item.count}
+                </FancyText>
+              </View>
+              <FancyText
+                type='medium'
+                size='extraSmall'
+                numberOfLines={1}
+                style={[
+                  styles.summaryLabel,
+                  { color: isActive ? item.color : palette.fonts.inactive },
+                ]}
+              >
+                {item.label}
+              </FancyText>
+            </Pressable>
+          );
+        })}
+      </View>
+    );
+  }, [
+    isLeaderMode,
+    palette,
+    statusFilter,
+    statusSummary,
+  ]);
+
   if (isLoading || (isLeaderMode && isLoadingMinisterioVoluntarios)) {
     return <FancyLoading />;
   }
@@ -242,166 +314,38 @@ export default function EquipeOcorrenciaView({ eventoId, dataOcorrencia, ministe
 
   return (
     <>
-      <FancyScrollView contentContainerStyle={styles.contentContainer}>
-        <View
-          style={[
-            styles.responsavelCard,
-            {
-              backgroundColor: palette.backgroundColor4,
-              borderColor: ColorUtils.withAlpha(palette.primary, 0.16),
-              ...palette.shadows[100],
-            },
-          ]}
-        >
-          <FancyImage
-            size={42}
-            source={
-              data.responsavelSetlistVoluntario?.fotoThumbUrl || data.responsavelSetlistVoluntario?.fotoUrl
-                ? {
-                    uri:
-                      data.responsavelSetlistVoluntario?.fotoThumbUrl ||
-                      data.responsavelSetlistVoluntario?.fotoUrl ||
-                      '',
-                  }
-                : AppImages.emptyProfile
-            }
-          />
-
-          <View style={styles.responsavelInfo}>
-            <FancyText type='semiBold' size='small'>
-              {data.responsavelSetlistVoluntario?.nome || 'Responsável não definido'}
-            </FancyText>
-            <FancyChips
-              label='Responsável do setlist'
-              size='small'
-              color={palette.secondary}
-              backgroundColor={ColorUtils.withAlpha(palette.secondary, 0.1)}
-              icon={{ library: 'MaterialCommunityIcons', name: 'music-note-outline', size: 12 }}
-            />
-          </View>
-
-          {isLeaderMode ? (
-            <FancyButton
-              type='light'
-              mode='icon'
-              icon={{ library: 'Feather', name: 'edit-2', size: 16, color: palette.primary }}
-              containerStyle={styles.inlineIconButton}
-              onPress={openResponsavelSheet}
-            />
-          ) : null}
-        </View>
-
-        {data.grupos.map((grupo) => (
-          <View key={`${grupo.funcaoId || grupo.nomeFuncao}`} style={styles.groupSection}>
-            <View style={styles.groupHeader}>
-              <FancyText type='bold' size='small'>
-                {grupo.nomeFuncao}
-              </FancyText>
-              <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                {grupo.integrantes.length} {grupo.integrantes.length === 1 ? 'pessoa' : 'pessoas'}
-              </FancyText>
+      <FlatList<Integrante>
+        data={integrantesExibidos}
+        keyExtractor={(item) => item.escalaItemId}
+        numColumns={columnCount}
+        key={`grid-${columnCount}`} // força re-mount quando o número de colunas muda
+        ListHeaderComponent={ListHeader}
+        contentContainerStyle={[
+          styles.listContent,
+          { paddingHorizontal: GRID_PADDING_H },
+        ]}
+        columnWrapperStyle={columnCount > 1 ? styles.columnWrapper : undefined}
+        // Espaçamento vertical entre linhas (igual ao horizontal do columnWrapper)
+        ItemSeparatorComponent={() => <View style={{ height: GRID_GAP }} />}
+        renderItem={({ item, index }) => {
+          const isCurrentUser = item.voluntario?.id === user?.user?.id;
+          return (
+            // alignSelf 'stretch' + flex:1 no surface = todos os cards da linha
+            // ficam com a mesma altura (altura do mais alto da linha)
+            <View style={[styles.cardCell, { flex: 1 / columnCount }]}>
+              <EquipeMemberCard
+                integrante={item}
+                isCurrentUser={isCurrentUser}
+                isLeaderMode={isLeaderMode}
+                index={index}
+                onSubstituir={openSubstituicaoSheet}
+              />
             </View>
-
-            <View style={styles.groupList}>
-              {grupo.integrantes.map((integrante) => {
-                const voluntario = integrante.voluntario;
-                const isCurrentUser = voluntario?.id === user?.user?.id;
-                const statusVisual = STATUS_VISUALS[integrante.status as EscalaItemStatusEnum] ?? {
-                  color: palette.fonts.inactive,
-                  background: ColorUtils.withAlpha(palette.fonts.inactive, 0.14),
-                  label: integrante.status,
-                };
-
-                return (
-                  <View
-                    key={integrante.escalaItemId}
-                    style={[
-                      styles.memberRow,
-                      {
-                        backgroundColor: palette.backgroundColor2,
-                        borderColor: isCurrentUser
-                          ? ColorUtils.withAlpha(palette.primary, 0.22)
-                          : ColorUtils.withAlpha(palette.borderCard, 0.65),
-                      },
-                    ]}
-                  >
-                    <FancyImage
-                      size={40}
-                      source={
-                        voluntario?.fotoThumbUrl || voluntario?.fotoUrl
-                          ? { uri: voluntario.fotoThumbUrl || voluntario.fotoUrl || '' }
-                          : AppImages.emptyProfile
-                      }
-                    />
-
-                    <View style={styles.memberInfo}>
-                      <View style={styles.memberTitleRow}>
-                        <FancyText type='semiBold' size='small' numberOfLines={1} style={styles.memberName}>
-                          {voluntario?.nome || 'Vaga aberta'}
-                        </FancyText>
-                        {isCurrentUser ? (
-                          <FancyChips
-                            label='Você'
-                            size='small'
-                            color={palette.primary}
-                            backgroundColor={ColorUtils.withAlpha(palette.primary, 0.12)}
-                          />
-                        ) : null}
-                      </View>
-
-                      <View style={styles.memberMetaRow}>
-                        <FancyChips
-                          label={statusVisual.label}
-                          size='small'
-                          color={statusVisual.color}
-                          backgroundColor={statusVisual.background}
-                        />
-                      </View>
-                    </View>
-
-                    {isLeaderMode ? (
-                      <FancyButton
-                        type='text'
-                        mode='icon'
-                        icon={{ library: 'MaterialCommunityIcons', name: 'swap-horizontal', size: 18, color: palette.primary }}
-                        containerStyle={styles.inlineIconButton}
-                        onPress={() => openSubstituicaoSheet(integrante.escalaItemId)}
-                      />
-                    ) : null}
-                  </View>
-                );
-              })}
-            </View>
-          </View>
-        ))}
-      </FancyScrollView>
-
-      <FancyBottomSheetModal
-        visible={responsavelVisible}
-        onClose={() => setResponsavelVisible(false)}
-        title='Responsável do setlist'
-        footer={
-          <FancyButton
-            label='Salvar responsável'
-            isLoading={isSavingResponsavelSetlist}
-            disabled={!responsavelSelecionadoId}
-            onPress={() => void handleSalvarResponsavel()}
-          />
-        }
-      >
-        <View style={styles.sheetForm}>
-          <FancyText size='small' type='medium' color={palette.fonts.inactive}>
-            Escolha quem ficará responsável por conduzir o setlist desta ocorrência.
-          </FancyText>
-          <FancyBottomSheetSelect
-            label='Voluntário'
-            title='Selecionar responsável'
-            value={responsavelSelecionadoId}
-            onChange={(value) => setResponsavelSelecionadoId(String(value || ''))}
-            listItems={responsavelOptions}
-          />
-        </View>
-      </FancyBottomSheetModal>
+          );
+        }}
+        removeClippedSubviews
+        initialNumToRender={12}
+      />
 
       <FancyBottomSheetModal
         visible={substituicaoVisible}
@@ -409,7 +353,8 @@ export default function EquipeOcorrenciaView({ eventoId, dataOcorrencia, ministe
         title='Substituir voluntário'
         footer={
           <FancyButton
-            label='Confirmar substituição'
+            label='Confirmar'
+            icon={{ library: 'MaterialCommunityIcons', name: 'check', size: 18 }}
             isLoading={isSalvandoSubstituicao}
             disabled={!novoVoluntarioId}
             onPress={() => void handleSubstituir()}
@@ -421,13 +366,17 @@ export default function EquipeOcorrenciaView({ eventoId, dataOcorrencia, ministe
             label='Novo voluntário'
             title='Selecionar substituto'
             value={novoVoluntarioId}
-            onChange={(value) => setNovoVoluntarioId(String(value || ''))}
+            onChange={(value: string) => setNovoVoluntarioId(String(value || ''))}
             listItems={substituicaoOptions}
           />
           <FancyTextInput
             label='Motivo'
             value={motivoSubstituicao}
-            inputProps={{ onChangeText: setMotivoSubstituicao, multiline: true, style: { minHeight: 90, textAlignVertical: 'top' } }}
+            inputProps={{
+              onChangeText: setMotivoSubstituicao,
+              multiline: true,
+              style: { minHeight: 90, textAlignVertical: 'top' },
+            }}
           />
         </View>
       </FancyBottomSheetModal>
@@ -436,67 +385,48 @@ export default function EquipeOcorrenciaView({ eventoId, dataOcorrencia, ministe
 }
 
 const styles = StyleSheet.create({
-  contentContainer: {
-    paddingTop: 8,
-    paddingBottom: 28,
-    gap: 16,
+  listContent: {
+    paddingTop: 6,
+    paddingBottom: 24,
   },
-  responsavelCard: {
+  columnWrapper: {
+    gap: GRID_GAP,
+  },
+  cardCell: {
+    // flex definido inline; stretch faz todos os cards da linha terem mesma altura
+    alignSelf: 'stretch',
+  },
+  // ── Painel de resumo (modo líder) ──
+  summaryPanel: {
     borderWidth: 1,
-    borderRadius: 22,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
+    borderRadius: 18,
+    overflow: 'hidden',
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    marginBottom: GRID_GAP,
+  },
+  summaryStat: {
+    flex: 1,
+    minHeight: 56,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    justifyContent: 'center',
+    gap: 4,
+  },
+  summaryStatTop: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-  },
-  responsavelInfo: {
-    flex: 1,
+    justifyContent: 'center',
     gap: 6,
   },
-  inlineIconButton: {
-    minWidth: 34,
-    width: 34,
-    height: 34,
+  summaryCount: {
+    fontSize: 15,
+    lineHeight: 17,
   },
-  groupSection: {
-    gap: 10,
-  },
-  groupHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 2,
-  },
-  groupList: {
-    gap: 10,
-  },
-  memberRow: {
-    borderWidth: 1,
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  memberInfo: {
-    flex: 1,
-    gap: 6,
-    minWidth: 0,
-  },
-  memberTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  memberName: {
-    flex: 1,
-  },
-  memberMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  summaryLabel: {
+    textAlign: 'center',
+    fontSize: 10.6,
+    lineHeight: 12.2,
   },
   sheetForm: {
     gap: 14,

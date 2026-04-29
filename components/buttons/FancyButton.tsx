@@ -108,6 +108,7 @@ export default function FancyButton({
 
   // Adiciona paddingHorizontal apenas se houver label (texto)
   const hasLabel = !!(props.label || loadingText);
+  const loadingLabel = loadingText || props.label;
   const paddingStyle = hasLabel && mode === 'default' ? { paddingHorizontal: 12 } : {};
 
   // Novo padrão: spinner SEMPRE à esquerda do texto quando loading
@@ -138,28 +139,30 @@ export default function FancyButton({
           <ActivityIndicator
             size={spinnerSize}
             color={loadingColor || (isBtnDisabled ? palette.icons.dark : palette.primary)}
-            style={{ marginRight: 8 }}
+            style={loadingLabel ? { marginRight: 8 } : undefined}
           />
-          <FancyText
-            {...restLabelProps}
-            type={restLabelProps.type ?? 'semiBold'}
-            size={props.labelProps?.size ?? 'small'}
-            numberOfLines={numberOfLines}
-            minimumFontScale={minimumFontScale}
-            style={[
-              { textAlign: 'center' },
-              loadingColor
-                ? { color: loadingColor }
-                : isBtnDisabled
-                  ? parameters.disabledTextStyle
-                  : parameters.textStyle,
-              props.labelStyle,
-              labelPropsStyle,
-            ]}
-            {...textProps}
-          >
-            {loadingText || props.label}
-          </FancyText>
+          {loadingLabel ? (
+            <FancyText
+              {...restLabelProps}
+              type={restLabelProps.type ?? 'semiBold'}
+              size={props.labelProps?.size ?? 'small'}
+              numberOfLines={numberOfLines}
+              minimumFontScale={minimumFontScale}
+              style={[
+                { textAlign: 'center' },
+                loadingColor
+                  ? { color: loadingColor }
+                  : isBtnDisabled
+                    ? parameters.disabledTextStyle
+                    : parameters.textStyle,
+                props.labelStyle,
+                labelPropsStyle,
+              ]}
+              {...textProps}
+            >
+              {loadingLabel}
+            </FancyText>
+          ) : null}
         </>
       ) : (
         <>
@@ -175,10 +178,7 @@ export default function FancyButton({
                 },
                 isBtnDisabled ? parameters.disabledIconStyle : parameters.iconStyle,
                 props.iconStyle,
-                {
-                  color:
-                    props.icon.color || (isBtnDisabled ? palette.icons.dark : palette.icons.light),
-                },
+                ...(props.icon.color !== undefined ? [{ color: props.icon.color }] : []),
                 props.icon.style,
               ],
             })}

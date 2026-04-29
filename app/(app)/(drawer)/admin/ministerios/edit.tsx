@@ -192,9 +192,6 @@ export default function MinisteriosEditPage() {
         <FancyTabs
           onTabChange={setTabIndex}
           items={tabsConfig}
-          headerStyle={{ paddingHorizontal: 20 }}
-          containerStyle={styles.tabsContainer}
-          contentContainerStyle={styles.tabContent}          
         />
       </FormProvider>
 

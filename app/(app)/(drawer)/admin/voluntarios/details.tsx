@@ -163,7 +163,7 @@ export default function VoluntariosDetailsPage() {
 
   return (
     <FancyPageView style={styles.container}>
-      <FancyTabs items={TAB_DATA} containerStyle={{ flex: 1, paddingHorizontal: 20 }} contentContainerStyle={{ flex: 1, borderWidth: 0 }} />
+      <FancyTabs items={TAB_DATA} />
     </FancyPageView>
   );
 }

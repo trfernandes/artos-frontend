@@ -482,6 +482,7 @@ function createStyles(palette: ThemePalette) {
     listContent: {
       paddingHorizontal: 12,
       paddingTop: 16,
+      paddingBottom: 24,
     },
     listItem: {
       flexDirection: 'row',

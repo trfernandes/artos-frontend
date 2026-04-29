@@ -11,6 +11,7 @@ import { UpdateRepertorioMusicaSecaoDto } from '../dtos/Repertorio/repertorio-mu
 import { ResponseRepertorioMusicaSecaoDto } from '../dtos/Repertorio/repertorio-musica-secao.response';
 import { ResponseRepertorioMusicaArranjoDto } from '../dtos/Repertorio/repertorio-musica-arranjo.response';
 import { UpsertRepertorioMusicaArranjoDto } from '../dtos/Repertorio/repertorio-musica-arranjo.update';
+import { ResponseYoutubeSearchItemDto } from '../dtos/Repertorio/youtube-search-item.response';
 
 type ApiEnvelope<T> = { data: T };
 
@@ -32,6 +33,13 @@ class RepertorioApiClass {
 
   async removeCategoria(igrejaId: string, id: string) {
     await apiClient.delete(`/igrejas/${igrejaId}/repertorio-categorias/${id}`);
+  }
+
+  async searchYoutubeVersions(igrejaId: string, query: string, limit = 6): Promise<ResponseYoutubeSearchItemDto[]> {
+    const response = await apiClient.get<ApiEnvelope<ResponseYoutubeSearchItemDto[]>>(`/igrejas/${igrejaId}/repertorio/youtube/search`, {
+      params: { query, limit },
+    });
+    return response.data.data;
   }
 
   async searchMusicas(igrejaId: string, ministerioId: string, query?: DynamicQuery): Promise<ResponseRepertorioMusicaDto[]> {

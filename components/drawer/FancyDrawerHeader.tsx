@@ -1,19 +1,16 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { View, StyleSheet, StyleProp, ImageStyle, TouchableOpacity } from 'react-native';
+import { router } from 'expo-router';
 import FancyText from '../FancyText';
+import FancyAvatarImage from '../images/FancyImage';
+import FancyDrawerIgrejaSelector from './FancyDrawerIgrejaSelector';
 import { ThemePalette } from '../../constants/colors';
 import { useAuth } from '../../contexts/AuthContext';
-import DefaultIcons from '../FancyIcons';
-import { router } from 'expo-router';
-import FancyAvatarImage from '../images/FancyImage';
-import { useVoluntariosCrud } from '../../hooks/useVoluntariosCrud';
-import { Operator, ValueType } from '../../domain/utils/query_utils';
-import { useMemo } from 'react';
 import { AppImages } from '../../assets/app_images';
-import FancyDrawerIgrejaSelector from './FancyDrawerIgrejaSelector';
 import { useTopSafeInset } from '../../hooks/useTopSafeInset';
 import { usePallete } from '../../hooks/usePallete';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
+import DefaultIcons from '../FancyIcons';
 
 export default function FancyDrawerHeader() {
   const auth = useAuth();
@@ -21,28 +18,8 @@ export default function FancyDrawerHeader() {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
 
-  const params = useMemo(() => {
-    if (!auth.user?.user?.id) return undefined;
-
-    return {
-      where: {
-        conditions: [
-          {
-            path: 'id',
-            operator: Operator.EQUALS,
-            value: { type: ValueType.LITERAL as const, value: auth.user.user.id },
-          },
-        ],
-      },
-    };
-  }, [auth.user?.user?.id]);
-
-  const { data } = useVoluntariosCrud({
-    initialParams: params,
-    autoFetch: true,
-  });
-
-  //   const profileCompletion = data && data.length > 0 ? calculateProfileCompletion(data?.[0]) : 0;
+  const nomeCompleto = auth.user?.user?.nome ?? '';
+  const handleOpenProfile = () => router.push('pessoal/perfil');
 
   return (
     <LinearGradient
@@ -51,34 +28,63 @@ export default function FancyDrawerHeader() {
       end={{ x: 0.9, y: 1 }}
       style={[styles.container, { paddingTop: topInset + 12 }]}
     >
-      <View style={styles.contentContainer}>
-        <TouchableOpacity onPress={() => router.push('pessoal/perfil')}>
-          <View style={styles.dataContainer}>
-            <View style={styles.infoContainer}>
-              <FancyText size={'small'} type='medium' color={palette.fonts.light}>
-                Olá,
+      <View style={styles.identityStrip}>
+        <TouchableOpacity
+          onPress={handleOpenProfile}
+          activeOpacity={0.82}
+          accessibilityRole='button'
+          accessibilityLabel={`Perfil de ${nomeCompleto || 'usuário'}`}
+          accessibilityHint='Toque para abrir seu perfil'
+          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+        >
+          <FancyAvatarImage
+            size={44}
+            source={
+              auth.user?.user?.fotoThumbUrl || auth.user?.user?.fotoUrl
+                ? { uri: auth.user?.user?.fotoThumbUrl || auth.user?.user?.fotoUrl || '' }
+                : AppImages.emptyProfile
+            }
+            style={styles.avatar as StyleProp<ImageStyle>}
+          />
+        </TouchableOpacity>
+
+        <View style={styles.headerContent}>
+          <TouchableOpacity
+            onPress={handleOpenProfile}
+            activeOpacity={0.82}
+            style={styles.profileButton}
+            accessibilityRole='button'
+            accessibilityLabel={`Perfil de ${nomeCompleto || 'usuário'}`}
+            accessibilityHint='Toque para abrir seu perfil'
+          >
+            <View style={styles.profileTextColumn}>
+              <FancyText
+                size='large'
+                type='bold'
+                color={palette.fonts.light}
+                numberOfLines={1}
+              >
+                {nomeCompleto || 'Meu perfil'}
               </FancyText>
-              <FancyText size={'medium'} type='bold' color={palette.fonts.light}>
-                {auth.user?.user?.nome}
-              </FancyText>
-              <FancyText size={'extraSmall'} type='mediumItalic' color={palette.fonts.light} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} style={{ marginTop: 3 }}>
-                {auth.user?.user?.email}
+              <FancyText size='extraSmall' type='medium' color='rgba(255, 255, 255, 0.72)' numberOfLines={1}>
+                Ver meu perfil
               </FancyText>
             </View>
-            <View style={styles.avatarContainer}>
-              <FancyAvatarImage
-                size={40}
-                source={
-                  auth.user?.user?.fotoThumbUrl || auth.user?.user?.fotoUrl
-                    ? { uri: auth.user?.user?.fotoThumbUrl || auth.user?.user?.fotoUrl || '' }
-                    : AppImages.emptyProfile
-                }
-                style={styles.avatar as StyleProp<ImageStyle>}
+
+            <View style={styles.profileChevron}>
+              <DefaultIcons.Custom
+                library='MaterialCommunityIcons'
+                name='chevron-right'
+                size={18}
+                color='rgba(255, 255, 255, 0.74)'
               />
             </View>
-            <DefaultIcons.Custom library='Feather' name='chevron-right' size={28} color={palette.fonts.light} />
-          </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
+
+        </View>
+      </View>
+
+      <View style={styles.selectorRow}>
         <FancyDrawerIgrejaSelector />
       </View>
     </LinearGradient>
@@ -89,41 +95,54 @@ function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
     container: {
       width: '100%',
-      borderColor: 'red',
-      alignItems: 'center',
-      paddingLeft: 16,
-      paddingRight: 6,
-      paddingBottom: 26,
+      paddingHorizontal: 16,
+      paddingBottom: 14,
+      gap: 10,
     },
-    contentContainer: {
-      width: '100%',
-      flexDirection: 'column',
-      gap: 15,
-    },
-    dataContainer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-    infoContainer: {
-      flex: 1,
-      borderColor: 'rgb(255, 0, 204)',
-      gap: 0,
-      justifyContent: 'center',
-    },
-    avatarContainer: {
-      borderColor: 'rgb(0, 255, 34)',
-      justifyContent: 'center',
-    },
-    buttonContainer: {
-      borderColor: 'rgb(0, 225, 255)',
+    identityStrip: {
       flexDirection: 'row',
       alignItems: 'flex-start',
-      justifyContent: 'space-between',
-      gap: 15,
+      gap: 12,
+      width: '100%',
     },
-    button: { borderWidth: 0, maxHeight: 'auto', minHeight: 'auto', padding: 0, gap: 5 },
+    headerContent: {
+      flex: 1,
+      minWidth: 0,
+      gap: 7,
+      paddingTop: 1,
+    },
+    profileButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      width: '100%',
+      gap: 8,
+    },
+    profileTextColumn: {
+      flex: 1,
+      gap: 1,
+      justifyContent: 'center',
+      minWidth: 0,
+    },
+    profileChevron: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    },
+    selectorRow: {
+      alignItems: 'flex-start',
+    },
     avatar: {
       backgroundColor: palette.backgroundColor2,
-      height: 50,
+      height: 44,
+      width: 44,
       aspectRatio: 1,
       borderRadius: 100,
+      borderWidth: 1.5,
+      borderColor: 'rgba(255, 255, 255, 0.35)',
+      boxShadow: 'none',
     },
   });
 }

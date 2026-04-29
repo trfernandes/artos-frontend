@@ -7,16 +7,13 @@ import { useAuth } from '../../contexts/AuthContext';
 import { ResponseLoginIgrejaDto } from '../../domain/dtos/login/login.response';
 import FancyDrawerIgrejaSelectorModal from './FancyDrawerIgrejaSelectorModal';
 import { ThemePalette } from '../../constants/colors';
-import { usePallete } from '../../hooks/usePallete';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export default function FancyDrawerIgrejaSelector() {
-  const Pallete = usePallete();
   const styles = useThemedStyles(createStyles);
   const { user, igrejaAtiva, setIgrejaAtiva } = useAuth();
   const [modalVisible, setModalVisible] = useState(false);
 
-  // Filtra igrejas válidas (apenas remove igrejas sem id ou nome)
   const igrejasReais = (user?.igrejas || []).filter((igreja) => igreja.id && igreja.nome);
 
   const handleTrocarIgreja = async (igreja: ResponseLoginIgrejaDto) => {
@@ -28,19 +25,21 @@ export default function FancyDrawerIgrejaSelector() {
 
   return (
     <>
-      {/* CARD COLAPSADO */}
       <TouchableOpacity
         onPress={() => setModalVisible(true)}
         activeOpacity={0.7}
-        style={styles.cardContainer}
+        style={styles.row}
+        accessibilityRole='button'
+        accessibilityLabel={`Igreja ativa: ${igrejaAtiva?.nome || 'Selecionar igreja'}`}
+        accessibilityHint='Toque para trocar de igreja'
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
-        {/* Logo - QUADRADO ARREDONDADO */}
         {igrejaAtiva?.logoThumbUrl || igrejaAtiva?.logoUrl ? (
           <FancyImage
             source={{
               uri: (igrejaAtiva.logoThumbUrl || igrejaAtiva.logoUrl) as string,
             }}
-            size={28}
+            size={18}
             style={styles.logo}
           />
         ) : (
@@ -49,27 +48,23 @@ export default function FancyDrawerIgrejaSelector() {
               library='MaterialCommunityIcons'
               name='church'
               color='#FFFFFF'
-              size={14}
-              style={{ marginBottom: 1 }}
+              size={10}
             />
           </View>
         )}
 
-        {/* Nome */}
-        <FancyText style={styles.nomeText} size='medium' type='semiBold' numberOfLines={1}>
-          {igrejaAtiva?.nome || 'Selecione uma igreja'}
+        <FancyText size='extraSmall' type='semiBold' color='rgba(255, 255, 255, 0.92)' numberOfLines={1} style={styles.nomeText}>
+          {igrejaAtiva?.nome || 'Selecionar igreja'}
         </FancyText>
 
-        {/* Chevron */}
         <DefaultIcons.Custom
           library='MaterialCommunityIcons'
           name='chevron-down'
-          size={18}
-          color='rgba(255, 255, 255, 0.6)'
+          size={15}
+          color='rgba(255, 255, 255, 0.7)'
         />
       </TouchableOpacity>
 
-      {/* MODAL */}
       <FancyDrawerIgrejaSelectorModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
@@ -81,41 +76,39 @@ export default function FancyDrawerIgrejaSelector() {
   );
 }
 
-function createStyles(Pallete: ThemePalette) {
+function createStyles(_palette: ThemePalette) {
   return StyleSheet.create({
-    // CARD COLAPSADO
-    cardContainer: {
-      marginRight: 10,
-      marginBottom: 8,
-      height: 38,
-      backgroundColor: 'rgba(255, 255, 255, 0.15)',
-      borderRadius: 10,
-      paddingHorizontal: 8,
-      paddingVertical: 10,
+    row: {
       flexDirection: 'row',
       alignItems: 'center',
+      gap: 5,
+      alignSelf: 'flex-start',
+      maxWidth: '100%',
+      paddingVertical: 5,
+      paddingLeft: 6,
+      paddingRight: 8,
+      borderRadius: 999,
+      backgroundColor: 'rgba(255, 255, 255, 0.12)',
+      borderWidth: 1,
+      borderColor: 'rgba(255, 255, 255, 0.12)',
     },
     logo: {
-      width: 24,
-      height: 24,
+      width: 16,
+      height: 16,
       borderRadius: 9999,
-      borderWidth: 0.2,
-      borderColor: Pallete.border,
-      marginRight: 12,
+      boxShadow: 'none',
     },
     logoPlaceholder: {
-      width: 26,
-      height: 26,
+      width: 16,
+      height: 16,
       borderRadius: 999,
-      backgroundColor: Pallete.primary,
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
       justifyContent: 'center',
       alignItems: 'center',
-      marginRight: 12,
     },
     nomeText: {
-      flex: 1,
-      fontWeight: '500',
-      color: '#FFFFFF',
+      color: 'rgba(255, 255, 255, 0.92)',
+      flexShrink: 1,
     },
   });
 }

@@ -29,6 +29,7 @@ import { getApiErrorMessage } from '../../../../../domain/api/api-error';
 import { DateUtilsApi } from '../../../../../utils/date_utils';
 import { ResponseEscalaSubstituicaoDto } from '../../../../../domain/dtos/Escala/escala-substituicao.response';
 import { resolveEventoEnsaioInfo } from '../../../../../utils/evento-ensaio';
+import { ResponseVoluntarioDto } from '../../../../../domain/dtos/Voluntario/voluntario.response';
 
 export const StatusColorMap: Record<EscalaItemStatusEnum, string> = {
   [EscalaItemStatusEnum.Pendente]: '#F59E0B', // Amber 500
@@ -47,6 +48,7 @@ export type EscalaDoDiaAgrupada = {
   itens: ResponseEscalaItemDto[];
   horarioEnsaio?: string;
   responsavelSetlistVoluntarioId?: string;
+  responsavelSetlistVoluntario?: ResponseVoluntarioDto | null;
 };
 
 export default function MinhasEscalasIndexPage() {
@@ -238,6 +240,7 @@ export default function MinhasEscalasIndexPage() {
                 horarioEnsaioPadrao: item.evento?.horarioEnsaioPadrao,
               }).horario,
               responsavelSetlistVoluntarioId: item.responsavelSetlistVoluntarioId,
+              responsavelSetlistVoluntario: item.responsavelSetlistVoluntario ?? null,
             };
             map.set(key, agrupado);
           }
@@ -253,6 +256,9 @@ export default function MinhasEscalasIndexPage() {
           }
           if (!agrupado.responsavelSetlistVoluntarioId) {
             agrupado.responsavelSetlistVoluntarioId = item.responsavelSetlistVoluntarioId;
+          }
+          if (!agrupado.responsavelSetlistVoluntario && item.responsavelSetlistVoluntario) {
+            agrupado.responsavelSetlistVoluntario = item.responsavelSetlistVoluntario;
           }
 
           // 3) sempre adiciona o registro no grupo

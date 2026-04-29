@@ -9,8 +9,7 @@ import EventoInfoCard from '../../../common/EventoInfoCard';
 import { ResponseEventoDto } from '../../../../../domain/dtos/Evento/evento.response';
 import EventoSetlistTab from '../../../common/EventoSetlistTab';
 import { useAuth } from '../../../../../contexts/AuthContext';
-import { IgrejaVoluntarioRoleEnum } from '../../../../../domain/enums/Igreja/voluntario-role.enum';
-import { MinisterioTipoEnum } from '../../../../../domain/enums/Ministerio/ministerio-tipo.enum';
+import { isLouvorMinisterioTipo } from '../../../../../utils/evento-ensaio';
 
 export default function EventoDetails(props: {
   evento: ResponseEventoDto;
@@ -19,17 +18,20 @@ export default function EventoDetails(props: {
   ministerioNome?: string;
   ministerioId?: string;
   responsavelSetlistVoluntarioId?: string;
+  responsavelSetlistNome?: string;
 }) {
   const { igrejaAtiva, user } = useAuth();
   const isLouvorMinisterio = useMemo(
-    () => igrejaAtiva?.ministerios?.some((ministerio) => ministerio.id === props.ministerioId && ministerio.tipo === MinisterioTipoEnum.Louvor) ?? false,
+    () =>
+      igrejaAtiva?.ministerios?.some(
+        (ministerio) => ministerio.id === props.ministerioId && isLouvorMinisterioTipo(ministerio.tipo),
+      ) ?? false,
     [igrejaAtiva?.ministerios, props.ministerioId],
   );
-  const canEditSetlist =
+  const isSetlistResponsavel =
     isLouvorMinisterio &&
-    (igrejaAtiva?.role === IgrejaVoluntarioRoleEnum.ADMIN ||
-      igrejaAtiva?.role === IgrejaVoluntarioRoleEnum.LIDER ||
-      props.responsavelSetlistVoluntarioId === user?.user?.id);
+    !!props.responsavelSetlistVoluntarioId &&
+    props.responsavelSetlistVoluntarioId === user?.user?.id;
 
   const TABS_DATA: TabItem[] = useMemo(() => {
     const tabs: TabItem[] = [
@@ -56,6 +58,8 @@ export default function EventoDetails(props: {
             eventoId={props.evento.id!}
             dataOcorrencia={props.dataOcorrencia}
             ministerioId={props.ministerioId}
+            responsavelSetlistVoluntarioId={props.responsavelSetlistVoluntarioId}
+            responsavelSetlistNome={props.responsavelSetlistNome}
           />
         ),
       },
@@ -70,22 +74,20 @@ export default function EventoDetails(props: {
             eventoId={props.evento.id!}
             dataOcorrencia={props.dataOcorrencia}
             ministerioId={props.ministerioId}
-            mode={canEditSetlist ? 'responsavel' : 'leitura'}
+            mode={isSetlistResponsavel ? 'responsavel' : 'leitura'}
+            responsavelSetlistNome={props.responsavelSetlistNome ?? null}
           />
         ),
       });
     }
 
     return tabs;
-  }, [canEditSetlist, isLouvorMinisterio, props.dataOcorrencia, props.evento, props.horarioEnsaio, props.ministerioId, props.ministerioNome]);
+  }, [isLouvorMinisterio, isSetlistResponsavel, props.dataOcorrencia, props.evento, props.horarioEnsaio, props.ministerioId, props.ministerioNome, props.responsavelSetlistNome]);
 
   return (
     <FancyPageView style={styles.container}>
       <FancyTabs
         items={TABS_DATA}
-        containerStyle={{ flex: 1 }}
-        headerStyle={{ paddingHorizontal: 20 }}
-        contentContainerStyle={{ flex: 1, paddingHorizontal: 20 }}
       />
     </FancyPageView>
   );

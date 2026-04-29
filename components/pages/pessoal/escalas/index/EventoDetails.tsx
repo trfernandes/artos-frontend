@@ -53,7 +53,7 @@ export default function EventoDetails({ eventoId, data, ...props }: EventoDetail
       {isLoadingEventos ? (
         <FancyLoading />
       ) : (
-        <FancyTabs items={TAB_CONFIG} contentContainerStyle={{ paddingRight: 0, paddingTop: 5, borderWidth: 0 }} />
+        <FancyTabs items={TAB_CONFIG} variant='compact' />
       )}
     </FancyModalDialog>
   );

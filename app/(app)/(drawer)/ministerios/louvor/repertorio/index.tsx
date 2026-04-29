@@ -11,11 +11,12 @@ import { MinisterioTipoEnum } from '../../../../../../domain/enums/Ministerio/mi
 import { VoluntarioHierarquiaEnum } from '../../../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
 import { RecursoPermissaoEnum, TipoPermissaoEnum } from '../../../../../../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
 import { useRepertorioCategorias, useRepertorioMusicas } from '../../../../../../hooks/useRepertorio';
-import { Pallete } from '../../../../../../constants/colors';
+import { usePallete } from '../../../../../../hooks/usePallete';
 import { DefaultIconsNames } from '../../../../../../constants/icons';
 
 export default function MinisterioLouvorRepertorioIndexPage() {
   const params = useLocalSearchParams<{ ministerioId?: string }>();
+  const palette = usePallete();
   const { igrejaAtiva } = useAuth();
   const ministerioId = params.ministerioId || igrejaAtiva?.ministerios?.find((ministerio) => ministerio.tipo === MinisterioTipoEnum.Louvor)?.id;
   const ministerioAtual = igrejaAtiva?.ministerios?.find((ministerio) => ministerio.id === ministerioId);
@@ -78,6 +79,8 @@ export default function MinisterioLouvorRepertorioIndexPage() {
             <FancyButton
               label='Gerenciar categorias'
               type='light'
+              size={34}
+              icon={{ library: 'MaterialCommunityIcons', name: 'shape-outline', size: 16 }}
               containerStyle={styles.categoriesButton}
               onPress={() => setCategoriasVisible(true)}
               disabled={!canManageRepertorio}
@@ -109,7 +112,7 @@ export default function MinisterioLouvorRepertorioIndexPage() {
                         },
                       },
                       {
-                        icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error },
+                        icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: palette.error },
                         onPress: () => {
                           void removerMusica(item.id);
                         },
@@ -148,8 +151,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   categoriesButton: {
-    height: 40,
     alignSelf: 'flex-start',
-    paddingHorizontal: 14,
   },
 });

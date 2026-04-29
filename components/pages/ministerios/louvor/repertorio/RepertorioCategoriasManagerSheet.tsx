@@ -4,13 +4,16 @@ import FancyBottomSheetModal from '../../../../modal/FancyBottomSheetModal';
 import FancyButton from '../../../../buttons/FancyButton';
 import FancyTextInput from '../../../../fields/FancyTextInput';
 import FancyText from '../../../../FancyText';
+import FancyContainer from '../../../../FancyContainer';
+import FancyBaseCard from '../../../../cards/Horizontal/FancyBaseCard';
+import { FancyActionButtons } from '../../../../cards/Horizontal/FancyCardActionButtons';
+import DefaultIcons from '../../../../FancyIcons';
 import { useRepertorioCategorias } from '../../../../../hooks/useRepertorio';
+import { DefaultIconsNames } from '../../../../../constants/icons';
 import Toast from 'react-native-toast-message';
 import { getApiErrorMessage } from '../../../../../domain/api/api-error';
 import { usePallete } from '../../../../../hooks/usePallete';
-import FancyContainer from '../../../../FancyContainer';
 import FancyListEmpty from '../../../../list/FancyListEmpty';
-import DefaultIcons from '../../../../FancyIcons';
 
 type Props = {
   visible: boolean;
@@ -25,6 +28,7 @@ export default function RepertorioCategoriasManagerSheet({ visible, onClose }: P
   const [editingName, setEditingName] = useState('');
 
   const categoriasAtivas = useMemo(() => data.filter((item) => item.ativo !== false), [data]);
+  const canCreateCategoria = nome.trim().length > 0;
 
   useEffect(() => {
     if (!editingId) return;
@@ -70,201 +74,243 @@ export default function RepertorioCategoriasManagerSheet({ visible, onClose }: P
       onClose={onClose}
       title='Categorias do repertório'
     >
-      <FancyContainer
-        title='Nova categoria'
-        containerStyle={styles.composerContainer}
-      >
-        <View style={styles.composerContent}>
-          <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
-            Crie grupos para organizar o repertório do ministério.
-          </FancyText>
-          <View style={styles.composerRow}>
+      <View style={styles.sheetContent}>
+        <FancyContainer
+          title='Nova categoria'
+          icon={{ library: 'MaterialCommunityIcons', name: 'tag-plus-outline', size: 16, color: palette.primary }}
+          headerContainerStyle={styles.composerHeader}
+        >
+          <View style={styles.composerBody}>
+            <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+              Crie grupos para organizar as músicas.
+            </FancyText>
             <FancyTextInput
               label='Nome'
               value={nome}
               containerStyle={styles.composerInput}
-              inputProps={{ onChangeText: setNome }}
-            />
-            <FancyButton
-              label='Adicionar'
-              containerStyle={styles.addButton}
-              isLoading={isMutatingCategoria}
-              onPress={() => void handleCreate()}
-            />
-          </View>
-        </View>
-      </FancyContainer>
-
-      <View style={styles.listSection}>
-        <View style={styles.listHeader}>
-          <FancyText size='small' type='bold'>
-            Categorias cadastradas
-          </FancyText>
-          <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
-            {`${categoriasAtivas.length} item${categoriasAtivas.length === 1 ? '' : 's'}`}
-          </FancyText>
-        </View>
-
-        {categoriasAtivas.length === 0 ? (
-          <FancyListEmpty
-            label='Nenhuma categoria cadastrada.'
-            helperText='Adicione a primeira categoria para começar a organizar o repertório.'
-            icon={{ library: 'MaterialCommunityIcons', name: 'shape-outline', size: 54 }}
-          />
-        ) : (
-          <View style={styles.listContent}>
-            {categoriasAtivas.map((item) => {
-              const isEditing = editingId === item.id;
-
-              return (
-                <View
-                  key={item.id}
-                  style={[
-                    styles.categoryRow,
+              inputProps={{
+                onChangeText: setNome,
+                placeholder: 'Ex: Celebração',
+                returnKeyType: 'done',
+                onSubmitEditing: () => void handleCreate(),
+              }}
+              rightContainer={
+                <FancyButton
+                  type='contained'
+                  mode='icon'
+                  size={{ w: 30, h: 28 }}
+                  icon={{
+                    library: 'MaterialCommunityIcons',
+                    name: 'plus',
+                    size: 23,
+                    color: palette.fonts.light,
+                  }}
+                  isLoading={isMutatingCategoria}
+                  onPress={() => void handleCreate()}
+                  disabled={!canCreateCategoria}
+                  accessibilityLabel='Adicionar categoria'
+                  containerStyle={
                     {
-                      borderColor: palette.borderCard,
-                      backgroundColor: palette.backgroundColor,
-                    },
-                  ]}
-                >
-                  {isEditing ? (
-                    <FancyTextInput
-                      label='Editar nome'
-                      value={editingName}
-                      containerStyle={styles.categoryInput}
-                      inputProps={{ onChangeText: setEditingName }}
-                    />
-                  ) : (
-                    <View style={styles.categoryInfo}>
-                      <View
-                        style={[
-                          styles.categoryDot,
-                          { backgroundColor: palette.primary },
-                        ]}
-                      />
-                      <FancyText size='small' type='semiBold'>
-                        {item.nome}
-                      </FancyText>
-                    </View>
-                  )}
-
-                  <View style={styles.actionsRow}>
-                    {isEditing ? (
-                      <>
-                        <FancyButton type='contained' label='Salvar' containerStyle={styles.actionButton} onPress={() => void handleRename()} />
-                        <FancyButton
-                          type='light'
-                          label='Cancelar'
-                          containerStyle={styles.actionButton}
-                          onPress={() => {
-                            setEditingId(null);
-                            setEditingName('');
-                          }}
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <FancyButton
-                          type='light'
-                          label='Editar'
-                          icon={{ library: 'Feather', name: 'edit-2', size: 14 }}
-                          containerStyle={styles.actionButton}
-                          onPress={() => {
-                            setEditingId(item.id);
-                            setEditingName(item.nome);
-                          }}
-                        />
-                        <FancyButton
-                          type='text'
-                          label='Arquivar'
-                          labelStyle={{ color: palette.error }}
-                          icon={{ library: 'Feather', name: 'trash-2', size: 14, color: palette.error }}
-                          containerStyle={styles.archiveButton}
-                          onPress={() => {
-                            void removerCategoria(item.id);
-                          }}
-                        />
-                      </>
-                    )}
-                  </View>
-                </View>
-              );
-            })}
+                      backgroundColor: palette.primary,
+                      borderColor: palette.primary,
+                      borderWidth: 0,
+                    }
+                  }
+                />
+              }
+            />
           </View>
-        )}
+        </FancyContainer>
+
+        <FancyContainer
+          title={
+            <View style={styles.listHeader}>
+              <FancyText size='medium' type='bold' style={styles.listHeaderTitle}>
+                Categorias cadastradas
+              </FancyText>
+              <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} style={styles.listCount}>
+                {`${categoriasAtivas.length} ${categoriasAtivas.length === 1 ? 'item' : 'itens'}`}
+              </FancyText>
+            </View>
+          }
+        >
+          <View style={styles.listBody}>
+            {categoriasAtivas.length === 0 ? (
+              <FancyListEmpty
+                label='Nenhuma categoria cadastrada.'
+                helperText='Adicione a primeira categoria para começar a organizar o repertório.'
+                icon={{ library: 'MaterialCommunityIcons', name: 'shape-outline', size: 54 }}
+              />
+            ) : (
+              <View style={styles.cardsList}>
+                {categoriasAtivas.map((item) => {
+                  const isEditing = editingId === item.id;
+
+                  return (
+                    <FancyBaseCard
+                      key={item.id}
+                      containerStyle={styles.categoryCard}
+                      contentContainerStyle={styles.categoryCardContent}
+                      title={
+                        isEditing ? (
+                          <View style={styles.editingInputWrap}>
+                            <FancyTextInput
+                              label='Editar nome'
+                              value={editingName}
+                              containerStyle={styles.editingInput}
+                              inputProps={{ onChangeText: setEditingName }}
+                            />
+                          </View>
+                        ) : (
+                          <View style={styles.categoryTitleRow}>
+                            <View style={[styles.categoryIcon, { backgroundColor: palette.primary }]}>
+                              <DefaultIcons.Custom
+                                library='MaterialCommunityIcons'
+                                name='shape-outline'
+                                size={14}
+                                color={palette.fonts.light}
+                              />
+                            </View>
+                            <FancyText size='small' type='semiBold' style={styles.categoryName} numberOfLines={1}>
+                              {item.nome}
+                            </FancyText>
+                          </View>
+                        )
+                      }
+                      rightItem={
+                        isEditing ? (
+                          <View style={styles.cardActions}>
+                            <FancyButton
+                              type='text'
+                              mode='icon'
+                              size={32}
+                              icon={{ library: 'Feather', name: 'x', size: 16 }}
+                              onPress={() => {
+                                setEditingId(null);
+                                setEditingName('');
+                              }}
+                              accessibilityLabel='Cancelar edição'
+                            />
+                            <FancyButton
+                              type='contained'
+                              mode='icon'
+                              size={32}
+                              icon={{ library: 'Feather', name: 'check', size: 16 }}
+                              isLoading={isMutatingCategoria}
+                              onPress={() => void handleRename()}
+                              accessibilityLabel='Salvar categoria'
+                            />
+                          </View>
+                        ) : (
+                          <FancyActionButtons
+                            containerStyle={styles.categoryActionButtons}
+                            actions={[
+                              {
+                                size: 'small',
+                                icon: { ...DefaultIconsNames.edit, size: 15 },
+                                onPress: () => {
+                                  setEditingId(item.id);
+                                  setEditingName(item.nome);
+                                },
+                              },
+                              {
+                                size: 'small',
+                                icon: { library: 'MaterialCommunityIcons', name: 'archive', size: 15, backgroundColor: palette.error },
+                                onPress: () => void removerCategoria(item.id),
+                              },
+                            ]}
+                          />
+                        )
+                      }
+                    />
+                  );
+                })}
+              </View>
+            )}
+          </View>
+        </FancyContainer>
       </View>
     </FancyBottomSheetModal>
   );
 }
 
 const styles = StyleSheet.create({
-  composerContainer: {
-    paddingBottom: 14,
+  sheetContent: {
+    gap: 14,
   },
-  composerContent: {
-    gap: 12,
+  composerHeader: {
+    paddingBottom: 3,
+  },
+  composerBody: {
     paddingHorizontal: 14,
-    paddingBottom: 2,
-  },
-  composerRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 10,
+    paddingBottom: 13,
+    gap: 7,
   },
   composerInput: {
-    flex: 1,
-  },
-  addButton: {
-    minWidth: 110,
-    height: 44,
-  },
-  listSection: {
-    gap: 14,
+    width: '100%',
   },
   listHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 12,
-  },
-  listContent: {
-    gap: 10,
-  },
-  categoryRow: {
-    borderWidth: 0.6,
-    borderRadius: 14,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 13,
     gap: 12,
+    flex: 1,
   },
-  categoryInfo: {
+  listHeaderTitle: {
+    flex: 1,
+    flexShrink: 1,
+  },
+  listCount: {
+    flexShrink: 0,
+  },
+  listBody: {
+    paddingHorizontal: 14,
+    paddingBottom: 12,
+  },
+  cardsList: {
+    gap: 7,
+  },
+  categoryCard: {
+    minHeight: 50,
+    paddingVertical: 5,
+    justifyContent: 'center',
+  },
+  categoryCardContent: {
+    paddingLeft: 10,
+    paddingRight: 10,
+    paddingVertical: 0,
+  },
+  categoryTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    minHeight: 22,
+    minHeight: 28,
   },
-  categoryDot: {
-    width: 8,
-    height: 8,
+  categoryName: {
+    flex: 1,
+    opacity: 0.82,
+  },
+  categoryIcon: {
+    width: 26,
+    height: 26,
     borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  categoryInput: {
-    width: '100%',
-  },
-  actionsRow: {
+  cardActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    flexWrap: 'wrap',
-  },
-  actionButton: {
-    minWidth: 92,
-    height: 34,
-  },
-  archiveButton: {
-    minWidth: 0,
-    height: 30,
-    paddingHorizontal: 0,
     gap: 6,
+  },
+  categoryActionButtons: {
+    marginRight: 0,
+  },
+  editingInputWrap: {
+    flex: 1,
+  },
+  editingInput: {
+    width: '100%',
   },
 });

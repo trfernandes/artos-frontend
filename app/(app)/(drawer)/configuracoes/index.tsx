@@ -9,7 +9,7 @@ import { uploadToCloudinaryUnsigned } from '../../../../services/cloudinary_uplo
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../../../../config/cloudinary';
 import FancyPageView from '../../../../components/containers/FancyPageView';
 import FancyTabs, { TabItem } from '../../../../components/tabs/FancyTabs';
-import FancyTabHeaderItem from '../../../../components/tabs/FancyTabHeaderItem';
+import FancySegmentedTabs from '../../../../components/tabs/FancySegmentedTabs';
 import FancyAccordeon from '../../../../components/FancyAccordeon';
 import FancyScrollView from '../../../../components/FancyScrollView';
 import { DefaultIconsNames } from '../../../../constants/icons';
@@ -1597,7 +1597,7 @@ export default function ConfiguracoesPage() {
             <View style={styles.buttonContainer}>
               <FancyButton
                 label='Salvar'
-                icon={{ library: 'MaterialCommunityIcons', name: 'shield-check', size: 14 }}
+                icon={{ ...DefaultIconsNames.save, size: 16 }}
                 onPress={handleSalvarModoEntrada}
                 disabled={isUpdating}
                 isLoading={isUpdating}
@@ -1709,7 +1709,7 @@ export default function ConfiguracoesPage() {
             <View style={styles.buttonContainer}>
               <FancyButton
                 label='Salvar'
-                icon={{ library: 'MaterialCommunityIcons', name: 'bell-check', size: 14 }}
+                icon={{ ...DefaultIconsNames.save, size: 16 }}
                 onPress={handleSalvarNotificacoes}
                 disabled={isUpdating}
                 isLoading={isUpdating}
@@ -1784,15 +1784,13 @@ export default function ConfiguracoesPage() {
             </View>
 
             <View style={styles.billingPeriodRow}>
-              <FancyTabHeaderItem
-                title='Mensal'
-                status={billingCycle === 'MONTHLY' ? 'active' : 'inactive'}
-                onPress={() => setBillingCycle('MONTHLY')}
-              />
-              <FancyTabHeaderItem
-                title='Anual'
-                status={billingCycle === 'YEARLY' ? 'active' : 'inactive'}
-                onPress={() => setBillingCycle('YEARLY')}
+              <FancySegmentedTabs
+                value={billingCycle}
+                onChange={setBillingCycle}
+                options={[
+                  { title: 'Mensal', value: 'MONTHLY' },
+                  { title: 'Anual', value: 'YEARLY' },
+                ]}
               />
             </View>
 
@@ -2065,8 +2063,6 @@ export default function ConfiguracoesPage() {
     <FancyPageView style={styles.container}>
       <FancyTabs
         items={TAB_DATA}
-        containerStyle={styles.tabsContainer}
-        contentContainerStyle={styles.tabContentContainer}
         initialIndex={activeTabIndex}
         onTabChange={setActiveTabIndex}
       />

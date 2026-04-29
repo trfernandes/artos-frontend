@@ -13,7 +13,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ResponseEventoOcorrenciaDto } from '../../../../../domain/dtos/Evento/evento-ocorrencia.response.dto';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import { useAuth } from '../../../../../contexts/AuthContext';
-import { MinisterioTipoEnum } from '../../../../../domain/enums/Ministerio/ministerio-tipo.enum';
+import { isLouvorMinisterioTipo } from '../../../../../utils/evento-ensaio';
 
 type ExitChoice = 'cancel' | 'discard' | 'save';
 
@@ -23,7 +23,10 @@ export default function MinisterioAgendaDetailsPage() {
   const { igrejaAtiva } = useAuth();
   const eventoId = params.eventoId || params.id || '';
   const isLouvorMinisterio = useMemo(
-    () => igrejaAtiva?.ministerios?.some((ministerio) => ministerio.id === params.ministerioId && ministerio.tipo === MinisterioTipoEnum.Louvor) ?? false,
+    () =>
+      igrejaAtiva?.ministerios?.some(
+        (ministerio) => ministerio.id === params.ministerioId && isLouvorMinisterioTipo(ministerio.tipo),
+      ) ?? false,
     [igrejaAtiva?.ministerios, params.ministerioId],
   );
   const [ocorrenciaAtual, setOcorrenciaAtual] = useState<ResponseEventoOcorrenciaDto | null>(null);
@@ -201,9 +204,6 @@ export default function MinisterioAgendaDetailsPage() {
     <FancyPageView style={styles.container}>
       <FancyTabs
         items={tab_items}
-        contentContainerStyle={{ flex: 1 }}
-        containerStyle={{ flex: 1 }}
-        headerStyle={{ paddingHorizontal: 0 }}
         keepMounted={true}
       />
     </FancyPageView>
@@ -211,5 +211,5 @@ export default function MinisterioAgendaDetailsPage() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 15, paddingBottom: 10 },
+  container: { flex: 1, paddingBottom: 10 },
 });
