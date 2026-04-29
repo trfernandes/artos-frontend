@@ -7,7 +7,7 @@ import { ptBR } from 'date-fns/locale';
 import FancyText from '../../../../FancyText';
 import FancyImage from '../../../../images/FancyImage';
 import { useAssistenteEscala } from '../../../../../contexts/pages/escalas/AssistantContext';
-import { useMemo, useState } from 'react';
+import { Component, useMemo, useState } from 'react';
 import { EscalaTemplateTipoEnum } from '../../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
 import { AppImages } from '../../../../../assets/app_images';
 import { ThemePalette } from '../../../../../constants/colors';
@@ -19,6 +19,43 @@ import { EscalaTemplateExperienciaLabel } from '../../../../../domain/enums/Esca
 import { getFirstAndLastName } from '../../../../../utils/text_utils';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
+
+class RevisaoErrorBoundary extends Component<
+  { children: React.ReactNode },
+  { error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  componentDidCatch(error: Error, info: any) {
+    console.error('[RevisaoErrorBoundary] crash na etapa Revisão:', error, info?.componentStack);
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <View style={{ flex: 1, padding: 16, justifyContent: 'center', alignItems: 'center', gap: 12 }}>
+          <FancyText type='bold' size='medium' style={{ color: '#E74C3C' }}>
+            Erro na etapa Revisão
+          </FancyText>
+          <FancyText size='small' style={{ textAlign: 'center', color: '#666' }}>
+            {this.state.error.message}
+          </FancyText>
+          <FancyText size='extraSmall' style={{ textAlign: 'center', color: '#999', fontFamily: 'monospace' }}>
+            {this.state.error.stack?.split('\n').slice(0, 5).join('\n')}
+          </FancyText>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // --- Componentes Auxiliares Locais ---
 
@@ -225,7 +262,7 @@ const EventItem = ({
   );
 };
 
-export default function AssistenteRevisaoStep() {
+function AssistenteRevisaoStepInner() {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
   const { ministerioId } = useAssistenteEscala();
@@ -233,7 +270,7 @@ export default function AssistenteRevisaoStep() {
 
   const { funcoesList } = useFuncoesDoMinisterio(ministerioId);
   // Carrega dados para resolver IDs (nomes, fotos, funções)
-  const { ministerioVoluntariosList } = useVoluntariosDoMinisterioCrud(ministerioId);
+  const { ministerioVoluntariosList = [] } = useVoluntariosDoMinisterioCrud(ministerioId);
 
   // --- Dados Processados ---
 
@@ -432,6 +469,14 @@ export default function AssistenteRevisaoStep() {
   );
 }
 
+export default function AssistenteRevisaoStep() {
+  return (
+    <RevisaoErrorBoundary>
+      <AssistenteRevisaoStepInner />
+    </RevisaoErrorBoundary>
+  );
+}
+
 function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
     container: {
@@ -574,7 +619,6 @@ function createStyles(palette: ThemePalette) {
       borderStyle: 'dashed',
       borderWidth: 1,
       borderColor: palette.borderCard,
-      borderRadius: 8,
     },
   });
 }
