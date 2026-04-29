@@ -10,7 +10,9 @@
       "Bash(then echo \"$file\")",
       "Bash(fi)",
       "Bash(done)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "mcp__mcp-registry__search_mcp_registry",
+      "Bash(claude mcp add neon -e NEON_API_KEY=napi_qiull7veegyucb8m9d694e1xzs68745h997vbios0gz2vf7x6mhskqvojrmmbok4 -- npx -y @neondatabase/mcp-server-neon start)"
     ]
   },
   "enableAllProjectMcpServers": true,
