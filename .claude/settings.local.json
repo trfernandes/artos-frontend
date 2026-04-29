@@ -10,7 +10,8 @@
       "Bash(then echo \"$file\")",
       "Bash(fi)",
       "Bash(done)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "mcp__mcp-registry__search_mcp_registry"
     ]
   },
   "enableAllProjectMcpServers": true,
