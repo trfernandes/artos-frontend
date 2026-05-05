@@ -167,30 +167,58 @@ export default function AssistenteEventosStep() {
     [markAll, eventosArray.fields],
   );
 
+  const semTemplateCount = eventosArray.fields.filter((item) => {
+    const hasTemplateBase = Boolean(
+      item.template?.templateBase &&
+      'id' in item.template.templateBase &&
+      item.template.templateBase.id,
+    );
+    const hasEquipePersonalizada =
+      (item.template?.fixos?.length ?? 0) > 0 || (item.template?.funcoes?.length ?? 0) > 0;
+    return item.selected && !hasTemplateBase && !hasEquipePersonalizada;
+  }).length;
+
   return (
     <View style={styles.container}>
-      <View style={{ gap: 12 }}>
-        <FancyText size={'extraSmall'} type='semiBold'>
-          Selecione os 'eventos' que farão parte da escala:
-        </FancyText>
-
-        <TouchableOpacity
-          style={{ flexDirection: 'row', gap: 5 }}
-          onPress={() => {
-            form.setValue('markEventsAll', !markAll);
-            executeMarkAll(!markAll);
-          }}
-        >
-          <DefaultIcons.Custom
-            library='Octicons'
-            name={markAll ? 'circle' : 'check-circle'}
-            size={15}
-            color={palette.primary}
-          />
-          <FancyText size={'small'} type='semiBold' style={{ color: palette.primary }}>
-            {!markAll ? 'Marcar todos' : 'Desmarcar todos'}
+      <View style={{ gap: 8 }}>
+        <View style={styles.headerRow}>
+          <FancyText size={'extraSmall'} type='semiBold' style={{ flex: 1 }}>
+            Selecione os eventos da escala:
           </FancyText>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={{ flexDirection: 'row', gap: 4, alignItems: 'center' }}
+            onPress={() => {
+              form.setValue('markEventsAll', !markAll);
+              executeMarkAll(!markAll);
+            }}
+          >
+            <DefaultIcons.Custom
+              library='Octicons'
+              name={markAll ? 'circle' : 'check-circle'}
+              size={14}
+              color={palette.primary}
+            />
+            <FancyText size={'extraSmall'} type='semiBold' style={{ color: palette.primary }}>
+              {!markAll ? 'Marcar todos' : 'Desmarcar todos'}
+            </FancyText>
+          </TouchableOpacity>
+        </View>
+
+        {semTemplateCount > 0 && (
+          <View style={[styles.attentionBanner, { backgroundColor: palette.warning + '18', borderColor: palette.warning + '55' }]}>
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='alert-circle-outline'
+              size={16}
+              color={palette.warning}
+            />
+            <FancyText size='extraSmall' type='semiBold' style={{ color: palette.warning, flex: 1 }}>
+              {semTemplateCount === 1
+                ? '1 evento selecionado sem template definido'
+                : `${semTemplateCount} eventos selecionados sem template definido`}
+            </FancyText>
+          </View>
+        )}
       </View>
 
       {isLoadingEventos ? (
@@ -208,11 +236,10 @@ export default function AssistenteEventosStep() {
           }}
           data={eventosArray.fields}
           extraData={eventosArray.fields}
-          // refreshing={isLoading}
           renderItem={({ item, index }) => {
             const accentColor = item.cor ?? palette.primary;
-            const dataFormatada = format(item.dataOcorrencia, 'EEEE, dd/MM/yyyy', { locale: ptBR });
-            const horarioFormatado = item.horario || 'não informado';
+            const dataFormatada = format(item.dataOcorrencia, 'EEE dd/MM', { locale: ptBR });
+            const horarioFormatado = item.horario || '--:--';
             const hasTemplateBase = Boolean(
               item.template?.templateBase &&
               'id' in item.template.templateBase &&
@@ -234,42 +261,31 @@ export default function AssistenteEventosStep() {
                 subtitle={
                   <View style={styles.eventInfoContainer}>
                     <View style={styles.eventInfoRow}>
-                      <View style={styles.eventInfoIcon}>
-                        <DefaultIcons.Custom library='MaterialIcons' name='event' size={14} color={palette.primary} />
-                      </View>
-                      <FancyText size='extraSmall' type='medium' color={palette.fonts.dark} numberOfLines={1}>
+                      <DefaultIcons.Custom library='MaterialIcons' name='event' size={13} color={palette.primary} />
+                      <FancyText size='extraSmall' type='medium' color={palette.fonts.dark} numberOfLines={1} style={{ flexShrink: 0 }}>
                         {dataFormatada}
                       </FancyText>
-                    </View>
-                    <View style={styles.eventInfoRow}>
-                      <View style={styles.eventInfoIcon}>
-                        <DefaultIcons.Custom library='MaterialIcons' name='access-time' size={14} color={palette.primary} />
-                      </View>
-                      <FancyText size='extraSmall' type='medium' color={palette.fonts.dark} numberOfLines={1}>
+                      <FancyText size='extraSmall' color={palette.fonts.light}>·</FancyText>
+                      <DefaultIcons.Custom library='MaterialIcons' name='access-time' size={13} color={palette.primary} />
+                      <FancyText size='extraSmall' type='medium' color={palette.fonts.dark} numberOfLines={1} style={{ flex: 1 }}>
                         {horarioFormatado}
                       </FancyText>
                     </View>
                     <View style={styles.eventInfoRow}>
-                      <View style={styles.eventInfoIcon}>
-                        <DefaultIcons.Custom library='MaterialIcons' name='group' size={14} color={palette.primary} />
-                      </View>
+                      <DefaultIcons.Custom library='MaterialIcons' name='group' size={13} color={palette.primary} />
                       <FancyText size='extraSmall' type='medium' color={palette.fonts.dark} numberOfLines={1} style={{ flexShrink: 1 }}>
                         {estruturaEquipe}
                       </FancyText>
+                      {eventoSemTemplate && (
+                        <FancyChips
+                          size='small'
+                          label='Sem template'
+                          color={palette.warning}
+                          icon={{ library: 'MaterialCommunityIcons', name: 'alert-circle-outline' }}
+                        />
+                      )}
                     </View>
                   </View>
-                }
-                additionalData1={
-                  eventoSemTemplate ? (
-                    <View style={{ marginTop: 3 }}>
-                      <FancyChips
-                        size='small'
-                        label='Sem template definido'
-                        color={palette.warning}
-                        icon={{ library: 'MaterialCommunityIcons', name: 'alert-circle-outline' }}
-                      />
-                    </View>
-                  ) : undefined
                 }
                 value={!!item.selected}
                 checkboxColor={accentColor}
@@ -313,20 +329,30 @@ export default function AssistenteEventosStep() {
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 15, flex: 1 },
+  container: { gap: 12, flex: 1 },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  attentionBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
   eventInfoContainer: {
-    gap: 3,
-    marginTop: 2,
+    gap: 2,
+    marginTop: 1,
   },
   eventInfoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-  },
-  eventInfoIcon: {
-    width: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
+    gap: 4,
+    flexWrap: 'nowrap',
   },
   loadingContainer: {
     flex: 1,
