@@ -1,81 +1,66 @@
 #!/usr/bin/env node
 
 /**
- * Screenshot utility for Appium
+ * Screenshot utility for Android devices (physical or emulator)
  * Used by the /refinamento-autonomo skill to capture app screenshots
  *
+ * Uses ADB (Android Debug Bridge) - much faster than Appium
+ *
  * Usage:
- *   node scripts/take-screenshot.js [output-path] [platform]
+ *   node scripts/take-screenshot.js [output-path]
  *
  * Examples:
- *   node scripts/take-screenshot.js screenshot.png ios
- *   node scripts/take-screenshot.js ./screenshots/iteration-1.png android
+ *   node scripts/take-screenshot.js screenshot.png
+ *   node scripts/take-screenshot.js ./screenshots/iteration-1.png
  */
 
-const { remote } = require('webdriverio');
+const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-const platform = process.argv[3] || 'ios';
 const outputPath = process.argv[2] || `screenshot-${Date.now()}.png`;
 
-const APPIUM_PORT = 4723;
-const APPIUM_HOST = 'localhost';
-
-// Platform-specific capabilities
-const capabilities = {
-  ios: {
-    platformName: 'iOS',
-    automationName: 'XCUITest',
-    deviceName: 'iPhone 14',
-    platformVersion: 'latest',
-    app: 'com.diakonia.app',
-  },
-  android: {
-    platformName: 'Android',
-    automationName: 'UiAutomator2',
-    deviceName: 'emulator-5554',
-    app: 'com.diakonia.app',
-  },
-};
-
-async function takeScreenshot() {
-  let driver;
+function takeScreenshot() {
   try {
-    console.log(`📸 Taking screenshot on ${platform}...`);
-
-    // Connect to Appium
-    driver = await remote({
-      host: APPIUM_HOST,
-      port: APPIUM_PORT,
-      capabilities: capabilities[platform],
-    });
-
-    // Take screenshot
-    const screenshot = await driver.takeScreenshot();
+    console.log(`📸 Taking screenshot via ADB...`);
 
     // Ensure output directory exists
     const dir = path.dirname(outputPath);
-    if (!fs.existsSync(dir)) {
+    if (dir !== '.' && !fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
 
-    // Write screenshot to file
-    fs.writeFileSync(outputPath, screenshot, 'base64');
+    // Check if ADB is available
+    try {
+      execSync('adb devices', { stdio: 'pipe' });
+    } catch (error) {
+      throw new Error('ADB not found. Make sure Android SDK is installed and in PATH.');
+    }
+
+    // Take screenshot on device
+    console.log('  → Taking screenshot on device...');
+    execSync('adb shell screencap -p /sdcard/screenshot.png', { stdio: 'pipe' });
+
+    // Pull screenshot from device to computer
+    console.log('  → Downloading from device...');
+    execSync(`adb pull /sdcard/screenshot.png "${outputPath}"`, { stdio: 'pipe' });
+
+    // Clean up device storage
+    execSync('adb shell rm /sdcard/screenshot.png', { stdio: 'pipe' });
 
     console.log(`✅ Screenshot saved to: ${outputPath}`);
+    console.log(`   Size: ${fs.statSync(outputPath).size} bytes`);
     process.exit(0);
   } catch (error) {
     console.error(`❌ Error taking screenshot: ${error.message}`);
-    console.error('Make sure:');
-    console.error('  1. Appium is running: appium');
-    console.error('  2. iOS Simulator or Android Emulator is running');
-    console.error('  3. Your app is built and running via Expo');
+    console.error('\nMake sure:');
+    console.error('  1. Device is connected: adb devices');
+    console.error('  2. USB debugging is enabled');
+    console.error('  3. Your app is running via Expo');
+    console.error('\nTroubleshooting:');
+    console.error('  - Physical device: Connect via USB cable');
+    console.error('  - Emulator: emulator -avd your_emulator_name');
     process.exit(1);
-  } finally {
-    if (driver) {
-      await driver.deleteSession();
-    }
   }
 }
 
