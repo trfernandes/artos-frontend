@@ -35,7 +35,8 @@
       "Skill(expo-deployment:expo-cicd-workflows:*)",
       "Bash(npm install --prefix .)",
       "Bash(curl -s \"https://raw.githubusercontent.com/expo/expo/refs/heads/main/docs/pages/eas/workflows/pre-packaged-jobs.mdx\")",
-      "Bash(curl -s \"https://raw.githubusercontent.com/expo/expo/refs/heads/main/docs/pages/eas/workflows/syntax.mdx\")"
+      "Bash(curl -s \"https://raw.githubusercontent.com/expo/expo/refs/heads/main/docs/pages/eas/workflows/syntax.mdx\")",
+      "PowerShell(claude mcp add expo -- npx -y @expo/mcp-server 2>&1; claude mcp add react-native-docs -- npx -y @react-native/mcp-docs 2>&1)"
     ]
   },
   "enableAllProjectMcpServers": true,
