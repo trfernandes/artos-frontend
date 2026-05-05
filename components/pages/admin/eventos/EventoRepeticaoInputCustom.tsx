@@ -1,86 +1,197 @@
-import { View, StyleSheet, ModalProps } from 'react-native';
-import { Pallete } from '../../../../constants/colors';
-import FancyScrollView from '../../../FancyScrollView';
-import FancySettingItem from '../../../FancySettingItem';
+import { View, StyleSheet, ModalProps, LayoutAnimation } from 'react-native';
 import EventoRepeticaoInputCustomSemana from './EventoRepeticaoInputCustomSemana';
-import FancyFullModal from '../../../modal/FancyFullModal';
+import FancyBottomSheetModal from '../../../modal/FancyBottomSheetModal';
 import FancyButton from '../../../buttons/FancyButton';
-import { DefaultIconsNames } from '../../../../constants/icons';
-import { Controller, useFormContext } from 'react-hook-form';
-import { EventoFormData } from '../../../../hooks/useEventos';
-import { RecorrenciaEnum, RecorrenciaEnumLabel } from '../../../../domain/models/Evento';
+import { Controller, FormProvider, useForm, useFormContext } from 'react-hook-form';
 import EventoRepeticaoInputCustomMensal from './EventoRepeticaoInputCustomMensal';
+import { strfyObj } from '../../../../utils/text_utils';
+import z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { RecorrenciaDiaSemanaEnum } from '../../../../domain/enums/Evento/recorrencia-dia-semana.enum';
+import { RecorrenciaSemanaMesEnum } from '../../../../domain/enums/Evento/recorrencia-semana-mes.enum';
+import { RecorrenciaEnum } from '../../../../domain/enums/Evento/recorrencia.enum';
+import { EventoFormData } from '../../../../domain/schemas/eventoSchema';
+import FancySegmentedControl from '../../../fields/FancySegmentedControl';
+import { generateRecorrenciaJoinableDescription } from '../../../../hooks/useEventosCrud';
+import FancyText from '../../../FancyText';
+import { usePallete } from '../../../../hooks/usePallete';
+import { ColorUtils } from '../../../../utils/color_utils';
+
+export const schema = z
+  .object({
+    recorrencia: z.enum(RecorrenciaEnum),
+    recorrenciaSemanaDias: z.array(z.enum(RecorrenciaDiaSemanaEnum)).optional(),
+    recorrenciaACadaMeses: z.coerce
+      .number()
+      .int('Informe um número inteiro')
+      .min(1, 'O número de meses deve ser maior que 1')
+      .max(12, 'O número de meses deve ser menor igual a 12'),
+    recorrenciaSemanasMes: z.array(z.enum(RecorrenciaSemanaMesEnum)).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.recorrencia === RecorrenciaEnum.Mensal) {
+      if (!data.recorrenciaSemanaDias || data.recorrenciaSemanaDias.length < 1) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['recorrenciaSemanaDias'],
+          message: 'Selecione ao menos um dia da semana',
+        });
+      }
+      if (!data.recorrenciaACadaMeses) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['recorrenciaACadaMeses'],
+          message: 'Informe o número de meses',
+        });
+      }
+      if (!data.recorrenciaSemanasMes || data.recorrenciaSemanasMes.length < 1) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['recorrenciaSemanasMes'],
+          message: 'Selecione ao menos uma semana do mês',
+        });
+      }
+    } else if (data.recorrencia === RecorrenciaEnum.Semanal) {
+      if (!data.recorrenciaSemanaDias || data.recorrenciaSemanaDias.length < 1) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['recorrenciaSemanaDias'],
+          message: 'Selecione ao menos um dia da semana',
+        });
+      }
+    }
+  });
+
+export type EventoRepeticaoSchemaData = z.infer<typeof schema>;
+
+const FREQUENCIA_OPTIONS = [
+  { label: 'Semanal', value: RecorrenciaEnum.Semanal },
+  { label: 'Mensal', value: RecorrenciaEnum.Mensal },
+];
 
 export default function EventoRepeticaoInputCustom({ modalProps }: { modalProps?: ModalProps }) {
-  const { control, getValues, trigger, formState } = useFormContext<EventoFormData>();
+  const palette = usePallete();
+  const eventoForm = useFormContext<EventoFormData>();
+  const recorrenciaForm = useForm({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      recorrencia: eventoForm.getValues('recorrencia') || RecorrenciaEnum.Semanal,
+      recorrenciaACadaMeses: eventoForm.getValues('recorrenciaACadaMeses') || 1,
+      recorrenciaSemanaDias: eventoForm.getValues('recorrenciaSemanaDias') || [],
+      recorrenciaSemanasMes: eventoForm.getValues('recorrenciaSemanasMes') || [],
+    },
+  });
+
+  const recorrencia = recorrenciaForm.watch('recorrencia');
+  const semanaDias = recorrenciaForm.watch('recorrenciaSemanaDias') || [];
+  const semanasMes = recorrenciaForm.watch('recorrenciaSemanasMes') || [];
+  const aCadaMeses = recorrenciaForm.watch('recorrenciaACadaMeses') || 1;
+
+  // Validade manual: semanal precisa de pelo menos 1 dia; mensal precisa de semana + dia
+  const isFormValid =
+    recorrencia === RecorrenciaEnum.Semanal
+      ? semanaDias.length > 0
+      : semanaDias.length > 0 && semanasMes.length > 0;
+
+  const resumoText =
+    semanaDias.length > 0
+      ? generateRecorrenciaJoinableDescription(recorrencia, semanaDias as any, aCadaMeses as any, semanasMes as any)
+      : recorrencia === RecorrenciaEnum.Mensal && semanasMes.length > 0
+        ? 'Selecione também o dia da semana'
+        : recorrencia === RecorrenciaEnum.Mensal
+          ? 'Selecione a semana e o dia'
+          : 'Selecione ao menos um dia';
+
+  const handleClose = () => modalProps?.onRequestClose?.({} as any);
 
   return (
-    <FancyFullModal modalProps={modalProps}>
-      <FancyScrollView style={{ flex: 1, borderWidth: 0, borderColor: 'coral' }}>
-        <View style={styles.body}>
-          <Controller
-            control={control}
-            name="recorrencia"
-            render={({ field: { value, onChange } }) => (
-              <FancySettingItem
-                label="Frequência"
-                value={RecorrenciaEnumLabel[value]}
-                options={[
-                  {
-                    label: RecorrenciaEnumLabel[RecorrenciaEnum.Semanal],
-                    onPress: () => {
-                      onChange(RecorrenciaEnum.Semanal);
-                    },
-                  },
-                  {
-                    label: RecorrenciaEnumLabel[RecorrenciaEnum.Mensal],
-                    onPress: () => {
-                      onChange(RecorrenciaEnum.Mensal);
-                    },
-                  },
-                ]}
-              />
-            )}
+    <FancyBottomSheetModal
+      visible={modalProps?.visible ?? false}
+      onClose={handleClose}
+      title='Configuração de recorrência'
+      footer={
+        <FancyButton
+          label='Confirmar'
+          icon={{ library: 'Feather', name: 'check', size: 16 }}
+          containerStyle={!isFormValid ? { opacity: 0.45 } : undefined}
+          disabled={!isFormValid}
+          onPress={async (e) => {
+            await recorrenciaForm.handleSubmit(
+              () => {
+                eventoForm.reset({
+                  ...eventoForm.getValues(),
+                  ...(recorrenciaForm.getValues() as EventoRepeticaoSchemaData),
+                });
+                handleClose();
+              },
+              (errors) => console.log(strfyObj(errors)),
+            )();
+          }}
+        />
+      }
+    >
+      {/* Frequência */}
+      <Controller
+        control={recorrenciaForm.control}
+        name='recorrencia'
+        render={({ field: { value } }) => (
+          <FancySegmentedControl
+            label='Frequência'
+            options={FREQUENCIA_OPTIONS}
+            value={value}
+            onChange={(v) => {
+              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+              recorrenciaForm.setValue('recorrencia', v as RecorrenciaEnum);
+              recorrenciaForm.resetField('recorrenciaACadaMeses', { defaultValue: v === RecorrenciaEnum.Mensal ? 1 : ('' as any) });
+              recorrenciaForm.resetField('recorrenciaSemanaDias', { defaultValue: [] });
+              recorrenciaForm.resetField('recorrenciaSemanasMes', { defaultValue: [] });
+            }}
           />
-
-          {/* SEMANAL */}
-          {getValues('recorrencia') === RecorrenciaEnum.Semanal && <EventoRepeticaoInputCustomSemana />}
-
-          {/* MENSALMENTE */}
-          {getValues('recorrencia') === RecorrenciaEnum.Mensal && <EventoRepeticaoInputCustomMensal />}
-        </View>
-      </FancyScrollView>
-      <FancyButton
-        label="Confirmar"
-        icon={{ ...DefaultIconsNames.confirm, size: 16 }}
-        containerStyle={styles.confirmarButton}
-        onPress={async e => {
-          await trigger(['recorrencia', 'recorrenciaSemanaDias']);
-          if (!formState.errors.recorrenciaSemanaDias) {
-            modalProps?.onRequestClose?.(e);
-          }
-        }}
+        )}
       />
-    </FancyFullModal>
+
+      {/* Seções específicas por modo */}
+      <FormProvider {...recorrenciaForm}>
+        {recorrencia === RecorrenciaEnum.Semanal && <EventoRepeticaoInputCustomSemana />}
+        {recorrencia === RecorrenciaEnum.Mensal && <EventoRepeticaoInputCustomMensal />}
+      </FormProvider>
+
+      {/* Resumo */}
+      {isFormValid && (
+        <View
+          style={[
+            styles.resumoCard,
+            {
+              backgroundColor: palette.backgroundColor2,
+              borderColor: ColorUtils.withAlpha(palette.primary, 0.16),
+            },
+          ]}
+        >
+          <View style={[styles.resumoBorder, { backgroundColor: palette.primary }]} />
+          <FancyText size='small' type='medium' color={palette.fonts.dark}>
+            {resumoText}
+          </FancyText>
+        </View>
+      )}
+    </FancyBottomSheetModal>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    gap: 10,
-    paddingHorizontal: 15,
-    paddingRight: 16,
-    paddingVertical: 10,
-    borderRadius: 10,
-    borderWidth: 0.8,
-    borderColor: Pallete.disabled,
+  resumoCard: {
+    flexDirection: 'row',
+    borderRadius: 8,
+    borderWidth: 1,
+    overflow: 'hidden',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 11,
   },
-  body: {
-    backgroundColor: 'transparent',
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingVertical: 5,
-    gap: 10,
+  resumoBorder: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 3,
   },
-  confirmarButton: { marginHorizontal: 20 },
 });

@@ -71,4 +71,103 @@ export const ColorUtils = {
 
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
   },
+  darkenColor(hex: string, amount: number = 0.2): string {
+    // Garante que a cor começa com #
+    if (!hex.startsWith('#')) hex = `#${hex}`;
+
+    // Remove o # e converte para número
+    const num = parseInt(hex.slice(1), 16);
+
+    // Extrai componentes RGB
+    let r = (num >> 16) & 0xff;
+    let g = (num >> 8) & 0xff;
+    let b = num & 0xff;
+
+    // Aplica fator de escurecimento (amount entre 0 e 1)
+    r = Math.max(0, Math.min(255, Math.floor(r * (1 - amount))));
+    g = Math.max(0, Math.min(255, Math.floor(g * (1 - amount))));
+    b = Math.max(0, Math.min(255, Math.floor(b * (1 - amount))));
+
+    // Retorna em formato hexadecimal
+    return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+  },
+  lightenColor(hex: string, amount: number = 0.2): string {
+    // Garante que começa com #
+    if (!hex.startsWith('#')) hex = `#${hex}`;
+
+    // Remove o # e converte pra número
+    const num = parseInt(hex.slice(1), 16);
+
+    // Extrai componentes RGB
+    let r = (num >> 16) & 0xff;
+    let g = (num >> 8) & 0xff;
+    let b = num & 0xff;
+
+    // Aumenta os valores RGB em direção ao branco (255)
+    r = Math.min(255, Math.floor(r + (255 - r) * amount));
+    g = Math.min(255, Math.floor(g + (255 - g) * amount));
+    b = Math.min(255, Math.floor(b + (255 - b) * amount));
+
+    // Retorna em formato hexadecimal
+    return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+  },
+  getTextColorForBackground(hex: string): string {
+    if (!hex.startsWith('#')) hex = `#${hex}`;
+    const num = parseInt(hex.slice(1), 16);
+
+    const r = (num >> 16) & 0xff;
+    const g = (num >> 8) & 0xff;
+    const b = num & 0xff;
+
+    // Cálculo de luminância perceptual
+    const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+
+    // Se a cor for escura, usa texto branco; caso contrário, preto
+    return luminance < 128 ? '#FFFFFF' : '#000000';
+  },
+  withAlpha(color: string, opacity: number): string {
+    const clampedOpacity = Math.max(0, Math.min(1, opacity));
+
+    if (color.startsWith('rgba(')) {
+      return color.replace(/rgba\(([^,]+),([^,]+),([^,]+),([^)]+)\)/, (_match, r, g, b) => {
+        return `rgba(${r.trim()}, ${g.trim()}, ${b.trim()}, ${clampedOpacity})`;
+      });
+    }
+
+    if (color.startsWith('rgb(')) {
+      const rgbContent = color
+        .replace('rgb(', '')
+        .replace(')', '')
+        .split(',')
+        .map((value) => value.trim());
+      if (rgbContent.length === 3) {
+        return `rgba(${rgbContent[0]}, ${rgbContent[1]}, ${rgbContent[2]}, ${clampedOpacity})`;
+      }
+    }
+
+    let normalized = color.trim();
+    if (normalized.startsWith('#')) normalized = normalized.slice(1);
+
+    if (normalized.length === 3) {
+      normalized = normalized
+        .split('')
+        .map((char) => `${char}${char}`)
+        .join('');
+    }
+
+    if (normalized.length < 6) {
+      return color;
+    }
+
+    const rawHex = normalized.slice(0, 6);
+    const r = parseInt(rawHex.slice(0, 2), 16);
+    const g = parseInt(rawHex.slice(2, 4), 16);
+    const b = parseInt(rawHex.slice(4, 6), 16);
+
+    if ([r, g, b].some((value) => Number.isNaN(value))) {
+      return color;
+    }
+
+    return `rgba(${r}, ${g}, ${b}, ${clampedOpacity})`;
+  },
 };

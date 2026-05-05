@@ -1,17 +1,21 @@
-import { View, StyleSheet } from 'react-native';
-import { Pallete } from '../constants/colors';
+import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
+import { ThemePalette } from '../constants/colors';
 import DefaultIcons, { CustomIconProps } from './FancyIcons';
 import FancyText from './FancyText';
 import FancyPopup from './popup/FancyPopup';
+import FancyContainer from './FancyContainer';
+import { usePallete } from '../hooks/usePallete';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 
-export type SettingItemProps = {
+export type FancySettingItemProps = {
   label: string;
   icon?: CustomIconProps;
   children?: React.ReactNode;
   value?: string;
   rightComponent?: React.ReactNode;
-  options: { label: string; onPress?: () => void }[];
+  options?: { label: string; onPress?: () => void }[];
   disabled?: boolean;
+  containerStyle?: StyleProp<ViewStyle>;
 };
 
 export default function FancySettingItem({
@@ -22,17 +26,21 @@ export default function FancySettingItem({
   value,
   rightComponent,
   disabled = false,
-}: SettingItemProps) {
+  containerStyle,
+}: FancySettingItemProps) {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
+
   return (
-    <View style={[styles.container, disabled && styles.containerDisabled]}>
+    <FancyContainer containerStyle={[styles.container, disabled && styles.containerDisabled, containerStyle]}>
       <View style={styles.header}>
         <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-          {icon && <DefaultIcons.Custom size={16} color={Pallete.fonts.inactive} {...icon} />}
+          {icon && <DefaultIcons.Custom size={16} color={Pallete.fonts.inactive} {...icon} style={{ borderWidth: 0 }} />}
           <FancyText
             size={'small'}
-            type="semiBold"
-            color={disabled ? Pallete.fonts.inactive2 : Pallete.fonts.inactive}
-            style={{ lineHeight: 18, borderWidth: 0 }}
+            type='bold'
+            color={disabled ? Pallete.fonts.inactive2 : Pallete.fonts.dark}
+            style={{ lineHeight: 18, borderWidth: 0, opacity: 0.9 }}
           >
             {label}
           </FancyText>
@@ -41,24 +49,26 @@ export default function FancySettingItem({
           <FancyPopup
             disabled={disabled}
             items={options}
+            showSeparator={true}
             triggerComponent={
               <View
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: 5,
-                  paddingVertical: 5,
+                  //   paddingVertical: 5,
                   paddingHorizontal: 10,
                   paddingRight: 0,
+                  //   borderWidth: 1,
                   borderRadius: 10,
                 }}
               >
-                <FancyText size="small" type="medium" color={Pallete.fonts.inactive}>
+                <FancyText size='small' type='medium' color={Pallete.fonts.inactive}>
                   {value}
                 </FancyText>
                 <DefaultIcons.Custom
-                  library="MaterialCommunityIcons"
-                  name="unfold-more-horizontal"
+                  library='MaterialCommunityIcons'
+                  name='unfold-more-horizontal'
                   color={Pallete.icons.inactive}
                   size={22}
                   style={{ borderWidth: 0, width: 19 }}
@@ -69,26 +79,28 @@ export default function FancySettingItem({
         )}
       </View>
       {children}
-    </View>
+    </FancyContainer>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: Pallete.border,
-    gap: 10,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-  },
-  header: {
-    borderWidth: 0,
-    borderColor: 'deepskyblue',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexDirection: 'row',
-  },
-  containerDisabled: { backgroundColor: Pallete.backgroundColor3 },
-  textDisabled: { color: Pallete.fonts.inactive2 },
-});
+function createStyles(Pallete: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: Pallete.border,
+      gap: 10,
+      paddingHorizontal: 15,
+      paddingVertical: 10,
+    },
+    header: {
+      borderWidth: 0,
+      borderColor: 'deepskyblue',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      flexDirection: 'row',
+    },
+    containerDisabled: { backgroundColor: Pallete.backgroundColor3 },
+    textDisabled: { color: Pallete.fonts.inactive2 },
+  });
+}

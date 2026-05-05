@@ -1,0 +1,46 @@
+# Mirrors .gitignore for EAS uploads, plus local agent/skill folders with symlinks
+
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+android/
+ios/
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env
+.env.*
+!.env.example
+
+# typescript
+*.tsbuildinfo
+
+# Local tooling folders (can contain symlinks that break tarball upload on Windows)
+.agents/
+.claude/
+.windsurf/

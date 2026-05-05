@@ -1,0 +1,56 @@
+1	import { useCallback } from 'react';
+2	import { router, useLocalSearchParams } from 'expo-router';
+3	import { FormProvider, useForm } from 'react-hook-form';
+4	import { zodResolver } from '@hookform/resolvers/zod';
+5	import { useEscalaTemplatesCrud } from '../../../../../useEscalaTemplatesCrud';
+6	import { EscalaTemplateFormData, escalaTemplateSchema } from '../../../../../domain/schemas/escalaTemplateSchema';
+7	import { AxiosError } from 'axios';
+8	import TemplateForm from '../../../../../components/pages/ministerios/templates_equipe/TemplateForm';
+9	import { strfyObj } from '../../../../../utils/text_utils';
+10	import { EscalaTemplateTipoEnum } from '../../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
+11	
+12	export default function MinisterioTemplatesAddPage() {
+13	  const { ministerioId } = useLocalSearchParams<{ ministerioId: string }>();
+14	
+15	  const form = useForm<EscalaTemplateFormData>({
+16	    resolver: zodResolver(escalaTemplateSchema),
+17	    defaultValues: {
+18	      ministerioId,
+19	      tipo: EscalaTemplateTipoEnum.Funcoes,
+20	      respSetListFuncoesId: undefined,
+21	      respSetListVoluntariosId: undefined,
+22	    },
+23	  });
+24	
+25	  const { add: addTemplate, isLoadingMutation } = useEscalaTemplatesCrud();
+26	
+27	  const handleOnSave = useCallback(
+28	    form.handleSubmit(
+29	      (data) => {
+30	        addTemplate({ ...data, ministerioId: data.ministerioId })
+31	          .then(() => {
+32	            router.back();
+33	          })
+34	          .catch((error: AxiosError<any, any>) => {
+35	            const errorMessage = error.response?.data?.message;
+36	            if (errorMessage && errorMessage.trim() === 'Ja existe um template com esse nome para o ministerio informado.') {
+37	              form.setError('nome', {
+38	                type: 'custom',
+39	                message: 'O nome já está sendo utilizado',
+40	              });
+41	            }
+42	          });
+43	      },
+44	      (errors) => {
+45	        console.log('Erro ao adicionar template\n', strfyObj(errors));
+46	      },
+47	    ),
+48	    [form.handleSubmit],
+49	  );
+50	
+51	  return (
+52	    <FormProvider {...form}>
+53	      <TemplateForm mode='add' ministerioId={ministerioId} onSave={handleOnSave} isLoading={isLoadingMutation} />
+54	    </FormProvider>
+55	  );
+56	}

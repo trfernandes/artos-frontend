@@ -1,30 +1,47 @@
 import { View, StyleSheet } from 'react-native';
-import { useState } from 'react';
-import FancyScrollView from '../../../FancyScrollView';
-import EventoRepeticaoInput, { RecorrenciaValue } from './EventoRepeticaoInput';
-import EventoDatesInput from './EventoDatesInput';
+import FancyScrollView, { FancyScrollViewProps } from '../../../FancyScrollView';
+import EventoRepeticaoInput from './EventoRepeticaoInput';
 import { useFormContext } from 'react-hook-form';
-import { EventoFormData } from '../../../../hooks/useEventos';
 import ControlledTextInput from '../../../forms/ControlledTextInput';
 import ControlledTextArea from '../../../forms/ControlledTextArea';
 import ControlledColorPicker from '../../../forms/ControlledColorPicker';
+import EventoDatesInput from './EventoDatesInput';
+import { EventoFormData } from '../../../../domain/schemas/eventoSchema';
+import EventoRepeticaoInputCustom from './EventoRepeticaoInputCustom';
+import { useState } from 'react';
 
-export default function EventosDadosForm() {
-  const [recorrenciaValue, setRecorrenciaValue] = useState<RecorrenciaValue>({
-    type: 'Nunca',
-  });
+interface EventosDadosFormProps {
+  onlyView?: boolean;
+  scrollViewProps?: FancyScrollViewProps;
+}
+
+export default function EventosDadosForm({ onlyView = false, scrollViewProps }: EventosDadosFormProps) {
   const { control } = useFormContext<EventoFormData>();
+  const [repeticaoModalVisible, setRepeticaoModalVisible] = useState(false);
 
   return (
-    <View style={{ flex: 1 }}>
-      <FancyScrollView contentContainerStyle={styles.fields}>
-        <ControlledTextInput control={control} name="nome" label="Nome" />
-        <EventoDatesInput />
-        <EventoRepeticaoInput value={recorrenciaValue} onChange={setRecorrenciaValue} />
-        <ControlledTextInput control={control} name="local" label="Local" />
-        <ControlledTextArea control={control} name="descricao" label="Descrição" />
-        <ControlledColorPicker control={control} name="cor" horizontal label="Cor" />
+    <View
+      style={{
+        flex: 1,
+      }}
+    >
+      <FancyScrollView contentContainerStyle={styles.fields} {...scrollViewProps}>
+        <ControlledTextInput control={control} name='nome' label='Nome' disabled={onlyView} />
+        <EventoDatesInput disabled={onlyView} />
+        <EventoRepeticaoInput disabled={onlyView} setRepeticaoModalVisible={setRepeticaoModalVisible} />
+        <ControlledTextInput control={control} name='local' label='Local' disabled={onlyView} />
+        <ControlledTextArea control={control} name='descricao' label='Descrição' disabled={onlyView} />
+        <ControlledColorPicker control={control} name='cor' horizontal disabled={onlyView} />
       </FancyScrollView>
+
+      {repeticaoModalVisible && (
+        <EventoRepeticaoInputCustom
+          modalProps={{
+            visible: repeticaoModalVisible,
+            onRequestClose: () => setRepeticaoModalVisible(false),
+          }}
+        />
+      )}
     </View>
   );
 }
@@ -32,5 +49,6 @@ export default function EventosDadosForm() {
 const styles = StyleSheet.create({
   fields: {
     gap: 15,
+    paddingHorizontal: 15,
   },
 });

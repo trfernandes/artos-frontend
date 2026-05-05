@@ -1,0 +1,83 @@
+1	import { useMutation } from '@tanstack/react-query';
+2	import axios from 'axios';
+3	import Toast from 'react-native-toast-message';
+4	import { getApiErrorMessage } from '../domain/api/api-error';
+5	import { EscalaRepository } from '../domain/services/EscalaRepository';
+6	import { Operator, ValueType } from '../domain/utils/query_utils';
+7	import { ExternalUseCrudParams, useCrud } from './useCrud';
+8	import { ResponseEscalaDto } from '../domain/dtos/Escala/escala.response';
+9	import { CreateEscalaDto } from '../domain/dtos/Escala/escala.create';
+10	import { UpdateEscalaDto } from '../domain/dtos/Escala/escala.update';
+11	import { EscalaFormData } from '../domain/schemas/escalaSchema';
+12	
+13	export function useEscalasCrud({ autoFetch = false, initialParams = undefined }: ExternalUseCrudParams = {}) {
+14	  const crud = useCrud<ResponseEscalaDto, EscalaFormData, CreateEscalaDto, UpdateEscalaDto>({
+15	    queryKey: 'escalas',
+16	    autoFetch,
+17	    initialParams,
+18	    fetchAll: () => EscalaRepository.getAll(),
+19	    search: (query) => EscalaRepository.search(query),
+20	    fetchOne: async (id) => {
+21	      const result = await EscalaRepository.search({
+22	        where: {
+23	          conditions: [
+24	            {
+25	              path: 'id',
+26	              operator: Operator.EQUALS,
+27	              value: { type: ValueType.LITERAL, value: id },
+28	            },
+29	          ],
+30	        },
+31	        relations: [],
+32	      });
+33	      return result[0];
+34	    },
+35	
+36	    add: (data) => EscalaRepository.add(data),
+37	    update: (id, data) => EscalaRepository.update(id, data),
+38	    remove: (id) => EscalaRepository.remove(id),
+39	    messages: {
+40	      successCreate: 'Escala criada com sucesso!',
+41	      errorCreate: 'Erro ao criar escala.',
+42	      successUpdate: 'Escala atualizada com sucesso!',
+43	      errorUpdate: 'Erro ao atualizar escala.',
+44	      successDelete: 'Escala removida com sucesso!',
+45	      errorDelete: 'Erro ao remover escala.',
+46	    },
+47	  });
+48	
+49	  const generateMutation = useMutation({
+50	    mutationFn: (data: CreateEscalaDto) => EscalaRepository.generate(data),
+51	    onSuccess: () => {
+52	      Toast.show({ type: 'success', text1: 'Escala gerada com sucesso!' });
+53	      crud.queryClient.invalidateQueries({ queryKey: [crud.queryKey] });
+54	    },
+55	    onError: (error) => {
+56	      const responseData = axios.isAxiosError(error) ? (error.response?.data as any) : null;
+57	      const responseStatus = axios.isAxiosError(error) ? error.response?.status : null;
+58	      const errorCode = responseData?.error?.code || responseData?.errorCode;
+59	      const isDuplicateName =
+60	        errorCode === 'ESCALA_NOME_DUPLICADO' ||
+61	        responseData?.statusCode === 409 ||
+62	        responseStatus === 409;
+63	
+64	      Toast.show({
+65	        type: 'error',
+66	        text1: isDuplicateName ? 'Nome de escala em uso' : 'Erro ao gerar escala.',
+67	        text2: isDuplicateName
+68	          ? 'Já existe uma escala com esse nome neste ministério.'
+69	          : getApiErrorMessage(error, 'Não foi possível gerar a escala.'),
+70	      });
+71	
+72	      if (__DEV__) {
+73	        console.log('[useEscalasCrud] generate error:', error);
+74	      }
+75	    },
+76	  });
+77	
+78	  return {
+79	    ...crud,
+80	    generate: generateMutation.mutateAsync,
+81	    isGenerating: generateMutation.isPending,
+82	  };
+83	}

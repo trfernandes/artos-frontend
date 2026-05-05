@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { View, TouchableOpacity, StyleSheet, ViewStyle, Dimensions, ScrollView, Animated } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Dimensions, ScrollView, Animated } from 'react-native';
 import FancyButton from './buttons/FancyButton';
-import { Pallete } from '../constants/colors';
-import FancyText from './FancyText';
+import DefaultIcons from './FancyIcons';
+import FancyGroup from './list/FancyGroup';
+import { usePallete } from '../hooks/usePallete';
 
 export interface FancyColorPickerProps {
   value?: string;
@@ -11,7 +12,7 @@ export interface FancyColorPickerProps {
   onSelectColor?: (color: string) => void;
   selectedColor?: string;
   horizontal?: boolean;
-  label?: string;
+  disabled?: boolean;
 }
 
 export default function FancyColorPicker({
@@ -33,13 +34,13 @@ export default function FancyColorPicker({
     '#10B981',
   ],
   value,
-  circleSize = 40,
+  circleSize = 35,
   onSelectColor,
   selectedColor,
   horizontal = false,
-  label,
+  disabled = false,
 }: FancyColorPickerProps) {
-  // const [current, setCurrent] = useState<string>(selectedColor || colors[0]);
+  const palette = usePallete();
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
 
@@ -74,7 +75,7 @@ export default function FancyColorPicker({
   }, [isArrowVisible, fadeAnim]);
 
   const handleSelect = (color: string) => {
-    // setCurrent(color);
+    if (disabled) return;
     onSelectColor?.(color);
   };
 
@@ -90,32 +91,59 @@ export default function FancyColorPicker({
     setShowRightArrow(scrollX < maxScroll - 10);
   };
 
-  const renderCircles = () =>
-    colors.map(color => {
-      const isSelected = color === value;
-      const baseStyle: ViewStyle = {
-        width: circleSize - (isSelected ? 8 : 0),
-        height: circleSize - (isSelected ? 8 : 0),
-        borderRadius: (circleSize - (isSelected ? 8 : 0)) / 2,
-        backgroundColor: color,
-      };
+  useEffect(() => {
+    if (disabled) {
+      setShowLeftArrow(false);
+      setShowRightArrow(false);
+    }
+  }, [disabled]);
+
+  const currentColor = value ?? selectedColor;
+  const enlargedMultiplier = 1.1;
+
+  const renderCircles = () => {
+    const orderedColors =
+      disabled && currentColor ? [currentColor, ...colors.filter((colorItem) => colorItem !== currentColor)] : colors;
+
+    return orderedColors.map((color) => {
+      const isSelected = color === currentColor;
+      const displaySize = isSelected ? circleSize * enlargedMultiplier : circleSize;
+      const displayColor = disabled && !isSelected ? palette.disabled2 : color;
 
       return (
-        <TouchableOpacity key={color} onPress={() => handleSelect(color)} activeOpacity={0.8} style={styles.touchable}>
+        <TouchableOpacity
+          key={color}
+          onPress={() => handleSelect(color)}
+          activeOpacity={disabled ? 1 : 0.8}
+          style={styles.touchable}
+          disabled={disabled}
+        >
           <View
             style={[
+              styles.circleOutline,
               isSelected && {
-                padding: 2,
                 borderColor: color,
-                borderRadius: 100,
               },
             ]}
           >
-            <View style={baseStyle} />
+            <View
+              style={[
+                styles.circle,
+                {
+                  width: displaySize,
+                  height: displaySize,
+                  borderRadius: displaySize / 2,
+                  backgroundColor: displayColor,
+                },
+              ]}
+            >
+              {isSelected && <DefaultIcons.Custom library='FontAwesome' name='check' size={25} color={palette.fonts.light} />}
+            </View>
           </View>
         </TouchableOpacity>
       );
     });
+  };
 
   if (!horizontal) {
     return (
@@ -126,82 +154,54 @@ export default function FancyColorPicker({
   }
 
   return (
-    <View style={{ gap: 3 }}>
-      {label && (
-        <FancyText size={'extraSmall'} type="semiBold" color={Pallete.fonts.inactive}>
-          {label}
-        </FancyText>
-      )}
+    <FancyGroup title='Cor' contentContainerStyle={{ padding: 0, paddingTop: 8, paddingHorizontal: 0, paddingBottom: 0 }}>
       <View style={styles.colorContainer}>
-        {showLeftArrow && (
-          <Animated.View style={[styles.arrowContainer, { left: 0, opacity: fadeAnim }]}>
+        {!disabled && showLeftArrow && (
+          <Animated.View style={[styles.arrowContainer, { left: 5, opacity: fadeAnim }]}>
             <FancyButton
-              mode="icon"
+              mode='icon'
               size={25}
               icon={{
                 name: 'arrow-left',
                 library: 'Feather',
-                color: Pallete.icons.dark,
+                color: palette.icons.dark,
                 size: 15,
                 style: { borderWidth: 0 },
               }}
-              containerStyle={[{ backgroundColor: Pallete.selected }, Pallete.shadows[100]]}
+              containerStyle={[{ backgroundColor: palette.selected }, palette.shadows[100]]}
             />
           </Animated.View>
         )}
-
-        {/* Gradiente de fade na extremidade esquerda, independente da animação das setas */}
-        {/* {showLeftArrow && (
-          <View style={[styles.fade, styles.fadeLeft]}>
-            <LinearGradient
-              colors={[Pallete.backgroundColor, 'transparent']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.fadeGradient}
-            />
-          </View>
-        )} */}
 
         <ScrollView
           horizontal
           scrollEventThrottle={16}
-          showsHorizontalScrollIndicator
+          showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.scrollContainer}
-          onScroll={onScroll}
+          onScroll={disabled ? undefined : onScroll}
+          scrollEnabled={!disabled}
           ref={scrollRef}
         >
           {renderCircles()}
         </ScrollView>
-        {showRightArrow && (
-          <Animated.View style={[styles.arrowContainer, { right: 0, opacity: fadeAnim }]}>
+        {!disabled && showRightArrow && (
+          <Animated.View style={[styles.arrowContainer, { right: 5, opacity: fadeAnim }]}>
             <FancyButton
-              mode="icon"
+              mode='icon'
               size={25}
               icon={{
                 name: 'arrow-right',
                 library: 'Feather',
-                color: Pallete.icons.dark,
+                color: palette.icons.dark,
                 size: 15,
                 style: { borderWidth: 0 },
               }}
-              containerStyle={[{ backgroundColor: Pallete.selected, opacity: 0.8 }, Pallete.shadows[100]]}
+              containerStyle={[{ backgroundColor: palette.selected, opacity: 0.8 }, palette.shadows[100]]}
             />
           </Animated.View>
         )}
-
-        {/* Gradiente de fade na extremidade direita, independente da animação das setas */}
-        {/* {showRightArrow && (
-          <View style={[styles.fade, styles.fadeRight]}>
-            <LinearGradient
-              colors={['transparent', Pallete.backgroundColor]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.fadeGradient}
-            />
-          </View>
-        )} */}
       </View>
-    </View>
+    </FancyGroup>
   );
 }
 
@@ -212,6 +212,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     position: 'relative',
+    paddingVertical: 6,
   },
   paletteContainer: {
     flexDirection: 'row',
@@ -222,11 +223,25 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   scrollContainer: {
-    paddingHorizontal: 6,
+    paddingLeft: 10,
+    paddingRight: 6,
+    paddingVertical: 6,
     alignItems: 'center',
   },
   touchable: {
-    margin: 6,
+    marginHorizontal: 2,
+  },
+  circleOutline: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 3,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    borderRadius: 999,
+  },
+  circle: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   arrowContainer: {
     position: 'absolute',

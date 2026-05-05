@@ -1,40 +1,41 @@
-import { View } from 'react-native';
+import { LayoutChangeEvent, StyleProp, View, ViewStyle } from 'react-native';
 import FancyText from '../FancyText';
-import { Pallete } from '../../constants/colors';
 
 export type FancyStepsTextProps = {
-  containerWidth: number;
   text: string;
   textColor: string;
-  position?: 'left' | 'center' | 'right';
+  maxWidth?: number;
+  containerStyle?: StyleProp<ViewStyle>;
+  onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-export default function FancyStepsText({ position = 'center', ...props }: FancyStepsTextProps) {
+export default function FancyStepsText({ text, textColor, maxWidth, containerStyle, onLayout }: FancyStepsTextProps) {
   return (
     <View
-      style={{
-        // width: `${props.containerWidth}%`,
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        borderWidth: 0,
-        borderColor: 'orange',
-      }}
+      onLayout={onLayout}
+      style={[
+        {
+          alignItems: 'center',
+          justifyContent: 'flex-start',
+          maxWidth,
+        },
+        containerStyle,
+      ]}
     >
       <FancyText
-        adjustsFontSizeToFit
         numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.7}
         maxFontSizeMultiplier={1}
-        size="small"
+        size="extraSmall"
         type="semiBold"
-        color={props.textColor}
+        color={textColor}
         style={{
-          borderWidth: 0,
-          borderColor: Pallete.terciary,
-          // width: '100%',
-          // textAlign: position,
+          textAlign: 'center',
+          maxWidth,
         }}
       >
-        {props.text}
+        {text}
       </FancyText>
     </View>
   );

@@ -1,19 +1,21 @@
 import { Stack } from 'expo-router';
-import FancyHeader from '../../../../components/header/FancyHeader';
+import FancyPageHeader from '../../../../components/header/FancyHeader';
 import MainHeaderButtons from '../../../../components/header/MainHeaderButtons';
 
 export default function InicioLayout() {
   return (
     <Stack
       screenOptions={{
-        header: props => <FancyHeader {...props} />,
+        headerShown: true,
+        header: (props) => <FancyPageHeader {...props} />,
       }}
     >
       <Stack.Screen
-        name="index"
+        name='index'
         options={{
           title: 'Início',
-          header: props => <FancyHeader leftButton="menu" {...props} />,
+          headerShown: true,
+          header: (props) => <FancyPageHeader leftButton='menu' {...props} />,
           headerRight: () => <MainHeaderButtons />,
         }}
       />

@@ -1,10 +1,28 @@
+import { endOfDay, format } from 'date-fns';
 import { EventosApi } from '../api/EventosApi';
-import { Evento } from '../models/Evento';
 import { BaseRepository } from './BaseRepository';
+import { CreateEventoDto } from '../dtos/Evento/evento.create';
+import { ResponseEventoDto } from '../dtos/Evento/evento.response';
+import { UpdateEventoDto } from '../dtos/Evento/evento.update';
 
-class EventosRepositoryClass extends BaseRepository<Evento> {
+export interface EventosIntervaloParams {
+  dataInicio: Date | string;
+  dataTermino: Date | string;
+  igrejaId?: string;
+}
+
+class EventosRepositoryClass extends BaseRepository<ResponseEventoDto, CreateEventoDto, UpdateEventoDto> {
   constructor() {
     super(EventosApi);
+  }
+
+  async buscarPorIntervalo(params: EventosIntervaloParams): Promise<ResponseEventoDto[]> {
+    const response = await EventosApi.buscarPorIntervalo({
+      dataInicio: format(params.dataInicio, "yyyy-MM-dd'T'HH:mm:ss"),
+      dataTermino: format(endOfDay(params.dataTermino), "yyyy-MM-dd'T'HH:mm:ss"),
+      igrejaId: params.igrejaId,
+    });
+    return response;
   }
 }
 

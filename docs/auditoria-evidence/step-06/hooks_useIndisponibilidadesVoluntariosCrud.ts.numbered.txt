@@ -1,0 +1,86 @@
+1	import { ExternalUseCrudParams, useCrud } from './useCrud';
+2	
+3	import { useMutation } from '@tanstack/react-query';
+4	import Toast from 'react-native-toast-message';
+5	import { IndisponibilidadesVoluntariosRepository } from '../domain/services/IndisponibilidadesVoluntariosRepository';
+6	import { ResponseIndisponibilidadeVoluntarioDto } from '../domain/dtos/IndisponibilidadeVoluntario/indisponibilidade-voluntario.response';
+7	import { CreateIndisponibilidadeVoluntarioDto } from '../domain/dtos/IndisponibilidadeVoluntario/indisponibilidade-voluntario.create';
+8	import { UpdateIndisponibilidadeVoluntarioDto } from '../domain/dtos/IndisponibilidadeVoluntario/indisponibilidade-voluntario.update';
+9	import { UpsertIndisponibilidadesVoluntarioDto } from '../domain/dtos/IndisponibilidadeVoluntario/upsert-indisponibilidades-voluntario.dto';
+10	import { useAuth } from '../contexts/AuthContext';
+11	
+12	export function useIndisponibilidadesVoluntariosCrud({ autoFetch = false, initialParams }: ExternalUseCrudParams = {}) {
+13	  const { igrejaAtiva } = useAuth();
+14	  const igrejaId = igrejaAtiva?.id;
+15	
+16	  const crud = useCrud<
+17	    ResponseIndisponibilidadeVoluntarioDto,
+18	    any,
+19	    CreateIndisponibilidadeVoluntarioDto,
+20	    UpdateIndisponibilidadeVoluntarioDto
+21	  >({
+22	    queryKey: 'indisponibilidades-voluntarios',
+23	    autoFetch,
+24	    initialParams,
+25	    fetchAll: () => IndisponibilidadesVoluntariosRepository.getAll(),
+26	    search: (query) =>
+27	      IndisponibilidadesVoluntariosRepository.search(igrejaId ? { ...query, igrejaId } : query),
+28	    add: (data) => {
+29	      return IndisponibilidadesVoluntariosRepository.add(data);
+30	    },
+31	    update: (id, data) => {
+32	      return IndisponibilidadesVoluntariosRepository.update(id, data);
+33	    },
+34	    remove: (id) => IndisponibilidadesVoluntariosRepository.remove(id),
+35	    messages: {
+36	      successDelete: 'Indisponibilidade removida com sucesso.',
+37	      successCreate: 'Indisponibilidade criada com sucesso.',
+38	      errorDelete: 'Erro ao remover a indisponibilidade.',
+39	      errorCreate: 'Erro ao criar a indisponibilidade.',
+40	      errorUpdate: 'Erro ao atualizar a indisponibilidade.',
+41	    },
+42	  });
+43	
+44	  const upsertMany = useMutation({
+45	    mutationFn: (payload: UpsertIndisponibilidadesVoluntarioDto) => IndisponibilidadesVoluntariosRepository.upsertMany(payload),
+46	    onSuccess: () => {
+47	      Toast.show({
+48	        type: 'success',
+49	        text1: 'Item atualizado com sucesso!',
+50	      });
+51	      crud.queryClient.invalidateQueries({ queryKey: [crud.queryKey] });
+52	    },
+53	    onError: (error) => {
+54	      Toast.show({
+55	        type: 'error',
+56	        text1: 'Erro ao atualizar item.',
+57	      });
+58	      console.log(error);
+59	    },
+60	  });
+61	
+62	  const removeWithIgreja = useMutation({
+63	    mutationFn: ({ id, igrejaId }: { id: string; igrejaId: string }) => IndisponibilidadesVoluntariosRepository.remove(id, igrejaId),
+64	    onSuccess: () => {
+65	      Toast.show({
+66	        type: 'success',
+67	        text1: 'Indisponibilidade removida com sucesso.',
+68	      });
+69	      crud.queryClient.invalidateQueries({ queryKey: [crud.queryKey] });
+70	    },
+71	    onError: (error) => {
+72	      Toast.show({
+73	        type: 'error',
+74	        text1: 'Erro ao remover a indisponibilidade.',
+75	      });
+76	      console.log(error);
+77	    },
+78	  });
+79	
+80	  return {
+81	    ...crud,
+82	    upsertMany: upsertMany.mutateAsync,
+83	    removeWithIgreja: removeWithIgreja.mutateAsync,
+84	    isLoadingMutation: crud.isLoadingMutation || upsertMany.isPending || removeWithIgreja.isPending,
+85	  };
+86	}

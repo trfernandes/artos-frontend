@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
-import FancyBaseListPage from '../../../../../components/pages/base/FancyBaseListPage';
+import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
 import { Pallete } from '../../../../../constants/colors';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import FancyText from '../../../../../components/FancyText';
@@ -30,47 +30,53 @@ const DATA: {
 export default function MinisterioSolicitacoesIndex() {
   const [visualizarModal, setVisualizarModal] = useState(false);
   return (
-    <FancyBaseListPage
+    <FancyListPage
       showFab={false}
       listProps={{
+        listEmptyProps: {
+          label: 'Nenhuma solicitação pendente',
+          icon: { library: 'MaterialCommunityIcons', name: 'swap-horizontal-circle-outline', size: 68 },
+        },
         data: DATA,
         renderItem: ({ item }) => (
-          <FancyCard.Icon
-            title={
-              <View style={{ gap: 3, paddingBottom: 5 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                  <FancyText size={'small'} type="medium">
-                    De:
-                  </FancyText>
-                  <FancyText size={'small'} type="semiBold">
-                    {item.solicitante}
-                  </FancyText>
+          <FancyCard.Image
+            type='icon'
+            props={{
+              title: (
+                <View style={{ gap: 3, paddingBottom: 5 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                    <FancyText size={'small'} type='medium'>
+                      De:
+                    </FancyText>
+                    <FancyText size={'small'} type='semiBold'>
+                      {item.solicitante}
+                    </FancyText>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                    <FancyText size={'small'} type='medium'>
+                      Para:
+                    </FancyText>
+                    <FancyText size={'small'} type='semiBold'>
+                      {item.substituo}
+                    </FancyText>
+                  </View>
                 </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                  <FancyText size={'small'} type="medium">
-                    Para:
-                  </FancyText>
-                  <FancyText size={'small'} type="semiBold">
-                    {item.substituo}
-                  </FancyText>
-                </View>
-              </View>
-            }
-            cardIcon={{
-              ...DefaultIconsNames.refresh,
-              size: 15,
-            }}
-            subtitle={`${item.evento.dataFim.toLocaleDateString()} - ${item.evento.dataFim.toLocaleDateString()}`}
-            additionalData1={`${item.evento.nome}`}
-            additionalData2={`${item.funcao}`}
-            actionButtons={[
-      
-              {
-                icon: { ...DefaultIconsNames.confirm, size: 18 },
-                onPress: () => setVisualizarModal(true),
+              ),
+              cardIcon: {
+                ...DefaultIconsNames.refresh,
+                size: 15,
               },
-              { icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error }, onPress: () => {} },
-            ]}
+              subtitle: `${item.evento.dataFim.toLocaleDateString()} - ${item.evento.dataFim.toLocaleDateString()}`,
+              additionalData1: `${item.evento.nome}`,
+              additionalData2: `${item.funcao}`,
+              actionButtons: [
+                {
+                  icon: { ...DefaultIconsNames.confirm, size: 18 },
+                  onPress: () => setVisualizarModal(true),
+                },
+                { icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error }, onPress: () => {} },
+              ],
+            }}
           />
         ),
       }}
@@ -78,10 +84,10 @@ export default function MinisterioSolicitacoesIndex() {
       {visualizarModal && (
         <Visualizar
           modalProps={{ visible: visualizarModal }}
-          onClose={() => setVisualizarModal(false)}
-          onConfirm={() => setVisualizarModal(false)}
+          onButton1Press={() => setVisualizarModal(false)}
+          onButton2Press={() => setVisualizarModal(false)}
         />
       )}
-    </FancyBaseListPage>
+    </FancyListPage>
   );
 }

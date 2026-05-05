@@ -1,4 +1,3 @@
-import React from 'react';
 import axios, { AxiosError } from 'axios';
 import { strfyObj } from '../../utils/text_utils';
 import FancyError from './FancyError';
@@ -13,21 +12,33 @@ export default function FancyScreenErrorHandler({
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError;
 
-    console.error(
-      'Erro ao carregar ministerios\n',
+    console.log(
+      'From FancyScreenErrorHandler\n',
       strfyObj({
-        isAxiosError: true,
-        code: axiosError.code,
-        message: axiosError.message,
-      })
+        // isAxiosError: true,
+        // code: axiosError.code,
+        // message: axiosError.message,
+        axiosError,
+      }),
     );
 
-    if (axiosError.code === 'ERR_BAD_RESPONSE') {
-      return <FancyError.Default onUpdate={onTryAgrainPress} />;
-    } else if (axiosError.code === 'ECONNABORTED') {
+    if (axiosError.code === 'ECONNABORTED' || axiosError.code === 'ERR_NETWORK') {
       return <FancyError.Connection onUpdate={onTryAgrainPress} />;
     }
+
+    // Qualquer outro erro HTTP (400/401/403/500...) usa fallback amigavel padrao
+    return <FancyError.Default onUpdate={onTryAgrainPress} />;
   } else {
-    console.error('Erro ao carregar ministerios', error);
+    console.log(
+      'From FancyScreenErrorHandler',
+      strfyObj({
+        cause: error.cause,
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      }),
+    );
   }
+
+  return <FancyError.Default onUpdate={onTryAgrainPress} />;
 }

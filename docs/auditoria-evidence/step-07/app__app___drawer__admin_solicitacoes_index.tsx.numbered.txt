@@ -1,0 +1,456 @@
+1	import { useState, useMemo } from 'react';
+2	import { View, StyleSheet, Share, ScrollView, RefreshControl, Clipboard } from 'react-native';
+3	import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+4	import Toast from 'react-native-toast-message';
+5	import { formatInTimeZone } from 'date-fns-tz';
+6	import { ptBR } from 'date-fns/locale';
+7	
+8	// Components
+9	import FancyText from '../../../../../components/FancyText';
+10	import FancyButton from '../../../../../components/buttons/FancyButton';
+11	import FancyFab from '../../../../../components/buttons/FancyFab';
+12	import DefaultIcons from '../../../../../components/FancyIcons';
+13	import FancyLoading from '../../../../../components/FancyLoading';
+14	import FancyPageView from '../../../../../components/containers/FancyPageView';
+15	import FancyTabs, { TabItem } from '../../../../../components/tabs/FancyTabs';
+16	import { FancyAlert } from '../../../../../components/modal/FancyAlert';
+17	import FancyListEmpty from '../../../../../components/list/FancyListEmpty';
+18	
+19	// New Components
+20	import SummaryCards from '../../../../../components/pages/admin/solicitacoes/SummaryCards';
+21	import SolicitacaoCard from '../../../../../components/pages/admin/solicitacoes/SolicitacaoCard';
+22	import ConviteTicketCard from '../../../../../components/pages/admin/solicitacoes/ConviteTicketCard';
+23	import NovoConviteModal from '../../../../../components/pages/admin/solicitacoes/NovoConviteModal';
+24	import ConviteGeradoModal from '../../../../../components/pages/admin/solicitacoes/ConviteGeradoModal';
+25	
+26	// Domain
+27	import { Pallete } from '../../../../../constants/colors';
+28	import { useAuth } from '../../../../../contexts/AuthContext';
+29	import { IgrejaRepository } from '../../../../../domain/services/IgrejaRepository';
+30	import {
+31	  ResponseIgrejaConviteDto,
+32	  ConviteStatusType,
+33	} from '../../../../../domain/dtos/Igreja/response-igreja-convite.dto';
+34	import { ResponseIgrejaSolicitacaoDto } from '../../../../../domain/dtos/Igreja/response-igreja-solicitacao.dto';
+35	import { CreateIgrejaConviteDto } from '../../../../../domain/dtos/Igreja/create-igreja-convite.dto';
+36	import { IgrejaVoluntarioRoleEnum } from '../../../../../domain/enums/Igreja/voluntario-role.enum';
+37	import { APP_TZ } from '../../../../../utils/date_utils';
+38	
+39	// Helper para determinar status do convite
+40	function getConviteStatus(convite: ResponseIgrejaConviteDto): ConviteStatusType {
+41	  if (convite.revokedAt || !convite.ativo) return 'REVOGADO';
+42	  if (convite.maxUses && convite.usesCount >= convite.maxUses) return 'ESGOTADO';
+43	  if (convite.expiresAt && new Date(convite.expiresAt) < new Date()) return 'EXPIRADO';
+44	  return 'ATIVO';
+45	}
+46	
+47	// Helper para formatar data
+48	function formatDateTime(dateStr: string): string {
+49	  const utcDate = dateStr.endsWith('Z') ? dateStr : dateStr + 'Z';
+50	  return formatInTimeZone(new Date(utcDate), APP_TZ, 'dd/MM/yyyy HH:mm', { locale: ptBR });
+51	}
+52	
+53	export default function SolicitacoesConvitesPage() {
+54	  const { igrejaAtiva } = useAuth();
+55	  const queryClient = useQueryClient();
+56	
+57	  // Estados
+58	  const [tabIndex, setTabIndex] = useState(0);
+59	  const [showNovoConviteModal, setShowNovoConviteModal] = useState(false);
+60	  const [conviteGerado, setConviteGerado] = useState<ResponseIgrejaConviteDto | null>(null);
+61	
+62	  // Verificar permissões
+63	  const roleUpper = igrejaAtiva?.role?.toString().toUpperCase();
+64	  const isAdmin = roleUpper === IgrejaVoluntarioRoleEnum.ADMIN || roleUpper === 'OWNER';
+65	  const isLider = roleUpper === IgrejaVoluntarioRoleEnum.LIDER;
+66	  const hasPermission = isAdmin || isLider;
+67	
+68	  // ========== QUERIES ==========
+69	
+70	  // Query para solicitações
+71	  const {
+72	    data: solicitacoes = [],
+73	    isLoading: isLoadingSolicitacoes,
+74	    refetch: refetchSolicitacoes,
+75	    isRefetching: isRefetchingSolicitacoes,
+76	  } = useQuery({
+77	    queryKey: ['igreja-solicitacoes', igrejaAtiva?.id],
+78	    queryFn: () => IgrejaRepository.listarSolicitacoes(igrejaAtiva!.id),
+79	    enabled: !!igrejaAtiva?.id && hasPermission,
+80	    select: (data) => {
+81	      const statusOrder: Record<ResponseIgrejaSolicitacaoDto['status'], number> = {
+82	        PENDING: 0,
+83	        APPROVED: 1,
+84	        DENIED: 1,
+85	        CANCELED: 2,
+86	      };
+87	      return [...data].sort((a, b) => {
+88	        const groupA = statusOrder[a.status];
+89	        const groupB = statusOrder[b.status];
+90	        if (groupA !== groupB) return groupA - groupB;
+91	        const dateA = a.status === 'PENDING' ? a.createdAt : a.respondedAt || a.createdAt;
+92	        const dateB = b.status === 'PENDING' ? b.createdAt : b.respondedAt || b.createdAt;
+93	        return new Date(dateB).getTime() - new Date(dateA).getTime();
+94	      });
+95	    },
+96	  });
+97	
+98	  // Query para convites
+99	  const {
+100	    data: convites = [],
+101	    isLoading: isLoadingConvites,
+102	    refetch: refetchConvites,
+103	    isRefetching: isRefetchingConvites,
+104	  } = useQuery({
+105	    queryKey: ['igreja-convites', igrejaAtiva?.id],
+106	    queryFn: () => IgrejaRepository.listarConvites(igrejaAtiva!.id, 'TODOS'),
+107	    enabled: !!igrejaAtiva?.id && hasPermission,
+108	    select: (data) => {
+109	      return data.sort((a, b) => {
+110	        const statusA = getConviteStatus(a);
+111	        const statusB = getConviteStatus(b);
+112	        const isAtivoA = statusA === 'ATIVO';
+113	        const isAtivoB = statusB === 'ATIVO';
+114	        if (isAtivoA && !isAtivoB) return -1;
+115	        if (!isAtivoA && isAtivoB) return 1;
+116	        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+117	      });
+118	    },
+119	  });
+120	
+121	  // ========== MUTATIONS ==========
+122	
+123	  const aprovarMutation = useMutation({
+124	    mutationFn: ({ solicitacaoId }: { solicitacaoId: string }) =>
+125	      IgrejaRepository.aprovarSolicitacao(igrejaAtiva!.id, solicitacaoId),
+126	    onSuccess: () => {
+127	      Toast.show({ type: 'success', text1: 'Solicitação aprovada com sucesso!' });
+128	      queryClient.invalidateQueries({ queryKey: ['igreja-solicitacoes', igrejaAtiva?.id] });
+129	    },
+130	    onError: () => {
+131	      Toast.show({ type: 'error', text1: 'Erro ao aprovar solicitação' });
+132	    },
+133	  });
+134	
+135	  const rejeitarMutation = useMutation({
+136	    mutationFn: ({ solicitacaoId }: { solicitacaoId: string }) =>
+137	      IgrejaRepository.negarSolicitacao(igrejaAtiva!.id, solicitacaoId),
+138	    onSuccess: () => {
+139	      Toast.show({ type: 'success', text1: 'Solicitação negada' });
+140	      queryClient.invalidateQueries({ queryKey: ['igreja-solicitacoes', igrejaAtiva?.id] });
+141	    },
+142	    onError: () => {
+143	      Toast.show({ type: 'error', text1: 'Erro ao negar solicitação' });
+144	    },
+145	  });
+146	
+147	  const criarConviteMutation = useMutation({
+148	    mutationFn: (dto: CreateIgrejaConviteDto) => IgrejaRepository.criarConvite(igrejaAtiva!.id, dto),
+149	    onSuccess: (novoConvite) => {
+150	      setConviteGerado(novoConvite);
+151	      setShowNovoConviteModal(false);
+152	      queryClient.invalidateQueries({ queryKey: ['igreja-convites', igrejaAtiva?.id] });
+153	    },
+154	    onError: () => {
+155	      Toast.show({ type: 'error', text1: 'Erro ao gerar convite' });
+156	    },
+157	  });
+158	
+159	  const revogarConviteMutation = useMutation({
+160	    mutationFn: (conviteId: string) => IgrejaRepository.revogarConvite(conviteId),
+161	    onSuccess: () => {
+162	      Toast.show({ type: 'success', text1: 'Convite revogado' });
+163	      queryClient.invalidateQueries({ queryKey: ['igreja-convites', igrejaAtiva?.id] });
+164	    },
+165	    onError: () => {
+166	      Toast.show({ type: 'error', text1: 'Erro ao revogar convite' });
+167	    },
+168	  });
+169	
+170	  // ========== HANDLERS ==========
+171	
+172	  const handleAprovar = (solicitacao: ResponseIgrejaSolicitacaoDto) => {
+173	    FancyAlert.alert(
+174	      'Aprovar solicitação?',
+175	      `Deseja aprovar "${solicitacao.voluntario?.nome || 'este voluntário'}" como membro da igreja?`,
+176	      [
+177	        { text: 'Cancelar', style: 'destructive' },
+178	        {
+179	          text: 'Aprovar',
+180	          onPress: () => aprovarMutation.mutate({ solicitacaoId: solicitacao.id }),
+181	        },
+182	      ],
+183	    );
+184	  };
+185	
+186	  const handleRejeitar = (solicitacao: ResponseIgrejaSolicitacaoDto) => {
+187	    FancyAlert.alert(
+188	      'Rejeitar solicitação?',
+189	      `Deseja rejeitar a solicitação de "${solicitacao.voluntario?.nome || 'este voluntário'}"?`,
+190	      [
+191	        { text: 'Cancelar', style: 'cancel' },
+192	        {
+193	          text: 'Sim',
+194	          style: 'destructive',
+195	          onPress: () => rejeitarMutation.mutate({ solicitacaoId: solicitacao.id }),
+196	        },
+197	      ],
+198	    );
+199	  };
+200	
+201	  const handleShare = async (convite: ResponseIgrejaConviteDto) => {
+202	    const message = `Oi! Use este convite para entrar na nossa igreja no Artos:\n\n${convite.inviteLink}\n\nSe não abrir automaticamente, cole este código no app: ${convite.token}`;
+203	    try {
+204	      await Share.share({ message });
+205	    } catch (error) {
+206	      Toast.show({ type: 'error', text1: 'Erro ao compartilhar' });
+207	    }
+208	  };
+209	
+210	  const handleRevogar = (convite: ResponseIgrejaConviteDto) => {
+211	    FancyAlert.alert(
+212	      'Revogar convite?',
+213	      `O convite "${convite.descricao || convite.token.substring(0, 8) + '...'}" não poderá mais ser usado.`,
+214	      [
+215	        { text: 'Cancelar', style: 'cancel' },
+216	        {
+217	          text: 'Sim',
+218	          style: 'destructive',
+219	          onPress: () => revogarConviteMutation.mutate(convite.id),
+220	        },
+221	      ],
+222	    );
+223	  };
+224	
+225	  const handleCopiarToken = (token: string) => {
+226	    Clipboard.setString(token);
+227	    Toast.show({ type: 'success', text1: 'Código copiado!' });
+228	  };
+229	
+230	  const handleCopiarLink = (link: string) => {
+231	    Clipboard.setString(link);
+232	    Toast.show({ type: 'success', text1: 'Link copiado!' });
+233	  };
+234	
+235	  // ========== COMPUTED ==========
+236	
+237	  const pendentesCount = solicitacoes.filter((s) => s.status === 'PENDING').length;
+238	  const convitesAtivos = convites.filter((c) => getConviteStatus(c) === 'ATIVO');
+239	  const totalAceitos = solicitacoes.filter((s) => s.status === 'APPROVED').length;
+240	
+241	  // ========== RENDERS ==========
+242	
+243	  const renderEmptySolicitacoes = () => (
+244	    <FancyListEmpty
+245	      icon={{ library: 'MaterialCommunityIcons', name: 'account-clock-outline', size: 55 }}
+246	      label='Nenhuma solicitação pendente'
+247	    />
+248	  );
+249	
+250	  const renderEmptyConvites = () => (
+251	    <FancyListEmpty
+252	      icon={{ library: 'MaterialCommunityIcons', name: 'ticket-confirmation-outline', size: 55 }}
+253	      label='Nenhum convite criado'
+254	    />
+255	  );
+256	
+257	  const renderSolicitacoesTab = () => (
+258	    <ScrollView
+259	      style={styles.scrollView}
+260	      contentContainerStyle={styles.scrollContent}
+261	      refreshControl={
+262	        <RefreshControl
+263	          refreshing={isRefetchingSolicitacoes}
+264	          onRefresh={() => refetchSolicitacoes()}
+265	          colors={[Pallete.primary]}
+266	          tintColor={Pallete.primary}
+267	        />
+268	      }
+269	      showsVerticalScrollIndicator={false}
+270	    >
+271	      {solicitacoes.length === 0 ? (
+272	        renderEmptySolicitacoes()
+273	      ) : (
+274	        <View style={styles.listContainer}>
+275	          {solicitacoes.map((item) => (
+276	            <SolicitacaoCard
+277	              key={item.id}
+278	              solicitacao={item}
+279	              onAprovar={() => handleAprovar(item)}
+280	              onRejeitar={() => handleRejeitar(item)}
+281	              isAprovando={aprovarMutation.isPending}
+282	              isRejeitando={rejeitarMutation.isPending}
+283	              formatDateTime={formatDateTime}
+284	            />
+285	          ))}
+286	        </View>
+287	      )}
+288	    </ScrollView>
+289	  );
+290	
+291	  const renderConvitesTab = () => (
+292	    <ScrollView
+293	      style={styles.scrollView}
+294	      contentContainerStyle={styles.scrollContent}
+295	      refreshControl={
+296	        <RefreshControl
+297	          refreshing={isRefetchingConvites}
+298	          onRefresh={() => refetchConvites()}
+299	          colors={[Pallete.primary]}
+300	          tintColor={Pallete.primary}
+301	        />
+302	      }
+303	      showsVerticalScrollIndicator={false}
+304	    >
+305	      {convites.length === 0 ? (
+306	        renderEmptyConvites()
+307	      ) : (
+308	        <View style={styles.listContainer}>
+309	          {convites.map((item) => (
+310	            <ConviteTicketCard
+311	              key={item.id}
+312	              convite={item}
+313	              status={getConviteStatus(item)}
+314	              onCompartilhar={() => handleShare(item)}
+315	              onRevogar={() => handleRevogar(item)}
+316	              onCopiarToken={() => handleCopiarToken(item.token)}
+317	              formatDateTime={formatDateTime}
+318	              isRevogando={revogarConviteMutation.isPending}
+319	            />
+320	          ))}
+321	        </View>
+322	      )}
+323	    </ScrollView>
+324	  );
+325	
+326	  const tabItems = useMemo<TabItem[]>(
+327	    () => [
+328	      {
+329	        title: `Solicitações (${pendentesCount})`,
+330	        content: renderSolicitacoesTab(),
+331	        icon: { library: 'MaterialCommunityIcons', name: 'account-clock-outline', size: 16 },
+332	      },
+333	      {
+334	        title: `Convites (${convitesAtivos.length})`,
+335	        content: renderConvitesTab(),
+336	        icon: { library: 'MaterialCommunityIcons', name: 'ticket-confirmation-outline', size: 16 },
+337	      },
+338	    ],
+339	    [solicitacoes, convites, isRefetchingSolicitacoes, isRefetchingConvites, aprovarMutation.isPending, rejeitarMutation.isPending, revogarConviteMutation.isPending],
+340	  );
+341	
+342	  // ========== LOADING / ERROR STATES ==========
+343	
+344	  if ((isLoadingSolicitacoes || isLoadingConvites) && solicitacoes.length === 0 && convites.length === 0) {
+345	    return <FancyLoading />;
+346	  }
+347	
+348	  if (!igrejaAtiva?.id) {
+349	    return (
+350	      <FancyPageView style={styles.centerContainer}>
+351	        <DefaultIcons.Custom library='MaterialCommunityIcons' name='church' size={64} color={Pallete.fonts.inactive} />
+352	        <FancyText size='medium' color={Pallete.fonts.inactive} style={styles.emptyText}>
+353	          Selecione uma igreja para gerenciar solicitações e convites.
+354	        </FancyText>
+355	      </FancyPageView>
+356	    );
+357	  }
+358	
+359	  if (!hasPermission) {
+360	    return (
+361	      <FancyPageView style={styles.centerContainer}>
+362	        <DefaultIcons.Custom library='MaterialIcons' name='lock' size={64} color={Pallete.fonts.inactive} />
+363	        <FancyText size='medium' color={Pallete.fonts.inactive} style={styles.emptyText}>
+364	          Você não tem permissão para acessar esta área.
+365	        </FancyText>
+366	      </FancyPageView>
+367	    );
+368	  }
+369	
+370	  return (
+371	    <FancyPageView>
+372	      <View style={styles.container}>
+373	        {/* Summary Cards */}
+374	        <View style={styles.summarySection}>
+375	          <SummaryCards
+376	            pendentes={pendentesCount}
+377	            convitesAtivos={convitesAtivos.length}
+378	            totalAceitos={totalAceitos}
+379	          />
+380	        </View>
+381	
+382	        {/* Tabs */}
+383	        <FancyTabs
+384	          items={tabItems}
+385	          onTabChange={setTabIndex}
+386	          containerStyle={styles.tabsContainer}
+387	          contentContainerStyle={styles.tabContentContainer}
+388	          headerStyle={styles.tabsHeader}
+389	        />
+390	      </View>
+391	
+392	      {/* FAB para criar convite (só na aba de convites) */}
+393	      {tabIndex === 1 && <FancyFab onPress={() => setShowNovoConviteModal(true)} />}
+394	
+395	      {/* Modal: Novo Convite */}
+396	      <NovoConviteModal
+397	        visible={showNovoConviteModal}
+398	        onClose={() => setShowNovoConviteModal(false)}
+399	        onCriar={(dto) => criarConviteMutation.mutate(dto)}
+400	        isLoading={criarConviteMutation.isPending}
+401	      />
+402	
+403	      {/* Modal: Convite Gerado */}
+404	      <ConviteGeradoModal
+405	        convite={conviteGerado}
+406	        onClose={() => setConviteGerado(null)}
+407	        onCompartilhar={() => conviteGerado && handleShare(conviteGerado)}
+408	        onCopiarToken={() => conviteGerado && handleCopiarToken(conviteGerado.token)}
+409	        onCopiarLink={() => conviteGerado && handleCopiarLink(conviteGerado.inviteLink)}
+410	      />
+411	    </FancyPageView>
+412	  );
+413	}
+414	
+415	const styles = StyleSheet.create({
+416	  container: {
+417	    flex: 1,
+418	  },
+419	  summarySection: {
+420	    paddingHorizontal: 16,
+421	    paddingBottom: 4,
+422	  },
+423	  tabsContainer: {
+424	    flex: 1,
+425	    paddingHorizontal: 16,
+426	  },
+427	  tabsHeader: {
+428	    paddingVertical: 0,
+429	    marginBottom: 4,
+430	  },
+431	  tabContentContainer: {
+432	    flex: 1,
+433	  },
+434	  scrollView: {
+435	    flex: 1,
+436	  },
+437	  scrollContent: {
+438	    flexGrow: 1,
+439	    paddingTop: 4,
+440	    paddingBottom: 100,
+441	  },
+442	  listContainer: {
+443	    gap: 12,
+444	  },
+445	  centerContainer: {
+446	    flex: 1,
+447	    justifyContent: 'center',
+448	    alignItems: 'center',
+449	    padding: 32,
+450	    gap: 16,
+451	  },
+452	  emptyText: {
+453	    textAlign: 'center',
+454	    maxWidth: 280,
+455	  },
+456	});

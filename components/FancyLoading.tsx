@@ -1,16 +1,19 @@
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
-import { Pallete } from '../constants/colors';
+import { View, StyleSheet, ActivityIndicator, ViewStyle, StyleProp } from 'react-native';
 import FancyText from './FancyText';
+import { usePallete } from '../hooks/usePallete';
 
 export interface FancyLoadingProps {
   label?: string;
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
-export default function FancyLoading({ label = 'Carregando...' }: FancyLoadingProps) {
+export default function FancyLoading({ label = 'Carregando...', containerStyle }: FancyLoadingProps) {
+  const palette = usePallete();
+
   return (
-    <View style={styles.container}>
-      <ActivityIndicator size={'large'} />
-      <FancyText size={'medium'} type="semiBold" color={Pallete.fonts.inactive}>
+    <View style={[styles.container, { backgroundColor: palette.backgroundColor }, containerStyle]}>
+      <ActivityIndicator size={'large'} color={palette.primary} />
+      <FancyText size={'medium'} type='semiBold' color={palette.fonts.inactive}>
         {label}
       </FancyText>
     </View>
@@ -20,7 +23,8 @@ export default function FancyLoading({ label = 'Carregando...' }: FancyLoadingPr
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Pallete.backgroundColor,
+    alignSelf: 'stretch',
+    backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 15,

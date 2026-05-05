@@ -1,0 +1,103 @@
+1	import { StyleSheet, View } from 'react-native';
+2	import { DefaultIconsNames } from '../../../../../constants/icons';
+3	import EventosDadosForm from '../../../../../components/pages/admin/eventos/EventosDadosForm';
+4	import FancyPageView from '../../../../../components/containers/FancyPageView';
+5	import FancyButton from '../../../../../components/buttons/FancyButton';
+6	import { zodResolver } from '@hookform/resolvers/zod';
+7	import { FormProvider, useForm } from 'react-hook-form';
+8	import { router, useLocalSearchParams } from 'expo-router';
+9	import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
+10	import FancyLoading from '../../../../../components/FancyLoading';
+11	import { useEffect } from 'react';
+12	import { toZonedTime } from 'date-fns-tz';
+13	import { EventoFormData, eventoSchema } from '../../../../../domain/schemas/eventoSchema';
+14	import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
+15	import { DateUtilsApi } from '../../../../../utils/date_utils';
+16	
+17	export default function EventosEditPage() {
+18	  const params = useLocalSearchParams<{ id: string }>();
+19	  const {
+20	    data: eventosData,
+21	    isLoading: isLoadingEvento,
+22	    isLoadingMutation: isLoadingEventoMutation,
+23	    update: updateEvento,
+24	  } = useEventosCrud({
+25	    autoFetch: true,
+26	    initialParams: {
+27	      where: {
+28	        conditions: [
+29	          {
+30	            path: 'id',
+31	            operator: Operator.EQUALS,
+32	            value: { type: ValueType.LITERAL, value: params.id },
+33	          },
+34	        ],
+35	      },
+36	    },
+37	  });
+38	
+39	  const eventoForm = useForm<EventoFormData>({
+40	    resolver: zodResolver(eventoSchema),
+41	  });
+42	
+43	  useEffect(() => {
+44	    if (eventosData?.length >= 1) {
+45	      eventoForm.setValue('id', eventosData[0]?.id);
+46	      eventoForm.setValue('nome', eventosData[0]?.nome ?? '');
+47	      eventoForm.setValue('local', eventosData[0]?.local ?? '');
+48	      eventoForm.setValue('cor', eventosData[0]?.cor ?? '#FF8C00');
+49	      eventoForm.setValue('dataInicio', toZonedTime(eventosData[0]?.dataInicio, 'America/Sao_Paulo'));
+50	      eventoForm.setValue(
+51	        'dataTermino',
+52	        eventosData[0]?.dataTermino ? toZonedTime(eventosData[0]?.dataTermino, 'America/Sao_Paulo') : undefined,
+53	      );
+54	      eventoForm.setValue('descricao', eventosData[0]?.descricao ?? '');
+55	      eventoForm.setValue('recorrencia', eventosData[0]?.recorrencia);
+56	      eventoForm.setValue('recorrenciaSemanaDias', eventosData[0]?.recorrenciaSemanaDias?.map((item) => item) || []);
+57	      eventoForm.setValue('recorrenciaACadaMeses', eventosData[0]?.recorrenciaACadaMeses || 1);
+58	      eventoForm.setValue('recorrenciaSemanasMes', eventosData[0]?.recorrenciaSemanasMes?.map((item) => item) || []);
+59	    }
+60	  }, [eventosData]);
+61	
+62	  if (isLoadingEvento) {
+63	    return <FancyLoading />;
+64	  }
+65	
+66	  if (isLoadingEventoMutation) {
+67	    return <FancyLoading label='Salvando...' />;
+68	  }
+69	
+70	  const handleSubmit = async () => {
+71	    eventoForm.handleSubmit(
+72	      async (data) => {
+73	        const { id, ...payload } = data;
+74	
+75	        await updateEvento({
+76	          id: id!,
+77	          data: {
+78	            ...payload,
+79	            dataInicio: DateUtilsApi.dateTimeToApi(payload.dataInicio),
+80	            dataTermino: payload.dataTermino ? DateUtilsApi.dateTimeToApi(payload.dataTermino) : undefined,
+81	          },
+82	        });
+83	        router.back();
+84	      },
+85	      (error) => console.log(error),
+86	    )();
+87	  };
+88	
+89	  return (
+90	    <FancyPageView>
+91	      <FormProvider {...eventoForm}>
+92	        <EventosDadosForm />
+93	      </FormProvider>
+94	      <View style={styles.buttons}>
+95	        <FancyButton label='Salvar' icon={{ ...DefaultIconsNames.save, size: 16 }} type='contained' onPress={handleSubmit} />
+96	      </View>
+97	    </FancyPageView>
+98	  );
+99	}
+100	
+101	const styles = StyleSheet.create({
+102	  buttons: { paddingHorizontal: 15 },
+103	});

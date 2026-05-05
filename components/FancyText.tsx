@@ -7,6 +7,7 @@ import {
   ITALIC_FONT,
   ITALIC_MEDIUM_FONT,
   ITALIC_SEMI_BOLD_FONT,
+  LARGE_MEDIUM_SIZE_FONT,
   LARGE_SIZE_FONT,
   MEDIUM_FONT,
   MEDIUM_SIZE_FONT,
@@ -15,58 +16,53 @@ import {
   SMALL_SIZE_FONT,
 } from '../constants/font';
 import React from 'react';
-import { Pallete } from '../constants/colors';
+import { usePallete } from '../hooks/usePallete';
 
 export type FancyTextProps = {
   children?: React.ReactNode;
-  type?:
-    | 'normal'
-    | 'normalItalic'
-    | 'medium'
-    | 'mediumItalic'
-    | 'semiBold'
-    | 'semiBoldItalic'
-    | 'bold'
-    | 'boldItalic';
-  size?: 'extraSmall' | 'small' | 'medium' | 'large' | 'extraLarge' | number;
+  type?: 'normal' | 'normalItalic' | 'medium' | 'mediumItalic' | 'semiBold' | 'semiBoldItalic' | 'bold' | 'boldItalic';
+  size?: 'extraSmall' | 'small' | 'medium' | 'large' | 'largeMedium' | 'extraLarge' | number;
   color?: string;
   style?: StyleProp<TextStyle>;
 } & TextProps;
 
 export default function FancyText(props: FancyTextProps) {
-  const { size = 'medium', type = 'normal', color = Pallete.fonts.dark } = props;
+  const palette = usePallete();
+  const { size = 'medium', type = 'normal', color = palette.fonts.dark } = props;
 
   const fontSize =
     size === 'extraSmall'
       ? EXTRA_SMALL_SIZE_FONT
       : size === 'small'
-      ? SMALL_SIZE_FONT
-      : size === 'medium'
-      ? MEDIUM_SIZE_FONT
-      : size === 'large'
-      ? LARGE_SIZE_FONT
-      : size === 'extraLarge'
-      ? EXTRA_LARGE_SIZE_FONT
-      : size;
+        ? SMALL_SIZE_FONT
+        : size === 'medium'
+          ? MEDIUM_SIZE_FONT
+          : size === 'large'
+            ? LARGE_SIZE_FONT
+            : size === 'largeMedium'
+              ? LARGE_MEDIUM_SIZE_FONT
+              : size === 'extraLarge'
+                ? EXTRA_LARGE_SIZE_FONT
+                : size;
   const fontFamily =
     type === 'bold'
       ? BOLD_FONT
       : type === 'semiBold'
-      ? SEMI_BOLD_FONT
-      : type === 'medium'
-      ? MEDIUM_FONT
-      : type === 'normalItalic'
-      ? ITALIC_FONT
-      : type === 'semiBoldItalic'
-      ? ITALIC_SEMI_BOLD_FONT
-      : type === 'mediumItalic'
-      ? ITALIC_MEDIUM_FONT
-      : type === 'boldItalic'
-      ? ITALIC_BOLD_FONT
-      : REGULAR_FONT;
+        ? SEMI_BOLD_FONT
+        : type === 'medium'
+          ? MEDIUM_FONT
+          : type === 'normalItalic'
+            ? ITALIC_FONT
+            : type === 'semiBoldItalic'
+              ? ITALIC_SEMI_BOLD_FONT
+              : type === 'mediumItalic'
+                ? ITALIC_MEDIUM_FONT
+                : type === 'boldItalic'
+                  ? ITALIC_BOLD_FONT
+                  : REGULAR_FONT;
 
   return (
-    <Text {...props} style={[styles.text, { fontSize, fontFamily, color, lineHeight: fontSize + 2 }, props.style]}>
+    <Text {...props} allowFontScaling={false} style={[styles.text, { fontSize, fontFamily, color, lineHeight: Math.round(fontSize * 1.25) }, props.style]}>
       {props.children}
     </Text>
   );

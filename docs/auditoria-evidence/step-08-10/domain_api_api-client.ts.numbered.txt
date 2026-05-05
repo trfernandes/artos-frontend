@@ -1,0 +1,50 @@
+1	import axios from 'axios';
+2	import { triggerUnauthorized } from '../../core/network/authBridge';
+3	import { getAuthToken } from '../../core/storage/authTokenStorage';
+4	
+5	const apiClient = axios.create({
+6	  baseURL: process.env.EXPO_PUBLIC_API_URL,
+7	  timeout: 30000,
+8	  headers: {
+9	    'Content-Type': 'application/json',
+10	    'x-api-key': process.env.EXPO_PUBLIC_APP_SECRET_KEY || '',
+11	  },
+12	});
+13	
+14	// Interceptor para anexar o token JWT automaticamente
+15	apiClient.interceptors.request.use(async (config) => {
+16	  const token = await getAuthToken();
+17	  if (token) {
+18	    config.headers.Authorization = `Bearer ${token}`;
+19	  }
+20	  return config;
+21	});
+22	
+23	// Endpoints de auth retornam 401 para credenciais inválidas — não devem disparar signOut
+24	const AUTH_ENDPOINTS = ['/auth/login', '/auth/register', '/auth/forgot-password'];
+25	
+26	export function isAuthEndpoint(url: string): boolean {
+27	  return AUTH_ENDPOINTS.some((endpoint) => url.includes(endpoint));
+28	}
+29	
+30	let isHandling401 = false;
+31	
+32	apiClient.interceptors.response.use(
+33	  (res) => res,
+34	  async (error) => {
+35	    const status = error?.response?.status;
+36	    const requestUrl = error?.config?.url || '';
+37	
+38	    if (status === 401 && !isHandling401 && !isAuthEndpoint(requestUrl)) {
+39	      isHandling401 = true;
+40	      try {
+41	        triggerUnauthorized('expired');
+42	      } finally {
+43	        setTimeout(() => (isHandling401 = false), 500);
+44	      }
+45	    }
+46	    return Promise.reject(error);
+47	  },
+48	);
+49	
+50	export default apiClient;

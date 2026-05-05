@@ -1,9 +1,9 @@
 import { View, StyleSheet, StyleProp, ViewStyle, ActivityIndicator, TouchableOpacity } from 'react-native';
 import FancyTextInput from './fields/FancyTextInput';
-import { Pallete } from '../constants/colors';
 import DefaultIcons from './FancyIcons';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { DefaultIconsNames } from '../constants/icons';
+import { usePallete } from '../hooks/usePallete';
 
 export type FancySearchBarProps = {
   value?: string; // 🔥 novo
@@ -13,14 +13,22 @@ export type FancySearchBarProps = {
 };
 
 export default function FancySearchBar(props: FancySearchBarProps) {
+  const Pallete = usePallete();
   const [internalValue, setInternalValue] = useState(props.value ?? '');
   const [debouncedSearch, setDebouncedSearch] = useState(internalValue);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasEmittedInitialEmpty, setHasEmittedInitialEmpty] = useState(false);
+  const onSearchRef = useRef<FancySearchBarProps['onSearch']>(props.onSearch);
+  const hadNonEmptySearchRef = useRef(false);
+
+  useEffect(() => {
+    onSearchRef.current = props.onSearch;
+  }, [props.onSearch]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
       setIsLoading(false);
-      setDebouncedSearch(internalValue || ' ');
+      setDebouncedSearch(internalValue);
     }, 800);
 
     return () => {
@@ -30,10 +38,23 @@ export default function FancySearchBar(props: FancySearchBarProps) {
   }, [internalValue]);
 
   useEffect(() => {
-    if (debouncedSearch) {
-      props.onSearch?.(debouncedSearch); // 🔥 agora passa o valor debounced correto
+    const trimmed = debouncedSearch.trim();
+
+    // Ignora apenas o primeiro disparo vazio (estado inicial) para nao refazer a busca ao montar
+    if (!hasEmittedInitialEmpty && trimmed.length === 0) {
+      setHasEmittedInitialEmpty(true);
+      return;
     }
-  }, [debouncedSearch]);
+
+    // Se ainda nao houve busca com valor preenchido, evita disparar vazio na montagem
+    if (trimmed.length === 0 && !hadNonEmptySearchRef.current) {
+      return;
+    }
+
+    onSearchRef.current?.(trimmed); // 🔥 agora passa o valor debounced correto
+    if (trimmed.length > 0) hadNonEmptySearchRef.current = true;
+    if (!hasEmittedInitialEmpty) setHasEmittedInitialEmpty(true);
+  }, [debouncedSearch, hasEmittedInitialEmpty]);
 
   // 🔥 sincroniza quando valor externo mudar
   useEffect(() => {
@@ -46,18 +67,18 @@ export default function FancySearchBar(props: FancySearchBarProps) {
     <View style={[styles.container, props.containerStyle]}>
       <View style={styles.inputContainer}>
         <FancyTextInput
-          placeholder="Digite aqui para pesquisar...."
-          inputProps={{ onChangeText: setInternalValue }}
+          placeholder='Digite aqui para pesquisar....'
+          inputProps={{
+            onChangeText: setInternalValue,
+            style: {
+              paddingVertical: 0,
+              textAlignVertical: 'center',
+            },
+          }}
           value={internalValue} // 🔥 agora usa controlado
           leftContainer={
             <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-              <DefaultIcons.Custom
-                library="Feather"
-                name="search"
-                size={20}
-                color={Pallete.icons.inactive}
-                key="left"
-              />
+              <DefaultIcons.Custom library='Feather' name='search' size={20} color={Pallete.icons.inactive} key='left' />
             </View>
           }
           rightContainer={
@@ -67,15 +88,10 @@ export default function FancySearchBar(props: FancySearchBarProps) {
               </View>
             ) : (
               <TouchableOpacity
-                style={{ justifyContent: 'center', alignItems: 'center', paddingRight: 8, paddingTop: 1 }}
+                style={{ justifyContent: 'center', alignItems: 'center', paddingRight: 8 }}
                 onPress={() => setInternalValue('')}
               >
-                <DefaultIcons.Custom
-                  {...DefaultIconsNames.cancel}
-                  size={22}
-                  color={Pallete.icons.inactive}
-                  key="right"
-                />
+                <DefaultIcons.Custom {...DefaultIconsNames.cancel} size={22} color={Pallete.icons.inactive} key='right' />
               </TouchableOpacity>
             )
           }

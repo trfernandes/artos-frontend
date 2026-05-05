@@ -1,0 +1,4 @@
+domain\api\api-client.ts:6:  baseURL: process.env.EXPO_PUBLIC_API_URL,
+domain\api\api-client.ts:10:    'x-api-key': process.env.EXPO_PUBLIC_APP_SECRET_KEY || '',
+domain\services\CadastroIgrejaRepository.ts:19:import Constants from 'expo-constants';
+domain\services\CadastroIgrejaRepository.ts:25:const APP_SECRET = Constants.expoConfig?.extra?.EXPO_PUBLIC_APP_SECRET_KEY || '';

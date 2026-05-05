@@ -1,9 +1,9 @@
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import FancyModalDialog, { FancyModalDialogProps } from '../modal/FancyModalDialog';
 import FancyTimePicker, { FancyTimePickerProps } from './FancyTimePicker';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import FancyDataPanel, { FancyDataPanelProps } from '../FancyDataPanel';
-import DateUtils from '../../utils/data_utils';
+import DateUtils from '../../utils/date_utils';
 
 export type FancyTimePickerModalProps = {
   value?: { hour: number; minute: number };
@@ -27,6 +27,10 @@ export default function FancyTimePickerModal({
   const [visible, setVisible] = useState(false);
   const [time, setTime] = useState({ hour: value?.hour || 0, minute: value?.minute || 0 });
 
+  useEffect(() => {
+    if (value) setTime(value);
+  }, [value]);
+
   return (
     <View style={containerStyle}>
       <FancyDataPanel
@@ -38,9 +42,9 @@ export default function FancyTimePickerModal({
       {!disabled && visible && (
         <FancyModalDialog
           modalProps={{ visible }}
-          onClose={() => setVisible(false)}
+          onButton1Press={() => setVisible(false)}
           title={'Selecionar Horário'}
-          onConfirm={() => {
+          onButton2Press={() => {
             onChange?.(time);
             setVisible(false);
           }}
@@ -49,7 +53,7 @@ export default function FancyTimePickerModal({
           <FancyTimePicker
             value={value}
             containerStyle={styles.pickerContainer}
-            onChange={time => {
+            onChange={(time) => {
               setTime(time);
               onChange?.(time);
             }}

@@ -1,20 +1,22 @@
 import { Stack } from 'expo-router';
-import FancyHeader from '../../../../../components/header/FancyHeader';
+import FancyPageHeader from '../../../../../components/header/FancyHeader';
 import MainHeaderButtons from '../../../../../components/header/MainHeaderButtons';
 
 export default function MinisterioConfiguracoesLayout() {
   return (
     <Stack
       screenOptions={{
-        header: props => <FancyHeader {...props} />,
+        headerShown: true,
+        header: (props) => <FancyPageHeader {...props} />,
       }}
     >
       <Stack.Screen
-        name="index"
+        name='index'
         options={{
           title: 'Configurações do Louvor',
           headerRight: () => <MainHeaderButtons />,
-          header: props => <FancyHeader leftButton="back" {...props} />,
+          headerShown: true,
+          header: (props) => <FancyPageHeader leftButton='menu' {...props} />,
         }}
       />
     </Stack>

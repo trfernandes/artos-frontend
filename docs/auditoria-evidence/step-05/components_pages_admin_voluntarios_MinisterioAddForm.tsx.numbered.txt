@@ -1,0 +1,81 @@
+1	import { useMemo } from 'react';
+2	import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
+3	import { useMinisteriosCrud } from '../../../../hooks/useMinisteriosCrud';
+4	import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
+5	import { useForm } from 'react-hook-form';
+6	import { zodResolver } from '@hookform/resolvers/zod';
+7	import z from 'zod';
+8	import ControlledDropDown from '../../../forms/ControlledDropDown';
+9	import { View } from 'react-native';
+10	import { ResponseMinisterioVoluntarioDto } from '../../../../domain/dtos/MinisterioVoluntario/ministerio-voluntario.response';
+11	import {
+12	  VoluntarioHierarquiaEnumLabel,
+13	  VoluntarioHierarquiaEnum,
+14	} from '../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
+15	
+16	const schema = z.object({
+17	  ministerioVoluntarioId: z.string().optional(),
+18	  ministerioId: z.string('Campo Obrigatório'),
+19	  hierarquia: z.enum(VoluntarioHierarquiaEnum, 'Campo Obrigatório'),
+20	});
+21	export type MinisterioAddFormData = z.infer<typeof schema>;
+22	
+23	export default function MinisterioAddForm(
+24	  props: {
+25	    ministerios: ResponseMinisterioVoluntarioDto[] | null | undefined;
+26	    mode: 'add' | 'edit';
+27	    defaultValues?: MinisterioAddFormData;
+28	  } & FancyModalDialogProps<MinisterioAddFormData & { mode: 'add' | 'edit' }>,
+29	) {
+30	  const { data: ministeriosData, isLoading } = useMinisteriosCrud({ autoFetch: true });
+31	
+32	  const ministeriosList = useMemo<DropDownItemProps<string>[]>(() => {
+33	    const list =
+34	      ministeriosData
+35	        ?.filter((ministerio) => props.mode === 'edit' || !props.ministerios?.some((mv) => mv.ministerio?.id! === ministerio.id))
+36	        .map(
+37	          (ministerio) =>
+38	            ({
+39	              title: ministerio.nome,
+40	              value: ministerio.id,
+41	              left: { type: 'image', source: ministerio.logo },
+42	            }) as DropDownItemProps<string>,
+43	        ) || [];
+44	
+45	    return list;
+46	  }, [ministeriosData]);
+47	
+48	  const form = useForm({ resolver: zodResolver(schema), defaultValues: props.defaultValues });
+49	
+50	  return (
+51	    <FancyModalDialog
+52	      {...props}
+53	      onButton2Press={() => form.handleSubmit((data) => props.onButton2Press?.({ ...data, mode: props.mode }))()}
+54	      centerContainerStyle={{ minHeight: isLoading ? 100 : undefined, justifyContent: 'center' }}
+55	      button2={{ disabled: isLoading }}
+56	    >
+57	      <View style={{ gap: 15 }}>
+58	        <ControlledDropDown
+59	          label='Ministério'
+60	          listItems={ministeriosList}
+61	          control={form.control}
+62	          name='ministerioId'
+63	          disabled={props.mode === 'edit'}
+64	          isLoading={isLoading}
+65	        />
+66	        <ControlledDropDown
+67	          label='Função'
+68	          listItems={[
+69	            { title: VoluntarioHierarquiaEnumLabel[VoluntarioHierarquiaEnum.Lider], value: VoluntarioHierarquiaEnum.Lider },
+70	            {
+71	              title: VoluntarioHierarquiaEnumLabel[VoluntarioHierarquiaEnum.Voluntario],
+72	              value: VoluntarioHierarquiaEnum.Voluntario,
+73	            },
+74	          ]}
+75	          control={form.control}
+76	          name='hierarquia'
+77	        />
+78	      </View>
+79	    </FancyModalDialog>
+80	  );
+81	}

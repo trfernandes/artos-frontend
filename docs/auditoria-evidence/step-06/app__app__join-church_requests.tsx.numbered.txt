@@ -1,0 +1,315 @@
+1	import { StyleSheet, View, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
+2	import { router } from 'expo-router';
+3	import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+4	import Toast from 'react-native-toast-message';
+5	import { formatInTimeZone } from 'date-fns-tz';
+6	import { ptBR } from 'date-fns/locale';
+7	import FancyButton from '../../../components/buttons/FancyButton';
+8	import FancyText from '../../../components/FancyText';
+9	import FancyLoading from '../../../components/FancyLoading';
+10	import DefaultIcons from '../../../components/FancyIcons';
+11	import FancyPageView from '../../../components/containers/FancyPageView';
+12	import { FancyAlert } from '../../../components/modal/FancyAlert';
+13	import { FancyCard } from '../../../components/cards/Horizontal/FancyCard';
+14	import { Pallete } from '../../../constants/colors';
+15	import { IgrejaRepository } from '../../../domain/services/IgrejaRepository';
+16	import { ResponseIgrejaSolicitacaoDto } from '../../../domain/dtos/Igreja/response-igreja-solicitacao.dto';
+17	import { useState } from 'react';
+18	import { APP_TZ } from '../../../utils/date_utils';
+19	
+20	type StatusType = 'PENDING' | 'APPROVED' | 'DENIED' | 'CANCELED';
+21	
+22	const STATUS_CONFIG: Record<StatusType, { label: string; color: string; bgColor: string; icon: string; iconLib: string }> = {
+23	  PENDING: {
+24	    label: 'Aguardando aprovação',
+25	    color: '#D97706',
+26	    bgColor: '#FEFCF3',
+27	    icon: 'clock-outline',
+28	    iconLib: 'MaterialCommunityIcons',
+29	  },
+30	  APPROVED: {
+31	    label: 'Aprovado',
+32	    color: '#059669',
+33	    bgColor: '#F6FDF9',
+34	    icon: 'check-circle-outline',
+35	    iconLib: 'MaterialCommunityIcons',
+36	  },
+37	  DENIED: {
+38	    label: 'Negado',
+39	    color: '#DC2626',
+40	    bgColor: '#FEF7F7',
+41	    icon: 'close-circle-outline',
+42	    iconLib: 'MaterialCommunityIcons',
+43	  },
+44	  CANCELED: {
+45	    label: 'Cancelado',
+46	    color: '#6B7280',
+47	    bgColor: '#FAFAFA',
+48	    icon: 'cancel',
+49	    iconLib: 'MaterialIcons',
+50	  },
+51	};
+52	
+53	function formatDateTime(dateStr: string): string {
+54	  const utcDate = dateStr.endsWith('Z') ? dateStr : dateStr + 'Z';
+55	  return formatInTimeZone(new Date(utcDate), APP_TZ, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+56	}
+57	
+58	export default function JoinChurchRequestsPage() {
+59	  const queryClient = useQueryClient();
+60	  const [isRefreshing, setIsRefreshing] = useState(false);
+61	  const [cancelingId, setCancelingId] = useState<string | null>(null);
+62	
+63	  const { data: solicitacoes, isLoading, error, refetch } = useQuery({
+64	    queryKey: ['join-church-requests'],
+65	    queryFn: () => IgrejaRepository.listarMinhasSolicitacoes(),
+66	    refetchOnMount: 'always',
+67	  });
+68	
+69	  const cancelMutation = useMutation({
+70	    mutationFn: (solicitacaoId: string) => IgrejaRepository.cancelarMinhaSolicitacao(solicitacaoId),
+71	    onSuccess: () => {
+72	      Toast.show({ type: 'success', text1: 'Solicitação cancelada' });
+73	      queryClient.invalidateQueries({ queryKey: ['join-church-requests'] });
+74	    },
+75	    onError: () => {
+76	      Toast.show({ type: 'error', text1: 'Erro ao cancelar solicitação' });
+77	    },
+78	    onSettled: () => setCancelingId(null),
+79	  });
+80	
+81	  const handleRefresh = async () => {
+82	    setIsRefreshing(true);
+83	    await refetch();
+84	    setIsRefreshing(false);
+85	  };
+86	
+87	  const handleCancel = (item: ResponseIgrejaSolicitacaoDto) => {
+88	    FancyAlert.alert(
+89	      'Cancelar solicitação?',
+90	      `Deseja cancelar sua solicitação para "${item.igreja?.nome}"?`,
+91	      [
+92	        { text: 'Não', style: 'cancel' },
+93	        {
+94	          text: 'Sim, cancelar',
+95	          style: 'destructive',
+96	          onPress: () => {
+97	            setCancelingId(item.id);
+98	            cancelMutation.mutate(item.id);
+99	          },
+100	        },
+101	      ],
+102	    );
+103	  };
+104	
+105	  const renderItem = ({ item }: { item: ResponseIgrejaSolicitacaoDto }) => {
+106	    const config = STATUS_CONFIG[item.status as StatusType] || STATUS_CONFIG.PENDING;
+107	    const isPending = item.status === 'PENDING';
+108	    const isDenied = item.status === 'DENIED';
+109	    const isCanceling = cancelingId === item.id;
+110	
+111	    return (
+112	      <View style={styles.cardWrapper}>
+113	        <FancyCard.Image
+114	          type='icon'
+115	          props={{
+116	            title: item.igreja?.nome || 'Igreja',
+117	            subtitle: (
+118	              <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive}>
+119	                Solicitado em {formatDateTime(item.createdAt)}
+120	              </FancyText>
+121	            ),
+122	            additionalData1: (
+123	              <View style={styles.statusRow}>
+124	                <DefaultIcons.Custom
+125	                  library={config.iconLib as any}
+126	                  name={config.icon as any}
+127	                  size={14}
+128	                  color={config.color}
+129	                />
+130	                <FancyText size='extraSmall' type='semiBold' style={{ color: config.color }}>
+131	                  {config.label}
+132	                </FancyText>
+133	              </View>
+134	            ),
+135	            additionalData2: isDenied && item.message ? (
+136	              <View style={styles.messageBox}>
+137	                <FancyText size='extraSmall' color={Pallete.error}>
+138	                  {item.message}
+139	                </FancyText>
+140	              </View>
+141	            ) : undefined,
+142	            cardIcon: {
+143	              library: 'MaterialCommunityIcons',
+144	              name: 'church',
+145	              size: 18,
+146	              backgroundColor: config.color,
+147	              color: '#FFFFFF',
+148	            },
+149	            actionButtons: isPending ? (
+150	              <TouchableOpacity
+151	                onPress={() => handleCancel(item)}
+152	                disabled={isCanceling}
+153	                style={styles.cancelButton}
+154	                activeOpacity={0.7}
+155	              >
+156	                <DefaultIcons.Custom
+157	                  library='MaterialIcons'
+158	                  name='close'
+159	                  size={16}
+160	                  color={isCanceling ? Pallete.fonts.inactive : Pallete.error}
+161	                />
+162	              </TouchableOpacity>
+163	            ) : undefined,
+164	            containerStyle: [
+165	              styles.card,
+166	              { borderColor: config.color, backgroundColor: config.bgColor },
+167	            ],
+168	            contentContainerStyle: styles.cardContent,
+169	            centerContainerStyle: { gap: 6 },
+170	            backgroundColor: config.bgColor,
+171	          }}
+172	        />
+173	      </View>
+174	    );
+175	  };
+176	
+177	  if (isLoading) {
+178	    return (
+179	      <FancyPageView style={styles.page}>
+180	        <FancyLoading />
+181	      </FancyPageView>
+182	    );
+183	  }
+184	
+185	  if (error) {
+186	    return (
+187	      <FancyPageView style={styles.page}>
+188	        <View style={styles.center}>
+189	          <DefaultIcons.Custom library='MaterialIcons' name='error-outline' size={48} color={Pallete.fonts.inactive} />
+190	          <FancyText color={Pallete.fonts.inactive}>Erro ao carregar</FancyText>
+191	          <FancyButton label='Tentar novamente' onPress={() => refetch()} />
+192	        </View>
+193	      </FancyPageView>
+194	    );
+195	  }
+196	
+197	  const isEmpty = !solicitacoes || solicitacoes.length === 0;
+198	
+199	  return (
+200	    <FancyPageView style={styles.page}>
+201	      {isEmpty ? (
+202	        <View style={styles.center}>
+203	          <View style={styles.emptyIcon}>
+204	            <DefaultIcons.Custom
+205	              library='MaterialCommunityIcons'
+206	              name='clipboard-text-outline'
+207	              size={40}
+208	              color={Pallete.primary}
+209	            />
+210	          </View>
+211	          <FancyText type='semiBold' size='large'>
+212	            Sem solicitações
+213	          </FancyText>
+214	          <FancyText size='small' color={Pallete.fonts.inactive} style={{ textAlign: 'center' }}>
+215	            Insira um código de convite para{'\n'}solicitar entrada em uma igreja
+216	          </FancyText>
+217	          <FancyButton
+218	            label='Inserir código'
+219	            onPress={() => router.push('/(app)/join-church')}
+220	            containerStyle={{ marginTop: 8 }}
+221	          />
+222	        </View>
+223	      ) : (
+224	        <FlatList
+225	          data={solicitacoes}
+226	          keyExtractor={(item) => item.id}
+227	          renderItem={renderItem}
+228	          contentContainerStyle={styles.list}
+229	          ItemSeparatorComponent={() => <View style={{ height: 11 }} />}
+230	          refreshControl={
+231	            <RefreshControl
+232	              refreshing={isRefreshing}
+233	              onRefresh={handleRefresh}
+234	              colors={[Pallete.primary]}
+235	              tintColor={Pallete.primary}
+236	            />
+237	          }
+238	          ListFooterComponent={
+239	            <FancyButton
+240	              label='Inserir novo código'
+241	              type='text'
+242	              onPress={() => router.push('/(app)/join-church')}
+243	              containerStyle={{ marginTop: 20 }}
+244	              icon={{ library: 'MaterialIcons', name: 'add', size: 18, color: Pallete.primary }}
+245	            />
+246	          }
+247	        />
+248	      )}
+249	    </FancyPageView>
+250	  );
+251	}
+252	
+253	const styles = StyleSheet.create({
+254	  page: {
+255	    flex: 1,
+256	    backgroundColor: Pallete.backgroundColor,
+257	  },
+258	  list: {
+259	    paddingHorizontal: 20,
+260	    paddingTop: 12,
+261	    paddingBottom: 20,
+262	  },
+263	  cardWrapper: {
+264	    position: 'relative',
+265	  },
+266	  card: {
+267	    width: '100%',
+268	    borderRadius: 30,
+269	    borderWidth: 1,
+270	    ...Pallete.shadows[100],
+271	  },
+272	  cardContent: {
+273	    paddingVertical: 6,
+274	  },
+275	  statusRow: {
+276	    flexDirection: 'row',
+277	    alignItems: 'center',
+278	    gap: 4,
+279	    marginTop: 2,
+280	  },
+281	  messageBox: {
+282	    marginTop: 6,
+283	    backgroundColor: `${Pallete.error}08`,
+284	    padding: 10,
+285	    borderRadius: 8,
+286	  },
+287	  chevronContainer: {
+288	    justifyContent: 'center',
+289	    alignItems: 'center',
+290	  },
+291	  center: {
+292	    flex: 1,
+293	    justifyContent: 'center',
+294	    alignItems: 'center',
+295	    padding: 32,
+296	    gap: 12,
+297	  },
+298	  emptyIcon: {
+299	    width: 80,
+300	    height: 80,
+301	    borderRadius: 40,
+302	    backgroundColor: `${Pallete.primary}10`,
+303	    justifyContent: 'center',
+304	    alignItems: 'center',
+305	    marginBottom: 8,
+306	  },
+307	  cancelButton: {
+308	    width: 28,
+309	    height: 28,
+310	    borderRadius: 14,
+311	    backgroundColor: `${Pallete.error}15`,
+312	    justifyContent: 'center',
+313	    alignItems: 'center',
+314	  },
+315	});

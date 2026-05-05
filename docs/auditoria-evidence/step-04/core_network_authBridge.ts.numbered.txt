@@ -1,0 +1,20 @@
+1	type UnauthorizedHandler = (reason: 'expired' | 'unauthorized') => void;
+2	
+3	let token: string | null = null;
+4	let onUnauthorized: UnauthorizedHandler | null = null;
+5	
+6	export function setAuthToken(next: string | null) {
+7	  token = next;
+8	}
+9	
+10	export function getAuthToken() {
+11	  return token;
+12	}
+13	
+14	export function setUnauthorizedHandler(handler: UnauthorizedHandler | null) {
+15	  onUnauthorized = handler;
+16	}
+17	
+18	export function triggerUnauthorized(reason: 'expired' | 'unauthorized') {
+19	  onUnauthorized?.(reason);
+20	}

@@ -1,16 +1,33 @@
 import { Stack } from 'expo-router';
-import FancyHeader from '../../../../../components/header/FancyHeader';
+import FancyPageHeader from '../../../../../components/header/FancyHeader';
 import MainHeaderButtons from '../../../../../components/header/MainHeaderButtons';
 
 export default function MinisterioTemplateEquipeLayout() {
   return (
     <Stack
       screenOptions={{
-        header: props => <FancyHeader {...props} />,
+        headerShown: true,
+        header: (props) => <FancyPageHeader {...props} />,
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Templates de Equipe', headerRight: () => <MainHeaderButtons /> }} />
-      <Stack.Screen name="form" options={{ header: props => <FancyHeader leftButton="back" {...props} /> }} />
+      <Stack.Screen name='index' options={{ title: 'Templates de Equipe', headerShown: true,
+ header: (props) => <FancyPageHeader leftButton='menu' {...props} />, headerRight: () => <MainHeaderButtons /> }} />
+      <Stack.Screen
+        name='add'
+        options={{
+          headerShown: true,
+          header: (props) => <FancyPageHeader leftButton='back' {...props} />,
+          title: 'Novo Template',
+        }}
+      />
+      <Stack.Screen
+        name='edit'
+        options={{
+          headerShown: true,
+          header: (props) => <FancyPageHeader leftButton='back' {...props} />,
+          title: 'Editar Template',
+        }}
+      />
     </Stack>
   );
 }

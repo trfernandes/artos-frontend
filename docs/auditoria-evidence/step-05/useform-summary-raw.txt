@@ -1,0 +1,36 @@
+hooks\useCrud.ts|line=98|hook=useForm|zod=False|onError=False|hasFlags=True
+hooks\useIgrejaCrud.ts|line=26|hook=form|zod=True|onError=False|hasFlags=True
+app\(auth)\forgot-password.tsx|line=29|hook=destructured|zod=True|onError=False|hasFlags=True
+app\(auth)\create-voluntario-account.tsx|line=28|hook=createForm|zod=True|onError=False|hasFlags=True
+app\(auth)\create-igreja-account.tsx|line=158|hook=createForm|zod=False|onError=False|hasFlags=True
+app\(app)\(drawer)\admin\eventos\edit.tsx|line=39|hook=eventoForm|zod=True|onError=False|hasFlags=True
+app\(app)\(drawer)\admin\ministerios\edit.tsx|line=61|hook=form|zod=True|onError=False|hasFlags=True
+app\(app)\(drawer)\admin\eventos\add.tsx|line=39|hook=form|zod=True|onError=False|hasFlags=True
+app\(app)\(drawer)\admin\ministerios\add.tsx|line=32|hook=form|zod=True|onError=False|hasFlags=True
+app\(app)\(drawer)\pessoal\perfil\edit.tsx|line=37|hook=form|zod=True|onError=False|hasFlags=True
+app\(app)\(drawer)\configuracoes\index.tsx|line=112|hook=dadosForm|zod=True|onError=False|hasFlags=True
+app\(app)\(drawer)\configuracoes\index.tsx|line=132|hook=modoEntradaForm|zod=True|onError=False|hasFlags=True
+app\(app)\(drawer)\configuracoes\index.tsx|line=141|hook=notificacoesForm|zod=True|onError=False|hasFlags=True
+components\pages\pessoal\perfil\ChangePasswordModal.tsx|line=29|hook=destructured|zod=True|onError=False|hasFlags=True
+components\pages\pessoal\indisponibilidade\DateAvailabilityAdjustmentModal.tsx|line=37|hook={ control, handleSubmit, reset, watch }|zod=True|onError=False|hasFlags=False
+components\pages\admin\voluntarios\MinisterioAddForm.tsx|line=48|hook=form|zod=True|onError=False|hasFlags=True
+components\pages\pessoal\indisponibilidade\AddPeriodModal.tsx|line=37|hook={ control, handleSubmit, setValue, trigger }|zod=True|onError=False|hasFlags=False
+components\pages\pessoal\escalas\index\SubstituicaoModalPage.tsx|line=87|hook=form|zod=True|onError=False|hasFlags=True
+app\(app)\(drawer)\ministerios\templates_equipe\edit.tsx|line=43|hook=form|zod=True|onError=False|hasFlags=True
+app\(app)\(drawer)\ministerios\templates_equipe\add.tsx|line=15|hook=form|zod=True|onError=False|hasFlags=True
+components\pages\ministerios\templates_equipe\TemplateFuncoesList.tsx|line=43|hook=formAdd|zod=True|onError=False|hasFlags=True
+components\pages\ministerios\templates_equipe\TemplateFixoEquipeList.tsx|line=37|hook=formAdd|zod=True|onError=False|hasFlags=True
+app\(app)\(drawer)\ministerios\escalas\assistant.tsx|line=141|hook=form|zod=True|onError=False|hasFlags=False
+app\(app)\(drawer)\ministerios\integrantes\edit.tsx|line=37|hook=form|zod=True|onError=False|hasFlags=True
+app\(app)\(drawer)\ministerios\integrantes\add.tsx|line=25|hook=form|zod=True|onError=False|hasFlags=True
+components\pages\ministerios\funcoes\FuncaoFormModal.tsx|line=34|hook={ control, handleSubmit, reset }|zod=True|onError=False|hasFlags=False
+components\pages\admin\ministerios\VoluntarioEditFormModal.tsx|line=26|hook=form|zod=True|onError=False|hasFlags=False
+app\(app)\(drawer)\ministerios\indisponibilidades\index.tsx|line=49|hook={ control, watch }|zod=True|onError=False|hasFlags=True
+components\pages\admin\ministerios\VoluntarioAddFormModal.tsx|line=24|hook=form|zod=True|onError=False|hasFlags=True
+components\pages\admin\ministerios\EditLiderancaFormModal.tsx|line=13|hook=form|zod=True|onError=False|hasFlags=False
+components\pages\admin\ministerios\AddLiderancaFormModal.tsx|line=21|hook=form|zod=True|onError=False|hasFlags=False
+components\pages\ministerios\integrantes\FormFields.tsx|line=61|hook=formModal|zod=True|onError=False|hasFlags=False
+components\pages\ministerios\escalas\assistant\EventoFormModal.tsx|line=92|hook=formTemplate|zod=True|onError=False|hasFlags=True
+components\pages\ministerios\escalas\assistant\EscalaFormFixoModal.tsx|line=26|hook=form|zod=True|onError=False|hasFlags=True
+components\pages\ministerios\escalas\assistant\EventoFormFuncaoModal.tsx|line=24|hook=form|zod=True|onError=False|hasFlags=True
+components\pages\admin\eventos\EventoRepeticaoInputCustom.tsx|line=67|hook=recorrenciaForm|zod=True|onError=False|hasFlags=False

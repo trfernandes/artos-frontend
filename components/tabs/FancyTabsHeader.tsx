@@ -10,13 +10,21 @@ export type FancyTabsHeaderProps = {
 };
 
 export default function FancyTabsHeader(props: FancyTabsHeaderProps) {
+  // Proteção contra undefined
+  if (!props.titles || props.titles.length === 0) {
+    return null;
+  }
+
+  const isMultiRow = props.titles.length > 3;
+
   return (
     <View style={[styles.container, props.headerStyle]}>
-      {props.titles?.map((item, index) => (
+      {props.titles.map((item, index) => (
         <FancyTabHeaderItem
           status={index === props.index ? 'active' : 'inactive'}
           key={index}
           {...item}
+          multiRow={isMultiRow}
           onPress={() => props.onChangeTab?.(index)}
         />
       ))}
@@ -25,5 +33,15 @@ export default function FancyTabsHeader(props: FancyTabsHeaderProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { flexDirection: 'row', gap: 10, flexWrap: 'wrap', borderWidth: 0 },
+  container: {
+    flexDirection: 'row',
+    gap: 8,
+    rowGap: 8,
+    columnGap: 8,
+    flexWrap: 'wrap',
+    alignContent: 'flex-start',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    width: '100%',
+  },
 });

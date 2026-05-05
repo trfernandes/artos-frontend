@@ -1,0 +1,82 @@
+1	import axios, { AxiosError } from 'axios';
+2	import { AppError, AppErrorType } from './AppError';
+3	import { defaultMessage } from './messages';
+4	
+5	// Heurística simples p/ erros de rede comuns
+6	function isNetworkDown(err: AxiosError): boolean {
+7	  // axios sem response -> geralmente network/DNS/refused
+8	  return !err.response;
+9	}
+10	
+11	function isTimeout(err: AxiosError): boolean {
+12	  return (
+13	    err.code === 'ECONNABORTED' ||
+14	    String(err.message || '')
+15	      .toLowerCase()
+16	      .includes('timeout')
+17	  );
+18	}
+19	
+20	function extractServerMessage(data: any): string | undefined {
+21	  if (!data) return undefined;
+22	  // seu padrão: { success:false, message:'Unauthorized', error:{ message:'Unauthorized' } }
+23	  return data?.error?.message ?? data?.message ?? data?.msg;
+24	}
+25	
+26	function extractFieldErrors(data: any): Record<string, string> | undefined {
+27	  // Ajuste conforme seu backend se você tiver errors por campo
+28	  // Ex.: { error: { fields: { email: 'inválido' } } }
+29	  return data?.error?.fields ?? data?.fields;
+30	}
+31	
+32	export function normalizeAxiosError(error: unknown, opts?: { isOffline?: boolean; isServerDown?: boolean }): AppError {
+33	  if (error instanceof AppError) return error;
+34	
+35	  if (!axios.isAxiosError(error)) {
+36	    return new AppError('UNKNOWN', 'Erro inesperado.', undefined, { raw: error });
+37	  }
+38	
+39	  const err = error as AxiosError;
+40	
+41	  // Offline (preferência)
+42	  if (opts?.isOffline) {
+43	    return new AppError('OFFLINE', defaultMessage('OFFLINE'));
+44	  }
+45	
+46	  // Timeout
+47	  if (isTimeout(err)) {
+48	    return new AppError('TIMEOUT', defaultMessage('TIMEOUT'));
+49	  }
+50	
+51	  // Sem response => server down / dns / refused
+52	  if (isNetworkDown(err)) {
+53	    return new AppError('SERVER_DOWN', defaultMessage('SERVER_DOWN'));
+54	  }
+55	
+56	  const status = err.response?.status;
+57	  const data = err.response?.data;
+58	
+59	  const serverMessage = extractServerMessage(data);
+60	  const fields = extractFieldErrors(data);
+61	
+62	  const type: AppErrorType =
+63	    status === 401
+64	      ? 'UNAUTHORIZED'
+65	      : status === 403
+66	        ? 'FORBIDDEN'
+67	        : status === 404
+68	          ? 'NOT_FOUND'
+69	          : status === 409
+70	            ? 'CONFLICT'
+71	            : status === 429
+72	              ? 'RATE_LIMIT'
+73	              : status === 400
+74	                ? 'VALIDATION'
+75	                : status && status >= 500
+76	                  ? 'UNKNOWN'
+77	                  : 'UNKNOWN';
+78	
+79	  const message = serverMessage ?? defaultMessage(type);
+80	
+81	  return new AppError(type, message, status, { serverMessage, fields, raw: data });
+82	}

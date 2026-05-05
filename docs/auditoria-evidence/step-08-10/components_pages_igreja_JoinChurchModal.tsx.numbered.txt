@@ -1,0 +1,298 @@
+1	import { useState } from 'react';
+2	import { View, StyleSheet } from 'react-native';
+3	import { router } from 'expo-router';
+4	import Toast from 'react-native-toast-message';
+5	import { AxiosError } from 'axios';
+6	import FancyModalDialog, { FancyModalDialogProps } from '../../modal/FancyModalDialog';
+7	import FancyText from '../../FancyText';
+8	import FancyImage from '../../images/FancyImage';
+9	import FancyTextInput from '../../fields/FancyTextInput';
+10	import FancyButton from '../../buttons/FancyButton';
+11	import { Pallete } from '../../../constants/colors';
+12	import { useAuth } from '../../../contexts/AuthContext';
+13	import { IgrejaRepository } from '../../../domain/services/IgrejaRepository';
+14	import { ResponseConvitePreviewDto } from '../../../domain/dtos/Igreja/response-convite-preview.dto';
+15	import { formatInTimeZone } from 'date-fns-tz';
+16	import { ptBR } from 'date-fns/locale';
+17	
+18	const DEFAULT_LOGO =
+19	  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKcAAACUCAMAAADBJsndAAAAYFBMVEUAAAD///+vr6/8/Pzp6eny8vK8vLzj4+P5+fmCgoIkJCTv7+9JSUnc3NxmZmbNzc1fX19RUVEYGBhwcHCdnZ2RkZELCwvFxcWmpqZ6eno3NzdXV1e1tbVDQ0PU1NQvLy/w0T1BAAAIfElEQVR4nO1c15ajOBB1m5wxOfP/f7mm2wGVYglh78Pcc+Vh2iBdFEoVdbn8wz+YQFMURfNtEgLMaVB33XVy27Z1p2vX1UE6f5sUibDsMs92/B8SvmN7bVeG36a3Ibz1bvQjhuP2t++STavMkZB8UM2q9FskizpRI/mgmtRf2F5h6iI4PuGm60dZFkFmadD8+bGWoPgczSDRY/nLNAk+Q7LoPW2Sf/D6D4xpnh1kuSHLT2ZZXDFbnA/neuaQNqUZlr9My9OkVDjpbx8a1nTSGTXbBllusM9QU5pKZTB9J7I3RJRSwoJVGZ/7Qnr8RNlU1X2Zjxvysq+rKZPOgGt4O82LsDvbDeIhhIPThEMcuGKui9G5z+0f7qxHSxULX46rTKD52QZFac7vJ6lU+smrhNtCZIwoX2ouqapsCVPuynFKMzR7XvvtDdXO2PKmpTdBkzeaLn6+co7Q8A2MaMqm6aU6oq9J2bqWc9goGZnyOqq0G6yYk++Px2jOzO/PjrQ6MhVD75AcXZltHjztmor57UcsJ9a6944buMxV6uq3FzCaS0wcdDNL7GvbTayt3poxbNeWblp30w+Mj+6MsNzQMaZq0Gppolu6GqN5uVzp5ieddtIzR3MDY0Q1Zn6l9UazNFlEbfzM0420hmleLvRmQg9FTunFmXnzMKSOEQur3FB7PTnD00aLlAXXQEnNyEFFgYOR6wel4oXUd9an0LxcamreMMuLets9y8nSUCoEYkRWOJzOeW7gFR7OiI1A6R+GLC0mqK2gro9AEX9A5VIAnHlb9cUcvGjOwmZ3By0R1e6g9FU6JNKoG0hnUTF0ttKBDY++TI0m/L5IyVfV3NWrNngLlTC4n4qTkpgoYIdqAwrNF0XbMnZ+wy6P/wXL/eB1xI6nYz1CoRSpCt6/3ry8uTS5h/nCSwgGVEk0wV2kbqo/TH23fuxgX/lNOKAqEw/0bFvdiaS5YO64AUmoYjeA8wEhO2OytwjhJgMy1JG/ATUYjE+OtKgw1s4N9CrXzsDkKR8OG4K9M8pC2eNg4qVLpgHuVJQ+1+x7s1EqFtDQFtnLcEUrSsAH9hOPUwpi0s6R7t6e9CMuOKNor/vgdKyQnEdf5mIGyxPp5wx3ryLNPlzHBWmqSj8L4u2I85BvluREtmKlYiU9fjZuee7lIFZnBcLXEx+dAzn6ihrWG+9tizb8gKARe0aAlEf7vd4xHHSsBZzXYkkPLCN0Z+VTvFhokwqEqcTzAXyJaLdU+twNPtr1Bpac+NQFiwTb12V8apIR3n9Cdi124JAKa4Tu63WcIdTBJ0hFTawyASGmz9PDSjRoPoqVbJIn3g99hOekzjMkeeKjg0d4kienLzp3gdaCj+gc4UnKREvUwEjyxLuVjvAkHU2WSGAAbzc+/HCEJ2noCj3ggCfer2SQp2iQ/vE0y3M0tz7xYWUyACjcRzeS505dmqerCtynAHbUnp92mg6pMFmig3cmee50q/DnHOykOWkaW6IJKcjzaO+gZURNDYDfgy80kEieextnllVH6CDaDxrpY8LoIYQOyMw+OQhCgQAWvJAnSDDZ/1SYSPQmkRFzS/4mtqtBpJn4LTbOk5Sx5G9i3RfsFlKGsdJvjoBUx4BrURxkAcExYPRRYc9DEDcu1tVm8mHg1GBncmkCZpWBJSc+zwZyw1NBZilR5Qx7aCuAULovNsmBe4+OOJXCIpQlePkZAmHmtUdNK4iuyRyawHtCWx4xI5Prya1r3rbY1HT8FPqW1qbAJpV5jMBqZgT+Gl5dz5Zi/rbB7/Z3zBlSr2e0CjwxMjcayKmLmMskoKv3ot804HX3l80xmNO1iE7GtA4H8kFprh3MgGE/36Tdnmrk1n8LmfYn5/We6lZ2yI4QgOwzeaodWH5cd2s4j/3VbVu3Km/vgPbb2foK6BRDXFbbg9d+HLi7AwS65J4YsJ59XAKLrp+2AXtO7jlYLewbe+j6wcDoWAoBY7BAM9yAPuUazhPdAF0sUXgHTjzOKfLYt2w5wUWJnvb7EQ/eQaZY/Z2sSA8aEJ6+ilFNVUThLNxwW6E2LsgFtB9Z8OiBAOwkZHCmtNBBBLA6FSPNINaFzcm8n4BqaTYvwFxTSYzrBSqfCFfEFiIzWinDSzWpNoRK5FlJlX+grATlz6Qy3s4ssi1gNp969OIGNUetxHZFwDR9X/0kg8qgocowJqiqNswmpCo7PL2SBjkGqHTjqjyobFzzyfN/oKwYXNyediPqV5qJQNuvyHQNyo1onbFEe8qMxhYk0Bn4J2TV0nW2+NIe+lMjfGhAjJiiqTNpdG2ckZKzNxjFZ1oJ27SbIDE5ojFNE2mMPdDTRNF5QgKadH2T7lZlFJ55pspRRoZTBakOvtAwCvkMFYGziqsT7RqSgVUDXR9XngqWw9c5cDRDE+QXh+9+YN5JgUtrhWD6ZTVyfvYYmZGog7o4o8pyc3Tq1/msHdPlfLQylBM1SnSLoVP2hRJIE4yBkOM/znREacyJlbUGahnp4sXn5GOX6cieclMllwMvIhBNmAN/nniR3MWQscCb+q0+RvECtTVduBEbE5P+gOASHk9+MWFYdoJojtGiNqZ4esBJ3JK/XYvSFV7HZ7JU/QJKIhiwpyCfh/DFtynCYc6DSXKzkW/8krhSfpuVb2futavu6LrJzWz5VVH2CQWXPNl3AFoyWI5K5S4tdfjnmNoXQ3fsPbGceNFmaC476HruzaWz5kWVJKzs/JtrA/4VWqr4zJWVa3Ds9kIr+NhlpbX+1ZreuU50gLDWWqdWVn/64l+dC2pd5evZzKIXXaAHEGXn+c7lmOtJZfsnU/31K7SHvOan4Gxo6/Qs7z4a4Vi7i2dHjuP7vnX/5ziR7S1uNX7wGmJVFOstLfsgqIOgL9Pb+j+keDr+A+YiaRAp+cjjAAAAAElFTkSuQmCC';
+20	
+21	function getErrorMessage(error: AxiosError | any): string {
+22	  const data = error?.response?.data;
+23	  const status = error?.response?.status;
+24	  const errorCode = data?.code || data?.error?.code || data?.errorCode;
+25	  const message = data?.message || data?.error?.message;
+26	
+27	  if (status === 404 || errorCode === 'CONVITE_NAO_ENCONTRADO') {
+28	    return 'Convite não encontrado. Verifique o código e tente novamente.';
+29	  }
+30	
+31	  if (errorCode === 'CONVITE_EXPIRADO') {
+32	    return 'Este convite já expirou. Solicite um novo convite.';
+33	  }
+34	
+35	  if (errorCode === 'CONVITE_REVOGADO') {
+36	    return 'Este convite foi revogado e não pode mais ser utilizado.';
+37	  }
+38	
+39	  if (errorCode === 'CONVITE_LIMITE_ATINGIDO') {
+40	    return 'Este convite atingiu o limite de usos.';
+41	  }
+42	
+43	  if (errorCode === 'JA_MEMBRO') {
+44	    return 'Você já é membro desta igreja.';
+45	  }
+46	
+47	  if (errorCode === 'SOLICITACAO_PENDENTE') {
+48	    return 'Você já possui uma solicitação pendente para esta igreja.';
+49	  }
+50	
+51	  if (message) {
+52	    return message;
+53	  }
+54	
+55	  return 'Ocorreu um erro. Tente novamente.';
+56	}
+57	
+58	export default function JoinChurchModal(props: FancyModalDialogProps<any>) {
+59	  const { refreshMe } = useAuth();
+60	  const [token, setToken] = useState('');
+61	  const [preview, setPreview] = useState<ResponseConvitePreviewDto | null>(null);
+62	  const [loadingPreview, setLoadingPreview] = useState(false);
+63	  const [loadingAccept, setLoadingAccept] = useState(false);
+64	
+65	  // Extrair token de URLs como diakonia://invite/TOKEN, https://diakonia.app.br/invite/TOKEN ou apenas TOKEN
+66	  const extractToken = (input: string): string => {
+67	    const trimmed = input.trim();
+68	
+69	    // Tentar extrair de deeplink (diakonia://invite/TOKEN)
+70	    const deeplinkMatch = trimmed.match(/diakonia:\/\/invite\/([^\/\s]+)/);
+71	    if (deeplinkMatch) {
+72	      return deeplinkMatch[1];
+73	    }
+74	
+75	    // Tentar extrair de URL HTTPS (https://diakonia.app.br/invite/TOKEN)
+76	    const httpsMatch = trimmed.match(/https?:\/\/diakonia\.app\.br\/invite\/([^\/\s]+)/);
+77	    if (httpsMatch) {
+78	      return httpsMatch[1];
+79	    }
+80	
+81	    // Caso contrário, usar o valor como está
+82	    return trimmed;
+83	  };
+84	
+85	  const handlePreview = async () => {
+86	    const extractedToken = extractToken(token);
+87	
+88	    if (!extractedToken) {
+89	      Toast.show({
+90	        type: 'error',
+91	        text1: 'Digite o código da igreja',
+92	      });
+93	      return;
+94	    }
+95	
+96	    setLoadingPreview(true);
+97	    setPreview(null);
+98	
+99	    try {
+100	      const previewData = await IgrejaRepository.getConvitePreview(extractedToken);
+101	      setPreview(previewData);
+102	    } catch (err) {
+103	      const errorMsg = getErrorMessage(err);
+104	      Toast.show({
+105	        type: 'error',
+106	        text1: 'Erro',
+107	        text2: errorMsg,
+108	      });
+109	      setPreview(null);
+110	    } finally {
+111	      setLoadingPreview(false);
+112	    }
+113	  };
+114	
+115	  const handleAccept = async () => {
+116	    const extractedToken = extractToken(token);
+117	
+118	    if (!extractedToken || !preview || loadingAccept) return;
+119	
+120	    setLoadingAccept(true);
+121	    try {
+122	      const result = await IgrejaRepository.aceitarConvite(extractedToken);
+123	
+124	      if (result.result === 'MEMBER_CREATED') {
+125	        Toast.show({
+126	          type: 'success',
+127	          text1: 'Bem-vindo!',
+128	          text2: 'Você agora faz parte da igreja.',
+129	        });
+130	
+131	        // Refresh session
+132	        await refreshMe();
+133	
+134	        props.onButton1Press?.();
+135	      } else if (result.result === 'REQUEST_CREATED') {
+136	        Toast.show({
+137	          type: 'info',
+138	          text1: 'Solicitação enviada',
+139	          text2: 'Aguarde a aprovação da liderança.',
+140	        });
+141	        props.onButton1Press?.();
+142	        router.push('/(app)/join-church/requests');
+143	      }
+144	    } catch (err) {
+145	      const errorMsg = getErrorMessage(err);
+146	      Toast.show({
+147	        type: 'error',
+148	        text1: 'Erro ao aceitar convite',
+149	        text2: errorMsg,
+150	      });
+151	    } finally {
+152	      setLoadingAccept(false);
+153	    }
+154	  };
+155	
+156	  const handleReset = () => {
+157	    setToken('');
+158	    setPreview(null);
+159	  };
+160	
+161	  const handleViewRequests = () => {
+162	    props.onButton1Press?.();
+163	    router.push('/(app)/join-church/requests');
+164	  };
+165	
+166	  const expiresText = preview?.expiresAt
+167	    ? formatInTimeZone(new Date(preview.expiresAt), 'America/Sao_Paulo', "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
+168	    : 'Sem expiração';
+169	
+170	  return (
+171	    <FancyModalDialog
+172	      {...props}
+173	      title="Vincular a uma igreja"
+174	      centerContainerStyle={styles.centerContainer}
+175	      button1={{ label: 'Fechar', visible: true }}
+176	      button2={{ visible: false }}
+177	    >
+178	      <FancyText size="small" style={styles.description}>
+179	        Digite o código de convite fornecido pela liderança da sua igreja.
+180	      </FancyText>
+181	
+182	      {!preview ? (
+183	        <>
+184	          <FancyTextInput
+185	            placeholder="Código da igreja"
+186	            value={token}
+187	            disabled={loadingPreview}
+188	            inputProps={{
+189	              autoCapitalize: 'none',
+190	              multiline: false,
+191	              onChangeText: setToken,
+192	            }}
+193	          />
+194	
+195	          <FancyButton
+196	            label={loadingPreview ? 'Verificando...' : 'Verificar código'}
+197	            onPress={handlePreview}
+198	            disabled={loadingPreview || !token.trim()}
+199	            containerStyle={styles.button}
+200	          />
+201	        </>
+202	      ) : (
+203	        <>
+204	          <View style={styles.previewCard}>
+205	            <FancyImage source={{ uri: DEFAULT_LOGO }} size={60} style={styles.logo} />
+206	            <FancyText type="semiBold" size="large" style={styles.churchName}>
+207	              {preview.igrejaNome}
+208	            </FancyText>
+209	            <FancyText size="small" style={styles.infoText}>
+210	              Válido até: {expiresText}
+211	            </FancyText>
+212	            {preview.autoApprove && (
+213	              <View style={styles.autoApproveBadge}>
+214	                <FancyText size="extraSmall" style={styles.autoApproveText}>
+215	                  Aprovação automática
+216	                </FancyText>
+217	              </View>
+218	            )}
+219	          </View>
+220	
+221	          <View style={styles.buttonRow}>
+222	            <FancyButton
+223	              label={loadingAccept ? 'Aceitando...' : 'Aceitar convite'}
+224	              onPress={handleAccept}
+225	              disabled={loadingAccept}
+226	              containerStyle={styles.flexButton}
+227	            />
+228	            <FancyButton
+229	              label="Outro código"
+230	              type="outlined"
+231	              onPress={handleReset}
+232	              disabled={loadingAccept}
+233	              containerStyle={styles.flexButton}
+234	            />
+235	          </View>
+236	        </>
+237	      )}
+238	
+239	      <FancyButton
+240	        label="Ver minhas solicitações"
+241	        type="text"
+242	        onPress={handleViewRequests}
+243	        containerStyle={styles.linkButton}
+244	      />
+245	    </FancyModalDialog>
+246	  );
+247	}
+248	
+249	const styles = StyleSheet.create({
+250	  centerContainer: {
+251	    gap: 16,
+252	  },
+253	  description: {
+254	    color: Pallete.fonts.inactive,
+255	    textAlign: 'center',
+256	  },
+257	  button: {
+258	    marginTop: 8,
+259	  },
+260	  previewCard: {
+261	    backgroundColor: Pallete.backgroundColor2,
+262	    borderRadius: 12,
+263	    padding: 20,
+264	    alignItems: 'center',
+265	    gap: 12,
+266	  },
+267	  logo: {
+268	    borderRadius: 30,
+269	  },
+270	  churchName: {
+271	    textAlign: 'center',
+272	  },
+273	  infoText: {
+274	    color: Pallete.fonts.inactive,
+275	    textAlign: 'center',
+276	  },
+277	  autoApproveBadge: {
+278	    backgroundColor: Pallete.confirm,
+279	    paddingHorizontal: 12,
+280	    paddingVertical: 6,
+281	    borderRadius: 12,
+282	    marginTop: 8,
+283	  },
+284	  autoApproveText: {
+285	    color: 'white',
+286	  },
+287	  buttonRow: {
+288	    flexDirection: 'row',
+289	    gap: 12,
+290	    marginTop: 8,
+291	  },
+292	  flexButton: {
+293	    flex: 1,
+294	  },
+295	  linkButton: {
+296	    marginTop: 8,
+297	  },
+298	});

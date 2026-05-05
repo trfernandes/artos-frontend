@@ -1,8 +1,9 @@
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import FancyTabsHeader from './FancyTabsHeader';
 import { CustomIconProps } from '../FancyIcons';
-import { ReactNode, useState } from 'react';
-import { Pallete } from '../../constants/colors';
+import { ReactNode, useEffect, useState } from 'react';
+import { ThemePalette } from '../../constants/colors';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export type TabItem = {
   title: string;
@@ -17,41 +18,50 @@ export type FancyTabsProps = {
   contentContainerStyle?: StyleProp<ViewStyle>;
   headerStyle?: StyleProp<ViewStyle>;
   onTabChange?: (index: number) => void;
+  initialIndex?: number;
 };
 
 export default function FancyTabs(props: FancyTabsProps) {
-  const [index, setIndex] = useState(0);
+  const styles = useThemedStyles(createStyles);
+  const maxIndex = Math.max((props.items?.length ?? 1) - 1, 0);
+  const initialIndex = Math.min(Math.max(props.initialIndex ?? 0, 0), maxIndex);
+  const [index, setIndex] = useState(initialIndex);
+
+  useEffect(() => {
+    setIndex(initialIndex);
+  }, [initialIndex]);
 
   const handleTabChange = (index: number) => {
     setIndex(index);
-    props.items?.[index].onChange?.(index);
+    props.items?.[index]?.onChange?.(index);
     props.onTabChange?.(index);
   };
+
+  // Proteção contra items undefined ou vazio
+  if (!props.items || props.items.length === 0) {
+    return null;
+  }
 
   return (
     <View style={[styles.container, props.containerStyle]}>
       <View style={styles.headerContainer}>
-        <FancyTabsHeader
-          titles={props.items}
-          index={index}
-          onChangeTab={handleTabChange}
-          headerStyle={props.headerStyle}
-        />
+        <FancyTabsHeader titles={props.items} index={index} onChangeTab={handleTabChange} headerStyle={props.headerStyle} />
       </View>
-      <View style={[styles.contentContainer, props.contentContainerStyle]}>
-        {props.items?.[index].content}
-      </View>
+      <View style={[styles.contentContainer, props.contentContainerStyle]}>{props.items[index]?.content}</View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    gap: 15,
-    borderWidth: 0,
-    borderColor: 'red',
-    backgroundColor: Pallete.backgroundColor,
-  },
-  headerContainer: { paddingHorizontal: 20 },
-  contentContainer: { borderWidth: 0 },
-});
+function createStyles(Pallete: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      paddingTop: 2,
+      gap: 10,
+      borderWidth: 0,
+      borderColor: 'red',
+      backgroundColor: Pallete.backgroundColor,
+    },
+    headerContainer: { paddingHorizontal: 0 },
+    contentContainer: { borderWidth: 0 },
+  });
+}

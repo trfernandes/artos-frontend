@@ -1,22 +1,33 @@
 import { Stack } from 'expo-router';
-import FancyHeader from '../../../../../components/header/FancyHeader';
+import FancyPageHeader from '../../../../../components/header/FancyHeader';
 import MainHeaderButtons from '../../../../../components/header/MainHeaderButtons';
+import { IgrejaVoluntarioRoleEnum } from '../../../../../domain/enums/Igreja/voluntario-role.enum';
+import { useRoleGuard } from '../../../../../hooks/useRoleGuard';
 
 export default function MinisteriosLayout() {
+  const { hasAccess, loading } = useRoleGuard([IgrejaVoluntarioRoleEnum.ADMIN, 'OWNER']);
+
+  if (loading || !hasAccess) {
+    return null;
+  }
+
   return (
     <Stack
       screenOptions={{
-        header: props => <FancyHeader {...props} />,
+        headerShown: true,
+        header: (props) => <FancyPageHeader leftButton='menu' {...props} />,
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Eventos', headerRight: () => <MainHeaderButtons /> }} />
+      <Stack.Screen name='index' options={{ title: 'Eventos', headerRight: () => <MainHeaderButtons /> }} />
       <Stack.Screen
-        name="add"
-        options={{ title: 'Novo Evento', header: props => <FancyHeader leftButton="back" {...props} /> }}
+        name='add'
+        options={{ title: 'Novo Evento', headerShown: true,
+ header: (props) => <FancyPageHeader leftButton='back' {...props} /> }}
       />
       <Stack.Screen
-        name="edit"
-        options={{ title: 'Editar Evento', header: props => <FancyHeader leftButton="back" {...props} /> }}
+        name='edit'
+        options={{ title: 'Editar Evento', headerShown: true,
+ header: (props) => <FancyPageHeader leftButton='back' {...props} /> }}
       />
     </Stack>
   );

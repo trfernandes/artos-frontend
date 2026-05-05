@@ -6,15 +6,25 @@ export type FancyTextAreaProps = { containerStyle?: StyleProp<ViewStyle> } & Omi
   'multiline' | 'numberOfLines' | 'style' | 'inputContainerStyle'
 >;
 
-export default function FancyTextArea(props: FancyTextAreaProps) {
+export default function FancyTextArea({ containerStyle, inputProps, ...rest }: FancyTextAreaProps) {
+  const containerStyleArray = containerStyle ? (Array.isArray(containerStyle) ? containerStyle : [containerStyle]) : [];
+
+  const { style: inputStyle, numberOfLines, ...remainingInputProps } = inputProps ?? {};
+
+  const normalizedInputStyle = inputStyle ? (Array.isArray(inputStyle) ? inputStyle : [inputStyle]) : [];
+
   return (
     <FancyTextInput
-      {...props}
+      {...rest}
       inputProps={{
         multiline: true,
-        numberOfLines: 4,
-        style: [{ height: 100, paddingVertical: 10 }, props.containerStyle],
-        ...props.inputProps,
+        numberOfLines: numberOfLines ?? 4,
+        ...remainingInputProps,
+        style: [
+          { minHeight: 100, paddingVertical: 10, textAlignVertical: 'top' as const },
+          ...containerStyleArray,
+          ...normalizedInputStyle,
+        ],
       }}
     />
   );

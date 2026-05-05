@@ -1,0 +1,541 @@
+1	import { StyleSheet, View } from 'react-native';
+2	import { router } from 'expo-router';
+3	import { useState } from 'react';
+4	import Toast from 'react-native-toast-message';
+5	import { AxiosError } from 'axios';
+6	import FancyButton from '../../../components/buttons/FancyButton';
+7	import FancyText from '../../../components/FancyText';
+8	import FancyImage from '../../../components/images/FancyImage';
+9	import FancyTextInput from '../../../components/fields/FancyTextInput';
+10	import DefaultIcons from '../../../components/FancyIcons';
+11	import FancyPageView from '../../../components/containers/FancyPageView';
+12	import FancyScrollView from '../../../components/FancyScrollView';
+13	import { Pallete } from '../../../constants/colors';
+14	import { useAuth } from '../../../contexts/AuthContext';
+15	import { IgrejaRepository } from '../../../domain/services/IgrejaRepository';
+16	import { ResponseConvitePreviewDto } from '../../../domain/dtos/Igreja/response-convite-preview.dto';
+17	
+18	function getErrorMessage(error: AxiosError | any): string {
+19	  const data = error?.response?.data;
+20	  const status = error?.response?.status;
+21	  const errorCode = data?.code || data?.error?.code || data?.errorCode;
+22	  const message = data?.message || data?.error?.message;
+23	
+24	  if (status === 404 || errorCode === 'CONVITE_NAO_ENCONTRADO') {
+25	    return 'Convite não encontrado. Verifique o código e tente novamente.';
+26	  }
+27	
+28	  if (errorCode === 'CONVITE_EXPIRADO') {
+29	    return 'Este convite já expirou. Solicite um novo convite.';
+30	  }
+31	
+32	  if (errorCode === 'CONVITE_REVOGADO') {
+33	    return 'Este convite foi revogado e não pode mais ser utilizado.';
+34	  }
+35	
+36	  if (errorCode === 'CONVITE_LIMITE_ATINGIDO') {
+37	    return 'Este convite atingiu o limite de usos.';
+38	  }
+39	
+40	  if (errorCode === 'JA_MEMBRO') {
+41	    return 'Você já faz parte desta igreja.';
+42	  }
+43	
+44	  if (errorCode === 'SOLICITACAO_PENDENTE') {
+45	    return 'Você já possui uma solicitação pendente para esta igreja.';
+46	  }
+47	
+48	  if (message) {
+49	    return message;
+50	  }
+51	
+52	  return 'Ocorreu um erro. Tente novamente.';
+53	}
+54	
+55	function getInitials(name?: string): string {
+56	  if (!name) return '?';
+57	  return name
+58	    .split(' ')
+59	    .slice(0, 2)
+60	    .map((word) => word.charAt(0).toUpperCase())
+61	    .join('');
+62	}
+63	
+64	export default function JoinChurchPage() {
+65	  const { refreshMe } = useAuth();
+66	  const [token, setToken] = useState('');
+67	  const [preview, setPreview] = useState<ResponseConvitePreviewDto | null>(null);
+68	  const [loadingPreview, setLoadingPreview] = useState(false);
+69	  const [loadingAccept, setLoadingAccept] = useState(false);
+70	  const [error, setError] = useState<string | null>(null);
+71	
+72	  const extractToken = (input: string): string => {
+73	    const trimmed = input.trim();
+74	    const deeplinkMatch = trimmed.match(/artos:\/\/invite\/([^\/\s]+)/);
+75	    if (deeplinkMatch) {
+76	      return deeplinkMatch[1];
+77	    }
+78	    const lastSlashIndex = trimmed.lastIndexOf('/');
+79	    if (lastSlashIndex !== -1 && lastSlashIndex < trimmed.length - 1) {
+80	      return trimmed.substring(lastSlashIndex + 1);
+81	    }
+82	    return trimmed;
+83	  };
+84	
+85	  const handlePreview = async () => {
+86	    const extractedToken = extractToken(token);
+87	
+88	    if (!extractedToken) {
+89	      setError('Digite o código do convite');
+90	      return;
+91	    }
+92	
+93	    setLoadingPreview(true);
+94	    setPreview(null);
+95	    setError(null);
+96	
+97	    try {
+98	      const previewData = await IgrejaRepository.getConvitePreview(extractedToken);
+99	      setPreview(previewData);
+100	    } catch (err: any) {
+101	      const errorMsg = getErrorMessage(err);
+102	      setError(errorMsg);
+103	      setPreview(null);
+104	    } finally {
+105	      setLoadingPreview(false);
+106	    }
+107	  };
+108	
+109	  const handleAccept = async () => {
+110	    const extractedToken = extractToken(token);
+111	
+112	    if (!extractedToken || !preview || loadingAccept) return;
+113	
+114	    setLoadingAccept(true);
+115	    setError(null);
+116	    try {
+117	      const result = await IgrejaRepository.aceitarConvite(extractedToken);
+118	
+119	      if (result.result === 'MEMBER_CREATED') {
+120	        Toast.show({
+121	          type: 'success',
+122	          text1: 'Bem-vindo!',
+123	          text2: 'Você agora faz parte da igreja.',
+124	        });
+125	        await refreshMe();
+126	        router.replace('/(app)/(drawer)');
+127	      } else if (result.result === 'REQUEST_CREATED') {
+128	        Toast.show({
+129	          type: 'info',
+130	          text1: 'Solicitação enviada',
+131	          text2: 'Aguarde a aprovação da liderança.',
+132	        });
+133	        router.push('/(app)/join-church/requests');
+134	      }
+135	    } catch (err: any) {
+136	      const errorMsg = getErrorMessage(err);
+137	      setError(errorMsg);
+138	    } finally {
+139	      setLoadingAccept(false);
+140	    }
+141	  };
+142	
+143	  const handleReset = () => {
+144	    setToken('');
+145	    setPreview(null);
+146	    setError(null);
+147	  };
+148	
+149	  const expiresText = preview?.expiresAt
+150	    ? (() => {
+151	        const [datePart] = preview.expiresAt.split(/[T ]/);
+152	        const [year, month, day] = datePart.split('-');
+153	        return `${day}/${month}/${year}`;
+154	      })()
+155	    : null;
+156	
+157	  return (
+158	    <FancyPageView style={styles.pageContainer}>
+159	      <FancyScrollView
+160	        showsVerticalScrollIndicator={false}
+161	        contentContainerStyle={styles.scrollContent}
+162	      >
+163	        {/* Estado A: Inserir código */}
+164	        {!preview && (
+165	          <View style={styles.inputSection}>
+166	            {/* Ícone central */}
+167	            <View style={styles.iconContainer}>
+168	              <DefaultIcons.Custom
+169	                library='MaterialCommunityIcons'
+170	                name='ticket-confirmation-outline'
+171	                size={48}
+172	                color={Pallete.primary}
+173	              />
+174	            </View>
+175	
+176	            <FancyText type='bold' size='large' style={styles.title}>
+177	              Entrar em uma igreja
+178	            </FancyText>
+179	            <FancyText size='small' color={Pallete.fonts.inactive} style={styles.subtitle}>
+180	              Cole o código de convite que você recebeu do responsável da igreja
+181	            </FancyText>
+182	
+183	            <View style={styles.inputCard}>
+184	              <FancyTextInput
+185	                placeholder='Digite ou cole o código aqui'
+186	                value={token}
+187	                disabled={loadingPreview}
+188	                inputProps={{
+189	                  autoCapitalize: 'none',
+190	                  autoCorrect: false,
+191	                  multiline: false,
+192	                  onChangeText: (text) => {
+193	                    setToken(text);
+194	                    setError(null);
+195	                  },
+196	                  onSubmitEditing: handlePreview,
+197	                  returnKeyType: 'go',
+198	                }}
+199	                containerStyle={styles.input}
+200	              />
+201	
+202	              {error && (
+203	                <View style={styles.errorContainer}>
+204	                  <DefaultIcons.Custom
+205	                    library='MaterialIcons'
+206	                    name='error-outline'
+207	                    size={18}
+208	                    color={Pallete.error}
+209	                  />
+210	                  <FancyText size='small' color={Pallete.error} style={styles.errorText}>
+211	                    {error}
+212	                  </FancyText>
+213	                </View>
+214	              )}
+215	
+216	              <FancyButton
+217	                label='Buscar igreja'
+218	                isLoading={loadingPreview}
+219	                onPress={handlePreview}
+220	                disabled={loadingPreview || !token.trim()}
+221	                containerStyle={styles.primaryButton}
+222	                icon={{
+223	                  library: 'MaterialIcons',
+224	                  name: 'search',
+225	                  size: 20,
+226	                }}
+227	              />
+228	            </View>
+229	
+230	            <View style={styles.infoBox}>
+231	              <DefaultIcons.Custom
+232	                library='MaterialIcons'
+233	                name='info-outline'
+234	                size={18}
+235	                color={Pallete.fonts.inactive}
+236	              />
+237	              <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={styles.infoText}>
+238	                Alguns convites aprovam sua entrada automaticamente. Outros aguardam liberação da
+239	                liderança.
+240	              </FancyText>
+241	            </View>
+242	          </View>
+243	        )}
+244	
+245	        {/* Estado B: Igreja encontrada */}
+246	        {preview && (
+247	          <View style={styles.previewSection}>
+248	            {/* Card principal com design moderno */}
+249	            <View style={styles.previewCard}>
+250	              {/* Header com gradiente visual */}
+251	              <View style={styles.cardHeader}>
+252	                {/* Avatar grande da igreja */}
+253	                <View style={styles.avatarWrapper}>
+254	                  <View style={styles.avatarContainer}>
+255	                    {preview.igrejaLogo ? (
+256	                      <FancyImage
+257	                        source={{ uri: preview.igrejaLogo }}
+258	                        size={100}
+259	                        style={styles.churchLogo}
+260	                      />
+261	                    ) : (
+262	                      <View style={styles.avatarFallback}>
+263	                        <DefaultIcons.Custom
+264	                          library='MaterialCommunityIcons'
+265	                          name='church'
+266	                          size={48}
+267	                          color={Pallete.primary}
+268	                        />
+269	                      </View>
+270	                    )}
+271	                  </View>
+272	                </View>
+273	
+274	                {/* Nome da igreja */}
+275	                <FancyText type='bold' size='large' style={styles.churchName}>
+276	                  {preview.igrejaNome}
+277	                </FancyText>
+278	              </View>
+279	
+280	              {/* Info section */}
+281	              <View style={styles.infoSection}>
+282	                {expiresText && (
+283	                  <View style={styles.infoRow}>
+284	                    <View style={styles.infoIconContainer}>
+285	                      <DefaultIcons.Custom
+286	                        library='MaterialIcons'
+287	                        name='schedule'
+288	                        size={16}
+289	                        color={Pallete.fonts.inactive}
+290	                      />
+291	                    </View>
+292	                    <View style={styles.infoTextContainer}>
+293	                      <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive}>
+294	                        Validade do convite
+295	                      </FancyText>
+296	                      <FancyText
+297	                        size='small'
+298	                        type='semiBold'
+299	                        style={{ opacity: 0.8 }}
+300	                        color={Pallete.fonts.dark}
+301	                      >
+302	                        {expiresText}
+303	                      </FancyText>
+304	                    </View>
+305	                  </View>
+306	                )}
+307	
+308	                <View style={styles.infoRow}>
+309	                  <View style={styles.infoIconContainer}>
+310	                    <DefaultIcons.Custom
+311	                      library='MaterialIcons'
+312	                      name={preview.autoApprove ? 'flash-on' : 'hourglass-empty'}
+313	                      size={16}
+314	                      color={preview.autoApprove ? Pallete.confirm : Pallete.warning}
+315	                    />
+316	                  </View>
+317	                  <View style={styles.infoTextContainer}>
+318	                    <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive}>
+319	                      Tipo de entrada
+320	                    </FancyText>
+321	                    <FancyText
+322	                      size='small'
+323	                      type='semiBold'
+324	                      color={preview.autoApprove ? Pallete.confirm : Pallete.warning}
+325	                    >
+326	                      {preview.autoApprove ? 'Acesso imediato' : 'Aguarda aprovação'}
+327	                    </FancyText>
+328	                  </View>
+329	                </View>
+330	              </View>
+331	
+332	              {/* Mensagem de erro */}
+333	              {error && (
+334	                <View style={styles.errorContainer}>
+335	                  <DefaultIcons.Custom
+336	                    library='MaterialIcons'
+337	                    name='error-outline'
+338	                    size={18}
+339	                    color={Pallete.error}
+340	                  />
+341	                  <FancyText size='small' color={Pallete.error} style={styles.errorText}>
+342	                    {error}
+343	                  </FancyText>
+344	                </View>
+345	              )}
+346	
+347	              {/* Botões de ação */}
+348	              <View style={styles.actionsContainer}>
+349	                <FancyButton
+350	                  label={preview.autoApprove ? 'Entrar na Igreja' : 'Solicitar Entrada'}
+351	                  isLoading={loadingAccept}
+352	                  onPress={handleAccept}
+353	                  disabled={loadingAccept}
+354	                  containerStyle={styles.mainActionButton}
+355	                  icon={{
+356	                    library: 'MaterialIcons',
+357	                    name: preview.autoApprove ? 'login' : 'send',
+358	                    size: 14,
+359	                    color: Pallete.fonts.light,
+360	                  }}
+361	                />
+362	
+363	                <FancyButton
+364	                  label='Usar outro código'
+365	                  type='text'
+366	                  size={36}
+367	                  onPress={handleReset}
+368	                  disabled={loadingAccept}
+369	                />
+370	              </View>
+371	            </View>
+372	          </View>
+373	        )}
+374	
+375	        {/* Link para ver solicitações */}
+376	        <View style={styles.footer}>
+377	          <FancyButton
+378	            label='Ver minhas solicitações'
+379	            type='text'
+380	            onPress={() => router.push('/(app)/join-church/requests')}
+381	            icon={{
+382	              library: 'MaterialIcons',
+383	              name: 'history',
+384	              size: 18,
+385	              color: Pallete.primary,
+386	            }}
+387	          />
+388	        </View>
+389	      </FancyScrollView>
+390	    </FancyPageView>
+391	  );
+392	}
+393	
+394	const styles = StyleSheet.create({
+395	  pageContainer: {
+396	    flex: 1,
+397	    backgroundColor: Pallete.backgroundColor,
+398	  },
+399	  scrollContent: {
+400	    padding: 20,
+401	    paddingTop: 0,
+402	    paddingBottom: 40,
+403	    flexGrow: 1,
+404	  },
+405	  inputSection: {
+406	    alignItems: 'center',
+407	    paddingTop: 20,
+408	  },
+409	  iconContainer: {
+410	    width: 88,
+411	    height: 88,
+412	    borderRadius: 44,
+413	    backgroundColor: `${Pallete.primary}15`,
+414	    justifyContent: 'center',
+415	    alignItems: 'center',
+416	    marginBottom: 20,
+417	  },
+418	  title: {
+419	    textAlign: 'center',
+420	    marginBottom: 8,
+421	  },
+422	  subtitle: {
+423	    textAlign: 'center',
+424	    marginBottom: 24,
+425	    paddingHorizontal: 20,
+426	  },
+427	  inputCard: {
+428	    width: '100%',
+429	    backgroundColor: Pallete.backgroundColor2,
+430	    borderRadius: 16,
+431	    padding: 20,
+432	    gap: 16,
+433	  },
+434	  input: {
+435	    marginBottom: 0,
+436	  },
+437	  errorContainer: {
+438	    flexDirection: 'row',
+439	    alignItems: 'flex-start',
+440	    gap: 10,
+441	    backgroundColor: `${Pallete.error}10`,
+442	    paddingHorizontal: 14,
+443	    paddingVertical: 12,
+444	    borderRadius: 10,
+445	  },
+446	  errorText: {
+447	    flex: 1,
+448	  },
+449	  primaryButton: {
+450	    marginTop: 4,
+451	  },
+452	  infoBox: {
+453	    flexDirection: 'row',
+454	    alignItems: 'flex-start',
+455	    gap: 10,
+456	    marginTop: 20,
+457	    paddingHorizontal: 16,
+458	  },
+459	  infoText: {
+460	    flex: 1,
+461	    fontStyle: 'italic',
+462	  },
+463	  previewSection: {
+464	    flex: 1,
+465	    justifyContent: 'center',
+466	    paddingTop: 10,
+467	  },
+468	  previewCard: {
+469	    backgroundColor: Pallete.backgroundColor,
+470	    borderRadius: 20,
+471	    overflow: 'hidden',
+472	    ...Pallete.shadows[300],
+473	  },
+474	  cardHeader: {
+475	    paddingTop: 16,
+476	    paddingBottom: 8,
+477	    paddingHorizontal: 16,
+478	    alignItems: 'center',
+479	    gap: 8,
+480	  },
+481	  avatarWrapper: {
+482	    padding: 4,
+483	    borderRadius: 56,
+484	    backgroundColor: Pallete.backgroundColor,
+485	    ...Pallete.shadows[200],
+486	  },
+487	  avatarContainer: {
+488	    borderRadius: 50,
+489	    overflow: 'hidden',
+490	  },
+491	  churchLogo: {
+492	    borderRadius: 50,
+493	  },
+494	  avatarFallback: {
+495	    width: 100,
+496	    height: 100,
+497	    borderRadius: 50,
+498	    backgroundColor: `${Pallete.primary}12`,
+499	    justifyContent: 'center',
+500	    alignItems: 'center',
+501	  },
+502	  churchName: {
+503	    textAlign: 'center',
+504	    color: Pallete.fonts.dark,
+505	  },
+506	  infoSection: {
+507	    paddingHorizontal: 16,
+508	    paddingBottom: 16,
+509	    gap: 10,
+510	  },
+511	  infoRow: {
+512	    flexDirection: 'row',
+513	    alignItems: 'center',
+514	    gap: 12,
+515	  },
+516	  infoIconContainer: {
+517	    width: 36,
+518	    height: 36,
+519	    borderRadius: 10,
+520	    backgroundColor: `${Pallete.primary}08`,
+521	    justifyContent: 'center',
+522	    alignItems: 'center',
+523	  },
+524	  infoTextContainer: {
+525	    flex: 1,
+526	    gap: 2,
+527	  },
+528	  actionsContainer: {
+529	    paddingHorizontal: 16,
+530	    paddingBottom: 16,
+531	    gap: 8,
+532	  },
+533	  mainActionButton: {
+534	    borderRadius: 12,
+535	  },
+536	  footer: {
+537	    marginTop: 'auto',
+538	    paddingTop: 10,
+539	    alignItems: 'center',
+540	  },
+541	});

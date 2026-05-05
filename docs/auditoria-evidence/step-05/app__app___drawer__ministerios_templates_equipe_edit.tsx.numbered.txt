@@ -1,0 +1,102 @@
+1	import { FormProvider, useForm } from 'react-hook-form';
+2	import TemplateForm from '../../../../../components/pages/ministerios/templates_equipe/TemplateForm';
+3	import { router, useLocalSearchParams } from 'expo-router';
+4	import { zodResolver } from '@hookform/resolvers/zod';
+5	import { EscalaTemplateFormData, escalaTemplateSchema } from '../../../../../domain/schemas/escalaTemplateSchema';
+6	import { useEscalaTemplatesCrud } from '../../../../../useEscalaTemplatesCrud';
+7	import { useCallback, useEffect, useMemo } from 'react';
+8	import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
+9	import FancyLoading from '../../../../../components/FancyLoading';
+10	import { strfyObj } from '../../../../../utils/text_utils';
+11	import { EscalaTemplateTipoEnumMap } from '../../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
+12	
+13	export default function MinisterioTemplatesEditPage() {
+14	  const { ministerioId, templateId } = useLocalSearchParams<{
+15	    ministerioId: string;
+16	    templateId: string;
+17	  }>();
+18	
+19	  const dataParams = useMemo(() => {
+20	    if (!templateId) return undefined;
+21	
+22	    return {
+23	      where: {
+24	        conditions: [
+25	          {
+26	            path: 'id',
+27	            operator: Operator.EQUALS,
+28	            value: { type: ValueType.LITERAL, value: templateId },
+29	          },
+30	        ],
+31	      },
+32	      relations: ['voluntarios.voluntario', 'voluntarios.funcao', 'funcoes.funcao'],
+33	    } as DynamicQuery;
+34	  }, [templateId]);
+35	
+36	  const {
+37	    data: templatesData,
+38	    update: updateTemplate,
+39	    isLoading,
+40	    isLoadingMutation,
+41	  } = useEscalaTemplatesCrud({ autoFetch: true, initialParams: dataParams });
+42	
+43	  const form = useForm<EscalaTemplateFormData>({
+44	    resolver: zodResolver(escalaTemplateSchema),
+45	  });
+46	
+47	  useEffect(() => {
+48	    const template = templatesData?.[0];
+49	    if (template) {
+50	      form.reset({
+51	        ministerioId: ministerioId,
+52	        id: template.id,
+53	        nome: template.nome,
+54	        funcoes: template.funcoes
+55	          ? template.funcoes.map((f) => ({
+56	              funcaoId: f.funcao?.id,
+57	              experiencia: f.experiencia,
+58	              quantidade: f.quantidade,
+59	            }))
+60	          : [],
+61	        voluntarios: template.voluntarios
+62	          ? template.voluntarios?.map((v) => ({
+63	              id: v.id,
+64	              voluntarioId: v.voluntario?.id,
+65	              funcaoId: v.funcao?.id,
+66	            }))
+67	          : [],
+68	        respSetListFuncoesId: template.respSetListFuncoes?.id,
+69	        respSetListVoluntariosId: template.respSetListVoluntarios?.id,
+70	        tipo: EscalaTemplateTipoEnumMap[template.tipo],
+71	      });
+72	    }
+73	  }, [templatesData]);
+74	
+75	  const handleOnSave = useCallback(
+76	    form.handleSubmit(
+77	      (data) => {
+78	        if (!data.id) return;
+79	
+80	        updateTemplate({
+81	          id: data.id,
+82	          data: {
+83	            ...data,
+84	          },
+85	        }).then(() => {
+86	          router.back();
+87	        });
+88	      },
+89	      (errors) =>
+90	        console.log('Erro no submit do formulário\n', '=> Erros: ', strfyObj(errors), '\n=> Data: ', strfyObj(form.getValues())),
+91	    ),
+92	    [form.handleSubmit],
+93	  );
+94	
+95	  if (isLoading) return <FancyLoading />;
+96	
+97	  return (
+98	    <FormProvider {...form}>
+99	      <TemplateForm mode='edit' ministerioId={ministerioId} onSave={handleOnSave} isLoading={isLoadingMutation} />
+100	    </FormProvider>
+101	  );
+102	}

@@ -1,0 +1,305 @@
+1	import AsyncStorage from '@react-native-async-storage/async-storage';
+2	import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+3	import { useQueryClient } from '@tanstack/react-query';
+4	import { router } from 'expo-router';
+5	import { AxiosError } from 'axios';
+6	import apiClient, { isAuthEndpoint } from '../domain/api/api-client';
+7	import { ResponseLoginDto, ResponseLoginIgrejaDto } from '../domain/dtos/login/login.response';
+8	import { clearAuthToken, getAuthToken, setAuthToken } from '../core/storage/authTokenStorage';
+9	import { deregisterPushToken } from '../services/notifications';
+10	
+11	const IGREJA_ATIVA_KEY = 'igrejaAtivaId';
+12	
+13	type SignOutReason = 'manual' | 'expired';
+14	
+15	interface AuthContextData {
+16	  user: ResponseLoginDto | null;
+17	  token: string | null;
+18	  loading: boolean;
+19	  igrejaAtiva: ResponseLoginIgrejaDto | null;
+20	  setIgrejaAtiva: (igreja: ResponseLoginIgrejaDto) => Promise<void>;
+21	  signIn: (email: string, senha: string) => Promise<void>;
+22	  signInWithData: (loginData: ResponseLoginDto) => Promise<void>;
+23	  signOut: (reason?: SignOutReason) => Promise<void>;
+24	  forgotPassword: (email: string) => Promise<boolean>;
+25	  updateUser: (newUserData: Partial<ResponseLoginDto>) => Promise<void>;
+26	  refreshMe: () => Promise<void>;
+27	  changePassword: (senhaAtual: string, novaSenha: string) => Promise<boolean>;
+28	  deleteAccount: () => Promise<boolean>;
+29	}
+30	
+31	const AuthContext = createContext<AuthContextData>({} as AuthContextData);
+32	
+33	type AuthProviderProps = {
+34	  children: React.ReactNode;
+35	};
+36	
+37	export function AuthProvider({ children }: AuthProviderProps) {
+38	  const queryClient = useQueryClient();
+39	
+40	  const [user, setUser] = useState<ResponseLoginDto | null>(null);
+41	  const [token, setToken] = useState<string | null>(null);
+42	  const [loading, setLoading] = useState(true);
+43	  const [igrejaAtiva, setIgrejaAtivaState] = useState<ResponseLoginIgrejaDto | null>(null);
+44	
+45	  const isSigningOutRef = useRef(false);
+46	
+47	  useEffect(() => {
+48	    const loadStorage = async () => {
+49	      try {
+50	        const storedToken = await getAuthToken();
+51	        const storedUser = await AsyncStorage.getItem('user');
+52	        const storedIgrejaId = await AsyncStorage.getItem(IGREJA_ATIVA_KEY);
+53	
+54	        if (storedToken) {
+55	          setToken(storedToken);
+56	          apiClient.defaults.headers.Authorization = `Bearer ${storedToken}`;
+57	        }
+58	
+59	        if (storedUser) {
+60	          const parsedUser = JSON.parse(storedUser) as ResponseLoginDto;
+61	          setUser(parsedUser);
+62	
+63	          // Restaurar igreja ativa ou usar a primeira
+64	          if (parsedUser.igrejas?.length) {
+65	            const igrejaRestaurada = storedIgrejaId
+66	              ? parsedUser.igrejas.find((i) => i.id === storedIgrejaId)
+67	              : null;
+68	            setIgrejaAtivaState(igrejaRestaurada || parsedUser.igrejas[0]);
+69	          }
+70	        }
+71	      } catch (error) {
+72	        if (__DEV__) {
+73	          console.log('[Auth] Erro ao carregar storage:', error);
+74	        }
+75	      } finally {
+76	        setLoading(false);
+77	      }
+78	    };
+79	
+80	    loadStorage();
+81	  }, []);
+82	
+83	  // Interceptor global para 401 (sessão expirada)
+84	  useEffect(() => {
+85	    const interceptorId = apiClient.interceptors.response.use(
+86	      (res: any) => res,
+87	      async (error: AxiosError) => {
+88	        const status = error?.response?.status;
+89	        const requestUrl = error?.config?.url || '';
+90	
+91	        if (status === 401 && !isSigningOutRef.current && !isAuthEndpoint(requestUrl)) {
+92	          await signOut('expired');
+93	        }
+94	
+95	        return Promise.reject(error);
+96	      },
+97	    );
+98	
+99	    return () => {
+100	      apiClient.interceptors.response.eject(interceptorId);
+101	    };
+102	  }, []);
+103	
+104	  const setIgrejaAtiva = async (igreja: ResponseLoginIgrejaDto) => {
+105	    // Limpa cache do React Query para recarregar dados da nova igreja
+106	    await queryClient.cancelQueries();
+107	    queryClient.clear();
+108	    setIgrejaAtivaState(igreja);
+109	    await AsyncStorage.setItem(IGREJA_ATIVA_KEY, igreja.id);
+110	  };
+111	
+112	  const signIn = async (email: string, senha: string) => {
+113	    const response = await apiClient.post('/auth/login', { email, senha });
+114	
+115	    const loginData = response.data?.data as ResponseLoginDto | undefined;
+116	
+117	    const newToken = loginData?.access_token;
+118	    if (!newToken) throw new Error('Token não retornado pelo servidor');
+119	
+120	    setToken(newToken);
+121	    apiClient.defaults.headers.Authorization = `Bearer ${newToken}`;
+122	    await setAuthToken(newToken);
+123	
+124	    const userResponse = loginData?.user;
+125	    if (!userResponse || !loginData) throw new Error('Dados de Usuario nao retornado pelo servidor');
+126	
+127	    setUser(loginData);
+128	
+129	    // Define a primeira igreja como ativa ao fazer login
+130	    if (loginData.igrejas?.length) {
+131	      const storedIgrejaId = await AsyncStorage.getItem(IGREJA_ATIVA_KEY);
+132	      const igrejaRestaurada = storedIgrejaId
+133	        ? loginData.igrejas.find((i) => i.id === storedIgrejaId)
+134	        : null;
+135	      setIgrejaAtivaState(igrejaRestaurada || loginData.igrejas[0]);
+136	    }
+137	
+138	    if (loginData) {
+139	      await AsyncStorage.setItem('user', JSON.stringify(loginData));
+140	    } else {
+141	      await AsyncStorage.removeItem('user');
+142	    }
+143	  };
+144	
+145	  const signInWithData = async (loginData: ResponseLoginDto) => {
+146	    const newToken = loginData?.access_token;
+147	    if (!newToken) throw new Error('Token não retornado');
+148	
+149	    setToken(newToken);
+150	    apiClient.defaults.headers.Authorization = `Bearer ${newToken}`;
+151	    await setAuthToken(newToken);
+152	
+153	    setUser(loginData);
+154	    await AsyncStorage.setItem('user', JSON.stringify(loginData));
+155	
+156	    // Define a primeira igreja como ativa
+157	    if (loginData.igrejas?.length) {
+158	      const storedIgrejaId = await AsyncStorage.getItem(IGREJA_ATIVA_KEY);
+159	      const igrejaRestaurada = storedIgrejaId
+160	        ? loginData.igrejas.find((i) => i.id === storedIgrejaId)
+161	        : null;
+162	      setIgrejaAtivaState(igrejaRestaurada || loginData.igrejas[0]);
+163	    }
+164	  };
+165	
+166	  const signOut = async (reason: SignOutReason = 'manual') => {
+167	    if (isSigningOutRef.current) return;
+168	    isSigningOutRef.current = true;
+169	
+170	    try {
+171	      // Remover push token do backend antes de limpar a sessão
+172	      await deregisterPushToken().catch(() => {});
+173	
+174	      setToken(null);
+175	      setUser(null);
+176	      setIgrejaAtivaState(null);
+177	
+178	      delete apiClient.defaults.headers.Authorization;
+179	
+180	      await clearAuthToken();
+181	      await AsyncStorage.removeItem('user');
+182	      await AsyncStorage.removeItem(IGREJA_ATIVA_KEY);
+183	
+184	      queryClient.clear();
+185	
+186	      router.replace('/(auth)');
+187	
+188	      // se quiser avisar:
+189	      // if (reason === 'expired') {
+190	      //   Toast.show({ type: 'info', text1: 'Sessão expirada. Faça login novamente.' });
+191	      // }
+192	    } finally {
+193	      isSigningOutRef.current = false;
+194	    }
+195	  };
+196	
+197	  const forgotPassword = async (email: string) => {
+198	    await apiClient.post('/auth/forgot-password', { email });
+199	    return true;
+200	  };
+201	
+202	  const updateUser = async (newUserData: Partial<ResponseLoginDto>) => {
+203	    if (!user) return;
+204	
+205	    const mergedUser: ResponseLoginDto = {
+206	      ...user,
+207	      ...newUserData,
+208	      user: {
+209	        ...user.user,
+210	        ...(newUserData.user ?? {}),
+211	      },
+212	      igrejas: newUserData.igrejas ?? user.igrejas,
+213	    };
+214	
+215	    setUser(mergedUser);
+216	    await AsyncStorage.setItem('user', JSON.stringify(mergedUser));
+217	
+218	    // Atualiza igrejaAtiva se a igreja ativa foi modificada
+219	    if (igrejaAtiva && newUserData.igrejas) {
+220	      const igrejaAtivaAtualizada = newUserData.igrejas.find((i) => i.id === igrejaAtiva.id);
+221	      if (igrejaAtivaAtualizada) {
+222	        // Preservar os ministérios da igreja ativa atual ao atualizar
+223	        const igrejaComMinisterios = {
+224	          ...igrejaAtivaAtualizada,
+225	          ministerios: igrejaAtivaAtualizada.ministerios?.length 
+226	            ? igrejaAtivaAtualizada.ministerios 
+227	            : igrejaAtiva.ministerios,
+228	        };
+229	        setIgrejaAtivaState(igrejaComMinisterios);
+230	      }
+231	    }
+232	  };
+233	
+234	  const refreshMe = async () => {
+235	    try {
+236	      const response = await apiClient.get('/voluntarios/me');
+237	      const meData = response.data?.data as ResponseLoginDto | undefined;
+238	      
+239	      if (meData && user) {
+240	        const updatedUser: ResponseLoginDto = {
+241	          ...user,
+242	          access_token: user.access_token,
+243	          user: meData.user || user.user,
+244	          igrejas: meData.igrejas || [],
+245	        };
+246	        
+247	        setUser(updatedUser);
+248	        await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+249	        
+250	        // Atualizar igreja ativa se ainda existir na lista
+251	        if (igrejaAtiva && updatedUser.igrejas?.length) {
+252	          const igrejaAindaExiste = updatedUser.igrejas.find((i) => i.id === igrejaAtiva.id);
+253	          if (igrejaAindaExiste) {
+254	            setIgrejaAtivaState(igrejaAindaExiste);
+255	          } else {
+256	            // Se a igreja ativa não existe mais, selecionar a primeira
+257	            setIgrejaAtivaState(updatedUser.igrejas[0]);
+258	            await AsyncStorage.setItem(IGREJA_ATIVA_KEY, updatedUser.igrejas[0].id);
+259	          }
+260	        } else if (!igrejaAtiva && updatedUser.igrejas?.length) {
+261	          // Se não tinha igreja ativa mas agora tem igrejas, selecionar a primeira
+262	          setIgrejaAtivaState(updatedUser.igrejas[0]);
+263	          await AsyncStorage.setItem(IGREJA_ATIVA_KEY, updatedUser.igrejas[0].id);
+264	        }
+265	      }
+266	    } catch (error) {
+267	      console.error('Erro ao atualizar sessão:', error);
+268	      throw error;
+269	    }
+270	  };
+271	
+272	  const changePassword = async (senhaAtual: string, novaSenha: string) => {
+273	    await apiClient.put('/auth/change-password', { senhaAtual, novaSenha });
+274	    return true;
+275	  };
+276	
+277	  const deleteAccount = async () => {
+278	    await apiClient.delete('/auth/delete-account');
+279	    await signOut('manual');
+280	    return true;
+281	  };
+282	
+283	  const value = useMemo(
+284	    () => ({
+285	      user,
+286	      token,
+287	      loading,
+288	      igrejaAtiva,
+289	      setIgrejaAtiva,
+290	      signIn,
+291	      signInWithData,
+292	      signOut,
+293	      forgotPassword,
+294	      updateUser,
+295	      refreshMe,
+296	      changePassword,
+297	      deleteAccount,
+298	    }),
+299	    [user, token, loading, igrejaAtiva],
+300	  );
+301	
+302	  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+303	}
+304	
+305	export const useAuth = () => useContext(AuthContext);

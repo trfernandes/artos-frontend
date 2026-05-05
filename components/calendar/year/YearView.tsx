@@ -1,7 +1,8 @@
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useEffect, useRef } from 'react';
 import FancyText from '../../FancyText';
-import { Pallete } from '../../../constants/colors';
+import { ThemePalette } from '../../../constants/colors';
+import { useThemedStyles } from '../../../hooks/useThemedStyles';
 
 export type YearViewProps = {
   currentDate: Date;
@@ -11,6 +12,7 @@ export type YearViewProps = {
 };
 
 export default function YearView({ ...props }: YearViewProps) {
+  const styles = useThemedStyles(createStyles);
   const yearsList: number[] = [];
   for (let y = props.minimumDate.getFullYear(); y <= props.maximumDate.getFullYear(); y++) {
     yearsList.push(y);
@@ -19,7 +21,7 @@ export default function YearView({ ...props }: YearViewProps) {
   const yearsScrollRef = useRef<ScrollView>(null);
 
   const scrollToCurrentYear = () => {
-    const index = yearsList.findIndex(y => y === props.currentDate.getFullYear());
+    const index = yearsList.findIndex((y) => y === props.currentDate.getFullYear());
     const row = Math.floor(index / 3);
     const cellHeight = 60;
     const offsetY = row * cellHeight - 120;
@@ -35,7 +37,7 @@ export default function YearView({ ...props }: YearViewProps) {
   return (
     <ScrollView ref={yearsScrollRef} style={{ flex: 1 }} contentContainerStyle={styles.container}>
       <View style={styles.containerContent}>
-        {yearsList.map(year => {
+        {yearsList.map((year) => {
           const isSelected = year === props.currentDate.getFullYear();
           return (
             <Pressable
@@ -60,31 +62,30 @@ export default function YearView({ ...props }: YearViewProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    width: '100%',
-  },
-  containerContent: { flexDirection: 'row', flexWrap: 'wrap' },
-  cell: {
-    width: '30%',
-    margin: '1.5%',
-    height: 50,
-    borderRadius: 5,
-    backgroundColor: '#eee',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  selected: {
-    backgroundColor: Pallete.primary,
-  },
-  selectedCell: {
-    backgroundColor: Pallete.primary,
-  },
-  text: { borderWidth: 0, width: '100%', textAlign: 'center', lineHeight: 25 },
-  selectedText: {
-    color: '#fff',
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'center',
+      width: '100%',
+    },
+    containerContent: { flexDirection: 'row', flexWrap: 'wrap' },
+    cell: {
+      width: '30%',
+      margin: '1.5%',
+      height: 50,
+      borderRadius: 5,
+      backgroundColor: palette.backgroundColor3,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    selectedCell: {
+      backgroundColor: palette.primary,
+    },
+    text: { borderWidth: 0, width: '100%', textAlign: 'center', lineHeight: 25 },
+    selectedText: {
+      color: palette.fonts.light,
+    },
+  });
+}

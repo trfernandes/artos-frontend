@@ -1,86 +1,317 @@
-import { View } from 'react-native';
-import { PEOPLE_DATA } from '../../../../../components/pages/admin/eventos/EventosEscalaEquipe';
-import { useState } from 'react';
-import AdicionarModal from '../../../../../components/pages/ministerios/integrantes/AdicionarModal';
-import FancyBaseListPage from '../../../../../components/pages/base/FancyBaseListPage';
+import { useCallback, useMemo, useState } from 'react';
+import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
 import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
-import DefaultIcons from '../../../../../components/FancyIcons';
-import FancyText from '../../../../../components/FancyText';
 import { Pallete } from '../../../../../constants/colors';
 import { DefaultIconsNames } from '../../../../../constants/icons';
+import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
+import { router, useLocalSearchParams } from 'expo-router';
+import {
+  Condition,
+  DynamicQuery,
+  Operator,
+  OrderDirection,
+  ValueType,
+} from '../../../../../domain/utils/query_utils';
+import FancyLoading from '../../../../../components/FancyLoading';
+import Toast from 'react-native-toast-message';
+import { FancyAlert } from '../../../../../components/modal/FancyAlert';
+import { FancyTextDisplayCard } from '../../../../../components/cards/FancyTextDisplayCard';
+import { VoluntarioHierarquiaEnumLabel } from '../../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
+import {
+  getMinisterioStatusColorMap,
+  MinisterioVoluntarioStatusEnum,
+  MinisterioVoluntarioStatusEnumLabel,
+  MinisterioVoluntarioStatusEnumMap,
+} from '../../../../../domain/enums/MinisterioVoluntario/ministerio-voluntario-status.enum';
+import { MinisterioVoluntarioFuncaoStatusEnum } from '../../../../../domain/enums/MinisterioVoluntarioFuncao/ministerio-voluntario-funcao-status.enum';
+import { AppImages } from '../../../../../assets/app_images';
+import { useLoading } from '../../../../../contexts/LoadingContext';
+import FancyChips from '../../../../../components/FancyChips';
+import { usePallete } from '../../../../../hooks/usePallete';
+import FancyText from '../../../../../components/FancyText';
+import DefaultIcons from '../../../../../components/FancyIcons';
+import { View } from 'react-native';
 
 export default function MinisterioIntegrantesIndex() {
-  const [addModalVisible, setAddModalVisible] = useState(false);
+  const palette = usePallete();
+  const { showLoading } = useLoading();
+
+  const { ministerioId } = useLocalSearchParams<{ ministerioId: string }>();
+
+  const [searchText, setSearchText] = useState('');
+  const ministerioStatusColorMap = useMemo(() => getMinisterioStatusColorMap(palette), [palette]);
+
+  const params = useMemo(() => {
+    if (!ministerioId) return undefined;
+
+    const searchCondition: Condition | undefined =
+      searchText && searchText.trim() !== ''
+        ? {
+            path: 'voluntario.nome',
+            operator: Operator.ILIKE,
+            value: { type: ValueType.LITERAL, value: searchText },
+          }
+        : undefined;
+
+    return {
+      where: {
+        conditions: [
+          {
+            path: 'ministerio.id',
+            operator: Operator.EQUALS,
+            value: {
+              type: ValueType.LITERAL as const,
+              value: ministerioId,
+            },
+          },
+          ...(searchCondition ? [searchCondition] : []),
+        ],
+      },
+      relations: ['voluntario', 'ministerio', 'funcoes', 'funcoes.funcao'],
+      orderBy: [{ path: 'voluntario.nome', direction: OrderDirection.ASC }],
+    } as DynamicQuery;
+  }, [ministerioId, searchText]);
+
+  const {
+    data,
+    update: updateIntegrante,
+    remove: removeIntegrante,
+    isLoading,
+    isLoadingMutation,
+  } = useMinisterioVoluntariosCrud({
+    autoFetch: true,
+    initialParams: params,
+  });
+
+  const handleChangeStatus = useCallback(
+    (id: string, nome: string, newStatus: MinisterioVoluntarioStatusEnum) => {
+      FancyAlert.alert(
+        newStatus === MinisterioVoluntarioStatusEnum.Inativo
+          ? 'Desativação de Voluntário'
+          : 'Ativação de Voluntário',
+        `Tem certeza que deseja "${newStatus === MinisterioVoluntarioStatusEnum.Inativo ? 'DESATIVAR' : 'ATIVAR'}" o voluntário "${nome}"?`,
+        [
+          {
+            text: 'Não',
+            style: 'cancel',
+          },
+          {
+            text: 'Sim',
+            style: 'destructive',
+            onPress: () => {
+              updateIntegrante?.({
+                id,
+                data: { status: newStatus },
+              })?.then(() => {
+                Toast.show({
+                  text1: `Voluntário ${newStatus === MinisterioVoluntarioStatusEnum.Inativo ? 'desativado' : 'ativado'} com sucesso!`,
+                  type: 'success',
+                });
+              });
+            },
+          },
+        ],
+      );
+    },
+    [updateIntegrante],
+  );
+
+  const handleRemoveVoluntario = useCallback(
+    (ministerioVoluntarioId: string) => {
+      FancyAlert.alert(
+        'Excluir definitivamente este voluntário desse ministério?',
+        `A exclusão deste voluntário é permanente. Todos os vínculos com esse ministério como funções, escalas e histórico serão removidos e não poderão ser recuperados. Se você não quiser perder o histórico, use a opção "Desativar" em vez de excluir.`,
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Sim, estou ciente',
+            style: 'destructive',
+            onPress: () => {
+              removeIntegrante(ministerioVoluntarioId);
+            },
+          },
+        ],
+      );
+    },
+    [removeIntegrante],
+  );
+
+  if (isLoading || isLoadingMutation) return <FancyLoading />;
+
   return (
-    <FancyBaseListPage
-      listProps={{
-        data: PEOPLE_DATA,
-        renderItem: ({ item }) =>
-          item.type === 'escalado' ? (
-            <FancyCard.Image
-              type="image"
-              props={{
-                title: item.nome,
-                subtitle: `email@email.com`,
-                additionalData1: (
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 6,
-                      borderWidth: 0,
-                      paddingTop: 2,
-                    }}
-                  >
-                    <DefaultIcons.Custom
-                      library={'Octicons'}
-                      name={'dot-fill'}
-                      // color={item.status === 'ativo' ? 'forestgreen' : 'indianred'}
-                      color={'forestgreen'}
-                      size={12}
-                      style={{
-                        borderWidth: 0,
-                        height: 11,
-                        justifyContent: 'flex-start',
-                        lineHeight: 10.5,
-                      }}
-                    />
-                    <FancyText
-                      size={'extraSmall'}
-                      type="semiBold"
-                      color={Pallete.fonts.inactive}
-                      style={{ lineHeight: 10, borderWidth: 0, height: 11 }}
-                    >
-                      {/* {item.status === 'ativo' ? 'Ativo' : 'Inativo'} */}
-                      Ativo
-                    </FancyText>
-                  </View>
-                ),
-                source: item.image!,
-                actionButtons: [
-                  {
-                    icon: { ...DefaultIconsNames.edit, size: 18 },
-                    onPress: () => setAddModalVisible(true),
-                  },
-                  {
-                    icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error },
-                    onPress: () => {},
-                  },
-                ],
-              }}
-            />
-          ) : null,
+    <FancyListPage
+      showFab
+      fabProps={{
+        onPress: () =>
+          router.push({
+            pathname: '/ministerios/integrantes/add',
+            params: { ministerioId },
+          }),
       }}
-    >
-      {addModalVisible && (
-        <AdicionarModal
-          title="Novo Integrante"
-          voluntarioList={PEOPLE_DATA.map(item => ({ foto: item.image, nome: item.nome }))}
-          modalProps={{ visible: addModalVisible }}
-          onClose={() => setAddModalVisible(false)}
-          onConfirm={() => setAddModalVisible(false)}
-        />
-      )}
-    </FancyBaseListPage>
+      showSearchBar
+      searchBarProps={{
+        value: searchText,
+        onSearch: (text) => setSearchText(text.trim()),
+      }}
+      listProps={{
+        listEmptyProps: {
+          label: searchText ? 'Nenhum integrante encontrado' : 'Nenhum integrante cadastrado',
+          icon: { library: 'MaterialCommunityIcons', name: 'account-multiple-outline', size: 68 },
+        },
+        data: data,
+        renderItem: ({ item, index }) => (
+          <FancyCard.Image
+            key={index}
+            type='image'
+            props={{
+              title: item.voluntario?.nome,
+              subtitle: (
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4,
+                    width: '100%',
+                    marginTop: 1,
+                  }}
+                >
+                  <View style={{ width: 13, alignItems: 'center', justifyContent: 'center' }}>
+                    <DefaultIcons.Custom
+                      library='MaterialCommunityIcons'
+                      name='email-outline'
+                      size={12}
+                      color={Pallete.primary}
+                    />
+                  </View>
+                  <FancyText
+                    size='extraSmall'
+                    type='semiBold'
+                    color={palette.fonts.inactive}
+                    numberOfLines={1}
+                    ellipsizeMode='middle'
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.82}
+                    style={{ flex: 1, opacity: 0.85 }}
+                  >
+                    {item.voluntario?.email}
+                  </FancyText>
+                </View>
+              ),
+              additionalData1: (
+                <FancyTextDisplayCard
+                  icon={{
+                    library: 'MaterialCommunityIcons',
+                    name: 'account-cog-outline',
+                    size: 12,
+                    color: Pallete.primary,
+                  }}
+                  value={VoluntarioHierarquiaEnumLabel[item.hierarquia!]}
+                />
+              ),
+              additionalData2: (
+                <>
+                  {(() => {
+                    const funcoesAtivas =
+                      item.funcoes?.filter(
+                        (f) => f.status === MinisterioVoluntarioFuncaoStatusEnum.Ativo,
+                      ) ?? [];
+                    if (funcoesAtivas.length === 0) return null;
+                    const funcoesLabel = funcoesAtivas
+                      .map((f) => f.funcao?.nome?.trim())
+                      .filter((nome): nome is string => Boolean(nome))
+                      .join(', ');
+
+                    return (
+                      <FancyTextDisplayCard
+                        icon={{
+                          library: 'MaterialCommunityIcons',
+                          name: 'music-note',
+                          size: 12,
+                          color: Pallete.primary,
+                          style: { marginTop: 2, alignSelf: 'flex-start' },
+                        }}
+                        containerStyle={{ alignItems: 'flex-start', gap: 4 }}
+                        value={funcoesLabel}
+                        valueStyle={{ style: { lineHeight: 16, flexShrink: 1, opacity: 0.8 } }}
+                      />
+                    );
+                  })()}
+                  <FancyChips
+                    size='small'
+                    style={{ marginTop: 2 }}
+                    label={MinisterioVoluntarioStatusEnumLabel[item.status]}
+                    color={ministerioStatusColorMap[item.status]}
+                  />
+                </>
+              ),
+              source:
+                item.voluntario?.fotoThumbUrl || item.voluntario?.fotoThumbUrl
+                  ? { uri: item.voluntario?.fotoThumbUrl || item.voluntario?.fotoUrl || '' }
+                  : AppImages.emptyProfile,
+              actionButtons: [
+                {
+                  icon: { ...DefaultIconsNames.edit, size: 17 },
+                  onPress: () => {
+                    showLoading();
+                    router.push({
+                      pathname: '/ministerios/integrantes/edit',
+                      params: {
+                        ministerioId: ministerioId!,
+                        ministerioVoluntarioId: item.id!,
+                      },
+                    });
+                  },
+                },
+                {
+                  type: 'menu',
+                  icon: {
+                    library: 'Entypo',
+                    name: 'dots-three-vertical',
+                    size: 15,
+                    backgroundColor: Pallete.secondary,
+                  },
+                  options: [
+                    {
+                      label:
+                        MinisterioVoluntarioStatusEnumMap[item.status] ==
+                        MinisterioVoluntarioStatusEnum.Ativo
+                          ? 'Desativar'
+                          : 'Ativar',
+                      icon:
+                        MinisterioVoluntarioStatusEnumMap[item.status] ==
+                        MinisterioVoluntarioStatusEnum.Ativo
+                          ? { library: 'FontAwesome6', name: 'thumbs-down', size: 16 }
+                          : { library: 'FontAwesome6', name: 'thumbs-up', size: 16 },
+                      onPress: () => {
+                        handleChangeStatus(
+                          item.id!,
+                          item.voluntario?.nome ?? '',
+                          MinisterioVoluntarioStatusEnumMap[item.status] ===
+                            MinisterioVoluntarioStatusEnum.Ativo
+                            ? MinisterioVoluntarioStatusEnum.Inativo
+                            : MinisterioVoluntarioStatusEnum.Ativo,
+                        );
+                      },
+                    },
+                    {
+                      label: 'Excluir',
+                      icon: {
+                        library: 'FontAwesome6',
+                        name: 'trash-can',
+                        size: 16,
+                        style: { borderWidth: 0 },
+                      },
+                      onPress: () => {
+                        handleRemoveVoluntario(item.id!);
+                      },
+                    },
+                  ],
+                },
+              ],
+            }}
+          />
+        ),
+      }}
+    />
   );
 }

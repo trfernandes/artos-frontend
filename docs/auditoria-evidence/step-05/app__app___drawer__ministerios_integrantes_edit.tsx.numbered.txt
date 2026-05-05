@@ -1,0 +1,161 @@
+1	import FancyButton from '../../../../../components/buttons/FancyButton';
+2	import FancyPageView from '../../../../../components/containers/FancyPageView';
+3	import { zodResolver } from '@hookform/resolvers/zod';
+4	import { FormProvider, useForm } from 'react-hook-form';
+5	import { MinVoluntarioFormData, minVoluntarioSchema } from '../../../../../domain/schemas/ministerioVoluntariosSchema';
+6	import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+7	import { useEffect, useMemo } from 'react';
+8	import { DynamicQuery, Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
+9	import FancyLoading from '../../../../../components/FancyLoading';
+10	import IntegranteFormFields from '../../../../../components/pages/ministerios/integrantes/FormFields';
+11	import { UpdateFuncaoDataDto } from '../../../../../domain/services/MinisterioVoluntarioFuncoesRepository';
+12	import { DefaultIconsNames } from '../../../../../constants/icons';
+13	import { MinisterioVoluntarioStatusEnum } from '../../../../../domain/enums/MinisterioVoluntario/ministerio-voluntario-status.enum';
+14	import {
+15	    MinisterioVoluntarioFuncaoStatusEnum,
+16	    MinisterioVoluntarioFuncaoStatusEnumMap,
+17	} from '../../../../../domain/enums/MinisterioVoluntarioFuncao/ministerio-voluntario-funcao-status.enum';
+18	import {
+19	    EscalaTemplateExperienciaEnum,
+20	    EscalaTemplateExperienciaEnumMap,
+21	} from '../../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
+22	import { useLoading } from '../../../../../contexts/LoadingContext';
+23	import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
+24	import { useMinisterioVoluntarioFuncoesCrud } from '../../../../../hooks/useMinisterioVoluntarioFuncoesCrud';
+25	import { ResponseMinisterioFuncaoDto } from '../../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.response';
+26	import { useFuncoesDoMinisterio } from '../../../../../hooks/useFuncoesDoMinisterio';
+27	import { strfyObj } from '../../../../../utils/text_utils';
+28	
+29	export default function MinisterioIntegrantesEditPage() {
+30	  const params = useLocalSearchParams<{
+31	    ministerioId: string;
+32	    ministerioVoluntarioId: string;
+33	  }>();
+34	
+35	  const { hideLoading } = useLoading();
+36	
+37	  const form = useForm<MinVoluntarioFormData>({
+38	    resolver: zodResolver(minVoluntarioSchema),
+39	    defaultValues: {
+40	      voluntarioId: '',
+41	      funcoes: [],
+42	    },
+43	  });
+44	
+45	  useFocusEffect(() => {
+46	    hideLoading();
+47	  });
+48	
+49	  const voluntarioSearchParams = useMemo<DynamicQuery>(() => {
+50	    return {
+51	      where: {
+52	        conditions: [{ path: 'id', operator: Operator.EQUALS, value: { type: ValueType.LITERAL, value: params.ministerioVoluntarioId } }],
+53	      },
+54	      relations: ['voluntario'],
+55	      orderBy: [
+56	        {
+57	          path: 'voluntario.nome',
+58	          direction: OrderDirection.ASC,
+59	        },
+60	      ],
+61	    } as DynamicQuery;
+62	  }, [params]);
+63	
+64	  const { data, isLoading: isLoadingVoluntario } = useMinisterioVoluntariosCrud({ autoFetch: true, initialParams: voluntarioSearchParams });
+65	
+66	  const voluntarioAtual = useMemo(() => (data && data.length > 0 ? data[0] : null), [data]);
+67	
+68	  const funcoesSearchParams = useMemo<DynamicQuery>(() => {
+69	    return {
+70	      where: {
+71	        conditions: [
+72	          {
+73	            path: 'ministerioVoluntarioId',
+74	            operator: Operator.EQUALS,
+75	            value: { type: ValueType.LITERAL, value: params.ministerioVoluntarioId },
+76	          },
+77	        ],
+78	      },
+79	      relations: ['funcao'],
+80	      orderBy: [
+81	        {
+82	          path: 'funcao.nome',
+83	          direction: OrderDirection.ASC,
+84	        },
+85	      ],
+86	    } as DynamicQuery;
+87	  }, [params.ministerioVoluntarioId]);
+88	
+89	  const {
+90	    data: funcoesData,
+91	    updateFuncoes,
+92	    isUpdatingFuncoes,
+93	    isLoading: isLoadingFuncoes,
+94	    isLoadingMutation: isUpdatingFuncoesMutation,
+95	  } = useMinisterioVoluntarioFuncoesCrud({ autoFetch: true, initialParams: funcoesSearchParams });
+96	
+97	  useEffect(() => {
+98	    if (!voluntarioAtual) return;
+99	
+100	    const funcoes = funcoesData?.map((f) => ({
+101	      id: f.funcao?.id,
+102	      nome: f.funcao?.nome || '',
+103	      status: MinisterioVoluntarioFuncaoStatusEnumMap[f.status] || MinisterioVoluntarioFuncaoStatusEnum.Ativo,
+104	      experiencia: EscalaTemplateExperienciaEnumMap[f.experiencia] || EscalaTemplateExperienciaEnum.Iniciante,
+105	    }));
+106	
+107	    console.log('Voluntario Atual: ', strfyObj({ voluntarioAtual, funcoesData, funcoes }));
+108	
+109	    form.reset({
+110	      voluntarioId: voluntarioAtual.id || '',
+111	      voluntarioFoto: voluntarioAtual.voluntario?.fotoThumbUrl || '',
+112	      voluntarioNome: voluntarioAtual.voluntario?.nome || '',
+113	      voluntarioEmail: voluntarioAtual.voluntario?.email || '',
+114	      voluntarioStatus: voluntarioAtual.status || MinisterioVoluntarioStatusEnum.Ativo,
+115	      funcoes,
+116	    });
+117	  }, [voluntarioAtual, funcoesData]);
+118	
+119	  const handleSave = form.handleSubmit(
+120	    (data) => {
+121	      updateFuncoes(params.ministerioVoluntarioId, {
+122	        funcoes: data.funcoes?.map((f) => ({
+123	          funcaoId: f.id,
+124	          status: MinisterioVoluntarioFuncaoStatusEnum.Ativo,
+125	          experiencia: f.experiencia || EscalaTemplateExperienciaEnum.Iniciante,
+126	        })) as UpdateFuncaoDataDto[],
+127	      });
+128	      router.back();
+129	    },
+130	    (errors) => console.log('errors', errors),
+131	  );
+132	
+133	  const { funcoesDropDownList, funcoesList, isLoading: isLoadingFuncoesList } = useFuncoesDoMinisterio(params.ministerioId);
+134	
+135	  const voluntarioFuncoesList = useMemo<ResponseMinisterioFuncaoDto[]>(() => {
+136	    const data = form.getValues('funcoes');
+137	
+138	    // console.log('Dados: ', strfyObj({ funcoesList, data }));
+139	
+140	    return data?.map((f) => ({
+141	      id: f.id,
+142	      nome: funcoesList.find((funcoesListItem) => funcoesListItem.id === f.id)?.nome || '',
+143	    })) as ResponseMinisterioFuncaoDto[];
+144	  }, [voluntarioAtual, funcoesList, form]);
+145	
+146	  if (isLoadingVoluntario || isUpdatingFuncoes || isLoadingFuncoesList || isLoadingFuncoes || isUpdatingFuncoesMutation) return <FancyLoading />;
+147	
+148	  return (
+149	    <FancyPageView style={{ flex: 1, paddingHorizontal: 20, paddingVertical: 10, gap: 20 }}>
+150	      <FormProvider {...form}>
+151	        <IntegranteFormFields mode='edit' funcoesList={funcoesList} funcoesDropDownList={funcoesDropDownList} />
+152	      </FormProvider>
+153	      <FancyButton
+154	        icon={{ ...DefaultIconsNames.save, size: 14 }}
+155	        label={isUpdatingFuncoes ? 'Salvando...' : 'Salvar'}
+156	        disabled={isUpdatingFuncoes}
+157	        onPress={handleSave}
+158	      />
+159	    </FancyPageView>
+160	  );
+161	}

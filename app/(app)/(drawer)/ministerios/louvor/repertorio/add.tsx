@@ -12,23 +12,46 @@ const STEPS_CONFIG: FancyStepsConfig = {
       title: 'Dados',
       content: <DadosTab />,
       actions: [
-        { label: 'Anterior', icon: { ...DefaultIconsNames['arrow-left'], size: 18 }, enabled: false },
-        { label: 'Próximo', onPress: 'next', iconPosition: 'right', icon: { ...DefaultIconsNames['arrow-right'], size: 18 } },
+        {
+          label: 'Anterior',
+          icon: { ...DefaultIconsNames['arrow-left'], size: 18 },
+          enabled: false,
+        },
+        {
+          label: 'Próximo',
+          onPress: 'next',
+          iconPosition: 'right',
+          icon: { ...DefaultIconsNames['arrow-right'], size: 18 },
+        },
       ],
     },
     {
       title: 'Letra',
       content: <LetraTab />,
       actions: [
-        { label: 'Anterior', enabled: true, icon: { ...DefaultIconsNames['arrow-left'], size: 18 }, onPress: 'previous' },
-        { label: 'Próximo', onPress: 'next', iconPosition: 'right', icon: { ...DefaultIconsNames['arrow-right'], size: 18 } },
+        {
+          label: 'Anterior',
+          enabled: true,
+          icon: { ...DefaultIconsNames['arrow-left'], size: 18 },
+          onPress: 'previous',
+        },
+        {
+          label: 'Próximo',
+          onPress: 'next',
+          iconPosition: 'right',
+          icon: { ...DefaultIconsNames['arrow-right'], size: 18 },
+        },
       ],
     },
     {
       title: 'Cifra',
       content: <CifraTab />,
       actions: [
-        { label: 'Anterior', icon: { ...DefaultIconsNames['arrow-left'], size: 18 }, onPress: 'previous' },
+        {
+          label: 'Anterior',
+          icon: { ...DefaultIconsNames['arrow-left'], size: 18 },
+          onPress: 'previous',
+        },
         { label: 'Salvar', iconPosition: 'left', icon: { ...DefaultIconsNames.save, size: 16 } },
       ],
     },

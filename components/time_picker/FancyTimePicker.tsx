@@ -60,7 +60,7 @@ export default function FancyTimePicker({ value, onChange, containerStyle }: Fan
         <ScrollView
           ref={hourRef}
           snapToInterval={ITEM_HEIGHT}
-          decelerationRate="fast"
+          decelerationRate='fast'
           showsVerticalScrollIndicator={false}
           style={{ flex: 1 }}
           contentContainerStyle={{
@@ -68,10 +68,15 @@ export default function FancyTimePicker({ value, onChange, containerStyle }: Fan
             alignItems: 'center',
           }}
           onMomentumScrollEnd={onHourScrollEnd}
+          onLayout={() => {
+            if (value) {
+              hourRef.current?.scrollTo({ y: value.hour * ITEM_HEIGHT, animated: false });
+            }
+          }}
         >
           {[...Array(24)].map((_, i) => (
             <View key={i} style={styles.item}>
-              <FancyText style={i === selectedHour && styles.selected} type="medium">
+              <FancyText style={i === selectedHour && styles.selected} type='medium'>
                 {pad(i)}
               </FancyText>
             </View>
@@ -83,7 +88,7 @@ export default function FancyTimePicker({ value, onChange, containerStyle }: Fan
         <ScrollView
           ref={minuteRef}
           snapToInterval={ITEM_HEIGHT}
-          decelerationRate="fast"
+          decelerationRate='fast'
           showsVerticalScrollIndicator={false}
           style={{ flex: 1 }}
           contentContainerStyle={{
@@ -94,7 +99,7 @@ export default function FancyTimePicker({ value, onChange, containerStyle }: Fan
         >
           {[...Array(60)].map((_, i) => (
             <View key={i} style={styles.item}>
-              <FancyText style={i === selectedMinute && styles.selected} type="medium">
+              <FancyText style={i === selectedMinute && styles.selected} type='medium'>
                 {pad(i)}
               </FancyText>
             </View>
@@ -103,7 +108,7 @@ export default function FancyTimePicker({ value, onChange, containerStyle }: Fan
       </View>
 
       <View
-        pointerEvents="none"
+        pointerEvents='none'
         style={{
           position: 'absolute',
           top: CENTER_OFFSET,

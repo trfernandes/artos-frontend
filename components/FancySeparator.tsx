@@ -22,7 +22,7 @@ export default function FancySeparator(props: FancySeparatorProps) {
         locations={[0, 0.2, 0.8, 1]}
         start={{ x: 0, y: 0.5 }}
         end={{ x: 1, y: 0.5 }}
-        style={{ height: props.height || 0.4, flex: 1 }}
+        style={{ height: props.height || 0.4, width: '100%' }}
       />
     </View>
   );
@@ -31,6 +31,8 @@ export default function FancySeparator(props: FancySeparatorProps) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    borderWidth:0
+    alignSelf: 'stretch',
+    width: '100%',
+    // borderWidth: 1,
   },
 });

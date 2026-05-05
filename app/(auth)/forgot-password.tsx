@@ -1,96 +1,128 @@
-import { router } from 'expo-router';
-import { View, StyleSheet } from 'react-native';
+import { Keyboard, StyleSheet } from 'react-native';
 import FancyButton from '../../components/buttons/FancyButton';
 import FancyText from '../../components/FancyText';
-import FancyTextInput from '../../components/fields/FancyTextInput';
-import LoginBase from '../../components/pages/login/LoginBase';
-import { Pallete } from '../../constants/colors';
-import { DefaultIconsNames } from '../../constants/icons';
+import AuthScreen from '../../components/pages/login/AuthScreen';
+import { ThemePalette } from '../../constants/colors';
+import Toast from 'react-native-toast-message';
+import z from 'zod';
+import ControlledTextInput from '../../components/forms/ControlledTextInput';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { useAuth } from '../../contexts/AuthContext';
+import { getApiErrorMessage } from '../../domain/api/api-error';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
+
+const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Informe o e-mail')
+    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'O formato é inválido'),
+});
+
+type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
-  return (
-    <LoginBase>
-      <View style={styles.container}>
-        <View style={styles.logoContainer}>
-          <FancyButton
-            icon={{ ...DefaultIconsNames['chevron-left'], color: Pallete.icons.dark }}
-            size={30}
-            onPress={() => router.back()}
-            containerStyle={{ backgroundColor: Pallete.backgroundColor3 }}
-          />
-        </View>
-        <View style={styles.topContainer}>
-          <View style={styles.titleContainer}>
-            <FancyText size={'extraLarge'} type="semiBold" color="white" style={{ fontSize: 17 }}>
-              Recuperação de Senha
-            </FancyText>
-            <FancyText
-              size={'medium'}
-              type="medium"
-              color="white"
-              style={{ width: 220, borderWidth: 0, fontSize: 12, lineHeight: 18 }}
-            >
-              Informe seu e‑mail para receber as instruções de recuperação
-            </FancyText>
-          </View>
+  const styles = useThemedStyles(createStyles);
+  const { forgotPassword } = useAuth();
 
-          <View style={styles.centerContainer}>
-            <View style={styles.fieldsContainer}>
-              <FancyTextInput label="E-mail" />
-              <FancyButton label="Enviar" />
-            </View>
-          </View>
-        </View>
-      </View>
-    </LoginBase>
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<ForgotPasswordFormData>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: { email: '' },
+  });
+
+  const onSubmit = async (data: ForgotPasswordFormData) => {
+    Keyboard.dismiss();
+    try {
+      await forgotPassword(data.email);
+      Toast.show({
+        type: 'success',
+        text1: 'E-mail enviado!',
+        text2: 'Se o e-mail existir, você receberá as instruções de recuperação.',
+      });
+    } catch (error) {
+      const message = getApiErrorMessage(
+        error,
+        'Não foi possível solicitar a recuperação de senha.',
+      );
+      Toast.show({ type: 'error', text1: 'Erro', text2: message });
+    }
+  };
+
+  return (
+    <AuthScreen
+      showBackButton
+      centerWithinBackButtonArea
+      centerContainerStyle={({ keyboardVisible }) =>
+        !keyboardVisible ? { paddingTop: 0 } : null
+      }
+      scrollContainerStyle={styles.scrollContainer}
+      headerContainerStyle={styles.titleContainer}
+      fieldsContainerStyle={styles.fieldsContainer}
+      compactTitleOnKeyboard='Recuperação de Senha'
+      header={({ keyboardVisible }) => (
+        <>
+          <FancyText size={!keyboardVisible ? 'extraLarge' : 'large'} type='bold' color='white'>
+            Recuperação de Senha
+          </FancyText>
+          <FancyText
+            size={!keyboardVisible ? 'medium' : 'small'}
+            type='medium'
+            color='white'
+            style={{ borderWidth: 0 }}
+          >
+            Informe seu e-mail para receber as instruções de recuperação.
+          </FancyText>
+        </>
+      )}
+    >
+      <>
+        <ControlledTextInput
+          label='E-mail'
+          name='email'
+          control={control}
+          inputProps={{ autoCapitalize: 'none', keyboardType: 'email-address' }}
+        />
+
+        <FancyButton
+          label={isSubmitting ? 'Enviando...' : 'Enviar'}
+          onPress={handleSubmit(onSubmit)}
+          disabled={isSubmitting}
+        />
+      </>
+    </AuthScreen>
   );
 }
 
 const DESIGN_MODE = 0;
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: 'transparent',
-    flex: 1,
-    borderWidth: DESIGN_MODE,
-    borderColor: 'gold',
-    paddingHorizontal: 40,
-    paddingVertical: 20,
-    justifyContent: 'flex-start',
-    gap: 20,
-  },
-  topContainer: { flex: 1, gap: 40, justifyContent: 'center' },
-  centerContainer: {
-    flex: 0,
-    // flexGrow: 10,
-    borderWidth: DESIGN_MODE,
-    borderColor: 'chocolate',
-    justifyContent: 'center',
-  },
-  bottomSpacer: { flex: 0, borderWidth: DESIGN_MODE, borderColor: 'deepskyblue' },
-  logoContainer: {
-    position: 'absolute',
-    left: 40,
-    top: 40,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    borderWidth: DESIGN_MODE,
-    borderColor: 'forestgreen',
-  },
-  titleContainer: {
-    gap: 2,
-    borderWidth: DESIGN_MODE,
-    borderColor: 'magenta',
-    justifyContent: 'center',
-  },
-
-  fieldsContainer: {
-    borderWidth: DESIGN_MODE,
-    borderRadius: 15,
-    borderColor: 'firebrick',
-    padding: 25,
-    gap: 25,
-    backgroundColor: Pallete.backgroundColor,
-    ...Pallete.shadows[200],
-  },
-});
+function createStyles(Pallete: ThemePalette) {
+  return StyleSheet.create({
+    scrollContainer: {
+      flexGrow: 1,
+      paddingVertical: 0,
+      justifyContent: 'center',
+      borderWidth: DESIGN_MODE,
+      borderColor: 'blueviolet',
+      gap: 25,
+    },
+    titleContainer: {
+      gap: 2,
+      borderWidth: DESIGN_MODE,
+      borderColor: 'magenta',
+      justifyContent: 'center',
+    },
+    fieldsContainer: {
+      borderWidth: DESIGN_MODE,
+      borderRadius: 15,
+      borderColor: 'firebrick',
+      padding: 25,
+      gap: 25,
+      backgroundColor: Pallete.backgroundColor,
+      ...Pallete.shadows[200],
+    },
+  });
+}

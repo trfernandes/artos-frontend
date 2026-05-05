@@ -1,8 +1,14 @@
 import { MinisterioVoluntarioPermissoesApi } from '../api/MinisterioVoluntarioPermissoesApi';
-import { MinisterioVoluntarioPermissao } from '../models/MinisterioVoluntarioPermissao';
+import { CreateMinisterioVoluntarioPermissaoDto } from '../dtos/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.create';
+import { ResponseMinisterioVoluntarioPermissaoDto } from '../dtos/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.response';
+import { UpdateMinisterioVoluntarioPermissaoDto } from '../dtos/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.update';
 import { BaseRepository } from './BaseRepository';
 
-class MinisterioVoluntarioPermissoesRepositoryClass extends BaseRepository<MinisterioVoluntarioPermissao> {
+class MinisterioVoluntarioPermissoesRepositoryClass extends BaseRepository<
+  ResponseMinisterioVoluntarioPermissaoDto,
+  CreateMinisterioVoluntarioPermissaoDto,
+  UpdateMinisterioVoluntarioPermissaoDto
+> {
   constructor() {
     super(MinisterioVoluntarioPermissoesApi);
   }

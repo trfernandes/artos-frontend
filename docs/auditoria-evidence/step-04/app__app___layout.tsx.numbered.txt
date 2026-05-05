@@ -1,0 +1,110 @@
+1	import { StatusBar } from 'expo-status-bar';
+2	import { ClickOutsideProvider } from 'react-native-click-outside';
+3	import { MenuProvider } from 'react-native-popup-menu';
+4	import { Redirect, Stack, router, useNavigationContainerRef } from 'expo-router';
+5	import { useAuth } from '../../contexts/AuthContext';
+6	import { LoadingProvider } from '../../contexts/LoadingContext';
+7	import { GestureHandlerRootView } from 'react-native-gesture-handler';
+8	import FancyPageHeader from '../../components/header/FancyHeader';
+9	import { usePostLoginRedirect } from '../../hooks/usePostLoginRedirect';
+10	import { FancyAlert } from '../../components/modal/FancyAlert';
+11	import { Pallete } from '../../constants/colors';
+12	
+13	export default function RootLayout() {
+14	  const { user, loading, signOut } = useAuth();
+15	  const navigationRef = useNavigationContainerRef();
+16	  
+17	  // Check for post-login redirects (pending invites, no churches)
+18	  usePostLoginRedirect();
+19	
+20	  if (loading) return null;
+21	
+22	  if (!user) {
+23	    return <Redirect href='/(auth)/login' />;
+24	  }
+25	
+26	  const handleJoinChurchBackPress = () => {
+27	    // Verifica se pode voltar
+28	    if (navigationRef?.canGoBack()) {
+29	      router.back();
+30	    } else {
+31	      // Se não pode voltar (foi redirecionado automaticamente), confirma logout
+32	      FancyAlert.alert(
+33	        'Voltar para o login',
+34	        'Você precisa estar vinculado a uma igreja para usar o app. Deseja voltar para o login?',
+35	        [
+36	          { text: 'Cancelar', style: 'cancel' },
+37	          {
+38	            text: 'Voltar para o login',
+39	            style: 'destructive',
+40	            onPress: () => signOut(),
+41	          },
+42	        ]
+43	      );
+44	    }
+45	  };
+46	
+47	  return (
+48	    <>
+49	      <GestureHandlerRootView style={{ flex: 1 }}>
+50	        <MenuProvider>
+51	          <ClickOutsideProvider>
+52	            <StatusBar style={'dark'} backgroundColor={Pallete.backgroundColor} />
+53	            <LoadingProvider>
+54	              <Stack screenOptions={{ headerShown: false }}>
+55	                <Stack.Screen name='(drawer)' options={{ headerShown: false }} />
+56	                <Stack.Screen
+57	                  name='notifications'
+58	                  options={{
+59	                    headerShown: true,
+60	                    header: (headerParams) => (
+61	                      <FancyPageHeader
+62	                        leftButton={'back'}
+63	                        {...headerParams}
+64	                        options={{
+65	                          title: 'Notificações',
+66	                          headerRight: (options) => headerParams.options.headerRight?.(options),
+67	                        }}
+68	                      />
+69	                    ),
+70	                  }}
+71	                />
+72	                <Stack.Screen
+73	                  name='join-church/index'
+74	                  options={{
+75	                    headerShown: true,
+76	                    header: (headerParams) => (
+77	                      <FancyPageHeader
+78	                        leftButton={'back'}
+79	                        leftButtonOnPress={handleJoinChurchBackPress}
+80	                        {...headerParams}
+81	                        options={{
+82	                          title: 'Adicionar igreja',
+83	                        }}
+84	                      />
+85	                    ),
+86	                  }}
+87	                />
+88	                <Stack.Screen
+89	                  name='join-church/requests'
+90	                  options={{
+91	                    headerShown: true,
+92	                    header: (headerParams) => (
+93	                      <FancyPageHeader
+94	                        leftButton={'back'}
+95	                        {...headerParams}
+96	                        options={{
+97	                          title: 'Minhas solicitações',
+98	                        }}
+99	                      />
+100	                    ),
+101	                  }}
+102	                />
+103	              </Stack>
+104	            </LoadingProvider>
+105	          </ClickOutsideProvider>
+106	        </MenuProvider>
+107	      </GestureHandlerRootView>
+108	    </>
+109	  );
+110	}

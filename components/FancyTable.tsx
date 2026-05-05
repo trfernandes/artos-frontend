@@ -18,7 +18,7 @@ export default function FancyTable({ ...props }: FancyTable) {
             <FancyText
               key={index}
               size={'extraSmall'}
-              type="semiBold"
+              type='semiBold'
               style={{ textAlign: 'left', flex: 1, borderWidth: 0 }}
               numberOfLines={2}
             >
@@ -26,7 +26,7 @@ export default function FancyTable({ ...props }: FancyTable) {
             </FancyText>
           ) : (
             <View key={index}>{item}</View>
-          )
+          ),
         )}
       </View>
       <FancySeparator style={{ marginBottom: 4 }} />
@@ -36,7 +36,7 @@ export default function FancyTable({ ...props }: FancyTable) {
             <FancyText
               key={index}
               size={'extraSmall'}
-              type="medium"
+              type='medium'
               style={{ textAlign: 'left', flex: 1, borderWidth: 0 }}
               numberOfLines={2}
             >

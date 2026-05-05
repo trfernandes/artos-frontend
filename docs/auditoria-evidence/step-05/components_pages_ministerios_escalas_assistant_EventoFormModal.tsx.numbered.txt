@@ -1,0 +1,361 @@
+1	import FancyModalDialog, { FancyModalDialogProps } from '../../../../modal/FancyModalDialog';
+2	import {
+3	  EscalaEventoFormData,
+4	  EscalaEventoTemplateFixoFormData,
+5	  EscalaEventoTemplateFormData,
+6	  EscalaEventoTemplateFuncaoFormData,
+7	  EscalaEventoTemplateSchema,
+8	} from '../../../../../domain/schemas/escalaSchema';
+9	import { format } from 'date-fns';
+10	import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
+11	import { Controller, FormProvider, useForm } from 'react-hook-form';
+12	import { zodResolver } from '@hookform/resolvers/zod';
+13	import { StyleSheet } from 'react-native';
+14	import ControlledSearchSelect from '../../../../forms/ControlledSearchSelect';
+15	import FancyVerticalSpacer from '../../../../FancyVerticalSpacer';
+16	import { EnumUtils } from '../../../../../utils/enum_utils';
+17	import FancyBottomSheetSelect from '../../../../fields/FancyBottomSheetSelect';
+18	import { FancyAlert } from '../../../../modal/FancyAlert';
+19	import { useCallback, useEffect, useMemo, useRef } from 'react';
+20	import { useEscalaTemplatesCrud } from '../../../../../useEscalaTemplatesCrud';
+21	import {
+22	  DynamicQuery,
+23	  Operator,
+24	  ValueType,
+25	  OrderDirection,
+26	} from '../../../../../domain/utils/query_utils';
+27	import FancyLoading from '../../../../FancyLoading';
+28	import { useFuncoesDoMinisterio } from '../../../../../hooks/useFuncoesDoMinisterio';
+29	import { useVoluntariosDoMinisterioCrud } from '../../../../../hooks/useVoluntariosDoMinisterioCrud';
+30	import { useLoading } from '../../../../../contexts/LoadingContext';
+31	import { EscalaFormFuncaoList } from './EscalaFormFuncaoList';
+32	import { EscalaFormFixoList } from './EscalaFormFixoList';
+33	import {
+34	  EscalaTemplateTipoEnum,
+35	  EscalaTemplateTipoLabel,
+36	} from '../../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
+37	import { ResponseEscalaTemplateDto } from '../../../../../domain/dtos/EscalaTemplate/escala-template.response';
+38	
+39	interface EventoFormModalProps {
+40	  ministerioId: string;
+41	  modalProps?: FancyModalDialogProps<EscalaEventoTemplateFormData>;
+42	  data?: EscalaEventoFormData;
+43	}
+44	
+45	export default function EventoFormModal({ modalProps, data, ministerioId }: EventoFormModalProps) {
+46	  const templatesParams = useMemo<DynamicQuery>(
+47	    () => ({
+48	      where: {
+49	        conditions: [
+50	          {
+51	            path: 'ministerioId',
+52	            operator: Operator.EQUALS,
+53	            value: { type: ValueType.LITERAL, value: ministerioId },
+54	          },
+55	        ],
+56	      },
+57	      relations: ['voluntarios.voluntario', 'voluntarios.funcao', 'funcoes.funcao'],
+58	      orderBy: [{ path: 'nome', direction: OrderDirection.ASC }],
+59	    }),
+60	    [ministerioId],
+61	  );
+62	
+63	  const { data: templatesList = [], isLoading: isLoadingTemplates } = useEscalaTemplatesCrud({
+64	    autoFetch: true,
+65	    initialParams: templatesParams,
+66	  });
+67	
+68	  const {
+69	    funcoesList,
+70	    funcoesDropDownList,
+71	    isLoading: isLoadingFuncoesDoMinisterio,
+72	  } = useFuncoesDoMinisterio(ministerioId);
+73	
+74	  const {
+75	    ministerioVoluntariosDropDownList,
+76	    ministerioVoluntariosList,
+77	    isLoadingMinisterioVoluntarios,
+78	    isLoadingMinisterioVoluntariosMutation,
+79	  } = useVoluntariosDoMinisterioCrud(ministerioId);
+80	
+81	  const templatesDropDownList = useMemo<DropDownItemProps<string>[]>(() => {
+82	    const list = templatesList ?? [];
+83	    return [
+84	      { title: '(Personalizado)', value: '' },
+85	      ...list.map((t) => ({
+86	        title: t.nome,
+87	        value: t.id || '',
+88	      })),
+89	    ];
+90	  }, [templatesList]);
+91	
+92	  const formTemplate = useForm<EscalaEventoTemplateFormData>({
+93	    resolver: zodResolver(EscalaEventoTemplateSchema),
+94	    defaultValues: {
+95	      templateBase: data?.template.templateBase.id
+96	        ? data.template.templateBase
+97	        : { id: '', nome: '' },
+98	      tipo: data?.template.tipo || EscalaTemplateTipoEnum.Funcoes,
+99	      funcoes: data?.template.funcoes || [],
+100	      fixos: data?.template.fixos || [],
+101	    },
+102	  });
+103	
+104	  // Reset form when modal opens with new data
+105	  useEffect(() => {
+106	    if (data) {
+107	      console.log('\n=== MODAL RECEBEU DADOS (useEffect reset) ===');
+108	      console.log('EventoId:', data.eventoId);
+109	      console.log('Nome:', data.nome);
+110	      console.log('Template recebido:', JSON.stringify(data.template, null, 2));
+111	
+112	      formTemplate.reset({
+113	        templateBase: data.template.templateBase.id
+114	          ? data.template.templateBase
+115	          : { id: '', nome: '' },
+116	        tipo: data.template.tipo || EscalaTemplateTipoEnum.Funcoes,
+117	        funcoes: data.template.funcoes || [],
+118	        fixos: data.template.fixos || [],
+119	      });
+120	    }
+121	  }, [data?.eventoId]);
+122	
+123	  useEffect(() => {
+124	    const fixosMudou = formTemplate.formState.dirtyFields.fixos?.filter(
+125	      (f) => f.funcaoId || f.minVolId,
+126	    );
+127	    const funcoesMudou = formTemplate.formState.dirtyFields.funcoes?.filter(
+128	      (f) => f.funcaoId || f.experiencia || f.quantidade,
+129	    );
+130	
+131	    if (fixosMudou || funcoesMudou) {
+132	      console.log('Limpando templateBase porque funções/fixos foram editados');
+133	      formTemplate.setValue('templateBase.id', '');
+134	      formTemplate.setValue('templateBase.nome', '');
+135	      formTemplate.setValue('tipo', data?.template.tipo || EscalaTemplateTipoEnum.Funcoes);
+136	    }
+137	  }, [formTemplate.formState.isDirty]);
+138	
+139	  const prevId = useRef<string | undefined>(formTemplate.getValues('templateBase.id'));
+140	
+141	  formTemplate.register('templateBase.id', {
+142	    onChange: ({ target: { value } }) => {
+143	      const antigo = prevId.current;
+144	      const novo = value;
+145	
+146	      if (antigo !== undefined && antigo !== novo) {
+147	        FancyAlert.alert(
+148	          'Edição',
+149	          'A mudança de template base vai acarretar a perda dos dados inseridos, realmente deseja prosseguir?',
+150	          [
+151	            {
+152	              text: 'Não',
+153	              style: 'destructive',
+154	              onPress: () => formTemplate.setValue('templateBase.id', antigo || ''),
+155	            },
+156	            {
+157	              text: 'Sim',
+158	              style: 'default',
+159	              onPress: () => {
+160	                const templateInfo = templatesList?.find((t) => t.id === value);
+161	
+162	                if (templateInfo) {
+163	                  formTemplate.setValue('templateBase.nome', templateInfo.nome);
+164	                  formTemplate.setValue('tipo', templateInfo.tipo);
+165	                  formTemplate.setValue('funcoes', []);
+166	                  formTemplate.setValue('fixos', []);
+167	
+168	                  loadTemplateData(templateInfo);
+169	                } else {
+170	                  formTemplate.setValue('templateBase.nome', '');
+171	                  formTemplate.setValue('tipo', EscalaTemplateTipoEnum.Funcoes);
+172	                  formTemplate.setValue('funcoes', []);
+173	                  formTemplate.setValue('fixos', []);
+174	                }
+175	              },
+176	            },
+177	          ],
+178	        );
+179	      }
+180	
+181	      prevId.current = novo;
+182	    },
+183	  });
+184	
+185	  const loadTemplateData = useCallback(
+186	    (template: ResponseEscalaTemplateDto) => {
+187	      if (template.tipo === EscalaTemplateTipoEnum.Funcoes) {
+188	        if (!template.funcoes) return;
+189	
+190	        const funcoes: EscalaEventoTemplateFuncaoFormData[] = template.funcoes
+191	          .filter((f) => f.funcao?.id)
+192	          .map((f) => ({
+193	            funcaoId: f.funcao!.id!,
+194	            experiencia: f.experiencia,
+195	            quantidade: f.quantidade,
+196	          }));
+197	
+198	        formTemplate.setValue('funcoes', funcoes);
+199	      } else if (template.tipo === EscalaTemplateTipoEnum.Fixo) {
+200	        if (!template.voluntarios) return;
+201	
+202	        const fixos: EscalaEventoTemplateFixoFormData[] = template.voluntarios.map((f) => ({
+203	          minVolId: f.voluntario?.id!,
+204	          funcaoId: f.funcao?.id || f.funcaoId,
+205	        }));
+206	
+207	        formTemplate.setValue('fixos', fixos);
+208	      }
+209	    },
+210	    [formTemplate],
+211	  );
+212	
+213	  const templateBaseIdWatch = formTemplate.watch('templateBase.id');
+214	  const templateTipoWatch = formTemplate.watch('tipo');
+215	
+216	  const handleChangeTipo = useCallback(
+217	    (newTipo: EscalaTemplateTipoEnum) => {
+218	      if (newTipo === EscalaTemplateTipoEnum.Fixo) {
+219	        formTemplate.setValue('funcoes', []);
+220	      } else {
+221	        formTemplate.setValue('fixos', []);
+222	      }
+223	    },
+224	    [formTemplate],
+225	  );
+226	
+227	  const { showLoading, hideLoading } = useLoading();
+228	
+229	  useEffect(() => {
+230	    if (
+231	      isLoadingFuncoesDoMinisterio ||
+232	      isLoadingMinisterioVoluntarios ||
+233	      isLoadingMinisterioVoluntariosMutation ||
+234	      isLoadingTemplates
+235	    ) {
+236	      showLoading('Carregando..');
+237	    } else {
+238	      hideLoading();
+239	    }
+240	  }, [
+241	    isLoadingFuncoesDoMinisterio,
+242	    isLoadingTemplates,
+243	    isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation,
+244	    showLoading,
+245	    hideLoading,
+246	  ]);
+247	
+248	  return (
+249	    !isLoadingFuncoesDoMinisterio &&
+250	    !isLoadingMinisterioVoluntarios &&
+251	    !isLoadingMinisterioVoluntariosMutation &&
+252	    !isLoadingTemplates && (
+253	      <FancyModalDialog
+254	        {...modalProps}
+255	        title={`${data?.nome} - ${format(data?.dataOcorrencia!, 'dd/MM/yyyy HH:ss')}`}
+256	        titleAlign='left'
+257	        onButton2Press={(_) => {
+258	          formTemplate.handleSubmit(
+259	            (data) => {
+260	              console.log('EventoFormModal - Salvando template:', JSON.stringify(data, null, 2));
+261	              modalProps?.onButton2Press?.(data);
+262	            },
+263	            (errors) => {
+264	              const erro = errors.funcoes || errors.fixos;
+265	
+266	              if (erro) {
+267	                FancyAlert.alert('Erro', erro?.message, [
+268	                  {
+269	                    text: 'Ok',
+270	                  },
+271	                ]);
+272	              }
+273	            },
+274	          )();
+275	        }}
+276	        centerContainerStyle={styles.container}
+277	      >
+278	        {isLoadingTemplates ? (
+279	          <FancyLoading />
+280	        ) : (
+281	          <>
+282	            <ControlledSearchSelect
+283	              label='Template Base'
+284	              control={formTemplate.control}
+285	              name='templateBase.id'
+286	              listItems={templatesDropDownList}
+287	              searchPlaceholder='Buscar template...'
+288	            />
+289	            <FancyVerticalSpacer height={12} />
+290	
+291	            <Controller
+292	              control={formTemplate.control}
+293	              name={'tipo'}
+294	              render={({ field: { onChange, value } }) => (
+295	                <FancyBottomSheetSelect
+296	                  label='Tipo de Equipe'
+297	                  listItems={EnumUtils.getDropDownItems(
+298	                    EscalaTemplateTipoEnum,
+299	                    EscalaTemplateTipoLabel,
+300	                  )}
+301	                  disabled={templateBaseIdWatch !== ''}
+302	                  value={value}
+303	                  onChange={(newValue) => {
+304	                    if (value === newValue && !value) return;
+305	
+306	                    FancyAlert.alert(
+307	                      'Alteração de tipo',
+308	                      'Essa mudança vai resultar em excluir toda a equipe, deseja continuar?',
+309	                      [
+310	                        {
+311	                          text: 'Não',
+312	                          style: 'destructive',
+313	                          onPress: () => {
+314	                            onChange(value);
+315	                          },
+316	                        },
+317	                        {
+318	                          text: 'Sim',
+319	                          style: 'default',
+320	                          onPress: () => {
+321	                            onChange(newValue);
+322	                            handleChangeTipo(newValue);
+323	                          },
+324	                        },
+325	                      ],
+326	                    );
+327	                  }}
+328	                />
+329	              )}
+330	            />
+331	
+332	            <FancyVerticalSpacer height={16} />
+333	
+334	            <FormProvider {...formTemplate}>
+335	              {templateTipoWatch === EscalaTemplateTipoEnum.Funcoes ? (
+336	                <EscalaFormFuncaoList
+337	                  ministerioId={ministerioId}
+338	                  funcoesDropDownList={funcoesDropDownList}
+339	                  funcoesList={funcoesList}
+340	                />
+341	              ) : templateTipoWatch === EscalaTemplateTipoEnum.Fixo ? (
+342	                <EscalaFormFixoList
+343	                  funcoesList={funcoesList}
+344	                  funcoesDropDownList={funcoesDropDownList}
+345	                  ministerioVoluntariosDropDownList={ministerioVoluntariosDropDownList}
+346	                  ministerioVoluntariosList={ministerioVoluntariosList}
+347	                />
+348	              ) : null}
+349	            </FormProvider>
+350	          </>
+351	        )}
+352	      </FancyModalDialog>
+353	    )
+354	  );
+355	}
+356	
+357	const styles = StyleSheet.create({
+358	  container: {
+359	    height: 500,
+360	  },
+361	});

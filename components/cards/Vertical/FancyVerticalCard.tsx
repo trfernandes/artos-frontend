@@ -1,128 +1,177 @@
-import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, StyleProp, ViewStyle, DimensionValue } from 'react-native';
 import FancyText from '../../FancyText';
-import { Pallete } from '../../../constants/colors';
+import { ThemePalette } from '../../../constants/colors';
+import { EXTRA_SMALL_SIZE_FONT } from '../../../constants/font';
+import { usePallete } from '../../../hooks/usePallete';
+import { useThemedStyles } from '../../../hooks/useThemedStyles';
 
-export type FancyVerticalCardProps = {
-  title: string;
+export interface FancyVerticalCardProps {
+  title?: string;
   subtitle?: string;
+
   topElement?: React.ReactNode;
   bottomElement?: React.ReactNode;
+
   topLeftElement?: React.ReactNode;
   topRightElement?: React.ReactNode;
+
+  additionalElement?: React.ReactNode;
+
   containerStyle?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
   topElementStyle?: StyleProp<ViewStyle>;
   bottomElementStyle?: StyleProp<ViewStyle>;
-  topLeftElementStyle?: StyleProp<ViewStyle>;
-  topRightElementStyle?: StyleProp<ViewStyle>;
-  additionalElement?: React.ReactNode;
-};
 
-export default function FancyVerticalCard(props: FancyVerticalCardProps) {
+  /** 🔥 NOVO: Altura customizável */
+  cardHeight?: number | string; // 180 | "60%" | etc.
+}
+
+export default function FancyVerticalCard({
+  title,
+  subtitle,
+  topElement,
+  bottomElement,
+  topLeftElement,
+  topRightElement,
+  additionalElement,
+  cardHeight,
+  containerStyle,
+  contentContainerStyle,
+  topElementStyle,
+  bottomElementStyle,
+}: FancyVerticalCardProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+
   return (
-    <View style={[styles.container, props.containerStyle]}>
-      <View style={[styles.contentContainer, props.contentContainerStyle]}>
-        <View style={[styles.topContainer, props.topElementStyle]}>{props.topElement}</View>
-        <View style={[styles.topLeftContainer, props.topLeftElementStyle]}>{props.topLeftElement}</View>
-        <View style={[styles.topRightContainer, props.topRightElementStyle]}>{props.topRightElement}</View>
+    <View style={[styles.container, containerStyle, cardHeight !== undefined && { height: cardHeight as DimensionValue }]}>
+      {/* Camada absoluta de topo */}
+      <View style={styles.topOverlay}>
+        <View style={styles.topLeft}>{topLeftElement}</View>
+        <View style={styles.topRight}>{topRightElement}</View>
+      </View>
 
-        <View style={[styles.bottomContainer, props.bottomElementStyle]}>
-          {props.bottomElement ? (
-            props.bottomElement
+      {/* Conteúdo principal */}
+      <View style={[styles.contentContainer, contentContainerStyle]}>
+        {/* Área central que ocupa todo o espaço disponível */}
+        <View style={[styles.centerContainer, topElementStyle]}>{topElement}</View>
+
+        {/* Área inferior flexível */}
+        <View style={[styles.bottomContainer, bottomElementStyle]}>
+          {bottomElement ? (
+            bottomElement
           ) : (
-            <View style={styles.textsContainer}>
-              <FancyText
-                size="extraSmall"
-                type="semiBold"
-                numberOfLines={props.subtitle || props.additionalElement ? 2 : 3}
-                textBreakStrategy="balanced"
-                style={{ textAlign: 'center' }}
-              >
-                {props.title}
-              </FancyText>
-              {props.subtitle && (
+            <>
+              {title && (
                 <FancyText
-                  size="extraSmall"
-                  type="medium"
-                  color={Pallete.fonts.inactive}
-                  style={{ borderWidth: 0, textAlign: 'center' }}
-                  numberOfLines={1}
+                  size='extraSmall'
+                  type='bold'
+                  numberOfLines={2}
+                //   ellipsizeMode='middle'
+                  style={{
+                    textAlign: 'center',
+                    textAlignVertical:'center',
+                    opacity: 0.8,
+                    // borderWidth: 1,
+                    // lineHeight: EXTRA_SMALL_SIZE_FONT*2 + 3,
+                    height: (EXTRA_SMALL_SIZE_FONT * 2) + 6, 
+                  }}
                 >
-                  {props.subtitle}
+                  {title}
                 </FancyText>
               )}
-            </View>
+
+              {subtitle && (
+                <FancyText
+                  size='extraSmall'
+                  type='semiBold'
+                  numberOfLines={1}
+                  ellipsizeMode='tail'
+                  color={palette.fonts.inactive}
+                  style={{
+                    // marginTop: 4,
+                    textAlign: 'center',
+                    // borderWidth: 1,
+                    lineHeight: EXTRA_SMALL_SIZE_FONT + 2,
+                  }}
+                >
+                  {subtitle}
+                </FancyText>
+              )}
+            </>
           )}
-          {props.additionalElement}
+
+          {additionalElement}
         </View>
       </View>
     </View>
   );
 }
 
-const DESIGN_MODE = 0;
-
-const styles = StyleSheet.create({
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
   container: {
-    borderWidth: DESIGN_MODE,
-    borderColor: 'rgba(1,1,1,0.5)',
-    backgroundColor: Pallete.backgroundColor2,
-    borderRadius: 5,
+    backgroundColor: palette.backgroundColor2,
+    borderRadius: 8,
+    overflow: 'hidden',
+    gap: 10,
   },
-  contentContainer: {
-    flex: 1,
-    borderWidth: DESIGN_MODE,
-    borderColor: 'rgba(81, 0, 255, 0.5)',
-    gap: 6,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    alignItems: 'center',
-  },
-  topContainer: {
-    // height: '70%',
-    width: '100%',
-    // flex: 1,
-    padding: 5,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: DESIGN_MODE,
-    borderColor: 'gold',
-  },
-  bottomContainer: {
-    // height: '30%',
-    flex: 1,
-    width: '100%',
-    gap: 6,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderColor: 'rgba(0, 195, 255, 0.5)',
-  },
-  topLeftContainer: {
+
+  topOverlay: {
     position: 'absolute',
     top: 0,
     left: 0,
-    borderWidth: DESIGN_MODE,
-    borderColor: 'rgba(255, 123, 0, 0.5)',
-    minHeight: 30,
-    minWidth: 30,
-  },
-  topRightContainer: {
-    position: 'absolute',
-    top: 0,
     right: 0,
-    borderWidth: DESIGN_MODE,
-    justifyContent: 'flex-start',
-    alignItems: 'flex-end',
-    borderColor: 'rgba(0, 255, 0, 0.5)',
-    minHeight: 30,
-    minWidth: 30,
+    zIndex: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 6,
+    paddingTop: 6,
   },
-  textsContainer: {
-    minHeight: 30,
-    borderWidth: DESIGN_MODE,
+
+  topLeft: {
     justifyContent: 'center',
-    gap: 3,
-    width: '100%',
+    alignItems: 'center',
+  },
+
+  topRight: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // =======================
+  //    CONTEÚDO PRINCIPAL
+  // =======================
+  contentContainer: {
+    flex: 1,
+    paddingHorizontal: 10,
+    paddingTop: 18,
+    paddingBottom: 10,
+    gap: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    // borderWidth: 1,
+    borderColor: 'red',
+  },
+
+  centerContainer: {
     // flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    // borderWidth: 1,
+    borderColor: 'blue',
+  },
+
+  bottomContainer: {
+    width: '100%',
+    // height: '35%',
+    gap: 2,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    // borderWidth: 1,
+    borderColor: 'green',
   },
 });
+}

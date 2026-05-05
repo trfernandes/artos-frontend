@@ -7,6 +7,8 @@ export type FancyStepAction = {
   iconPosition?: 'left' | 'right';
   color?: string;
   onPress?: 'next' | 'previous' | (() => void);
+  // Permitir props extras para FancyButton (ex: isLoading, loadingText)
+  [key: string]: any;
 };
 
 export type FancyStep = {

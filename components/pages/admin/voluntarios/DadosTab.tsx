@@ -1,53 +1,84 @@
-import { StyleSheet } from 'react-native';
-import FancyTextInput from '../../../fields/FancyTextInput';
-import FancyImage from '../../../images/FancyImage';
+import { StyleSheet, View } from 'react-native';
+import FancyAvatarImage from '../../../images/FancyImage';
 import FancyScrollView from '../../../FancyScrollView';
-import FancyToggle from '../../../fields/FancyToggle';
-import { Voluntario } from '../../../../domain/models/Voluntario';
-import DateUtils from '../../../../utils/data_utils';
+import FancyText from '../../../FancyText';
+import { format } from 'date-fns';
+import FancyVerticalSpacer from '../../../FancyVerticalSpacer';
+import FancyValueLine from '../../../fields/FancyValueLine';
+import { ResponseVoluntarioDto } from '../../../../domain/dtos/Voluntario/voluntario.response';
+import { DateUtilsApi } from '../../../../utils/date_utils';
+import { AppImages } from '../../../../assets/app_images';
 
-export default function VoluntarioDadosTab(props: { voluntario: Voluntario }) {
-  // console.log('VoluntarioDadosTab', strfyObj(props.voluntario));
-
+export default function VoluntarioDadosTab(props: { voluntario: ResponseVoluntarioDto }) {
   if (!props.voluntario) {
     return;
   }
 
   return (
-    <FancyScrollView contentContainerStyle={styles.container}>
-      <FancyImage
-        source={
-          props.voluntario.foto
-            ? { uri: props.voluntario.foto }
-            : require('../../../../assets/images/empty_profile_image.png')
-        }
-        disabled
-        size={150}
-        style={{ alignSelf: 'center' }}
-      />
-      <FancyTextInput label="Nome" value={props.voluntario.nome} disabled />
-      <FancyTextInput label="E-mail" value={props.voluntario.email} disabled />
-      <FancyTextInput
-        label="Data de Nascimento"
-        value={
-          props.voluntario.dataNascimento ? DateUtils.formatToBrDate(new Date(props.voluntario.dataNascimento)) : ''
-        }
-        disabled
-      />
-      <FancyTextInput label="Telefone" disabled value={props.voluntario.telefone} />
-      <FancyTextInput label="Endereço" disabled value={props.voluntario.endereco} />
-      <FancyToggle
-        option1={{ title: 'Masculino', value: 'M' }}
-        option2={{ title: 'Feminino', value: 'F' }}
-        label="Sexo"
-        onChange={() => {}}
-        value={props.voluntario.sexo}
-        disabled
-      />
+    <FancyScrollView contentContainerStyle={styles.container} fill>
+      <View style={{ gap: 20 }}>
+        <FancyAvatarImage
+          source={
+            props.voluntario.fotoUrl || props.voluntario.fotoThumbUrl
+              ? { uri: props.voluntario.fotoThumbUrl || props.voluntario.fotoUrl || '' }
+              : AppImages.emptyProfile
+          }
+          disabled
+          size={100}
+          style={{ alignSelf: 'center' }}
+        />
+        <View style={{ alignItems: 'center', gap: 4, width: '100%' }}>
+          <FancyText size={'large'} type='bold' style={{ opacity: 0.8 }}>
+            {props.voluntario.nome}
+          </FancyText>
+          <FancyText
+            size={'medium'}
+            type='normalItalic'
+            numberOfLines={1}
+            ellipsizeMode='middle'
+            style={{ maxWidth: '100%' }}
+          >
+            {props.voluntario.email}
+          </FancyText>
+        </View>
+      </View>
+      <FancyVerticalSpacer height={40} />
+      <View style={{ gap: 15 }}>
+        <FancyValueLine
+          title='Data de Nascimento:'
+          value={
+            props.voluntario.dataNascimento
+              ? format(DateUtilsApi.dateOnlyFromApi(props.voluntario.dataNascimento), 'dd/MM/yyyy')
+              : 'Não definido'
+          }
+          showSeparator={true}
+        />
+        <FancyValueLine
+          title='Telefone:'
+          value={props.voluntario.telefone || 'Não definido'}
+          showSeparator={true}
+        />
+        <FancyValueLine
+          title='Endereço:'
+          value={props.voluntario.endereco || 'Não definido'}
+          showSeparator={true}
+        />
+        <FancyValueLine
+          title='Sexo:'
+          value={
+            props.voluntario.sexo === 'M'
+              ? 'Masculino'
+              : props.voluntario.sexo === 'F'
+                ? 'Feminino'
+                : 'N/A'
+          }
+        />
+      </View>
     </FancyScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 15, paddingHorizontal: 20, paddingTop: 10, flex: 1 },
+  container: { paddingTop: 20, flex: 1, borderWidth: 0, borderColor: 'red' },
+  dataDisplay: { width: '100%', justifyContent: 'space-between' },
 });

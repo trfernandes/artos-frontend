@@ -1,0 +1,35 @@
+1	import { MinisterioTipoEnum } from '../../enums/Ministerio/ministerio-tipo.enum';
+2	import { VoluntarioHierarquiaEnum } from '../../enums/MinisterioVoluntario/hierarquia.enum';
+3	import { IgrejaVoluntarioRoleEnum } from '../../enums/Igreja/voluntario-role.enum';
+4	
+5	export type ResponseLoginMinisterioDto = {
+6	  id: string;
+7	  nome: string;
+8	  hierarquia: VoluntarioHierarquiaEnum;
+9	  logoUrl?: string | null;
+10	  logoThumbUrl?: string | null;
+11	  tipo?: MinisterioTipoEnum;
+12	};
+13	
+14	export type ResponseLoginIgrejaDto = {
+15	  id: string;
+16	  nome: string;
+17	  logoUrl?: string | null;
+18	  logoThumbUrl?: string | null;
+19	  role: IgrejaVoluntarioRoleEnum;
+20	  ministerios: ResponseLoginMinisterioDto[];
+21	};
+22	
+23	export type ResponseLoginUserDto = {
+24	  id: string;
+25	  nome: string;
+26	  email: string;
+27	  fotoUrl?: string | null;
+28	  fotoThumbUrl?: string | null;
+29	};
+30	
+31	export type ResponseLoginDto = {
+32	  access_token: string;
+33	  user: ResponseLoginUserDto;
+34	  igrejas: ResponseLoginIgrejaDto[];
+35	};

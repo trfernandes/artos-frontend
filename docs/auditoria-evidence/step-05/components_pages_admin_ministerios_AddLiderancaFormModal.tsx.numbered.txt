@@ -1,0 +1,68 @@
+1	import { useFieldArray, useForm, useFormContext } from 'react-hook-form';
+2	import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
+3	import { AddLiderSchema, AddLiderFormData, AddMinisterioFormData } from '../../../../domain/schemas/ministerioAdminSchema';
+4	import { zodResolver } from '@hookform/resolvers/zod';
+5	import ControlledSearchSelect from '../../../forms/ControlledSearchSelect';
+6	import ControlledBottomSheetSelect from '../../../forms/ControlledBottomSheetSelect';
+7	import { useVoluntariosCrud } from '../../../../hooks/useVoluntariosCrud';
+8	import { useCallback, useMemo } from 'react';
+9	import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
+10	import { VoluntarioHierarquiaLideresEnumList } from '../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
+11	import { OrderDirection } from '../../../../domain/utils/query_utils';
+12	import { AppImages } from '../../../../assets/app_images';
+13	
+14	export default function AddLiderancaFormModal(props: {} & FancyModalDialogProps<AddLiderFormData>) {
+15	  const mainForm = useFormContext<AddMinisterioFormData>();
+16	  const lideresForm = useFieldArray({
+17	    control: mainForm.control,
+18	    name: 'voluntarios',
+19	    keyName: 'fieldId',
+20	  });
+21	  const form = useForm<AddLiderFormData>({ resolver: zodResolver(AddLiderSchema) });
+22	
+23	  const { data } = useVoluntariosCrud({ autoFetch: true, initialParams: { orderBy: [{ path: 'nome', direction: OrderDirection.ASC }] } });
+24	
+25	  const voluntariosDropDownList = useMemo<DropDownItemProps<string>[]>(() => {
+26	    return (
+27	      data
+28	        ?.filter((v) => lideresForm.fields.some((l) => l.voluntarioId === v.id) === false)
+29	        .map(
+30	          (v) =>
+31	            ({
+32	              title: v.nome,
+33	              value: v.id,
+34	              left: {
+35	                type: 'image',
+36	                source: v.fotoUrl || v.fotoThumbUrl ? { uri: v.fotoUrl || v.fotoThumbUrl || '' } : AppImages.emptyProfile,
+37	              },
+38	            } as DropDownItemProps<string>),
+39	        ) || []
+40	    );
+41	  }, [data, lideresForm.fields]);
+42	
+43	  const onSubmit = useCallback(() => {
+44	    form.handleSubmit(
+45	      (formData) => {
+46	        props.onButton2Press?.(formData);
+47	      },
+48	      (errors) => console.log(errors),
+49	    )();
+50	  }, [props.onButton2Press, mainForm, lideresForm.append, lideresForm.fields]);
+51	
+52	  return (
+53	    <FancyModalDialog {...props} title='Adicionar Líder' centerContainerStyle={{ gap: 15 }} onButton2Press={onSubmit}>
+54	      <ControlledSearchSelect
+55	        control={form.control}
+56	        name='voluntarioId'
+57	        label='Voluntário:'
+58	        searchPlaceholder='Buscar voluntário...'
+59	        listItems={voluntariosDropDownList}
+60	        onChange={(data) => {
+61	          const nome = voluntariosDropDownList.find((v) => v.value === data)?.title || '';
+62	          form.setValue('voluntarioNome', nome);
+63	        }}
+64	      />
+65	      <ControlledBottomSheetSelect control={form.control} name='hierarquia' label='Função:' listItems={VoluntarioHierarquiaLideresEnumList} />
+66	    </FancyModalDialog>
+67	  );
+68	}

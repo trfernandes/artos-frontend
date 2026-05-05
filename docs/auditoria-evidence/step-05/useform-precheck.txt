@@ -1,0 +1,16 @@
+app\(auth)\create-voluntario-account.tsx:28|resolver=SIM|onErrorPattern=NAO?
+app\(auth)\create-igreja-account.tsx:158|resolver=NAO|onErrorPattern=NAO?
+app\(app)\(drawer)\pessoal\perfil\edit.tsx:37|resolver=SIM|onErrorPattern=NAO?
+components\pages\admin\voluntarios\MinisterioAddForm.tsx:48|resolver=SIM|onErrorPattern=NAO?
+components\pages\admin\eventos\EventoRepeticaoInputCustom.tsx:67|resolver=SIM|onErrorPattern=NAO?
+components\pages\pessoal\indisponibilidade\AddPeriodModal.tsx:37|resolver=SIM|onErrorPattern=NAO?
+components\pages\ministerios\funcoes\FuncaoFormModal.tsx:34|resolver=SIM|onErrorPattern=NAO?
+components\pages\admin\ministerios\VoluntarioEditFormModal.tsx:26|resolver=SIM|onErrorPattern=NAO?
+components\pages\admin\ministerios\VoluntarioAddFormModal.tsx:24|resolver=SIM|onErrorPattern=NAO?
+components\pages\ministerios\templates_equipe\TemplateFixoEquipeList.tsx:37|resolver=SIM|onErrorPattern=NAO?
+components\pages\pessoal\escalas\index\SubstituicaoModalPage.tsx:87|resolver=SIM|onErrorPattern=NAO?
+app\(app)\(drawer)\admin\eventos\add.tsx:39|resolver=SIM|onErrorPattern=NAO?
+app\(app)\(drawer)\ministerios\integrantes\add.tsx:25|resolver=SIM|onErrorPattern=NAO?
+components\pages\ministerios\integrantes\FormFields.tsx:61|resolver=SIM|onErrorPattern=NAO?
+app\(app)\(drawer)\ministerios\escalas\assistant.tsx:141|resolver=SIM|onErrorPattern=NAO?
+app\(app)\(drawer)\ministerios\indisponibilidades\index.tsx:49|resolver=SIM|onErrorPattern=NAO?

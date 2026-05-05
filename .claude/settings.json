@@ -1,0 +1,8 @@
+{
+  "enabledPlugins": {
+    "expo-app-design@expo-plugins": true,
+    "upgrading-expo@expo-plugins": true,
+    "expo-deployment@expo-plugins": true,
+    "neon-postgres@neon": true
+  }
+}

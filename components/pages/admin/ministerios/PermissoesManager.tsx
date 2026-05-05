@@ -1,17 +1,17 @@
 import { StyleSheet, View } from 'react-native';
-import {
-  MinisterioVoluntarioPermissao,
-  RecursoPermissaoEnum,
-  RecursosPermissoesTable,
-  TipoPermissaoEnumLabel,
-} from '../../../../domain/models/MinisterioVoluntarioPermissao';
 import FancyText from '../../../FancyText';
 import { Pallete } from '../../../../constants/colors';
 import FancyContainerList from '../../../container_list/FancyContainerList';
 import FancyCheckbox from '../../../FancyCheckbox';
 import DefaultIcons from '../../../FancyIcons';
+import { ResponseMinisterioVoluntarioPermissaoDto } from '../../../../domain/dtos/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.response';
+import {
+  RecursoPermissaoEnum,
+  RecursosPermissoesTable,
+  TipoPermissaoEnumLabel,
+} from '../../../../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
 
-export default function PermissoesManager(props: { data: MinisterioVoluntarioPermissao[]; disabled?: boolean }) {
+export default function PermissoesManager(props: { data: ResponseMinisterioVoluntarioPermissaoDto[]; disabled?: boolean }) {
   return (
     <FancyContainerList
       data={Object.entries(RecursosPermissoesTable).filter(([_, permissoes]) => permissoes && permissoes.length > 0)}
@@ -19,8 +19,8 @@ export default function PermissoesManager(props: { data: MinisterioVoluntarioPer
       renderItem={({ item: [recurso, permissoes] }) => (
         <View style={styles.permissaoContainer}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <DefaultIcons.Custom library="MaterialIcons" name="arrow-right" style={{ borderWidth: 0, marginLeft: -8 }} />
-            <FancyText type="bold" size={'small'} color={props.disabled ? Pallete.icons.inactive : Pallete.icons.dark}>
+            <DefaultIcons.Custom library='MaterialIcons' name='arrow-right' style={{ borderWidth: 0, marginLeft: -8 }} />
+            <FancyText type='bold' size={'small'} color={props.disabled ? Pallete.icons.inactive : Pallete.icons.dark}>
               {RecursoPermissaoEnum[Number(recurso)]}
             </FancyText>
           </View>
@@ -52,9 +52,8 @@ export default function PermissoesManager(props: { data: MinisterioVoluntarioPer
                     disabled={props.disabled}
                     size={16}
                     value={props.data.some(
-                      permissao => permissao.recurso === Number(recurso) && permissao.permissoes?.includes(item)
+                      (permissao) => permissao.recurso === Number(recurso) && permissao.permissoes?.includes(item),
                     )}
-                    onChangeValue={value => console.log('onChangeValue', value, recurso, item)}
                   />
                 </View>
               ))}
@@ -62,7 +61,7 @@ export default function PermissoesManager(props: { data: MinisterioVoluntarioPer
           </View>
         </View>
       )}
-      title="Permissões"
+      title='Permissões'
     />
   );
 }
@@ -77,7 +76,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   permissaoContainer: { gap: 5, borderWidth: 0, paddingHorizontal: 5, paddingVertical: 5 },
-  permissaoItemContainer: { paddingHorizontal: 16, gap: 6, flexDirection: 'column', justifyContent: 'space-between' },
+  permissaoItemContainer: {
+    paddingHorizontal: 16,
+    gap: 6,
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+  },
   permissaoItemHeader: { flexDirection: 'row', gap: 10, justifyContent: 'space-between' },
   permissaoItemCheck: { flexDirection: 'row', gap: 10, justifyContent: 'space-between' },
 });
