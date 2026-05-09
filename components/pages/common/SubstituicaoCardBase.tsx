@@ -4,6 +4,9 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import FancyText from '../../FancyText';
 import DefaultIcons from '../../FancyIcons';
+import FancyListItemCard from '../../cards/FancyListItemCard';
+import FancySeparator from '../../FancySeparator';
+import { AppImages } from '../../../assets/app_images';
 import { usePallete } from '../../../hooks/usePallete';
 import { ColorUtils } from '../../../utils/color_utils';
 import {
@@ -15,7 +18,7 @@ import { DateUtilsApi } from '../../../utils/date_utils';
 import { getFirstAndLastName } from '../../../utils/text_utils';
 import { ThemePalette } from '../../../constants/colors';
 
-type IconLib = 'MaterialIcons';
+type IconLib = 'MaterialIcons' | 'MaterialCommunityIcons';
 type StatusVisual = { color: string; icon: string };
 
 export function getStatusVisual(
@@ -34,30 +37,60 @@ export function getStatusVisual(
   }
 }
 
-function MiniAvatar({ nome, palette }: { nome?: string; palette: ThemePalette }) {
-  const initials = nome
-    ? nome
-        .split(' ')
-        .slice(0, 2)
-        .map((w) => w[0])
-        .join('')
-        .toUpperCase()
-    : '?';
-  const tone = palette.primary;
+function MetaInlineItem({
+  icon,
+  value,
+  palette,
+}: {
+  icon: { library: IconLib; name: string };
+  value: string;
+  palette: ThemePalette;
+}) {
   return (
     <View
       style={[
-        styles.miniAvatar,
-        {
-          backgroundColor: ColorUtils.withAlpha(tone, 0.15),
-          borderColor: ColorUtils.withAlpha(tone, 0.3),
-        },
+        styles.metaItem,
+        { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.1) },
       ]}
     >
-      <FancyText size={12} type='bold' color={tone}>
-        {initials}
+      <DefaultIcons.Custom
+        library={icon.library}
+        name={icon.name}
+        size={12}
+        color={palette.primary}
+      />
+      <FancyText
+        type='semiBold'
+        size='extraSmall'
+        color={palette.primary}
+        numberOfLines={1}
+      >
+        {value}
       </FancyText>
     </View>
+  );
+}
+
+function PersonRow({
+  label,
+  nome,
+  fotoUrl,
+}: {
+  label: string;
+  nome?: string;
+  fotoUrl?: string;
+}) {
+  const displayName = getFirstAndLastName(nome ?? label);
+  return (
+    <FancyListItemCard
+      title={displayName}
+      subtitle={label}
+      leading={{
+        type: 'image',
+        source: fotoUrl ? { uri: fotoUrl } : AppImages.emptyProfile,
+      }}
+      containerStyle={styles.personCard}
+    />
   );
 }
 
@@ -71,12 +104,8 @@ export default function SubstituicaoCardBase({ substituicao, footer }: Props) {
   const visual = getStatusVisual(substituicao.status, palette);
   const isCancelada = substituicao.status === EscalaSubstituicaoStatusEnum.Cancelada;
 
-  const solicitanteNome = getFirstAndLastName(
-    substituicao.solicitante?.voluntario?.nome ?? 'Solicitante',
-  );
-  const substitutoNome = getFirstAndLastName(
-    substituicao.substituto?.voluntario?.nome ?? 'Substituto',
-  );
+  const solicitanteVol = substituicao.solicitante?.voluntario;
+  const substitutoVol = substituicao.substituto?.voluntario;
 
   const dataOcorrencia = substituicao.escalaItem?.dataOcorrencia
     ? DateUtilsApi.dateOnlyFromApi(substituicao.escalaItem.dataOcorrencia as string)
@@ -87,6 +116,7 @@ export default function SubstituicaoCardBase({ substituicao, footer }: Props) {
     : '—';
 
   const headerBg = ColorUtils.withAlpha(visual.color, 0.1);
+  const funcaoNome = substituicao.escalaItem?.funcao?.nome;
 
   return (
     <View
@@ -96,7 +126,7 @@ export default function SubstituicaoCardBase({ substituicao, footer }: Props) {
         palette.shadows[100],
       ]}
     >
-      {/* Header tonal */}
+      {/* Header tonal de status */}
       <View style={[styles.header, { backgroundColor: headerBg }]}>
         <View style={styles.headerLeft}>
           <DefaultIcons.Custom
@@ -116,78 +146,76 @@ export default function SubstituicaoCardBase({ substituicao, footer }: Props) {
 
       {/* Corpo */}
       <View style={styles.body}>
-        {/* Evento */}
+        {/* Bloco de evento */}
         <View>
           <FancyText type='semiBold' size='medium' numberOfLines={2}>
             {substituicao.escalaItem?.evento?.nome ?? '—'}
           </FancyText>
-          {substituicao.escalaItem?.funcao?.nome ? (
-            <View style={styles.funcaoRow}>
-              <DefaultIcons.Custom
-                library='MaterialIcons'
-                name='work-outline'
-                size={12}
-                color={palette.fonts.inactive}
+          {funcaoNome ? (
+            <View style={styles.metaRow}>
+              <MetaInlineItem
+                icon={{ library: 'MaterialIcons', name: 'work-outline' }}
+                value={funcaoNome}
+                palette={palette}
               />
-              <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                {substituicao.escalaItem.funcao.nome}
-              </FancyText>
             </View>
           ) : null}
         </View>
 
-        {/* Linha de troca */}
-        <View
-          style={[
-            styles.tradeRow,
-            {
-              backgroundColor: palette.backgroundColor2,
-              borderColor: palette.borderCard,
-            },
-          ]}
-        >
-          <View style={styles.personBlock}>
-            <MiniAvatar nome={substituicao.solicitante?.voluntario?.nome} palette={palette} />
-            <View style={styles.personText}>
-              <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                Solicitante
-              </FancyText>
-              <FancyText type='semiBold' size='small' numberOfLines={1}>
-                {solicitanteNome}
-              </FancyText>
+        {/* Trade rows: solicitante → substituto via FancyListItemCard */}
+        <View>
+          <PersonRow
+            label='Solicitante'
+            nome={solicitanteVol?.nome}
+            fotoUrl={solicitanteVol?.fotoThumbUrl ?? solicitanteVol?.fotoUrl}
+          />
+
+          <View style={styles.dividerWrap}>
+            <FancySeparator />
+            <View
+              style={[
+                styles.dividerIcon,
+                {
+                  backgroundColor: palette.backgroundColor,
+                  borderColor: palette.borderCard,
+                },
+              ]}
+            >
+              <DefaultIcons.Custom
+                library='MaterialIcons'
+                name='swap-vert'
+                size={14}
+                color={palette.fonts.inactive}
+              />
             </View>
           </View>
 
-          <View style={styles.arrowWrap}>
-            <DefaultIcons.Custom
-              library='MaterialIcons'
-              name='arrow-forward'
-              size={16}
-              color={palette.fonts.inactive}
-            />
-          </View>
-
-          <View style={styles.personBlock}>
-            <MiniAvatar nome={substituicao.substituto?.voluntario?.nome} palette={palette} />
-            <View style={styles.personText}>
-              <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                Substituto
-              </FancyText>
-              <FancyText type='semiBold' size='small' numberOfLines={1}>
-                {substitutoNome}
-              </FancyText>
-            </View>
-          </View>
+          <PersonRow
+            label='Substituto'
+            nome={substitutoVol?.nome}
+            fotoUrl={substitutoVol?.fotoThumbUrl ?? substitutoVol?.fotoUrl}
+          />
         </View>
 
-        {/* Motivo */}
+        {/* Motivo do solicitante */}
         {substituicao.motivo ? (
-          <FancyText size='extraSmall' color={palette.fonts.inactive} style={styles.motivo}>
-            "{substituicao.motivo}"
-          </FancyText>
+          <View
+            style={[
+              styles.motivoBox,
+              { backgroundColor: palette.backgroundColor2 },
+            ]}
+          >
+            <FancyText
+              size='extraSmall'
+              color={palette.fonts.inactive}
+              style={styles.motivoText}
+            >
+              &ldquo;{substituicao.motivo}&rdquo;
+            </FancyText>
+          </View>
         ) : null}
 
-        {/* Cancelamento */}
+        {/* Motivo de cancelamento */}
         {isCancelada && substituicao.motivoCancelamento ? (
           <View
             style={[
@@ -232,46 +260,45 @@ const styles = StyleSheet.create({
     padding: 14,
     gap: 12,
   },
-  funcaoRow: {
+  metaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 6,
+  },
+  metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    marginTop: 4,
+    gap: 6,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    alignSelf: 'flex-start',
   },
-  tradeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 10,
-    borderRadius: 10,
-    borderWidth: 1,
+  personCard: {
+    marginBottom: 0,
   },
-  personBlock: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    minWidth: 0,
-  },
-  personText: {
-    flex: 1,
-    minWidth: 0,
-  },
-  arrowWrap: {
-    alignItems: 'center',
+  dividerWrap: {
+    height: 18,
     justifyContent: 'center',
-    flexShrink: 0,
+    alignItems: 'center',
+    position: 'relative',
   },
-  miniAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  dividerIcon: {
+    position: 'absolute',
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    flexShrink: 0,
   },
-  motivo: {
+  motivoBox: {
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  motivoText: {
     fontStyle: 'italic',
     lineHeight: 17,
   },
