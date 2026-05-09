@@ -218,7 +218,6 @@ function createStyles(palette: ThemePalette) {
     content: {
       flex: 1,
       gap: 12,
-      paddingTop: 4,
     },
     profileCard: {
       borderRadius: 8,

@@ -1,6 +1,7 @@
 import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyModalDialog, { FancyModalDialogProps } from '../../../../modal/FancyModalDialog';
 import { useCallback, useMemo, useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
 import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
 import FancyGroup from '../../../../list/FancyGroup';
@@ -21,7 +22,7 @@ const schema = z.object({
   solicitanteId: z.string(),
   substitutoId: z.string('Campo obrigatório'),
   escalaItemId: z.string('Campo obrigatório'),
-  motivo: z.string('Campo obrigatório').min(5, 'O motivo deve ter ao menos 10 caracteres'),
+  motivo: z.string('Campo obrigatório').min(5, 'O motivo deve ter ao menos 5 caracteres'),
 });
 
 export type FormData = z.infer<typeof schema>;
@@ -83,6 +84,7 @@ export default function SubstituicaoModalPage({
   }, [possiveisSubstitutos]);
 
   const [substitutoSelecionado, setSubstitutoSelecionado] = useState<string | undefined>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(schema),
@@ -96,10 +98,16 @@ export default function SubstituicaoModalPage({
   });
 
   const handleConfirm = useCallback(
-    async (data: FormData) => {
+    async () => {
       form.handleSubmit(
-        async () => {
-          props.onButton2Press?.(data);
+        async (values) => {
+          if (isSubmitting) return;
+          try {
+            setIsSubmitting(true);
+            await Promise.resolve(props.onButton2Press?.(values));
+          } finally {
+            setIsSubmitting(false);
+          }
         },
         (errors) => {
           if (__DEV__) {
@@ -113,19 +121,32 @@ export default function SubstituicaoModalPage({
         },
       )();
     },
-    [form.handleSubmit, props.onButton2Press, substitutoSelecionado],
+    [form.handleSubmit, isSubmitting, props.onButton2Press],
   );
+
+  const isBusy = isLoading || isSubmitting;
 
   return (
     <FancyModalDialog<FormData>
       {...props}
       title='Solicitar substituição'
-      centerContainerStyle={{ gap: 16 }}
-      button1={{ disabled: isLoading || undefined, textProps: { adjustsFontSizeToFit: false } }}
-      button2={{ disabled: isLoading || undefined, textProps: { adjustsFontSizeToFit: false } }}
-      onButton2Press={() => handleConfirm(form.getValues())}
+      titleAlign='left'
+      centerContainerStyle={styles.content}
+      buttonContainerStyle={styles.buttons}
+      closeOnBackdropPress={!isBusy}
+      button1={{
+        disabled: isBusy || undefined,
+        textProps: { adjustsFontSizeToFit: false },
+      }}
+      button2={{
+        disabled: isBusy || undefined,
+        isLoading: isSubmitting,
+        loadingText: 'Enviando...',
+        textProps: { adjustsFontSizeToFit: false },
+      }}
+      onButton2Press={() => void handleConfirm()}
     >
-      <FancyGroup title='Informações' contentContainerStyle={{ gap: 8 }}>
+      <FancyGroup title='Informações' contentContainerStyle={styles.infoContent}>
         <FancyTextDisplay title='Ministério:' value={dadosEscala.voluntario?.ministerio?.nome} />
         <FancyTextDisplay title='Evento:' value={dadosEscala.evento?.nome} />
         <FancyTextDisplay
@@ -140,7 +161,7 @@ export default function SubstituicaoModalPage({
         label={'Quem será seu substituto?'}
         listItems={possiveisSubstitutosList}
         onChange={(value) => setSubstitutoSelecionado(Array.isArray(value) ? value[0] : value)}
-        disabled={isLoading}
+        disabled={isBusy}
         isLoading={isLoading}
         searchPlaceholder='Buscar substituto...'
       />
@@ -148,7 +169,25 @@ export default function SubstituicaoModalPage({
         control={form.control}
         name='motivo'
         label='Qual o motivo da substituição?'
+        disabled={isBusy}
+        inputProps={{ style: styles.reasonInput }}
       />
     </FancyModalDialog>
   );
 }
+
+const styles = StyleSheet.create({
+  content: {
+    gap: 12,
+  },
+  infoContent: {
+    gap: 5,
+  },
+  reasonInput: {
+    minHeight: 118,
+    textAlignVertical: 'top',
+  },
+  buttons: {
+    gap: 9,
+  },
+});

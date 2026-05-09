@@ -1,4 +1,5 @@
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
+import { DateUtilsApi } from '../../../../../utils/date_utils';
 import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -9,6 +10,8 @@ import FancyLoading from '../../../../../components/FancyLoading';
 import { ThemePalette } from '../../../../../constants/colors';
 import FancyChips from '../../../../../components/FancyChips';
 import { useCallback, useMemo, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { Modal, StyleSheet } from 'react-native';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import {
   EscalaStatusEnum,
@@ -20,6 +23,8 @@ import FancyText from '../../../../../components/FancyText';
 import DefaultIcons from '../../../../../components/FancyIcons';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { ColorUtils } from '../../../../../utils/color_utils';
+import FancyActionSheet from '../../../../../components/actions/FancyActionSheet';
+import { ResponseEscalaDto } from '../../../../../domain/dtos/Escala/escala.response';
 
 export function getEscalaStatusConfig(palette: ThemePalette) {
   return {
@@ -40,6 +45,12 @@ export default function MinisterioEscalasIndexPage() {
   const palette = usePallete();
   const { ministerioId } = useLocalSearchParams();
   const [searchText, setSearchText] = useState('');
+  const [actionsEscala, setActionsEscala] = useState<ResponseEscalaDto | null>(null);
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  useFocusEffect(useCallback(() => {
+    setIsNavigating(false);
+  }, []));
   const escalaStatusConfig = useMemo(() => getEscalaStatusConfig(palette), [palette]);
 
   const {
@@ -92,11 +103,10 @@ export default function MinisterioEscalasIndexPage() {
   }, [escalas, searchText]);
 
   if (isLoadingEscalas) return <FancyLoading label='Carregando...' />;
-  if (isLoadingEscalasMutation) return <FancyLoading label='Processando...' />;
 
   const formatPeriodo = (dataInicio: string, dataTermino: string) => {
-    const inicio = new Date(dataInicio).toLocaleDateString('pt-BR');
-    const termino = new Date(dataTermino).toLocaleDateString('pt-BR');
+    const inicio = DateUtilsApi.dateOnlyFromApi(dataInicio).toLocaleDateString('pt-BR');
+    const termino = DateUtilsApi.dateOnlyFromApi(dataTermino).toLocaleDateString('pt-BR');
     return `${inicio} - ${termino}`;
   };
 
@@ -222,30 +232,14 @@ export default function MinisterioEscalasIndexPage() {
                 actionButtons: [
                   {
                     icon: {
-                      ...DefaultIconsNames.edit,
-                      size: 16,
-                      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.88),
+                      library: 'MaterialCommunityIcons',
+                      name: 'dots-vertical',
+                      size: 20,
+                      color: palette.fonts.inactive,
+                      backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.08),
                     },
                     size: 'medium',
-                    onPress: () => {
-                      router.push({
-                        pathname: '/ministerios/escalas/details',
-                        params: {
-                          ministerioId,
-                          escalaId: item.id,
-                          viewMode: 'edit',
-                        },
-                      });
-                    },
-                  },
-                  {
-                    icon: {
-                      ...DefaultIconsNames.delete,
-                      size: 16,
-                      backgroundColor: ColorUtils.withAlpha(palette.error, 0.92),
-                    },
-                    size: 'medium',
-                    onPress: () => handleDeletePress(item.id!),
+                    onPress: () => setActionsEscala(item),
                   },
                 ],
               }}
@@ -253,6 +247,51 @@ export default function MinisterioEscalasIndexPage() {
           );
         },
       }}
-    />
+    >
+      <Modal visible={isNavigating} transparent animationType='fade'>
+        <View style={styles.loadingOverlay}>
+          <FancyLoading label='Abrindo escala...' containerStyle={{ flex: 0 }} />
+        </View>
+      </Modal>
+
+      <FancyActionSheet
+        visible={!!actionsEscala}
+        onClose={() => setActionsEscala(null)}
+        actions={[
+          {
+            label: 'Editar',
+            icon: { ...DefaultIconsNames.edit, size: 16 },
+            onPress: () => {
+              if (!actionsEscala) return;
+              setIsNavigating(true);
+              router.push({
+                pathname: '/ministerios/escalas/details',
+                params: {
+                  ministerioId,
+                  escalaId: actionsEscala.id,
+                  viewMode: 'edit',
+                },
+              });
+            },
+          },
+          {
+            label: 'Excluir',
+            destructive: true,
+            disabled: isLoadingEscalasMutation,
+            icon: { ...DefaultIconsNames.delete, size: 16 },
+            onPress: () => actionsEscala?.id && handleDeletePress(actionsEscala.id),
+          },
+        ]}
+      />
+    </FancyListPage>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.18)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});

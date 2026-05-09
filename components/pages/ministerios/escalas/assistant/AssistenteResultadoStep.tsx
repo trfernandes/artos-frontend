@@ -252,8 +252,8 @@ function createStyles(palette: ThemePalette) {
       width: '100%',
       borderRadius: 14,
       borderWidth: 1,
-      borderColor: palette.borderCard,
-      backgroundColor: palette.backgroundColor2,
+      borderColor: ColorUtils.withAlpha(palette.primary, 0.18),
+      backgroundColor: palette.backgroundColor,
       paddingVertical: 14,
       paddingHorizontal: 12,
       ...palette.shadows[100],
@@ -278,8 +278,9 @@ function createStyles(palette: ThemePalette) {
     periodHero: {
       marginTop: 12,
       borderRadius: 12,
-      borderWidth: 0,
-      backgroundColor: palette.backgroundColor3,
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.primary, 0.14),
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.06),
       paddingVertical: 8,
       paddingHorizontal: 12,
       gap: 2,
@@ -310,8 +311,9 @@ function createStyles(palette: ThemePalette) {
     kpiList: {
       marginTop: 10,
       borderRadius: 12,
-      borderWidth: 0,
-      backgroundColor: palette.backgroundColor3,
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.primary, 0.1),
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.045),
       overflow: 'hidden',
     },
     metricRow: {
@@ -324,7 +326,7 @@ function createStyles(palette: ThemePalette) {
     },
     metricRowDivider: {
       borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: palette.borderCard,
+      borderBottomColor: ColorUtils.withAlpha(palette.primary, 0.1),
     },
     metricLeft: {
       flexDirection: 'row',

@@ -14,6 +14,7 @@ import { ResponseEventoOcorrenciaDto } from '../../../../../domain/dtos/Evento/e
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { isLouvorMinisterioTipo } from '../../../../../utils/evento-ensaio';
+import { canManageEventoOcorrencia } from '../../../../../utils/ministerio_permissoes';
 
 type ExitChoice = 'cancel' | 'discard' | 'save';
 
@@ -22,6 +23,7 @@ export default function MinisterioAgendaDetailsPage() {
   const navigation = useNavigation<any>();
   const { igrejaAtiva } = useAuth();
   const eventoId = params.eventoId || params.id || '';
+  const canManageAgenda = canManageEventoOcorrencia(igrejaAtiva, params.ministerioId);
   const isLouvorMinisterio = useMemo(
     () =>
       igrejaAtiva?.ministerios?.some(
@@ -174,6 +176,7 @@ export default function MinisterioAgendaDetailsPage() {
             eventoId={eventoId}
             dataOcorrencia={new Date(params.dataOcorrencia)}
             ministerioId={params.ministerioId}
+            modo={canManageAgenda ? 'lider' : 'voluntario'}
           />
         ),
       },
@@ -188,15 +191,16 @@ export default function MinisterioAgendaDetailsPage() {
             eventoId={eventoId}
             dataOcorrencia={new Date(params.dataOcorrencia)}
             ministerioId={params.ministerioId}
-            mode='lider'
+            mode={canManageAgenda ? 'lider' : 'leitura'}
             responsavelSetlistNome={ocorrenciaAtual?.responsavelSetlistVoluntario?.nome ?? null}
+            detailsRoutePath='/ministerios/agenda/setlist/[itemId]'
           />
         ),
       });
     }
 
     return tabs;
-  }, [carregarOcorrenciaAtual, data, eventoId, isLouvorMinisterio, ocorrenciaAtual, params.dataOcorrencia, params.ministerioId]);
+  }, [canManageAgenda, carregarOcorrenciaAtual, data, eventoId, isLouvorMinisterio, ocorrenciaAtual, params.dataOcorrencia, params.ministerioId]);
 
   if (isLoading || isLoadingOcorrencia || !eventoId || !data[0]) return <FancyLoading />;
 

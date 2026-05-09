@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "serial": "RQCWC04P4VX",
+  "outputDir": "D:\\Development Projects\\artos\\artos_frontend\\.artifacts\\visual-improvement-test\\scroll",
+  "max": 2,
+  "delay": 500,
+  "swipeDistance": 700,
+  "screenSize": {
+    "width": 1080,
+    "height": 2408
+  },
+  "captures": [
+    "D:\\Development Projects\\artos\\artos_frontend\\.artifacts\\visual-improvement-test\\scroll\\viewport-001.png",
+    "D:\\Development Projects\\artos\\artos_frontend\\.artifacts\\visual-improvement-test\\scroll\\viewport-002.png"
+  ]
+}

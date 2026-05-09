@@ -149,7 +149,12 @@ export default function EditProfilePage() {
 
           <ControlledTextInput name='nome' control={form.control} label='Nome' />
           <ControlledTextInput name='email' control={form.control} label='E-mail' disabled />
-          <ControlledDateInput name='dataNascimento' control={form.control} label='Data de Nascimento' />
+          <ControlledDateInput
+            name='dataNascimento'
+            control={form.control}
+            label='Data de Nascimento'
+            calendarProps={{ minimumDate: new Date(1900, 0, 1), maximumDate: new Date() }}
+          />
           <ControlledTextInput name='endereco' control={form.control} label='Endereço' />
           <ControlledTextInput name='telefone' control={form.control} label='Telefone' />
 

@@ -1,6 +1,5 @@
-import { formatInTimeZone } from 'date-fns-tz';
 import { MinisterioTipoEnum } from '../domain/enums/Ministerio/ministerio-tipo.enum';
-import { APP_TZ, DateUtilsApi } from './date_utils';
+import { formatClockTime } from './date_utils';
 
 type ResolveEventoEnsaioInfoParams = {
   horarioEnsaio?: string | null;
@@ -15,19 +14,7 @@ export function isLouvorMinisterioTipo(tipo: unknown): boolean {
 }
 
 export function normalizeHorarioEnsaio(value?: string | null): string | undefined {
-  if (!value) return undefined;
-
-  if (/^\d{2}:\d{2}(:\d{2})?$/.test(value)) {
-    return value.slice(0, 5);
-  }
-
-  try {
-    const parsed = DateUtilsApi.dateTimeFromApi(value);
-    if (Number.isNaN(parsed.getTime())) return undefined;
-    return formatInTimeZone(parsed, APP_TZ, 'HH:mm');
-  } catch {
-    return undefined;
-  }
+  return formatClockTime(value);
 }
 
 export function resolveEventoEnsaioInfo({

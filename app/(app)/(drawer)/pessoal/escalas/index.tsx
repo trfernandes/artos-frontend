@@ -1,5 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
 import { useAuth } from '../../../../../contexts/AuthContext';
@@ -17,9 +18,11 @@ import EventoDetails, {
 } from '../../../../../components/pages/pessoal/escalas/index/EventoDetails';
 import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
+import FancyListEmpty from '../../../../../components/list/FancyListEmpty';
 import EventoAccordeon from '../../../../../components/pages/pessoal/escalas/index/EventoAccordeon';
 import { useEscalaSubstituicoesCrud } from '../../../../../hooks/useEscalaSubstituicoesCrud';
 import SubstituicoesRequestsFrame from '../../../../../components/pages/pessoal/escalas/index/SubstituicoesRequestsFrame';
+import PendenciasChip from '../../../../../components/pages/pessoal/escalas/index/PendenciasChip';
 import FancySeparator from '../../../../../components/FancySeparator';
 import { EscalaItemStatusEnum } from '../../../../../domain/enums/Escala/escala-item-status.enum';
 import { EscalaStatusEnum } from '../../../../../domain/enums/Escala/escala-status.enum';
@@ -51,8 +54,32 @@ export type EscalaDoDiaAgrupada = {
   responsavelSetlistVoluntario?: ResponseVoluntarioDto | null;
 };
 
+function firstRouteParam(value?: string | string[]) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function resolveRouteDate(value?: string | string[]) {
+  const raw = firstRouteParam(value);
+  if (!raw) return null;
+
+  try {
+    const date = DateUtilsApi.dateOnlyFromApi(raw);
+    return Number.isNaN(date.getTime()) ? null : date;
+  } catch {
+    return null;
+  }
+}
+
 export default function MinhasEscalasIndexPage() {
   const { user, igrejaAtiva } = useAuth();
+  const params = useLocalSearchParams<{
+    selectedDate?: string;
+    dataOcorrencia?: string;
+    dataEvento?: string;
+    month?: string;
+    dataReferencia?: string;
+    escalaId?: string;
+  }>();
   const [escalasDoUsuario, setEscalasDoUsuario] = useState<ResponseEscalaItemDto[]>([]);
   const [isLoadingEscalas, setIsLoadingEscalas] = useState<boolean>(true);
   const { update: updateEscala, isLoadingMutation: isLoading } = useEscalaItensCrud();
@@ -69,34 +96,37 @@ export default function MinhasEscalasIndexPage() {
     visible: false,
   });
 
-  const substituicoesParams: DynamicQuery = {
-    where: {
-      conditions: [
-        {
-          path: 'substituto.voluntario.id',
-          operator: Operator.EQUALS,
-          value: { type: ValueType.LITERAL, value: user?.user?.id! },
-        },
-        {
-          path: 'status',
-          operator: Operator.EQUALS,
-          value: {
-            type: ValueType.LITERAL,
-            value: EscalaSubstituicaoStatusEnum.Pendente,
+  const substituicoesParams = useMemo<DynamicQuery>(
+    () => ({
+      where: {
+        conditions: [
+          {
+            path: 'substituto.voluntario.id',
+            operator: Operator.EQUALS,
+            value: { type: ValueType.LITERAL, value: user?.user?.id! },
           },
-        },
+          {
+            path: 'status',
+            operator: Operator.EQUALS,
+            value: {
+              type: ValueType.LITERAL,
+              value: EscalaSubstituicaoStatusEnum.Pendente,
+            },
+          },
+        ],
+      },
+      relations: [
+        'escalaItem',
+        'escalaItem.evento',
+        'escalaItem.funcao',
+        'solicitante',
+        'solicitante.voluntario',
+        'substituto',
+        'substituto.voluntario',
       ],
-    },
-    relations: [
-      'escalaItem',
-      'escalaItem.evento',
-      'escalaItem.funcao',
-      'solicitante',
-      'solicitante.voluntario',
-      'substituto',
-      'substituto.voluntario',
-    ],
-  };
+    }),
+    [user?.user?.id],
+  );
   const {
     add: addSubstituicao,
     data: solicitacoesDeSubstituicao,
@@ -107,9 +137,25 @@ export default function MinhasEscalasIndexPage() {
     initialParams: substituicoesParams,
   });
 
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [showingMonth, setShowingMonth] = useState<Date>(new Date());
+  const initialDateFromParams = useMemo(
+    () => resolveRouteDate(params.selectedDate ?? params.dataOcorrencia ?? params.dataEvento),
+    [params.dataEvento, params.dataOcorrencia, params.selectedDate],
+  );
+  const initialMonthFromParams = useMemo(
+    () => resolveRouteDate(params.month ?? params.dataReferencia),
+    [params.dataReferencia, params.month],
+  );
+
+  const [selectedDate, setSelectedDate] = useState<Date>(initialDateFromParams ?? initialMonthFromParams ?? new Date());
+  const [showingMonth, setShowingMonth] = useState<Date>(initialMonthFromParams ?? initialDateFromParams ?? new Date());
   const [eventosOfSelectedDate, setEventosOfSelectedDate] = useState<EscalaDoDiaAgrupada[]>([]);
+
+  useEffect(() => {
+    const nextDate = initialDateFromParams ?? initialMonthFromParams;
+    if (!nextDate) return;
+    setSelectedDate(nextDate);
+    setShowingMonth(nextDate);
+  }, [initialDateFromParams, initialMonthFromParams]);
 
   const loadMonthEscalas = useCallback(async () => {
     if (!igrejaAtiva?.id || !user?.user?.id) return;
@@ -166,6 +212,20 @@ export default function MinhasEscalasIndexPage() {
   useEffect(() => {
     loadMonthEscalas();
   }, [loadMonthEscalas]);
+
+  useEffect(() => {
+    const escalaId = firstRouteParam(params.escalaId);
+    if (!escalaId || escalasDoUsuario.length === 0) return;
+
+    const match = escalasDoUsuario.find(
+      (item) => item.escala?.id === escalaId || item.id === escalaId,
+    );
+
+    if (!match?.dataOcorrencia) return;
+    const targetDate = DateUtilsApi.dateOnlyFromApi(match.dataOcorrencia);
+    setSelectedDate(targetDate);
+    setShowingMonth(targetDate);
+  }, [escalasDoUsuario, params.escalaId]);
 
   const markedDates = useMemo<MarkedDate[]>(() => {
     if (!escalasDoUsuario) return [];
@@ -399,6 +459,8 @@ export default function MinhasEscalasIndexPage() {
 
   return (
     <FancyPageView style={styles.container}>
+      <PendenciasChip count={solicitacoesDeSubstituicao?.length ?? 0} />
+
       {solicitacoesDeSubstituicao && solicitacoesDeSubstituicao.length > 0 && (
         <SubstituicoesRequestsFrame
           data={solicitacoesDeSubstituicao}
@@ -423,25 +485,31 @@ export default function MinhasEscalasIndexPage() {
       />
       <FancySeparator style={styles.calendarSeparator} />
       <View style={styles.eventsListContainer}>
-        <FancyList
-          bottomSpace={-10}
-          listEmptyProps={{ label: 'Nenhuma escala neste dia', icon: { library: 'MaterialCommunityIcons', name: 'calendar-blank-outline', size: 55 } }}
-          containerStyle={{ borderWidth: 0, flex: 1 }}
-          data={eventosOfSelectedDate}
-          renderItem={({ item, index }) => (
-            <EventoAccordeon
-              data={item}
-              key={index}
-              onConfirmButtonPress={(dadosEscala) => handleConfirmEvento(dadosEscala.id!)}
-              onSubButtonPress={(dadosEscala) =>
-                setSubstituicaoPageParams({
-                  visible: true,
-                  dadosEscala,
-                })
-              }
-            />
-          )}
-        />
+        {eventosOfSelectedDate.length === 0 ? (
+          <FancyListEmpty
+            label='Nenhuma escala neste dia'
+            icon={{ library: 'MaterialCommunityIcons', name: 'calendar-blank-outline', size: 55 }}
+          />
+        ) : (
+          <FancyList
+            bottomSpace={-10}
+            containerStyle={{ borderWidth: 0, flex: 1 }}
+            data={eventosOfSelectedDate}
+            renderItem={({ item, index }) => (
+              <EventoAccordeon
+                data={item}
+                key={index}
+                onConfirmButtonPress={(dadosEscala) => handleConfirmEvento(dadosEscala.id!)}
+                onSubButtonPress={(dadosEscala) =>
+                  setSubstituicaoPageParams({
+                    visible: true,
+                    dadosEscala,
+                  })
+                }
+              />
+            )}
+          />
+        )}
         {substituicaoPageParams?.visible && (
           <SubstituicaoModalPage
             dadosEscala={substituicaoPageParams.dadosEscala!}

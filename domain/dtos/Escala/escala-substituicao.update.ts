@@ -5,4 +5,5 @@ export type UpdateEscalaSubstituicaoDto = Partial<CreateEscalaSubstituicaoDto> &
   status?: EscalaSubstituicaoStatusEnum;
   dataConfirmacao?: string;
   dataResposta?: string;
+  motivoCancelamento?: string;
 };

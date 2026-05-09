@@ -1,4 +1,4 @@
-import { Keyboard, Modal, ModalProps, Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { Keyboard, KeyboardAvoidingView, Modal, ModalProps, Platform, Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { usePallete } from '../../hooks/usePallete';
 
@@ -10,6 +10,7 @@ export type FancyModalProps = {
   containerStyle?: StyleProp<ViewStyle>;
   closeOnBackdropPress?: boolean;
   dismissKeyboardOnBackdropPress?: boolean;
+  avoidKeyboard?: boolean;
 };
 
 export default function FancyModal({
@@ -19,9 +20,24 @@ export default function FancyModal({
   bottom,
   closeOnBackdropPress = false,
   dismissKeyboardOnBackdropPress = true,
+  avoidKeyboard = false,
   ...props
 }: FancyModalProps) {
   const palette = usePallete();
+
+  const modalContent = (
+    <View
+      style={[
+        styles.modalView,
+        { backgroundColor: palette.backgroundColor, ...palette.shadows[200] },
+        props.containerStyle,
+      ]}
+    >
+      {top}
+      {center}
+      {bottom}
+    </View>
+  );
 
   return (
     <Modal animationType='fade' presentationStyle='overFullScreen' transparent {...modalProps}>
@@ -41,17 +57,16 @@ export default function FancyModal({
                 }
               }}
             />
-            <View
-              style={[
-                styles.modalView,
-                { backgroundColor: palette.backgroundColor, ...palette.shadows[200] },
-                props.containerStyle,
-              ]}
-            >
-              {top}
-              {center}
-              {bottom}
-            </View>
+            {avoidKeyboard ? (
+              <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={styles.keyboardAvoidingView}
+              >
+                {modalContent}
+              </KeyboardAvoidingView>
+            ) : (
+              modalContent
+            )}
           </View>
       </GestureHandlerRootView>
     </Modal>
@@ -68,6 +83,10 @@ const styles = StyleSheet.create({
     width: '90%',
     borderRadius: 12,
     padding: 20,
+    alignItems: 'center',
+  },
+  keyboardAvoidingView: {
+    width: '100%',
     alignItems: 'center',
   },
 });

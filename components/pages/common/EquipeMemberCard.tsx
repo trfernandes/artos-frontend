@@ -1,12 +1,17 @@
-import React, { memo, useMemo } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import React, { memo, useMemo, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Image } from 'expo-image';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
+import FancyChips from '../../FancyChips';
 import FancyText from '../../FancyText';
+import FancyBottomSheetModal from '../../modal/FancyBottomSheetModal';
+import FancyBaseCard from '../../cards/Horizontal/FancyBaseCard';
+import { FancyActionButtons } from '../../cards/Horizontal/FancyCardActionButtons';
+import { AppImages } from '../../../assets/app_images';
 import { ResponseEquipeOcorrenciaIntegranteDto } from '../../../domain/dtos/Evento/evento-equipe.response';
-import { EscalaItemStatusEnum } from '../../../domain/enums/Escala/escala-item-status.enum';
+import { EscalaItemStatusEnum, EscalaItemStatusEnumLabel } from '../../../domain/enums/Escala/escala-item-status.enum';
 import { usePallete } from '../../../hooks/usePallete';
 import { ColorUtils } from '../../../utils/color_utils';
 import { getFirstAndLastName } from '../../../utils/text_utils';
@@ -19,387 +24,482 @@ type Props = {
   isLeaderMode: boolean;
   index: number;
   onSubstituir: (escalaItemId: string) => void;
+  onRemover?: (escalaItemId: string) => void;
 };
 
-// Badge de status — só para status != Confirmado
 type StatusBadgeMeta = {
   label: string;
+  shortLabel: string;
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
   color: string;
 };
 
-const STATUS_BADGE: Partial<Record<EscalaItemStatusEnum, StatusBadgeMeta>> = {
-  [EscalaItemStatusEnum.Pendente]: {
-    label: 'convite pendente',
-    icon: 'clock-outline',
-    color: '#F59E0B',
-  },
-  [EscalaItemStatusEnum.Ausente]: {
-    label: 'convite recusado',
-    icon: 'close',
-    color: '#EF4444',
-  },
-  [EscalaItemStatusEnum.Substituido]: {
-    label: 'substituído',
-    icon: 'swap-horizontal',
-    color: '#EF4444',
-  },
-  [EscalaItemStatusEnum.SubstituicaoSolicitada]: {
-    label: 'substituição solicitada',
-    icon: 'clock-alert-outline',
-    color: '#F59E0B',
-  },
-  // EscalaItemStatusEnum.Confirmado => ausente do mapa = não renderiza badge
-};
+const AVATAR_SIZE = 40;
+const STATUS_DOT_SIZE = 18;
 
-// ─── Constantes de layout ───────────────────────────────────────────────────
-const AVATAR_SIZE = 56;
-const BADGE_SIZE  = 18;
-
-// Padding ajustável por borda: normal=10/12, isSelf=9/11 (compensa borda 2px)
-const PAD_H_NORMAL = 10;
-const PAD_V_NORMAL = 12;
-const PAD_H_SELF   =  9;
-const PAD_V_SELF   = 11;
-
-// Paleta de cores para chips de função (determinística por nome da função)
 const ROLE_CHIP_COLORS = [
-  '#6366F1', // indigo
-  '#8B5CF6', // violet
-  '#EC4899', // pink
-  '#14B8A6', // teal
-  '#F97316', // orange
-  '#84CC16', // lime
-  '#0EA5E9', // sky
-  '#A855F7', // purple
+  '#6366F1',
+  '#8B5CF6',
+  '#EC4899',
+  '#14B8A6',
+  '#F97316',
+  '#84CC16',
+  '#0EA5E9',
+  '#A855F7',
 ];
 
 function getRoleChipColor(roleName: string): string {
-  const idx = roleName
-    .split('')
-    .reduce((acc, ch) => acc + ch.charCodeAt(0), 0) % ROLE_CHIP_COLORS.length;
-  return ROLE_CHIP_COLORS[idx];
+  return ROLE_CHIP_COLORS[
+    roleName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % ROLE_CHIP_COLORS.length
+  ];
 }
 
-// ─── Componente ─────────────────────────────────────────────────────────────
-function EquipeMemberCard({ integrante, isCurrentUser, isLeaderMode, index, onSubstituir }: Props) {
+function EquipeMemberCard({ integrante, isCurrentUser, isLeaderMode, index, onSubstituir, onRemover }: Props) {
   const palette = usePallete();
+  const isDark = palette.backgroundColor === '#121212';
+  const [profileVisible, setProfileVisible] = useState(false);
 
-  const voluntario    = integrante.voluntario;
-  const isOpenSlot    = !voluntario;
-  const imageUri      = voluntario?.fotoThumbUrl ?? voluntario?.fotoUrl ?? '';
-  const hasPhoto      = !!imageUri;
+  const voluntario = integrante.voluntario;
+  const isOpenSlot = !voluntario;
+  const imageUri = voluntario?.fotoThumbUrl ?? voluntario?.fotoUrl ?? '';
+  const displayName = voluntario?.nome ? getFirstAndLastName(voluntario.nome) : 'Vaga aberta';
+  const displayRole = integrante.nomeFuncao.replace(/-/g, '\u2011');
+  const statusEnum = integrante.status as EscalaItemStatusEnum;
 
-  // Primeiro + último nome via utilitário do projeto
-  const displayName   = voluntario?.nome ? getFirstAndLastName(voluntario.nome) : 'Vaga aberta';
+  const statusBadge = useMemo<StatusBadgeMeta | null>(() => {
+    switch (statusEnum) {
+      case EscalaItemStatusEnum.Confirmado:
+        return null;
+      case EscalaItemStatusEnum.Pendente:
+        return {
+          label: 'convite pendente',
+          shortLabel: 'Pendente',
+          icon: 'clock-outline',
+          color: palette.warning,
+        };
+      case EscalaItemStatusEnum.Ausente:
+        return {
+          label: 'convite recusado',
+          shortLabel: 'Ausente',
+          icon: 'close-circle-outline',
+          color: palette.error,
+        };
+      case EscalaItemStatusEnum.Substituido:
+        return {
+          label: 'substituído',
+          shortLabel: 'Substituído',
+          icon: 'swap-horizontal',
+          color: palette.error,
+        };
+      case EscalaItemStatusEnum.SubstituicaoSolicitada:
+        return {
+          label: 'substituição solicitada',
+          shortLabel: 'Troca pedida',
+          icon: 'clock-alert-outline',
+          color: palette.warning,
+        };
+      default:
+        return null;
+    }
+  }, [palette.confirm, palette.error, palette.warning, statusEnum]);
 
-  // Função: troca hífens ASCII por non-breaking hyphen para evitar quebra indevida
-  const displayRole   = integrante.nomeFuncao.replace(/-/g, '\u2011');
-
-  // Cor do chip de função — determinística pelo nome da função
   const roleChipColor = useMemo(
     () => getRoleChipColor(integrante.nomeFuncao),
     [integrante.nomeFuncao],
   );
-  const roleChipBg   = ColorUtils.withAlpha(roleChipColor, 0.12);
-  const roleTextColor = ColorUtils.darkenColor(roleChipColor, 0.05);
+  const roleChipBg = ColorUtils.withAlpha(roleChipColor, isDark ? 0.2 : 0.12);
+  const roleChipBorder = ColorUtils.withAlpha(roleChipColor, isDark ? 0.38 : 0.2);
+  const roleTextColor = isDark
+    ? ColorUtils.lightenColor(roleChipColor, 0.18)
+    : ColorUtils.darkenColor(roleChipColor, 0.05);
 
-  // Iniciais para o fallback de avatar (até 2 palavras)
-  const avatarInitials = displayName
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p.charAt(0).toUpperCase())
-    .join('');
-
-  const statusEnum  = integrante.status as EscalaItemStatusEnum;
-  const statusBadge = useMemo<StatusBadgeMeta | null>(
-    () => STATUS_BADGE[statusEnum] ?? null,
-    [statusEnum],
-  );
-
-  // ── Cor determinística do avatar (sem foto) ──────────────────────────────
-  const avatarSeedPalette = [
-    palette.primary,
-    palette.secondary,
-    palette.terciary,
-    palette.warning,
-    palette.confirm,
-  ];
-  const seedIdx   = displayName
-    .split('')
-    .reduce((acc, ch) => acc + ch.charCodeAt(0), 0) % avatarSeedPalette.length;
-  const avatarBg        = ColorUtils.lightenColor(avatarSeedPalette[seedIdx], 0.72);
-  const avatarTextColor = ColorUtils.darkenColor(avatarSeedPalette[seedIdx], 0.12);
-
-  // ── Aparência do card ─────────────────────────────────────────────────────
-  const cardBg          = isCurrentUser ? '#EFF6FF' : '#FFFFFF';
-  const cardBorderColor = isCurrentUser ? '#3B82F6' : '#E5E7EB';
-  const cardBorderWidth = isCurrentUser ? 2 : 1;
-  const cardShadow      = isCurrentUser
-    ? { shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 3 }
-    : { shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 1 };
-  const padH = isCurrentUser ? PAD_H_SELF : PAD_H_NORMAL;
-  const padV = isCurrentUser ? PAD_V_SELF : PAD_V_NORMAL;
-
-  // ── Posição do badge de status ────────────────────────────────────────────
-  const statusBadgePosition = { top: -2, right: -2 };
-
-  // ── Acessibilidade ────────────────────────────────────────────────────────
   const a11yLabel = [
     displayName,
     integrante.nomeFuncao,
     isCurrentUser ? 'você' : undefined,
-    statusBadge ? statusBadge.label : undefined,
+    !isOpenSlot && statusBadge ? statusBadge.label : undefined,
+    isLeaderMode ? (isOpenSlot ? 'atribuir voluntário' : 'substituir voluntário') : undefined,
   ]
     .filter(Boolean)
     .join(', ');
 
-  return (
-    <Animated.View
-      entering={FadeInDown.delay(Math.min(index * 22, 220)).duration(260)}
-      style={styles.cardWrap}
-    >
-      <Pressable
-        onPress={isLeaderMode ? () => onSubstituir(integrante.escalaItemId) : undefined}
-        accessibilityRole='button'
-        accessibilityLabel={a11yLabel}
-        style={[
-          styles.surface,
-          {
-            backgroundColor: cardBg,
-            borderColor: cardBorderColor,
-            borderWidth: cardBorderWidth,
-            paddingHorizontal: padH,
-            paddingVertical: padV,
+  const statusLabel = EscalaItemStatusEnumLabel[statusEnum] ?? 'Pendente';
+  const actionIcon = voluntario ? 'swap-horizontal' : 'account-plus-outline';
+  const actionLabel = voluntario ? 'Substituir voluntário' : 'Atribuir voluntário';
+  const actionButtons = [
+    ...(isLeaderMode
+      ? [
+        {
+          icon: {
+            library: 'MaterialCommunityIcons' as const,
+            name: actionIcon,
+            size: 17,
           },
-          cardShadow,
-        ]}
-      >
-        {/* ── Botão substituir (modo líder) ── */}
-        {isLeaderMode ? (
-          <Pressable
-            onPress={() => onSubstituir(integrante.escalaItemId)}
-            accessibilityRole='button'
-            accessibilityLabel={voluntario ? 'Substituir voluntário' : 'Atribuir voluntário'}
-            style={[
-              styles.swapButton,
+          size: 'small' as const,
+          onPress: () => onSubstituir(integrante.escalaItemId),
+        },
+        ...(voluntario && onRemover
+          ? [
               {
-                backgroundColor: ColorUtils.withAlpha(palette.backgroundColor, 0.96),
-                borderColor: ColorUtils.withAlpha(palette.primary, 0.18),
-              },
-            ]}
-            hitSlop={8}
-          >
-            <MaterialCommunityIcons
-              name={voluntario ? 'swap-horizontal' : 'account-plus'}
-              size={12}
-              color={palette.primary}
-            />
-          </Pressable>
-        ) : null}
-
-        {/* ── Avatar 56×56 circular ── */}
-        <View style={styles.avatarWrap}>
-          {isOpenSlot ? (
-            <View
-              style={[
-                styles.avatar,
-                styles.avatarOpen,
-                {
-                  borderColor: ColorUtils.withAlpha(palette.borderCard, 0.6),
-                  backgroundColor: palette.backgroundColor3,
+                icon: {
+                  library: 'MaterialCommunityIcons' as const,
+                  name: 'trash-can-outline' as const,
+                  size: 16,
+                  backgroundColor: palette.error,
                 },
-              ]}
-            >
-              <MaterialCommunityIcons
-                name='account-plus-outline'
-                size={24}
-                color={palette.fonts.inactive2}
+                size: 'small' as const,
+                onPress: () => onRemover(integrante.escalaItemId),
+              },
+            ]
+          : []),
+      ]
+      : []),
+    ...(voluntario
+      ? [
+          {
+            icon: {
+              library: 'MaterialCommunityIcons' as const,
+              name: 'chevron-right' as const,
+              size: 18,
+              backgroundColor: palette.backgroundColor3,
+              color: palette.icons.inactive,
+            },
+            size: 'small' as const,
+            onPress: () => setProfileVisible(true),
+          },
+        ]
+      : []),
+  ];
+
+  return (
+    <>
+      <Animated.View
+        entering={FadeInDown.delay(Math.min(index * 18, 180)).duration(240)}
+        style={styles.cardWrap}
+      >
+        <FancyBaseCard
+          title={displayName}
+          subtitle={isOpenSlot ? 'Aguardando escala' : undefined}
+          titleProps={{ style: { color: isCurrentUser ? palette.primary : palette.fonts.dark } }}
+          containerStyle={[
+            styles.cardContainer,
+            isCurrentUser && {
+              borderWidth: 1,
+              borderColor: ColorUtils.withAlpha(palette.primary, isDark ? 0.46 : 0.26),
+            },
+          ]}
+          contentContainerStyle={styles.cardContent}
+          centerContainerStyle={styles.cardCenter}
+          leftItem={
+            <AvatarWithStatus
+              imageUri={imageUri}
+              isOpenSlot={isOpenSlot}
+              statusBadge={statusBadge}
+              palette={palette}
+              isDark={isDark}
+            />
+          }
+          rightItem={actionButtons.length > 0 ? <FancyActionButtons actions={actionButtons} /> : undefined}
+          onPress={!isOpenSlot ? () => setProfileVisible(true) : undefined}
+          additionalData1={
+            <View style={styles.metaRow}>
+              <FancyChips
+                size='small'
+                label={displayRole}
+                color={roleTextColor}
+                backgroundColor={roleChipBg}
+                style={[styles.roleChip, { borderColor: roleChipBorder }]}
+                labelProps={{
+                  numberOfLines: 1,
+                  ellipsizeMode: 'tail',
+                  style: styles.roleChipText,
+                }}
               />
+              {isCurrentUser ? (
+                <View
+                  style={[
+                    styles.currentUserBadge,
+                    {
+                      backgroundColor: ColorUtils.withAlpha(palette.primary, isDark ? 0.14 : 0.08),
+                      borderColor: ColorUtils.withAlpha(palette.primary, isDark ? 0.26 : 0.16),
+                    },
+                  ]}
+                >
+                  <FancyText type='bold' numberOfLines={1} style={[styles.currentUserText, { color: palette.primary }]}>
+                    Você
+                  </FancyText>
+                </View>
+              ) : null}
             </View>
-          ) : hasPhoto ? (
+          }
+        />
+        {isLeaderMode ? (
+          <View style={styles.accessibilityLabel} accessible accessibilityLabel={a11yLabel} accessibilityHint={actionLabel}>
+            <FancyText>{''}</FancyText>
+          </View>
+        ) : null}
+      </Animated.View>
+
+      <FancyBottomSheetModal
+        visible={profileVisible}
+        onClose={() => setProfileVisible(false)}
+        title='Perfil do voluntário'
+      >
+        <View style={styles.profileSheet}>
+          <View style={styles.profileHeader}>
             <Image
-              source={{ uri: imageUri }}
-              style={styles.avatar}
-              contentFit='cover'
+              source={imageUri ? { uri: imageUri } : AppImages.emptyProfile}
+              style={styles.profileAvatar}
+              cachePolicy='memory-disk'
               transition={120}
             />
-          ) : (
-            <View style={[styles.avatar, { backgroundColor: avatarBg }]}>
-              <FancyText type='semiBold' style={[styles.initialsText, { color: avatarTextColor }]}>
-                {avatarInitials || '?'}
-              </FancyText>
+            <View style={styles.profileIdentity}>
+              <View style={styles.profileNameRow}>
+                <FancyText type='bold' size='medium' color={palette.fonts.dark} numberOfLines={2}>
+                  {voluntario?.nome || displayName}
+                </FancyText>
+                {isCurrentUser ? (
+                  <FancyChips
+                    label='Você'
+                    size='small'
+                    color={palette.primary}
+                    backgroundColor={ColorUtils.withAlpha(palette.primary, isDark ? 0.14 : 0.08)}
+                  />
+                ) : null}
+              </View>
+              <FancyChips
+                label={displayRole}
+                size='small'
+                color={roleTextColor}
+                backgroundColor={roleChipBg}
+                style={[styles.profileRoleChip, { borderColor: roleChipBorder }]}
+              />
             </View>
-          )}
+          </View>
 
-          {/* Badge de status: só quando != Confirmado */}
-          {!isOpenSlot && statusBadge ? (
-            <View
-              style={[
-                styles.statusBadge,
-                statusBadgePosition,
-                { backgroundColor: statusBadge.color },
-              ]}
-            >
-              <MaterialCommunityIcons name={statusBadge.icon} size={9} color='#FFFFFF' />
-            </View>
-          ) : null}
+          <View style={styles.profileInfoList}>
+            <ProfileInfoRow icon='check-circle-outline' label='Status na escala' value={statusLabel} palette={palette} />
+            <ProfileInfoRow icon='phone-outline' label='Telefone' value={voluntario?.telefone || 'Não informado'} palette={palette} />
+            <ProfileInfoRow icon='email-outline' label='Email' value={voluntario?.email || 'Não informado'} palette={palette} />
+          </View>
         </View>
-
-        {/* ── Bloco função + nome: centralizado verticalmente abaixo do avatar ── */}
-        <View style={styles.textBlock}>
-
-          {/* Chip de função — destaque principal */}
-          {isOpenSlot ? (
-            <View style={[styles.roleChip, { backgroundColor: ColorUtils.withAlpha(palette.borderCard, 0.3) }]}>
-              <FancyText type='semiBold' numberOfLines={2} style={[styles.roleChipText, { color: palette.fonts.inactive }]}>
-                Vaga aberta
-              </FancyText>
-            </View>
-          ) : (
-            <View style={[styles.roleChip, { backgroundColor: roleChipBg }]}>
-              <FancyText type='semiBold' numberOfLines={2} style={[styles.roleChipText, { color: roleTextColor }]}>
-                {displayRole}
-              </FancyText>
-            </View>
-          )}
-
-          {/* Nome — identificação secundária, ou "Você" para o usuário logado */}
-          {isCurrentUser ? (
-            <FancyText type='semiBold' style={styles.youText}>
-              Você
-            </FancyText>
-          ) : (
-            <FancyText
-              type='semiBold'
-              numberOfLines={2}
-              ellipsizeMode='tail'
-              style={[
-                styles.nameText,
-                { color: isOpenSlot ? palette.fonts.inactive2 : '#374151' },
-              ]}
-            >
-              {isOpenSlot ? 'Aguardando escala' : displayName}
-            </FancyText>
-          )}
-        </View>
-
-      </Pressable>
-    </Animated.View>
+      </FancyBottomSheetModal>
+    </>
   );
 }
 
-// ─── Estilos ─────────────────────────────────────────────────────────────────
+function AvatarWithStatus({
+  imageUri,
+  isOpenSlot,
+  statusBadge,
+  palette,
+  isDark,
+}: {
+  imageUri: string;
+  isOpenSlot: boolean;
+  statusBadge: StatusBadgeMeta | null;
+  palette: ReturnType<typeof usePallete>;
+  isDark: boolean;
+}) {
+  return (
+    <View style={styles.avatarWrap}>
+      {isOpenSlot ? (
+        <View
+          style={[
+            styles.avatarFallback,
+            {
+              backgroundColor: ColorUtils.withAlpha(palette.primary, isDark ? 0.28 : 0.16),
+            },
+          ]}
+        >
+          <MaterialCommunityIcons name='account-plus-outline' size={20} color={palette.primary} />
+        </View>
+      ) : (
+        <Image
+          source={imageUri ? { uri: imageUri } : AppImages.emptyProfile}
+          style={styles.avatarImage}
+          cachePolicy='memory-disk'
+          transition={120}
+        />
+      )}
+
+      {!isOpenSlot && statusBadge ? (
+        <View
+          style={[
+            styles.statusDot,
+            {
+              backgroundColor: statusBadge.color,
+              borderColor: palette.backgroundColor2,
+            },
+          ]}
+        >
+          <MaterialCommunityIcons name={statusBadge.icon} size={10} color={palette.fonts.light} />
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+function ProfileInfoRow({
+  icon,
+  label,
+  value,
+  palette,
+}: {
+  icon: keyof typeof MaterialCommunityIcons.glyphMap;
+  label: string;
+  value: string;
+  palette: ReturnType<typeof usePallete>;
+}) {
+  return (
+    <View style={styles.profileInfoRow}>
+      <MaterialCommunityIcons name={icon} size={17} color={palette.primary} />
+      <View style={styles.profileInfoText}>
+        <FancyText type='medium' size='extraSmall' color={palette.fonts.inactive}>
+          {label}
+        </FancyText>
+        <FancyText type='semiBold' size='small' color={palette.fonts.dark} numberOfLines={2}>
+          {value}
+        </FancyText>
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   cardWrap: {
-    flex: 1,
     width: '100%',
-    minHeight: 44,
   },
-  surface: {
-    flex: 1,
-    borderRadius: 16,
-    alignItems: 'center',
-    overflow: 'visible',
+  cardContainer: {
+    borderRadius: 28,
+    paddingVertical: 12,
+    marginBottom: 2,
   },
-  swapButton: {
-    position: 'absolute',
-    top: 6,
-    left: 6,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    alignItems: 'center',
+  cardContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+  },
+  cardCenter: {
+    gap: 2,
     justifyContent: 'center',
-    borderWidth: 1,
-    zIndex: 2,
+    paddingRight: 8,
   },
   avatarWrap: {
     width: AVATAR_SIZE,
     height: AVATAR_SIZE,
-    marginBottom: 8,
+    marginRight: 5,
     position: 'relative',
   },
-  avatar: {
+  avatarImage: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: AVATAR_SIZE / 2,
+  },
+  avatarFallback: {
     width: AVATAR_SIZE,
     height: AVATAR_SIZE,
     borderRadius: AVATAR_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
   },
-  avatarOpen: {
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-  },
-  initialsText: {
-    fontSize: 18,
-    lineHeight: 20,
-    includeFontPadding: false,
-    color: '#FFFFFF',
-  },
-  statusBadge: {
+  statusDot: {
     position: 'absolute',
-    width: BADGE_SIZE,
-    height: BADGE_SIZE,
-    borderRadius: BADGE_SIZE / 2,
-    alignItems: 'center',
-    justifyContent: 'center',
+    right: -3,
+    bottom: -3,
+    width: STATUS_DOT_SIZE,
+    height: STATUS_DOT_SIZE,
+    borderRadius: STATUS_DOT_SIZE / 2,
     borderWidth: 2,
-    borderColor: '#FFFFFF',
-    zIndex: 1,
-  },
-  // Bloco texto — chip ancorado no topo, nome imediatamente abaixo
-  // justifyContent:'flex-start' garante que o chip começa sempre na mesma
-  // coordenada Y em todos os cards da linha, independente da altura do card
-  textBlock: {
-    flex: 1,
-    width: '100%',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    paddingTop: 4,
-    gap: 5,
-  },
-  // Chip de função — cresce com o conteúdo, nunca trunca
-  roleChip: {
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 4,
-    minHeight: 22,
-    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  currentUserBadge: {
+    alignSelf: 'flex-start',
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  currentUserText: {
+    fontSize: 9.5,
+    lineHeight: 11,
+    includeFontPadding: false,
+    textTransform: 'uppercase',
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minWidth: 0,
+    marginTop: 3,
+    alignSelf: 'stretch',
+  },
+  roleChip: {
+    flexShrink: 1,
+    maxWidth: '100%',
   },
   roleChipText: {
     fontSize: 11,
-    lineHeight: 14,
+    lineHeight: 12.5,
     includeFontPadding: false,
-    textAlign: 'center',
   },
-  // Nome — identificação secundária, mais destaque que antes mas abaixo do chip
-  nameText: {
-    fontSize: 12,
-    lineHeight: 15,
-    includeFontPadding: false,
-    textAlign: 'center',
-    width: '100%',
+  accessibilityLabel: {
+    width: 0,
+    height: 0,
+    opacity: 0,
   },
-  // "Você" — substitui o nome para o usuário logado
-  youText: {
-    fontSize: 12,
-    lineHeight: 15,
-    includeFontPadding: false,
-    textAlign: 'center',
-    width: '100%',
-    color: '#3B82F6',
+  profileSheet: {
+    gap: 18,
+    paddingBottom: 4,
+  },
+  profileHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  profileAvatar: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+  },
+  profileIdentity: {
+    flex: 1,
+    gap: 8,
+    minWidth: 0,
+  },
+  profileNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    minWidth: 0,
+  },
+  profileRoleChip: {
+    alignSelf: 'flex-start',
+  },
+  profileInfoList: {
+    gap: 12,
+  },
+  profileInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+  },
+  profileInfoText: {
+    flex: 1,
+    gap: 2,
+    minWidth: 0,
   },
 });
 
 export default memo(EquipeMemberCard, (prev, next) =>
   prev.integrante.escalaItemId === next.integrante.escalaItemId &&
-  prev.integrante.status       === next.integrante.status &&
+  prev.integrante.status === next.integrante.status &&
   prev.integrante.voluntarioId === next.integrante.voluntarioId &&
-  prev.isCurrentUser           === next.isCurrentUser &&
-  prev.isLeaderMode            === next.isLeaderMode,
+  prev.integrante.nomeFuncao === next.integrante.nomeFuncao &&
+  prev.integrante.voluntario?.nome === next.integrante.voluntario?.nome &&
+  prev.integrante.voluntario?.email === next.integrante.voluntario?.email &&
+  prev.integrante.voluntario?.telefone === next.integrante.voluntario?.telefone &&
+  prev.integrante.voluntario?.fotoThumbUrl === next.integrante.voluntario?.fotoThumbUrl &&
+  prev.isCurrentUser === next.isCurrentUser &&
+  prev.isLeaderMode === next.isLeaderMode &&
+  prev.onRemover === next.onRemover,
 );

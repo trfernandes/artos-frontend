@@ -20,10 +20,16 @@ export type FancyCardLetterProps = {
   | 'content'
   | 'containerStyle'
   | 'contentContainerStyle'
+  | 'titleProps'
+  | 'subtitleProps'
   | 'isCollapsable'
   | 'centerContainerStyle'
   | 'backgroundColor'
   | 'onPress'
+  | 'onLongPress'
+  | 'delayLongPress'
+  | 'accessibilityRole'
+  | 'accessibilityLabel'
 >;
 
 export default function FancyCardLetter({ letter = 'A', ...props }: FancyCardLetterProps) {

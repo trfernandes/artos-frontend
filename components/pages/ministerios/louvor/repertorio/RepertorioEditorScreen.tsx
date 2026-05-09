@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigation } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { FancyAlert } from '../../../../modal/FancyAlert';
 import FancyBottomSheetSelect from '../../../../fields/FancyBottomSheetSelect';
@@ -27,16 +28,19 @@ import { usePallete } from '../../../../../hooks/usePallete';
 import { ColorUtils } from '../../../../../utils/color_utils';
 import YoutubeVersionSearchSheet from '../../../common/YoutubeVersionSearchSheet';
 import { ResponseYoutubeSearchItemDto } from '../../../../../domain/dtos/Repertorio/youtube-search-item.response';
+import FancyListEmpty from '../../../../list/FancyListEmpty';
 
 const TONS = ['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B'];
 
 type Props = {
   ministerioId?: string;
   musicaId?: string;
+  readOnly?: boolean;
   onSaved?: () => void;
 };
 
-export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp, musicaId, onSaved }: Props) {
+export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp, musicaId, readOnly = false, onSaved }: Props) {
+  const navigation = useNavigation<any>();
   const { igrejaAtiva } = useAuth();
   const palette = usePallete();
   const fallbackMinisterioId = igrejaAtiva?.ministerios?.find((ministerio) => ministerio.tipo === MinisterioTipoEnum.Louvor)?.id;
@@ -56,6 +60,13 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
       (item) => item.recurso === RecursoPermissaoEnum.RepertorioSetlist && item.permissoes?.includes(TipoPermissaoEnum.Gerenciar),
     );
   }, [ministerioAtual]);
+
+  const canEditRepertorio = canManageRepertorio && !readOnly;
+
+  useEffect(() => {
+    if (!readOnly) return;
+    navigation.setOptions({ title: 'Detalhes da Música' });
+  }, [navigation, readOnly]);
 
   const musicaQuery = useQuery({
     queryKey: ['repertorio-musica', igrejaAtiva?.id, ministerioId, musicaId],
@@ -102,7 +113,7 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
 
   const handleSave = async () => {
     if (!igrejaAtiva?.id || !ministerioId) return;
-    if (!canManageRepertorio) {
+    if (!canEditRepertorio) {
       FancyAlert.alert('Sem permissão', 'Você pode visualizar o repertório, mas não possui permissão para editar músicas.');
       return;
     }
@@ -149,6 +160,63 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
     }
   };
 
+  const renderSongTextReadOnly = (title: 'Letra' | 'Cifra', value: string) => {
+    const hasContent = value.trim().length > 0;
+    const isCifra = title === 'Cifra';
+    const metaItems = [
+      interprete.trim() || 'Sem intérprete',
+      bpmOriginal > 0 ? `${bpmOriginal} BPM` : null,
+      tomOriginal ? `Tom ${tomOriginal}` : null,
+    ].filter(Boolean);
+
+    return (
+      <FancyScrollView fill contentContainerStyle={styles.readOnlyTextContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.songReadHeader}>
+          <FancyText type='bold' size='largeMedium' color={palette.fonts.dark} numberOfLines={2}>
+            {nome.trim() || 'Música sem nome'}
+          </FancyText>
+          <View style={styles.songReadMetaRow}>
+            {metaItems.map((item) => (
+              <View
+                key={String(item)}
+                style={[
+                  styles.songReadMetaPill,
+                  {
+                    backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
+                    borderColor: ColorUtils.withAlpha(palette.primary, 0.12),
+                  },
+                ]}
+              >
+                <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive} numberOfLines={1}>
+                  {item}
+                </FancyText>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {hasContent ? (
+          <FancyText
+            selectable
+            size='small'
+            color={palette.fonts.dark}
+            style={[styles.readOnlyText, isCifra && styles.readOnlyChordText]}
+          >
+            {value.trim()}
+          </FancyText>
+        ) : (
+          <View style={styles.emptySongText}>
+            <FancyListEmpty
+              label={`Nenhuma ${title.toLowerCase()} cadastrada`}
+              helperText='Quando houver conteúdo, ele aparecerá aqui para consulta da equipe.'
+              icon={{ library: 'MaterialCommunityIcons', name: isCifra ? 'guitar-acoustic' : 'text-box-outline', size: 58 }}
+            />
+          </View>
+        )}
+      </FancyScrollView>
+    );
+  };
+
   const tabs: TabItem[] = [
     {
       title: 'Dados',
@@ -156,7 +224,7 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
       content: (
         <FancyScrollView fill contentContainerStyle={styles.formSection} showsVerticalScrollIndicator={false}>
 
-          {!bannerDismissed && (
+          {!readOnly && !bannerDismissed && (
             <View
               style={[
                 styles.introCard,
@@ -217,8 +285,8 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
             </View>
 
             <View style={styles.sectionBlock}>
-              <FancyTextInput label='Nome da música' value={nome} inputProps={{ onChangeText: setNome }} />
-              <FancyTextInput label='Intérprete' value={interprete} inputProps={{ onChangeText: setInterprete }} />
+              <FancyTextInput label='Nome da música' value={nome} disabled={!canEditRepertorio} inputProps={{ onChangeText: setNome }} />
+              <FancyTextInput label='Intérprete' value={interprete} disabled={!canEditRepertorio} inputProps={{ onChangeText: setInterprete }} />
 
               <View style={styles.fieldBlock}>
                 <View style={styles.fieldHeaderRow}>
@@ -227,17 +295,18 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
                       Categoria
                     </FancyText>
                   </View>
-                  <FancyButton
-                    label='Gerenciar'
-                    type='outlined'
-                    size={24}
-                    icon={{ library: 'MaterialCommunityIcons', name: 'tune-variant', size: 12 }}
-                    iconPosition='left'
-                    labelProps={{ size: 10 }}
-                    containerStyle={{ gap: 4, borderWidth: 1 }}
-                    onPress={() => setCategoriasVisible(true)}
-                    disabled={!canManageRepertorio}
-                  />
+                  {canEditRepertorio ? (
+                    <FancyButton
+                      label='Gerenciar'
+                      type='outlined'
+                      size={24}
+                      icon={{ library: 'MaterialCommunityIcons', name: 'tune-variant', size: 12 }}
+                      iconPosition='left'
+                      labelProps={{ size: 10 }}
+                      containerStyle={{ gap: 4, borderWidth: 1 }}
+                      onPress={() => setCategoriasVisible(true)}
+                    />
+                  ) : null}
                 </View>
                 <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive2} style={styles.fieldHelperText}>
                   Organize esta música no repertório.
@@ -248,23 +317,25 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
                   value={categoriaId}
                   onChange={(value) => setCategoriaId(String(value || ''))}
                   listItems={categoryOptions}
+                  disabled={!canEditRepertorio}
                 />
               </View>
 
               <FancyTextInput
                 label='Link da versão'
                 value={versaoUrl}
+                disabled={!canEditRepertorio}
                 inputProps={{ onChangeText: setVersaoUrl }}
                 rightContainer={
                   <View style={styles.versaoUrlIcons}>
                     <TouchableOpacity
-                      onPress={canManageRepertorio ? () => setYoutubeSearchVisible(true) : undefined}
+                      onPress={canEditRepertorio ? () => setYoutubeSearchVisible(true) : undefined}
                       style={styles.versaoUrlIconButton}
                     >
                       <MaterialCommunityIcons
                         name='youtube'
                         size={20}
-                        color={canManageRepertorio ? palette.primary : palette.icons.inactive2}
+                        color={canEditRepertorio ? palette.primary : palette.icons.inactive2}
                       />
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -313,7 +384,7 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
                   value={tomOriginal}
                   onChange={(value) => setTomOriginal(String(value || ''))}
                   listItems={toneOptions}
-                  disabled={!canManageRepertorio}
+                  disabled={!canEditRepertorio}
                 />
                 <FancyBpmField
                   containerStyle={{ flex: 1 }}
@@ -323,12 +394,13 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
                   onChange={setBpmOriginal}
                   min={0}
                   max={300}
-                  disabled={!canManageRepertorio}
+                  disabled={!canEditRepertorio}
                 />
               </View>
               <FancyTextInput
                 label='Observações'
                 value={observacoes}
+                disabled={!canEditRepertorio}
                 inputProps={{ onChangeText: setObservacoes, multiline: true, style: { minHeight: 100, textAlignVertical: 'top' } }}
               />
             </View>
@@ -339,20 +411,30 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
     {
       title: 'Letra',
       icon: { library: 'Entypo', name: 'text', size: 16 },
-      content: (
+      content: canEditRepertorio ? (
         <FancyScrollView fill contentContainerStyle={styles.markdownTabContent} showsVerticalScrollIndicator={false}>
-          <SongTextEditorField label='Letra' value={letraMarkdown} onChange={setLetraMarkdown} placeholder='Digite a letra da música...' />
+          <SongTextEditorField
+            label='Letra'
+            value={letraMarkdown}
+            onChange={setLetraMarkdown}
+            placeholder='Digite a letra da música...'
+          />
         </FancyScrollView>
-      ),
+      ) : renderSongTextReadOnly('Letra', letraMarkdown),
     },
     {
       title: 'Cifra',
       icon: { library: 'MaterialCommunityIcons', name: 'music-clef-treble', size: 18 },
-      content: (
+      content: canEditRepertorio ? (
         <FancyScrollView fill contentContainerStyle={styles.markdownTabContent} showsVerticalScrollIndicator={false}>
-          <SongTextEditorField label='Cifra' value={cifraMarkdown} onChange={setCifraMarkdown} placeholder='Digite a cifra da música...' />
+          <SongTextEditorField
+            label='Cifra'
+            value={cifraMarkdown}
+            onChange={setCifraMarkdown}
+            placeholder='Digite a cifra da música...'
+          />
         </FancyScrollView>
-      ),
+      ) : renderSongTextReadOnly('Cifra', cifraMarkdown),
     },
   ];
 
@@ -363,17 +445,22 @@ export default function RepertorioEditorScreen({ ministerioId: ministerioIdProp,
       <FancyTabs
         items={tabs}
       />
-      <FancyButton
-        label='Salvar'
-        icon={{ ...DefaultIconsNames.save, size: 16 }}
-        isLoading={isMutatingMusica}
-        containerStyle={styles.saveButton}
-        disabled={!canManageRepertorio}
-        onPress={() => {
-          void handleSave();
-        }}
-      />
-      <RepertorioCategoriasManagerSheet visible={categoriasVisible} onClose={() => setCategoriasVisible(false)} />
+      {canEditRepertorio ? (
+        <FancyButton
+          label='Salvar'
+          loadingText='Salvando...'
+          icon={{ ...DefaultIconsNames.save, size: 16 }}
+          isLoading={isMutatingMusica}
+          containerStyle={styles.saveButton}
+          disabled={!canEditRepertorio}
+          onPress={() => {
+            void handleSave();
+          }}
+        />
+      ) : null}
+      {canEditRepertorio ? (
+        <RepertorioCategoriasManagerSheet visible={categoriasVisible} onClose={() => setCategoriasVisible(false)} />
+      ) : null}
       <YoutubeVersionSearchSheet
         visible={youtubeSearchVisible}
         onClose={() => setYoutubeSearchVisible(false)}
@@ -388,6 +475,40 @@ const styles = StyleSheet.create({
   container: { flex: 1, paddingBottom: 16, gap: 12 },
   formSection: { gap: 14, paddingTop: 8, paddingBottom: 32 },
   markdownTabContent: { flexGrow: 1, paddingTop: 8, paddingBottom: 20 },
+  readOnlyTextContent: {
+    flexGrow: 1,
+    paddingTop: 8,
+    paddingBottom: 28,
+    gap: 16,
+  },
+  readOnlyText: {
+    lineHeight: 23,
+    paddingHorizontal: 2,
+  },
+  readOnlyChordText: {
+    fontFamily: 'monospace',
+    lineHeight: 22,
+  },
+  songReadHeader: {
+    gap: 8,
+    paddingBottom: 4,
+  },
+  songReadMetaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  songReadMetaPill: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+  },
+  emptySongText: {
+    flex: 1,
+    minHeight: 260,
+    justifyContent: 'center',
+  },
   introCard: {
     borderWidth: 1,
     borderRadius: 18,

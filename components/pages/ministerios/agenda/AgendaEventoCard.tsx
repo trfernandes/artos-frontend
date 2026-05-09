@@ -1,10 +1,10 @@
 import { Pressable, StyleSheet } from 'react-native';
-import { differenceInCalendarDays, format, startOfDay } from 'date-fns';
+import { differenceInCalendarDays, startOfDay } from 'date-fns';
 import { useMemo } from 'react';
 import { ResponseEventoOcorrenciaDto } from '../../../../domain/dtos/Evento/evento-ocorrencia.response.dto';
-import { DateUtilsApi } from '../../../../utils/date_utils';
+import { DateUtilsApi, formatAppDateTime } from '../../../../utils/date_utils';
 import { ColorUtils } from '../../../../utils/color_utils';
-import { Pallete } from '../../../../constants/colors';
+import { usePallete } from '../../../../hooks/usePallete';
 import EventoCardContent from '../../../cards/EventoCardContent';
 import { resolveEventoEnsaioInfo } from '../../../../utils/evento-ensaio';
 
@@ -15,14 +15,15 @@ type AgendaEventoCardProps = {
 };
 
 export default function AgendaEventoCard({ data, showEnsaio = false, onPress }: AgendaEventoCardProps) {
-  const eventColor = data.cor || Pallete.primary;
+  const palette = usePallete();
+  const eventColor = data.cor || palette.primary;
+  const isDark = palette.backgroundColor === '#121212';
 
   const timeRangeText = useMemo(() => {
     if (!data.evento?.dataInicio || !data.evento?.dataTermino) return 'Horario nao definido';
-    return `${format(DateUtilsApi.dateTimeFromApi(data.evento.dataInicio), 'HH:mm')} - ${format(
-      DateUtilsApi.dateTimeFromApi(data.evento.dataTermino),
-      'HH:mm',
-    )}`;
+    const inicio = formatAppDateTime(data.evento.dataInicio, 'HH:mm');
+    const termino = formatAppDateTime(data.evento.dataTermino, 'HH:mm');
+    return inicio && termino ? `${inicio} - ${termino}` : 'Horario nao definido';
   }, [data.evento?.dataInicio, data.evento?.dataTermino]);
 
   const countdownLabel = useMemo(() => {
@@ -46,11 +47,14 @@ export default function AgendaEventoCard({ data, showEnsaio = false, onPress }: 
     [data.horarioEnsaio, data.evento?.horarioEnsaioPadrao, showEnsaio],
   );
 
-  const cardBg = useMemo(() => ColorUtils.lightenColor(eventColor, 0.918), [eventColor]);
-  const borderColor = useMemo(() => ColorUtils.withAlpha(eventColor, 0.16), [eventColor]);
+  const cardBg = useMemo(
+    () => (isDark ? palette.backgroundColor4 : ColorUtils.lightenColor(eventColor, 0.918)),
+    [eventColor, isDark, palette.backgroundColor4],
+  );
+  const borderColor = useMemo(() => ColorUtils.withAlpha(eventColor, isDark ? 0.3 : 0.16), [eventColor, isDark]);
 
   return (
-    <Pressable onPress={onPress} style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
+    <Pressable onPress={onPress} style={[styles.card, { backgroundColor: cardBg, borderColor }, palette.shadows[100]]}>
       <EventoCardContent
         timeRangeText={timeRangeText}
         countdownLabel={countdownLabel}
@@ -69,6 +73,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 18,
     overflow: 'hidden',
-    ...Pallete.shadows[100],
   },
 });

@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useState } from 'react';
+import { useRef, useEffect, useCallback, useMemo, useState } from 'react';
 import {
   View,
   Modal,
@@ -7,10 +7,12 @@ import {
   Dimensions,
   PanResponder,
   Platform,
+  Pressable,
   ScrollView,
   Keyboard,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from '@react-native-community/blur';
 import { GestureHandlerRootView, TouchableOpacity } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FancyText from '../FancyText';
@@ -20,6 +22,7 @@ import { usePallete } from '../../hooks/usePallete';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const ANIMATION_DURATION = 180;
+const SHEET_TRANSLATE_Y = 32;
 
 type Props = {
   visible: boolean;
@@ -29,6 +32,7 @@ type Props = {
   footer?: React.ReactNode;
   avoidKeyboard?: boolean;
   keyboardExtraOffset?: number;
+  closeDisabled?: boolean;
 };
 
 export default function FancyBottomSheetModal({
@@ -39,11 +43,17 @@ export default function FancyBottomSheetModal({
   footer,
   avoidKeyboard = true,
   keyboardExtraOffset = 10,
+  closeDisabled = false,
 }: Props) {
   const palette = usePallete();
+  const isDark = palette.backgroundColor === '#121212';
+  // Backdrop com mais opacidade no Android pois o blur lá é menos efetivo
+  const reliableBackdropColor = isDark
+    ? ColorUtils.withAlpha('#000000', Platform.OS === 'ios' ? 0.50 : 0.65)
+    : ColorUtils.withAlpha('#020617', Platform.OS === 'ios' ? 0.40 : 0.55);
   const insets = useSafeAreaInsets();
   const backdropAnim = useRef(new Animated.Value(0)).current;
-  const sheetOpacity = useRef(new Animated.Value(0)).current;
+  const sheetTranslateY = useRef(new Animated.Value(SHEET_TRANSLATE_Y)).current;
   const dragY = useRef(new Animated.Value(0)).current;
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const keyboardOffset = avoidKeyboard && visible && keyboardHeight > 0
@@ -57,11 +67,11 @@ export default function FancyBottomSheetModal({
   useEffect(() => {
     if (visible) {
       backdropAnim.setValue(0);
-      sheetOpacity.setValue(0);
+      sheetTranslateY.setValue(SHEET_TRANSLATE_Y);
       dragY.setValue(0);
       Animated.parallel([
         Animated.timing(backdropAnim, { toValue: 1, duration: ANIMATION_DURATION, useNativeDriver: true }),
-        Animated.timing(sheetOpacity, { toValue: 1, duration: ANIMATION_DURATION, useNativeDriver: true }),
+        Animated.timing(sheetTranslateY, { toValue: 0, duration: ANIMATION_DURATION, useNativeDriver: true }),
       ]).start();
     }
   }, [visible]);
@@ -86,11 +96,13 @@ export default function FancyBottomSheetModal({
   }, [avoidKeyboard, visible]);
 
   const handleClose = useCallback(() => {
+    if (closeDisabled) return;
+
     Animated.parallel([
       Animated.timing(backdropAnim, { toValue: 0, duration: ANIMATION_DURATION, useNativeDriver: true }),
-      Animated.timing(sheetOpacity, { toValue: 0, duration: ANIMATION_DURATION, useNativeDriver: true }),
+      Animated.timing(sheetTranslateY, { toValue: SHEET_TRANSLATE_Y, duration: ANIMATION_DURATION, useNativeDriver: true }),
     ]).start(() => onClose());
-  }, [onClose]);
+  }, [backdropAnim, closeDisabled, onClose, sheetTranslateY]);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -104,22 +116,41 @@ export default function FancyBottomSheetModal({
     }),
   ).current;
 
-  return (
-    <Modal visible={visible} transparent animationType='none' onRequestClose={handleClose} statusBarTranslucent>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <View style={styles.container}>
+  const sheetContent = useMemo(() => (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={styles.container}>
           {/* Backdrop */}
-          <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={handleClose}>
-            <Animated.View style={[styles.backdrop, { opacity: backdropAnim }]} />
-          </TouchableOpacity>
+          <Animated.View
+            style={[StyleSheet.absoluteFillObject, { opacity: backdropAnim }]}
+            pointerEvents='none'
+          >
+            <BlurView
+              style={StyleSheet.absoluteFillObject}
+              blurType={isDark ? 'dark' : 'light'}
+              blurAmount={Platform.OS === 'ios' ? 10 : 8}
+              reducedTransparencyFallbackColor={isDark ? '#000000' : '#f8fafc'}
+            />
+            <View style={[StyleSheet.absoluteFillObject, { backgroundColor: reliableBackdropColor }]} />
+          </Animated.View>
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={handleClose}
+          />
 
           {/* Shadow gradient above sheet */}
           <Animated.View
-            style={[styles.topShadowWrap, { opacity: sheetOpacity, transform: [{ translateY: dragY }] }]}
+            style={[
+              styles.topShadowWrap,
+              {
+                opacity: backdropAnim,
+                transform: [{ translateY: Animated.add(sheetTranslateY, dragY) }],
+              },
+            ]}
             pointerEvents='none'
           >
             <LinearGradient
-              colors={['transparent', 'rgba(0,0,0,0.18)']}
+              colors={['transparent', 'rgba(0,0,0,0.18)', 'rgba(0,0,0,0.18)']}
+              locations={[0, 0.55, 1]}
               style={styles.topShadow}
             />
           </Animated.View>
@@ -132,9 +163,8 @@ export default function FancyBottomSheetModal({
                 maxHeight: sheetMaxHeight,
                 marginBottom: keyboardOffset,
                 paddingBottom: sheetBottomPadding,
-                opacity: sheetOpacity,
                 backgroundColor: palette.backgroundColor,
-                transform: [{ translateY: dragY }],
+                transform: [{ translateY: Animated.add(sheetTranslateY, dragY) }],
               },
             ]}
           >
@@ -148,6 +178,7 @@ export default function FancyBottomSheetModal({
               <TouchableOpacity
                 style={[styles.closeBtn, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14) }]}
                 onPress={handleClose}
+                disabled={closeDisabled}
               >
                 <DefaultIcons.Custom library='Feather' name='x' size={20} color={palette.fonts.dark} />
               </TouchableOpacity>
@@ -172,8 +203,30 @@ export default function FancyBottomSheetModal({
             {/* Footer */}
             {footer && <View style={styles.footer}>{footer}</View>}
           </Animated.View>
-        </View>
-      </GestureHandlerRootView>
+      </View>
+    </GestureHandlerRootView>
+  ), [
+    backdropAnim,
+    children,
+    closeDisabled,
+    dragY,
+    footer,
+    handleClose,
+    insets.bottom,
+    keyboardOffset,
+    isDark,
+    palette,
+    panResponder,
+    reliableBackdropColor,
+    sheetBottomPadding,
+    sheetMaxHeight,
+    sheetTranslateY,
+    title,
+  ]);
+
+  return (
+    <Modal visible={visible} transparent animationType='none' onRequestClose={handleClose} statusBarTranslucent>
+      {sheetContent}
     </Modal>
   );
 }
@@ -185,16 +238,16 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.35)',
   },
   topShadowWrap: {
-    marginBottom: -1,
-    zIndex: 1,
+    marginBottom: -28,
+    zIndex: 0,
   },
   topShadow: {
-    height: 28,
+    height: 56,
   },
   sheet: {
+    zIndex: 1,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     shadowColor: '#000',

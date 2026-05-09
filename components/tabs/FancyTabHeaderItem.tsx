@@ -85,6 +85,33 @@ export default function FancyTabHeaderItem({
         >
           {props.title}
         </FancyText>
+
+        {typeof props.badgeCount === 'number' && props.badgeCount > 0 ? (
+          <View
+            style={[
+              styles.badge,
+              {
+                backgroundColor: isActive
+                  ? palette.fonts.light
+                  : ColorUtils.withAlpha(palette.primary, 0.18),
+              },
+            ]}
+          >
+            <FancyText
+              type='bold'
+              size={9}
+              numberOfLines={1}
+              style={[
+                styles.badgeText,
+                {
+                  color: palette.primary,
+                },
+              ]}
+            >
+              {props.badgeCount > 99 ? '99+' : props.badgeCount}
+            </FancyText>
+          </View>
+        ) : null}
       </View>
     </Pressable>
   );
@@ -138,6 +165,20 @@ function createStyles(palette: ThemePalette) {
     titleCompact: {
       lineHeight: 12,
       paddingTop: 0,
+    },
+    badge: {
+      minWidth: 17,
+      height: 17,
+      borderRadius: 999,
+      paddingHorizontal: 3,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginLeft: 1,
+    },
+    badgeText: {
+      lineHeight: 11,
+      includeFontPadding: false,
+      textAlign: 'center',
     },
   });
 }

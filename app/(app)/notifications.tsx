@@ -1,39 +1,50 @@
 import { StyleSheet, View } from 'react-native';
 import FancyPageView from '../../components/containers/FancyPageView';
 import { ThemePalette } from '../../constants/colors';
-import { useCallback, useEffect, useMemo } from 'react';
-import { useFocusEffect, useNavigation } from 'expo-router';
-import FancyButton from '../../components/buttons/FancyButton';
-import { BOLD_FONT, EXTRA_SMALL_SIZE_FONT } from '../../constants/font';
+import { useCallback, useMemo, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
 import FancyTabs, { TabItem } from '../../components/tabs/FancyTabs';
 import { useNotificacoesCrud } from '../../hooks/useNotificacoesCrud';
 import NotificationsList from '../../components/pages/notifications/NotificationsList';
 import FancyLoading from '../../components/FancyLoading';
-import { usePallete } from '../../hooks/usePallete';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { ResponseNotificacaoDto } from '../../domain/dtos/Notificacao/notificacao.response';
-import { openNotification } from '../../services/notification-routing';
+import { emitNotificationEvent } from '../../core/events/notification-events';
 
 export default function NotificationsPage() {
-  const Pallete = usePallete();
   const styles = useThemedStyles(createStyles);
-  const { setOptions } = useNavigation();
+  const [dismissedUnreadCount, setDismissedUnreadCount] = useState<number | null>(null);
 
-  const { isLoading, isLoadingMutation, marcarComoLida, marcarTodasComoLidas, notificacoes, refetchNotificacoes, refetchQuantidadeNaoLidas } =
+  const { isLoading, marcarComoLida, marcarTodasComoLidas, notificacoes, refetchNotificacoes, refetchQuantidadeNaoLidas } =
     useNotificacoesCrud({
       enabled: true,
     });
 
+  const naoLidasData = useMemo(() => notificacoes?.filter((n) => !n.lidaEm || n.lidaEm === null) ?? [], [notificacoes]);
+  const unreadCount = naoLidasData.length;
+  const totalCount = notificacoes?.length ?? 0;
+  const shouldShowUnreadBanner = unreadCount > 0 && dismissedUnreadCount !== unreadCount;
+
   const handleMarcarTodasComoLidas = useCallback(() => {
+    setDismissedUnreadCount(unreadCount);
     void marcarTodasComoLidas();
-  }, [marcarTodasComoLidas]);
+  }, [marcarTodasComoLidas, unreadCount]);
 
   const handleOpenNotification = useCallback(
     (notification: ResponseNotificacaoDto) => {
       if (!notification.lidaEm) {
         void marcarComoLida(notification.id);
       }
-      openNotification(notification, 'inbox');
+      router.push({
+        pathname: '/(app)/notification-detail' as any,
+        params: {
+          notification: JSON.stringify(notification),
+        },
+      });
+      emitNotificationEvent('notification_opened', {
+        payload: notification,
+        source: 'inbox',
+      });
     },
     [marcarComoLida],
   );
@@ -54,55 +65,45 @@ export default function NotificationsPage() {
     }, [refetchNotificacoes, refetchQuantidadeNaoLidas]),
   );
 
-  useEffect(() => {
-    setOptions({
-      headerRight: () => (
-        <FancyButton
-          label='Marcar todas como lidas'
-          containerStyle={{ gap: 5, paddingRight: 8, marginTop: 8 }}
-          labelStyle={{
-            fontSize: EXTRA_SMALL_SIZE_FONT,
-            fontFamily: BOLD_FONT,
-            color: Pallete.fonts.dark,
-            opacity: 0.8,
-          }}
-          type='text'
-          iconPosition='left'
-          icon={{
-            library: 'MaterialIcons',
-            name: 'checklist-rtl',
-            size: 13,
-            color: Pallete.icons.dark,
-            style: { borderWidth: 0, lineHeight: 10, opacity: 0.8 },
-          }}
-          onPress={handleMarcarTodasComoLidas}
-        />
-      ),
-    });
-  }, [handleMarcarTodasComoLidas, setOptions]);
-
-  const naoLidasData = useMemo(() => notificacoes?.filter((n) => !n.lidaEm || n.lidaEm === null) ?? [], [notificacoes]);
-
   const TAB_ITEMS: TabItem[] = [
     {
       title: 'Não lidas',
+      badgeCount: unreadCount,
       icon: { library: 'MaterialCommunityIcons', name: 'email-outline', size: 14 },
-      content: <NotificationsList dataList={naoLidasData} onPress={handleOpenNotification} onMarkAsRead={handleMarkAsRead} />,
+      content: (
+        <View style={{ flex: 1 }}>
+          <NotificationsList
+            dataList={naoLidasData}
+            onPress={handleOpenNotification}
+            onMarkAsRead={handleMarkAsRead}
+            sectionHeaderAction={shouldShowUnreadBanner ? {
+              label: 'Marcar todas como lidas',
+              onPress: handleMarcarTodasComoLidas,
+            } : undefined}
+            listEmptyLabel='Você está em dia!'
+            listEmptyHelper='Nenhuma notificação não lida.'
+          />
+        </View>
+      ),
     },
     {
       title: 'Todas',
+      badgeCount: totalCount,
       icon: { library: 'MaterialCommunityIcons', name: 'bell-outline', size: 14 },
       content: (
         <View style={{ flex: 1 }}>
-          <NotificationsList dataList={notificacoes} onPress={handleOpenNotification} onMarkAsRead={handleMarkAsRead} />
+          <NotificationsList
+            dataList={notificacoes}
+            onPress={handleOpenNotification}
+            onMarkAsRead={handleMarkAsRead}
+            listEmptyLabel='Sem notificações por aqui.'
+          />
         </View>
       ),
     },
   ];
 
   if (isLoading) return <FancyLoading />;
-  if (isLoadingMutation) return <FancyLoading label='Processando...' />;
-
   return (
     <FancyPageView style={styles.container}>
       <FancyTabs

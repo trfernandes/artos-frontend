@@ -4,6 +4,7 @@ import { ResponseEscalaItemDto } from '../dtos/Escala/escala-item.response';
 import { ResponseEventoOcorrenciaDto } from '../dtos/Evento/evento-ocorrencia.response.dto';
 import { ResponseLoginMinisterioDto } from '../dtos/login/login.response';
 import { EscalaItemStatusEnum } from '../enums/Escala/escala-item-status.enum';
+import { EscalaStatusEnum } from '../enums/Escala/escala-status.enum';
 import { IgrejaVoluntarioRoleEnum } from '../enums/Igreja/voluntario-role.enum';
 import { MinisterioFuncaoStatusEnum } from '../enums/MinisterioFuncao/ministerio-funcao-status.enum';
 import { MinisterioStatusEnum } from '../enums/Ministerio/ministerio-status.enum';
@@ -14,6 +15,7 @@ import { IgrejaEventosRepository } from './IgrejaEventosRepository';
 import { IgrejaMinisteriosRepository } from './IgrejaMinisteriosRepository';
 import { IgrejaRepository } from './IgrejaRepository';
 import { Conjunction, DynamicQuery, Operator, OrderDirection, ValueType } from '../utils/query_utils';
+import { getOccurrenceDateTimeIso } from '../../utils/evento-datetime';
 
 export interface GetDashboardParams {
   igrejaId: string;
@@ -79,11 +81,12 @@ function getMinisterioIdFromEscalaItem(item: ResponseEscalaItemDto): string | un
 
 function mapEscalaItemToDashboard(item: ResponseEscalaItemDto) {
   const ministerioId = getMinisterioIdFromEscalaItem(item);
+  const eventoData = getEscalaItemOccurrenceDateTimeIso(item);
   return {
     id: item.id,
     eventoId: item.eventoId,
     eventoNome: item.evento?.nome || 'Evento',
-    eventoData: item.dataOcorrencia,
+    eventoData,
     funcaoNome: item.funcao?.nome || 'Sem função',
     ministerioId,
     ministerioNome: item.voluntario?.ministerio?.nome || item.funcao?.ministerio?.nome || 'Ministério',
@@ -93,6 +96,13 @@ function mapEscalaItemToDashboard(item: ResponseEscalaItemDto) {
     eventoCor: item.evento?.cor,
     horarioEnsaio: item.horarioEnsaio ?? item.evento?.horarioEnsaioPadrao,
     isConfirmado: item.status === EscalaItemStatusEnum.Confirmado,
+    evento: item.evento ? {
+      nome: item.evento.nome,
+      horarioEnsaioPadrao: item.evento.horarioEnsaioPadrao,
+      local: item.evento.local,
+      descricao: item.evento.descricao,
+      cor: item.evento.cor,
+    } : undefined,
   };
 }
 
@@ -139,7 +149,7 @@ function buildUserEscalasQuery(
       conditions,
     },
     orderBy: [{ path: 'dataOcorrencia', direction: OrderDirection.ASC }],
-    relations: ['evento', 'funcao', 'funcao.ministerio', 'voluntario', 'voluntario.ministerio'],
+    relations: ['escala', 'evento', 'funcao', 'funcao.ministerio', 'voluntario', 'voluntario.ministerio'],
   };
 }
 
@@ -190,6 +200,14 @@ function aggregateEscalas(escalas: ResponseEscalaItemDto[]) {
   }
 
   return { statsByOccurrence, statsByMinisterio };
+}
+
+function isPublishedEscalaItem(item: ResponseEscalaItemDto): boolean {
+  return !item.escala || item.escala.status === EscalaStatusEnum.Publicada;
+}
+
+function getEscalaItemOccurrenceDateTimeIso(item: ResponseEscalaItemDto): string {
+  return getOccurrenceDateTimeIso(item.dataOcorrencia, item.evento?.dataInicio);
 }
 
 function buildEventCards(
@@ -251,9 +269,13 @@ function buildEventCards(
         id: ocorrencia.eventoId || ocorrencia.id,
         occurrenceKey,
         nome: ocorrencia.nome,
-        dataInicio: ocorrencia.dataOcorrencia,
+        dataInicio: getOccurrenceDateTimeIso(ocorrencia.dataOcorrencia, ocorrencia.evento?.dataInicio),
         local: ocorrencia.local,
         cor: ocorrencia.cor || '#3498db',
+        horarioEnsaio: ocorrencia.horarioEnsaio,
+        evento: {
+          horarioEnsaioPadrao: ocorrencia.evento?.horarioEnsaioPadrao,
+        },
         totalEscalados,
         totalConfirmados,
         totalFuncoes,
@@ -339,7 +361,7 @@ export class DashboardRepository {
       ? safe(IgrejaRepository.listarVoluntarios(igrejaId), [])
       : Promise.resolve([] as any[]);
 
-    const [userEscalas, churchEscalas, ocorrencias, ministerios, solicitacoes, voluntariosIgreja] = await Promise.all([
+    const [rawUserEscalas, rawChurchEscalas, ocorrencias, ministerios, solicitacoes, voluntariosIgreja] = await Promise.all([
       userEscalasPromise,
       churchEscalasPromise,
       ocorrenciasPromise,
@@ -347,6 +369,8 @@ export class DashboardRepository {
       solicitacoesPromise,
       voluntariosPromise,
     ]);
+    const userEscalas = rawUserEscalas.filter(isPublishedEscalaItem);
+    const churchEscalas = rawChurchEscalas.filter(isPublishedEscalaItem);
 
     const monthEscalas = userEscalas.filter((item) => {
       const date = toDateOrNull(item.dataOcorrencia);
@@ -355,12 +379,12 @@ export class DashboardRepository {
 
     const proximasEscalas = userEscalas
       .filter((item) => {
-        const date = toDateOrNull(item.dataOcorrencia);
+        const date = toDateOrNull(getEscalaItemOccurrenceDateTimeIso(item));
         return date ? isAfter(date, now) || date.getTime() === now.getTime() : false;
       })
       .sort((a, b) => {
-        const da = toDateOrNull(a.dataOcorrencia)?.getTime() || 0;
-        const db = toDateOrNull(b.dataOcorrencia)?.getTime() || 0;
+        const da = toDateOrNull(getEscalaItemOccurrenceDateTimeIso(a))?.getTime() || 0;
+        const db = toDateOrNull(getEscalaItemOccurrenceDateTimeIso(b))?.getTime() || 0;
         return da - db;
       })
       .slice(0, UPCOMING_LIMIT)

@@ -256,10 +256,10 @@ export default function EscalaInsightsView({
   const currentInsights = useMemo(() => buildCurrentEscalaInsights(escala.itens ?? []), [escala.itens]);
 
   const historyPeriodStart = useMemo(
-    () => startOfMonth(subMonths(new Date(escala.dataTermino), HISTORY_MONTHS_WINDOW - 1)),
+    () => startOfMonth(subMonths(DateUtilsApi.dateOnlyFromApi(escala.dataTermino), HISTORY_MONTHS_WINDOW - 1)),
     [escala.dataTermino],
   );
-  const historyPeriodEnd = useMemo(() => endOfMonth(new Date(escala.dataTermino)), [escala.dataTermino]);
+  const historyPeriodEnd = useMemo(() => endOfMonth(DateUtilsApi.dateOnlyFromApi(escala.dataTermino)), [escala.dataTermino]);
   const historyPeriodLabel = useMemo(() => formatMonthRange(historyPeriodStart, historyPeriodEnd), [historyPeriodStart, historyPeriodEnd]);
 
   const historyQuery = useQuery<ResponseEscalaDto[]>({
@@ -321,7 +321,7 @@ export default function EscalaInsightsView({
     currentInsights.cargaMediaAtual <= 0 ||
     currentInsights.maiorCarga.qtdAtual <= currentInsights.cargaMediaAtual * 1.8;
   const distributionChipColor = isBalanced ? palette.confirm : palette.warning;
-  const accordionHeaderColor = ColorUtils.withAlpha(palette.primary, 0.05);
+  const accordionHeaderColor = palette.backgroundColor2;
 
   const renderTitle = (text: string) => (
     <View style={styles.sectionTitle}>
@@ -391,7 +391,7 @@ export default function EscalaInsightsView({
             </View>
             <View style={styles.cardRow}>
               <CardWithInfo infoLabel='Explicar percentual preenchido' onInfoPress={(anchor) => openInfo('kpi_percentual', anchor)}>
-                <DashboardCard title='% preenchimento' value={`${formatOneDecimal(currentInsights.percentualPreenchimento)}%`} icon={{ library: 'MaterialCommunityIcons', name: 'chart-donut', size: 12, color: palette.secondary }} surfaceVariant='infoBlue' />
+                <DashboardCard title='% preenchimento' value={`${Math.round(currentInsights.percentualPreenchimento)}%`} icon={{ library: 'MaterialCommunityIcons', name: 'chart-donut', size: 12, color: palette.secondary }} surfaceVariant='infoBlue' />
               </CardWithInfo>
               <CardWithInfo infoLabel='Explicar funções sem voluntário' onInfoPress={(anchor) => openInfo('kpi_funcoes_vagas', anchor)}>
                 <DashboardCard title='Funções sem voluntário' value={formatCount(currentInsights.funcoesSemVoluntario)} icon={{ library: 'MaterialCommunityIcons', name: 'alert-circle-outline', size: 12, color: palette.warning }} surfaceVariant='infoBlue' />
@@ -419,18 +419,6 @@ export default function EscalaInsightsView({
               </FancyText>
             ) : (
               <View style={styles.tableWrapper}>
-                <View style={styles.tableHeaderRow}>
-                  <FancyText size='extraSmall' type='bold' style={[styles.cellBase, styles.cellName]}>
-                    Pessoa
-                  </FancyText>
-                  <View style={[styles.cellBase, styles.cellCenter, styles.tableHeaderCell]}>
-                    <FancyText size='extraSmall' type='bold'>Atual</FancyText>
-                  </View>
-                  <View style={[styles.cellBase, styles.cellCenter, styles.tableHeaderCell]}>
-                    <FancyText size='extraSmall' type='bold'>Média/mês</FancyText>
-                  </View>
-                </View>
-
                 <View>
                   {topRanking.map((row, index) => {
                     const mediaPessoa = historicalInsights.mediaEscalasMesPorPessoa[row.voluntarioId] ?? 0;
@@ -539,23 +527,23 @@ function createStyles(palette: ThemePalette) {
     scrollContent: { gap: 10, paddingTop: 2, paddingBottom: 6 },
     accordeonContainer: {
       borderWidth: 1,
-      borderColor: ColorUtils.withAlpha(palette.primary, 0.24),
+      borderColor: palette.borderCard,
       borderRadius: 12,
-      backgroundColor: palette.backgroundColor4,
+      backgroundColor: palette.backgroundColor2,
       overflow: 'hidden',
     },
     accordeonContainerExpanded: {
       borderWidth: 1,
-      borderColor: ColorUtils.withAlpha(palette.primary, 0.24),
+      borderColor: palette.borderCard,
       borderRadius: 12,
       backgroundColor: palette.backgroundColor4,
       overflow: 'hidden',
     },
-    accordeonHeader: { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.05) },
+    accordeonHeader: { backgroundColor: palette.backgroundColor2 },
     accordeonHeaderExpanded: {
-      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.05),
+      backgroundColor: palette.backgroundColor2,
       borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: ColorUtils.withAlpha(palette.primary, 0.22),
+      borderBottomColor: palette.borderCard,
     },
     sectionTitle: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 },
     accordeonContent: {
@@ -580,17 +568,16 @@ function createStyles(palette: ThemePalette) {
     },
     infoButtonPressed: { opacity: 0.72 },
     tableWrapper: {
-      borderWidth: 1,
-      borderColor: ColorUtils.withAlpha(palette.primary, 0.22),
-      borderRadius: 10,
+      borderWidth: 0,
+      borderRadius: 0,
       overflow: 'hidden',
-      backgroundColor: palette.backgroundColor,
+      backgroundColor: 'transparent',
     },
     tableHeaderRow: {
       flexDirection: 'row',
       paddingHorizontal: 10,
       paddingVertical: 8,
-      backgroundColor: palette.backgroundColor2,
+      backgroundColor: 'transparent',
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: ColorUtils.withAlpha(palette.borderCard, 0.9),
       gap: 6,

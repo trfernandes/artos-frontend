@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
@@ -9,6 +9,8 @@ import ControlledDateInput from '../../../forms/ControlledDateInput';
 import { differenceInDays } from 'date-fns';
 import { FancyAlert } from '../../../modal/FancyAlert';
 import FancyText from '../../../FancyText';
+import FancyButton from '../../../buttons/FancyButton';
+import { usePallete } from '../../../../hooks/usePallete';
 
 const schema = z
   .object({
@@ -37,6 +39,7 @@ export type AddPeriodoModalProps = {
 };
 
 export default function AddPeriodoModal({ visible, modalProps, onConfirm }: AddPeriodoModalProps) {
+  const palette = usePallete();
   const { control, handleSubmit, setValue, trigger } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -60,6 +63,30 @@ export default function AddPeriodoModal({ visible, modalProps, onConfirm }: AddP
 
   const currentDate = new Date();
   const maxDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 4, 0);
+
+  const applyShortcut = (type: 'weekend' | 'sevenDays' | 'restOfMonth') => {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+
+    if (type === 'weekend') {
+      const daysUntilSaturday = (6 - start.getDay() + 7) % 7;
+      start.setDate(start.getDate() + daysUntilSaturday);
+      end.setTime(start.getTime());
+      end.setDate(start.getDate() + 1);
+    }
+
+    if (type === 'sevenDays') {
+      end.setDate(start.getDate() + 6);
+    }
+
+    if (type === 'restOfMonth') {
+      end.setFullYear(start.getFullYear(), start.getMonth() + 1, 0);
+    }
+
+    setValue('dataInicio', start, { shouldValidate: true, shouldDirty: true });
+    setValue('dataTermino', end, { shouldValidate: true, shouldDirty: true });
+  };
 
   return (
     <FancyModalDialog
@@ -107,6 +134,40 @@ export default function AddPeriodoModal({ visible, modalProps, onConfirm }: AddP
       }}
     >
       <View style={{ gap: 16 }}>
+        <View style={styles.shortcuts}>
+          <FancyText size='extraSmall' type='bold' color={palette.fonts.inactive}>
+            Atalhos rápidos
+          </FancyText>
+          <View style={styles.shortcutRow}>
+            <FancyButton
+              label='Fim de semana'
+              type='light'
+              size={{ w: 0, h: 34 }}
+              onPress={() => applyShortcut('weekend')}
+              containerStyle={styles.shortcutButton}
+              labelProps={{ size: 'extraSmall' }}
+              icon={{ library: 'MaterialCommunityIcons', name: 'calendar-weekend', size: 15 }}
+            />
+            <FancyButton
+              label='7 dias'
+              type='light'
+              size={{ w: 0, h: 34 }}
+              onPress={() => applyShortcut('sevenDays')}
+              containerStyle={styles.shortcutButton}
+              labelProps={{ size: 'extraSmall' }}
+              icon={{ library: 'MaterialCommunityIcons', name: 'calendar-range', size: 15 }}
+            />
+            <FancyButton
+              label='Mês'
+              type='light'
+              size={{ w: 0, h: 34 }}
+              onPress={() => applyShortcut('restOfMonth')}
+              containerStyle={styles.shortcutButton}
+              labelProps={{ size: 'extraSmall' }}
+              icon={{ library: 'MaterialCommunityIcons', name: 'calendar-end', size: 15 }}
+            />
+          </View>
+        </View>
         <ControlledDateInput
           control={control}
           name='dataInicio'
@@ -134,3 +195,17 @@ export default function AddPeriodoModal({ visible, modalProps, onConfirm }: AddP
     </FancyModalDialog>
   );
 }
+
+const styles = StyleSheet.create({
+  shortcuts: {
+    gap: 8,
+  },
+  shortcutRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  shortcutButton: {
+    flex: 1,
+    paddingHorizontal: 6,
+  },
+});

@@ -30,7 +30,7 @@ export default function FancyChips({
   const Pallete = usePallete();
   const resolvedColor = color ?? Pallete.primary;
   const sizes = {
-    small: { font: EXTRA_SMALL_SIZE_FONT, padV: 3, padH: 8, icon: 12 },
+    small: { font: EXTRA_SMALL_SIZE_FONT - 1, padV: 2, padH: 7, icon: 11 },
     medium: { font: SMALL_SIZE_FONT, padV: 5, padH: 10, icon: 14 },
     large: { font: MEDIUM_SIZE_FONT, padV: 7, padH: 14, icon: 16 },
   }[size];
@@ -73,6 +73,8 @@ export default function FancyChips({
             color: baseTextColor,
             fontSize: sizes.font,
             fontFamily: BOLD_FONT,
+            lineHeight: sizes.font + 3,
+            includeFontPadding: false,
           },
           labelProps?.style,
         ]}
@@ -89,5 +91,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'flex-start',
     borderRadius: 20,
+    minHeight: 20,
   },
 });

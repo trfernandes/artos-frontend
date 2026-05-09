@@ -42,6 +42,7 @@ interface AuthContextData {
   user: ResponseLoginDto | null;
   token: string | null;
   loading: boolean;
+  isSigningOut: boolean;
   hasAuthenticatedBefore: boolean;
   igrejaAtiva: ResponseLoginIgrejaDto | null;
   setIgrejaAtiva: (igreja: ResponseLoginIgrejaDto) => Promise<void>;
@@ -67,6 +68,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<ResponseLoginDto | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const [hasAuthenticatedBefore, setHasAuthenticatedBefore] = useState(false);
   const [igrejaAtiva, setIgrejaAtivaState] = useState<ResponseLoginIgrejaDto | null>(null);
 
@@ -223,9 +225,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signOut = async (reason: SignOutReason = 'manual') => {
     if (isSigningOutRef.current) return;
     isSigningOutRef.current = true;
+    setIsSigningOut(true);
 
     try {
-      // Remover push token do backend antes de limpar a sessão
       await deregisterPushToken().catch(() => {});
 
       setToken(null);
@@ -239,15 +241,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await AsyncStorage.removeItem(IGREJA_ATIVA_KEY);
 
       queryClient.clear();
-
-      router.replace('/(auth)');
-
-      // se quiser avisar:
-      // if (reason === 'expired') {
-      //   Toast.show({ type: 'info', text1: 'Sessão expirada. Faça login novamente.' });
-      // }
+      // useProtectedRoute is the single source of truth for navigation after sign-out
     } finally {
       isSigningOutRef.current = false;
+      setIsSigningOut(false);
     }
   };
 
@@ -347,6 +344,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       user,
       token,
       loading,
+      isSigningOut,
       hasAuthenticatedBefore,
       igrejaAtiva,
       setIgrejaAtiva,
@@ -359,7 +357,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       changePassword,
       deleteAccount,
     }),
-    [user, token, loading, hasAuthenticatedBefore, igrejaAtiva],
+    [user, token, loading, isSigningOut, hasAuthenticatedBefore, igrejaAtiva],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

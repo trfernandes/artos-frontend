@@ -1,6 +1,6 @@
 import { FormProvider, useFieldArray, useForm, useFormContext } from 'react-hook-form';
 import ControlledSearchSelect from '../../../forms/ControlledSearchSelect';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import {
   MinVoluntarioFormData,
@@ -118,7 +118,7 @@ export default function IntegranteFormFields({
   }, [fieldsFuncao]);
 
   return (
-    <View style={{ flex: 1, gap: 20 }}>
+    <View style={styles.root}>
       {mode === 'add' ? (
         <ControlledSearchSelect
           control={control}
@@ -128,23 +128,23 @@ export default function IntegranteFormFields({
           searchPlaceholder='Buscar voluntário...'
         />
       ) : (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
+        <View style={styles.profileHeader}>
           <FancyImage
             source={
               getValues('voluntarioFoto')
                 ? { uri: getValues('voluntarioFoto') }
                 : AppImages.emptyProfile
             }
-            size={50}
+            size={46}
           />
-          <View style={{ gap: 2, flex: 1, minWidth: 0 }}>
-            <FancyText size='largeMedium' type='bold' style={{ opacity: 0.8 }}>
+          <View style={styles.profileText}>
+            <FancyText size='medium' type='bold' style={styles.profileName} numberOfLines={2}>
               {getValues('voluntarioNome')}
             </FancyText>
             <FancyText
               size='small'
               type='medium'
-              style={{ opacity: 0.8 }}
+              style={styles.profileEmail}
               numberOfLines={1}
               ellipsizeMode='middle'
             >
@@ -153,7 +153,7 @@ export default function IntegranteFormFields({
             {getValues('voluntarioStatus') && (
               <FancyChips
                 size='small'
-                style={{ marginTop: 3 }}
+                style={styles.statusChip}
                 label={
                   MinisterioVoluntarioStatusEnumLabel[
                     MinisterioVoluntarioStatusEnumMap[getValues('voluntarioStatus')!]
@@ -173,7 +173,7 @@ export default function IntegranteFormFields({
 
       <FancyContainerList
         title='Funções'
-        contentContainerStyle={{ paddingTop: 10 }}
+        contentContainerStyle={styles.funcoesContent}
         buttons={[
           {
             icon: { ...DefaultIconsNames.add, size: 19 },
@@ -191,6 +191,9 @@ export default function IntegranteFormFields({
             props={{
               title: item.nome,
               subtitle: EscalaTemplateExperienciaLabel[item.experiencia!],
+              containerStyle: styles.funcaoCard,
+              contentContainerStyle: styles.funcaoCardContent,
+              centerContainerStyle: styles.funcaoCardCenter,
               cardIcon: {
                 library: 'FontAwesome6',
                 name: 'person-rays',
@@ -233,3 +236,45 @@ export default function IntegranteFormFields({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    gap: 14,
+  },
+  profileHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  profileText: {
+    gap: 2,
+    flex: 1,
+    minWidth: 0,
+  },
+  profileName: {
+    opacity: 0.86,
+    lineHeight: 19,
+  },
+  profileEmail: {
+    opacity: 0.8,
+  },
+  statusChip: {
+    marginTop: 2,
+    alignSelf: 'flex-start',
+  },
+  funcoesContent: {
+    paddingTop: 6,
+    gap: 8,
+  },
+  funcaoCard: {
+    borderRadius: 22,
+    paddingVertical: 8,
+  },
+  funcaoCardContent: {
+    paddingVertical: 2,
+  },
+  funcaoCardCenter: {
+    gap: 1,
+  },
+});

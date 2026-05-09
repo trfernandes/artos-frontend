@@ -1,0 +1,144 @@
+import { Pressable, StyleSheet, View } from 'react-native';
+import FancyCardIcon from '../../cards/Horizontal/FancyCardIcon';
+import FancyText from '../../FancyText';
+import { formatInTimeZone } from 'date-fns-tz';
+import { DefaultIconsNames } from '../../../constants/icons';
+import { ResponseNotificacaoDto } from '../../../domain/dtos/Notificacao/notificacao.response';
+import DateUtils from '../../../utils/date_utils';
+import { usePallete } from '../../../hooks/usePallete';
+
+export default function EscalaLembreteNotificacaoCard({
+  data,
+  onPress,
+}: {
+  data: ResponseNotificacaoDto;
+  onPress?: (notification: ResponseNotificacaoDto) => void;
+}) {
+  const Pallete = usePallete();
+
+  const createdAt = data.criadaEm || data.createdAt;
+  const timeLabel = createdAt ? DateUtils.timeAgoText(new Date(createdAt)) : '';
+
+  const payload = data.data ?? {};
+  const hasOccurrence = typeof payload.dataOcorrencia === 'string' && payload.dataOcorrencia.length > 0;
+  const occurrenceLabel = hasOccurrence
+    ? formatInTimeZone(payload.dataOcorrencia, 'America/Sao_Paulo', "dd/MM 'às' HH:mm")
+    : null;
+
+  const title = data.titulo?.trim() ? data.titulo : 'Lembrete de Escala';
+
+  // Linha 1 do subtítulo: nome do evento
+  const line1 = payload.eventoNome ?? data.mensagem ?? null;
+
+  // Linha 2: função + horário (mais denso, secundário)
+  const line2Parts = [
+    payload.funcaoNome ?? null,
+    occurrenceLabel ?? null,
+    payload.horarioEnsaio ? `Ensaio: ${payload.horarioEnsaio}` : null,
+  ].filter(Boolean);
+  const line2 = line2Parts.length > 0 ? line2Parts.join(' • ') : null;
+
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.pressable, pressed && styles.pressed]}
+      onPress={() => onPress?.(data)}
+      disabled={!onPress}
+      accessibilityRole={onPress ? 'button' : undefined}
+    >
+      <FancyCardIcon
+        cardIcon={{ library: 'MaterialCommunityIcons', name: 'message-text-clock-outline', size: 14 }}
+        title={
+          // Título + tempo na mesma linha — padrão inbox
+          <View style={styles.titleRow}>
+            <FancyText
+              size='small'
+              type='semiBold'
+              numberOfLines={1}
+              style={[styles.titleText, { color: Pallete.fonts.dark }]}
+            >
+              {title}
+            </FancyText>
+            <FancyText
+              size='extraSmall'
+              type='regular'
+              numberOfLines={1}
+              style={[styles.timeText, { color: Pallete.fonts.inactive }]}
+            >
+              {timeLabel}
+            </FancyText>
+          </View>
+        }
+        subtitle={
+          line1 || line2 ? (
+            <View style={styles.metaBlock}>
+              {line1 ? (
+                <FancyText
+                  type='medium'
+                  size='extraSmall'
+                  numberOfLines={1}
+                  style={[styles.metaLine1, { color: Pallete.fonts.inactive }]}
+                >
+                  {line1}
+                </FancyText>
+              ) : null}
+              {line2 ? (
+                <FancyText
+                  type='regular'
+                  size='extraSmall'
+                  numberOfLines={1}
+                  style={[styles.metaLine2, { color: Pallete.fonts.inactive }]}
+                >
+                  {line2}
+                </FancyText>
+              ) : null}
+            </View>
+          ) : null
+        }
+        actionButtons={[
+          {
+            icon: {
+              ...DefaultIconsNames['chevron-right'],
+              size: 18,
+              color: Pallete.fonts.inactive,
+              backgroundColor: 'transparent',
+            },
+            size: 'small',
+          },
+        ]}
+      />
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  pressable: {
+    borderRadius: 24,
+  },
+  pressed: {
+    opacity: 0.85,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
+  },
+  titleText: {
+    flex: 1,
+    opacity: 0.9,
+  },
+  timeText: {
+    flexShrink: 0,
+    opacity: 0.5,
+  },
+  metaBlock: {
+    gap: 2,
+  },
+  metaLine1: {
+    lineHeight: 18,
+    opacity: 0.65,
+  },
+  metaLine2: {
+    lineHeight: 18,
+    opacity: 0.45,
+  },
+});

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import Toast from 'react-native-toast-message';
@@ -195,11 +195,6 @@ export default function EventoSetlistEditorSheet({
                 listItems={repertorioOptions}
                 disabled={!isEditingEnabled || !!item?.id}
               />
-              {!isEditingEnabled && isSaving ? (
-                <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
-                  Aguarde, salvando…
-                </FancyText>
-              ) : null}
             </>
           ) : null}
         </View>
@@ -342,15 +337,20 @@ export default function EventoSetlistEditorSheet({
   return (
     <>
       <FancyBottomSheetModal
-        visible={visible}
-        onClose={onClose}
+        visible={visible && !youtubeSearchVisible}
+        onClose={() => {
+          if (!isSaving) onClose();
+        }}
         title={item ? 'Editar música' : 'Adicionar música'}
+        closeDisabled={isSaving}
         footer={
           canEdit ? (
             <FancyButton
               label='Salvar'
               icon={{ ...DefaultIconsNames.save, size: 16 }}
               isLoading={isSaving}
+              loadingText='Salvando...'
+              disabled={isSaving}
               onPress={() => {
                 void handleSave();
               }}
@@ -358,16 +358,25 @@ export default function EventoSetlistEditorSheet({
           ) : undefined
         }
       >
-        <View style={styles.sheetContent}>
-          <FancyText size='small' color={palette.fonts.inactive} style={styles.sheetSubtitle}>
-            Organize os dados principais da música e ajuste letra ou cifra por ocorrência quando necessário.
-          </FancyText>
+        <View style={styles.sheetContentWrapper}>
+          <View style={styles.sheetContent}>
+            <FancyText size='small' color={palette.fonts.inactive} style={styles.sheetSubtitle}>
+              Organize os dados principais da música e ajuste letra ou cifra por ocorrência quando necessário.
+            </FancyText>
 
-          <FancyTabs
-            items={tabs}
-            keepMounted
-            variant='compact'
-          />
+            <FancyTabs
+              items={tabs}
+              keepMounted
+              variant='compact'
+            />
+          </View>
+          {isSaving ? (
+            <Pressable
+              accessibilityLabel='Salvamento em andamento'
+              style={styles.sheetBlockingOverlay}
+              onPress={() => undefined}
+            />
+          ) : null}
         </View>
       </FancyBottomSheetModal>
 
@@ -382,8 +391,15 @@ export default function EventoSetlistEditorSheet({
 }
 
 const styles = StyleSheet.create({
+  sheetContentWrapper: {
+    position: 'relative',
+  },
   sheetContent: {
     gap: 14,
+  },
+  sheetBlockingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 10,
   },
   sheetSubtitle: {
     lineHeight: 19,

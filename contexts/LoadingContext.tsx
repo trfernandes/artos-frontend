@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, ReactNode, useCallback, useMemo } from 'react';
 import { Modal, View, ActivityIndicator, StyleSheet } from 'react-native';
 import FancyText from '../components/FancyText';
 import { usePallete } from '../hooks/usePallete';
@@ -29,8 +29,10 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
     setVisible(false);
   }, []);
 
+  const contextValue = useMemo(() => ({ showLoading, hideLoading }), [showLoading, hideLoading]);
+
   return (
-    <LoadingContext.Provider value={{ showLoading, hideLoading }}>
+    <LoadingContext.Provider value={contextValue}>
       {children}
 
       <Modal visible={visible} transparent animationType='fade' statusBarTranslucent>

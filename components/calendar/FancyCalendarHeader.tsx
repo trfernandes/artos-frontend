@@ -119,7 +119,7 @@ export default function FancyCalendarHeader({
           <DefaultIcons.Custom
             library="Entypo"
             name="chevron-left"
-            size={isAgendaPremium ? 20 : 18}
+            size={isAgendaPremium ? 22 : 20}
             color={prevEnabled ? palette.primary : palette.icons.inactive2}
           />
         </Pressable>
@@ -138,7 +138,7 @@ export default function FancyCalendarHeader({
           <DefaultIcons.Custom
             library="Entypo"
             name="chevron-right"
-            size={isAgendaPremium ? 20 : 18}
+            size={isAgendaPremium ? 22 : 20}
             color={nextEnabled ? palette.primary : palette.icons.inactive2}
           />
         </Pressable>

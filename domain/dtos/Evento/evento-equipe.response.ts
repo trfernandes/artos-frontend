@@ -3,6 +3,7 @@ import { ResponseMinisterioFuncaoDto } from '../MinisterioFuncao/ministerio-func
 
 export type ResponseEquipeOcorrenciaIntegranteDto = {
   escalaItemId: string;
+  ministerioVoluntarioId?: string | null;
   voluntarioId?: string | null;
   voluntario?: ResponseVoluntarioDto | null;
   funcaoId?: string | null;

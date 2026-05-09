@@ -143,6 +143,7 @@ export default function VoluntariosDetailsPage() {
         icon: { library: 'Feather', name: 'grid', size: 15 },
         content: (
           <VoluntarioMinisterioTab
+            mode='view'
             onAdd={handleAddMinisterio}
             onUpdate={handleUpdateMinisterio}
             ministerios={voluntarioData?.[0]?.ministerios}

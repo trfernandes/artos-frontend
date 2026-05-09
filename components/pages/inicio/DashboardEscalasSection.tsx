@@ -100,6 +100,7 @@ export default function DashboardEscalasSection({ data }: DashboardEscalasSectio
           selectedEscala ? (
             <FancyButton
               label='Abrir detalhes'
+              icon={{ library: 'MaterialCommunityIcons', name: 'open-in-new', size: 16 }}
               onPress={() => {
                 router.push({
                   pathname: '/pessoal/escalas/evento',

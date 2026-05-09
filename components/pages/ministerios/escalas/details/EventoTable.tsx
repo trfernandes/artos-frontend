@@ -533,9 +533,6 @@ export default function EventoTable({
               ],
             );
           }}
-          onAdicionarFuncaoPressed={() => {
-            setAdicionarFuncaoModalOpen(true);
-          }}
           onExcluirFuncaoPressed={(funcaoId) => {
             FancyAlert.alert('Excluir Função', 'Deseja realmente excluir esta função do evento?', [
               { text: 'Cancelar', style: 'cancel' },
@@ -553,7 +550,6 @@ export default function EventoTable({
               },
             ]);
           }}
-          onExcluirEvento={handleDeleteEvento}
         />
       </FancyAccordeon>
 
@@ -641,7 +637,7 @@ export default function EventoTable({
 function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
     titleContainer: {
-      paddingVertical: 8,
+      paddingVertical: 2,
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
@@ -668,8 +664,8 @@ function createStyles(palette: ThemePalette) {
     },
     contentContainer: {
       paddingHorizontal: 6,
-      paddingTop: 4,
-      paddingBottom: 4,
+      paddingTop: 2,
+      paddingBottom: 2,
       borderWidth: 0,
       backgroundColor: palette.backgroundColor2,
     },
@@ -677,13 +673,13 @@ function createStyles(palette: ThemePalette) {
       marginHorizontal: 6,
       marginTop: 9,
       marginBottom: 9,
-      paddingHorizontal: 11,
-      paddingTop: 6,
-      paddingBottom: 3,
-      borderRadius: 14,
+      paddingHorizontal: 10,
+      paddingTop: 5,
+      paddingBottom: 4,
+      borderRadius: 12,
       borderWidth: 1,
-      borderColor: ColorUtils.withAlpha(palette.primary, 0.14),
-      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
+      borderColor: palette.borderCard,
+      backgroundColor: palette.backgroundColor2,
       gap: 8,
     },
     setlistOwnerLabel: {
@@ -745,23 +741,23 @@ function createStyles(palette: ThemePalette) {
       minHeight: 0,
     },
     headerContainer: {
-      borderRadius: 12,
+      borderRadius: 10,
     },
     headerExpandedContainer: {
-      borderRadius: 12,
+      borderRadius: 10,
       borderBottomWidth: 1,
     },
     containerContainer: {
-      borderRadius: 12,
+      borderRadius: 10,
       borderWidth: 1,
       overflow: 'hidden',
       ...palette.shadows[100],
     },
     containerExpandedContainer: {
-      borderRadius: 12,
+      borderRadius: 10,
       borderWidth: 1,
       backgroundColor: palette.backgroundColor2,
-      paddingBottom: 4,
+      paddingBottom: 2,
       overflow: 'hidden',
       ...palette.shadows[100],
     },

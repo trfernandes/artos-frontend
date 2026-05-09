@@ -18,7 +18,7 @@ export type FancyDrawerProps = {} & DrawerContentComponentProps;
 export default function FancyDrawer(props: FancyDrawerProps) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
-  const { signOut } = useAuth();
+  const { signOut, isSigningOut } = useAuth();
   const { igrejaAtiva, isLoading, isAdmin } = useMinisteriosDrawer();
   const { navigation } = props;
 
@@ -39,6 +39,10 @@ export default function FancyDrawer(props: FancyDrawerProps) {
 
     Linking.openURL(storeUrl);
   }, []);
+
+  const handleSignOut = useCallback(async () => {
+    await signOut();
+  }, [signOut]);
 
   const menuSections = useMemo(() => getMenuForIgreja(igrejaAtiva), [igrejaAtiva]);
 
@@ -105,9 +109,11 @@ export default function FancyDrawer(props: FancyDrawerProps) {
             title='Sair'
             logo={{
               type: 'icon',
-              value: { name: 'exit-to-app', library: 'MaterialCommunityIcons', size: 15 },
+              value: { name: isSigningOut ? 'progress-clock' : 'exit-to-app', library: 'MaterialCommunityIcons', size: isSigningOut ? 17 : 15 },
             }}
-            onPress={{ type: 'RunMethod', method: signOut }}
+            disabled={isSigningOut}
+            subtitle={isSigningOut ? 'Saindo...' : undefined}
+            onPress={{ type: 'RunMethod', method: handleSignOut }}
             onNavigate={() => navigation.closeDrawer?.()}
           />
         </FancyScrollView>

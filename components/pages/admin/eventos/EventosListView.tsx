@@ -1,4 +1,5 @@
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { useState } from 'react';
 import FancyList, { FancyListProps } from '../../../list/FancyList';
 import { Pallete } from '../../../../constants/colors';
 import { DefaultIconsNames } from '../../../../constants/icons';
@@ -17,6 +18,9 @@ import {
 } from '../../../cards/Horizontal/FancyCardActionButtons';
 import { formatInTimeZone } from 'date-fns-tz';
 import { APP_TZ } from '../../../../utils/date_utils';
+import FancyActionSheet from '../../../actions/FancyActionSheet';
+import { usePallete } from '../../../../hooks/usePallete';
+import { ColorUtils } from '../../../../utils/color_utils';
 
 export type EventosListProps = {
   data: ResponseEventoDto[];
@@ -35,6 +39,8 @@ export default function EventosListView({
   onDeleteItem,
   onEditItem,
 }: EventosListProps) {
+  const palette = usePallete();
+  const [actionsEvento, setActionsEvento] = useState<ResponseEventoDto | null>(null);
   const { containerStyle: listContainerStyle, listEmptyProps, ...restListProps } = listProps || {};
   const formatEventoDateTime = (value?: string) =>
     value ? formatInTimeZone(DateUtilsApi.dateTimeFromApi(value), APP_TZ, 'dd/MM/yyyy HH:mm') : 'Sem término';
@@ -58,38 +64,13 @@ export default function EventosListView({
           const actionButtons: ActionButtonProps[] = [
             {
               icon: {
-                library: DefaultIconsNames.edit.library,
-                name: DefaultIconsNames.edit.name,
-                size: 18,
+                library: 'MaterialCommunityIcons',
+                name: 'dots-vertical',
+                size: 20,
+                color: palette.fonts.inactive,
+                backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.08),
               },
-              onPress: () => onEditItem?.(item),
-            },
-            {
-              icon: {
-                library: DefaultIconsNames.delete.library,
-                name: DefaultIconsNames.delete.name,
-                size: 18,
-                backgroundColor: Pallete.error,
-              },
-              onPress: () => {
-                FancyAlert.alert(
-                  'Exclusão de Evento',
-                  `Tem certeza que deseja remover o evento "${item.nome}?"`,
-                  [
-                    {
-                      text: 'Não',
-                      style: 'destructive',
-                    },
-                    {
-                      text: 'Sim',
-                      style: 'default',
-                      onPress: () => {
-                        onDeleteItem?.(item);
-                      },
-                    },
-                  ],
-                );
-              },
+              onPress: () => setActionsEvento(item),
             },
           ];
 
@@ -156,6 +137,53 @@ export default function EventosListView({
           );
         }}
         {...restListProps}
+      />
+      <FancyActionSheet
+        visible={!!actionsEvento}
+        onClose={() => setActionsEvento(null)}
+        actions={[
+          {
+            label: 'Editar',
+            icon: {
+              library: DefaultIconsNames.edit.library,
+              name: DefaultIconsNames.edit.name,
+              size: 18,
+            },
+            onPress: () => {
+              if (actionsEvento) onEditItem?.(actionsEvento);
+            },
+          },
+          {
+            label: 'Excluir',
+            destructive: true,
+            icon: {
+              library: DefaultIconsNames.delete.library,
+              name: DefaultIconsNames.delete.name,
+              size: 18,
+            },
+            onPress: () => {
+              if (!actionsEvento) return;
+              const evento = actionsEvento;
+              FancyAlert.alert(
+                'Exclusão de Evento',
+                `Tem certeza que deseja remover o evento "${evento.nome}?"`,
+                [
+                  {
+                    text: 'Não',
+                    style: 'destructive',
+                  },
+                  {
+                    text: 'Sim',
+                    style: 'default',
+                    onPress: () => {
+                      onDeleteItem?.(evento);
+                    },
+                  },
+                ],
+              );
+            },
+          },
+        ]}
       />
     </View>
   );

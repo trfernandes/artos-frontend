@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import DefaultIcons from '../FancyIcons';
 import FancyText from '../FancyText';
 import { ColorUtils } from '../../utils/color_utils';
-import { Pallete } from '../../constants/colors';
+import { usePallete } from '../../hooks/usePallete';
 import { BOLD_FONT, MEDIUM_SIZE_FONT, SMALL_SIZE_FONT, EXTRA_SMALL_SIZE_FONT } from '../../constants/font';
 
 export type EventoCardContentProps = {
@@ -27,12 +27,14 @@ export default function EventoCardContent({
   isAccordion = false,
   isExpanded = false,
 }: EventoCardContentProps) {
+  const palette = usePallete();
+  const isDark = palette.backgroundColor === '#121212';
   const ui = useMemo(() => ({
-    accentText: ColorUtils.darkenColor(eventColor, 0.32),
-    accentSoft: ColorUtils.withAlpha(eventColor, 0.065),
-    chipBorder: ColorUtils.withAlpha(eventColor, 0.11),
-    iconBg: ColorUtils.withAlpha(eventColor, 0.075),
-  }), [eventColor]);
+    accentText: isDark ? ColorUtils.lightenColor(eventColor, 0.22) : ColorUtils.darkenColor(eventColor, 0.32),
+    accentSoft: ColorUtils.withAlpha(eventColor, isDark ? 0.16 : 0.065),
+    chipBorder: ColorUtils.withAlpha(eventColor, isDark ? 0.28 : 0.11),
+    iconBg: ColorUtils.withAlpha(eventColor, isDark ? 0.18 : 0.075),
+  }), [eventColor, isDark]);
 
   return (
     <View style={styles.root}>
@@ -66,6 +68,7 @@ export default function EventoCardContent({
         type='bold'
         style={styles.title}
         numberOfLines={isAccordion ? 1 : 2}
+        color={palette.fonts.dark}
       >
         {title}
       </FancyText>
@@ -82,7 +85,7 @@ export default function EventoCardContent({
           ) : null}
 
           {metaPrimary && metaSecondary ? (
-            <View style={[styles.metaSeparator, { backgroundColor: ColorUtils.withAlpha(Pallete.fonts.inactive, 0.5) }]} />
+            <View style={[styles.metaSeparator, { backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.5) }]} />
           ) : null}
 
           {metaSecondary ? (
@@ -102,8 +105,8 @@ export default function EventoCardContent({
 const styles = StyleSheet.create({
   root: {
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 4,
+    paddingVertical: 8,
+    gap: 3,
   },
   rowBetween: {
     flexDirection: 'row',
@@ -134,13 +137,14 @@ const styles = StyleSheet.create({
   countdownBadge: {
     borderWidth: 1,
     borderRadius: 999,
-    paddingHorizontal: 9,
+    paddingHorizontal: 8,
     paddingVertical: 2,
-    minHeight: 20,
+    minHeight: 19,
     justifyContent: 'center',
     alignItems: 'center',
   },
   countdownText: {
+    fontSize: EXTRA_SMALL_SIZE_FONT - 0.8,
     lineHeight: EXTRA_SMALL_SIZE_FONT,
   },
   actionButton: {
@@ -155,7 +159,6 @@ const styles = StyleSheet.create({
     fontFamily: BOLD_FONT,
     fontSize: MEDIUM_SIZE_FONT,
     lineHeight: MEDIUM_SIZE_FONT + 2,
-    color: Pallete.fonts.dark,
     letterSpacing: -0.1,
     marginTop: -1,
   },
@@ -165,7 +168,7 @@ const styles = StyleSheet.create({
     gap: 7,
     minWidth: 0,
     flexWrap: 'nowrap',
-    marginTop: 1,
+    marginTop: 0,
   },
   metaItem: {
     flexDirection: 'row',

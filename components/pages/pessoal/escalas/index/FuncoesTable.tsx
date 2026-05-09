@@ -1,6 +1,8 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import FancyText from '../../../../FancyText';
+import FancyButton from '../../../../buttons/FancyButton';
 import DefaultIcons, { IconLibrary } from '../../../../FancyIcons';
+import { usePallete } from '../../../../../hooks/usePallete';
 import { ResponseEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.response';
 import {
   EscalaItemStatusEnum,
@@ -12,6 +14,7 @@ import { ColorUtils } from '../../../../../utils/color_utils';
 import {
   BOLD_FONT,
   EXTRA_SMALL_SIZE_FONT,
+  LARGE_MEDIUM_SIZE_FONT,
   MEDIUM_SIZE_FONT,
   SMALL_SIZE_FONT,
 } from '../../../../../constants/font';
@@ -148,32 +151,77 @@ function RowCompactPremium({
   onConfirmButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void;
   onSubButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void;
 }) {
-  return (
-    <View style={[styles.rowCard, !isLast ? styles.rowSpacing : null]}>
-      <View style={styles.rowHeader}>
-        <FancyText size='small' type='semiBold' style={styles.roleTitle} numberOfLines={1}>
-          {item.funcao?.nome || 'Função'}
-        </FancyText>
-        <StatusBadge status={item.status} />
-      </View>
+  const palette = usePallete();
+  const { isPendente, canSubstitute } = getActionState(item);
 
-      <View style={styles.rowFooter}>
+  // Dot semântico: warning=pendente, success=confirmado, error=ausente/substituído
+  const dotColor =
+    item.status === EscalaItemStatusEnum.Confirmado
+      ? palette.confirm
+      : item.status === EscalaItemStatusEnum.Pendente
+        ? palette.warning
+        : palette.error;
+
+  return (
+    <View
+      style={[
+        styles.rowCard,
+        {
+          backgroundColor: palette.backgroundColor,
+          borderRadius: 12,
+          ...palette.shadows[100],
+        },
+      ]}
+    >
+      {/* Dot semântico 8px */}
+      <View style={[styles.statusDot, { backgroundColor: dotColor }]} />
+
+      {/* Nome da função — flex 1 */}
+      <FancyText
+        size='small'
+        type='semiBold'
+        style={styles.roleTitle}
+        numberOfLines={1}
+      >
+        {item.funcao?.nome || 'Função'}
+      </FancyText>
+
+      {/* Status texto neutro — omitido quando Pendente (dot + FAB já comunicam) */}
+      {item.status !== EscalaItemStatusEnum.Pendente && (
         <FancyText
           size='extraSmall'
           type='medium'
-          style={styles.rowHint}
+          style={styles.statusText}
           numberOfLines={1}
         >
-          {item.status === EscalaItemStatusEnum.Pendente
-            ? 'Aguardando sua confirmação'
-            : item.status === EscalaItemStatusEnum.Confirmado
-              ? 'Confirmado para esta escala'
-              : item.status === EscalaItemStatusEnum.Ausente
-                ? 'Ausência registrada'
-                : 'Ajustado nesta escala'}
+          {EscalaItemStatusEnumLabel[item.status]}
         </FancyText>
+      )}
 
-        {renderActions(item, onConfirmButtonPress, onSubButtonPress)}
+      {/* FABs circulares */}
+      <View style={styles.fabRow}>
+        {/* ✓ Confirmar — só aparece quando pendente */}
+        {isPendente && (
+          <FancyButton
+            mode='icon'
+            type='contained'
+            icon={{ library: 'MaterialCommunityIcons', name: 'check-bold', size: 14 }}
+            containerStyle={{ backgroundColor: palette.confirm }}
+            onPress={() => onConfirmButtonPress?.(item)}
+            size={28}
+          />
+        )}
+        {/* ↻ Trocar — sempre presente */}
+        <FancyButton
+          mode='icon'
+          type='outlined'
+          icon={{ library: 'FontAwesome6', name: 'repeat', size: 13 }}
+          containerStyle={canSubstitute ? { borderColor: palette.warning } : undefined}
+          iconStyle={canSubstitute ? { color: palette.warning } : undefined}
+          disabled={!canSubstitute}
+          onPress={() => onSubButtonPress?.(item)}
+          size={28}
+        />
       </View>
     </View>
   );
@@ -298,43 +346,49 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 12,
     paddingTop: 4,
+    paddingBottom: 6,
   },
+  // Mini-card por função: branco elevado sobre fundo tintado do body
   rowCard: {
-    borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 48,
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: Pallete.backgroundColor4,
-    borderWidth: 1,
-    borderColor: ColorUtils.withAlpha(Pallete.primary, 0.08),
+    gap: 8,
   },
   rowSpacing: {
     marginBottom: 0,
   },
-  rowHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 10,
+  rowWithDivider: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: ColorUtils.withAlpha(Pallete.fonts.inactive, 0.2),
   },
-  rowFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 10,
-    marginTop: 8,
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    flexShrink: 0,
   },
   roleTitle: {
     fontFamily: BOLD_FONT,
     fontSize: SMALL_SIZE_FONT,
-    lineHeight: MEDIUM_SIZE_FONT + 1,
+    lineHeight: SMALL_SIZE_FONT + 3,
     color: Pallete.fonts.dark,
     flex: 1,
   },
-  rowHint: {
+  statusText: {
     fontSize: EXTRA_SMALL_SIZE_FONT,
-    lineHeight: EXTRA_SMALL_SIZE_FONT + 4,
+    lineHeight: EXTRA_SMALL_SIZE_FONT + 3,
     color: Pallete.fonts.inactive,
-    flex: 1,
+    flexShrink: 1,
+    maxWidth: 96,
+    textAlign: 'right',
+  },
+  fabRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexShrink: 0,
   },
   statusBadge: {
     alignSelf: 'flex-start',

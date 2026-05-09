@@ -12,6 +12,13 @@ export type DashboardEscalaItemDto = {
   eventoCor?: string;
   horarioEnsaio?: string;
   isConfirmado: boolean;
+  evento?: {
+    nome?: string;
+    horarioEnsaioPadrao?: string;
+    local?: string;
+    descricao?: string;
+    cor?: string;
+  };
 };
 
 export type DashboardMinisterioStatsDto = {
@@ -32,6 +39,10 @@ export type DashboardEventoProximoDto = {
   dataInicio: string;
   local?: string;
   cor: string;
+  horarioEnsaio?: string;
+  evento?: {
+    horarioEnsaioPadrao?: string;
+  };
   totalEscalados: number;
   totalConfirmados: number;
   totalFuncoes: number;

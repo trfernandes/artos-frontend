@@ -67,6 +67,21 @@ export default function RootLayout() {
                   }}
                 />
                 <Stack.Screen
+                  name='notification-detail'
+                  options={{
+                    headerShown: true,
+                    header: (headerParams) => (
+                      <FancyPageHeader
+                        leftButton={'back'}
+                        {...headerParams}
+                        options={{
+                          title: 'Detalhe da notificação',
+                        }}
+                      />
+                    ),
+                  }}
+                />
+                <Stack.Screen
                   name='join-church/index'
                   options={{
                     headerShown: true,

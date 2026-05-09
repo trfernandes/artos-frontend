@@ -1,11 +1,11 @@
 import { StyleSheet, View } from 'react-native';
 import FancyText from '../../../../FancyText';
-import { format } from 'date-fns';
 import FancySeparator from '../../../../FancySeparator';
 import DefaultIcons, { CustomIconProps } from '../../../../FancyIcons';
 import { Pallete } from '../../../../../constants/colors';
 import FancyImage from '../../../../images/FancyImage';
 import { ResponseEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.response';
+import { formatAppDateTime } from '../../../../../utils/date_utils';
 
 export interface EventoInfoTabProps {
   ministerioNome: string;
@@ -44,7 +44,7 @@ export default function EventoInfoTab({
         <FancyValueLineDisplay
           icon={{ library: 'MaterialCommunityIcons', name: 'calendar-today', size: 14, color: Pallete.icons.inactive }}
           title='Data/Hora'
-          value={dataOcorrencia ? format(dataOcorrencia, 'dd/MM/yyyy HH:mm') : '(Vazio)'}
+          value={dataOcorrencia ? (formatAppDateTime(dataOcorrencia, 'dd/MM/yyyy HH:mm') ?? '(Vazio)') : '(Vazio)'}
           showBottomLine={true}
         />
         <FancyValueLineDisplay

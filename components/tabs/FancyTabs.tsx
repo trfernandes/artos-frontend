@@ -9,6 +9,7 @@ const PAGE_HORIZONTAL_GUTTER = 15;
 
 export type TabItem = {
   title: string;
+  badgeCount?: number;
   icon?: CustomIconProps;
   content?: ReactNode;
   onChange?: (index: number) => void;
@@ -99,7 +100,7 @@ function createStyles(Pallete: ThemePalette) {
     pageHeader: { paddingHorizontal: PAGE_HORIZONTAL_GUTTER },
     compactHeader: { paddingHorizontal: 0 },
     contentContainer: { borderWidth: 0 },
-    pageContentContainer: { flex: 1 },
+    pageContentContainer: { flex: 1, paddingTop: 8 },
     compactContentContainer: { paddingTop: 4 },
     contentGutter: { paddingHorizontal: PAGE_HORIZONTAL_GUTTER },
     visibleContent: { flex: 1 },

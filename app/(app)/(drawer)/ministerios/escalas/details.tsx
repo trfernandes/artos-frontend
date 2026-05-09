@@ -2,10 +2,9 @@ import FancyPageView from '../../../../../components/containers/FancyPageView';
 import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import FancyList from '../../../../../components/list/FancyList';
 import FancyLoading from '../../../../../components/FancyLoading';
 import Header from '../../../../../components/pages/ministerios/escalas/details/Header';
-import EventoTable from '../../../../../components/pages/ministerios/escalas/details/EventoTable';
+import EscalaHorizontalPager from '../../../../../components/pages/ministerios/escalas/details/EscalaHorizontalPager';
 import { useEscalaItensCrud } from '../../../../../hooks/useEscalaItensCrud';
 import { SubstituicaoConfirmDialog } from '../../../../../components/pages/ministerios/escalas/details/SubstituirVoluntarioModal';
 import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
@@ -20,11 +19,11 @@ import Toast from 'react-native-toast-message';
 import EscalaParametrizacaoModal from '../../../../../components/pages/ministerios/escalas/details/EscalaParametrizacaoModal';
 import { EscalaTemplateExperienciaEnum } from '../../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
 import { EscalaParametrizacaoType } from '../../../../../domain/dtos/Escala/escala.response';
-import { DateUtilsApi } from '../../../../../utils/date_utils';
 import { useEventoSetlistResponsavel } from '../../../../../hooks/useEventoSetlistResponsavel';
 import { TemplatePadraoEscopoEnum } from '../../../../../domain/enums/Evento/template-padrao-escopo.enum';
 import { getApiErrorMessage } from '../../../../../domain/api/api-error';
 import { canManageEventoOcorrencia } from '../../../../../utils/ministerio_permissoes';
+import { combineOccurrenceWithEventTime } from '../../../../../utils/evento-datetime';
 
 export type EscalaItemDataType = {
   dataOcorrencia: string;
@@ -61,28 +60,6 @@ export type EscalaItemEquipeType = {
   funcao?: { id: string; nome: string; experiencia?: EscalaTemplateExperienciaEnum; expMinima?: EscalaTemplateExperienciaEnum };
   status: EscalaItemEventoDataType['status'];
 };
-
-function combineOccurrenceWithEventTime(
-  dataOcorrencia: string,
-  timeSource?: Date,
-  dayOffset: number = 0,
-) {
-  const occurrenceDate = DateUtilsApi.dateOnlyFromApi(dataOcorrencia);
-  const combined = new Date(occurrenceDate);
-
-  combined.setHours(
-    timeSource?.getHours?.() ?? 0,
-    timeSource?.getMinutes?.() ?? 0,
-    timeSource?.getSeconds?.() ?? 0,
-    timeSource?.getMilliseconds?.() ?? 0,
-  );
-
-  if (dayOffset !== 0) {
-    combined.setDate(combined.getDate() + dayOffset);
-  }
-
-  return combined;
-}
 
 function getOccurrenceStartTimestamp(grupo: EscalaItemDataType) {
   return combineOccurrenceWithEventTime(grupo.dataOcorrencia, grupo.evento.dataInicio).getTime();
@@ -605,55 +582,21 @@ export default function MinisterioEscalasDetailsPage() {
           onDeletePress={handleDeletePress}
           onParametrizacaoPress={() => setIsParametrizacaoOpen(true)}
         />
-        {eventosData && (
-          <FancyList
-            keyExtractor={(item) => item.evento?.id + item.dataOcorrencia.toString()}
-            data={eventosData}
-            listEmptyProps={{
-              label: 'Nenhum evento nesta escala',
-              icon: {
-                library: 'MaterialCommunityIcons',
-                name: 'calendar-blank-outline',
-                size: 68,
-              },
-            }}
-            contentContainerStyle={{
-              paddingHorizontal: 16,
-              gap: 10,
-              paddingBottom: 30,
-            }}
-            containerStyle={{ flex: 1 }}
-            renderItem={({ item }) => (
-              <EventoTable
-                data={item}
-                viewMode={viewMode}
-                ministerioId={ministerioId}
-                escalaId={escalaId}
-                canEditSetlistOwner={canEditSetlistOwner}
-                isUpdatingSetlistOwner={isSavingResponsavelSetlist}
-                onUpdateResponsavelSetlist={handleUpdateResponsavelSetlist}
-                onChangeVoluntario={async (data) => {
-                  return await handleSubstituirVoluntario(data);
-                }}
-                onAddVoluntario={async (data) => {
-                  return await handleAdicionarVoluntario(data);
-                }}
-                onRemoveVoluntario={async (idEscalaItem) => {
-                  return await handleRemoverVoluntario(idEscalaItem);
-                }}
-                onDeleteEvento={async (eventoId, dataOcorrencia) => {
-                  return await handleDeleteEvento(eventoId, dataOcorrencia);
-                }}
-                onAdicionarFuncao={async (data) => {
-                  return await handleAdicionarFuncao(data);
-                }}
-                onExcluirFuncao={async (funcaoId, eventoId, dataOcorrencia) => {
-                  await handleExcluirFuncao(funcaoId, eventoId, dataOcorrencia);
-                }}
-              />
-            )}
-          />
-        )}
+        <EscalaHorizontalPager
+          eventosData={eventosData}
+          viewMode={viewMode}
+          ministerioId={ministerioId}
+          escalaId={escalaId}
+          canEditSetlistOwner={canEditSetlistOwner}
+          isUpdatingSetlistOwner={isSavingResponsavelSetlist}
+          onUpdateResponsavelSetlist={handleUpdateResponsavelSetlist}
+          onChangeVoluntario={handleSubstituirVoluntario}
+          onAddVoluntario={handleAdicionarVoluntario}
+          onRemoveVoluntario={handleRemoverVoluntario}
+          onDeleteEvento={handleDeleteEvento}
+          onAdicionarFuncao={handleAdicionarFuncao}
+          onExcluirFuncao={handleExcluirFuncao}
+        />
       </FancyPageView>
 
       {isBlockingScreen && (
@@ -678,7 +621,7 @@ const styles = StyleSheet.create({
     flex: 1,
     position: 'relative',
   },
-  container: { gap: 16, flex: 1 },
+  container: { flex: 1 },
   blockingOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.12)',

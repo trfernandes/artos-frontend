@@ -1,6 +1,3 @@
-import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
-import { DefaultIconsNames } from '../../../../../constants/icons';
-import { Pallete } from '../../../../../constants/colors';
 import { useCallback, useMemo, useState } from 'react';
 import FuncaoFormModal from '../../../../../components/pages/ministerios/funcoes/FuncaoFormModal';
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
@@ -25,8 +22,13 @@ import {
 } from '../../../../../domain/enums/MinisterioFuncao/ministerio-funcao-status.enum';
 import { CreateMinisterioFuncaoDto } from '../../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.create';
 import { UpdateMinisterioFuncaoDto } from '../../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.update';
+import FancyListItemCard from '../../../../../components/cards/FancyListItemCard';
+import FancyActionSheet from '../../../../../components/actions/FancyActionSheet';
+import { usePallete } from '../../../../../hooks/usePallete';
+import { ColorUtils } from '../../../../../utils/color_utils';
 
 export default function MinisterioFuncoesIndex() {
+  const palette = usePallete();
   const [funcaoFormModalParams, setFuncaoFormModalParams] = useState<
     | {
         mode?: 'add' | 'edit';
@@ -35,6 +37,7 @@ export default function MinisterioFuncoesIndex() {
       }
     | undefined
   >();
+  const [actionsFuncao, setActionsFuncao] = useState<ResponseMinisterioFuncaoDto | null>(null);
 
   const { ministerioId } = useLocalSearchParams<{ ministerioId?: string }>();
 
@@ -109,7 +112,26 @@ export default function MinisterioFuncoesIndex() {
     [ministerioId, addFuncao, updateFuncao],
   );
 
-  if (isLoading || isLoadingMutation) return <FancyLoading />;
+  const handleDeleteFuncao = useCallback(
+    (item: ResponseMinisterioFuncaoDto) => {
+      FancyAlert.alert('Confirmação', 'Deseja realmente excluir essa função?', [
+        {
+          text: 'Não',
+          style: 'cancel',
+        },
+        {
+          text: 'Sim',
+          style: 'destructive',
+          onPress: async () => {
+            await removeFuncao(item.id!);
+          },
+        },
+      ]);
+    },
+    [removeFuncao],
+  );
+
+  if (isLoading) return <FancyLoading />;
 
   return (
     <FancyListPage
@@ -129,70 +151,63 @@ export default function MinisterioFuncoesIndex() {
           icon: { library: 'MaterialCommunityIcons', name: 'account-cog-outline', size: 68 },
         },
         data: funcoesList,
-        renderItem: ({ item }) => (
-          <FancyCard.Image
-            type='icon'
-            props={{
-              title: item.nome,
-              subtitle: item.descricao,
-              cardIcon: {
-                library: 'FontAwesome6',
-                name: 'person-rays',
-                size: 16,
-              },
-              additionalData1: (
+        renderItem: ({ item }) => {
+          const status = MinisterioFuncaoStatusEnumMap[item.status];
+          const statusColor = status === MinisterioFuncaoStatusEnum.Ativo ? palette.primary : palette.error;
+          return (
+            <FancyListItemCard
+              title={item.nome}
+              subtitle={item.descricao?.trim() || 'Sem descrição cadastrada'}
+              leading={{
+                type: 'icon',
+                icon: {
+                  library: 'MaterialCommunityIcons',
+                  name: 'badge-account-outline',
+                  size: 19,
+                },
+                color: statusColor,
+                backgroundColor: ColorUtils.withAlpha(statusColor, 0.12),
+              }}
+              meta={
                 <FancyChips
                   size='small'
-                  style={{ marginTop: 3 }}
-                  label={
-                    MinisterioFuncaoStatusEnumLabel[MinisterioFuncaoStatusEnumMap[item.status]]
-                  }
-                  color={
-                    MinisterioFuncaoStatusEnumMap[item.status] === MinisterioFuncaoStatusEnum.Ativo
-                      ? Pallete.primary
-                      : Pallete.error
-                  }
+                  label={MinisterioFuncaoStatusEnumLabel[status]}
+                  color={statusColor}
+                  style={{ paddingVertical: 1, paddingHorizontal: 6 }}
                 />
-              ),
-              actionButtons: [
-                {
-                  icon: { ...DefaultIconsNames.edit, size: 18 },
-                  onPress: () => {
-                    setFuncaoFormModalParams({
-                      visible: true,
-                      mode: 'edit',
-                      editValues: item,
-                    });
-                  },
-                },
-                {
-                  icon: {
-                    ...DefaultIconsNames.delete,
-                    size: 18,
-                    backgroundColor: Pallete.error,
-                  },
-                  onPress: () => {
-                    FancyAlert.alert('Confirmação', 'Deseja realmente excluir essa função?', [
-                      {
-                        text: 'Não',
-                        style: 'cancel',
-                      },
-                      {
-                        text: 'Sim',
-                        style: 'destructive',
-                        onPress: async () => {
-                          await removeFuncao(item.id!);
-                        },
-                      },
-                    ]);
-                  },
-                },
-              ],
-            }}
-          />
-        ),
+              }
+              trailing={{ type: 'menu', onPress: () => setActionsFuncao(item) }}
+            />
+          );
+        },
       }}
     >
+      <FancyActionSheet
+        visible={!!actionsFuncao}
+        onClose={() => setActionsFuncao(null)}
+        actions={[
+          {
+            label: 'Editar',
+            icon: { library: 'MaterialCommunityIcons', name: 'pencil-outline', size: 18 },
+            onPress: () => {
+              if (!actionsFuncao) return;
+              setFuncaoFormModalParams({
+                visible: true,
+                mode: 'edit',
+                editValues: actionsFuncao,
+              });
+            },
+          },
+          {
+            label: 'Excluir',
+            destructive: true,
+            icon: { library: 'MaterialCommunityIcons', name: 'trash-can-outline', size: 18 },
+            onPress: () => {
+              if (actionsFuncao) handleDeleteFuncao(actionsFuncao);
+            },
+          },
+        ]}
+      />
       {funcaoFormModalParams && funcaoFormModalParams.visible && (
         <FuncaoFormModal
           title={funcaoFormModalParams.mode === 'edit' ? 'Editar Função' : 'Nova Função'}

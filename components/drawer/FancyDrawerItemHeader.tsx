@@ -37,8 +37,10 @@ export default function FancyDrawerItemHeader(
       style={styles.container}
       hitSlop={{ top: 10, bottom: 10, left: 0, right: 0 }}
       onPress={() => {
+        if (props.disabled) return;
         props.items && props.items.length > 0 ? props.onCollapsePress() : handleOnItemPress();
       }}
+      disabled={props.disabled}
     >
       <View style={styles.iconContainer}>
         {props.logo && (

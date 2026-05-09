@@ -14,9 +14,12 @@ import {
     EscalaTemplateTipoEnum,
 } from '../../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
 import { FancyTextDisplayCard } from '../../../../../components/cards/FancyTextDisplayCard';
+import FancyActionSheet from '../../../../../components/actions/FancyActionSheet';
+import { ResponseEscalaTemplateDto } from '../../../../../domain/dtos/EscalaTemplate/escala-template.response';
 
 export default function MinisterioTemplateEquipeIndex() {
   const [searchText, setSearchText] = useState('');
+  const [actionsTemplate, setActionsTemplate] = useState<ResponseEscalaTemplateDto | null>(null);
 
   const { ministerioId } = useLocalSearchParams<{ ministerioId: string }>();
 
@@ -96,7 +99,7 @@ export default function MinisterioTemplateEquipeIndex() {
     [removeTemplate],
   );
 
-  if (isLoading || isLoadingMutation) return <FancyLoading />;
+  if (isLoading) return <FancyLoading />;
 
   return (
     <FancyListPage
@@ -135,18 +138,12 @@ export default function MinisterioTemplateEquipeIndex() {
                 actionButtons: [
                   {
                     icon: {
-                      ...DefaultIconsNames.edit,
-                      size: 18,
+                      library: 'MaterialCommunityIcons',
+                      name: 'dots-vertical',
+                      size: 20,
+                      backgroundColor: Pallete.secondary,
                     },
-                    onPress: () => item.id && handleEdit(item.id),
-                  },
-                  {
-                    icon: {
-                      ...DefaultIconsNames.delete,
-                      size: 18,
-                      backgroundColor: Pallete.error,
-                    },
-                    onPress: () => item.id && handleDelete(item.id),
+                    onPress: () => setActionsTemplate(item),
                   },
                 ],
               }}
@@ -154,6 +151,25 @@ export default function MinisterioTemplateEquipeIndex() {
           );
         },
       }}
-    />
+    >
+      <FancyActionSheet
+        visible={!!actionsTemplate}
+        onClose={() => setActionsTemplate(null)}
+        actions={[
+          {
+            label: 'Editar',
+            icon: { ...DefaultIconsNames.edit, size: 18 },
+            onPress: () => actionsTemplate?.id && handleEdit(actionsTemplate.id),
+          },
+          {
+            label: 'Excluir',
+            destructive: true,
+            disabled: isLoadingMutation,
+            icon: { ...DefaultIconsNames.delete, size: 18 },
+            onPress: () => actionsTemplate?.id && handleDelete(actionsTemplate.id),
+          },
+        ]}
+      />
+    </FancyListPage>
   );
 }

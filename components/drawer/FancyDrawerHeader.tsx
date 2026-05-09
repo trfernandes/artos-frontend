@@ -59,7 +59,7 @@ export default function FancyDrawerHeader() {
           >
             <View style={styles.profileTextColumn}>
               <FancyText
-                size='large'
+                size='medium'
                 type='bold'
                 color={palette.fonts.light}
                 numberOfLines={1}

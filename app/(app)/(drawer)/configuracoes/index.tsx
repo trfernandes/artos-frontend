@@ -1898,7 +1898,7 @@ export default function ConfiguracoesPage() {
                       styles.planCard,
                       (isRecommended || isUpgradeRecommendation) && styles.planCardRecommended,
                       {
-                        backgroundColor: palette.backgroundColor,
+                        backgroundColor: palette.backgroundColor2,
                         borderColor:
                           isCurrent || isPending
                             ? planAccent

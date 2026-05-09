@@ -5,6 +5,7 @@ import { EscalaItemStatusEnum } from '../../../../../domain/enums/Escala/escala-
 import EscalaHeader, { InlineAction } from './EscalaHeader';
 import { useMemo } from 'react';
 import { StatusDistribution } from './escalaHeader.utils';
+import { DateUtilsApi } from '../../../../../utils/date_utils';
 
 export default function Header({
   escala,
@@ -63,8 +64,8 @@ export default function Header({
           }
         : undefined;
 
-    const startDate = new Date(escala.dataInicio);
-    const endDate = new Date(escala.dataTermino);
+    const startDate = DateUtilsApi.dateOnlyFromApi(escala.dataInicio);
+    const endDate = DateUtilsApi.dateOnlyFromApi(escala.dataTermino);
     const createdDate = new Date(escala.createdAt);
     const updatedDate = new Date(escala.updatedAt);
 

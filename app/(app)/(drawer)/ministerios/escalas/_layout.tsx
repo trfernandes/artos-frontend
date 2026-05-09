@@ -45,6 +45,14 @@ export default function MinisterioEscalasLayout() {
           title: 'Insights da Escala',
         }}
       />
+      <Stack.Screen
+        name='substituicoes'
+        options={{
+          headerShown: true,
+          header: (props) => <FancyPageHeader leftButton='back' {...props} />,
+          title: 'Substituições',
+        }}
+      />
     </Stack>
   );
 }

@@ -30,6 +30,8 @@ import { useAuth } from '../../../../contexts/AuthContext';
 import { useEscalaItensCrud } from '../../../../hooks/useEscalaItensCrud';
 import { DateUtilsApi } from '../../../../utils/date_utils';
 import { canManageEventoOcorrencia } from '../../../../utils/ministerio_permissoes';
+import { usePallete } from '../../../../hooks/usePallete';
+import { ColorUtils } from '../../../../utils/color_utils';
 
 const TemplatePadraoOrigemLabel = {
   EVENTO: 'Padrão do evento',
@@ -97,17 +99,19 @@ function OccurrenceFieldSection({
   dirty: boolean;
   editor: ReactNode;
 }) {
+  const palette = usePallete();
+
   return (
     <View style={styles.sectionBlock}>
       <View style={styles.sectionHeader}>
-        <FancyText size='extraSmall' type='semiBold' color={Pallete.fonts.inactive}>
+        <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
           {label}
         </FancyText>
         {dirty ? (
           <FancyChips
             label='Alterado'
             size='small'
-            color={Pallete.primary}
+            color={palette.primary}
             style={styles.dirtyChip}
             labelProps={{ size: 'extraSmall' }}
           />
@@ -117,11 +121,11 @@ function OccurrenceFieldSection({
       <View style={styles.sectionEditorField}>{editor}</View>
 
       {origin ? (
-        <View style={styles.originBadge}>
-          <View style={styles.originBadgeIcon}>
-            <DefaultIcons.Custom {...DefaultIconsNames.info} size={11} color={Pallete.fonts.inactive} />
+        <View style={[styles.originBadge, { backgroundColor: ColorUtils.withAlpha(palette.borderCard, 0.18) }]}>
+          <View style={[styles.originBadgeIcon, { backgroundColor: ColorUtils.withAlpha(palette.borderCard, 0.22) }]}>
+            <DefaultIcons.Custom {...DefaultIconsNames.info} size={11} color={palette.fonts.inactive} />
           </View>
-          <FancyText size='extraSmall' type='medium' color={Pallete.fonts.dark} style={styles.originBadgeText}>
+          <FancyText size='extraSmall' type='medium' color={palette.fonts.dark} style={styles.originBadgeText}>
             {origin}
           </FancyText>
         </View>
@@ -140,6 +144,7 @@ export default function AgendaDetailsDadosTab(props: {
   onUnsavedChangesChange?: (hasUnsavedChanges: boolean) => void;
   onRegisterActions?: (actions: AgendaDetailsDadosTabActions) => void;
 }) {
+  const palette = usePallete();
   const { igrejaAtiva } = useAuth();
   const canManageOccurrence = canManageEventoOcorrencia(igrejaAtiva, props.ministerioId);
   const isLouvorMinisterio = useMemo(
@@ -674,7 +679,7 @@ export default function AgendaDetailsDadosTab(props: {
     >
       <EventoInfoCard
         dataOcorrencia={props.dataOcorrenciaDate}
-        eventoCor={props.evento.cor || Pallete.primary}
+        eventoCor={props.evento.cor || palette.primary}
         eventoNome={props.evento.nome}
         descricao={props.evento.descricao}
         local={props.evento.local}
@@ -705,7 +710,7 @@ export default function AgendaDetailsDadosTab(props: {
                           disabled={isMutating}
                         />
                       ) : (
-                        <FancyText type='medium' size='small' color={Pallete.fonts.dark}>
+                        <FancyText type='medium' size='small' color={palette.fonts.dark}>
                           {resolvedTemplateName}
                         </FancyText>
                       )}
@@ -731,7 +736,7 @@ export default function AgendaDetailsDadosTab(props: {
                             disabled={isMutating}
                           />
                         ) : (
-                          <FancyText type='medium' size='small' color={Pallete.fonts.dark}>
+                          <FancyText type='medium' size='small' color={palette.fonts.dark}>
                             {resolvedResponsavelSetlistName}
                           </FancyText>
                         )}
@@ -753,30 +758,33 @@ export default function AgendaDetailsDadosTab(props: {
                             onPress={() => setIsTimePickerVisible(true)}
                             style={[
                               styles.timePickerTrigger,
-                              ensaioDirty && styles.timePickerTriggerDirty,
+                              {
+                                backgroundColor: palette.backgroundColor4,
+                                borderColor: ensaioDirty ? palette.primary : palette.borderCard,
+                              },
                               isMutating && styles.timePickerTriggerDisabled,
                             ]}
                           >
-                            <View style={styles.timePickerIconWrap}>
+                            <View style={[styles.timePickerIconWrap, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14) }]}>
                               <DefaultIcons.Custom
                                 {...DefaultIconsNames.time}
                                 size={18}
-                                color={Pallete.primary}
+                                color={palette.primary}
                               />
                             </View>
 
                             <View style={styles.timePickerContent}>
                               <View style={styles.timePickerTitleRow}>
-                                <FancyText size='extraSmall' type='semiBold' color={Pallete.fonts.inactive}>
+                                <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
                                   Horário selecionado
                                 </FancyText>
                               </View>
 
-                              <FancyText size='medium' type='bold' color={Pallete.fonts.dark}>
+                              <FancyText size='medium' type='bold' color={palette.fonts.dark}>
                                 {currentEnsaioDisplay !== 'Não definido' ? currentEnsaioDisplay : 'Selecionar horário'}
                               </FancyText>
 
-                              <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive} style={styles.timePickerHint}>
+                              <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} style={styles.timePickerHint}>
                                 Mínimo de 30 min antes da ocorrência.
                               </FancyText>
                             </View>
@@ -785,7 +793,7 @@ export default function AgendaDetailsDadosTab(props: {
                               <DefaultIcons.Custom
                                 {...DefaultIconsNames['chevron-down']}
                                 size={16}
-                                color={Pallete.fonts.inactive}
+                                color={palette.fonts.inactive}
                               />
                             </View>
                           </Pressable>
@@ -803,7 +811,7 @@ export default function AgendaDetailsDadosTab(props: {
                           />
                         </>
                       ) : (
-                        <FancyText type='medium' size='small' color={Pallete.fonts.dark}>
+                        <FancyText type='medium' size='small' color={palette.fonts.dark}>
                           {resolvedEnsaioDisplay}
                         </FancyText>
                       )}
@@ -812,9 +820,9 @@ export default function AgendaDetailsDadosTab(props: {
                 />
               </View>
               {canManageOccurrence ? (
-                <View style={styles.footer}>
+                <View style={[styles.footer, { borderTopColor: palette.borderCard }]}>
                   {hasUnsavedChanges ? (
-                    <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive} style={styles.footerStatus}>
+                    <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} style={styles.footerStatus}>
                       {`${pendingChangesCount} alteração${pendingChangesCount > 1 ? 'ões' : ''} pendente${pendingChangesCount > 1 ? 's' : ''}`}
                     </FancyText>
                   ) : null}

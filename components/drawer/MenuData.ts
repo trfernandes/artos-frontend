@@ -20,6 +20,7 @@ export type DrawerItemData = {
   logo?: { type: 'logo'; value: string } | { type: 'icon'; value: CustomIconProps };
   title: string;
   subtitle?: string;
+  disabled?: boolean;
   items?: DrawerItemData[];
   type?: 'RunMethod' | 'GoToRoute';
   onPress?: { type: 'RunMethod'; method: () => void } | { type: 'GoToRoute'; routeName: string };
@@ -149,6 +150,14 @@ const getMinisterioFullItems = (ministerio: ResponseLoginMinisterioDto): DrawerI
   const baseItems = getMinisterioBasicItems(ministerio);
 
   const commonItems: DrawerItemData[] = [
+    {
+      title: 'Substituições',
+      logo: {
+        type: 'icon',
+        value: { name: 'swap-horiz', library: 'MaterialIcons', size: 18 },
+      },
+      onPress: { type: 'GoToRoute', routeName: `/ministerios/escalas/substituicoes${routeParams}` },
+    },
     {
       title: 'Acessos',
       logo: {

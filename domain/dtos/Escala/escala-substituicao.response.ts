@@ -17,4 +17,5 @@ export type ResponseEscalaSubstituicaoDto = {
   dataConfirmacao?: string;
   status: EscalaSubstituicaoStatusEnum;
   motivo: string;
+  motivoCancelamento?: string | null;
 };

@@ -3,13 +3,13 @@ import { View, StyleSheet, Pressable } from 'react-native';
 import FancyText from '../../FancyText';
 import DefaultIcons from '../../FancyIcons';
 import { ThemePalette } from '../../../constants/colors';
-import { format, parseISO } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { DashboardEventoProximoDto } from '../../../domain/dtos/Dashboard/dashboard.response';
 import ScaleFillIndicator from '../../indicators/ScaleFillIndicator';
 import { usePallete } from '../../../hooks/usePallete';
 import { useThemedStyles } from '../../../hooks/useThemedStyles';
 import { ColorUtils } from '../../../utils/color_utils';
+import { resolveEventoEnsaioInfo } from '../../../utils/evento-ensaio';
+import { formatAppDateTime } from '../../../utils/date_utils';
 
 type EventoProximoCardProps = {
   evento: DashboardEventoProximoDto;
@@ -20,9 +20,12 @@ type EventoProximoCardProps = {
 export default function EventoProximoCard({ evento, variant = 'vertical', onPress }: EventoProximoCardProps) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
-  const dataEvento = parseISO(evento.dataInicio);
-  const dataFormatada = format(dataEvento, "dd 'de' MMMM", { locale: ptBR });
-  const horaFormatada = format(dataEvento, 'HH:mm', { locale: ptBR });
+  const dataFormatada = formatAppDateTime(evento.dataInicio, "dd 'de' MMMM") ?? '';
+  const horaFormatada = formatAppDateTime(evento.dataInicio, 'HH:mm') ?? '';
+  const ensaioInfo = resolveEventoEnsaioInfo({
+    horarioEnsaio: evento.horarioEnsaio,
+    horarioEnsaioPadrao: evento.evento?.horarioEnsaioPadrao,
+  });
 
   return (
     <Pressable
@@ -49,6 +52,15 @@ export default function EventoProximoCard({ evento, variant = 'vertical', onPres
             {dataFormatada} às {horaFormatada}
           </FancyText>
         </View>
+
+        {ensaioInfo.shouldShow && (
+          <View style={styles.infoRow}>
+            <DefaultIcons.Custom library="MaterialCommunityIcons" name="music-box-outline" size={12} color={palette.primary} />
+            <FancyText size="extraSmall" type="medium" color={palette.fonts.inactive} numberOfLines={1}>
+              {ensaioInfo.label}
+            </FancyText>
+          </View>
+        )}
 
         {evento.local && (
           <View style={styles.infoRow}>

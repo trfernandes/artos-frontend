@@ -90,10 +90,10 @@ export default function AdicionarFuncaoModal({ ministerioId, eventoNome, eventoI
       }}
     >
       <View style={{
-        backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
-        borderRadius: 10,
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: ColorUtils.withAlpha(palette.primary, 0.25),
+        backgroundColor: palette.backgroundColor2,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: palette.borderCard,
         paddingHorizontal: 12,
         paddingVertical: 10,
         gap: 6,

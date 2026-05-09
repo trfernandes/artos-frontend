@@ -8,8 +8,7 @@ import { useThemedStyles } from '../../hooks/useThemedStyles';
 import FancyText from '../FancyText';
 import { onNotificationEvent } from '../../core/events/notification-events';
 
-const NOTIFICATION_ICON_SIZE = 20;
-const BUTTON_HITBOX_SIZE = 35;
+const NOTIFICATION_ICON_SIZE = 18;
 
 export default function NotificationButton() {
   const styles = useThemedStyles(createStyles);
@@ -44,23 +43,28 @@ export default function NotificationButton() {
   }, [refetchQuantidadeNaoLidas]);
 
   return (
-    <View style={styles.container}>
-      {showBadge && (
-        <View style={styles.badgeWrapper}>
-          <View style={styles.badgeContainer}>
-            <FancyText size={8} type='bold' style={styles.badgeLabel}>
-              {badgeLabel}
-            </FancyText>
-          </View>
-        </View>
-      )}
-
+    // container sem dimensões fixas — ocupa exatamente o espaço do FancyHeaderButton
+    <View
+      style={styles.container}
+      accessibilityRole='button'
+      accessibilityLabel={`Notificações${showBadge ? `, ${badgeLabel} não lidas` : ''}`}
+    >
       <FancyHeaderButton
-        icon={{ library: 'Feather', name: 'bell', size: NOTIFICATION_ICON_SIZE, style: { borderWidth: 0 } }}
-        onPress={function (): void {
-          router.push('/notifications');
+        icon={{ library: 'Feather', name: 'bell', size: NOTIFICATION_ICON_SIZE }}
+        onPress={() => router.push('/notifications')}
+        buttonProps={{
+          containerStyle: styles.headerButton,
         }}
       />
+
+      {showBadge && (
+        // badge posicionado relativo ao container (que envolve o botão de 24×30)
+        <View style={styles.badgeWrapper} pointerEvents='none'>
+          <FancyText size={7} type='bold' style={styles.badgeLabel}>
+            {badgeLabel}
+          </FancyText>
+        </View>
+      )}
     </View>
   );
 }
@@ -68,38 +72,40 @@ export default function NotificationButton() {
 function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
     container: {
+      width: 24,
+      height: 30,
       borderWidth: 0,
-      width: BUTTON_HITBOX_SIZE,
-      height: BUTTON_HITBOX_SIZE,
       alignItems: 'center',
       justifyContent: 'center',
-      marginRight: -3,
+      // sem marginRight — o rightContainer da FancyHeader já aplica os 15px
+    },
+    headerButton: {
+      // espelha exatamente o containerStyle do HeaderMenuButton: só width/minWidth = 24
+      width: 24,
+      minWidth: 24,
+      backgroundColor: 'transparent',
+      borderWidth: 0,
     },
     badgeLabel: {
       color: palette.fonts.light,
-      lineHeight: 10,
+      lineHeight: 9,
       textAlign: 'center',
-      minWidth: 10,
+      minWidth: 8,
       paddingHorizontal: 0,
       includeFontPadding: false,
-    },
-    badgeContainer: {
-      minWidth: 14,
-      height: 14,
-      paddingHorizontal: 2,
-      borderRadius: 7,
-      backgroundColor: palette.error,
-      alignItems: 'center',
-      justifyContent: 'center',
     },
     badgeWrapper: {
       position: 'absolute',
       alignItems: 'center',
       justifyContent: 'center',
-      right: 7,
-      top: 5,
-      borderRadius: 5,
-      backgroundColor: palette.backgroundColor,
+      right: 1,
+      top: 2,
+      minWidth: 12,
+      height: 12,
+      paddingHorizontal: 2,
+      borderRadius: 999,
+      borderWidth: 0,
+      backgroundColor: palette.error,
       zIndex: 1,
     },
   });

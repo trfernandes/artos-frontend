@@ -22,6 +22,10 @@ export type FancyBaseCardProps = {
   centerContainerStyle?: StyleProp<ViewStyle>;
   backgroundColor?: string;
   onPress?: () => void;
+  onLongPress?: () => void;
+  delayLongPress?: number;
+  accessibilityRole?: 'button';
+  accessibilityLabel?: string;
 };
 
 export const titleTextProps: FancyTextProps = {
@@ -65,7 +69,7 @@ export default function FancyBaseCard({ isCollapsable = false, ...props }: Fancy
     color: palette.fonts.inactive,
   };
 
-  const ContainerComponent = props.onPress ? TouchableOpacity : View;
+  const ContainerComponent = props.onPress || props.onLongPress ? TouchableOpacity : View;
 
   return (
     <ContainerComponent
@@ -77,7 +81,16 @@ export default function FancyBaseCard({ isCollapsable = false, ...props }: Fancy
         },
         props.containerStyle,
       ]}
-      {...(props.onPress ? { onPress: props.onPress, activeOpacity: 0.9 } : {})}
+      {...(props.onPress || props.onLongPress
+        ? {
+            onPress: props.onPress,
+            onLongPress: props.onLongPress,
+            delayLongPress: props.delayLongPress,
+            activeOpacity: 0.9,
+            accessibilityRole: props.accessibilityRole,
+            accessibilityLabel: props.accessibilityLabel,
+          }
+        : {})}
     >
       <View style={[styles.innerContainer, props.contentContainerStyle]}>
         <View style={styles.headerContainer}>

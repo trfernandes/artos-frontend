@@ -126,6 +126,94 @@ export default function EventoSetlistItemDetailsView({
     [estruturaResolvida, item?.bpm],
   );
 
+  const renderTextEmptyCard = (title: string, text?: string | null) => (
+    <View
+      style={[
+        styles.textCard,
+        {
+          backgroundColor: palette.backgroundColor4,
+          borderColor: ColorUtils.withAlpha(palette.primary, 0.14),
+          ...palette.shadows[100],
+        },
+      ]}
+    >
+      <View style={styles.textCardHeader}>
+        <View style={[styles.textCardIcon, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12) }]}>
+          <DefaultIcons.Custom
+            library='MaterialCommunityIcons'
+            name={title === 'Cifra' ? 'guitar-acoustic' : 'text-box-outline'}
+            size={16}
+            color={palette.primary}
+          />
+        </View>
+        <View style={styles.textCardTitleBlock}>
+          <FancyText type='bold' size='small' color={palette.fonts.dark}>
+            {title}
+          </FancyText>
+          <FancyText size='extraSmall' color={palette.fonts.inactive}>
+            {text?.trim() ? 'Conteúdo cadastrado para esta música' : 'Sem conteúdo cadastrado'}
+          </FancyText>
+        </View>
+      </View>
+
+      <FancyText
+        type='normal'
+        size='small'
+        color={text?.trim() ? palette.fonts.dark : palette.fonts.inactive}
+        style={styles.textCardBody}
+      >
+        {text?.trim() || `Sem ${title.toLowerCase()} cadastrada.`}
+      </FancyText>
+    </View>
+  );
+
+  const renderStructuredTextSections = (type: 'letra' | 'cifra') => {
+    if (estruturaResolvida.length === 0) {
+      return renderTextEmptyCard(type === 'letra' ? 'Letra' : 'Cifra', type === 'letra' ? item?.letraMarkdown : item?.cifraMarkdown);
+    }
+
+    return estruturaResolvida.map((row) => {
+      const secaoBase = row.secaoRepertorio;
+      const tipoSecao = (row.tipo || secaoBase?.tipo || RepertorioMusicaSecaoTipoEnum.PERSONALIZADO) as RepertorioMusicaSecaoTipoEnum;
+      const visual = secaoVisualMap[tipoSecao];
+      const repeticoes = row.repeticoes || 1;
+      const text = type === 'letra' ? row.letra : row.cifra;
+
+      return (
+        <View
+          key={`${type}-${row.id}`}
+          style={[
+            styles.letraSection,
+            styles.structuredTextSection,
+            {
+              backgroundColor: palette.backgroundColor4,
+              borderColor: ColorUtils.withAlpha(visual.color, 0.16),
+            },
+          ]}
+        >
+          <View style={styles.letraHeader}>
+            <FancyText type='bold' size='small' color={visual.color}>
+              {secaoBase?.rotulo || row.rotulo}
+            </FancyText>
+            {repeticoes > 1 ? (
+              <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                {repeticoes}x
+              </FancyText>
+            ) : null}
+          </View>
+          <FancyText
+            type='normal'
+            size='small'
+            color={text?.trim() ? palette.fonts.dark : palette.fonts.inactive}
+            style={styles.letraText}
+          >
+            {text?.trim() || `Sem ${type} cadastrada nesta seção.`}
+          </FancyText>
+        </View>
+      );
+    });
+  };
+
   const openEditor = (index?: number) => {
     if (index === undefined) {
       setEditingIndex(null);
@@ -385,6 +473,33 @@ export default function EventoSetlistItemDetailsView({
         );
       })}
 
+      {draftRows.length === 0 ? (
+        <View
+          style={[
+            styles.emptyStructureCard,
+            {
+              backgroundColor: palette.backgroundColor4,
+              borderColor: ColorUtils.withAlpha(palette.primary, 0.14),
+            },
+          ]}
+        >
+          <DefaultIcons.Custom
+            library='MaterialCommunityIcons'
+            name='playlist-remove'
+            size={22}
+            color={palette.fonts.inactive}
+          />
+          <View style={styles.emptyStructureCopy}>
+            <FancyText type='semiBold' size='small' color={palette.fonts.dark}>
+              Arranjo ainda não detalhado
+            </FancyText>
+            <FancyText size='extraSmall' color={palette.fonts.inactive}>
+              A música pode ser consultada pelas abas de letra e cifra quando houver conteúdo cadastrado.
+            </FancyText>
+          </View>
+        </View>
+      ) : null}
+
       {canEdit ? (
         <FancyButton
           label='Salvar arranjo da ocorrência'
@@ -399,29 +514,13 @@ export default function EventoSetlistItemDetailsView({
 
   const letraTab = (
     <FancyScrollView contentContainerStyle={styles.tabContent}>
-      {estruturaResolvida.map((row) => {
-        const secaoBase = row.secaoRepertorio;
-        const tipoSecao = (row.tipo || secaoBase?.tipo || RepertorioMusicaSecaoTipoEnum.PERSONALIZADO) as RepertorioMusicaSecaoTipoEnum;
-        const visual = secaoVisualMap[tipoSecao];
-        const repeticoes = row.repeticoes || 1;
-        return (
-          <View key={row.id} style={styles.letraSection}>
-            <View style={styles.letraHeader}>
-              <FancyText type='bold' size='small' color={visual.color}>
-                {secaoBase?.rotulo || row.rotulo}
-              </FancyText>
-              {repeticoes > 1 ? (
-                <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                  {repeticoes}x
-                </FancyText>
-              ) : null}
-            </View>
-            <FancyText size='small' style={styles.letraText}>
-              {row.letra || 'Sem letra cadastrada.'}
-            </FancyText>
-          </View>
-        );
-      })}
+      {renderStructuredTextSections('letra')}
+    </FancyScrollView>
+  );
+
+  const cifraTab = (
+    <FancyScrollView contentContainerStyle={styles.tabContent}>
+      {renderStructuredTextSections('cifra')}
     </FancyScrollView>
   );
 
@@ -435,6 +534,11 @@ export default function EventoSetlistItemDetailsView({
       title: 'Letra',
       icon: { library: 'MaterialCommunityIcons', name: 'text-box-outline', size: 18 },
       content: letraTab,
+    },
+    {
+      title: 'Cifra',
+      icon: { library: 'MaterialCommunityIcons', name: 'guitar-acoustic', size: 18 },
+      content: cifraTab,
     },
   ];
 
@@ -527,16 +631,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
   },
   tabContent: {
-    paddingTop: 10,
+    paddingTop: 8,
     paddingBottom: 120,
-    gap: 14,
+    gap: 10,
   },
   summaryCard: {
     borderWidth: 1,
-    borderRadius: 24,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    gap: 14,
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 10,
   },
   summaryHeader: {
     flexDirection: 'row',
@@ -558,9 +662,9 @@ const styles = StyleSheet.create({
   },
   sectionCard: {
     borderWidth: 1,
-    borderRadius: 22,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
+    borderRadius: 18,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -568,9 +672,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   sectionIndex: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -603,6 +707,12 @@ const styles = StyleSheet.create({
   letraSection: {
     gap: 8,
   },
+  structuredTextSection: {
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 13,
+    paddingVertical: 12,
+  },
   letraHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -610,7 +720,46 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   letraText: {
-    lineHeight: 22,
+    lineHeight: 20,
+  },
+  textCard: {
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 13,
+    paddingVertical: 12,
+    gap: 10,
+  },
+  textCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  textCardIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  textCardTitleBlock: {
+    flex: 1,
+    gap: 2,
+  },
+  textCardBody: {
+    lineHeight: 20,
+  },
+  emptyStructureCard: {
+    borderWidth: 1,
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  emptyStructureCopy: {
+    flex: 1,
+    gap: 3,
   },
   editorForm: {
     gap: 14,

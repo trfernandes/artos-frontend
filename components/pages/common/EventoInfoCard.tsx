@@ -1,9 +1,8 @@
 import { View, StyleSheet } from 'react-native';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import FancyValueLine from '../../fields/FancyValueLine';
 import FancyContainer from '../../FancyContainer';
 import FancyText from '../../FancyText';
+import { formatAppDateTime } from '../../../utils/date_utils';
 
 export interface EventoInfoCardProps {
   eventoNome: string;
@@ -49,7 +48,7 @@ export default function EventoInfoCard({
           <FancyValueLine
             dataContainerStyle={styles.dataContainer}
             title='Data/Hora:'
-            value={format(dataOcorrencia, "EEE, d 'de' MMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
+            value={formatAppDateTime(dataOcorrencia, "EEE, d 'de' MMM 'de' yyyy 'às' HH:mm") ?? ''}
             multiline={true}
             showSeparator={true}
           />

@@ -10,6 +10,7 @@ import { Image } from 'expo-image';
 import { usePallete } from '../../../hooks/usePallete';
 import { useThemedStyles } from '../../../hooks/useThemedStyles';
 import { ColorUtils } from '../../../utils/color_utils';
+import { resolveEventoEnsaioInfo } from '../../../utils/evento-ensaio';
 
 type ProximaEscalaCardProps = {
   escala: DashboardEscalaItemDto;
@@ -25,6 +26,12 @@ export default function ProximaEscalaCard({ escala, onPress }: ProximaEscalaCard
   const hora = format(dataEvento, 'HH:mm', { locale: ptBR });
   const diaSemana = format(dataEvento, 'EEEE', { locale: ptBR });
   const diaSemanaCapitalized = diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1);
+
+  // Resolver horário de ensaio usando a mesma lógica de "Minhas Escalas"
+  const ensaioInfo = resolveEventoEnsaioInfo({
+    horarioEnsaio: escala.horarioEnsaio,
+    horarioEnsaioPadrao: escala.evento?.horarioEnsaioPadrao,
+  });
 
   return (
     <Pressable onPress={onPress} style={styles.container}>
@@ -47,7 +54,7 @@ export default function ProximaEscalaCard({ escala, onPress }: ProximaEscalaCard
         <View style={[styles.statusDot, { backgroundColor: escala.isConfirmado ? palette.confirm : palette.warning }]} />
       </View>
 
-      {/* Meio: Evento + Função */}
+      {/* Meio: Evento + Função + Ensaio */}
       <View style={styles.infoSection}>
         <View style={styles.infoRow}>
           <View style={styles.infoIconContainer}>
@@ -65,6 +72,17 @@ export default function ProximaEscalaCard({ escala, onPress }: ProximaEscalaCard
             {escala.funcaoNome}
           </FancyText>
         </View>
+        {ensaioInfo.shouldShow && (
+          <>
+            <View style={styles.separator} />
+            <View style={[styles.infoRow, rehearsalBadgeStyle(palette)]}>
+              <DefaultIcons.Custom library="MaterialCommunityIcons" name="music-box-outline" size={14} color={palette.primary} />
+              <FancyText size="small" type="semiBold" color={palette.primary} numberOfLines={1} style={{ flex: 1 }}>
+                {ensaioInfo.label}
+              </FancyText>
+            </View>
+          </>
+        )}
       </View>
 
       {/* Separador + Rodapé: Ministério */}
@@ -156,4 +174,16 @@ function createStyles(palette: ThemePalette) {
       justifyContent: 'center',
     },
   });
+}
+
+function rehearsalBadgeStyle(palette: ThemePalette): any {
+  return {
+    backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12),
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: palette.primary,
+    marginTop: 2,
+  };
 }

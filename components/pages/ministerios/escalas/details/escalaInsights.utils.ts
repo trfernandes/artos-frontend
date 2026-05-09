@@ -1,5 +1,6 @@
 import { ResponseEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.response';
 import { ResponseEscalaDto } from '../../../../../domain/dtos/Escala/escala.response';
+import { DateUtilsApi } from '../../../../../utils/date_utils';
 
 export type EscalaInsightsPersonRow = {
   voluntarioId: string;
@@ -42,8 +43,13 @@ function isInsideRange(date: Date, start: Date, end: Date): boolean {
 
 function parseDate(value?: string): Date | null {
   if (!value) return null;
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
+  try {
+    return /^\d{4}-\d{2}-\d{2}/.test(value)
+      ? DateUtilsApi.dateOnlyFromApi(value.slice(0, 10) as any)
+      : new Date(value);
+  } catch {
+    return null;
+  }
 }
 
 export function buildCurrentEscalaInsights(itens: ResponseEscalaItemDto[]): EscalaCurrentInsights {

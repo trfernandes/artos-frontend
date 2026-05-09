@@ -25,13 +25,13 @@ export default function FancyStepsText({ text, textColor, maxWidth, containerSty
       <FancyText
         numberOfLines={2}
         maxFontSizeMultiplier={1}
-        size="extraSmall"
+        size={10}
         type="semiBold"
         color={textColor}
         style={{
           textAlign: 'center',
           maxWidth,
-          lineHeight: 14,
+          lineHeight: 13,
         }}
       >
         {text}

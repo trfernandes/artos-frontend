@@ -1,8 +1,6 @@
 import { router } from 'expo-router';
-import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
-import { Pallete } from '../../../../../constants/colors';
 import { DefaultIconsNames } from '../../../../../constants/icons';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import FancyScreenErrorHandler from '../../../../../components/error/FancyScreenErrorHandler';
 import { useCallback, useMemo, useState } from 'react';
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
@@ -18,14 +16,17 @@ import {
 import { AppImages } from '../../../../../assets/app_images';
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import FancyChips from '../../../../../components/FancyChips';
-import BillingNoticeBanner from '../../../../../components/billing/BillingNoticeBanner';
-import { useIgrejaAssinatura } from '../../../../../hooks/useIgrejaAssinatura';
+import FancyListItemCard from '../../../../../components/cards/FancyListItemCard';
+import FancyActionSheet from '../../../../../components/actions/FancyActionSheet';
+import { usePallete } from '../../../../../hooks/usePallete';
+import { ResponseVoluntarioDto } from '../../../../../domain/dtos/Voluntario/voluntario.response';
 
 export default function VoluntariosIndexPage() {
+  const palette = usePallete();
   const [searchText, setSearchText] = useState('');
-  const { user, igrejaAtiva } = useAuth();
+  const [actionsVoluntario, setActionsVoluntario] = useState<ResponseVoluntarioDto | null>(null);
+  const { user } = useAuth();
   const { showLoading } = useLoading();
-  const { data: assinatura } = useIgrejaAssinatura({ igrejaId: igrejaAtiva?.id });
 
   const {
     data,
@@ -116,7 +117,7 @@ export default function VoluntariosIndexPage() {
     return <FancyScreenErrorHandler error={error!} onTryAgrainPress={refetch} />;
   }
 
-  if (isLoading || isRefetching || isLoadingMutation) return <FancyLoading />;
+  if (isLoading || isRefetching) return <FancyLoading />;
 
   return (
     <FancyListPage
@@ -128,18 +129,6 @@ export default function VoluntariosIndexPage() {
           setSearchText(text.trim());
         },
       }}
-      topContent={
-        <BillingNoticeBanner
-          compact
-          assinatura={assinatura}
-          onPress={() =>
-            router.push({
-              pathname: '/(app)/(drawer)/configuracoes',
-              params: { tab: 'plano', openPlans: '1' },
-            })
-          }
-        />
-      }
       listProps={{
         onRefresh: refetch,
         listEmptyProps:
@@ -162,93 +151,78 @@ export default function VoluntariosIndexPage() {
               },
         data: sorteredData,
         renderItem: ({ item, index }) => {
+          const statusColor = item.status === VoluntarioStatusEnum.ATIVO ? palette.primary : palette.error;
           return (
-            <View>
-              <FancyCard.Image
-                key={index}
-                type='image'
-                props={{
-                  title: item.nome,
-                  subtitle: item.email,
-                  additionalData1: (
+            <FancyListItemCard
+              title={item.nome}
+              subtitle={item.email}
+              leading={{
+                type: 'image',
+                source:
+                  item.fotoThumbUrl || item.fotoUrl
+                    ? { uri: item.fotoThumbUrl || item.fotoUrl || '' }
+                    : AppImages.emptyProfile,
+              }}
+              meta={
                     <FancyChips
-                      style={{ marginTop: 2 }}
                       label={VoluntarioStatusEnumLabel[item.status]}
-                      color={
-                        item.status === VoluntarioStatusEnum.ATIVO
-                          ? Pallete.primary
-                          : Pallete.error
-                      }
+                      color={statusColor}
                       size='small'
                     />
-                  ),
-                  source:
-                    item.fotoThumbUrl || item.fotoUrl
-                      ? { uri: item.fotoThumbUrl || item.fotoUrl || '' }
-                      : AppImages.emptyProfile,
-                  actionButtons: [
-                    {
-                      icon: { ...DefaultIconsNames.edit, size: 17 },
-                      onPress: () => {
-                        showLoading();
-                        router.push({
-                          pathname: '/admin/voluntarios/details',
-                          params: {
-                            id: item.id,
-                          },
-                        });
-                      },
-                    },
-                    {
-                      type: 'menu',
-                      icon: {
-                        library: 'Entypo',
-                        name: 'dots-three-vertical',
-                        size: 15,
-                        backgroundColor: Pallete.secondary,
-                      },
-                      options: [
-                        {
-                          label:
-                            item.status === VoluntarioStatusEnum.ATIVO
-                              ? 'Desativar'
-                              : 'Ativar',
-                          icon:
-                            item.status === VoluntarioStatusEnum.ATIVO
-                              ? { library: 'FontAwesome6', name: 'thumbs-down', size: 16 }
-                              : { library: 'FontAwesome6', name: 'thumbs-up', size: 16 },
-                          onPress: () => {
-                            handleChangeStatus(
-                              item.id!,
-                              item.nome,
-                              item.status === VoluntarioStatusEnum.ATIVO
-                                ? VoluntarioStatusEnum.DESATIVADO
-                                : VoluntarioStatusEnum.ATIVO,
-                            );
-                          },
-                        },
-                        {
-                          label: 'Excluir',
-                          icon: {
-                            library: 'FontAwesome6',
-                            name: 'trash-can',
-                            size: 16,
-                            style: { borderWidth: 0 },
-                          },
-                          onPress: () => {
-                            handleDeleteVoluntario(item.id!);
-                          },
-                        },
-                      ],
-                    },
-                  ],
-                }}
-              />
-            </View>
+              }
+              trailing={{ type: 'menu', onPress: () => setActionsVoluntario(item) }}
+              contentStyle={isLoadingMutation ? { opacity: 0.68 } : undefined}
+            />
           );
         },
       }}
-    />
+    >
+      <FancyActionSheet
+        visible={!!actionsVoluntario}
+        onClose={() => setActionsVoluntario(null)}
+        actions={[
+          {
+            label: 'Abrir detalhes',
+            icon: { ...DefaultIconsNames.edit, size: 18 },
+            onPress: () => {
+              if (!actionsVoluntario) return;
+              showLoading();
+              router.push({
+                pathname: '/admin/voluntarios/details',
+                params: { id: actionsVoluntario.id },
+              });
+            },
+          },
+          {
+            label: actionsVoluntario?.status === VoluntarioStatusEnum.ATIVO ? 'Desativar' : 'Ativar',
+            icon:
+              actionsVoluntario?.status === VoluntarioStatusEnum.ATIVO
+                ? { library: 'FontAwesome6', name: 'thumbs-down', size: 16 }
+                : { library: 'FontAwesome6', name: 'thumbs-up', size: 16 },
+            disabled: isLoadingMutation,
+            onPress: () => {
+              if (!actionsVoluntario) return;
+              handleChangeStatus(
+                actionsVoluntario.id!,
+                actionsVoluntario.nome,
+                actionsVoluntario.status === VoluntarioStatusEnum.ATIVO
+                  ? VoluntarioStatusEnum.DESATIVADO
+                  : VoluntarioStatusEnum.ATIVO,
+              );
+            },
+          },
+          {
+            label: 'Excluir',
+            destructive: true,
+            disabled: isLoadingMutation,
+            icon: { library: 'FontAwesome6', name: 'trash-can', size: 16 },
+            onPress: () => {
+              if (actionsVoluntario) handleDeleteVoluntario(actionsVoluntario.id!);
+            },
+          },
+        ]}
+      />
+    </FancyListPage>
   );
 }
 

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { router } from 'expo-router';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import Toast from 'react-native-toast-message';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -34,6 +35,7 @@ type Props = {
   ministerioId?: string;
   mode?: 'lider' | 'responsavel' | 'leitura';
   responsavelSetlistNome?: string | null;
+  detailsRoutePath?: '/ministerios/agenda/setlist/[itemId]' | '/pessoal/escalas/setlist/[itemId]';
 };
 
 export default function EventoSetlistTab({
@@ -42,8 +44,10 @@ export default function EventoSetlistTab({
   ministerioId,
   mode = 'leitura',
   responsavelSetlistNome,
+  detailsRoutePath = '/ministerios/agenda/setlist/[itemId]',
 }: Props) {
   const palette = usePallete();
+  const isDark = palette.backgroundColor === '#121212';
   const { user } = useAuth();
   const dataOcorrenciaIso = dataOcorrencia.toISOString();
   const isEditable = mode !== 'leitura';
@@ -77,6 +81,7 @@ export default function EventoSetlistTab({
   const [isSalvandoResponsavel, setIsSalvandoResponsavel] = useState(false);
   const [orderedItems, setOrderedItems] = useState<ResponseEventoSetlistItemDto[]>([]);
   const [actionsItem, setActionsItem] = useState<ResponseEventoSetlistItemDto | null>(null);
+  const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
 
   const repertorio = useMemo(() => (repertorioData ?? []).filter((item) => item.ativo !== false), [repertorioData]);
 
@@ -147,8 +152,23 @@ export default function EventoSetlistTab({
   };
 
   const openItemDetails = (item: ResponseEventoSetlistItemDto) => {
-    if (!isEditable) return;
-    openItemEditor(item);
+    if (isEditable) {
+      openItemEditor(item);
+      return;
+    }
+
+    if (!ministerioId) return;
+
+    router.push({
+      pathname: detailsRoutePath,
+      params: {
+        itemId: item.id,
+        eventoId,
+        ministerioId,
+        dataOcorrencia: dataOcorrenciaIso,
+        modo: mode,
+      },
+    });
   };
 
   const handleSalvarObservacoes = async () => {
@@ -227,6 +247,7 @@ export default function EventoSetlistTab({
   };
 
   const handleDeleteItem = async (itemId: string) => {
+    setDeletingItemId(itemId);
     try {
       await removerSetlistItem(itemId);
       Toast.show({
@@ -239,6 +260,8 @@ export default function EventoSetlistTab({
         text1: 'Erro ao remover música',
         text2: getApiErrorMessage(error, 'Não foi possível remover esta música do setlist.'),
       });
+    } finally {
+      setDeletingItemId(null);
     }
   };
 
@@ -296,8 +319,8 @@ export default function EventoSetlistTab({
         style={[
           styles.ownerCard,
           {
-            backgroundColor: ColorUtils.lightenColor(palette.secondary, 0.955),
-            borderColor: ColorUtils.withAlpha(palette.secondary, 0.16),
+            backgroundColor: isDark ? palette.backgroundColor4 : ColorUtils.lightenColor(palette.secondary, 0.955),
+            borderColor: ColorUtils.withAlpha(palette.secondary, isDark ? 0.32 : 0.16),
             ...palette.shadows[200],
           },
         ]}
@@ -307,8 +330,8 @@ export default function EventoSetlistTab({
             style={[
               styles.ownerIconWrap,
               {
-                backgroundColor: ColorUtils.withAlpha('#FFFFFF', 0.92),
-                borderColor: ColorUtils.withAlpha(palette.secondary, 0.14),
+                backgroundColor: isDark ? ColorUtils.withAlpha(palette.secondary, 0.16) : ColorUtils.withAlpha('#FFFFFF', 0.92),
+                borderColor: ColorUtils.withAlpha(palette.secondary, isDark ? 0.28 : 0.14),
               },
             ]}
           >
@@ -363,8 +386,9 @@ export default function EventoSetlistTab({
               styles.ownerActionButton,
               {
                 backgroundColor: ColorUtils.withAlpha('#FFFFFF', 0.94),
-                borderColor: ColorUtils.withAlpha(palette.secondary, 0.14),
+                borderColor: ColorUtils.withAlpha(palette.secondary, isDark ? 0.28 : 0.14),
               },
+              isDark && { backgroundColor: ColorUtils.withAlpha(palette.secondary, 0.16) },
             ]}
           >
             <MaterialCommunityIcons
@@ -383,8 +407,8 @@ export default function EventoSetlistTab({
           style={[
             styles.observacoesCard,
             {
-              backgroundColor: ColorUtils.lightenColor(palette.primary, 0.94),
-              borderColor: ColorUtils.withAlpha(palette.primary, 0.18),
+              backgroundColor: isDark ? palette.backgroundColor4 : ColorUtils.lightenColor(palette.primary, 0.94),
+              borderColor: ColorUtils.withAlpha(palette.primary, isDark ? 0.32 : 0.18),
               ...palette.shadows[200],
             },
           ]}
@@ -393,7 +417,10 @@ export default function EventoSetlistTab({
             <View
               style={[
                 styles.observacoesIconWrap,
-                { backgroundColor: ColorUtils.withAlpha('#FFFFFF', 0.92), borderColor: ColorUtils.withAlpha(palette.primary, 0.14) },
+                {
+                  backgroundColor: isDark ? ColorUtils.withAlpha(palette.primary, 0.16) : ColorUtils.withAlpha('#FFFFFF', 0.92),
+                  borderColor: ColorUtils.withAlpha(palette.primary, isDark ? 0.28 : 0.14),
+                },
               ]}
             >
               <DefaultIcons.Custom
@@ -435,8 +462,9 @@ export default function EventoSetlistTab({
                 styles.observacoesActionButton,
                 {
                   backgroundColor: ColorUtils.withAlpha('#FFFFFF', 0.94),
-                  borderColor: ColorUtils.withAlpha(palette.primary, 0.14),
+                  borderColor: ColorUtils.withAlpha(palette.primary, isDark ? 0.28 : 0.14),
                 },
+                isDark && { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.16) },
               ]}
             >
               <MaterialCommunityIcons name='pencil-outline' size={15} color={palette.primary} />
@@ -515,7 +543,11 @@ export default function EventoSetlistTab({
             <View style={styles.emptyState}>
               <FancyListEmpty
                 label='Nenhuma música adicionada'
-                helperText='Adicione as músicas desta ocorrência para definir a sequência e acompanhar a duração total.'
+                helperText={
+                  canAddMusic
+                    ? 'Adicione as músicas desta ocorrência para definir a sequência e acompanhar a duração total.'
+                    : 'Quando o responsável montar o SetList, as músicas aparecerão aqui para consulta.'
+                }
                 icon={{ library: 'MaterialCommunityIcons', name: 'playlist-music-outline', size: 56 }}
                 actionLabel={canAddMusic ? 'Adicionar música' : undefined}
                 onActionPress={canAddMusic ? () => openItemEditor(null) : undefined}
@@ -525,6 +557,16 @@ export default function EventoSetlistTab({
             </View>
           }
         />
+        {(isMutatingSetlist || deletingItemId) ? (
+          <View style={styles.blockingOverlay} pointerEvents='auto'>
+            <View style={[styles.blockingOverlayContent, { backgroundColor: palette.backgroundColor4, borderColor: palette.borderCard }]}>
+              <FancyLoading
+                label={deletingItemId ? 'Removendo música...' : 'Atualizando setlist...'}
+                containerStyle={{ flex: 0 }}
+              />
+            </View>
+          </View>
+        ) : null}
       </View>
 
       <EventoSetlistEditorSheet
@@ -581,61 +623,89 @@ export default function EventoSetlistTab({
 
       <FancyBottomSheetModal
         visible={observacoesVisible}
-        onClose={() => setObservacoesVisible(false)}
+        onClose={() => {
+          if (!isSavingObservacoes) setObservacoesVisible(false);
+        }}
         title='Orientações'
+        closeDisabled={isSavingObservacoes}
         footer={
           <FancyButton
             label='Salvar'
             icon={{ ...DefaultIconsNames.save, size: 16 }}
             isLoading={isSavingObservacoes}
+            loadingText='Salvando...'
+            disabled={isSavingObservacoes}
             onPress={() => void handleSalvarObservacoes()}
           />
         }
       >
-        <View style={styles.sheetContent}>
-          <FancyText size='small' color={palette.fonts.inactive}>
-            Use este espaço para orientações gerais da equipe, dinâmica do culto ou observações da ocorrência.
-          </FancyText>
-          <FancyTextInput
-            label='Observações'
-            value={observacoesDraft}
-            readonly={isSavingObservacoes}
-            inputProps={{
-              onChangeText: isSavingObservacoes ? undefined : setObservacoesDraft,
-              multiline: true,
-              style: { minHeight: 140, textAlignVertical: 'top' },
-              editable: !isSavingObservacoes,
-            }}
-          />
+        <View style={styles.sheetContentWrapper}>
+          <View style={styles.sheetContent}>
+            <FancyText size='small' color={palette.fonts.inactive}>
+              Use este espaço para orientações gerais da equipe, dinâmica do culto ou observações da ocorrência.
+            </FancyText>
+            <FancyTextInput
+              label='Observações'
+              value={observacoesDraft}
+              readonly={isSavingObservacoes}
+              disabled={isSavingObservacoes}
+              inputProps={{
+                onChangeText: isSavingObservacoes ? undefined : setObservacoesDraft,
+                multiline: true,
+                style: { minHeight: 140, textAlignVertical: 'top' },
+                editable: !isSavingObservacoes,
+              }}
+            />
+          </View>
+          {isSavingObservacoes ? (
+            <Pressable
+              accessibilityLabel='Salvamento em andamento'
+              style={styles.sheetBlockingOverlay}
+              onPress={() => undefined}
+            />
+          ) : null}
         </View>
       </FancyBottomSheetModal>
 
       <FancyBottomSheetModal
         visible={responsavelVisible}
-        onClose={() => setResponsavelVisible(false)}
+        onClose={() => {
+          if (!isSalvandoResponsavel) setResponsavelVisible(false);
+        }}
         title='Responsável do SetList'
+        closeDisabled={isSalvandoResponsavel}
         footer={
           <FancyButton
             label='Salvar'
             icon={{ ...DefaultIconsNames.save, size: 16 }}
             isLoading={isSalvandoResponsavel}
-            disabled={!responsavelSelecionadoId}
+            loadingText='Salvando...'
+            disabled={!responsavelSelecionadoId || isSalvandoResponsavel}
             onPress={() => void handleSalvarResponsavel()}
           />
         }
       >
-        <View style={styles.sheetContent}>
-          <FancyText size='small' color={palette.fonts.inactive}>
-            Escolha quem conduz o SetList desta ocorrência.
-          </FancyText>
-          <FancyBottomSheetSelect
-            label='Voluntário'
-            title='Selecionar responsável'
-            value={responsavelSelecionadoId}
-            onChange={(value) => setResponsavelSelecionadoId(String(value || ''))}
-            listItems={integrantesEquipeOptions}
-            disabled={isSalvandoResponsavel}
-          />
+        <View style={styles.sheetContentWrapper}>
+          <View style={styles.sheetContent}>
+            <FancyText size='small' color={palette.fonts.inactive}>
+              Escolha quem conduz o SetList desta ocorrência.
+            </FancyText>
+            <FancyBottomSheetSelect
+              label='Voluntário'
+              title='Selecionar responsável'
+              value={responsavelSelecionadoId}
+              onChange={(value) => setResponsavelSelecionadoId(String(value || ''))}
+              listItems={integrantesEquipeOptions}
+              disabled={isSalvandoResponsavel}
+            />
+          </View>
+          {isSalvandoResponsavel ? (
+            <Pressable
+              accessibilityLabel='Salvamento em andamento'
+              style={styles.sheetBlockingOverlay}
+              onPress={() => undefined}
+            />
+          ) : null}
         </View>
       </FancyBottomSheetModal>
 
@@ -709,6 +779,7 @@ export default function EventoSetlistTab({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    position: 'relative',
   },
   list: {
     flex: 1,
@@ -854,6 +925,13 @@ const styles = StyleSheet.create({
   sheetContent: {
     gap: 14,
   },
+  sheetContentWrapper: {
+    position: 'relative',
+  },
+  sheetBlockingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 10,
+  },
   actionsSheetContent: {
     gap: 2,
     marginTop: -6,
@@ -877,5 +955,19 @@ const styles = StyleSheet.create({
   actionLabelDanger: {
     flex: 1,
     color: '#EF4444',
+  },
+  blockingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.16)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 50,
+  },
+  blockingOverlayContent: {
+    minWidth: 190,
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
   },
 });

@@ -1,24 +1,25 @@
-import { View, StyleSheet, TouchableOpacity, Modal } from 'react-native';
+import { View, StyleSheet, Pressable, Modal } from 'react-native';
 import { useMemo, useState } from 'react';
-import { differenceInCalendarDays, format, startOfDay } from 'date-fns';
+import { differenceInCalendarDays, startOfDay } from 'date-fns';
 import { router } from 'expo-router';
 import FancyAccordeon from '../../../../FancyAccordeon';
 import FancyText from '../../../../FancyText';
 import FancyLoading from '../../../../FancyLoading';
 import DefaultIcons from '../../../../FancyIcons';
 import FuncoesTable from './FuncoesTable';
-import EventoCardContent from '../../../../cards/EventoCardContent';
 import { EscalaDoDiaAgrupada } from '../../../../../app/(app)/(drawer)/pessoal/escalas';
 import { ResponseEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.response';
-import { Pallete } from '../../../../../constants/colors';
 import { ColorUtils } from '../../../../../utils/color_utils';
 import { isLouvorMinisterioTipo, resolveEventoEnsaioInfo } from '../../../../../utils/evento-ensaio';
+import { formatAppDateTime } from '../../../../../utils/date_utils';
+import { usePallete } from '../../../../../hooks/usePallete';
 import {
   BOLD_FONT,
   SMALL_SIZE_FONT,
   EXTRA_SMALL_SIZE_FONT,
   MEDIUM_SIZE_FONT,
   LARGE_MEDIUM_SIZE_FONT,
+  LARGE_SIZE_FONT,
 } from '../../../../../constants/font';
 
 type EventoAccordeonVariant = 'minimalPremium' | 'editorialClean' | 'compactAgenda';
@@ -36,10 +37,12 @@ export default function EventoAccordeon({
   onSubButtonPress,
   variant = 'compactAgenda',
 }: EventoAccordeonProps) {
+  const palette = usePallete();
   const [isOpeningEvento, setIsOpeningEvento] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const eventColor = data.evento?.cor || Pallete.primary;
+  const isDark = palette.backgroundColor === '#121212';
+  const eventColor = data.evento?.cor || palette.primary;
   const isLouvor = useMemo(
     () =>
       isLouvorMinisterioTipo(data.ministerio?.tipo)
@@ -56,7 +59,7 @@ export default function EventoAccordeon({
         horarioEnsaio: data.horarioEnsaio,
         horarioEnsaioPadrao: data.evento?.horarioEnsaioPadrao,
         isLouvor,
-        fallbackLabel: 'Horário de ensaio a definir',
+        fallbackLabel: undefined,
       }),
     [data.horarioEnsaio, data.evento?.horarioEnsaioPadrao, isLouvor],
   );
@@ -67,10 +70,9 @@ export default function EventoAccordeon({
       return 'Horario nao definido';
     }
 
-    return `${format(data.evento.dataInicio, 'HH:mm')} - ${format(
-      data.evento.dataTermino,
-      'HH:mm',
-    )}`;
+    const inicio = formatAppDateTime(data.evento.dataInicio, 'HH:mm');
+    const termino = formatAppDateTime(data.evento.dataTermino, 'HH:mm');
+    return inicio && termino ? `${inicio} - ${termino}` : 'Horario nao definido';
   }, [data.evento?.dataInicio, data.evento?.dataTermino]);
 
   const countdownLabel = useMemo(() => {
@@ -84,33 +86,45 @@ export default function EventoAccordeon({
     return `Em ${diffDays}d`;
   }, [data.dataOcorrencia]);
 
-  const ensaioText = ensaioInfo.label ?? 'Horário de ensaio a definir';
+  const ensaioText = ensaioInfo.label ?? 'A definir';
+  const isEnsaioFallback = showEnsaio && !ensaioInfo.label;
 
   const eventName = data.evento?.nome || 'Evento';
   const ministryName = data.ministerio?.nome || '';
 
   const ui = useMemo(() => {
-    const accentText = ColorUtils.darkenColor(eventColor, 0.32);
+    const accentText = isDark
+      ? ColorUtils.lightenColor(eventColor, 0.2)
+      : ColorUtils.darkenColor(eventColor, 0.3);
+    const neutralSurface = palette.backgroundColor4;
+    const expandedSurface = isDark ? palette.backgroundColor3 : palette.backgroundColor2;
 
     return {
       cardBg:
-        variant === 'compactAgenda'
-          ? ColorUtils.lightenColor(eventColor, 0.918)
+        isDark
+          ? neutralSurface
           : ColorUtils.lightenColor(eventColor, variant === 'editorialClean' ? 0.932 : 0.925),
-      borderColor: ColorUtils.withAlpha(eventColor, variant === 'editorialClean' ? 0.1 : 0.14),
-      shadowStyle: variant === 'minimalPremium' ? Pallete.shadows[200] : Pallete.shadows[100],
-      titleColor: Pallete.fonts.dark,
-      metaColor: Pallete.fonts.inactive,
+      contentBg: expandedSurface,
+      borderColor: ColorUtils.withAlpha(eventColor, isDark ? 0.34 : 0.2),
+      expandedBorderColor: ColorUtils.withAlpha(eventColor, isDark ? 0.4 : 0.24),
+      dividerColor: ColorUtils.withAlpha(isDark ? palette.borderCard : eventColor, isDark ? 0.45 : 0.18),
+      shadowStyle: variant === 'minimalPremium' ? palette.shadows[200] : palette.shadows[100],
+      titleColor: palette.fonts.dark,
+      metaColor: palette.fonts.inactive,
       accentText,
-      accentSoft: ColorUtils.withAlpha(eventColor, 0.065),
-      accentMid: ColorUtils.withAlpha(eventColor, 0.11),
-      accentStrong: ColorUtils.withAlpha(eventColor, 0.18),
-      subtleText: ColorUtils.darkenColor(eventColor, 0.18),
-      chipBg: ColorUtils.withAlpha(eventColor, variant === 'compactAgenda' ? 0.11 : 0.1),
-      chipBorder: ColorUtils.withAlpha(eventColor, 0.11),
-      iconBg: ColorUtils.withAlpha(eventColor, 0.075),
+      accentSoft: ColorUtils.withAlpha(eventColor, isDark ? 0.14 : 0.065),
+      accentMid: ColorUtils.withAlpha(eventColor, isDark ? 0.18 : 0.11),
+      accentStrong: ColorUtils.withAlpha(eventColor, isDark ? 0.24 : 0.18),
+      subtleText: accentText,
+      chipBg: ColorUtils.withAlpha(eventColor, isDark ? 0.16 : 0.1),
+      chipBorder: ColorUtils.withAlpha(eventColor, isDark ? 0.28 : 0.12),
+      iconBg: ColorUtils.withAlpha(eventColor, isDark ? 0.16 : 0.075),
+      linkText: isDark ? ColorUtils.lightenColor(palette.primary, 0.16) : palette.fonts.link,
+      linkIconBg: ColorUtils.withAlpha(palette.primary, isDark ? 0.18 : 0.08),
+      loadingBg: ColorUtils.withAlpha('#0F172A', isDark ? 0.44 : 0.18),
+      loadingSurface: palette.backgroundColor4,
     };
-  }, [eventColor, variant]);
+  }, [eventColor, isDark, palette, variant]);
 
   const navigateToEvento = () => {
     setIsOpeningEvento(true);
@@ -235,8 +249,13 @@ export default function EventoAccordeon({
     return (
       <View style={styles.compactMetaLine}>
         {!!ministryName ? (
-          <View style={styles.compactMetaItem}>
-            <View style={[styles.compactMetaDot, { backgroundColor: eventColor }]} />
+          <View style={[styles.compactMetaItem, { flexShrink: 0 }]}>
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='account-group-outline'
+              size={11}
+              color={ui.accentText}
+            />
             <FancyText
               size='extraSmall'
               type='semiBold'
@@ -256,14 +275,19 @@ export default function EventoAccordeon({
           <View style={styles.compactMetaItem}>
             <DefaultIcons.Custom
               library='MaterialCommunityIcons'
-              name='music-note-eighth'
-              size={11}
-              color={ui.accentText}
+              name={isEnsaioFallback ? 'clock-alert-outline' : 'clock-outline'}
+              size={isEnsaioFallback ? 10 : 11}
+              color={isEnsaioFallback ? ui.metaColor : ui.accentText}
             />
             <FancyText
               size='extraSmall'
               type='medium'
-              style={[styles.compactMetaSecondary, { color: ui.accentText }]}
+              style={[
+                styles.compactMetaSecondary,
+                isEnsaioFallback
+                  ? { color: ui.metaColor, fontSize: EXTRA_SMALL_SIZE_FONT - 1 }
+                  : { color: ui.accentText },
+              ]}
               numberOfLines={1}
             >
               {ensaioText}
@@ -351,16 +375,65 @@ export default function EventoAccordeon({
   );
 
   const renderCompactAgenda = () => (
-    <EventoCardContent
-      timeRangeText={timeRangeText}
-      countdownLabel={countdownLabel}
-      title={eventName}
-      eventColor={eventColor}
-      metaPrimary={ministryName || undefined}
-      metaSecondary={showEnsaio ? ensaioText : undefined}
-      isAccordion
-      isExpanded={isExpanded}
-    />
+    <View style={styles.compactHeaderShell}>
+      {/* Barra lateral de cor do evento */}
+      <View style={[styles.compactAccentRail, { backgroundColor: eventColor }]} />
+
+      {/* Área de navegação: Pressable consome o toque → não dispara o toggle do acordeão */}
+      <Pressable
+        onPress={navigateToEvento}
+        style={styles.compactNavArea}
+        android_ripple={{ color: ColorUtils.withAlpha(eventColor, 0.1) }}
+      >
+        {/* Linha 1: 🕐 HH:MM-HH:MM  [chip Em Xd] */}
+        <View style={styles.compactRow1}>
+          <View style={styles.compactTimeRow}>
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='clock-outline'
+              size={12}
+              color={ui.accentText}
+            />
+            <FancyText
+              size='small'
+              type='semiBold'
+              style={[styles.compactTimeText, { color: ui.accentText }]}
+              numberOfLines={1}
+            >
+              {timeRangeText}
+            </FancyText>
+          </View>
+          <View style={[styles.compactCountdownBadge, { backgroundColor: ui.chipBg, borderColor: ui.chipBorder }]}>
+            <FancyText size='extraSmall' type='semiBold' style={[styles.compactCountdownText, { color: ui.accentText }]}>
+              {countdownLabel}
+            </FancyText>
+          </View>
+        </View>
+
+        {/* Linha 2: Nome do evento */}
+        <FancyText
+          size='medium'
+          type='bold'
+          style={[styles.compactTitleText, { color: ui.titleColor }]}
+          numberOfLines={1}
+        >
+          {eventName}
+        </FancyText>
+
+        {/* Linha 3: • Ministério  ·  ♪ ensaio */}
+        {renderCompactMetaLine()}
+      </Pressable>
+
+      {/* Chevron: View pura sem background — o toque sobe ao TouchableOpacity do FancyAccordeon → toggle */}
+      <View style={styles.compactChevronArea}>
+        <DefaultIcons.Custom
+          library='MaterialCommunityIcons'
+          name={isExpanded ? 'chevron-up' : 'chevron-down'}
+          size={24}
+          color={ui.accentText}
+        />
+      </View>
+    </View>
   );
 
   const renderHeader = () => {
@@ -374,7 +447,13 @@ export default function EventoAccordeon({
       expanded={isExpanded}
       onExpandedChange={setIsExpanded}
       title={renderHeader()}
-      contentContainerStyle={styles.contentContainer}
+      contentContainerStyle={[
+        styles.contentContainer,
+        {
+          backgroundColor: ui.contentBg,
+          borderTopColor: ui.dividerColor,
+        },
+      ]}
       headerContainerStyle={[
         styles.headerSurface,
         {
@@ -401,12 +480,30 @@ export default function EventoAccordeon({
       containerExpandedContainerStyle={[
         styles.cardContainerExpanded,
         {
-          backgroundColor: '#FFFFFF',
-          borderColor: ui.borderColor,
+          backgroundColor: ui.contentBg,
+          borderColor: ui.expandedBorderColor,
         },
       ]}
       hideChevron
     >
+      {/* Cabeçalho de seção — orienta o voluntário sobre o que está vendo */}
+      <View style={styles.sectionHeader}>
+        <FancyText
+          size='extraSmall'
+          type='semiBold'
+          style={[styles.sectionEyebrow, { color: ui.accentText }]}
+        >
+          SUAS FUNÇÕES NESTE EVENTO
+        </FancyText>
+        <FancyText
+          size='extraSmall'
+          type='normal'
+          style={[styles.sectionSubtitle, { color: ui.metaColor }]}
+        >
+          Confirme sua participação abaixo
+        </FancyText>
+      </View>
+
       <FuncoesTable
         data={data.itens}
         onConfirmButtonPress={onConfirmButtonPress}
@@ -414,32 +511,9 @@ export default function EventoAccordeon({
         variant='rowCompactPremium'
       />
 
-      <TouchableOpacity onPress={navigateToEvento} style={styles.detailsLinkContainer}>
-        <View style={styles.detailsLinkDivider} />
-        <View style={styles.detailsLinkRow}>
-          <View style={styles.detailsLinkCopy}>
-            <FancyText size='extraSmall' type='semiBold' style={styles.detailsLinkEyebrow}>
-              Evento
-            </FancyText>
-            <FancyText size='small' type='semiBold' style={styles.detailsLinkTitle}>
-              Ver detalhes completos
-            </FancyText>
-          </View>
-
-          <View style={styles.detailsLinkIcon}>
-            <DefaultIcons.Custom
-              library='MaterialCommunityIcons'
-              name='arrow-top-right'
-              size={14}
-              color={Pallete.fonts.link}
-            />
-          </View>
-        </View>
-      </TouchableOpacity>
-
-      <Modal visible={isOpeningEvento} transparent animationType='fade'>
-        <View style={styles.loadingOverlay}>
-          <View style={styles.loadingSurface}>
+      <Modal visible={isOpeningEvento} transparent animationType='none'>
+        <View style={[styles.loadingOverlay, { backgroundColor: ui.loadingBg }]}>
+          <View style={[styles.loadingSurface, { backgroundColor: ui.loadingSurface }, palette.shadows[200]]}>
             <FancyLoading label='Abrindo evento...' containerStyle={styles.loadingContent} />
           </View>
         </View>
@@ -460,7 +534,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 10,
     overflow: 'hidden',
-    paddingBottom: 6,
   },
   headerSurface: {
     paddingLeft: 0,
@@ -474,9 +547,74 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingHorizontal: 0,
     paddingTop: 8,
-    paddingBottom: 4,
+    paddingBottom: 14,
     borderWidth: 0,
-    backgroundColor: '#FFFFFF',
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  compactHeaderShell: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    minHeight: 84,
+  },
+  compactAccentRail: {
+    width: 4,
+    marginVertical: 10,
+    marginLeft: 12,
+    borderRadius: 999,
+    opacity: 0.9,
+  },
+  compactNavArea: {
+    flex: 1,
+    minWidth: 0,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 4,
+  },
+  compactRow1: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 6,
+  },
+  compactTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    flex: 1,
+    minWidth: 0,
+  },
+  compactTimeText: {
+    fontFamily: BOLD_FONT,
+    lineHeight: SMALL_SIZE_FONT + 1,
+    letterSpacing: 0.15,
+    flexShrink: 1,
+  },
+  compactCountdownBadge: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexShrink: 0,
+  },
+  compactCountdownText: {
+    lineHeight: EXTRA_SMALL_SIZE_FONT - 1,
+    fontSize: EXTRA_SMALL_SIZE_FONT - 2,
+  },
+  compactTitleText: {
+    fontFamily: BOLD_FONT,
+    fontSize: MEDIUM_SIZE_FONT,
+    lineHeight: MEDIUM_SIZE_FONT + 1,
+    letterSpacing: -0.1,
+  },
+  compactChevronArea: {
+    width: 40,
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: 14,
+    marginRight: 8,
   },
   variantRoot: {
     flex: 1,
@@ -594,9 +732,9 @@ const styles = StyleSheet.create({
   compactMetaLine: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
+    gap: 5,
     minWidth: 0,
-    flexWrap: 'nowrap',
+    flexWrap: 'wrap',
     marginTop: 1,
   },
   compactMetaItem: {
@@ -657,44 +795,18 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 11,
   },
-  detailsLinkContainer: {
+  sectionHeader: {
     paddingHorizontal: 16,
-    paddingTop: 6,
+    paddingTop: 2,
     paddingBottom: 6,
-    gap: 10,
-  },
-  detailsLinkDivider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: ColorUtils.withAlpha(Pallete.fonts.inactive, 0.18),
-  },
-  detailsLinkRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  detailsLinkCopy: {
-    flex: 1,
     gap: 2,
   },
-  detailsLinkEyebrow: {
-    color: Pallete.fonts.inactive,
+  sectionEyebrow: {
+    letterSpacing: 0.6,
     textTransform: 'uppercase',
-    letterSpacing: 0.45,
   },
-  detailsLinkTitle: {
-    color: Pallete.fonts.link,
-    fontFamily: BOLD_FONT,
-    fontSize: SMALL_SIZE_FONT,
-    lineHeight: MEDIUM_SIZE_FONT + 1,
-  },
-  detailsLinkIcon: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.08),
+  sectionSubtitle: {
+    lineHeight: EXTRA_SMALL_SIZE_FONT + 4,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -704,13 +816,11 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   loadingSurface: {
-    width: '100%',
-    maxWidth: 220,
+    width: 220,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 20,
     paddingVertical: 18,
-    ...Pallete.shadows[200],
+    alignSelf: 'center',
   },
   loadingContent: {
     flex: 0,

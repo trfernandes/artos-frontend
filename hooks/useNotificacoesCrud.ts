@@ -109,7 +109,7 @@ export function useNotificacoesCrud({
     queryKey: unreadCountQueryKey,
     queryFn: async () => {
       const notificacoesNaoLidas = await NotificacoesApi.listar(true);
-      return filterNotificationsByChurch(notificacoesNaoLidas, igrejaId).length;
+      return filterNotificationsByChurch(notificacoesNaoLidas, igrejaId).filter(isUnread).length;
     },
     enabled: enabled && includeUnreadCount,
     staleTime: NOTIFICATIONS_STALE_TIME_MS,

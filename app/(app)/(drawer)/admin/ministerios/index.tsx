@@ -1,5 +1,4 @@
 import { router } from 'expo-router';
-import { FancyCard, FancyCardImageBaseProps, IconType, ImageType } from '../../../../../components/cards/Horizontal/FancyCard';
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
 import FancyScreenErrorHandler from '../../../../../components/error/FancyScreenErrorHandler';
 
@@ -14,17 +13,20 @@ import { MinisterioTipoLabel } from '../../../../../domain/enums/Ministerio/mini
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { DefaultIconsNames } from '../../../../../constants/icons';
-import { Pallete } from '../../../../../constants/colors';
 import FancyChips from '../../../../../components/FancyChips';
-import BillingNoticeBanner from '../../../../../components/billing/BillingNoticeBanner';
-import { useIgrejaAssinatura } from '../../../../../hooks/useIgrejaAssinatura';
+import FancyListItemCard from '../../../../../components/cards/FancyListItemCard';
+import FancyActionSheet from '../../../../../components/actions/FancyActionSheet';
+import { usePallete } from '../../../../../hooks/usePallete';
+import { ColorUtils } from '../../../../../utils/color_utils';
+import { ResponseMinisterioDto } from '../../../../../domain/dtos/Ministerio/ministerio.response';
 
 export default function MinisteriosIndex() {
+  const palette = usePallete();
   const { showLoading } = useLoading();
-  const { user, updateUser, igrejaAtiva } = useAuth();
-  const { data: assinatura } = useIgrejaAssinatura({ igrejaId: igrejaAtiva?.id });
+  const { user, updateUser } = useAuth();
 
   const [searchText, setSearchText] = useState('');
+  const [actionsMinisterio, setActionsMinisterio] = useState<ResponseMinisterioDto | null>(null);
 
   const {
     data,
@@ -142,18 +144,6 @@ export default function MinisteriosIndex() {
           }
         },
       }}
-      topContent={
-        <BillingNoticeBanner
-          compact
-          assinatura={assinatura}
-          onPress={() =>
-            router.push({
-              pathname: '/(app)/(drawer)/configuracoes',
-              params: { tab: 'plano', openPlans: '1' },
-            })
-          }
-        />
-      }
       listProps={{
         onRefresh: refetch,
         listEmptyProps: {
@@ -163,97 +153,81 @@ export default function MinisteriosIndex() {
         data: data,
         keyExtractor: (item) => item.id,
         renderItem: ({ item, index }) => {
-          const commonProps: FancyCardImageBaseProps = {
-            title: item.nome,
-            subtitle: MinisterioTipoLabel[item.tipo],
-            containerStyle: {
-              borderRadius: 28,
-              paddingVertical: 12,
-              marginBottom: 2,
-            },
-            contentContainerStyle: {
-              paddingHorizontal: 16,
-              paddingVertical: 4,
-            },
-            centerContainerStyle: {
-              gap: 2,
-              justifyContent: 'center',
-              paddingRight: 8,
-            },
-            additionalData1: (
+          const status = MinisterioStatusEnumMap[item.status];
+          const statusColor = status === MinisterioStatusEnum.Ativo ? palette.primary : palette.error;
+          return (
+            <FancyListItemCard
+              title={item.nome}
+              subtitle={MinisterioTipoLabel[item.tipo]}
+              leading={
+                item.logoThumbUrl
+                  ? { type: 'image', source: { uri: item.logoThumbUrl } }
+                  : {
+                      type: 'icon',
+                      icon: { library: 'MaterialCommunityIcons', name: 'home-group', size: 19 },
+                      color: palette.primary,
+                      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12),
+                    }
+              }
+              meta={
               <FancyChips
-                style={{ marginTop: 3, alignSelf: 'flex-start' }}
                 size='small'
                 label={MinisterioStatusLabel[item.status]}
-                color={MinisterioStatusEnumMap[item.status] === MinisterioStatusEnum.Ativo ? Pallete.primary : Pallete.error}
+                color={statusColor}
               />
-            ),
-            actionButtons: [
-              {
-                icon: { ...DefaultIconsNames.edit, size: 17 },
-                size: 'small',
-                onPress: () => {
-                  showLoading();
-                  router.push({
-                    pathname: '/admin/ministerios/edit',
-                    params: {
-                      id: item.id,
-                    },
-                  });
-                },
-              },
-              {
-                type: 'menu',
-                icon: { library: 'Entypo', name: 'dots-three-vertical', size: 15, backgroundColor: Pallete.secondary },
-                size: 'small',
-                options: [
-                  {
-                    label: MinisterioStatusEnumMap[item.status] == MinisterioStatusEnum.Ativo ? 'Desativar' : 'Ativar',
-                    icon:
-                      MinisterioStatusEnumMap[item.status] == MinisterioStatusEnum.Ativo
-                        ? { library: 'FontAwesome6', name: 'thumbs-down', size: 16 }
-                        : { library: 'FontAwesome6', name: 'thumbs-up', size: 16 },
-                    onPress: () => {
-                      handleChangeStatus(
-                        item.id!,
-                        item.nome,
-                        MinisterioStatusEnumMap[item.status] === MinisterioStatusEnum.Ativo
-                          ? MinisterioStatusEnum.Inativo
-                          : MinisterioStatusEnum.Ativo,
-                      );
-                    },
-                  },
-                  {
-                    label: 'Excluir',
-                    icon: { library: 'FontAwesome6', name: 'trash-can', size: 16, style: { borderWidth: 0 } },
-                    onPress: () => {
-                      handleRemoveMinisterio(item.id!);
-                    },
-                  },
-                ],
-              },
-            ],
-          };
-
-          const cardImageProps: ImageType | IconType = item.logoThumbUrl
-            ? {
-                type: 'image',
-                props: { source: { uri: item.logoThumbUrl }, ...commonProps },
               }
-            : {
-                type: 'icon',
-                props: {
-                  cardIcon: {
-                    library: 'MaterialCommunityIcons' as const,
-                    name: 'home-group',
-                    size: 18,
-                  },
-                  ...commonProps,
-                },
-              };
-          return <FancyCard.Image key={index} {...cardImageProps} />;
+              trailing={{ type: 'menu', onPress: () => setActionsMinisterio(item) }}
+            />
+          );
         },
       }}
-    ></FancyListPage>
+    >
+      <FancyActionSheet
+        visible={!!actionsMinisterio}
+        onClose={() => setActionsMinisterio(null)}
+        actions={[
+          {
+            label: 'Editar',
+            icon: { ...DefaultIconsNames.edit, size: 18 },
+            onPress: () => {
+              if (!actionsMinisterio) return;
+              showLoading();
+              router.push({
+                pathname: '/admin/ministerios/edit',
+                params: { id: actionsMinisterio.id },
+              });
+            },
+          },
+          {
+            label:
+              actionsMinisterio && MinisterioStatusEnumMap[actionsMinisterio.status] === MinisterioStatusEnum.Ativo
+                ? 'Desativar'
+                : 'Ativar',
+            icon:
+              actionsMinisterio && MinisterioStatusEnumMap[actionsMinisterio.status] === MinisterioStatusEnum.Ativo
+                ? { library: 'FontAwesome6', name: 'thumbs-down', size: 16 }
+                : { library: 'FontAwesome6', name: 'thumbs-up', size: 16 },
+            onPress: () => {
+              if (!actionsMinisterio) return;
+              handleChangeStatus(
+                actionsMinisterio.id!,
+                actionsMinisterio.nome,
+                MinisterioStatusEnumMap[actionsMinisterio.status] === MinisterioStatusEnum.Ativo
+                  ? MinisterioStatusEnum.Inativo
+                  : MinisterioStatusEnum.Ativo,
+              );
+            },
+          },
+          {
+            label: 'Excluir',
+            destructive: true,
+            icon: { library: 'FontAwesome6', name: 'trash-can', size: 16 },
+            onPress: () => {
+              if (actionsMinisterio) handleRemoveMinisterio(actionsMinisterio.id!);
+            },
+          },
+        ]}
+      />
+    </FancyListPage>
   );
 }

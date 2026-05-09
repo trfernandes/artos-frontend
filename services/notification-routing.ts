@@ -77,6 +77,77 @@ function normalizeParams(
   return Object.keys(normalized).length ? normalized : undefined;
 }
 
+function firstString(payload: Record<string, any>, keys: string[]): string | undefined {
+  for (const key of keys) {
+    const value = payload[key];
+    if (typeof value === 'string' && value.trim()) return value.trim();
+    if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  }
+  return undefined;
+}
+
+function resolveDateParam(payload: Record<string, any>, keys: string[]) {
+  const value = firstString(payload, keys);
+  if (!value) return undefined;
+  return value.slice(0, 10);
+}
+
+function resolveScaleDateParams(payload: Record<string, any>) {
+  const selectedDate = resolveDateParam(payload, ['selectedDate', 'dataOcorrencia', 'dataEvento', 'date', 'data']);
+  const month = resolveDateParam(payload, ['month', 'mes', 'dataReferencia', 'referenceDate', 'dataInicio']);
+  return normalizeParams({ selectedDate, dataOcorrencia: selectedDate, month });
+}
+
+function resolveEscalaSpecificTarget(payload: Record<string, any>): NotificationNavigationTarget | null {
+  const escalaId = firstString(payload, ['escalaId', 'idEscala', 'escala_id']);
+  const ministerioId = firstString(payload, ['ministerioId', 'idMinisterio', 'ministerio_id']);
+  const dateParams = resolveScaleDateParams(payload);
+
+  if (escalaId && ministerioId) {
+    return {
+      pathname: '/(app)/(drawer)/ministerios/escalas/details',
+      params: {
+        escalaId,
+        ministerioId,
+        viewMode: 'view',
+      },
+    };
+  }
+
+  if (escalaId) {
+    return {
+      pathname: '/(app)/(drawer)/pessoal/escalas',
+      params: {
+        escalaId,
+        ...(dateParams ?? {}),
+      },
+    };
+  }
+
+  if (dateParams) {
+    return {
+      pathname: '/(app)/(drawer)/pessoal/escalas',
+      params: dateParams,
+    };
+  }
+
+  return null;
+}
+
+function isCalendarMonthChange(payload: Record<string, any>) {
+  const tipo = getNotificationType(payload);
+  const assunto = `${payload.assunto ?? ''} ${payload.contexto ?? ''} ${payload.categoria ?? ''} ${payload.mensagem ?? ''} ${payload.titulo ?? ''}`.toUpperCase();
+  return tipo === 'CALENDARIO_MES_ATUALIZADO' || tipo === 'MES_ATUALIZADO' || assunto.includes('MÊS') || assunto.includes('MES');
+}
+
+function resolveCalendarMonthTarget(payload: Record<string, any>): NotificationNavigationTarget {
+  const month = resolveDateParam(payload, ['month', 'mes', 'dataReferencia', 'referenceDate', 'dataInicio', 'data']);
+  return {
+    pathname: '/(app)/(drawer)/pessoal/escalas',
+    params: normalizeParams({ month, dataReferencia: month }),
+  };
+}
+
 function parseRouteWithQuery(route: string): NotificationNavigationTarget | null {
   const [rawPath, rawQuery] = route.split('?');
   const pathname = normalizePath(rawPath || '');
@@ -170,7 +241,7 @@ function resolveByTipo(payload: Record<string, any>): NotificationNavigationTarg
     case NotificacaoTipoEnum.EscalaSubstituicaoResolvidaLider:
     case NotificacaoTipoEnum.IndisponibilidadeConflito:
     case 'TESTE_LOCAL':
-      return { pathname: '/(app)/(drawer)/pessoal/escalas' };
+      return resolveEscalaSpecificTarget(payload) ?? { pathname: '/(app)/(drawer)/pessoal/escalas' };
 
     case NotificacaoTipoEnum.MinisterioNovoIntegrante:
     case 'COMUNICADO_LIDER':
@@ -192,11 +263,50 @@ function resolveByTipo(payload: Record<string, any>): NotificationNavigationTarg
   }
 }
 
+const TYPE_CANONICAL_TARGETS = new Set<string>([
+  NotificacaoTipoEnum.EscalaLembrete,
+  NotificacaoTipoEnum.EscalaPublicada,
+  NotificacaoTipoEnum.EscalaAtualizada,
+  NotificacaoTipoEnum.EscalaAlterada,
+  NotificacaoTipoEnum.EscalaCancelada,
+  NotificacaoTipoEnum.EscalaConfirmacaoSolicitada,
+  NotificacaoTipoEnum.EscalaConfirmacaoPendente,
+  NotificacaoTipoEnum.EscalaSubstituicaoSolicitada,
+  NotificacaoTipoEnum.EscalaTrocaSolicitada,
+  NotificacaoTipoEnum.EscalaSubstituicaoAceita,
+  NotificacaoTipoEnum.EscalaTrocaAprovada,
+  NotificacaoTipoEnum.EscalaSubstituicaoRecusada,
+  NotificacaoTipoEnum.EscalaVoluntarioConfirmou,
+  NotificacaoTipoEnum.EscalaVoluntarioRecusou,
+  NotificacaoTipoEnum.EscalaSubstituicaoSolicitadaLider,
+  NotificacaoTipoEnum.EscalaSubstituicaoResolvidaLider,
+  NotificacaoTipoEnum.IndisponibilidadeConflito,
+  NotificacaoTipoEnum.MinisterioNovoIntegrante,
+  NotificacaoTipoEnum.ComunicadoLider,
+  NotificacaoTipoEnum.IgrejaVinculoSolicitado,
+  NotificacaoTipoEnum.IgrejaConviteAceito,
+  NotificacaoTipoEnum.IgrejaNovoVoluntario,
+  NotificacaoTipoEnum.IgrejaVinculoAprovado,
+  NotificacaoTipoEnum.IgrejaVinculoNegado,
+  NotificacaoTipoEnum.IgrejaConviteExpirado,
+  NotificacaoTipoEnum.SistemaAlertaAdmin,
+  NotificacaoTipoEnum.TesteLocal,
+]);
+
 export function resolveNotificationTarget(
   rawPayload: NotificationPayload,
 ): NotificationNavigationTarget | null {
   const payload = coercePayload(rawPayload);
   if (!payload) return null;
+
+  if (isCalendarMonthChange(payload)) {
+    return resolveCalendarMonthTarget(payload);
+  }
+
+  const tipo = getNotificationType(payload);
+  if (tipo && TYPE_CANONICAL_TARGETS.has(tipo)) {
+    return resolveByTipo(payload);
+  }
 
   const deepLink =
     typeof payload.deepLink === 'string'

@@ -76,6 +76,7 @@ export default function EventoDetails(props: {
             ministerioId={props.ministerioId}
             mode={isSetlistResponsavel ? 'responsavel' : 'leitura'}
             responsavelSetlistNome={props.responsavelSetlistNome ?? null}
+            detailsRoutePath='/pessoal/escalas/setlist/[itemId]'
           />
         ),
       });

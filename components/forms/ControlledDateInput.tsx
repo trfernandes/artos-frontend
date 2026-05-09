@@ -34,13 +34,25 @@ export default function ControlledDateInput<FormData extends FieldValues>({
     <Controller
       control={control}
       name={name}
-      render={({ field: { onChange, onBlur, value, disabled }, fieldState: { error } }) => (
+      render={({ field: { onChange, onBlur, value, disabled }, fieldState: { error } }) => {
+        const selectedDate = (() => {
+          if (!value) return undefined;
+          const rawValue = value as any;
+          const date = Object.prototype.toString.call(rawValue) === '[object Date]' ? rawValue as Date : new Date(rawValue);
+          return Number.isNaN(date.getTime()) ? undefined : date;
+        })();
+
+        const isDisabled = disabled || rest.disabled;
+
+        return (
         <View style={{ gap: 5 }}>
           <FancyTextInput
-            onPress={() => setShowModal(true)}
-            disabled={disabled}
             {...rest}
-            value={value ? new Date(value).toLocaleDateString() : ''}
+            onPress={() => {
+              if (!isDisabled) setShowModal(true);
+            }}
+            disabled={isDisabled}
+            value={selectedDate ? selectedDate.toLocaleDateString() : ''}
             inputProps={{
               ...rest.inputProps,
               onBlur,
@@ -57,7 +69,7 @@ export default function ControlledDateInput<FormData extends FieldValues>({
             }
           />
           {showErrorMessage && error && <FancyErrorText message={error.message!} />}
-          {showModal && (
+          {!isDisabled && showModal && (
             <FancyModalDialog
               containerStyle={{ gap: Platform.OS === 'ios' ? 12 : 24 }}
               buttonContainerStyle={{ marginTop: Platform.OS === 'ios' ? 0 : 8 }}
@@ -73,7 +85,7 @@ export default function ControlledDateInput<FormData extends FieldValues>({
                   ...calendarProps,
                   containerStyle: [{ backgroundColor: 'transparent', borderWidth: 0 }, calendarProps?.containerStyle],
                   dayModeTopPadding: calendarProps?.dayModeTopPadding ?? 10,
-                  value,
+                  value: selectedDate,
                   onChangeSelectedDate: onChange,
                   dayViewProps: {
                     ...(calendarProps?.dayViewProps ?? {}),
@@ -84,7 +96,8 @@ export default function ControlledDateInput<FormData extends FieldValues>({
             </FancyModalDialog>
           )}
         </View>
-      )}
+        );
+      }}
     />
   );
 }

@@ -3,7 +3,8 @@ import { useState } from 'react';
 import FancyText from '../../../FancyText';
 import FancyTextInput from '../../../fields/FancyTextInput';
 import FancyChips from '../../../FancyChips';
-import FancyModalDialog from '../../../modal/FancyModalDialog';
+import FancyBottomSheetModal from '../../../modal/FancyBottomSheetModal';
+import FancyButton from '../../../buttons/FancyButton';
 import DefaultIcons from '../../../FancyIcons';
 import { ThemePalette } from '../../../../constants/colors';
 import { CreateIgrejaConviteDto } from '../../../../domain/dtos/Igreja/create-igreja-convite.dto';
@@ -67,25 +68,30 @@ export default function NovoConviteModal({
   };
 
   return (
-    <FancyModalDialog
-      modalProps={{ visible }}
+    <FancyBottomSheetModal
+      visible={visible}
       title='Novo Convite'
-      showCloseButton
-      onButton1Press={handleClose}
-      onButton2Press={handleCriar}
-      button1={{ label: 'Cancelar' }}
-      button2={{
-        label: isLoading ? 'Gerando...' : 'Gerar Convite',
-        icon: {
-          library: 'MaterialCommunityIcons',
-          name: 'ticket-confirmation-outline',
-          size: 16,
-          color: palette.fonts.light,
-        },
-        disabled: isLoading,
-        isLoading: isLoading,
-      }}
-      centerContainerStyle={styles.content}
+      onClose={handleClose}
+      closeDisabled={isLoading}
+      footer={
+        <View style={styles.footer}>
+          <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} style={styles.footerPreview}>
+            {descricao.trim() || 'Convite'} • {maxUses ? `${maxUses} uso(s)` : 'Ilimitado'} • {validadeDias ? `${validadeDias} dias` : 'Sem expiração'}
+          </FancyText>
+          <FancyButton
+            label='Gerar Convite'
+            loadingText='Gerando...'
+            icon={{
+              library: 'MaterialCommunityIcons',
+              name: 'ticket-confirmation-outline',
+              size: 16,
+            }}
+            disabled={isLoading}
+            isLoading={isLoading}
+            onPress={handleCriar}
+          />
+        </View>
+      }
     >
       {/* Descrição */}
       <View style={styles.section}>
@@ -212,23 +218,7 @@ export default function NovoConviteModal({
         </View>
       </View>
 
-      {/* Preview do convite */}
-      <View style={styles.previewSection}>
-        <View style={styles.previewCard}>
-          <View style={styles.previewRow}>
-            <DefaultIcons.Custom
-              library='MaterialCommunityIcons'
-              name='ticket-confirmation-outline'
-              size={16}
-              color={palette.fonts.inactive}
-            />
-            <FancyText size='extraSmall' color={palette.fonts.inactive}>
-              {descricao.trim() || 'Convite'} • {maxUses ? `${maxUses} uso(s)` : 'Ilimitado'} • {validadeDias ? `${validadeDias} dias` : 'Sem expiração'}
-            </FancyText>
-          </View>
-        </View>
-      </View>
-    </FancyModalDialog>
+    </FancyBottomSheetModal>
   );
 }
 
@@ -256,14 +246,14 @@ function createStyles(palette: ThemePalette) {
       flex: 1,
       alignItems: 'center',
       padding: 14,
-      borderRadius: 12,
-      borderWidth: 1.5,
+      borderRadius: 14,
+      borderWidth: 1,
       borderColor: palette.borderCard,
       backgroundColor: palette.backgroundColor2,
       gap: 6,
     },
     entryTypeCardActive: {
-      borderWidth: 2,
+      borderWidth: 1.5,
     },
     entryTypeDesc: {
       textAlign: 'center',
@@ -277,20 +267,12 @@ function createStyles(palette: ThemePalette) {
       paddingHorizontal: 14,
       paddingVertical: 6,
     },
-    previewSection: {
-      marginTop: 4,
-    },
-    previewCard: {
-      backgroundColor: palette.backgroundColor2,
-      borderRadius: 10,
-      padding: 12,
-      borderWidth: 1,
-      borderColor: palette.borderCard,
-    },
-    previewRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
+    footer: {
       gap: 8,
+      paddingBottom: 2,
+    },
+    footerPreview: {
+      textAlign: 'center',
     },
   });
 }

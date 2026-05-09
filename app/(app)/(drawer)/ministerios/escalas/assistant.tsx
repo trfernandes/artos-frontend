@@ -26,7 +26,6 @@ import {
   AssistenteEscalaProvider,
   useAssistenteEscala,
 } from '../../../../../contexts/pages/escalas/AssistantContext';
-import { endOfMonth } from 'date-fns';
 import Toast from 'react-native-toast-message';
 import { EscalaRepository } from '../../../../../domain/services/EscalaRepository';
 import { Operator, ValueType, Conjunction } from '../../../../../domain/utils/query_utils';
@@ -42,6 +41,7 @@ import { useEscalaNomeValidator } from '../../../../../hooks/useEscalaNomeValida
 import { getApiErrorMessage } from '../../../../../domain/api/api-error';
 
 const DUPLICATE_NAME_MESSAGE = 'Já existe uma escala com esse nome neste ministério.';
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const normalizeEscalaName = (value?: string | null) =>
   (value ?? '')
@@ -65,12 +65,18 @@ const mapEscalaFormToDto = (
           | null;
 
         if (evento.template.templateBase) {
+          const templateId =
+            'id' in evento.template.templateBase
+              ? (evento.template.templateBase as { id?: string }).id
+              : undefined;
+
+          if (!templateId || !UUID_REGEX.test(templateId)) {
+            throw new Error(`O evento "${evento.nome}" usa um template inválido. Selecione novamente a equipe antes de gerar a escala.`);
+          }
+
           equipe = {
             origem: 'porTemplate',
-            templateId:
-              'id' in evento.template.templateBase
-                ? (evento.template.templateBase as { id?: string }).id
-                : undefined,
+            templateId,
           } as CreateEscalaEventoEquipePorTemplateDto;
         } else {
           equipe = {
@@ -142,7 +148,7 @@ function AssistenteWrapper() {
     resolver: zodResolver(EscalaSchema),
     defaultValues: {
       dataInicio: new Date(dataAtual.getFullYear(), dataAtual.getMonth() + 1, 1),
-      dataTermino: endOfMonth(new Date(dataAtual.getFullYear(), dataAtual.getMonth() + 1, 1)),
+      dataTermino: new Date(dataAtual.getFullYear(), dataAtual.getMonth() + 2, 0),
       markEventsAll: true,
       markParticipantsAll: true,
       eventos: [],
@@ -284,6 +290,24 @@ function AssistenteWrapper() {
   const handleGenerate = useCallback(
     async (values: EscalaFormData) => {
       try {
+        const eventosInvalidos = (values.eventos ?? [])
+          .filter((e) => e.selected && e.template.templateBase)
+          .filter((e) => {
+            const id = 'id' in (e.template.templateBase as object)
+              ? (e.template.templateBase as { id?: string }).id
+              : undefined;
+            return !id || !UUID_REGEX.test(id);
+          });
+
+        if (eventosInvalidos.length > 0) {
+          Toast.show({
+            type: 'error',
+            text1: 'Template inválido em evento(s)',
+            text2: `Selecione novamente a equipe em: ${eventosInvalidos.map((e) => e.nome).join(', ')}`,
+          });
+          return;
+        }
+
         showLoading('Gerando escala...');
         const start = Date.now();
         const payload = mapEscalaFormToDto(ministerioId, user?.user?.id!, values);
@@ -292,6 +316,12 @@ function AssistenteWrapper() {
         setTempoGeracaoEscala?.(time);
         setResultado(resultado);
         nextStep();
+      } catch (error) {
+        Toast.show({
+          type: 'error',
+          text1: 'Não foi possível gerar a escala.',
+          text2: getApiErrorMessage(error, error instanceof Error ? error.message : 'Revise os eventos selecionados e tente novamente.'),
+        });
       } finally {
         hideLoading();
       }
@@ -315,7 +345,7 @@ function AssistenteWrapper() {
   const stepsConfig: FancyStepsConfig = {
     steps: [
       {
-        title: 'Parâmetros',
+        title: 'Dados',
         content: (
           <AssistenteParametrosStep
             isCheckingName={isCheckingName}
@@ -330,7 +360,6 @@ function AssistenteWrapper() {
               library: 'MaterialIcons',
               name: 'chevron-left',
               size: 20,
-              style: { borderWidth: 0, width: 10, lineHeight: 12 },
             },
           },
           {
@@ -340,7 +369,6 @@ function AssistenteWrapper() {
               library: 'MaterialIcons',
               name: 'chevron-right',
               size: 20,
-              style: { borderWidth: 0, width: 10, lineHeight: 12 },
             },
             iconPosition: 'right',
             onPress: async () => {
@@ -441,7 +469,6 @@ function AssistenteWrapper() {
               library: 'MaterialIcons',
               name: 'chevron-left',
               size: 20,
-              style: { borderWidth: 0, width: 10, lineHeight: 12 },
             },
             onPress: () => previousStep(),
           },
@@ -451,7 +478,6 @@ function AssistenteWrapper() {
               library: 'MaterialIcons',
               name: 'chevron-right',
               size: 20,
-              style: { borderWidth: 0, width: 10, lineHeight: 12 },
             },
             iconPosition: 'right',
             onPress: () => {
@@ -479,7 +505,7 @@ function AssistenteWrapper() {
         ],
       },
       {
-        title: 'Participantes',
+        title: 'Equipe',
         content: <AssistenteParticipantesStep />,
         actions: [
           {
@@ -488,7 +514,6 @@ function AssistenteWrapper() {
               library: 'MaterialIcons',
               name: 'chevron-left',
               size: 20,
-              style: { borderWidth: 0, width: 10, lineHeight: 12 },
             },
             onPress: () => previousStep(),
           },
@@ -498,7 +523,6 @@ function AssistenteWrapper() {
               library: 'MaterialIcons',
               name: 'chevron-right',
               size: 20,
-              style: { borderWidth: 0, width: 10, lineHeight: 12 },
             },
             iconPosition: 'right',
             onPress: () => {
@@ -533,7 +557,7 @@ function AssistenteWrapper() {
         ],
       },
       {
-        title: 'Revisão',
+        title: 'Revisar',
         content: <AssistenteRevisaoStep />,
         actions: [
           {
@@ -542,7 +566,6 @@ function AssistenteWrapper() {
               library: 'MaterialIcons',
               name: 'chevron-left',
               size: 20,
-              style: { borderWidth: 0, width: 10, lineHeight: 12 },
             },
             onPress: () => previousStep(),
           },
@@ -552,7 +575,6 @@ function AssistenteWrapper() {
               library: 'MaterialIcons',
               name: 'play-arrow',
               size: 16,
-              style: { borderWidth: 0, width: 10, lineHeight: 10 },
             },
             iconPosition: 'right',
             color: Pallete.secondary,
@@ -563,7 +585,7 @@ function AssistenteWrapper() {
         ],
       },
       {
-        title: 'Resultado',
+        title: 'Pronto',
         content: <AssistenteResultadoStep />,
         actions: [
           {
@@ -572,7 +594,6 @@ function AssistenteWrapper() {
               library: 'MaterialCommunityIcons',
               name: 'arrow-u-left-top',
               size: 14,
-              style: { borderWidth: 0, width: 12, lineHeight: 12 },
             },
             onPress: () => {
               setIndex(0);
@@ -586,7 +607,6 @@ function AssistenteWrapper() {
               library: 'MaterialCommunityIcons',
               name: 'table-eye',
               size: 14,
-              style: { borderWidth: 0, width: 14, lineHeight: 14 },
             },
             color: Pallete.secondary,
             onPress: handleViewResults,

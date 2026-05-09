@@ -136,8 +136,10 @@ const styles = StyleSheet.create({
   rightContainer: {
     borderWidth: DESING_MODE,
     borderColor: 'blue',
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 4,
     marginRight: HEADER_HORIZONTAL_GUTTER,
   },
   headerTitle: {

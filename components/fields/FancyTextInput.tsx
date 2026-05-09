@@ -91,6 +91,7 @@ export default function FancyTextInput({ disabled = false, ...props }: FancyText
             placeholderTextColor={resolvedPlaceholderTextColor}
             multiline={isMultiline}
             {...remainingInputProps}
+            underlineColorAndroid='transparent'
             style={[
               styles.valueText,
               disabled && styles.valueDisabledText,
@@ -158,6 +159,7 @@ function createStyles(Pallete: ThemePalette) {
       fontFamily: MEDIUM_FONT,
       fontSize: SMALL_SIZE_FONT,
       color: Pallete.fonts.dark,
+      backgroundColor: 'transparent',
       minHeight: 39,
       alignItems: 'center',
       paddingHorizontal: 14,

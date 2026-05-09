@@ -1,5 +1,4 @@
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { StyleSheet, View } from 'react-native';
 import FancyText from '../../../../FancyText';
 import { ThemePalette } from '../../../../../constants/colors';
 import { EscalaStatusEnum } from '../../../../../domain/enums/Escala/escala-status.enum';
@@ -16,6 +15,7 @@ import {
 import { usePallete } from '../../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 import { ColorUtils } from '../../../../../utils/color_utils';
+import FancyButton from '../../../../buttons/FancyButton';
 
 export type EscalaHeaderVariant = 'default' | 'compact' | 'leader';
 
@@ -54,24 +54,29 @@ function MetaInlineItem({
   value: string;
 }) {
   const palette = usePallete();
-  const styles = useThemedStyles(createStyles);
 
   return (
-    <View style={styles.metaInlineItem}>
-      <View style={styles.metaInlineIcon}>
-        <DefaultIcons.Custom
-          library={icon.library}
-          name={icon.name}
-          size={13}
-          color={palette.primary}
-        />
-      </View>
+    <View style={{
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.1),
+      borderRadius: 8,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      alignSelf: 'flex-start',
+    }}>
+      <DefaultIcons.Custom
+        library={icon.library}
+        name={icon.name}
+        size={12}
+        color={palette.primary}
+      />
       <FancyText
-        type='medium'
+        type='semiBold'
         size='extraSmall'
-        color={palette.fonts.dark}
+        color={palette.primary}
         numberOfLines={1}
-        style={styles.metaInlineValue}
       >
         {value}
       </FancyText>
@@ -79,106 +84,23 @@ function MetaInlineItem({
   );
 }
 
-function ActionIconButton({ action }: { action: InlineAction }) {
-  const palette = usePallete();
-  const styles = useThemedStyles(createStyles);
-  const isDanger = action.variant === 'danger';
-  const isPublishAction = action.key === 'publish';
-  const isInsightsAction = action.key === 'insights';
-  const isParametrizacaoAction = action.key === 'parametrizacao';
-  const isDisabled = !!action.disabled || !!action.isLoading;
-  const iconColor = isPublishAction || isInsightsAction || isDanger || isParametrizacaoAction
-    ? isDisabled
-      ? ColorUtils.withAlpha('#FFFFFF', 0.7)
-      : '#FFFFFF'
-    : isDisabled
-      ? palette.icons.inactive
-      : palette.icons.dark;
-  const iconButtonBackground = isPublishAction
-    ? isDisabled
-      ? ColorUtils.withAlpha(palette.confirm, 0.55)
-      : palette.confirm
-    : isInsightsAction
-      ? isDisabled
-        ? ColorUtils.withAlpha(palette.warning, 0.55)
-        : palette.warning
-      : isParametrizacaoAction
-        ? isDisabled
-          ? ColorUtils.withAlpha(palette.secondary, 0.55)
-          : palette.secondary
-        : isDanger
-          ? isDisabled
-            ? ColorUtils.withAlpha(palette.error, 0.55)
-            : palette.error
-          : '#FFFFFF';
-
-  return (
-    <Pressable
-      onPress={action.onPress}
-      disabled={isDisabled}
-      style={({ pressed }) => [
-        styles.iconButton,
-        { backgroundColor: iconButtonBackground },
-        isPublishAction && { borderWidth: 0 },
-        isInsightsAction && { borderWidth: 0 },
-        isParametrizacaoAction && { borderWidth: 0 },
-        isDanger && { borderWidth: 0 },
-        isDisabled && styles.iconButtonDisabled,
-        pressed && styles.iconButtonPressed,
-      ]}
-      hitSlop={6}
-      accessibilityRole='button'
-      accessibilityLabel={action.label}
-      accessibilityState={{ disabled: isDisabled, busy: !!action.isLoading }}
-    >
-      {action.isLoading ? (
-        <ActivityIndicator size='small' color={iconColor} />
-      ) : (
-        <DefaultIcons.Custom
-          library={action.icon.library}
-          name={action.icon.name}
-          size={17}
-          color={iconColor}
-        />
-      )}
-    </Pressable>
-  );
-}
-
-function PrimaryPillButton({ action }: { action: InlineAction }) {
-  const palette = usePallete();
-  const styles = useThemedStyles(createStyles);
-  const isDisabled = !!action.disabled || !!action.isLoading;
-
-  return (
-    <Pressable
-      onPress={action.onPress}
-      disabled={isDisabled}
-      style={({ pressed }) => [
-        styles.primaryPill,
-        isDisabled && styles.primaryPillDisabled,
-        pressed && styles.primaryPillPressed,
-      ]}
-      hitSlop={4}
-      accessibilityRole='button'
-      accessibilityLabel={action.label}
-      accessibilityState={{ disabled: isDisabled, busy: !!action.isLoading }}
-    >
-      {action.isLoading ? (
-        <ActivityIndicator size='small' color={palette.icons.light} />
-      ) : (
-        <DefaultIcons.Custom
-          library={action.icon.library}
-          name={action.icon.name}
-          size={15}
-          color={palette.icons.light}
-        />
-      )}
-      <FancyText type='semiBold' size='extraSmall' color={palette.fonts.light}>
-        {action.label}
-      </FancyText>
-    </Pressable>
-  );
+/**
+ * Mapeia a chave da ação para uma cor de fundo semântica do palette.
+ * Ações sem mapeamento usam o fundo neutro padrão do app.
+ */
+function useActionColors(key: string, palette: ThemePalette) {
+  const coloredKeys: Record<string, string> = {
+    publish: palette.confirm,
+    insights: palette.warning,
+    parametrizacao: palette.secondary,
+    delete: palette.error,
+  };
+  const bg = coloredKeys[key];
+  return {
+    backgroundColor: bg ?? palette.backgroundColor3,
+    iconColor: bg ? palette.icons.light : palette.icons.dark,
+    isColored: Boolean(bg),
+  };
 }
 
 export default function EscalaHeader({
@@ -205,18 +127,19 @@ export default function EscalaHeader({
   const hasStaleWarning = isStaleUpdate(updatedAt);
   const hasHealth = confirmedCount !== undefined && totalCount !== undefined;
   const showCompact = variant === 'compact';
-  const showLeader = variant === 'leader';
   const inlineActions = actions ?? [];
   const hasInlineActions = inlineActions.length > 0;
-  const actionsGradientColors: [string, string] = [
-    ColorUtils.withAlpha(palette.primary, 0.2),
-    ColorUtils.withAlpha(palette.primary, 0.1),
-  ];
+  const primaryActions = inlineActions.filter((a) => a.variant === 'primary');
+  const secondaryActions = inlineActions.filter((a) => a.variant !== 'primary');
 
   return (
     <View style={[styles.surfaceCard, hasInlineActions && styles.surfaceCardWithActions]}>
+
       <View style={styles.topRow}>
         <View style={styles.titleBlock}>
+          <FancyText type='medium' size={9} color={palette.fonts.inactive} style={styles.categoryLabel}>
+            Escala
+          </FancyText>
           <FancyText
             type='bold'
             size='largeMedium'
@@ -227,7 +150,6 @@ export default function EscalaHeader({
             {title}
           </FancyText>
         </View>
-
         <View style={styles.topActions}>
           <EscalaStatusBadge status={status} />
         </View>
@@ -251,87 +173,116 @@ export default function EscalaHeader({
       {showCompact ? (
         <>
           {onOpenDetails && (
-            <Pressable
+            <FancyButton
+              type='text'
+              label='Ver detalhes'
               onPress={onOpenDetails}
-              style={({ pressed }) => [styles.detailsLink, pressed && styles.infoButtonPressed]}
-              hitSlop={6}
-              accessibilityRole='button'
-              accessibilityLabel='Abrir detalhes da escala'
-            >
-              <FancyText type='semiBold' size='extraSmall' color={palette.primary}>
-                Ver detalhes
-              </FancyText>
-            </Pressable>
+              containerStyle={styles.detailsLink}
+              labelStyle={{ color: palette.primary }}
+            />
           )}
         </>
       ) : (
-        <>
-          <View style={styles.metaFooter}>
-            <FancyText
-              type='medium'
-              size={9}
-              color={palette.fonts.inactive}
-              numberOfLines={1}
-              style={styles.metaFooterText}
-            >
-              {`${createdLabel} • ${updatedLabel}`}
-            </FancyText>
+        <View style={styles.metaFooter}>
+          <FancyText
+            type='medium'
+            size={9}
+            color={palette.fonts.inactive}
+            numberOfLines={1}
+            style={styles.metaFooterText}
+          >
+            {`${createdLabel} • ${updatedLabel}`}
+          </FancyText>
 
-            {hasStaleWarning && (
-              <View style={styles.staleTag}>
-                <DefaultIcons.Custom
-                  library='MaterialIcons'
-                  name='warning-amber'
-                  size={12}
-                  color={palette.warning}
-                />
-              </View>
-            )}
-          </View>
-        </>
+          {hasStaleWarning && (
+            <View style={styles.staleTag}>
+              <DefaultIcons.Custom
+                library='MaterialIcons'
+                name='warning-amber'
+                size={12}
+                color={palette.warning}
+              />
+            </View>
+          )}
+        </View>
       )}
 
       {primaryActionLabel && onPrimaryActionPress ? (
-        <Pressable
+        <FancyButton
+          type='contained'
+          label={primaryActionLabel}
           onPress={onPrimaryActionPress}
-          style={({ pressed }) => [
-            styles.primaryActionButton,
-            pressed && styles.primaryActionPressed,
-          ]}
-        >
-          <FancyText type='semiBold' size='extraSmall' color={palette.fonts.light}>
-            {primaryActionLabel}
-          </FancyText>
-        </Pressable>
+          containerStyle={styles.primaryActionButton}
+        />
       ) : null}
 
       {hasInlineActions && (
         <>
           <View style={styles.actionsDivider} />
-          <LinearGradient
-            colors={actionsGradientColors}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.actionsBackground}
-          >
-            <View style={styles.actionsRow}>
-              {inlineActions
-                .filter((a) => a.variant === 'primary')
-                .map((action) => (
-                  <PrimaryPillButton key={action.key} action={action} />
-                ))}
-              <View style={styles.actionsSecondaryGroup}>
-                {inlineActions
-                  .filter((a) => a.variant !== 'primary')
-                  .map((action) => (
-                    <ActionIconButton key={action.key} action={action} />
-                  ))}
-              </View>
+          <View style={styles.actionsRow}>
+            {/* Ações primárias: pill com label + ícone */}
+            {primaryActions.map((action) => (
+              <FancyButton
+                key={action.key}
+                type='contained'
+                label={action.label}
+                icon={{ ...action.icon, size: 15, color: palette.icons.light }}
+                iconPosition='left'
+                isLoading={action.isLoading}
+                disabled={action.disabled}
+                onPress={action.onPress}
+                accessibilityLabel={action.label}
+                containerStyle={styles.primaryPill}
+              />
+            ))}
+
+            {/* Ações secundárias: ícone com fundo semântico */}
+            <View style={styles.actionsSecondaryGroup}>
+              <SecondaryActions actions={secondaryActions} palette={palette} />
             </View>
-          </LinearGradient>
+          </View>
         </>
       )}
     </View>
+  );
+}
+
+/** Sub-componente isolado para poder usar o hook useActionColors por ação */
+function SecondaryActions({ actions, palette }: { actions: InlineAction[]; palette: ThemePalette }) {
+  return (
+    <>
+      {actions.map((action) => (
+        <SecondaryActionButton key={action.key} action={action} palette={palette} />
+      ))}
+    </>
+  );
+}
+
+function SecondaryActionButton({ action, palette }: { action: InlineAction; palette: ThemePalette }) {
+  const { backgroundColor, iconColor } = useActionColors(action.key, palette);
+  const isDisabled = !!action.disabled || !!action.isLoading;
+
+  return (
+    <FancyButton
+      type='light'
+      mode='icon'
+      size={{ w: 32, h: 32 }}
+      icon={{
+        library: action.icon.library,
+        name: action.icon.name,
+        size: 17,
+        color: isDisabled ? ColorUtils.withAlpha(iconColor, 0.6) : iconColor,
+      }}
+      isLoading={action.isLoading}
+      disabled={isDisabled}
+      onPress={action.onPress}
+      accessibilityLabel={action.label}
+      containerStyle={{
+        backgroundColor: isDisabled ? ColorUtils.withAlpha(backgroundColor, 0.55) : backgroundColor,
+        borderRadius: 16,
+        borderWidth: 0,
+      }}
+    />
   );
 }
 
@@ -341,11 +292,13 @@ function createStyles(palette: ThemePalette) {
       borderRadius: 18,
       borderWidth: 1,
       borderColor: palette.borderCard,
-      backgroundColor: palette.backgroundColor2,
+      backgroundColor: palette.backgroundColor,
       paddingHorizontal: 14,
       paddingTop: 12,
       paddingBottom: 12,
-      ...palette.shadows[100],
+      borderTopWidth: 3,
+      borderTopColor: palette.primary,
+      ...palette.shadows[200],
     },
     surfaceCardWithActions: {
       paddingBottom: 0,
@@ -361,6 +314,10 @@ function createStyles(palette: ThemePalette) {
       minWidth: 0,
       gap: 1,
     },
+    categoryLabel: {
+      letterSpacing: 0.4,
+      marginBottom: 1,
+    },
     titleText: {
       lineHeight: 20,
     },
@@ -368,15 +325,12 @@ function createStyles(palette: ThemePalette) {
       flexDirection: 'row',
       alignItems: 'center',
     },
-    infoButtonPressed: {
-      opacity: 0.75,
-    },
     metaInlineRow: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       flexWrap: 'wrap',
-      marginTop: 7,
+      marginTop: 3,
     },
     metaInlineItem: {
       flexDirection: 'row',
@@ -400,7 +354,7 @@ function createStyles(palette: ThemePalette) {
       marginTop: 6,
     },
     metaFooterText: {
-      opacity: 0.68,
+      flex: 1,
     },
     staleTag: {
       width: 20,
@@ -412,29 +366,17 @@ function createStyles(palette: ThemePalette) {
     },
     detailsLink: {
       alignSelf: 'flex-start',
+      paddingHorizontal: 0,
+      height: 28,
     },
     primaryActionButton: {
-      marginTop: 2,
+      marginTop: 8,
       height: 36,
       borderRadius: 10,
-      backgroundColor: palette.primary,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    primaryActionPressed: {
-      opacity: 0.85,
     },
     actionsDivider: {
       height: 1,
       backgroundColor: palette.borderCard,
-      marginHorizontal: -14,
-      marginTop: 10,
-    },
-    actionsBackground: {
-      marginHorizontal: -14,
-      paddingHorizontal: 14,
-      borderBottomLeftRadius: 17,
-      borderBottomRightRadius: 17,
     },
     actionsRow: {
       flexDirection: 'row',
@@ -449,37 +391,10 @@ function createStyles(palette: ThemePalette) {
       gap: 6,
     },
     primaryPill: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 5,
       height: 30,
       paddingHorizontal: 12,
       borderRadius: 999,
-      backgroundColor: palette.primary,
       minWidth: 100,
-      justifyContent: 'center',
-    },
-    primaryPillPressed: {
-      opacity: 0.85,
-      transform: [{ scale: 0.97 }],
-    },
-    primaryPillDisabled: {
-      opacity: 0.7,
-    },
-    iconButton: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: palette.backgroundColor3,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    iconButtonDisabled: {
-      opacity: 0.65,
-    },
-    iconButtonPressed: {
-      opacity: 0.6,
-      transform: [{ scale: 0.92 }],
     },
   });
 }

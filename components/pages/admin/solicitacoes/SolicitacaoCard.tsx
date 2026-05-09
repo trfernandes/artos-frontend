@@ -3,7 +3,6 @@ import FancyText from '../../../FancyText';
 import FancyButton from '../../../buttons/FancyButton';
 import FancyImage from '../../../images/FancyImage';
 import FancyChips from '../../../FancyChips';
-import FancyLoading from '../../../FancyLoading';
 import DefaultIcons from '../../../FancyIcons';
 import { Pallete } from '../../../../constants/colors';
 import { ResponseIgrejaSolicitacaoDto } from '../../../../domain/dtos/Igreja/response-igreja-solicitacao.dto';
@@ -33,10 +32,6 @@ export default function SolicitacaoCard({
   const createdDateFormatted = formatDateTime(solicitacao.createdAt);
   const respondedDateFormatted = solicitacao.respondedAt ? formatDateTime(solicitacao.respondedAt) : null;
   const isLoading = isAprovando || isRejeitando;
-
-  if (isLoading) {
-    return <FancyLoading />;
-  }
 
   return (
     <View style={[styles.card, { backgroundColor: theme.bg, borderColor: theme.border }]}>
@@ -122,6 +117,8 @@ export default function SolicitacaoCard({
                   color: Pallete.fonts.light,
                 }}
                 onPress={onAprovar}
+                isLoading={isAprovando}
+                disabled={isLoading}
                 containerStyle={[styles.iconButton, styles.approveButton]}
               />
               <FancyButton
@@ -134,6 +131,8 @@ export default function SolicitacaoCard({
                   color: Pallete.fonts.light,
                 }}
                 onPress={onRejeitar}
+                isLoading={isRejeitando}
+                disabled={isLoading}
                 containerStyle={[styles.iconButton, styles.rejectButton]}
               />
             </View>

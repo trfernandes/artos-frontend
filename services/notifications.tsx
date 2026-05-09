@@ -221,7 +221,8 @@ export async function registerForPushNotificationsAsync(
     console.log('[Notifications] Token registrado com sucesso.');
   } catch (error) {
     console.log('[Notifications] Erro ao enviar token para API:', error);
-    throw new Error(toErrorMessage(error));
+    console.log('[Notifications] Registro de push ignorado:', toErrorMessage(error));
+    return expoPushToken;
   }
 
   return expoPushToken;

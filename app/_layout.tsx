@@ -1,6 +1,6 @@
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SplashScreen, Stack, useSegments } from 'expo-router';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Modal, Platform, StyleSheet, View } from 'react-native';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { useFonts } from 'expo-font';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -15,6 +15,7 @@ import * as Sentry from '@sentry/react-native';
 import { ConnectivityProvider } from '../core/network/connectivity/ConnectivityProvider';
 import { createQueryClient } from '../core/react-query/queryClient';
 import { ConnectivityBanner } from '../components/FancyConnectivityBanner';
+import FancyLoading from '../components/FancyLoading';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useProtectedRoute } from '../hooks/useProtectedRoute';
@@ -62,7 +63,7 @@ export default Sentry.wrap(function RootLayout() {
 function RootLayoutNav() {
   useProtectedRoute();
 
-  const { user, loading } = useAuth();
+  const { user, loading, isSigningOut } = useAuth();
   const { isDark, palette } = useAppTheme();
   const segments = useSegments();
   const isAuthRoute = segments[0] === '(auth)';
@@ -101,7 +102,11 @@ function RootLayoutNav() {
   // registrar notificações quando logar
   useEffect(() => {
     if (user?.user?.id) {
-      registerForPushNotificationsAsync(user.user.id);
+      registerForPushNotificationsAsync(user.user.id).catch((error) => {
+        if (__DEV__) {
+          console.log('[Notifications] Registro de push ignorado:', error);
+        }
+      });
     }
   }, [user?.user?.id]);
 
@@ -156,6 +161,13 @@ function RootLayoutNav() {
         <Toast config={toastConfig} position='bottom' visibilityTime={4000} />
         <FancyAlertConnector />
         <ConnectivityBanner />
+        <Modal visible={isSigningOut} transparent animationType='fade'>
+          <View style={styles.signOutOverlay}>
+            <View style={[styles.signOutSurface, palette.shadows[200], { backgroundColor: palette.backgroundColor4 }]}>
+              <FancyLoading label='Saindo...' containerStyle={styles.signOutLoading} />
+            </View>
+          </View>
+        </Modal>
       </View>
     </FancyAlertProvider>
   );
@@ -174,5 +186,22 @@ const styles = StyleSheet.create({
     right: -360,
     bottom: 0,
     borderRadius: 0,
+  },
+  signOutOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.32)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  signOutSurface: {
+    borderRadius: 18,
+    paddingHorizontal: 36,
+    paddingVertical: 28,
+    alignSelf: 'center',
+  },
+  signOutLoading: {
+    flex: 0,
+    minHeight: 80,
+    backgroundColor: 'transparent',
   },
 });

@@ -77,6 +77,19 @@ Este guia define o padrão visual do app mobile Diakonia/Artos. Antes de criar o
 - Erro: use `FancyError`, `FancyAlert` ou Toast conforme o padrão já usado no fluxo.
 - Permissão insuficiente: desabilite ações e mantenha visual de disabled do componente base.
 
+## Gravação, Loading e Tela Bloqueada
+
+- Fetch inicial ou troca de tela: use `FancyLoading`.
+- Ação iniciada pelo usuário em uma tela já renderizada: não troque a tela inteira por loading. Preserve o contexto, desabilite os controles editáveis e coloque `isLoading`/`loadingText` no `FancyButton` principal.
+- Bottom sheets de formulário devem seguir este padrão durante gravação:
+  - `FancyBottomSheetModal` com `closeDisabled`;
+  - campos/selects/toggles com `disabled` ou `readonly`;
+  - footer com `FancyButton` em loading;
+  - camada absoluta transparente apenas para bloquear toques no corpo quando necessário;
+  - sem card central de loading e sem segundo spinner dentro do conteúdo.
+- Em sucesso ou erro de ação modal, feche o sheet/modal primeiro e só depois mostre Toast/banner.
+- Em listas com reorder/delete/save, bloqueie novas ações até a mutação terminar. Se precisar cobrir a lista, prefira overlay simples e discreto, sem competir com o botão que já mostra loading.
+
 ## Checklist Antes de Finalizar UI
 
 - A tela usa `FancyPageView` ou o container Fancy correto.

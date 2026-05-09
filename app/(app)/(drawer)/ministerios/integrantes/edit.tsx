@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { FormProvider, useForm } from 'react-hook-form';
 import { MinVoluntarioFormData, minVoluntarioSchema } from '../../../../../domain/schemas/ministerioVoluntariosSchema';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { DynamicQuery, Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
 import IntegranteFormFields from '../../../../../components/pages/ministerios/integrantes/FormFields';
@@ -32,6 +32,7 @@ export default function MinisterioIntegrantesEditPage() {
   }>();
 
   const { hideLoading } = useLoading();
+  const [isSaving, setIsSaving] = useState(false);
 
   const form = useForm<MinVoluntarioFormData>({
     resolver: zodResolver(minVoluntarioSchema),
@@ -119,14 +120,19 @@ export default function MinisterioIntegrantesEditPage() {
 
   const handleSave = form.handleSubmit(
     async (data) => {
-      await updateFuncoes(params.ministerioVoluntarioId, {
-        funcoes: data.funcoes?.map((f) => ({
-          funcaoId: f.id,
-          status: MinisterioVoluntarioFuncaoStatusEnum.Ativo,
-          experiencia: f.experiencia || EscalaTemplateExperienciaEnum.Iniciante,
-        })) as UpdateFuncaoDataDto[],
-      });
-      router.back();
+      setIsSaving(true);
+      try {
+        await updateFuncoes(params.ministerioVoluntarioId, {
+          funcoes: data.funcoes?.map((f) => ({
+            funcaoId: f.id,
+            status: MinisterioVoluntarioFuncaoStatusEnum.Ativo,
+            experiencia: f.experiencia || EscalaTemplateExperienciaEnum.Iniciante,
+          })) as UpdateFuncaoDataDto[],
+        });
+        router.back();
+      } finally {
+        setIsSaving(false);
+      }
     },
     (errors) => console.log('errors', errors),
   );
@@ -144,17 +150,19 @@ export default function MinisterioIntegrantesEditPage() {
     })) as ResponseMinisterioFuncaoDto[];
   }, [voluntarioAtual, funcoesList, form]);
 
-  if (isLoadingVoluntario || isUpdatingFuncoes || isLoadingFuncoesList || isLoadingFuncoes || isUpdatingFuncoesMutation) return <FancyLoading />;
+  if (isLoadingVoluntario || isLoadingFuncoesList || isLoadingFuncoes) return <FancyLoading />;
 
   return (
-    <FancyPageView style={{ flex: 1, paddingHorizontal: 20, paddingVertical: 10, gap: 20 }}>
+    <FancyPageView style={{ flex: 1, paddingHorizontal: 18, paddingVertical: 12, gap: 16 }}>
       <FormProvider {...form}>
         <IntegranteFormFields mode='edit' funcoesList={funcoesList} funcoesDropDownList={funcoesDropDownList} />
       </FormProvider>
       <FancyButton
         icon={{ ...DefaultIconsNames.save, size: 14 }}
-        label={isUpdatingFuncoes ? 'Salvando...' : 'Salvar'}
-        disabled={isUpdatingFuncoes}
+        label='Salvar'
+        loadingText='Salvando...'
+        isLoading={isSaving || isUpdatingFuncoes || isUpdatingFuncoesMutation}
+        disabled={isSaving || isUpdatingFuncoes || isUpdatingFuncoesMutation}
         onPress={handleSave}
       />
     </FancyPageView>

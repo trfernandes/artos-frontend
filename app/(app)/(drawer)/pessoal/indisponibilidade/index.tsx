@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { InteractionManager, StyleSheet, View } from 'react-native';
+import { InteractionManager, Pressable, StyleSheet, View } from 'react-native';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
 import FancyText from '../../../../../components/FancyText';
 import FancyCalendarVertical from '../../../../../components/calendar/FancyCalendarVertical';
@@ -15,6 +15,9 @@ import AddPeriodoModal from '../../../../../components/pages/pessoal/indisponibi
 import DateUtils, { DateUtilsApi } from '../../../../../utils/date_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
 import { UpsertIndisponibilidadeVoluntarioItemDto } from '../../../../../domain/dtos/IndisponibilidadeVoluntario/upsert-indisponibilidade-voluntario-item.dto';
+import { usePallete } from '../../../../../hooks/usePallete';
+import { ColorUtils } from '../../../../../utils/color_utils';
+import DefaultIcons from '../../../../../components/FancyIcons';
 
 type ModalState = {
   visible: boolean;
@@ -25,6 +28,7 @@ type ModalState = {
 
 export default function IndisponibilidadeIndexPage() {
   const { user, igrejaAtiva } = useAuth();
+  const palette = usePallete();
   const userId = user?.user?.id;
   const igrejaId = igrejaAtiva?.id;
 
@@ -34,6 +38,7 @@ export default function IndisponibilidadeIndexPage() {
   });
   const [showPeriodoModal, setShowPeriodoModal] = useState(false);
   const [hasSettled, setHasSettled] = useState(false);
+  const [listFilter, setListFilter] = useState<'future' | 'reason'>('future');
 
   const { queryStartDate, queryEndDate, calendarStartDate, calendarEndDate } = useMemo(() => {
     const now = new Date();
@@ -138,6 +143,28 @@ export default function IndisponibilidadeIndexPage() {
       }),
     [data],
   );
+
+  const upcomingIndisponibilidades = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return data
+      .map((item) => ({ ...item, parsedDate: DateUtilsApi.dateOnlyFromApi(item.data) }))
+      .filter((item) => item.parsedDate >= today)
+      .filter((item) => (listFilter === 'reason' ? !!item.motivo?.trim() : true))
+      .sort((a, b) => a.parsedDate.getTime() - b.parsedDate.getTime())
+      .slice(0, 6);
+  }, [data, listFilter]);
+
+  const openDateModal = (date: Date) => {
+    const registro = data.find((d) => DateUtilsApi.compareDateOnlyFromApi(d.data, date));
+    setModalState({
+      visible: true,
+      date,
+      status: registro ? 'unavailable' : 'available',
+      motivo: registro?.motivo ?? null,
+    });
+  };
 
   const handleConfirmAddPeriodo = async (inicio: Date, fim: Date, motivo: string) => {
     if (!userId || !igrejaId) return;
@@ -251,18 +278,67 @@ export default function IndisponibilidadeIndexPage() {
           endDate={calendarEndDate}
           markedDates={markedDates}
           onSelectDate={({ date }) => {
-            const registro = data.find((d) => DateUtilsApi.compareDateOnlyFromApi(d.data, date));
-            setModalState({
-              visible: true,
-              date: date,
-              status: registro ? 'unavailable' : 'available',
-              motivo: registro?.motivo ?? null,
-            });
+            openDateModal(date);
           }}
           listProps={{
             bottomSpace: 70,
             showFade: false,
             maintainVisibleContentPosition: false,
+            ListFooterComponent: (
+              <View style={styles.compactList}>
+                <View style={styles.compactHeader}>
+                  <View>
+                    <FancyText size='small' type='bold' color={palette.fonts.dark}>
+                      Próximas indisponibilidades
+                    </FancyText>
+                    <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                      Toque em uma data para editar motivo ou liberar o dia.
+                    </FancyText>
+                  </View>
+                  <View style={styles.filterRow}>
+                    <FilterChip label='Futuras' active={listFilter === 'future'} onPress={() => setListFilter('future')} />
+                    <FilterChip label='Com motivo' active={listFilter === 'reason'} onPress={() => setListFilter('reason')} />
+                  </View>
+                </View>
+
+                {upcomingIndisponibilidades.length ? (
+                  <View style={styles.compactItems}>
+                    {upcomingIndisponibilidades.map((item) => (
+                      <Pressable
+                        key={item.id}
+                        style={({ pressed }) => [styles.compactItem, pressed && styles.compactItemPressed]}
+                        onPress={() => openDateModal(item.parsedDate)}
+                      >
+                        <View style={styles.dateBadge}>
+                          <FancyText size='extraSmall' type='bold' color={palette.error}>
+                            {String(item.parsedDate.getDate()).padStart(2, '0')}
+                          </FancyText>
+                          <FancyText size='extraSmall' type='bold' color={palette.fonts.inactive}>
+                            {DateUtils.getMonthName(item.parsedDate.getMonth()).slice(0, 3)}
+                          </FancyText>
+                        </View>
+                        <View style={styles.compactItemText}>
+                          <FancyText size='small' type='semiBold' color={palette.fonts.dark} numberOfLines={1}>
+                            {item.parsedDate.toLocaleDateString('pt-BR', { weekday: 'long' })}
+                          </FancyText>
+                          <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} numberOfLines={1}>
+                            {item.motivo?.trim() || 'Sem motivo informado'}
+                          </FancyText>
+                        </View>
+                        <DefaultIcons.Custom library='MaterialCommunityIcons' name='chevron-right' size={19} color={palette.fonts.inactive} />
+                      </Pressable>
+                    ))}
+                  </View>
+                ) : (
+                  <View style={styles.compactEmpty}>
+                    <DefaultIcons.Custom library='MaterialCommunityIcons' name='calendar-check-outline' size={22} color={palette.primary} />
+                    <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                      Nenhuma data futura neste filtro.
+                    </FancyText>
+                  </View>
+                )}
+              </View>
+            ),
           }}
           daysProps={{ markerColor: Pallete.error }}
         />
@@ -290,6 +366,7 @@ export default function IndisponibilidadeIndexPage() {
             status: modalState.status!,
             motivo: modalState.motivo ?? undefined,
           }}
+          conflictSummary='Conflitos com escalas serão sinalizados para a liderança quando existirem escalas nessa data.'
           modalProps={{ onButton1Press: closeModal }}
           onConfirm={handleConfirm}
         />
@@ -327,4 +404,84 @@ const styles = StyleSheet.create({
     borderRadius: 7,
     backgroundColor: Pallete.error,
   },
+  compactList: {
+    marginTop: 4,
+    gap: 10,
+    paddingBottom: 84,
+  },
+  compactHeader: {
+    gap: 10,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  filterChip: {
+    minHeight: 30,
+    justifyContent: 'center',
+    borderRadius: 15,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+  },
+  compactItems: {
+    gap: 8,
+  },
+  compactItem: {
+    minHeight: 58,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 10,
+    borderRadius: 14,
+    backgroundColor: Pallete.backgroundColor2,
+    borderWidth: 1,
+    borderColor: Pallete.borderCard,
+  },
+  compactItemPressed: {
+    opacity: 0.75,
+  },
+  dateBadge: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: ColorUtils.withAlpha(Pallete.error, 0.08),
+  },
+  compactItemText: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2,
+  },
+  compactEmpty: {
+    minHeight: 54,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    borderRadius: 14,
+    backgroundColor: Pallete.backgroundColor2,
+    borderWidth: 1,
+    borderColor: Pallete.borderCard,
+  },
 });
+
+function FilterChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+  const palette = usePallete();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[
+        styles.filterChip,
+        {
+          backgroundColor: active ? ColorUtils.withAlpha(palette.primary, 0.12) : palette.backgroundColor2,
+          borderColor: active ? ColorUtils.withAlpha(palette.primary, 0.28) : palette.borderCard,
+        },
+      ]}
+    >
+      <FancyText size='extraSmall' type='bold' color={active ? palette.primary : palette.fonts.inactive}>
+        {label}
+      </FancyText>
+    </Pressable>
+  );
+}

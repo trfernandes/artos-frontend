@@ -141,7 +141,13 @@ export const DateUtilsApi = {
       // assume já está no formato certo
       return value as DateOnlyString;
     }
-    return format(value, 'yyyy-MM-dd') as DateOnlyString;
+    // Usar partes UTC para preservar o dia calendário independentemente de como o
+    // Date foi criado: pickers criam UTC midnight (new Date('2026-06-01')), que em
+    // UTC-3 vira 31/05 no horário local — format() local retornaria a data errada.
+    const y = value.getUTCFullYear();
+    const m = String(value.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(value.getUTCDate()).padStart(2, '0');
+    return `${y}-${m}-${d}` as DateOnlyString;
   },
   dateTimeFromApi(value: string | Date): Date {
     if (value instanceof Date) return value;
@@ -171,5 +177,90 @@ export const DateUtilsApi = {
 };
 
 export const APP_TZ = 'America/Sao_Paulo';
+
+export type DateLike = Date | string | null | undefined;
+
+function parseDateTimeSafe(value: DateLike): Date | null {
+  if (!value) return null;
+  if (value instanceof Date) return isValid(value) ? value : null;
+
+  try {
+    const parsed = DateUtilsApi.dateTimeFromApi(value);
+    return isValid(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+export function getAppDateOnlyKey(value: DateLike, tz: string = APP_TZ): DateOnlyString | null {
+  if (!value) return null;
+  if (value instanceof Date) {
+    return formatInTimeZone(value, tz, 'yyyy-MM-dd') as DateOnlyString;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) {
+    return trimmed.slice(0, 10) as DateOnlyString;
+  }
+
+  const parsed = parseDateTimeSafe(trimmed);
+  return parsed ? (formatInTimeZone(parsed, tz, 'yyyy-MM-dd') as DateOnlyString) : null;
+}
+
+export function normalizeClockTime(value: DateLike, tz: string = APP_TZ): string | undefined {
+  if (!value) return undefined;
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    const match = trimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/);
+    if (match) {
+      const hour = match[1].padStart(2, '0');
+      const minute = match[2];
+      const second = match[3] ?? '00';
+      return `${hour}:${minute}:${second}`;
+    }
+  }
+
+  const parsed = parseDateTimeSafe(value);
+  return parsed ? formatInTimeZone(parsed, tz, 'HH:mm:ss') : undefined;
+}
+
+export function formatClockTime(value: DateLike, compact = false, tz: string = APP_TZ): string | undefined {
+  const normalized = normalizeClockTime(value, tz);
+  if (!normalized) return undefined;
+
+  const [hour, minute] = normalized.split(':');
+  if (compact) return minute === '00' ? `${hour}h` : `${hour}h${minute}`;
+  return `${hour}:${minute}`;
+}
+
+export function formatAppDateTime(
+  value: DateLike,
+  pattern: string,
+  options?: Parameters<typeof formatInTimeZone>[3],
+): string | undefined {
+  const parsed = parseDateTimeSafe(value);
+  if (!parsed) return undefined;
+  return formatInTimeZone(parsed, APP_TZ, pattern, { locale: ptBR, ...options });
+}
+
+export function combineAppDateWithTime(
+  dateSource: DateLike,
+  timeSource: DateLike,
+  dayOffset = 0,
+): Date {
+  const dateOnly = getAppDateOnlyKey(dateSource) ?? getAppDateOnlyKey(new Date())!;
+  const dateOnlyDate = DateUtilsApi.dateOnlyFromApi(dateOnly);
+
+  if (dayOffset !== 0) {
+    dateOnlyDate.setDate(dateOnlyDate.getDate() + dayOffset);
+  }
+
+  const shiftedDateOnly = format(dateOnlyDate, 'yyyy-MM-dd');
+  const timeOnly = normalizeClockTime(timeSource) ?? '00:00:00';
+  return fromZonedTime(`${shiftedDateOnly}T${timeOnly}`, APP_TZ);
+}
 
 export default DateUtils;

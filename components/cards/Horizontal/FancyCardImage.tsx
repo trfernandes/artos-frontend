@@ -21,10 +21,16 @@ export type FancyCardImageProps = {
   | 'content'
   | 'containerStyle'
   | 'contentContainerStyle'
+  | 'titleProps'
+  | 'subtitleProps'
   | 'isCollapsable'
   | 'centerContainerStyle'
   | 'backgroundColor'
   | 'onPress'
+  | 'onLongPress'
+  | 'delayLongPress'
+  | 'accessibilityRole'
+  | 'accessibilityLabel'
 >;
 
 export default function FancyCardImage(props: FancyCardImageProps) {

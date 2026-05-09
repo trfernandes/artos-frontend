@@ -34,10 +34,16 @@ export type FancyCardImageBaseProps = {
   | 'content'
   | 'containerStyle'
   | 'contentContainerStyle'
+  | 'titleProps'
+  | 'subtitleProps'
   | 'isCollapsable'
   | 'centerContainerStyle'
   | 'backgroundColor'
   | 'onPress'
+  | 'onLongPress'
+  | 'delayLongPress'
+  | 'accessibilityRole'
+  | 'accessibilityLabel'
 >;
 
 export type ImageType = { type: 'image'; props: FancyCardImageProps };

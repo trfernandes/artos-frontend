@@ -293,13 +293,13 @@ export default function BillingStatusPanel({
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={[palette.backgroundColor4, withAlpha(palette.primary, '14')]}
+        colors={[palette.backgroundColor2, palette.backgroundColor2]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[
           styles.hero,
           {
-            borderColor: withAlpha(palette.primary, '24'),
+            borderColor: palette.borderCard,
           },
         ]}
       >
@@ -391,13 +391,13 @@ export default function BillingStatusPanel({
       </View>
 
       <LinearGradient
-        colors={[palette.backgroundColor4, withAlpha(palette.primary, '10')]}
+        colors={[palette.backgroundColor2, palette.backgroundColor2]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[
           styles.capacityCard,
           {
-            borderColor: withAlpha(palette.primary, '26'),
+            borderColor: palette.borderCard,
           },
         ]}
       >
@@ -412,40 +412,6 @@ export default function BillingStatusPanel({
           </FancyText>
         </View>
 
-        {hasExceededCapacity ? (
-          <View style={styles.capacityAlertStack}>
-            <View
-              style={[
-                styles.capacityAlertBox,
-                {
-                  backgroundColor: withAlpha(CAPACITY_OVERFLOW, '0D'),
-                  borderColor: withAlpha(CAPACITY_OVERFLOW, '18'),
-                },
-              ]}
-            >
-              <View style={[styles.capacityAlertDot, { backgroundColor: CAPACITY_OVERFLOW }]} />
-              <FancyText size='extraSmall' type='semiBold' color={CAPACITY_OVERFLOW}>
-                Seu uso atual já ultrapassa o plano contratado.
-              </FancyText>
-            </View>
-
-            {showCapacityUpgradeAction ? (
-              <FancyButton
-                label='Atualizar plano'
-                onPress={onPrimaryPress}
-                type='text'
-                icon={{
-                  library: 'MaterialCommunityIcons',
-                  name: 'arrow-up-bold-circle-outline',
-                  size: 16,
-                  color: palette.primary,
-                }}
-                containerStyle={styles.capacityActionButton}
-                labelStyle={{ color: palette.primary }}
-              />
-            ) : null}
-          </View>
-        ) : null}
 
         <UsageRow
           label='Voluntários'
@@ -522,13 +488,13 @@ type MetricCardProps = {
 function MetricCard({ label, value, labelColor, palette }: MetricCardProps) {
   return (
     <LinearGradient
-      colors={[palette.backgroundColor4, withAlpha(palette.primary, '12')]}
+      colors={[palette.backgroundColor2, palette.backgroundColor2]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={[
         styles.metricCard,
         {
-          borderColor: withAlpha(palette.primary, '26'),
+          borderColor: palette.borderCard,
         },
       ]}
     >
