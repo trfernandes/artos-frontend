@@ -1,65 +1,45 @@
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import FancyButton from '../../../../buttons/FancyButton';
-import { usePallete } from '../../../../../hooks/usePallete';
-import { EscalaSubstituicaoStatusEnum } from '../../../../../domain/enums/Escala/escala-substituicao-status.enum';
 import { ResponseEscalaSubstituicaoDto } from '../../../../../domain/dtos/Escala/escala-substituicao.response';
 import SubstituicaoCardBase from '../../../common/SubstituicaoCardBase';
-import CancelarSubstituicaoModal from './CancelarSubstituicaoModal';
+import RecusarSubstituicaoModal from '../../../common/RecusarSubstituicaoModal';
 
 type Props = {
   substituicao: ResponseEscalaSubstituicaoDto;
-  onCancelar: (id: string, motivo?: string) => Promise<void>;
-  isCanceling?: boolean;
+  onAceitar: (id: string) => Promise<void>;
+  onRecusar: (id: string, motivo: string) => Promise<void>;
+  isActing?: boolean;
 };
 
 export default function SubstituicaoMinisterioCard({
   substituicao,
-  onCancelar,
-  isCanceling,
+  onAceitar,
+  onRecusar,
+  isActing,
 }: Props) {
-  const palette = usePallete();
-  const [cancelModalVisible, setCancelModalVisible] = useState(false);
-  const isCancelada = substituicao.status === EscalaSubstituicaoStatusEnum.Cancelada;
+  const [recusarVisible, setRecusarVisible] = useState(false);
 
-  const handleCancelar = async (motivo?: string) => {
-    setCancelModalVisible(false);
-    await onCancelar(substituicao.id, motivo);
+  const handleConfirmRecusa = async (motivo: string) => {
+    setRecusarVisible(false);
+    await onRecusar(substituicao.id, motivo);
   };
-
-  const footer = !isCancelada ? (
-    <View style={styles.footer}>
-      <FancyButton
-        label='Cancelar substituição'
-        type='outlined'
-        icon={{ library: 'MaterialIcons', name: 'cancel', color: palette.error, size: 16 }}
-        onPress={() => setCancelModalVisible(true)}
-        containerStyle={[styles.cancelBtn, { borderColor: palette.error }]}
-        labelProps={{ color: palette.error }}
-        disabled={isCanceling}
-      />
-    </View>
-  ) : null;
 
   return (
     <>
-      <SubstituicaoCardBase substituicao={substituicao} footer={footer} />
-      <CancelarSubstituicaoModal
-        visible={cancelModalVisible}
-        onClose={() => setCancelModalVisible(false)}
-        onConfirm={handleCancelar}
-        isLoading={isCanceling}
+      <SubstituicaoCardBase
+        substituicao={substituicao}
+        canAct
+        isActing={isActing}
+        actions={{
+          onAceitar: () => onAceitar(substituicao.id),
+          onRecusar: () => setRecusarVisible(true),
+        }}
+      />
+      <RecusarSubstituicaoModal
+        visible={recusarVisible}
+        onClose={() => setRecusarVisible(false)}
+        onConfirm={handleConfirmRecusa}
+        isLoading={isActing}
       />
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  footer: {
-    marginTop: 2,
-  },
-  cancelBtn: {
-    width: '100%',
-    minHeight: 44,
-  },
-});

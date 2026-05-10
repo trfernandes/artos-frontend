@@ -1,11 +1,10 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import FancyText from '../../FancyText';
 import DefaultIcons from '../../FancyIcons';
-import FancyListItemCard from '../../cards/FancyListItemCard';
-import FancySeparator from '../../FancySeparator';
+import FancyActionSheet, { FancyActionSheetItem } from '../../actions/FancyActionSheet';
 import { AppImages } from '../../../assets/app_images';
 import { usePallete } from '../../../hooks/usePallete';
 import { ColorUtils } from '../../../utils/color_utils';
@@ -18,8 +17,22 @@ import { DateUtilsApi } from '../../../utils/date_utils';
 import { getFirstAndLastName } from '../../../utils/text_utils';
 import { ThemePalette } from '../../../constants/colors';
 
-type IconLib = 'MaterialIcons' | 'MaterialCommunityIcons';
 type StatusVisual = { color: string; icon: string };
+
+export type AvatarStats = {
+  solicitacoesEnviadas?: number;
+  solicitacoesAceitas?: number;
+};
+
+export type RespondidoPor = {
+  nome: string;
+  fotoUrl?: string;
+};
+
+export type SubstituicaoCardActions = {
+  onAceitar?: () => void;
+  onRecusar?: () => void;
+};
 
 export function getStatusVisual(
   status: EscalaSubstituicaoStatusEnum,
@@ -37,72 +50,35 @@ export function getStatusVisual(
   }
 }
 
-function MetaInlineItem({
-  icon,
-  value,
-  palette,
-}: {
-  icon: { library: IconLib; name: string };
-  value: string;
-  palette: ThemePalette;
-}) {
-  return (
-    <View
-      style={[
-        styles.metaItem,
-        { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.1) },
-      ]}
-    >
-      <DefaultIcons.Custom
-        library={icon.library}
-        name={icon.name}
-        size={12}
-        color={palette.primary}
-      />
-      <FancyText
-        type='semiBold'
-        size='extraSmall'
-        color={palette.primary}
-        numberOfLines={1}
-      >
-        {value}
-      </FancyText>
-    </View>
-  );
-}
-
-function PersonRow({
-  label,
-  nome,
-  fotoUrl,
-}: {
-  label: string;
-  nome?: string;
-  fotoUrl?: string;
-}) {
-  const displayName = getFirstAndLastName(nome ?? label);
-  return (
-    <FancyListItemCard
-      title={displayName}
-      subtitle={label}
-      leading={{
-        type: 'image',
-        source: fotoUrl ? { uri: fotoUrl } : AppImages.emptyProfile,
-      }}
-      containerStyle={styles.personCard}
-    />
-  );
-}
-
 type Props = {
   substituicao: ResponseEscalaSubstituicaoDto;
-  footer?: React.ReactNode;
+  canAct?: boolean;
+  actions?: SubstituicaoCardActions;
+  isActing?: boolean;
+  solicitanteStats?: AvatarStats;
+  substitutoStats?: AvatarStats;
+  respondidoPor?: RespondidoPor;
+  motivoRecusa?: string;
+  onVerEvento?: () => void;
+  isSolicitante?: boolean;
+  onCancelar?: () => void;
 };
 
-export default function SubstituicaoCardBase({ substituicao, footer }: Props) {
+export default function SubstituicaoCardBase({
+  substituicao,
+  canAct = false,
+  actions,
+  isActing = false,
+  onVerEvento,
+  isSolicitante = false,
+  onCancelar,
+}: Props) {
   const palette = usePallete();
+  const [menuOpen, setMenuOpen] = useState(false);
   const visual = getStatusVisual(substituicao.status, palette);
-  const isCancelada = substituicao.status === EscalaSubstituicaoStatusEnum.Cancelada;
+
+  const isPendente = substituicao.status === EscalaSubstituicaoStatusEnum.Pendente;
+  const statusLabel = EscalaSubstituicaoStatusEnumLabel[substituicao.status];
 
   const solicitanteVol = substituicao.solicitante?.voluntario;
   const substitutoVol = substituicao.substituto?.voluntario;
@@ -111,199 +87,399 @@ export default function SubstituicaoCardBase({ substituicao, footer }: Props) {
     ? DateUtilsApi.dateOnlyFromApi(substituicao.escalaItem.dataOcorrencia as string)
     : null;
 
-  const dataFormatted = dataOcorrencia
-    ? format(dataOcorrencia, "dd MMM · HH'h'mm", { locale: ptBR })
-    : '—';
+  const mesAbrev = dataOcorrencia ? format(dataOcorrencia, 'MMM', { locale: ptBR }).toUpperCase() : '—';
+  const diaNum = dataOcorrencia ? format(dataOcorrencia, 'dd', { locale: ptBR }) : '—';
+  const horaCurta = dataOcorrencia ? format(dataOcorrencia, "HH'h'mm", { locale: ptBR }) : '';
 
-  const headerBg = ColorUtils.withAlpha(visual.color, 0.1);
+  const eventoNome = substituicao.escalaItem?.evento?.nome ?? '—';
   const funcaoNome = substituicao.escalaItem?.funcao?.nome;
+  const firstAndLast = (full?: string) => {
+    if (!full?.trim()) return '—';
+    const parts = full.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 1) return parts[0];
+    return `${parts[0]} ${parts[parts.length - 1]}`;
+  };
+  const solicitanteNomeCurto = isSolicitante ? 'Você' : firstAndLast(solicitanteVol?.nome);
+  const substitutoNomeCurto = firstAndLast(substitutoVol?.nome);
+
+  const eventoCor = substituicao.escalaItem?.evento?.cor;
+  const accentColor = eventoCor ?? palette.primary;
+
+  const motivo = substituicao.motivo;
+
+  const sheetActions = useMemo<FancyActionSheetItem[]>(() => {
+    const list: FancyActionSheetItem[] = [];
+    if (isPendente && canAct && actions?.onAceitar) {
+      list.push({
+        label: 'Aceitar',
+        icon: { library: 'MaterialIcons', name: 'check', size: 16 },
+        onPress: () => actions.onAceitar?.(),
+        disabled: isActing,
+      });
+    }
+    if (isPendente && canAct && actions?.onRecusar) {
+      list.push({
+        label: 'Recusar',
+        icon: { library: 'MaterialIcons', name: 'close', size: 16 },
+        onPress: () => actions.onRecusar?.(),
+        destructive: true,
+        disabled: isActing,
+      });
+    }
+    if (isPendente && isSolicitante && onCancelar) {
+      list.push({
+        label: 'Cancelar solicitação',
+        icon: { library: 'MaterialIcons', name: 'close', size: 16 },
+        onPress: () => onCancelar(),
+        destructive: true,
+        disabled: isActing,
+      });
+    }
+    if (onVerEvento) {
+      list.push({
+        label: 'Visualizar evento',
+        icon: { library: 'MaterialIcons', name: 'event', size: 16 },
+        onPress: () => onVerEvento(),
+      });
+    }
+    return list;
+  }, [isPendente, canAct, actions, isActing, onVerEvento, isSolicitante, onCancelar]);
+
+  const hasMenu = sheetActions.length > 0;
 
   return (
-    <View
-      style={[
-        styles.card,
-        { backgroundColor: palette.backgroundColor, borderColor: palette.borderCard },
-        palette.shadows[100],
-      ]}
-    >
-      {/* Header tonal de status */}
-      <View style={[styles.header, { backgroundColor: headerBg }]}>
-        <View style={styles.headerLeft}>
-          <DefaultIcons.Custom
-            library={'MaterialIcons' as IconLib}
-            name={visual.icon}
-            size={16}
-            color={visual.color}
-          />
-          <FancyText size='small' type='semiBold' color={visual.color}>
-            {EscalaSubstituicaoStatusEnumLabel[substituicao.status]}
-          </FancyText>
-        </View>
-        <FancyText size='extraSmall' color={visual.color}>
-          {dataFormatted}
-        </FancyText>
-      </View>
+    <View style={styles.cardWrapper}>
+      <View
+        style={[
+          styles.card,
+          {
+            backgroundColor: palette.backgroundColor,
+            borderColor: palette.borderCard,
+            borderLeftColor: accentColor,
+          },
+        ]}
+      >
+        <View style={styles.headerRow}>
+          <View
+            style={[
+              styles.dateBlock,
+              {
+                backgroundColor: ColorUtils.withAlpha(accentColor, 0.08),
+                borderColor: ColorUtils.withAlpha(accentColor, 0.2),
+              },
+            ]}
+          >
+            <FancyText size='extraSmall' type='bold' color={accentColor} style={styles.dateMonth}>
+              {mesAbrev}
+            </FancyText>
+            <FancyText type='bold' color={accentColor} style={styles.dateDay}>
+              {diaNum}
+            </FancyText>
+            {horaCurta ? (
+              <>
+                <View
+                  style={[
+                    styles.dateDivider,
+                    { backgroundColor: ColorUtils.withAlpha(accentColor, 0.3) },
+                  ]}
+                />
+                <View style={styles.dateHourRow}>
+                  <DefaultIcons.Custom
+                    library='MaterialIcons'
+                    name='schedule'
+                    size={9}
+                    color={accentColor}
+                  />
+                  <FancyText
+                    size='extraSmall'
+                    type='semiBold'
+                    color={accentColor}
+                    style={styles.dateHour}
+                  >
+                    {horaCurta}
+                  </FancyText>
+                </View>
+              </>
+            ) : null}
+          </View>
 
-      {/* Corpo */}
-      <View style={styles.body}>
-        {/* Bloco de evento */}
-        <View>
-          <FancyText type='semiBold' size='medium' numberOfLines={2}>
-            {substituicao.escalaItem?.evento?.nome ?? '—'}
-          </FancyText>
-          {funcaoNome ? (
-            <View style={styles.metaRow}>
-              <MetaInlineItem
-                icon={{ library: 'MaterialIcons', name: 'work-outline' }}
-                value={funcaoNome}
-                palette={palette}
-              />
+          <View style={styles.headerRight}>
+            <FancyText type='bold' size='medium' numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+              {eventoNome}
+            </FancyText>
+            <View style={styles.pillsRow}>
+              {funcaoNome ? (
+                <View
+                  style={[
+                    styles.pill,
+                    { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.1) },
+                  ]}
+                >
+                  <DefaultIcons.Custom
+                    library='MaterialIcons'
+                    name='work-outline'
+                    size={10}
+                    color={palette.primary}
+                  />
+                  <FancyText
+                    size='extraSmall'
+                    type='semiBold'
+                    color={palette.primary}
+                    numberOfLines={1}
+                    style={styles.pillText}
+                  >
+                    {funcaoNome}
+                  </FancyText>
+                </View>
+              ) : null}
+              <View
+                style={[
+                  styles.pill,
+                  { backgroundColor: ColorUtils.withAlpha(visual.color, 0.18) },
+                ]}
+                accessibilityLabel={`Status: ${statusLabel}`}
+              >
+                <DefaultIcons.Custom
+                  library='MaterialIcons'
+                  name={visual.icon}
+                  size={10}
+                  color={visual.color}
+                />
+                <FancyText
+                  size='extraSmall'
+                  type='bold'
+                  color={visual.color}
+                  style={styles.pillText}
+                >
+                  {statusLabel}
+                </FancyText>
+              </View>
             </View>
-          ) : null}
-        </View>
+            <View style={styles.miniPeopleRow}>
+              <View style={styles.miniPersonGroup}>
+                <Image
+                  source={
+                    solicitanteVol?.fotoThumbUrl || solicitanteVol?.fotoUrl
+                      ? { uri: solicitanteVol.fotoThumbUrl ?? solicitanteVol.fotoUrl }
+                      : AppImages.emptyProfile
+                  }
+                  style={[styles.miniAvatar, { borderColor: palette.borderCard }]}
+                />
+                <FancyText
+                  size='extraSmall'
+                  type='normal'
+                  color={palette.fonts.dark}
+                  numberOfLines={2}
+                  style={styles.miniName}
+                >
+                  {solicitanteNomeCurto}
+                </FancyText>
+              </View>
+              <View style={styles.miniArrowContainer}>
+                <DefaultIcons.Custom
+                  library='MaterialIcons'
+                  name='arrow-forward'
+                  size={12}
+                  color={palette.fonts.inactive}
+                />
+              </View>
+              <View style={styles.miniPersonGroup}>
+                <Image
+                  source={
+                    substitutoVol?.fotoThumbUrl || substitutoVol?.fotoUrl
+                      ? { uri: substitutoVol.fotoThumbUrl ?? substitutoVol.fotoUrl }
+                      : AppImages.emptyProfile
+                  }
+                  style={[styles.miniAvatar, { borderColor: palette.borderCard }]}
+                />
+                <FancyText
+                  size='extraSmall'
+                  type='normal'
+                  color={palette.fonts.dark}
+                  numberOfLines={2}
+                  style={styles.miniName}
+                >
+                  {substitutoNomeCurto}
+                </FancyText>
+              </View>
+            </View>
+          </View>
 
-        {/* Trade rows: solicitante → substituto via FancyListItemCard */}
-        <View>
-          <PersonRow
-            label='Solicitante'
-            nome={solicitanteVol?.nome}
-            fotoUrl={solicitanteVol?.fotoThumbUrl ?? solicitanteVol?.fotoUrl}
-          />
-
-          <View style={styles.dividerWrap}>
-            <FancySeparator />
-            <View
+          {hasMenu ? (
+            <Pressable
+              onPress={() => setMenuOpen(true)}
+              hitSlop={8}
               style={[
-                styles.dividerIcon,
-                {
-                  backgroundColor: palette.backgroundColor,
-                  borderColor: palette.borderCard,
-                },
+                styles.kebabBtn,
+                { backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.1) },
               ]}
+              accessibilityRole='button'
+              accessibilityLabel='Mais ações'
             >
               <DefaultIcons.Custom
                 library='MaterialIcons'
-                name='swap-vert'
-                size={14}
-                color={palette.fonts.inactive}
+                name='more-vert'
+                size={20}
+                color={palette.fonts.dark}
               />
-            </View>
-          </View>
-
-          <PersonRow
-            label='Substituto'
-            nome={substitutoVol?.nome}
-            fotoUrl={substitutoVol?.fotoThumbUrl ?? substitutoVol?.fotoUrl}
-          />
+            </Pressable>
+          ) : null}
         </View>
 
-        {/* Motivo do solicitante */}
-        {substituicao.motivo ? (
+        {motivo ? (
           <View
             style={[
-              styles.motivoBox,
-              { backgroundColor: palette.backgroundColor2 },
-            ]}
-          >
-            <FancyText
-              size='extraSmall'
-              color={palette.fonts.inactive}
-              style={styles.motivoText}
-            >
-              &ldquo;{substituicao.motivo}&rdquo;
-            </FancyText>
-          </View>
-        ) : null}
-
-        {/* Motivo de cancelamento */}
-        {isCancelada && substituicao.motivoCancelamento ? (
-          <View
-            style={[
-              styles.canceledBox,
+              styles.motivoCard,
               { backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.08) },
             ]}
           >
-            <FancyText size='extraSmall' color={palette.fonts.inactive}>
-              Cancelado: {substituicao.motivoCancelamento}
+            <FancyText size='extraSmall' type='bold' color={palette.fonts.inactive} style={styles.motivoLabel}>
+              Motivo:
+            </FancyText>
+            <FancyText
+              size='extraSmall'
+              type='semiBold'
+              color={palette.fonts.dark}
+              style={styles.motivoText}
+              numberOfLines={1}
+            >
+              {motivo}
             </FancyText>
           </View>
         ) : null}
-
-        {footer}
       </View>
+
+      <FancyActionSheet
+        visible={menuOpen}
+        title='Ações'
+        actions={sheetActions}
+        onClose={() => setMenuOpen(false)}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: 14,
-    borderWidth: 1,
-    overflow: 'hidden',
-    marginBottom: 10,
+  cardWrapper: {
+    marginBottom: 12,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  card: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderLeftWidth: 4,
     paddingHorizontal: 12,
     paddingVertical: 10,
     gap: 8,
   },
-  headerLeft: {
+  headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    flexShrink: 1,
+    gap: 10,
   },
-  body: {
-    padding: 14,
-    gap: 12,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 6,
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    alignSelf: 'flex-start',
-  },
-  personCard: {
-    marginBottom: 0,
-  },
-  dividerWrap: {
-    height: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  dividerIcon: {
-    position: 'absolute',
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+  dateBlock: {
+    width: 60,
+    minHeight: 64,
+    borderRadius: 12,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 6,
+    gap: 1,
   },
-  motivoBox: {
+  dateMonth: {
+    letterSpacing: 0.5,
+    lineHeight: 14,
+  },
+  dateDay: {
+    fontSize: 22,
+    lineHeight: 26,
+  },
+  dateDivider: {
+    height: 1,
+    width: 28,
+    marginVertical: 3,
+  },
+  dateHourRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  dateHour: {
+    lineHeight: 12,
+  },
+  headerRight: {
+    flex: 1,
+    minWidth: 0,
+    gap: 6,
+  },
+  pillsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  pill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 5,
+  },
+  pillText: {
+    fontSize: 10,
+    lineHeight: 12,
+  },
+  miniPeopleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  miniArrowContainer: {
+    height: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  miniPersonGroup: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    minWidth: 0,
+  },
+  miniAvatar: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 1,
+  },
+  miniName: {
+    flex: 1,
+    minWidth: 0,
+    opacity: 0.75,
+    lineHeight: 13,
+  },
+  kebabBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+  },
+  motivoCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
     borderRadius: 8,
     paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingVertical: 7,
+  },
+  motivoLabel: {
+    letterSpacing: 0.2,
   },
   motivoText: {
-    fontStyle: 'italic',
-    lineHeight: 17,
-  },
-  canceledBox: {
-    borderRadius: 8,
-    padding: 9,
+    flexShrink: 1,
+    opacity: 0.75,
   },
 });

@@ -53,7 +53,7 @@ export default function MinisterioSubstituicoesScreen() {
   const { ministerioId } = useLocalSearchParams<{ ministerioId: string }>();
   const { igrejaAtiva } = useAuth();
   const [tab, setTab] = useState<TabValue>('pendentes');
-  const [cancelingId, setCancelingId] = useState<string | null>(null);
+  const [actingId, setActingId] = useState<string | null>(null);
 
   const query: DynamicQuery = useMemo(
     () => ({
@@ -96,21 +96,40 @@ export default function MinisterioSubstituicoesScreen() {
     [data],
   );
 
-  const handleCancelar = async (id: string, motivo?: string) => {
-    setCancelingId(id);
+  const handleAceitar = async (id: string) => {
+    setActingId(id);
     try {
       await update?.({
         id,
         data: {
-          status: EscalaSubstituicaoStatusEnum.Cancelada,
+          status: EscalaSubstituicaoStatusEnum.Aprovada,
+          dataResposta: new Date().toISOString(),
+        },
+      });
+      Toast.show({ type: 'success', text1: 'Substituição aprovada!', position: 'top' });
+    } catch (err) {
+      Toast.show({ type: 'error', text1: getApiErrorMessage(err) ?? 'Erro ao aprovar.', position: 'top' });
+    } finally {
+      setActingId(null);
+    }
+  };
+
+  const handleRecusar = async (id: string, motivo: string) => {
+    setActingId(id);
+    try {
+      await update?.({
+        id,
+        data: {
+          status: EscalaSubstituicaoStatusEnum.Recusada,
+          dataResposta: new Date().toISOString(),
           motivoCancelamento: motivo,
         },
       });
-      Toast.show({ type: 'success', text1: 'Substituição cancelada.', position: 'top' });
+      Toast.show({ type: 'success', text1: 'Substituição recusada.', position: 'top' });
     } catch (err) {
-      Toast.show({ type: 'error', text1: getApiErrorMessage(err) ?? 'Erro ao cancelar.', position: 'top' });
+      Toast.show({ type: 'error', text1: getApiErrorMessage(err) ?? 'Erro ao recusar.', position: 'top' });
     } finally {
-      setCancelingId(null);
+      setActingId(null);
     }
   };
 
@@ -139,8 +158,9 @@ export default function MinisterioSubstituicoesScreen() {
           renderItem={({ item: sub }) => (
             <SubstituicaoMinisterioCard
               substituicao={sub}
-              onCancelar={handleCancelar}
-              isCanceling={cancelingId === sub.id}
+              onAceitar={handleAceitar}
+              onRecusar={handleRecusar}
+              isActing={actingId === sub.id}
             />
           )}
           listEmptyProps={EMPTY_STATE_PROPS[tab]}

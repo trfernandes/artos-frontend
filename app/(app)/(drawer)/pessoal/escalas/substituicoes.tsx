@@ -8,6 +8,7 @@ import FancyList from '../../../../../components/list/FancyList';
 import FancyListEmpty, { FancyListEmptyProps } from '../../../../../components/list/FancyListEmpty';
 import { useEscalaSubstituicoesCrud } from '../../../../../hooks/useEscalaSubstituicoesCrud';
 import { useAuth } from '../../../../../contexts/AuthContext';
+import { usePallete } from '../../../../../hooks/usePallete';
 import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import { EscalaSubstituicaoStatusEnum } from '../../../../../domain/enums/Escala/escala-substituicao-status.enum';
 import SubstituicaoRecebidaCard from '../../../../../components/pages/pessoal/escalas/substituicoes/SubstituicaoRecebidaCard';
@@ -50,6 +51,7 @@ const RELATIONS = [
 
 export default function SubstituicoesScreen() {
   const { user } = useAuth();
+  const palette = usePallete();
   const [tab, setTab] = useState<TabValue>('pendentes');
 
   const queryAsSubstituto = useMemo<DynamicQuery>(
@@ -117,9 +119,23 @@ export default function SubstituicoesScreen() {
     [allData],
   );
 
-  const handleRespond = async (id: string, status: EscalaSubstituicaoStatusEnum) => {
+  const [actingId, setActingId] = useState<string | null>(null);
+
+  const handleRespond = async (
+    id: string,
+    status: EscalaSubstituicaoStatusEnum,
+    motivo?: string,
+  ) => {
+    setActingId(id);
     try {
-      await update?.({ id, data: { status, dataResposta: new Date().toISOString() } });
+      await update?.({
+        id,
+        data: {
+          status,
+          dataResposta: new Date().toISOString(),
+          ...(motivo ? { motivoCancelamento: motivo } : {}),
+        },
+      });
       Toast.show({
         type: 'success',
         text1:
@@ -134,8 +150,16 @@ export default function SubstituicoesScreen() {
         text1: getApiErrorMessage(err) ?? 'Erro ao responder.',
         position: 'top',
       });
+    } finally {
+      setActingId(null);
     }
   };
+
+  const handleAceitar = (id: string) => handleRespond(id, EscalaSubstituicaoStatusEnum.Aprovada);
+  const handleRecusarComMotivo = (id: string, motivo: string) =>
+    handleRespond(id, EscalaSubstituicaoStatusEnum.Recusada, motivo);
+  const handleCancelarComMotivo = (id: string, motivo: string) =>
+    handleRespond(id, EscalaSubstituicaoStatusEnum.Cancelada, motivo);
 
   const isLoading = isLoadingSubstituto || isLoadingSolicitante || isLoadingMutation;
 
@@ -170,20 +194,18 @@ export default function SubstituicoesScreen() {
           keyExtractor={(item) => item.id}
           renderItem={({ item: sub }) => {
             const isSubstituto = sub.substituto?.voluntario?.id === user?.user?.id;
+            const isSolicitante = sub.solicitante?.voluntario?.id === user?.user?.id;
             const isPendente = sub.status === EscalaSubstituicaoStatusEnum.Pendente;
+            const canAct = isSubstituto && isPendente;
             return (
               <SubstituicaoRecebidaCard
                 substituicao={sub}
-                onApprove={
-                  isSubstituto && isPendente
-                    ? () => handleRespond(sub.id, EscalaSubstituicaoStatusEnum.Aprovada)
-                    : undefined
-                }
-                onReject={
-                  isSubstituto && isPendente
-                    ? () => handleRespond(sub.id, EscalaSubstituicaoStatusEnum.Recusada)
-                    : undefined
-                }
+                canAct={canAct}
+                onAceitar={canAct ? handleAceitar : undefined}
+                onRecusar={canAct ? handleRecusarComMotivo : undefined}
+                isActing={actingId === sub.id}
+                isSolicitante={isSolicitante}
+                onCancelar={isSolicitante ? handleCancelarComMotivo : undefined}
               />
             );
           }}
