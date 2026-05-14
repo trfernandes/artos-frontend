@@ -461,12 +461,6 @@ export default function MinhasEscalasIndexPage() {
     <FancyPageView style={styles.container}>
       <PendenciasChip count={solicitacoesDeSubstituicao?.length ?? 0} />
 
-      {solicitacoesDeSubstituicao && solicitacoesDeSubstituicao.length > 0 && (
-        <SubstituicoesRequestsFrame
-          data={solicitacoesDeSubstituicao}
-          onRespond={handleSolicitacaoRespondida}
-        />
-      )}
 
       <FancyCalendar
         containerStyle={styles.calendarContainer}

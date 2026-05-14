@@ -89,7 +89,7 @@ export default function MinisteriosEditPage() {
         content: <VoluntarioTab ministerioId={params.id} />,
       },
       {
-        title: 'Liderança e acessos',
+        title: 'Liderança',
         icon: { library: 'MaterialCommunityIcons', name: 'account-key-outline', size: 16 },
         content: <LiderancaEAcessosTab mode='edit' ministerioId={params.id} />,
       },

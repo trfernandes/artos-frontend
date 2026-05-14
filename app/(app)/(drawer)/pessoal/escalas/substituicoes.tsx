@@ -165,13 +165,6 @@ export default function SubstituicoesScreen() {
 
   return (
     <FancyPageView style={styles.page}>
-      <FancyText type='bold' size='large'>
-        Substituições
-      </FancyText>
-      <FancyText size='small' color={palette.fonts.inactive} style={styles.subtitle}>
-        Suas substituições enviadas e recebidas
-      </FancyText>
-
       <FancySegmentedControl<TabValue>
         options={[
           {
@@ -220,10 +213,6 @@ const styles = StyleSheet.create({
   page: {
     paddingHorizontal: 15,
     paddingBottom: 15,
-  },
-  subtitle: {
-    marginTop: 4,
-    marginBottom: 16,
   },
   listContainer: {
     flex: 1,

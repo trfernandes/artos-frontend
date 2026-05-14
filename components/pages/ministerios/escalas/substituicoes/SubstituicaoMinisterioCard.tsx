@@ -28,6 +28,7 @@ export default function SubstituicaoMinisterioCard({
       <SubstituicaoCardBase
         substituicao={substituicao}
         canAct
+        isSubstituto={false}
         isActing={isActing}
         actions={{
           onAceitar: () => onAceitar(substituicao.id),

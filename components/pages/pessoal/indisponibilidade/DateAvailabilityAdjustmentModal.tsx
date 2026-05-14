@@ -10,6 +10,7 @@ import FancyToggle from '../../../fields/FancyToggle';
 import { Pallete } from '../../../../constants/colors';
 import FancyText from '../../../FancyText';
 import DefaultIcons from '../../../FancyIcons';
+import DateUtils from '../../../../utils/date_utils';
 
 const schema = z.object({
   motivo: z
@@ -124,7 +125,7 @@ export default function DateAvailabilityAdjustmentModal({
           />
         </View>
 
-        <FancyTextInput label='Data' value={data.date.toLocaleDateString()} readonly disabled />
+        <FancyTextInput label='Data' value={DateUtils.formatStableDateBR(data.date)} readonly disabled />
 
         {conflictSummary && (
           <View style={styles.conflictNotice}>

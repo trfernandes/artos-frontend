@@ -31,14 +31,6 @@ export default function FancyGroup({
 
   return (
     <View>
-      {title && (
-        <View style={[styles.groupTitleContainer, { backgroundColor: titleBackgroundColor }]}>
-          <FancyText style={styles.groupTitleText} color={palette.fonts.inactive}>
-            {title}
-          </FancyText>
-        </View>
-      )}
-
       <View
         style={[
           styles.groupContentContainer,
@@ -61,6 +53,14 @@ export default function FancyGroup({
         )}
         {children}
       </View>
+
+      {title && (
+        <View style={[styles.groupTitleContainer, { backgroundColor: titleBackgroundColor }]}>
+          <FancyText style={styles.groupTitleText} color={palette.fonts.inactive}>
+            {title}
+          </FancyText>
+        </View>
+      )}
     </View>
   );
 }

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import PagerView from 'react-native-pager-view';
 
-import { DateUtilsApi } from '../../../../../utils/date_utils';
+import DateUtils, { DateUtilsApi } from '../../../../../utils/date_utils';
 import { EscalaItemDataType } from '../../../../../app/(app)/(drawer)/ministerios/escalas/details';
 import EscalaEventoPage, { EscalaEventoPageProps } from './EscalaEventoPage';
 import { useLoading } from '../../../../../contexts/LoadingContext';
@@ -23,12 +23,9 @@ export default function EscalaHorizontalPager({
   // ── Compute initial page (first future event) ────────────────────────────
   const initialIndex = useMemo(() => {
     if (eventosData.length === 0) return 0;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const futureIdx = eventosData.findIndex((item) => {
-      const d = DateUtilsApi.dateOnlyFromApi(item.dataOcorrencia);
-      return d >= today;
-    });
+    // Use SP-timezone date string for comparison to avoid device-TZ off-by-one at midnight
+    const todayKey = DateUtils.dayKey(new Date());
+    const futureIdx = eventosData.findIndex((item) => item.dataOcorrencia >= todayKey);
     return futureIdx >= 0 ? futureIdx : eventosData.length - 1;
   }, [eventosData]);
 

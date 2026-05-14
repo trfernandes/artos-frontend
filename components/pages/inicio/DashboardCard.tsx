@@ -65,7 +65,7 @@ export default function DashboardCard({
           color={palette.fonts.inactive}
           numberOfLines={1}
           adjustsFontSizeToFit
-          minimumFontScale={0.82}
+          minimumFontScale={0.65}
           style={styles.fitText}
         >
           {title}
@@ -108,7 +108,7 @@ function createStyles(palette: ThemePalette) {
       flex: 1,
       backgroundColor: palette.backgroundColor2,
       borderRadius: 16,
-      padding: 10,
+      padding: 8,
       minHeight: 80,
       ...palette.shadows[100],
     },

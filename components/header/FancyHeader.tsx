@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import FancyText from '../FancyText';
 import { useNavigation } from 'expo-router';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
@@ -10,6 +10,7 @@ import { usePallete } from '../../hooks/usePallete';
 
 const HEADER_CONTENT_HEIGHT = 40;
 const HEADER_HORIZONTAL_GUTTER = 15;
+const IOS_TOP_INSET_REDUCTION = 12;
 
 export type FancyHeaderProps = {
   leftButton?: 'menu' | 'back' | 'close' | React.ReactNode;
@@ -26,7 +27,7 @@ export default function FancyPageHeader({
   ...props
 }: FancyHeaderProps) {
   const nav = useNavigation<DrawerNavigationProp<Record<string, object>>>();
-  const topSafeInset = useTopSafeInset();
+  const topSafeInset = useTopSafeInset(Platform.OS === 'ios' ? IOS_TOP_INSET_REDUCTION : 0);
   const palette = usePallete();
   const topInset = applyTopSafeArea ? topSafeInset : 0;
   const headerHeight = topInset + HEADER_CONTENT_HEIGHT;

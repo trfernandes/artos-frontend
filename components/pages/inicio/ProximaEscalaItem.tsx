@@ -2,6 +2,7 @@ import { View } from 'react-native';
 import DefaultIcons from '../../FancyIcons';
 import FancyText from '../../FancyText';
 import FancyButton from '../../buttons/FancyButton';
+import DateUtils from '../../../utils/date_utils';
 
 export default function ProximaEscalaItem({
   data,
@@ -26,7 +27,7 @@ export default function ProximaEscalaItem({
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <DefaultIcons.Custom library='MaterialIcons' name='arrow-right' style={{ borderWidth: 0, marginLeft: -14 }} />
           <FancyText size={'extraSmall'} type='bold'>
-            {data.toLocaleDateString()}
+            {DateUtils.formatStableDateBR(data)}
           </FancyText>
         </View>
         <View style={{ flexDirection: 'row', gap: 0, paddingLeft: 5 }}>

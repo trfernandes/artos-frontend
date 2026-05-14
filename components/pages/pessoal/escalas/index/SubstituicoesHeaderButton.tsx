@@ -50,13 +50,6 @@ export default function SubstituicoesHeaderButton() {
         size={24}
         color={palette.icons.dark}
       />
-      {count > 0 && (
-        <View style={[styles.badge, { backgroundColor: palette.warning }]}>
-          <FancyText size={10} type='bold' color='#FFFFFF'>
-            {count > 9 ? '9+' : String(count)}
-          </FancyText>
-        </View>
-      )}
     </TouchableOpacity>
   );
 }

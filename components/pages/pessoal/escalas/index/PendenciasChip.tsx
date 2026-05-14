@@ -1,4 +1,4 @@
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
+import { Pressable, View, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import FancyText from '../../../../FancyText';
 import DefaultIcons from '../../../../FancyIcons';
@@ -14,44 +14,40 @@ export default function PendenciasChip({ count }: Props) {
   if (count === 0) return null;
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={() => router.push('/(app)/(drawer)/pessoal/escalas/substituicoes')}
       style={[
         styles.container,
         {
-          backgroundColor: ColorUtils.withAlpha(palette.warning, 0.1),
-          borderColor: ColorUtils.withAlpha(palette.warning, 0.35),
+          backgroundColor: ColorUtils.withAlpha(palette.secondary, 0.18),
+          borderColor: ColorUtils.withAlpha(palette.secondary, 0.55),
         },
       ]}
-      activeOpacity={0.8}
     >
       <View
         style={[
           styles.iconCircle,
-          { backgroundColor: ColorUtils.withAlpha(palette.warning, 0.18) },
+          { backgroundColor: ColorUtils.withAlpha(palette.secondary, 0.28) },
         ]}
       >
         <DefaultIcons.Custom
           library='MaterialIcons'
           name='swap-horiz'
-          size={20}
-          color={palette.warning}
+          size={15}
+          color={palette.secondary}
         />
       </View>
-      <View style={styles.textBlock}>
-        <FancyText type='semiBold' size='small' color={palette.warning}>
-          {count === 1 ? '1 solicitação para você' : `${count} solicitações para você`}
-        </FancyText>
-        <FancyText size='extraSmall' color={palette.warning} style={styles.subtitleText}>
-          Toque para revisar
-        </FancyText>
-      </View>
-      <View style={[styles.badge, { backgroundColor: palette.warning }]}>
-        <FancyText size={11} type='bold' color='#FFFFFF'>
-          {count > 9 ? '9+' : String(count)}
-        </FancyText>
-      </View>
-    </TouchableOpacity>
+      <FancyText type='semiBold' size='small' color={palette.secondary} style={{ flex: 1 }}>
+        {count === 1 ? 'Substituição pendente' : `${count} substituições pendentes`}
+      </FancyText>
+      <DefaultIcons.Custom
+        library='MaterialIcons'
+        name='chevron-right'
+        size={18}
+        color={palette.secondary}
+        style={{ opacity: 0.65 }}
+      />
+    </Pressable>
   );
 }
 
@@ -60,31 +56,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 14,
     borderWidth: 1,
-    marginBottom: 12,
   },
   iconCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  textBlock: {
-    flex: 1,
-    gap: 1,
-  },
-  subtitleText: {
-    opacity: 0.8,
-  },
-  badge: {
-    minWidth: 24,
-    height: 24,
-    borderRadius: 12,
-    paddingHorizontal: 6,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },

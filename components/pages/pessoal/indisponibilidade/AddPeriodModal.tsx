@@ -7,6 +7,7 @@ import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyMod
 import ControlledTextArea from '../../../forms/ControlledTextArea';
 import ControlledDateInput from '../../../forms/ControlledDateInput';
 import { differenceInDays } from 'date-fns';
+import DateUtils, { DateUtilsApi } from '../../../../utils/date_utils';
 import { FancyAlert } from '../../../modal/FancyAlert';
 import FancyText from '../../../FancyText';
 import FancyButton from '../../../buttons/FancyButton';
@@ -65,9 +66,10 @@ export default function AddPeriodoModal({ visible, modalProps, onConfirm }: AddP
   const maxDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 4, 0);
 
   const applyShortcut = (type: 'weekend' | 'sevenDays' | 'restOfMonth') => {
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(start);
+    // Use SP-aware "today" to avoid device-TZ date drift for international travelers
+    const todayKey = DateUtils.dayKey(new Date());
+    const start = DateUtilsApi.dateOnlyFromApi(todayKey);
+    const end = DateUtilsApi.dateOnlyFromApi(todayKey);
 
     if (type === 'weekend') {
       const daysUntilSaturday = (6 - start.getDay() + 7) % 7;

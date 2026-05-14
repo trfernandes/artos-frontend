@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { View, StyleSheet, TextInput } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import FancyBottomSheetModal from '../../modal/FancyBottomSheetModal';
 import FancyText from '../../FancyText';
 import FancyButton from '../../buttons/FancyButton';
+import FancyTextInput from '../../fields/FancyTextInput';
 import { usePallete } from '../../../hooks/usePallete';
 
 type Props = {
@@ -58,34 +59,20 @@ export default function RecusarSubstituicaoModal({
           {description}
         </FancyText>
 
-        <FancyText type='semiBold' size='small' style={styles.label}>
-          Motivo
-        </FancyText>
-        <TextInput
-          style={[
-            styles.textArea,
-            {
-              backgroundColor: palette.backgroundColor2,
-              borderColor: hasError ? palette.error : palette.borderCard,
-              color: palette.fonts.dark,
-            },
-          ]}
+        <FancyTextInput
+          label='Motivo'
           placeholder={placeholderText}
-          placeholderTextColor={palette.fonts.inactive}
-          multiline
-          numberOfLines={4}
-          textAlignVertical='top'
           value={motivo}
-          onChangeText={(t) => {
-            setMotivo(t);
-            if (touched) setTouched(false);
+          errorMessage={hasError ? errorMessage : undefined}
+          inputProps={{
+            multiline: true,
+            numberOfLines: 4,
+            onChangeText: (t) => {
+              setMotivo(t);
+              if (touched) setTouched(false);
+            },
           }}
         />
-        {hasError ? (
-          <FancyText size='extraSmall' color={palette.error}>
-            {errorMessage}
-          </FancyText>
-        ) : null}
 
         <View style={styles.buttons}>
           <FancyButton
@@ -110,26 +97,14 @@ export default function RecusarSubstituicaoModal({
 
 const styles = StyleSheet.create({
   content: {
-    paddingBottom: 16,
-    gap: 12,
+    gap: 14,
   },
   description: {
     lineHeight: 20,
   },
-  label: {
-    marginBottom: -4,
-  },
-  textArea: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 12,
-    minHeight: 90,
-    fontSize: 14,
-  },
   buttons: {
     flexDirection: 'row',
     gap: 10,
-    marginTop: 4,
   },
   btnFlex: {
     flex: 1,

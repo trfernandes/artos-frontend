@@ -3,27 +3,32 @@ import { EscalaItemDataType } from '../app/(app)/(drawer)/ministerios/escalas/de
 import { usePallete } from './usePallete';
 import { useAppTheme } from './useAppTheme';
 import { ColorUtils } from '../utils/color_utils';
-import { DateUtilsApi } from '../utils/date_utils';
+import { combineAppDateWithTime, APP_TZ } from '../utils/date_utils';
 import { EscalaItemStatusEnum } from '../domain/enums/Escala/escala-item-status.enum';
+import { formatInTimeZone } from 'date-fns-tz';
 
 export function useEventoHeaderState(data: EscalaItemDataType) {
   const palette = usePallete();
   const { isDark } = useAppTheme();
 
   const hasEventPassed = useMemo(() => {
-    const occurrenceDate = DateUtilsApi.dateOnlyFromApi(data.dataOcorrencia);
-    const endAt = new Date(occurrenceDate);
-    const startHour = data.evento.dataInicio?.getHours?.() ?? 0;
-    const startMinute = data.evento.dataInicio?.getMinutes?.() ?? 0;
-    const endHour = data.evento.dataTermino?.getHours?.() ?? 0;
-    const endMinute = data.evento.dataTermino?.getMinutes?.() ?? 0;
+    const startTime = data.evento.dataInicio;
+    const endTime = data.evento.dataTermino;
 
-    endAt.setHours(endHour, endMinute, 0, 0);
+    // Extract hours in SP timezone (not device-local) to detect midnight-crossing events
+    const spStartH = startTime ? Number(formatInTimeZone(startTime, APP_TZ, 'H')) : 0;
+    const spStartM = startTime ? Number(formatInTimeZone(startTime, APP_TZ, 'm')) : 0;
+    const spEndH = endTime ? Number(formatInTimeZone(endTime, APP_TZ, 'H')) : 0;
+    const spEndM = endTime ? Number(formatInTimeZone(endTime, APP_TZ, 'm')) : 0;
 
-    const crossesMidnight =
-      endHour < startHour || (endHour === startHour && endMinute <= startMinute);
-    if (crossesMidnight) endAt.setDate(endAt.getDate() + 1);
+    const crossesMidnight = spEndH < spStartH || (spEndH === spStartH && spEndM <= spStartM);
 
+    // Combine occurrence date + end time in SP timezone → correct UTC instant
+    const endAt = combineAppDateWithTime(
+      data.dataOcorrencia,
+      endTime ?? startTime,
+      crossesMidnight ? 1 : 0,
+    );
     return endAt.getTime() < Date.now();
   }, [data.dataOcorrencia, data.evento.dataInicio, data.evento.dataTermino]);
 

@@ -321,7 +321,6 @@ export default function EventoSetlistTab({
           {
             backgroundColor: isDark ? palette.backgroundColor4 : ColorUtils.lightenColor(palette.secondary, 0.955),
             borderColor: ColorUtils.withAlpha(palette.secondary, isDark ? 0.32 : 0.16),
-            ...palette.shadows[200],
           },
         ]}
       >
@@ -409,7 +408,6 @@ export default function EventoSetlistTab({
             {
               backgroundColor: isDark ? palette.backgroundColor4 : ColorUtils.lightenColor(palette.primary, 0.94),
               borderColor: ColorUtils.withAlpha(palette.primary, isDark ? 0.32 : 0.18),
-              ...palette.shadows[200],
             },
           ]}
         >
@@ -549,9 +547,6 @@ export default function EventoSetlistTab({
                     : 'Quando o responsável montar o SetList, as músicas aparecerão aqui para consulta.'
                 }
                 icon={{ library: 'MaterialCommunityIcons', name: 'playlist-music-outline', size: 56 }}
-                actionLabel={canAddMusic ? 'Adicionar música' : undefined}
-                onActionPress={canAddMusic ? () => openItemEditor(null) : undefined}
-                actionIcon={canAddMusic ? { library: 'MaterialCommunityIcons', name: 'music-note-plus', size: 16 } : undefined}
                 muted={false}
               />
             </View>

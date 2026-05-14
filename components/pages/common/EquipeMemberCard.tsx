@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   cardContainer: {
-    borderRadius: 28,
+    borderRadius: 16,
     paddingVertical: 12,
     marginBottom: 2,
   },
