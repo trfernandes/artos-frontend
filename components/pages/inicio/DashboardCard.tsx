@@ -64,8 +64,6 @@ export default function DashboardCard({
           type="semiBold"
           color={palette.fonts.inactive}
           numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.65}
           style={styles.fitText}
         >
           {title}
