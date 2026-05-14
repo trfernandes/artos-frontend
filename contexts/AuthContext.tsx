@@ -53,7 +53,7 @@ interface AuthContextData {
   updateUser: (newUserData: Partial<ResponseLoginDto>) => Promise<void>;
   refreshMe: () => Promise<void>;
   changePassword: (senhaAtual: string, novaSenha: string) => Promise<boolean>;
-  deleteAccount: () => Promise<boolean>;
+  deleteAccount: (senha: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -333,8 +333,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return true;
   };
 
-  const deleteAccount = async () => {
-    await apiClient.delete('/auth/delete-account');
+  const deleteAccount = async (senha: string) => {
+    await apiClient.delete('/auth/delete-account', { data: { senha } });
     await signOut('manual');
     return true;
   };
