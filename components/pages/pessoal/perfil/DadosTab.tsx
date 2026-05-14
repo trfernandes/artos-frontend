@@ -11,6 +11,9 @@ import DefaultIcons, { CustomIconProps } from '../../../FancyIcons';
 import { ThemePalette } from '../../../../constants/colors';
 import { useThemedStyles } from '../../../../hooks/useThemedStyles';
 import { ColorUtils } from '../../../../utils/color_utils';
+import * as WebBrowser from 'expo-web-browser';
+
+const PRIVACY_POLICY_URL = 'https://diakonia.app.br/privacy-policy/';
 
 type ProfileActionItemProps = {
   icon: CustomIconProps;
@@ -105,6 +108,7 @@ export default function DadosTab({
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
   const { user } = useAuth();
+  const handleOpenPrivacyPolicy = () => WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL);
   const nome = user?.user?.nome || 'Usuário';
   const email = user?.user?.email || 'E-mail não informado';
   const handleEditProfile = () => router.push('/pessoal/perfil/edit');
@@ -202,6 +206,20 @@ export default function DadosTab({
               description='Remover permanentemente sua conta'
               onPress={onDeleteAccountButtonPress}
               tone='danger'
+            />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <FancyText size='small' type='bold' color={palette.fonts.inactive} style={styles.sectionTitle}>
+            Legal
+          </FancyText>
+          <View style={styles.actionStack}>
+            <ProfileActionItem
+              icon={{ library: 'FontAwesome6', name: 'shield-halved', size: 13 }}
+              label='Política de Privacidade'
+              description='Como coletamos e usamos seus dados'
+              onPress={handleOpenPrivacyPolicy}
             />
           </View>
         </View>
