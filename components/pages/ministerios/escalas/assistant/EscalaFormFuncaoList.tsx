@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Pallete } from '../../../../../constants/colors';
+import { usePallete } from '../../../../../hooks/usePallete';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { FancyCard } from '../../../../cards/Horizontal/FancyCard';
 import FancyContainerList from '../../../../container_list/FancyContainerList';
@@ -22,6 +22,7 @@ export const EscalaFormFuncaoList = React.memo(function EscalaFormFuncaoList({
   funcoesList,
   funcoesDropDownList,
 }: EscalaFormFuncaoListProps) {
+  const Pallete = usePallete();
   const [equipeFormModalProps, setEquipeFormModalProps] = useState<{
     visible: boolean;
     mode: 'add' | 'edit';

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import FancyText from '../../FancyText';
 import DefaultIcons, { IconLibrary } from '../../FancyIcons';
-import { Pallete } from '../../../constants/colors';
+import { usePallete } from '../../../hooks/usePallete';
 
 type DashboardEmptyCategory = 'escalas' | 'eventos' | 'solicitacoes' | 'ministerios' | 'generic';
 
@@ -40,6 +40,7 @@ const categoryConfig: Record<DashboardEmptyCategory, { library: IconLibrary; nam
 };
 
 export default function DashboardEmpty({ label, category = 'generic' }: DashboardEmptyProps) {
+  const Pallete = usePallete();
   const config = categoryConfig[category];
 
   return (

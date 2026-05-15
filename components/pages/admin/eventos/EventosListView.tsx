@@ -1,7 +1,6 @@
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { useState } from 'react';
 import FancyList, { FancyListProps } from '../../../list/FancyList';
-import { Pallete } from '../../../../constants/colors';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import { generateRecorrenciaJoinableDescription } from '../../../../hooks/useEventosCrud';
 import { ResponseEventoDto } from '../../../../domain/dtos/Evento/evento.response';
@@ -86,7 +85,7 @@ export default function EventosListView({
                       library: 'MaterialCommunityIcons',
                       name: 'calendar-clock',
                       size: 13,
-                      color: Pallete.primary,
+                      color: palette.primary,
                       style: styles.dataIcon,
                     }}
                     containerStyle={styles.dataRow}
@@ -101,7 +100,7 @@ export default function EventosListView({
                       library: 'MaterialCommunityIcons',
                       name: 'calendar-check',
                       size: 13,
-                      color: Pallete.primary,
+                      color: palette.primary,
                       style: styles.dataIcon,
                     }}
                     containerStyle={styles.dataRow}
@@ -120,7 +119,7 @@ export default function EventosListView({
                       library: 'MaterialCommunityIcons',
                       name: 'calendar-sync',
                       size: 13,
-                      color: Pallete.primary,
+                      color: palette.primary,
                       style: styles.dataIconTopAligned,
                     }}
                     containerStyle={styles.dataRowMultiline}
@@ -129,7 +128,7 @@ export default function EventosListView({
               }
               leftItem={
                 <View
-                  style={[styles.eventColorLine, { backgroundColor: item.cor || Pallete.primary }]}
+                  style={[styles.eventColorLine, { backgroundColor: item.cor || palette.primary }]}
                 />
               }
               rightItem={<FancyActionButtons actions={actionButtons} />}

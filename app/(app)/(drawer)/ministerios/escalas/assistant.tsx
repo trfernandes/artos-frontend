@@ -4,7 +4,7 @@ import FancySteps from '../../../../../components/steps/FancySteps';
 import { FancyStepsConfig } from '../../../../../components/steps/FancyStepsConfig';
 import { useCallback } from 'react';
 import axios from 'axios';
-import { Pallete } from '../../../../../constants/colors';
+import { usePallete } from '../../../../../hooks/usePallete';
 import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -126,6 +126,7 @@ const mapEscalaFormToDto = (
 };
 
 function AssistenteWrapper() {
+  const Pallete = usePallete();
   const {
     ministerioId,
     setResultado,

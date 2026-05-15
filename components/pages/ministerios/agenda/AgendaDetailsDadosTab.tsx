@@ -14,7 +14,6 @@ import { FancyAlert } from '../../../modal/FancyAlert';
 import { useEscalaTemplatesCrud } from '../../../../useEscalaTemplatesCrud';
 import { Conjunction, Operator, OrderDirection, ValueType } from '../../../../domain/utils/query_utils';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
-import { Pallete } from '../../../../constants/colors';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import { ResponseEventoDto } from '../../../../domain/dtos/Evento/evento.response';
 import { ResponseEventoOcorrenciaDto } from '../../../../domain/dtos/Evento/evento-ocorrencia.response.dto';
@@ -31,6 +30,8 @@ import { useEscalaItensCrud } from '../../../../hooks/useEscalaItensCrud';
 import { DateUtilsApi } from '../../../../utils/date_utils';
 import { canManageEventoOcorrencia } from '../../../../utils/ministerio_permissoes';
 import { usePallete } from '../../../../hooks/usePallete';
+import { useThemedStyles } from '../../../../hooks/useThemedStyles';
+import { ThemePalette } from '../../../../constants/colors';
 import { ColorUtils } from '../../../../utils/color_utils';
 
 const TemplatePadraoOrigemLabel = {
@@ -100,6 +101,7 @@ function OccurrenceFieldSection({
   editor: ReactNode;
 }) {
   const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
 
   return (
     <View style={styles.sectionBlock}>
@@ -145,6 +147,7 @@ export default function AgendaDetailsDadosTab(props: {
   onRegisterActions?: (actions: AgendaDetailsDadosTabActions) => void;
 }) {
   const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const { igrejaAtiva } = useAuth();
   const canManageOccurrence = canManageEventoOcorrencia(igrejaAtiva, props.ministerioId);
   const isLouvorMinisterio = useMemo(
@@ -848,7 +851,8 @@ export default function AgendaDetailsDadosTab(props: {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -919,7 +923,7 @@ const styles = StyleSheet.create({
     paddingTop: 18,
     marginTop: 4,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Pallete.borderCard,
+    borderTopColor: palette.borderCard,
   },
   footerStatus: {
     marginBottom: 8,
@@ -945,14 +949,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     borderWidth: 1,
-    borderColor: Pallete.borderCard,
-    backgroundColor: Pallete.backgroundColor4,
+    borderColor: palette.borderCard,
+    backgroundColor: palette.backgroundColor4,
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   timePickerTriggerDirty: {
-    borderColor: Pallete.primary,
+    borderColor: palette.primary,
   },
   timePickerTriggerDisabled: {
     opacity: 0.72,
@@ -983,4 +987,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-});
+  });
+}

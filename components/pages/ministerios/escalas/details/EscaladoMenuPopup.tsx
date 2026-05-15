@@ -1,9 +1,10 @@
 import { View } from 'react-native';
-import { Pallete } from '../../../../../constants/colors';
+import { usePallete } from '../../../../../hooks/usePallete';
 import DefaultIcons from '../../../../FancyIcons';
 import FancyPopup from '../../../../popup/FancyPopup';
 
 export default function EscaladoMenuPopup() {
+  const Pallete = usePallete();
   return (
     <FancyPopup
       showSeparator

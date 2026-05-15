@@ -3,11 +3,12 @@ import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyMod
 import { useAuth } from '../../../../contexts/AuthContext';
 import Toast from 'react-native-toast-message';
 import FancyText from '../../../FancyText';
-import { Pallete } from '../../../../constants/colors';
+import { usePallete } from '../../../../hooks/usePallete';
 import FancyTextInput from '../../../fields/FancyTextInput';
 import FancyVerticalSpacer from '../../../FancyVerticalSpacer';
 
 export default function DeleteAccountModal(props: FancyModalDialogProps<any>) {
+  const Pallete = usePallete();
   const { deleteAccount } = useAuth();
   const [senha, setSenha] = useState('');
   const [erro, setErro] = useState('');

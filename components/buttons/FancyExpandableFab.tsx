@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react';
 import { StyleSheet, TouchableOpacity, View, Animated, StyleSheet as RNStyleSheet } from 'react-native';
-import { Pallete } from '../../constants/colors';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
+import { ThemePalette } from '../../constants/colors';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import { DefaultIconsNames } from '../../constants/icons';
 import FancyText from '../FancyText';
@@ -25,19 +27,25 @@ type FancyExpandableFabProps = {
 const FAB_SIZE = 56;
 
 export default function FancyExpandableFab({
-  mainButtonClosed = {
-    backgroundColor: Pallete.terciary,
-    icon: DefaultIconsNames.edit,
-  },
-  mainButtonOpen = {
-    backgroundColor: Pallete.terciary,
-    icon: DefaultIconsNames.cancel,
-  },
+  mainButtonClosed,
+  mainButtonOpen,
   buttons = [],
   spacing = 70,
   right = 20,
   bottom = 20,
 }: FancyExpandableFabProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+
+  const resolvedMainButtonClosed: FabButtonProps = mainButtonClosed ?? {
+    backgroundColor: palette.terciary,
+    icon: DefaultIconsNames.edit,
+  };
+  const resolvedMainButtonOpen: FabButtonProps = mainButtonOpen ?? {
+    backgroundColor: palette.terciary,
+    icon: DefaultIconsNames.cancel,
+  };
+
   const [open, setOpen] = useState(false);
   const animation = useRef(new Animated.Value(0)).current;
   const colorAnim = useRef(new Animated.Value(0)).current; // JS
@@ -65,7 +73,7 @@ export default function FancyExpandableFab({
   // Cor do botão principal interpolada
   const backgroundColor = colorAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [mainButtonClosed.backgroundColor!, mainButtonOpen.backgroundColor!],
+    outputRange: [resolvedMainButtonClosed.backgroundColor!, resolvedMainButtonOpen.backgroundColor!],
   });
 
   return (
@@ -88,8 +96,8 @@ export default function FancyExpandableFab({
                 {button.label}
               </FancyText>
             </View>
-            <View style={[styles.optionButton, { backgroundColor: button.backgroundColor || Pallete.terciary }]}>
-              <DefaultIcons.Custom {...button.icon} color={Pallete.icons.light} size={button.size || 22} />
+            <View style={[styles.optionButton, { backgroundColor: button.backgroundColor || palette.terciary }]}>
+              <DefaultIcons.Custom {...button.icon} color={palette.icons.light} size={button.size || 22} />
             </View>
           </Animated.View>
         );
@@ -100,12 +108,12 @@ export default function FancyExpandableFab({
         <Animated.View style={[styles.button, { backgroundColor }]}>
           {/* Ícone fechado */}
           <Animated.View style={[RNStyleSheet.absoluteFill, styles.iconWrapper, { opacity: closedOpacity }]} pointerEvents='none'>
-            <DefaultIcons.Custom {...mainButtonClosed.icon} size={mainButtonClosed.size || 22} color={Pallete.icons.light} />
+            <DefaultIcons.Custom {...resolvedMainButtonClosed.icon} size={resolvedMainButtonClosed.size || 22} color={palette.icons.light} />
           </Animated.View>
 
           {/* Ícone aberto */}
           <Animated.View style={[RNStyleSheet.absoluteFill, styles.iconWrapper, { opacity: openOpacity }]} pointerEvents='none'>
-            <DefaultIcons.Custom {...mainButtonOpen.icon} size={mainButtonOpen.size || 22} color={Pallete.icons.light} />
+            <DefaultIcons.Custom {...resolvedMainButtonOpen.icon} size={resolvedMainButtonOpen.size || 22} color={palette.icons.light} />
           </Animated.View>
         </Animated.View>
       </TouchableOpacity>
@@ -113,48 +121,50 @@ export default function FancyExpandableFab({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    right: 20,
-    bottom: 20,
-    alignItems: 'flex-end',
-  },
-  button: {
-    width: FAB_SIZE,
-    height: FAB_SIZE,
-    borderRadius: FAB_SIZE / 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 2,
-    marginVertical: 8,
-  },
-  optionButton: {
-    width: FAB_SIZE,
-    height: FAB_SIZE,
-    borderRadius: FAB_SIZE / 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 2,
-    marginVertical: 8,
-  },
-  optionButtonContainer: {
-    flexDirection: 'row',
-    gap: 15,
-    alignItems: 'center',
-    position: 'absolute',
-    right: 0,
-  },
-  labelContainer: {
-    backgroundColor: Pallete.backgroundColor,
-    justifyContent: 'center',
-    elevation: 3,
-    borderRadius: 10,
-    height: '50%',
-    paddingHorizontal: 12,
-  },
-  iconWrapper: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      position: 'absolute',
+      right: 20,
+      bottom: 20,
+      alignItems: 'flex-end',
+    },
+    button: {
+      width: FAB_SIZE,
+      height: FAB_SIZE,
+      borderRadius: FAB_SIZE / 2,
+      alignItems: 'center',
+      justifyContent: 'center',
+      elevation: 2,
+      marginVertical: 8,
+    },
+    optionButton: {
+      width: FAB_SIZE,
+      height: FAB_SIZE,
+      borderRadius: FAB_SIZE / 2,
+      alignItems: 'center',
+      justifyContent: 'center',
+      elevation: 2,
+      marginVertical: 8,
+    },
+    optionButtonContainer: {
+      flexDirection: 'row',
+      gap: 15,
+      alignItems: 'center',
+      position: 'absolute',
+      right: 0,
+    },
+    labelContainer: {
+      backgroundColor: palette.backgroundColor,
+      justifyContent: 'center',
+      elevation: 3,
+      borderRadius: 10,
+      height: '50%',
+      paddingHorizontal: 12,
+    },
+    iconWrapper: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+  });
+}

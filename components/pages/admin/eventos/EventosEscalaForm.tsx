@@ -1,7 +1,7 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import FancySettingItem from '../../../FancySettingItem';
 import FancyButton from '../../../buttons/FancyButton';
-import { Pallete } from '../../../../constants/colors';
+import { usePallete } from '../../../../hooks/usePallete';
 import FancyText from '../../../FancyText';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import EventosEscalaParametrizacao from './EventosEscalaParametrizacao';
@@ -9,6 +9,7 @@ import { useState } from 'react';
 import EventosEscalaEquipe from './EventosEscalaEquipe';
 
 export default function EventosEscalaForm() {
+  const Pallete = usePallete();
   const [paramsModalVisible, setParamsModalVisible] = useState(false);
   const [modalEquipeVisible, setModalEquipeVisible] = useState(false);
   return (

@@ -1,11 +1,12 @@
 import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
 import FancyText from '../../../FancyText';
 import { View } from 'react-native';
-import { Pallete } from '../../../../constants/colors';
+import { usePallete } from '../../../../hooks/usePallete';
 import FancyButton from '../../../buttons/FancyButton';
 import { DefaultIconsNames } from '../../../../constants/icons';
 
 export default function Visualizar(props: Omit<FancyModalDialogProps<any>, 'title'>) {
+  const Pallete = usePallete();
   return (
     <FancyModalDialog
       containerStyle={{}}

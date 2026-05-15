@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Pallete } from '../../../constants/colors';
+import { usePallete } from '../../../hooks/usePallete';
 import DashboardCard from './DashboardCard';
 
 type DashboardKpiGridProps = {
@@ -14,6 +14,7 @@ export default function DashboardKpiGrid({
   totalVoluntarios,
   totalEventosMes,
 }: DashboardKpiGridProps) {
+  const Pallete = usePallete();
   return (
     <View style={styles.row}>
       <DashboardCard

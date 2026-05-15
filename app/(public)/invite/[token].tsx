@@ -8,7 +8,9 @@ import FancyButton from '../../../components/buttons/FancyButton';
 import FancyText from '../../../components/FancyText';
 import FancyImage from '../../../components/images/FancyImage';
 import AuthScreen from '../../../components/pages/login/AuthScreen';
-import { Pallete } from '../../../constants/colors';
+import { ThemePalette } from '../../../constants/colors';
+import { usePallete } from '../../../hooks/usePallete';
+import { useThemedStyles } from '../../../hooks/useThemedStyles';
 import { useAuth } from '../../../contexts/AuthContext';
 import { IgrejaRepository } from '../../../domain/services/IgrejaRepository';
 import { ResponseConvitePreviewDto } from '../../../domain/dtos/Igreja/response-convite-preview.dto';
@@ -58,6 +60,8 @@ function getErrorMessage(error: AxiosError | any): string {
 }
 
 export default function InviteTokenPage() {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
   const { token: urlToken } = useLocalSearchParams<{ token: string }>();
   const { user, setIgrejaAtiva, updateUser, refreshMe } = useAuth();
 
@@ -227,58 +231,60 @@ export default function InviteTokenPage() {
   );
 }
 
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 16,
-  },
-  loadingText: {
-    color: Pallete.fonts.inactive,
-  },
-  container: {
-    flex: 1,
-    padding: 20,
-    gap: 20,
-  },
-  title: {
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  churchCard: {
-    backgroundColor: Pallete.backgroundColor2,
-    borderRadius: 12,
-    padding: 20,
-    alignItems: 'center',
-    gap: 12,
-  },
-  logo: {
-    borderRadius: 30,
-  },
-  churchName: {
-    textAlign: 'center',
-  },
-  infoText: {
-    color: Pallete.fonts.inactive,
-    textAlign: 'center',
-  },
-  autoApproveBadge: {
-    backgroundColor: Pallete.confirm,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    marginTop: 8,
-  },
-  autoApproveText: {
-    color: 'white',
-  },
-  button: {
-    marginTop: 8,
-  },
-  errorText: {
-    color: Pallete.error,
-    textAlign: 'center',
-    marginVertical: 20,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 16,
+    },
+    loadingText: {
+      color: palette.fonts.inactive,
+    },
+    container: {
+      flex: 1,
+      padding: 20,
+      gap: 20,
+    },
+    title: {
+      textAlign: 'center',
+      marginBottom: 10,
+    },
+    churchCard: {
+      backgroundColor: palette.backgroundColor2,
+      borderRadius: 12,
+      padding: 20,
+      alignItems: 'center',
+      gap: 12,
+    },
+    logo: {
+      borderRadius: 30,
+    },
+    churchName: {
+      textAlign: 'center',
+    },
+    infoText: {
+      color: palette.fonts.inactive,
+      textAlign: 'center',
+    },
+    autoApproveBadge: {
+      backgroundColor: palette.confirm,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 12,
+      marginTop: 8,
+    },
+    autoApproveText: {
+      color: 'white',
+    },
+    button: {
+      marginTop: 8,
+    },
+    errorText: {
+      color: palette.error,
+      textAlign: 'center',
+      marginVertical: 20,
+    },
+  });
+}

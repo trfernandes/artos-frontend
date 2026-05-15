@@ -4,10 +4,12 @@ import FancyButton from '../../../buttons/FancyButton';
 import FancyImage from '../../../images/FancyImage';
 import FancyChips from '../../../FancyChips';
 import DefaultIcons from '../../../FancyIcons';
-import { Pallete } from '../../../../constants/colors';
 import { ResponseIgrejaSolicitacaoDto } from '../../../../domain/dtos/Igreja/response-igreja-solicitacao.dto';
 import { AppImages } from '../../../../assets/app_images';
 import { getSolicitacaoTheme } from './statusThemes';
+import { usePallete } from '../../../../hooks/usePallete';
+import { useThemedStyles } from '../../../../hooks/useThemedStyles';
+import { ThemePalette } from '../../../../constants/colors';
 
 type SolicitacaoCardProps = {
   solicitacao: ResponseIgrejaSolicitacaoDto;
@@ -26,6 +28,8 @@ export default function SolicitacaoCard({
   isRejeitando = false,
   formatDateTime,
 }: SolicitacaoCardProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const voluntario = solicitacao.voluntario;
   const theme = getSolicitacaoTheme(solicitacao.status);
   const isPending = solicitacao.status === 'PENDING';
@@ -60,9 +64,9 @@ export default function SolicitacaoCard({
                 library='MaterialIcons'
                 name='email'
                 size={12}
-                color={Pallete.fonts.inactive}
+                color={palette.fonts.inactive}
               />
-              <FancyText size='small' type='medium' color={Pallete.fonts.inactive} numberOfLines={1}>
+              <FancyText size='small' type='medium' color={palette.fonts.inactive} numberOfLines={1}>
                 {voluntario?.email || ''}
               </FancyText>
             </View>
@@ -71,9 +75,9 @@ export default function SolicitacaoCard({
                 library='MaterialCommunityIcons'
                 name='calendar-clock-outline'
                 size={12}
-                color={Pallete.fonts.inactive}
+                color={palette.fonts.inactive}
               />
-              <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive}>
+              <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
                 Solicitado em {createdDateFormatted}
               </FancyText>
             </View>
@@ -83,9 +87,9 @@ export default function SolicitacaoCard({
                   library='MaterialCommunityIcons'
                   name='check-circle-outline'
                   size={12}
-                  color={Pallete.fonts.inactive}
+                  color={palette.fonts.inactive}
                 />
-                <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive}>
+                <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
                   Respondido em {respondedDateFormatted}
                 </FancyText>
               </View>
@@ -114,12 +118,12 @@ export default function SolicitacaoCard({
                   library: 'MaterialCommunityIcons',
                   name: 'check',
                   size: 20,
-                  color: Pallete.fonts.light,
+                  color: palette.fonts.light,
                 }}
                 onPress={onAprovar}
                 isLoading={isAprovando}
                 disabled={isLoading}
-                containerStyle={[styles.iconButton, styles.approveButton]}
+                containerStyle={[styles.iconButton, { backgroundColor: palette.confirm, borderColor: palette.confirm }]}
               />
               <FancyButton
                 type='outlined'
@@ -128,12 +132,12 @@ export default function SolicitacaoCard({
                   library: 'MaterialCommunityIcons',
                   name: 'close',
                   size: 20,
-                  color: Pallete.fonts.light,
+                  color: palette.fonts.light,
                 }}
                 onPress={onRejeitar}
                 isLoading={isRejeitando}
                 disabled={isLoading}
-                containerStyle={[styles.iconButton, styles.rejectButton]}
+                containerStyle={[styles.iconButton, { backgroundColor: palette.error, borderColor: palette.error }]}
               />
             </View>
           )}
@@ -143,61 +147,55 @@ export default function SolicitacaoCard({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: 'row',
-    borderRadius: 14,
-    borderWidth: 1,
-    overflow: 'hidden',
-    ...Pallete.shadows[100],
-  },
-  leftBorder: {
-    width: 4,
-  },
-  content: {
-    flex: 1,
-    padding: 14,
-    gap: 12,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-  },
-  avatar: {
-    borderRadius: 21,
-    alignSelf: 'flex-start',
-  },
-  info: {
-    flex: 1,
-    gap: 2,
-  },
-  dateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 2,
-  },
-  statusBadge: {
-    marginTop: 4,
-  },
-  verticalActions: {
-    flexDirection: 'column',
-    gap: 8,
-    justifyContent: 'center',
-    alignSelf: 'center',
-  },
-  iconButton: {
-    width: 32,
-    height: 32,
-    minWidth: 32,
-  },
-  approveButton: {
-    backgroundColor: Pallete.confirm,
-    borderColor: Pallete.confirm,
-  },
-  rejectButton: {
-    backgroundColor: Pallete.error,
-    borderColor: Pallete.error,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    card: {
+      flexDirection: 'row',
+      borderRadius: 14,
+      borderWidth: 1,
+      overflow: 'hidden',
+      ...palette.shadows[100],
+    },
+    leftBorder: {
+      width: 4,
+    },
+    content: {
+      flex: 1,
+      padding: 14,
+      gap: 12,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 12,
+    },
+    avatar: {
+      borderRadius: 21,
+      alignSelf: 'flex-start',
+    },
+    info: {
+      flex: 1,
+      gap: 2,
+    },
+    dateRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      marginTop: 2,
+    },
+    statusBadge: {
+      marginTop: 4,
+    },
+    verticalActions: {
+      flexDirection: 'column',
+      gap: 8,
+      justifyContent: 'center',
+      alignSelf: 'center',
+    },
+    iconButton: {
+      width: 32,
+      height: 32,
+      minWidth: 32,
+    },
+  });
+}

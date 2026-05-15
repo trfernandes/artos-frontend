@@ -1,6 +1,7 @@
 import { View, StyleSheet, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Pallete } from '../../constants/colors';
+import { usePallete } from '../../hooks/usePallete';
 import FancyButton from '../buttons/FancyButton';
 import FancyAvatarImage from './FancyImage';
 import DefaultIcons from '../FancyIcons';
@@ -13,6 +14,7 @@ export interface FancyImagePickerProps {
 }
 
 export default function FancyImagePicker({ value, size = 120, disabled, onChange }: FancyImagePickerProps) {
+  const palette = usePallete();
   const ensureMediaLibraryPermission = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -97,19 +99,19 @@ export default function FancyImagePicker({ value, size = 120, disabled, onChange
         style={{
           ...Pallete.shadows[200],
           borderWidth: 0.5,
-          borderColor: Pallete.border,
+          borderColor: palette.border,
           width: size,
           height: size,
           alignItems: 'center',
           justifyContent: 'center',
           borderRadius: 100,
-          backgroundColor: Pallete.backgroundColor2,
+          backgroundColor: palette.backgroundColor2,
         }}
       >
         {value ? (
           <FancyAvatarImage source={{ uri: value }} size={size} />
         ) : (
-          <DefaultIcons.Custom library='Feather' name='camera-off' color={Pallete.icons.inactive} size={45} />
+          <DefaultIcons.Custom library='Feather' name='camera-off' color={palette.icons.inactive} size={45} />
         )}
       </View>
 
@@ -124,7 +126,7 @@ export default function FancyImagePicker({ value, size = 120, disabled, onChange
           icon={{
             library: 'MaterialCommunityIcons',
             name: 'image-remove',
-            color: !value && !disabled ? Pallete.icons.light : Pallete.icons.inactive,
+            color: !value && !disabled ? palette.icons.light : palette.icons.inactive,
             size: 15,
           }}
           disabled={!value || disabled}
@@ -137,7 +139,7 @@ export default function FancyImagePicker({ value, size = 120, disabled, onChange
               height: 35,
               borderWidth: 0,
             },
-            !value && !disabled ? { backgroundColor: Pallete.terciary } : { backgroundColor: Pallete.buttons.inactive },
+            !value && !disabled ? { backgroundColor: palette.terciary } : { backgroundColor: palette.buttons.inactive },
           ]}
           onPress={removeImage}
         />

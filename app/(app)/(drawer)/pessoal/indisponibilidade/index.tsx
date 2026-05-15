@@ -9,13 +9,14 @@ import { useAuth } from '../../../../../contexts/AuthContext';
 import { Conjunction, Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyError from '../../../../../components/error/FancyError';
 import Toast from 'react-native-toast-message';
-import { Pallete } from '../../../../../constants/colors';
+import { ThemePalette } from '../../../../../constants/colors';
 import FancyFab from '../../../../../components/buttons/FancyFab';
 import AddPeriodoModal from '../../../../../components/pages/pessoal/indisponibilidade/AddPeriodModal';
 import DateUtils, { DateUtilsApi } from '../../../../../utils/date_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
 import { UpsertIndisponibilidadeVoluntarioItemDto } from '../../../../../domain/dtos/IndisponibilidadeVoluntario/upsert-indisponibilidade-voluntario-item.dto';
 import { usePallete } from '../../../../../hooks/usePallete';
+import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 import { ColorUtils } from '../../../../../utils/color_utils';
 import DefaultIcons from '../../../../../components/FancyIcons';
 
@@ -29,6 +30,7 @@ type ModalState = {
 export default function IndisponibilidadeIndexPage() {
   const { user, igrejaAtiva } = useAuth();
   const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const userId = user?.user?.id;
   const igrejaId = igrejaAtiva?.id;
 
@@ -138,7 +140,7 @@ export default function IndisponibilidadeIndexPage() {
         return {
           date: DateUtilsApi.dateOnlyFromApi(d.data),
           T: d.id,
-          color: Pallete.error,
+          color: palette.error,
         };
       }),
     [data],
@@ -340,7 +342,7 @@ export default function IndisponibilidadeIndexPage() {
               </View>
             ),
           }}
-          daysProps={{ markerColor: Pallete.error }}
+          daysProps={{ markerColor: palette.error }}
         />
 
         <View style={styles.legend}>
@@ -383,7 +385,8 @@ export default function IndisponibilidadeIndexPage() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
   container: { paddingBottom: 50, gap: 10 },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -402,7 +405,7 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: Pallete.error,
+    backgroundColor: palette.error,
   },
   compactList: {
     marginTop: 4,
@@ -433,9 +436,9 @@ const styles = StyleSheet.create({
     gap: 10,
     padding: 10,
     borderRadius: 14,
-    backgroundColor: Pallete.backgroundColor2,
+    backgroundColor: palette.backgroundColor2,
     borderWidth: 1,
-    borderColor: Pallete.borderCard,
+    borderColor: palette.borderCard,
   },
   compactItemPressed: {
     opacity: 0.75,
@@ -446,7 +449,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: ColorUtils.withAlpha(Pallete.error, 0.08),
+    backgroundColor: ColorUtils.withAlpha(palette.error, 0.08),
   },
   compactItemText: {
     flex: 1,
@@ -459,14 +462,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     borderRadius: 14,
-    backgroundColor: Pallete.backgroundColor2,
+    backgroundColor: palette.backgroundColor2,
     borderWidth: 1,
-    borderColor: Pallete.borderCard,
+    borderColor: palette.borderCard,
   },
-});
+  });
+}
 
 function FilterChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
 
   return (
     <Pressable

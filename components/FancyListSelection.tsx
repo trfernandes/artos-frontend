@@ -1,7 +1,9 @@
 import { View, StyleSheet, Pressable, StyleProp, ViewStyle } from 'react-native';
 import FancyText from './FancyText';
 import DefaultIcons from './FancyIcons';
-import { Pallete } from '../constants/colors';
+import { ThemePalette } from '../constants/colors';
+import { usePallete } from '../hooks/usePallete';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 
 export type FancyListSelectionProps = {
   items: { index: number; label: string; checked: boolean }[];
@@ -11,6 +13,8 @@ export type FancyListSelectionProps = {
 };
 
 export default function FancyListSelection({ items, onPress, showDividers, containerStyle }: FancyListSelectionProps) {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={[styles.container, containerStyle]}>
       {items &&
@@ -34,15 +38,17 @@ export default function FancyListSelection({ items, onPress, showDividers, conta
   );
 }
 
-const styles = StyleSheet.create({
-  container: { paddingHorizontal: 0 },
-  item: {
-    borderColor: Pallete.border,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingRight: 18,
-    paddingVertical: 10,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: { paddingHorizontal: 0 },
+    item: {
+      borderColor: palette.border,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingRight: 18,
+      paddingVertical: 10,
+    },
+  });
+}

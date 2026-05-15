@@ -7,7 +7,9 @@ import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyMod
 import ControlledTextArea from '../../../forms/ControlledTextArea';
 import FancyTextInput from '../../../fields/FancyTextInput';
 import FancyToggle from '../../../fields/FancyToggle';
-import { Pallete } from '../../../../constants/colors';
+import { ThemePalette } from '../../../../constants/colors';
+import { usePallete } from '../../../../hooks/usePallete';
+import { useThemedStyles } from '../../../../hooks/useThemedStyles';
 import FancyText from '../../../FancyText';
 import DefaultIcons from '../../../FancyIcons';
 import DateUtils from '../../../../utils/date_utils';
@@ -41,6 +43,8 @@ export default function DateAvailabilityAdjustmentModal({
   conflictSummary,
   onConfirm,
 }: DateAvailabilityAdjustmentModalProps) {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
   const [selectedStatus, setSelectedStatus] = useState<'available' | 'unavailable'>(data.status);
 
   const { control, handleSubmit, reset, watch } = useForm<DateAvailabilityForm>({
@@ -149,34 +153,36 @@ export default function DateAvailabilityAdjustmentModal({
   );
 }
 
-const styles = StyleSheet.create({
-  modalContainer: {
-    maxHeight: '82%',
-  },
-  centerContainer: {
-    maxHeight: 360,
-  },
-  buttonContainer: {
-    marginTop: 4,
-  },
-  content: {
-    gap: 12,
-    paddingHorizontal: 5,
-    paddingBottom: 8,
-  },
-  toggleContainer: {
-    width: '100%',
-  },
-  conflictNotice: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 8,
-    padding: 10,
-    borderRadius: 12,
-    backgroundColor: `${Pallete.warning}14`,
-  },
-  conflictText: {
-    flex: 1,
-    lineHeight: 16,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    modalContainer: {
+      maxHeight: '82%',
+    },
+    centerContainer: {
+      maxHeight: 360,
+    },
+    buttonContainer: {
+      marginTop: 4,
+    },
+    content: {
+      gap: 12,
+      paddingHorizontal: 5,
+      paddingBottom: 8,
+    },
+    toggleContainer: {
+      width: '100%',
+    },
+    conflictNotice: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 8,
+      padding: 10,
+      borderRadius: 12,
+      backgroundColor: `${palette.warning}14`,
+    },
+    conflictText: {
+      flex: 1,
+      lineHeight: 16,
+    },
+  });
+}

@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import FancyText from '../../../../FancyText';
 import FancySeparator from '../../../../FancySeparator';
 import DefaultIcons, { CustomIconProps } from '../../../../FancyIcons';
-import { Pallete } from '../../../../../constants/colors';
+import { usePallete } from '../../../../../hooks/usePallete';
 import FancyImage from '../../../../images/FancyImage';
 import { ResponseEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.response';
 import { formatAppDateTime } from '../../../../../utils/date_utils';
@@ -26,6 +26,7 @@ export default function EventoInfoTab({
   local,
   funcoes,
 }: EventoInfoTabProps) {
+  const Pallete = usePallete();
   return (
     <View style={styles.container}>
       <View style={styles.title}>
@@ -80,6 +81,7 @@ function FancyValueLineDisplay({
   value: string;
   showBottomLine?: boolean;
 }) {
+  const Pallete = usePallete();
   return (
     <View style={styles.lineContainer}>
       <View style={styles.displayContainer}>

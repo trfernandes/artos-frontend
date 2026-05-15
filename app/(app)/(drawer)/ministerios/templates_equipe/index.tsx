@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
-import { Pallete } from '../../../../../constants/colors';
+import { usePallete } from '../../../../../hooks/usePallete';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { useCallback, useMemo, useState } from 'react';
 import { useEscalaTemplatesCrud } from '../../../../../useEscalaTemplatesCrud';
@@ -18,6 +18,7 @@ import FancyActionSheet from '../../../../../components/actions/FancyActionSheet
 import { ResponseEscalaTemplateDto } from '../../../../../domain/dtos/EscalaTemplate/escala-template.response';
 
 export default function MinisterioTemplateEquipeIndex() {
+  const Pallete = usePallete();
   const [searchText, setSearchText] = useState('');
   const [actionsTemplate, setActionsTemplate] = useState<ResponseEscalaTemplateDto | null>(null);
 

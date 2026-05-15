@@ -5,7 +5,7 @@ import { FancyTextDisplay } from '../../../../fields/FancyTextDisplay';
 import FancyButton from '../../../../buttons/FancyButton';
 import { IconLibrary } from '../../../../FancyIcons';
 import PagerView from 'react-native-pager-view';
-import { Pallete } from '../../../../../constants/colors';
+import { usePallete } from '../../../../../hooks/usePallete';
 import { format } from 'date-fns';
 import { ResponseEscalaSubstituicaoDto } from '../../../../../domain/dtos/Escala/escala-substituicao.response';
 
@@ -16,6 +16,7 @@ export default function SubstituicoesRequestsFrame({
   data: ResponseEscalaSubstituicaoDto[];
   onRespond?: (substituicao: ResponseEscalaSubstituicaoDto, response: 'accept' | 'reject') => void;
 }) {
+  const Pallete = usePallete();
   const [pageIndex, setPageIndex] = useState(0);
 
   return (

@@ -4,7 +4,7 @@ import FancyDropDown from '../../../fields/FancyDropDown';
 import FancyModalDialog from '../../../modal/FancyModalDialog';
 import { FancyCard } from '../../../cards/Horizontal/FancyCard';
 import { useState } from 'react';
-import { Pallete } from '../../../../constants/colors';
+import { usePallete } from '../../../../hooks/usePallete';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import FancyFullModal from '../../../modal/FancyFullModal';
 import FancyButton from '../../../buttons/FancyButton';
@@ -17,6 +17,7 @@ export type EventosEscalaParametrizacaoProps = {
 };
 
 export default function EventosEscalaParametrizacao({ modalProps, onButton1Press, onButton2Press }: EventosEscalaParametrizacaoProps) {
+  const Pallete = usePallete();
   const [data, setData] = useState<
     Array<{
       order: Number;

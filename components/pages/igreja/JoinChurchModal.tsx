@@ -8,7 +8,8 @@ import FancyText from '../../FancyText';
 import FancyImage from '../../images/FancyImage';
 import FancyTextInput from '../../fields/FancyTextInput';
 import FancyButton from '../../buttons/FancyButton';
-import { Pallete } from '../../../constants/colors';
+import { ThemePalette } from '../../../constants/colors';
+import { useThemedStyles } from '../../../hooks/useThemedStyles';
 import { useAuth } from '../../../contexts/AuthContext';
 import { IgrejaRepository } from '../../../domain/services/IgrejaRepository';
 import { ResponseConvitePreviewDto } from '../../../domain/dtos/Igreja/response-convite-preview.dto';
@@ -57,6 +58,7 @@ function getErrorMessage(error: AxiosError | any): string {
 }
 
 export default function JoinChurchModal(props: FancyModalDialogProps<any>) {
+  const styles = useThemedStyles(createStyles);
   const { refreshMe } = useAuth();
   const [token, setToken] = useState('');
   const [preview, setPreview] = useState<ResponseConvitePreviewDto | null>(null);
@@ -227,53 +229,55 @@ export default function JoinChurchModal(props: FancyModalDialogProps<any>) {
   );
 }
 
-const styles = StyleSheet.create({
-  centerContainer: {
-    gap: 16,
-  },
-  description: {
-    color: Pallete.fonts.inactive,
-    textAlign: 'center',
-  },
-  button: {
-    marginTop: 8,
-  },
-  previewCard: {
-    backgroundColor: Pallete.backgroundColor2,
-    borderRadius: 12,
-    padding: 20,
-    alignItems: 'center',
-    gap: 12,
-  },
-  logo: {
-    borderRadius: 30,
-  },
-  churchName: {
-    textAlign: 'center',
-  },
-  infoText: {
-    color: Pallete.fonts.inactive,
-    textAlign: 'center',
-  },
-  autoApproveBadge: {
-    backgroundColor: Pallete.confirm,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    marginTop: 8,
-  },
-  autoApproveText: {
-    color: 'white',
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 8,
-  },
-  flexButton: {
-    flex: 1,
-  },
-  linkButton: {
-    marginTop: 8,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    centerContainer: {
+      gap: 16,
+    },
+    description: {
+      color: palette.fonts.inactive,
+      textAlign: 'center',
+    },
+    button: {
+      marginTop: 8,
+    },
+    previewCard: {
+      backgroundColor: palette.backgroundColor2,
+      borderRadius: 12,
+      padding: 20,
+      alignItems: 'center',
+      gap: 12,
+    },
+    logo: {
+      borderRadius: 30,
+    },
+    churchName: {
+      textAlign: 'center',
+    },
+    infoText: {
+      color: palette.fonts.inactive,
+      textAlign: 'center',
+    },
+    autoApproveBadge: {
+      backgroundColor: palette.confirm,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 12,
+      marginTop: 8,
+    },
+    autoApproveText: {
+      color: 'white',
+    },
+    buttonRow: {
+      flexDirection: 'row',
+      gap: 12,
+      marginTop: 8,
+    },
+    flexButton: {
+      flex: 1,
+    },
+    linkButton: {
+      marginTop: 8,
+    },
+  });
+}

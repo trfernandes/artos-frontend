@@ -3,13 +3,14 @@ import FancyText from '../../../../FancyText';
 import FancyButton from '../../../../buttons/FancyButton';
 import DefaultIcons, { IconLibrary } from '../../../../FancyIcons';
 import { usePallete } from '../../../../../hooks/usePallete';
+import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
+import { ThemePalette } from '../../../../../constants/colors';
 import { ResponseEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.response';
 import {
   EscalaItemStatusEnum,
   EscalaItemStatusEnumLabel,
 } from '../../../../../domain/enums/Escala/escala-item-status.enum';
 import { VoluntarioStatusChipParams } from '../../../ministerios/escalas/details/ListaVoluntariosTable';
-import { Pallete } from '../../../../../constants/colors';
 import { ColorUtils } from '../../../../../utils/color_utils';
 import {
   BOLD_FONT,
@@ -54,6 +55,8 @@ function ActionButton({
   onPress,
   subtle = false,
 }: ActionButtonProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   return (
     <TouchableOpacity
       disabled={disabled}
@@ -63,7 +66,7 @@ function ActionButton({
         styles.actionButton,
         subtle ? styles.actionButtonSubtle : null,
         {
-          backgroundColor: disabled ? Pallete.icons.inactive2 : backgroundColor,
+          backgroundColor: disabled ? palette.icons.inactive2 : backgroundColor,
           opacity: disabled ? 0.55 : 1,
         },
       ]}
@@ -72,13 +75,14 @@ function ActionButton({
         library={icon.library}
         name={icon.name}
         size={subtle ? 12 : 13}
-        color={disabled ? Pallete.icons.inactive : color}
+        color={disabled ? palette.icons.inactive : color}
       />
     </TouchableOpacity>
   );
 }
 
 function StatusBadge({ status }: { status: EscalaItemStatusEnum }) {
+  const styles = useThemedStyles(createStyles);
   const statusUi = VoluntarioStatusChipParams[status];
 
   return (
@@ -112,6 +116,8 @@ function getActionState(item: ResponseEscalaItemDto) {
 
 function renderActions(
   item: ResponseEscalaItemDto,
+  palette: ThemePalette,
+  styles: ReturnType<typeof createStyles>,
   onConfirmButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void,
   onSubButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void,
   subtle = false,
@@ -122,16 +128,16 @@ function renderActions(
     <View style={[styles.actionsRow, subtle ? styles.actionsRowTight : null]}>
       <ActionButton
         icon={{ library: 'MaterialCommunityIcons', name: 'check-bold' }}
-        color={Pallete.icons.light}
-        backgroundColor={Pallete.confirm}
+        color={palette.icons.light}
+        backgroundColor={palette.confirm}
         disabled={!isPendente}
         onPress={() => onConfirmButtonPress?.(item)}
         subtle={subtle}
       />
       <ActionButton
         icon={{ library: 'FontAwesome6', name: 'repeat' }}
-        color={Pallete.icons.light}
-        backgroundColor={Pallete.terciary}
+        color={palette.icons.light}
+        backgroundColor={palette.terciary}
         disabled={!canSubstitute}
         onPress={() => onSubButtonPress?.(item)}
         subtle={subtle}
@@ -152,6 +158,7 @@ function RowCompactPremium({
   onSubButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void;
 }) {
   const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const { isPendente, canSubstitute } = getActionState(item);
 
   // Dot semântico: warning=pendente, success=confirmado, error=ausente/substituído
@@ -238,6 +245,8 @@ function EditorialClean({
   onConfirmButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void;
   onSubButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void;
 }) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={[styles.editorialRow, !isLast ? styles.editorialDivider : null]}>
       <View style={styles.editorialMain}>
@@ -256,7 +265,7 @@ function EditorialClean({
         </View>
       </View>
 
-      {renderActions(item, onConfirmButtonPress, onSubButtonPress, true)}
+      {renderActions(item, palette, styles, onConfirmButtonPress, onSubButtonPress, true)}
     </View>
   );
 }
@@ -272,6 +281,8 @@ function QuickActionsMobile({
   onConfirmButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void;
   onSubButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void;
 }) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={[styles.quickRow, !isLast ? styles.rowSpacing : null]}>
       <View style={styles.quickMain}>
@@ -282,7 +293,7 @@ function QuickActionsMobile({
       </View>
 
       <View style={styles.quickActionsCapsule}>
-        {renderActions(item, onConfirmButtonPress, onSubButtonPress, true)}
+        {renderActions(item, palette, styles, onConfirmButtonPress, onSubButtonPress, true)}
       </View>
     </View>
   );
@@ -294,6 +305,7 @@ export default function FuncoesTable({
   onSubButtonPress,
   variant = 'rowCompactPremium',
 }: FuncoesTableProps) {
+  const styles = useThemedStyles(createStyles);
   const activeVariant = ROW_VARIANT_RENDER_ORDER.includes(variant)
     ? variant
     : 'rowCompactPremium';
@@ -341,136 +353,138 @@ export default function FuncoesTable({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingTop: 4,
-    paddingBottom: 6,
-  },
-  // Mini-card por função: branco elevado sobre fundo tintado do body
-  rowCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: 48,
-    paddingHorizontal: 12,
-    gap: 8,
-  },
-  rowSpacing: {
-    marginBottom: 0,
-  },
-  rowWithDivider: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: ColorUtils.withAlpha(Pallete.fonts.inactive, 0.2),
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    flexShrink: 0,
-  },
-  roleTitle: {
-    fontFamily: BOLD_FONT,
-    fontSize: SMALL_SIZE_FONT,
-    lineHeight: SMALL_SIZE_FONT + 3,
-    color: Pallete.fonts.dark,
-    flex: 1,
-  },
-  statusText: {
-    fontSize: EXTRA_SMALL_SIZE_FONT,
-    lineHeight: EXTRA_SMALL_SIZE_FONT + 3,
-    color: Pallete.fonts.inactive,
-    flexShrink: 1,
-    maxWidth: 96,
-    textAlign: 'right',
-  },
-  fabRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    flexShrink: 0,
-  },
-  statusBadge: {
-    alignSelf: 'flex-start',
-    borderRadius: 999,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderWidth: 1,
-  },
-  statusBadgeText: {
-    fontFamily: BOLD_FONT,
-    fontSize: EXTRA_SMALL_SIZE_FONT,
-    lineHeight: EXTRA_SMALL_SIZE_FONT + 2,
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  actionsRowTight: {
-    gap: 6,
-  },
-  actionButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionButtonSubtle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-  },
-  editorialRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 4,
-    paddingVertical: 8,
-  },
-  editorialDivider: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: ColorUtils.withAlpha(Pallete.fonts.inactive, 0.22),
-  },
-  editorialMain: {
-    flex: 1,
-    minWidth: 0,
-    gap: 4,
-  },
-  editorialMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  editorialMetaLabel: {
-    fontSize: EXTRA_SMALL_SIZE_FONT,
-    lineHeight: EXTRA_SMALL_SIZE_FONT + 3,
-    color: Pallete.fonts.inactive,
-    letterSpacing: 0.2,
-  },
-  quickRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: ColorUtils.withAlpha(Pallete.primary, 0.08),
-  },
-  quickMain: {
-    flex: 1,
-    minWidth: 0,
-    gap: 6,
-  },
-  quickActionsCapsule: {
-    paddingHorizontal: 6,
-    paddingVertical: 5,
-    borderRadius: 999,
-    backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.06),
-    borderWidth: 1,
-    borderColor: ColorUtils.withAlpha(Pallete.primary, 0.08),
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      gap: 8,
+      paddingHorizontal: 12,
+      paddingTop: 4,
+      paddingBottom: 6,
+    },
+    // Mini-card por função: branco elevado sobre fundo tintado do body
+    rowCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      minHeight: 48,
+      paddingHorizontal: 12,
+      gap: 8,
+    },
+    rowSpacing: {
+      marginBottom: 0,
+    },
+    rowWithDivider: {
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.2),
+    },
+    statusDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      flexShrink: 0,
+    },
+    roleTitle: {
+      fontFamily: BOLD_FONT,
+      fontSize: SMALL_SIZE_FONT,
+      lineHeight: SMALL_SIZE_FONT + 3,
+      color: palette.fonts.dark,
+      flex: 1,
+    },
+    statusText: {
+      fontSize: EXTRA_SMALL_SIZE_FONT,
+      lineHeight: EXTRA_SMALL_SIZE_FONT + 3,
+      color: palette.fonts.inactive,
+      flexShrink: 1,
+      maxWidth: 96,
+      textAlign: 'right',
+    },
+    fabRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      flexShrink: 0,
+    },
+    statusBadge: {
+      alignSelf: 'flex-start',
+      borderRadius: 999,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderWidth: 1,
+    },
+    statusBadgeText: {
+      fontFamily: BOLD_FONT,
+      fontSize: EXTRA_SMALL_SIZE_FONT,
+      lineHeight: EXTRA_SMALL_SIZE_FONT + 2,
+    },
+    actionsRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    actionsRowTight: {
+      gap: 6,
+    },
+    actionButton: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    actionButtonSubtle: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+    },
+    editorialRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingHorizontal: 4,
+      paddingVertical: 8,
+    },
+    editorialDivider: {
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.22),
+    },
+    editorialMain: {
+      flex: 1,
+      minWidth: 0,
+      gap: 4,
+    },
+    editorialMeta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    editorialMetaLabel: {
+      fontSize: EXTRA_SMALL_SIZE_FONT,
+      lineHeight: EXTRA_SMALL_SIZE_FONT + 3,
+      color: palette.fonts.inactive,
+      letterSpacing: 0.2,
+    },
+    quickRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      borderRadius: 14,
+      backgroundColor: '#FFFFFF',
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.primary, 0.08),
+    },
+    quickMain: {
+      flex: 1,
+      minWidth: 0,
+      gap: 6,
+    },
+    quickActionsCapsule: {
+      paddingHorizontal: 6,
+      paddingVertical: 5,
+      borderRadius: 999,
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.06),
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.primary, 0.08),
+    },
+  });
+}

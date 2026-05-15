@@ -12,7 +12,7 @@ import FancyText from '../FancyText';
 import FancyModal, { FancyModalProps } from './FancyModal';
 import FancyButton, { FancyButtonProps } from '../buttons/FancyButton';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
-import { Pallete } from '../../constants/colors';
+import { usePallete } from '../../hooks/usePallete';
 
 export type FancyModalDialogProps<T = void> = {
   title?: string;
@@ -57,6 +57,7 @@ export default function FancyModalDialog<T = void>({
   containerStyle,
   ...fancyModalProps
 }: FancyModalDialogProps<T>) {
+  const Pallete = usePallete();
   const shouldRenderCloseButton = Boolean(showCloseButton && onButton1Press);
 
   const closeIconProps: CustomIconProps = {

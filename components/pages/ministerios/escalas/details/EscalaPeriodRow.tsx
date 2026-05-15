@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import FancyText from '../../../../FancyText';
 import DefaultIcons from '../../../../FancyIcons';
-import { Pallete } from '../../../../../constants/colors';
+import { usePallete } from '../../../../../hooks/usePallete';
 import { formatPeriod } from './escalaHeader.utils';
 
 type EscalaPeriodRowProps = {
@@ -15,6 +15,7 @@ export default function EscalaPeriodRow({
   periodEnd,
   trailingText,
 }: EscalaPeriodRowProps) {
+  const Pallete = usePallete();
   return (
     <View style={styles.container}>
       <DefaultIcons.Custom

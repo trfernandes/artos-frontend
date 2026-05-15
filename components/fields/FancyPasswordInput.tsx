@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import FancyTextInput, { FancyTextInputProps } from './FancyTextInput';
 import FancyButton from '../buttons/FancyButton';
-import { Pallete } from '../../constants/colors';
+import { usePallete } from '../../hooks/usePallete';
 
 export default function FancyPasswordInput(props: FancyTextInputProps) {
+  const Pallete = usePallete();
   const [showPassword, setShowPassword] = useState(false);
   const toggleLabel = showPassword ? 'Ocultar senha' : 'Mostrar senha';
 

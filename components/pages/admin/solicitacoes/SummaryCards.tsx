@@ -1,7 +1,9 @@
 import { View, StyleSheet } from 'react-native';
 import FancyText from '../../../FancyText';
 import DefaultIcons from '../../../FancyIcons';
-import { Pallete } from '../../../../constants/colors';
+import { usePallete } from '../../../../hooks/usePallete';
+import { useThemedStyles } from '../../../../hooks/useThemedStyles';
+import { ThemePalette } from '../../../../constants/colors';
 
 type SummaryCardsProps = {
   pendentes: number;
@@ -18,6 +20,9 @@ type SummaryCardItemProps = {
 };
 
 function SummaryCardItem({ icon, iconLib, value, label, color }: SummaryCardItemProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+
   return (
     <View style={[styles.card, { backgroundColor: `${color}12` }]}>
       <View style={[styles.iconContainer, { backgroundColor: `${color}20` }]}>
@@ -31,7 +36,7 @@ function SummaryCardItem({ icon, iconLib, value, label, color }: SummaryCardItem
       <FancyText type='bold' size='large' style={{ color }}>
         {value}
       </FancyText>
-      <FancyText size='extraSmall' type='bold' color={Pallete.fonts.inactive} numberOfLines={1}>
+      <FancyText size='extraSmall' type='bold' color={palette.fonts.inactive} numberOfLines={1}>
         {label}
       </FancyText>
     </View>
@@ -39,6 +44,9 @@ function SummaryCardItem({ icon, iconLib, value, label, color }: SummaryCardItem
 }
 
 export default function SummaryCards({ pendentes, convitesAtivos, totalAceitos }: SummaryCardsProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+
   return (
     <View style={styles.container}>
       <SummaryCardItem
@@ -46,47 +54,49 @@ export default function SummaryCards({ pendentes, convitesAtivos, totalAceitos }
         iconLib='MaterialCommunityIcons'
         value={pendentes}
         label='Pendentes'
-        color='#D97706'
+        color={palette.warning}
       />
       <SummaryCardItem
         icon='email-outline'
         iconLib='MaterialCommunityIcons'
         value={convitesAtivos}
         label='Convites Ativos'
-        color={Pallete.primary}
+        color={palette.primary}
       />
       <SummaryCardItem
         icon='check-circle-outline'
         iconLib='MaterialCommunityIcons'
         value={totalAceitos}
         label='Aceitos'
-        color={Pallete.confirm}
+        color={palette.confirm}
       />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    gap: 10,
-    paddingHorizontal: 0,
-    marginBottom: 16,
-  },
-  card: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 8,
-    borderRadius: 14,
-    gap: 4,
-  },
-  iconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 2,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      gap: 10,
+      paddingHorizontal: 0,
+      marginBottom: 16,
+    },
+    card: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: 14,
+      paddingHorizontal: 8,
+      borderRadius: 14,
+      gap: 4,
+    },
+    iconContainer: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 2,
+    },
+  });
+}

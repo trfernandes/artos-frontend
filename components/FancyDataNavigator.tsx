@@ -1,5 +1,7 @@
 import { View, StyleSheet } from 'react-native';
-import { Pallete } from '../constants/colors';
+import { ThemePalette } from '../constants/colors';
+import { usePallete } from '../hooks/usePallete';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 import FancyText from './FancyText';
 import FancyButton from './buttons/FancyButton';
 
@@ -13,6 +15,8 @@ export type FancyDataNavigatorProps = {
 };
 
 export default function FancyDataNavigator({ showOpenButton = false, ...props }: FancyDataNavigatorProps) {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.container}>
       <View style={styles.contentContainer}>
@@ -50,10 +54,12 @@ export default function FancyDataNavigator({ showOpenButton = false, ...props }:
   );
 }
 
-const styles = StyleSheet.create({
-  container: { backgroundColor: Pallete.backgroundColor2, borderRadius: 5 },
-  contentContainer: { padding: 15, flexDirection: 'row' },
-  dataContainer: { flex: 1, justifyContent: 'center', gap: 4 },
-  buttonsContainer: { flexDirection: 'row', gap: 5 },
-  button: { maxWidth: 35, minWidth: 35, maxHeight: 35, minHeight: 35, padding: 0 },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: { backgroundColor: palette.backgroundColor2, borderRadius: 5 },
+    contentContainer: { padding: 15, flexDirection: 'row' },
+    dataContainer: { flex: 1, justifyContent: 'center', gap: 4 },
+    buttonsContainer: { flexDirection: 'row', gap: 5 },
+    button: { maxWidth: 35, minWidth: 35, maxHeight: 35, minHeight: 35, padding: 0 },
+  });
+}

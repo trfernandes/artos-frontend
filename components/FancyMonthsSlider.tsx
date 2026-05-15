@@ -2,7 +2,7 @@ import { View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { Slider } from 'react-native-awesome-slider';
 import FancyText from './FancyText';
-import { Pallete } from '../constants/colors';
+import { usePallete } from '../hooks/usePallete';
 import React from 'react';
 
 export type FancyMonthsSliderProps = {
@@ -12,6 +12,7 @@ export type FancyMonthsSliderProps = {
 };
 
 export function FancyMonthsSlider({ title, value, onChange }: FancyMonthsSliderProps) {
+  const Pallete = usePallete();
   const min = useSharedValue(1);
   const max = useSharedValue(12);
   const progress = useSharedValue(value ?? 1);

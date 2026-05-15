@@ -3,7 +3,9 @@ import { Menu, MenuOption, MenuOptions, MenuTrigger } from 'react-native-popup-m
 import { Feather } from '@expo/vector-icons';
 import FancyText from '../FancyText';
 import FancyImage from '../images/FancyImage';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { ResponseLoginIgrejaDto } from '../../domain/dtos/login/login.response';
 import { IgrejaVoluntarioRoleEnum } from '../../domain/enums/Igreja/voluntario-role.enum';
 import { useSairDaIgreja } from '../../hooks/useSairDaIgreja';
@@ -20,6 +22,8 @@ const ROLE_LABELS: Record<IgrejaVoluntarioRoleEnum, string> = {
 };
 
 export default function IgrejaCard({ igreja, onPress }: IgrejaCardProps) {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
   const { sairDaIgreja, validateRole, isPending } = useSairDaIgreja();
 
   const initials = igreja.nome
@@ -96,71 +100,73 @@ export default function IgrejaCard({ igreja, onPress }: IgrejaCardProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: Pallete.backgroundColor,
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  content: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    gap: 12,
-  },
-  avatar: {
-    borderRadius: 12,
-  },
-  avatarFallback: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: Pallete.backgroundColor2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    color: Pallete.primary,
-  },
-  info: {
-    flex: 1,
-    gap: 4,
-  },
-  title: {
-    color: Pallete.fonts.dark,
-  },
-  menuTrigger: {
-    paddingLeft: 12,
-    paddingVertical: 6,
-  },
-  menuOptions: {
-    paddingVertical: 6,
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: Pallete.border,
-    backgroundColor: Pallete.backgroundColor,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  menuTextDanger: {
-    color: Pallete.error,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    card: {
+      backgroundColor: palette.backgroundColor,
+      borderRadius: 16,
+      padding: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 8,
+      elevation: 2,
+    },
+    content: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+      gap: 12,
+    },
+    avatar: {
+      borderRadius: 12,
+    },
+    avatarFallback: {
+      width: 48,
+      height: 48,
+      borderRadius: 12,
+      backgroundColor: palette.backgroundColor2,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    avatarText: {
+      color: palette.primary,
+    },
+    info: {
+      flex: 1,
+      gap: 4,
+    },
+    title: {
+      color: palette.fonts.dark,
+    },
+    menuTrigger: {
+      paddingLeft: 12,
+      paddingVertical: 6,
+    },
+    menuOptions: {
+      paddingVertical: 6,
+      borderRadius: 12,
+      borderWidth: 0.5,
+      borderColor: palette.border,
+      backgroundColor: palette.backgroundColor,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 8,
+      elevation: 2,
+    },
+    menuItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+    },
+    menuTextDanger: {
+      color: palette.error,
+    },
+  });
+}

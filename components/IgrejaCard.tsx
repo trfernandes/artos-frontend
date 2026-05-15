@@ -4,7 +4,9 @@ import { Feather } from '@expo/vector-icons';
 // Importe seus componentes de design system aqui
 import FancyText from './FancyText';
 import FancyPopup from './popup/FancyPopup';
-import { Pallete } from '../constants/colors';
+import { ThemePalette } from '../constants/colors';
+import { usePallete } from '../hooks/usePallete';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 import { useSairDaIgreja } from '../hooks/useSairDaIgreja';
 import { IgrejaVoluntarioRoleEnum } from '../domain/enums/Igreja/voluntario-role.enum';
 import { FancyAlert } from './modal/FancyAlert';
@@ -22,6 +24,8 @@ interface IgrejaCardProps {
 }
 
 export const IgrejaCard = ({ igreja, onPress }: IgrejaCardProps) => {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
   const { sairDaIgreja, validateRole, isPending } = useSairDaIgreja();
 
   const handleSair = () => {
@@ -42,9 +46,9 @@ export const IgrejaCard = ({ igreja, onPress }: IgrejaCardProps) => {
   };
 
   return (
-    <TouchableOpacity 
-      style={styles.card} 
-      onPress={onPress} 
+    <TouchableOpacity
+      style={styles.card}
+      onPress={onPress}
       activeOpacity={0.7}
     >
       {/* Avatar / Ícone */}
@@ -82,35 +86,37 @@ export const IgrejaCard = ({ igreja, onPress }: IgrejaCardProps) => {
   );
 };
 
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Pallete.backgroundColor,
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 12,
-    // Sombra estilo iOS/Apple
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    // Sombra Android
-    elevation: 2,
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Pallete.backgroundColor2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  info: {
-    flex: 1,
-  },
-  menuTrigger: {
-    padding: 8,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    card: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: palette.backgroundColor,
+      padding: 16,
+      borderRadius: 16,
+      marginBottom: 12,
+      // Sombra estilo iOS/Apple
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 8,
+      // Sombra Android
+      elevation: 2,
+    },
+    avatar: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: palette.backgroundColor2,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 16,
+    },
+    info: {
+      flex: 1,
+    },
+    menuTrigger: {
+      padding: 8,
+    },
+  });
+}

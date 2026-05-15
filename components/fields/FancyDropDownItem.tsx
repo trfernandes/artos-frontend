@@ -1,7 +1,7 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import FancyText from '../FancyText';
-import { Pallete } from '../../constants/colors';
+import { usePallete } from '../../hooks/usePallete';
 import { Image } from 'expo-image';
 import { AppImages } from '../../assets/app_images';
 
@@ -15,6 +15,7 @@ export interface DropDownItemProps<ValueType> {
 }
 
 export default function FancyDropDownItem<ValueItem>(props: DropDownItemProps<ValueItem>) {
+  const Pallete = usePallete();
   return (
     <TouchableOpacity style={[styles.container, props.selected && styles.selected]} onPress={props.onPress}>
       {props.left &&

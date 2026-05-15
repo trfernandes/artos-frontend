@@ -60,7 +60,7 @@ export default function DashboardCard({
         </FancyText>
 
         <FancyText
-          size="small"
+          size="medium"
           type="semiBold"
           color={palette.fonts.inactive}
           numberOfLines={1}

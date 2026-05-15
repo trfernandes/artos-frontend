@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import { Pallete } from '../../constants/colors';
+import { usePallete } from '../../hooks/usePallete';
 
 type MiniDonutProps = {
   percent: number;
@@ -17,10 +17,13 @@ export default function MiniDonut({
   color,
   size = 15,
   strokeWidth = 2.5,
-  trackColor = Pallete.disabled2,
-  centerColor = Pallete.backgroundColor,
+  trackColor,
+  centerColor,
   style,
 }: MiniDonutProps) {
+  const palette = usePallete();
+  const resolvedTrackColor = trackColor ?? palette.disabled2;
+  const resolvedCenterColor = centerColor ?? palette.backgroundColor;
   const clampedPercent = Math.max(0, Math.min(100, percent));
   const half = size / 2;
   const centerSize = size - strokeWidth * 2;
@@ -44,7 +47,7 @@ export default function MiniDonut({
               width: centerSize,
               height: centerSize,
               borderRadius: centerSize / 2,
-              backgroundColor: centerColor,
+              backgroundColor: resolvedCenterColor,
             },
           ]}
         />
@@ -61,7 +64,7 @@ export default function MiniDonut({
       <View
         style={[
           styles.ring,
-          { borderRadius: half, borderWidth: strokeWidth, borderColor: trackColor },
+          { borderRadius: half, borderWidth: strokeWidth, borderColor: resolvedTrackColor },
         ]}
       />
 
@@ -114,7 +117,7 @@ export default function MiniDonut({
             width: centerSize,
             height: centerSize,
             borderRadius: centerSize / 2,
-            backgroundColor: centerColor,
+            backgroundColor: resolvedCenterColor,
           },
         ]}
       />

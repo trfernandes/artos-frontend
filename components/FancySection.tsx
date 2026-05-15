@@ -2,7 +2,8 @@ import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import React from 'react';
 import DefaultIcons, { CustomIconProps } from './FancyIcons';
 import FancyText from './FancyText';
-import { Pallete } from '../constants/colors';
+import { ThemePalette } from '../constants/colors';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 import { ColorUtils } from '../utils/color_utils';
 
 export default function FancySection({
@@ -18,6 +19,7 @@ export default function FancySection({
   containerStyle?: StyleProp<ViewStyle>;
   contentStyle?: StyleProp<ViewStyle>;
 }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={[styles.sectionContainer, containerStyle]}>
       {title && (
@@ -37,16 +39,18 @@ export default function FancySection({
   );
 }
 
-const styles = StyleSheet.create({
-  sectionContainer: { gap: 12, borderWidth: 0, borderColor: 'red' },
-  sectionHeader: { flexDirection: 'row', gap: 8 },
-  sectionContent: { flexDirection: 'row', gap: 15, alignItems: 'center' },
-  iconContainer: {
-    backgroundColor: ColorUtils.lightenColor(Pallete.primary, 0.95),
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    sectionContainer: { gap: 12, borderWidth: 0, borderColor: 'red' },
+    sectionHeader: { flexDirection: 'row', gap: 8 },
+    sectionContent: { flexDirection: 'row', gap: 15, alignItems: 'center' },
+    iconContainer: {
+      backgroundColor: ColorUtils.lightenColor(palette.primary, 0.95),
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+  });
+}

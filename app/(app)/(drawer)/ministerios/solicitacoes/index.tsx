@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
-import { Pallete } from '../../../../../constants/colors';
+import { usePallete } from '../../../../../hooks/usePallete';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import FancyText from '../../../../../components/FancyText';
 import { useState } from 'react';
@@ -28,6 +28,7 @@ const DATA: {
 ];
 
 export default function MinisterioSolicitacoesIndex() {
+  const Pallete = usePallete();
   const [visualizarModal, setVisualizarModal] = useState(false);
   return (
     <FancyListPage

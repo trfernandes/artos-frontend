@@ -1,7 +1,7 @@
 import FancyContainerList from '../../../container_list/FancyContainerList';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import { FancyCard } from '../../../cards/Horizontal/FancyCard';
-import { Pallete } from '../../../../constants/colors';
+import { usePallete } from '../../../../hooks/usePallete';
 import { useState } from 'react';
 import FancyTextArea from '../../../fields/FancyTextArea';
 import { View } from 'react-native';
@@ -39,6 +39,7 @@ export const MUSIC_LIST = [
 ];
 
 export default function EventosSetListForm() {
+  const Pallete = usePallete();
   const [data, setData] = useState<Array<Music>>(MUSIC_LIST);
 
   const [musicFormParams, setMusicFormParams] = useState<{ visible: boolean; mode: 'add' | 'edit'; music: Music }>({

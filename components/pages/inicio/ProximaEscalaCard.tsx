@@ -60,7 +60,7 @@ export default function ProximaEscalaCard({ escala, onPress }: ProximaEscalaCard
           <View style={styles.infoIconContainer}>
             <DefaultIcons.Custom library="MaterialCommunityIcons" name="calendar-text" size={12} color={palette.primary} />
           </View>
-          <FancyText size="extraSmall" type="semiBold" color={palette.fonts.inactive} numberOfLines={1} style={{ flex: 1 }}>
+          <FancyText size="small" type="semiBold" color={palette.fonts.inactive} numberOfLines={1} style={{ flex: 1 }}>
             {escala.eventoNome}
           </FancyText>
         </View>
@@ -68,7 +68,7 @@ export default function ProximaEscalaCard({ escala, onPress }: ProximaEscalaCard
           <View style={styles.infoIconContainer}>
             <DefaultIcons.Custom library="MaterialCommunityIcons" name="briefcase-outline" size={12} color={palette.primary} />
           </View>
-          <FancyText size="extraSmall" type="semiBold" color={palette.fonts.inactive} numberOfLines={1}>
+          <FancyText size="small" type="semiBold" color={palette.fonts.inactive} numberOfLines={1}>
             {escala.funcaoNome}
           </FancyText>
         </View>

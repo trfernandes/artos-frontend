@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'rea
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Pallete } from '../constants/colors';
+import { usePallete } from '../hooks/usePallete';
 import { AppImages } from '../assets/app_images';
 
 // --- Interfaces (Adaptar conforme seus DTOs reais) ---
@@ -36,19 +36,22 @@ export interface EscalaWizardReviewStepProps {
 
 // --- Componentes Visuais Auxiliares ---
 
-const SectionHeader = ({ title, icon, onEdit }: { title: string; icon: any; onEdit?: () => void }) => (
-  <View style={styles.sectionHeader}>
-    <View style={styles.sectionTitleContainer}>
-      <MaterialCommunityIcons name={icon} size={20} color={Pallete.primary} />
-      <Text style={styles.sectionTitle}>{title}</Text>
+const SectionHeader = ({ title, icon, onEdit }: { title: string; icon: any; onEdit?: () => void }) => {
+  const palette = usePallete();
+  return (
+    <View style={styles.sectionHeader}>
+      <View style={styles.sectionTitleContainer}>
+        <MaterialCommunityIcons name={icon} size={20} color={palette.primary} />
+        <Text style={styles.sectionTitle}>{title}</Text>
+      </View>
+      {onEdit && (
+        <TouchableOpacity onPress={onEdit} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <Text style={[styles.editLink, { color: palette.primary }]}>Editar</Text>
+        </TouchableOpacity>
+      )}
     </View>
-    {onEdit && (
-      <TouchableOpacity onPress={onEdit} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-        <Text style={styles.editLink}>Editar</Text>
-      </TouchableOpacity>
-    )}
-  </View>
-);
+  );
+};
 
 const InfoCard = ({ children }: { children: React.ReactNode }) => (
   <View style={styles.card}>{children}</View>
@@ -241,7 +244,6 @@ const styles = StyleSheet.create({
   },
   editLink: {
     fontSize: 14,
-    color: Pallete.primary,
     fontWeight: '500',
   },
 

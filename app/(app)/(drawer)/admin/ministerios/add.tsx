@@ -4,7 +4,9 @@ import FancyStepsHeader from '../../../../../components/steps/FancyStepsHeader';
 import { useState } from 'react';
 import FancyStepsNavigation from '../../../../../components/steps/FancyStepsNavigation';
 import { FancyStepsConfig } from '../../../../../components/steps/FancyStepsConfig';
-import { Pallete } from '../../../../../constants/colors';
+import { ThemePalette } from '../../../../../constants/colors';
+import { usePallete } from '../../../../../hooks/usePallete';
+import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 import DadosTab from '../../../../../components/pages/admin/ministerios/DadosTab';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -27,6 +29,8 @@ import { VoluntarioHierarquiaEnum } from '../../../../../domain/enums/Ministerio
 import { MinisterioAcessosRepository } from '../../../../../domain/services/MinisterioAcessosRepository';
 
 export default function MinisteriosAddPage() {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
   const [stepIndex, setStepIndex] = useState(0);
 
   const { showLoading, hideLoading } = useLoading();
@@ -216,12 +220,14 @@ export default function MinisteriosAddPage() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { paddingVertical: 5, gap: 20, alignItems: 'center' },
-  contentContainer: { width: '100%', gap: 20, flex: 1, paddingHorizontal: 20 },
-  buttonsContainer: { width: '100%', gap: 10, flexDirection: 'row' },
-  button: {
-    flex: 1,
-  },
-  errorText: { color: Pallete.error },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: { paddingVertical: 5, gap: 20, alignItems: 'center' },
+    contentContainer: { width: '100%', gap: 20, flex: 1, paddingHorizontal: 20 },
+    buttonsContainer: { width: '100%', gap: 10, flexDirection: 'row' },
+    button: {
+      flex: 1,
+    },
+    errorText: { color: palette.error },
+  });
+}

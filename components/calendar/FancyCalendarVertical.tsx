@@ -1,7 +1,9 @@
 import { InteractionManager, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { useMemo, useCallback, useEffect, useRef } from 'react';
 import DayView from './day/DayView';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import FancyText from '../FancyText';
 import DateUtils from '../../utils/date_utils';
 import FancyList, { FancyListProps } from '../list/FancyList';
@@ -49,6 +51,8 @@ export default function FancyCalendarVertical<T extends string, A>({
   onFinishMount,
   onStartMount,
 }: FancyCalendarVerticalProps<T, A>) {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
   // 1) Lista achatada de meses entre startDate e endDate
   const monthsList = useMemo<MonthData[]>(() => {
     const list: MonthData[] = [];
@@ -176,29 +180,31 @@ export default function FancyCalendarVertical<T extends string, A>({
   );
 }
 
-const styles = StyleSheet.create({
-  container: { gap: 15 },
-  calendar: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 0,
-    // borderWidth: 1,
-    paddingVertical: 5,
-  },
-  yearSeparator: {
-    paddingHorizontal: 0,
-    gap: 20,
-    alignItems: 'center',
-    flexDirection: 'row',
-    paddingVertical: 20,
-    justifyContent: 'center',
-  },
-  yearLine: {
-    height: 0,
-    borderWidth: 0.5,
-    borderColor: Pallete.border,
-    flex: 1,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: { gap: 15 },
+    calendar: { flex: 1 },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 0,
+      // borderWidth: 1,
+      paddingVertical: 5,
+    },
+    yearSeparator: {
+      paddingHorizontal: 0,
+      gap: 20,
+      alignItems: 'center',
+      flexDirection: 'row',
+      paddingVertical: 20,
+      justifyContent: 'center',
+    },
+    yearLine: {
+      height: 0,
+      borderWidth: 0.5,
+      borderColor: palette.border,
+      flex: 1,
+    },
+  });
+}

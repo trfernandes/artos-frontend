@@ -3,9 +3,11 @@ import FancyText from '../../../FancyText';
 import FancyButton from '../../../buttons/FancyButton';
 import FancyChips from '../../../FancyChips';
 import DefaultIcons from '../../../FancyIcons';
-import { Pallete } from '../../../../constants/colors';
 import { ResponseIgrejaConviteDto, ConviteStatusType } from '../../../../domain/dtos/Igreja/response-igreja-convite.dto';
 import { getConviteTheme } from './statusThemes';
+import { usePallete } from '../../../../hooks/usePallete';
+import { useThemedStyles } from '../../../../hooks/useThemedStyles';
+import { ThemePalette } from '../../../../constants/colors';
 
 type ConviteTicketCardProps = {
   convite: ResponseIgrejaConviteDto;
@@ -26,6 +28,8 @@ export default function ConviteTicketCard({
   formatDateTime,
   isRevogando = false,
 }: ConviteTicketCardProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
   const theme = getConviteTheme(status);
   const isAtivo = status === 'ATIVO';
   const createdDateFormatted = formatDateTime(convite.createdAt);
@@ -65,12 +69,12 @@ export default function ConviteTicketCard({
             library='MaterialCommunityIcons'
             name='calendar-outline'
             size={14}
-            color={Pallete.fonts.inactive}
+            color={palette.fonts.inactive}
           />
-          <FancyText size='extraSmall' type='bold' color={Pallete.fonts.inactive}>
+          <FancyText size='extraSmall' type='bold' color={palette.fonts.inactive}>
             Criado:
           </FancyText>
-          <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive}>
+          <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
             {createdDateFormatted}
           </FancyText>
         </View>
@@ -80,12 +84,12 @@ export default function ConviteTicketCard({
             library='MaterialCommunityIcons'
             name='account-multiple-outline'
             size={14}
-            color={Pallete.fonts.inactive}
+            color={palette.fonts.inactive}
           />
-          <FancyText size='extraSmall' type='bold' color={Pallete.fonts.inactive}>
+          <FancyText size='extraSmall' type='bold' color={palette.fonts.inactive}>
             Usos:
           </FancyText>
-          <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive}>
+          <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
             {convite.usesCount}/{convite.maxUses ?? '∞'}
           </FancyText>
         </View>
@@ -96,12 +100,12 @@ export default function ConviteTicketCard({
               library='MaterialCommunityIcons'
               name='clock-alert-outline'
               size={14}
-              color={Pallete.fonts.inactive}
+              color={palette.fonts.inactive}
             />
-            <FancyText size='extraSmall' type='bold' color={Pallete.fonts.inactive}>
+            <FancyText size='extraSmall' type='bold' color={palette.fonts.inactive}>
               Expiração:
             </FancyText>
-            <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive}>
+            <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
               {expiresFormatted}
             </FancyText>
           </View>
@@ -112,9 +116,9 @@ export default function ConviteTicketCard({
             library='MaterialIcons'
             name={convite.autoApprove ? 'flash-on' : 'hourglass-empty'}
             size={14}
-            color={convite.autoApprove ? Pallete.confirm : Pallete.warning}
+            color={convite.autoApprove ? palette.confirm : palette.warning}
           />
-          <FancyText size='extraSmall' type='semiBold' color={convite.autoApprove ? Pallete.confirm : Pallete.warning}>
+          <FancyText size='extraSmall' type='semiBold' color={convite.autoApprove ? palette.confirm : palette.warning}>
             {convite.autoApprove ? 'Entrada Imediata' : 'Requer Aprovação'}
           </FancyText>
         </View>
@@ -135,7 +139,7 @@ export default function ConviteTicketCard({
 
       {/* Botões de ação (apenas para convites ativos) */}
       {isAtivo && (
-        <View style={styles.actions}>
+        <View style={[styles.actions, { borderTopColor: palette.borderCard }]}>
           <FancyButton
             label='Compartilhar'
             type='outlined'
@@ -144,11 +148,11 @@ export default function ConviteTicketCard({
               library: 'MaterialIcons',
               name: 'share',
               size: 16,
-              color: Pallete.primary,
+              color: palette.primary,
             }}
             onPress={onCompartilhar}
-            containerStyle={[styles.actionButton, { borderColor: Pallete.primary }]}
-            labelStyle={{ color: Pallete.primary }}
+            containerStyle={[styles.actionButton, { borderColor: palette.primary }]}
+            labelStyle={{ color: palette.primary }}
           />
           <FancyButton
             label='Revogar'
@@ -158,11 +162,11 @@ export default function ConviteTicketCard({
               library: 'MaterialIcons',
               name: 'block',
               size: 16,
-              color: Pallete.error,
+              color: palette.error,
             }}
             onPress={onRevogar}
-            containerStyle={[styles.actionButton, styles.revokeButton]}
-            labelStyle={{ color: Pallete.error }}
+            containerStyle={[styles.actionButton, styles.revokeButton, { borderColor: palette.error }]}
+            labelStyle={{ color: palette.error }}
             isLoading={isRevogando}
             disabled={isRevogando}
           />
@@ -172,63 +176,62 @@ export default function ConviteTicketCard({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    borderRadius: 14,
-    borderWidth: 1,
-    overflow: 'hidden',
-    ...Pallete.shadows[100],
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 6,
-    gap: 10,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    flex: 1,
-  },
-  title: {
-    flex: 1,
-  },
-  copyRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 6,
-    marginHorizontal: 14,
-    marginBottom: 10,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  infoContainer: {
-    paddingHorizontal: 14,
-    paddingBottom: 12,
-    gap: 6,
-  },
-  infoItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 10,
-    padding: 12,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.06)',
-  },
-  actionButton: {
-    flex: 1,
-  },
-  revokeButton: {
-    borderColor: Pallete.error,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    card: {
+      borderRadius: 14,
+      borderWidth: 1,
+      overflow: 'hidden',
+      ...palette.shadows[100],
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 14,
+      paddingTop: 12,
+      paddingBottom: 6,
+      gap: 10,
+    },
+    headerLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      flex: 1,
+    },
+    title: {
+      flex: 1,
+    },
+    copyRow: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 6,
+      marginHorizontal: 14,
+      marginBottom: 10,
+      paddingVertical: 10,
+      borderRadius: 8,
+    },
+    infoContainer: {
+      paddingHorizontal: 14,
+      paddingBottom: 12,
+      gap: 6,
+    },
+    infoItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    actions: {
+      flexDirection: 'row',
+      gap: 10,
+      padding: 12,
+      paddingTop: 10,
+      borderTopWidth: 1,
+    },
+    actionButton: {
+      flex: 1,
+    },
+    revokeButton: {},
+  });
+}

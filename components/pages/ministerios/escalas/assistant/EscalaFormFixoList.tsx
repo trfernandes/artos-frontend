@@ -5,7 +5,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import EscalaFormFixoModal from './EscalaFormFixoModal';
 import FancyContainerList from '../../../../container_list/FancyContainerList';
 import { FancyCard } from '../../../../cards/Horizontal/FancyCard';
-import { Pallete } from '../../../../../constants/colors';
+import { usePallete } from '../../../../../hooks/usePallete';
 import { FancyAlert } from '../../../../modal/FancyAlert';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
 import { ResponseMinisterioFuncaoDto } from '../../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.response';
@@ -25,6 +25,7 @@ export const EscalaFormFixoList = React.memo(function EscalaFormFixoList({
   ministerioVoluntariosDropDownList,
   ministerioVoluntariosList,
 }: EscalaFormFixoListProps) {
+  const Pallete = usePallete();
   const { control } = useFormContext<EscalaEventoTemplateFormData>();
 
   const fixosArray = useFieldArray({

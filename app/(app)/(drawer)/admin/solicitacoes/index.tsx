@@ -25,7 +25,7 @@ import NovoConviteModal from '../../../../../components/pages/admin/solicitacoes
 import ConviteGeradoModal from '../../../../../components/pages/admin/solicitacoes/ConviteGeradoModal';
 
 // Domain
-import { Pallete } from '../../../../../constants/colors';
+import { usePallete } from '../../../../../hooks/usePallete';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { IgrejaRepository } from '../../../../../domain/services/IgrejaRepository';
 import {
@@ -52,6 +52,7 @@ function formatDateTime(dateStr: string): string {
 }
 
 export default function SolicitacoesConvitesPage() {
+  const palette = usePallete();
   const { igrejaAtiva } = useAuth();
   const queryClient = useQueryClient();
   const params = useLocalSearchParams<{ tab?: string }>();
@@ -206,7 +207,7 @@ export default function SolicitacoesConvitesPage() {
   };
 
   const handleShare = async (convite: ResponseIgrejaConviteDto) => {
-    const message = `Oi! Use este convite para entrar na nossa igreja no Artos:\n\n${convite.inviteLink}\n\nSe não abrir automaticamente, cole este código no app: ${convite.token}`;
+    const message = `Oi! Use este convite para entrar na nossa igreja no Diakonia:\n\n${convite.inviteLink}\n\nSe não abrir automaticamente, cole este código no app: ${convite.token}`;
     try {
       await Share.share({ message });
     } catch (error) {
@@ -269,8 +270,8 @@ export default function SolicitacoesConvitesPage() {
         <RefreshControl
           refreshing={isRefetchingSolicitacoes}
           onRefresh={() => refetchSolicitacoes()}
-          colors={[Pallete.primary]}
-          tintColor={Pallete.primary}
+          colors={[palette.primary]}
+          tintColor={palette.primary}
         />
       }
       showsVerticalScrollIndicator={false}
@@ -303,8 +304,8 @@ export default function SolicitacoesConvitesPage() {
         <RefreshControl
           refreshing={isRefetchingConvites}
           onRefresh={() => refetchConvites()}
-          colors={[Pallete.primary]}
-          tintColor={Pallete.primary}
+          colors={[palette.primary]}
+          tintColor={palette.primary}
         />
       }
       showsVerticalScrollIndicator={false}
@@ -355,8 +356,8 @@ export default function SolicitacoesConvitesPage() {
   if (!igrejaAtiva?.id) {
     return (
       <FancyPageView style={styles.centerContainer}>
-        <DefaultIcons.Custom library='MaterialCommunityIcons' name='church' size={64} color={Pallete.fonts.inactive} />
-        <FancyText size='medium' color={Pallete.fonts.inactive} style={styles.emptyText}>
+        <DefaultIcons.Custom library='MaterialCommunityIcons' name='church' size={64} color={palette.fonts.inactive} />
+        <FancyText size='medium' color={palette.fonts.inactive} style={styles.emptyText}>
           Selecione uma igreja para gerenciar solicitações e convites.
         </FancyText>
       </FancyPageView>
@@ -366,8 +367,8 @@ export default function SolicitacoesConvitesPage() {
   if (!hasPermission) {
     return (
       <FancyPageView style={styles.centerContainer}>
-        <DefaultIcons.Custom library='MaterialIcons' name='lock' size={64} color={Pallete.fonts.inactive} />
-        <FancyText size='medium' color={Pallete.fonts.inactive} style={styles.emptyText}>
+        <DefaultIcons.Custom library='MaterialIcons' name='lock' size={64} color={palette.fonts.inactive} />
+        <FancyText size='medium' color={palette.fonts.inactive} style={styles.emptyText}>
           Você não tem permissão para acessar esta área.
         </FancyText>
       </FancyPageView>

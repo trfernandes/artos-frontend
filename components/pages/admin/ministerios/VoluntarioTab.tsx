@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 import FancyList from '../../../list/FancyList';
-import { Pallete } from '../../../../constants/colors';
+import { usePallete } from '../../../../hooks/usePallete';
 import {
     VoluntarioHierarquiaEnum,
     VoluntarioHierarquiaEnumLabel,
@@ -30,6 +30,7 @@ export type VoluntarioTabProps = {
 };
 
 export default function VoluntarioTab({ ministerioId }: VoluntarioTabProps) {
+  const Pallete = usePallete();
   const searchParams = useMemo<DynamicQuery>(() => {
     return {
       where: { conditions: [{ path: 'ministerioId', operator: Operator.EQUALS, value: { type: ValueType.LITERAL, value: ministerioId } }] },

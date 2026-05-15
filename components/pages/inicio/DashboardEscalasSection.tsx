@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { Pallete } from '../../../constants/colors';
+import { usePallete } from '../../../hooks/usePallete';
 import { DashboardEscalaItemDto, ResponseDashboardDto } from '../../../domain/dtos/Dashboard/dashboard.response';
 import { router } from 'expo-router';
 import DashboardSection from './DashboardSection';
@@ -18,6 +18,7 @@ type DashboardEscalasSectionProps = {
 };
 
 export default function DashboardEscalasSection({ data }: DashboardEscalasSectionProps) {
+  const Pallete = usePallete();
   const [selectedEscala, setSelectedEscala] = useState<DashboardEscalaItemDto | null>(null);
   const proximasEscalasUnicas = useMemo(() => {
     const escalas = data?.proximasEscalas ?? [];

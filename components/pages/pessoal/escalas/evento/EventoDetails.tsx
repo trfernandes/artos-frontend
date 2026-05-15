@@ -4,7 +4,7 @@ import FancyTabs, { TabItem } from '../../../../tabs/FancyTabs';
 import EscalaEventoEquipeTab from './EscalaEventoEquipeTab';
 import FancyPageView from '../../../../containers/FancyPageView';
 import { useMemo } from 'react';
-import { Pallete } from '../../../../../constants/colors';
+import { usePallete } from '../../../../../hooks/usePallete';
 import EventoInfoCard from '../../../common/EventoInfoCard';
 import { ResponseEventoDto } from '../../../../../domain/dtos/Evento/evento.response';
 import EventoSetlistTab from '../../../common/EventoSetlistTab';
@@ -20,6 +20,7 @@ export default function EventoDetails(props: {
   responsavelSetlistVoluntarioId?: string;
   responsavelSetlistNome?: string;
 }) {
+  const Pallete = usePallete();
   const { igrejaAtiva, user } = useAuth();
   const isLouvorMinisterio = useMemo(
     () =>

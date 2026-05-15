@@ -1,9 +1,10 @@
 import { View } from 'react-native';
 import DefaultIcons from './FancyIcons';
 import FancyText from './FancyText';
-import { Pallete } from '../constants/colors';
+import { usePallete } from '../hooks/usePallete';
 
 export default function FancyStatusIndicator({ value, label }: { value: boolean; label: string }) {
+  const Pallete = usePallete();
   return (
     <View
       style={{

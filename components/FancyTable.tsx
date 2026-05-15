@@ -1,6 +1,7 @@
 import { View, StyleSheet } from 'react-native';
 import React from 'react';
-import { Pallete } from '../constants/colors';
+import { ThemePalette } from '../constants/colors';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 import FancySeparator from './FancySeparator';
 import FancyText from './FancyText';
 
@@ -10,6 +11,7 @@ export interface FancyTable {
 }
 
 export default function FancyTable({ ...props }: FancyTable) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.container}>
       <View style={{ flexDirection: 'row', paddingHorizontal: 12 }}>
@@ -49,12 +51,14 @@ export default function FancyTable({ ...props }: FancyTable) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Pallete.backgroundColor,
-    paddingVertical: 10,
-    borderRadius: 10,
-    marginBottom: 3,
-    gap: 6,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      backgroundColor: palette.backgroundColor,
+      paddingVertical: 10,
+      borderRadius: 10,
+      marginBottom: 3,
+      gap: 6,
+    },
+  });
+}

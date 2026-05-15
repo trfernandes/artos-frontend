@@ -1,6 +1,8 @@
 import { StyleSheet, View } from 'react-native';
 import FancyText from '../../../FancyText';
-import { Pallete } from '../../../../constants/colors';
+import { ThemePalette } from '../../../../constants/colors';
+import { usePallete } from '../../../../hooks/usePallete';
+import { useThemedStyles } from '../../../../hooks/useThemedStyles';
 import FancyContainerList from '../../../container_list/FancyContainerList';
 import FancyCheckbox from '../../../FancyCheckbox';
 import DefaultIcons from '../../../FancyIcons';
@@ -13,6 +15,8 @@ import {
 } from '../../../../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
 
 export default function PermissoesManager(props: { data: ResponseMinisterioVoluntarioPermissaoDto[]; disabled?: boolean }) {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
   return (
     <FancyContainerList
       data={(Object.entries(RecursosPermissoesTable) as [RecursoPermissaoEnum, (typeof RecursosPermissoesTable)[RecursoPermissaoEnum]][]).filter(
@@ -69,22 +73,24 @@ export default function PermissoesManager(props: { data: ResponseMinisterioVolun
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 15,
-    backgroundColor: Pallete.backgroundColor,
-    borderWidth: 1,
-    borderColor: Pallete.border,
-    borderRadius: 10,
-  },
-  permissaoContainer: { gap: 5, borderWidth: 0, paddingHorizontal: 5, paddingVertical: 5 },
-  permissaoItemContainer: {
-    paddingHorizontal: 16,
-    gap: 6,
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-  },
-  permissaoItemHeader: { flexDirection: 'row', gap: 10, justifyContent: 'space-between' },
-  permissaoItemCheck: { flexDirection: 'row', gap: 10, justifyContent: 'space-between' },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      gap: 15,
+      backgroundColor: palette.backgroundColor,
+      borderWidth: 1,
+      borderColor: palette.border,
+      borderRadius: 10,
+    },
+    permissaoContainer: { gap: 5, borderWidth: 0, paddingHorizontal: 5, paddingVertical: 5 },
+    permissaoItemContainer: {
+      paddingHorizontal: 16,
+      gap: 6,
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+    },
+    permissaoItemHeader: { flexDirection: 'row', gap: 10, justifyContent: 'space-between' },
+    permissaoItemCheck: { flexDirection: 'row', gap: 10, justifyContent: 'space-between' },
+  });
+}

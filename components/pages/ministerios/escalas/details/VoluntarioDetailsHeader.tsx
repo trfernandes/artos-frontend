@@ -1,5 +1,5 @@
 import { TouchableOpacity, View } from 'react-native';
-import { Pallete } from '../../../../../constants/colors';
+import { usePallete } from '../../../../../hooks/usePallete';
 import FancyText from '../../../../FancyText';
 import FancyAvatarImage from '../../../../images/FancyImage';
 import DefaultIcons from '../../../../FancyIcons';
@@ -13,6 +13,7 @@ export default function VoluntarioDetailsHeader({
   voluntarioInfo: ResponseVoluntarioDto;
   onClose?: () => void;
 }) {
+  const Pallete = usePallete();
   return (
     <View
       style={{
