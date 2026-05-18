@@ -82,7 +82,9 @@ export default function MinhasEscalasIndexPage() {
   }>();
   const [escalasDoUsuario, setEscalasDoUsuario] = useState<ResponseEscalaItemDto[]>([]);
   const [isLoadingEscalas, setIsLoadingEscalas] = useState<boolean>(true);
-  const { update: updateEscala, isLoadingMutation: isLoading } = useEscalaItensCrud();
+  const { update: updateEscala, isLoadingMutation: isLoading } = useEscalaItensCrud({
+    muteMessages: true,
+  });
 
   const [substituicaoPageParams, setSubstituicaoPageParams] = useState<
     { visible: boolean; dadosEscala?: ResponseEscalaItemDto } | undefined
@@ -135,6 +137,7 @@ export default function MinhasEscalasIndexPage() {
   } = useEscalaSubstituicoesCrud({
     autoFetch: true,
     initialParams: substituicoesParams,
+    muteMessages: true,
   });
 
   const initialDateFromParams = useMemo(
@@ -350,21 +353,31 @@ export default function MinhasEscalasIndexPage() {
           text: 'Não',
           style: 'destructive',
           onPress: async () => {
-            await updateEscala?.({
-              id: escalaItensId,
-              data: { status: EscalaItemStatusEnum.Ausente },
-            });
-            await loadMonthEscalas();
+            try {
+              await updateEscala?.({
+                id: escalaItensId,
+                data: { status: EscalaItemStatusEnum.Ausente },
+              });
+              Toast.show({ type: 'info', text1: 'Ausência registrada.' });
+              await loadMonthEscalas();
+            } catch {
+              Toast.show({ type: 'error', text1: 'Erro ao registrar ausência.' });
+            }
           },
         },
         {
           text: 'Sim',
           onPress: async () => {
-            await updateEscala?.({
-              id: escalaItensId,
-              data: { status: EscalaItemStatusEnum.Confirmado },
-            });
-            await loadMonthEscalas();
+            try {
+              await updateEscala?.({
+                id: escalaItensId,
+                data: { status: EscalaItemStatusEnum.Confirmado },
+              });
+              Toast.show({ type: 'success', text1: '✅ Presença confirmada!' });
+              await loadMonthEscalas();
+            } catch {
+              Toast.show({ type: 'error', text1: 'Erro ao confirmar presença.' });
+            }
           },
         },
       ]);
@@ -374,27 +387,35 @@ export default function MinhasEscalasIndexPage() {
 
   const handleConfirmSubstituicao = useCallback(
     async (escalaItemId: string, solicitanteId: string, substitutoId: string, motivo: string) => {
-      await updateEscala?.({
-        id: escalaItemId,
-        data: { status: EscalaItemStatusEnum.SubstituicaoSolicitada },
-      });
+      try {
+        await updateEscala?.({
+          id: escalaItemId,
+          data: { status: EscalaItemStatusEnum.SubstituicaoSolicitada },
+        });
 
-      await addSubstituicao({
-        escalaItemId: escalaItemId,
-        motivo,
-        solicitanteId: solicitanteId,
-        substitutoId: substitutoId,
-      });
+        await addSubstituicao({
+          escalaItemId: escalaItemId,
+          motivo,
+          solicitanteId: solicitanteId,
+          substitutoId: substitutoId,
+        });
 
-      Toast.show({
-        type: 'success',
-        text1: 'Solicitação de substituição enviada com sucesso.',
-      });
-      setSubstituicaoPageParams({ visible: false });
-
-      await loadMonthEscalas();
+        Toast.show({
+          type: 'success',
+          text1: '✅ Solicitação enviada!',
+          text2: 'O substituto foi notificado.',
+        });
+        setSubstituicaoPageParams({ visible: false });
+        await loadMonthEscalas();
+      } catch {
+        Toast.show({
+          type: 'error',
+          text1: 'Erro ao solicitar substituição',
+          text2: 'Tente novamente.',
+        });
+      }
     },
-    [updateEscala, loadMonthEscalas, setSubstituicaoPageParams],
+    [updateEscala, addSubstituicao, loadMonthEscalas, setSubstituicaoPageParams],
   );
 
   const handleSolicitacaoRespondida = useCallback(

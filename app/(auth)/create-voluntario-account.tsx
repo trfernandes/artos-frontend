@@ -11,8 +11,9 @@ import ControlledTextInput from '../../components/forms/ControlledTextInput';
 import ControlledPasswordInput from '../../components/forms/ControlledPasswordInput';
 import { AxiosError } from 'axios';
 import Toast from 'react-native-toast-message';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useVoluntariosCrud } from '../../hooks/useVoluntariosCrud';
-import { createAccountSchema } from '../../domain/schemas/voluntarioSchema';
+import { createAccountSchema, createAccountViaConviteSchema } from '../../domain/schemas/voluntarioSchema';
 import {
   EXTRA_LARGE_SIZE_FONT,
   MEDIUM_SIZE_FONT,
@@ -51,7 +52,17 @@ export default function CreateVoluntarioAccountPage() {
   const [fieldsViewportHeight, setFieldsViewportHeight] = useState(0);
   const [fieldsContentHeight, setFieldsContentHeight] = useState(0);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [temConvitePendente, setTemConvitePendente] = useState(false);
   const shouldEnableFieldsScroll = fieldsContentHeight > fieldsViewportHeight + 1;
+
+  useEffect(() => {
+    AsyncStorage.getItem('pendingInviteToken').then((token) => {
+      if (token) {
+        setTemConvitePendente(true);
+        setMostrarFormulario(true); // pula a tela de "Tem o código?" direto para o formulário
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (!keyboardVisible) {
@@ -79,7 +90,7 @@ export default function CreateVoluntarioAccountPage() {
   });
 
   const createForm = useForm({
-    resolver: zodResolver(createAccountSchema),
+    resolver: zodResolver(temConvitePendente ? createAccountViaConviteSchema : createAccountSchema),
     defaultValues: { nome: '', email: '', senha: '', confirmarSenha: '', codigoIgreja: '' },
   });
 
@@ -91,7 +102,7 @@ export default function CreateVoluntarioAccountPage() {
         senha: data.senha,
       };
 
-      payload.codigoIgreja = data.codigoIgreja.trim();
+      payload.codigoIgreja = data.codigoIgreja?.trim() ?? '';
 
       try {
         const result = await add(payload);
@@ -104,7 +115,7 @@ export default function CreateVoluntarioAccountPage() {
             text2: anyResult.igrejaJoinError,
             visibilityTime: 5000,
           });
-        } else if (data.codigoIgreja?.trim()) {
+        } else if (data.codigoIgreja && data.codigoIgreja.trim()) {
           Toast.show({
             type: 'success',
             text1: 'Conta criada com sucesso!',
@@ -255,6 +266,20 @@ export default function CreateVoluntarioAccountPage() {
             </View>
           ) : (
             <>
+              {temConvitePendente && (
+                <View style={[styles.infoBox, { backgroundColor: Pallete.backgroundColor4 }]}>
+                  <FancyText type='semiBold' size='small'>
+                    🎉 Você foi convidado!
+                  </FancyText>
+                  <FancyText
+                    size='extraSmall'
+                    type='medium'
+                    style={{ color: ColorUtils.withAlpha(Pallete.fonts.dark, 0.78) }}
+                  >
+                    Crie sua conta para aceitar o convite e entrar na igreja.
+                  </FancyText>
+                </View>
+              )}
               <View
                 style={[styles.fieldsArea, keyboardVisible ? styles.fieldsAreaKeyboard : undefined]}
                 onLayout={(event) => setFieldsViewportHeight(event.nativeEvent.layout.height)}
@@ -267,16 +292,18 @@ export default function CreateVoluntarioAccountPage() {
                   bounces={keyboardVisible && shouldEnableFieldsScroll}
                   onContentSizeChange={(_, height) => setFieldsContentHeight(height)}
                 >
-                  <ControlledTextInput
-                    label='Código da igreja'
-                    name='codigoIgreja'
-                    control={createForm.control}
-                    inputProps={{
-                      autoCapitalize: 'none',
-                      placeholder: 'Digite o código recebido',
-                      placeholderTextColor: Pallete.fonts.inactive2,
-                    }}
-                  />
+                  {!temConvitePendente && (
+                    <ControlledTextInput
+                      label='Código da igreja'
+                      name='codigoIgreja'
+                      control={createForm.control}
+                      inputProps={{
+                        autoCapitalize: 'none',
+                        placeholder: 'Digite o código recebido',
+                        placeholderTextColor: Pallete.fonts.inactive2,
+                      }}
+                    />
+                  )}
                   <ControlledTextInput label='Nome' name='nome' control={createForm.control} />
                   <ControlledTextInput
                     label='E-mail'
@@ -306,11 +333,13 @@ export default function CreateVoluntarioAccountPage() {
                   disabled={isLoadingMutation || isServerUnavailable}
                   icon={{ library: 'Feather', name: 'check', size: 16 }}
                 />
-                <FancyButton
-                  type='text'
-                  label='Ainda não tenho o código'
-                  onPress={() => setMostrarFormulario(false)}
-                />
+                {!temConvitePendente && (
+                  <FancyButton
+                    type='text'
+                    label='Ainda não tenho o código'
+                    onPress={() => setMostrarFormulario(false)}
+                  />
+                )}
               </View>
             </>
           )}

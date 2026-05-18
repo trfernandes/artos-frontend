@@ -1,5 +1,5 @@
 import { Keyboard, KeyboardAvoidingView, Modal, ModalProps, Platform, Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler';
 import { usePallete } from '../../hooks/usePallete';
 
 export type FancyModalProps = {
@@ -34,7 +34,17 @@ export default function FancyModal({
       ]}
     >
       {top}
-      {center}
+      {center && (
+        <ScrollView
+          style={styles.centerScroll}
+          contentContainerStyle={styles.centerContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps='handled'
+          bounces={false}
+        >
+          {center}
+        </ScrollView>
+      )}
       {bottom}
     </View>
   );
@@ -81,9 +91,16 @@ const styles = StyleSheet.create({
   },
   modalView: {
     width: '90%',
+    maxHeight: '88%',
     borderRadius: 12,
     padding: 20,
     alignItems: 'center',
+  },
+  centerScroll: {
+    width: '100%',
+  },
+  centerContent: {
+    flexGrow: 1,
   },
   keyboardAvoidingView: {
     width: '100%',

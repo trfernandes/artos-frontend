@@ -192,31 +192,23 @@ const getMinisterioFullItems = (ministerio: ResponseLoginMinisterioDto): DrawerI
     },
   ];
 
-  switch (ministerioTipo) {
-    case MinisterioTipoEnum.Louvor:
-      return sortDrawerItemsByTitle([
-        ...baseItems,
-        ...commonItems,
-        {
-          title: 'Templates de Equipe',
-          logo: {
-            type: 'icon',
-            value: {
-              name: 'file-document-outline',
-              library: 'MaterialCommunityIcons',
-              size: 16,
-            },
-          },
-          onPress: {
-            type: 'GoToRoute',
-            routeName: `/ministerios/templates_equipe${routeParams}`,
-          },
-        },
-      ]);
-    case MinisterioTipoEnum.Padrao:
-    default:
-      return sortDrawerItemsByTitle([...baseItems, ...commonItems]);
-  }
+  const templatesItem = {
+    title: 'Templates de Equipe',
+    logo: {
+      type: 'icon' as const,
+      value: {
+        name: 'file-document-outline',
+        library: 'MaterialCommunityIcons' as const,
+        size: 16,
+      },
+    },
+    onPress: {
+      type: 'GoToRoute' as const,
+      routeName: `/ministerios/templates_equipe${routeParams}`,
+    },
+  };
+
+  return sortDrawerItemsByTitle([...baseItems, ...commonItems, templatesItem]);
 };
 
 // Monta o menu de um ministério baseado na hierarquia do usuário

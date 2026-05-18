@@ -49,9 +49,9 @@ export function FancyTextDisplay({
 const styles = StyleSheet.create({
   dataContainer: { flexDirection: 'row', gap: 6, justifyContent: 'flex-start', alignItems: 'center' },
   keyText: {
-    lineHeight: 12,
+    lineHeight: 20,
     borderWidth: 0,
     opacity: 0.9,
   },
-  valueText: { lineHeight: 12, flexShrink: 1, borderWidth: 0 },
+  valueText: { lineHeight: 20, flexShrink: 1, borderWidth: 0 },
 });
