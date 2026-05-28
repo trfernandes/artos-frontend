@@ -1,17 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import AuthScreen from '../../components/pages/login/AuthScreen';
+import AuthLayout from '../../components/pages/login/AuthLayout';
 import FancyText from '../../components/FancyText';
 import FancyButton from '../../components/buttons/FancyButton';
 import DefaultIcons from '../../components/FancyIcons';
 import { ThemePalette } from '../../constants/colors';
-import {
-  EXTRA_LARGE_SIZE_FONT,
-  LARGE_SIZE_FONT,
-  MEDIUM_SIZE_FONT,
-  SMALL_SIZE_FONT,
-} from '../../constants/font';
+import { ColorUtils } from '../../utils/color_utils';
+import { EXTRA_LARGE_SIZE_FONT, MEDIUM_SIZE_FONT } from '../../constants/font';
 import { VoluntarioEmailRepository } from '../../domain/services/VoluntarioEmailRepository';
 import { useConnectivity } from '../../core/network/connectivity/ConnectivityProvider';
 import { usePallete } from '../../hooks/usePallete';
@@ -158,45 +154,35 @@ export default function VoluntarioAguardandoEmailPage() {
   };
 
   return (
-    <AuthScreen
+    <AuthLayout
       showBackButton
-      centerWithinBackButtonArea
+      hideCard
       onPressBack={() => router.replace('/(auth)/login')}
-      containerPosition={{ default: 'relative', keyboard: 'relative' }}
-      scrollContainerStyle={styles.scrollContainer}
-      centerContainerStyle={styles.centerContainer}
-      fieldsContainerStyle={styles.fieldsContainer}
       compactTitleOnKeyboard='Confirme seu e-mail'
-      header={({ keyboardVisible }) => (
+      header={
         <View style={{ gap: 5 }}>
           <FancyText
-            size={!keyboardVisible ? 'extraLarge' : 'large'}
+            size='extraLarge'
             type='bold'
             color='white'
             style={{
-              lineHeight:
-                !keyboardVisible
-                  ? EXTRA_LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER
-                  : LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
+              lineHeight: EXTRA_LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
             }}
           >
             Confirme seu e-mail
           </FancyText>
           <FancyText
-            size={!keyboardVisible ? 'medium' : 'small'}
+            size='medium'
             type='medium'
             color='white'
             style={{
-              lineHeight:
-                !keyboardVisible
-                  ? MEDIUM_SIZE_FONT * AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER
-                  : SMALL_SIZE_FONT * AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
+              lineHeight: MEDIUM_SIZE_FONT * AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
             }}
           >
             Enviamos um link de ativação para sua conta
           </FancyText>
         </View>
-      )}
+      }
     >
       <View style={styles.content}>
         {/* Card informativo */}
@@ -264,7 +250,7 @@ export default function VoluntarioAguardandoEmailPage() {
             <View style={styles.tipRow}>
               <DefaultIcons.Custom
                 library='Feather'
-                name='check-circle'
+                name='info'
                 size={14}
                 color={Pallete.fonts.inactive}
               />
@@ -273,77 +259,61 @@ export default function VoluntarioAguardandoEmailPage() {
               </FancyText>
             </View>
           </View>
-        </View>
 
-        {/* Botões */}
-        <View style={styles.actionsContainer}>
-          <FancyButton
-            label={
-              isVerificando
-                ? 'Verificando...'
-                : hasPendingAttempt
-                  ? `Verificar agora (${autoCheckCountdown}s)`
-                  : 'Verificar agora'
-            }
-            type='contained'
-            isLoading={isVerificando}
-            loadingText='Verificando...'
-            spinnerSize='small'
-            icon={{ library: 'Feather', name: 'check-circle', size: 18 }}
-            containerStyle={styles.primaryButton}
-            disabled={isVerificando || isServerUnavailable || !hasPendingAttempt}
-            onPress={() => {
-              setAutoCheckCountdown(AUTO_CHECK_INTERVAL_SECONDS);
-              void verificarConfirmacao(true);
-            }}
-          />
+          {/* Divider */}
+          <View style={styles.divider} />
 
-          <FancyButton
-            label='Reenviar e-mail'
-            type='outlined'
-            isLoading={isReenviando}
-            loadingText='Reenviando...'
-            spinnerSize='small'
-            icon={{ library: 'Feather', name: 'mail', size: 18, color: Pallete.primary }}
-            containerStyle={styles.secondaryButton}
-            disabled={isReenviando || isServerUnavailable || !emailParam}
-            onPress={handleReenviar}
-          />
+          {/* Botões */}
+          <View style={styles.actionsContainer}>
+            <FancyButton
+              label={
+                isVerificando
+                  ? 'Verificando...'
+                  : hasPendingAttempt
+                    ? `Verificar agora (${autoCheckCountdown}s)`
+                    : 'Verificar agora'
+              }
+              type='contained'
+              isLoading={isVerificando}
+              loadingText='Verificando...'
+              spinnerSize='small'
+              icon={{ library: 'Feather', name: 'check-circle', size: 18 }}
+              containerStyle={styles.primaryButton}
+              disabled={isVerificando || isServerUnavailable || !hasPendingAttempt}
+              onPress={() => {
+                setAutoCheckCountdown(AUTO_CHECK_INTERVAL_SECONDS);
+                void verificarConfirmacao(true);
+              }}
+            />
 
-          <FancyButton
-            label='Voltar ao login'
-            type='text'
-            icon={{ library: 'Feather', name: 'arrow-left', size: 18, color: Pallete.primary }}
-            containerStyle={styles.tertiaryButton}
-            onPress={() => router.replace('/(auth)/login')}
-          />
+            <FancyButton
+              label='Reenviar e-mail'
+              type='outlined'
+              isLoading={isReenviando}
+              loadingText='Reenviando...'
+              spinnerSize='small'
+              icon={{ library: 'Feather', name: 'mail', size: 18, color: Pallete.primary }}
+              containerStyle={styles.secondaryButton}
+              disabled={isReenviando || isServerUnavailable || !emailParam}
+              onPress={handleReenviar}
+            />
+
+            <FancyButton
+              label='Voltar ao login'
+              type='text'
+              icon={{ library: 'Feather', name: 'arrow-left', size: 18, color: Pallete.primary }}
+              containerStyle={styles.tertiaryButton}
+              onPress={() => router.replace('/(auth)/login')}
+            />
+          </View>
         </View>
       </View>
-    </AuthScreen>
+    </AuthLayout>
   );
 }
 
 function createStyles(Pallete: ThemePalette) {
   return StyleSheet.create({
-    scrollContainer: {
-      flexGrow: 1,
-      paddingVertical: 0,
-      justifyContent: 'center',
-      gap: 20,
-    },
-    centerContainer: {
-      width: '100%',
-      gap: 20,
-    },
-    fieldsContainer: {
-      borderRadius: 15,
-      padding: 0,
-      gap: 0,
-      backgroundColor: 'transparent',
-      shadowOpacity: 0,
-      elevation: 0,
-      overflow: 'visible',
-    },
     content: {
       gap: 16,
     },
@@ -359,7 +329,7 @@ function createStyles(Pallete: ThemePalette) {
       width: 72,
       height: 72,
       borderRadius: 36,
-      backgroundColor: `${Pallete.primary}15`,
+      backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.08),
       alignItems: 'center',
       justifyContent: 'center',
     },
@@ -376,7 +346,7 @@ function createStyles(Pallete: ThemePalette) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
-      backgroundColor: `${Pallete.warning}18`,
+      backgroundColor: ColorUtils.withAlpha(Pallete.warning, 0.094),
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 20,
@@ -390,8 +360,14 @@ function createStyles(Pallete: ThemePalette) {
       alignItems: 'flex-start',
       gap: 8,
     },
+    divider: {
+      width: '100%',
+      height: 1,
+      backgroundColor: ColorUtils.withAlpha(Pallete.fonts.inactive, 0.13),
+    },
     actionsContainer: {
       gap: 10,
+      width: '100%',
     },
     primaryButton: {
       width: '100%',

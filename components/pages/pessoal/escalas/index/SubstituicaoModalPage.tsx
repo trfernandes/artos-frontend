@@ -1,11 +1,9 @@
 import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyModalDialog, { FancyModalDialogProps } from '../../../../modal/FancyModalDialog';
 import { useCallback, useMemo, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
 import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
-import FancyGroup from '../../../../list/FancyGroup';
-import { FancyTextDisplay } from '../../../../fields/FancyTextDisplay';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -16,6 +14,11 @@ import { useAuth } from '../../../../../contexts/AuthContext';
 import { ResponseEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.response';
 import { AppImages } from '../../../../../assets/app_images';
 import Toast from 'react-native-toast-message';
+import { usePallete } from '../../../../../hooks/usePallete';
+import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
+import { ThemePalette } from '../../../../../constants/colors';
+import { StyleSheet } from 'react-native';
+import FancyText from '../../../../FancyText';
 
 const schema = z.object({
   eventoId: z.string(),
@@ -125,6 +128,8 @@ export default function SubstituicaoModalPage({
   );
 
   const isBusy = isLoading || isSubmitting;
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
 
   return (
     <FancyModalDialog<FormData>
@@ -146,15 +151,24 @@ export default function SubstituicaoModalPage({
       }}
       onButton2Press={() => void handleConfirm()}
     >
-      <FancyGroup title='Informações' contentContainerStyle={styles.infoContent}>
-        <FancyTextDisplay title='Ministério:' value={dadosEscala.voluntario?.ministerio?.nome} />
-        <FancyTextDisplay title='Evento:' value={dadosEscala.evento?.nome} />
-        <FancyTextDisplay
-          title='Data e Hora:'
-          value={format(dadosEscala.dataOcorrencia, 'dd/MM/yyyy - HH:mm')}
-        />
-        <FancyTextDisplay title='Função:' value={dadosEscala.funcao?.nome} />
-      </FancyGroup>
+      <View style={styles.infoCard}>
+        <View style={styles.infoRow}>
+          <FancyText size='extraSmall' type='medium' style={styles.infoLabel}>Ministério</FancyText>
+          <FancyText size='small' type='semiBold'>{dadosEscala.voluntario?.ministerio?.nome}</FancyText>
+        </View>
+        <View style={styles.infoRow}>
+          <FancyText size='extraSmall' type='medium' style={styles.infoLabel}>Evento</FancyText>
+          <FancyText size='small' type='semiBold'>{dadosEscala.evento?.nome}</FancyText>
+        </View>
+        <View style={styles.infoRow}>
+          <FancyText size='extraSmall' type='medium' style={styles.infoLabel}>Data e Hora</FancyText>
+          <FancyText size='small' type='semiBold'>{format(dadosEscala.dataOcorrencia, 'dd/MM/yyyy - HH:mm')}</FancyText>
+        </View>
+        <View style={styles.infoRow}>
+          <FancyText size='extraSmall' type='medium' style={styles.infoLabel}>Função</FancyText>
+          <FancyText size='small' type='semiBold'>{dadosEscala.funcao?.nome}</FancyText>
+        </View>
+      </View>
       <ControlledSearchSelect
         control={form.control}
         name='substitutoId'
@@ -176,18 +190,33 @@ export default function SubstituicaoModalPage({
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    gap: 12,
-  },
-  infoContent: {
-    gap: 5,
-  },
-  reasonInput: {
-    minHeight: 118,
-    textAlignVertical: 'top',
-  },
-  buttons: {
-    gap: 9,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    content: {
+      gap: 12,
+    },
+    infoCard: {
+      backgroundColor: palette.backgroundColor,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: palette.borderCard,
+      padding: 12,
+      gap: 10,
+      width: '100%',
+      ...palette.shadows[100],
+    },
+    infoRow: {
+      gap: 2,
+    },
+    infoLabel: {
+      opacity: 0.55,
+    },
+    reasonInput: {
+      minHeight: 118,
+      textAlignVertical: 'top',
+    },
+    buttons: {
+      gap: 9,
+    },
+  });
+}

@@ -1,4 +1,4 @@
-import { Stack, Redirect } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function AuthLayout() {
@@ -6,9 +6,11 @@ export default function AuthLayout() {
 
   if (loading) return null;
 
-  if (user) {
-    return <Redirect href='/(app)' />;
-  }
+  // Quando usuário está logado, NÃO navegamos daqui (evita race condition
+  // com useProtectedRoute no root layout, que é a única fonte de verdade
+  // do redirect pós-login — incluindo checagem de convite pendente).
+  // Renderiza null para não exibir as telas de auth durante a transição.
+  if (user) return null;
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

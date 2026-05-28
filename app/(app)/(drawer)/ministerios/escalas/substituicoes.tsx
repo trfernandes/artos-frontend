@@ -76,6 +76,8 @@ export default function MinisterioSubstituicoesScreen() {
     isLoading,
     update,
     isLoadingMutation,
+    refetch,
+    isRefetching,
   } = useEscalaSubstituicoesCrud({ autoFetch: true, initialParams: query });
 
   const filtered = useMemo(() => {
@@ -155,6 +157,8 @@ export default function MinisterioSubstituicoesScreen() {
           containerStyle={styles.listContainer}
           data={filtered}
           keyExtractor={(item) => item.id}
+          onRefresh={refetch}
+          refreshing={isRefetching}
           renderItem={({ item: sub }) => (
             <SubstituicaoMinisterioCard
               substituicao={sub}

@@ -24,7 +24,7 @@ apiClient.interceptors.request.use(async (config) => {
 });
 
 // Endpoints de auth retornam 401 para credenciais inválidas — não devem disparar signOut
-const AUTH_ENDPOINTS = ['/auth/login', '/auth/register', '/auth/forgot-password'];
+const AUTH_ENDPOINTS = ['/auth/login', '/auth/register', '/auth/forgot-password', '/voluntarios/cadastro'];
 
 export function isAuthEndpoint(url: string): boolean {
   return AUTH_ENDPOINTS.some((endpoint) => url.includes(endpoint));

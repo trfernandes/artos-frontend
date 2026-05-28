@@ -187,7 +187,7 @@ export default function JoinChurchModal(props: FancyModalDialogProps<any>) {
           <View style={styles.previewCard}>
             <FancyImage source={{ uri: DEFAULT_LOGO }} size={60} style={styles.logo} />
             <FancyText type="semiBold" size="large" style={styles.churchName}>
-              {preview.igrejaNome}
+              {preview.igreja.nome}
             </FancyText>
             <FancyText size="small" style={styles.infoText}>
               Válido até: {expiresText}

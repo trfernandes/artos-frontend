@@ -4,7 +4,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$projectDir = "d:\Development Projects\artos\artos_frontend"
+$projectDir = "D:\artos\artos_frontend"
 
 Set-Location $projectDir
 

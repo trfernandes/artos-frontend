@@ -1,4 +1,5 @@
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SplashScreen, Stack, useSegments } from 'expo-router';
 import { Modal, Platform, StyleSheet, View } from 'react-native';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
@@ -43,19 +44,21 @@ export default Sentry.wrap(function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <ThemeProvider>
-          <GlobalErrorBoundary>
-            <QueryClientProvider client={queryClient}>
-              <AuthProvider>
-                <ConnectivityProvider>
-                  <RootLayoutNav />
-                </ConnectivityProvider>
-              </AuthProvider>
-            </QueryClientProvider>
-          </GlobalErrorBoundary>
-        </ThemeProvider>
-      </SafeAreaProvider>
+      <KeyboardProvider>
+        <SafeAreaProvider>
+          <ThemeProvider>
+            <GlobalErrorBoundary>
+              <QueryClientProvider client={queryClient}>
+                <AuthProvider>
+                  <ConnectivityProvider>
+                    <RootLayoutNav />
+                  </ConnectivityProvider>
+                </AuthProvider>
+              </QueryClientProvider>
+            </GlobalErrorBoundary>
+          </ThemeProvider>
+        </SafeAreaProvider>
+      </KeyboardProvider>
     </GestureHandlerRootView>
   );
 });

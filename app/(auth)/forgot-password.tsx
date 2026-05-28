@@ -1,8 +1,6 @@
-import { Keyboard, StyleSheet } from 'react-native';
+import { Keyboard } from 'react-native';
 import FancyButton from '../../components/buttons/FancyButton';
-import FancyText from '../../components/FancyText';
-import AuthScreen from '../../components/pages/login/AuthScreen';
-import { ThemePalette } from '../../constants/colors';
+import AuthLayout from '../../components/pages/login/AuthLayout';
 import Toast from 'react-native-toast-message';
 import z from 'zod';
 import ControlledTextInput from '../../components/forms/ControlledTextInput';
@@ -10,12 +8,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../../contexts/AuthContext';
 import { getApiErrorMessage } from '../../domain/api/api-error';
-import { useThemedStyles } from '../../hooks/useThemedStyles';
-import { EXTRA_LARGE_SIZE_FONT, LARGE_SIZE_FONT, MEDIUM_SIZE_FONT, SMALL_SIZE_FONT } from '../../constants/font';
-import {
-  AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
-  AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
-} from '../../constants/authTypography';
 
 const forgotPasswordSchema = z.object({
   email: z
@@ -27,7 +19,6 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
-  const styles = useThemedStyles(createStyles);
   const { forgotPassword } = useAuth();
 
   const {
@@ -58,92 +49,28 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <AuthScreen
+    <AuthLayout
       showBackButton
-      centerWithinBackButtonArea
-      centerContainerStyle={({ keyboardVisible }) =>
-        !keyboardVisible ? { paddingTop: 0 } : null
-      }
-      scrollContainerStyle={styles.scrollContainer}
-      headerContainerStyle={styles.titleContainer}
-      fieldsContainerStyle={styles.fieldsContainer}
-      compactTitleOnKeyboard='Recuperação de Senha'
-      header={({ keyboardVisible }) => (
-        <>
-          <FancyText
-            size={!keyboardVisible ? 'extraLarge' : 'large'}
-            type='bold'
-            color='white'
-            style={{
-              lineHeight:
-                !keyboardVisible
-                  ? EXTRA_LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER
-                  : LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
-            }}
-          >
-            Recuperação de Senha
-          </FancyText>
-          <FancyText
-            size={!keyboardVisible ? 'medium' : 'small'}
-            type='medium'
-            color='white'
-            style={{
-              borderWidth: 0,
-              lineHeight:
-                !keyboardVisible
-                  ? MEDIUM_SIZE_FONT * AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER
-                  : SMALL_SIZE_FONT * AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
-            }}
-          >
-            Informe seu e-mail para receber as instruções de recuperação.
-          </FancyText>
-        </>
-      )}
-    >
-      <>
-        <ControlledTextInput
-          label='E-mail'
-          name='email'
-          control={control}
-          inputProps={{ autoCapitalize: 'none', keyboardType: 'email-address' }}
-        />
-
+      density='compact'
+      hideHeaderOnKeyboard={false}
+      title='Recuperação de Senha'
+      subtitle='Informe seu e-mail para receber as instruções de recuperação.'
+      footer={
         <FancyButton
           label={isSubmitting ? 'Enviando...' : 'Enviar'}
           onPress={handleSubmit(onSubmit)}
           disabled={isSubmitting}
+          icon={{ library: 'Feather', name: 'send', size: 16 }}
         />
-      </>
-    </AuthScreen>
+      }
+    >
+      <ControlledTextInput
+        label='E-mail'
+        name='email'
+        control={control}
+        inputProps={{ autoCapitalize: 'none', keyboardType: 'email-address' }}
+      />
+    </AuthLayout>
   );
 }
 
-const DESIGN_MODE = 0;
-
-function createStyles(Pallete: ThemePalette) {
-  return StyleSheet.create({
-    scrollContainer: {
-      flexGrow: 1,
-      paddingVertical: 0,
-      justifyContent: 'center',
-      borderWidth: DESIGN_MODE,
-      borderColor: 'blueviolet',
-      gap: 25,
-    },
-    titleContainer: {
-      gap: 2,
-      borderWidth: DESIGN_MODE,
-      borderColor: 'magenta',
-      justifyContent: 'center',
-    },
-    fieldsContainer: {
-      borderWidth: DESIGN_MODE,
-      borderRadius: 15,
-      borderColor: 'firebrick',
-      padding: 25,
-      gap: 25,
-      backgroundColor: Pallete.backgroundColor,
-      ...Pallete.shadows[200],
-    },
-  });
-}

@@ -1,11 +1,13 @@
 import { View, StyleProp, ViewStyle, StyleSheet } from 'react-native';
 import React from 'react';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { FancyStepsConfig } from './FancyStepsConfig';
 import FancyStepsHeader, { FancyStepsHeaderProps } from './FancyStepsHeader';
 import FancyStepsNavigation, { FancyStepsNavigationProps } from './FancyStepsNavigation';
 import { ThemePalette } from '../../constants/colors';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
+
+const FOCUSED_INPUT_BOTTOM_OFFSET = 80;
 
 export type FancyStepsSize = 'normal' | 'small';
 export type FancyStepsOverflowBehavior = 'always' | 'fitThenScroll';
@@ -45,29 +47,24 @@ export default function FancySteps(props: FancyStepsProps) {
       <View style={[styles.body, props.content?.containerStyle]}>
         <KeyboardAwareScrollView
           style={styles.scroll}
-          enableOnAndroid
-          enableAutomaticScroll
-          extraScrollHeight={24}
-          extraHeight={0}
           nestedScrollEnabled
-          scrollEnabled
           bounces={false}
           keyboardShouldPersistTaps='handled'
-          keyboardDismissMode='interactive'
+          keyboardDismissMode='on-drag'
           contentContainerStyle={[styles.scrollContent, props.contentContainerStyle]}
           showsVerticalScrollIndicator={false}
+          bottomOffset={FOCUSED_INPUT_BOTTOM_OFFSET}
         >
           {stepContent}
         </KeyboardAwareScrollView>
+        <FancyStepsNavigation
+          containerStyle={[styles.navigation, props.navigationContainerStyle]}
+          stepIndex={props.index}
+          setStepIndex={props.setIndex}
+          config={props.config}
+          {...props.navigatorProps}
+        />
       </View>
-
-      <FancyStepsNavigation
-        containerStyle={props.navigationContainerStyle}
-        stepIndex={props.index}
-        setStepIndex={props.setIndex}
-        config={props.config}
-        {...props.navigatorProps}
-      />
     </View>
   );
 }
@@ -93,6 +90,9 @@ function createStyles(palette: ThemePalette) {
       flexGrow: 1,
       gap: 10,
       paddingBottom: 10,
+    },
+    navigation: {
+      paddingTop: 6,
     },
   });
 }

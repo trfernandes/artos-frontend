@@ -2,7 +2,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { LegendList, LegendListProps } from '@legendapp/list';
 import { useState, useRef } from 'react';
 import {
-    ActivityIndicator,
     LayoutChangeEvent,
     NativeScrollEvent,
     NativeSyntheticEvent,
@@ -71,45 +70,35 @@ export default function FancyList<ItemT>({ showFade = true, ...props }: FancyLis
     <View style={props.containerStyle} onLayout={handleLayout}>
       {hasData ? (
         <>
-          {props.refreshing ? (
-            <View
-              style={{
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <ActivityIndicator size='large' color={palette.primary} />
-            </View>
-          ) : (
-            <LegendList
-              data={props.data!}
-              extraData={props.extraData}
-              renderItem={props.renderItem!}
-              recycleItems={props.recycleItems ?? true}
-              maintainVisibleContentPosition={props.maintainVisibleContentPosition ?? true}
-              initialScrollIndex={props.initialScrollIndex}
-              ListFooterComponent={
-                props.ListFooterComponent || <View style={{ height: props.bottomSpace || 10 }} />
-              }
-              onContentSizeChange={handleContentSizeChange}
-              contentContainerStyle={[styles.list_content, props.contentContainerStyle]}
-              onScroll={handleScroll}
-              scrollEventThrottle={16}
-              keyExtractor={props.keyExtractor}
-              keyboardShouldPersistTaps={props.keyboardShouldPersistTaps ?? 'handled'}
-              keyboardDismissMode={props.keyboardDismissMode ?? 'on-drag'}
-              showsVerticalScrollIndicator={false}
-              showsHorizontalScrollIndicator={false}
-              refreshControl={
+          <LegendList
+            data={props.data!}
+            extraData={props.extraData}
+            renderItem={props.renderItem!}
+            recycleItems={props.recycleItems ?? true}
+            maintainVisibleContentPosition={props.maintainVisibleContentPosition ?? true}
+            initialScrollIndex={props.initialScrollIndex}
+            ListFooterComponent={
+              props.ListFooterComponent || <View style={{ height: props.bottomSpace || 10 }} />
+            }
+            onContentSizeChange={handleContentSizeChange}
+            contentContainerStyle={[styles.list_content, props.contentContainerStyle]}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            keyExtractor={props.keyExtractor}
+            keyboardShouldPersistTaps={props.keyboardShouldPersistTaps ?? 'handled'}
+            keyboardDismissMode={props.keyboardDismissMode ?? 'on-drag'}
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
+            refreshControl={
+              props.onRefresh !== undefined ? (
                 <RefreshControl
                   refreshing={props.refreshing || false}
-                  onRefresh={props.onRefresh || undefined}
+                  onRefresh={props.onRefresh}
                 />
-              }
-              ItemSeparatorComponent={props.ItemSeparatorComponent}
-            />
-          )}
+              ) : undefined
+            }
+            ItemSeparatorComponent={props.ItemSeparatorComponent}
+          />
 
           {showFade && showTopFade && (
             <LinearGradient

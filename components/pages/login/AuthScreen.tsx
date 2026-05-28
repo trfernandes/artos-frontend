@@ -61,6 +61,7 @@ type AuthScreenProps = {
   compactTitleOnKeyboard?: string;
 };
 
+/** @deprecated Use AuthLayout instead. Será removido após Fase 2 da refatoração de teclado. */
 export default function AuthScreen({
   children,
   header,

@@ -1,26 +1,19 @@
-import {
-  StyleSheet,
-  View,
-  TextInput,
-  Image,
-  Platform,
-  Keyboard,
-  StatusBar as RNStatusBar,
-} from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { StyleSheet, View, TextInput, Image } from 'react-native';
+import { useState, useEffect, useRef } from 'react';
 import FancyButton from '../../components/buttons/FancyButton';
 import FancyCheckbox from '../../components/FancyCheckbox';
 import FancyText from '../../components/FancyText';
 import FancyTextInput from '../../components/fields/FancyTextInput';
 import FancyPasswordInput from '../../components/fields/FancyPasswordInput';
-import LoginBase from '../../components/pages/login/LoginBase';
-import { EXTRA_SMALL_SIZE_FONT, LARGE_SIZE_FONT, MEDIUM_SIZE_FONT } from '../../constants/font';
+import AuthLayout from '../../components/pages/login/AuthLayout';
+import { EXTRA_SMALL_SIZE_FONT } from '../../constants/font';
 import { router } from 'expo-router';
-import { useState, useEffect, useRef } from 'react';
+import { usePallete } from '../../hooks/usePallete';
 import { useAuth } from '../../contexts/AuthContext';
 import Toast from 'react-native-toast-message';
 import { AxiosError } from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useConnectivity } from '../../core/network/connectivity/ConnectivityProvider';
 import { CadastroIgrejaRepository } from '../../domain/services/CadastroIgrejaRepository';
 import { FancyAlert } from '../../components/modal/FancyAlert';
@@ -28,12 +21,6 @@ import {
   clearPendingLoginAttempt,
   setPendingLoginAttempt,
 } from '../../core/auth/pendingLoginAttemptStore';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { usePallete } from '../../hooks/usePallete';
-import {
-  AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
-  AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
-} from '../../constants/authTypography';
 
 const REMEMBER_EMAIL_KEY = 'artos_remember_email';
 const REMEMBER_PASSWORD_KEY = 'artos_remember_password';
@@ -44,21 +31,8 @@ export default function LoginIndexPage() {
   const { status: connectivityStatus, isOffline } = useConnectivity();
   const isServerUnavailable = connectivityStatus !== 'ok';
   const passwordInputRef = useRef<TextInput>(null);
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
-  const Pallete = usePallete();
-  const insets = useSafeAreaInsets();
-  const androidStatusBarHeight = Platform.OS === 'android' ? (RNStatusBar.currentHeight ?? 0) : 0;
-  const safeTopInset = Math.max(insets.top, androidStatusBarHeight);
-  const logoTop = safeTopInset + (Platform.OS === 'ios' ? 12 : 8);
 
-  useEffect(() => {
-    const show = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
-    const hide = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
-    return () => {
-      show.remove();
-      hide.remove();
-    };
-  }, []);
+  const Pallete = usePallete();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -190,7 +164,20 @@ export default function LoginIndexPage() {
         });
       }
 
-      router.replace('/');
+      let inviteToken: string | null = null;
+      try {
+        const raw = await AsyncStorage.getItem('pendingInvite');
+        const legacy = await AsyncStorage.getItem('pendingInviteToken');
+        inviteToken = raw ? (JSON.parse(raw)?.token ?? null) : (legacy ?? null);
+      } catch {
+        inviteToken = null;
+      }
+
+      if (inviteToken) {
+        router.replace(`/(public)/invite/${inviteToken}`);
+      } else {
+        router.replace('/');
+      }
     } catch (error: any) {
       if (await handleCadastroPendente(error, trimmedEmail)) return;
 
@@ -249,132 +236,26 @@ export default function LoginIndexPage() {
   };
 
   return (
-    <LoginBase>
-      {!keyboardVisible && (
-        <View style={[styles.logoContainer, { top: logoTop }]}>
-          <Image
-            source={require('../../assets/images/logo.png')}
-            style={styles.logoImage}
-            resizeMode='contain'
-          />
-        </View>
-      )}
-      <KeyboardAwareScrollView
-        enableOnAndroid
-        enableAutomaticScroll
-        keyboardShouldPersistTaps='handled'
-        extraScrollHeight={20}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingTop: Math.max(25, safeTopInset + 8) },
-        ]}
-      >
-        <View style={styles.titleContainer}>
-          <FancyText
-            size='large'
-            type='semiBold'
-            color='white'
-            style={{ lineHeight: LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER }}
-          >
-            Bem-vindo de volta!
-          </FancyText>
-          <FancyText
-            size='medium'
-            type='medium'
-            color='white'
-            style={{ lineHeight: MEDIUM_SIZE_FONT * AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER }}
-          >
-            Entre para acessar todas as funcionalidades
-          </FancyText>
-        </View>
-
-        <View
-          style={[
-            styles.card,
-            {
-              backgroundColor: Pallete.backgroundColor,
-              ...Pallete.shadows[200],
-            },
-          ]}
-        >
-          <FancyTextInput
-            label='E-mail'
-            value={email}
-            errorMessage={emailError}
-            inputProps={{
-              onChangeText: (value) => {
-                setEmail(value);
-                if (emailError) setEmailError('');
-              },
-              keyboardType: 'email-address',
-              autoCapitalize: 'none',
-              autoCorrect: false,
-              returnKeyType: 'next',
-              textContentType: 'emailAddress',
-              autoComplete: 'email',
-              importantForAutofill: 'yes',
-              blurOnSubmit: false,
-              onSubmitEditing: () => passwordInputRef.current?.focus(),
-              accessibilityLabel: 'E-mail',
-            }}
-            readonly={loading}
-            disabled={loading}
-          />
-          <FancyPasswordInput
-            label='Senha'
-            value={password}
-            errorMessage={passwordError}
-            inputRef={passwordInputRef}
-            inputProps={{
-              onChangeText: (value) => {
-                setPassword(value);
-                if (passwordError) setPasswordError('');
-              },
-              returnKeyType: 'go',
-              textContentType: 'password',
-              autoComplete: 'password',
-              autoCapitalize: 'none',
-              autoCorrect: false,
-              importantForAutofill: 'yes',
-              onSubmitEditing: () => handleLogin(),
-              accessibilityLabel: 'Senha',
-            }}
-            readonly={loading}
-            disabled={loading}
-          />
-
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <FancyCheckbox
-              label='Lembrar-se'
-              value={rememberMe}
-              onChangeValue={setRememberMe}
-              disabled={loading}
-            />
-            <FancyButton
-              type='text'
-              label='Esqueceu sua senha?'
-              onPress={() => router.push('/(auth)/forgot-password')}
-              labelStyle={{ fontSize: EXTRA_SMALL_SIZE_FONT }}
-              containerStyle={{
-                borderWidth: 0,
-                height: 24,
-                justifyContent: 'center',
-                alignItems: 'center',
-                paddingHorizontal: 0,
-                paddingVertical: 0,
-              }}
-              disabled={loading}
-            />
-          </View>
-
+    <AuthLayout
+      logo={
+        <Image
+          source={require('../../assets/images/logo.png')}
+          style={styles.logoImage}
+          resizeMode='contain'
+        />
+      }
+      title='Bem-vindo de volta!'
+      subtitle='Entre para acessar todas as funcionalidades'
+      contentContainerStyle={{ paddingTop: 22 }}
+      footer={
+        <>
           <FancyButton
             label={loading ? 'Entrando...' : 'Entrar'}
             onPress={handleLogin}
             disabled={loading || isServerUnavailable}
           />
-
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingTop: 5 }}>
-            <FancyText size='extraSmall' style={{ borderWidth: 0 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <FancyText size='small' style={{ borderWidth: 0 }}>
               Não tem uma conta ainda?
             </FancyText>
             <FancyButton
@@ -392,39 +273,87 @@ export default function LoginIndexPage() {
               disabled={loading}
             />
           </View>
-        </View>
-      </KeyboardAwareScrollView>
-    </LoginBase>
+        </>
+      }
+    >
+      <FancyTextInput
+        label='E-mail'
+        value={email}
+        errorMessage={emailError}
+        inputProps={{
+          onChangeText: (value) => {
+            setEmail(value);
+            if (emailError) setEmailError('');
+          },
+          keyboardType: 'email-address',
+          autoCapitalize: 'none',
+          autoCorrect: false,
+          returnKeyType: 'next',
+          textContentType: 'emailAddress',
+          autoComplete: 'email',
+          importantForAutofill: 'yes',
+          blurOnSubmit: false,
+          onSubmitEditing: () => passwordInputRef.current?.focus(),
+          accessibilityLabel: 'E-mail',
+        }}
+        readonly={loading}
+        disabled={loading}
+      />
+      <FancyPasswordInput
+        label='Senha'
+        value={password}
+        errorMessage={passwordError}
+        inputRef={passwordInputRef}
+        inputProps={{
+          onChangeText: (value) => {
+            setPassword(value);
+            if (passwordError) setPasswordError('');
+          },
+          returnKeyType: 'go',
+          textContentType: 'password',
+          autoComplete: 'password',
+          autoCapitalize: 'none',
+          autoCorrect: false,
+          importantForAutofill: 'yes',
+          onSubmitEditing: () => handleLogin(),
+          accessibilityLabel: 'Senha',
+        }}
+        readonly={loading}
+        disabled={loading}
+      />
+
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <FancyCheckbox
+          label='Lembrar-se'
+          value={rememberMe}
+          onChangeValue={setRememberMe}
+          disabled={loading}
+        />
+        <FancyButton
+          type='text'
+          label='Esqueceu sua senha?'
+          onPress={() => router.push('/(auth)/forgot-password')}
+          labelStyle={{ fontSize: EXTRA_SMALL_SIZE_FONT }}
+          containerStyle={{
+            borderWidth: 0,
+            height: 24,
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingHorizontal: 0,
+            paddingVertical: 0,
+          }}
+          disabled={loading}
+        />
+      </View>
+    </AuthLayout>
   );
 }
 
+const LOGO_HEIGHT = 58;
+
 const styles = StyleSheet.create({
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 30,
-    paddingBottom: 30,
-    gap: 16,
-  },
-  logoContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    zIndex: 5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   logoImage: {
-    width: 200,
-    height: 77,
-  },
-  titleContainer: {
-    gap: 2,
-  },
-  card: {
-    borderRadius: 15,
-    padding: 25,
-    gap: 15,
-    overflow: 'hidden',
+    width: 150,
+    height: LOGO_HEIGHT,
   },
 });

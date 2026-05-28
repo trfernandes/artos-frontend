@@ -1,15 +1,11 @@
 import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
-import AuthScreen from '../../components/pages/login/AuthScreen';
+import AuthLayout from '../../components/pages/login/AuthLayout';
 import FancyButton from '../../components/buttons/FancyButton';
 import FancyText from '../../components/FancyText';
 import DefaultIcons from '../../components/FancyIcons';
 import { usePallete } from '../../hooks/usePallete';
-import { EXTRA_LARGE_SIZE_FONT, MEDIUM_SIZE_FONT } from '../../constants/font';
-import {
-  AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
-  AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
-} from '../../constants/authTypography';
+import { ColorUtils } from '../../utils/color_utils';
 
 const BENEFITS = [
   {
@@ -33,37 +29,11 @@ export default function AdminDiscoveryPage() {
   const palette = usePallete();
 
   return (
-    <AuthScreen
+    <AuthLayout
       showBackButton
-      centerWithinBackButtonArea
-      scrollContainerStyle={styles.scrollContainer}
-      fieldsContainerStyle={[
-        styles.fieldsContainer,
-        {
-          backgroundColor: palette.backgroundColor,
-          ...palette.shadows[200],
-        },
-      ]}
-      header={() => (
-        <View style={styles.header}>
-          <FancyText
-            size='extraLarge'
-            type='bold'
-            color='white'
-            style={{ lineHeight: EXTRA_LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER }}
-          >
-            Organize a igreja sem ruído
-          </FancyText>
-          <FancyText
-            size='medium'
-            type='medium'
-            color='white'
-            style={{ lineHeight: MEDIUM_SIZE_FONT * AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER }}
-          >
-            Antes de cobrar, o app te deixa montar a base e sentir o fluxo funcionando.
-          </FancyText>
-        </View>
-      )}
+      title='Organize a igreja sem ruído'
+      subtitle='Antes de cobrar, o app te deixa montar a base e sentir o fluxo funcionando.'
+      hideHeaderOnKeyboard={false}
     >
       <View style={styles.content}>
         <View style={styles.benefitsList}>
@@ -72,10 +42,10 @@ export default function AdminDiscoveryPage() {
               key={item.title}
               style={[
                 styles.benefitRow,
-                { borderBottomColor: palette.borderCard, backgroundColor: palette.backgroundColor4 },
+                { borderColor: palette.borderCard, backgroundColor: palette.backgroundColor4 },
               ]}
             >
-              <View style={[styles.iconWrap, { backgroundColor: palette.backgroundColor3 }]}>
+              <View style={[styles.iconWrap, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.10) }]}>
                 <DefaultIcons.Custom
                   library='MaterialCommunityIcons'
                   name={item.icon}
@@ -109,23 +79,11 @@ export default function AdminDiscoveryPage() {
           />
         </View>
       </View>
-    </AuthScreen>
+    </AuthLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-  },
-  fieldsContainer: {
-    borderRadius: 18,
-    padding: 24,
-    gap: 22,
-  },
-  header: {
-    gap: 8,
-  },
   content: {
     gap: 22,
   },
@@ -133,7 +91,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   benefitRow: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderWidth: StyleSheet.hairlineWidth,
     borderRadius: 18,
     padding: 16,
     flexDirection: 'row',

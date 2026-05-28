@@ -58,6 +58,8 @@ export default function MinisterioEscalasIndexPage() {
     remove: removeEscala,
     isLoading: isLoadingEscalas,
     isLoadingMutation: isLoadingEscalasMutation,
+    refetch: refetchEscalas,
+    isRefetching: isRefetchingEscalas,
   } = useEscalasCrud({
     initialParams: {
       where: {
@@ -126,6 +128,8 @@ export default function MinisterioEscalasIndexPage() {
           }),
       }}
       listProps={{
+        onRefresh: refetchEscalas,
+        refreshing: isRefetchingEscalas,
         listEmptyProps: {
           label: searchText ? 'Nenhuma escala encontrada' : 'Nenhuma escala cadastrada',
           icon: { library: 'MaterialCommunityIcons', name: 'calendar-text-outline', size: 68 },

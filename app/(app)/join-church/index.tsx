@@ -244,9 +244,9 @@ export default function JoinChurchPage() {
                 {/* Avatar grande da igreja */}
                 <View style={styles.avatarWrapper}>
                   <View style={styles.avatarContainer}>
-                    {preview.igrejaLogo ? (
+                    {preview.igreja.logoUrl ? (
                       <FancyImage
-                        source={{ uri: preview.igrejaLogo }}
+                        source={{ uri: preview.igreja.logoUrl }}
                         size={100}
                         style={styles.churchLogo}
                       />
@@ -265,7 +265,7 @@ export default function JoinChurchPage() {
 
                 {/* Nome da igreja */}
                 <FancyText type='bold' size='large' style={styles.churchName}>
-                  {preview.igrejaNome}
+                  {preview.igreja.nome}
                 </FancyText>
               </View>
 

@@ -13,5 +13,5 @@ $ip = (
 $env:REACT_NATIVE_PACKAGER_HOSTNAME = $ip
 Write-Host "  IP: $ip" -ForegroundColor Green
 
-Set-Location "D:\Development Projects\artos\artos_frontend"
+Set-Location "D:\artos\artos_frontend"
 npx expo start --clear

@@ -62,6 +62,8 @@ export default function MinisterioTemplateEquipeIndex() {
     remove: removeTemplate,
     isLoading,
     isLoadingMutation,
+    refetch,
+    isRefetching,
   } = useEscalaTemplatesCrud({
     autoFetch: Boolean(ministerioId),
     initialParams: searchParams,
@@ -115,6 +117,8 @@ export default function MinisterioTemplateEquipeIndex() {
       showSearchBar
       searchBarProps={{ value: searchText, onSearch: handleSearch }}
       listProps={{
+        onRefresh: refetch,
+        refreshing: isRefetching,
         listEmptyProps: {
           label: searchText ? 'Nenhum template encontrado' : 'Nenhum template cadastrado',
           icon: { library: 'MaterialCommunityIcons', name: 'file-document-outline', size: 68 },

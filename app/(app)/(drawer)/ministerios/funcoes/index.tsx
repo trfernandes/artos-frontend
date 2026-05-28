@@ -77,6 +77,8 @@ export default function MinisterioFuncoesIndex() {
     update: updateFuncao,
     isLoading,
     isLoadingMutation,
+    refetch,
+    isRefetching,
   } = useMinisterioFuncoesCrud({
     initialParams: searchParams,
     autoFetch: true,
@@ -146,6 +148,8 @@ export default function MinisterioFuncoesIndex() {
         onSearch: setSearchText,
       }}
       listProps={{
+        onRefresh: refetch,
+        refreshing: isRefetching,
         listEmptyProps: {
           label: searchText ? 'Nenhuma função encontrada' : 'Nenhuma função cadastrada',
           icon: { library: 'MaterialCommunityIcons', name: 'account-cog-outline', size: 68 },

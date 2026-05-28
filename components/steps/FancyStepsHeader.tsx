@@ -134,7 +134,7 @@ export default function FancyStepsHeader({ config, containerStyle, size = 'norma
             <FancyStepsText
               key={index}
               text={item.title}
-              textColor={index === props.index ? palette.primary : palette.disabled2}
+              textColor={index === props.index ? palette.primary : palette.fonts.inactive}
               maxWidth={labelMaxWidth}
               containerStyle={{ position: 'absolute', left }}
               onLayout={(event) => handleLabelLayout(index, event)}

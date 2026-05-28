@@ -80,6 +80,8 @@ export default function MinisterioIntegrantesIndex() {
     remove: removeIntegrante,
     isLoading,
     isLoadingMutation,
+    refetch,
+    isRefetching,
   } = useMinisterioVoluntariosCrud({
     autoFetch: true,
     initialParams: params,
@@ -174,6 +176,8 @@ export default function MinisterioIntegrantesIndex() {
           onSearch: (text) => setSearchText(text.trim()),
         }}
         listProps={{
+          onRefresh: refetch,
+          refreshing: isRefetching,
           listEmptyProps: {
             label: searchText ? 'Nenhum integrante encontrado' : 'Nenhum integrante cadastrado',
             icon: { library: 'MaterialCommunityIcons', name: 'account-multiple-outline', size: 68 },

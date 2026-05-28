@@ -19,5 +19,5 @@ export const EscalaItemStatusEnumLabel: Record<EscalaItemStatusEnum, string> = {
   [EscalaItemStatusEnum.Confirmado]: 'Confirmado',
   [EscalaItemStatusEnum.Ausente]: 'Ausente',
   [EscalaItemStatusEnum.Substituido]: 'Substituído',
-  [EscalaItemStatusEnum.SubstituicaoSolicitada]: 'Substituído',
+  [EscalaItemStatusEnum.SubstituicaoSolicitada]: 'Sub. solicitada',
 };

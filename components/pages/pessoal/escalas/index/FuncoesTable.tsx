@@ -109,9 +109,10 @@ function StatusBadge({ status }: { status: EscalaItemStatusEnum }) {
 
 function getActionState(item: ResponseEscalaItemDto) {
   const isPendente = item.status === EscalaItemStatusEnum.Pendente;
+  const isSubstituicaoPendente = item.status === EscalaItemStatusEnum.SubstituicaoSolicitada;
   const canSubstitute = isPendente || item.status === EscalaItemStatusEnum.Confirmado;
 
-  return { isPendente, canSubstitute };
+  return { isPendente, isSubstituicaoPendente, canSubstitute };
 }
 
 function renderActions(
@@ -122,7 +123,9 @@ function renderActions(
   onSubButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void,
   subtle = false,
 ) {
-  const { isPendente, canSubstitute } = getActionState(item);
+  const { isPendente, isSubstituicaoPendente, canSubstitute } = getActionState(item);
+
+  if (isSubstituicaoPendente) return null;
 
   return (
     <View style={[styles.actionsRow, subtle ? styles.actionsRowTight : null]}>
@@ -159,13 +162,13 @@ function RowCompactPremium({
 }) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
-  const { isPendente, canSubstitute } = getActionState(item);
+  const { isPendente, isSubstituicaoPendente, canSubstitute } = getActionState(item);
 
-  // Dot semântico: warning=pendente, success=confirmado, error=ausente/substituído
+  // Dot semântico: confirm=confirmado, warning=pendente/sub.solicitada, error=ausente/substituído
   const dotColor =
     item.status === EscalaItemStatusEnum.Confirmado
       ? palette.confirm
-      : item.status === EscalaItemStatusEnum.Pendente
+      : item.status === EscalaItemStatusEnum.Pendente || item.status === EscalaItemStatusEnum.SubstituicaoSolicitada
         ? palette.warning
         : palette.error;
 
@@ -205,31 +208,33 @@ function RowCompactPremium({
         </FancyText>
       )}
 
-      {/* FABs circulares */}
-      <View style={styles.fabRow}>
-        {/* ✓ Confirmar — só aparece quando pendente */}
-        {isPendente && (
+      {/* FABs circulares — ocultos quando substituição já solicitada */}
+      {!isSubstituicaoPendente && (
+        <View style={styles.fabRow}>
+          {/* ✓ Confirmar — só aparece quando pendente */}
+          {isPendente && (
+            <FancyButton
+              mode='icon'
+              type='contained'
+              icon={{ library: 'MaterialCommunityIcons', name: 'check-bold', size: 14 }}
+              containerStyle={{ backgroundColor: palette.confirm }}
+              onPress={() => onConfirmButtonPress?.(item)}
+              size={28}
+            />
+          )}
+          {/* ↻ Trocar */}
           <FancyButton
             mode='icon'
-            type='contained'
-            icon={{ library: 'MaterialCommunityIcons', name: 'check-bold', size: 14 }}
-            containerStyle={{ backgroundColor: palette.confirm }}
-            onPress={() => onConfirmButtonPress?.(item)}
+            type='outlined'
+            icon={{ library: 'FontAwesome6', name: 'repeat', size: 13 }}
+            containerStyle={canSubstitute ? { borderColor: palette.warning } : undefined}
+            iconStyle={canSubstitute ? { color: palette.warning } : undefined}
+            disabled={!canSubstitute}
+            onPress={() => onSubButtonPress?.(item)}
             size={28}
           />
-        )}
-        {/* ↻ Trocar — sempre presente */}
-        <FancyButton
-          mode='icon'
-          type='outlined'
-          icon={{ library: 'FontAwesome6', name: 'repeat', size: 13 }}
-          containerStyle={canSubstitute ? { borderColor: palette.warning } : undefined}
-          iconStyle={canSubstitute ? { color: palette.warning } : undefined}
-          disabled={!canSubstitute}
-          onPress={() => onSubButtonPress?.(item)}
-          size={28}
-        />
-      </View>
+        </View>
+      )}
     </View>
   );
 }

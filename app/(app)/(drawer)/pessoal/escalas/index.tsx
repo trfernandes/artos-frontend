@@ -82,6 +82,7 @@ export default function MinhasEscalasIndexPage() {
   }>();
   const [escalasDoUsuario, setEscalasDoUsuario] = useState<ResponseEscalaItemDto[]>([]);
   const [isLoadingEscalas, setIsLoadingEscalas] = useState<boolean>(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { update: updateEscala, isLoadingMutation: isLoading } = useEscalaItensCrud({
     muteMessages: true,
   });
@@ -211,6 +212,15 @@ export default function MinhasEscalasIndexPage() {
       setIsLoadingEscalas(false);
     }
   }, [user?.user?.id, igrejaAtiva?.id, showingMonth]);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await loadMonthEscalas();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [loadMonthEscalas]);
 
   useEffect(() => {
     loadMonthEscalas();
@@ -510,6 +520,8 @@ export default function MinhasEscalasIndexPage() {
             bottomSpace={-10}
             containerStyle={{ borderWidth: 0, flex: 1 }}
             data={eventosOfSelectedDate}
+            onRefresh={handleRefresh}
+            refreshing={isRefreshing}
             renderItem={({ item, index }) => (
               <EventoAccordeon
                 data={item}

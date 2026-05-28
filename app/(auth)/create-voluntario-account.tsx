@@ -1,9 +1,9 @@
-import { StyleSheet, View, useWindowDimensions, Platform, StatusBar as RNStatusBar } from 'react-native';
+import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import { useEffect, useState } from 'react';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import FancyButton from '../../components/buttons/FancyButton';
 import FancyText from '../../components/FancyText';
-import LoginBase from '../../components/pages/login/LoginBase';
+import FancyImage from '../../components/images/FancyImage';
+import AuthLayout from '../../components/pages/login/AuthLayout';
 import { router } from 'expo-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,77 +12,43 @@ import ControlledPasswordInput from '../../components/forms/ControlledPasswordIn
 import { AxiosError } from 'axios';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import DefaultIcons from '../../components/FancyIcons';
 import { useVoluntariosCrud } from '../../hooks/useVoluntariosCrud';
 import { createAccountSchema, createAccountViaConviteSchema } from '../../domain/schemas/voluntarioSchema';
-import {
-  EXTRA_LARGE_SIZE_FONT,
-  MEDIUM_SIZE_FONT,
-  SMALL_SIZE_FONT,
-} from '../../constants/font';
-import { ScrollView } from 'react-native-gesture-handler';
 import { useConnectivity } from '../../core/network/connectivity/ConnectivityProvider';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePallete } from '../../hooks/usePallete';
-import { useKeyboardMetrics } from '../../hooks/useKeyboardMetrics';
 import { ColorUtils } from '../../utils/color_utils';
-import {
-  AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
-  AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
-} from '../../constants/authTypography';
-
-const HORIZONTAL_PADDING = 30;
-const BACK_BUTTON_SIZE = 35;
 
 export default function CreateVoluntarioAccountPage() {
   const Pallete = usePallete();
-  const { height: windowHeight } = useWindowDimensions();
   const { status: connectivityStatus } = useConnectivity();
   const isServerUnavailable = connectivityStatus !== 'ok';
-  const insets = useSafeAreaInsets();
-  const { visible: keyboardVisible, height: keyboardHeight } = useKeyboardMetrics();
-  const [viewportHeight, setViewportHeight] = useState(0);
-  const [baselineViewportHeight, setBaselineViewportHeight] = useState(0);
-  const [baselineWindowHeight, setBaselineWindowHeight] = useState(windowHeight);
 
-  const androidStatusBarHeight = Platform.OS === 'android' ? (RNStatusBar.currentHeight ?? 0) : 0;
-  const safeTopInset = Math.max(insets.top, androidStatusBarHeight);
-  const backButtonTop = safeTopInset + 10;
-  const contentTopPadding = backButtonTop + BACK_BUTTON_SIZE + 16;
-
-  const [fieldsViewportHeight, setFieldsViewportHeight] = useState(0);
-  const [fieldsContentHeight, setFieldsContentHeight] = useState(0);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [temConvitePendente, setTemConvitePendente] = useState(false);
-  const shouldEnableFieldsScroll = fieldsContentHeight > fieldsViewportHeight + 1;
+  const [conviteIgreja, setConviteIgreja] = useState<{ nome: string; logoUrl?: string | null } | null>(null);
 
   useEffect(() => {
-    AsyncStorage.getItem('pendingInviteToken').then((token) => {
-      if (token) {
+    const checkPendingInvite = async () => {
+      const raw = await AsyncStorage.getItem('pendingInvite');
+      const legacyToken = await AsyncStorage.getItem('pendingInviteToken');
+      if (raw) {
+        try {
+          const pending = JSON.parse(raw);
+          setTemConvitePendente(true);
+          setMostrarFormulario(true);
+          if (pending.igreja) setConviteIgreja(pending.igreja);
+        } catch {
+          setTemConvitePendente(true);
+          setMostrarFormulario(true);
+        }
+      } else if (legacyToken) {
         setTemConvitePendente(true);
-        setMostrarFormulario(true); // pula a tela de "Tem o código?" direto para o formulário
+        setMostrarFormulario(true);
       }
-    });
+    };
+    checkPendingInvite();
   }, []);
-
-  useEffect(() => {
-    if (!keyboardVisible) {
-      setBaselineWindowHeight(windowHeight);
-    }
-  }, [keyboardVisible, windowHeight]);
-
-  useEffect(() => {
-    if (!keyboardVisible && viewportHeight > 0) {
-      setBaselineViewportHeight(viewportHeight);
-    }
-  }, [keyboardVisible, viewportHeight]);
-
-  const effectiveViewportHeight = viewportHeight || windowHeight;
-  const windowResizeDelta = Math.max(0, baselineWindowHeight - windowHeight);
-  const viewportResizeDelta = Math.max(0, baselineViewportHeight - effectiveViewportHeight);
-  const resizeDelta = Math.max(windowResizeDelta, viewportResizeDelta);
-  const overlayKeyboardInset = keyboardVisible ? Math.max(0, keyboardHeight - resizeDelta) : 0;
-  const availableCardHeight = effectiveViewportHeight - contentTopPadding - overlayKeyboardInset - 8;
-  const expandedCardHeight = Math.max(0, availableCardHeight);
 
   const { add, isLoadingMutation } = useVoluntariosCrud({
     autoFetch: false,
@@ -102,7 +68,18 @@ export default function CreateVoluntarioAccountPage() {
         senha: data.senha,
       };
 
-      payload.codigoIgreja = data.codigoIgreja?.trim() ?? '';
+      if (temConvitePendente) {
+        try {
+          const raw = await AsyncStorage.getItem('pendingInvite');
+          const legacy = await AsyncStorage.getItem('pendingInviteToken');
+          const inviteToken = raw ? (JSON.parse(raw)?.token ?? null) : legacy;
+          payload.codigoIgreja = inviteToken ?? '';
+        } catch {
+          payload.codigoIgreja = '';
+        }
+      } else {
+        payload.codigoIgreja = data.codigoIgreja?.trim() ?? '';
+      }
 
       try {
         const result = await add(payload);
@@ -138,6 +115,9 @@ export default function CreateVoluntarioAccountPage() {
         return;
       }
 
+      if (temConvitePendente) {
+        await AsyncStorage.multiRemove(['pendingInvite', 'pendingInviteToken']);
+      }
       router.replace('/(auth)/login');
     } catch (error) {
       console.log(error);
@@ -145,238 +125,145 @@ export default function CreateVoluntarioAccountPage() {
   });
 
   return (
-    <LoginBase>
-      <View
-        style={[
-          styles.backButtonContainer,
-          { top: backButtonTop, left: HORIZONTAL_PADDING, right: HORIZONTAL_PADDING },
-        ]}
-      >
-        <FancyButton
-          icon={{ library: 'Entypo', name: 'chevron-left', color: Pallete.icons.dark }}
-          size={30}
-          onPress={() => router.back()}
-          containerStyle={{
-            backgroundColor: Pallete.backgroundColor3,
-            width: BACK_BUTTON_SIZE,
-            height: BACK_BUTTON_SIZE,
-            borderRadius: BACK_BUTTON_SIZE / 2,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        />
-        {keyboardVisible && (
-          <FancyText
-            type='bold'
-            size='medium'
-            color='white'
-            numberOfLines={1}
-            style={styles.compactHeaderTitle}
-          >
-            Criação de Conta
-          </FancyText>
-        )}
-      </View>
-
-      <KeyboardAwareScrollView
-        style={{ flex: 1 }}
-        onLayout={(event) => setViewportHeight(event.nativeEvent.layout.height)}
-        enableOnAndroid
-        enableAutomaticScroll={false}
-        extraScrollHeight={0}
-        extraHeight={0}
-        scrollEnabled={!keyboardVisible}
-        keyboardShouldPersistTaps='handled'
-        keyboardDismissMode='none'
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.scrollContent,
-          {
-            paddingTop: contentTopPadding,
-            paddingBottom: keyboardVisible ? 0 : 16,
-            justifyContent: keyboardVisible ? 'flex-start' : 'center',
-          },
-        ]}
-      >
-        {!keyboardVisible && (
-          <View style={styles.titleBlock}>
-            <FancyText
-              size='extraLarge'
-              type='bold'
-              color='white'
-              style={{ lineHeight: EXTRA_LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER }}
-            >
-              Entrar como voluntário
-            </FancyText>
-            <FancyText
-              size='medium'
-              type='medium'
-              color='white'
-              style={{
-                lineHeight:
-                  (keyboardVisible ? SMALL_SIZE_FONT : MEDIUM_SIZE_FONT) *
-                  AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
-              }}
-            >
-              Use o código da sua igreja para criar a conta já no contexto certo.
-            </FancyText>
-          </View>
-        )}
-
-        <View
-          style={[
-            styles.card,
-            {
-              backgroundColor: Pallete.backgroundColor,
-              ...Pallete.shadows[200],
-              ...(keyboardVisible
-                ? { height: expandedCardHeight, minHeight: 220, marginBottom: 8 }
-                : null),
-            },
-          ]}
-        >
-          {!mostrarFormulario ? (
-            <View style={styles.entryState}>
-              <View style={[styles.infoBox, { backgroundColor: Pallete.backgroundColor4 }]}>
-                <FancyText type='semiBold' size='small'>
-                  Você já tem o código ou convite da igreja?
-                </FancyText>
-                <FancyText
-                  size='extraSmall'
-                  type='medium'
-                  style={{ color: ColorUtils.withAlpha(Pallete.fonts.dark, 0.78) }}
-                >
-                  Se ainda não recebeu, peça ao responsável da igreja. Sem esse código, o cadastro não
-                  consegue te vincular ao lugar certo.
-                </FancyText>
-              </View>
-
-              <FancyButton
-                label='Tenho o código'
-                onPress={() => setMostrarFormulario(true)}
-                icon={{ library: 'MaterialCommunityIcons', name: 'arrow-right', size: 16 }}
-                iconPosition='right'
-              />
+    <>
+      <AuthLayout
+        showBackButton
+        title='Entrar como voluntário'
+        subtitle='Use o código da sua igreja para criar a conta já no contexto certo.'
+        footer={mostrarFormulario ? (
+          <View style={styles.actionsFooter}>
+            <FancyButton
+              label={isLoadingMutation ? 'Confirmando...' : 'Criar conta'}
+              onPress={handleSubmit}
+              disabled={isLoadingMutation || isServerUnavailable}
+              icon={{ library: 'Feather', name: 'check', size: 16 }}
+            />
+            {!temConvitePendente && (
               <FancyButton
                 type='text'
-                label='Já tenho conta'
-                onPress={() => router.push('/(auth)/login')}
-                containerStyle={styles.secondaryActionButton}
+                label='Ainda não tenho o código'
+                onPress={() => setMostrarFormulario(false)}
+              />
+            )}
+          </View>
+        ) : undefined}
+      >
+        {!mostrarFormulario ? (
+          <View style={styles.entryState}>
+            <View style={[styles.infoBox, { backgroundColor: Pallete.backgroundColor4 }]}>
+              <FancyText type='semiBold' size='small'>
+                Você já tem o código ou convite da igreja?
+              </FancyText>
+              <FancyText
+                size='extraSmall'
+                type='medium'
+                style={{ color: ColorUtils.withAlpha(Pallete.fonts.dark, 0.78) }}
+              >
+                Se ainda não recebeu, peça ao responsável da igreja. Sem esse código, o cadastro não
+                consegue te vincular ao lugar certo.
+              </FancyText>
+            </View>
+
+            <FancyButton
+              label='Tenho o código'
+              onPress={() => setMostrarFormulario(true)}
+              icon={{ library: 'MaterialCommunityIcons', name: 'arrow-right', size: 16 }}
+              iconPosition='right'
+            />
+            <FancyButton
+              type='text'
+              label='Já tenho conta'
+              onPress={() => router.push('/(auth)/login')}
+              containerStyle={styles.secondaryActionButton}
+            />
+          </View>
+        ) : (
+          <>
+            {temConvitePendente && (
+              <View style={[styles.conviteBox, { backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.07) }]}>
+                <View style={styles.conviteBoxHeader}>
+                  {conviteIgreja?.logoUrl ? (
+                    <FancyImage
+                      source={{ uri: conviteIgreja.logoUrl }}
+                      size={40}
+                      style={styles.conviteBoxLogo}
+                    />
+                  ) : (
+                    <View style={[styles.conviteBoxLogoFallback, { backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.12) }]}>
+                      <DefaultIcons.Custom library='MaterialIcons' name='church' size={20} color={Pallete.primary} />
+                    </View>
+                  )}
+                  <View style={styles.conviteBoxTexts}>
+                    <FancyText type='semiBold' size='small'>
+                      {conviteIgreja?.nome ? `Convidado para ${conviteIgreja.nome}` : '🎉 Você foi convidado!'}
+                    </FancyText>
+                    <FancyText
+                      size='extraSmall'
+                      type='medium'
+                      style={{ color: ColorUtils.withAlpha(Pallete.fonts.dark, 0.78) }}
+                    >
+                      Crie sua conta para aceitar o convite.
+                    </FancyText>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            <View style={styles.fieldsArea}>
+              {!temConvitePendente && (
+                <ControlledTextInput
+                  label='Código da igreja'
+                  name='codigoIgreja'
+                  control={createForm.control}
+                  inputProps={{
+                    autoCapitalize: 'none',
+                    placeholder: 'Digite o código recebido',
+                    placeholderTextColor: Pallete.fonts.inactive2,
+                  }}
+                />
+              )}
+              <ControlledTextInput label='Nome' name='nome' control={createForm.control} />
+              <ControlledTextInput
+                label='E-mail'
+                name='email'
+                control={createForm.control}
+                inputProps={{ autoCapitalize: 'none' }}
+              />
+              <ControlledPasswordInput
+                label='Senha'
+                name='senha'
+                control={createForm.control}
+                inputProps={{ secureTextEntry: true }}
+              />
+              <ControlledPasswordInput
+                label='Confirmar a Senha'
+                name='confirmarSenha'
+                control={createForm.control}
+                inputProps={{ secureTextEntry: true }}
               />
             </View>
-          ) : (
-            <>
-              {temConvitePendente && (
-                <View style={[styles.infoBox, { backgroundColor: Pallete.backgroundColor4 }]}>
-                  <FancyText type='semiBold' size='small'>
-                    🎉 Você foi convidado!
-                  </FancyText>
-                  <FancyText
-                    size='extraSmall'
-                    type='medium'
-                    style={{ color: ColorUtils.withAlpha(Pallete.fonts.dark, 0.78) }}
-                  >
-                    Crie sua conta para aceitar o convite e entrar na igreja.
-                  </FancyText>
-                </View>
-              )}
-              <View
-                style={[styles.fieldsArea, keyboardVisible ? styles.fieldsAreaKeyboard : undefined]}
-                onLayout={(event) => setFieldsViewportHeight(event.nativeEvent.layout.height)}
-              >
-                <ScrollView
-                  style={keyboardVisible ? { flex: 1 } : undefined}
-                  contentContainerStyle={{ gap: 10, paddingBottom: 4 }}
-                  showsVerticalScrollIndicator={false}
-                  scrollEnabled={keyboardVisible ? shouldEnableFieldsScroll : false}
-                  bounces={keyboardVisible && shouldEnableFieldsScroll}
-                  onContentSizeChange={(_, height) => setFieldsContentHeight(height)}
-                >
-                  {!temConvitePendente && (
-                    <ControlledTextInput
-                      label='Código da igreja'
-                      name='codigoIgreja'
-                      control={createForm.control}
-                      inputProps={{
-                        autoCapitalize: 'none',
-                        placeholder: 'Digite o código recebido',
-                        placeholderTextColor: Pallete.fonts.inactive2,
-                      }}
-                    />
-                  )}
-                  <ControlledTextInput label='Nome' name='nome' control={createForm.control} />
-                  <ControlledTextInput
-                    label='E-mail'
-                    name='email'
-                    control={createForm.control}
-                    inputProps={{ autoCapitalize: 'none' }}
-                  />
-                  <ControlledPasswordInput
-                    label='Senha'
-                    name='senha'
-                    control={createForm.control}
-                    inputProps={{ secureTextEntry: true }}
-                  />
-                  <ControlledPasswordInput
-                    label='Confirmar a Senha'
-                    name='confirmarSenha'
-                    control={createForm.control}
-                    inputProps={{ secureTextEntry: true }}
-                  />
-                </ScrollView>
-              </View>
 
-              <View style={styles.actionsFooter}>
-                <FancyButton
-                  label={isLoadingMutation ? 'Confirmando...' : 'Criar conta'}
-                  onPress={handleSubmit}
-                  disabled={isLoadingMutation || isServerUnavailable}
-                  icon={{ library: 'Feather', name: 'check', size: 16 }}
-                />
-                {!temConvitePendente && (
-                  <FancyButton
-                    type='text'
-                    label='Ainda não tenho o código'
-                    onPress={() => setMostrarFormulario(false)}
-                  />
-                )}
-              </View>
-            </>
-          )}
+          </>
+        )}
+      </AuthLayout>
+
+      {isLoadingMutation && (
+        <View style={[styles.loadingOverlay, { backgroundColor: ColorUtils.withAlpha(Pallete.fonts.dark, 0.45) }]}>
+          <View style={[styles.loadingBox, { backgroundColor: Pallete.backgroundColor }]}>
+            <ActivityIndicator size='large' color={Pallete.primary} />
+            <FancyText size='small' type='medium'>
+              Criando conta...
+            </FancyText>
+          </View>
         </View>
-      </KeyboardAwareScrollView>
-    </LoginBase>
+      )}
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  backButtonContainer: {
-    position: 'absolute',
-    zIndex: 1000,
-    elevation: 1000,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: HORIZONTAL_PADDING,
-    gap: 16,
-  },
-  titleBlock: {
-    gap: 2,
-  },
-  card: {
-    borderRadius: 15,
-    padding: 25,
-    gap: 10,
-    overflow: 'hidden',
-  },
   fieldsArea: {
-    minHeight: 0,
-  },
-  fieldsAreaKeyboard: {
-    flex: 1,
+    gap: 10,
   },
   actionsFooter: {
     paddingTop: 10,
@@ -390,12 +277,48 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 6,
   },
-  compactHeaderTitle: {
-    flexShrink: 1,
-    maxWidth: '82%',
+  conviteBox: {
+    borderRadius: 16,
+    padding: 14,
+  },
+  conviteBoxHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  conviteBoxLogo: {
+    borderRadius: 20,
+  },
+  conviteBoxLogoFallback: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  conviteBoxTexts: {
+    flex: 1,
+    gap: 2,
   },
   secondaryActionButton: {
     minHeight: 30,
     marginTop: -2,
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 9999,
+  },
+  loadingBox: {
+    borderRadius: 16,
+    padding: 28,
+    alignItems: 'center',
+    minWidth: 140,
+    gap: 12,
   },
 });

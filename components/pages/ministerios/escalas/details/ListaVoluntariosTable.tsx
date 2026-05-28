@@ -45,9 +45,9 @@ export const VoluntarioStatusChipParams = {
     background: '#DBEAFE',
   },
   [EscalaItemStatusEnum.SubstituicaoSolicitada]: {
-    label: 'Substituído',
-    color: '#1D4ED8',
-    background: '#DBEAFE',
+    label: 'Aguard. aprovação',
+    color: '#B45309',
+    background: '#FEF3C7',
   },
 } as const;
 

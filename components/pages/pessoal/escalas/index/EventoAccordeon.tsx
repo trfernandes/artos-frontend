@@ -9,6 +9,7 @@ import DefaultIcons from '../../../../FancyIcons';
 import FuncoesTable from './FuncoesTable';
 import { EscalaDoDiaAgrupada } from '../../../../../app/(app)/(drawer)/pessoal/escalas';
 import { ResponseEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.response';
+import { EscalaItemStatusEnum } from '../../../../../domain/enums/Escala/escala-item-status.enum';
 import { ColorUtils } from '../../../../../utils/color_utils';
 import { isLouvorMinisterioTipo, resolveEventoEnsaioInfo } from '../../../../../utils/evento-ensaio';
 import { formatAppDateTime } from '../../../../../utils/date_utils';
@@ -88,6 +89,11 @@ export default function EventoAccordeon({
 
   const ensaioText = ensaioInfo.label ?? 'A definir';
   const isEnsaioFallback = showEnsaio && !ensaioInfo.label;
+
+  const hasSubstituicaoPendente = useMemo(
+    () => data.itens.some((item) => item.status === EscalaItemStatusEnum.SubstituicaoSolicitada),
+    [data.itens],
+  );
 
   const eventName = data.evento?.nome || 'Evento';
   const ministryName = data.ministerio?.nome || '';
@@ -294,6 +300,7 @@ export default function EventoAccordeon({
             </FancyText>
           </View>
         ) : null}
+
       </View>
     );
   };
@@ -403,11 +410,34 @@ export default function EventoAccordeon({
               {timeRangeText}
             </FancyText>
           </View>
-          <View style={[styles.compactCountdownBadge, { backgroundColor: ui.chipBg, borderColor: ui.chipBorder }]}>
-            <FancyText size='extraSmall' type='semiBold' style={[styles.compactCountdownText, { color: ui.accentText }]}>
-              {countdownLabel}
-            </FancyText>
-          </View>
+          {hasSubstituicaoPendente ? (
+            <View
+              style={[
+                styles.compactPendingChip,
+                { backgroundColor: ColorUtils.darkenColor(palette.warning, 0.28) },
+              ]}
+            >
+              <DefaultIcons.Custom
+                library='MaterialIcons'
+                name='swap-horiz'
+                size={11}
+                color={palette.icons.light}
+              />
+              <FancyText
+                size='extraSmall'
+                type='semiBold'
+                style={[styles.compactPendingChipText, { color: palette.fonts.light }]}
+              >
+                Pendente
+              </FancyText>
+            </View>
+          ) : (
+            <View style={[styles.compactCountdownBadge, { backgroundColor: ui.chipBg, borderColor: ui.chipBorder }]}>
+              <FancyText size='extraSmall' type='semiBold' style={[styles.compactCountdownText, { color: ui.accentText }]}>
+                {countdownLabel}
+              </FancyText>
+            </View>
+          )}
         </View>
 
         {/* Linha 2: Nome do evento */}
@@ -615,6 +645,19 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     paddingTop: 14,
     marginRight: 8,
+  },
+  compactPendingChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    flexShrink: 0,
+  },
+  compactPendingChipText: {
+    lineHeight: EXTRA_SMALL_SIZE_FONT - 1,
+    fontSize: EXTRA_SMALL_SIZE_FONT - 2,
   },
   variantRoot: {
     flex: 1,

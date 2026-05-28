@@ -1,10 +1,6 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import AuthScreen from '../../components/pages/login/AuthScreen';
+import AuthLayout from '../../components/pages/login/AuthLayout';
 import { ThemePalette } from '../../constants/colors';
-import FancyButton from '../../components/buttons/FancyButton';
-import { EXTRA_LARGE_SIZE_FONT, LARGE_SIZE_FONT, MEDIUM_SIZE_FONT, SMALL_SIZE_FONT } from '../../constants/font';
-import FancyText from '../../components/FancyText';
-import { router } from 'expo-router';
 import { FancyCard } from '../../components/cards/Horizontal/FancyCard';
 import DefaultIcons from '../../components/FancyIcons';
 import { useState } from 'react';
@@ -12,10 +8,9 @@ import FancyModalDialog from '../../components/modal/FancyModalDialog';
 import { usePallete } from '../../hooks/usePallete';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { ColorUtils } from '../../utils/color_utils';
-import {
-  AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
-  AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
-} from '../../constants/authTypography';
+import { router } from 'expo-router';
+import FancyButton from '../../components/buttons/FancyButton';
+import FancyText from '../../components/FancyText';
 
 export default function ComecarScreen() {
   const Pallete = usePallete();
@@ -23,46 +18,10 @@ export default function ComecarScreen() {
   const [isHelpModalVisible, setIsHelpModalVisible] = useState(false);
 
   return (
-    <AuthScreen
+    <AuthLayout
       showBackButton
-      centerWithinBackButtonArea
-      centerContainerStyle={({ keyboardVisible }) =>
-        !keyboardVisible ? { paddingTop: 0 } : null
-      }
-      scrollContainerStyle={styles.scrollContainer}
-      fieldsContainerStyle={styles.fieldsContainer}
-      alignTopOnKeyboard
-      compactTitleOnKeyboard='Como entrar'
-      header={({ keyboardVisible }) => (
-        <View style={{ gap: 5, borderWidth: 0 }}>
-          <FancyText
-            size={!keyboardVisible ? 'extraLarge' : 'large'}
-            type='bold'
-            color='white'
-            style={{
-              lineHeight:
-                !keyboardVisible
-                  ? EXTRA_LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER
-                  : LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
-            }}
-          >
-            Como você vai entrar?
-          </FancyText>
-          <FancyText
-            size={!keyboardVisible ? 'medium' : 'small'}
-            type='medium'
-            color='white'
-            style={{
-              lineHeight:
-                !keyboardVisible
-                  ? MEDIUM_SIZE_FONT * AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER
-                  : SMALL_SIZE_FONT * AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
-            }}
-          >
-            Escolha uma opção. Você pode voltar e trocar depois.
-          </FancyText>
-        </View>
-      )}
+      title='Como você vai entrar?'
+      subtitle='Escolha uma opção. Você pode voltar e trocar depois.'
     >
       <View style={styles.content}>
         <View style={styles.cardsContainer}>
@@ -179,7 +138,7 @@ export default function ComecarScreen() {
             labelStyle={styles.footerLink}
             containerStyle={styles.footerLinkContainer}
           />
-          <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={styles.footerHint}>
+          <FancyText size='small' color={Pallete.fonts.inactive} style={styles.footerHint}>
             Ainda não recebeu convite? Peça ao seu líder para enviar.
           </FancyText>
         </View>
@@ -212,27 +171,12 @@ export default function ComecarScreen() {
           </View>
         </FancyModalDialog>
       )}
-    </AuthScreen>
+    </AuthLayout>
   );
 }
 
 function createStyles(Pallete: ThemePalette) {
   return StyleSheet.create({
-    scrollContainer: {
-      flexGrow: 1,
-      paddingVertical: 0,
-      justifyContent: 'center',
-      borderColor: 'red',
-    },
-    fieldsContainer: {
-      borderRadius: 15,
-      borderColor: 'firebrick',
-      padding: 24,
-      gap: 20,
-      backgroundColor: Pallete.backgroundColor,
-      ...Pallete.shadows[200],
-      justifyContent: 'center',
-    },
     content: {
       width: '100%',
       gap: 18,
@@ -242,6 +186,7 @@ function createStyles(Pallete: ThemePalette) {
     },
     cardWrapper: {
       position: 'relative',
+      minHeight: 110,
     },
     card: {
       width: '100%',
@@ -269,7 +214,7 @@ function createStyles(Pallete: ThemePalette) {
       gap: 8,
     },
     loginButton: {
-      minWidth: 170,
+      alignSelf: 'stretch',
     },
     footerLink: {
       fontSize: 12,

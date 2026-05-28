@@ -224,9 +224,8 @@ class IgrejaApiClass extends BaseApi<ResponseIgrejaDto, CreateIgrejaDto, UpdateI
    * POST /convites/{token}/preview
    */
   async getConvitePreview(token: string): Promise<ResponseConvitePreviewDto> {
-    const baseURL = apiClient.defaults.baseURL;
-    const response = await axios.post<ApiEnvelope<ResponseConvitePreviewDto>>(
-      `${baseURL}/convites/${token}/preview`,
+    const response = await apiClient.post<ApiEnvelope<ResponseConvitePreviewDto>>(
+      `/convites/${token}/preview`,
     );
     return response.data.data;
   }

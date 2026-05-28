@@ -2,18 +2,13 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useCooldown } from '../../hooks/useCooldown';
 import { StyleSheet, View, Modal } from 'react-native';
 import { router } from 'expo-router';
-import AuthScreen from '../../components/pages/login/AuthScreen';
+import AuthLayout from '../../components/pages/login/AuthLayout';
 import FancyText from '../../components/FancyText';
 import FancyButton from '../../components/buttons/FancyButton';
 import DefaultIcons from '../../components/FancyIcons';
 import FancyLoading from '../../components/FancyLoading';
 import { ThemePalette } from '../../constants/colors';
-import {
-  EXTRA_LARGE_SIZE_FONT,
-  LARGE_SIZE_FONT,
-  MEDIUM_SIZE_FONT,
-  SMALL_SIZE_FONT,
-} from '../../constants/font';
+import { EXTRA_LARGE_SIZE_FONT, MEDIUM_SIZE_FONT } from '../../constants/font';
 import { useCadastroIgrejaEmail } from '../../hooks/useCadastroIgrejaEmail';
 import { ColorUtils } from '../../utils/color_utils';
 import FancyTextInput from '../../components/fields/FancyTextInput';
@@ -174,9 +169,9 @@ export default function IgrejaCadastroAguardandoEmailPage() {
   // Loading inicial - só mostra se estiver carregando os dados do storage
   if (loadingDados) {
     return (
-      <AuthScreen header={() => null} scrollContainerStyle={styles.loadingContainer}>
+      <AuthLayout hideCard>
         <FancyLoading />
-      </AuthScreen>
+      </AuthLayout>
     );
   }
 
@@ -187,47 +182,37 @@ export default function IgrejaCadastroAguardandoEmailPage() {
   const isExpirado = status?.statusSolicitacao === 'EXPIRADO';
 
   return (
-    <AuthScreen
+    <AuthLayout
       showBackButton
-      centerWithinBackButtonArea
+      hideCard
       onPressBack={() => router.replace('/(auth)/login')}
-      containerPosition={{ default: 'relative', keyboard: 'relative' }}
-      scrollContainerStyle={styles.scrollContainer}
-      centerContainerStyle={styles.centerContainer}
-      fieldsContainerStyle={styles.fieldsContainer}
       compactTitleOnKeyboard='Confirme seu e-mail'
-      header={({ keyboardVisible }) => (
+      header={
         <View style={{ gap: 5, alignItems: 'center' }}>
           <FancyText
-            size={!keyboardVisible ? 'extraLarge' : 'large'}
+            size='extraLarge'
             type='bold'
             color='white'
             style={{
-              lineHeight:
-                !keyboardVisible
-                  ? EXTRA_LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER
-                  : LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
+              lineHeight: EXTRA_LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
               textAlign: 'center',
             }}
           >
             Confirme seu e-mail
           </FancyText>
           <FancyText
-            size={!keyboardVisible ? 'medium' : 'small'}
+            size='medium'
             type='medium'
             color='white'
             style={{
               textAlign: 'center',
-              lineHeight:
-                !keyboardVisible
-                  ? MEDIUM_SIZE_FONT * AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER
-                  : SMALL_SIZE_FONT * AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
+              lineHeight: MEDIUM_SIZE_FONT * AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
             }}
           >
             Enviamos um link de confirmação para ativar sua igreja
           </FancyText>
         </View>
-      )}
+      }
     >
       <View style={styles.content}>
         {/* Card com informações */}
@@ -348,11 +333,7 @@ export default function IgrejaCadastroAguardandoEmailPage() {
             }}
           />
           {reenviadoMsg && (
-            <FancyText
-              size='extraSmall'
-              color={Pallete.confirm}
-              style={{ textAlign: 'center', marginTop: 4 }}
-            >
+            <FancyText size='extraSmall' color={Pallete.confirm} style={{ textAlign: 'center' }}>
               {reenviadoMsg}
             </FancyText>
           )}
@@ -425,57 +406,21 @@ export default function IgrejaCadastroAguardandoEmailPage() {
           </View>
         </View>
       </Modal>
-      {/* {isReenviando && (
-        <View style={styles.loadingOverlay} pointerEvents='auto'>
-          <FancyLoading />
-        </View>
-      )} */}
-    </AuthScreen>
+    </AuthLayout>
   );
 }
 
 function createStyles(Pallete: ThemePalette) {
   return StyleSheet.create({
-    loadingOverlay: {
-      ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(0,0,0,0.18)',
-      zIndex: 99,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
     modalInputWrapper: {
       width: '100%',
-    },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    scrollContainer: {
-      flexGrow: 1,
-      paddingVertical: 0,
-      justifyContent: 'center',
-    },
-    centerContainer: {
-      flex: 1,
-      gap: 15,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    fieldsContainer: {
-      ...Pallete.shadows[200],
-      borderRadius: 15,
-      gap: 10,
-      backgroundColor: Pallete.backgroundColor,
-      alignItems: 'stretch',
-      padding: 20,
     },
     content: {
       gap: 20,
       width: '100%',
     },
     card: {
-      backgroundColor: ColorUtils.lightenColor(Pallete.primary, 0.95),
+      backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.05),
       borderRadius: 12,
       padding: 20,
       gap: 16,
@@ -485,7 +430,7 @@ function createStyles(Pallete: ThemePalette) {
       width: 72,
       height: 72,
       borderRadius: 36,
-      backgroundColor: ColorUtils.lightenColor(Pallete.primary, 0.9),
+      backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.10),
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -501,13 +446,13 @@ function createStyles(Pallete: ThemePalette) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
-      backgroundColor: ColorUtils.lightenColor(Pallete.warning, 0.9),
+      backgroundColor: ColorUtils.withAlpha(Pallete.warning, 0.10),
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 20,
     },
     statusBadgeExpirado: {
-      backgroundColor: ColorUtils.lightenColor(Pallete.error, 0.9),
+      backgroundColor: ColorUtils.withAlpha(Pallete.error, 0.10),
     },
     tipsSection: {
       width: '100%',
@@ -518,7 +463,7 @@ function createStyles(Pallete: ThemePalette) {
     },
     tipRow: {
       flexDirection: 'row',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       gap: 8,
     },
     actionsContainer: {
@@ -532,14 +477,14 @@ function createStyles(Pallete: ThemePalette) {
     },
     modalOverlay: {
       flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      backgroundColor: Pallete.overlays.backdrop,
       justifyContent: 'center',
       alignItems: 'center',
       padding: 20,
     },
     modalContent: {
       width: '100%',
-      backgroundColor: 'white',
+      backgroundColor: Pallete.backgroundColor,
       borderRadius: 16,
       padding: 24,
       gap: 16,

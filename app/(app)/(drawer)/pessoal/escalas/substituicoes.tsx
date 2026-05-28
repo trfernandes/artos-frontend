@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
 import FancySegmentedControl from '../../../../../components/fields/FancySegmentedControl';
@@ -91,10 +91,18 @@ export default function SubstituicoesScreen() {
     isLoading: isLoadingSubstituto,
     update,
     isLoadingMutation,
+    refetch: refetchSubstituto,
+    isRefetching: isRefetchingSubstituto,
   } = useEscalaSubstituicoesCrud({ autoFetch: true, initialParams: queryAsSubstituto });
 
-  const { data: dataAsSolicitante, isLoading: isLoadingSolicitante } =
+  const { data: dataAsSolicitante, isLoading: isLoadingSolicitante, refetch: refetchSolicitante, isRefetching: isRefetchingSolicitante } =
     useEscalaSubstituicoesCrud({ autoFetch: true, initialParams: queryAsSolicitante });
+
+  const handleRefresh = useCallback(() => {
+    refetchSubstituto();
+    refetchSolicitante();
+  }, [refetchSubstituto, refetchSolicitante]);
+  const isRefreshing = isRefetchingSubstituto || isRefetchingSolicitante;
 
   const allData = useMemo<ResponseEscalaSubstituicaoDto[]>(() => {
     const seen = new Set<string>();
@@ -185,6 +193,8 @@ export default function SubstituicoesScreen() {
           containerStyle={styles.listContainer}
           data={filtered}
           keyExtractor={(item) => item.id}
+          onRefresh={handleRefresh}
+          refreshing={isRefreshing}
           renderItem={({ item: sub }) => {
             const isSubstituto = sub.substituto?.voluntario?.id === user?.user?.id;
             const isSolicitante = sub.solicitante?.voluntario?.id === user?.user?.id;

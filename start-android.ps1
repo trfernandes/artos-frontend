@@ -1,7 +1,7 @@
 # Start Expo for Android Emulator
 # Configures adb reverse and sets the correct local IP
 
-$projectPath = "D:\Development Projects\artos\artos_frontend"
+$projectPath = "D:\artos\artos_frontend"
 
 # Get local IP
 $ip = (

@@ -29,6 +29,7 @@ export default function MinisterioAgendaIndexPage() {
   const [currentMonth, setCurrenMonth] = useState(new Date());
   const [eventos, setEventos] = useState<ResponseEventoOcorrenciaDto[]>();
   const [isOpeningEvento, setIsOpeningEvento] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { buscarPorIntervalo, isLoading } = useEventosCrud({ autoFetch: false });
 
@@ -40,6 +41,15 @@ export default function MinisterioAgendaIndexPage() {
     });
     setEventos(data);
   }, [buscarPorIntervalo, currentMonth, igrejaAtiva?.id]);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await carregarEventosMes();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [carregarEventosMes]);
 
   useEffect(() => {
     void carregarEventosMes();
@@ -79,6 +89,8 @@ export default function MinisterioAgendaIndexPage() {
       <FancyList
         data={daysEvents}
         recycleItems={false}
+        onRefresh={handleRefresh}
+        refreshing={isRefreshing}
         maintainVisibleContentPosition={undefined}
         listEmptyProps={{ label: 'Nenhum evento neste dia...', icon: { library: 'MaterialCommunityIcons', name: 'calendar-blank-outline', size: 55 } }}
         keyExtractor={(item) => `${item.eventoId || item.id}-${item.dataOcorrencia}`}

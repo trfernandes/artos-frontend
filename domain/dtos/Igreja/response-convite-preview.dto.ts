@@ -1,8 +1,19 @@
+export interface ResponseConvitePreviewIgrejaDto {
+  id: string;
+  nome: string;
+  logoUrl?: string | null;
+  logoThumbUrl?: string | null;
+}
+
 export interface ResponseConvitePreviewDto {
-  token: string;
-  igrejaNome: string;
-  igrejaId: string;
-  igrejaLogo?: string | null;
+  conviteId: string;
+  descricao?: string | null;
+  igreja: ResponseConvitePreviewIgrejaDto;
   autoApprove: boolean;
-  expiresAt?: string;
+  expiresAt?: string | null;
+  maxUses?: number | null;
+  usesCount: number;
+  jaMembro?: boolean;
+  solicitacaoPendente?: boolean;
+  solicitacaoId?: string | null;
 }

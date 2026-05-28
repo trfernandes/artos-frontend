@@ -1,5 +1,6 @@
-import { Keyboard, KeyboardEvent, KeyboardEventName, Platform } from 'react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { Platform } from 'react-native';
+import { useMemo } from 'react';
+import { useKeyboardState } from 'react-native-keyboard-controller';
 
 export type KeyboardMetrics = {
   visible: boolean;
@@ -7,38 +8,22 @@ export type KeyboardMetrics = {
   platformInset: number;
 };
 
+/**
+ * Fonte única de verdade para estado do teclado em todo o app.
+ * Implementado sobre react-native-keyboard-controller (lib mantida pela Wix,
+ * baseada em Reanimated 3, com paridade iOS/Android).
+ *
+ * Não usar Keyboard.addListener direto — sempre este hook.
+ */
 export function useKeyboardMetrics(): KeyboardMetrics {
-  const [visible, setVisible] = useState(false);
-  const [height, setHeight] = useState(0);
+  const { isVisible, height } = useKeyboardState();
 
-  useEffect(() => {
-    const showEvent: KeyboardEventName =
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent: KeyboardEventName =
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+  const platformInset = useMemo(
+    () => (Platform.OS === 'ios' ? height : 0),
+    [height],
+  );
 
-    const onShow = (event: KeyboardEvent) => {
-      setVisible(true);
-      setHeight(event.endCoordinates?.height ?? 0);
-    };
-
-    const onHide = () => {
-      setVisible(false);
-      setHeight(0);
-    };
-
-    const showSubscription = Keyboard.addListener(showEvent, onShow);
-    const hideSubscription = Keyboard.addListener(hideEvent, onHide);
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, []);
-
-  const platformInset = useMemo(() => (Platform.OS === 'ios' ? height : 0), [height]);
-
-  return { visible, height, platformInset };
+  return { visible: isVisible, height, platformInset };
 }
 
 export default useKeyboardMetrics;
