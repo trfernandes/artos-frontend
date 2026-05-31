@@ -1,6 +1,9 @@
-import { View, useWindowDimensions } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
-import AuthLayout from '../../components/pages/login/AuthLayout';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useResizeMode } from 'react-native-keyboard-controller';
+import FancyButton from '../../components/buttons/FancyButton';
+import { ColorUtils } from '../../utils/color_utils';
 import { FancyStepsConfig } from '../../components/steps/FancyStepsConfig';
 import CreateIgrejaAccountTabDados, {
   CodigoCheckProvider,
@@ -18,11 +21,12 @@ import FancySteps from '../../components/steps/FancySteps';
 import { useConnectivity } from '../../core/network/connectivity/ConnectivityProvider';
 import { usePallete } from '../../hooks/usePallete';
 
-
 function CreateIgrejaAccountPageContent() {
+  // Android: faz a janela redimensionar quando o teclado abre (adjustResize).
+  useResizeMode();
+
   const Pallete = usePallete();
-  const { height: windowHeight } = useWindowDimensions();
-  const stepsHeight = windowHeight * 0.55;
+  const insets = useSafeAreaInsets();
 
   const [stepIndex, setStepIndex] = useState(0);
   const [showSlowText, setShowSlowText] = useState(false);
@@ -161,34 +165,105 @@ function CreateIgrejaAccountPageContent() {
   };
 
   return (
-    <AuthLayout
-      showBackButton
-      dismissKeyboardOnTap={false}
-      title='Cadastrar minha igreja'
-      subtitle='Organize seus ministérios e voluntários.'
-    >
-      <FormProvider {...form}>
-        <FancySteps
-          size='small'
-          overflowBehavior='fitThenScroll'
-          config={stepsConfig}
-          index={stepIndex}
-          setIndex={setStepIndex}
-          containerStyle={{ height: stepsHeight }}
-        />
-      </FormProvider>
-      {showSlowText && (
-        <FancyText
-          size='extraSmall'
-          color={Pallete.fonts.inactive}
-          style={{ textAlign: 'center', paddingTop: 8 }}
-        >
-          Isso pode levar alguns segundos...
-        </FancyText>
-      )}
-    </AuthLayout>
+    <View style={[styles.root, { backgroundColor: Pallete.backgroundColor }]}>
+      <SafeAreaView style={styles.safe} edges={['left', 'right']}>
+        <View style={[styles.backButtonRow, { top: insets.top + 8 }]}>
+          <FancyButton
+            mode='icon'
+            type='text'
+            onPress={() => router.back()}
+            icon={{ library: 'Feather', name: 'arrow-left', size: 18 }}
+            iconStyle={{ color: Pallete.icons.dark }}
+            containerStyle={{
+              backgroundColor: ColorUtils.withAlpha(Pallete.fonts.dark, 0.08),
+              borderRadius: 22,
+              width: 44,
+              height: 44,
+            }}
+          />
+        </View>
+
+        {/*
+          O recorte começa ABAIXO da faixa do botão Voltar (top insets.top+8, altura 40).
+          Como o conteúdo das etapas rola (KAS interno do FancySteps), o overflow:'hidden'
+          garante que ele "entre" nessa borda — nunca renderiza atrás do botão Voltar nem
+          da status bar.
+        */}
+        <View style={[styles.scrollClip, { paddingTop: insets.top + 52 }]}>
+          <View style={[styles.contentInner, { paddingBottom: insets.bottom + 16 }]}>
+            <View style={styles.headerGroup}>
+              <FancyText size='large' type='bold' color={Pallete.fonts.dark}>
+                Cadastrar minha igreja
+              </FancyText>
+              <FancyText size='small' color={Pallete.fonts.inactive}>
+                Organize seus ministérios e voluntários.
+              </FancyText>
+            </View>
+
+            <FormProvider {...form}>
+              <FancySteps
+                size='small'
+                overflowBehavior='fitThenScroll'
+                hugContent
+                config={stepsConfig}
+                index={stepIndex}
+                setIndex={setStepIndex}
+                containerStyle={styles.steps}
+                headerProps={{
+                  activeColor: Pallete.fonts.dark,
+                  inactiveColor: Pallete.fonts.inactive,
+                  activeCircleColor: Pallete.primary,
+                  inactiveCircleColor: ColorUtils.withAlpha(Pallete.fonts.dark, 0.12),
+                  lineColor: ColorUtils.withAlpha(Pallete.fonts.dark, 0.18),
+                }}
+              />
+            </FormProvider>
+
+            {showSlowText && (
+              <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={styles.slowText}>
+                Isso pode levar alguns segundos...
+              </FancyText>
+            )}
+          </View>
+        </View>
+      </SafeAreaView>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  safe: {
+    flex: 1,
+  },
+  backButtonRow: {
+    position: 'absolute',
+    left: 24,
+    zIndex: 10,
+  },
+  scrollClip: {
+    flex: 1,
+    overflow: 'hidden',
+  },
+  contentInner: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    gap: 16,
+  },
+  headerGroup: {
+    gap: 2,
+  },
+  steps: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  slowText: {
+    textAlign: 'center',
+  },
+});
 
 export default function CreateIgrejaAccountPage() {
   return (
@@ -197,4 +272,3 @@ export default function CreateIgrejaAccountPage() {
     </CodigoCheckProvider>
   );
 }
-

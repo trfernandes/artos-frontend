@@ -55,6 +55,9 @@ export type ThemePalette = {
     dashboard: [string, string];
   };
   shadows: Record<100 | 200 | 300, ThemeShadowToken>;
+  // Cores de identidade por plano. `accent` = cor vibrante (ícone/borda/fundo/dot);
+  // `text` = variante com contraste AA para uso como texto sobre o fundo do tema.
+  plans: Record<'avaliacao' | 'starter' | 'essencial' | 'crescimento', { accent: string; text: string }>;
 };
 
 export const LightPalette: ThemePalette = {
@@ -69,15 +72,15 @@ export const LightPalette: ThemePalette = {
   disabled3: '#F4F4F4',
   selected: '#E4EEFF',
   buttons: {
-    active: '#3B82F6',
+    active: '#1E6FE0',
     inactive: '#E3E3E3',
   },
   fonts: {
     dark: '#3E3E3E',
     light: '#FFFFFF',
-    inactive: '#8D8D8D',
+    inactive: '#6F6F6F',
     inactive2: '#C7C7CC',
-    link: '#1E88E5',
+    link: '#1565C5',
   },
   icons: {
     dark: '#3E3E3E',
@@ -122,6 +125,12 @@ export const LightPalette: ThemePalette = {
       shadowOpacity: 0.2,
       shadowRadius: 3,
     },
+  },
+  plans: {
+    avaliacao: { accent: '#3B82F6', text: '#1E6FE0' },
+    starter: { accent: '#5B5CE6', text: '#4F46E5' },
+    essencial: { accent: '#27A744', text: '#1E7E34' },
+    crescimento: { accent: '#FF7A30', text: '#C2410C' },
   },
 };
 
@@ -190,6 +199,12 @@ export const DarkPalette: ThemePalette = {
       shadowOpacity: 0.32,
       shadowRadius: 3,
     },
+  },
+  plans: {
+    avaliacao: { accent: '#3B82F6', text: '#60A5FA' },
+    starter: { accent: '#5B5CE6', text: '#86A8FF' },
+    essencial: { accent: '#27A744', text: '#34D399' },
+    crescimento: { accent: '#FF7A30', text: '#FF7A30' },
   },
 };
 

@@ -1,11 +1,13 @@
 import { StyleSheet, View, TextInput, Image } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useKeyboardState } from 'react-native-keyboard-controller';
+
 import FancyButton from '../../components/buttons/FancyButton';
 import FancyCheckbox from '../../components/FancyCheckbox';
 import FancyText from '../../components/FancyText';
 import FancyTextInput from '../../components/fields/FancyTextInput';
 import FancyPasswordInput from '../../components/fields/FancyPasswordInput';
-import AuthLayout from '../../components/pages/login/AuthLayout';
 import { EXTRA_SMALL_SIZE_FONT } from '../../constants/font';
 import { router } from 'expo-router';
 import { usePallete } from '../../hooks/usePallete';
@@ -31,6 +33,9 @@ export default function LoginIndexPage() {
   const { status: connectivityStatus, isOffline } = useConnectivity();
   const isServerUnavailable = connectivityStatus !== 'ok';
   const passwordInputRef = useRef<TextInput>(null);
+  const insets = useSafeAreaInsets();
+  const keyboardVisible = useKeyboardState((state) => state.isVisible);
+  const keyboardHeight = useKeyboardState((state) => state.height);
 
   const Pallete = usePallete();
 
@@ -236,124 +241,188 @@ export default function LoginIndexPage() {
   };
 
   return (
-    <AuthLayout
-      logo={
-        <Image
-          source={require('../../assets/images/logo.png')}
-          style={styles.logoImage}
-          resizeMode='contain'
-        />
-      }
-      title='Bem-vindo de volta!'
-      subtitle='Entre para acessar todas as funcionalidades'
-      contentContainerStyle={{ paddingTop: 22 }}
-      footer={
-        <>
+    <View style={[styles.root, { backgroundColor: Pallete.backgroundColor }]}>
+      <SafeAreaView style={styles.safe} edges={['left', 'right']}>
+        <View
+          style={[
+            styles.content,
+            {
+              paddingTop: insets.top + 24,
+              paddingBottom:
+                (keyboardVisible ? keyboardHeight - insets.bottom : insets.bottom) + 24,
+            },
+          ]}
+        >
+          <View style={styles.logoSection}>
+            <Image
+              source={require('../../assets/images/logo.png')}
+              style={[styles.logoImage, { tintColor: Pallete.primary }]}
+              resizeMode='contain'
+            />
+          </View>
+
+          <View style={styles.bodyCenter}>
+          <View style={styles.centerGroup}>
+          <FancyText size='large' type='bold' color={Pallete.fonts.dark} style={styles.screenTitle}>
+            Entre na sua conta
+          </FancyText>
+
+          <View style={styles.fieldsWrap}>
+            <FancyTextInput
+              label='E-mail'
+              value={email}
+              errorMessage={emailError}
+              inputProps={{
+                onChangeText: (value) => {
+                  setEmail(value);
+                  if (emailError) setEmailError('');
+                },
+                keyboardType: 'email-address',
+                autoCapitalize: 'none',
+                autoCorrect: false,
+                returnKeyType: 'next',
+                textContentType: 'emailAddress',
+                autoComplete: 'email',
+                importantForAutofill: 'yes',
+                blurOnSubmit: false,
+                onSubmitEditing: () => passwordInputRef.current?.focus(),
+                accessibilityLabel: 'E-mail',
+              }}
+              readonly={loading}
+              disabled={loading}
+            />
+            <FancyPasswordInput
+              label='Senha'
+              value={password}
+              errorMessage={passwordError}
+              inputRef={passwordInputRef}
+              inputProps={{
+                onChangeText: (value) => {
+                  setPassword(value);
+                  if (passwordError) setPasswordError('');
+                },
+                returnKeyType: 'go',
+                textContentType: 'password',
+                autoComplete: 'password',
+                autoCapitalize: 'none',
+                autoCorrect: false,
+                importantForAutofill: 'yes',
+                onSubmitEditing: () => handleLogin(),
+                accessibilityLabel: 'Senha',
+              }}
+              readonly={loading}
+              disabled={loading}
+            />
+          </View>
+
+          <View style={styles.rememberRow}>
+            <FancyCheckbox
+              label='Lembrar-se'
+              value={rememberMe}
+              onChangeValue={setRememberMe}
+              disabled={loading}
+              labelColor={Pallete.fonts.dark}
+            />
+            <FancyButton
+              type='text'
+              label='Esqueceu sua senha?'
+              onPress={() => router.push('/(auth)/forgot-password')}
+              labelStyle={{ fontSize: EXTRA_SMALL_SIZE_FONT, color: Pallete.fonts.link }}
+              containerStyle={styles.linkButton}
+              disabled={loading}
+            />
+          </View>
+
           <FancyButton
             label={loading ? 'Entrando...' : 'Entrar'}
             onPress={handleLogin}
             disabled={loading || isServerUnavailable}
           />
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <FancyText size='small' style={{ borderWidth: 0 }}>
-              Não tem uma conta ainda?
-            </FancyText>
-            <FancyButton
-              type='text'
-              label='Começar'
-              onPress={() => router.push('/(auth)/create-account')}
-              containerStyle={{
-                paddingHorizontal: 0,
-                paddingVertical: 0,
-                height: 24,
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderWidth: 0,
-              }}
-              disabled={loading}
-            />
-          </View>
-        </>
-      }
-    >
-      <FancyTextInput
-        label='E-mail'
-        value={email}
-        errorMessage={emailError}
-        inputProps={{
-          onChangeText: (value) => {
-            setEmail(value);
-            if (emailError) setEmailError('');
-          },
-          keyboardType: 'email-address',
-          autoCapitalize: 'none',
-          autoCorrect: false,
-          returnKeyType: 'next',
-          textContentType: 'emailAddress',
-          autoComplete: 'email',
-          importantForAutofill: 'yes',
-          blurOnSubmit: false,
-          onSubmitEditing: () => passwordInputRef.current?.focus(),
-          accessibilityLabel: 'E-mail',
-        }}
-        readonly={loading}
-        disabled={loading}
-      />
-      <FancyPasswordInput
-        label='Senha'
-        value={password}
-        errorMessage={passwordError}
-        inputRef={passwordInputRef}
-        inputProps={{
-          onChangeText: (value) => {
-            setPassword(value);
-            if (passwordError) setPasswordError('');
-          },
-          returnKeyType: 'go',
-          textContentType: 'password',
-          autoComplete: 'password',
-          autoCapitalize: 'none',
-          autoCorrect: false,
-          importantForAutofill: 'yes',
-          onSubmitEditing: () => handleLogin(),
-          accessibilityLabel: 'Senha',
-        }}
-        readonly={loading}
-        disabled={loading}
-      />
 
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-        <FancyCheckbox
-          label='Lembrar-se'
-          value={rememberMe}
-          onChangeValue={setRememberMe}
-          disabled={loading}
-        />
-        <FancyButton
-          type='text'
-          label='Esqueceu sua senha?'
-          onPress={() => router.push('/(auth)/forgot-password')}
-          labelStyle={{ fontSize: EXTRA_SMALL_SIZE_FONT }}
-          containerStyle={{
-            borderWidth: 0,
-            height: 24,
-            justifyContent: 'center',
-            alignItems: 'center',
-            paddingHorizontal: 0,
-            paddingVertical: 0,
-          }}
-          disabled={loading}
-        />
-      </View>
-    </AuthLayout>
+          {!keyboardVisible && (
+            <View style={styles.footerWrap}>
+              <View style={styles.signupRow}>
+                <FancyText size='small' color={Pallete.fonts.dark}>
+                  Não tem uma conta ainda?
+                </FancyText>
+                <FancyButton
+                  type='text'
+                  label='Começar'
+                  onPress={() => router.push('/(auth)/create-account')}
+                  labelStyle={{ color: Pallete.fonts.link }}
+                  containerStyle={styles.linkButton}
+                  disabled={loading}
+                />
+              </View>
+            </View>
+          )}
+          </View>
+          </View>
+        </View>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const LOGO_HEIGHT = 58;
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  safe: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+  },
+  centerGroup: {
+    gap: 14,
+  },
+  // Logo fixo no topo — fora da equação de centralização (regra: logo do login
+  // é exceção; o conteúdo é que deve ficar centralizado verticalmente).
+  logoSection: {
+    alignItems: 'center',
+    paddingBottom: 24,
+  },
+  // Espaço restante abaixo do logo: centraliza o conteúdo (título + campos + botões)
+  // verticalmente, sem o peso visual do logo deslocar o centro óptico.
+  bodyCenter: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  screenTitle: {
+    textAlign: 'left',
+  },
   logoImage: {
     width: 150,
     height: LOGO_HEIGHT,
+  },
+  fieldsWrap: {
+    gap: 14,
+  },
+  rememberRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  signupRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+  },
+  linkButton: {
+    paddingHorizontal: 0,
+    paddingVertical: 10,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 0,
+  },
+  footerWrap: {
+    paddingTop: 8,
+    backgroundColor: 'transparent',
   },
 });

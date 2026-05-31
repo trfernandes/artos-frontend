@@ -170,4 +170,46 @@ export const ColorUtils = {
 
     return `rgba(${r}, ${g}, ${b}, ${clampedOpacity})`;
   },
+  // Achata `color` aplicado em `opacity` sobre uma `base` OPACA e devolve uma cor opaca.
+  // Use quando precisar do efeito de um tint translúcido mas sem fundo translúcido —
+  // ex.: cards com `elevation`, onde rgba + sombra geram artefatos de composição no Android.
+  blendOver(color: string, opacity: number, base: string): string {
+    const fg = parseRgb(color);
+    const bg = parseRgb(base);
+    if (!fg || !bg) return color;
+
+    const a = Math.max(0, Math.min(1, opacity));
+    const mix = (f: number, b: number) => Math.round(f * a + b * (1 - a));
+
+    return `rgb(${mix(fg[0], bg[0])}, ${mix(fg[1], bg[1])}, ${mix(fg[2], bg[2])})`;
+  },
 };
+
+function parseRgb(color: string): [number, number, number] | null {
+  const trimmed = color.trim();
+
+  const rgbMatch = /^rgba?\(([^)]+)\)$/i.exec(trimmed);
+  if (rgbMatch) {
+    const parts = rgbMatch[1].split(',').map((value) => parseFloat(value.trim()));
+    if (parts.length >= 3 && parts.slice(0, 3).every((value) => !Number.isNaN(value))) {
+      return [parts[0], parts[1], parts[2]];
+    }
+    return null;
+  }
+
+  let normalized = trimmed.startsWith('#') ? trimmed.slice(1) : trimmed;
+  if (normalized.length === 3) {
+    normalized = normalized
+      .split('')
+      .map((char) => `${char}${char}`)
+      .join('');
+  }
+  if (normalized.length < 6) return null;
+
+  const r = parseInt(normalized.slice(0, 2), 16);
+  const g = parseInt(normalized.slice(2, 4), 16);
+  const b = parseInt(normalized.slice(4, 6), 16);
+  if ([r, g, b].some((value) => Number.isNaN(value))) return null;
+
+  return [r, g, b];
+}

@@ -6,7 +6,15 @@ import ControlledSearchSelect from '../../../forms/ControlledSearchSelect';
 import { UF_LIST } from '../../../../domain/utils/uf-list';
 import { getCidadesPorUf } from '../../../../domain/utils/cidades-list';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
-import { useCallback, useEffect, useRef, useState, createContext, useContext, useMemo } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  createContext,
+  useContext,
+  useMemo,
+} from 'react';
 import { IgrejaRepository } from '../../../../domain/services/IgrejaRepository';
 import FancyText from '../../../FancyText';
 import DefaultIcons from '../../../FancyIcons';
@@ -55,7 +63,8 @@ function slugify(text: string): string {
 
 export default function CreateIgrejaAccountTabDados() {
   const palette = usePallete();
-  const { control, watch, setValue, clearErrors, setError } = useFormContext<LoginCreateIgrejaFormData>();
+  const { control, watch, setValue, clearErrors, setError } =
+    useFormContext<LoginCreateIgrejaFormData>();
   const nome = watch('nome');
   const codigo = watch('codigo');
   const uf = watch('uf');
@@ -143,7 +152,9 @@ export default function CreateIgrejaAccountTabDados() {
           setCodigoStatus('unavailable');
           setSugestao(result.sugestao || null);
           setError('codigo', {
-            message: result.sugestao ? `Código já em uso. Sugestão: ${result.sugestao}` : 'Código já em uso',
+            message: result.sugestao
+              ? `Código já em uso. Sugestão: ${result.sugestao}`
+              : 'Código já em uso',
           });
         }
       } catch (error) {
@@ -206,10 +217,26 @@ export default function CreateIgrejaAccountTabDados() {
       return <ActivityIndicator size='small' color={palette.primary} style={{ marginRight: 10 }} />;
     }
     if (codigoStatus === 'available') {
-      return <DefaultIcons.Custom library='Feather' name='check-circle' size={18} color={palette.confirm} style={{ marginRight: 10 }} />;
+      return (
+        <DefaultIcons.Custom
+          library='Feather'
+          name='check-circle'
+          size={18}
+          color={palette.confirm}
+          style={{ marginRight: 10 }}
+        />
+      );
     }
     if (codigoStatus === 'unavailable') {
-      return <DefaultIcons.Custom library='Feather' name='x-circle' size={18} color={palette.error} style={{ marginRight: 10 }} />;
+      return (
+        <DefaultIcons.Custom
+          library='Feather'
+          name='x-circle'
+          size={18}
+          color={palette.error}
+          style={{ marginRight: 10 }}
+        />
+      );
     }
     return null;
   };
@@ -268,34 +295,59 @@ export default function CreateIgrejaAccountTabDados() {
         control={control}
         name='nome'
         label='Qual o nome da sua igreja?'
+        labelProps={{ style: { color: palette.fonts.dark } }}
         inputProps={{ onBlur: handleNomeBlur }}
-        rightContainer={isDebouncing ? <ActivityIndicator size='small' color={palette.primary} style={{ marginRight: 10 }} /> : null}
+        rightContainer={
+          isDebouncing ? (
+            <ActivityIndicator size='small' color={palette.primary} style={{ marginRight: 10 }} />
+          ) : null
+        }
       />
       <ControlledTextInput
         control={control}
         name='codigo'
         label='Código de Identificação'
+        labelProps={{ style: { color: palette.fonts.dark } }}
         inputProps={{ onBlur: handleCodigoBlur }}
         rightContainer={renderCodigoRightContainer()}
       />
       {codigoStatus === 'available' && (
-        <FancyText size='extraSmall' type='semiBold' color={palette.confirm} style={styles.statusText}>
+        <FancyText
+          size='extraSmall'
+          type='semiBold'
+          color={palette.confirm}
+          style={styles.statusText}
+        >
           ✓ Código disponível
         </FancyText>
       )}
       {codigoStatus === 'unavailable' && sugestao && (
         <TouchableOpacity onPress={aplicarSugestao} style={styles.sugestaoContainer}>
           <DefaultIcons.Custom library='Feather' name='info' size={12} color={palette.primary} />
-          <FancyText size='extraSmall' type='medium' color={palette.primary} style={styles.sugestaoText}>
+          <FancyText
+            size='extraSmall'
+            type='medium'
+            color={palette.primary}
+            style={styles.sugestaoText}
+          >
             Usar sugestão: {sugestao}
           </FancyText>
         </TouchableOpacity>
       )}
-      <ControlledSearchSelect control={control} name='uf' label='Estado' listItems={UF_LIST} placeholder='Selecione o estado' searchPlaceholder='Buscar estado...' />
+      <ControlledSearchSelect
+        control={control}
+        name='uf'
+        label='Estado'
+        labelProps={{ style: { color: palette.fonts.dark } }}
+        listItems={UF_LIST}
+        placeholder='Selecione o estado'
+        searchPlaceholder='Buscar estado...'
+      />
       <ControlledSearchSelect
         control={control}
         name='cidade'
         label='Cidade'
+        labelProps={{ style: { color: palette.fonts.dark } }}
         listItems={cidadesList}
         placeholder={isLoadingCidades ? 'Carregando cidades...' : 'Selecione a cidade'}
         searchPlaceholder='Buscar cidade...'

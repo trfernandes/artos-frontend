@@ -1,31 +1,31 @@
 import {
-    useState,
-    useCallback,
-    useRef,
-    useEffect,
-    forwardRef,
-    useImperativeHandle,
-    useMemo,
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  forwardRef,
+  useImperativeHandle,
+  useMemo,
 } from 'react';
 import {
-    View,
-    StyleSheet,
-    Pressable,
-    Modal,
-    StyleProp,
-    ViewStyle,
-    TextInputProps,
-    Animated,
-    Dimensions,
-    PanResponder,
-    InteractionManager,
-    TouchableOpacity,
-    ActivityIndicator,
-    Platform,
+  View,
+  StyleSheet,
+  Pressable,
+  Modal,
+  StyleProp,
+  ViewStyle,
+  TextInputProps,
+  Animated,
+  Dimensions,
+  PanResponder,
+  InteractionManager,
+  TouchableOpacity,
+  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BlurView } from 'expo-blur';
-import FancyText from '../FancyText';
+import FancyText, { FancyTextProps } from '../FancyText';
 import { ThemePalette } from '../../constants/colors';
 import { BOLD_FONT, ITALIC_MEDIUM_FONT, MEDIUM_FONT, SMALL_SIZE_FONT } from '../../constants/font';
 import DefaultIcons from '../FancyIcons';
@@ -67,6 +67,8 @@ export interface FancySearchSelectProps<T>
   onRetry?: () => void;
   retryLabel?: string;
   multiSelect?: boolean;
+  /** Override do label (cor/estilo) — para superfícies escuras/gradiente. */
+  labelProps?: FancyTextProps;
 }
 
 export interface FancySearchSelectRef {
@@ -92,6 +94,7 @@ function FancySearchSelectInner<ValueItem>(
     onRetry,
     retryLabel = 'Tentar novamente',
     multiSelect = false,
+    labelProps,
   }: FancySearchSelectProps<ValueItem>,
   ref: React.Ref<FancySearchSelectRef>,
 ) {
@@ -108,9 +111,7 @@ function FancySearchSelectInner<ValueItem>(
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const backdropAnim = useRef(new Animated.Value(0)).current;
   const dragY = useRef(new Animated.Value(0)).current;
-  const closeTask = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | null>(
-    null,
-  );
+  const closeTask = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | null>(null);
   const insets = useSafeAreaInsets();
 
   const activeColor = isDark
@@ -313,209 +314,219 @@ function FancySearchSelectInner<ValueItem>(
     styles.stateText,
   ]);
 
-  const sheetContent = useMemo(() => (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={styles.modalContainer}>
-        {/* Backdrop */}
-        <TouchableOpacity
-          style={styles.backdropTouchable}
-          activeOpacity={1}
-          onPress={handleClose}
-        >
-          <Animated.View style={[styles.backdrop, { opacity: backdropAnim }]}>
-            <BlurView
-              intensity={Platform.OS === 'ios' ? 28 : 60}
-              tint={isDark ? 'dark' : 'default'}
-              experimentalBlurMethod={Platform.OS === 'android' ? 'dimezisBlurView' : 'none'}
-              style={StyleSheet.absoluteFillObject}
-            />
-            <View style={[StyleSheet.absoluteFillObject, { backgroundColor: reliableBackdropColor }]} />
-          </Animated.View>
-        </TouchableOpacity>
+  const sheetContent = useMemo(
+    () => (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View style={styles.modalContainer}>
+          {/* Backdrop */}
+          <TouchableOpacity
+            style={styles.backdropTouchable}
+            activeOpacity={1}
+            onPress={handleClose}
+          >
+            <Animated.View style={[styles.backdrop, { opacity: backdropAnim }]}>
+              <BlurView
+                intensity={Platform.OS === 'ios' ? 28 : 60}
+                tint={isDark ? 'dark' : 'default'}
+                experimentalBlurMethod={Platform.OS === 'android' ? 'dimezisBlurView' : 'none'}
+                style={StyleSheet.absoluteFillObject}
+              />
+              <View
+                style={[StyleSheet.absoluteFillObject, { backgroundColor: reliableBackdropColor }]}
+              />
+            </Animated.View>
+          </TouchableOpacity>
 
-        {/* Sheet container */}
-        <Animated.View
-          style={[
-            styles.sheetContainer,
-            {
-              paddingTop: insets.top,
-              paddingBottom: insets.bottom,
-              transform: [{ translateY: Animated.add(slideAnim, dragY) }],
-            },
-          ]}
-        >
-          <View style={styles.handleContainer}>
-            <View style={styles.handle} {...panResponder.panHandlers} />
-          </View>
+          {/* Sheet container */}
+          <Animated.View
+            style={[
+              styles.sheetContainer,
+              {
+                paddingTop: insets.top,
+                paddingBottom: insets.bottom,
+                transform: [{ translateY: Animated.add(slideAnim, dragY) }],
+              },
+            ]}
+          >
+            <View style={styles.handleContainer}>
+              <View style={styles.handle} {...panResponder.panHandlers} />
+            </View>
 
-          {/* Header */}
-          <View style={styles.header}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={handleClose}
-                activeOpacity={0.7}
+            {/* Header */}
+            <View style={styles.header}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
               >
-                <DefaultIcons.Custom
-                  library='Feather'
-                  name='x'
-                  size={18}
-                  color={palette.fonts.dark}
-                />
-              </TouchableOpacity>
-
-              <FancyText
-                type='bold'
-                size='medium'
-                color={palette.fonts.dark}
-                style={styles.headerTitle}
-              >
-                {title ?? label ?? 'Selecione'}
-              </FancyText>
-
-              {multiSelect ? (
                 <TouchableOpacity
-                  style={[
-                    styles.confirmButton,
-                    Array.isArray(tempValue) &&
-                      tempValue.length === 0 &&
-                      styles.confirmButtonDisabled,
-                  ]}
-                  onPress={handleConfirm}
+                  style={styles.closeButton}
+                  onPress={handleClose}
                   activeOpacity={0.7}
-                  disabled={Array.isArray(tempValue) && tempValue.length === 0}
                 >
                   <DefaultIcons.Custom
                     library='Feather'
-                    name='check'
+                    name='x'
                     size={18}
-                    color={
-                      Array.isArray(tempValue) && tempValue.length > 0
-                        ? palette.fonts.dark
-                        : palette.fonts.inactive
-                    }
+                    color={palette.fonts.dark}
                   />
                 </TouchableOpacity>
-              ) : (
-                <View style={{ width: 34 }} />
-              )}
-            </View>
 
-            {/* Search Bar */}
-            <View style={styles.searchContainer}>
-              <FancySearchBar
-                value={search}
-                onSearch={setSearch}
-                placeholder={searchPlaceholder}
-              />
-            </View>
-          </View>
+                <FancyText
+                  type='bold'
+                  size='medium'
+                  color={palette.fonts.dark}
+                  style={styles.headerTitle}
+                >
+                  {title ?? label ?? 'Selecione'}
+                </FancyText>
 
-          {/* List */}
-          <View style={styles.list}>
-            <FancyList
-              data={filteredItems}
-              extraData={tempValue}
-              renderItem={({ item }: { item: DropDownItemProps<ValueItem> }) => {
-                const isSelected = multiSelect
-                  ? Array.isArray(tempValue) && tempValue.some((v) => v === item.value)
-                  : item.value === tempValue;
-
-                return (
+                {multiSelect ? (
                   <TouchableOpacity
                     style={[
-                      styles.listItem,
-                      !multiSelect && isSelected && { backgroundColor: activeColor },
+                      styles.confirmButton,
+                      Array.isArray(tempValue) &&
+                        tempValue.length === 0 &&
+                        styles.confirmButtonDisabled,
                     ]}
+                    onPress={handleConfirm}
                     activeOpacity={0.7}
-                    onPress={() => handleSelect(item)}
+                    disabled={Array.isArray(tempValue) && tempValue.length === 0}
                   >
-                    {item.left && item.left.type === 'image' && item.left.source && (
-                      <FancyImage
-                        size={32}
-                        source={
-                          ImageUtils.normalizeImageSource(item.left?.source) ??
-                          (typeof item.left?.source === 'string'
-                            ? { uri: item.left?.source }
-                            : item.left?.source)
-                        }
-                      />
-                    )}
-                    <FancyText
-                      style={[
-                        styles.itemText,
-                        isSelected && { color: palette.primary, fontFamily: BOLD_FONT },
-                      ]}
-                    >
-                      {item.title}
-                    </FancyText>
-                    {multiSelect ? (
-                      <View pointerEvents='none'>
-                        <FancyCheckbox value={isSelected} size={22} iconSize={12} />
-                      </View>
-                    ) : (
-                      isSelected && (
-                        <View style={styles.checkContainer}>
-                          <DefaultIcons.Custom
-                            library='MaterialCommunityIcons'
-                            name='check'
-                            size={20}
-                            color={palette.primary}
-                          />
-                        </View>
-                      )
-                    )}
+                    <DefaultIcons.Custom
+                      library='Feather'
+                      name='check'
+                      size={18}
+                      color={
+                        Array.isArray(tempValue) && tempValue.length > 0
+                          ? palette.fonts.dark
+                          : palette.fonts.inactive
+                      }
+                    />
                   </TouchableOpacity>
-                );
-              }}
-              ItemSeparatorComponent={() => <FancySeparator style={{ marginTop: 8 }} />}
-              keyExtractor={(item: DropDownItemProps<ValueItem>, index: number) =>
-                String(item.value ?? index)
-              }
-              contentContainerStyle={styles.listContent}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps='handled'
-              ListEmptyComponent={ListEmptyComponent}
-            />
-          </View>
-        </Animated.View>
-      </View>
-    </GestureHandlerRootView>
-  ), [
-    ListEmptyComponent,
-    activeColor,
-    backdropAnim,
-    dragY,
-    filteredItems,
-    handleClose,
-    handleConfirm,
-    handleSelect,
-    insets.bottom,
-    insets.top,
-    isDark,
-    label,
-    multiSelect,
-    palette,
-    panResponder,
-    search,
-    searchPlaceholder,
-    reliableBackdropColor,
-    slideAnim,
-    styles,
-    tempValue,
-    title,
-  ]);
+                ) : (
+                  <View style={{ width: 34 }} />
+                )}
+              </View>
+
+              {/* Search Bar */}
+              <View style={styles.searchContainer}>
+                <FancySearchBar
+                  value={search}
+                  onSearch={setSearch}
+                  placeholder={searchPlaceholder}
+                />
+              </View>
+            </View>
+
+            {/* List */}
+            <View style={styles.list}>
+              <FancyList
+                data={filteredItems}
+                extraData={tempValue}
+                renderItem={({ item }: { item: DropDownItemProps<ValueItem> }) => {
+                  const isSelected = multiSelect
+                    ? Array.isArray(tempValue) && tempValue.some((v) => v === item.value)
+                    : item.value === tempValue;
+
+                  return (
+                    <TouchableOpacity
+                      style={[
+                        styles.listItem,
+                        !multiSelect && isSelected && { backgroundColor: activeColor },
+                      ]}
+                      activeOpacity={0.7}
+                      onPress={() => handleSelect(item)}
+                    >
+                      {item.left && item.left.type === 'image' && item.left.source && (
+                        <FancyImage
+                          size={32}
+                          source={
+                            ImageUtils.normalizeImageSource(item.left?.source) ??
+                            (typeof item.left?.source === 'string'
+                              ? { uri: item.left?.source }
+                              : item.left?.source)
+                          }
+                        />
+                      )}
+                      <FancyText
+                        style={[
+                          styles.itemText,
+                          isSelected && { color: palette.primary, fontFamily: BOLD_FONT },
+                        ]}
+                      >
+                        {item.title}
+                      </FancyText>
+                      {multiSelect ? (
+                        <View pointerEvents='none'>
+                          <FancyCheckbox value={isSelected} size={22} iconSize={12} />
+                        </View>
+                      ) : (
+                        isSelected && (
+                          <View style={styles.checkContainer}>
+                            <DefaultIcons.Custom
+                              library='MaterialCommunityIcons'
+                              name='check'
+                              size={20}
+                              color={palette.primary}
+                            />
+                          </View>
+                        )
+                      )}
+                    </TouchableOpacity>
+                  );
+                }}
+                ItemSeparatorComponent={() => <FancySeparator style={{ marginTop: 8 }} />}
+                keyExtractor={(item: DropDownItemProps<ValueItem>, index: number) =>
+                  String(item.value ?? index)
+                }
+                contentContainerStyle={styles.listContent}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps='handled'
+                ListEmptyComponent={ListEmptyComponent}
+              />
+            </View>
+          </Animated.View>
+        </View>
+      </GestureHandlerRootView>
+    ),
+    [
+      ListEmptyComponent,
+      activeColor,
+      backdropAnim,
+      dragY,
+      filteredItems,
+      handleClose,
+      handleConfirm,
+      handleSelect,
+      insets.bottom,
+      insets.top,
+      isDark,
+      label,
+      multiSelect,
+      palette,
+      panResponder,
+      search,
+      searchPlaceholder,
+      reliableBackdropColor,
+      slideAnim,
+      styles,
+      tempValue,
+      title,
+    ],
+  );
 
   return (
     <View style={[styles.container, containerStyle]}>
       {label && (
-        <FancyText size={'extraSmall'} type='semiBold' color={palette.fonts.inactive}>
+        <FancyText
+          size={'extraSmall'}
+          type='semiBold'
+          color={palette.fonts.inactive}
+          {...labelProps}
+        >
           {label}
         </FancyText>
       )}

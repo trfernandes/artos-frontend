@@ -18,7 +18,7 @@ export type FancyStepsProps = {
   config: FancyStepsConfig;
   containerStyle?: StyleProp<ViewStyle>;
   headerContainerStyle?: StyleProp<ViewStyle>;
-  headerProps?: FancyStepsHeaderProps;
+  headerProps?: Partial<FancyStepsHeaderProps>;
   content?: { containerStyle?: StyleProp<ViewStyle> };
   contentContainerStyle?: StyleProp<ViewStyle>;
   navigationContainerStyle?: StyleProp<ViewStyle>;
@@ -27,11 +27,17 @@ export type FancyStepsProps = {
   size?: FancyStepsSize;
   /** Controle de rolagem do conteúdo: 'always' (padrão) ou 'fitThenScroll' */
   overflowBehavior?: FancyStepsOverflowBehavior;
+  /**
+   * Quando true, o conteúdo da aba não estica para preencher a altura — a navegação
+   * fica logo abaixo do conteúdo (em vez de presa ao rodapé), e a rolagem só entra
+   * quando o conteúdo excede o espaço disponível. Default: false (comportamento atual).
+   */
+  hugContent?: boolean;
 };
 
 export default function FancySteps(props: FancyStepsProps) {
   const styles = useThemedStyles(createStyles);
-  const { size = 'normal' } = props;
+  const { size = 'normal', hugContent = false } = props;
 
   const stepContent = props.config.steps[props.index].content;
 
@@ -51,19 +57,37 @@ export default function FancySteps(props: FancyStepsProps) {
           bounces={false}
           keyboardShouldPersistTaps='handled'
           keyboardDismissMode='on-drag'
-          contentContainerStyle={[styles.scrollContent, props.contentContainerStyle]}
+          contentContainerStyle={[
+            hugContent ? styles.scrollContentHug : styles.scrollContent,
+            props.contentContainerStyle,
+          ]}
           showsVerticalScrollIndicator={false}
           bottomOffset={FOCUSED_INPUT_BOTTOM_OFFSET}
         >
           {stepContent}
+          {/*
+            Hug mode: a navegação vai DENTRO do scroll, logo após o conteúdo — assim
+            fica colada aos campos (em vez de presa ao rodapé) e rola junto no overflow.
+          */}
+          {hugContent && (
+            <FancyStepsNavigation
+              containerStyle={[styles.navigation, props.navigationContainerStyle]}
+              stepIndex={props.index}
+              setStepIndex={props.setIndex}
+              config={props.config}
+              {...props.navigatorProps}
+            />
+          )}
         </KeyboardAwareScrollView>
-        <FancyStepsNavigation
-          containerStyle={[styles.navigation, props.navigationContainerStyle]}
-          stepIndex={props.index}
-          setStepIndex={props.setIndex}
-          config={props.config}
-          {...props.navigatorProps}
-        />
+        {!hugContent && (
+          <FancyStepsNavigation
+            containerStyle={[styles.navigation, props.navigationContainerStyle]}
+            stepIndex={props.index}
+            setStepIndex={props.setIndex}
+            config={props.config}
+            {...props.navigatorProps}
+          />
+        )}
       </View>
     </View>
   );
@@ -91,8 +115,13 @@ function createStyles(palette: ThemePalette) {
       gap: 10,
       paddingBottom: 10,
     },
+    // Hug mode: conteúdo não estica (sem flexGrow), navegação cola logo abaixo dele.
+    scrollContentHug: {
+      gap: 10,
+      paddingBottom: 10,
+    },
     navigation: {
-      paddingTop: 6,
+      paddingTop: 14,
     },
   });
 }

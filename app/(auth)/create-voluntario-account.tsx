@@ -1,9 +1,10 @@
 import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import { useEffect, useState } from 'react';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import FancyButton from '../../components/buttons/FancyButton';
 import FancyText from '../../components/FancyText';
 import FancyImage from '../../components/images/FancyImage';
-import AuthLayout from '../../components/pages/login/AuthLayout';
+import { KeyboardAwareScrollView, useResizeMode } from 'react-native-keyboard-controller';
 import { router } from 'expo-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,7 +21,11 @@ import { usePallete } from '../../hooks/usePallete';
 import { ColorUtils } from '../../utils/color_utils';
 
 export default function CreateVoluntarioAccountPage() {
+  // Android: faz a janela redimensionar quando o teclado abre (adjustResize).
+  useResizeMode();
+
   const Pallete = usePallete();
+  const insets = useSafeAreaInsets();
   const { status: connectivityStatus } = useConnectivity();
   const isServerUnavailable = connectivityStatus !== 'ok';
 
@@ -59,6 +64,13 @@ export default function CreateVoluntarioAccountPage() {
     resolver: zodResolver(temConvitePendente ? createAccountViaConviteSchema : createAccountSchema),
     defaultValues: { nome: '', email: '', senha: '', confirmarSenha: '', codigoIgreja: '' },
   });
+
+  const handleCancelarConvite = async () => {
+    await AsyncStorage.multiRemove(['pendingInvite', 'pendingInviteToken']);
+    setTemConvitePendente(false);
+    setConviteIgreja(null);
+    createForm.setValue('codigoIgreja', '');
+  };
 
   const handleSubmit = createForm.handleSubmit(async (data) => {
     try {
@@ -125,127 +137,189 @@ export default function CreateVoluntarioAccountPage() {
   });
 
   return (
-    <>
-      <AuthLayout
-        showBackButton
-        title='Entrar como voluntário'
-        subtitle='Use o código da sua igreja para criar a conta já no contexto certo.'
-        footer={mostrarFormulario ? (
-          <View style={styles.actionsFooter}>
-            <FancyButton
-              label={isLoadingMutation ? 'Confirmando...' : 'Criar conta'}
-              onPress={handleSubmit}
-              disabled={isLoadingMutation || isServerUnavailable}
-              icon={{ library: 'Feather', name: 'check', size: 16 }}
-            />
-            {!temConvitePendente && (
-              <FancyButton
-                type='text'
-                label='Ainda não tenho o código'
-                onPress={() => setMostrarFormulario(false)}
-              />
-            )}
-          </View>
-        ) : undefined}
-      >
-        {!mostrarFormulario ? (
-          <View style={styles.entryState}>
-            <View style={[styles.infoBox, { backgroundColor: Pallete.backgroundColor4 }]}>
-              <FancyText type='semiBold' size='small'>
-                Você já tem o código ou convite da igreja?
+    <View style={[styles.root, { backgroundColor: Pallete.backgroundColor }]}>
+      <SafeAreaView style={styles.safe} edges={['left', 'right']}>
+        <View style={[styles.backButtonRow, { top: insets.top + 8 }]}>
+          <FancyButton
+            mode='icon'
+            type='text'
+            onPress={() => router.back()}
+            icon={{ library: 'Feather', name: 'arrow-left', size: 18 }}
+            iconStyle={{ color: Pallete.icons.dark }}
+            containerStyle={{
+              backgroundColor: ColorUtils.withAlpha(Pallete.fonts.dark, 0.08),
+              borderRadius: 20,
+              width: 40,
+              height: 40,
+            }}
+          />
+        </View>
+
+        {/*
+          O scroll começa ABAIXO da faixa do botão Voltar (top insets.top+8, altura 40).
+          Como o ScrollView recorta o que sai dos seus limites, o conteúdo "entra" nessa
+          borda ao rolar — nunca renderiza por trás do botão Voltar nem da status bar.
+        */}
+        <View style={[styles.scrollClip, { paddingTop: insets.top + 52 }]}>
+        <KeyboardAwareScrollView
+          style={styles.safe}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps='handled'
+          keyboardDismissMode='none'
+          bottomOffset={20}
+          contentContainerStyle={[
+            styles.scrollContent,
+            {
+              paddingTop: 12,
+              paddingBottom: insets.bottom + 24,
+            },
+          ]}
+        >
+          <View style={styles.centerGroup}>
+            <View style={styles.headerGroup}>
+              <FancyText size='large' type='bold' color={Pallete.fonts.dark}>
+                Entrar como voluntário
               </FancyText>
-              <FancyText
-                size='extraSmall'
-                type='medium'
-                style={{ color: ColorUtils.withAlpha(Pallete.fonts.dark, 0.78) }}
-              >
-                Se ainda não recebeu, peça ao responsável da igreja. Sem esse código, o cadastro não
-                consegue te vincular ao lugar certo.
+              <FancyText size='small' color={Pallete.fonts.inactive} style={styles.subtitle}>
+                Use o código da sua igreja para criar a conta já no contexto certo.
               </FancyText>
             </View>
 
-            <FancyButton
-              label='Tenho o código'
-              onPress={() => setMostrarFormulario(true)}
-              icon={{ library: 'MaterialCommunityIcons', name: 'arrow-right', size: 16 }}
-              iconPosition='right'
-            />
-            <FancyButton
-              type='text'
-              label='Já tenho conta'
-              onPress={() => router.push('/(auth)/login')}
-              containerStyle={styles.secondaryActionButton}
-            />
-          </View>
-        ) : (
-          <>
-            {temConvitePendente && (
-              <View style={[styles.conviteBox, { backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.07) }]}>
-                <View style={styles.conviteBoxHeader}>
-                  {conviteIgreja?.logoUrl ? (
-                    <FancyImage
-                      source={{ uri: conviteIgreja.logoUrl }}
-                      size={40}
-                      style={styles.conviteBoxLogo}
-                    />
-                  ) : (
-                    <View style={[styles.conviteBoxLogoFallback, { backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.12) }]}>
-                      <DefaultIcons.Custom library='MaterialIcons' name='church' size={20} color={Pallete.primary} />
+            {!mostrarFormulario ? (
+              <View style={styles.entryState}>
+                <View style={[styles.infoBox, Pallete.shadows[200], { backgroundColor: Pallete.backgroundColor2, borderWidth: StyleSheet.hairlineWidth, borderColor: Pallete.borderCard }]}>
+                  <FancyText type='semiBold' size='small' color={Pallete.fonts.dark}>
+                    Você já tem o código ou convite da igreja?
+                  </FancyText>
+                  <FancyText
+                    size='extraSmall'
+                    type='medium'
+                    color={Pallete.fonts.inactive}
+                    style={styles.boxHint}
+                  >
+                    Se ainda não recebeu, peça ao responsável da igreja. Sem esse código, o cadastro não
+                    consegue te vincular ao lugar certo.
+                  </FancyText>
+                </View>
+
+                <FancyButton
+                  label='Tenho o código'
+                  onPress={() => setMostrarFormulario(true)}
+                  icon={{ library: 'MaterialCommunityIcons', name: 'arrow-right', size: 16 }}
+                  iconPosition='right'
+                />
+                <FancyButton
+                  type='text'
+                  label='Já tenho conta'
+                  onPress={() => router.push('/(auth)/login')}
+                  labelStyle={{ color: Pallete.fonts.link }}
+                  containerStyle={styles.secondaryActionButton}
+                />
+              </View>
+            ) : (
+              <View style={styles.formState}>
+                {temConvitePendente && (
+                  <View style={[styles.conviteBox, Pallete.shadows[200], { backgroundColor: Pallete.backgroundColor2, borderWidth: StyleSheet.hairlineWidth, borderColor: Pallete.borderCard }]}>
+                    <View style={styles.conviteBoxHeader}>
+                      {conviteIgreja?.logoUrl ? (
+                        <FancyImage
+                          source={{ uri: conviteIgreja.logoUrl }}
+                          size={40}
+                          style={styles.conviteBoxLogo}
+                        />
+                      ) : (
+                        <View style={[styles.conviteBoxLogoFallback, { backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.12) }]}>
+                          <DefaultIcons.Custom library='MaterialIcons' name='church' size={20} color={Pallete.primary} />
+                        </View>
+                      )}
+                      <View style={styles.conviteBoxTexts}>
+                        <FancyText type='semiBold' size='small' color={Pallete.fonts.dark}>
+                          {conviteIgreja?.nome ? `Convidado para ${conviteIgreja.nome}` : '🎉 Você foi convidado!'}
+                        </FancyText>
+                        <FancyText
+                          size='extraSmall'
+                          type='medium'
+                          color={Pallete.fonts.inactive}
+                          style={styles.boxHint}
+                        >
+                          Crie sua conta para aceitar o convite.
+                        </FancyText>
+                      </View>
+                      <FancyButton
+                        type='text'
+                        onPress={handleCancelarConvite}
+                        icon={{ library: 'Ionicons', name: 'close', size: 18 }}
+                        containerStyle={styles.cancelConviteButton}
+                      />
                     </View>
-                  )}
-                  <View style={styles.conviteBoxTexts}>
-                    <FancyText type='semiBold' size='small'>
-                      {conviteIgreja?.nome ? `Convidado para ${conviteIgreja.nome}` : '🎉 Você foi convidado!'}
-                    </FancyText>
-                    <FancyText
-                      size='extraSmall'
-                      type='medium'
-                      style={{ color: ColorUtils.withAlpha(Pallete.fonts.dark, 0.78) }}
-                    >
-                      Crie sua conta para aceitar o convite.
-                    </FancyText>
                   </View>
+                )}
+
+                <View style={styles.fieldsArea}>
+                  {!temConvitePendente && (
+                    <ControlledTextInput
+                      label='Código da igreja'
+                      name='codigoIgreja'
+                      control={createForm.control}
+                      labelProps={{ style: { color: Pallete.fonts.dark } }}
+                      inputProps={{
+                        autoCapitalize: 'none',
+                        placeholder: 'Digite o código recebido',
+                        placeholderTextColor: Pallete.fonts.inactive2,
+                      }}
+                    />
+                  )}
+                  <ControlledTextInput
+                    label='Nome'
+                    name='nome'
+                    control={createForm.control}
+                    labelProps={{ style: { color: Pallete.fonts.dark } }}
+                  />
+                  <ControlledTextInput
+                    label='E-mail'
+                    name='email'
+                    control={createForm.control}
+                    labelProps={{ style: { color: Pallete.fonts.dark } }}
+                    inputProps={{ autoCapitalize: 'none' }}
+                  />
+                  <ControlledPasswordInput
+                    label='Senha'
+                    name='senha'
+                    control={createForm.control}
+                    labelProps={{ style: { color: Pallete.fonts.dark } }}
+                    inputProps={{ secureTextEntry: true }}
+                  />
+                  <ControlledPasswordInput
+                    label='Confirmar a Senha'
+                    name='confirmarSenha'
+                    control={createForm.control}
+                    labelProps={{ style: { color: Pallete.fonts.dark } }}
+                    inputProps={{ secureTextEntry: true }}
+                  />
+                </View>
+
+                <View style={styles.actionsFooter}>
+                  <FancyButton
+                    label={isLoadingMutation ? 'Confirmando...' : 'Criar conta'}
+                    onPress={handleSubmit}
+                    disabled={isLoadingMutation || isServerUnavailable}
+                    icon={{ library: 'Feather', name: 'check', size: 16 }}
+                  />
+                  {!temConvitePendente && (
+                    <FancyButton
+                      type='text'
+                      label='Ainda não tenho o código'
+                      onPress={() => setMostrarFormulario(false)}
+                      labelStyle={{ color: Pallete.fonts.link }}
+                    />
+                  )}
                 </View>
               </View>
             )}
-
-            <View style={styles.fieldsArea}>
-              {!temConvitePendente && (
-                <ControlledTextInput
-                  label='Código da igreja'
-                  name='codigoIgreja'
-                  control={createForm.control}
-                  inputProps={{
-                    autoCapitalize: 'none',
-                    placeholder: 'Digite o código recebido',
-                    placeholderTextColor: Pallete.fonts.inactive2,
-                  }}
-                />
-              )}
-              <ControlledTextInput label='Nome' name='nome' control={createForm.control} />
-              <ControlledTextInput
-                label='E-mail'
-                name='email'
-                control={createForm.control}
-                inputProps={{ autoCapitalize: 'none' }}
-              />
-              <ControlledPasswordInput
-                label='Senha'
-                name='senha'
-                control={createForm.control}
-                inputProps={{ secureTextEntry: true }}
-              />
-              <ControlledPasswordInput
-                label='Confirmar a Senha'
-                name='confirmarSenha'
-                control={createForm.control}
-                inputProps={{ secureTextEntry: true }}
-              />
-            </View>
-
-          </>
-        )}
-      </AuthLayout>
+          </View>
+        </KeyboardAwareScrollView>
+        </View>
+      </SafeAreaView>
 
       {isLoadingMutation && (
         <View style={[styles.loadingOverlay, { backgroundColor: ColorUtils.withAlpha(Pallete.fonts.dark, 0.45) }]}>
@@ -257,20 +331,55 @@ export default function CreateVoluntarioAccountPage() {
           </View>
         </View>
       )}
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  safe: {
+    flex: 1,
+  },
+  scrollClip: {
+    flex: 1,
+    overflow: 'hidden',
+  },
+  backButtonRow: {
+    position: 'absolute',
+    left: 24,
+    zIndex: 10,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  centerGroup: {
+    gap: 16,
+  },
+  headerGroup: {
+    gap: 2,
+  },
+  subtitle: {
+    opacity: 0.85,
+  },
+  formState: {
+    gap: 16,
+  },
+  boxHint: {
+    opacity: 0.85,
+  },
   fieldsArea: {
-    gap: 10,
+    gap: 16,
   },
   actionsFooter: {
-    paddingTop: 10,
+    paddingTop: 12,
     gap: 8,
   },
   entryState: {
-    gap: 10,
+    gap: 12,
   },
   infoBox: {
     borderRadius: 16,
@@ -280,6 +389,12 @@ const styles = StyleSheet.create({
   conviteBox: {
     borderRadius: 16,
     padding: 14,
+  },
+  cancelConviteButton: {
+    minHeight: 44,
+    minWidth: 44,
+    alignSelf: 'center',
+    marginRight: -13,
   },
   conviteBoxHeader: {
     flexDirection: 'row',

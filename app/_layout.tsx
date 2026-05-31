@@ -1,6 +1,6 @@
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
-import { SplashScreen, Stack, useSegments } from 'expo-router';
+import { SplashScreen, Stack } from 'expo-router';
 import { Modal, Platform, StyleSheet, View } from 'react-native';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { useFonts } from 'expo-font';
@@ -17,7 +17,7 @@ import { ConnectivityProvider } from '../core/network/connectivity/ConnectivityP
 import { createQueryClient } from '../core/react-query/queryClient';
 import { ConnectivityBanner } from '../components/FancyConnectivityBanner';
 import FancyLoading from '../components/FancyLoading';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { initialWindowMetrics, SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useProtectedRoute } from '../hooks/useProtectedRoute';
 import { ThemeProvider } from '../contexts/ThemeContext';
@@ -44,8 +44,8 @@ export default Sentry.wrap(function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <KeyboardProvider>
-        <SafeAreaProvider>
+      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+        <KeyboardProvider>
           <ThemeProvider>
             <GlobalErrorBoundary>
               <QueryClientProvider client={queryClient}>
@@ -57,8 +57,8 @@ export default Sentry.wrap(function RootLayout() {
               </QueryClientProvider>
             </GlobalErrorBoundary>
           </ThemeProvider>
-        </SafeAreaProvider>
-      </KeyboardProvider>
+        </KeyboardProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 });
@@ -68,9 +68,7 @@ function RootLayoutNav() {
 
   const { user, loading, isSigningOut } = useAuth();
   const { isDark, palette } = useAppTheme();
-  const segments = useSegments();
-  const isAuthRoute = segments[0] === '(auth)';
-  const statusBarStyle: 'light' | 'dark' = isAuthRoute || isDark ? 'light' : 'dark';
+  const statusBarStyle: 'light' | 'dark' = isDark ? 'light' : 'dark';
   const safeAreaBackgroundColor = palette.backgroundColor;
   const toastConfig = useMemo(() => createToastConfig(palette), [palette]);
 

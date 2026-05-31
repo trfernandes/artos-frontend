@@ -19,10 +19,10 @@ export default function CreateIgrejaAccountTabPronto() {
           color={palette.fonts.light}
         />
       </View>
-      <FancyText type='bold' size='medium' style={styles.title}>
+      <FancyText type='bold' size='medium' color={palette.fonts.dark} style={styles.title}>
         Tudo pronto
       </FancyText>
-      <FancyText size='small' color={palette.fonts.inactive} style={styles.text}>
+      <FancyText size='small' color={palette.fonts.inactive} style={[styles.text, styles.textMuted]}>
         Revise rapidamente os dados e toque em Confirmar para finalizar o cadastro da igreja.
       </FancyText>
     </View>
@@ -33,11 +33,10 @@ function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
     container: {
       width: '100%',
-      flex: 1,
-      justifyContent: 'center',
       alignItems: 'center',
       gap: 8,
       paddingHorizontal: 16,
+      paddingVertical: 24,
     },
     iconContainer: {
       width: 36,
@@ -53,6 +52,9 @@ function createStyles(palette: ThemePalette) {
     text: {
       textAlign: 'center',
       lineHeight: 20,
+    },
+    textMuted: {
+      opacity: 0.85,
     },
   });
 }

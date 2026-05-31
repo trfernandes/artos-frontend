@@ -22,23 +22,11 @@ import {
 } from '../../../../domain/utils/billing-plan-catalog';
 import { LoginCreateIgrejaFormData } from '../../../../domain/schemas/loginCreateIgrejaSchema';
 
-const PLAN_THEME = {
-  avaliacao: {
-    color: '#3B82F6',
-    icon: 'flask-outline',
-  },
-  starter: {
-    color: '#5B5CE6',
-    icon: 'rocket-launch-outline',
-  },
-  essencial: {
-    color: '#27A744',
-    icon: 'star-four-points-outline',
-  },
-  crescimento: {
-    color: '#FF7A30',
-    icon: 'chart-line-variant',
-  },
+const PLAN_ICON = {
+  avaliacao: 'flask-outline',
+  starter: 'rocket-launch-outline',
+  essencial: 'star-four-points-outline',
+  crescimento: 'chart-line-variant',
 } as const;
 
 const CARD_GAP = 0;
@@ -73,7 +61,8 @@ function resolveBenefitLines(
 export default function CreateIgrejaAccountTabPlano() {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
-  const { width: windowWidth } = useWindowDimensions();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const carouselHeight = Math.round(windowHeight * 0.34);
   const { watch, setValue } = useFormContext<LoginCreateIgrejaFormData>();
   const planoSelecionado = watch('plano');
   const cicloSelecionado = watch('ciclo');
@@ -144,7 +133,7 @@ export default function CreateIgrejaAccountTabPlano() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <FancyText type='bold' size='medium'>
+        <FancyText type='bold' size='medium' color={palette.fonts.dark}>
           Escolha o plano da sua igreja
         </FancyText>
         <FancyText size='extraSmall' color={palette.fonts.inactive}>
@@ -155,16 +144,26 @@ export default function CreateIgrejaAccountTabPlano() {
       <View style={styles.cycleTabs}>
         <FancySegmentedTabs<BillingCycleCode>
           value={cicloSelecionado}
-          onChange={(value) => setValue('ciclo', value, { shouldDirty: true, shouldValidate: true })}
+          onChange={(value) =>
+            setValue('ciclo', value, { shouldDirty: true, shouldValidate: true })
+          }
           options={[
-            { title: 'Mensal', value: 'MONTHLY', icon: { library: 'MaterialCommunityIcons', name: 'calendar-month-outline', size: 16 } },
-            { title: 'Anual', value: 'YEARLY', icon: { library: 'MaterialCommunityIcons', name: 'calendar-star', size: 16 } },
+            {
+              title: 'Mensal',
+              value: 'MONTHLY',
+              icon: { library: 'MaterialCommunityIcons', name: 'calendar-month-outline', size: 16 },
+            },
+            {
+              title: 'Anual',
+              value: 'YEARLY',
+              icon: { library: 'MaterialCommunityIcons', name: 'calendar-star', size: 16 },
+            },
           ]}
         />
       </View>
 
       <View
-        style={styles.carouselViewport}
+        style={[styles.carouselViewport, { height: carouselHeight }]}
         onLayout={(event) => {
           const nextWidth = Math.floor(event.nativeEvent.layout.width);
           setViewportWidth((prev) => (prev === nextWidth ? prev : nextWidth));
@@ -183,7 +182,9 @@ export default function CreateIgrejaAccountTabPlano() {
         >
           {cards.map((card, index) => {
             if (card.type === 'avaliacao') {
-              const planTheme = PLAN_THEME.avaliacao;
+              const accent = palette.plans.avaliacao.accent;
+              const accentText = palette.plans.avaliacao.text;
+              const planIcon = PLAN_ICON.avaliacao;
               const selected = modoCadastroPlano === 'avaliacao';
 
               return (
@@ -195,10 +196,10 @@ export default function CreateIgrejaAccountTabPlano() {
                     styles.planCard,
                     {
                       width: cardWidth,
-                      borderColor: selected ? planTheme.color : palette.borderCard,
+                      borderColor: selected ? accent : palette.borderCard,
                       backgroundColor: selected
-                        ? ColorUtils.withAlpha(planTheme.color, 0.07)
-                        : palette.backgroundColor4,
+                        ? ColorUtils.blendOver(accent, 0.07, palette.backgroundColor)
+                        : palette.backgroundColor,
                     },
                   ]}
                 >
@@ -207,14 +208,14 @@ export default function CreateIgrejaAccountTabPlano() {
                       <View
                         style={[
                           styles.planIcon,
-                          { backgroundColor: ColorUtils.withAlpha(planTheme.color, 0.12) },
+                          { backgroundColor: ColorUtils.withAlpha(accent, 0.12) },
                         ]}
                       >
                         <DefaultIcons.Custom
                           library='MaterialCommunityIcons'
-                          name={planTheme.icon}
+                          name={planIcon}
                           size={14}
-                          color={planTheme.color}
+                          color={accent}
                         />
                       </View>
 
@@ -224,7 +225,7 @@ export default function CreateIgrejaAccountTabPlano() {
                             type='bold'
                             size='medium'
                             numberOfLines={2}
-                            style={[styles.planName, { color: planTheme.color }]}
+                            style={[styles.planName, { color: accentText }]}
                           >
                             Avaliação{'\n'}gratuita
                           </FancyText>
@@ -234,7 +235,7 @@ export default function CreateIgrejaAccountTabPlano() {
                               type='bold'
                               size='small'
                               numberOfLines={1}
-                              style={[styles.priceValue, { color: planTheme.color }]}
+                              style={[styles.priceValue, { color: accentText }]}
                             >
                               Grátis
                             </FancyText>
@@ -243,7 +244,7 @@ export default function CreateIgrejaAccountTabPlano() {
                               size='extraSmall'
                               type='semiBold'
                               numberOfLines={1}
-                              style={[styles.priceCycle, { color: planTheme.color }]}
+                              style={[styles.priceCycle, { color: accentText }]}
                             >
                               por 14 dias
                             </FancyText>
@@ -261,7 +262,8 @@ export default function CreateIgrejaAccountTabPlano() {
                       color={palette.fonts.inactive}
                       style={styles.description}
                     >
-                      Comece a usar o app agora e escolha um plano depois, quando fizer sentido para a igreja.
+                      Comece a usar o app agora e escolha um plano depois, quando fizer sentido para
+                      a igreja.
                     </FancyText>
 
                     <View style={[styles.divider, { backgroundColor: palette.borderCard }]} />
@@ -277,14 +279,11 @@ export default function CreateIgrejaAccountTabPlano() {
                           <View
                             style={[
                               styles.featureDot,
-                              { backgroundColor: ColorUtils.withAlpha(planTheme.color, 0.16) },
+                              { backgroundColor: ColorUtils.withAlpha(accent, 0.16) },
                             ]}
                           >
                             <View
-                              style={[
-                                styles.featureDotInner,
-                                { backgroundColor: planTheme.color },
-                              ]}
+                              style={[styles.featureDotInner, { backgroundColor: accent }]}
                             />
                           </View>
                           <FancyText size='extraSmall' style={styles.featureText} numberOfLines={1}>
@@ -300,17 +299,17 @@ export default function CreateIgrejaAccountTabPlano() {
                       styles.planAction,
                       {
                         backgroundColor: selected
-                          ? planTheme.color
-                          : ColorUtils.withAlpha(planTheme.color, 0.12),
+                          ? accent
+                          : ColorUtils.withAlpha(accent, 0.12),
                       },
                     ]}
                   >
                     <FancyText
                       size='small'
                       type='semiBold'
-                      style={{ color: selected ? palette.fonts.light : planTheme.color }}
+                      style={{ color: selected ? palette.fonts.light : accentText }}
                     >
-                      {selected ? 'Selecionado' : 'Começar em avaliação'}
+                      {selected ? 'Selecionado' : 'Escolher plano'}
                     </FancyText>
                   </View>
                 </TouchableOpacity>
@@ -318,9 +317,15 @@ export default function CreateIgrejaAccountTabPlano() {
             }
 
             const option = card.option;
-            const planTheme = PLAN_THEME[option.codigo];
+            const accent = palette.plans[option.codigo].accent;
+            const accentText = palette.plans[option.codigo].text;
+            const planIcon = PLAN_ICON[option.codigo];
             const selected = modoCadastroPlano === 'plano' && planoSelecionado === option.codigo;
-            const priceLabel = resolvePlanPrice(option.monthlyPrice, option.yearlyPrice, cicloSelecionado);
+            const priceLabel = resolvePlanPrice(
+              option.monthlyPrice,
+              option.yearlyPrice,
+              cicloSelecionado,
+            );
             const priceParts = resolvePlanPriceParts(priceLabel, cicloSelecionado);
             const benefitLines = resolveBenefitLines(
               option.maxVolunteers,
@@ -337,10 +342,10 @@ export default function CreateIgrejaAccountTabPlano() {
                   styles.planCard,
                   {
                     width: cardWidth,
-                    borderColor: selected ? planTheme.color : palette.borderCard,
+                    borderColor: selected ? accent : palette.borderCard,
                     backgroundColor: selected
-                      ? ColorUtils.withAlpha(planTheme.color, 0.07)
-                      : palette.backgroundColor4,
+                      ? ColorUtils.blendOver(accent, 0.07, palette.backgroundColor)
+                      : palette.backgroundColor,
                   },
                 ]}
               >
@@ -349,14 +354,14 @@ export default function CreateIgrejaAccountTabPlano() {
                     <View
                       style={[
                         styles.highlightPill,
-                        { backgroundColor: ColorUtils.withAlpha(planTheme.color, 0.1) },
+                        { backgroundColor: ColorUtils.withAlpha(accent, 0.1) },
                       ]}
                     >
                       <FancyText
                         size='extraSmall'
                         type='semiBold'
                         numberOfLines={1}
-                        style={{ color: planTheme.color }}
+                        style={{ color: accentText }}
                       >
                         {option.highlight}
                       </FancyText>
@@ -367,14 +372,14 @@ export default function CreateIgrejaAccountTabPlano() {
                     <View
                       style={[
                         styles.planIcon,
-                        { backgroundColor: ColorUtils.withAlpha(planTheme.color, 0.12) },
+                        { backgroundColor: ColorUtils.withAlpha(accent, 0.12) },
                       ]}
                     >
                       <DefaultIcons.Custom
                         library='MaterialCommunityIcons'
-                        name={planTheme.icon}
+                        name={planIcon}
                         size={14}
-                        color={planTheme.color}
+                        color={accent}
                       />
                     </View>
 
@@ -384,7 +389,7 @@ export default function CreateIgrejaAccountTabPlano() {
                           type='bold'
                           size='medium'
                           numberOfLines={1}
-                          style={[styles.planName, { color: planTheme.color }]}
+                          style={[styles.planName, { color: accentText }]}
                         >
                           {option.nome}
                         </FancyText>
@@ -394,7 +399,7 @@ export default function CreateIgrejaAccountTabPlano() {
                             type='bold'
                             size='small'
                             numberOfLines={1}
-                            style={[styles.priceValue, { color: planTheme.color }]}
+                            style={[styles.priceValue, { color: accentText }]}
                           >
                             {priceParts.main}
                           </FancyText>
@@ -403,7 +408,7 @@ export default function CreateIgrejaAccountTabPlano() {
                             size='extraSmall'
                             type='semiBold'
                             numberOfLines={1}
-                            style={[styles.priceCycle, { color: planTheme.color }]}
+                            style={[styles.priceCycle, { color: accentText }]}
                           >
                             {priceParts.suffix}
                           </FancyText>
@@ -432,10 +437,12 @@ export default function CreateIgrejaAccountTabPlano() {
                         <View
                           style={[
                             styles.featureDot,
-                            { backgroundColor: ColorUtils.withAlpha(planTheme.color, 0.16) },
+                            { backgroundColor: ColorUtils.withAlpha(accent, 0.16) },
                           ]}
                         >
-                          <View style={[styles.featureDotInner, { backgroundColor: planTheme.color }]} />
+                          <View
+                            style={[styles.featureDotInner, { backgroundColor: accent }]}
+                          />
                         </View>
                         <FancyText size='extraSmall' style={styles.featureText} numberOfLines={1}>
                           {item}
@@ -450,15 +457,15 @@ export default function CreateIgrejaAccountTabPlano() {
                     styles.planAction,
                     {
                       backgroundColor: selected
-                        ? planTheme.color
-                        : ColorUtils.withAlpha(planTheme.color, 0.12),
+                        ? accent
+                        : ColorUtils.withAlpha(accent, 0.12),
                     },
                   ]}
                 >
                   <FancyText
                     size='small'
                     type='semiBold'
-                    style={{ color: selected ? palette.fonts.light : planTheme.color }}
+                    style={{ color: selected ? palette.fonts.light : accentText }}
                   >
                     {selected ? 'Selecionado' : 'Escolher plano'}
                   </FancyText>
@@ -473,8 +480,8 @@ export default function CreateIgrejaAccountTabPlano() {
         {cards.map((card, index) => {
           const color =
             card.type === 'avaliacao'
-              ? PLAN_THEME.avaliacao.color
-              : PLAN_THEME[card.option.codigo].color;
+              ? palette.plans.avaliacao.accent
+              : palette.plans[card.option.codigo].accent;
           const active = index === activeIndex;
           return (
             <TouchableOpacity
@@ -500,7 +507,6 @@ function createStyles(palette: ThemePalette) {
     container: {
       gap: 10,
       width: '100%',
-      flex: 1,
     },
     header: {
       gap: 4,
@@ -517,7 +523,6 @@ function createStyles(palette: ThemePalette) {
     },
     carouselViewport: {
       width: '100%',
-      flex: 1,
       minHeight: 0,
       marginTop: 10,
     },
@@ -528,6 +533,7 @@ function createStyles(palette: ThemePalette) {
       gap: 8,
       height: '100%',
       justifyContent: 'space-between',
+      ...palette.shadows[200],
     },
     headerBlock: {},
     highlightPill: {
@@ -600,8 +606,9 @@ function createStyles(palette: ThemePalette) {
       opacity: 0.7,
     },
     featureList: {
+      flex: 1,
+      justifyContent: 'center',
       gap: 4,
-      flexShrink: 0,
     },
     featureItem: {
       flexDirection: 'row',

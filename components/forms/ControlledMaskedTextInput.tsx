@@ -3,8 +3,16 @@ import FancyMaskedTextInput, { FancyMaskedTextInputProps } from '../fields/Fancy
 import { View } from 'react-native';
 import FancyErrorText from './FancyErrorText';
 
-interface ControlledMaskedTextInputProps<FormData extends FieldValues>
-  extends Pick<FancyMaskedTextInputProps, 'label' | 'inputContainerStyle' | 'inputProps' | 'disabled' | 'maskType' | 'customPattern'> {
+interface ControlledMaskedTextInputProps<FormData extends FieldValues> extends Pick<
+  FancyMaskedTextInputProps,
+  | 'label'
+  | 'inputContainerStyle'
+  | 'inputProps'
+  | 'disabled'
+  | 'maskType'
+  | 'customPattern'
+  | 'labelProps'
+> {
   control: Control<FormData>;
   name: Path<FormData>;
   showErrorMessage?: boolean;
@@ -25,7 +33,13 @@ export default function ControlledMaskedTextInput<FormData extends FieldValues>(
           <FancyMaskedTextInput
             disabled={disabled}
             {...rest}
-            value={value === undefined || value === null ? '' : typeof value === 'string' ? value : String(value)}
+            value={
+              value === undefined || value === null
+                ? ''
+                : typeof value === 'string'
+                  ? value
+                  : String(value)
+            }
             inputProps={{
               ...rest.inputProps,
               onBlur,

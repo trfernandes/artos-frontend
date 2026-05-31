@@ -1,5 +1,5 @@
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import AuthLayout from '../../components/pages/login/AuthLayout';
+import { StyleSheet, View } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemePalette } from '../../constants/colors';
 import { FancyCard } from '../../components/cards/Horizontal/FancyCard';
 import DefaultIcons from '../../components/FancyIcons';
@@ -15,24 +15,46 @@ import FancyText from '../../components/FancyText';
 export default function ComecarScreen() {
   const Pallete = usePallete();
   const styles = useThemedStyles(createStyles);
+  const insets = useSafeAreaInsets();
   const [isHelpModalVisible, setIsHelpModalVisible] = useState(false);
 
   return (
-    <AuthLayout
-      showBackButton
-      title='Como você vai entrar?'
-      subtitle='Escolha uma opção. Você pode voltar e trocar depois.'
-    >
-      <View style={styles.content}>
-        <View style={styles.cardsContainer}>
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() => router.push('/(auth)/create-voluntario-account')}
-            style={styles.cardWrapper}
-          >
+    <View style={styles.root}>
+      <SafeAreaView style={styles.safe} edges={['left', 'right']}>
+        <View style={[styles.backButtonRow, { top: insets.top + 8 }]}>
+          <FancyButton
+            mode='icon'
+            type='text'
+            onPress={() => router.back()}
+            icon={{ library: 'Feather', name: 'arrow-left', size: 18 }}
+            iconStyle={{ color: Pallete.icons.dark }}
+            containerStyle={{
+              backgroundColor: ColorUtils.withAlpha(Pallete.fonts.dark, 0.08),
+              borderRadius: 22,
+              width: 44,
+              height: 44,
+            }}
+          />
+        </View>
+
+        <View style={[styles.content, { paddingTop: insets.top + 24 }]}>
+          <View style={styles.centerGroup}>
+            <View style={styles.headerGroup}>
+              <FancyText size='large' type='bold' color={Pallete.fonts.dark}>
+                Como você vai entrar?
+              </FancyText>
+              <FancyText size='small' color={Pallete.fonts.inactive}>
+                Escolha uma opção. Você pode voltar e trocar depois.
+              </FancyText>
+            </View>
+
+            <View style={styles.cardsContainer}>
             <FancyCard.Image
               type='icon'
               props={{
+                onPress: () => router.push('/(auth)/create-voluntario-account'),
+                accessibilityRole: 'button',
+                accessibilityLabel: 'Sou voluntário',
                 title: 'Sou voluntário',
                 subtitle: (
                   <FancyText
@@ -45,7 +67,12 @@ export default function ComecarScreen() {
                   </FancyText>
                 ),
                 additionalData1: (
-                  <FancyText size='extraSmall' type='semiBold' color={Pallete.primary}>
+                  <FancyText
+                    size='extraSmall'
+                    type='semiBold'
+                    color={Pallete.fonts.link}
+                    style={{ textDecorationLine: 'underline' }}
+                  >
                     Entrar com código ou convite
                   </FancyText>
                 ),
@@ -66,22 +93,20 @@ export default function ComecarScreen() {
                     />
                   </View>
                 ),
-                containerStyle: [styles.card, styles.cardHighlight],
+                containerStyle: [styles.card, styles.cardVoluntario],
                 contentContainerStyle: styles.cardContent,
-                centerContainerStyle: { gap: 6, paddingBottom: 5 },
-                backgroundColor: Pallete.backgroundColor4,
+                centerContainerStyle: { gap: 6 },
+                titleProps: { color: Pallete.fonts.dark },
+                backgroundColor: ColorUtils.blendOver(Pallete.primary, 0.07, Pallete.backgroundColor),
               }}
             />
-          </TouchableOpacity>
 
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() => router.push('/(auth)/admin-discovery')}
-            style={styles.cardWrapper}
-          >
             <FancyCard.Image
               type='icon'
               props={{
+                onPress: () => router.push('/(auth)/admin-discovery'),
+                accessibilityRole: 'button',
+                accessibilityLabel: 'Sou responsável pela igreja',
                 title: 'Sou responsável pela igreja',
                 subtitle: (
                   <FancyText
@@ -94,7 +119,12 @@ export default function ComecarScreen() {
                   </FancyText>
                 ),
                 additionalData1: (
-                  <FancyText size='extraSmall' type='semiBold' color={Pallete.secondary}>
+                  <FancyText
+                    size='extraSmall'
+                    type='semiBold'
+                    color={Pallete.fonts.link}
+                    style={{ textDecorationLine: 'underline' }}
+                  >
                     Conhecer e criar minha igreja
                   </FancyText>
                 ),
@@ -115,34 +145,39 @@ export default function ComecarScreen() {
                     />
                   </View>
                 ),
-                containerStyle: [styles.card, styles.cardSoftBlueBorder],
+                containerStyle: [styles.card, styles.cardResponsavel],
                 contentContainerStyle: styles.cardContent,
-                centerContainerStyle: { gap: 6, paddingBottom: 5 },
-                backgroundColor: Pallete.backgroundColor4,
+                centerContainerStyle: { gap: 6 },
+                titleProps: { color: Pallete.fonts.dark },
+                backgroundColor: ColorUtils.blendOver(Pallete.secondary, 0.07, Pallete.backgroundColor),
               }}
             />
-          </TouchableOpacity>
-        </View>
+            </View>
 
-        <View style={styles.footer}>
-          <FancyButton
-            type='outlined'
-            label='Já tenho conta'
-            onPress={() => router.push('/(auth)/login')}
-            containerStyle={styles.loginButton}
-          />
-          <FancyButton
-            type='text'
-            label='Não sabe qual escolher?'
-            onPress={() => setIsHelpModalVisible(true)}
-            labelStyle={styles.footerLink}
-            containerStyle={styles.footerLinkContainer}
-          />
-          <FancyText size='small' color={Pallete.fonts.inactive} style={styles.footerHint}>
-            Ainda não recebeu convite? Peça ao seu líder para enviar.
-          </FancyText>
+            <View style={styles.footer}>
+              <FancyButton
+                type='outlined'
+                label='Já tenho conta'
+                onPress={() => router.push('/(auth)/login')}
+                containerStyle={[styles.loginButton, { borderColor: Pallete.primary }]}
+                labelStyle={{ color: Pallete.primary }}
+              />
+              <View style={styles.footerLinks}>
+                <FancyButton
+                  type='text'
+                  label='Não sabe qual escolher?'
+                  onPress={() => setIsHelpModalVisible(true)}
+                  labelStyle={[styles.footerLink, { color: Pallete.fonts.link }]}
+                  containerStyle={styles.footerLinkContainer}
+                />
+                <FancyText size='small' color={Pallete.fonts.inactive} style={styles.footerHint}>
+                  Ainda não recebeu convite? Peça ao seu líder para enviar.
+                </FancyText>
+              </View>
+            </View>
+          </View>
         </View>
-      </View>
+      </SafeAreaView>
 
       {isHelpModalVisible && (
         <FancyModalDialog
@@ -171,39 +206,55 @@ export default function ComecarScreen() {
           </View>
         </FancyModalDialog>
       )}
-    </AuthLayout>
+    </View>
   );
 }
 
 function createStyles(Pallete: ThemePalette) {
   return StyleSheet.create({
+    root: {
+      flex: 1,
+      backgroundColor: Pallete.backgroundColor,
+    },
+    safe: {
+      flex: 1,
+    },
+    backButtonRow: {
+      position: 'absolute',
+      left: 24,
+      zIndex: 10,
+    },
     content: {
-      width: '100%',
-      gap: 18,
+      flex: 1,
+      justifyContent: 'center',
+      paddingHorizontal: 24,
+      paddingBottom: 24,
+    },
+    centerGroup: {
+      gap: 14,
+    },
+    headerGroup: {
+      gap: 2,
     },
     cardsContainer: {
       gap: 16,
-    },
-    cardWrapper: {
-      position: 'relative',
-      minHeight: 110,
     },
     card: {
       width: '100%',
       borderRadius: 30,
       borderWidth: 1,
       borderColor: Pallete.borderCard,
-      ...Pallete.shadows[100],
+      ...Pallete.shadows[200],
     },
-    cardHighlight: {
-      borderColor: Pallete.primary,
-      borderWidth: 1,
+    // Bordas tingidas com a cor de cada escolha (accent wash) — override do borderColor do card.
+    cardVoluntario: {
+      borderColor: ColorUtils.withAlpha(Pallete.primary, 0.25),
     },
-    cardSoftBlueBorder: {
-      borderColor: ColorUtils.withAlpha(Pallete.primary, 0.22),
+    cardResponsavel: {
+      borderColor: ColorUtils.withAlpha(Pallete.secondary, 0.25),
     },
     cardContent: {
-      paddingTop: 10,
+      paddingVertical: 8,
     },
     chevronContainer: {
       justifyContent: 'center',
@@ -211,7 +262,11 @@ function createStyles(Pallete: ThemePalette) {
     },
     footer: {
       alignItems: 'center',
-      gap: 8,
+      gap: 12,
+    },
+    footerLinks: {
+      alignItems: 'center',
+      gap: 2,
     },
     loginButton: {
       alignSelf: 'stretch',
@@ -220,7 +275,8 @@ function createStyles(Pallete: ThemePalette) {
       fontSize: 12,
     },
     footerLinkContainer: {
-      height: 20,
+      minHeight: 44,
+      justifyContent: 'center',
       alignItems: 'center',
     },
     footerHint: {

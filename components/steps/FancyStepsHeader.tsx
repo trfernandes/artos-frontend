@@ -19,6 +19,12 @@ export type FancyStepsHeaderProps = {
   containerStyle?: StyleProp<ViewStyle>;
   /** Tamanho dos steps: 'normal' (35px) ou 'small' (25px). Padrão: 'normal' */
   size?: FancyStepsSize;
+  /** Overrides de cor (default = palette atual). Usados para superfícies escuras/gradiente. */
+  activeColor?: string;
+  inactiveColor?: string;
+  activeCircleColor?: string;
+  inactiveCircleColor?: string;
+  lineColor?: string;
 };
 
 const CIRCLE_SIZES: Record<FancyStepsSize, number> = {
@@ -26,9 +32,31 @@ const CIRCLE_SIZES: Record<FancyStepsSize, number> = {
   small: 25,
 };
 
-export default function FancyStepsHeader({ config, containerStyle, size = 'normal', ...props }: FancyStepsHeaderProps) {
+// Recuo do conector em relação à borda de cada círculo, para a linha "respirar".
+const LINE_GAP_INSET = 3;
+
+// Espessura do traço do conector. Usada também para centralizá-lo verticalmente
+// em relação ao centro do círculo (a borda desenha para baixo a partir do top).
+const LINE_THICKNESS = 3;
+
+export default function FancyStepsHeader({
+  config,
+  containerStyle,
+  size = 'normal',
+  activeColor,
+  inactiveColor,
+  activeCircleColor,
+  inactiveCircleColor,
+  lineColor,
+  ...props
+}: FancyStepsHeaderProps) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
+  const resolvedActiveColor = activeColor ?? palette.primary;
+  const resolvedInactiveColor = inactiveColor ?? palette.fonts.inactive;
+  const resolvedActiveCircleColor = activeCircleColor ?? palette.primary;
+  const resolvedInactiveCircleColor = inactiveCircleColor ?? palette.disabled2;
+  const resolvedLineColor = lineColor ?? palette.disabled2;
   const stepsLength = config.steps?.length ?? 0;
   const circleWidth = CIRCLE_SIZES[size];
   const [stepsWidth, setStepsWidth] = useState(0);
@@ -49,8 +77,12 @@ export default function FancyStepsHeader({ config, containerStyle, size = 'norma
   };
 
   const labelMaxWidth = stepsWidth > 0 && stepsLength > 0 ? stepsWidth / stepsLength : undefined;
-  const firstLabelWidth = stepsLength ? labelSizes[0]?.width ?? labelMaxWidth ?? circleWidth : circleWidth;
-  const lastLabelWidth = stepsLength ? labelSizes[stepsLength - 1]?.width ?? labelMaxWidth ?? circleWidth : circleWidth;
+  const firstLabelWidth = stepsLength
+    ? (labelSizes[0]?.width ?? labelMaxWidth ?? circleWidth)
+    : circleWidth;
+  const lastLabelWidth = stepsLength
+    ? (labelSizes[stepsLength - 1]?.width ?? labelMaxWidth ?? circleWidth)
+    : circleWidth;
 
   let firstCenter = circleWidth / 2;
   let lastCenter = stepsWidth - circleWidth / 2;
@@ -79,11 +111,6 @@ export default function FancyStepsHeader({ config, containerStyle, size = 'norma
     return stepsLength === 1 ? stepsWidth / 2 : firstCenter + spacing * index;
   };
 
-  const lineWidth = stepsLength > 1 ? Math.max(0, lastCenter - firstCenter) : 0;
-  const segmentWidth = stepsLength > 1 ? lineWidth / (stepsLength - 1) : 0;
-  const isLastStep = props.index >= stepsLength - 1;
-  const activeLineLeft = firstCenter + segmentWidth * props.index;
-  const activeLineWidth = isLastStep ? 0 : segmentWidth;
   const labelsHeight = labelSizes.reduce((max, size) => Math.max(max, size.height), 0);
 
   return (
@@ -98,14 +125,33 @@ export default function FancyStepsHeader({ config, containerStyle, size = 'norma
         }}
       >
         <View style={[styles.containerCircles, { height: circleWidth }]}>
-          {stepsLength > 1 && (
-            <>
-              <View style={[styles.lineBase, { left: firstCenter, width: lineWidth, top: circleWidth / 2 }]} />
-              {!isLastStep && (
-                <View style={[styles.lineActive, { left: activeLineLeft, width: activeLineWidth, top: circleWidth / 2 }]} />
-              )}
-            </>
-          )}
+          {/*
+            Conector desenhado como segmentos ENTRE as bordas dos círculos (com um pequeno
+            recuo), nunca por trás deles. Assim, mesmo com círculos de fundo translúcido,
+            a linha não cruza os números.
+          */}
+          {stepsLength > 1 &&
+            stepsWidth > 0 &&
+            config.steps?.slice(0, -1).map((_, index) => {
+              const start = getCenterX(index) + circleWidth / 2 + LINE_GAP_INSET;
+              const end = getCenterX(index + 1) - circleWidth / 2 - LINE_GAP_INSET;
+              const width = Math.max(0, end - start);
+              const isCompleted = index < props.index;
+              return (
+                <View
+                  key={`segment-${index}`}
+                  style={[
+                    styles.lineBase,
+                    {
+                      left: start,
+                      width,
+                      top: circleWidth / 2 - LINE_THICKNESS / 2,
+                      borderTopColor: isCompleted ? resolvedActiveCircleColor : resolvedLineColor,
+                    },
+                  ]}
+                />
+              );
+            })}
           {config.steps?.map((_, index) => {
             const centerX = getCenterX(index);
             return (
@@ -113,14 +159,18 @@ export default function FancyStepsHeader({ config, containerStyle, size = 'norma
                 key={index}
                 stepNumber={(index + 1).toString()}
                 circleWidth={circleWidth}
-                color={index === props.index ? palette.primary : palette.disabled2}
+                color={
+                  index === props.index ? resolvedActiveCircleColor : resolvedInactiveCircleColor
+                }
                 containerStyle={{ position: 'absolute', left: centerX - circleWidth / 2, top: 0 }}
               />
             );
           })}
         </View>
       </View>
-      <View style={[styles.containerTexts, labelsHeight ? { height: labelsHeight } : { minHeight: 24 }]}>
+      <View
+        style={[styles.containerTexts, labelsHeight ? { height: labelsHeight } : { minHeight: 24 }]}
+      >
         {config.steps?.map((item, index) => {
           const centerX = getCenterX(index);
           const labelWidth = labelSizes[index]?.width ?? labelMaxWidth ?? 0;
@@ -134,7 +184,7 @@ export default function FancyStepsHeader({ config, containerStyle, size = 'norma
             <FancyStepsText
               key={index}
               text={item.title}
-              textColor={index === props.index ? palette.primary : palette.fonts.inactive}
+              textColor={index === props.index ? resolvedActiveColor : resolvedInactiveColor}
               maxWidth={labelMaxWidth}
               containerStyle={{ position: 'absolute', left }}
               onLayout={(event) => handleLabelLayout(index, event)}
@@ -155,7 +205,7 @@ function createStyles(palette: ThemePalette) {
     lineBase: {
       position: 'absolute',
       height: 0,
-      borderTopWidth: 3,
+      borderTopWidth: LINE_THICKNESS,
       borderTopColor: palette.disabled2,
     },
     lineActive: {

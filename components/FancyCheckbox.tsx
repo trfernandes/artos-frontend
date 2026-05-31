@@ -14,6 +14,7 @@ export type FancyCheckboxProps = {
   onChangeValue?: (value: boolean) => void;
   disabled?: boolean;
   color?: string;
+  labelColor?: string;
 };
 
 export default function FancyCheckbox(props: FancyCheckboxProps) {
@@ -57,7 +58,7 @@ export default function FancyCheckbox(props: FancyCheckboxProps) {
       </View>
       {props.label && (
         <View style={styles.labelContainer}>
-          <FancyText type='medium' size={'small'}>
+          <FancyText type='medium' size={'small'} color={props.labelColor}>
             {props.label}
           </FancyText>
         </View>
