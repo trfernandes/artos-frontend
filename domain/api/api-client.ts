@@ -10,7 +10,6 @@ const apiClient = axios.create({
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
-    'x-api-key': process.env.EXPO_PUBLIC_APP_SECRET_KEY || '',
   },
 });
 

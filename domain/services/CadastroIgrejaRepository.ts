@@ -16,13 +16,11 @@ import {
      ConfirmarEmailCadastroDto,
      CadastroIgrejaActionResponseDto,
 } from '../dtos/Igreja/cadastro-igreja.dto';
-import Constants from 'expo-constants';
 import { AxiosError } from 'axios';
 
 const STORAGE_KEY = 'artos.cadastro_igreja';
 const IDEMPOTENCY_KEY = 'artos.cadastro_igreja_idempotency_key';
 const API_BASE_PATH = '/public/cadastro-igreja';
-const APP_SECRET = Constants.expoConfig?.extra?.EXPO_PUBLIC_APP_SECRET_KEY || '';
 
 type ApiEnvelope<T> = {
   data: T;
@@ -119,7 +117,7 @@ class CadastroIgrejaRepositoryClass {
       }
 
       const response = await apiClient.post<ApiEnvelope<CreateCadastroResponseDto>>(API_BASE_PATH, dto, {
-        headers: { 'Idempotency-Key': key, 'X-App-Secret': APP_SECRET },
+        headers: { 'Idempotency-Key': key },
       });
       return response.data.data;
     } catch (err) {
@@ -143,7 +141,6 @@ class CadastroIgrejaRepositoryClass {
   async obterStatus(cadastroId: string, cadastroSecret: string): Promise<StatusCadastroResponseDto> {
     const response = await apiClient.get<ApiEnvelope<StatusCadastroResponseDto>>(`${API_BASE_PATH}/${cadastroId}/status`, {
       headers: {
-        'X-App-Secret': APP_SECRET,
         'X-Cadastro-Secret': cadastroSecret,
       },
     });
@@ -160,7 +157,6 @@ class CadastroIgrejaRepositoryClass {
       {},
       {
         headers: {
-          'X-App-Secret': APP_SECRET,
           'X-Cadastro-Secret': cadastroSecret,
         },
       },
@@ -182,7 +178,6 @@ class CadastroIgrejaRepositoryClass {
       dto,
       {
         headers: {
-          'X-App-Secret': APP_SECRET,
           'X-Cadastro-Secret': cadastroSecret,
         },
       },
@@ -198,11 +193,6 @@ class CadastroIgrejaRepositoryClass {
     const response = await apiClient.post<ApiEnvelope<CadastroIgrejaActionResponseDto>>(
       `${API_BASE_PATH}/${cadastroId}/confirmar-email`,
       dto,
-      {
-        headers: {
-          'X-App-Secret': APP_SECRET,
-        },
-      },
     );
     return response.data.data;
   }
