@@ -24,7 +24,7 @@ export default function FancyDrawer(props: FancyDrawerProps) {
 
   const handleOpenStoreReview = useCallback(() => {
     const storeUrl = Platform.select({
-      ios: 'https://apps.apple.com/app/id__APP_ID__', // TODO: substituir pelo Apple ID real quando publicado
+      ios: 'https://apps.apple.com/app/id6759353187',
       android: 'https://play.google.com/store/apps/details?id=com.church.artos',
     });
 
