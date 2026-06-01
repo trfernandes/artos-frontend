@@ -9,20 +9,25 @@ import { UpdateRepertorioMusicaSecaoDto } from '../dtos/Repertorio/repertorio-mu
 import { UpsertRepertorioMusicaArranjoDto } from '../dtos/Repertorio/repertorio-musica-arranjo.update';
 
 class RepertorioRepositoryClass {
-  searchCategorias(igrejaId: string, query?: DynamicQuery) {
-    return RepertorioApi.searchCategorias(igrejaId, query);
+  searchCategorias(igrejaId: string, ministerioId: string, query?: DynamicQuery) {
+    return RepertorioApi.searchCategorias(igrejaId, ministerioId, query);
   }
 
-  createCategoria(igrejaId: string, dto: CreateRepertorioCategoriaDto) {
-    return RepertorioApi.createCategoria(igrejaId, dto);
+  createCategoria(igrejaId: string, ministerioId: string, dto: CreateRepertorioCategoriaDto) {
+    return RepertorioApi.createCategoria(igrejaId, ministerioId, dto);
   }
 
-  updateCategoria(igrejaId: string, id: string, dto: UpdateRepertorioCategoriaDto) {
-    return RepertorioApi.updateCategoria(igrejaId, id, dto);
+  updateCategoria(
+    igrejaId: string,
+    ministerioId: string,
+    id: string,
+    dto: UpdateRepertorioCategoriaDto,
+  ) {
+    return RepertorioApi.updateCategoria(igrejaId, ministerioId, id, dto);
   }
 
-  removeCategoria(igrejaId: string, id: string) {
-    return RepertorioApi.removeCategoria(igrejaId, id);
+  removeCategoria(igrejaId: string, ministerioId: string, id: string) {
+    return RepertorioApi.removeCategoria(igrejaId, ministerioId, id);
   }
 
   searchYoutubeVersions(igrejaId: string, query: string, limit = 6) {

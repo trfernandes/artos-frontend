@@ -18,9 +18,14 @@ import FancyListEmpty from '../../../../list/FancyListEmpty';
 type Props = {
   visible: boolean;
   onClose: () => void;
+  ministerioId?: string;
 };
 
-export default function RepertorioCategoriasManagerSheet({ visible, onClose }: Props) {
+export default function RepertorioCategoriasManagerSheet({
+  visible,
+  onClose,
+  ministerioId,
+}: Props) {
   const palette = usePallete();
   const {
     data = [],
@@ -28,7 +33,7 @@ export default function RepertorioCategoriasManagerSheet({ visible, onClose }: P
     atualizarCategoria,
     removerCategoria,
     isMutatingCategoria,
-  } = useRepertorioCategorias();
+  } = useRepertorioCategorias(ministerioId);
   const [nome, setNome] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
@@ -91,39 +96,35 @@ export default function RepertorioCategoriasManagerSheet({ visible, onClose }: P
             <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
               Crie grupos para organizar as músicas.
             </FancyText>
-            <FancyTextInput
-              label='Nome'
-              value={nome}
-              containerStyle={styles.composerInput}
-              inputProps={{
-                onChangeText: setNome,
-                placeholder: 'Ex: Celebração',
-                returnKeyType: 'done',
-                onSubmitEditing: () => void handleCreate(),
-              }}
-              rightContainer={
-                <FancyButton
-                  type='contained'
-                  mode='icon'
-                  size={{ w: 30, h: 28 }}
-                  icon={{
-                    library: 'MaterialCommunityIcons',
-                    name: 'plus',
-                    size: 23,
-                    color: palette.fonts.light,
-                  }}
-                  isLoading={isMutatingCategoria}
-                  onPress={() => void handleCreate()}
-                  disabled={!canCreateCategoria}
-                  accessibilityLabel='Adicionar categoria'
-                  containerStyle={{
-                    backgroundColor: palette.primary,
-                    borderColor: palette.primary,
-                    borderWidth: 0,
-                  }}
-                />
-              }
-            />
+            <View style={styles.composerInputRow}>
+              <FancyTextInput
+                label='Nome'
+                value={nome}
+                containerStyle={styles.composerInput}
+                inputProps={{
+                  onChangeText: setNome,
+                  placeholder: 'Ex: Celebração',
+                  returnKeyType: 'done',
+                  onSubmitEditing: () => void handleCreate(),
+                }}
+              />
+              <FancyButton
+                type='contained'
+                mode='icon'
+                size={{ w: 46, h: 46 }}
+                icon={{
+                  library: 'MaterialCommunityIcons',
+                  name: 'plus',
+                  size: 24,
+                  color: palette.fonts.light,
+                }}
+                isLoading={isMutatingCategoria}
+                onPress={() => void handleCreate()}
+                disabled={!canCreateCategoria}
+                accessibilityLabel='Adicionar categoria'
+                containerStyle={styles.composerAddButton}
+              />
+            </View>
           </View>
         </FancyContainer>
 
@@ -268,8 +269,16 @@ const styles = StyleSheet.create({
     paddingBottom: 13,
     gap: 7,
   },
+  composerInputRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8,
+  },
   composerInput: {
-    width: '100%',
+    flex: 1,
+  },
+  composerAddButton: {
+    flexShrink: 0,
   },
   listHeader: {
     flexDirection: 'row',

@@ -36,7 +36,7 @@ export default function MinisterioLouvorRepertorioIndexPage() {
   const ministerioAtual = igrejaAtiva?.ministerios?.find(
     (ministerio) => ministerio.id === ministerioId,
   );
-  const { data: categorias = [] } = useRepertorioCategorias();
+  const { data: categorias = [] } = useRepertorioCategorias(ministerioId);
   const { data: musicas = [], removerMusica } = useRepertorioMusicas(ministerioId);
   const [search, setSearch] = useState('');
   const [categoriaId, setCategoriaId] = useState('');
@@ -205,6 +205,7 @@ export default function MinisterioLouvorRepertorioIndexPage() {
         <RepertorioCategoriasManagerSheet
           visible={categoriasVisible}
           onClose={() => setCategoriasVisible(false)}
+          ministerioId={ministerioId}
         />
       ) : null}
       <FancyActionSheet

@@ -18,33 +18,41 @@ type ApiEnvelope<T> = { data: T };
 class RepertorioApiClass {
   async searchCategorias(
     igrejaId: string,
+    ministerioId: string,
     query?: DynamicQuery,
   ): Promise<ResponseRepertorioCategoriaDto[]> {
     const response = await apiClient.post<ApiEnvelope<ResponseRepertorioCategoriaDto[]>>(
-      `/igrejas/${igrejaId}/repertorio-categorias/search`,
+      `/igrejas/${igrejaId}/ministerios/${ministerioId}/repertorio-categorias/search`,
       query || {},
     );
     return response.data.data;
   }
 
-  async createCategoria(igrejaId: string, dto: CreateRepertorioCategoriaDto) {
+  async createCategoria(igrejaId: string, ministerioId: string, dto: CreateRepertorioCategoriaDto) {
     const response = await apiClient.post<ApiEnvelope<ResponseRepertorioCategoriaDto>>(
-      `/igrejas/${igrejaId}/repertorio-categorias`,
+      `/igrejas/${igrejaId}/ministerios/${ministerioId}/repertorio-categorias`,
       dto,
     );
     return response.data.data;
   }
 
-  async updateCategoria(igrejaId: string, id: string, dto: UpdateRepertorioCategoriaDto) {
+  async updateCategoria(
+    igrejaId: string,
+    ministerioId: string,
+    id: string,
+    dto: UpdateRepertorioCategoriaDto,
+  ) {
     const response = await apiClient.put<ApiEnvelope<ResponseRepertorioCategoriaDto>>(
-      `/igrejas/${igrejaId}/repertorio-categorias/${id}`,
+      `/igrejas/${igrejaId}/ministerios/${ministerioId}/repertorio-categorias/${id}`,
       dto,
     );
     return response.data.data;
   }
 
-  async removeCategoria(igrejaId: string, id: string) {
-    await apiClient.delete(`/igrejas/${igrejaId}/repertorio-categorias/${id}`);
+  async removeCategoria(igrejaId: string, ministerioId: string, id: string) {
+    await apiClient.delete(
+      `/igrejas/${igrejaId}/ministerios/${ministerioId}/repertorio-categorias/${id}`,
+    );
   }
 
   async searchYoutubeVersions(

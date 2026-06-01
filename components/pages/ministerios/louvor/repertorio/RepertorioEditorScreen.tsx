@@ -1,16 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigation } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { FancyAlert } from '../../../../modal/FancyAlert';
-import FancyBottomSheetSelect from '../../../../fields/FancyBottomSheetSelect';
 import FancyBpmField from '../../../../fields/FancyBpmField';
 import FancyButton from '../../../../buttons/FancyButton';
 import FancyPageView from '../../../../containers/FancyPageView';
 import FancyTabs, { TabItem } from '../../../../tabs/FancyTabs';
-import FancyTextInput from '../../../../fields/FancyTextInput';
+import ControlledTextInput from '../../../../forms/ControlledTextInput';
+import ControlledBottomSheetSelect from '../../../../forms/ControlledBottomSheetSelect';
 import FancyLoading from '../../../../FancyLoading';
+import {
+  RepertorioMusicaSchema,
+  RepertorioMusicaFormData,
+} from '../../../../../domain/schemas/repertorioMusicaSchema';
 import FancyScrollView from '../../../../FancyScrollView';
 import SongTextEditorField from '../../../../song/SongTextEditorField';
 import RepertorioCategoriasManagerSheet from './RepertorioCategoriasManagerSheet';
@@ -76,7 +82,7 @@ export default function RepertorioEditorScreen({
   const ministerioAtual = igrejaAtiva?.ministerios?.find(
     (ministerio) => ministerio.id === ministerioId,
   );
-  const { data: categorias = [] } = useRepertorioCategorias();
+  const { data: categorias = [] } = useRepertorioCategorias(ministerioId);
   const { criarMusica, atualizarMusica, isMutatingMusica } = useRepertorioMusicas(ministerioId);
   const [categoriasVisible, setCategoriasVisible] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
@@ -107,29 +113,45 @@ export default function RepertorioEditorScreen({
   });
 
   const musica = musicaQuery.data;
-  const [nome, setNome] = useState(musica?.nome || '');
-  const [interprete, setInterprete] = useState(musica?.interprete || '');
-  const [versaoUrl, setVersaoUrl] = useState(musica?.versaoUrl || '');
-  const [categoriaId, setCategoriaId] = useState(musica?.categoriaId || '');
-  const [tomOriginal, setTomOriginal] = useState(musica?.tomOriginal || '');
-  const [bpmOriginal, setBpmOriginal] = useState<number>(musica?.bpmOriginal ?? 0);
-  const [letraMarkdown, setLetraMarkdown] = useState(musica?.letraMarkdown || '');
-  const [cifraMarkdown, setCifraMarkdown] = useState(musica?.cifraMarkdown || '');
-  const [observacoes, setObservacoes] = useState(musica?.observacoes || '');
   const [youtubeSearchVisible, setYoutubeSearchVisible] = useState(false);
+
+  const { control, handleSubmit, reset, watch, setValue } = useForm<RepertorioMusicaFormData>({
+    resolver: zodResolver(RepertorioMusicaSchema),
+    defaultValues: {
+      nome: '',
+      interprete: '',
+      versaoUrl: '',
+      categoriaId: '',
+      tomOriginal: '',
+      bpmOriginal: 0,
+      letraMarkdown: '',
+      cifraMarkdown: '',
+      observacoes: '',
+    },
+  });
+
+  const nome = watch('nome');
+  const interprete = watch('interprete') ?? '';
+  const versaoUrl = watch('versaoUrl') ?? '';
+  const bpmOriginal = watch('bpmOriginal') ?? 0;
+  const tomOriginal = watch('tomOriginal') ?? '';
+  const letraMarkdown = watch('letraMarkdown') ?? '';
+  const cifraMarkdown = watch('cifraMarkdown') ?? '';
 
   useEffect(() => {
     if (!musica) return;
-    setNome(musica.nome || '');
-    setInterprete(musica.interprete || '');
-    setVersaoUrl(musica.versaoUrl || '');
-    setCategoriaId(musica.categoriaId || '');
-    setTomOriginal(musica.tomOriginal || '');
-    setBpmOriginal(musica.bpmOriginal ?? 0);
-    setLetraMarkdown(musica.letraMarkdown || '');
-    setCifraMarkdown(musica.cifraMarkdown || '');
-    setObservacoes(musica.observacoes || '');
-  }, [musica]);
+    reset({
+      nome: musica.nome || '',
+      interprete: musica.interprete || '',
+      versaoUrl: musica.versaoUrl || '',
+      categoriaId: musica.categoriaId || '',
+      tomOriginal: musica.tomOriginal || '',
+      bpmOriginal: musica.bpmOriginal ?? 0,
+      letraMarkdown: musica.letraMarkdown || '',
+      cifraMarkdown: musica.cifraMarkdown || '',
+      observacoes: musica.observacoes || '',
+    });
+  }, [musica, reset]);
 
   const categoryOptions = useMemo(
     () =>
@@ -153,7 +175,7 @@ export default function RepertorioEditorScreen({
     return /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
   }, [versaoUrl]);
 
-  const handleSave = async () => {
+  const onSubmit = async (values: RepertorioMusicaFormData) => {
     if (!igrejaAtiva?.id || !ministerioId) return;
     if (!canEditRepertorio) {
       FancyAlert.alert(
@@ -162,23 +184,19 @@ export default function RepertorioEditorScreen({
       );
       return;
     }
-    if (!nome.trim() || !categoriaId) {
-      FancyAlert.alert('Campos obrigatórios', 'Nome da música e categoria são obrigatórios.');
-      return;
-    }
 
     try {
       const payload = {
         ministerioId,
-        categoriaId,
-        nome: nome.trim(),
-        interprete: interprete || undefined,
-        versaoUrl: versaoUrl || undefined,
-        tomOriginal: tomOriginal || undefined,
-        bpmOriginal: bpmOriginal > 0 ? bpmOriginal : undefined,
-        letraMarkdown: letraMarkdown || undefined,
-        cifraMarkdown: cifraMarkdown || undefined,
-        observacoes: observacoes || undefined,
+        categoriaId: values.categoriaId,
+        nome: values.nome.trim(),
+        interprete: values.interprete?.trim() || undefined,
+        versaoUrl: values.versaoUrl?.trim() || undefined,
+        tomOriginal: values.tomOriginal || undefined,
+        bpmOriginal: values.bpmOriginal && values.bpmOriginal > 0 ? values.bpmOriginal : undefined,
+        letraMarkdown: values.letraMarkdown || undefined,
+        cifraMarkdown: values.cifraMarkdown || undefined,
+        observacoes: values.observacoes || undefined,
       };
       if (musicaId) {
         await atualizarMusica({ id: musicaId, dto: payload });
@@ -196,12 +214,12 @@ export default function RepertorioEditorScreen({
   };
 
   const handleYoutubeVersionSelect = (selectedVideo: ResponseYoutubeSearchItemDto) => {
-    setVersaoUrl(selectedVideo.watchUrl);
+    setValue('versaoUrl', selectedVideo.watchUrl, { shouldDirty: true });
     if (!nome.trim()) {
-      setNome(selectedVideo.title);
+      setValue('nome', selectedVideo.title, { shouldValidate: true });
     }
     if (!interprete.trim()) {
-      setInterprete(selectedVideo.channelTitle);
+      setValue('interprete', selectedVideo.channelTitle, { shouldDirty: true });
     }
   };
 
@@ -356,17 +374,17 @@ export default function RepertorioEditorScreen({
             </View>
 
             <View style={styles.sectionBlock}>
-              <FancyTextInput
+              <ControlledTextInput
+                control={control}
+                name='nome'
                 label='Nome da música'
-                value={nome}
                 disabled={!canEditRepertorio}
-                inputProps={{ onChangeText: setNome }}
               />
-              <FancyTextInput
+              <ControlledTextInput
+                control={control}
+                name='interprete'
                 label='Intérprete'
-                value={interprete}
                 disabled={!canEditRepertorio}
-                inputProps={{ onChangeText: setInterprete }}
               />
 
               <View style={styles.fieldBlock}>
@@ -397,21 +415,20 @@ export default function RepertorioEditorScreen({
                 >
                   Organize esta música no repertório.
                 </FancyText>
-                <FancyBottomSheetSelect
-                  containerStyle={styles.fullWidthField}
+                <ControlledBottomSheetSelect
+                  control={control}
+                  name='categoriaId'
                   title='Categoria'
-                  value={categoriaId}
-                  onChange={(value) => setCategoriaId(String(value || ''))}
                   listItems={categoryOptions}
                   disabled={!canEditRepertorio}
                 />
               </View>
 
-              <FancyTextInput
+              <ControlledTextInput
+                control={control}
+                name='versaoUrl'
                 label='Link da versão'
-                value={versaoUrl}
                 disabled={!canEditRepertorio}
-                inputProps={{ onChangeText: setVersaoUrl }}
                 rightContainer={
                   <View style={styles.versaoUrlIcons}>
                     <TouchableOpacity
@@ -467,32 +484,33 @@ export default function RepertorioEditorScreen({
 
             <View style={styles.sectionBlock}>
               <View style={styles.inlineRow}>
-                <FancyBottomSheetSelect
-                  containerStyle={{ flex: 1 }}
-                  label='Tom original'
-                  title='Tom original'
-                  value={tomOriginal}
-                  onChange={(value) => setTomOriginal(String(value || ''))}
-                  listItems={toneOptions}
-                  disabled={!canEditRepertorio}
-                />
+                <View style={styles.inlineField}>
+                  <ControlledBottomSheetSelect
+                    control={control}
+                    name='tomOriginal'
+                    label='Tom original'
+                    title='Tom original'
+                    listItems={toneOptions}
+                    disabled={!canEditRepertorio}
+                  />
+                </View>
                 <FancyBpmField
                   containerStyle={{ flex: 1 }}
                   label='BPM original'
                   title='BPM original'
                   value={bpmOriginal}
-                  onChange={setBpmOriginal}
+                  onChange={(value) => setValue('bpmOriginal', value, { shouldDirty: true })}
                   min={0}
                   max={300}
                   disabled={!canEditRepertorio}
                 />
               </View>
-              <FancyTextInput
+              <ControlledTextInput
+                control={control}
+                name='observacoes'
                 label='Observações'
-                value={observacoes}
                 disabled={!canEditRepertorio}
                 inputProps={{
-                  onChangeText: setObservacoes,
                   multiline: true,
                   style: { minHeight: 100, textAlignVertical: 'top' },
                 }}
@@ -514,7 +532,7 @@ export default function RepertorioEditorScreen({
           <SongTextEditorField
             label='Letra'
             value={letraMarkdown}
-            onChange={setLetraMarkdown}
+            onChange={(value) => setValue('letraMarkdown', value, { shouldDirty: true })}
             placeholder='Digite a letra da música...'
           />
         </FancyScrollView>
@@ -534,7 +552,7 @@ export default function RepertorioEditorScreen({
           <SongTextEditorField
             label='Cifra'
             value={cifraMarkdown}
-            onChange={setCifraMarkdown}
+            onChange={(value) => setValue('cifraMarkdown', value, { shouldDirty: true })}
             placeholder='Digite a cifra da música...'
           />
         </FancyScrollView>
@@ -557,15 +575,14 @@ export default function RepertorioEditorScreen({
           isLoading={isMutatingMusica}
           containerStyle={styles.saveButton}
           disabled={!canEditRepertorio}
-          onPress={() => {
-            void handleSave();
-          }}
+          onPress={handleSubmit(onSubmit)}
         />
       ) : null}
       {canEditRepertorio ? (
         <RepertorioCategoriasManagerSheet
           visible={categoriasVisible}
           onClose={() => setCategoriasVisible(false)}
+          ministerioId={ministerioId}
         />
       ) : null}
       <YoutubeVersionSearchSheet
@@ -672,8 +689,8 @@ const styles = StyleSheet.create({
     gap: 1,
   },
   fieldHelperText: { paddingLeft: 2 },
-  fullWidthField: { width: '100%' },
   inlineRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
+  inlineField: { flex: 1 },
   versaoUrlIcons: { flexDirection: 'row', alignItems: 'center', gap: 12, height: '100%' },
   versaoUrlIconButton: { justifyContent: 'center', alignItems: 'center' },
   saveButton: { marginHorizontal: 20, height: 44, marginTop: 4 },

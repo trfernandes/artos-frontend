@@ -58,9 +58,9 @@ export default function YoutubeVersionSearchSheet({
       return (
         <FancyListEmpty
           label='Busque pela música'
+          labelColor={palette.fonts.dark}
           helperText='Use o nome da música e, se quiser, o intérprete para encontrar a versão certa no YouTube.'
           icon={{ library: 'Feather', name: 'search', size: 48, color: palette.primary }}
-          muted
         />
       );
     }
@@ -96,9 +96,9 @@ export default function YoutubeVersionSearchSheet({
       return (
         <FancyListEmpty
           label='Nenhuma versão encontrada'
+          labelColor={palette.fonts.dark}
           helperText='Tente ajustar o nome da música ou incluir o intérprete na busca.'
           icon={{ library: 'Feather', name: 'music', size: 48, color: palette.primary }}
-          muted
         />
       );
     }
@@ -177,7 +177,7 @@ export default function YoutubeVersionSearchSheet({
         <View style={styles.footerActions}>
           <FancyButton
             label='Abrir no YouTube'
-            type='light'
+            type='outlined'
             size={40}
             icon={{ library: 'MaterialCommunityIcons', name: 'youtube', size: 18 }}
             containerStyle={styles.footerPrimaryBtn}
