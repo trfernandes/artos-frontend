@@ -57,7 +57,10 @@ export type ThemePalette = {
   shadows: Record<100 | 200 | 300, ThemeShadowToken>;
   // Cores de identidade por plano. `accent` = cor vibrante (ícone/borda/fundo/dot);
   // `text` = variante com contraste AA para uso como texto sobre o fundo do tema.
-  plans: Record<'avaliacao' | 'starter' | 'essencial' | 'crescimento', { accent: string; text: string }>;
+  plans: Record<
+    'avaliacao' | 'starter' | 'essencial' | 'crescimento',
+    { accent: string; text: string }
+  >;
 };
 
 export const LightPalette: ThemePalette = {

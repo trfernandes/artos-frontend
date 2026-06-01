@@ -262,101 +262,106 @@ export default function LoginIndexPage() {
           </View>
 
           <View style={styles.bodyCenter}>
-          <View style={styles.centerGroup}>
-          <FancyText size='large' type='bold' color={Pallete.fonts.dark} style={styles.screenTitle}>
-            Entre na sua conta
-          </FancyText>
+            <View style={styles.centerGroup}>
+              <FancyText
+                size='large'
+                type='bold'
+                color={Pallete.fonts.dark}
+                style={styles.screenTitle}
+              >
+                Entre na sua conta
+              </FancyText>
 
-          <View style={styles.fieldsWrap}>
-            <FancyTextInput
-              label='E-mail'
-              value={email}
-              errorMessage={emailError}
-              inputProps={{
-                onChangeText: (value) => {
-                  setEmail(value);
-                  if (emailError) setEmailError('');
-                },
-                keyboardType: 'email-address',
-                autoCapitalize: 'none',
-                autoCorrect: false,
-                returnKeyType: 'next',
-                textContentType: 'emailAddress',
-                autoComplete: 'email',
-                importantForAutofill: 'yes',
-                blurOnSubmit: false,
-                onSubmitEditing: () => passwordInputRef.current?.focus(),
-                accessibilityLabel: 'E-mail',
-              }}
-              readonly={loading}
-              disabled={loading}
-            />
-            <FancyPasswordInput
-              label='Senha'
-              value={password}
-              errorMessage={passwordError}
-              inputRef={passwordInputRef}
-              inputProps={{
-                onChangeText: (value) => {
-                  setPassword(value);
-                  if (passwordError) setPasswordError('');
-                },
-                returnKeyType: 'go',
-                textContentType: 'password',
-                autoComplete: 'password',
-                autoCapitalize: 'none',
-                autoCorrect: false,
-                importantForAutofill: 'yes',
-                onSubmitEditing: () => handleLogin(),
-                accessibilityLabel: 'Senha',
-              }}
-              readonly={loading}
-              disabled={loading}
-            />
-          </View>
+              <View style={styles.fieldsWrap}>
+                <FancyTextInput
+                  label='E-mail'
+                  value={email}
+                  errorMessage={emailError}
+                  inputProps={{
+                    onChangeText: (value) => {
+                      setEmail(value);
+                      if (emailError) setEmailError('');
+                    },
+                    keyboardType: 'email-address',
+                    autoCapitalize: 'none',
+                    autoCorrect: false,
+                    returnKeyType: 'next',
+                    textContentType: 'emailAddress',
+                    autoComplete: 'email',
+                    importantForAutofill: 'yes',
+                    blurOnSubmit: false,
+                    onSubmitEditing: () => passwordInputRef.current?.focus(),
+                    accessibilityLabel: 'E-mail',
+                  }}
+                  readonly={loading}
+                  disabled={loading}
+                />
+                <FancyPasswordInput
+                  label='Senha'
+                  value={password}
+                  errorMessage={passwordError}
+                  inputRef={passwordInputRef}
+                  inputProps={{
+                    onChangeText: (value) => {
+                      setPassword(value);
+                      if (passwordError) setPasswordError('');
+                    },
+                    returnKeyType: 'go',
+                    textContentType: 'password',
+                    autoComplete: 'password',
+                    autoCapitalize: 'none',
+                    autoCorrect: false,
+                    importantForAutofill: 'yes',
+                    onSubmitEditing: () => handleLogin(),
+                    accessibilityLabel: 'Senha',
+                  }}
+                  readonly={loading}
+                  disabled={loading}
+                />
+              </View>
 
-          <View style={styles.rememberRow}>
-            <FancyCheckbox
-              label='Lembrar-se'
-              value={rememberMe}
-              onChangeValue={setRememberMe}
-              disabled={loading}
-              labelColor={Pallete.fonts.dark}
-            />
-            <FancyButton
-              type='text'
-              label='Esqueceu sua senha?'
-              onPress={() => router.push('/(auth)/forgot-password')}
-              labelStyle={{ fontSize: EXTRA_SMALL_SIZE_FONT, color: Pallete.fonts.link }}
-              containerStyle={styles.linkButton}
-              disabled={loading}
-            />
-          </View>
-
-          <FancyButton
-            label={loading ? 'Entrando...' : 'Entrar'}
-            onPress={handleLogin}
-            disabled={loading || isServerUnavailable}
-          />
-
-          {!keyboardVisible && (
-            <View style={styles.footerWrap}>
-              <View style={styles.signupRow}>
-                <FancyText size='small' color={Pallete.fonts.dark}>
-                  Não tem uma conta ainda?
-                </FancyText>
+              <View style={styles.rememberRow}>
+                <FancyCheckbox
+                  label='Lembrar-se'
+                  value={rememberMe}
+                  onChangeValue={setRememberMe}
+                  disabled={loading}
+                  labelColor={Pallete.fonts.dark}
+                />
                 <FancyButton
                   type='text'
-                  label='Começar'
-                  onPress={() => router.push('/(auth)/create-account')}
-                  labelStyle={{ color: Pallete.fonts.link }}
+                  label='Esqueceu sua senha?'
+                  onPress={() => router.push('/(auth)/forgot-password')}
+                  labelStyle={{ fontSize: EXTRA_SMALL_SIZE_FONT, color: Pallete.fonts.link }}
                   containerStyle={styles.linkButton}
                   disabled={loading}
                 />
               </View>
+
+              <FancyButton
+                label={loading ? 'Entrando...' : 'Entrar'}
+                onPress={handleLogin}
+                disabled={loading || isServerUnavailable}
+              />
+
+              {!keyboardVisible && (
+                <View style={styles.footerWrap}>
+                  <View style={styles.signupRow}>
+                    <FancyText size='small' color={Pallete.fonts.dark}>
+                      Não tem uma conta ainda?
+                    </FancyText>
+                    <FancyButton
+                      type='text'
+                      label='Começar'
+                      onPress={() => router.push('/(auth)/create-account')}
+                      labelStyle={{ color: Pallete.fonts.link }}
+                      containerStyle={styles.linkButton}
+                      disabled={loading}
+                    />
+                  </View>
+                </View>
+              )}
             </View>
-          )}
-          </View>
           </View>
         </View>
       </SafeAreaView>

@@ -57,7 +57,12 @@ class RepertorioRepositoryClass {
     return RepertorioApi.createSecao(igrejaId, musicaId, dto);
   }
 
-  updateSecao(igrejaId: string, musicaId: string, secaoId: string, dto: UpdateRepertorioMusicaSecaoDto) {
+  updateSecao(
+    igrejaId: string,
+    musicaId: string,
+    secaoId: string,
+    dto: UpdateRepertorioMusicaSecaoDto,
+  ) {
     return RepertorioApi.updateSecao(igrejaId, musicaId, secaoId, dto);
   }
 

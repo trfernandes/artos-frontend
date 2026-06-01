@@ -2,9 +2,9 @@ import { View } from 'react-native';
 import FancyList from '../../../list/FancyList';
 import { usePallete } from '../../../../hooks/usePallete';
 import {
-    VoluntarioHierarquiaEnum,
-    VoluntarioHierarquiaEnumLabel,
-    VoluntarioHierarquiaEnumMap,
+  VoluntarioHierarquiaEnum,
+  VoluntarioHierarquiaEnumLabel,
+  VoluntarioHierarquiaEnumMap,
 } from '../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
 import { FancyActionButtons } from '../../../cards/Horizontal/FancyCardActionButtons';
 import { FancyCard } from '../../../cards/Horizontal/FancyCard';
@@ -12,14 +12,22 @@ import FancyLoading from '../../../FancyLoading';
 import { FancyTextDisplayCard } from '../../../cards/FancyTextDisplayCard';
 import { useMinisterioVoluntariosCrud } from '../../../../hooks/useMinisterioVoluntariosCrud';
 import { useCallback, useMemo, useState } from 'react';
-import { DynamicQuery, Operator, OrderDirection, ValueType } from '../../../../domain/utils/query_utils';
+import {
+  DynamicQuery,
+  Operator,
+  OrderDirection,
+  ValueType,
+} from '../../../../domain/utils/query_utils';
 import VoluntarioEditFormModal from './VoluntarioEditFormModal';
 import FancyFab from '../../../buttons/FancyFab';
 import VoluntarioAddFormModal from './VoluntarioAddFormModal';
 import { useLoading } from '../../../../contexts/LoadingContext';
 import { FancyCardImageProps } from '../../../cards/Horizontal/FancyCardImage';
 import { ColorUtils } from '../../../../utils/color_utils';
-import { AddMinisterioVoluntarioFormData, EditMinisterioVoluntarioFormData } from '../../../../domain/schemas/ministerioAdminSchema';
+import {
+  AddMinisterioVoluntarioFormData,
+  EditMinisterioVoluntarioFormData,
+} from '../../../../domain/schemas/ministerioAdminSchema';
 import { AppImages } from '../../../../assets/app_images';
 import { FancyAlert } from '../../../modal/FancyAlert';
 import VoluntarioSummarySheet from '../../common/VoluntarioSummarySheet';
@@ -33,7 +41,15 @@ export default function VoluntarioTab({ ministerioId }: VoluntarioTabProps) {
   const Pallete = usePallete();
   const searchParams = useMemo<DynamicQuery>(() => {
     return {
-      where: { conditions: [{ path: 'ministerioId', operator: Operator.EQUALS, value: { type: ValueType.LITERAL, value: ministerioId } }] },
+      where: {
+        conditions: [
+          {
+            path: 'ministerioId',
+            operator: Operator.EQUALS,
+            value: { type: ValueType.LITERAL, value: ministerioId },
+          },
+        ],
+      },
       relations: ['voluntario'],
       orderBy: [{ path: 'voluntario.nome', direction: OrderDirection.ASC }],
     };
@@ -93,24 +109,28 @@ export default function VoluntarioTab({ ministerioId }: VoluntarioTabProps) {
 
   const handleRemoveVoluntario = useCallback(
     (id: string) => {
-      FancyAlert.alert('Exclusão', 'Tem certeza que deseja remover este voluntário do ministério?', [
-        {
-          text: 'Cancelar',
-          style: 'cancel',
-        },
-        {
-          text: 'Sim',
-          style: 'destructive',
-          onPress: async () => {
-            showLoading('Removendo...');
-            try {
-              await removeVoluntario(id);
-            } finally {
-              hideLoading();
-            }
+      FancyAlert.alert(
+        'Exclusão',
+        'Tem certeza que deseja remover este voluntário do ministério?',
+        [
+          {
+            text: 'Cancelar',
+            style: 'cancel',
           },
-        },
-      ]);
+          {
+            text: 'Sim',
+            style: 'destructive',
+            onPress: async () => {
+              showLoading('Removendo...');
+              try {
+                await removeVoluntario(id);
+              } finally {
+                hideLoading();
+              }
+            },
+          },
+        ],
+      );
     },
     [FancyAlert.alert, removeVoluntario, showLoading, hideLoading],
   );
@@ -123,18 +143,32 @@ export default function VoluntarioTab({ ministerioId }: VoluntarioTabProps) {
         data={minVoluntsList}
         bottomSpace={45}
         containerStyle={{ flex: 1 }}
-        listEmptyProps={{ label: 'Nenhum voluntário adicionado', icon: { library: 'MaterialCommunityIcons', name: 'account-group-outline', size: 55 } }}
+        listEmptyProps={{
+          label: 'Nenhum voluntário adicionado',
+          icon: { library: 'MaterialCommunityIcons', name: 'account-group-outline', size: 55 },
+        }}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => {
           const commonProps: FancyCardImageProps = {
-            backgroundColor: [VoluntarioHierarquiaEnum.Lider, VoluntarioHierarquiaEnum.Auxiliar].includes(
-              VoluntarioHierarquiaEnumMap[item.hierarquia],
-            )
+            backgroundColor: [
+              VoluntarioHierarquiaEnum.Lider,
+              VoluntarioHierarquiaEnum.Auxiliar,
+            ].includes(VoluntarioHierarquiaEnumMap[item.hierarquia])
               ? ColorUtils.lightenColor(Pallete.primary, 0.8)
               : undefined,
             title: item.voluntario?.nome,
-            subtitle: item.voluntario?.email || <FancyTextDisplayCard title='Função:' value={VoluntarioHierarquiaEnumLabel[item.hierarquia]} />,
-            additionalData1: item.voluntario?.email ? <FancyTextDisplayCard title='Função:' value={VoluntarioHierarquiaEnumLabel[item.hierarquia]} /> : undefined,
+            subtitle: item.voluntario?.email || (
+              <FancyTextDisplayCard
+                title='Função:'
+                value={VoluntarioHierarquiaEnumLabel[item.hierarquia]}
+              />
+            ),
+            additionalData1: item.voluntario?.email ? (
+              <FancyTextDisplayCard
+                title='Função:'
+                value={VoluntarioHierarquiaEnumLabel[item.hierarquia]}
+              />
+            ) : undefined,
             source:
               item.voluntario?.fotoUrl || item.voluntario?.fotoThumbUrl
                 ? { uri: item.voluntario?.fotoThumbUrl || item.voluntario?.fotoUrl }
@@ -224,7 +258,11 @@ export default function VoluntarioTab({ ministerioId }: VoluntarioTabProps) {
           }}
         />
       )}
-      <VoluntarioSummarySheet visible={!!selectedVoluntario} onClose={() => setSelectedVoluntario(null)} data={selectedVoluntario} />
+      <VoluntarioSummarySheet
+        visible={!!selectedVoluntario}
+        onClose={() => setSelectedVoluntario(null)}
+        data={selectedVoluntario}
+      />
     </View>
   );
 }

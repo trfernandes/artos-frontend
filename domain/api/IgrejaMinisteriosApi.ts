@@ -13,7 +13,10 @@ class IgrejaMinisteriosApiClass {
    * Listar ministerios da igreja com busca avancada (JWT)
    * POST /igrejas/{igrejaId}/ministerios/search
    */
-  async listarMinisterios(igrejaId: string, query?: DynamicQuery): Promise<ResponseMinisterioDto[]> {
+  async listarMinisterios(
+    igrejaId: string,
+    query?: DynamicQuery,
+  ): Promise<ResponseMinisterioDto[]> {
     const response = await apiClient.post<ApiEnvelope<ResponseMinisterioDto[]>>(
       `/${this.resourceName}/${igrejaId}/ministerios/search`,
       query || {},

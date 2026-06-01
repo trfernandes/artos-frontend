@@ -12,7 +12,11 @@ type Button = {
 };
 
 type AlertContextType = {
-  show: (title: string | React.ReactNode, message?: string | React.ReactNode, buttons?: Button[]) => void;
+  show: (
+    title: string | React.ReactNode,
+    message?: string | React.ReactNode,
+    buttons?: Button[],
+  ) => void;
 };
 
 const AlertCtx = createContext<AlertContextType | null>(null);
@@ -42,7 +46,13 @@ export function FancyAlertProvider({ children }: { children: ReactNode }) {
     <AlertCtx.Provider value={{ show }}>
       {children}
 
-      <Modal visible={visible} transparent animationType='fade' presentationStyle='overFullScreen' onRequestClose={() => setVisible(false)}>
+      <Modal
+        visible={visible}
+        transparent
+        animationType='fade'
+        presentationStyle='overFullScreen'
+        onRequestClose={() => setVisible(false)}
+      >
         <View style={[styles.backdrop, { backgroundColor: palette.overlays.backdrop }]}>
           <View style={[styles.card, { backgroundColor: palette.backgroundColor2 }]}>
             <View>
@@ -72,7 +82,10 @@ export function FancyAlertProvider({ children }: { children: ReactNode }) {
                   key={i}
                   label={btn.text}
                   onPress={() => close(btn)}
-                  textProps={{ adjustsFontSizeToFit: !shouldStackButtons, numberOfLines: shouldStackButtons ? 2 : 1 }}
+                  textProps={{
+                    adjustsFontSizeToFit: !shouldStackButtons,
+                    numberOfLines: shouldStackButtons ? 2 : 1,
+                  }}
                   containerStyle={[
                     styles.button,
                     shouldStackButtons && styles.buttonStacked,

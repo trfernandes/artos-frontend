@@ -9,9 +9,7 @@ import { FancyListEmptyProps } from '../../../../../components/list/FancyListEmp
 import { useEscalaSubstituicoesCrud } from '../../../../../hooks/useEscalaSubstituicoesCrud';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
-import {
-  EscalaSubstituicaoStatusEnum,
-} from '../../../../../domain/enums/Escala/escala-substituicao-status.enum';
+import { EscalaSubstituicaoStatusEnum } from '../../../../../domain/enums/Escala/escala-substituicao-status.enum';
 import SubstituicaoMinisterioCard from '../../../../../components/pages/ministerios/escalas/substituicoes/SubstituicaoMinisterioCard';
 import Toast from 'react-native-toast-message';
 import { getApiErrorMessage } from '../../../../../domain/api/api-error';
@@ -71,14 +69,8 @@ export default function MinisterioSubstituicoesScreen() {
     [ministerioId],
   );
 
-  const {
-    data,
-    isLoading,
-    update,
-    isLoadingMutation,
-    refetch,
-    isRefetching,
-  } = useEscalaSubstituicoesCrud({ autoFetch: true, initialParams: query });
+  const { data, isLoading, update, isLoadingMutation, refetch, isRefetching } =
+    useEscalaSubstituicoesCrud({ autoFetch: true, initialParams: query });
 
   const filtered = useMemo(() => {
     const list = data ?? [];
@@ -110,7 +102,11 @@ export default function MinisterioSubstituicoesScreen() {
       });
       Toast.show({ type: 'success', text1: 'Substituição aprovada!', position: 'top' });
     } catch (err) {
-      Toast.show({ type: 'error', text1: getApiErrorMessage(err) ?? 'Erro ao aprovar.', position: 'top' });
+      Toast.show({
+        type: 'error',
+        text1: getApiErrorMessage(err) ?? 'Erro ao aprovar.',
+        position: 'top',
+      });
     } finally {
       setActingId(null);
     }
@@ -129,7 +125,11 @@ export default function MinisterioSubstituicoesScreen() {
       });
       Toast.show({ type: 'success', text1: 'Substituição recusada.', position: 'top' });
     } catch (err) {
-      Toast.show({ type: 'error', text1: getApiErrorMessage(err) ?? 'Erro ao recusar.', position: 'top' });
+      Toast.show({
+        type: 'error',
+        text1: getApiErrorMessage(err) ?? 'Erro ao recusar.',
+        position: 'top',
+      });
     } finally {
       setActingId(null);
     }

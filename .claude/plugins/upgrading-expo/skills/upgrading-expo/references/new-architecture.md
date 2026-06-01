@@ -1,6 +1,7 @@
 # New Architecture
 
-The New Architecture is enabled by default in Expo SDK 53+. It replaces the legacy bridge with a faster, synchronous communication layer between JavaScript and native code.
+The New Architecture is enabled by default in Expo SDK 53+. It replaces the legacy bridge with a
+faster, synchronous communication layer between JavaScript and native code.
 
 ## Documentation
 
@@ -34,7 +35,8 @@ New Architecture is enabled by default. To explicitly disable (not recommended):
 
 ## Expo Go
 
-Expo Go only supports the New Architecture as of SDK 53. Apps using the old architecture must use development builds.
+Expo Go only supports the New Architecture as of SDK 53. Apps using the old architecture must use
+development builds.
 
 ## Common Migration Issues
 
@@ -63,13 +65,14 @@ Some layout animations behave differently. Test thoroughly after upgrading.
 Check if New Architecture is active:
 
 ```tsx
-import { Platform } from "react-native";
+import { Platform } from 'react-native';
 
 // Returns true if Fabric is enabled
 const isNewArch = global._IS_FABRIC !== undefined;
 ```
 
-Verify from the command line if the currently running app uses the New Architecture: `bunx xcobra expo eval "_IS_FABRIC"` -> `true`
+Verify from the command line if the currently running app uses the New Architecture:
+`bunx xcobra expo eval "_IS_FABRIC"` -> `true`
 
 ## Troubleshooting
 

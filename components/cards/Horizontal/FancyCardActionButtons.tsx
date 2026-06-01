@@ -42,7 +42,8 @@ export type MenuActionButtonProps = Omit<BaseActionButtonProps, 'onPress'> & {
 
 export type ActionButtonProps = SimpleActionButtonProps | MenuActionButtonProps;
 
-export const isMenuActionButton = (a: ActionButtonProps): a is MenuActionButtonProps => (a as any).type === 'menu';
+export const isMenuActionButton = (a: ActionButtonProps): a is MenuActionButtonProps =>
+  (a as any).type === 'menu';
 
 type SizeDefinition = { container: { width: number; height: number } };
 
@@ -51,11 +52,21 @@ const sizeMapping: Record<'small' | 'medium', SizeDefinition> = {
   medium: { container: { width: 30, height: 30 } },
 };
 
-export function FancyActionButtons({ actions, actionButtonContainerStyle, containerStyle }: FancyActionButtonsProps): ReactNode {
+export function FancyActionButtons({
+  actions,
+  actionButtonContainerStyle,
+  containerStyle,
+}: FancyActionButtonsProps): ReactNode {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
 
-  function generateButton(item: ActionButtonProps, idx: number, hasLabel: boolean, iconColor: string, sizeDefinitions: SizeDefinition): ReactNode {
+  function generateButton(
+    item: ActionButtonProps,
+    idx: number,
+    hasLabel: boolean,
+    iconColor: string,
+    sizeDefinitions: SizeDefinition,
+  ): ReactNode {
     const Wrapper: any = isMenuActionButton(item) ? View : TouchableOpacity;
 
     return (
@@ -73,7 +84,13 @@ export function FancyActionButtons({ actions, actionButtonContainerStyle, contai
           actionButtonContainerStyle,
         ]}
       >
-        <View style={[styles.actionButtonContent, { borderRadius: 999, paddingHorizontal: hasLabel ? 10 : 0 }, item.style]}>
+        <View
+          style={[
+            styles.actionButtonContent,
+            { borderRadius: 999, paddingHorizontal: hasLabel ? 10 : 0 },
+            item.style,
+          ]}
+        >
           <DefaultIcons.Custom
             {...item.icon}
             style={[
@@ -123,7 +140,11 @@ export function FancyActionButtons({ actions, actionButtonContainerStyle, contai
 
   return (
     <View style={[styles.actionButtonsContainer, containerStyle]}>
-      {isValidElement(actions) ? actions : Array.isArray(actions) ? generateButtonsComponent(actions) : null}
+      {isValidElement(actions)
+        ? actions
+        : Array.isArray(actions)
+          ? generateButtonsComponent(actions)
+          : null}
     </View>
   );
 }

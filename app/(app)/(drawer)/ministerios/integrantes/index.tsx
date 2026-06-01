@@ -40,7 +40,8 @@ export default function MinisterioIntegrantesIndex() {
   const { ministerioId } = useLocalSearchParams<{ ministerioId: string }>();
 
   const [searchText, setSearchText] = useState('');
-  const [actionsIntegrante, setActionsIntegrante] = useState<ResponseMinisterioVoluntarioDto | null>(null);
+  const [actionsIntegrante, setActionsIntegrante] =
+    useState<ResponseMinisterioVoluntarioDto | null>(null);
   const ministerioStatusColorMap = useMemo(() => getMinisterioStatusColorMap(palette), [palette]);
 
   const params = useMemo(() => {
@@ -250,7 +251,13 @@ export default function MinisterioIntegrantesIndex() {
                           }}
                           containerStyle={styles.functionInfo}
                           value={funcoesLabel}
-                          valueStyle={{ numberOfLines: 2, ellipsizeMode: 'tail', style: styles.functionText } as any}
+                          valueStyle={
+                            {
+                              numberOfLines: 2,
+                              ellipsizeMode: 'tail',
+                              style: styles.functionText,
+                            } as any
+                          }
                         />
                       );
                     })()}
@@ -301,7 +308,9 @@ export default function MinisterioIntegrantesIndex() {
               handleChangeStatus(
                 actionsIntegrante.id!,
                 actionsIntegrante.voluntario?.nome ?? '',
-                selectedIsActive ? MinisterioVoluntarioStatusEnum.Inativo : MinisterioVoluntarioStatusEnum.Ativo,
+                selectedIsActive
+                  ? MinisterioVoluntarioStatusEnum.Inativo
+                  : MinisterioVoluntarioStatusEnum.Ativo,
               );
             },
           },

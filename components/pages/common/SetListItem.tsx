@@ -46,7 +46,9 @@ function SetListItem({
   const palette = usePallete();
   const isAuto = tipoOrigem === EventoSetlistItemOrigemEnum.REPERTORIO;
   const orderLabel = String(order).padStart(2, '0');
-  const musicMetaParts = [tom ? `Tom ${tom}` : null, bpm ? `BPM ${bpm}` : null].filter(Boolean) as string[];
+  const musicMetaParts = [tom ? `Tom ${tom}` : null, bpm ? `BPM ${bpm}` : null].filter(
+    Boolean,
+  ) as string[];
   const musicMetaLabel = musicMetaParts.join(', ');
   const typeColor = isAuto ? palette.confirm : palette.primary;
   const tomColor = palette.secondary;
@@ -61,25 +63,11 @@ function SetListItem({
         subtitle: artist || undefined,
         additionalData1: (
           <View style={styles.metaRow}>
-            <MusicBadge
-              label={isAuto ? 'AUTO' : 'MANUAL'}
-              color={typeColor}
-              dot
-            />
+            <MusicBadge label={isAuto ? 'AUTO' : 'MANUAL'} color={typeColor} dot />
             {tom ? (
-              <MusicBadge
-                label={`TOM ${tom}`}
-                color={tomColor}
-                icon='music-clef-treble'
-              />
+              <MusicBadge label={`TOM ${tom}`} color={tomColor} icon='music-clef-treble' />
             ) : null}
-            {bpm ? (
-              <MusicBadge
-                label={`BPM ${bpm}`}
-                color={bpmColor}
-                icon='metronome'
-              />
-            ) : null}
+            {bpm ? <MusicBadge label={`BPM ${bpm}`} color={bpmColor} icon='metronome' /> : null}
           </View>
         ),
         titleProps: {
@@ -157,8 +145,16 @@ function MusicBadge({
       ]}
     >
       {dot ? <View style={[styles.badgeDot, { backgroundColor: color }]} /> : null}
-      {icon ? <MaterialCommunityIcons name={icon} size={11} color={color} style={styles.badgeIcon} /> : null}
-      <FancyText type='bold' size='extraSmall' numberOfLines={1} color={color} style={styles.badgeText}>
+      {icon ? (
+        <MaterialCommunityIcons name={icon} size={11} color={color} style={styles.badgeIcon} />
+      ) : null}
+      <FancyText
+        type='bold'
+        size='extraSmall'
+        numberOfLines={1}
+        color={color}
+        style={styles.badgeText}
+      >
         {label}
       </FancyText>
     </View>

@@ -28,12 +28,7 @@ export default function ConviteGeradoModal({
   if (!convite) return null;
 
   return (
-    <Modal
-      visible={!!convite}
-      transparent
-      animationType='fade'
-      onRequestClose={onClose}
-    >
+    <Modal visible={!!convite} transparent animationType='fade' onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.card}>
           {/* Ícone de sucesso */}

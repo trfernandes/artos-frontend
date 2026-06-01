@@ -3,8 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 import { CadastroIgrejaRepository } from '../domain/services/CadastroIgrejaRepository';
 import {
-    CadastroIgrejaStorageDto,
-    StatusCadastroResponseDto,
+  CadastroIgrejaStorageDto,
+  StatusCadastroResponseDto,
 } from '../domain/dtos/Igreja/cadastro-igreja.dto';
 import { IgrejaCadastroSolicitacaoStatusEnum } from '../domain/enums/Igreja/cadastro-solicitacao-status.enum';
 

@@ -1,4 +1,12 @@
-import { View, StyleSheet, ScrollView, NativeSyntheticEvent, NativeScrollEvent, StyleProp, ViewStyle } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+  StyleProp,
+  ViewStyle,
+} from 'react-native';
 import FancyText from '../FancyText';
 import { useEffect, useRef, useState } from 'react';
 

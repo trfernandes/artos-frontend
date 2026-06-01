@@ -41,7 +41,13 @@ export default function FancyPopup({
       <MenuOptions optionsContainerStyle={styles.menuContainer}>
         <View>
           {title && (
-            <FancyText type='mediumItalic' size='small' style={styles.popupTitle} numberOfLines={2} adjustsFontSizeToFit>
+            <FancyText
+              type='mediumItalic'
+              size='small'
+              style={styles.popupTitle}
+              numberOfLines={2}
+              adjustsFontSizeToFit
+            >
               {title}
             </FancyText>
           )}
@@ -76,11 +82,11 @@ export default function FancyPopup({
                 >
                   <View style={{ width: 20, borderWidth: 0, justifyContent: 'flex-end' }}>
                     {item.icon && (
-                        <DefaultIcons.Custom
-                          {...item.icon}
-                          size={item.icon.size || 20}
-                          color={item.icon.color || palette.fonts.dark}
-                          style={[
+                      <DefaultIcons.Custom
+                        {...item.icon}
+                        size={item.icon.size || 20}
+                        color={item.icon.color || palette.fonts.dark}
+                        style={[
                           {
                             width: 20,
                             height: 20,
@@ -108,7 +114,9 @@ export default function FancyPopup({
                   </View>
                 </View>
               </MenuOption>
-              {showSeparator && index < items.length - 1 && <FancySeparator style={{ paddingVertical: 4 }} />}
+              {showSeparator && index < items.length - 1 && (
+                <FancySeparator style={{ paddingVertical: 4 }} />
+              )}
             </View>
           ))}
         </View>

@@ -75,8 +75,14 @@ export default function NovoConviteModal({
       closeDisabled={isLoading}
       footer={
         <View style={styles.footer}>
-          <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} style={styles.footerPreview}>
-            {descricao.trim() || 'Convite'} • {maxUses ? `${maxUses} uso(s)` : 'Ilimitado'} • {validadeDias ? `${validadeDias} dias` : 'Sem expiração'}
+          <FancyText
+            size='extraSmall'
+            type='medium'
+            color={palette.fonts.inactive}
+            style={styles.footerPreview}
+          >
+            {descricao.trim() || 'Convite'} • {maxUses ? `${maxUses} uso(s)` : 'Ilimitado'} •{' '}
+            {validadeDias ? `${validadeDias} dias` : 'Sem expiração'}
           </FancyText>
           <FancyButton
             label='Gerar Convite'
@@ -140,7 +146,11 @@ export default function NovoConviteModal({
             >
               Com Aprovação
             </FancyText>
-            <FancyText size='extraSmall' color={palette.fonts.inactive} style={styles.entryTypeDesc}>
+            <FancyText
+              size='extraSmall'
+              color={palette.fonts.inactive}
+              style={styles.entryTypeDesc}
+            >
               Você aprova cada solicitação
             </FancyText>
           </TouchableOpacity>
@@ -171,7 +181,11 @@ export default function NovoConviteModal({
             >
               Entrada Imediata
             </FancyText>
-            <FancyText size='extraSmall' color={palette.fonts.inactive} style={styles.entryTypeDesc}>
+            <FancyText
+              size='extraSmall'
+              color={palette.fonts.inactive}
+              style={styles.entryTypeDesc}
+            >
               Entra automaticamente
             </FancyText>
           </TouchableOpacity>
@@ -217,7 +231,6 @@ export default function NovoConviteModal({
           ))}
         </View>
       </View>
-
     </FancyBottomSheetModal>
   );
 }

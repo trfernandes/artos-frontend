@@ -89,7 +89,7 @@ export default function FancyAccordeon({
     expanded && headerExpandedGradientColors?.length
       ? headerExpandedGradientColors
       : headerGradientColors;
-  const resolvedHeaderColor = expanded ? expandedHeaderColor ?? headerColor : headerColor;
+  const resolvedHeaderColor = expanded ? (expandedHeaderColor ?? headerColor) : headerColor;
   const shouldRenderTrailing = !!subtitle || isLoading || !hideChevron;
 
   const renderTrailingContent = () => {

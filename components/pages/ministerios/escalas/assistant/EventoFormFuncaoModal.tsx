@@ -5,12 +5,15 @@ import ControlledSearchSelect from '../../../../forms/ControlledSearchSelect';
 import ControlledBottomSheetSelect from '../../../../forms/ControlledBottomSheetSelect';
 import { EnumUtils } from '../../../../../utils/enum_utils';
 import ControlledNumberInput from '../../../../forms/ControlledNumberInput';
-import { EscalaEventoTemplateFuncaoFormData, EscalaEventoTemplateFuncaoSchema } from '../../../../../domain/schemas/escalaSchema';
+import {
+  EscalaEventoTemplateFuncaoFormData,
+  EscalaEventoTemplateFuncaoSchema,
+} from '../../../../../domain/schemas/escalaSchema';
 import { strfyObj } from '../../../../../utils/text_utils';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
 import {
-    EscalaTemplateExperienciaEnum,
-    EscalaTemplateExperienciaLabel,
+  EscalaTemplateExperienciaEnum,
+  EscalaTemplateExperienciaLabel,
 } from '../../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
 
 export interface EventoFormFuncaoModalProps {
@@ -20,7 +23,12 @@ export interface EventoFormFuncaoModalProps {
   funcoesSelectionList: DropDownItemProps<string>[];
 }
 
-export default function EventoFormFuncaoModal({ mode, data, modalProps, funcoesSelectionList }: EventoFormFuncaoModalProps) {
+export default function EventoFormFuncaoModal({
+  mode,
+  data,
+  modalProps,
+  funcoesSelectionList,
+}: EventoFormFuncaoModalProps) {
   const form = useForm<EscalaEventoTemplateFuncaoFormData>({
     resolver: zodResolver(EscalaEventoTemplateFuncaoSchema),
     defaultValues: data || { quantidade: 1 },
@@ -54,7 +62,10 @@ export default function EventoFormFuncaoModal({ mode, data, modalProps, funcoesS
         control={form.control}
         name='experiencia'
         label='Experiência'
-        listItems={EnumUtils.getDropDownItems(EscalaTemplateExperienciaEnum, EscalaTemplateExperienciaLabel)}
+        listItems={EnumUtils.getDropDownItems(
+          EscalaTemplateExperienciaEnum,
+          EscalaTemplateExperienciaLabel,
+        )}
       />
       <ControlledNumberInput
         control={form.control}

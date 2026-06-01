@@ -27,7 +27,10 @@ export default function AddLiderancaFormModal({ volunteers, ...props }: Props) {
         value: v.id,
         left: {
           type: 'image',
-          source: v.fotoThumbUrl || v.fotoUrl ? { uri: v.fotoThumbUrl || v.fotoUrl || '' } : AppImages.emptyProfile,
+          source:
+            v.fotoThumbUrl || v.fotoUrl
+              ? { uri: v.fotoThumbUrl || v.fotoUrl || '' }
+              : AppImages.emptyProfile,
         } as any,
       })),
     [volunteers],
@@ -43,7 +46,12 @@ export default function AddLiderancaFormModal({ volunteers, ...props }: Props) {
   }, [form, onConfirm]);
 
   return (
-    <FancyModalDialog {...props} title='Adicionar líder' centerContainerStyle={{ gap: 15 }} onButton2Press={onSubmit}>
+    <FancyModalDialog
+      {...props}
+      title='Adicionar líder'
+      centerContainerStyle={{ gap: 15 }}
+      onButton2Press={onSubmit}
+    >
       <ControlledSearchSelect
         control={form.control}
         name='voluntarioId'
@@ -53,8 +61,18 @@ export default function AddLiderancaFormModal({ volunteers, ...props }: Props) {
         onChange={(value) => {
           const selected = voluntariosDropDownList.find((item) => item.value === value);
           form.setValue('voluntarioNome', selected?.title || '');
-          form.setValue('fotoUrl', ((selected?.left as any)?.source?.uri ?? (selected?.left as any)?.source ?? null) as any);
-          form.setValue('fotoThumbUrl', ((selected?.left as any)?.source?.uri ?? (selected?.left as any)?.source ?? null) as any);
+          form.setValue(
+            'fotoUrl',
+            ((selected?.left as any)?.source?.uri ??
+              (selected?.left as any)?.source ??
+              null) as any,
+          );
+          form.setValue(
+            'fotoThumbUrl',
+            ((selected?.left as any)?.source?.uri ??
+              (selected?.left as any)?.source ??
+              null) as any,
+          );
           form.setValue('hierarquia', VoluntarioHierarquiaEnum.Lider);
         }}
       />

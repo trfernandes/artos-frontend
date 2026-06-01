@@ -46,7 +46,11 @@ export default function FancyPageHeader({
       <View style={styles.headerRow}>
         <View style={styles.leftContainer}>
           {props.leftButton === 'menu' ? (
-            <HeaderMenuButton title={options?.title} onPress={() => nav.toggleDrawer()} color={palette.fonts.dark} />
+            <HeaderMenuButton
+              title={options?.title}
+              onPress={() => nav.toggleDrawer()}
+              color={palette.fonts.dark}
+            />
           ) : back || props.leftButton === 'back' ? (
             <HeaderBackButton
               title={options?.title}
@@ -54,7 +58,11 @@ export default function FancyPageHeader({
               color={palette.fonts.dark}
             />
           ) : (
-            <HeaderMenuButton title={options?.title} onPress={() => nav.toggleDrawer()} color={palette.fonts.dark} />
+            <HeaderMenuButton
+              title={options?.title}
+              onPress={() => nav.toggleDrawer()}
+              color={palette.fonts.dark}
+            />
           )}
         </View>
         {options?.headerRight && (
@@ -70,7 +78,12 @@ export default function FancyPageHeader({
 }
 
 const HeaderMenuButton = (props: { title?: string; onPress?: () => void; color: string }) => (
-  <View style={[styles.buttonContainer, { position: 'absolute', left: HEADER_HORIZONTAL_GUTTER, gap: 10 }]}>
+  <View
+    style={[
+      styles.buttonContainer,
+      { position: 'absolute', left: HEADER_HORIZONTAL_GUTTER, gap: 10 },
+    ]}
+  >
     <FancyHeaderButton
       icon={{ ...DefaultIconsNames.menu, size: 24 }}
       onPress={props.onPress!}
@@ -82,7 +95,14 @@ const HeaderMenuButton = (props: { title?: string; onPress?: () => void; color: 
       }}
     />
     {props.title && (
-      <FancyText size='medium' type='bold' color={props.color} style={styles.headerTitle} numberOfLines={1} ellipsizeMode='tail'>
+      <FancyText
+        size='medium'
+        type='bold'
+        color={props.color}
+        style={styles.headerTitle}
+        numberOfLines={1}
+        ellipsizeMode='tail'
+      >
         {props.title}
       </FancyText>
     )}
@@ -90,7 +110,12 @@ const HeaderMenuButton = (props: { title?: string; onPress?: () => void; color: 
 );
 
 const HeaderBackButton = (props: { title?: string; onPress: () => void; color: string }) => (
-  <View style={[styles.buttonContainer, { position: 'absolute', left: HEADER_HORIZONTAL_GUTTER, gap: 10, borderWidth: 0 }]}>
+  <View
+    style={[
+      styles.buttonContainer,
+      { position: 'absolute', left: HEADER_HORIZONTAL_GUTTER, gap: 10, borderWidth: 0 },
+    ]}
+  >
     <FancyHeaderButton
       icon={{ library: 'MaterialCommunityIcons', name: 'arrow-left-thin', size: 28 }}
       onPress={props.onPress}
@@ -102,7 +127,14 @@ const HeaderBackButton = (props: { title?: string; onPress: () => void; color: s
       }}
     />
     {props.title && (
-      <FancyText size='medium' type='bold' color={props.color} style={styles.headerTitle} numberOfLines={1} ellipsizeMode='tail'>
+      <FancyText
+        size='medium'
+        type='bold'
+        color={props.color}
+        style={styles.headerTitle}
+        numberOfLines={1}
+        ellipsizeMode='tail'
+      >
         {props.title}
       </FancyText>
     )}

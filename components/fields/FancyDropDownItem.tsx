@@ -17,10 +17,16 @@ export interface DropDownItemProps<ValueType> {
 export default function FancyDropDownItem<ValueItem>(props: DropDownItemProps<ValueItem>) {
   const Pallete = usePallete();
   return (
-    <TouchableOpacity style={[styles.container, props.selected && styles.selected]} onPress={props.onPress}>
+    <TouchableOpacity
+      style={[styles.container, props.selected && styles.selected]}
+      onPress={props.onPress}
+    >
       {props.left &&
         (props.left?.type === 'icon' ? (
-          <DefaultIcons.Custom color={Pallete.fonts.dark} {...(props.left.icon as CustomIconProps)} />
+          <DefaultIcons.Custom
+            color={Pallete.fonts.dark}
+            {...(props.left.icon as CustomIconProps)}
+          />
         ) : (
           <Image
             source={props.left.source ? { uri: props.left.source || '' } : AppImages.emptyProfile}

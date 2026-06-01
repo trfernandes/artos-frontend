@@ -60,10 +60,7 @@ export const RecursosPermissoesTable: Record<RecursoPermissaoEnum, TipoPermissao
     TipoPermissaoEnum.Alterar,
     TipoPermissaoEnum.Publicar,
   ],
-  [RecursoPermissaoEnum.Integrantes]: [
-    TipoPermissaoEnum.Visualizar,
-    TipoPermissaoEnum.Gerenciar,
-  ],
+  [RecursoPermissaoEnum.Integrantes]: [TipoPermissaoEnum.Visualizar, TipoPermissaoEnum.Gerenciar],
   [RecursoPermissaoEnum.FuncoesTemplates]: [
     TipoPermissaoEnum.Visualizar,
     TipoPermissaoEnum.Gerenciar,

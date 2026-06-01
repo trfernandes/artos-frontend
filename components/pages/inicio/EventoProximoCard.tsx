@@ -17,7 +17,11 @@ type EventoProximoCardProps = {
   onPress?: () => void;
 };
 
-export default function EventoProximoCard({ evento, variant = 'vertical', onPress }: EventoProximoCardProps) {
+export default function EventoProximoCard({
+  evento,
+  variant = 'vertical',
+  onPress,
+}: EventoProximoCardProps) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
   const dataFormatada = formatAppDateTime(evento.dataInicio, "dd 'de' MMMM") ?? '';
@@ -36,8 +40,8 @@ export default function EventoProximoCard({ evento, variant = 'vertical', onPres
 
       <View style={styles.content}>
         <FancyText
-          size="small"
-          type="semiBold"
+          size='small'
+          type='semiBold'
           color={palette.fonts.dark}
           numberOfLines={1}
           adjustsFontSizeToFit
@@ -47,16 +51,31 @@ export default function EventoProximoCard({ evento, variant = 'vertical', onPres
         </FancyText>
 
         <View style={styles.infoRow}>
-          <DefaultIcons.Custom library="MaterialCommunityIcons" name="calendar" size={12} color={palette.primary} />
-          <FancyText size="extraSmall" type="medium" color={palette.fonts.inactive}>
+          <DefaultIcons.Custom
+            library='MaterialCommunityIcons'
+            name='calendar'
+            size={12}
+            color={palette.primary}
+          />
+          <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
             {dataFormatada} às {horaFormatada}
           </FancyText>
         </View>
 
         {ensaioInfo.shouldShow && (
           <View style={styles.infoRow}>
-            <DefaultIcons.Custom library="MaterialCommunityIcons" name="music-box-outline" size={12} color={palette.primary} />
-            <FancyText size="extraSmall" type="medium" color={palette.fonts.inactive} numberOfLines={1}>
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='music-box-outline'
+              size={12}
+              color={palette.primary}
+            />
+            <FancyText
+              size='extraSmall'
+              type='medium'
+              color={palette.fonts.inactive}
+              numberOfLines={1}
+            >
               {ensaioInfo.label}
             </FancyText>
           </View>
@@ -64,8 +83,18 @@ export default function EventoProximoCard({ evento, variant = 'vertical', onPres
 
         {evento.local && (
           <View style={styles.infoRow}>
-            <DefaultIcons.Custom library="MaterialCommunityIcons" name="map-marker-outline" size={12} color={palette.primary} />
-            <FancyText size="extraSmall" type="medium" color={palette.fonts.inactive} numberOfLines={1}>
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='map-marker-outline'
+              size={12}
+              color={palette.primary}
+            />
+            <FancyText
+              size='extraSmall'
+              type='medium'
+              color={palette.fonts.inactive}
+              numberOfLines={1}
+            >
               {evento.local}
             </FancyText>
           </View>

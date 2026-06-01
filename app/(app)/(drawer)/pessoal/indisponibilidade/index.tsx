@@ -175,12 +175,14 @@ export default function IndisponibilidadeIndexPage() {
     try {
       const datesBetweenPeriod = DateUtils.generateDatesBetween(inicio, fim);
 
-      const indisponibilidades: UpsertIndisponibilidadeVoluntarioItemDto[] = datesBetweenPeriod.map((d) => {
-        return {
-          data: DateUtilsApi.dateOnlyToApi(d),
-          motivo: motivo?.trim() || undefined,
-        };
-      });
+      const indisponibilidades: UpsertIndisponibilidadeVoluntarioItemDto[] = datesBetweenPeriod.map(
+        (d) => {
+          return {
+            data: DateUtilsApi.dateOnlyToApi(d),
+            motivo: motivo?.trim() || undefined,
+          };
+        },
+      );
 
       await upsertMany({
         voluntarioId: userId,
@@ -298,8 +300,16 @@ export default function IndisponibilidadeIndexPage() {
                     </FancyText>
                   </View>
                   <View style={styles.filterRow}>
-                    <FilterChip label='Futuras' active={listFilter === 'future'} onPress={() => setListFilter('future')} />
-                    <FilterChip label='Com motivo' active={listFilter === 'reason'} onPress={() => setListFilter('reason')} />
+                    <FilterChip
+                      label='Futuras'
+                      active={listFilter === 'future'}
+                      onPress={() => setListFilter('future')}
+                    />
+                    <FilterChip
+                      label='Com motivo'
+                      active={listFilter === 'reason'}
+                      onPress={() => setListFilter('reason')}
+                    />
                   </View>
                 </View>
 
@@ -308,7 +318,10 @@ export default function IndisponibilidadeIndexPage() {
                     {upcomingIndisponibilidades.map((item) => (
                       <Pressable
                         key={item.id}
-                        style={({ pressed }) => [styles.compactItem, pressed && styles.compactItemPressed]}
+                        style={({ pressed }) => [
+                          styles.compactItem,
+                          pressed && styles.compactItemPressed,
+                        ]}
                         onPress={() => openDateModal(item.parsedDate)}
                       >
                         <View style={styles.dateBadge}>
@@ -320,20 +333,40 @@ export default function IndisponibilidadeIndexPage() {
                           </FancyText>
                         </View>
                         <View style={styles.compactItemText}>
-                          <FancyText size='small' type='semiBold' color={palette.fonts.dark} numberOfLines={1}>
+                          <FancyText
+                            size='small'
+                            type='semiBold'
+                            color={palette.fonts.dark}
+                            numberOfLines={1}
+                          >
                             {item.parsedDate.toLocaleDateString('pt-BR', { weekday: 'long' })}
                           </FancyText>
-                          <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} numberOfLines={1}>
+                          <FancyText
+                            size='extraSmall'
+                            type='medium'
+                            color={palette.fonts.inactive}
+                            numberOfLines={1}
+                          >
                             {item.motivo?.trim() || 'Sem motivo informado'}
                           </FancyText>
                         </View>
-                        <DefaultIcons.Custom library='MaterialCommunityIcons' name='chevron-right' size={19} color={palette.fonts.inactive} />
+                        <DefaultIcons.Custom
+                          library='MaterialCommunityIcons'
+                          name='chevron-right'
+                          size={19}
+                          color={palette.fonts.inactive}
+                        />
                       </Pressable>
                     ))}
                   </View>
                 ) : (
                   <View style={styles.compactEmpty}>
-                    <DefaultIcons.Custom library='MaterialCommunityIcons' name='calendar-check-outline' size={22} color={palette.primary} />
+                    <DefaultIcons.Custom
+                      library='MaterialCommunityIcons'
+                      name='calendar-check-outline'
+                      size={22}
+                      color={palette.primary}
+                    />
                     <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
                       Nenhuma data futura neste filtro.
                     </FancyText>
@@ -387,89 +420,97 @@ export default function IndisponibilidadeIndexPage() {
 
 function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
-  container: { paddingBottom: 50, gap: 10 },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 999,
-  },
-  legend: {
-    flexDirection: 'row',
-    paddingLeft: 15,
-    alignItems: 'center',
-    gap: 8,
-  },
-  legendCircle: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: palette.error,
-  },
-  compactList: {
-    marginTop: 4,
-    gap: 10,
-    paddingBottom: 84,
-  },
-  compactHeader: {
-    gap: 10,
-  },
-  filterRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  filterChip: {
-    minHeight: 30,
-    justifyContent: 'center',
-    borderRadius: 15,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-  },
-  compactItems: {
-    gap: 8,
-  },
-  compactItem: {
-    minHeight: 58,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    padding: 10,
-    borderRadius: 14,
-    backgroundColor: palette.backgroundColor2,
-    borderWidth: 1,
-    borderColor: palette.borderCard,
-  },
-  compactItemPressed: {
-    opacity: 0.75,
-  },
-  dateBadge: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: ColorUtils.withAlpha(palette.error, 0.08),
-  },
-  compactItemText: {
-    flex: 1,
-    minWidth: 0,
-    gap: 2,
-  },
-  compactEmpty: {
-    minHeight: 54,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    borderRadius: 14,
-    backgroundColor: palette.backgroundColor2,
-    borderWidth: 1,
-    borderColor: palette.borderCard,
-  },
+    container: { paddingBottom: 50, gap: 10 },
+    loadingOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.35)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 999,
+    },
+    legend: {
+      flexDirection: 'row',
+      paddingLeft: 15,
+      alignItems: 'center',
+      gap: 8,
+    },
+    legendCircle: {
+      width: 14,
+      height: 14,
+      borderRadius: 7,
+      backgroundColor: palette.error,
+    },
+    compactList: {
+      marginTop: 4,
+      gap: 10,
+      paddingBottom: 84,
+    },
+    compactHeader: {
+      gap: 10,
+    },
+    filterRow: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    filterChip: {
+      minHeight: 30,
+      justifyContent: 'center',
+      borderRadius: 15,
+      paddingHorizontal: 12,
+      borderWidth: 1,
+    },
+    compactItems: {
+      gap: 8,
+    },
+    compactItem: {
+      minHeight: 58,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      padding: 10,
+      borderRadius: 14,
+      backgroundColor: palette.backgroundColor2,
+      borderWidth: 1,
+      borderColor: palette.borderCard,
+    },
+    compactItemPressed: {
+      opacity: 0.75,
+    },
+    dateBadge: {
+      width: 42,
+      height: 42,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: ColorUtils.withAlpha(palette.error, 0.08),
+    },
+    compactItemText: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2,
+    },
+    compactEmpty: {
+      minHeight: 54,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      borderRadius: 14,
+      backgroundColor: palette.backgroundColor2,
+      borderWidth: 1,
+      borderColor: palette.borderCard,
+    },
   });
 }
 
-function FilterChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+function FilterChip({
+  label,
+  active,
+  onPress,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
 
@@ -479,12 +520,18 @@ function FilterChip({ label, active, onPress }: { label: string; active: boolean
       style={[
         styles.filterChip,
         {
-          backgroundColor: active ? ColorUtils.withAlpha(palette.primary, 0.12) : palette.backgroundColor2,
+          backgroundColor: active
+            ? ColorUtils.withAlpha(palette.primary, 0.12)
+            : palette.backgroundColor2,
           borderColor: active ? ColorUtils.withAlpha(palette.primary, 0.28) : palette.borderCard,
         },
       ]}
     >
-      <FancyText size='extraSmall' type='bold' color={active ? palette.primary : palette.fonts.inactive}>
+      <FancyText
+        size='extraSmall'
+        type='bold'
+        color={active ? palette.primary : palette.fonts.inactive}
+      >
         {label}
       </FancyText>
     </Pressable>

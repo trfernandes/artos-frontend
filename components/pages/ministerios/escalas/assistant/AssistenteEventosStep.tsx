@@ -205,14 +205,23 @@ export default function AssistenteEventosStep() {
         </View>
 
         {semTemplateCount > 0 && (
-          <View style={[styles.attentionBanner, { backgroundColor: palette.warning + '18', borderColor: palette.warning + '55' }]}>
+          <View
+            style={[
+              styles.attentionBanner,
+              { backgroundColor: palette.warning + '18', borderColor: palette.warning + '55' },
+            ]}
+          >
             <DefaultIcons.Custom
               library='MaterialCommunityIcons'
               name='alert-circle-outline'
               size={16}
               color={palette.warning}
             />
-            <FancyText size='extraSmall' type='semiBold' style={{ color: palette.warning, flex: 1 }}>
+            <FancyText
+              size='extraSmall'
+              type='semiBold'
+              style={{ color: palette.warning, flex: 1 }}
+            >
               {semTemplateCount === 1
                 ? '1 evento selecionado sem template definido'
                 : `${semTemplateCount} eventos selecionados sem template definido`}
@@ -261,19 +270,54 @@ export default function AssistenteEventosStep() {
                 subtitle={
                   <View style={styles.eventInfoContainer}>
                     <View style={styles.eventInfoRow}>
-                      <DefaultIcons.Custom library='MaterialIcons' name='event' size={13} color={palette.primary} />
-                      <FancyText size='extraSmall' type='medium' color={palette.fonts.dark} numberOfLines={1} style={{ flexShrink: 0 }}>
+                      <DefaultIcons.Custom
+                        library='MaterialIcons'
+                        name='event'
+                        size={13}
+                        color={palette.primary}
+                      />
+                      <FancyText
+                        size='extraSmall'
+                        type='medium'
+                        color={palette.fonts.dark}
+                        numberOfLines={1}
+                        style={{ flexShrink: 0 }}
+                      >
                         {dataFormatada}
                       </FancyText>
-                      <FancyText size='extraSmall' color={palette.fonts.light}>·</FancyText>
-                      <DefaultIcons.Custom library='MaterialIcons' name='access-time' size={13} color={palette.primary} />
-                      <FancyText size='extraSmall' type='medium' color={palette.fonts.dark} numberOfLines={1} style={{ flex: 1 }}>
+                      <FancyText size='extraSmall' color={palette.fonts.light}>
+                        ·
+                      </FancyText>
+                      <DefaultIcons.Custom
+                        library='MaterialIcons'
+                        name='access-time'
+                        size={13}
+                        color={palette.primary}
+                      />
+                      <FancyText
+                        size='extraSmall'
+                        type='medium'
+                        color={palette.fonts.dark}
+                        numberOfLines={1}
+                        style={{ flex: 1 }}
+                      >
                         {horarioFormatado}
                       </FancyText>
                     </View>
                     <View style={styles.eventInfoRow}>
-                      <DefaultIcons.Custom library='MaterialIcons' name='group' size={13} color={palette.primary} />
-                      <FancyText size='extraSmall' type='medium' color={palette.fonts.dark} numberOfLines={1} style={{ flexShrink: 1 }}>
+                      <DefaultIcons.Custom
+                        library='MaterialIcons'
+                        name='group'
+                        size={13}
+                        color={palette.primary}
+                      />
+                      <FancyText
+                        size='extraSmall'
+                        type='medium'
+                        color={palette.fonts.dark}
+                        numberOfLines={1}
+                        style={{ flexShrink: 1 }}
+                      >
                         {estruturaEquipe}
                       </FancyText>
                       {eventoSemTemplate && (

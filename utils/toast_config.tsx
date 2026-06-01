@@ -4,8 +4,7 @@ import FancyToast from '../components/FancyToast';
 import { ColorUtils } from './color_utils';
 
 export function createToastConfig(palette: ThemePalette): ToastConfig {
-  const isDarkPalette =
-    ColorUtils.getTextColorForBackground(palette.backgroundColor) === '#FFFFFF';
+  const isDarkPalette = ColorUtils.getTextColorForBackground(palette.backgroundColor) === '#FFFFFF';
 
   return {
     success: (props: ToastConfigParams<any>) => (
@@ -26,9 +25,7 @@ export function createToastConfig(palette: ThemePalette): ToastConfig {
         }}
         color={palette.confirm}
         lightColorPercent={64}
-        backgroundColor={
-          isDarkPalette ? ColorUtils.withAlpha(palette.confirm, 0.34) : undefined
-        }
+        backgroundColor={isDarkPalette ? ColorUtils.withAlpha(palette.confirm, 0.34) : undefined}
       />
     ),
     error: (props: ToastConfigParams<any>) => (
@@ -49,9 +46,7 @@ export function createToastConfig(palette: ThemePalette): ToastConfig {
         }}
         color={palette.error}
         lightColorPercent={42}
-        backgroundColor={
-          isDarkPalette ? ColorUtils.withAlpha(palette.error, 0.34) : undefined
-        }
+        backgroundColor={isDarkPalette ? ColorUtils.withAlpha(palette.error, 0.34) : undefined}
       />
     ),
     info: (props: ToastConfigParams<any>) => (
@@ -71,9 +66,7 @@ export function createToastConfig(palette: ThemePalette): ToastConfig {
         }}
         color={palette.primary}
         lightColorPercent={38}
-        backgroundColor={
-          isDarkPalette ? ColorUtils.withAlpha(palette.primary, 0.34) : undefined
-        }
+        backgroundColor={isDarkPalette ? ColorUtils.withAlpha(palette.primary, 0.34) : undefined}
       />
     ),
   };

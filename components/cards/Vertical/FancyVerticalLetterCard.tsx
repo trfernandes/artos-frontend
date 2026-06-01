@@ -24,11 +24,19 @@ export default function FancyVerticalLetterCard({ ...props }: FancyVerticalLette
       topElement={<LetterComponent letter={initialLetter} styles={styles} palette={palette} />}
       topRightElement={
         props.topRightIcon && (
-          <TopRightMenuButton customIcon={props.topRightIcon?.customIcon} onPress={props.topRightIcon?.onPress} />
+          <TopRightMenuButton
+            customIcon={props.topRightIcon?.customIcon}
+            onPress={props.topRightIcon?.onPress}
+          />
         )
       }
       topLeftElement={
-        props.topLeftIcon && <TopLeftMenuButton customIcon={props.topLeftIcon?.customIcon} onPress={props.topLeftIcon?.onPress} />
+        props.topLeftIcon && (
+          <TopLeftMenuButton
+            customIcon={props.topLeftIcon?.customIcon}
+            onPress={props.topLeftIcon?.onPress}
+          />
+        )
       }
       {...props}
     />

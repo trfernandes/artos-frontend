@@ -11,10 +11,7 @@ type UseIgrejaAssinaturaOptions = {
   autoFetch?: boolean;
 };
 
-export function useIgrejaAssinatura({
-  igrejaId,
-  autoFetch = true,
-}: UseIgrejaAssinaturaOptions) {
+export function useIgrejaAssinatura({ igrejaId, autoFetch = true }: UseIgrejaAssinaturaOptions) {
   const queryClient = useQueryClient();
   const { showLoading, hideLoading } = useLoading();
   const queryKey = ['igreja-assinatura', igrejaId] as const;
@@ -40,9 +37,7 @@ export function useIgrejaAssinatura({
       const hasPendingCheckout =
         Boolean(assinatura.checkoutUrl) && assinatura.status !== 'cancelled';
       const shouldStop =
-        assinatura.status === 'active' ||
-        assinatura.status === 'cancelled' ||
-        !hasPendingCheckout;
+        assinatura.status === 'active' || assinatura.status === 'cancelled' || !hasPendingCheckout;
 
       if (shouldStop) {
         return;

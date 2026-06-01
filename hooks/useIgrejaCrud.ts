@@ -4,8 +4,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Toast from 'react-native-toast-message';
 import { IgrejaRepository } from '../domain/services/IgrejaRepository';
 import { CadastroIgrejaRepository } from '../domain/services/CadastroIgrejaRepository';
-import { CreateCadastroIgrejaDto, CreateCadastroResponseDto, CadastroIgrejaStorageDto } from '../domain/dtos/Igreja/cadastro-igreja.dto';
-import { LoginCreateIgrejaFormData, LoginCreateIgrejaSchema } from '../domain/schemas/loginCreateIgrejaSchema';
+import {
+  CreateCadastroIgrejaDto,
+  CreateCadastroResponseDto,
+  CadastroIgrejaStorageDto,
+} from '../domain/dtos/Igreja/cadastro-igreja.dto';
+import {
+  LoginCreateIgrejaFormData,
+  LoginCreateIgrejaSchema,
+} from '../domain/schemas/loginCreateIgrejaSchema';
 import { useLoading } from '../contexts/LoadingContext';
 
 export type UseIgrejaCrudOptions = {
@@ -34,9 +41,9 @@ export function useIgrejaCrud({
     { dto: CreateCadastroIgrejaDto; formData: LoginCreateIgrejaFormData }
   >({
     mutationFn: async ({ dto, formData }) => {
-        // Debug: logar entrada do mutationFn
-        // eslint-disable-next-line no-console
-        console.log('[criarCadastroMutation] mutationFn chamada', { dto });
+      // Debug: logar entrada do mutationFn
+      // eslint-disable-next-line no-console
+      console.log('[criarCadastroMutation] mutationFn chamada', { dto });
       const response = await CadastroIgrejaRepository.criarCadastro(dto);
 
       // Salvar dados no storage para a tela de confirmação
@@ -77,7 +84,8 @@ export function useIgrejaCrud({
         });
       }
       if (!muteMessages) {
-        const message = error?.response?.data?.message || 'Erro ao criar cadastro. Tente novamente.';
+        const message =
+          error?.response?.data?.message || 'Erro ao criar cadastro. Tente novamente.';
         Toast.show({
           type: 'error',
           text1: 'Erro',

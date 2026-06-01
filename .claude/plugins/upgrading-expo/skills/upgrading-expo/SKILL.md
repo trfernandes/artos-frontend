@@ -8,7 +8,8 @@ license: MIT
 ## References
 
 - ./references/new-architecture.md -- SDK +53: New Architecture migration guide
-- ./references/react-19.md -- SDK +54: React 19 changes (useContext → use, Context.Provider → Context, forwardRef removal)
+- ./references/react-19.md -- SDK +54: React 19 changes (useContext → use, Context.Provider →
+  Context, forwardRef removal)
 - ./references/react-compiler.md -- SDK +54: React Compiler setup and migration guide
 
 ## Step-by-Step Upgrade Process
@@ -46,7 +47,8 @@ If upgrading requires native changes:
 npx expo prebuild --clean
 ```
 
-This regenerates the `ios` and `android` directories. Ensure the project is not a bare workflow app before running this command.
+This regenerates the `ios` and `android` directories. Ensure the project is not a bare workflow app
+before running this command.
 
 ## Clear caches for bare workflow
 
@@ -57,10 +59,13 @@ This regenerates the `ios` and `android` directories. Ensure the project is not 
 ## Housekeeping
 
 - Review release notes for the target SDK version at https://expo.dev/changelog
-- If using Expo SDK 54 or later, ensure react-native-worklets is installed — this is required for react-native-reanimated to work.
-- Enable React Compiler in SDK 54+ by adding `"experiments": { "reactCompiler": true }` to app.json — it's stable and recommended
+- If using Expo SDK 54 or later, ensure react-native-worklets is installed — this is required for
+  react-native-reanimated to work.
+- Enable React Compiler in SDK 54+ by adding `"experiments": { "reactCompiler": true }` to app.json
+  — it's stable and recommended
 - Delete sdkVersion from `app.json` to let Expo manage it automatically
-- Remove implicit packages from `package.json`: `@babel/core`, `babel-preset-expo`, `expo-constants`.
+- Remove implicit packages from `package.json`: `@babel/core`, `babel-preset-expo`,
+  `expo-constants`.
 - If the babel.config.js only contains 'babel-preset-expo', delete the file
 - If the metro.config.js only contains expo defaults, delete the file
 
@@ -77,7 +82,8 @@ This regenerates the `ios` and `android` directories. Ensure the project is not 
 
 ## Removing patches
 
-Check if there are any outdated patches in the `patches/` directory. Remove them if they are no longer needed.
+Check if there are any outdated patches in the `patches/` directory. Remove them if they are no
+longer needed.
 
 ## Postcss
 
@@ -92,8 +98,10 @@ Remove redundant metro config options:
 - `experimentalImportSupport` is enabled by default in SDK +54.
 - `EXPO_USE_FAST_RESOLVER=1` is removed in SDK +54.
 - cjs and mjs extensions are supported by default in SDK +50.
-- Expo webpack is deprecated, migrate to [Expo Router and Metro web](https://docs.expo.dev/router/migrate/from-expo-webpack/).
+- Expo webpack is deprecated, migrate to
+  [Expo Router and Metro web](https://docs.expo.dev/router/migrate/from-expo-webpack/).
 
 ## New Architecture
 
-The new architecture is enabled by default, the app.json field `"newArchEnabled": true` is no longer needed as it's the default. Expo Go only supports the new architecture as of SDK +53.
+The new architecture is enabled by default, the app.json field `"newArchEnabled": true` is no longer
+needed as it's the default. Expo Go only supports the new architecture as of SDK +53.

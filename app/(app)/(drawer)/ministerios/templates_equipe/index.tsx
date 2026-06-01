@@ -5,13 +5,18 @@ import { usePallete } from '../../../../../hooks/usePallete';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { useCallback, useMemo, useState } from 'react';
 import { useEscalaTemplatesCrud } from '../../../../../useEscalaTemplatesCrud';
-import { DynamicQuery, Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
+import {
+  DynamicQuery,
+  Operator,
+  OrderDirection,
+  ValueType,
+} from '../../../../../domain/utils/query_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import {
-    EscalaTemplateTipoLabel,
-    EscalaTemplateTipoEnumMap,
-    EscalaTemplateTipoEnum,
+  EscalaTemplateTipoLabel,
+  EscalaTemplateTipoEnumMap,
+  EscalaTemplateTipoEnum,
 } from '../../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
 import { FancyTextDisplayCard } from '../../../../../components/cards/FancyTextDisplayCard';
 import FancyActionSheet from '../../../../../components/actions/FancyActionSheet';
@@ -127,14 +132,36 @@ export default function MinisterioTemplateEquipeIndex() {
         renderItem: ({ item }) => {
           const tipoLabel = EscalaTemplateTipoLabel[item.tipo];
           const dimensaoEquipe =
-            EscalaTemplateTipoEnumMap[item.tipo] === EscalaTemplateTipoEnum.Fixo ? item.voluntarios?.length : item.funcoes?.length;
+            EscalaTemplateTipoEnumMap[item.tipo] === EscalaTemplateTipoEnum.Fixo
+              ? item.voluntarios?.length
+              : item.funcoes?.length;
           return (
             <FancyCard.Image
               type='icon'
               props={{
                 title: item.nome,
-                subtitle: <FancyTextDisplayCard icon={{ library: 'MaterialCommunityIcons', name: 'tag-outline', size: 12, color: Pallete.primary }} value={tipoLabel} />,
-                additionalData1: <FancyTextDisplayCard icon={{ library: 'MaterialCommunityIcons', name: 'account-group-outline', size: 12, color: Pallete.primary }} value={(dimensaoEquipe ?? 0).toString()} />,
+                subtitle: (
+                  <FancyTextDisplayCard
+                    icon={{
+                      library: 'MaterialCommunityIcons',
+                      name: 'tag-outline',
+                      size: 12,
+                      color: Pallete.primary,
+                    }}
+                    value={tipoLabel}
+                  />
+                ),
+                additionalData1: (
+                  <FancyTextDisplayCard
+                    icon={{
+                      library: 'MaterialCommunityIcons',
+                      name: 'account-group-outline',
+                      size: 12,
+                      color: Pallete.primary,
+                    }}
+                    value={(dimensaoEquipe ?? 0).toString()}
+                  />
+                ),
                 cardIcon: {
                   ...DefaultIconsNames.group,
                   size: 18,

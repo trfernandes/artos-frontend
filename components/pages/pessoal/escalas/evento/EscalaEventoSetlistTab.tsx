@@ -25,7 +25,11 @@ export default function EscalaEventoSetlistTab() {
           />
         )}
       />
-      <FancyTextArea label='Observações' disabled value='Vamos faze a 2 e 3 em medley so estrofe e refrão' />
+      <FancyTextArea
+        label='Observações'
+        disabled
+        value='Vamos faze a 2 e 3 em medley so estrofe e refrão'
+      />
       <FancyFab icon={{ ...DefaultIconsNames.edit, size: 26 }} />
     </View>
   );

@@ -40,7 +40,13 @@ export default function FancyCardImage(props: FancyCardImageProps) {
     <FancyBaseCard
       {...props}
       leftItem={<CardImage source={props.source} styles={styles} />}
-      rightItem={isValidElement(props.actionButtons) ? props.actionButtons : <FancyActionButtons actions={props.actionButtons} />}
+      rightItem={
+        isValidElement(props.actionButtons) ? (
+          props.actionButtons
+        ) : (
+          <FancyActionButtons actions={props.actionButtons} />
+        )
+      }
     />
   );
 }

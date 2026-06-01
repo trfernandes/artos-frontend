@@ -41,7 +41,9 @@ export default function EscalaParametrizacaoModal({
   const [parametrizacao, setParametrizacao] = useState<EscalaParametrizacaoType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  const [participantesPhotos, setParticipantesPhotos] = useState<Map<string, string | null>>(new Map());
+  const [participantesPhotos, setParticipantesPhotos] = useState<Map<string, string | null>>(
+    new Map(),
+  );
 
   useEffect(() => {
     if (!visible || !escalaId) return;
@@ -117,7 +119,8 @@ export default function EscalaParametrizacaoModal({
           content: parametrizacao.eventos?.length ? (
             <View style={styles.eventoList}>
               {parametrizacao.eventos.map((evento, idx) => {
-                const hasFuncoes = evento.equipe?.tipo !== 'fixo' && !!evento.equipe?.funcoes?.length;
+                const hasFuncoes =
+                  evento.equipe?.tipo !== 'fixo' && !!evento.equipe?.funcoes?.length;
                 const hasFixos = evento.equipe?.tipo === 'fixo' && !!evento.equipe?.fixos?.length;
                 const hasContent = hasFuncoes || hasFixos;
                 return (
@@ -140,15 +143,28 @@ export default function EscalaParametrizacaoModal({
                           <View style={styles.funcaoList}>
                             {evento.equipe!.funcoes!.map((f, fi) => (
                               <View key={f.id ?? fi} style={styles.funcaoRow}>
-                                <View style={[styles.funcaoBadge, { backgroundColor: palette.primary + '22' }]}>
-                                  <FancyText size='extraSmall' type='semiBold' color={palette.primary}>
+                                <View
+                                  style={[
+                                    styles.funcaoBadge,
+                                    { backgroundColor: palette.primary + '22' },
+                                  ]}
+                                >
+                                  <FancyText
+                                    size='extraSmall'
+                                    type='semiBold'
+                                    color={palette.primary}
+                                  >
                                     ×{f.quantidade ?? 1}
                                   </FancyText>
                                 </View>
                                 <FancyText size='extraSmall' type='semiBold' style={{ flex: 1 }}>
                                   {f.nome}
                                 </FancyText>
-                                <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                                <FancyText
+                                  size='extraSmall'
+                                  type='medium'
+                                  color={palette.fonts.inactive}
+                                >
                                   {formatExpMinima(f.expMinima)}
                                 </FancyText>
                               </View>
@@ -157,7 +173,11 @@ export default function EscalaParametrizacaoModal({
                         ) : (
                           <View style={styles.fixoList}>
                             {evento.equipe!.fixos!.map((f, fi) => (
-                              <FancyText key={`${f.voluntarioId}-${fi}`} size='extraSmall' type='medium'>
+                              <FancyText
+                                key={`${f.voluntarioId}-${fi}`}
+                                size='extraSmall'
+                                type='medium'
+                              >
                                 · {f.name ?? f.voluntarioId}
                               </FancyText>
                             ))}
@@ -183,11 +203,19 @@ export default function EscalaParametrizacaoModal({
       {isLoading ? (
         <FancyLoading containerStyle={{ paddingVertical: 28 }} />
       ) : hasError ? (
-        <FancyText size='small' type='mediumItalic' style={{ textAlign: 'center', paddingVertical: 20 }}>
+        <FancyText
+          size='small'
+          type='mediumItalic'
+          style={{ textAlign: 'center', paddingVertical: 20 }}
+        >
           Não foi possível carregar os parâmetros. Verifique se o backend está atualizado.
         </FancyText>
       ) : !parametrizacao ? (
-        <FancyText size='small' type='mediumItalic' style={{ textAlign: 'center', paddingVertical: 20 }}>
+        <FancyText
+          size='small'
+          type='mediumItalic'
+          style={{ textAlign: 'center', paddingVertical: 20 }}
+        >
           Esta escala não possui parametrização salva.
         </FancyText>
       ) : (

@@ -53,7 +53,13 @@ export default function FancyDrawerIgrejaSelector() {
           </View>
         )}
 
-        <FancyText size='extraSmall' type='semiBold' color='rgba(255, 255, 255, 0.92)' numberOfLines={1} style={styles.nomeText}>
+        <FancyText
+          size='extraSmall'
+          type='semiBold'
+          color='rgba(255, 255, 255, 0.92)'
+          numberOfLines={1}
+          style={styles.nomeText}
+        >
           {igrejaAtiva?.nome || 'Selecionar igreja'}
         </FancyText>
 

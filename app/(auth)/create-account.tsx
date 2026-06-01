@@ -49,109 +49,117 @@ export default function ComecarScreen() {
             </View>
 
             <View style={styles.cardsContainer}>
-            <FancyCard.Image
-              type='icon'
-              props={{
-                onPress: () => router.push('/(auth)/create-voluntario-account'),
-                accessibilityRole: 'button',
-                accessibilityLabel: 'Sou voluntário',
-                title: 'Sou voluntário',
-                subtitle: (
-                  <FancyText
-                    size='extraSmall'
-                    type='medium'
-                    color={Pallete.fonts.inactive}
-                    numberOfLines={3}
-                  >
-                    Já tenho convite ou código da igreja para entrar na equipe.
-                  </FancyText>
-                ),
-                additionalData1: (
-                  <FancyText
-                    size='extraSmall'
-                    type='semiBold'
-                    color={Pallete.fonts.link}
-                    style={{ textDecorationLine: 'underline' }}
-                  >
-                    Entrar com código ou convite
-                  </FancyText>
-                ),
-                cardIcon: {
-                  library: 'MaterialCommunityIcons',
-                  name: 'account-group-outline',
-                  size: 20,
-                  backgroundColor: Pallete.primary,
-                  color: Pallete.fonts.light,
-                },
-                actionButtons: (
-                  <View style={styles.chevronContainer}>
-                    <DefaultIcons.Custom
-                      library='Entypo'
-                      name='chevron-right'
-                      size={22}
-                      color={Pallete.icons.inactive}
-                    />
-                  </View>
-                ),
-                containerStyle: [styles.card, styles.cardVoluntario],
-                contentContainerStyle: styles.cardContent,
-                centerContainerStyle: { gap: 6 },
-                titleProps: { color: Pallete.fonts.dark },
-                backgroundColor: ColorUtils.blendOver(Pallete.primary, 0.07, Pallete.backgroundColor),
-              }}
-            />
+              <FancyCard.Image
+                type='icon'
+                props={{
+                  onPress: () => router.push('/(auth)/create-voluntario-account'),
+                  accessibilityRole: 'button',
+                  accessibilityLabel: 'Sou voluntário',
+                  title: 'Sou voluntário',
+                  subtitle: (
+                    <FancyText
+                      size='extraSmall'
+                      type='medium'
+                      color={Pallete.fonts.inactive}
+                      numberOfLines={3}
+                    >
+                      Já tenho convite ou código da igreja para entrar na equipe.
+                    </FancyText>
+                  ),
+                  additionalData1: (
+                    <FancyText
+                      size='extraSmall'
+                      type='semiBold'
+                      color={Pallete.fonts.link}
+                      style={{ textDecorationLine: 'underline' }}
+                    >
+                      Entrar com código ou convite
+                    </FancyText>
+                  ),
+                  cardIcon: {
+                    library: 'MaterialCommunityIcons',
+                    name: 'account-group-outline',
+                    size: 20,
+                    backgroundColor: Pallete.primary,
+                    color: Pallete.fonts.light,
+                  },
+                  actionButtons: (
+                    <View style={styles.chevronContainer}>
+                      <DefaultIcons.Custom
+                        library='Entypo'
+                        name='chevron-right'
+                        size={22}
+                        color={Pallete.icons.inactive}
+                      />
+                    </View>
+                  ),
+                  containerStyle: [styles.card, styles.cardVoluntario],
+                  contentContainerStyle: styles.cardContent,
+                  centerContainerStyle: { gap: 6 },
+                  titleProps: { color: Pallete.fonts.dark },
+                  backgroundColor: ColorUtils.blendOver(
+                    Pallete.primary,
+                    0.07,
+                    Pallete.backgroundColor,
+                  ),
+                }}
+              />
 
-            <FancyCard.Image
-              type='icon'
-              props={{
-                onPress: () => router.push('/(auth)/admin-discovery'),
-                accessibilityRole: 'button',
-                accessibilityLabel: 'Sou responsável pela igreja',
-                title: 'Sou responsável pela igreja',
-                subtitle: (
-                  <FancyText
-                    size='extraSmall'
-                    type='medium'
-                    color={Pallete.fonts.inactive}
-                    numberOfLines={3}
-                  >
-                    Quero organizar ministérios, voluntários e escalas no app.
-                  </FancyText>
-                ),
-                additionalData1: (
-                  <FancyText
-                    size='extraSmall'
-                    type='semiBold'
-                    color={Pallete.fonts.link}
-                    style={{ textDecorationLine: 'underline' }}
-                  >
-                    Conhecer e criar minha igreja
-                  </FancyText>
-                ),
-                cardIcon: {
-                  library: 'MaterialCommunityIcons',
-                  name: 'church',
-                  size: 20,
-                  backgroundColor: Pallete.secondary,
-                  color: Pallete.fonts.light,
-                },
-                actionButtons: (
-                  <View style={styles.chevronContainer}>
-                    <DefaultIcons.Custom
-                      library='Entypo'
-                      name='chevron-right'
-                      size={22}
-                      color={Pallete.icons.inactive}
-                    />
-                  </View>
-                ),
-                containerStyle: [styles.card, styles.cardResponsavel],
-                contentContainerStyle: styles.cardContent,
-                centerContainerStyle: { gap: 6 },
-                titleProps: { color: Pallete.fonts.dark },
-                backgroundColor: ColorUtils.blendOver(Pallete.secondary, 0.07, Pallete.backgroundColor),
-              }}
-            />
+              <FancyCard.Image
+                type='icon'
+                props={{
+                  onPress: () => router.push('/(auth)/admin-discovery'),
+                  accessibilityRole: 'button',
+                  accessibilityLabel: 'Sou responsável pela igreja',
+                  title: 'Sou responsável pela igreja',
+                  subtitle: (
+                    <FancyText
+                      size='extraSmall'
+                      type='medium'
+                      color={Pallete.fonts.inactive}
+                      numberOfLines={3}
+                    >
+                      Quero organizar ministérios, voluntários e escalas no app.
+                    </FancyText>
+                  ),
+                  additionalData1: (
+                    <FancyText
+                      size='extraSmall'
+                      type='semiBold'
+                      color={Pallete.fonts.link}
+                      style={{ textDecorationLine: 'underline' }}
+                    >
+                      Conhecer e criar minha igreja
+                    </FancyText>
+                  ),
+                  cardIcon: {
+                    library: 'MaterialCommunityIcons',
+                    name: 'church',
+                    size: 20,
+                    backgroundColor: Pallete.secondary,
+                    color: Pallete.fonts.light,
+                  },
+                  actionButtons: (
+                    <View style={styles.chevronContainer}>
+                      <DefaultIcons.Custom
+                        library='Entypo'
+                        name='chevron-right'
+                        size={22}
+                        color={Pallete.icons.inactive}
+                      />
+                    </View>
+                  ),
+                  containerStyle: [styles.card, styles.cardResponsavel],
+                  contentContainerStyle: styles.cardContent,
+                  centerContainerStyle: { gap: 6 },
+                  titleProps: { color: Pallete.fonts.dark },
+                  backgroundColor: ColorUtils.blendOver(
+                    Pallete.secondary,
+                    0.07,
+                    Pallete.backgroundColor,
+                  ),
+                }}
+              />
             </View>
 
             <View style={styles.footer}>

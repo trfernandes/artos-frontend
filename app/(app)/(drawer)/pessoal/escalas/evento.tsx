@@ -2,7 +2,15 @@ import { useLocalSearchParams } from 'expo-router';
 import EventoDetails from '../../../../../components/pages/pessoal/escalas/evento/EventoDetails';
 
 export default function EscalaEventoPage() {
-  const { evento, dataOcorrencia, horarioEnsaio, ministerioNome, ministerioId, responsavelSetlistVoluntarioId, responsavelSetlistNome } = useLocalSearchParams<{
+  const {
+    evento,
+    dataOcorrencia,
+    horarioEnsaio,
+    ministerioNome,
+    ministerioId,
+    responsavelSetlistVoluntarioId,
+    responsavelSetlistNome,
+  } = useLocalSearchParams<{
     evento: string;
     dataOcorrencia: string;
     horarioEnsaio?: string;

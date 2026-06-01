@@ -14,7 +14,9 @@ class IndisponibilidadesVoluntariosApiClass extends BaseApi<
     super('indisponibilidades-voluntarios');
   }
 
-  async create(data: CreateIndisponibilidadeVoluntarioDto): Promise<ResponseIndisponibilidadeVoluntarioDto> {
+  async create(
+    data: CreateIndisponibilidadeVoluntarioDto,
+  ): Promise<ResponseIndisponibilidadeVoluntarioDto> {
     if (__DEV__) {
       console.log('[IndisponibilidadesApi] CREATE');
     }
@@ -33,7 +35,9 @@ class IndisponibilidadesVoluntariosApiClass extends BaseApi<
     return response.data.data;
   }
 
-  async upsertMany(payload: UpsertIndisponibilidadesVoluntarioDto): Promise<ResponseIndisponibilidadeVoluntarioDto[]> {
+  async upsertMany(
+    payload: UpsertIndisponibilidadesVoluntarioDto,
+  ): Promise<ResponseIndisponibilidadeVoluntarioDto[]> {
     if (__DEV__) {
       console.log('[IndisponibilidadesApi] UPSERT -', payload.indisponibilidades.length, 'itens');
     }
@@ -41,7 +45,10 @@ class IndisponibilidadesVoluntariosApiClass extends BaseApi<
     return response.data.data;
   }
 
-  async update(id: string, data: UpdateIndisponibilidadeVoluntarioDto): Promise<ResponseIndisponibilidadeVoluntarioDto> {
+  async update(
+    id: string,
+    data: UpdateIndisponibilidadeVoluntarioDto,
+  ): Promise<ResponseIndisponibilidadeVoluntarioDto> {
     if (__DEV__) {
       console.log('[IndisponibilidadesApi] UPDATE -', id);
     }

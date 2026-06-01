@@ -1,4 +1,7 @@
-import { RepertorioMusicaSecaoTipoEnum, ResponseRepertorioMusicaSecaoDto } from '../Repertorio/repertorio-musica-secao.response';
+import {
+  RepertorioMusicaSecaoTipoEnum,
+  ResponseRepertorioMusicaSecaoDto,
+} from '../Repertorio/repertorio-musica-secao.response';
 
 export type ResponseEventoSetlistItemEstruturaRowDto = {
   id: string;

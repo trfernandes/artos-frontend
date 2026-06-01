@@ -4,7 +4,11 @@ import { ResponseMinisterioDto } from '../dtos/Ministerio/ministerio.response';
 import { UpdateMinisterioDto } from '../dtos/Ministerio/ministerio.update';
 import { BaseRepository } from './BaseRepository';
 
-class MinisteriosRepositoryClass extends BaseRepository<ResponseMinisterioDto, CreateMinisterioDto, UpdateMinisterioDto> {
+class MinisteriosRepositoryClass extends BaseRepository<
+  ResponseMinisterioDto,
+  CreateMinisterioDto,
+  UpdateMinisterioDto
+> {
   constructor() {
     super(MinisteriosApi);
   }

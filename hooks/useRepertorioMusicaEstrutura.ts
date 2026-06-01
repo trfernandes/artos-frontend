@@ -35,7 +35,8 @@ export function useRepertorioMusicaEstrutura(musicaId?: string) {
   };
 
   const createSecao = useMutation({
-    mutationFn: (dto: CreateRepertorioMusicaSecaoDto) => RepertorioRepository.createSecao(igrejaAtiva.id, musicaId!, dto),
+    mutationFn: (dto: CreateRepertorioMusicaSecaoDto) =>
+      RepertorioRepository.createSecao(igrejaAtiva.id, musicaId!, dto),
     onSuccess: invalidate,
   });
 
@@ -46,12 +47,14 @@ export function useRepertorioMusicaEstrutura(musicaId?: string) {
   });
 
   const deleteSecao = useMutation({
-    mutationFn: (secaoId: string) => RepertorioRepository.removeSecao(igrejaAtiva.id, musicaId!, secaoId),
+    mutationFn: (secaoId: string) =>
+      RepertorioRepository.removeSecao(igrejaAtiva.id, musicaId!, secaoId),
     onSuccess: invalidate,
   });
 
   const replaceArranjo = useMutation({
-    mutationFn: (dto: UpsertRepertorioMusicaArranjoDto) => RepertorioRepository.replaceArranjo(igrejaAtiva.id, musicaId!, dto),
+    mutationFn: (dto: UpsertRepertorioMusicaArranjoDto) =>
+      RepertorioRepository.replaceArranjo(igrejaAtiva.id, musicaId!, dto),
     onSuccess: invalidate,
   });
 
@@ -68,6 +71,9 @@ export function useRepertorioMusicaEstrutura(musicaId?: string) {
     removerSecao: deleteSecao.mutateAsync,
     substituirArranjo: replaceArranjo.mutateAsync,
     isMutating:
-      createSecao.isPending || updateSecao.isPending || deleteSecao.isPending || replaceArranjo.isPending,
+      createSecao.isPending ||
+      updateSecao.isPending ||
+      deleteSecao.isPending ||
+      replaceArranjo.isPending,
   };
 }

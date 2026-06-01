@@ -4,11 +4,7 @@ type EstimarDuracaoParams = {
   repeticoes?: number | null;
 };
 
-export function estimarDuracaoMusica({
-  bpm,
-  totalSecoes,
-  repeticoes,
-}: EstimarDuracaoParams) {
+export function estimarDuracaoMusica({ bpm, totalSecoes, repeticoes }: EstimarDuracaoParams) {
   const safeBpm = bpm && bpm > 0 ? bpm : 72;
   const safeSecoes = totalSecoes && totalSecoes > 0 ? totalSecoes : 1;
   const safeRepeticoes = repeticoes && repeticoes > 0 ? repeticoes : safeSecoes;

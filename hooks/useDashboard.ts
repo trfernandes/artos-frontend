@@ -40,7 +40,9 @@ export function useDashboard() {
   });
 
   const hasServerData = query.data !== undefined;
-  const errorMessage = query.error ? getApiErrorMessage(query.error, 'Não foi possível carregar o dashboard.') : null;
+  const errorMessage = query.error
+    ? getApiErrorMessage(query.error, 'Não foi possível carregar o dashboard.')
+    : null;
 
   const data: ResponseDashboardDto = {
     ...EMPTY_DASHBOARD,

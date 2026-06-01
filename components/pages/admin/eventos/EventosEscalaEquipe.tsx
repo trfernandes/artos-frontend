@@ -21,7 +21,8 @@ export const PEOPLE_DATA: Integrante[] = [
     type: 'escalado',
   },
   {
-    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRSZsINAeXhg_aONZrbZrMTZEjopaRJ1xmlVA&s',
+    image:
+      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRSZsINAeXhg_aONZrbZrMTZEjopaRJ1xmlVA&s',
     nome: 'Juliana Fernandes',
     funcao: 'Ministro(a)',
     type: 'escalado',

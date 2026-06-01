@@ -36,7 +36,11 @@ export default function MinisterioSolicitacoesIndex() {
       listProps={{
         listEmptyProps: {
           label: 'Nenhuma solicitação pendente',
-          icon: { library: 'MaterialCommunityIcons', name: 'swap-horizontal-circle-outline', size: 68 },
+          icon: {
+            library: 'MaterialCommunityIcons',
+            name: 'swap-horizontal-circle-outline',
+            size: 68,
+          },
         },
         data: DATA,
         renderItem: ({ item }) => (
@@ -75,7 +79,10 @@ export default function MinisterioSolicitacoesIndex() {
                   icon: { ...DefaultIconsNames.confirm, size: 18 },
                   onPress: () => setVisualizarModal(true),
                 },
-                { icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error }, onPress: () => {} },
+                {
+                  icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error },
+                  onPress: () => {},
+                },
               ],
             }}
           />

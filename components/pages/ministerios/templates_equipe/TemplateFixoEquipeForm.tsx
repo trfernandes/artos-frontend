@@ -11,7 +11,11 @@ type TemplateFixoEquipeFormProps = FancyModalDialogProps<void> & {
   funcoesList?: DropDownItemProps<string>[];
 };
 
-export default function TemplateFixoEquipeForm({ voluntarioList, funcoesList, ...props }: TemplateFixoEquipeFormProps) {
+export default function TemplateFixoEquipeForm({
+  voluntarioList,
+  funcoesList,
+  ...props
+}: TemplateFixoEquipeFormProps) {
   const { control } = useFormContext<EscalaTemplateVoluntarioFormData>();
   const sortedVoluntarioList = useMemo(
     () =>
@@ -42,7 +46,13 @@ export default function TemplateFixoEquipeForm({ voluntarioList, funcoesList, ..
           listItems={sortedVoluntarioList}
           renderMode='modal'
         />
-        <ControlledDropDown control={control} name='funcaoId' label='Função' listItems={sortedFuncoesList} renderMode='modal' />
+        <ControlledDropDown
+          control={control}
+          name='funcaoId'
+          label='Função'
+          listItems={sortedFuncoesList}
+          renderMode='modal'
+        />
       </View>
     </FancyModalDialog>
   );

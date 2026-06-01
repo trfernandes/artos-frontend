@@ -14,7 +14,10 @@ type UpdateFuncoesPayload = {
   data: UpdateFuncoesArgs[1];
 };
 
-export function useMinisterioVoluntarioFuncoesCrud({ autoFetch = false, initialParams = {} }: ExternalUseCrudParams = {}) {
+export function useMinisterioVoluntarioFuncoesCrud({
+  autoFetch = false,
+  initialParams = {},
+}: ExternalUseCrudParams = {}) {
   const crud = useCrud<
     ResponseMinisterioVoluntarioFuncaoDto,
     any,

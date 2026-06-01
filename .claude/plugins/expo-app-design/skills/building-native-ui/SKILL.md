@@ -1,6 +1,8 @@
 ---
 name: building-native-ui
-description: Complete guide for building beautiful apps with Expo Router. Covers fundamentals, styling, components, navigation, animations, patterns, and native tabs.
+description:
+  Complete guide for building beautiful apps with Expo Router. Covers fundamentals, styling,
+  components, navigation, animations, patterns, and native tabs.
 version: 1.0.0
 license: MIT
 ---
@@ -11,23 +13,32 @@ license: MIT
 
 Consult these resources as needed:
 
-- ./references/route-structure.md -- Route file conventions, dynamic routes, query parameters, groups, and folder organization
+- ./references/route-structure.md -- Route file conventions, dynamic routes, query parameters,
+  groups, and folder organization
 - ./references/tabs.md -- Native tab bar with NativeTabs, migration from JS tabs, iOS 26 features
 - ./references/icons.md -- SF Symbols with expo-symbols, common icon names, animations, and weights
-- ./references/controls.md -- Native iOS controls: Switch, Slider, SegmentedControl, DateTimePicker, Picker
-- ./references/visual-effects.md -- Blur effects with expo-blur and liquid glass with expo-glass-effect
-- ./references/animations.md -- Reanimated animations: entering, exiting, layout, scroll-driven, and gestures
-- ./references/search.md -- Search bar integration with headers, useSearch hook, and filtering patterns
-- ./references/gradients.md -- CSS gradients using experimental_backgroundImage (New Architecture only)
-- ./references/media.md -- Media handling for Expo Router including camera, audio, video, and file saving
+- ./references/controls.md -- Native iOS controls: Switch, Slider, SegmentedControl, DateTimePicker,
+  Picker
+- ./references/visual-effects.md -- Blur effects with expo-blur and liquid glass with
+  expo-glass-effect
+- ./references/animations.md -- Reanimated animations: entering, exiting, layout, scroll-driven, and
+  gestures
+- ./references/search.md -- Search bar integration with headers, useSearch hook, and filtering
+  patterns
+- ./references/gradients.md -- CSS gradients using experimental_backgroundImage (New Architecture
+  only)
+- ./references/media.md -- Media handling for Expo Router including camera, audio, video, and file
+  saving
 - ./references/storage.md -- Data storage patterns including SQLite, AsyncStorage, and SecureStore
-- ./references/webgpu-three.md -- 3D graphics, games, and GPU-powered visualizations with WebGPU and Three.js
+- ./references/webgpu-three.md -- 3D graphics, games, and GPU-powered visualizations with WebGPU and
+  Three.js
 
 ## Running the App
 
 **CRITICAL: Always try Expo Go first before creating custom builds.**
 
-Most Expo apps work in Expo Go without any custom native code. Before running `npx expo run:ios` or `npx expo run:android`:
+Most Expo apps work in Expo Go without any custom native code. Before running `npx expo run:ios` or
+`npx expo run:android`:
 
 1. **Start with Expo Go**: Run `npx expo start` and scan the QR code with Expo Go
 2. **Check if features work**: Test your app thoroughly in Expo Go
@@ -51,11 +62,13 @@ Expo Go supports a huge range of features out of the box:
 - Most UI libraries (reanimated, gesture handler, etc.)
 - Push notifications, deep links, and more
 
-**If you're unsure, try Expo Go first.** Creating custom builds adds complexity, slower iteration, and requires Xcode/Android Studio setup.
+**If you're unsure, try Expo Go first.** Creating custom builds adds complexity, slower iteration,
+and requires Xcode/Android Studio setup.
 
 ## Code Style
 
-- Be cautious of unterminated strings. Ensure nested backticks are escaped; never forget to escape quotes correctly.
+- Be cautious of unterminated strings. Ensure nested backticks are escaped; never forget to escape
+  quotes correctly.
 - Always use import statements at the top of the file.
 - Always use kebab-case for file names, e.g. `comment-card.tsx`
 - Always remove old route files when moving or restructuring navigation
@@ -86,7 +99,8 @@ See `./references/route-structure.md` for detailed route conventions.
 ## Responsiveness
 
 - Always wrap root component in a scroll view for responsiveness
-- Use `<ScrollView contentInsetAdjustmentBehavior="automatic" />` instead of `<SafeAreaView>` for smarter safe area insets
+- Use `<ScrollView contentInsetAdjustmentBehavior="automatic" />` instead of `<SafeAreaView>` for
+  smarter safe area insets
 - `contentInsetAdjustmentBehavior="automatic"` should be applied to FlatList and SectionList as well
 - Use flexbox instead of Dimensions API
 - ALWAYS prefer `useWindowDimensions` over `Dimensions.get()` to measure screen size
@@ -94,8 +108,10 @@ See `./references/route-structure.md` for detailed route conventions.
 ## Behavior
 
 - Use expo-haptics conditionally on iOS to make more delightful experiences
-- Use views with built-in haptics like `<Switch />` from React Native and `@react-native-community/datetimepicker`
-- When a route belongs to a Stack, its first child should almost always be a ScrollView with `contentInsetAdjustmentBehavior="automatic"` set
+- Use views with built-in haptics like `<Switch />` from React Native and
+  `@react-native-community/datetimepicker`
+- When a route belongs to a Stack, its first child should almost always be a ScrollView with
+  `contentInsetAdjustmentBehavior="automatic"` set
 - Prefer `headerSearchBarOptions` in Stack.Screen options to add a search bar
 - Use the `<Text selectable />` prop on text containing data that could be copied
 - Consider formatting large numbers like 1.4M or 38k
@@ -109,13 +125,15 @@ Follow Apple Human Interface Guidelines.
 
 - Prefer flex gap over margin and padding styles
 - Prefer padding over margin where possible
-- Always account for safe area, either with stack headers, tabs, or ScrollView/FlatList `contentInsetAdjustmentBehavior="automatic"`
+- Always account for safe area, either with stack headers, tabs, or ScrollView/FlatList
+  `contentInsetAdjustmentBehavior="automatic"`
 - Ensure both top and bottom safe area insets are accounted for
 - Inline styles not StyleSheet.create unless reusing styles is faster
 - Add entering and exiting animations for state changes
 - Use `{ borderCurve: 'continuous' }` for rounded corners unless creating a capsule shape
 - ALWAYS use a navigation stack title instead of a custom text element on the page
-- When padding a ScrollView, use `contentContainerStyle` padding and gap instead of padding on the ScrollView itself (reduces clipping)
+- When padding a ScrollView, use `contentContainerStyle` padding and gap instead of padding on the
+  ScrollView itself (reduces clipping)
 - CSS and Tailwind are not supported - use inline styles
 
 ## Text Styling
@@ -128,7 +146,7 @@ Follow Apple Human Interface Guidelines.
 Use CSS `boxShadow` style prop. NEVER use legacy React Native shadow or elevation styles.
 
 ```tsx
-<View style={{ boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)" }} />
+<View style={{ boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }} />
 ```
 
 'inset' shadows are supported.
@@ -151,7 +169,8 @@ import { Link } from 'expo-router';
 </Link>
 ```
 
-Whenever possible, include a `<Link.Preview>` to follow iOS conventions. Add context menus and previews frequently to enhance navigation.
+Whenever possible, include a `<Link.Preview>` to follow iOS conventions. Add context menus and
+previews frequently to enhance navigation.
 
 ## Stack
 
@@ -163,7 +182,7 @@ Whenever possible, include a `<Link.Preview>` to follow iOS conventions. Add con
 Set the page title in Stack.Screen options:
 
 ```tsx
-<Stack.Screen options={{ title: "Home" }} />
+<Stack.Screen options={{ title: 'Home' }} />
 ```
 
 ## Context Menus
@@ -171,34 +190,20 @@ Set the page title in Stack.Screen options:
 Add long press context menus to Link components:
 
 ```tsx
-import { Link } from "expo-router";
+import { Link } from 'expo-router';
 
-<Link href="/settings" asChild>
+<Link href='/settings' asChild>
   <Link.Trigger>
     <Pressable>
       <Card />
     </Pressable>
   </Link.Trigger>
   <Link.Menu>
-    <Link.MenuAction
-      title="Share"
-      icon="square.and.arrow.up"
-      onPress={handleSharePress}
-    />
-    <Link.MenuAction
-      title="Block"
-      icon="nosign"
-      destructive
-      onPress={handleBlockPress}
-    />
-    <Link.Menu title="More" icon="ellipsis">
-      <Link.MenuAction title="Copy" icon="doc.on.doc" onPress={() => {}} />
-      <Link.MenuAction
-        title="Delete"
-        icon="trash"
-        destructive
-        onPress={() => {}}
-      />
+    <Link.MenuAction title='Share' icon='square.and.arrow.up' onPress={handleSharePress} />
+    <Link.MenuAction title='Block' icon='nosign' destructive onPress={handleBlockPress} />
+    <Link.Menu title='More' icon='ellipsis'>
+      <Link.MenuAction title='Copy' icon='doc.on.doc' onPress={() => {}} />
+      <Link.MenuAction title='Delete' icon='trash' destructive onPress={() => {}} />
     </Link.Menu>
   </Link.Menu>
 </Link>;
@@ -209,7 +214,7 @@ import { Link } from "expo-router";
 Use link previews frequently to enhance navigation:
 
 ```tsx
-<Link href="/settings">
+<Link href='/settings'>
   <Link.Trigger>
     <Pressable>
       <Card />
@@ -226,7 +231,7 @@ Link preview can be used with context menus.
 Present a screen as a modal:
 
 ```tsx
-<Stack.Screen name="modal" options={{ presentation: "modal" }} />
+<Stack.Screen name='modal' options={{ presentation: 'modal' }} />
 ```
 
 Prefer this to building a custom modal component.
@@ -237,17 +242,18 @@ Present a screen as a dynamic form sheet:
 
 ```tsx
 <Stack.Screen
-  name="sheet"
+  name='sheet'
   options={{
-    presentation: "formSheet",
+    presentation: 'formSheet',
     sheetGrabberVisible: true,
     sheetAllowedDetents: [0.5, 1.0],
-    contentStyle: { backgroundColor: "transparent" },
+    contentStyle: { backgroundColor: 'transparent' },
   }}
 />
 ```
 
-- Using `contentStyle: { backgroundColor: "transparent" }` makes the background liquid glass on iOS 26+.
+- Using `contentStyle: { backgroundColor: "transparent" }` makes the background liquid glass on iOS
+  26+.
 
 ## Common route structure
 
@@ -264,18 +270,18 @@ app/
 
 ```tsx
 // app/_layout.tsx
-import { NativeTabs, Icon, Label } from "expo-router/unstable-native-tabs";
-import { Theme } from "../components/theme";
+import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
+import { Theme } from '../components/theme';
 
 export default function Layout() {
   return (
     <Theme>
       <NativeTabs>
-        <NativeTabs.Trigger name="(index)">
-          <Icon sf="list.dash" />
+        <NativeTabs.Trigger name='(index)'>
+          <Icon sf='list.dash' />
           <Label>Items</Label>
         </NativeTabs.Trigger>
-        <NativeTabs.Trigger name="(search)" role="search" />
+        <NativeTabs.Trigger name='(search)' role='search' />
       </NativeTabs>
     </Theme>
   );
@@ -286,12 +292,12 @@ Create a shared group route so both tabs can push common screens:
 
 ```tsx
 // app/(index,search)/_layout.tsx
-import { Stack } from "expo-router/stack";
-import { PlatformColor } from "react-native";
+import { Stack } from 'expo-router/stack';
+import { PlatformColor } from 'react-native';
 
 export default function Layout({ segment }) {
   const screen = segment.match(/\((.*)\)/)?.[1]!;
-  const titles: Record<string, string> = { index: "Items", search: "Search" };
+  const titles: Record<string, string> = { index: 'Items', search: 'Search' };
 
   return (
     <Stack
@@ -299,15 +305,15 @@ export default function Layout({ segment }) {
         headerTransparent: true,
         headerShadowVisible: false,
         headerLargeTitleShadowVisible: false,
-        headerLargeStyle: { backgroundColor: "transparent" },
-        headerTitleStyle: { color: PlatformColor("label") },
+        headerLargeStyle: { backgroundColor: 'transparent' },
+        headerTitleStyle: { color: PlatformColor('label') },
         headerLargeTitle: true,
-        headerBlurEffect: "none",
-        headerBackButtonDisplayMode: "minimal",
+        headerBlurEffect: 'none',
+        headerBackButtonDisplayMode: 'minimal',
       }}
     >
       <Stack.Screen name={screen} options={{ title: titles[screen] }} />
-      <Stack.Screen name="i/[id]" options={{ headerLargeTitle: false }} />
+      <Stack.Screen name='i/[id]' options={{ headerLargeTitle: false }} />
     </Stack>
   );
 }

@@ -44,10 +44,7 @@ export default function BillingNoticeBanner({
       style={styles.touchable}
     >
       <LinearGradient
-        colors={[
-          palette.backgroundColor4,
-          ColorUtils.withAlpha(toneColor, compact ? 0.08 : 0.12),
-        ]}
+        colors={[palette.backgroundColor4, ColorUtils.withAlpha(toneColor, compact ? 0.08 : 0.12)]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[

@@ -1,5 +1,11 @@
 import { useRef, useState } from 'react';
-import { StyleSheet, TouchableOpacity, View, Animated, StyleSheet as RNStyleSheet } from 'react-native';
+import {
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  Animated,
+  StyleSheet as RNStyleSheet,
+} from 'react-native';
 import { usePallete } from '../../hooks/usePallete';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { ThemePalette } from '../../constants/colors';
@@ -73,7 +79,10 @@ export default function FancyExpandableFab({
   // Cor do botão principal interpolada
   const backgroundColor = colorAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [resolvedMainButtonClosed.backgroundColor!, resolvedMainButtonOpen.backgroundColor!],
+    outputRange: [
+      resolvedMainButtonClosed.backgroundColor!,
+      resolvedMainButtonOpen.backgroundColor!,
+    ],
   });
 
   return (
@@ -88,7 +97,10 @@ export default function FancyExpandableFab({
         return (
           <Animated.View
             key={index}
-            style={[styles.optionButtonContainer, { transform: [{ translateY }], opacity: animation }]}
+            style={[
+              styles.optionButtonContainer,
+              { transform: [{ translateY }], opacity: animation },
+            ]}
             pointerEvents={open ? 'auto' : 'none'}
           >
             <View style={styles.labelContainer}>
@@ -96,8 +108,17 @@ export default function FancyExpandableFab({
                 {button.label}
               </FancyText>
             </View>
-            <View style={[styles.optionButton, { backgroundColor: button.backgroundColor || palette.terciary }]}>
-              <DefaultIcons.Custom {...button.icon} color={palette.icons.light} size={button.size || 22} />
+            <View
+              style={[
+                styles.optionButton,
+                { backgroundColor: button.backgroundColor || palette.terciary },
+              ]}
+            >
+              <DefaultIcons.Custom
+                {...button.icon}
+                color={palette.icons.light}
+                size={button.size || 22}
+              />
             </View>
           </Animated.View>
         );
@@ -107,13 +128,27 @@ export default function FancyExpandableFab({
       <TouchableOpacity activeOpacity={0.9} onPress={toggleMenu}>
         <Animated.View style={[styles.button, { backgroundColor }]}>
           {/* Ícone fechado */}
-          <Animated.View style={[RNStyleSheet.absoluteFill, styles.iconWrapper, { opacity: closedOpacity }]} pointerEvents='none'>
-            <DefaultIcons.Custom {...resolvedMainButtonClosed.icon} size={resolvedMainButtonClosed.size || 22} color={palette.icons.light} />
+          <Animated.View
+            style={[RNStyleSheet.absoluteFill, styles.iconWrapper, { opacity: closedOpacity }]}
+            pointerEvents='none'
+          >
+            <DefaultIcons.Custom
+              {...resolvedMainButtonClosed.icon}
+              size={resolvedMainButtonClosed.size || 22}
+              color={palette.icons.light}
+            />
           </Animated.View>
 
           {/* Ícone aberto */}
-          <Animated.View style={[RNStyleSheet.absoluteFill, styles.iconWrapper, { opacity: openOpacity }]} pointerEvents='none'>
-            <DefaultIcons.Custom {...resolvedMainButtonOpen.icon} size={resolvedMainButtonOpen.size || 22} color={palette.icons.light} />
+          <Animated.View
+            style={[RNStyleSheet.absoluteFill, styles.iconWrapper, { opacity: openOpacity }]}
+            pointerEvents='none'
+          >
+            <DefaultIcons.Custom
+              {...resolvedMainButtonOpen.icon}
+              size={resolvedMainButtonOpen.size || 22}
+              color={palette.icons.light}
+            />
           </Animated.View>
         </Animated.View>
       </TouchableOpacity>

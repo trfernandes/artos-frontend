@@ -45,7 +45,14 @@ type Props = {
   onSave: (payload: AddAuxiliarFormData) => void | Promise<void>;
 };
 
-export default function AuxiliarMinisterioFormSheet({ visible, mode, volunteers, auxiliar, onClose, onSave }: Props) {
+export default function AuxiliarMinisterioFormSheet({
+  visible,
+  mode,
+  volunteers,
+  auxiliar,
+  onClose,
+  onSave,
+}: Props) {
   const palette = usePallete();
   const [voluntarioId, setVoluntarioId] = useState('');
   const [permissionMap, setPermissionMap] = useState<PermissionMap>(createDefaultPermissionMap);
@@ -69,7 +76,10 @@ export default function AuxiliarMinisterioFormSheet({ visible, mode, volunteers,
         value: item.id,
         left: {
           type: 'image',
-          source: item.fotoThumbUrl || item.fotoUrl ? { uri: item.fotoThumbUrl || item.fotoUrl || '' } : undefined,
+          source:
+            item.fotoThumbUrl || item.fotoUrl
+              ? { uri: item.fotoThumbUrl || item.fotoUrl || '' }
+              : undefined,
         } as any,
       })),
     [volunteers],
@@ -158,7 +168,13 @@ export default function AuxiliarMinisterioFormSheet({ visible, mode, volunteers,
 
       <View style={styles.groupsContainer}>
         {(Object.values(RecursoPermissaoEnum) as RecursoPermissaoEnum[]).map((recurso) => (
-          <View key={recurso} style={[styles.groupCard, { borderColor: palette.border, backgroundColor: palette.backgroundColor2 }]}>
+          <View
+            key={recurso}
+            style={[
+              styles.groupCard,
+              { borderColor: palette.border, backgroundColor: palette.backgroundColor2 },
+            ]}
+          >
             <FancyText type='bold' size='small'>
               {RecursoPermissaoEnumLabel[recurso]}
             </FancyText>

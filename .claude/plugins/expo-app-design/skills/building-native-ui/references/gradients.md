@@ -1,6 +1,7 @@
 # CSS Gradients
 
-> **New Architecture Only**: CSS gradients require React Native's New Architecture (Fabric). They are not available in the old architecture or Expo Go.
+> **New Architecture Only**: CSS gradients require React Native's New Architecture (Fabric). They
+> are not available in the old architecture or Expo Go.
 
 Use CSS gradients with the `experimental_backgroundImage` style property.
 
@@ -52,12 +53,14 @@ Use CSS gradients with the `experimental_backgroundImage` style property.
 Stack multiple gradients by comma-separating them:
 
 ```tsx
-<View style={{
-  experimental_backgroundImage: `
+<View
+  style={{
+    experimental_backgroundImage: `
     linear-gradient(to bottom, transparent 0%, black 100%),
     radial-gradient(circle at top right, rgba(255, 0, 0, 0.5) 0%, transparent 50%)
-  `
-}} />
+  `,
+  }}
+/>
 ```
 
 ## Common Patterns
@@ -67,31 +70,39 @@ Stack multiple gradients by comma-separating them:
 ```tsx
 <View style={{ position: 'relative' }}>
   <Image source={{ uri: '...' }} style={{ width: '100%', height: 200 }} />
-  <View style={{
-    position: 'absolute',
-    inset: 0,
-    experimental_backgroundImage: 'linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 50%)'
-  }} />
+  <View
+    style={{
+      position: 'absolute',
+      inset: 0,
+      experimental_backgroundImage:
+        'linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 50%)',
+    }}
+  />
 </View>
 ```
 
 ### Frosted Glass Effect
 
 ```tsx
-<View style={{
-  experimental_backgroundImage: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
-  backdropFilter: 'blur(10px)',
-}} />
+<View
+  style={{
+    experimental_backgroundImage:
+      'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
+    backdropFilter: 'blur(10px)',
+  }}
+/>
 ```
 
 ### Button Gradient
 
 ```tsx
-<Pressable style={{
-  experimental_backgroundImage: 'linear-gradient(to bottom, #4CAF50 0%, #388E3C 100%)',
-  padding: 16,
-  borderRadius: 8,
-}}>
+<Pressable
+  style={{
+    experimental_backgroundImage: 'linear-gradient(to bottom, #4CAF50 0%, #388E3C 100%)',
+    padding: 16,
+    borderRadius: 8,
+  }}
+>
   <Text style={{ color: 'white', textAlign: 'center' }}>Submit</Text>
 </Pressable>
 ```

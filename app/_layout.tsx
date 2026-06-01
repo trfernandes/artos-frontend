@@ -17,7 +17,11 @@ import { ConnectivityProvider } from '../core/network/connectivity/ConnectivityP
 import { createQueryClient } from '../core/react-query/queryClient';
 import { ConnectivityBanner } from '../components/FancyConnectivityBanner';
 import FancyLoading from '../components/FancyLoading';
-import { initialWindowMetrics, SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import {
+  initialWindowMetrics,
+  SafeAreaProvider,
+  SafeAreaView,
+} from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useProtectedRoute } from '../hooks/useProtectedRoute';
 import { ThemeProvider } from '../contexts/ThemeContext';
@@ -125,7 +129,10 @@ function RootLayoutNav() {
         await NavigationBar.setButtonStyleAsync(isDark ? 'light' : 'dark');
       } catch (error) {
         if (__DEV__) {
-          console.warn("expo-navigation-bar indisponivel nesta build. Reinstale o app dev client.", error);
+          console.warn(
+            'expo-navigation-bar indisponivel nesta build. Reinstale o app dev client.',
+            error,
+          );
         }
       }
     })();
@@ -144,11 +151,7 @@ function RootLayoutNav() {
       <View style={styles.rootContainer}>
         <NotificationsManager />
         {user && <AppReviewManager />}
-        <StatusBar
-          backgroundColor='transparent'
-          style={statusBarStyle}
-          translucent
-        />
+        <StatusBar backgroundColor='transparent' style={statusBarStyle} translucent />
         <SafeAreaView
           style={[styles.navigationContainer, { backgroundColor: safeAreaBackgroundColor }]}
           edges={['bottom']}
@@ -164,7 +167,13 @@ function RootLayoutNav() {
         <ConnectivityBanner />
         <Modal visible={isSigningOut} transparent animationType='fade'>
           <View style={styles.signOutOverlay}>
-            <View style={[styles.signOutSurface, palette.shadows[200], { backgroundColor: palette.backgroundColor4 }]}>
+            <View
+              style={[
+                styles.signOutSurface,
+                palette.shadows[200],
+                { backgroundColor: palette.backgroundColor4 },
+              ]}
+            >
               <FancyLoading label='Saindo...' containerStyle={styles.signOutLoading} />
             </View>
           </View>

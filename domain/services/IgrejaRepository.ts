@@ -27,7 +27,11 @@ import { ResponseVoluntarioDto } from '../dtos/Voluntario/voluntario.response';
 import { DynamicQuery } from '../utils/query_utils';
 import { ResponseIgrejaVoluntarioDto } from '../dtos/Igreja/response-igreja-voluntario.dto';
 
-class IgrejaRepositoryClass extends BaseRepository<ResponseIgrejaDto, CreateIgrejaDto, UpdateIgrejaDto> {
+class IgrejaRepositoryClass extends BaseRepository<
+  ResponseIgrejaDto,
+  CreateIgrejaDto,
+  UpdateIgrejaDto
+> {
   constructor() {
     super(IgrejaApi);
   }
@@ -203,21 +207,30 @@ class IgrejaRepositoryClass extends BaseRepository<ResponseIgrejaDto, CreateIgre
   /**
    * Atualizar dados cadastrais da igreja (JWT)
    */
-  updateDados(igrejaId: string, dto: UpdateIgrejaDadosDto): Promise<ResponseIgrejaConfiguracoesDto> {
+  updateDados(
+    igrejaId: string,
+    dto: UpdateIgrejaDadosDto,
+  ): Promise<ResponseIgrejaConfiguracoesDto> {
     return IgrejaApi.updateDados(igrejaId, dto);
   }
 
   /**
    * Atualizar modo de entrada da igreja (JWT)
    */
-  updateModoEntrada(igrejaId: string, dto: UpdateIgrejaModoEntradaDto): Promise<ResponseIgrejaConfiguracoesDto> {
+  updateModoEntrada(
+    igrejaId: string,
+    dto: UpdateIgrejaModoEntradaDto,
+  ): Promise<ResponseIgrejaConfiguracoesDto> {
     return IgrejaApi.updateModoEntrada(igrejaId, dto);
   }
 
   /**
    * Atualizar configurações de notificações (JWT)
    */
-  updateNotificacoes(igrejaId: string, dto: UpdateIgrejaNotificacoesDto): Promise<ResponseIgrejaConfiguracoesDto> {
+  updateNotificacoes(
+    igrejaId: string,
+    dto: UpdateIgrejaNotificacoesDto,
+  ): Promise<ResponseIgrejaConfiguracoesDto> {
     return IgrejaApi.updateNotificacoes(igrejaId, dto);
   }
 }

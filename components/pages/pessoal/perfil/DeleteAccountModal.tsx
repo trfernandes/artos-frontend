@@ -39,7 +39,9 @@ export default function DeleteAccountModal(props: FancyModalDialogProps<any>) {
         containerStyle: { backgroundColor: Pallete.error },
       }}
     >
-      <FancyText>Tem certeza que deseja excluir sua conta? Essa ação não pode ser desfeita.</FancyText>
+      <FancyText>
+        Tem certeza que deseja excluir sua conta? Essa ação não pode ser desfeita.
+      </FancyText>
       <FancyVerticalSpacer height={12} />
       <FancyTextInput
         label='Confirme sua senha'
@@ -48,7 +50,10 @@ export default function DeleteAccountModal(props: FancyModalDialogProps<any>) {
         inputProps={{
           secureTextEntry: true,
           autoCapitalize: 'none',
-          onChangeText: (v: string) => { setSenha(v); setErro(''); },
+          onChangeText: (v: string) => {
+            setSenha(v);
+            setErro('');
+          },
         }}
       />
     </FancyModalDialog>

@@ -24,7 +24,9 @@ export type CreateEscalaEventoEquipePorTemplateDto = {
   templateId: string;
 };
 
-export type CreateEscalaEventoEquipeDto = CreateEscalaEventoEquipePorTemplateDto | CreateEscalaEventoEquipePersonalizadaDto;
+export type CreateEscalaEventoEquipeDto =
+  | CreateEscalaEventoEquipePorTemplateDto
+  | CreateEscalaEventoEquipePersonalizadaDto;
 
 export type CreateEscalaEventoDto = {
   id: string;

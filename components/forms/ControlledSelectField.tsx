@@ -3,20 +3,21 @@ import FancyErrorText from './FancyErrorText';
 import FancySelectField, { FancySelectFieldProps } from '../fields/FancySelectField';
 import { View } from 'react-native';
 
-interface ControlledFancySelectFieldProps<TFormValues extends FieldValues, TName extends Path<TFormValues>>
-  extends Pick<
-    FancySelectFieldProps<PathValue<TFormValues, TName>>,
-    'placeholder' | 'listItems' | 'label' | 'onChange' | 'disabled' | 'isLoading' | 'modalTitle'
-  > {
+interface ControlledFancySelectFieldProps<
+  TFormValues extends FieldValues,
+  TName extends Path<TFormValues>,
+> extends Pick<
+  FancySelectFieldProps<PathValue<TFormValues, TName>>,
+  'placeholder' | 'listItems' | 'label' | 'onChange' | 'disabled' | 'isLoading' | 'modalTitle'
+> {
   control: Control<TFormValues>;
   name: TName;
 }
 
-export default function ControlledSelectField<TFormValues extends FieldValues, TName extends Path<TFormValues>>({
-  control,
-  name,
-  ...rest
-}: ControlledFancySelectFieldProps<TFormValues, TName>) {
+export default function ControlledSelectField<
+  TFormValues extends FieldValues,
+  TName extends Path<TFormValues>,
+>({ control, name, ...rest }: ControlledFancySelectFieldProps<TFormValues, TName>) {
   const { listItems, onChange: externalOnChange, ...selectFieldProps } = rest;
   return (
     <Controller

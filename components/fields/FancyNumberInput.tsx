@@ -54,7 +54,12 @@ export default function FancyNumberInput({
           }}
         />
         <View style={styles.valueWrap}>
-          <FancyText size={'large'} type='semiBold' color={palette.fonts.inactive} style={styles.valueText}>
+          <FancyText
+            size={'large'}
+            type='semiBold'
+            color={palette.fonts.inactive}
+            style={styles.valueText}
+          >
             {value ?? '0'}
           </FancyText>
         </View>

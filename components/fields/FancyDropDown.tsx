@@ -1,8 +1,20 @@
-import { ActivityIndicator, StyleProp, StyleSheet, TextInputProps, View, ViewStyle } from 'react-native';
+import {
+  ActivityIndicator,
+  StyleProp,
+  StyleSheet,
+  TextInputProps,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { FancyTextInputProps } from './FancyTextInput';
 import { DropDownItemProps } from './FancyDropDownItem';
 import { Dropdown } from 'react-native-element-dropdown';
-import { BOLD_FONT, ITALIC_SEMI_BOLD_FONT, MEDIUM_FONT, SMALL_SIZE_FONT } from '../../constants/font';
+import {
+  BOLD_FONT,
+  ITALIC_SEMI_BOLD_FONT,
+  MEDIUM_FONT,
+  SMALL_SIZE_FONT,
+} from '../../constants/font';
 import { ThemePalette } from '../../constants/colors';
 import { useCallback } from 'react';
 import { ColorUtils } from '../../utils/color_utils';
@@ -45,22 +57,27 @@ export default function FancyDropDown<ValueItem>({
   const styles = useThemedStyles(createStyles);
   const activeColor = ColorUtils.lightenColor(Pallete.primary, 0.7);
 
-  const renderItem = useCallback((item: DropDownItemProps<ValueItem>, selected?: boolean) => {
-    return (
-      <View style={styles.itemContainer}>
-        {item.left && item.left.type === 'image' && item.left.source && (
-          <FancyImage
-            size={30}
-            source={
-              ImageUtils.normalizeImageSource(item.left?.source) ??
-              (typeof item.left?.source === 'string' ? { uri: item.left?.source } : item.left?.source)
-            }
-          />
-        )}
-        <FancyText style={styles.itemText}>{item.title}</FancyText>
-      </View>
-    );
-  }, [styles]);
+  const renderItem = useCallback(
+    (item: DropDownItemProps<ValueItem>, selected?: boolean) => {
+      return (
+        <View style={styles.itemContainer}>
+          {item.left && item.left.type === 'image' && item.left.source && (
+            <FancyImage
+              size={30}
+              source={
+                ImageUtils.normalizeImageSource(item.left?.source) ??
+                (typeof item.left?.source === 'string'
+                  ? { uri: item.left?.source }
+                  : item.left?.source)
+              }
+            />
+          )}
+          <FancyText style={styles.itemText}>{item.title}</FancyText>
+        </View>
+      );
+    },
+    [styles],
+  );
 
   const renderRightIcon = useCallback(() => {
     return isLoading ? (
@@ -95,7 +112,10 @@ export default function FancyDropDown<ValueItem>({
         fontFamily={MEDIUM_FONT}
         containerStyle={styles.listContainer}
         style={[styles.inputContainer, innerDisabled && { backgroundColor: Pallete.disabled }]}
-        selectedTextStyle={[styles.selectedText, innerDisabled && { color: Pallete.fonts.inactive }]}
+        selectedTextStyle={[
+          styles.selectedText,
+          innerDisabled && { color: Pallete.fonts.inactive },
+        ]}
         activeColor={activeColor}
         dropdownPosition={dropdownPosition}
         mode={dropdownMode}

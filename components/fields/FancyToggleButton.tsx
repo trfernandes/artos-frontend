@@ -16,7 +16,12 @@ export default function FancyToggleButton<ValueType>({
   disabled = false,
   position = 'left',
   onPress,
-}: { isSelected: boolean; disabled?: boolean; onPress?: () => void; position?: 'left' | 'right' } & ButtonOption<ValueType>) {
+}: {
+  isSelected: boolean;
+  disabled?: boolean;
+  onPress?: () => void;
+  position?: 'left' | 'right';
+} & ButtonOption<ValueType>) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
 

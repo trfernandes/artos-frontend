@@ -3,12 +3,18 @@ export enum MinisterioVoluntarioFuncaoStatusEnum {
   Inativo = '1',
 }
 
-export const MinisterioVoluntarioFuncaoStatusEnumLabel: Record<MinisterioVoluntarioFuncaoStatusEnum, string> = {
+export const MinisterioVoluntarioFuncaoStatusEnumLabel: Record<
+  MinisterioVoluntarioFuncaoStatusEnum,
+  string
+> = {
   [MinisterioVoluntarioFuncaoStatusEnum.Ativo]: 'Ativo',
   [MinisterioVoluntarioFuncaoStatusEnum.Inativo]: 'Inativo',
 };
 
-export const MinisterioVoluntarioFuncaoStatusEnumMap: Record<string, MinisterioVoluntarioFuncaoStatusEnum> = {
+export const MinisterioVoluntarioFuncaoStatusEnumMap: Record<
+  string,
+  MinisterioVoluntarioFuncaoStatusEnum
+> = {
   '0': MinisterioVoluntarioFuncaoStatusEnum.Ativo,
   '1': MinisterioVoluntarioFuncaoStatusEnum.Inativo,
 };

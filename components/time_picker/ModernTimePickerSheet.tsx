@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { RefObject } from 'react';
-import { NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import FancyBottomSheetModal from '../modal/FancyBottomSheetModal';
 import FancyButton from '../buttons/FancyButton';
@@ -49,13 +56,13 @@ function clampTime(time: TimeValue): TimeValue {
 function roundToStep(time: TimeValue, step: number): TimeValue {
   const total = time.hour * 60 + time.minute;
   const rounded = Math.round(total / step) * step;
-  const normalized = ((rounded % (24 * 60)) + (24 * 60)) % (24 * 60);
+  const normalized = ((rounded % (24 * 60)) + 24 * 60) % (24 * 60);
   return { hour: Math.floor(normalized / 60), minute: normalized % 60 };
 }
 
 function addMinutesToTime(time: TimeValue, delta: number): TimeValue {
   const total = time.hour * 60 + time.minute + delta;
-  const normalized = ((total % (24 * 60)) + (24 * 60)) % (24 * 60);
+  const normalized = ((total % (24 * 60)) + 24 * 60) % (24 * 60);
   return { hour: Math.floor(normalized / 60), minute: normalized % 60 };
 }
 
@@ -175,8 +182,17 @@ export default function ModernTimePickerSheet({
 
   const footer = (
     <View style={styles.footerButtons}>
-      <FancyButton label='Cancelar' type='outlined' onPress={onClose} containerStyle={styles.footerButton} />
-      <FancyButton label='Confirmar' onPress={() => onConfirm(draftTime)} containerStyle={styles.footerButton} />
+      <FancyButton
+        label='Cancelar'
+        type='outlined'
+        onPress={onClose}
+        containerStyle={styles.footerButton}
+      />
+      <FancyButton
+        label='Confirmar'
+        onPress={() => onConfirm(draftTime)}
+        containerStyle={styles.footerButton}
+      />
     </View>
   );
 
@@ -249,20 +265,33 @@ export default function ModernTimePickerSheet({
             <View style={[styles.wheelRow, { height: wheelHeight }]}>
               <WheelColumn
                 refObj={hourRef}
-                items={Array.from({ length: 24 }, (_, h) => ({ key: `h-${h}`, label: pad2(h), selected: draftTime.hour === h }))}
+                items={Array.from({ length: 24 }, (_, h) => ({
+                  key: `h-${h}`,
+                  label: pad2(h),
+                  selected: draftTime.hour === h,
+                }))}
                 height={wheelHeight}
                 centerOffset={centerOffset}
                 onMomentumScrollEnd={onHourScrollEnd}
                 onLayout={() => scrollToDraft(draftTime, false)}
               />
 
-              <FancyText size='large' type='bold' color={palette.fonts.inactive} style={styles.colon}>
+              <FancyText
+                size='large'
+                type='bold'
+                color={palette.fonts.inactive}
+                style={styles.colon}
+              >
                 :
               </FancyText>
 
               <WheelColumn
                 refObj={minuteRef}
-                items={minuteOptions.map((m) => ({ key: `m-${m}`, label: pad2(m), selected: draftTime.minute === m }))}
+                items={minuteOptions.map((m) => ({
+                  key: `m-${m}`,
+                  label: pad2(m),
+                  selected: draftTime.minute === m,
+                }))}
                 height={wheelHeight}
                 centerOffset={centerOffset}
                 onMomentumScrollEnd={onMinuteScrollEnd}
@@ -284,12 +313,18 @@ export default function ModernTimePickerSheet({
 
               <LinearGradient
                 pointerEvents='none'
-                colors={[palette.backgroundColor4, ColorUtils.withAlpha(palette.backgroundColor4, 0)]}
+                colors={[
+                  palette.backgroundColor4,
+                  ColorUtils.withAlpha(palette.backgroundColor4, 0),
+                ]}
                 style={[styles.topFade, { height: centerOffset }]}
               />
               <LinearGradient
                 pointerEvents='none'
-                colors={[ColorUtils.withAlpha(palette.backgroundColor4, 0), palette.backgroundColor4]}
+                colors={[
+                  ColorUtils.withAlpha(palette.backgroundColor4, 0),
+                  palette.backgroundColor4,
+                ]}
                 style={[styles.bottomFade, { height: centerOffset }]}
               />
             </View>
@@ -367,7 +402,9 @@ function TimeChip({
       style={({ pressed }) => [
         styles.chip,
         {
-          backgroundColor: selected ? ColorUtils.withAlpha(palette.primary, 0.14) : palette.backgroundColor4,
+          backgroundColor: selected
+            ? ColorUtils.withAlpha(palette.primary, 0.14)
+            : palette.backgroundColor4,
           borderColor: selected ? ColorUtils.withAlpha(palette.primary, 0.45) : palette.borderCard,
           opacity: pressed ? 0.72 : 1,
         },
@@ -375,7 +412,11 @@ function TimeChip({
       accessibilityRole='button'
       accessibilityState={{ selected: !!selected }}
     >
-      <FancyText size='small' type={selected ? 'bold' : 'semiBold'} color={selected ? palette.primary : palette.fonts.dark}>
+      <FancyText
+        size='small'
+        type={selected ? 'bold' : 'semiBold'}
+        color={selected ? palette.primary : palette.fonts.dark}
+      >
         {label}
       </FancyText>
     </Pressable>

@@ -20,7 +20,15 @@ import { usePallete } from '../hooks/usePallete';
 
 export type FancyTextProps = {
   children?: React.ReactNode;
-  type?: 'normal' | 'normalItalic' | 'medium' | 'mediumItalic' | 'semiBold' | 'semiBoldItalic' | 'bold' | 'boldItalic';
+  type?:
+    | 'normal'
+    | 'normalItalic'
+    | 'medium'
+    | 'mediumItalic'
+    | 'semiBold'
+    | 'semiBoldItalic'
+    | 'bold'
+    | 'boldItalic';
   size?: 'extraSmall' | 'small' | 'medium' | 'large' | 'largeMedium' | 'extraLarge' | number;
   color?: string;
   style?: StyleProp<TextStyle>;
@@ -62,7 +70,15 @@ export default function FancyText(props: FancyTextProps) {
                   : REGULAR_FONT;
 
   return (
-    <Text {...props} allowFontScaling={false} style={[styles.text, { fontSize, fontFamily, color, lineHeight: Math.round(fontSize * 1.25) }, props.style]}>
+    <Text
+      {...props}
+      allowFontScaling={false}
+      style={[
+        styles.text,
+        { fontSize, fontFamily, color, lineHeight: Math.round(fontSize * 1.25) },
+        props.style,
+      ]}
+    >
       {props.children}
     </Text>
   );

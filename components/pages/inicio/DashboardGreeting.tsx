@@ -35,28 +35,28 @@ export default function DashboardGreeting({ nome, subtitulo }: DashboardGreeting
     >
       <View style={styles.row}>
         <View style={styles.textGroup}>
-          <FancyText size="extraSmall" type="mediumItalic" color="rgba(255,255,255,0.65)">
+          <FancyText size='extraSmall' type='mediumItalic' color='rgba(255,255,255,0.65)'>
             {hojeCapitalizado}
           </FancyText>
 
           <View style={styles.nameGroup}>
             <FancyText
-              size="large"
-              type="bold"
+              size='large'
+              type='bold'
               color={palette.fonts.light}
               numberOfLines={2}
-              ellipsizeMode="tail"
+              ellipsizeMode='tail'
               style={styles.nameText}
             >
               {nome}
             </FancyText>
             {subtitulo && (
               <FancyText
-                size="extraSmall"
-                type="medium"
-                color="rgba(255,255,255,0.8)"
+                size='extraSmall'
+                type='medium'
+                color='rgba(255,255,255,0.8)'
                 numberOfLines={1}
-                ellipsizeMode="tail"
+                ellipsizeMode='tail'
                 style={styles.subtitleText}
               >
                 {subtitulo}
@@ -66,11 +66,7 @@ export default function DashboardGreeting({ nome, subtitulo }: DashboardGreeting
         </View>
 
         <Pressable onPress={() => router.push('pessoal/perfil')}>
-          <FancyAvatarImage
-            source={source}
-            size={36}
-            style={styles.avatar}
-          />
+          <FancyAvatarImage source={source} size={36} style={styles.avatar} />
         </Pressable>
       </View>
     </LinearGradient>

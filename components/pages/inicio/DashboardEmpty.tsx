@@ -11,7 +11,10 @@ type DashboardEmptyProps = {
   category?: DashboardEmptyCategory;
 };
 
-const categoryConfig: Record<DashboardEmptyCategory, { library: IconLibrary; name: string; defaultLabel: string }> = {
+const categoryConfig: Record<
+  DashboardEmptyCategory,
+  { library: IconLibrary; name: string; defaultLabel: string }
+> = {
   escalas: {
     library: 'MaterialCommunityIcons',
     name: 'calendar-blank-outline',
@@ -51,7 +54,7 @@ export default function DashboardEmpty({ label, category = 'generic' }: Dashboar
         size={18}
         color={Pallete.fonts.inactive2}
       />
-      <FancyText size="small" type="mediumItalic" color={Pallete.fonts.inactive2}>
+      <FancyText size='small' type='mediumItalic' color={Pallete.fonts.inactive2}>
         {label || config.defaultLabel}
       </FancyText>
     </View>

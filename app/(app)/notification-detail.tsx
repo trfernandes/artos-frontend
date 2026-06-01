@@ -10,7 +10,12 @@ import { usePallete } from '../../hooks/usePallete';
 import { ColorUtils } from '../../utils/color_utils';
 import { resolveEventoEnsaioInfo } from '../../utils/evento-ensaio';
 import { resolveNotificationTarget } from '../../services/notification-routing';
-import { DEFAULT_NOTIFICATION_THEME, getNotificationToneColor, NOTIFICACAO_THEMES, timeAgoLong } from '../../components/pages/notifications/NotificacaoCard';
+import {
+  DEFAULT_NOTIFICATION_THEME,
+  getNotificationToneColor,
+  NOTIFICACAO_THEMES,
+  timeAgoLong,
+} from '../../components/pages/notifications/NotificacaoCard';
 import { formatAppDateTime, formatClockTime } from '../../utils/date_utils';
 
 function parseNotification(raw?: string | string[]) {
@@ -43,7 +48,6 @@ const TIPOS_COM_ESCALA_COMPLETA = new Set<NotificacaoTipoEnum>([
   NotificacaoTipoEnum.IndisponibilidadeConflito,
 ]);
 
-
 const TIPOS_PRESENCA_LIDER = new Set<NotificacaoTipoEnum>([
   NotificacaoTipoEnum.EscalaVoluntarioConfirmou,
   NotificacaoTipoEnum.EscalaVoluntarioRecusou,
@@ -54,7 +58,8 @@ function getDetailRows(notification: ResponseNotificacaoDto) {
   const payload = getPayload(notification);
   const rows: Array<{ label: string; value: string; icon: CustomIconProps['name'] }> = [];
 
-  const semRows = !tipo ||
+  const semRows =
+    !tipo ||
     tipo === NotificacaoTipoEnum.MinisterioNovoIntegrante ||
     tipo === NotificacaoTipoEnum.ComunicadoLider ||
     tipo === NotificacaoTipoEnum.IgrejaConviteAceito ||
@@ -82,11 +87,12 @@ function getDetailRows(notification: ResponseNotificacaoDto) {
   }
 
   if (mostrarData) {
-    const eventDateTimeSource = typeof payload.dataEvento === 'string' && payload.dataEvento.trim()
-      ? payload.dataEvento
-      : typeof payload.dataOcorrencia === 'string' && payload.dataOcorrencia.trim()
-        ? payload.dataOcorrencia
-        : null;
+    const eventDateTimeSource =
+      typeof payload.dataEvento === 'string' && payload.dataEvento.trim()
+        ? payload.dataEvento
+        : typeof payload.dataOcorrencia === 'string' && payload.dataOcorrencia.trim()
+          ? payload.dataOcorrencia
+          : null;
     const eventDateTimeLabel = eventDateTimeSource
       ? formatAppDateTime(eventDateTimeSource, "dd/MM 'às' HH'h'mm")
       : null;
@@ -98,11 +104,12 @@ function getDetailRows(notification: ResponseNotificacaoDto) {
   if (mostrarEnsaio) {
     const ensaio = resolveEventoEnsaioInfo({
       horarioEnsaio: typeof payload.horarioEnsaio === 'string' ? payload.horarioEnsaio : null,
-      horarioEnsaioPadrao: typeof payload.horarioEnsaioPadrao === 'string'
-        ? payload.horarioEnsaioPadrao
-        : typeof payload.evento?.horarioEnsaioPadrao === 'string'
-          ? payload.evento.horarioEnsaioPadrao
-          : null,
+      horarioEnsaioPadrao:
+        typeof payload.horarioEnsaioPadrao === 'string'
+          ? payload.horarioEnsaioPadrao
+          : typeof payload.evento?.horarioEnsaioPadrao === 'string'
+            ? payload.evento.horarioEnsaioPadrao
+            : null,
       isLouvor: true,
       fallbackLabel: 'Horário de ensaio não definido',
     });
@@ -123,11 +130,16 @@ function getShortcut(notification: ResponseNotificacaoDto) {
   const tipo = notification.tipo;
 
   if (target && target.pathname !== '/notifications') {
-    if (String(target.pathname).includes('/pessoal/escalas')) return { label: 'Ver escala', target };
-    if (String(target.pathname).includes('/ministerios')) return { label: 'Abrir ministérios', target };
-    if (String(target.pathname).includes('/admin/solicitacoes')) return { label: 'Abrir solicitações', target };
-    if (String(target.pathname).includes('/admin/voluntarios')) return { label: 'Abrir voluntários', target };
-    if (String(target.pathname).includes('/join-church/requests')) return { label: 'Abrir minhas solicitações', target };
+    if (String(target.pathname).includes('/pessoal/escalas'))
+      return { label: 'Ver escala', target };
+    if (String(target.pathname).includes('/ministerios'))
+      return { label: 'Abrir ministérios', target };
+    if (String(target.pathname).includes('/admin/solicitacoes'))
+      return { label: 'Abrir solicitações', target };
+    if (String(target.pathname).includes('/admin/voluntarios'))
+      return { label: 'Abrir voluntários', target };
+    if (String(target.pathname).includes('/join-church/requests'))
+      return { label: 'Abrir minhas solicitações', target };
     return { label: 'Abrir tela relacionada', target };
   }
 
@@ -150,7 +162,11 @@ export default function NotificationDetailPage() {
           <FancyText type='bold' size='small' style={{ color: palette.fonts.dark }}>
             Notificação indisponível
           </FancyText>
-          <FancyText size='extraSmall' type='medium' style={{ color: palette.fonts.inactive, textAlign: 'center' }}>
+          <FancyText
+            size='extraSmall'
+            type='medium'
+            style={{ color: palette.fonts.inactive, textAlign: 'center' }}
+          >
             Não foi possível carregar os detalhes desta notificação.
           </FancyText>
         </View>
@@ -158,7 +174,9 @@ export default function NotificationDetailPage() {
     );
   }
 
-  const theme = notification.tipo ? (NOTIFICACAO_THEMES[notification.tipo] ?? DEFAULT_NOTIFICATION_THEME) : DEFAULT_NOTIFICATION_THEME;
+  const theme = notification.tipo
+    ? (NOTIFICACAO_THEMES[notification.tipo] ?? DEFAULT_NOTIFICATION_THEME)
+    : DEFAULT_NOTIFICATION_THEME;
   const accentColor = getNotificationToneColor(theme.tone);
   const rows = getDetailRows(notification);
   const shortcut = getShortcut(notification);
@@ -187,15 +205,29 @@ export default function NotificationDetailPage() {
             },
           ]}
         >
-          <View style={[styles.iconCircle, { backgroundColor: ColorUtils.withAlpha(accentColor, 0.14) }]}>
+          <View
+            style={[
+              styles.iconCircle,
+              { backgroundColor: ColorUtils.withAlpha(accentColor, 0.14) },
+            ]}
+          >
             <DefaultIcons.Custom {...theme.icon} color={accentColor} size={20} />
           </View>
           <View style={styles.headerText}>
             <FancyText type='bold' size='medium' style={{ color: accentColor }}>
               {theme.label}
             </FancyText>
-            <FancyText type='medium' size='extraSmall' style={[styles.inlineMessage, { color: ColorUtils.withAlpha(palette.fonts.dark, 0.72) }]}>
-              {notification.mensagem?.trim() || notification.titulo?.trim() || 'Toque no atalho abaixo para abrir a tela relacionada.'}
+            <FancyText
+              type='medium'
+              size='extraSmall'
+              style={[
+                styles.inlineMessage,
+                { color: ColorUtils.withAlpha(palette.fonts.dark, 0.72) },
+              ]}
+            >
+              {notification.mensagem?.trim() ||
+                notification.titulo?.trim() ||
+                'Toque no atalho abaixo para abrir a tela relacionada.'}
             </FancyText>
             {timeLabel ? (
               <FancyText type='medium' size='extraSmall' style={{ color: palette.fonts.inactive }}>
@@ -210,23 +242,45 @@ export default function NotificationDetailPage() {
             <FancyText type='bold' size='small' style={{ color: palette.fonts.dark }}>
               Resumo
             </FancyText>
-            <View style={[styles.summaryBlock, { backgroundColor: ColorUtils.withAlpha(accentColor, 0.035) }]}>
+            <View
+              style={[
+                styles.summaryBlock,
+                { backgroundColor: ColorUtils.withAlpha(accentColor, 0.035) },
+              ]}
+            >
               {rows.map((row, index) => (
                 <View
                   key={row.label}
                   style={[
                     styles.row,
-                    index < rows.length - 1 && { borderBottomColor: ColorUtils.withAlpha(palette.border, 0.55), borderBottomWidth: 1 },
+                    index < rows.length - 1 && {
+                      borderBottomColor: ColorUtils.withAlpha(palette.border, 0.55),
+                      borderBottomWidth: 1,
+                    },
                   ]}
                 >
-                  <View style={[styles.rowIcon, { backgroundColor: ColorUtils.withAlpha(accentColor, 0.1) }]}>
-                    <DefaultIcons.Custom library='MaterialCommunityIcons' name={row.icon} size={15} color={accentColor} />
+                  <View
+                    style={[
+                      styles.rowIcon,
+                      { backgroundColor: ColorUtils.withAlpha(accentColor, 0.1) },
+                    ]}
+                  >
+                    <DefaultIcons.Custom
+                      library='MaterialCommunityIcons'
+                      name={row.icon}
+                      size={15}
+                      color={accentColor}
+                    />
                   </View>
                   <View style={styles.rowText}>
                     <FancyText type='medium' size={10} style={{ color: palette.fonts.inactive }}>
                       {row.label}
                     </FancyText>
-                    <FancyText type='semiBold' size='extraSmall' style={{ color: palette.fonts.dark }}>
+                    <FancyText
+                      type='semiBold'
+                      size='extraSmall'
+                      style={{ color: palette.fonts.dark }}
+                    >
                       {row.value}
                     </FancyText>
                   </View>

@@ -66,43 +66,47 @@ export default function AdminDiscoveryPage() {
               {BENEFITS.map((item) => {
                 const accent = Pallete[item.accent];
                 return (
-                <View
-                  key={item.title}
-                  style={[
-                    styles.benefitRow,
-                    Pallete.shadows[200],
-                    {
-                      backgroundColor: ColorUtils.blendOver(accent, 0.07, Pallete.backgroundColor),
-                      borderColor: ColorUtils.withAlpha(accent, 0.25),
-                    },
-                  ]}
-                >
                   <View
+                    key={item.title}
                     style={[
-                      styles.iconWrap,
-                      { backgroundColor: ColorUtils.withAlpha(accent, 0.12) },
+                      styles.benefitRow,
+                      Pallete.shadows[200],
+                      {
+                        backgroundColor: ColorUtils.blendOver(
+                          accent,
+                          0.07,
+                          Pallete.backgroundColor,
+                        ),
+                        borderColor: ColorUtils.withAlpha(accent, 0.25),
+                      },
                     ]}
                   >
-                    <DefaultIcons.Custom
-                      library='MaterialCommunityIcons'
-                      name={item.icon}
-                      size={20}
-                      color={accent}
-                    />
-                  </View>
-                  <View style={styles.benefitText}>
-                    <FancyText size='small' type='semiBold' color={Pallete.fonts.dark}>
-                      {item.title}
-                    </FancyText>
-                    <FancyText
-                      size='extraSmall'
-                      color={Pallete.fonts.inactive}
-                      style={styles.benefitDescription}
+                    <View
+                      style={[
+                        styles.iconWrap,
+                        { backgroundColor: ColorUtils.withAlpha(accent, 0.12) },
+                      ]}
                     >
-                      {item.description}
-                    </FancyText>
+                      <DefaultIcons.Custom
+                        library='MaterialCommunityIcons'
+                        name={item.icon}
+                        size={20}
+                        color={accent}
+                      />
+                    </View>
+                    <View style={styles.benefitText}>
+                      <FancyText size='small' type='semiBold' color={Pallete.fonts.dark}>
+                        {item.title}
+                      </FancyText>
+                      <FancyText
+                        size='extraSmall'
+                        color={Pallete.fonts.inactive}
+                        style={styles.benefitDescription}
+                      >
+                        {item.description}
+                      </FancyText>
+                    </View>
                   </View>
-                </View>
                 );
               })}
             </View>

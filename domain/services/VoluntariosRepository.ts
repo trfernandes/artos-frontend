@@ -4,7 +4,11 @@ import { CreateVoluntarioDto } from '../dtos/Voluntario/voluntario.create';
 import { UpdateVoluntarioDto } from '../dtos/Voluntario/voluntario.update';
 import { BaseRepository } from './BaseRepository';
 
-class VoluntariosRepositoryClass extends BaseRepository<ResponseVoluntarioDto, CreateVoluntarioDto, UpdateVoluntarioDto> {
+class VoluntariosRepositoryClass extends BaseRepository<
+  ResponseVoluntarioDto,
+  CreateVoluntarioDto,
+  UpdateVoluntarioDto
+> {
   constructor() {
     super(VoluntariosApi);
   }

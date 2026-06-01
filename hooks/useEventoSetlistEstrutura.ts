@@ -16,7 +16,14 @@ export function useEventoSetlistEstrutura(
     throw new Error('Nenhuma igreja ativa selecionada');
   }
 
-  const queryKey = ['evento-setlist-estrutura', igrejaAtiva.id, eventoId, itemId, ministerioId, dataOcorrencia];
+  const queryKey = [
+    'evento-setlist-estrutura',
+    igrejaAtiva.id,
+    eventoId,
+    itemId,
+    ministerioId,
+    dataOcorrencia,
+  ];
 
   const query = useQuery({
     queryKey,
@@ -40,7 +47,12 @@ export function useEventoSetlistEstrutura(
 
   const replaceMutation = useMutation({
     mutationFn: (dto: UpsertEventoSetlistItemEstruturaDto) =>
-      IgrejaEventosRepository.substituirEstruturaSetlistItem(igrejaAtiva.id, eventoId!, itemId!, dto),
+      IgrejaEventosRepository.substituirEstruturaSetlistItem(
+        igrejaAtiva.id,
+        eventoId!,
+        itemId!,
+        dto,
+      ),
     onSuccess: invalidate,
   });
 

@@ -9,12 +9,14 @@ Problemas comuns com os 3 agentes e soluções rápidas.
 ### ❌ "ADB não reconhece o telefone"
 
 **Verificação rápida**:
+
 ```bash
 adb devices
 # Se não aparece seu telefone:
 ```
 
 **Solução**:
+
 1. **Ativa USB Debugging no telefone**:
    - Configurações → Sobre o telefone
    - Toque "Número da compilação" 7 vezes
@@ -37,6 +39,7 @@ adb devices
    ```
 
 **Se ainda não funcionar**:
+
 - Tenta outro cabo USB (seu pode estar ruim)
 - Reinicia o telefone
 - Reinicia o computador
@@ -47,6 +50,7 @@ adb devices
 ### ❌ "Screenshot sai branco ou pixelado"
 
 **Solução**:
+
 ```bash
 # Testa screenshot manualmente:
 node scripts/take-screenshot.js debug.png
@@ -57,12 +61,14 @@ node scripts/take-screenshot.js debug.png
 ```
 
 **Se branco** (permissão):
+
 ```bash
 # Autoriza captura de tela:
 adb shell pm grant com.expo.modules Android.permission.CAPTURE_SECURE_SURFACE
 ```
 
 **Se pixelado** (render):
+
 - Certifica que o app tá responsivo
 - Fecha outras apps
 - Verifica se telefone tem >= 3GB RAM livre
@@ -73,7 +79,9 @@ adb shell pm grant com.expo.modules Android.permission.CAPTURE_SECURE_SURFACE
 ### ❌ "App não recarrega durante refinement"
 
 **Solução**:
+
 1. **Verifica Expo**:
+
    ```bash
    cd artos_frontend
    npx expo start
@@ -87,13 +95,14 @@ adb shell pm grant com.expo.modules Android.permission.CAPTURE_SECURE_SURFACE
    - Espera app carregar (10-20 segundos)
 
 3. **Se não funcionar**:
+
    ```bash
    # Mata Expo antigo:
    npx expo stop
-   
+
    # Limpa cache:
    rm -rf node_modules/.cache
-   
+
    # Inicia novamente:
    npx expo start --clear
    ```
@@ -109,6 +118,7 @@ adb shell pm grant com.expo.modules Android.permission.CAPTURE_SECURE_SURFACE
 ### ❌ "TypeScript errors durante refinement"
 
 **Solução**:
+
 ```bash
 # Verifica erros:
 npx tsc --noEmit
@@ -126,6 +136,7 @@ npx tsc --noEmit
 ### ❌ "Agente não acha o componente"
 
 **Solução**:
+
 ```bash
 # Procura o componente:
 grep -r "NotificationsCard" artos_frontend/
@@ -145,6 +156,7 @@ grep -r "NotificationsCard" artos_frontend/
 ### ❌ "Imagem de design não encontrada"
 
 **Solução**:
+
 ```bash
 # Verifica se arquivo existe:
 ls -la artos_frontend/design/
@@ -167,6 +179,7 @@ ls -la artos_frontend/design/
 ### ❌ "Git worktrees já existem"
 
 **Solução**:
+
 ```bash
 # Remove worktrees antigas:
 git worktree list
@@ -188,6 +201,7 @@ rm -rf ../team-variant-*
 ### ❌ "Working tree dirty - não posso fazer worktrees"
 
 **Solução**:
+
 ```bash
 # Verifique seu estado:
 git status
@@ -211,6 +225,7 @@ git status
 ### ❌ "Expo não consegue rodar em 5 variants"
 
 **Solução**:
+
 ```bash
 # Mata todos os Expos:
 pkill -f "expo"        # Mac/Linux
@@ -229,8 +244,7 @@ npx expo start --port 8082
 
 ### ❌ "Screenshots dos variants saem brancas"
 
-**Solução**:
-Seu telefone não conectou ao ADB.
+**Solução**: Seu telefone não conectou ao ADB.
 
 ```bash
 # Verifica conexão:
@@ -252,6 +266,7 @@ npx expo start
 ### ❌ "Agente criou tudo mas matriz comparativa está incompleta"
 
 **Solução**:
+
 ```bash
 # Tira screenshots manualmente de cada variant:
 cd ../team-variant-1
@@ -270,6 +285,7 @@ node scripts/take-screenshot.js variant1.png
 ### ❌ "npm test não funciona"
 
 **Solução**:
+
 ```bash
 # Limpa e reinstala:
 rm -rf node_modules package-lock.json
@@ -289,6 +305,7 @@ npm install --save-dev vitest
 ### ❌ "timezone-mock não existe"
 
 **Solução**:
+
 ```bash
 npm install --save-dev timezone-mock
 
@@ -301,6 +318,7 @@ npm install --save-dev timezone-mock
 ### ❌ "Um teste falha mesmo após agente corrigir"
 
 **Solução**:
+
 ```bash
 # Vê qual teste falhou:
 npm test -- --verbose
@@ -325,8 +343,7 @@ npm test
 
 ### ❌ "Agente encontra 0 bugs/funções com datas"
 
-**Solução**:
-Suas funções podem estar nomeadas diferente.
+**Solução**: Suas funções podem estar nomeadas diferente.
 
 ```bash
 # Procura por keywords:
@@ -345,8 +362,7 @@ grep -r "Date\|Time\|timezone\|hour\|minute\|second" src/ --include="*.ts"
 
 ### ❌ "Testes criados, mas cobertura baixa"
 
-**Solução**:
-Agente talvez não tenha encontrado todas funções com datas.
+**Solução**: Agente talvez não tenha encontrado todas funções com datas.
 
 ```bash
 # Vê cobertura atual:
@@ -365,6 +381,7 @@ grep -r "new Date\|Date.now()\|getTime()" src/ --include="*.ts"
 ### ❌ "Agente criou testes mas código não muda"
 
 **Solução**:
+
 ```bash
 # Agente às vezes cria testes sem corrigir se muito complexo
 # Você corrige manual:
@@ -392,6 +409,7 @@ npm test
 ### ❌ "Mudanças não foram committed"
 
 **Solução**:
+
 ```bash
 # Vê o que tem não committed:
 git status
@@ -412,6 +430,7 @@ git revert [hash-do-commit-ruim]
 ### ❌ "Node.js / npm não tá funcionando"
 
 **Solução**:
+
 ```bash
 # Verifica versão:
 node --version  # Deve ser 16+
@@ -431,6 +450,7 @@ npm install --global npm@latest
 ### ❌ "Git não tá funcionando"
 
 **Solução**:
+
 ```bash
 # Verifica status:
 git status
@@ -455,6 +475,7 @@ git submodule update --init --recursive
 ### ❌ "Terminal tá confuso / outputs estranhos"
 
 **Solução**:
+
 ```bash
 # Limpa terminal:
 clear  # Mac/Linux
@@ -475,6 +496,7 @@ cd artos_frontend
 ### Plano de Resgate
 
 1. **Volta para versão anterior**:
+
    ```bash
    git log --oneline
    # Vê o hash anterior ao agente bagunçar
@@ -482,18 +504,20 @@ cd artos_frontend
    ```
 
 2. **Limpa tudo**:
+
    ```bash
    rm -rf node_modules package-lock.json
    npm install
    ```
 
 3. **Reinicia tudo**:
+
    ```bash
    # Mata processos:
    pkill -f expo
    pkill -f node
    pkill -f npm
-   
+
    # Novo terminal
    npx expo start
    ```
@@ -526,6 +550,7 @@ cd artos_frontend
 ## 💡 Dicas Gerais
 
 ### Mantenha Tudo Atualizado
+
 ```bash
 npm update  # Atualiza dependências
 npx expo@latest start  # Usa última versão do Expo
@@ -533,6 +558,7 @@ git pull  # Pega atualizações do projeto
 ```
 
 ### Use Correct Directory
+
 ```bash
 # Sempre execute do raiz do app:
 cd artos_frontend
@@ -543,6 +569,7 @@ cd artos_frontend
 ```
 
 ### Check Logs
+
 ```bash
 # Agente deixa logs:
 cat .agente-last-log.txt  # Se existir
@@ -559,31 +586,34 @@ npm test -- --verbose
 ## 📞 Sumário Rápido por Agente
 
 ### 📱 Refinamento Visual
-| Problema | Solução Rápida |
-|----------|---|
-| ADB não conecta | USB Debug + autoriza telefone |
-| Screenshot branco | Verifica permissões + fecha apps |
-| App não recarrega | npx expo start novamente |
-| TS errors | npx tsc --noEmit |
-| Componente não achado | Procura nome exato |
+
+| Problema              | Solução Rápida                   |
+| --------------------- | -------------------------------- |
+| ADB não conecta       | USB Debug + autoriza telefone    |
+| Screenshot branco     | Verifica permissões + fecha apps |
+| App não recarrega     | npx expo start novamente         |
+| TS errors             | npx tsc --noEmit                 |
+| Componente não achado | Procura nome exato               |
 
 ### 🎨 Design Paralelo
-| Problema | Solução Rápida |
-|----------|---|
-| Worktrees existem | git worktree remove ../team-variant-* |
-| Working tree dirty | git commit suas mudanças |
-| Expo erro porta | pkill -f expo (limpa portas) |
-| Screenshots brancas | Reconecta ADB |
-| Matriz incompleta | Tira screenshots manual |
+
+| Problema            | Solução Rápida                         |
+| ------------------- | -------------------------------------- |
+| Worktrees existem   | git worktree remove ../team-variant-\* |
+| Working tree dirty  | git commit suas mudanças               |
+| Expo erro porta     | pkill -f expo (limpa portas)           |
+| Screenshots brancas | Reconecta ADB                          |
+| Matriz incompleta   | Tira screenshots manual                |
 
 ### ⏰ Audit Timezone
-| Problema | Solução Rápida |
-|----------|---|
-| npm test falha | npm install novamente |
-| timezone-mock missing | npm install --save-dev timezone-mock |
-| Teste falha | npm test --verbose (debug) |
-| Nenhuma função encontrada | Procura por Date/Time keywords |
-| Cobertura baixa | Busca funções faltando e adiciona |
+
+| Problema                  | Solução Rápida                       |
+| ------------------------- | ------------------------------------ |
+| npm test falha            | npm install novamente                |
+| timezone-mock missing     | npm install --save-dev timezone-mock |
+| Teste falha               | npm test --verbose (debug)           |
+| Nenhuma função encontrada | Procura por Date/Time keywords       |
+| Cobertura baixa           | Busca funções faltando e adiciona    |
 
 ---
 

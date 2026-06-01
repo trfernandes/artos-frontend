@@ -11,7 +11,10 @@ import { EscalaDoDiaAgrupada } from '../../../../../app/(app)/(drawer)/pessoal/e
 import { ResponseEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.response';
 import { EscalaItemStatusEnum } from '../../../../../domain/enums/Escala/escala-item-status.enum';
 import { ColorUtils } from '../../../../../utils/color_utils';
-import { isLouvorMinisterioTipo, resolveEventoEnsaioInfo } from '../../../../../utils/evento-ensaio';
+import {
+  isLouvorMinisterioTipo,
+  resolveEventoEnsaioInfo,
+} from '../../../../../utils/evento-ensaio';
 import { formatAppDateTime } from '../../../../../utils/date_utils';
 import { usePallete } from '../../../../../hooks/usePallete';
 import {
@@ -46,11 +49,11 @@ export default function EventoAccordeon({
   const eventColor = data.evento?.cor || palette.primary;
   const isLouvor = useMemo(
     () =>
-      isLouvorMinisterioTipo(data.ministerio?.tipo)
-      || data.itens.some(
+      isLouvorMinisterioTipo(data.ministerio?.tipo) ||
+      data.itens.some(
         (item) =>
-          isLouvorMinisterioTipo(item.voluntario?.ministerio?.tipo)
-          || isLouvorMinisterioTipo(item.escala?.ministerio?.tipo),
+          isLouvorMinisterioTipo(item.voluntario?.ministerio?.tipo) ||
+          isLouvorMinisterioTipo(item.escala?.ministerio?.tipo),
       ),
     [data.itens, data.ministerio?.tipo],
   );
@@ -106,14 +109,16 @@ export default function EventoAccordeon({
     const expandedSurface = isDark ? palette.backgroundColor3 : palette.backgroundColor2;
 
     return {
-      cardBg:
-        isDark
-          ? neutralSurface
-          : ColorUtils.lightenColor(eventColor, variant === 'editorialClean' ? 0.932 : 0.925),
+      cardBg: isDark
+        ? neutralSurface
+        : ColorUtils.lightenColor(eventColor, variant === 'editorialClean' ? 0.932 : 0.925),
       contentBg: expandedSurface,
       borderColor: ColorUtils.withAlpha(eventColor, isDark ? 0.34 : 0.2),
       expandedBorderColor: ColorUtils.withAlpha(eventColor, isDark ? 0.4 : 0.24),
-      dividerColor: ColorUtils.withAlpha(isDark ? palette.borderCard : eventColor, isDark ? 0.45 : 0.18),
+      dividerColor: ColorUtils.withAlpha(
+        isDark ? palette.borderCard : eventColor,
+        isDark ? 0.45 : 0.18,
+      ),
       shadowStyle: variant === 'minimalPremium' ? palette.shadows[200] : palette.shadows[100],
       titleColor: palette.fonts.dark,
       metaColor: palette.fonts.inactive,
@@ -300,7 +305,6 @@ export default function EventoAccordeon({
             </FancyText>
           </View>
         ) : null}
-
       </View>
     );
   };
@@ -432,8 +436,17 @@ export default function EventoAccordeon({
               </FancyText>
             </View>
           ) : (
-            <View style={[styles.compactCountdownBadge, { backgroundColor: ui.chipBg, borderColor: ui.chipBorder }]}>
-              <FancyText size='extraSmall' type='semiBold' style={[styles.compactCountdownText, { color: ui.accentText }]}>
+            <View
+              style={[
+                styles.compactCountdownBadge,
+                { backgroundColor: ui.chipBg, borderColor: ui.chipBorder },
+              ]}
+            >
+              <FancyText
+                size='extraSmall'
+                type='semiBold'
+                style={[styles.compactCountdownText, { color: ui.accentText }]}
+              >
                 {countdownLabel}
               </FancyText>
             </View>
@@ -543,7 +556,13 @@ export default function EventoAccordeon({
 
       <Modal visible={isOpeningEvento} transparent animationType='none'>
         <View style={[styles.loadingOverlay, { backgroundColor: ui.loadingBg }]}>
-          <View style={[styles.loadingSurface, { backgroundColor: ui.loadingSurface }, palette.shadows[200]]}>
+          <View
+            style={[
+              styles.loadingSurface,
+              { backgroundColor: ui.loadingSurface },
+              palette.shadows[200],
+            ]}
+          >
             <FancyLoading label='Abrindo evento...' containerStyle={styles.loadingContent} />
           </View>
         </View>

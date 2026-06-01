@@ -1,10 +1,4 @@
-import {
-  StyleSheet,
-  View,
-  TouchableOpacity,
-  ActivityIndicator,
-  Platform,
-} from 'react-native';
+import { StyleSheet, View, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { uploadToCloudinaryUnsigned } from '../../../../services/cloudinary_upload';
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../../../../config/cloudinary';
 import FancyPageView from '../../../../components/containers/FancyPageView';
@@ -51,10 +45,7 @@ import { usePallete } from '../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../hooks/useThemedStyles';
 import { ColorUtils } from '../../../../utils/color_utils';
 import { UF_LIST } from '../../../../domain/utils/uf-list';
-import {
-  getCidadesComCodigoPorUf,
-  getCidadesPorUf,
-} from '../../../../domain/utils/cidades-list';
+import { getCidadesComCodigoPorUf, getCidadesPorUf } from '../../../../domain/utils/cidades-list';
 import { DropDownItemProps } from '../../../../components/fields/FancyDropDownItem';
 import { useIgrejaAssinatura } from '../../../../hooks/useIgrejaAssinatura';
 import BillingStatusPanel from '../../../../components/billing/BillingStatusPanel';
@@ -67,12 +58,28 @@ import FancyBottomSheetModal from '../../../../components/modal/FancyBottomSheet
 import { FancyAlert } from '../../../../components/modal/FancyAlert';
 
 const REMINDER_OPTIONS = [
-  { title: '1 semana antes', value: 168, description: 'Ideal para escalas semanais e eventos maiores.' },
-  { title: '72 horas antes', value: 72, description: 'Ajuda quem se organiza com alguns dias de antecedência.' },
+  {
+    title: '1 semana antes',
+    value: 168,
+    description: 'Ideal para escalas semanais e eventos maiores.',
+  },
+  {
+    title: '72 horas antes',
+    value: 72,
+    description: 'Ajuda quem se organiza com alguns dias de antecedência.',
+  },
   { title: '48 horas antes', value: 48, description: 'Lembrete intermediário bastante comum.' },
-  { title: '24 horas antes', value: 24, description: 'O padrão mais usado para escalas de igreja.' },
+  {
+    title: '24 horas antes',
+    value: 24,
+    description: 'O padrão mais usado para escalas de igreja.',
+  },
   { title: '12 horas antes', value: 12, description: 'Bom para reforçar no dia anterior.' },
-  { title: '3 horas antes', value: 3, description: 'Útil para confirmar deslocamento e preparação.' },
+  {
+    title: '3 horas antes',
+    value: 3,
+    description: 'Útil para confirmar deslocamento e preparação.',
+  },
   { title: '2 horas antes', value: 2, description: 'Boa janela para quem precisa sair de casa.' },
   { title: '1 hora antes', value: 1, description: 'Último lembrete antes do compromisso.' },
 ] as const;
@@ -86,8 +93,7 @@ const normalizeOptionalValue = (value?: string | null) => {
   return trimmed.length > 0 ? trimmed : undefined;
 };
 
-const normalizeComparableValue = (value?: string | null) =>
-  (value ?? '').trim().toLowerCase();
+const normalizeComparableValue = (value?: string | null) => (value ?? '').trim().toLowerCase();
 
 const COMPLETE_STATUS_LABEL = 'Completo';
 const PENDING_STATUS_LABEL = 'Incompleto';
@@ -95,55 +101,51 @@ const PENDING_STATUS_LABEL = 'Incompleto';
 const isFaturamentoCompleto = (faturamento?: Partial<FaturamentoFormData> | null) =>
   Boolean(
     faturamento?.cnpj &&
-      faturamento?.telefoneCobranca &&
-      faturamento?.cep &&
-      faturamento?.rua &&
-      faturamento?.numero &&
-      faturamento?.bairro &&
-      faturamento?.cidade &&
-      faturamento?.cidadeIbge &&
-      faturamento?.uf,
+    faturamento?.telefoneCobranca &&
+    faturamento?.cep &&
+    faturamento?.rua &&
+    faturamento?.numero &&
+    faturamento?.bairro &&
+    faturamento?.cidade &&
+    faturamento?.cidadeIbge &&
+    faturamento?.uf,
   );
 
 const isEnderecoCobrancaIgualAoDaIgreja = (
-  endereco?:
-    | Partial<{
-        cep: string | null;
-        rua: string | null;
-        numero: string | null;
-        bairro: string | null;
-        complemento: string | null;
-        cidade: string | null;
-        uf: string | null;
-      }>
-    | null,
-  faturamento?:
-    | Partial<{
-        cnpj: string | null;
-        telefoneCobranca: string | null;
-        emailCobranca: string | null;
-        cep: string | null;
-        rua: string | null;
-        numero: string | null;
-        bairro: string | null;
-        cidade: string | null;
-        cidadeIbge: string | null;
-        uf: string | null;
-        complemento: string | null;
-      }>
-    | null,
+  endereco?: Partial<{
+    cep: string | null;
+    rua: string | null;
+    numero: string | null;
+    bairro: string | null;
+    complemento: string | null;
+    cidade: string | null;
+    uf: string | null;
+  }> | null,
+  faturamento?: Partial<{
+    cnpj: string | null;
+    telefoneCobranca: string | null;
+    emailCobranca: string | null;
+    cep: string | null;
+    rua: string | null;
+    numero: string | null;
+    bairro: string | null;
+    cidade: string | null;
+    cidadeIbge: string | null;
+    uf: string | null;
+    complemento: string | null;
+  }> | null,
 ) =>
   Boolean(
     endereco &&
-      faturamento &&
-      normalizeComparableValue(endereco.cep) === normalizeComparableValue(faturamento.cep) &&
-      normalizeComparableValue(endereco.rua) === normalizeComparableValue(faturamento.rua) &&
-      normalizeComparableValue(endereco.numero) === normalizeComparableValue(faturamento.numero) &&
-      normalizeComparableValue(endereco.bairro) === normalizeComparableValue(faturamento.bairro) &&
-      normalizeComparableValue(endereco.complemento) ===
-        normalizeComparableValue(faturamento.complemento) &&
-      normalizeComparableValue(endereco.cidade) === normalizeComparableValue(faturamento.cidade) &&
-      normalizeComparableValue(endereco.uf) === normalizeComparableValue(faturamento.uf),
+    faturamento &&
+    normalizeComparableValue(endereco.cep) === normalizeComparableValue(faturamento.cep) &&
+    normalizeComparableValue(endereco.rua) === normalizeComparableValue(faturamento.rua) &&
+    normalizeComparableValue(endereco.numero) === normalizeComparableValue(faturamento.numero) &&
+    normalizeComparableValue(endereco.bairro) === normalizeComparableValue(faturamento.bairro) &&
+    normalizeComparableValue(endereco.complemento) ===
+      normalizeComparableValue(faturamento.complemento) &&
+    normalizeComparableValue(endereco.cidade) === normalizeComparableValue(faturamento.cidade) &&
+    normalizeComparableValue(endereco.uf) === normalizeComparableValue(faturamento.uf),
   );
 
 export default function ConfiguracoesPage() {
@@ -198,15 +200,15 @@ export default function ConfiguracoesPage() {
     defaultValues: data
       ? {
           nome: data.nome,
-        endereco: {
-          cep: data.endereco?.cep || '',
-          rua: data.endereco?.rua || '',
-          numero: data.endereco?.numero || '',
-          bairro: data.endereco?.bairro || '',
-          complemento: data.endereco?.complemento || '',
-          cidade: data.endereco?.cidade || '',
-          uf: data.endereco?.uf || '',
-        },
+          endereco: {
+            cep: data.endereco?.cep || '',
+            rua: data.endereco?.rua || '',
+            numero: data.endereco?.numero || '',
+            bairro: data.endereco?.bairro || '',
+            complemento: data.endereco?.complemento || '',
+            cidade: data.endereco?.cidade || '',
+            uf: data.endereco?.uf || '',
+          },
           telefone: data.telefone || '',
           email: data.email || '',
           logoUrl: data.logoUrl,
@@ -304,27 +306,27 @@ export default function ConfiguracoesPage() {
   );
   const addressSectionComplete = Boolean(
     enderecoValues?.cep?.trim() &&
-      enderecoValues?.rua?.trim() &&
-      enderecoValues?.numero?.trim() &&
-      enderecoValues?.bairro?.trim() &&
-      enderecoValues?.cidade?.trim() &&
-      enderecoValues?.uf?.trim(),
+    enderecoValues?.rua?.trim() &&
+    enderecoValues?.numero?.trim() &&
+    enderecoValues?.bairro?.trim() &&
+    enderecoValues?.cidade?.trim() &&
+    enderecoValues?.uf?.trim(),
   );
   const generalSectionHasInteraction = Boolean(
     hasAttemptedDadosSave ||
-      dadosDirtyFields.nome ||
-      dadosDirtyFields.telefone ||
-      dadosDirtyFields.email,
+    dadosDirtyFields.nome ||
+    dadosDirtyFields.telefone ||
+    dadosDirtyFields.email,
   );
   const addressSectionHasInteraction = Boolean(
     hasAttemptedDadosSave ||
-      dadosDirtyFields.endereco?.cep ||
-      dadosDirtyFields.endereco?.rua ||
-      dadosDirtyFields.endereco?.numero ||
-      dadosDirtyFields.endereco?.bairro ||
-      dadosDirtyFields.endereco?.complemento ||
-      dadosDirtyFields.endereco?.cidade ||
-      dadosDirtyFields.endereco?.uf,
+    dadosDirtyFields.endereco?.cep ||
+    dadosDirtyFields.endereco?.rua ||
+    dadosDirtyFields.endereco?.numero ||
+    dadosDirtyFields.endereco?.bairro ||
+    dadosDirtyFields.endereco?.complemento ||
+    dadosDirtyFields.endereco?.cidade ||
+    dadosDirtyFields.endereco?.uf,
   );
   const generalSectionShowIncomplete = !generalSectionComplete && generalSectionHasInteraction;
   const addressSectionShowIncomplete = !addressSectionComplete && addressSectionHasInteraction;
@@ -395,13 +397,13 @@ export default function ConfiguracoesPage() {
   );
   const hasExceededPlanCapacity = Boolean(
     assinatura &&
-      (assinatura.currentVolunteers > assinatura.maxVolunteers ||
-        assinatura.currentMinistries > assinatura.maxMinistries),
+    (assinatura.currentVolunteers > assinatura.maxVolunteers ||
+      assinatura.currentMinistries > assinatura.maxMinistries),
   );
   const canCancelCurrentSubscription = Boolean(
     assinatura?.canManageBilling &&
-      assinatura?.status &&
-      ['active', 'trial', 'overdue'].includes(assinatura.status),
+    assinatura?.status &&
+    ['active', 'trial', 'overdue'].includes(assinatura.status),
   );
   const billingPrimaryLabel = resolveBillingPrimaryActionLabel(assinatura);
   const recommendedUpgradePlan = useMemo(() => {
@@ -447,7 +449,8 @@ export default function ConfiguracoesPage() {
 
     if (
       pendingAccordionSection === null &&
-      ((expanded && accordionOpenSection === section) || (!expanded && accordionOpenSection !== section))
+      ((expanded && accordionOpenSection === section) ||
+        (!expanded && accordionOpenSection !== section))
     ) {
       return;
     }
@@ -482,7 +485,9 @@ export default function ConfiguracoesPage() {
     faturamentoForm.setValue('rua', endereco?.rua || '', { shouldDirty: markDirty });
     faturamentoForm.setValue('numero', endereco?.numero || '', { shouldDirty: markDirty });
     faturamentoForm.setValue('bairro', endereco?.bairro || '', { shouldDirty: markDirty });
-    faturamentoForm.setValue('complemento', endereco?.complemento || '', { shouldDirty: markDirty });
+    faturamentoForm.setValue('complemento', endereco?.complemento || '', {
+      shouldDirty: markDirty,
+    });
     faturamentoForm.setValue('uf', endereco?.uf || '', { shouldDirty: markDirty });
     faturamentoForm.setValue('cidade', endereco?.cidade || '', { shouldDirty: markDirty });
     faturamentoForm.setValue('cidadeIbge', cidadeSelecionada?.value || '', {
@@ -700,12 +705,11 @@ export default function ConfiguracoesPage() {
       // Suporte para ambas estruturas: configuracoes.notificacoes ou notificacoes diretamente
       const notificacoes = data.configuracoes?.notificacoes || data.notificacoes;
       if (notificacoes) {
-        const lembretesHoras =
-          notificacoes.lembretesHoras?.length
-            ? [...notificacoes.lembretesHoras].sort((a, b) => b - a)
-            : notificacoes.antecedenciaHoras
-              ? [notificacoes.antecedenciaHoras]
-              : DEFAULT_REMINDER_HOURS;
+        const lembretesHoras = notificacoes.lembretesHoras?.length
+          ? [...notificacoes.lembretesHoras].sort((a, b) => b - a)
+          : notificacoes.antecedenciaHoras
+            ? [notificacoes.antecedenciaHoras]
+            : DEFAULT_REMINDER_HOURS;
 
         notificacoesForm.reset({
           notificacoesHabilitadas:
@@ -729,12 +733,12 @@ export default function ConfiguracoesPage() {
       const dataErrors = dadosForm.formState.errors;
       const hasAddressErrors = Boolean(
         dataErrors.endereco?.cep ||
-          dataErrors.endereco?.rua ||
-          dataErrors.endereco?.numero ||
-          dataErrors.endereco?.bairro ||
-          dataErrors.endereco?.complemento ||
-          dataErrors.endereco?.cidade ||
-          dataErrors.endereco?.uf,
+        dataErrors.endereco?.rua ||
+        dataErrors.endereco?.numero ||
+        dataErrors.endereco?.bairro ||
+        dataErrors.endereco?.complemento ||
+        dataErrors.endereco?.cidade ||
+        dataErrors.endereco?.uf,
       );
       openAccordionSection(hasAddressErrors ? 'address' : 'general');
       return;
@@ -913,11 +917,11 @@ export default function ConfiguracoesPage() {
             fill
           >
             <View style={styles.dataSectionsStack}>
-                <FancyAccordeon
-                  expanded={accordionOpenSection === 'general'}
-                  onExpandedChange={(expanded) => {
-                    setAccordionSectionState('general', expanded);
-                  }}
+              <FancyAccordeon
+                expanded={accordionOpenSection === 'general'}
+                onExpandedChange={(expanded) => {
+                  setAccordionSectionState('general', expanded);
+                }}
                 disabled={pendingAccordionSection !== null && pendingAccordionSection !== 'general'}
                 isLoading={pendingAccordionSection === 'general'}
                 title={
@@ -951,11 +955,7 @@ export default function ConfiguracoesPage() {
                       <FancyText type='semiBold' size='small'>
                         Geral
                       </FancyText>
-                      <FancyText
-                        size='extraSmall'
-                        color={palette.fonts.inactive}
-                        numberOfLines={1}
-                      >
+                      <FancyText size='extraSmall' color={palette.fonts.inactive} numberOfLines={1}>
                         {generalSectionSummary}
                       </FancyText>
                     </View>
@@ -1003,78 +1003,82 @@ export default function ConfiguracoesPage() {
                 ]}
                 iconProps={{ size: 22, color: palette.fonts.inactive }}
               >
-                    <View style={styles.avatarContainer}>
-                      <ControlledImagePicker
-                        control={dadosForm.control}
-                        name='logoUrl'
-                        setValue={dadosForm.setValue}
-                        uploadFieldName={'logoFile' as any}
-                      />
-                    </View>
+                <View style={styles.avatarContainer}>
+                  <ControlledImagePicker
+                    control={dadosForm.control}
+                    name='logoUrl'
+                    setValue={dadosForm.setValue}
+                    uploadFieldName={'logoFile' as any}
+                  />
+                </View>
 
-                    <View style={styles.sectionCopyBlock}>
-                      <FancyText type='semiBold' size='small'>
-                        Informações principais
-                      </FancyText>
-                      <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                        Ajuste o que a equipe vê primeiro ao entrar na igreja.
-                      </FancyText>
-                    </View>
+                <View style={styles.sectionCopyBlock}>
+                  <FancyText type='semiBold' size='small'>
+                    Informações principais
+                  </FancyText>
+                  <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                    Ajuste o que a equipe vê primeiro ao entrar na igreja.
+                  </FancyText>
+                </View>
 
-                    <ControlledTextInput control={dadosForm.control} name='nome' label='Nome da Igreja' />
+                <ControlledTextInput
+                  control={dadosForm.control}
+                  name='nome'
+                  label='Nome da Igreja'
+                />
 
-                    <ControlledMaskedTextInput
-                      control={dadosForm.control}
-                      name='telefone'
-                      label='Telefone'
-                      maskType='phone'
+                <ControlledMaskedTextInput
+                  control={dadosForm.control}
+                  name='telefone'
+                  label='Telefone'
+                  maskType='phone'
+                />
+
+                <ControlledTextInput
+                  control={dadosForm.control}
+                  name='email'
+                  label='Email'
+                  keyboardType='email-address'
+                />
+
+                <View style={styles.codigoCard}>
+                  <View style={styles.codigoHeader}>
+                    <DefaultIcons.Custom
+                      library='MaterialCommunityIcons'
+                      name='qrcode'
+                      size={20}
+                      color={palette.primary}
                     />
-
-                    <ControlledTextInput
-                      control={dadosForm.control}
-                      name='email'
-                      label='Email'
-                      keyboardType='email-address'
+                    <FancyText type='medium' size='small' style={styles.codigoTitulo}>
+                      Código da Igreja
+                    </FancyText>
+                  </View>
+                  <View style={styles.codigoBody}>
+                    <FancyText type='bold' size='extraLarge' style={styles.codigoTexto}>
+                      {data?.codigo || '---'}
+                    </FancyText>
+                    <FancyText type='normal' size='extraSmall' style={styles.codigoDesc}>
+                      Compartilhe este código para convidar pessoas
+                    </FancyText>
+                  </View>
+                  <TouchableOpacity style={styles.codigoCopyButton} onPress={handleCopiarCodigo}>
+                    <DefaultIcons.Custom
+                      library='MaterialCommunityIcons'
+                      name='content-copy'
+                      size={16}
+                      color={palette.primary}
                     />
-
-                    <View style={styles.codigoCard}>
-                      <View style={styles.codigoHeader}>
-                        <DefaultIcons.Custom
-                          library='MaterialCommunityIcons'
-                          name='qrcode'
-                          size={20}
-                          color={palette.primary}
-                        />
-                        <FancyText type='medium' size='small' style={styles.codigoTitulo}>
-                          Código da Igreja
-                        </FancyText>
-                      </View>
-                      <View style={styles.codigoBody}>
-                        <FancyText type='bold' size='extraLarge' style={styles.codigoTexto}>
-                          {data?.codigo || '---'}
-                        </FancyText>
-                        <FancyText type='normal' size='extraSmall' style={styles.codigoDesc}>
-                          Compartilhe este código para convidar pessoas
-                        </FancyText>
-                      </View>
-                      <TouchableOpacity style={styles.codigoCopyButton} onPress={handleCopiarCodigo}>
-                        <DefaultIcons.Custom
-                          library='MaterialCommunityIcons'
-                          name='content-copy'
-                          size={16}
-                          color={palette.primary}
-                        />
-                        <FancyText type='medium' size='small' style={styles.codigoCopyText}>
-                          Copiar Código
-                        </FancyText>
-                      </TouchableOpacity>
-                    </View>
+                    <FancyText type='medium' size='small' style={styles.codigoCopyText}>
+                      Copiar Código
+                    </FancyText>
+                  </TouchableOpacity>
+                </View>
               </FancyAccordeon>
-                <FancyAccordeon
-                  expanded={accordionOpenSection === 'address'}
-                  onExpandedChange={(expanded) => {
-                    setAccordionSectionState('address', expanded);
-                  }}
+              <FancyAccordeon
+                expanded={accordionOpenSection === 'address'}
+                onExpandedChange={(expanded) => {
+                  setAccordionSectionState('address', expanded);
+                }}
                 disabled={pendingAccordionSection !== null && pendingAccordionSection !== 'address'}
                 isLoading={pendingAccordionSection === 'address'}
                 title={
@@ -1108,11 +1112,7 @@ export default function ConfiguracoesPage() {
                       <FancyText type='semiBold' size='small'>
                         Endereço
                       </FancyText>
-                      <FancyText
-                        size='extraSmall'
-                        color={palette.fonts.inactive}
-                        numberOfLines={1}
-                      >
+                      <FancyText size='extraSmall' color={palette.fonts.inactive} numberOfLines={1}>
                         {addressSectionSummary}
                       </FancyText>
                     </View>
@@ -1160,75 +1160,75 @@ export default function ConfiguracoesPage() {
                 ]}
                 iconProps={{ size: 22, color: palette.fonts.inactive }}
               >
-                    <View style={styles.sectionCopyBlock}>
-                      <FancyText type='semiBold' size='small'>
-                        Endereço da igreja
-                      </FancyText>
-                      <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                        Esse é o endereço principal da igreja.
-                      </FancyText>
-                    </View>
+                <View style={styles.sectionCopyBlock}>
+                  <FancyText type='semiBold' size='small'>
+                    Endereço da igreja
+                  </FancyText>
+                  <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                    Esse é o endereço principal da igreja.
+                  </FancyText>
+                </View>
 
-                    <ControlledMaskedTextInput
-                      control={dadosForm.control}
-                      name='endereco.cep'
-                      label='CEP'
-                      maskType='cep'
-                    />
+                <ControlledMaskedTextInput
+                  control={dadosForm.control}
+                  name='endereco.cep'
+                  label='CEP'
+                  maskType='cep'
+                />
 
-                    <ControlledTextInput control={dadosForm.control} name='endereco.rua' label='Rua' />
+                <ControlledTextInput control={dadosForm.control} name='endereco.rua' label='Rua' />
 
-                    <ControlledTextInput
-                      control={dadosForm.control}
-                      name='endereco.numero'
-                      label='Número'
-                      keyboardType='numeric'
-                    />
+                <ControlledTextInput
+                  control={dadosForm.control}
+                  name='endereco.numero'
+                  label='Número'
+                  keyboardType='numeric'
+                />
 
-                    <ControlledTextInput
-                      control={dadosForm.control}
-                      name='endereco.bairro'
-                      label='Bairro'
-                    />
+                <ControlledTextInput
+                  control={dadosForm.control}
+                  name='endereco.bairro'
+                  label='Bairro'
+                />
 
-                    <ControlledTextInput
-                      control={dadosForm.control}
-                      name='endereco.complemento'
-                      label='Complemento'
-                    />
+                <ControlledTextInput
+                  control={dadosForm.control}
+                  name='endereco.complemento'
+                  label='Complemento'
+                />
 
-                    <ControlledSearchSelect
-                      control={dadosForm.control}
-                      name='endereco.uf'
-                      label='Estado'
-                      listItems={UF_LIST}
-                      placeholder='Selecione o estado'
-                      searchPlaceholder='Buscar estado...'
-                    />
+                <ControlledSearchSelect
+                  control={dadosForm.control}
+                  name='endereco.uf'
+                  label='Estado'
+                  listItems={UF_LIST}
+                  placeholder='Selecione o estado'
+                  searchPlaceholder='Buscar estado...'
+                />
 
-                    <ControlledSearchSelect
-                      control={dadosForm.control}
-                      name='endereco.cidade'
-                      label='Cidade'
-                      listItems={cidadesList}
-                      placeholder={isLoadingCidades ? 'Carregando cidades...' : 'Selecione a cidade'}
-                      searchPlaceholder='Buscar cidade...'
-                      disabled={!ufSelecionada}
-                      isLoading={isLoadingCidades}
-                      loadingMessage='Carregando cidades...'
-                      errorMessage={cidadesError}
-                      onRetry={() => {
-                        if (ufSelecionada) {
-                          loadChurchCities(ufSelecionada);
-                        }
-                      }}
-                    />
-              </FancyAccordeon>
-                <FancyAccordeon
-                  expanded={accordionOpenSection === 'billing'}
-                  onExpandedChange={(expanded) => {
-                    setAccordionSectionState('billing', expanded);
+                <ControlledSearchSelect
+                  control={dadosForm.control}
+                  name='endereco.cidade'
+                  label='Cidade'
+                  listItems={cidadesList}
+                  placeholder={isLoadingCidades ? 'Carregando cidades...' : 'Selecione a cidade'}
+                  searchPlaceholder='Buscar cidade...'
+                  disabled={!ufSelecionada}
+                  isLoading={isLoadingCidades}
+                  loadingMessage='Carregando cidades...'
+                  errorMessage={cidadesError}
+                  onRetry={() => {
+                    if (ufSelecionada) {
+                      loadChurchCities(ufSelecionada);
+                    }
                   }}
+                />
+              </FancyAccordeon>
+              <FancyAccordeon
+                expanded={accordionOpenSection === 'billing'}
+                onExpandedChange={(expanded) => {
+                  setAccordionSectionState('billing', expanded);
+                }}
                 disabled={pendingAccordionSection !== null && pendingAccordionSection !== 'billing'}
                 isLoading={pendingAccordionSection === 'billing'}
                 title={
@@ -1254,11 +1254,7 @@ export default function ConfiguracoesPage() {
                       <FancyText type='semiBold' size='small'>
                         Cobrança
                       </FancyText>
-                      <FancyText
-                        size='extraSmall'
-                        color={palette.fonts.inactive}
-                        numberOfLines={2}
-                      >
+                      <FancyText size='extraSmall' color={palette.fonts.inactive} numberOfLines={2}>
                         {billingSectionSummary}
                       </FancyText>
                     </View>
@@ -1292,7 +1288,8 @@ export default function ConfiguracoesPage() {
                   highlightedAccordionSection === 'billing' && styles.accordionSectionHighlighted,
                   {
                     borderColor:
-                      accordionOpenSection === 'billing' || highlightedAccordionSection === 'billing'
+                      accordionOpenSection === 'billing' ||
+                      highlightedAccordionSection === 'billing'
                         ? ColorUtils.withAlpha(palette.primary, 0.32)
                         : palette.borderCard,
                   },
@@ -1306,169 +1303,165 @@ export default function ConfiguracoesPage() {
                 ]}
                 iconProps={{ size: 22, color: palette.fonts.inactive }}
               >
-                    <View style={styles.billingContentHeader}>
-                      <View style={styles.sectionCopyBlock}>
-                        <FancyText type='semiBold' size='small'>
-                          Dados de cobrança
-                        </FancyText>
-                        <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                          Esses dados são usados no checkout da assinatura.
-                        </FancyText>
-                      </View>
-                      <View
-                        style={[
-                          styles.billingProfilePill,
-                          {
-                            backgroundColor: billingProfileComplete
-                              ? ColorUtils.withAlpha(palette.confirm, 0.12)
-                              : ColorUtils.withAlpha(palette.warning, 0.14),
-                          },
-                        ]}
-                      >
-                        <FancyText
-                          size='extraSmall'
-                          type='semiBold'
-                          color={billingProfileComplete ? palette.confirm : palette.warning}
-                        >
-                          {billingStatusLabel}
-                        </FancyText>
-                      </View>
-                    </View>
+                <View style={styles.billingContentHeader}>
+                  <View style={styles.sectionCopyBlock}>
+                    <FancyText type='semiBold' size='small'>
+                      Dados de cobrança
+                    </FancyText>
+                    <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                      Esses dados são usados no checkout da assinatura.
+                    </FancyText>
+                  </View>
+                  <View
+                    style={[
+                      styles.billingProfilePill,
+                      {
+                        backgroundColor: billingProfileComplete
+                          ? ColorUtils.withAlpha(palette.confirm, 0.12)
+                          : ColorUtils.withAlpha(palette.warning, 0.14),
+                      },
+                    ]}
+                  >
+                    <FancyText
+                      size='extraSmall'
+                      type='semiBold'
+                      color={billingProfileComplete ? palette.confirm : palette.warning}
+                    >
+                      {billingStatusLabel}
+                    </FancyText>
+                  </View>
+                </View>
 
+                <ControlledMaskedTextInput
+                  control={faturamentoForm.control}
+                  name='cnpj'
+                  label='CNPJ'
+                  maskType='cnpj'
+                />
+
+                <ControlledMaskedTextInput
+                  control={faturamentoForm.control}
+                  name='telefoneCobranca'
+                  label='Telefone'
+                  maskType='phone'
+                />
+
+                <ControlledTextInput
+                  control={faturamentoForm.control}
+                  name='emailCobranca'
+                  label='Email'
+                  keyboardType='email-address'
+                />
+
+                <TouchableOpacity
+                  style={[
+                    styles.sameAddressRow,
+                    {
+                      backgroundColor: useChurchAddressForBilling
+                        ? ColorUtils.withAlpha(palette.primary, 0.08)
+                        : palette.backgroundColor,
+                      borderColor: useChurchAddressForBilling
+                        ? ColorUtils.withAlpha(palette.primary, 0.22)
+                        : palette.borderCard,
+                    },
+                  ]}
+                  activeOpacity={0.85}
+                  onPress={() => handleToggleUseChurchAddress(!useChurchAddressForBilling)}
+                >
+                  <View pointerEvents='none'>
+                    <FancyCheckbox value={useChurchAddressForBilling} />
+                  </View>
+                  <View style={styles.sameAddressText}>
+                    <FancyText type='semiBold' size='small'>
+                      Usar o mesmo endereço da igreja
+                    </FancyText>
+                    <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                      Reaproveita o endereço principal já cadastrado.
+                    </FancyText>
+                  </View>
+                </TouchableOpacity>
+
+                {useChurchAddressForBilling ? (
+                  <>
+                    <View style={styles.addressPreviewCard}>
+                      <FancyText type='medium' size='small'>
+                        Endereço em uso
+                      </FancyText>
+                      <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                        {billingAddressSummary ||
+                          'Preencha o endereço da igreja para reutilizar aqui.'}
+                      </FancyText>
+                    </View>
+                  </>
+                ) : (
+                  <>
                     <ControlledMaskedTextInput
                       control={faturamentoForm.control}
-                      name='cnpj'
-                      label='CNPJ'
-                      maskType='cnpj'
+                      name='cep'
+                      label='CEP'
+                      maskType='cep'
                     />
 
-                    <ControlledMaskedTextInput
+                    <ControlledTextInput control={faturamentoForm.control} name='rua' label='Rua' />
+
+                    <ControlledTextInput
                       control={faturamentoForm.control}
-                      name='telefoneCobranca'
-                      label='Telefone'
-                      maskType='phone'
+                      name='numero'
+                      label='Número'
+                      keyboardType='numeric'
                     />
 
                     <ControlledTextInput
                       control={faturamentoForm.control}
-                      name='emailCobranca'
-                      label='Email'
-                      keyboardType='email-address'
+                      name='bairro'
+                      label='Bairro'
                     />
 
-                    <TouchableOpacity
-                      style={[
-                        styles.sameAddressRow,
-                        {
-                          backgroundColor: useChurchAddressForBilling
-                            ? ColorUtils.withAlpha(palette.primary, 0.08)
-                            : palette.backgroundColor,
-                          borderColor: useChurchAddressForBilling
-                            ? ColorUtils.withAlpha(palette.primary, 0.22)
-                            : palette.borderCard,
-                        },
-                      ]}
-                      activeOpacity={0.85}
-                      onPress={() => handleToggleUseChurchAddress(!useChurchAddressForBilling)}
-                    >
-                      <View pointerEvents='none'>
-                        <FancyCheckbox value={useChurchAddressForBilling} />
-                      </View>
-                      <View style={styles.sameAddressText}>
-                        <FancyText type='semiBold' size='small'>
-                          Usar o mesmo endereço da igreja
-                        </FancyText>
-                        <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                          Reaproveita o endereço principal já cadastrado.
-                        </FancyText>
-                      </View>
-                    </TouchableOpacity>
+                    <ControlledTextInput
+                      control={faturamentoForm.control}
+                      name='complemento'
+                      label='Complemento'
+                    />
 
-                    {useChurchAddressForBilling ? (
-                      <>
-                        <View style={styles.addressPreviewCard}>
-                          <FancyText type='medium' size='small'>
-                            Endereço em uso
-                          </FancyText>
-                          <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                            {billingAddressSummary ||
-                              'Preencha o endereço da igreja para reutilizar aqui.'}
-                          </FancyText>
-                        </View>
-                      </>
-                    ) : (
-                      <>
-                        <ControlledMaskedTextInput
-                          control={faturamentoForm.control}
-                          name='cep'
-                          label='CEP'
-                          maskType='cep'
-                        />
+                    <ControlledSearchSelect
+                      control={faturamentoForm.control}
+                      name='uf'
+                      label='Estado'
+                      listItems={UF_LIST}
+                      placeholder='Selecione o estado'
+                      searchPlaceholder='Buscar estado...'
+                    />
 
-                        <ControlledTextInput
-                          control={faturamentoForm.control}
-                          name='rua'
-                          label='Rua'
-                        />
-
-                        <ControlledTextInput
-                          control={faturamentoForm.control}
-                          name='numero'
-                          label='Número'
-                          keyboardType='numeric'
-                        />
-
-                        <ControlledTextInput
-                          control={faturamentoForm.control}
-                          name='bairro'
-                          label='Bairro'
-                        />
-
-                        <ControlledTextInput
-                          control={faturamentoForm.control}
-                          name='complemento'
-                          label='Complemento'
-                        />
-
-                        <ControlledSearchSelect
-                          control={faturamentoForm.control}
-                          name='uf'
-                          label='Estado'
-                          listItems={UF_LIST}
-                          placeholder='Selecione o estado'
-                          searchPlaceholder='Buscar estado...'
-                        />
-
-                        <ControlledSearchSelect
-                          control={faturamentoForm.control}
-                          name='cidadeIbge'
-                          label='Cidade'
-                          listItems={billingCitiesList}
-                          placeholder={
-                            isLoadingBillingCities ? 'Carregando cidades...' : 'Selecione a cidade'
-                          }
-                          searchPlaceholder='Buscar cidade...'
-                          disabled={!ufFaturamentoSelecionada}
-                          isLoading={isLoadingBillingCities}
-                          loadingMessage='Carregando cidades...'
-                          errorMessage={billingCitiesError}
-                          onRetry={() => {
-                            if (ufFaturamentoSelecionada) {
-                              loadBillingCities(ufFaturamentoSelecionada);
-                            }
-                          }}
-                          onChange={(cidadeId) => {
-                            const cidadeSelecionada = billingCitiesList.find(
-                              (cidade) => cidade.value === cidadeId,
-                            );
-                            faturamentoForm.setValue('cidade', cidadeSelecionada?.title ?? '', {
-                              shouldValidate: true,
-                              shouldDirty: true,
-                            });
-                          }}
-                        />
-                      </>
-                    )}
+                    <ControlledSearchSelect
+                      control={faturamentoForm.control}
+                      name='cidadeIbge'
+                      label='Cidade'
+                      listItems={billingCitiesList}
+                      placeholder={
+                        isLoadingBillingCities ? 'Carregando cidades...' : 'Selecione a cidade'
+                      }
+                      searchPlaceholder='Buscar cidade...'
+                      disabled={!ufFaturamentoSelecionada}
+                      isLoading={isLoadingBillingCities}
+                      loadingMessage='Carregando cidades...'
+                      errorMessage={billingCitiesError}
+                      onRetry={() => {
+                        if (ufFaturamentoSelecionada) {
+                          loadBillingCities(ufFaturamentoSelecionada);
+                        }
+                      }}
+                      onChange={(cidadeId) => {
+                        const cidadeSelecionada = billingCitiesList.find(
+                          (cidade) => cidade.value === cidadeId,
+                        );
+                        faturamentoForm.setValue('cidade', cidadeSelecionada?.title ?? '', {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
+                      }}
+                    />
+                  </>
+                )}
               </FancyAccordeon>
             </View>
           </FancyScrollView>
@@ -1815,11 +1808,9 @@ export default function ConfiguracoesPage() {
                 const planBadgeLabel = isUpgradeRecommendation
                   ? 'Recomendado para o uso atual'
                   : plan.highlight;
-                const priceLabel =
-                  billingCycle === 'YEARLY' ? plan.yearlyPrice : plan.monthlyPrice;
+                const priceLabel = billingCycle === 'YEARLY' ? plan.yearlyPrice : plan.monthlyPrice;
                 const [priceValue, priceSuffix] = priceLabel.split('/');
-                const pricePeriodLabel =
-                  billingCycle === 'YEARLY' ? 'por ano' : 'por mês';
+                const pricePeriodLabel = billingCycle === 'YEARLY' ? 'por ano' : 'por mês';
                 const resolvedPriceMeta = priceSuffix
                   ? priceSuffix === 'mês' || priceSuffix === 'ano'
                     ? pricePeriodLabel
@@ -1841,20 +1832,21 @@ export default function ConfiguracoesPage() {
                     'Feito para o ritmo atual da igreja',
                   ],
                 ];
-                const buttonContainerStyle = isCurrent || isPending
-                  ? {
-                      borderColor: planAccent,
-                      backgroundColor: 'transparent',
-                    }
-                  : switchLocked
+                const buttonContainerStyle =
+                  isCurrent || isPending
                     ? {
-                        borderColor: ColorUtils.withAlpha(planAccent, 0.28),
+                        borderColor: planAccent,
                         backgroundColor: 'transparent',
                       }
-                    : {
-                        backgroundColor: planAccent,
-                        borderColor: planAccent,
-                      };
+                    : switchLocked
+                      ? {
+                          borderColor: ColorUtils.withAlpha(planAccent, 0.28),
+                          backgroundColor: 'transparent',
+                        }
+                      : {
+                          backgroundColor: planAccent,
+                          borderColor: planAccent,
+                        };
                 const buttonLabelStyle = {
                   color:
                     isCurrent || isPending
@@ -1904,9 +1896,9 @@ export default function ConfiguracoesPage() {
                             ? planAccent
                             : isUpgradeRecommendation
                               ? ColorUtils.withAlpha(planAccent, 0.68)
-                            : isRecommended
-                              ? ColorUtils.withAlpha(planAccent, 0.5)
-                              : ColorUtils.withAlpha(planAccent, 0.24),
+                              : isRecommended
+                                ? ColorUtils.withAlpha(planAccent, 0.5)
+                                : ColorUtils.withAlpha(planAccent, 0.24),
                       },
                     ]}
                   >
@@ -1975,12 +1967,12 @@ export default function ConfiguracoesPage() {
 
                     <View style={styles.planFeatureGrid}>
                       {featureColumns.map((column, columnIndex) => (
-                        <View key={`${plan.codigo}-feature-column-${columnIndex}`} style={styles.planFeatureColumn}>
+                        <View
+                          key={`${plan.codigo}-feature-column-${columnIndex}`}
+                          style={styles.planFeatureColumn}
+                        >
                           {column.map((feature) => (
-                            <View
-                              key={`${plan.codigo}-${feature}`}
-                              style={styles.planFeatureItem}
-                            >
+                            <View key={`${plan.codigo}-${feature}`} style={styles.planFeatureItem}>
                               <View
                                 style={[
                                   styles.planFeatureMarker,
@@ -2030,11 +2022,11 @@ export default function ConfiguracoesPage() {
                           ? 'Plano atual'
                           : isReactivationOption
                             ? 'Assinar'
-                          : isPending
-                            ? 'Continuar'
-                            : switchLocked
-                              ? 'Indisponível por enquanto'
-                              : 'Assinar'
+                            : isPending
+                              ? 'Continuar'
+                              : switchLocked
+                                ? 'Indisponível por enquanto'
+                                : 'Assinar'
                       }
                       type={isCurrent || isPending ? 'outlined' : 'contained'}
                       disabled={
@@ -2061,11 +2053,7 @@ export default function ConfiguracoesPage() {
 
   return (
     <FancyPageView style={styles.container}>
-      <FancyTabs
-        items={TAB_DATA}
-        initialIndex={activeTabIndex}
-        onTabChange={setActiveTabIndex}
-      />
+      <FancyTabs items={TAB_DATA} initialIndex={activeTabIndex} onTabChange={setActiveTabIndex} />
     </FancyPageView>
   );
 }

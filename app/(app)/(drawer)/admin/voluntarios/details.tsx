@@ -74,7 +74,10 @@ export default function VoluntariosDetailsPage() {
   });
 
   const handleChangeStatus = useCallback(
-    (ministerioVoluntario: ResponseMinisterioVoluntarioDto, status: MinisterioVoluntarioStatusEnum) => {
+    (
+      ministerioVoluntario: ResponseMinisterioVoluntarioDto,
+      status: MinisterioVoluntarioStatusEnum,
+    ) => {
       FancyAlert.alert(
         'Exclusão de Ministério',
         status === MinisterioVoluntarioStatusEnum.Ativo

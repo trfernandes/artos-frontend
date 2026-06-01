@@ -52,15 +52,24 @@ export default function EventoSetlistItemDetailsView({
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [secaoSelecionada, setSecaoSelecionada] = useState<string>(CUSTOM_SECTION_VALUE);
   const [rotuloCustomizado, setRotuloCustomizado] = useState('');
-  const [tipo, setTipo] = useState<RepertorioMusicaSecaoTipoEnum>(RepertorioMusicaSecaoTipoEnum.PERSONALIZADO);
+  const [tipo, setTipo] = useState<RepertorioMusicaSecaoTipoEnum>(
+    RepertorioMusicaSecaoTipoEnum.PERSONALIZADO,
+  );
   const [letraOverride, setLetraOverride] = useState('');
   const [cifraOverride, setCifraOverride] = useState('');
   const [repeticoes, setRepeticoes] = useState('1');
   const [observacao, setObservacao] = useState('');
   const [draftRows, setDraftRows] = useState<EditableEstruturaRow[]>([]);
 
-  const { data: setlist, isLoading: isLoadingSetlist } = useEventoSetlist(eventoId, dataOcorrencia, ministerioId);
-  const item = useMemo(() => setlist?.find((entry) => entry.id === itemId) ?? null, [itemId, setlist]);
+  const { data: setlist, isLoading: isLoadingSetlist } = useEventoSetlist(
+    eventoId,
+    dataOcorrencia,
+    ministerioId,
+  );
+  const item = useMemo(
+    () => setlist?.find((entry) => entry.id === itemId) ?? null,
+    [itemId, setlist],
+  );
   const {
     data: estrutura,
     isLoading: isLoadingEstrutura,
@@ -68,7 +77,9 @@ export default function EventoSetlistItemDetailsView({
     removerOverrideEstrutura,
     isMutating,
   } = useEventoSetlistEstrutura(eventoId, itemId, dataOcorrencia, ministerioId);
-  const { secoes: secoesRepertorio = [] } = useRepertorioMusicaEstrutura(item?.repertorioMusicaId || undefined);
+  const { secoes: secoesRepertorio = [] } = useRepertorioMusicaEstrutura(
+    item?.repertorioMusicaId || undefined,
+  );
 
   useEffect(() => {
     navigation.setOptions({
@@ -84,7 +95,9 @@ export default function EventoSetlistItemDetailsView({
         ordem: index + 1,
         secaoRepertorioId: row.secaoRepertorioId || undefined,
         rotuloCustomizado: row.secaoRepertorioId ? undefined : row.rotulo,
-        tipo: (row.tipo || row.secaoRepertorio?.tipo || RepertorioMusicaSecaoTipoEnum.PERSONALIZADO) as RepertorioMusicaSecaoTipoEnum,
+        tipo: (row.tipo ||
+          row.secaoRepertorio?.tipo ||
+          RepertorioMusicaSecaoTipoEnum.PERSONALIZADO) as RepertorioMusicaSecaoTipoEnum,
         letraOverride: row.letra || undefined,
         cifraOverride: row.cifra || undefined,
         repeticoes: row.repeticoes,
@@ -138,7 +151,12 @@ export default function EventoSetlistItemDetailsView({
       ]}
     >
       <View style={styles.textCardHeader}>
-        <View style={[styles.textCardIcon, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12) }]}>
+        <View
+          style={[
+            styles.textCardIcon,
+            { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12) },
+          ]}
+        >
           <DefaultIcons.Custom
             library='MaterialCommunityIcons'
             name={title === 'Cifra' ? 'guitar-acoustic' : 'text-box-outline'}
@@ -169,12 +187,17 @@ export default function EventoSetlistItemDetailsView({
 
   const renderStructuredTextSections = (type: 'letra' | 'cifra') => {
     if (estruturaResolvida.length === 0) {
-      return renderTextEmptyCard(type === 'letra' ? 'Letra' : 'Cifra', type === 'letra' ? item?.letraMarkdown : item?.cifraMarkdown);
+      return renderTextEmptyCard(
+        type === 'letra' ? 'Letra' : 'Cifra',
+        type === 'letra' ? item?.letraMarkdown : item?.cifraMarkdown,
+      );
     }
 
     return estruturaResolvida.map((row) => {
       const secaoBase = row.secaoRepertorio;
-      const tipoSecao = (row.tipo || secaoBase?.tipo || RepertorioMusicaSecaoTipoEnum.PERSONALIZADO) as RepertorioMusicaSecaoTipoEnum;
+      const tipoSecao = (row.tipo ||
+        secaoBase?.tipo ||
+        RepertorioMusicaSecaoTipoEnum.PERSONALIZADO) as RepertorioMusicaSecaoTipoEnum;
       const visual = secaoVisualMap[tipoSecao];
       const repeticoes = row.repeticoes || 1;
       const text = type === 'letra' ? row.letra : row.cifra;
@@ -281,7 +304,11 @@ export default function EventoSetlistItemDetailsView({
         text: 'Remover',
         style: 'destructive',
         onPress: () => {
-          setDraftRows((current) => current.filter((_row, rowIndex) => rowIndex !== index).map((row, rowIndex) => ({ ...row, ordem: rowIndex + 1 })));
+          setDraftRows((current) =>
+            current
+              .filter((_row, rowIndex) => rowIndex !== index)
+              .map((row, rowIndex) => ({ ...row, ordem: rowIndex + 1 })),
+          );
         },
       },
     ]);
@@ -305,15 +332,19 @@ export default function EventoSetlistItemDetailsView({
   };
 
   const handleRestaurarPadrao = async () => {
-    FancyAlert.alert('Restaurar arranjo padrão', 'O arranjo desta ocorrência voltará a usar a estrutura padrão do repertório.', [
-      { text: 'Cancelar', style: 'default' },
-      {
-        text: 'Restaurar',
-        onPress: () => {
-          void removerOverrideEstrutura();
+    FancyAlert.alert(
+      'Restaurar arranjo padrão',
+      'O arranjo desta ocorrência voltará a usar a estrutura padrão do repertório.',
+      [
+        { text: 'Cancelar', style: 'default' },
+        {
+          text: 'Restaurar',
+          onPress: () => {
+            void removerOverrideEstrutura();
+          },
         },
-      },
-    ]);
+      ],
+    );
   };
 
   const arranjoTab = (
@@ -375,7 +406,12 @@ export default function EventoSetlistItemDetailsView({
               <FancyButton
                 label='Restaurar padrão'
                 type='text'
-                icon={{ library: 'MaterialCommunityIcons', name: 'restore', size: 16, color: palette.terciary }}
+                icon={{
+                  library: 'MaterialCommunityIcons',
+                  name: 'restore',
+                  size: 16,
+                  color: palette.terciary,
+                }}
                 containerStyle={styles.summaryActionButton}
                 onPress={() => void handleRestaurarPadrao()}
               />
@@ -388,7 +424,9 @@ export default function EventoSetlistItemDetailsView({
         const secaoBase = row.secaoRepertorioId
           ? secoesRepertorio.find((secao) => secao.id === row.secaoRepertorioId)
           : null;
-        const tipoSecao = (row.tipo || secaoBase?.tipo || RepertorioMusicaSecaoTipoEnum.PERSONALIZADO) as RepertorioMusicaSecaoTipoEnum;
+        const tipoSecao = (row.tipo ||
+          secaoBase?.tipo ||
+          RepertorioMusicaSecaoTipoEnum.PERSONALIZADO) as RepertorioMusicaSecaoTipoEnum;
         const visual = secaoVisualMap[tipoSecao];
         const repeticoes = row.repeticoes || 1;
 
@@ -404,7 +442,12 @@ export default function EventoSetlistItemDetailsView({
             ]}
           >
             <View style={styles.sectionHeader}>
-              <View style={[styles.sectionIndex, { backgroundColor: ColorUtils.withAlpha(visual.color, 0.12) }]}>
+              <View
+                style={[
+                  styles.sectionIndex,
+                  { backgroundColor: ColorUtils.withAlpha(visual.color, 0.12) },
+                ]}
+              >
                 <DefaultIcons.Custom
                   library='MaterialCommunityIcons'
                   name={visual.icon}
@@ -431,8 +474,16 @@ export default function EventoSetlistItemDetailsView({
                   {row.observacao ? ` · ${row.observacao}` : ''}
                 </FancyText>
 
-                <FancyText size='extraSmall' color={palette.fonts.dark} numberOfLines={3} style={styles.sectionPreview}>
-                  {(row.letraOverride || secaoBase?.letra || 'Sem letra cadastrada.').replace(/\n+/g, ' ')}
+                <FancyText
+                  size='extraSmall'
+                  color={palette.fonts.dark}
+                  numberOfLines={3}
+                  style={styles.sectionPreview}
+                >
+                  {(row.letraOverride || secaoBase?.letra || 'Sem letra cadastrada.').replace(
+                    /\n+/g,
+                    ' ',
+                  )}
                 </FancyText>
               </View>
 
@@ -441,7 +492,12 @@ export default function EventoSetlistItemDetailsView({
                   <FancyButton
                     type='text'
                     mode='icon'
-                    icon={{ library: 'Feather', name: 'chevron-up', size: 16, color: palette.primary }}
+                    icon={{
+                      library: 'Feather',
+                      name: 'chevron-up',
+                      size: 16,
+                      color: palette.primary,
+                    }}
                     containerStyle={styles.smallIconButton}
                     onPress={() => moveRow(index, -1)}
                   />
@@ -455,7 +511,12 @@ export default function EventoSetlistItemDetailsView({
                   <FancyButton
                     type='text'
                     mode='icon'
-                    icon={{ library: 'Feather', name: 'chevron-down', size: 16, color: palette.primary }}
+                    icon={{
+                      library: 'Feather',
+                      name: 'chevron-down',
+                      size: 16,
+                      color: palette.primary,
+                    }}
                     containerStyle={styles.smallIconButton}
                     onPress={() => moveRow(index, 1)}
                   />
@@ -494,7 +555,8 @@ export default function EventoSetlistItemDetailsView({
               Arranjo ainda não detalhado
             </FancyText>
             <FancyText size='extraSmall' color={palette.fonts.inactive}>
-              A música pode ser consultada pelas abas de letra e cifra quando houver conteúdo cadastrado.
+              A música pode ser consultada pelas abas de letra e cifra quando houver conteúdo
+              cadastrado.
             </FancyText>
           </View>
         </View>
@@ -549,21 +611,14 @@ export default function EventoSetlistItemDetailsView({
   return (
     <>
       <FancyPageView style={styles.page}>
-        <FancyTabs
-          items={tabs}
-        />
+        <FancyTabs items={tabs} />
       </FancyPageView>
 
       <FancyBottomSheetModal
         visible={editorVisible}
         onClose={() => setEditorVisible(false)}
         title={editingIndex !== null ? 'Editar seção' : 'Adicionar seção'}
-        footer={
-          <FancyButton
-            label='Salvar seção'
-            onPress={handleSaveRow}
-          />
-        }
+        footer={<FancyButton label='Salvar seção' onPress={handleSaveRow} />}
       >
         <View style={styles.editorForm}>
           <FancyBottomSheetSelect
@@ -609,12 +664,20 @@ export default function EventoSetlistItemDetailsView({
           <FancyTextInput
             label='Letra desta ocorrência'
             value={letraOverride}
-            inputProps={{ onChangeText: setLetraOverride, multiline: true, style: { minHeight: 90, textAlignVertical: 'top' } }}
+            inputProps={{
+              onChangeText: setLetraOverride,
+              multiline: true,
+              style: { minHeight: 90, textAlignVertical: 'top' },
+            }}
           />
           <FancyTextInput
             label='Cifra desta ocorrência'
             value={cifraOverride}
-            inputProps={{ onChangeText: setCifraOverride, multiline: true, style: { minHeight: 90, textAlignVertical: 'top' } }}
+            inputProps={{
+              onChangeText: setCifraOverride,
+              multiline: true,
+              style: { minHeight: 90, textAlignVertical: 'top' },
+            }}
           />
         </View>
       </FancyBottomSheetModal>

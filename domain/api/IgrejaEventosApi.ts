@@ -2,9 +2,19 @@ import apiClient from './api-client';
 import type { GetEventosIntervaloDto } from '../dtos/Evento/get-eventos-intervalo.dto';
 import { ResponseEventoDto } from '../dtos/Evento/evento.response';
 import { ResponseEventoOcorrenciaDto } from '../dtos/Evento/evento-ocorrencia.response.dto';
-import { RemoveEventoTemplatePadraoDto, UpdateEventoTemplatePadraoDto } from '../dtos/Evento/update-evento-template-padrao.dto';
-import { RemoveEventoEnsaioDto, ResponseEventoEnsaioDto, UpdateEventoEnsaioDto } from '../dtos/Evento/update-evento-ensaio.dto';
-import { RemoveEventoSetlistResponsavelDto, UpdateEventoSetlistResponsavelDto } from '../dtos/Evento/update-evento-setlist-responsavel.dto';
+import {
+  RemoveEventoTemplatePadraoDto,
+  UpdateEventoTemplatePadraoDto,
+} from '../dtos/Evento/update-evento-template-padrao.dto';
+import {
+  RemoveEventoEnsaioDto,
+  ResponseEventoEnsaioDto,
+  UpdateEventoEnsaioDto,
+} from '../dtos/Evento/update-evento-ensaio.dto';
+import {
+  RemoveEventoSetlistResponsavelDto,
+  UpdateEventoSetlistResponsavelDto,
+} from '../dtos/Evento/update-evento-setlist-responsavel.dto';
 import { ResponseEventoSetlistItemDto } from '../dtos/Evento/evento-setlist-item.response';
 import { CreateEventoSetlistItemDto } from '../dtos/Evento/evento-setlist-item.create';
 import { UpdateEventoSetlistItemDto } from '../dtos/Evento/evento-setlist-item.update';
@@ -39,10 +49,16 @@ class IgrejaEventosApiClass {
    * Buscar eventos por intervalo (JWT)
    * GET /igrejas/{igrejaId}/eventos/intervalo
    */
-  async buscarPorIntervalo(igrejaId: string, params: GetEventosIntervaloDto): Promise<ResponseEventoOcorrenciaDto[]> {
-    const response = await apiClient.get<ApiEnvelope<ResponseEventoOcorrenciaDto[]>>(`/${this.resourceName}/${igrejaId}/eventos/intervalo`, {
-      params,
-    });
+  async buscarPorIntervalo(
+    igrejaId: string,
+    params: GetEventosIntervaloDto,
+  ): Promise<ResponseEventoOcorrenciaDto[]> {
+    const response = await apiClient.get<ApiEnvelope<ResponseEventoOcorrenciaDto[]>>(
+      `/${this.resourceName}/${igrejaId}/eventos/intervalo`,
+      {
+        params,
+      },
+    );
     return response.data.data;
   }
 
@@ -175,7 +191,11 @@ class IgrejaEventosApiClass {
     return response.data.data;
   }
 
-  async salvarObservacoesSetlist(igrejaId: string, eventoId: string, dto: UpsertEventoSetlistObservacoesDto) {
+  async salvarObservacoesSetlist(
+    igrejaId: string,
+    eventoId: string,
+    dto: UpsertEventoSetlistObservacoesDto,
+  ) {
     const response = await apiClient.put<ApiEnvelope<ResponseEventoSetlistObservacoesDto>>(
       `/${this.resourceName}/${igrejaId}/eventos/${eventoId}/setlist/observacoes`,
       dto,
@@ -224,7 +244,11 @@ class IgrejaEventosApiClass {
     return response.data.data;
   }
 
-  async criarSetlistItem(igrejaId: string, eventoId: string, dto: CreateEventoSetlistItemDto): Promise<ResponseEventoSetlistItemDto> {
+  async criarSetlistItem(
+    igrejaId: string,
+    eventoId: string,
+    dto: CreateEventoSetlistItemDto,
+  ): Promise<ResponseEventoSetlistItemDto> {
     const response = await apiClient.post<ApiEnvelope<ResponseEventoSetlistItemDto>>(
       `/${this.resourceName}/${igrejaId}/eventos/${eventoId}/setlist`,
       dto,
@@ -252,12 +276,19 @@ class IgrejaEventosApiClass {
     ministerioId: string,
     dataOcorrencia: string,
   ): Promise<void> {
-    await apiClient.delete(`/${this.resourceName}/${igrejaId}/eventos/${eventoId}/setlist/${itemId}`, {
-      params: { ministerioId, dataOcorrencia },
-    });
+    await apiClient.delete(
+      `/${this.resourceName}/${igrejaId}/eventos/${eventoId}/setlist/${itemId}`,
+      {
+        params: { ministerioId, dataOcorrencia },
+      },
+    );
   }
 
-  async reordenarSetlist(igrejaId: string, eventoId: string, dto: ReorderEventoSetlistDto): Promise<ResponseEventoSetlistItemDto[]> {
+  async reordenarSetlist(
+    igrejaId: string,
+    eventoId: string,
+    dto: ReorderEventoSetlistDto,
+  ): Promise<ResponseEventoSetlistItemDto[]> {
     const response = await apiClient.patch<ApiEnvelope<ResponseEventoSetlistItemDto[]>>(
       `/${this.resourceName}/${igrejaId}/eventos/${eventoId}/setlist-reorder`,
       dto,

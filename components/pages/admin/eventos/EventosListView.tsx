@@ -12,8 +12,8 @@ import { FancyAlert } from '../../../modal/FancyAlert';
 import { DateUtilsApi } from '../../../../utils/date_utils';
 import FancyBaseCard from '../../../cards/Horizontal/FancyBaseCard';
 import {
-    ActionButtonProps,
-    FancyActionButtons,
+  ActionButtonProps,
+  FancyActionButtons,
 } from '../../../cards/Horizontal/FancyCardActionButtons';
 import { formatInTimeZone } from 'date-fns-tz';
 import { APP_TZ } from '../../../../utils/date_utils';
@@ -42,7 +42,9 @@ export default function EventosListView({
   const [actionsEvento, setActionsEvento] = useState<ResponseEventoDto | null>(null);
   const { containerStyle: listContainerStyle, listEmptyProps, ...restListProps } = listProps || {};
   const formatEventoDateTime = (value?: string) =>
-    value ? formatInTimeZone(DateUtilsApi.dateTimeFromApi(value), APP_TZ, 'dd/MM/yyyy HH:mm') : 'Sem término';
+    value
+      ? formatInTimeZone(DateUtilsApi.dateTimeFromApi(value), APP_TZ, 'dd/MM/yyyy HH:mm')
+      : 'Sem término';
 
   return (
     <View style={[styles.container, containerStyle]}>
@@ -96,16 +98,16 @@ export default function EventosListView({
               additionalData1={
                 <FancyTextDisplayCard
                   value={formatEventoDateTime(item.dataTermino)}
-                    icon={{
-                      library: 'MaterialCommunityIcons',
-                      name: 'calendar-check',
-                      size: 13,
-                      color: palette.primary,
-                      style: styles.dataIcon,
-                    }}
-                    containerStyle={styles.dataRow}
-                    valueStyle={{ type: 'medium' }}
-                  />
+                  icon={{
+                    library: 'MaterialCommunityIcons',
+                    name: 'calendar-check',
+                    size: 13,
+                    color: palette.primary,
+                    style: styles.dataIcon,
+                  }}
+                  containerStyle={styles.dataRow}
+                  valueStyle={{ type: 'medium' }}
+                />
               }
               additionalData2={
                 <FancyTextDisplayCard
@@ -115,15 +117,15 @@ export default function EventosListView({
                     item.recorrenciaACadaMeses!,
                     item.recorrenciaSemanasMes?.map((i) => RecorrenciaSemanaMesEnumMap[i]) || [],
                   )}
-                    icon={{
-                      library: 'MaterialCommunityIcons',
-                      name: 'calendar-sync',
-                      size: 13,
-                      color: palette.primary,
-                      style: styles.dataIconTopAligned,
-                    }}
-                    containerStyle={styles.dataRowMultiline}
-                    valueStyle={{ type: 'medium', style: styles.dataValueMultiline }}
+                  icon={{
+                    library: 'MaterialCommunityIcons',
+                    name: 'calendar-sync',
+                    size: 13,
+                    color: palette.primary,
+                    style: styles.dataIconTopAligned,
+                  }}
+                  containerStyle={styles.dataRowMultiline}
+                  valueStyle={{ type: 'medium', style: styles.dataValueMultiline }}
                 />
               }
               leftItem={

@@ -27,12 +27,20 @@ export default function VoluntarioDetailsHeader({
         gap: 10,
       }}
     >
-      <FancyAvatarImage source={{ uri: voluntarioInfo.fotoThumbUrl || voluntarioInfo.fotoUrl || '' }} size={50} />
+      <FancyAvatarImage
+        source={{ uri: voluntarioInfo.fotoThumbUrl || voluntarioInfo.fotoUrl || '' }}
+        size={50}
+      />
       <View style={{ alignItems: 'center', gap: 2 }}>
         <FancyText color={Pallete.fonts.light} size='large' type='bold' style={{ opacity: 0.9 }}>
           {voluntarioInfo.nome}
         </FancyText>
-        <FancyText color={Pallete.fonts.light} size='small' type='semiBold' style={{ opacity: 0.7 }}>
+        <FancyText
+          color={Pallete.fonts.light}
+          size='small'
+          type='semiBold'
+          style={{ opacity: 0.7 }}
+        >
           {voluntarioInfo.email}
         </FancyText>
       </View>

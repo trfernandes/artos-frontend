@@ -68,11 +68,7 @@ export default function EscalaHorizontalPager({
       overdrag={false}
     >
       {eventosData.map((item, index) => (
-        <View
-          key={item.evento.id + item.dataOcorrencia}
-          collapsable={false}
-          style={styles.page}
-        >
+        <View key={item.evento.id + item.dataOcorrencia} collapsable={false} style={styles.page}>
           <EscalaEventoPage
             data={item}
             pagerProps={{

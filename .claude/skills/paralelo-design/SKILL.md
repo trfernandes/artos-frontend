@@ -14,6 +14,7 @@ Cria 5 variantes de design diferentes **ao mesmo tempo** para você comparar e e
 ```
 
 **Exemplo:**
+
 ```
 /paralelo-design team-members-tab
 ```

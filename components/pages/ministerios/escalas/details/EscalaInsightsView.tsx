@@ -89,13 +89,7 @@ function formatMonthRange(start: Date, end: Date) {
   return `${from} - ${to}`;
 }
 
-function InfoButton({
-  label,
-  onPress,
-}: {
-  label: string;
-  onPress: (anchor: InfoAnchor) => void;
-}) {
+function InfoButton({ label, onPress }: { label: string; onPress: (anchor: InfoAnchor) => void }) {
   const styles = useThemedStyles(createStyles);
   const palette = usePallete();
   const [anchorView, setAnchorView] = useState<View | null>(null);
@@ -193,10 +187,7 @@ function CardWithInfo({
   );
 }
 
-export default function EscalaInsightsView({
-  escala,
-  ministerioId,
-}: EscalaInsightsViewProps) {
+export default function EscalaInsightsView({ escala, ministerioId }: EscalaInsightsViewProps) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
   const [openSections, setOpenSections] = useState<Set<InsightsSectionKey>>(new Set(['resumo']));
@@ -226,44 +217,64 @@ export default function EscalaInsightsView({
     setActiveInfo((prev) => (prev?.key === key ? null : { key, anchor }));
   }, []);
 
-  const handleAccordionChange = useCallback((section: InsightsSectionKey, expanded: boolean) => {
-    if (pendingSection) return;
+  const handleAccordionChange = useCallback(
+    (section: InsightsSectionKey, expanded: boolean) => {
+      if (pendingSection) return;
 
-    if (openFrameRef.current !== null) {
-      cancelAnimationFrame(openFrameRef.current);
-    }
-    if (clearPendingFrameRef.current !== null) {
-      cancelAnimationFrame(clearPendingFrameRef.current);
-    }
+      if (openFrameRef.current !== null) {
+        cancelAnimationFrame(openFrameRef.current);
+      }
+      if (clearPendingFrameRef.current !== null) {
+        cancelAnimationFrame(clearPendingFrameRef.current);
+      }
 
-    setPendingSection(section);
-    openFrameRef.current = requestAnimationFrame(() => {
-      setOpenSections((prev) => {
-        const next = new Set(prev);
-        if (expanded) {
-          next.add(section);
-        } else {
-          next.delete(section);
-        }
-        return next;
+      setPendingSection(section);
+      openFrameRef.current = requestAnimationFrame(() => {
+        setOpenSections((prev) => {
+          const next = new Set(prev);
+          if (expanded) {
+            next.add(section);
+          } else {
+            next.delete(section);
+          }
+          return next;
+        });
+        clearPendingFrameRef.current = requestAnimationFrame(() => {
+          setPendingSection(null);
+        });
       });
-      clearPendingFrameRef.current = requestAnimationFrame(() => {
-        setPendingSection(null);
-      });
-    });
-  }, [pendingSection]);
+    },
+    [pendingSection],
+  );
 
-  const currentInsights = useMemo(() => buildCurrentEscalaInsights(escala.itens ?? []), [escala.itens]);
+  const currentInsights = useMemo(
+    () => buildCurrentEscalaInsights(escala.itens ?? []),
+    [escala.itens],
+  );
 
   const historyPeriodStart = useMemo(
-    () => startOfMonth(subMonths(DateUtilsApi.dateOnlyFromApi(escala.dataTermino), HISTORY_MONTHS_WINDOW - 1)),
+    () =>
+      startOfMonth(
+        subMonths(DateUtilsApi.dateOnlyFromApi(escala.dataTermino), HISTORY_MONTHS_WINDOW - 1),
+      ),
     [escala.dataTermino],
   );
-  const historyPeriodEnd = useMemo(() => endOfMonth(DateUtilsApi.dateOnlyFromApi(escala.dataTermino)), [escala.dataTermino]);
-  const historyPeriodLabel = useMemo(() => formatMonthRange(historyPeriodStart, historyPeriodEnd), [historyPeriodStart, historyPeriodEnd]);
+  const historyPeriodEnd = useMemo(
+    () => endOfMonth(DateUtilsApi.dateOnlyFromApi(escala.dataTermino)),
+    [escala.dataTermino],
+  );
+  const historyPeriodLabel = useMemo(
+    () => formatMonthRange(historyPeriodStart, historyPeriodEnd),
+    [historyPeriodStart, historyPeriodEnd],
+  );
 
   const historyQuery = useQuery<ResponseEscalaDto[]>({
-    queryKey: ['escala-insights-history', ministerioId, DateUtilsApi.dateOnlyToApi(historyPeriodStart), DateUtilsApi.dateOnlyToApi(historyPeriodEnd)],
+    queryKey: [
+      'escala-insights-history',
+      ministerioId,
+      DateUtilsApi.dateOnlyToApi(historyPeriodStart),
+      DateUtilsApi.dateOnlyToApi(historyPeriodEnd),
+    ],
     enabled: !!ministerioId,
     staleTime: 1000 * 60 * 5,
     retry: 1,
@@ -283,12 +294,18 @@ export default function EscalaInsightsView({
                 {
                   path: 'dataInicio',
                   operator: Operator.LTE,
-                  value: { type: ValueType.LITERAL, value: DateUtilsApi.dateOnlyToApi(historyPeriodEnd) },
+                  value: {
+                    type: ValueType.LITERAL,
+                    value: DateUtilsApi.dateOnlyToApi(historyPeriodEnd),
+                  },
                 },
                 {
                   path: 'dataTermino',
                   operator: Operator.GTE,
-                  value: { type: ValueType.LITERAL, value: DateUtilsApi.dateOnlyToApi(historyPeriodStart) },
+                  value: {
+                    type: ValueType.LITERAL,
+                    value: DateUtilsApi.dateOnlyToApi(historyPeriodStart),
+                  },
                 },
               ],
             },
@@ -334,7 +351,10 @@ export default function EscalaInsightsView({
   return (
     <>
       <View style={styles.screenContainer}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           <FancyAccordeon
             title={renderTitle('Resumo da escala atual')}
             expanded={openSections.has('resumo')}
@@ -350,19 +370,72 @@ export default function EscalaInsightsView({
             containerExpandedContainerStyle={styles.accordeonContainerExpanded}
           >
             <View style={styles.cardRow}>
-              <CardWithInfo infoLabel='Explicar eventos' onInfoPress={(anchor) => openInfo('kpi_eventos', anchor)}>
-                <DashboardCard title='Eventos' value={formatCount(currentInsights.totalEventos)} icon={{ library: 'MaterialCommunityIcons', name: 'calendar-multiple', size: 12, color: palette.primary }} surfaceVariant='infoBlue' />
+              <CardWithInfo
+                infoLabel='Explicar eventos'
+                onInfoPress={(anchor) => openInfo('kpi_eventos', anchor)}
+              >
+                <DashboardCard
+                  title='Eventos'
+                  value={formatCount(currentInsights.totalEventos)}
+                  icon={{
+                    library: 'MaterialCommunityIcons',
+                    name: 'calendar-multiple',
+                    size: 12,
+                    color: palette.primary,
+                  }}
+                  surfaceVariant='infoBlue'
+                />
               </CardWithInfo>
-              <CardWithInfo infoLabel='Explicar pessoas escaladas' onInfoPress={(anchor) => openInfo('kpi_pessoas', anchor)}>
-                <DashboardCard title='Pessoas escaladas' value={formatCount(currentInsights.totalPessoasEscaladas)} icon={{ library: 'MaterialCommunityIcons', name: 'account-group', size: 12, color: palette.primary }} surfaceVariant='infoBlue' />
+              <CardWithInfo
+                infoLabel='Explicar pessoas escaladas'
+                onInfoPress={(anchor) => openInfo('kpi_pessoas', anchor)}
+              >
+                <DashboardCard
+                  title='Pessoas escaladas'
+                  value={formatCount(currentInsights.totalPessoasEscaladas)}
+                  icon={{
+                    library: 'MaterialCommunityIcons',
+                    name: 'account-group',
+                    size: 12,
+                    color: palette.primary,
+                  }}
+                  surfaceVariant='infoBlue'
+                />
               </CardWithInfo>
             </View>
             <View style={styles.cardRow}>
-              <CardWithInfo infoLabel='Explicar escalas atribuídas' onInfoPress={(anchor) => openInfo('kpi_atribuicoes', anchor)}>
-                <DashboardCard title='Escalas atribuídas' value={formatCount(currentInsights.totalEscalasAtribuidas)} icon={{ library: 'MaterialCommunityIcons', name: 'format-list-numbered', size: 12, color: palette.primary }} surfaceVariant='infoBlue' />
+              <CardWithInfo
+                infoLabel='Explicar escalas atribuídas'
+                onInfoPress={(anchor) => openInfo('kpi_atribuicoes', anchor)}
+              >
+                <DashboardCard
+                  title='Escalas atribuídas'
+                  value={formatCount(currentInsights.totalEscalasAtribuidas)}
+                  icon={{
+                    library: 'MaterialCommunityIcons',
+                    name: 'format-list-numbered',
+                    size: 12,
+                    color: palette.primary,
+                  }}
+                  surfaceVariant='infoBlue'
+                />
               </CardWithInfo>
-              <CardWithInfo infoLabel='Explicar média por pessoa' onInfoPress={(anchor) => openInfo('kpi_media_pessoa', anchor)}>
-                <DashboardCard title='Média por pessoa' value={formatOneDecimal(currentInsights.mediaEscalasPorPessoaAtual)} subtitle='na escala atual' icon={{ library: 'MaterialCommunityIcons', name: 'chart-line', size: 12, color: palette.primary }} surfaceVariant='infoBlue' />
+              <CardWithInfo
+                infoLabel='Explicar média por pessoa'
+                onInfoPress={(anchor) => openInfo('kpi_media_pessoa', anchor)}
+              >
+                <DashboardCard
+                  title='Média por pessoa'
+                  value={formatOneDecimal(currentInsights.mediaEscalasPorPessoaAtual)}
+                  subtitle='na escala atual'
+                  icon={{
+                    library: 'MaterialCommunityIcons',
+                    name: 'chart-line',
+                    size: 12,
+                    color: palette.primary,
+                  }}
+                  surfaceVariant='infoBlue'
+                />
               </CardWithInfo>
             </View>
           </FancyAccordeon>
@@ -382,19 +455,71 @@ export default function EscalaInsightsView({
             containerExpandedContainerStyle={styles.accordeonContainerExpanded}
           >
             <View style={styles.cardRow}>
-              <CardWithInfo infoLabel='Explicar vagas totais' onInfoPress={(anchor) => openInfo('kpi_vagas_totais', anchor)}>
-                <DashboardCard title='Vagas totais' value={formatCount(currentInsights.vagasTotais)} icon={{ library: 'MaterialCommunityIcons', name: 'briefcase-outline', size: 12, color: palette.primary }} surfaceVariant='infoBlue' />
+              <CardWithInfo
+                infoLabel='Explicar vagas totais'
+                onInfoPress={(anchor) => openInfo('kpi_vagas_totais', anchor)}
+              >
+                <DashboardCard
+                  title='Vagas totais'
+                  value={formatCount(currentInsights.vagasTotais)}
+                  icon={{
+                    library: 'MaterialCommunityIcons',
+                    name: 'briefcase-outline',
+                    size: 12,
+                    color: palette.primary,
+                  }}
+                  surfaceVariant='infoBlue'
+                />
               </CardWithInfo>
-              <CardWithInfo infoLabel='Explicar vagas preenchidas' onInfoPress={(anchor) => openInfo('kpi_vagas_preenchidas', anchor)}>
-                <DashboardCard title='Vagas preenchidas' value={formatCount(currentInsights.vagasPreenchidas)} icon={{ library: 'MaterialCommunityIcons', name: 'check-decagram-outline', size: 12, color: palette.confirm }} surfaceVariant='infoBlue' />
+              <CardWithInfo
+                infoLabel='Explicar vagas preenchidas'
+                onInfoPress={(anchor) => openInfo('kpi_vagas_preenchidas', anchor)}
+              >
+                <DashboardCard
+                  title='Vagas preenchidas'
+                  value={formatCount(currentInsights.vagasPreenchidas)}
+                  icon={{
+                    library: 'MaterialCommunityIcons',
+                    name: 'check-decagram-outline',
+                    size: 12,
+                    color: palette.confirm,
+                  }}
+                  surfaceVariant='infoBlue'
+                />
               </CardWithInfo>
             </View>
             <View style={styles.cardRow}>
-              <CardWithInfo infoLabel='Explicar percentual preenchido' onInfoPress={(anchor) => openInfo('kpi_percentual', anchor)}>
-                <DashboardCard title='% preenchimento' value={`${Math.round(currentInsights.percentualPreenchimento)}%`} icon={{ library: 'MaterialCommunityIcons', name: 'chart-donut', size: 12, color: palette.secondary }} surfaceVariant='infoBlue' />
+              <CardWithInfo
+                infoLabel='Explicar percentual preenchido'
+                onInfoPress={(anchor) => openInfo('kpi_percentual', anchor)}
+              >
+                <DashboardCard
+                  title='% preenchimento'
+                  value={`${Math.round(currentInsights.percentualPreenchimento)}%`}
+                  icon={{
+                    library: 'MaterialCommunityIcons',
+                    name: 'chart-donut',
+                    size: 12,
+                    color: palette.secondary,
+                  }}
+                  surfaceVariant='infoBlue'
+                />
               </CardWithInfo>
-              <CardWithInfo infoLabel='Explicar funções sem voluntário' onInfoPress={(anchor) => openInfo('kpi_funcoes_vagas', anchor)}>
-                <DashboardCard title='Funções sem voluntário' value={formatCount(currentInsights.funcoesSemVoluntario)} icon={{ library: 'MaterialCommunityIcons', name: 'alert-circle-outline', size: 12, color: palette.warning }} surfaceVariant='infoBlue' />
+              <CardWithInfo
+                infoLabel='Explicar funções sem voluntário'
+                onInfoPress={(anchor) => openInfo('kpi_funcoes_vagas', anchor)}
+              >
+                <DashboardCard
+                  title='Funções sem voluntário'
+                  value={formatCount(currentInsights.funcoesSemVoluntario)}
+                  icon={{
+                    library: 'MaterialCommunityIcons',
+                    name: 'alert-circle-outline',
+                    size: 12,
+                    color: palette.warning,
+                  }}
+                  surfaceVariant='infoBlue'
+                />
               </CardWithInfo>
             </View>
           </FancyAccordeon>
@@ -421,10 +546,21 @@ export default function EscalaInsightsView({
               <View style={styles.tableWrapper}>
                 <View>
                   {topRanking.map((row, index) => {
-                    const mediaPessoa = historicalInsights.mediaEscalasMesPorPessoa[row.voluntarioId] ?? 0;
-                    const mediaPessoaLabel = historyQuery.isLoading ? '...' : historyQuery.isError ? '—' : formatOneDecimal(mediaPessoa);
+                    const mediaPessoa =
+                      historicalInsights.mediaEscalasMesPorPessoa[row.voluntarioId] ?? 0;
+                    const mediaPessoaLabel = historyQuery.isLoading
+                      ? '...'
+                      : historyQuery.isError
+                        ? '—'
+                        : formatOneDecimal(mediaPessoa);
                     return (
-                      <View key={row.voluntarioId} style={[styles.tableDataRow, index === topRanking.length - 1 && styles.tableLastRow]}>
+                      <View
+                        key={row.voluntarioId}
+                        style={[
+                          styles.tableDataRow,
+                          index === topRanking.length - 1 && styles.tableLastRow,
+                        ]}
+                      >
                         <View style={[styles.cellBase, styles.cellName, styles.cellPersona]}>
                           <FancyAvatarImage
                             source={
@@ -435,14 +571,27 @@ export default function EscalaInsightsView({
                             size={20}
                             style={styles.rankingAvatar}
                           />
-                          <FancyText size='extraSmall' type='medium' numberOfLines={1} style={{ flex: 1 }}>
+                          <FancyText
+                            size='extraSmall'
+                            type='medium'
+                            numberOfLines={1}
+                            style={{ flex: 1 }}
+                          >
                             {getFirstAndLastName(row.nome)}
                           </FancyText>
                         </View>
-                        <FancyText size='extraSmall' type='semiBold' style={[styles.cellBase, styles.cellCenter]}>
+                        <FancyText
+                          size='extraSmall'
+                          type='semiBold'
+                          style={[styles.cellBase, styles.cellCenter]}
+                        >
                           {formatCount(row.qtdAtual)}
                         </FancyText>
-                        <FancyText size='extraSmall' type='semiBold' style={[styles.cellBase, styles.cellCenter]}>
+                        <FancyText
+                          size='extraSmall'
+                          type='semiBold'
+                          style={[styles.cellBase, styles.cellCenter]}
+                        >
                           {mediaPessoaLabel}
                         </FancyText>
                       </View>
@@ -469,33 +618,66 @@ export default function EscalaInsightsView({
           >
             <View>
               <View style={styles.equilibrioRow}>
-                <FancyChips label={isBalanced ? 'Distribuição equilibrada' : 'Distribuição concentrada'} color={distributionChipColor} backgroundColor={ColorUtils.withAlpha(distributionChipColor, 0.16)} size='small' />
-                <InfoButton label='Explicar distribuição' onPress={(anchor) => openInfo('eq_distribuicao', anchor)} />
+                <FancyChips
+                  label={isBalanced ? 'Distribuição equilibrada' : 'Distribuição concentrada'}
+                  color={distributionChipColor}
+                  backgroundColor={ColorUtils.withAlpha(distributionChipColor, 0.16)}
+                  size='small'
+                />
+                <InfoButton
+                  label='Explicar distribuição'
+                  onPress={(anchor) => openInfo('eq_distribuicao', anchor)}
+                />
               </View>
               {currentInsights.maiorCarga && currentInsights.menorCarga && (
                 <>
                   <View style={styles.infoRow}>
                     <View style={styles.infoLabel}>
-                      <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>Maior carga</FancyText>
-                      <InfoButton label='Explicar maior carga' onPress={(anchor) => openInfo('eq_maior', anchor)} />
+                      <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                        Maior carga
+                      </FancyText>
+                      <InfoButton
+                        label='Explicar maior carga'
+                        onPress={(anchor) => openInfo('eq_maior', anchor)}
+                      />
                     </View>
-                    <FancyText size='extraSmall' type='semiBold' style={styles.infoValue} numberOfLines={2}>
+                    <FancyText
+                      size='extraSmall'
+                      type='semiBold'
+                      style={styles.infoValue}
+                      numberOfLines={2}
+                    >
                       {`${currentInsights.maiorCarga.nome} (${currentInsights.maiorCarga.qtdAtual})`}
                     </FancyText>
                   </View>
                   <View style={styles.infoRow}>
                     <View style={styles.infoLabel}>
-                      <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>Menor carga</FancyText>
-                      <InfoButton label='Explicar menor carga' onPress={(anchor) => openInfo('eq_menor', anchor)} />
+                      <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                        Menor carga
+                      </FancyText>
+                      <InfoButton
+                        label='Explicar menor carga'
+                        onPress={(anchor) => openInfo('eq_menor', anchor)}
+                      />
                     </View>
-                    <FancyText size='extraSmall' type='semiBold' style={styles.infoValue} numberOfLines={2}>
+                    <FancyText
+                      size='extraSmall'
+                      type='semiBold'
+                      style={styles.infoValue}
+                      numberOfLines={2}
+                    >
                       {`${currentInsights.menorCarga.nome} (${currentInsights.menorCarga.qtdAtual})`}
                     </FancyText>
                   </View>
                   <View style={styles.infoRow}>
                     <View style={styles.infoLabel}>
-                      <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>Diferença entre extremos</FancyText>
-                      <InfoButton label='Explicar diferença' onPress={(anchor) => openInfo('eq_diferenca', anchor)} />
+                      <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                        Diferença entre extremos
+                      </FancyText>
+                      <InfoButton
+                        label='Explicar diferença'
+                        onPress={(anchor) => openInfo('eq_diferenca', anchor)}
+                      />
                     </View>
                     <FancyText size='extraSmall' type='semiBold' style={styles.infoValue}>
                       {formatCount(gapBetweenExtremes)}
@@ -505,12 +687,25 @@ export default function EscalaInsightsView({
               )}
               <View style={styles.monthlyAverageBlock}>
                 <View style={styles.monthlyHeader}>
-                  <FancyText size='extraSmall' type='semiBold'>Média de escalas por mês ({HISTORY_MONTHS_WINDOW}m)</FancyText>
-                  <InfoButton label='Explicar média 6 meses' onPress={(anchor) => openInfo('eq_media_6m', anchor)} />
+                  <FancyText size='extraSmall' type='semiBold'>
+                    Média de escalas por mês ({HISTORY_MONTHS_WINDOW}m)
+                  </FancyText>
+                  <InfoButton
+                    label='Explicar média 6 meses'
+                    onPress={(anchor) => openInfo('eq_media_6m', anchor)}
+                  />
                 </View>
-                {historyQuery.isLoading && <ActivityIndicator size='small' color={palette.primary} />}
-                <FancyText size='small' type='bold'>{historyQuery.isError ? '—' : formatOneDecimal(historicalInsights.mediaEscalasMesMinisterio)}</FancyText>
-                <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>{historyPeriodLabel}</FancyText>
+                {historyQuery.isLoading && (
+                  <ActivityIndicator size='small' color={palette.primary} />
+                )}
+                <FancyText size='small' type='bold'>
+                  {historyQuery.isError
+                    ? '—'
+                    : formatOneDecimal(historicalInsights.mediaEscalasMesMinisterio)}
+                </FancyText>
+                <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                  {historyPeriodLabel}
+                </FancyText>
               </View>
             </View>
           </FancyAccordeon>
@@ -582,7 +777,12 @@ function createStyles(palette: ThemePalette) {
       borderBottomColor: ColorUtils.withAlpha(palette.borderCard, 0.9),
       gap: 6,
     },
-    tableHeaderCell: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
+    tableHeaderCell: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 4,
+    },
     tableDataRow: {
       flexDirection: 'row',
       paddingHorizontal: 10,
@@ -621,7 +821,12 @@ function createStyles(palette: ThemePalette) {
       paddingVertical: 8,
       marginTop: 8,
     },
-    monthlyHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+    monthlyHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 8,
+    },
     popoverRoot: { flex: 1 },
     popoverBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'transparent' },
     popoverBubble: {

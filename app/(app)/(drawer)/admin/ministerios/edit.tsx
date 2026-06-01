@@ -19,7 +19,10 @@ import VoluntarioTab from '../../../../../components/pages/admin/ministerios/Vol
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import { sendImageToServer } from '../../../../../utils/image_utils';
 import { UpdateMinisterioDto } from '../../../../../domain/dtos/Ministerio/ministerio.update';
-import { EditMinisterioFormData, EditMinisterioSchema } from '../../../../../domain/schemas/ministerioAdminSchema';
+import {
+  EditMinisterioFormData,
+  EditMinisterioSchema,
+} from '../../../../../domain/schemas/ministerioAdminSchema';
 import LiderancaEAcessosTab from '../../../../../components/pages/admin/ministerios/LiderancaEAcessosTab';
 
 export default function MinisteriosEditPage() {
@@ -115,7 +118,10 @@ export default function MinisteriosEditPage() {
 
           //Enviar logo para o servidor e guardar as URLs retornadas
           if (data.logoUpload?.uri) {
-            const { imageThumbUrl, imageUrl } = await sendImageToServer('ministerios', data.logoUpload);
+            const { imageThumbUrl, imageUrl } = await sendImageToServer(
+              'ministerios',
+              data.logoUpload,
+            );
 
             updateData.logoUrl = imageUrl;
             updateData.logoThumbUrl = imageThumbUrl;
@@ -137,7 +143,9 @@ export default function MinisteriosEditPage() {
           //Atualizar informações do ministério no usuário logado
           // Atualiza o ministério editado na igreja ativa do usuário logado
           if (igrejaAtiva) {
-            const hierarquia = editedMinisterio.voluntarios?.find((v) => v.voluntario?.id === user?.user.id)?.hierarquia ?? VoluntarioHierarquiaEnum.Voluntario;
+            const hierarquia =
+              editedMinisterio.voluntarios?.find((v) => v.voluntario?.id === user?.user.id)
+                ?.hierarquia ?? VoluntarioHierarquiaEnum.Voluntario;
             const novoMinisterio = {
               id: editedMinisterio.id!,
               nome: editedMinisterio.nome,
@@ -154,7 +162,7 @@ export default function MinisteriosEditPage() {
               ],
             };
             const novasIgrejas = (user?.igrejas || []).map((ig) =>
-              ig.id === igrejaAtiva.id ? novaIgreja : ig
+              ig.id === igrejaAtiva.id ? novaIgreja : ig,
             );
             updateUser({ ...user, igrejas: novasIgrejas });
           }
@@ -189,10 +197,7 @@ export default function MinisteriosEditPage() {
   return (
     <FancyPageView style={styles.container}>
       <FormProvider {...form}>
-        <FancyTabs
-          onTabChange={setTabIndex}
-          items={tabsConfig}
-        />
+        <FancyTabs onTabChange={setTabIndex} items={tabsConfig} />
       </FormProvider>
 
       {tabIndex === 0 && (

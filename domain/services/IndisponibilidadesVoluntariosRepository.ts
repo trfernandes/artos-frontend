@@ -23,4 +23,5 @@ class IndisponibilidadesVoluntariosRepositoryClass extends BaseRepository<
   }
 }
 
-export const IndisponibilidadesVoluntariosRepository = new IndisponibilidadesVoluntariosRepositoryClass();
+export const IndisponibilidadesVoluntariosRepository =
+  new IndisponibilidadesVoluntariosRepositoryClass();

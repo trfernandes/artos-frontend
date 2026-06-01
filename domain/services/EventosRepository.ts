@@ -11,7 +11,11 @@ export interface EventosIntervaloParams {
   igrejaId?: string;
 }
 
-class EventosRepositoryClass extends BaseRepository<ResponseEventoDto, CreateEventoDto, UpdateEventoDto> {
+class EventosRepositoryClass extends BaseRepository<
+  ResponseEventoDto,
+  CreateEventoDto,
+  UpdateEventoDto
+> {
   constructor() {
     super(EventosApi);
   }

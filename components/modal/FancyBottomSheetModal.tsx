@@ -49,19 +49,21 @@ export default function FancyBottomSheetModal({
   const isDark = palette.backgroundColor === '#121212';
   // Backdrop com mais opacidade no Android pois o blur lá é menos efetivo
   const reliableBackdropColor = isDark
-    ? ColorUtils.withAlpha('#000000', Platform.OS === 'ios' ? 0.50 : 0.65)
-    : ColorUtils.withAlpha('#020617', Platform.OS === 'ios' ? 0.40 : 0.55);
+    ? ColorUtils.withAlpha('#000000', Platform.OS === 'ios' ? 0.5 : 0.65)
+    : ColorUtils.withAlpha('#020617', Platform.OS === 'ios' ? 0.4 : 0.55);
   const insets = useSafeAreaInsets();
   const backdropAnim = useRef(new Animated.Value(0)).current;
   const sheetTranslateY = useRef(new Animated.Value(SHEET_TRANSLATE_Y)).current;
   const dragY = useRef(new Animated.Value(0)).current;
   const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const keyboardOffset = avoidKeyboard && visible && keyboardHeight > 0
-    ? Math.max(0, keyboardHeight - insets.bottom + keyboardExtraOffset)
-    : 0;
-  const sheetMaxHeight = keyboardOffset > 0
-    ? Math.max(180, SCREEN_HEIGHT * 0.88 - keyboardOffset)
-    : SCREEN_HEIGHT * 0.88;
+  const keyboardOffset =
+    avoidKeyboard && visible && keyboardHeight > 0
+      ? Math.max(0, keyboardHeight - insets.bottom + keyboardExtraOffset)
+      : 0;
+  const sheetMaxHeight =
+    keyboardOffset > 0
+      ? Math.max(180, SCREEN_HEIGHT * 0.88 - keyboardOffset)
+      : SCREEN_HEIGHT * 0.88;
   const sheetBottomPadding = keyboardOffset > 0 ? 16 : insets.bottom + 16;
 
   useEffect(() => {
@@ -70,8 +72,16 @@ export default function FancyBottomSheetModal({
       sheetTranslateY.setValue(SHEET_TRANSLATE_Y);
       dragY.setValue(0);
       Animated.parallel([
-        Animated.timing(backdropAnim, { toValue: 1, duration: ANIMATION_DURATION, useNativeDriver: true }),
-        Animated.timing(sheetTranslateY, { toValue: 0, duration: ANIMATION_DURATION, useNativeDriver: true }),
+        Animated.timing(backdropAnim, {
+          toValue: 1,
+          duration: ANIMATION_DURATION,
+          useNativeDriver: true,
+        }),
+        Animated.timing(sheetTranslateY, {
+          toValue: 0,
+          duration: ANIMATION_DURATION,
+          useNativeDriver: true,
+        }),
       ]).start();
     }
   }, [visible]);
@@ -99,8 +109,16 @@ export default function FancyBottomSheetModal({
     if (closeDisabled) return;
 
     Animated.parallel([
-      Animated.timing(backdropAnim, { toValue: 0, duration: ANIMATION_DURATION, useNativeDriver: true }),
-      Animated.timing(sheetTranslateY, { toValue: SHEET_TRANSLATE_Y, duration: ANIMATION_DURATION, useNativeDriver: true }),
+      Animated.timing(backdropAnim, {
+        toValue: 0,
+        duration: ANIMATION_DURATION,
+        useNativeDriver: true,
+      }),
+      Animated.timing(sheetTranslateY, {
+        toValue: SHEET_TRANSLATE_Y,
+        duration: ANIMATION_DURATION,
+        useNativeDriver: true,
+      }),
     ]).start(() => onClose());
   }, [backdropAnim, closeDisabled, onClose, sheetTranslateY]);
 
@@ -108,7 +126,9 @@ export default function FancyBottomSheetModal({
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dy) > 10,
-      onPanResponderMove: (_, g) => { if (g.dy > 0) dragY.setValue(g.dy); },
+      onPanResponderMove: (_, g) => {
+        if (g.dy > 0) dragY.setValue(g.dy);
+      },
       onPanResponderRelease: (_, g) => {
         if (g.dy > 100 || g.vy > 0.5) handleClose();
         else dragY.setValue(0);
@@ -116,9 +136,10 @@ export default function FancyBottomSheetModal({
     }),
   ).current;
 
-  const sheetContent = useMemo(() => (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={styles.container}>
+  const sheetContent = useMemo(
+    () => (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View style={styles.container}>
           {/* Backdrop */}
           <Animated.View
             style={[StyleSheet.absoluteFillObject, { opacity: backdropAnim }]}
@@ -130,12 +151,11 @@ export default function FancyBottomSheetModal({
               blurAmount={Platform.OS === 'ios' ? 10 : 8}
               reducedTransparencyFallbackColor={isDark ? '#000000' : '#f8fafc'}
             />
-            <View style={[StyleSheet.absoluteFillObject, { backgroundColor: reliableBackdropColor }]} />
+            <View
+              style={[StyleSheet.absoluteFillObject, { backgroundColor: reliableBackdropColor }]}
+            />
           </Animated.View>
-          <Pressable
-            style={StyleSheet.absoluteFillObject}
-            onPress={handleClose}
-          />
+          <Pressable style={StyleSheet.absoluteFillObject} onPress={handleClose} />
 
           {/* Shadow gradient above sheet */}
           <Animated.View
@@ -174,15 +194,33 @@ export default function FancyBottomSheetModal({
             </View>
 
             {/* Header */}
-            <View style={[styles.header, { borderBottomColor: ColorUtils.lightenColor(palette.border, 0.5) }]}>
+            <View
+              style={[
+                styles.header,
+                { borderBottomColor: ColorUtils.lightenColor(palette.border, 0.5) },
+              ]}
+            >
               <TouchableOpacity
-                style={[styles.closeBtn, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14) }]}
+                style={[
+                  styles.closeBtn,
+                  { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14) },
+                ]}
                 onPress={handleClose}
                 disabled={closeDisabled}
               >
-                <DefaultIcons.Custom library='Feather' name='x' size={20} color={palette.fonts.dark} />
+                <DefaultIcons.Custom
+                  library='Feather'
+                  name='x'
+                  size={20}
+                  color={palette.fonts.dark}
+                />
               </TouchableOpacity>
-              <FancyText type='bold' size='medium' color={palette.fonts.dark} style={styles.headerTitle}>
+              <FancyText
+                type='bold'
+                size='medium'
+                color={palette.fonts.dark}
+                style={styles.headerTitle}
+              >
                 {title}
               </FancyText>
               <View style={{ width: 34 }} />
@@ -203,29 +241,37 @@ export default function FancyBottomSheetModal({
             {/* Footer */}
             {footer && <View style={styles.footer}>{footer}</View>}
           </Animated.View>
-      </View>
-    </GestureHandlerRootView>
-  ), [
-    backdropAnim,
-    children,
-    closeDisabled,
-    dragY,
-    footer,
-    handleClose,
-    insets.bottom,
-    keyboardOffset,
-    isDark,
-    palette,
-    panResponder,
-    reliableBackdropColor,
-    sheetBottomPadding,
-    sheetMaxHeight,
-    sheetTranslateY,
-    title,
-  ]);
+        </View>
+      </GestureHandlerRootView>
+    ),
+    [
+      backdropAnim,
+      children,
+      closeDisabled,
+      dragY,
+      footer,
+      handleClose,
+      insets.bottom,
+      keyboardOffset,
+      isDark,
+      palette,
+      panResponder,
+      reliableBackdropColor,
+      sheetBottomPadding,
+      sheetMaxHeight,
+      sheetTranslateY,
+      title,
+    ],
+  );
 
   return (
-    <Modal visible={visible} transparent animationType='none' onRequestClose={handleClose} statusBarTranslucent>
+    <Modal
+      visible={visible}
+      transparent
+      animationType='none'
+      onRequestClose={handleClose}
+      statusBarTranslucent
+    >
       {sheetContent}
     </Modal>
   );

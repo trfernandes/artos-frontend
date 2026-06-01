@@ -100,32 +100,29 @@ export default function SubstituicaoModalPage({
     },
   });
 
-  const handleConfirm = useCallback(
-    async () => {
-      form.handleSubmit(
-        async (values) => {
-          if (isSubmitting) return;
-          try {
-            setIsSubmitting(true);
-            await Promise.resolve(props.onButton2Press?.(values));
-          } finally {
-            setIsSubmitting(false);
-          }
-        },
-        (errors) => {
-          if (__DEV__) {
-            console.log('[SubstituicaoModal] Validation errors:', errors);
-          }
-          Toast.show({
-            type: 'error',
-            text1: 'Erro de validação',
-            text2: 'Verifique os campos do formulário',
-          });
-        },
-      )();
-    },
-    [form.handleSubmit, isSubmitting, props.onButton2Press],
-  );
+  const handleConfirm = useCallback(async () => {
+    form.handleSubmit(
+      async (values) => {
+        if (isSubmitting) return;
+        try {
+          setIsSubmitting(true);
+          await Promise.resolve(props.onButton2Press?.(values));
+        } finally {
+          setIsSubmitting(false);
+        }
+      },
+      (errors) => {
+        if (__DEV__) {
+          console.log('[SubstituicaoModal] Validation errors:', errors);
+        }
+        Toast.show({
+          type: 'error',
+          text1: 'Erro de validação',
+          text2: 'Verifique os campos do formulário',
+        });
+      },
+    )();
+  }, [form.handleSubmit, isSubmitting, props.onButton2Press]);
 
   const isBusy = isLoading || isSubmitting;
   const palette = usePallete();
@@ -153,20 +150,36 @@ export default function SubstituicaoModalPage({
     >
       <View style={styles.infoCard}>
         <View style={styles.infoRow}>
-          <FancyText size='extraSmall' type='medium' style={styles.infoLabel}>Ministério</FancyText>
-          <FancyText size='small' type='semiBold'>{dadosEscala.voluntario?.ministerio?.nome}</FancyText>
+          <FancyText size='extraSmall' type='medium' style={styles.infoLabel}>
+            Ministério
+          </FancyText>
+          <FancyText size='small' type='semiBold'>
+            {dadosEscala.voluntario?.ministerio?.nome}
+          </FancyText>
         </View>
         <View style={styles.infoRow}>
-          <FancyText size='extraSmall' type='medium' style={styles.infoLabel}>Evento</FancyText>
-          <FancyText size='small' type='semiBold'>{dadosEscala.evento?.nome}</FancyText>
+          <FancyText size='extraSmall' type='medium' style={styles.infoLabel}>
+            Evento
+          </FancyText>
+          <FancyText size='small' type='semiBold'>
+            {dadosEscala.evento?.nome}
+          </FancyText>
         </View>
         <View style={styles.infoRow}>
-          <FancyText size='extraSmall' type='medium' style={styles.infoLabel}>Data e Hora</FancyText>
-          <FancyText size='small' type='semiBold'>{format(dadosEscala.dataOcorrencia, 'dd/MM/yyyy - HH:mm')}</FancyText>
+          <FancyText size='extraSmall' type='medium' style={styles.infoLabel}>
+            Data e Hora
+          </FancyText>
+          <FancyText size='small' type='semiBold'>
+            {format(dadosEscala.dataOcorrencia, 'dd/MM/yyyy - HH:mm')}
+          </FancyText>
         </View>
         <View style={styles.infoRow}>
-          <FancyText size='extraSmall' type='medium' style={styles.infoLabel}>Função</FancyText>
-          <FancyText size='small' type='semiBold'>{dadosEscala.funcao?.nome}</FancyText>
+          <FancyText size='extraSmall' type='medium' style={styles.infoLabel}>
+            Função
+          </FancyText>
+          <FancyText size='small' type='semiBold'>
+            {dadosEscala.funcao?.nome}
+          </FancyText>
         </View>
       </View>
       <ControlledSearchSelect

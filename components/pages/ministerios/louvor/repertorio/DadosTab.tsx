@@ -11,10 +11,17 @@ export default function DadosTab() {
       <FancyTextInput label='Artista' />
       {/* <FancyDropDown label="Categoria" />
       <FancyDropDown label="Tom Original" /> */}
-      <FancyTextInput label='BPM' inputProps={{ keyboardType: 'numeric', maxLength: 3, textAlign: 'right' }} />
+      <FancyTextInput
+        label='BPM'
+        inputProps={{ keyboardType: 'numeric', maxLength: 3, textAlign: 'right' }}
+      />
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <FancyTextInput label='Link' inputContainerStyle={{ flex: 1 }} />
-        <FancyButton icon={{ ...DefaultIconsNames.open, size: 18 }} size={40} containerStyle={{ alignSelf: 'flex-end' }} />
+        <FancyButton
+          icon={{ ...DefaultIconsNames.open, size: 18 }}
+          size={40}
+          containerStyle={{ alignSelf: 'flex-end' }}
+        />
       </View>
     </FancyScrollView>
   );

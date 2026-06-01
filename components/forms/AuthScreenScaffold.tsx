@@ -2,10 +2,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  KeyboardAwareScrollView,
-  KeyboardStickyView,
-} from 'react-native-keyboard-controller';
+import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import { usePallete } from '../../hooks/usePallete';
 
 type Props = {
@@ -38,12 +35,7 @@ export function AuthScreenScaffold({ header, children, footer }: Props) {
         </KeyboardAwareScrollView>
 
         <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
-          <View
-            style={[
-              styles.footerWrap,
-              { paddingBottom: Math.max(insets.bottom, 16) },
-            ]}
-          >
+          <View style={[styles.footerWrap, { paddingBottom: Math.max(insets.bottom, 16) }]}>
             {footer}
           </View>
         </KeyboardStickyView>

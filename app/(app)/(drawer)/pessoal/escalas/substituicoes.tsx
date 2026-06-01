@@ -95,8 +95,12 @@ export default function SubstituicoesScreen() {
     isRefetching: isRefetchingSubstituto,
   } = useEscalaSubstituicoesCrud({ autoFetch: true, initialParams: queryAsSubstituto });
 
-  const { data: dataAsSolicitante, isLoading: isLoadingSolicitante, refetch: refetchSolicitante, isRefetching: isRefetchingSolicitante } =
-    useEscalaSubstituicoesCrud({ autoFetch: true, initialParams: queryAsSolicitante });
+  const {
+    data: dataAsSolicitante,
+    isLoading: isLoadingSolicitante,
+    refetch: refetchSolicitante,
+    isRefetching: isRefetchingSolicitante,
+  } = useEscalaSubstituicoesCrud({ autoFetch: true, initialParams: queryAsSolicitante });
 
   const handleRefresh = useCallback(() => {
     refetchSubstituto();

@@ -58,15 +58,15 @@ export default function FancyDrawerHeader() {
             accessibilityHint='Toque para abrir seu perfil'
           >
             <View style={styles.profileTextColumn}>
-              <FancyText
-                size='medium'
-                type='bold'
-                color={palette.fonts.light}
-                numberOfLines={1}
-              >
+              <FancyText size='medium' type='bold' color={palette.fonts.light} numberOfLines={1}>
                 {nomeCompleto || 'Meu perfil'}
               </FancyText>
-              <FancyText size='extraSmall' type='medium' color='rgba(255, 255, 255, 0.72)' numberOfLines={1}>
+              <FancyText
+                size='extraSmall'
+                type='medium'
+                color='rgba(255, 255, 255, 0.72)'
+                numberOfLines={1}
+              >
                 Ver meu perfil
               </FancyText>
             </View>
@@ -80,7 +80,6 @@ export default function FancyDrawerHeader() {
               />
             </View>
           </TouchableOpacity>
-
         </View>
       </View>
 

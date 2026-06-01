@@ -8,11 +8,18 @@ export default function LetraTab() {
   return (
     <View style={styles.container}>
       <View style={{ flex: 1 }}>
-        <FancyTextArea containerStyle={{ height: '100%' }} placeholder='Digite a letra da música...' />
+        <FancyTextArea
+          containerStyle={{ height: '100%' }}
+          placeholder='Digite a letra da música...'
+        />
       </View>
       <View style={{ flexDirection: 'row', gap: 10, borderWidth: 0 }}>
         <FancyTextInput label='Link' inputContainerStyle={{ flex: 1, height: 61 }} />
-        <FancyButton icon={{ ...DefaultIconsNames.open, size: 18 }} size={40} containerStyle={{ alignSelf: 'flex-end' }} />
+        <FancyButton
+          icon={{ ...DefaultIconsNames.open, size: 18 }}
+          size={40}
+          containerStyle={{ alignSelf: 'flex-end' }}
+        />
       </View>
     </View>
   );

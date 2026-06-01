@@ -37,7 +37,11 @@ export interface AdicionarVoluntarioConfirmDialog {
   idVoluntario: string;
 }
 
-export default function AdicionarVoluntarioModal({ data, currentEquipe, ...props }: AdicionarVoluntarioModalProps & FancyModalDialogProps<any>) {
+export default function AdicionarVoluntarioModal({
+  data,
+  currentEquipe,
+  ...props
+}: AdicionarVoluntarioModalProps & FancyModalDialogProps<any>) {
   const palette = usePallete();
   const [disponiveisNaData, setDisponiveisNaData] = useState(false);
   const [temMesmaFuncao, setTemMesmaFuncao] = useState(false);
@@ -51,12 +55,17 @@ export default function AdicionarVoluntarioModal({ data, currentEquipe, ...props
     isLoadingMinisterioVoluntariosMutation,
   } = useVoluntariosDoMinisterioCrud(data.ministerioId);
 
-  const [voluntariosDropDownList, setVoluntariosDropDownList] = useState<DropDownItemProps<string>[]>([]);
+  const [voluntariosDropDownList, setVoluntariosDropDownList] = useState<
+    DropDownItemProps<string>[]
+  >([]);
 
   const [isLoadingVoluntarios, setIsLoadingVoluntarios] = useState(false);
 
   // Estabiliza as dependências do useEffect
-  const dataOcorrenciaString = useMemo(() => data.evento.dataOcorrencia.toISOString(), [data.evento.dataOcorrencia]);
+  const dataOcorrenciaString = useMemo(
+    () => data.evento.dataOcorrencia.toISOString(),
+    [data.evento.dataOcorrencia],
+  );
   const funcaoId = useMemo(() => data.funcao?.id, [data.funcao?.id]);
 
   // IDs de ministerioVoluntario já escalados neste evento (evita duplo escalonamento)
@@ -70,7 +79,9 @@ export default function AdicionarVoluntarioModal({ data, currentEquipe, ...props
   }, [currentEquipe]);
 
   useEffect(() => {
-    const filteredDropDown = dropDownList.filter((item) => !alreadyAssignedIds.has(item.value as string));
+    const filteredDropDown = dropDownList.filter(
+      (item) => !alreadyAssignedIds.has(item.value as string),
+    );
 
     if (!data) {
       setVoluntariosDropDownList(filteredDropDown);
@@ -154,22 +165,20 @@ export default function AdicionarVoluntarioModal({ data, currentEquipe, ...props
         }
 
         // Monta a lista final do dropdown
-        const mapped = newList.map(
-          (minVoluntario) => {
-            const voluntario = minVoluntario.voluntario as any;
-            return {
-              title: voluntario?.nome,
-              value: minVoluntario.id,
-              left: {
-                type: 'image',
-                source:
-                  voluntario?.fotoThumbUrl || voluntario?.fotoUrl
-                    ? { uri: voluntario?.fotoThumbUrl || voluntario?.fotoUrl || '' }
-                    : AppImages.emptyProfile,
-              },
-            } as DropDownItemProps<string>;
-          },
-        );
+        const mapped = newList.map((minVoluntario) => {
+          const voluntario = minVoluntario.voluntario as any;
+          return {
+            title: voluntario?.nome,
+            value: minVoluntario.id,
+            left: {
+              type: 'image',
+              source:
+                voluntario?.fotoThumbUrl || voluntario?.fotoUrl
+                  ? { uri: voluntario?.fotoThumbUrl || voluntario?.fotoUrl || '' }
+                  : AppImages.emptyProfile,
+            },
+          } as DropDownItemProps<string>;
+        });
 
         setVoluntariosDropDownList(mapped);
       } finally {
@@ -178,7 +187,16 @@ export default function AdicionarVoluntarioModal({ data, currentEquipe, ...props
     }
 
     filtrarVoluntarios();
-  }, [ministerioVoluntariosList, disponiveisNaData, temMesmaFuncao, dataOcorrenciaString, funcaoId, igrejaId, dropDownList, alreadyAssignedIds]);
+  }, [
+    ministerioVoluntariosList,
+    disponiveisNaData,
+    temMesmaFuncao,
+    dataOcorrenciaString,
+    funcaoId,
+    igrejaId,
+    dropDownList,
+    alreadyAssignedIds,
+  ]);
 
   const [selectedVoluntario, setSelectedVoluntario] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -217,28 +235,52 @@ export default function AdicionarVoluntarioModal({ data, currentEquipe, ...props
       button1={{ disabled: isSubmitting }}
       button2={{ isLoading: isSubmitting, loadingText: 'Adicionando...' }}
       containerStyle={{
-        pointerEvents: isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation || isLoadingVoluntarios ? 'none' : 'auto',
+        pointerEvents:
+          isLoadingMinisterioVoluntarios ||
+          isLoadingMinisterioVoluntariosMutation ||
+          isLoadingVoluntarios
+            ? 'none'
+            : 'auto',
       }}
     >
-      <View style={{
-        backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
-        borderRadius: 10,
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: ColorUtils.withAlpha(palette.primary, 0.25),
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        gap: 6,
-      }}>
+      <View
+        style={{
+          backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
+          borderRadius: 10,
+          borderWidth: StyleSheet.hairlineWidth,
+          borderColor: ColorUtils.withAlpha(palette.primary, 0.25),
+          paddingHorizontal: 12,
+          paddingVertical: 10,
+          gap: 6,
+        }}
+      >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <DefaultIcons.Custom library='MaterialIcons' name='event' size={12} color={palette.primary} />
+          <DefaultIcons.Custom
+            library='MaterialIcons'
+            name='event'
+            size={12}
+            color={palette.primary}
+          />
           <FancyText size='extraSmall' type='medium'>
             {`${format(data?.evento.dataOcorrencia, 'dd/MM/yyyy')} - ${format(data?.evento.dataInicio!, 'HH:mm')} à ${format(data?.evento.dataTermino!, 'HH:mm')}`}
           </FancyText>
         </View>
-        <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: ColorUtils.withAlpha(palette.borderCard, 0.7) }} />
+        <View
+          style={{
+            height: StyleSheet.hairlineWidth,
+            backgroundColor: ColorUtils.withAlpha(palette.borderCard, 0.7),
+          }}
+        />
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <DefaultIcons.Custom library='MaterialIcons' name='work-outline' size={12} color={palette.primary} />
-          <FancyText size='extraSmall' type='medium'>{data?.funcao?.nome}</FancyText>
+          <DefaultIcons.Custom
+            library='MaterialIcons'
+            name='work-outline'
+            size={12}
+            color={palette.primary}
+          />
+          <FancyText size='extraSmall' type='medium'>
+            {data?.funcao?.nome}
+          </FancyText>
         </View>
       </View>
 
@@ -250,12 +292,24 @@ export default function AdicionarVoluntarioModal({ data, currentEquipe, ...props
 
           <View style={{ gap: 12 }}>
             <View style={{ gap: 8 }}>
-              <FancyCheckbox value={disponiveisNaData} onChangeValue={setDisponiveisNaData} label='Disponíveis na data' disabled={isSubmitting} />
-              <FancyCheckbox value={temMesmaFuncao} onChangeValue={setTemMesmaFuncao} label='Tem a mesma função' disabled={isSubmitting} />
+              <FancyCheckbox
+                value={disponiveisNaData}
+                onChangeValue={setDisponiveisNaData}
+                label='Disponíveis na data'
+                disabled={isSubmitting}
+              />
+              <FancyCheckbox
+                value={temMesmaFuncao}
+                onChangeValue={setTemMesmaFuncao}
+                label='Tem a mesma função'
+                disabled={isSubmitting}
+              />
             </View>
 
             {isLoadingVoluntarios && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 }}>
+              <View
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 }}
+              >
                 <ActivityIndicator size='small' color={palette.primary} />
                 <FancyText size='extraSmall' color={palette.fonts.inactive}>
                   Filtrando voluntários...
@@ -276,7 +330,12 @@ export default function AdicionarVoluntarioModal({ data, currentEquipe, ...props
                   });
                 }}
                 listItems={voluntariosDropDownList}
-                disabled={isSubmitting || isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation || isLoadingVoluntarios}
+                disabled={
+                  isSubmitting ||
+                  isLoadingMinisterioVoluntarios ||
+                  isLoadingMinisterioVoluntariosMutation ||
+                  isLoadingVoluntarios
+                }
               />
               {errors && <FancyErrorText message={errors['voluntario']} />}
             </View>

@@ -5,7 +5,10 @@ import { CreateVoluntarioDto } from '../domain/dtos/Voluntario/voluntario.create
 import { UpdateVoluntarioDto } from '../domain/dtos/Voluntario/voluntario.update';
 import { ResponseVoluntarioDto } from '../domain/dtos/Voluntario/voluntario.response';
 
-export function useVoluntariosCrud({ autoFetch = false, initialParams = {} }: ExternalUseCrudParams = {}) {
+export function useVoluntariosCrud({
+  autoFetch = false,
+  initialParams = {},
+}: ExternalUseCrudParams = {}) {
   return useCrud<ResponseVoluntarioDto, any, CreateVoluntarioDto, UpdateVoluntarioDto>({
     queryKey: 'voluntarios',
     autoFetch,

@@ -4,7 +4,9 @@ Manage App Store metadata and optimize for ASO using EAS Metadata.
 
 ## What is EAS Metadata?
 
-EAS Metadata automates App Store presence management from the command line using a `store.config.json` file instead of manually filling forms in App Store Connect. It includes built-in validation to catch common rejection pitfalls.
+EAS Metadata automates App Store presence management from the command line using a
+`store.config.json` file instead of manually filling forms in App Store Connect. It includes
+built-in validation to catch common rejection pitfalls.
 
 **Current Status:** Preview, Apple App Store only.
 
@@ -123,7 +125,8 @@ The subtitle appears below your title in search results. Use it for your unique 
 
 ### Keywords Field (100 characters max)
 
-Hidden from users but crucial for discoverability. Use comma-separated keywords without spaces after commas.
+Hidden from users but crucial for discoverability. Use comma-separated keywords without spaces after
+commas.
 
 ```json
 {
@@ -146,7 +149,8 @@ Hidden from users but crucial for discoverability. Use comma-separated keywords 
 
 ### Description Optimization
 
-The iOS description is NOT indexed for search but critical for conversion. Focus on convincing users to download.
+The iOS description is NOT indexed for search but critical for conversion. Focus on convincing users
+to download.
 
 ```json
 {
@@ -208,7 +212,8 @@ Primary category is most important for browsing and rankings.
 
 ## Localization
 
-Localize metadata for each target market. Keywords should be researched per locale—direct translations often miss regional search terms.
+Localize metadata for each target market. Keywords should be researched per locale—direct
+translations often miss regional search terms.
 
 ```json
 {
@@ -237,8 +242,10 @@ Localize metadata for each target market. Keywords should be researched per loca
 }
 ```
 
-**Supported Locales:**
-`ar-SA`, `ca`, `cs`, `da`, `de-DE`, `el`, `en-AU`, `en-CA`, `en-GB`, `en-US`, `es-ES`, `es-MX`, `fi`, `fr-CA`, `fr-FR`, `he`, `hi`, `hr`, `hu`, `id`, `it`, `ja`, `ko`, `ms`, `nl-NL`, `no`, `pl`, `pt-BR`, `pt-PT`, `ro`, `ru`, `sk`, `sv`, `th`, `tr`, `uk`, `vi`, `zh-Hans`, `zh-Hant`
+**Supported Locales:** `ar-SA`, `ca`, `cs`, `da`, `de-DE`, `el`, `en-AU`, `en-CA`, `en-GB`, `en-US`,
+`es-ES`, `es-MX`, `fi`, `fr-CA`, `fr-FR`, `he`, `hi`, `hr`, `hu`, `id`, `it`, `ja`, `ko`, `ms`,
+`nl-NL`, `no`, `pl`, `pt-BR`, `pt-PT`, `ro`, `ru`, `sk`, `sv`, `th`, `tr`, `uk`, `vi`, `zh-Hans`,
+`zh-Hant`
 
 ## Dynamic Configuration
 
@@ -248,7 +255,7 @@ Use JavaScript for dynamic values like copyright year or fetched translations.
 
 ```js
 // store.config.js
-const baseConfig = require("./store.config.json");
+const baseConfig = require('./store.config.json');
 
 const year = new Date().getFullYear();
 
@@ -266,12 +273,10 @@ module.exports = {
 ```js
 // store.config.js
 module.exports = async () => {
-  const baseConfig = require("./store.config.json");
+  const baseConfig = require('./store.config.json');
 
   // Fetch translations from CMS/localization service
-  const translations = await fetch(
-    "https://api.example.com/app-store-copy"
-  ).then((r) => r.json());
+  const translations = await fetch('https://api.example.com/app-store-copy').then((r) => r.json());
 
   return {
     ...baseConfig,
@@ -287,20 +292,20 @@ module.exports = async () => {
 
 ```js
 // store.config.js
-const baseConfig = require("./store.config.json");
+const baseConfig = require('./store.config.json');
 
-const isProduction = process.env.EAS_BUILD_PROFILE === "production";
+const isProduction = process.env.EAS_BUILD_PROFILE === 'production';
 
 module.exports = {
   ...baseConfig,
   apple: {
     ...baseConfig.apple,
     info: {
-      "en-US": {
-        ...baseConfig.apple.info["en-US"],
+      'en-US': {
+        ...baseConfig.apple.info['en-US'],
         promoText: isProduction
-          ? "Download now and get started!"
-          : "[BETA] Help us test new features!",
+          ? 'Download now and get started!'
+          : '[BETA] Help us test new features!',
       },
     },
   },
@@ -427,7 +432,9 @@ Provide contact info and test credentials for the App Review team.
 
 ## VS Code Integration
 
-Install the [Expo Tools extension](https://marketplace.visualstudio.com/items?itemName=expo.vscode-expo-tools) for:
+Install the
+[Expo Tools extension](https://marketplace.visualstudio.com/items?itemName=expo.vscode-expo-tools)
+for:
 
 - Auto-complete for all schema properties
 - Inline validation and warnings

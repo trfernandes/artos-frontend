@@ -15,7 +15,10 @@ export function cloudinaryAvatarThumb(secureUrl: string, size: number) {
   return cloudinaryWithTransform(secureUrl, t);
 }
 
-export async function uploadToCloudinaryUnsigned(file: FormImageFile, opts: { cloudName: string; uploadPreset: string; folder?: string }) {
+export async function uploadToCloudinaryUnsigned(
+  file: FormImageFile,
+  opts: { cloudName: string; uploadPreset: string; folder?: string },
+) {
   const form = new FormData();
   form.append('file', { uri: file.uri, name: file.name, type: file.type } as any);
   form.append('upload_preset', opts.uploadPreset);

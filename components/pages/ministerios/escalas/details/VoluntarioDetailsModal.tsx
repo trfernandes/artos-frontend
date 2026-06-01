@@ -1,5 +1,11 @@
 import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
-import { Conjunction, DynamicQuery, Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
+import {
+  Conjunction,
+  DynamicQuery,
+  Operator,
+  OrderDirection,
+  ValueType,
+} from '../../../../../domain/utils/query_utils';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import FancyBottomSheetModal from '../../../../modal/FancyBottomSheetModal';
 import FancyText from '../../../../FancyText';
@@ -29,7 +35,9 @@ function EmptyState({ text }: { text: string }) {
 
 function LoadingInline() {
   const palette = usePallete();
-  return <ActivityIndicator size='small' color={palette.primary} style={{ alignSelf: 'flex-start' }} />;
+  return (
+    <ActivityIndicator size='small' color={palette.primary} style={{ alignSelf: 'flex-start' }} />
+  );
 }
 
 export default function VoluntarioDetailsModal({
@@ -205,7 +213,9 @@ export default function VoluntarioDetailsModal({
         setItens6m((metricas6m as any[]) ?? []);
         const indispData = (indispResult as any[])?.[0]?.voluntario?.indisponibilidades ?? [];
         setIndisponibilidades(
-          [...indispData].sort((a: any, b: any) => new Date(a.data).getTime() - new Date(b.data).getTime()),
+          [...indispData].sort(
+            (a: any, b: any) => new Date(a.data).getTime() - new Date(b.data).getTime(),
+          ),
         );
       })
       .catch(() => {
@@ -265,7 +275,9 @@ export default function VoluntarioDetailsModal({
     if (isLoadingLazy) return <LoadingInline />;
     const total6m = itens6m.length;
     const total3m = itens3m.length;
-    const confirmados6m = itens6m.filter((i) => i.status === EscalaItemStatusEnum.Confirmado).length;
+    const confirmados6m = itens6m.filter(
+      (i) => i.status === EscalaItemStatusEnum.Confirmado,
+    ).length;
     const ausentes6m = itens6m.filter((i) => i.status === EscalaItemStatusEnum.Ausente).length;
     const taxaConfirmacao = total6m > 0 ? Math.round((confirmados6m / total6m) * 100) : null;
     const taxaAusencia = total6m > 0 ? Math.round((ausentes6m / total6m) * 100) : null;
@@ -341,10 +353,17 @@ export default function VoluntarioDetailsModal({
                 <FancyText type='bold' size='medium' color='#fff' numberOfLines={1}>
                   {(() => {
                     const parts = (voluntario.voluntario?.nome ?? '').trim().split(/\s+/);
-                    return parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1]}` : parts[0] || '-';
+                    return parts.length > 1
+                      ? `${parts[0]} ${parts[parts.length - 1]}`
+                      : parts[0] || '-';
                   })()}
                 </FancyText>
-                <FancyText type='medium' size='extraSmall' color='rgba(255,255,255,0.75)' numberOfLines={1}>
+                <FancyText
+                  type='medium'
+                  size='extraSmall'
+                  color='rgba(255,255,255,0.75)'
+                  numberOfLines={1}
+                >
                   {voluntario.voluntario?.email ?? ''}
                 </FancyText>
               </View>
@@ -353,7 +372,12 @@ export default function VoluntarioDetailsModal({
 
           {/* Última Escala */}
           <FancySection
-            icon={{ library: 'MaterialCommunityIcons', name: 'calendar', size: 24, color: '#4A90E2' }}
+            icon={{
+              library: 'MaterialCommunityIcons',
+              name: 'calendar',
+              size: 24,
+              color: '#4A90E2',
+            }}
             title='Última Escala'
           >
             <View style={styles.sectionBody}>{ultimaEscalaContent}</View>
@@ -374,7 +398,12 @@ export default function VoluntarioDetailsModal({
 
           {/* Métricas */}
           <FancySection
-            icon={{ library: 'MaterialCommunityIcons', name: 'chart-bar', size: 24, color: '#3B82F6' }}
+            icon={{
+              library: 'MaterialCommunityIcons',
+              name: 'chart-bar',
+              size: 24,
+              color: '#3B82F6',
+            }}
             title='Métricas'
           >
             <View style={styles.sectionBody}>{metricasContent}</View>
@@ -394,7 +423,12 @@ export default function VoluntarioDetailsModal({
 
           {/* Próximas escalas */}
           <FancySection
-            icon={{ library: 'MaterialCommunityIcons', name: 'calendar-arrow-right', size: 25, color: '#5AC8B0' }}
+            icon={{
+              library: 'MaterialCommunityIcons',
+              name: 'calendar-arrow-right',
+              size: 25,
+              color: '#5AC8B0',
+            }}
             title='Próximas Escalas'
           >
             <View style={styles.sectionBody}>{proximasEscalasContent}</View>

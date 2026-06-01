@@ -2,13 +2,23 @@ import { endOfDay, format } from 'date-fns';
 import { IgrejaEventosApi } from '../api/IgrejaEventosApi';
 import { ResponseEventoOcorrenciaDto } from '../dtos/Evento/evento-ocorrencia.response.dto';
 import { ResponseEventoDto } from '../dtos/Evento/evento.response';
-import { RemoveEventoTemplatePadraoDto, UpdateEventoTemplatePadraoDto } from '../dtos/Evento/update-evento-template-padrao.dto';
-import { RemoveEventoEnsaioDto, ResponseEventoEnsaioDto, UpdateEventoEnsaioDto } from '../dtos/Evento/update-evento-ensaio.dto';
+import {
+  RemoveEventoTemplatePadraoDto,
+  UpdateEventoTemplatePadraoDto,
+} from '../dtos/Evento/update-evento-template-padrao.dto';
+import {
+  RemoveEventoEnsaioDto,
+  ResponseEventoEnsaioDto,
+  UpdateEventoEnsaioDto,
+} from '../dtos/Evento/update-evento-ensaio.dto';
 import { CreateEventoSetlistItemDto } from '../dtos/Evento/evento-setlist-item.create';
 import { ResponseEventoSetlistItemDto } from '../dtos/Evento/evento-setlist-item.response';
 import { UpdateEventoSetlistItemDto } from '../dtos/Evento/evento-setlist-item.update';
 import { ReorderEventoSetlistDto } from '../dtos/Evento/reorder-evento-setlist.dto';
-import { RemoveEventoSetlistResponsavelDto, UpdateEventoSetlistResponsavelDto } from '../dtos/Evento/update-evento-setlist-responsavel.dto';
+import {
+  RemoveEventoSetlistResponsavelDto,
+  UpdateEventoSetlistResponsavelDto,
+} from '../dtos/Evento/update-evento-setlist-responsavel.dto';
 import { DynamicQuery } from '../utils/query_utils';
 import { ResponseEquipeOcorrenciaDto } from '../dtos/Evento/evento-equipe.response';
 import { ResponseEventoSetlistObservacoesDto } from '../dtos/Evento/evento-setlist-observacoes.response';
@@ -33,7 +43,10 @@ class IgrejaEventosRepositoryClass {
   /**
    * Buscar eventos por intervalo (JWT)
    */
-  async buscarPorIntervalo(igrejaId: string, params: EventosIntervaloParams): Promise<ResponseEventoOcorrenciaDto[]> {
+  async buscarPorIntervalo(
+    igrejaId: string,
+    params: EventosIntervaloParams,
+  ): Promise<ResponseEventoOcorrenciaDto[]> {
     const response = await IgrejaEventosApi.buscarPorIntervalo(igrejaId, {
       dataInicio: format(params.dataInicio, "yyyy-MM-dd'T'HH:mm:ss"),
       dataTermino: format(endOfDay(params.dataTermino), "yyyy-MM-dd'T'HH:mm:ss"),
@@ -125,7 +138,12 @@ class IgrejaEventosRepositoryClass {
     ministerioId: string,
     dataOcorrencia: string,
   ): Promise<ResponseEventoSetlistObservacoesDto> {
-    return IgrejaEventosApi.obterObservacoesSetlist(igrejaId, eventoId, ministerioId, dataOcorrencia);
+    return IgrejaEventosApi.obterObservacoesSetlist(
+      igrejaId,
+      eventoId,
+      ministerioId,
+      dataOcorrencia,
+    );
   }
 
   salvarObservacoesSetlist(
@@ -143,7 +161,13 @@ class IgrejaEventosRepositoryClass {
     ministerioId: string,
     dataOcorrencia: string,
   ): Promise<ResponseEventoSetlistItemEstruturaDto> {
-    return IgrejaEventosApi.obterEstruturaSetlistItem(igrejaId, eventoId, itemId, ministerioId, dataOcorrencia);
+    return IgrejaEventosApi.obterEstruturaSetlistItem(
+      igrejaId,
+      eventoId,
+      itemId,
+      ministerioId,
+      dataOcorrencia,
+    );
   }
 
   substituirEstruturaSetlistItem(
@@ -162,10 +186,20 @@ class IgrejaEventosRepositoryClass {
     ministerioId: string,
     dataOcorrencia: string,
   ): Promise<ResponseEventoSetlistItemEstruturaDto> {
-    return IgrejaEventosApi.removerEstruturaSetlistItem(igrejaId, eventoId, itemId, ministerioId, dataOcorrencia);
+    return IgrejaEventosApi.removerEstruturaSetlistItem(
+      igrejaId,
+      eventoId,
+      itemId,
+      ministerioId,
+      dataOcorrencia,
+    );
   }
 
-  criarSetlistItem(igrejaId: string, eventoId: string, dto: CreateEventoSetlistItemDto): Promise<ResponseEventoSetlistItemDto> {
+  criarSetlistItem(
+    igrejaId: string,
+    eventoId: string,
+    dto: CreateEventoSetlistItemDto,
+  ): Promise<ResponseEventoSetlistItemDto> {
     return IgrejaEventosApi.criarSetlistItem(igrejaId, eventoId, dto);
   }
 
@@ -185,10 +219,20 @@ class IgrejaEventosRepositoryClass {
     ministerioId: string,
     dataOcorrencia: string,
   ): Promise<void> {
-    return IgrejaEventosApi.removerSetlistItem(igrejaId, eventoId, itemId, ministerioId, dataOcorrencia);
+    return IgrejaEventosApi.removerSetlistItem(
+      igrejaId,
+      eventoId,
+      itemId,
+      ministerioId,
+      dataOcorrencia,
+    );
   }
 
-  reordenarSetlist(igrejaId: string, eventoId: string, dto: ReorderEventoSetlistDto): Promise<ResponseEventoSetlistItemDto[]> {
+  reordenarSetlist(
+    igrejaId: string,
+    eventoId: string,
+    dto: ReorderEventoSetlistDto,
+  ): Promise<ResponseEventoSetlistItemDto[]> {
     return IgrejaEventosApi.reordenarSetlist(igrejaId, eventoId, dto);
   }
 }

@@ -2,13 +2,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { LegendList, LegendListProps } from '@legendapp/list';
 import { useState, useRef } from 'react';
 import {
-    LayoutChangeEvent,
-    NativeScrollEvent,
-    NativeSyntheticEvent,
-    StyleProp,
-    StyleSheet,
-    View,
-    ViewStyle,
+  LayoutChangeEvent,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  StyleProp,
+  StyleSheet,
+  View,
+  ViewStyle,
 } from 'react-native';
 import FancyListEmpty, { FancyListEmptyProps } from './FancyListEmpty';
 import { RefreshControl } from 'react-native-gesture-handler';

@@ -34,7 +34,9 @@ export default function SolicitacaoCard({
   const theme = getSolicitacaoTheme(solicitacao.status);
   const isPending = solicitacao.status === 'PENDING';
   const createdDateFormatted = formatDateTime(solicitacao.createdAt);
-  const respondedDateFormatted = solicitacao.respondedAt ? formatDateTime(solicitacao.respondedAt) : null;
+  const respondedDateFormatted = solicitacao.respondedAt
+    ? formatDateTime(solicitacao.respondedAt)
+    : null;
   const isLoading = isAprovando || isRejeitando;
 
   return (
@@ -66,7 +68,12 @@ export default function SolicitacaoCard({
                 size={12}
                 color={palette.fonts.inactive}
               />
-              <FancyText size='small' type='medium' color={palette.fonts.inactive} numberOfLines={1}>
+              <FancyText
+                size='small'
+                type='medium'
+                color={palette.fonts.inactive}
+                numberOfLines={1}
+              >
                 {voluntario?.email || ''}
               </FancyText>
             </View>
@@ -123,7 +130,10 @@ export default function SolicitacaoCard({
                 onPress={onAprovar}
                 isLoading={isAprovando}
                 disabled={isLoading}
-                containerStyle={[styles.iconButton, { backgroundColor: palette.confirm, borderColor: palette.confirm }]}
+                containerStyle={[
+                  styles.iconButton,
+                  { backgroundColor: palette.confirm, borderColor: palette.confirm },
+                ]}
               />
               <FancyButton
                 type='outlined'
@@ -137,7 +147,10 @@ export default function SolicitacaoCard({
                 onPress={onRejeitar}
                 isLoading={isRejeitando}
                 disabled={isLoading}
-                containerStyle={[styles.iconButton, { backgroundColor: palette.error, borderColor: palette.error }]}
+                containerStyle={[
+                  styles.iconButton,
+                  { backgroundColor: palette.error, borderColor: palette.error },
+                ]}
               />
             </View>
           )}

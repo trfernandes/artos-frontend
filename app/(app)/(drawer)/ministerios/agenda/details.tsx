@@ -3,7 +3,9 @@ import FancyPageView from '../../../../../components/containers/FancyPageView';
 import FancyTabs, { TabItem } from '../../../../../components/tabs/FancyTabs';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { StyleSheet } from 'react-native';
-import AgendaDetailsDadosTab, { AgendaDetailsDadosTabActions } from '../../../../../components/pages/ministerios/agenda/AgendaDetailsDadosTab';
+import AgendaDetailsDadosTab, {
+  AgendaDetailsDadosTabActions,
+} from '../../../../../components/pages/ministerios/agenda/AgendaDetailsDadosTab';
 import AgendaDetailsEscalaTab from '../../../../../components/pages/ministerios/agenda/AgendaDetailsEscalaTab';
 import EventoSetlistTab from '../../../../../components/pages/common/EventoSetlistTab';
 import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
@@ -19,7 +21,12 @@ import { canManageEventoOcorrencia } from '../../../../../utils/ministerio_permi
 type ExitChoice = 'cancel' | 'discard' | 'save';
 
 export default function MinisterioAgendaDetailsPage() {
-  const params = useLocalSearchParams<{ id?: string; eventoId?: string; dataOcorrencia: string; ministerioId: string }>();
+  const params = useLocalSearchParams<{
+    id?: string;
+    eventoId?: string;
+    dataOcorrencia: string;
+    ministerioId: string;
+  }>();
   const navigation = useNavigation<any>();
   const { igrejaAtiva } = useAuth();
   const eventoId = params.eventoId || params.id || '';
@@ -27,7 +34,8 @@ export default function MinisterioAgendaDetailsPage() {
   const isLouvorMinisterio = useMemo(
     () =>
       igrejaAtiva?.ministerios?.some(
-        (ministerio) => ministerio.id === params.ministerioId && isLouvorMinisterioTipo(ministerio.tipo),
+        (ministerio) =>
+          ministerio.id === params.ministerioId && isLouvorMinisterioTipo(ministerio.tipo),
       ) ?? false,
     [igrejaAtiva?.ministerios, params.ministerioId],
   );
@@ -200,16 +208,22 @@ export default function MinisterioAgendaDetailsPage() {
     }
 
     return tabs;
-  }, [canManageAgenda, carregarOcorrenciaAtual, data, eventoId, isLouvorMinisterio, ocorrenciaAtual, params.dataOcorrencia, params.ministerioId]);
+  }, [
+    canManageAgenda,
+    carregarOcorrenciaAtual,
+    data,
+    eventoId,
+    isLouvorMinisterio,
+    ocorrenciaAtual,
+    params.dataOcorrencia,
+    params.ministerioId,
+  ]);
 
   if (isLoading || isLoadingOcorrencia || !eventoId || !data[0]) return <FancyLoading />;
 
   return (
     <FancyPageView style={styles.container}>
-      <FancyTabs
-        items={tab_items}
-        keepMounted={true}
-      />
+      <FancyTabs items={tab_items} keepMounted={true} />
     </FancyPageView>
   );
 }

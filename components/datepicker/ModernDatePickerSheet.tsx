@@ -40,7 +40,11 @@ function clampDay(candidate: Date, min?: Date, max?: Date) {
 
 function sameDay(a?: Date, b?: Date) {
   if (!a || !b) return false;
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
 }
 
 export default function ModernDatePickerSheet({
@@ -80,7 +84,12 @@ export default function ModernDatePickerSheet({
 
   const footer = (
     <View style={styles.footerButtons}>
-      <FancyButton label='Cancelar' type='outlined' onPress={onClose} containerStyle={styles.footerButton} />
+      <FancyButton
+        label='Cancelar'
+        type='outlined'
+        onPress={onClose}
+        containerStyle={styles.footerButton}
+      />
       <FancyButton
         label='Confirmar'
         onPress={() => onConfirm(draftDate)}
@@ -96,7 +105,8 @@ export default function ModernDatePickerSheet({
           <View style={styles.quickActionsRow}>
             {quickActions.map((action) => {
               const label = action === 'today' ? 'Hoje' : 'Amanhã';
-              const preview = action === 'today' ? startOfDay(new Date()) : addDays(startOfDay(new Date()), 1);
+              const preview =
+                action === 'today' ? startOfDay(new Date()) : addDays(startOfDay(new Date()), 1);
               const previewClamped = clampDay(preview, effectiveMinDate, maximumDate);
               const selected = sameDay(previewClamped, draftDate);
 
@@ -149,7 +159,11 @@ function QuickActionChip({
       onPress={onPress}
       containerStyle={[
         styles.quickActionChip,
-        !selected && { borderWidth: 1, borderColor: palette.borderCard, backgroundColor: palette.backgroundColor4 },
+        !selected && {
+          borderWidth: 1,
+          borderColor: palette.borderCard,
+          backgroundColor: palette.backgroundColor4,
+        },
       ]}
       labelProps={{ size: 'extraSmall', type: 'semiBold' }}
     />

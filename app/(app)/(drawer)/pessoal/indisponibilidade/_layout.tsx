@@ -10,7 +10,10 @@ export default function IndisponibilidadeLayout() {
         header: (props) => <FancyPageHeader leftButton='menu' {...props} />,
       }}
     >
-      <Stack.Screen name='index' options={{ title: 'Minhas Indisponibilidades', headerRight: () => <MainHeaderButtons /> }} />
+      <Stack.Screen
+        name='index'
+        options={{ title: 'Minhas Indisponibilidades', headerRight: () => <MainHeaderButtons /> }}
+      />
     </Stack>
   );
 }

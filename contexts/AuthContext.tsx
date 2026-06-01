@@ -179,7 +179,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     await AsyncStorage.setItem(HAS_AUTHENTICATED_KEY, 'true');
 
     const userResponse = loginData?.user;
-    if (!userResponse || !loginData) throw new Error('Dados de Usuario nao retornado pelo servidor');
+    if (!userResponse || !loginData)
+      throw new Error('Dados de Usuario nao retornado pelo servidor');
 
     setUser(loginData);
 
@@ -281,8 +282,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // Preservar os ministérios da igreja ativa atual ao atualizar
         const igrejaComMinisterios = {
           ...igrejaAtivaAtualizada,
-          ministerios: igrejaAtivaAtualizada.ministerios?.length 
-            ? igrejaAtivaAtualizada.ministerios 
+          ministerios: igrejaAtivaAtualizada.ministerios?.length
+            ? igrejaAtivaAtualizada.ministerios
             : igrejaAtiva.ministerios,
         };
         setIgrejaAtivaState(igrejaComMinisterios);
@@ -294,7 +295,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const response = await apiClient.get('/voluntarios/me');
       const meData = response.data?.data as ResponseLoginDto | undefined;
-      
+
       if (meData && user) {
         const updatedUser: ResponseLoginDto = {
           ...user,
@@ -302,10 +303,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
           user: meData.user || user.user,
           igrejas: meData.igrejas || [],
         };
-        
+
         setUser(updatedUser);
         await persistUser(updatedUser);
-        
+
         // Atualizar igreja ativa se ainda existir na lista
         if (igrejaAtiva && updatedUser.igrejas?.length) {
           const igrejaAindaExiste = updatedUser.igrejas.find((i) => i.id === igrejaAtiva.id);

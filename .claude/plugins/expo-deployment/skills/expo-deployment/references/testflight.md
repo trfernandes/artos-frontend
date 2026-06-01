@@ -1,6 +1,7 @@
 # TestFlight
 
-Always ship to TestFlight first. Internal testers, then external testers, then App Store. Never skip this.
+Always ship to TestFlight first. Internal testers, then external testers, then App Store. Never skip
+this.
 
 ## Submit
 
@@ -34,7 +35,8 @@ The CLI prints your Team ID when you run `npx testflight`. Copy it.
 
 **Internal (100 max)**: Your team. Immediate access. Use for every build.
 
-**External (10,000 max)**: Beta users. First build needs review (~24h), then instant. Always have an external group—even if it's just friends. Real feedback beats assumptions.
+**External (10,000 max)**: Beta users. First build needs review (~24h), then instant. Always have an
+external group—even if it's just friends. Real feedback beats assumptions.
 
 ## Tips
 
@@ -46,13 +48,13 @@ The CLI prints your Team ID when you run `npx testflight`. Copy it.
 
 ## Troubleshooting
 
-**"No suitable application records found"**
-Create the app in App Store Connect first. Bundle ID must match.
+**"No suitable application records found"** Create the app in App Store Connect first. Bundle ID
+must match.
 
-**"The bundle version must be higher"**
-Use `autoIncrement: true` in `eas.json`. Problem solved.
+**"The bundle version must be higher"** Use `autoIncrement: true` in `eas.json`. Problem solved.
 
 **Credentials issues**
+
 ```bash
 eas credentials -p ios
 ```

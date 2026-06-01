@@ -28,7 +28,10 @@ export const RecorrenciaDiaSemanaEnumOrder = [
   RecorrenciaDiaSemanaEnum.sabado,
 ] as const;
 
-export const RecorrenciaDiaSemanaEnumLabel: Record<RecorrenciaDiaSemanaEnum, { extenso: string; abreviado: string }> = {
+export const RecorrenciaDiaSemanaEnumLabel: Record<
+  RecorrenciaDiaSemanaEnum,
+  { extenso: string; abreviado: string }
+> = {
   [RecorrenciaDiaSemanaEnum.domingo]: { extenso: 'Domingo', abreviado: 'Dom' },
   [RecorrenciaDiaSemanaEnum.segunda]: {
     extenso: 'Segunda-Feira',

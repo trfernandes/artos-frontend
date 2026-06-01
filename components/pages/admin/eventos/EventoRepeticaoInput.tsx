@@ -22,7 +22,10 @@ const RECORRENCIA_OPTIONS = [
   { label: 'Personalizado', value: 'PERSONALIZADO' as const },
 ];
 
-export default function EventoRepeticaoInput({ disabled = false, setRepeticaoModalVisible }: EventoRepeticaoInputProps) {
+export default function EventoRepeticaoInput({
+  disabled = false,
+  setRepeticaoModalVisible,
+}: EventoRepeticaoInputProps) {
   const palette = usePallete();
   const {
     setValue,
@@ -36,7 +39,8 @@ export default function EventoRepeticaoInput({ disabled = false, setRepeticaoMod
   const recorrenciaSemanasMes = watch('recorrenciaSemanasMes');
 
   const isPersonalizado = recorrencia !== undefined && recorrencia !== RecorrenciaEnum.Nunca;
-  const isConfigurado = (recorrenciaSemanaDias?.length ?? 0) > 0 || (recorrenciaSemanasMes?.length ?? 0) > 0;
+  const isConfigurado =
+    (recorrenciaSemanaDias?.length ?? 0) > 0 || (recorrenciaSemanasMes?.length ?? 0) > 0;
 
   const handleRecorrenciaChange = (v: 'NUNCA' | 'PERSONALIZADO') => {
     if (v === 'NUNCA') {
@@ -91,7 +95,12 @@ export default function EventoRepeticaoInput({ disabled = false, setRepeticaoMod
             <View style={[styles.resumoBorder, { backgroundColor: palette.primary }]} />
             {isConfigurado ? (
               <>
-                <FancyText size='small' type='medium' color={palette.fonts.dark} style={styles.resumoText}>
+                <FancyText
+                  size='small'
+                  type='medium'
+                  color={palette.fonts.dark}
+                  style={styles.resumoText}
+                >
                   {getValues('recorrencia') !== undefined &&
                     generateRecorrenciaJoinableDescription(
                       getValues('recorrencia')!,
@@ -104,19 +113,34 @@ export default function EventoRepeticaoInput({ disabled = false, setRepeticaoMod
                   <FancyText size='small' type='semiBold' color={palette.primary}>
                     Configurar
                   </FancyText>
-                  <DefaultIcons.Custom library='Feather' name='chevron-right' size={14} color={palette.primary} />
+                  <DefaultIcons.Custom
+                    library='Feather'
+                    name='chevron-right'
+                    size={14}
+                    color={palette.primary}
+                  />
                 </View>
               </>
             ) : (
               <>
-                <FancyText size='small' type='normal' color={palette.fonts.inactive} style={styles.resumoText}>
+                <FancyText
+                  size='small'
+                  type='normal'
+                  color={palette.fonts.inactive}
+                  style={styles.resumoText}
+                >
                   Nenhum dia configurado
                 </FancyText>
                 <View style={styles.linkRow}>
                   <FancyText size='small' type='semiBold' color={palette.primary}>
                     Configurar
                   </FancyText>
-                  <DefaultIcons.Custom library='Feather' name='chevron-right' size={14} color={palette.primary} />
+                  <DefaultIcons.Custom
+                    library='Feather'
+                    name='chevron-right'
+                    size={14}
+                    color={palette.primary}
+                  />
                 </View>
               </>
             )}
@@ -124,7 +148,10 @@ export default function EventoRepeticaoInput({ disabled = false, setRepeticaoMod
         </>
       )}
 
-      {(errors.recorrencia || errors.recorrenciaACadaMeses || errors.recorrenciaSemanaDias || errors.recorrenciaSemanasMes) && (
+      {(errors.recorrencia ||
+        errors.recorrenciaACadaMeses ||
+        errors.recorrenciaSemanaDias ||
+        errors.recorrenciaSemanasMes) && (
         <FancyErrorText
           message={`${errors.recorrencia ? errors.recorrencia?.message + '\n' : ''} ${
             errors.recorrenciaACadaMeses ? errors.recorrenciaACadaMeses?.message + '\n' : ''

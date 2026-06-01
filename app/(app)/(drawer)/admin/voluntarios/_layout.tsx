@@ -24,8 +24,11 @@ export default function VoluntariosLayout() {
       />
       <Stack.Screen
         name='details'
-        options={{ title: 'Detalhes', headerShown: true,
- header: (props) => <FancyPageHeader leftButton='back' {...props} /> }}
+        options={{
+          title: 'Detalhes',
+          headerShown: true,
+          header: (props) => <FancyPageHeader leftButton='back' {...props} />,
+        }}
       />
     </Stack>
   );

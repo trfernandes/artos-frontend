@@ -8,7 +8,12 @@ export type FancyStepsCircleProps = {
   containerStyle?: StyleProp<ViewStyle>;
 };
 
-export default function FancyStepsCircle({ stepNumber, circleWidth, color, containerStyle }: FancyStepsCircleProps) {
+export default function FancyStepsCircle({
+  stepNumber,
+  circleWidth,
+  color,
+  containerStyle,
+}: FancyStepsCircleProps) {
   return (
     <View
       style={[
@@ -23,7 +28,7 @@ export default function FancyStepsCircle({ stepNumber, circleWidth, color, conta
         containerStyle,
       ]}
     >
-      <FancyText size={circleWidth <= 25 ? 'small' : 'large'} color="white" type="bold">
+      <FancyText size={circleWidth <= 25 ? 'small' : 'large'} color='white' type='bold'>
         {stepNumber}
       </FancyText>
     </View>

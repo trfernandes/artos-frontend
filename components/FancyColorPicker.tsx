@@ -103,7 +103,9 @@ export default function FancyColorPicker({
 
   const renderCircles = () => {
     const orderedColors =
-      disabled && currentColor ? [currentColor, ...colors.filter((colorItem) => colorItem !== currentColor)] : colors;
+      disabled && currentColor
+        ? [currentColor, ...colors.filter((colorItem) => colorItem !== currentColor)]
+        : colors;
 
     return orderedColors.map((color) => {
       const isSelected = color === currentColor;
@@ -137,7 +139,14 @@ export default function FancyColorPicker({
                 },
               ]}
             >
-              {isSelected && <DefaultIcons.Custom library='FontAwesome' name='check' size={25} color={palette.fonts.light} />}
+              {isSelected && (
+                <DefaultIcons.Custom
+                  library='FontAwesome'
+                  name='check'
+                  size={25}
+                  color={palette.fonts.light}
+                />
+              )}
             </View>
           </View>
         </TouchableOpacity>
@@ -154,7 +163,10 @@ export default function FancyColorPicker({
   }
 
   return (
-    <FancyGroup title='Cor' contentContainerStyle={{ padding: 0, paddingTop: 8, paddingHorizontal: 0, paddingBottom: 0 }}>
+    <FancyGroup
+      title='Cor'
+      contentContainerStyle={{ padding: 0, paddingTop: 8, paddingHorizontal: 0, paddingBottom: 0 }}
+    >
       <View style={styles.colorContainer}>
         {!disabled && showLeftArrow && (
           <Animated.View style={[styles.arrowContainer, { left: 5, opacity: fadeAnim }]}>
@@ -196,7 +208,10 @@ export default function FancyColorPicker({
                 size: 15,
                 style: { borderWidth: 0 },
               }}
-              containerStyle={[{ backgroundColor: palette.selected, opacity: 0.8 }, palette.shadows[100]]}
+              containerStyle={[
+                { backgroundColor: palette.selected, opacity: 0.8 },
+                palette.shadows[100],
+              ]}
             />
           </Animated.View>
         )}

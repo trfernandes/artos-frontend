@@ -37,10 +37,7 @@ export default function DashboardAdmin() {
       contentContainerStyle={styles.scrollContent}
       bottomFade={{ active: true }}
     >
-      <DashboardGreeting
-        nome={nomeAdmin}
-        subtitulo={igrejaAtiva?.nome}
-      />
+      <DashboardGreeting nome={nomeAdmin} subtitulo={igrejaAtiva?.nome} />
 
       <BillingNoticeBanner
         assinatura={assinatura}
@@ -53,7 +50,7 @@ export default function DashboardAdmin() {
       />
 
       {/* KPIs da Igreja */}
-      <DashboardSection title="Visão geral">
+      <DashboardSection title='Visão geral'>
         <DashboardKpiGrid
           totalMinisterios={data?.totalMinisterios ?? 0}
           totalVoluntarios={data?.totalVoluntarios ?? 0}
@@ -64,7 +61,7 @@ export default function DashboardAdmin() {
       {/* Ministérios - Scroll horizontal com cards compact */}
       {data?.ministeriosStats && data.ministeriosStats.length > 0 && (
         <DashboardSection
-          title="Ministérios"
+          title='Ministérios'
           onVerMais={() => router.push('/(app)/(drawer)/admin/ministerios')}
         >
           <ScrollView
@@ -76,7 +73,7 @@ export default function DashboardAdmin() {
               <MinisterioStatsCard
                 key={ministerio.ministerioId}
                 ministerio={ministerio}
-                variant="compact"
+                variant='compact'
               />
             ))}
           </ScrollView>
@@ -85,7 +82,7 @@ export default function DashboardAdmin() {
 
       {/* Próximos Eventos da Igreja */}
       <DashboardSection
-        title="Próximos eventos"
+        title='Próximos eventos'
         onVerMais={() => router.push('/(app)/(drawer)/admin/eventos')}
       >
         {data?.proximosEventosIgreja && data.proximosEventosIgreja.length > 0 ? (
@@ -98,19 +95,19 @@ export default function DashboardAdmin() {
               <EventoProximoCard
                 key={evento.occurrenceKey || `${evento.id}::${evento.dataInicio}`}
                 evento={evento}
-                variant="horizontal"
+                variant='horizontal'
               />
             ))}
           </ScrollView>
         ) : (
-          <DashboardEmpty category="eventos" />
+          <DashboardEmpty category='eventos' />
         )}
       </DashboardSection>
 
       {/* Solicitações Gerais */}
       {data?.solicitacoesGerais && data.solicitacoesGerais.length > 0 && (
         <DashboardSection
-          title="Solicitações"
+          title='Solicitações'
           badge={data.solicitacoesGerais.length}
           onVerMais={() => router.push('/(app)/(drawer)/admin/solicitacoes')}
         >

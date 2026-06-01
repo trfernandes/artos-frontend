@@ -10,7 +10,11 @@ import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { useAppTheme } from '../../hooks/useAppTheme';
 
 export default function FancyDrawerItemHeader(
-  props: { isCollapsed: boolean; onCollapsePress: () => void; onNavigate?: () => void } & DrawerItemData,
+  props: {
+    isCollapsed: boolean;
+    onCollapsePress: () => void;
+    onNavigate?: () => void;
+  } & DrawerItemData,
 ) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
@@ -54,7 +58,10 @@ export default function FancyDrawerItemHeader(
               />
             )}
             {props.logo.type === 'logo' && props.logo.value && (
-              <Image source={props.logo.value ?? { uri: props.logo.value }} style={{ width: 25, height: 25, borderRadius: 999 }} />
+              <Image
+                source={props.logo.value ?? { uri: props.logo.value }}
+                style={{ width: 25, height: 25, borderRadius: 999 }}
+              />
             )}
           </View>
         )}
@@ -64,7 +71,12 @@ export default function FancyDrawerItemHeader(
           {props.title}
         </FancyText>
         {props.subtitle && (
-          <FancyText size={'small'} type='medium' color={subtitleColor} style={{ paddingTop: 0, opacity: isDark ? 0.9 : 1 }}>
+          <FancyText
+            size={'small'}
+            type='medium'
+            color={subtitleColor}
+            style={{ paddingTop: 0, opacity: isDark ? 0.9 : 1 }}
+          >
             {` - ${props.subtitle}`}
           </FancyText>
         )}

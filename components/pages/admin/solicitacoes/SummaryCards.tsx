@@ -26,12 +26,7 @@ function SummaryCardItem({ icon, iconLib, value, label, color }: SummaryCardItem
   return (
     <View style={[styles.card, { backgroundColor: `${color}12` }]}>
       <View style={[styles.iconContainer, { backgroundColor: `${color}20` }]}>
-        <DefaultIcons.Custom
-          library={iconLib}
-          name={icon as any}
-          size={20}
-          color={color}
-        />
+        <DefaultIcons.Custom library={iconLib} name={icon as any} size={20} color={color} />
       </View>
       <FancyText type='bold' size='large' style={{ color }}>
         {value}
@@ -43,7 +38,11 @@ function SummaryCardItem({ icon, iconLib, value, label, color }: SummaryCardItem
   );
 }
 
-export default function SummaryCards({ pendentes, convitesAtivos, totalAceitos }: SummaryCardsProps) {
+export default function SummaryCards({
+  pendentes,
+  convitesAtivos,
+  totalAceitos,
+}: SummaryCardsProps) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
 

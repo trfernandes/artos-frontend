@@ -10,7 +10,9 @@ export type ModernTimePickerFieldProps = {
   disabled?: boolean;
   containerStyle?: StyleProp<ViewStyle>;
   panelProps?: FancyDataPanelProps;
-  sheetProps?: Partial<Omit<ModernTimePickerSheetProps, 'visible' | 'value' | 'onClose' | 'onConfirm'>>;
+  sheetProps?: Partial<
+    Omit<ModernTimePickerSheetProps, 'visible' | 'value' | 'onClose' | 'onConfirm'>
+  >;
 };
 
 export default function ModernTimePickerField({

@@ -1,29 +1,32 @@
-import { useState, useCallback, useRef, useEffect, forwardRef, useImperativeHandle, useMemo } from 'react';
 import {
-    View,
-    StyleSheet,
-    Pressable,
-    Modal,
-    ScrollView,
-    StyleProp,
-    ViewStyle,
-    TextInputProps,
-    Animated,
-    Dimensions,
-    PanResponder,
-    InteractionManager,
-    Platform,
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  forwardRef,
+  useImperativeHandle,
+  useMemo,
+} from 'react';
+import {
+  View,
+  StyleSheet,
+  Pressable,
+  Modal,
+  ScrollView,
+  StyleProp,
+  ViewStyle,
+  TextInputProps,
+  Animated,
+  Dimensions,
+  PanResponder,
+  InteractionManager,
+  Platform,
 } from 'react-native';
 import { GestureHandlerRootView, TouchableOpacity } from 'react-native-gesture-handler';
 import { BlurView } from 'expo-blur';
 import FancyText from '../FancyText';
 import { ThemePalette } from '../../constants/colors';
-import {
-    BOLD_FONT,
-    ITALIC_MEDIUM_FONT,
-    MEDIUM_FONT,
-    SMALL_SIZE_FONT,
-} from '../../constants/font';
+import { BOLD_FONT, ITALIC_MEDIUM_FONT, MEDIUM_FONT, SMALL_SIZE_FONT } from '../../constants/font';
 import DefaultIcons from '../FancyIcons';
 import { DropDownItemProps } from './FancyDropDownItem';
 import { FancyTextInputProps } from './FancyTextInput';
@@ -80,9 +83,7 @@ function FancyBottomSheetSelectInner<ValueItem>(
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const backdropAnim = useRef(new Animated.Value(0)).current;
   const dragY = useRef(new Animated.Value(0)).current;
-  const closeTask = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | null>(
-    null,
-  );
+  const closeTask = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | null>(null);
   const insets = useSafeAreaInsets();
 
   const isDark = palette.backgroundColor === '#121212';
@@ -215,10 +216,7 @@ function FancyBottomSheetSelectInner<ValueItem>(
       const isSelected = item.value === tempValue;
       return (
         <TouchableOpacity
-          style={[
-            styles.listItem,
-            isSelected && { backgroundColor: activeColor },
-          ]}
+          style={[styles.listItem, isSelected && { backgroundColor: activeColor }]}
           activeOpacity={0.7}
           onPress={() => handleSelect(item)}
         >
@@ -257,106 +255,111 @@ function FancyBottomSheetSelectInner<ValueItem>(
     [tempValue, handleSelect, activeColor],
   );
 
-  const sheetContent = useMemo(() => (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={styles.modalContainer}>
-        {/* Backdrop */}
-        <TouchableOpacity
-          style={styles.backdropTouchable}
-          activeOpacity={1}
-          onPress={handleClose}
-        >
-          <Animated.View style={[styles.backdrop, { opacity: backdropAnim }]}>
-            <BlurView
-              intensity={Platform.OS === 'ios' ? 28 : 60}
-              tint={isDark ? 'dark' : 'default'}
-              experimentalBlurMethod={Platform.OS === 'android' ? 'dimezisBlurView' : 'none'}
-              style={StyleSheet.absoluteFillObject}
-            />
-            <View style={[StyleSheet.absoluteFillObject, { backgroundColor: reliableBackdropColor }]} />
-          </Animated.View>
-        </TouchableOpacity>
-
-        {/* Sheet container */}
-        <Animated.View
-          style={[
-            styles.sheetContainer,
-            {
-              height: sheetHeight,
-              paddingBottom: insets.bottom + 16,
-              transform: [{ translateY: Animated.add(slideAnim, dragY) }],
-            },
-          ]}
-        >
-          {/* Handle - área arrastável */}
-          <View style={styles.handleContainer}>
-            <View style={styles.handle} {...panResponder.panHandlers} />
-          </View>
-
-          {/* Header */}
-          <View style={styles.sheetHeader}>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={handleClose}
-              activeOpacity={0.7}
-            >
-              <DefaultIcons.Custom
-                library='Feather'
-                name='x'
-                size={20}
-                color={palette.fonts.dark}
-              />
-            </TouchableOpacity>
-
-            <FancyText
-              type='bold'
-              size='medium'
-              color={palette.fonts.dark}
-              style={styles.headerTitle}
-            >
-              {title ?? label ?? 'Selecione'}
-            </FancyText>
-
-            <View style={{ width: 34 }} />
-          </View>
-
-          {/* List */}
-          <ScrollView
-            style={styles.list}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-            bounces={false}
-            nestedScrollEnabled
+  const sheetContent = useMemo(
+    () => (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View style={styles.modalContainer}>
+          {/* Backdrop */}
+          <TouchableOpacity
+            style={styles.backdropTouchable}
+            activeOpacity={1}
+            onPress={handleClose}
           >
-            {listItems?.map((item, index) => (
-              <View key={String(item.value ?? index)}>
-                {renderItem({ item, index })}
-                {index < listItems.length - 1 && (
-                  <FancySeparator style={{ marginTop: 8, marginBottom: 8 }} />
-                )}
-              </View>
-            ))}
-          </ScrollView>
-        </Animated.View>
-      </View>
-    </GestureHandlerRootView>
-  ), [
-    backdropAnim,
-    dragY,
-    handleClose,
-    insets.bottom,
-    isDark,
-    label,
-    listItems,
-    palette,
-    panResponder,
-    renderItem,
-    reliableBackdropColor,
-    sheetHeight,
-    slideAnim,
-    styles,
-    title,
-  ]);
+            <Animated.View style={[styles.backdrop, { opacity: backdropAnim }]}>
+              <BlurView
+                intensity={Platform.OS === 'ios' ? 28 : 60}
+                tint={isDark ? 'dark' : 'default'}
+                experimentalBlurMethod={Platform.OS === 'android' ? 'dimezisBlurView' : 'none'}
+                style={StyleSheet.absoluteFillObject}
+              />
+              <View
+                style={[StyleSheet.absoluteFillObject, { backgroundColor: reliableBackdropColor }]}
+              />
+            </Animated.View>
+          </TouchableOpacity>
+
+          {/* Sheet container */}
+          <Animated.View
+            style={[
+              styles.sheetContainer,
+              {
+                height: sheetHeight,
+                paddingBottom: insets.bottom + 16,
+                transform: [{ translateY: Animated.add(slideAnim, dragY) }],
+              },
+            ]}
+          >
+            {/* Handle - área arrastável */}
+            <View style={styles.handleContainer}>
+              <View style={styles.handle} {...panResponder.panHandlers} />
+            </View>
+
+            {/* Header */}
+            <View style={styles.sheetHeader}>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={handleClose}
+                activeOpacity={0.7}
+              >
+                <DefaultIcons.Custom
+                  library='Feather'
+                  name='x'
+                  size={20}
+                  color={palette.fonts.dark}
+                />
+              </TouchableOpacity>
+
+              <FancyText
+                type='bold'
+                size='medium'
+                color={palette.fonts.dark}
+                style={styles.headerTitle}
+              >
+                {title ?? label ?? 'Selecione'}
+              </FancyText>
+
+              <View style={{ width: 34 }} />
+            </View>
+
+            {/* List */}
+            <ScrollView
+              style={styles.list}
+              contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
+              bounces={false}
+              nestedScrollEnabled
+            >
+              {listItems?.map((item, index) => (
+                <View key={String(item.value ?? index)}>
+                  {renderItem({ item, index })}
+                  {index < listItems.length - 1 && (
+                    <FancySeparator style={{ marginTop: 8, marginBottom: 8 }} />
+                  )}
+                </View>
+              ))}
+            </ScrollView>
+          </Animated.View>
+        </View>
+      </GestureHandlerRootView>
+    ),
+    [
+      backdropAnim,
+      dragY,
+      handleClose,
+      insets.bottom,
+      isDark,
+      label,
+      listItems,
+      palette,
+      panResponder,
+      renderItem,
+      reliableBackdropColor,
+      sheetHeight,
+      slideAnim,
+      styles,
+      title,
+    ],
+  );
 
   return (
     <View style={[styles.container, containerStyle]}>

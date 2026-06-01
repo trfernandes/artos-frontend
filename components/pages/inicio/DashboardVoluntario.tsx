@@ -25,10 +25,7 @@ export default function DashboardVoluntario() {
       contentContainerStyle={styles.scrollContent}
       bottomFade={{ active: true }}
     >
-      <DashboardGreeting
-        nome={nomeVoluntario}
-        subtitulo={igrejaAtiva?.nome}
-      />
+      <DashboardGreeting nome={nomeVoluntario} subtitulo={igrejaAtiva?.nome} />
 
       <DashboardEscalasSection data={data} />
     </FancyScrollView>

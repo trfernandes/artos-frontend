@@ -155,7 +155,8 @@ export default function FancyCalendar({
     const safeDate = normalized < minDate ? minDate : normalized > maxDate ? maxDate : normalized;
 
     setCurrentDate((prev) => {
-      const sameMonth = prev.getFullYear() === safeDate.getFullYear() && prev.getMonth() === safeDate.getMonth();
+      const sameMonth =
+        prev.getFullYear() === safeDate.getFullYear() && prev.getMonth() === safeDate.getMonth();
       if (sameMonth) {
         return prev;
       }
@@ -354,6 +355,11 @@ function createStyles(palette: ThemePalette) {
       width: '100%',
       paddingTop: 6,
     },
-    border: { borderWidth: 0.5, borderRadius: 10, borderColor: palette.border, ...palette.shadows[100] },
+    border: {
+      borderWidth: 0.5,
+      borderRadius: 10,
+      borderColor: palette.border,
+      ...palette.shadows[100],
+    },
   });
 }

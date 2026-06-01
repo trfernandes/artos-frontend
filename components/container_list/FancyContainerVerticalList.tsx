@@ -3,7 +3,9 @@ import { CustomIconProps } from '../FancyIcons';
 import { ThemePalette } from '../../constants/colors';
 import FancyText from '../FancyText';
 import FancyButton from '../buttons/FancyButton';
-import FancyVerticalContainerCard, { FancyVerticalContainerCardProps } from '../cards/Vertical/FancyVerticalContainerCard';
+import FancyVerticalContainerCard, {
+  FancyVerticalContainerCardProps,
+} from '../cards/Vertical/FancyVerticalContainerCard';
 import { usePallete } from '../../hooks/usePallete';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
 
@@ -73,7 +75,12 @@ function createStyles(palette: ThemePalette) {
       gap: 10,
       flexDirection: 'row',
     },
-    headerTitleContainer: { flex: 1, borderWidth: DESIGN_MODE, borderColor: 'pink', justifyContent: 'center' },
+    headerTitleContainer: {
+      flex: 1,
+      borderWidth: DESIGN_MODE,
+      borderColor: 'pink',
+      justifyContent: 'center',
+    },
     headerTitle: { borderWidth: 0, borderColor: 'red' },
     headerButtonsContainer: {
       gap: 5,

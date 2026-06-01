@@ -2,7 +2,10 @@ import z from 'zod';
 import { MinisterioStatusEnum } from '../enums/Ministerio/ministerio-status.enum';
 import { MinisterioTipoEnum } from '../enums/Ministerio/ministerio-tipo.enum';
 import { VoluntarioHierarquiaEnum } from '../enums/MinisterioVoluntario/hierarquia.enum';
-import { RecursoPermissaoEnum, TipoPermissaoEnum } from '../enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
+import {
+  RecursoPermissaoEnum,
+  TipoPermissaoEnum,
+} from '../enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
 
 export const AddLiderSchema = z.object({
   id: z.uuidv4('O Id do voluntário deve ser válido').optional(),
@@ -52,48 +55,49 @@ export type EditMinisterioVoluntarioFormData = z.infer<typeof EditMinisterioVolu
 
 export const AddMinisterioSchema = z
   .object({
-  id: z.uuidv4().nullable().optional(),
-  nome: z
-    .string({
-      message: 'Campo obrigatório',
-    })
-    .min(1, { message: 'Campo obrigatório' }),
-  tipo: z.enum(MinisterioTipoEnum, {
-    message: 'Campo obrigatório',
-  }),
-  logoUrl: z
-    .string()
-    .min(1)
-    .refine((v) => v.startsWith('http://') || v.startsWith('https://') || v.startsWith('file://'), {
-      message: 'URL de foto inválida',
-    })
-    .nullish(),
-  logoThumbUrl: z.string().nullish(),
-  logoUpload: z
-    .object({
-      uri: z.string().min(1),
-      name: z.string().min(1),
-      type: z.string().min(1),
-    })
-    .nullish(),
-  descricao: z.string().nullable().optional(),
-  status: z.enum(MinisterioStatusEnum, {
-    message: 'Campo obrigatório',
-  }),
-  lideres: z
-    .array(AddLiderSchema)
-    .min(1, { message: 'É obrigatório informar pelo menos um líder' })
-    .refine(
-      (lideres) => {
-        const ids = lideres.map((lider) => lider.voluntarioId);
-        const uniqueIds = new Set(ids);
-        return uniqueIds.size === lideres.length;
-      },
-      { error: 'Esse líder já foi incluído' },
-    ),
-  auxiliares: z
-    .array(AddAuxiliarSchema)
-    .refine(
+    id: z.uuidv4().nullable().optional(),
+    nome: z
+      .string({
+        message: 'Campo obrigatório',
+      })
+      .min(1, { message: 'Campo obrigatório' }),
+    tipo: z.enum(MinisterioTipoEnum, {
+      message: 'Campo obrigatório',
+    }),
+    logoUrl: z
+      .string()
+      .min(1)
+      .refine(
+        (v) => v.startsWith('http://') || v.startsWith('https://') || v.startsWith('file://'),
+        {
+          message: 'URL de foto inválida',
+        },
+      )
+      .nullish(),
+    logoThumbUrl: z.string().nullish(),
+    logoUpload: z
+      .object({
+        uri: z.string().min(1),
+        name: z.string().min(1),
+        type: z.string().min(1),
+      })
+      .nullish(),
+    descricao: z.string().nullable().optional(),
+    status: z.enum(MinisterioStatusEnum, {
+      message: 'Campo obrigatório',
+    }),
+    lideres: z
+      .array(AddLiderSchema)
+      .min(1, { message: 'É obrigatório informar pelo menos um líder' })
+      .refine(
+        (lideres) => {
+          const ids = lideres.map((lider) => lider.voluntarioId);
+          const uniqueIds = new Set(ids);
+          return uniqueIds.size === lideres.length;
+        },
+        { error: 'Esse líder já foi incluído' },
+      ),
+    auxiliares: z.array(AddAuxiliarSchema).refine(
       (auxiliares) => {
         const ids = auxiliares.map((auxiliar) => auxiliar.voluntarioId);
         const uniqueIds = new Set(ids);

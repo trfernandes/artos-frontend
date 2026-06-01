@@ -1,7 +1,12 @@
 import { TouchableOpacity, View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import FancyText, { FancyTextProps } from './FancyText';
 import DefaultIcons, { CustomIconProps } from './FancyIcons';
-import { BOLD_FONT, EXTRA_SMALL_SIZE_FONT, MEDIUM_SIZE_FONT, SMALL_SIZE_FONT } from '../constants/font';
+import {
+  BOLD_FONT,
+  EXTRA_SMALL_SIZE_FONT,
+  MEDIUM_SIZE_FONT,
+  SMALL_SIZE_FONT,
+} from '../constants/font';
 import { usePallete } from '../hooks/usePallete';
 
 export type FancyChipsProps = {

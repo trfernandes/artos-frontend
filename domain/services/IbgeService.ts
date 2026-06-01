@@ -35,15 +35,12 @@ export async function fetchMunicipiosPorEstadoComCodigo(
   uf: string,
 ): Promise<IbgeMunicipioOption[]> {
   try {
-    const response = await axios.get<IbgeMunicipio[]>(
-      `${IBGE_BASE_URL}/estados/${uf}/municipios`,
-      {
-        timeout: REQUEST_TIMEOUT,
-        headers: {
-          Accept: 'application/json',
-        },
+    const response = await axios.get<IbgeMunicipio[]>(`${IBGE_BASE_URL}/estados/${uf}/municipios`, {
+      timeout: REQUEST_TIMEOUT,
+      headers: {
+        Accept: 'application/json',
       },
-    );
+    });
 
     return response.data
       .map((municipio) => ({
@@ -83,20 +80,16 @@ export async function fetchMunicipiosPorEstado(uf: string): Promise<string[]> {
  * Busca todos os estados brasileiros da API do IBGE
  * @returns Array com informações dos estados
  */
-export async function fetchEstados(): Promise<
-  Array<{ id: number; sigla: string; nome: string }>
-> {
+export async function fetchEstados(): Promise<Array<{ id: number; sigla: string; nome: string }>> {
   try {
     const response = await axios.get(`${IBGE_BASE_URL}/estados`, {
       timeout: REQUEST_TIMEOUT,
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
       },
     });
 
-    return response.data.sort((a: any, b: any) =>
-      a.nome.localeCompare(b.nome, 'pt-BR'),
-    );
+    return response.data.sort((a: any, b: any) => a.nome.localeCompare(b.nome, 'pt-BR'));
   } catch (error) {
     throw new Error('Erro ao buscar estados do IBGE');
   }

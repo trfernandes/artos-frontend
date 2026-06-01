@@ -1,10 +1,13 @@
 # Spec v2: Redesign do Drawer Header — "Identity Strip"
 
-> Implementação para o Sonnet no Claude Code. Seguir **exatamente** as decisões abaixo. Esta é a v2 — substitui completamente a v1 anterior.
+> Implementação para o Sonnet no Claude Code. Seguir **exatamente** as decisões abaixo. Esta é a v2
+> — substitui completamente a v1 anterior.
 
 ## Conceito
 
-Header compacto inspirado em Slack / Gmail / Notion: **uma única "identity strip" densa** com avatar à esquerda, nome do usuário ao lado, e a igreja embutida logo abaixo do nome como **subtítulo interativo** (não como card separado).
+Header compacto inspirado em Slack / Gmail / Notion: **uma única "identity strip" densa** com avatar
+à esquerda, nome do usuário ao lado, e a igreja embutida logo abaixo do nome como **subtítulo
+interativo** (não como card separado).
 
 - ❌ Sem "Olá," (apps maduros não cumprimentam no drawer — vira ruído)
 - ❌ Sem card destacado para a igreja (vira linha de texto secundária)
@@ -16,8 +19,10 @@ Header compacto inspirado em Slack / Gmail / Notion: **uma única "identity stri
 ## Arquivos a modificar
 
 - `artos_frontend/components/drawer/FancyDrawerHeader.tsx` — reescrita parcial significativa
-- `artos_frontend/components/drawer/FancyDrawerIgrejaSelector.tsx` — vira uma linha de texto secundária, não mais um chip/card
-- `artos_frontend/components/drawer/FancyDrawer.tsx` — remoção do `marginTop: -15` e do `borderColor: 'red'`
+- `artos_frontend/components/drawer/FancyDrawerIgrejaSelector.tsx` — vira uma linha de texto
+  secundária, não mais um chip/card
+- `artos_frontend/components/drawer/FancyDrawer.tsx` — remoção do `marginTop: -15` e do
+  `borderColor: 'red'`
 
 **Não criar arquivos novos.**
 
@@ -58,7 +63,9 @@ Estrutura JSX conceitual:
 </LinearGradient>
 ```
 
-> Importante: o `TouchableOpacity` do avatar e o `TouchableOpacity` interno do `FancyDrawerIgrejaSelector` ficam **separados** — toques em áreas diferentes acionam ações diferentes. Não envolver tudo num único Touchable.
+> Importante: o `TouchableOpacity` do avatar e o `TouchableOpacity` interno do
+> `FancyDrawerIgrejaSelector` ficam **separados** — toques em áreas diferentes acionam ações
+> diferentes. Não envolver tudo num único Touchable.
 
 ---
 
@@ -116,12 +123,7 @@ export default function FancyDrawerHeader() {
         </TouchableOpacity>
 
         <View style={styles.textColumn}>
-          <FancyText
-            size='large'
-            type='bold'
-            color={palette.fonts.light}
-            numberOfLines={1}
-          >
+          <FancyText size='large' type='bold' color={palette.fonts.light} numberOfLines={1}>
             {nomeCompleto}
           </FancyText>
           <FancyDrawerIgrejaSelector />
@@ -164,24 +166,27 @@ function createStyles(palette: ThemePalette) {
 
 ### O que saiu vs o que entrou
 
-| Removido | Motivo |
-|---|---|
-| `useVoluntariosCrud` + `params` + `useMemo` do params | Não estava sendo usado para nada (variável `data` ficava sem uso) |
-| `DefaultIcons` import | Não usado nesse arquivo |
-| `Operator`, `ValueType` imports | Junto com o crud removido |
-| `<View style={infoContainer}>` com saudação "Olá," em duas linhas | Substituído por nome em uma linha só |
-| `<View style={avatarRing}>` | Border vai direto no avatar |
-| `dataContainer` style | Substituído por `identityStrip` |
-| `buttonContainer`, `button` styles | Eram lixo (não usados) |
-| `paddingBottom: 26`, `gap: 15` | Header ficava alto demais |
+| Removido                                                          | Motivo                                                            |
+| ----------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `useVoluntariosCrud` + `params` + `useMemo` do params             | Não estava sendo usado para nada (variável `data` ficava sem uso) |
+| `DefaultIcons` import                                             | Não usado nesse arquivo                                           |
+| `Operator`, `ValueType` imports                                   | Junto com o crud removido                                         |
+| `<View style={infoContainer}>` com saudação "Olá," em duas linhas | Substituído por nome em uma linha só                              |
+| `<View style={avatarRing}>`                                       | Border vai direto no avatar                                       |
+| `dataContainer` style                                             | Substituído por `identityStrip`                                   |
+| `buttonContainer`, `button` styles                                | Eram lixo (não usados)                                            |
+| `paddingBottom: 26`, `gap: 15`                                    | Header ficava alto demais                                         |
 
-> ⚠️ **Atenção**: se `useVoluntariosCrud` aqui tinha algum efeito colateral importante (cache pre-fetch, etc.), **mantenha a chamada mas confirme antes**. Pelo código atual, `data` não é usado em lugar nenhum no JSX, então é seguro remover.
+> ⚠️ **Atenção**: se `useVoluntariosCrud` aqui tinha algum efeito colateral importante (cache
+> pre-fetch, etc.), **mantenha a chamada mas confirme antes**. Pelo código atual, `data` não é usado
+> em lugar nenhum no JSX, então é seguro remover.
 
 ---
 
 ## 2. `FancyDrawerIgrejaSelector.tsx` — vira "subtitle row"
 
-O componente continua sendo o gatilho do modal de troca, mas o visual deixa de ser um card. Vira **uma linha de texto** com logo pequena + nome + ícone swap. Sem fundo, sem borderRadius de card.
+O componente continua sendo o gatilho do modal de troca, mas o visual deixa de ser um card. Vira
+**uma linha de texto** com logo pequena + nome + ícone swap. Sem fundo, sem borderRadius de card.
 
 Substitua o componente inteiro:
 
@@ -244,12 +249,7 @@ export default function FancyDrawerIgrejaSelector() {
           </View>
         )}
 
-        <FancyText
-          size='small'
-          type='medium'
-          numberOfLines={1}
-          style={styles.nomeText}
-        >
+        <FancyText size='small' type='medium' numberOfLines={1} style={styles.nomeText}>
           {nomeIgreja}
         </FancyText>
 
@@ -306,16 +306,20 @@ function createStyles(_palette: ThemePalette) {
 
 ### Mudanças-chave
 
-| Item | Antes | Depois |
-|---|---|---|
-| Visual | Card pílula com `backgroundColor: rgba(255,255,255,0.15)` | Linha de texto sem fundo |
-| Largura | Quase total do drawer (height 38 + padding) | `alignSelf: flex-start`, ocupa só o necessário |
-| Logo | 24–26px com border | 18px sem border |
-| Texto | `size='medium'` `type='semiBold'` `color='#FFFFFF'` | `size='small'` `type='medium'` `color='rgba(255,255,255,0.92)'` |
-| Ícone | `chevron-down` 18px | `swap-horizontal` 14px |
-| Touch target | Implícito do card | `hitSlop={8}` em todas as direções (linha + 16 = ~32px+, suficiente para uma ação ocasional alinhada com a faixa de identidade) |
+| Item         | Antes                                                     | Depois                                                                                                                          |
+| ------------ | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Visual       | Card pílula com `backgroundColor: rgba(255,255,255,0.15)` | Linha de texto sem fundo                                                                                                        |
+| Largura      | Quase total do drawer (height 38 + padding)               | `alignSelf: flex-start`, ocupa só o necessário                                                                                  |
+| Logo         | 24–26px com border                                        | 18px sem border                                                                                                                 |
+| Texto        | `size='medium'` `type='semiBold'` `color='#FFFFFF'`       | `size='small'` `type='medium'` `color='rgba(255,255,255,0.92)'`                                                                 |
+| Ícone        | `chevron-down` 18px                                       | `swap-horizontal` 14px                                                                                                          |
+| Touch target | Implícito do card                                         | `hitSlop={8}` em todas as direções (linha + 16 = ~32px+, suficiente para uma ação ocasional alinhada com a faixa de identidade) |
 
-> Sobre touch target: a linha em si é pequena (~22px de altura). Combinada com `hitSlop=8` chega em ~38px. Não atinge 44px estrito do WCAG, mas para uma **ação ocasional** (trocar igreja) embutida num bloco de identidade, é aceitável — é o mesmo trade-off que Gmail e Slack fazem com seus seletores de conta. Se o time quiser rigor 44px, aumentar `paddingVertical` para 6 e `hitSlop` para 12.
+> Sobre touch target: a linha em si é pequena (~22px de altura). Combinada com `hitSlop=8` chega em
+> ~38px. Não atinge 44px estrito do WCAG, mas para uma **ação ocasional** (trocar igreja) embutida
+> num bloco de identidade, é aceitável — é o mesmo trade-off que Gmail e Slack fazem com seus
+> seletores de conta. Se o time quiser rigor 44px, aumentar `paddingVertical` para 6 e `hitSlop`
+> para 12.
 
 ---
 
@@ -347,7 +351,8 @@ function createStyles(_palette: ThemePalette) {
 >
 ```
 
-> Removidos: `borderColor: 'red'` (debug) e `marginTop: -15` (era a causa raiz da sobreposição entre header e primeira linha da lista).
+> Removidos: `borderColor: 'red'` (debug) e `marginTop: -15` (era a causa raiz da sobreposição entre
+> header e primeira linha da lista).
 
 ---
 
@@ -373,7 +378,8 @@ ANTES (~180px de altura)              DEPOIS (~110-120px de altura)
 Antes de marcar como pronto:
 
 - [ ] `cd artos_frontend && npx tsc --noEmit` passa sem erros
-- [ ] Header tem **uma linha de identidade** (avatar à esquerda + nome + igreja-row em coluna ao lado)
+- [ ] Header tem **uma linha de identidade** (avatar à esquerda + nome + igreja-row em coluna ao
+      lado)
 - [ ] Saudação "Olá," não existe mais
 - [ ] Avatar está à **esquerda** (não mais à direita)
 - [ ] Avatar é 44px, com border 1.5 branca @ 35% opacidade — sem anel duplo
@@ -385,24 +391,32 @@ Antes de marcar como pronto:
 - [ ] Primeiro separator da lista ("Pessoal") fica visível, não sobreposto pelo gradiente
 - [ ] Testado em dark mode (gradiente + texto branco continuam OK)
 - [ ] Igreja-row não estica para a largura inteira — `alignSelf: flex-start`
-- [ ] Sem `Text` nativo, sem `TouchableOpacity` para botões com semântica de botão (os usados aqui são wrappers de áreas customizadas, OK)
+- [ ] Sem `Text` nativo, sem `TouchableOpacity` para botões com semântica de botão (os usados aqui
+      são wrappers de áreas customizadas, OK)
 - [ ] Modal de seleção de igreja continua funcionando exatamente igual
 
 ## O que NÃO fazer
 
-- Não envolver avatar + texto-column num único `TouchableOpacity` — toques em áreas diferentes acionam ações diferentes (perfil vs trocar-igreja).
-- Não criar componente novo `FancyChip` ou `FancyIdentityStrip` — toda a estrutura vive dentro de `FancyDrawerHeader.tsx` + `FancyDrawerIgrejaSelector.tsx`.
+- Não envolver avatar + texto-column num único `TouchableOpacity` — toques em áreas diferentes
+  acionam ações diferentes (perfil vs trocar-igreja).
+- Não criar componente novo `FancyChip` ou `FancyIdentityStrip` — toda a estrutura vive dentro de
+  `FancyDrawerHeader.tsx` + `FancyDrawerIgrejaSelector.tsx`.
 - Não tocar em `FancyDrawerIgrejaSelectorModal.tsx`.
-- Não trocar `TouchableOpacity` por `FancyButton` — os toques aqui são em conteúdos compostos, não em "botões".
+- Não trocar `TouchableOpacity` por `FancyButton` — os toques aqui são em conteúdos compostos, não
+  em "botões".
 - Não mexer em `palette.gradients.drawerHeader` (cores) — está OK.
 - Não adicionar `Olá,` "só por garantia" — a decisão é remover.
-- Não adicionar label "Meus ministérios" — o `FancyDrawerSeparator` já existe e a primeira seção da lista (`Pessoal`) já dá a estrutura.
+- Não adicionar label "Meus ministérios" — o `FancyDrawerSeparator` já existe e a primeira seção da
+  lista (`Pessoal`) já dá a estrutura.
 
 ## Referências de inspiração (para entender a intenção)
 
-- **Gmail Android** — drawer header: avatar à esquerda + nome + email/conta abaixo com chevron pequeno.
+- **Gmail Android** — drawer header: avatar à esquerda + nome + email/conta abaixo com chevron
+  pequeno.
 - **Slack mobile** — workspace switcher: linha de identidade compacta, sem cards barulhentos.
-- **Notion mobile** — workspace switcher como pílula mínima embutida na área de identidade do usuário.
+- **Notion mobile** — workspace switcher como pílula mínima embutida na área de identidade do
+  usuário.
 - **Linear mobile** — workspace + user em uma única linha de altura ~64px.
 
-A intenção visual é **densidade respeitosa**: o header é contexto, não é o herói. Quem manda é a lista.
+A intenção visual é **densidade respeitosa**: o header é contexto, não é o herói. Quem manda é a
+lista.

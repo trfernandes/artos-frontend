@@ -78,11 +78,10 @@ function main() {
   const resolvedSerial = resolveSerial(serial);
   ensureParentDir(output);
 
-  const result = spawnSync(
-    'adb',
-    ['-s', resolvedSerial, 'exec-out', 'screencap', '-p'],
-    { encoding: null, maxBuffer: 32 * 1024 * 1024 },
-  );
+  const result = spawnSync('adb', ['-s', resolvedSerial, 'exec-out', 'screencap', '-p'], {
+    encoding: null,
+    maxBuffer: 32 * 1024 * 1024,
+  });
 
   if (result.status !== 0) {
     const stderr = result.stderr ? result.stderr.toString('utf8').trim() : '';

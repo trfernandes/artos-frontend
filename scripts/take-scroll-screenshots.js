@@ -161,7 +161,18 @@ function swipeUp(serial, size, swipeDistance) {
   const startY = Math.floor(size.height * 0.78);
   const endY = Math.max(80, startY - swipeDistance);
 
-  runAdb(['-s', serial, 'shell', 'input', 'swipe', String(x), String(startY), String(x), String(endY), '320']);
+  runAdb([
+    '-s',
+    serial,
+    'shell',
+    'input',
+    'swipe',
+    String(x),
+    String(startY),
+    String(x),
+    String(endY),
+    '320',
+  ]);
 }
 
 function sleep(ms) {

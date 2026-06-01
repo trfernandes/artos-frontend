@@ -7,11 +7,7 @@ import { ThemePalette } from '../../constants/colors';
 import { usePallete } from '../../hooks/usePallete';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { ColorUtils } from '../../utils/color_utils';
-import {
-  BOLD_FONT,
-  EXTRA_SMALL_SIZE_FONT,
-  LARGE_SIZE_FONT,
-} from '../../constants/font';
+import { BOLD_FONT, EXTRA_SMALL_SIZE_FONT, LARGE_SIZE_FONT } from '../../constants/font';
 
 export type FancyCalendarHeaderProps = {
   currentDate: Date;
@@ -34,11 +30,19 @@ export default function FancyCalendarHeader({
   const styles = useThemedStyles(createStyles);
   const safeDate = Number.isNaN(props.currentDate?.getTime?.()) ? new Date() : props.currentDate;
   const minimumDate = props.calendarProps?.minimumDate
-    ? new Date(props.calendarProps.minimumDate.getFullYear(), props.calendarProps.minimumDate.getMonth(), 1)
+    ? new Date(
+        props.calendarProps.minimumDate.getFullYear(),
+        props.calendarProps.minimumDate.getMonth(),
+        1,
+      )
     : undefined;
 
   const maximumDate = props.calendarProps?.maximumDate
-    ? new Date(props.calendarProps.maximumDate.getFullYear(), props.calendarProps.maximumDate.getMonth(), 1)
+    ? new Date(
+        props.calendarProps.maximumDate.getFullYear(),
+        props.calendarProps.maximumDate.getMonth(),
+        1,
+      )
     : undefined;
 
   const canGoToPreviousMonth = (): boolean => {
@@ -63,10 +67,15 @@ export default function FancyCalendarHeader({
   return (
     <View style={[styles.container, isAgendaPremium ? styles.containerAgendaPremium : null]}>
       <Pressable
-        style={[styles.actualDateContainer, isAgendaPremium ? styles.actualDateContainerAgenda : null]}
+        style={[
+          styles.actualDateContainer,
+          isAgendaPremium ? styles.actualDateContainerAgenda : null,
+        ]}
         onPress={() => {
-          if (visualization === CalendarVisualization.Day) props.onChangeVisualization(CalendarVisualization.Month);
-          else if (visualization === CalendarVisualization.Month) props.onChangeVisualization(CalendarVisualization.Year);
+          if (visualization === CalendarVisualization.Day)
+            props.onChangeVisualization(CalendarVisualization.Month);
+          else if (visualization === CalendarVisualization.Month)
+            props.onChangeVisualization(CalendarVisualization.Year);
         }}
       >
         {isAgendaPremium ? (
@@ -94,7 +103,13 @@ export default function FancyCalendarHeader({
           </>
         ) : (
           <>
-            <FancyText size='large' type='bold' color={palette.fonts.inactive} numberOfLines={1} ellipsizeMode='tail'>
+            <FancyText
+              size='large'
+              type='bold'
+              color={palette.fonts.inactive}
+              numberOfLines={1}
+              ellipsizeMode='tail'
+            >
               {displayDate.getFullYear()}
             </FancyText>
             <FancyText size='large' type='bold' numberOfLines={1} ellipsizeMode='tail'>
@@ -103,7 +118,9 @@ export default function FancyCalendarHeader({
           </>
         )}
       </Pressable>
-      <View style={[styles.buttonsContainer, isAgendaPremium ? styles.buttonsContainerAgenda : null]}>
+      <View
+        style={[styles.buttonsContainer, isAgendaPremium ? styles.buttonsContainerAgenda : null]}
+      >
         <Pressable
           disabled={!prevEnabled}
           onPress={props.onPreviousMonth}
@@ -117,8 +134,8 @@ export default function FancyCalendarHeader({
           ]}
         >
           <DefaultIcons.Custom
-            library="Entypo"
-            name="chevron-left"
+            library='Entypo'
+            name='chevron-left'
             size={isAgendaPremium ? 22 : 20}
             color={prevEnabled ? palette.primary : palette.icons.inactive2}
           />
@@ -136,8 +153,8 @@ export default function FancyCalendarHeader({
           ]}
         >
           <DefaultIcons.Custom
-            library="Entypo"
-            name="chevron-right"
+            library='Entypo'
+            name='chevron-right'
             size={isAgendaPremium ? 22 : 20}
             color={nextEnabled ? palette.primary : palette.icons.inactive2}
           />
@@ -149,7 +166,12 @@ export default function FancyCalendarHeader({
 
 function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
-    container: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 34 },
+    container: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      minHeight: 34,
+    },
     containerAgendaPremium: {
       minHeight: 46,
       alignItems: 'flex-end',

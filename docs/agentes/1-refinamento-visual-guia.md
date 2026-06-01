@@ -2,11 +2,13 @@
 
 ## O que é?
 
-Um **agente Claude que automaticamente corrige a aparência visual** de um componente até ficar exatamente como está desenhado no Figma.
+Um **agente Claude que automaticamente corrige a aparência visual** de um componente até ficar
+exatamente como está desenhado no Figma.
 
 Você diz qual componente quer refinar + mostra a imagem de design.
 
 O agente então faz assim:
+
 1. Muda o código do componente
 2. Recarrega o app no seu telefone automaticamente
 3. Tira screenshot via ADB com `scripts/take-screenshot.js`
@@ -26,6 +28,7 @@ Você estava gastando **30-45 minutos** ajustando espaçamentos, cores, tamanhos
 Agora o agente faz **em 5-15 minutos** enquanto você toma café. ☕
 
 ### Exemplos reais
+
 - **Card de notificação** com spacing errado → 8 iterações, 10 minutos
 - **Badges de evento** com tamanho incorreto → 3 iterações, 4 minutos
 - **Drawer header** com cores desalinhadas → 2 iterações, 3 minutos
@@ -40,16 +43,19 @@ Agora o agente faz **em 5-15 minutos** enquanto você toma café. ☕
 Você precisa de uma imagem PNG mostrando **exatamente como o componente deve ficar**.
 
 **Opção A**: Screenshot do Figma
+
 1. Abra seu design no Figma
 2. Selecione o componente
 3. Print screen ou export como PNG
 4. Salve em: `artos_frontend/design/meu-componente.png`
 
 **Opção B**: Screenshot do seu app anterior
+
 1. Se já tinha uma versão boa, tira screenshot
 2. Salva em: `artos_frontend/design/meu-componente.png`
 
 **Dica**: Use nomes descritivos:
+
 ```
 artos_frontend/design/
 ├── notifications-card.png
@@ -85,6 +91,7 @@ Aqui é o simples:
 ```
 
 **Exemplos**:
+
 ```
 /refinamento-autonomo notifications-card design/notifications-card.png
 
@@ -127,17 +134,18 @@ O agente começa a trabalhar. Você vai ver:
 
 Depende da complexidade:
 
-| Tipo | Iterações | Tempo |
-|------|-----------|-------|
-| Simples (1-2 mudanças) | 3-4 | 3-5 min |
-| Normal (3-5 mudanças) | 5-7 | 7-10 min |
-| Complexo (6+ mudanças) | 8-10 | 12-15 min |
+| Tipo                   | Iterações | Tempo     |
+| ---------------------- | --------- | --------- |
+| Simples (1-2 mudanças) | 3-4       | 3-5 min   |
+| Normal (3-5 mudanças)  | 5-7       | 7-10 min  |
+| Complexo (6+ mudanças) | 8-10      | 12-15 min |
 
 ---
 
 ## ✅ O que Esperar
 
 ### Commits Automáticos
+
 O agente cria um commit após cada iteração bem-sucedida:
 
 ```
@@ -145,6 +153,7 @@ git log --oneline
 ```
 
 Você verá:
+
 ```
 a1b2c3d [refinamento-autonomo] iter 8: centraliza ícone — PERFEITO!
 d4e5f6g [refinamento-autonomo] iter 7: ajusta cor do background
@@ -153,9 +162,12 @@ h8i9j0k [refinamento-autonomo] iter 6: aumenta padding do texto
 ```
 
 ### Zero TypeScript Errors
-O agente executa `npx tsc --noEmit` após cada mudança. Se houver TS error, ele corrige antes de continuar.
+
+O agente executa `npx tsc --noEmit` após cada mudança. Se houver TS error, ele corrige antes de
+continuar.
 
 ### Componente Pixel-Perfect
+
 Quando terminar, o componente será visualmente idêntico à spec image.
 
 ---
@@ -163,11 +175,13 @@ Quando terminar, o componente será visualmente idêntico à spec image.
 ## 🔧 Pré-requisitos
 
 ### Hardware
+
 - [ ] **Telefone Android** (ou emulador)
 - [ ] **Cabo USB** (para conexão ADB)
 - [ ] **Computador com ADB instalado**
 
 ### Software
+
 - [ ] **Node.js >= 16**
 - [ ] **Expo CLI**: `npm install -g expo-cli` (ou `npm i -D expo`)
 - [ ] **ADB no PATH**: `adb devices` funciona no terminal
@@ -179,6 +193,7 @@ Quando terminar, o componente será visualmente idêntico à spec image.
 #### 1. Instale ADB (se ainda não tem)
 
 **Windows**:
+
 ```bash
 # Com chocolatey
 choco install adb
@@ -187,11 +202,13 @@ choco install adb
 ```
 
 **Mac**:
+
 ```bash
 brew install android-platform-tools
 ```
 
 **Linux**:
+
 ```bash
 sudo apt-get install android-tools-adb
 ```
@@ -253,16 +270,19 @@ Isso gera:
 Seu designer redesenhou o card de notificação. Precisa ficar EXATAMENTE assim.
 
 **Setup**:
+
 1. Export do Figma: `design/notifications-card.png`
 2. App rodando: `npx expo start`
 3. Abre a tela de notificações no app
 
 **Comando**:
+
 ```
 /refinamento-autonomo notifications-card design/notifications-card.png
 ```
 
 **Resultado esperado**:
+
 - 4-5 iterações
 - 5 minutos
 - Card pixel-perfect
@@ -275,15 +295,18 @@ Seu designer redesenhou o card de notificação. Precisa ficar EXATAMENTE assim.
 Seu badge de "Hoje às 15h" está com tamanho errado.
 
 **Setup**:
+
 1. Screenshot do design: `design/event-badge.png`
 2. App rodando, navegue para uma tela com evento
 
 **Comando**:
+
 ```
 /refinamento-autonomo event-badge design/event-badge.png
 ```
 
 **Resultado esperado**:
+
 - 2-3 iterações
 - 3 minutos
 - Badge alinhado
@@ -296,15 +319,18 @@ Seu badge de "Hoje às 15h" está com tamanho errado.
 Sua lista de voluntários tem espaçamentos inconsistentes.
 
 **Setup**:
+
 1. Print do Figma: `design/volunteer-list-item.png`
 2. App rodando na aba "Voluntários"
 
 **Comando**:
+
 ```
 /refinamento-autonomo volunteer-list-item design/volunteer-list-item.png
 ```
 
 **Resultado esperado**:
+
 - 6-7 iterações
 - 8 minutos
 - List item com spacing consistente
@@ -315,7 +341,9 @@ Sua lista de voluntários tem espaçamentos inconsistentes.
 ## ❓ FAQ
 
 ### P: Posso usar em iOS?
+
 **A**: Sim, você pode. Mas precisa de:
+
 - Mac com Xcode instalado
 - Apple Developer Account
 - É mais lento que Android
@@ -323,14 +351,18 @@ Sua lista de voluntários tem espaçamentos inconsistentes.
 Recomendação: Use Android para desenvolvimento, iOS apenas para testes finais.
 
 ### P: E se eu não tiver um telefone Android?
+
 **A**: Use um emulador Android Studio:
+
 1. Instale Android Studio
 2. Cria um emulador virtual
 3. ADB conecta automaticamente
 4. Funciona igualmente bem
 
 ### P: O agente pode quebrar alguma coisa?
+
 **A**: Não. Cada iteração cria um commit automático. Se algo der errado:
+
 ```bash
 # Reverter para versão anterior
 git revert [commit-hash]
@@ -340,18 +372,23 @@ git reset --soft HEAD~3
 ```
 
 ### P: Quanto tempo levam 10 iterações?
+
 **A**: ~15 minutos. Depende de:
+
 - Velocidade de reload do Expo (~2-3s)
 - Tempo de análise visual do agente (~1-2s)
 - Complexidade das mudanças
 
 ### P: Posso refinar 2 componentes ao mesmo tempo?
+
 **A**: Tecnicamente sim, mas não recomendo. Git pode criar conflitos. Faça um por vez.
 
 ### P: O que acontece se houver TypeScript errors?
+
 **A**: O agente detecta, corrige e continua. Você nunca terá TS errors no final.
 
 ### P: Preciso de internet?
+
 **A**: Não! Tudo roda localmente. Claude roda offline.
 
 ---
@@ -361,6 +398,7 @@ git reset --soft HEAD~3
 ### ❌ Problema: "ADB não reconhece o telefone"
 
 **Solução**:
+
 1. Desconecta o telefone
 2. Ativa USB Debugging (veja pré-requisitos)
 3. Reconecta o telefone
@@ -368,6 +406,7 @@ git reset --soft HEAD~3
 5. Testa: `adb devices`
 
 Se ainda não funcionar:
+
 - Tenta outro cabo USB
 - Desativa e reativa "Depuração USB"
 - Reinicia o telefone
@@ -377,6 +416,7 @@ Se ainda não funcionar:
 ### ❌ Problema: "Screenshot retorna erro"
 
 **Solução**:
+
 ```bash
 # Teste manualmente:
 node scripts/take-screenshot.js debug.png
@@ -399,6 +439,7 @@ powershell -File scripts/run-refinement-capture.ps1 -ReferenceImage design/notif
 ### ❌ Problema: "App não recarrega durante iterações"
 
 **Solução**:
+
 1. Fecha o app no telefone
 2. Vai no terminal rodando `npx expo start`
 3. Escaneia o QR code novamente
@@ -406,6 +447,7 @@ powershell -File scripts/run-refinement-capture.ps1 -ReferenceImage design/notif
 5. Tenta o agente novamente
 
 Se ainda não funcionar:
+
 ```bash
 # Mata todos os processos Expo
 npx expo stop
@@ -422,6 +464,7 @@ npx expo start --clear
 ### ❌ Problema: "Agente não acha o componente"
 
 **Solução**:
+
 - Certifica que o componente existe e tem nome único
 - Exemplo: `NotificationsCard` em `components/NotificationsCard.tsx`
 - Use o nome exato do arquivo ou do componente
@@ -435,8 +478,8 @@ grep -r "NotificationsCard" artos_frontend/components/
 
 ### ❌ Problema: "TypeScript errors durante refinement"
 
-**Solução**:
-O agente já trata isso, mas se aparecer erro final:
+**Solução**: O agente já trata isso, mas se aparecer erro final:
+
 ```bash
 npx tsc --noEmit
 
@@ -463,7 +506,9 @@ git diff HEAD
 ## ✨ Dicas e Tricks
 
 ### Dica 1: Tenha as imagens de design prontas
+
 Antes de chamar o agente, organize suas imagens:
+
 ```
 design/
 ├── notifications-card.png
@@ -473,13 +518,17 @@ design/
 ```
 
 ### Dica 2: Teste com componentes simples primeiro
+
 Comece refinando um badge ou texto pequeno. Pega experiência com componentes complexos depois.
 
 ### Dica 3: Mantenha o telefone ativo
+
 O agente tira screenshots continuamente. Mantenha a tela do telefone ativa (não dorme).
 
 ### Dica 4: Commits descritivos ajudam
+
 Os commits automáticos são descritivos:
+
 ```
 [refinamento-autonomo] iter 1: ajusta spacing do card
 [refinamento-autonomo] iter 2: corrige cor do badge
@@ -488,14 +537,15 @@ Os commits automáticos são descritivos:
 Isso deixa o histórico git super limpo para revisar depois.
 
 ### Dica 5: Use dark mode se preferir
-O agente captura screenshots com seu tema atual (light/dark). Use o que você quer no resultado final.
+
+O agente captura screenshots com seu tema atual (light/dark). Use o que você quer no resultado
+final.
 
 ---
 
 ## 🎓 Aprendizado Rápido
 
-**Primeiro uso**: 5-10 minutos
-**Uso subsequente**: 30 segundos (só chamar o agente)
+**Primeiro uso**: 5-10 minutos **Uso subsequente**: 30 segundos (só chamar o agente)
 
 ---
 

@@ -8,7 +8,11 @@ import { Operator, OrderDirection, ValueType } from '../../../../../domain/utils
 import FancyLoading from '../../../../../components/FancyLoading';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import Toast from 'react-native-toast-message';
-import { MinisterioStatusEnum, MinisterioStatusEnumMap, MinisterioStatusLabel } from '../../../../../domain/enums/Ministerio/ministerio-status.enum';
+import {
+  MinisterioStatusEnum,
+  MinisterioStatusEnumMap,
+  MinisterioStatusLabel,
+} from '../../../../../domain/enums/Ministerio/ministerio-status.enum';
 import { MinisterioTipoLabel } from '../../../../../domain/enums/Ministerio/ministerio-tipo.enum';
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import { useAuth } from '../../../../../contexts/AuthContext';
@@ -47,7 +51,9 @@ export default function MinisteriosIndex() {
   const handleChangeStatus = useCallback(
     (ministerioId: string, ministerioNome: string, newStatus: MinisterioStatusEnum) => {
       FancyAlert.alert(
-        newStatus === MinisterioStatusEnum.Inativo ? 'Desativação de Ministério' : 'Ativação de Ministério',
+        newStatus === MinisterioStatusEnum.Inativo
+          ? 'Desativação de Ministério'
+          : 'Ativação de Ministério',
         `Tem certeza que deseja "${newStatus === MinisterioStatusEnum.Inativo ? 'DESATIVAR' : 'ATIVAR'}" o ministério "${ministerioNome}"?`,
         [
           {
@@ -89,7 +95,9 @@ export default function MinisteriosIndex() {
               removeMinisterio?.(ministerioId);
 
               //Remover ministério do usuário logado, se houver
-              const hasMinisterio = user?.igrejas?.some((igreja) => igreja.ministerios?.some((m) => m.id === ministerioId));
+              const hasMinisterio = user?.igrejas?.some((igreja) =>
+                igreja.ministerios?.some((m) => m.id === ministerioId),
+              );
               if (hasMinisterio && user) {
                 const igrejasAtualizadas = user.igrejas.map((igreja) => ({
                   ...igreja,
@@ -154,7 +162,8 @@ export default function MinisteriosIndex() {
         keyExtractor: (item) => item.id,
         renderItem: ({ item, index }) => {
           const status = MinisterioStatusEnumMap[item.status];
-          const statusColor = status === MinisterioStatusEnum.Ativo ? palette.primary : palette.error;
+          const statusColor =
+            status === MinisterioStatusEnum.Ativo ? palette.primary : palette.error;
           return (
             <FancyListItemCard
               title={item.nome}
@@ -170,11 +179,11 @@ export default function MinisteriosIndex() {
                     }
               }
               meta={
-              <FancyChips
-                size='small'
-                label={MinisterioStatusLabel[item.status]}
-                color={statusColor}
-              />
+                <FancyChips
+                  size='small'
+                  label={MinisterioStatusLabel[item.status]}
+                  color={statusColor}
+                />
               }
               trailing={{ type: 'menu', onPress: () => setActionsMinisterio(item) }}
             />
@@ -200,11 +209,13 @@ export default function MinisteriosIndex() {
           },
           {
             label:
-              actionsMinisterio && MinisterioStatusEnumMap[actionsMinisterio.status] === MinisterioStatusEnum.Ativo
+              actionsMinisterio &&
+              MinisterioStatusEnumMap[actionsMinisterio.status] === MinisterioStatusEnum.Ativo
                 ? 'Desativar'
                 : 'Ativar',
             icon:
-              actionsMinisterio && MinisterioStatusEnumMap[actionsMinisterio.status] === MinisterioStatusEnum.Ativo
+              actionsMinisterio &&
+              MinisterioStatusEnumMap[actionsMinisterio.status] === MinisterioStatusEnum.Ativo
                 ? { library: 'FontAwesome6', name: 'thumbs-down', size: 16 }
                 : { library: 'FontAwesome6', name: 'thumbs-up', size: 16 },
             onPress: () => {

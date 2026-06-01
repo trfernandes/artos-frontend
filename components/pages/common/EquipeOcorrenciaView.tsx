@@ -52,10 +52,8 @@ export default function EquipeOcorrenciaView({
   const dataOcorrenciaIso = dataOcorrencia.toISOString();
 
   const { data, isLoading, refetch } = useEventoEquipe(eventoId, dataOcorrenciaIso, ministerioId);
-  const { ministerioVoluntariosList, isLoadingMinisterioVoluntarios } = useVoluntariosDoMinisterioCrud(
-    ministerioId,
-    MinisterioVoluntarioStatusEnum.Ativo,
-  );
+  const { ministerioVoluntariosList, isLoadingMinisterioVoluntarios } =
+    useVoluntariosDoMinisterioCrud(ministerioId, MinisterioVoluntarioStatusEnum.Ativo);
   const { update } = useEscalaItensCrud();
 
   const [substituicaoVisible, setSubstituicaoVisible] = useState(false);

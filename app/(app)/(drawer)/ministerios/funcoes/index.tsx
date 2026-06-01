@@ -4,11 +4,11 @@ import FancyListPage from '../../../../../components/pages/base/FancyBaseListPag
 import { useMinisterioFuncoesCrud } from '../../../../../hooks/useMinisterioFuncoesCrud';
 import { useLocalSearchParams } from 'expo-router';
 import {
-    Condition,
-    DynamicQuery,
-    Operator,
-    OrderDirection,
-    ValueType,
+  Condition,
+  DynamicQuery,
+  Operator,
+  OrderDirection,
+  ValueType,
 } from '../../../../../domain/utils/query_utils';
 
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
@@ -16,9 +16,9 @@ import FancyLoading from '../../../../../components/FancyLoading';
 import FancyChips from '../../../../../components/FancyChips';
 import { ResponseMinisterioFuncaoDto } from '../../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.response';
 import {
-    MinisterioFuncaoStatusEnum,
-    MinisterioFuncaoStatusEnumLabel,
-    MinisterioFuncaoStatusEnumMap,
+  MinisterioFuncaoStatusEnum,
+  MinisterioFuncaoStatusEnumLabel,
+  MinisterioFuncaoStatusEnumMap,
 } from '../../../../../domain/enums/MinisterioFuncao/ministerio-funcao-status.enum';
 import { CreateMinisterioFuncaoDto } from '../../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.create';
 import { UpdateMinisterioFuncaoDto } from '../../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.update';
@@ -157,7 +157,8 @@ export default function MinisterioFuncoesIndex() {
         data: funcoesList,
         renderItem: ({ item }) => {
           const status = MinisterioFuncaoStatusEnumMap[item.status];
-          const statusColor = status === MinisterioFuncaoStatusEnum.Ativo ? palette.primary : palette.error;
+          const statusColor =
+            status === MinisterioFuncaoStatusEnum.Ativo ? palette.primary : palette.error;
           return (
             <FancyListItemCard
               title={item.nome}

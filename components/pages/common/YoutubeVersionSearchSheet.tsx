@@ -19,7 +19,12 @@ type Props = {
   onSelect: (item: ResponseYoutubeSearchItemDto) => void;
 };
 
-export default function YoutubeVersionSearchSheet({ visible, onClose, initialQuery, onSelect }: Props) {
+export default function YoutubeVersionSearchSheet({
+  visible,
+  onClose,
+  initialQuery,
+  onSelect,
+}: Props) {
   const palette = usePallete();
   const [searchText, setSearchText] = useState(initialQuery?.trim() ?? '');
   const [debouncedQuery, setDebouncedQuery] = useState(initialQuery?.trim() ?? '');
@@ -76,7 +81,12 @@ export default function YoutubeVersionSearchSheet({ visible, onClose, initialQue
         <FancyListEmpty
           label='Serviço indisponível'
           helperText='Não foi possível buscar agora. Tente abrir no YouTube ou continue manualmente.'
-          icon={{ library: 'MaterialCommunityIcons', name: 'wifi-off', size: 48, color: palette.warning }}
+          icon={{
+            library: 'MaterialCommunityIcons',
+            name: 'wifi-off',
+            size: 48,
+            color: palette.warning,
+          }}
           labelColor={palette.warning}
         />
       );
@@ -96,8 +106,14 @@ export default function YoutubeVersionSearchSheet({ visible, onClose, initialQue
     return (
       <View style={styles.resultsBlock}>
         <View style={styles.resultsHeader}>
-          <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive} numberOfLines={1}>
-            {data.length} resultado{data.length === 1 ? '' : 's'} encontrado{data.length === 1 ? '' : 's'}
+          <FancyText
+            size='extraSmall'
+            type='semiBold'
+            color={palette.fonts.inactive}
+            numberOfLines={1}
+          >
+            {data.length} resultado{data.length === 1 ? '' : 's'} encontrado
+            {data.length === 1 ? '' : 's'}
           </FancyText>
           <FancyText size='extraSmall' color={palette.fonts.inactive2} numberOfLines={1}>
             YouTube
@@ -120,7 +136,10 @@ export default function YoutubeVersionSearchSheet({ visible, onClose, initialQue
                 },
               ]}
             >
-              <Image source={{ uri: item.thumbnailUrl }} style={[styles.thumbnail, { backgroundColor: palette.backgroundColor2 }]} />
+              <Image
+                source={{ uri: item.thumbnailUrl }}
+                style={[styles.thumbnail, { backgroundColor: palette.backgroundColor2 }]}
+              />
               <View style={styles.resultContent}>
                 <FancyText type='semiBold' size='small' numberOfLines={2}>
                   {item.title}
@@ -129,8 +148,18 @@ export default function YoutubeVersionSearchSheet({ visible, onClose, initialQue
                   {item.channelTitle}
                 </FancyText>
               </View>
-              <View style={[styles.resultAction, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12) }]}>
-                <DefaultIcons.Custom library='Feather' name='chevron-right' size={15} color={palette.primary} />
+              <View
+                style={[
+                  styles.resultAction,
+                  { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12) },
+                ]}
+              >
+                <DefaultIcons.Custom
+                  library='Feather'
+                  name='chevron-right'
+                  size={15}
+                  color={palette.primary}
+                />
               </View>
             </Pressable>
           ))}
@@ -186,7 +215,12 @@ export default function YoutubeVersionSearchSheet({ visible, onClose, initialQue
           rightContainer={[
             hasSearchText
               ? {
-                  icon: { library: 'Feather', name: 'x-circle', size: 18, color: palette.icons.inactive },
+                  icon: {
+                    library: 'Feather',
+                    name: 'x-circle',
+                    size: 18,
+                    color: palette.icons.inactive,
+                  },
                   onPress: () => {
                     setSearchText('');
                     setDebouncedQuery('');

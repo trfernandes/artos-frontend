@@ -6,7 +6,9 @@ export type NotificationEventMap = {
 };
 
 type NotificationEventName = keyof NotificationEventMap;
-type NotificationListener<K extends NotificationEventName> = (payload: NotificationEventMap[K]) => void;
+type NotificationListener<K extends NotificationEventName> = (
+  payload: NotificationEventMap[K],
+) => void;
 
 const listeners: {
   [K in NotificationEventName]: Set<NotificationListener<K>>;
@@ -41,4 +43,3 @@ export function onNotificationEvent<K extends NotificationEventName>(
     listeners[eventName].delete(listener);
   };
 }
-

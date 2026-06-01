@@ -14,7 +14,8 @@
 }
 ```
 
-**Critical:** These versions are tested together. Mismatched versions cause type errors and runtime issues.
+**Critical:** These versions are tested together. Mismatched versions cause type errors and runtime
+issues.
 
 ## Installation
 
@@ -22,33 +23,34 @@
 npm install react-native-wgpu@^0.4.1 three@0.172.0 @react-three/fiber@^9.4.0 wgpu-matrix@^3.0.2 @types/three@0.172.0 --legacy-peer-deps
 ```
 
-**Note:** `--legacy-peer-deps` may be required due to peer dependency conflicts with canary Expo versions.
+**Note:** `--legacy-peer-deps` may be required due to peer dependency conflicts with canary Expo
+versions.
 
 ## Metro Configuration
 
 Create `metro.config.js` in project root:
 
 ```js
-const { getDefaultConfig } = require("expo/metro-config");
+const { getDefaultConfig } = require('expo/metro-config');
 
 const config = getDefaultConfig(__dirname);
 
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   // Force 'three' to webgpu build
-  if (moduleName.startsWith("three")) {
-    moduleName = "three/webgpu";
+  if (moduleName.startsWith('three')) {
+    moduleName = 'three/webgpu';
   }
 
   // Use standard react-three/fiber instead of React Native version
-  if (platform !== "web" && moduleName.startsWith("@react-three/fiber")) {
+  if (platform !== 'web' && moduleName.startsWith('@react-three/fiber')) {
     return context.resolveRequest(
       {
         ...context,
-        unstable_conditionNames: ["module"],
-        mainFields: ["module"],
+        unstable_conditionNames: ['module'],
+        mainFields: ['module'],
       },
       moduleName,
-      platform
+      platform,
     );
   }
   return context.resolveRequest(context, moduleName, platform);
@@ -64,8 +66,8 @@ Create these files in `src/lib/`:
 ### 1. make-webgpu-renderer.ts
 
 ```ts
-import type { NativeCanvas } from "react-native-wgpu";
-import * as THREE from "three/webgpu";
+import type { NativeCanvas } from 'react-native-wgpu';
+import * as THREE from 'three/webgpu';
 
 export class ReactNativeCanvas {
   constructor(private canvas: NativeCanvas) {}
@@ -104,7 +106,7 @@ export class ReactNativeCanvas {
 
 export const makeWebGPURenderer = (
   context: GPUCanvasContext,
-  { antialias = true }: { antialias?: boolean } = {}
+  { antialias = true }: { antialias?: boolean } = {},
 ) =>
   new THREE.WebGPURenderer({
     antialias,
@@ -117,23 +119,15 @@ export const makeWebGPURenderer = (
 ### 2. fiber-canvas.tsx
 
 ```tsx
-import * as THREE from "three/webgpu";
-import React, { useEffect, useRef } from "react";
-import type { ReconcilerRoot, RootState } from "@react-three/fiber";
-import {
-  extend,
-  createRoot,
-  unmountComponentAtNode,
-  events,
-} from "@react-three/fiber";
-import type { ViewProps } from "react-native";
-import { PixelRatio } from "react-native";
-import { Canvas, type CanvasRef } from "react-native-wgpu";
+import * as THREE from 'three/webgpu';
+import React, { useEffect, useRef } from 'react';
+import type { ReconcilerRoot, RootState } from '@react-three/fiber';
+import { extend, createRoot, unmountComponentAtNode, events } from '@react-three/fiber';
+import type { ViewProps } from 'react-native';
+import { PixelRatio } from 'react-native';
+import { Canvas, type CanvasRef } from 'react-native-wgpu';
 
-import {
-  makeWebGPURenderer,
-  ReactNativeCanvas,
-} from "@/lib/make-webgpu-renderer";
+import { makeWebGPURenderer, ReactNativeCanvas } from '@/lib/make-webgpu-renderer';
 
 // Extend THREE namespace for R3F - add all components you use
 extend({
@@ -160,22 +154,17 @@ extend({
 
 interface FiberCanvasProps {
   children: React.ReactNode;
-  style?: ViewProps["style"];
+  style?: ViewProps['style'];
   camera?: THREE.PerspectiveCamera;
   scene?: THREE.Scene;
 }
 
-export const FiberCanvas = ({
-  children,
-  style,
-  scene,
-  camera,
-}: FiberCanvasProps) => {
+export const FiberCanvas = ({ children, style, scene, camera }: FiberCanvasProps) => {
   const root = useRef<ReconcilerRoot<OffscreenCanvas>>(null!);
   const canvasRef = useRef<CanvasRef>(null);
 
   useEffect(() => {
-    const context = canvasRef.current!.getContext("webgpu")!;
+    const context = canvasRef.current!.getContext('webgpu')!;
     const renderer = makeWebGPURenderer(context);
 
     // @ts-expect-error - ReactNativeCanvas wraps native canvas
@@ -198,7 +187,7 @@ export const FiberCanvas = ({
       scene,
       camera,
       gl: renderer,
-      frameloop: "always",
+      frameloop: 'always',
       dpr: 1,
       onCreated: async (state: RootState) => {
         // @ts-expect-error - WebGPU renderer has init method
@@ -225,11 +214,11 @@ export const FiberCanvas = ({
 ## Basic 3D Scene
 
 ```tsx
-import * as THREE from "three/webgpu";
-import { View } from "react-native";
-import { useRef } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
-import { FiberCanvas } from "@/lib/fiber-canvas";
+import * as THREE from 'three/webgpu';
+import { View } from 'react-native';
+import { useRef } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
+import { FiberCanvas } from '@/lib/fiber-canvas';
 
 function RotatingBox() {
   const ref = useRef<THREE.Mesh>(null!);
@@ -242,7 +231,7 @@ function RotatingBox() {
   return (
     <mesh ref={ref}>
       <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color="hotpink" />
+      <meshStandardMaterial color='hotpink' />
     </mesh>
   );
 }
@@ -280,15 +269,15 @@ export default function App() {
 Use React.lazy to code-split Three.js for better loading:
 
 ```tsx
-import React, { Suspense } from "react";
-import { ActivityIndicator, View } from "react-native";
+import React, { Suspense } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 
-const Scene = React.lazy(() => import("@/components/scene"));
+const Scene = React.lazy(() => import('@/components/scene'));
 
 export default function Page() {
   return (
     <View style={{ flex: 1 }}>
-      <Suspense fallback={<ActivityIndicator size="large" />}>
+      <Suspense fallback={<ActivityIndicator size='large' />}>
         <Scene />
       </Suspense>
     </View>
@@ -343,9 +332,9 @@ export default function Page() {
 ## Animation with useFrame
 
 ```tsx
-import { useFrame } from "@react-three/fiber";
-import { useRef } from "react";
-import * as THREE from "three/webgpu";
+import { useFrame } from '@react-three/fiber';
+import { useRef } from 'react';
+import * as THREE from 'three/webgpu';
 
 function AnimatedMesh() {
   const ref = useRef<THREE.Mesh>(null!);
@@ -362,7 +351,7 @@ function AnimatedMesh() {
   return (
     <mesh ref={ref}>
       <boxGeometry />
-      <meshStandardMaterial color="orange" />
+      <meshStandardMaterial color='orange' />
     </mesh>
   );
 }
@@ -371,9 +360,9 @@ function AnimatedMesh() {
 ## Particle Systems
 
 ```tsx
-import * as THREE from "three/webgpu";
-import { useRef, useEffect } from "react";
-import { useFrame } from "@react-three/fiber";
+import * as THREE from 'three/webgpu';
+import { useRef, useEffect } from 'react';
+import { useFrame } from '@react-three/fiber';
 
 function Particles({ count = 500 }) {
   const ref = useRef<THREE.Points>(null!);
@@ -401,12 +390,9 @@ function Particles({ count = 500 }) {
   return (
     <points ref={ref}>
       <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          args={[positions.current, 3]}
-        />
+        <bufferAttribute attach='attributes-position' args={[positions.current, 3]} />
       </bufferGeometry>
-      <pointsMaterial color="#ffffff" size={0.2} sizeAttenuation />
+      <pointsMaterial color='#ffffff' size={0.2} sizeAttenuation />
     </points>
   );
 }
@@ -417,9 +403,9 @@ function Particles({ count = 500 }) {
 See the full `orbit-controls.tsx` implementation in the lib files. Usage:
 
 ```tsx
-import { View } from "react-native";
-import { FiberCanvas } from "@/lib/fiber-canvas";
-import useControls from "@/lib/orbit-controls";
+import { View } from 'react-native';
+import { FiberCanvas } from '@/lib/fiber-canvas';
+import useControls from '@/lib/orbit-controls';
 
 function Scene() {
   const [OrbitControls, events] = useControls();
@@ -541,11 +527,11 @@ Performance critical?
 ## Example: Complete Game Scene
 
 ```tsx
-import * as THREE from "three/webgpu";
-import { View, Text, Pressable } from "react-native";
-import { useRef, useState, useCallback } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
-import { FiberCanvas } from "@/lib/fiber-canvas";
+import * as THREE from 'three/webgpu';
+import { View, Text, Pressable } from 'react-native';
+import { useRef, useState, useCallback } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
+import { FiberCanvas } from '@/lib/fiber-canvas';
 
 function Player({ position }: { position: THREE.Vector3 }) {
   const ref = useRef<THREE.Mesh>(null!);
@@ -557,7 +543,7 @@ function Player({ position }: { position: THREE.Vector3 }) {
   return (
     <mesh ref={ref}>
       <coneGeometry args={[0.5, 1, 8]} />
-      <meshStandardMaterial color="#00ffff" />
+      <meshStandardMaterial color='#00ffff' />
     </mesh>
   );
 }
@@ -586,17 +572,17 @@ export default function Game() {
   const [playerX, setPlayerX] = useState(0);
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#000" }}>
+    <View style={{ flex: 1, backgroundColor: '#000' }}>
       <FiberCanvas style={{ flex: 1 }}>
         <GameScene playerX={playerX} />
       </FiberCanvas>
 
-      <View style={{ position: "absolute", bottom: 40, flexDirection: "row" }}>
+      <View style={{ position: 'absolute', bottom: 40, flexDirection: 'row' }}>
         <Pressable onPress={() => setPlayerX((x) => x - 1)}>
-          <Text style={{ color: "#fff", fontSize: 32 }}>◀</Text>
+          <Text style={{ color: '#fff', fontSize: 32 }}>◀</Text>
         </Pressable>
         <Pressable onPress={() => setPlayerX((x) => x + 1)}>
-          <Text style={{ color: "#fff", fontSize: 32 }}>▶</Text>
+          <Text style={{ color: '#fff', fontSize: 32 }}>▶</Text>
         </Pressable>
       </View>
     </View>

@@ -282,9 +282,7 @@ export default function CreateIgrejaAccountTabPlano() {
                               { backgroundColor: ColorUtils.withAlpha(accent, 0.16) },
                             ]}
                           >
-                            <View
-                              style={[styles.featureDotInner, { backgroundColor: accent }]}
-                            />
+                            <View style={[styles.featureDotInner, { backgroundColor: accent }]} />
                           </View>
                           <FancyText size='extraSmall' style={styles.featureText} numberOfLines={1}>
                             {item}
@@ -298,9 +296,7 @@ export default function CreateIgrejaAccountTabPlano() {
                     style={[
                       styles.planAction,
                       {
-                        backgroundColor: selected
-                          ? accent
-                          : ColorUtils.withAlpha(accent, 0.12),
+                        backgroundColor: selected ? accent : ColorUtils.withAlpha(accent, 0.12),
                       },
                     ]}
                   >
@@ -440,9 +436,7 @@ export default function CreateIgrejaAccountTabPlano() {
                             { backgroundColor: ColorUtils.withAlpha(accent, 0.16) },
                           ]}
                         >
-                          <View
-                            style={[styles.featureDotInner, { backgroundColor: accent }]}
-                          />
+                          <View style={[styles.featureDotInner, { backgroundColor: accent }]} />
                         </View>
                         <FancyText size='extraSmall' style={styles.featureText} numberOfLines={1}>
                           {item}
@@ -456,9 +450,7 @@ export default function CreateIgrejaAccountTabPlano() {
                   style={[
                     styles.planAction,
                     {
-                      backgroundColor: selected
-                        ? accent
-                        : ColorUtils.withAlpha(accent, 0.12),
+                      backgroundColor: selected ? accent : ColorUtils.withAlpha(accent, 0.12),
                     },
                   ]}
                 >

@@ -9,8 +9,10 @@ type ResolveEventoEnsaioInfoParams = {
 };
 
 export function isLouvorMinisterioTipo(tipo: unknown): boolean {
-  return String(tipo ?? '') === String(MinisterioTipoEnum.Louvor)
-    || Number(tipo) === Number(MinisterioTipoEnum.Louvor);
+  return (
+    String(tipo ?? '') === String(MinisterioTipoEnum.Louvor) ||
+    Number(tipo) === Number(MinisterioTipoEnum.Louvor)
+  );
 }
 
 export function normalizeHorarioEnsaio(value?: string | null): string | undefined {
@@ -23,7 +25,8 @@ export function resolveEventoEnsaioInfo({
   isLouvor = false,
   fallbackLabel = 'Horário de ensaio a definir',
 }: ResolveEventoEnsaioInfoParams) {
-  const horario = normalizeHorarioEnsaio(horarioEnsaio) ?? normalizeHorarioEnsaio(horarioEnsaioPadrao);
+  const horario =
+    normalizeHorarioEnsaio(horarioEnsaio) ?? normalizeHorarioEnsaio(horarioEnsaioPadrao);
   const shouldShow = isLouvor || !!horario;
 
   return {

@@ -1,7 +1,13 @@
-import { ResponseLoginIgrejaDto, ResponseLoginMinisterioDto } from '../domain/dtos/login/login.response';
+import {
+  ResponseLoginIgrejaDto,
+  ResponseLoginMinisterioDto,
+} from '../domain/dtos/login/login.response';
 import { IgrejaVoluntarioRoleEnum } from '../domain/enums/Igreja/voluntario-role.enum';
 import { VoluntarioHierarquiaEnum } from '../domain/enums/MinisterioVoluntario/hierarquia.enum';
-import { RecursoPermissaoEnum, TipoPermissaoEnum } from '../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
+import {
+  RecursoPermissaoEnum,
+  TipoPermissaoEnum,
+} from '../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
 
 export function getMinisterioLoginAccess(
   igrejaAtiva: ResponseLoginIgrejaDto | null | undefined,
@@ -46,10 +52,6 @@ export function canManageEventoOcorrencia(
       RecursoPermissaoEnum.AgendaEventos,
       TipoPermissaoEnum.AlterarOcorrencia,
     ) ||
-    hasMinisterioPermission(
-      ministerio,
-      RecursoPermissaoEnum.Escalas,
-      TipoPermissaoEnum.Alterar,
-    )
+    hasMinisterioPermission(ministerio, RecursoPermissaoEnum.Escalas, TipoPermissaoEnum.Alterar)
   );
 }

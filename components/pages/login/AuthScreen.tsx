@@ -335,14 +335,13 @@ export default function AuthScreen({
             style={[
               {
                 flex: 1,
-                marginBottom:
-                  keyboardVisible
-                    ? shouldUseAreaLayout
-                      ? resolvedBottomSpacing
-                      : 0
-                    : Platform.OS === 'ios'
-                      ? 0
-                      : 22,
+                marginBottom: keyboardVisible
+                  ? shouldUseAreaLayout
+                    ? resolvedBottomSpacing
+                    : 0
+                  : Platform.OS === 'ios'
+                    ? 0
+                    : 22,
               },
               scrollContainerStyles,
             ]}

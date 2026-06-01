@@ -28,7 +28,8 @@ export function useEscalaItensCrud({
     muteMessages,
     messages,
     fetchAll: () => EscalaItensRepository.getAll(),
-    search: (query) => EscalaItensRepository.search({ ...query, igrejaId: igrejaAtiva.id }, includeFotos),
+    search: (query) =>
+      EscalaItensRepository.search({ ...query, igrejaId: igrejaAtiva.id }, includeFotos),
     fetchOne: async (id) => {
       const result = await EscalaItensRepository.search({
         where: {
@@ -45,7 +46,8 @@ export function useEscalaItensCrud({
       return result[0];
     },
     add: (data) => EscalaItensRepository.add({ ...data, igrejaId: igrejaAtiva.id } as any),
-    update: (id, data) => EscalaItensRepository.update(id, { ...data, igrejaId: igrejaAtiva.id } as any),
+    update: (id, data) =>
+      EscalaItensRepository.update(id, { ...data, igrejaId: igrejaAtiva.id } as any),
     remove: (id) => EscalaItensRepository.removeWithIgrejaId(id, igrejaAtiva.id),
   });
 

@@ -115,16 +115,22 @@ export default function FancyListItemCard({
 
 function LeadingItem({ leading }: { leading: Leading }) {
   const palette = usePallete();
-  const fallbackColor = leading.type === 'image' ? palette.primary : leading.color ?? palette.primary;
+  const fallbackColor =
+    leading.type === 'image' ? palette.primary : (leading.color ?? palette.primary);
   const fallbackBg =
     leading.type === 'image'
       ? ColorUtils.withAlpha(palette.primary, 0.12)
-      : leading.backgroundColor ?? ColorUtils.withAlpha(fallbackColor, 0.12);
+      : (leading.backgroundColor ?? ColorUtils.withAlpha(fallbackColor, 0.12));
 
   if (leading.type === 'image') {
     return (
       <View style={[styles.leading, { backgroundColor: fallbackBg }]}>
-        <Image source={leading.source} style={styles.image} cachePolicy='memory-disk' transition={120} />
+        <Image
+          source={leading.source}
+          style={styles.image}
+          cachePolicy='memory-disk'
+          transition={120}
+        />
       </View>
     );
   }
@@ -158,9 +164,10 @@ function TrailingItem({
   defaultPress?: () => void;
 }) {
   const palette = usePallete();
-  const trailingType = typeof trailing === 'object' && trailing && 'type' in trailing
-    ? (trailing as { type?: string }).type
-    : undefined;
+  const trailingType =
+    typeof trailing === 'object' && trailing && 'type' in trailing
+      ? (trailing as { type?: string }).type
+      : undefined;
 
   if (trailingType !== 'menu' && trailingType !== 'chevron') {
     return <View style={styles.trailing}>{trailing as ReactNode}</View>;
@@ -168,7 +175,7 @@ function TrailingItem({
 
   const actionTrailing = trailing as { type: 'menu' | 'chevron'; onPress?: () => void };
   const isMenu = actionTrailing.type === 'menu';
-  const onPress = isMenu ? actionTrailing.onPress : actionTrailing.onPress ?? defaultPress;
+  const onPress = isMenu ? actionTrailing.onPress : (actionTrailing.onPress ?? defaultPress);
 
   return (
     <Pressable

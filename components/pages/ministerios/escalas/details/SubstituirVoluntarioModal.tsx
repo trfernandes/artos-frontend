@@ -41,7 +41,11 @@ export interface SubstituicaoConfirmDialog {
   idSubstituto: string;
 }
 
-export default function SubstituirVoluntarioModal({ data, currentEquipe, ...props }: SubstituirVoluntarioModalProps & FancyModalDialogProps<any>) {
+export default function SubstituirVoluntarioModal({
+  data,
+  currentEquipe,
+  ...props
+}: SubstituirVoluntarioModalProps & FancyModalDialogProps<any>) {
   const palette = usePallete();
   const [disponiveisNaData, setDisponiveisNaData] = useState(false);
   const [temMesmaFuncao, setTemMesmaFuncao] = useState(false);
@@ -55,20 +59,31 @@ export default function SubstituirVoluntarioModal({ data, currentEquipe, ...prop
     isLoadingMinisterioVoluntariosMutation,
   } = useVoluntariosDoMinisterioCrud(data.ministerioId);
 
-  const [voluntariosDropDownList, setVoluntariosDropDownList] = useState<DropDownItemProps<string>[]>([]);
+  const [voluntariosDropDownList, setVoluntariosDropDownList] = useState<
+    DropDownItemProps<string>[]
+  >([]);
 
   const [isLoadingSubstitutos, setIsLoadingSubstitutos] = useState(false);
 
   // Estabiliza as dependências do useEffect
-  const dataOcorrenciaString = useMemo(() => data.evento.dataOcorrencia.toISOString(), [data.evento.dataOcorrencia]);
+  const dataOcorrenciaString = useMemo(
+    () => data.evento.dataOcorrencia.toISOString(),
+    [data.evento.dataOcorrencia],
+  );
   const funcaoId = useMemo(() => data.funcao?.id, [data.funcao?.id]);
-  const currentVoluntarioId = useMemo(() => data.voluntario?.minVoluntarioId, [data.voluntario?.minVoluntarioId]);
+  const currentVoluntarioId = useMemo(
+    () => data.voluntario?.minVoluntarioId,
+    [data.voluntario?.minVoluntarioId],
+  );
 
   const alreadyAssignedIds = useMemo(() => {
     if (!currentEquipe) return new Set<string>();
     return new Set(
       currentEquipe
-        .filter((e) => !!e.voluntario?.minVoluntarioId && e.voluntario.minVoluntarioId !== currentVoluntarioId)
+        .filter(
+          (e) =>
+            !!e.voluntario?.minVoluntarioId && e.voluntario.minVoluntarioId !== currentVoluntarioId,
+        )
         .map((e) => e.voluntario!.minVoluntarioId),
     );
   }, [currentEquipe, currentVoluntarioId]);
@@ -164,22 +179,20 @@ export default function SubstituirVoluntarioModal({ data, currentEquipe, ...prop
         }
 
         // 🔹 Monta a lista final do dropdown
-        const mapped = newList.map(
-          (minVoluntario) => {
-            const voluntario = minVoluntario.voluntario as any;
-            return {
-              title: voluntario?.nome,
-              value: minVoluntario.id,
-              left: {
-                type: 'image',
-                source:
-                  voluntario?.fotoThumbUrl || voluntario?.fotoUrl
-                    ? { uri: voluntario?.fotoThumbUrl || voluntario?.fotoUrl || '' }
-                    : AppImages.emptyProfile,
-              },
-            } as DropDownItemProps<string>;
-          },
-        );
+        const mapped = newList.map((minVoluntario) => {
+          const voluntario = minVoluntario.voluntario as any;
+          return {
+            title: voluntario?.nome,
+            value: minVoluntario.id,
+            left: {
+              type: 'image',
+              source:
+                voluntario?.fotoThumbUrl || voluntario?.fotoUrl
+                  ? { uri: voluntario?.fotoThumbUrl || voluntario?.fotoUrl || '' }
+                  : AppImages.emptyProfile,
+            },
+          } as DropDownItemProps<string>;
+        });
 
         setVoluntariosDropDownList(mapped);
       } finally {
@@ -188,7 +201,16 @@ export default function SubstituirVoluntarioModal({ data, currentEquipe, ...prop
     }
 
     filtrarVoluntarios();
-  }, [ministerioVoluntariosList, disponiveisNaData, temMesmaFuncao, dataOcorrenciaString, funcaoId, currentVoluntarioId, igrejaId, alreadyAssignedIds]);
+  }, [
+    ministerioVoluntariosList,
+    disponiveisNaData,
+    temMesmaFuncao,
+    dataOcorrenciaString,
+    funcaoId,
+    currentVoluntarioId,
+    igrejaId,
+    alreadyAssignedIds,
+  ]);
 
   const [selectedSubstituto, setSelectedSubstituto] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -237,25 +259,42 @@ export default function SubstituirVoluntarioModal({ data, currentEquipe, ...prop
       button1={{ disabled: isSubmitting }}
       button2={{ isLoading: isSubmitting, loadingText: 'Substituindo...' }}
       containerStyle={{
-        pointerEvents: isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation || isLoadingSubstitutos ? 'none' : 'auto',
+        pointerEvents:
+          isLoadingMinisterioVoluntarios ||
+          isLoadingMinisterioVoluntariosMutation ||
+          isLoadingSubstitutos
+            ? 'none'
+            : 'auto',
       }}
     >
-      <View style={{
-        backgroundColor: palette.backgroundColor2,
-        borderRadius: 14,
-        borderWidth: 1,
-        borderColor: palette.borderCard,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        gap: 6,
-      }}>
+      <View
+        style={{
+          backgroundColor: palette.backgroundColor2,
+          borderRadius: 14,
+          borderWidth: 1,
+          borderColor: palette.borderCard,
+          paddingHorizontal: 12,
+          paddingVertical: 10,
+          gap: 6,
+        }}
+      >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <DefaultIcons.Custom library='MaterialIcons' name='event' size={12} color={palette.primary} />
+          <DefaultIcons.Custom
+            library='MaterialIcons'
+            name='event'
+            size={12}
+            color={palette.primary}
+          />
           <FancyText size='extraSmall' type='medium'>
             {`${format(data?.evento.dataOcorrencia, 'dd/MM/yyyy')} - ${format(data?.evento.dataInicio!, 'HH:mm')} à ${format(data?.evento.dataTermino!, 'HH:mm')}`}
           </FancyText>
         </View>
-        <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: ColorUtils.withAlpha(palette.borderCard, 0.7) }} />
+        <View
+          style={{
+            height: StyleSheet.hairlineWidth,
+            backgroundColor: ColorUtils.withAlpha(palette.borderCard, 0.7),
+          }}
+        />
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <FancyAvatarImage
             source={
@@ -267,8 +306,12 @@ export default function SubstituirVoluntarioModal({ data, currentEquipe, ...prop
             style={{ width: 20, height: 20 }}
           />
           <View>
-            <FancyText size={10} color={palette.fonts.inactive}>{data?.funcao?.nome}</FancyText>
-            <FancyText size={12} type='semiBold'>{getFirstAndLastName(data?.voluntario?.nome)}</FancyText>
+            <FancyText size={10} color={palette.fonts.inactive}>
+              {data?.funcao?.nome}
+            </FancyText>
+            <FancyText size={12} type='semiBold'>
+              {getFirstAndLastName(data?.voluntario?.nome)}
+            </FancyText>
           </View>
         </View>
       </View>
@@ -280,12 +323,24 @@ export default function SubstituirVoluntarioModal({ data, currentEquipe, ...prop
 
           <View style={{ gap: 12 }}>
             <View style={{ gap: 8 }}>
-              <FancyCheckbox value={disponiveisNaData} onChangeValue={setDisponiveisNaData} label='Disponíveis na data' disabled={isSubmitting} />
-              <FancyCheckbox value={temMesmaFuncao} onChangeValue={setTemMesmaFuncao} label='Tem a mesma função' disabled={isSubmitting} />
+              <FancyCheckbox
+                value={disponiveisNaData}
+                onChangeValue={setDisponiveisNaData}
+                label='Disponíveis na data'
+                disabled={isSubmitting}
+              />
+              <FancyCheckbox
+                value={temMesmaFuncao}
+                onChangeValue={setTemMesmaFuncao}
+                label='Tem a mesma função'
+                disabled={isSubmitting}
+              />
             </View>
 
             {isLoadingSubstitutos && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 }}>
+              <View
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 }}
+              >
                 <ActivityIndicator size='small' color={palette.primary} />
                 <FancyText size='extraSmall' color={palette.fonts.inactive}>
                   Filtrando voluntários...
@@ -307,7 +362,11 @@ export default function SubstituirVoluntarioModal({ data, currentEquipe, ...prop
                 }}
                 listItems={voluntariosDropDownList}
                 isLoading={isLoadingSubstitutos}
-                disabled={isSubmitting || isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation}
+                disabled={
+                  isSubmitting ||
+                  isLoadingMinisterioVoluntarios ||
+                  isLoadingMinisterioVoluntariosMutation
+                }
               />
               {errors && <FancyErrorText message={errors['substituto']} />}
             </View>

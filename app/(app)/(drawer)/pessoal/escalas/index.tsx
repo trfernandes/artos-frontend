@@ -14,7 +14,7 @@ import { EscalaItensRepository } from '../../../../../domain/services/EscalaIten
 import { useEscalaItensCrud } from '../../../../../hooks/useEscalaItensCrud';
 import Toast from 'react-native-toast-message';
 import EventoDetails, {
-    EventoDetailsProps,
+  EventoDetailsProps,
 } from '../../../../../components/pages/pessoal/escalas/index/EventoDetails';
 import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
@@ -150,8 +150,12 @@ export default function MinhasEscalasIndexPage() {
     [params.dataReferencia, params.month],
   );
 
-  const [selectedDate, setSelectedDate] = useState<Date>(initialDateFromParams ?? initialMonthFromParams ?? new Date());
-  const [showingMonth, setShowingMonth] = useState<Date>(initialMonthFromParams ?? initialDateFromParams ?? new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(
+    initialDateFromParams ?? initialMonthFromParams ?? new Date(),
+  );
+  const [showingMonth, setShowingMonth] = useState<Date>(
+    initialMonthFromParams ?? initialDateFromParams ?? new Date(),
+  );
   const [eventosOfSelectedDate, setEventosOfSelectedDate] = useState<EscalaDoDiaAgrupada[]>([]);
 
   useEffect(() => {
@@ -491,7 +495,6 @@ export default function MinhasEscalasIndexPage() {
   return (
     <FancyPageView style={styles.container}>
       <PendenciasChip count={solicitacoesDeSubstituicao?.length ?? 0} />
-
 
       <FancyCalendar
         containerStyle={styles.calendarContainer}

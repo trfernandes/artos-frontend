@@ -3,7 +3,11 @@ import { ResponseMinisterioDto } from '../dtos/Ministerio/ministerio.response';
 import { UpdateMinisterioDto } from '../dtos/Ministerio/ministerio.update';
 import { BaseApi } from './BaseApi';
 
-class MinisteriosApiClass extends BaseApi<ResponseMinisterioDto, CreateMinisterioDto, UpdateMinisterioDto> {
+class MinisteriosApiClass extends BaseApi<
+  ResponseMinisterioDto,
+  CreateMinisterioDto,
+  UpdateMinisterioDto
+> {
   constructor() {
     super('ministerios');
   }

@@ -25,7 +25,13 @@ export default function FancyCardSimple(props: FancyCardSimpleProps) {
       {...props}
       containerStyle={[props.containerStyle, { paddingLeft: 0 }]}
       leftItem={<View style={{ width: 0 }} />}
-      rightItem={isValidElement(props.actionButtons) ? props.actionButtons : <FancyActionButtons actions={props.actionButtons} />}
+      rightItem={
+        isValidElement(props.actionButtons) ? (
+          props.actionButtons
+        ) : (
+          <FancyActionButtons actions={props.actionButtons} />
+        )
+      }
     />
   );
 }

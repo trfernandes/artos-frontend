@@ -12,7 +12,12 @@ export const eventoSchema = z
       .min(3, 'O nome do evento deve ter pelo menos 3 caracteres')
       .max(255, 'O nome do evento pode ter no máximo 255 caracteres'),
     descricao: z.string().max(1000, 'A descrição pode ter no máximo 1000 caracteres').optional(),
-    dataInicio: z.date().refine((d) => d >= new Date('1900-01-01'), 'A data de início deve ser posterior a 01/01/1900'),
+    dataInicio: z
+      .date()
+      .refine(
+        (d) => d >= new Date('1900-01-01'),
+        'A data de início deve ser posterior a 01/01/1900',
+      ),
     dataTermino: z.date().optional(),
     local: z.string().max(255, 'O local pode ter no máximo 255 caracteres').optional(),
     cor: z.string().regex(/^#([0-9A-Fa-f]{3}){1,2}$/, 'Cor inválida'),

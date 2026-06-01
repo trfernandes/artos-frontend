@@ -12,19 +12,24 @@ type DashboardSectionProps = {
   children: React.ReactNode;
 };
 
-export default function DashboardSection({ title, badge, onVerMais, children }: DashboardSectionProps) {
+export default function DashboardSection({
+  title,
+  badge,
+  onVerMais,
+  children,
+}: DashboardSectionProps) {
   const Pallete = usePallete();
   const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.titleContainer}>
-          <FancyText size="small" type="semiBold" color={Pallete.fonts.inactive}>
+          <FancyText size='small' type='semiBold' color={Pallete.fonts.inactive}>
             {title}
           </FancyText>
           {badge !== undefined && badge > 0 && (
             <View style={styles.badge}>
-              <FancyText size="extraSmall" type="bold" color={Pallete.fonts.light}>
+              <FancyText size='extraSmall' type='bold' color={Pallete.fonts.light}>
                 {badge}
               </FancyText>
             </View>
@@ -33,7 +38,7 @@ export default function DashboardSection({ title, badge, onVerMais, children }: 
 
         {onVerMais && (
           <Pressable onPress={onVerMais}>
-            <FancyText size="small" type="medium" color={Pallete.primary}>
+            <FancyText size='small' type='medium' color={Pallete.primary}>
               Ver tudo
             </FancyText>
           </Pressable>

@@ -21,7 +21,11 @@ export type VoluntarioSummarySheetProps = {
   } | null;
 };
 
-export default function VoluntarioSummarySheet({ visible, onClose, data }: VoluntarioSummarySheetProps) {
+export default function VoluntarioSummarySheet({
+  visible,
+  onClose,
+  data,
+}: VoluntarioSummarySheetProps) {
   const palette = usePallete();
 
   return (
@@ -41,7 +45,12 @@ export default function VoluntarioSummarySheet({ visible, onClose, data }: Volun
               {data?.nome || '-'}
             </FancyText>
             {!!data?.email && (
-              <FancyText size='small' type='medium' color={palette.fonts.light} style={{ opacity: 0.84 }}>
+              <FancyText
+                size='small'
+                type='medium'
+                color={palette.fonts.light}
+                style={{ opacity: 0.84 }}
+              >
                 {data.email}
               </FancyText>
             )}
@@ -50,24 +59,9 @@ export default function VoluntarioSummarySheet({ visible, onClose, data }: Volun
       </View>
 
       <View style={styles.content}>
-        {!!data?.email && (
-          <InfoBlock
-            label='E-mail'
-            value={data.email}
-          />
-        )}
-        {!!data?.telefone && (
-          <InfoBlock
-            label='Telefone'
-            value={data.telefone}
-          />
-        )}
-        {!!data?.papelLabel && (
-          <InfoBlock
-            label='Papel'
-            value={data.papelLabel}
-          />
-        )}
+        {!!data?.email && <InfoBlock label='E-mail' value={data.email} />}
+        {!!data?.telefone && <InfoBlock label='Telefone' value={data.telefone} />}
+        {!!data?.papelLabel && <InfoBlock label='Papel' value={data.papelLabel} />}
 
         {!!data?.permissionSummary && (
           <View style={styles.permissionsBlock}>

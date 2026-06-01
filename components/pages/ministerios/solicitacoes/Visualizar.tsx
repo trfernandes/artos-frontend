@@ -46,7 +46,12 @@ export default function Visualizar(props: Omit<FancyModalDialogProps<any>, 'titl
           <FancyButton
             icon={{ ...DefaultIconsNames.open, size: 18, color: Pallete.icons.dark }}
             size={35}
-            containerStyle={{ backgroundColor: Pallete.backgroundColor, position: 'absolute', top: 10, right: 0 }}
+            containerStyle={{
+              backgroundColor: Pallete.backgroundColor,
+              position: 'absolute',
+              top: 10,
+              right: 0,
+            }}
           />
           <FancyText size={'small'} type='medium'>
             Evento:

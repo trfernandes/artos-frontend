@@ -47,7 +47,8 @@ export function useIndisponibilidadesVoluntariosCrud({
   });
 
   const upsertMany = useMutation({
-    mutationFn: (payload: UpsertIndisponibilidadesVoluntarioDto) => IndisponibilidadesVoluntariosRepository.upsertMany(payload),
+    mutationFn: (payload: UpsertIndisponibilidadesVoluntarioDto) =>
+      IndisponibilidadesVoluntariosRepository.upsertMany(payload),
     onSuccess: async () => {
       if (!muteMessages) {
         Toast.show({
@@ -69,7 +70,8 @@ export function useIndisponibilidadesVoluntariosCrud({
   });
 
   const removeWithIgreja = useMutation({
-    mutationFn: ({ id, igrejaId }: { id: string; igrejaId: string }) => IndisponibilidadesVoluntariosRepository.remove(id, igrejaId),
+    mutationFn: ({ id, igrejaId }: { id: string; igrejaId: string }) =>
+      IndisponibilidadesVoluntariosRepository.remove(id, igrejaId),
     onSuccess: async () => {
       if (!muteMessages) {
         Toast.show({

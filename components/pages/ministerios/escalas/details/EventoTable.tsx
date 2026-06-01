@@ -25,7 +25,9 @@ import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 import { useAppTheme } from '../../../../../hooks/useAppTheme';
 import FancyLoading from '../../../../FancyLoading';
 import FancyButton from '../../../../buttons/FancyButton';
-import FancyBottomSheetSelect, { FancyBottomSheetSelectRef } from '../../../../fields/FancyBottomSheetSelect';
+import FancyBottomSheetSelect, {
+  FancyBottomSheetSelectRef,
+} from '../../../../fields/FancyBottomSheetSelect';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
 import FancyImage from '../../../../images/FancyImage';
 
@@ -81,7 +83,10 @@ export default function EventoTable({
     isOpen: false,
   });
   const [adicionarFuncaoModalOpen, setAdicionarFuncaoModalOpen] = useState(false);
-  const [loadingAction, setLoadingAction] = useState<{ visible: boolean; label: string }>({ visible: false, label: '' });
+  const [loadingAction, setLoadingAction] = useState<{ visible: boolean; label: string }>({
+    visible: false,
+    label: '',
+  });
   const [isAccordionExpanded, setIsAccordionExpanded] = useState(false);
   const [isAccordionPending, setIsAccordionPending] = useState(false);
   const openFrameRef = useRef<number | null>(null);
@@ -138,7 +143,11 @@ export default function EventoTable({
     const accentHsl = ColorUtils.hexToHsl(baseAccentColor);
     const accentColor =
       hasEventPassed && accentHsl
-        ? ColorUtils.hslToHex(accentHsl[0], Math.max(10, Math.round(accentHsl[1] * 0.26)), Math.min(88, accentHsl[2] + 6))
+        ? ColorUtils.hslToHex(
+            accentHsl[0],
+            Math.max(10, Math.round(accentHsl[1] * 0.26)),
+            Math.min(88, accentHsl[2] + 6),
+          )
         : baseAccentColor;
     const darkStart = isDark
       ? ColorUtils.withAlpha(accentColor, 0.32)
@@ -209,8 +218,8 @@ export default function EventoTable({
   const hasResponsavelSetlist = Boolean(responsavelSetlistValue);
   const responsavelSetlistNome = useMemo(
     () =>
-      data.equipe.find((item) => item.voluntario?.voluntarioId === responsavelSetlistValue)?.voluntario
-        ?.nome ?? 'Não definido',
+      data.equipe.find((item) => item.voluntario?.voluntarioId === responsavelSetlistValue)
+        ?.voluntario?.nome ?? 'Não definido',
     [data.equipe, responsavelSetlistValue],
   );
   const responsavelSetlistFoto = useMemo(() => {
@@ -275,47 +284,41 @@ export default function EventoTable({
         setLoadingAction({ visible: false, label: '' });
       })();
     },
-    [
-      data.dataOcorrencia,
-      data.evento.id,
-      onUpdateResponsavelSetlist,
-      responsavelSetlistValue,
-    ],
+    [data.dataOcorrencia, data.evento.id, onUpdateResponsavelSetlist, responsavelSetlistValue],
   );
 
   const handleClearResponsavelSetlist = useCallback(() => {
-    FancyAlert.alert(
-      'Limpar responsável',
-      'Deseja remover quem define o setlist deste evento?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Limpar',
-          style: 'destructive',
-          onPress: () => handleSelectResponsavelSetlist(''),
-        },
-      ],
-    );
+    FancyAlert.alert('Limpar responsável', 'Deseja remover quem define o setlist deste evento?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Limpar',
+        style: 'destructive',
+        onPress: () => handleSelectResponsavelSetlist(''),
+      },
+    ]);
   }, [handleSelectResponsavelSetlist]);
 
-  const handleAccordionChange = useCallback((expanded: boolean) => {
-    if (isAccordionPending) return;
+  const handleAccordionChange = useCallback(
+    (expanded: boolean) => {
+      if (isAccordionPending) return;
 
-    if (openFrameRef.current !== null) {
-      cancelAnimationFrame(openFrameRef.current);
-    }
-    if (clearPendingFrameRef.current !== null) {
-      cancelAnimationFrame(clearPendingFrameRef.current);
-    }
+      if (openFrameRef.current !== null) {
+        cancelAnimationFrame(openFrameRef.current);
+      }
+      if (clearPendingFrameRef.current !== null) {
+        cancelAnimationFrame(clearPendingFrameRef.current);
+      }
 
-    setIsAccordionPending(true);
-    openFrameRef.current = requestAnimationFrame(() => {
-      setIsAccordionExpanded(expanded);
-      clearPendingFrameRef.current = requestAnimationFrame(() => {
-        setIsAccordionPending(false);
+      setIsAccordionPending(true);
+      openFrameRef.current = requestAnimationFrame(() => {
+        setIsAccordionExpanded(expanded);
+        clearPendingFrameRef.current = requestAnimationFrame(() => {
+          setIsAccordionPending(false);
+        });
       });
-    });
-  }, [isAccordionPending]);
+    },
+    [isAccordionPending],
+  );
 
   return (
     <>
@@ -456,7 +459,11 @@ export default function EventoTable({
                       borderColor: ColorUtils.withAlpha(borderColor, 0.22),
                     },
                   ]}
-                  accessibilityLabel={responsavelSetlistValue ? 'Trocar responsável do setlist' : 'Selecionar responsável do setlist'}
+                  accessibilityLabel={
+                    responsavelSetlistValue
+                      ? 'Trocar responsável do setlist'
+                      : 'Selecionar responsável do setlist'
+                  }
                   disabled={isUpdatingSetlistOwner}
                   onPress={() => responsavelSelectRef.current?.open()}
                 />
@@ -627,7 +634,10 @@ export default function EventoTable({
       <Modal visible={loadingAction.visible} transparent animationType='fade'>
         <View style={styles.blockingOverlay}>
           <View style={styles.blockingOverlayContent}>
-            <FancyLoading label={loadingAction.label} containerStyle={{ flex: 0, alignSelf: 'center' }} />
+            <FancyLoading
+              label={loadingAction.label}
+              containerStyle={{ flex: 0, alignSelf: 'center' }}
+            />
           </View>
         </View>
       </Modal>

@@ -20,7 +20,10 @@ import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterio
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { MinisterioStatusEnum } from '../../../../../domain/enums/Ministerio/ministerio-status.enum';
 import { ResponseMinisterioDto } from '../../../../../domain/dtos/Ministerio/ministerio.response';
-import { AddMinisterioFormData, AddMinisterioSchema } from '../../../../../domain/schemas/ministerioAdminSchema';
+import {
+  AddMinisterioFormData,
+  AddMinisterioSchema,
+} from '../../../../../domain/schemas/ministerioAdminSchema';
 import { sendImageToServer } from '../../../../../utils/image_utils';
 import { CreateMinisterioDto } from '../../../../../domain/dtos/Ministerio/ministerio.create';
 import { useLoading } from '../../../../../contexts/LoadingContext';
@@ -50,7 +53,9 @@ export default function MinisteriosAddPage() {
   const { user, updateUser, igrejaAtiva } = useAuth();
 
   const { add: addMinisterios, isLoading: isLoadingMinisterios } = useMinisteriosCrud();
-  const { add: addVoluntarios, isLoading: isLoadingVoluntarios } = useMinisterioVoluntariosCrud({ muteMessages: true });
+  const { add: addVoluntarios, isLoading: isLoadingVoluntarios } = useMinisterioVoluntariosCrud({
+    muteMessages: true,
+  });
 
   const handleSubmit = async () => {
     await form.handleSubmit(
@@ -72,7 +77,10 @@ export default function MinisteriosAddPage() {
 
           //Enviar logo para o servidor e guardar as URLs retornadas
           if (data.logoUpload?.uri) {
-            const { imageThumbUrl, imageUrl } = await sendImageToServer('ministerios', data.logoUpload);
+            const { imageThumbUrl, imageUrl } = await sendImageToServer(
+              'ministerios',
+              data.logoUpload,
+            );
 
             newMinisterioData.logoUrl = imageUrl;
             newMinisterioData.logoThumbUrl = imageThumbUrl;
@@ -115,18 +123,25 @@ export default function MinisteriosAddPage() {
                   id: newMinisterio.id!,
                   nome: newMinisterio.nome,
                   tipo: newMinisterio.tipo,
-                  hierarquia:
-                    lideres.some((item: AddMinisterioFormData['lideres'][number]) => item.voluntarioId === user?.user.id)
-                      ? VoluntarioHierarquiaEnum.Lider
-                      : auxiliares.some((item: AddMinisterioFormData['auxiliares'][number]) => item.voluntarioId === user?.user.id)
-                        ? VoluntarioHierarquiaEnum.Auxiliar
-                        : VoluntarioHierarquiaEnum.Voluntario,
+                  hierarquia: lideres.some(
+                    (item: AddMinisterioFormData['lideres'][number]) =>
+                      item.voluntarioId === user?.user.id,
+                  )
+                    ? VoluntarioHierarquiaEnum.Lider
+                    : auxiliares.some(
+                          (item: AddMinisterioFormData['auxiliares'][number]) =>
+                            item.voluntarioId === user?.user.id,
+                        )
+                      ? VoluntarioHierarquiaEnum.Auxiliar
+                      : VoluntarioHierarquiaEnum.Voluntario,
                   logoUrl: newMinisterio.logoUrl,
                   logoThumbUrl: newMinisterio.logoThumbUrl,
                 },
               ],
             };
-            const novasIgrejas = (user?.igrejas || []).map((ig) => (ig.id === igrejaAtiva.id ? novaIgreja : ig));
+            const novasIgrejas = (user?.igrejas || []).map((ig) =>
+              ig.id === igrejaAtiva.id ? novaIgreja : ig,
+            );
             updateUser({ ...user, igrejas: novasIgrejas });
           }
 
@@ -141,7 +156,10 @@ export default function MinisteriosAddPage() {
         Toast.show({
           type: 'error',
           text1: 'Erro',
-          text2: errors.lideres?.message || errors.auxiliares?.message || 'Erro ao submeter o formulário',
+          text2:
+            errors.lideres?.message ||
+            errors.auxiliares?.message ||
+            'Erro ao submeter o formulário',
         });
       },
     )();
@@ -206,7 +224,11 @@ export default function MinisteriosAddPage() {
 
   return (
     <FancyPageView style={styles.container}>
-      <FancyStepsHeader index={stepIndex} config={STEPS} containerStyle={{ paddingHorizontal: 20 }} />
+      <FancyStepsHeader
+        index={stepIndex}
+        config={STEPS}
+        containerStyle={{ paddingHorizontal: 20 }}
+      />
       <FormProvider {...form}>
         <View style={styles.contentContainer}>{STEPS.steps[stepIndex].content}</View>
       </FormProvider>

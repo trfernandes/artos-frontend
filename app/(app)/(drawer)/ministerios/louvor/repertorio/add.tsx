@@ -3,5 +3,7 @@ import RepertorioEditorScreen from '../../../../../../components/pages/ministeri
 
 export default function MinisterioLouvorRepertorioAddPage() {
   const params = useLocalSearchParams<{ ministerioId?: string }>();
-  return <RepertorioEditorScreen ministerioId={params.ministerioId} onSaved={() => router.back()} />;
+  return (
+    <RepertorioEditorScreen ministerioId={params.ministerioId} onSaved={() => router.back()} />
+  );
 }

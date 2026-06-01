@@ -62,7 +62,13 @@ export function ImageComponent({
   );
 }
 
-export function TopLeftMenuButton({ customIcon, onPress }: { customIcon?: CustomIconProps; onPress?: () => void }) {
+export function TopLeftMenuButton({
+  customIcon,
+  onPress,
+}: {
+  customIcon?: CustomIconProps;
+  onPress?: () => void;
+}) {
   const palette = usePallete();
 
   return (
@@ -87,7 +93,13 @@ export function TopLeftMenuButton({ customIcon, onPress }: { customIcon?: Custom
   );
 }
 
-export function TopRightMenuButton({ customIcon, onPress }: { customIcon?: CustomIconProps; onPress?: () => void }) {
+export function TopRightMenuButton({
+  customIcon,
+  onPress,
+}: {
+  customIcon?: CustomIconProps;
+  onPress?: () => void;
+}) {
   const palette = usePallete();
 
   return (

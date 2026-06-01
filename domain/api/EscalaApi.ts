@@ -4,7 +4,11 @@ import { ResponseEscalaValidarNomeDto } from '../dtos/Escala/escala-validar-nome
 import apiClient from './api-client';
 import { BaseApi } from './BaseApi';
 
-class EscalasApiClass extends BaseApi<ResponseEscalaDto, CreateEscalaDto, Partial<CreateEscalaDto>> {
+class EscalasApiClass extends BaseApi<
+  ResponseEscalaDto,
+  CreateEscalaDto,
+  Partial<CreateEscalaDto>
+> {
   constructor() {
     super('escalas');
   }
@@ -35,7 +39,10 @@ class EscalasApiClass extends BaseApi<ResponseEscalaDto, CreateEscalaDto, Partia
     payload: { eventoId: string; dataOcorrencia: string },
   ): Promise<void> {
     try {
-      await apiClient.delete(`/${this.resourceName}/${escalaId}/itens`, { params: { igrejaId }, data: payload });
+      await apiClient.delete(`/${this.resourceName}/${escalaId}/itens`, {
+        params: { igrejaId },
+        data: payload,
+      });
     } catch (error) {
       console.log(`Erro ao remover itens de ${this.resourceName}:`, error);
       throw error;

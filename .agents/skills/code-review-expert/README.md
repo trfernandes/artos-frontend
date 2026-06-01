@@ -1,6 +1,7 @@
 # Code Review Expert
 
-A comprehensive code review skill for AI agents. Performs structured reviews with a senior engineer lens, covering architecture, security, performance, and code quality.
+A comprehensive code review skill for AI agents. Performs structured reviews with a senior engineer
+lens, covering architecture, security, performance, and code quality.
 
 ## Installation
 
@@ -45,12 +46,12 @@ The skill will automatically review your current git changes.
 
 ## Severity Levels
 
-| Level | Name | Action |
-|-------|------|--------|
-| P0 | Critical | Must block merge |
-| P1 | High | Should fix before merge |
-| P2 | Medium | Fix or create follow-up |
-| P3 | Low | Optional improvement |
+| Level | Name     | Action                  |
+| ----- | -------- | ----------------------- |
+| P0    | Critical | Must block merge        |
+| P1    | High     | Should fix before merge |
+| P2    | Medium   | Fix or create follow-up |
+| P3    | Low      | Optional improvement    |
 
 ## Structure
 

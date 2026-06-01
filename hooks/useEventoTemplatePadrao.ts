@@ -1,6 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { IgrejaEventosRepository } from '../domain/services/IgrejaEventosRepository';
-import { RemoveEventoTemplatePadraoDto, UpdateEventoTemplatePadraoDto } from '../domain/dtos/Evento/update-evento-template-padrao.dto';
+import {
+  RemoveEventoTemplatePadraoDto,
+  UpdateEventoTemplatePadraoDto,
+} from '../domain/dtos/Evento/update-evento-template-padrao.dto';
 import { useAuth } from '../contexts/AuthContext';
 
 type SaveEventoTemplatePadraoParams = {

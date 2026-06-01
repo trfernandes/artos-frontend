@@ -8,7 +8,10 @@ export type Section = { type: 'section'; key: string; title: string };
 export type Item<T> = { type: 'item'; key: string; data: T };
 export type Row<T> = Section | Item<T>;
 
-export default function FancySectionHeader(props: { title: string; containerStyle?: StyleProp<ViewStyle> }) {
+export default function FancySectionHeader(props: {
+  title: string;
+  containerStyle?: StyleProp<ViewStyle>;
+}) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
 
@@ -33,6 +36,12 @@ export default function FancySectionHeader(props: { title: string; containerStyl
 
 function createStyles(_palette: ThemePalette) {
   return StyleSheet.create({
-    container: { marginLeft: 5, flexDirection: 'row', gap: 7, alignItems: 'center', marginBottom: 5 },
+    container: {
+      marginLeft: 5,
+      flexDirection: 'row',
+      gap: 7,
+      alignItems: 'center',
+      marginBottom: 5,
+    },
   });
 }

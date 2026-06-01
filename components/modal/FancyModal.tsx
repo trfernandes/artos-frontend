@@ -1,4 +1,15 @@
-import { Keyboard, KeyboardAvoidingView, Modal, ModalProps, Platform, Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  ModalProps,
+  Platform,
+  Pressable,
+  StyleProp,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler';
 import { usePallete } from '../../hooks/usePallete';
 
@@ -53,31 +64,35 @@ export default function FancyModal({
     <Modal animationType='fade' presentationStyle='overFullScreen' transparent {...modalProps}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <View
-            style={[styles.centeredView, { backgroundColor: palette.overlays.backdrop }, modalProps?.style]}
-          >
-            <Pressable
-              style={StyleSheet.absoluteFill}
-              onPress={() => {
-                if (dismissKeyboardOnBackdropPress) {
-                  Keyboard.dismiss();
-                }
+          style={[
+            styles.centeredView,
+            { backgroundColor: palette.overlays.backdrop },
+            modalProps?.style,
+          ]}
+        >
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => {
+              if (dismissKeyboardOnBackdropPress) {
+                Keyboard.dismiss();
+              }
 
-                if (closeOnBackdropPress) {
-                  modalProps?.onRequestClose?.({} as any);
-                }
-              }}
-            />
-            {avoidKeyboard ? (
-              <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={styles.keyboardAvoidingView}
-              >
-                {modalContent}
-              </KeyboardAvoidingView>
-            ) : (
-              modalContent
-            )}
-          </View>
+              if (closeOnBackdropPress) {
+                modalProps?.onRequestClose?.({} as any);
+              }
+            }}
+          />
+          {avoidKeyboard ? (
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              style={styles.keyboardAvoidingView}
+            >
+              {modalContent}
+            </KeyboardAvoidingView>
+          ) : (
+            modalContent
+          )}
+        </View>
       </GestureHandlerRootView>
     </Modal>
   );

@@ -53,7 +53,13 @@ export default function FancyTabs(props: FancyTabsProps) {
   }
 
   return (
-    <View style={[styles.container, isCompact ? styles.compactContainer : styles.pageContainer, props.containerStyle]}>
+    <View
+      style={[
+        styles.container,
+        isCompact ? styles.compactContainer : styles.pageContainer,
+        props.containerStyle,
+      ]}
+    >
       <View style={styles.headerContainer}>
         <FancyTabsHeader
           titles={props.items}
@@ -73,7 +79,10 @@ export default function FancyTabs(props: FancyTabsProps) {
       >
         {props.keepMounted
           ? props.items.map((item, itemIndex) => (
-              <View key={`${item.title}-${itemIndex}`} style={itemIndex === index ? styles.visibleContent : styles.hiddenContent}>
+              <View
+                key={`${item.title}-${itemIndex}`}
+                style={itemIndex === index ? styles.visibleContent : styles.hiddenContent}
+              >
                 {item.content}
               </View>
             ))

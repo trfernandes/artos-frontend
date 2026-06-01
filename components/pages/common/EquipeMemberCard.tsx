@@ -11,7 +11,10 @@ import FancyBaseCard from '../../cards/Horizontal/FancyBaseCard';
 import { FancyActionButtons } from '../../cards/Horizontal/FancyCardActionButtons';
 import { AppImages } from '../../../assets/app_images';
 import { ResponseEquipeOcorrenciaIntegranteDto } from '../../../domain/dtos/Evento/evento-equipe.response';
-import { EscalaItemStatusEnum, EscalaItemStatusEnumLabel } from '../../../domain/enums/Escala/escala-item-status.enum';
+import {
+  EscalaItemStatusEnum,
+  EscalaItemStatusEnumLabel,
+} from '../../../domain/enums/Escala/escala-item-status.enum';
 import { usePallete } from '../../../hooks/usePallete';
 import { ColorUtils } from '../../../utils/color_utils';
 import { getFirstAndLastName } from '../../../utils/text_utils';
@@ -54,7 +57,14 @@ function getRoleChipColor(roleName: string): string {
   ];
 }
 
-function EquipeMemberCard({ integrante, isCurrentUser, isLeaderMode, index, onSubstituir, onRemover }: Props) {
+function EquipeMemberCard({
+  integrante,
+  isCurrentUser,
+  isLeaderMode,
+  index,
+  onSubstituir,
+  onRemover,
+}: Props) {
   const palette = usePallete();
   const isDark = palette.backgroundColor === '#121212';
   const [profileVisible, setProfileVisible] = useState(false);
@@ -129,30 +139,30 @@ function EquipeMemberCard({ integrante, isCurrentUser, isLeaderMode, index, onSu
   const actionButtons = [
     ...(isLeaderMode
       ? [
-        {
-          icon: {
-            library: 'MaterialCommunityIcons' as const,
-            name: actionIcon,
-            size: 17,
+          {
+            icon: {
+              library: 'MaterialCommunityIcons' as const,
+              name: actionIcon,
+              size: 17,
+            },
+            size: 'small' as const,
+            onPress: () => onSubstituir(integrante.escalaItemId),
           },
-          size: 'small' as const,
-          onPress: () => onSubstituir(integrante.escalaItemId),
-        },
-        ...(voluntario && onRemover
-          ? [
-              {
-                icon: {
-                  library: 'MaterialCommunityIcons' as const,
-                  name: 'trash-can-outline' as const,
-                  size: 16,
-                  backgroundColor: palette.error,
+          ...(voluntario && onRemover
+            ? [
+                {
+                  icon: {
+                    library: 'MaterialCommunityIcons' as const,
+                    name: 'trash-can-outline' as const,
+                    size: 16,
+                    backgroundColor: palette.error,
+                  },
+                  size: 'small' as const,
+                  onPress: () => onRemover(integrante.escalaItemId),
                 },
-                size: 'small' as const,
-                onPress: () => onRemover(integrante.escalaItemId),
-              },
-            ]
-          : []),
-      ]
+              ]
+            : []),
+        ]
       : []),
     ...(voluntario
       ? [
@@ -199,7 +209,9 @@ function EquipeMemberCard({ integrante, isCurrentUser, isLeaderMode, index, onSu
               isDark={isDark}
             />
           }
-          rightItem={actionButtons.length > 0 ? <FancyActionButtons actions={actionButtons} /> : undefined}
+          rightItem={
+            actionButtons.length > 0 ? <FancyActionButtons actions={actionButtons} /> : undefined
+          }
           onPress={!isOpenSlot ? () => setProfileVisible(true) : undefined}
           additionalData1={
             <View style={styles.metaRow}>
@@ -225,7 +237,11 @@ function EquipeMemberCard({ integrante, isCurrentUser, isLeaderMode, index, onSu
                     },
                   ]}
                 >
-                  <FancyText type='bold' numberOfLines={1} style={[styles.currentUserText, { color: palette.primary }]}>
+                  <FancyText
+                    type='bold'
+                    numberOfLines={1}
+                    style={[styles.currentUserText, { color: palette.primary }]}
+                  >
                     Você
                   </FancyText>
                 </View>
@@ -234,7 +250,12 @@ function EquipeMemberCard({ integrante, isCurrentUser, isLeaderMode, index, onSu
           }
         />
         {isLeaderMode ? (
-          <View style={styles.accessibilityLabel} accessible accessibilityLabel={a11yLabel} accessibilityHint={actionLabel}>
+          <View
+            style={styles.accessibilityLabel}
+            accessible
+            accessibilityLabel={a11yLabel}
+            accessibilityHint={actionLabel}
+          >
             <FancyText>{''}</FancyText>
           </View>
         ) : null}
@@ -278,9 +299,24 @@ function EquipeMemberCard({ integrante, isCurrentUser, isLeaderMode, index, onSu
           </View>
 
           <View style={styles.profileInfoList}>
-            <ProfileInfoRow icon='check-circle-outline' label='Status na escala' value={statusLabel} palette={palette} />
-            <ProfileInfoRow icon='phone-outline' label='Telefone' value={voluntario?.telefone || 'Não informado'} palette={palette} />
-            <ProfileInfoRow icon='email-outline' label='Email' value={voluntario?.email || 'Não informado'} palette={palette} />
+            <ProfileInfoRow
+              icon='check-circle-outline'
+              label='Status na escala'
+              value={statusLabel}
+              palette={palette}
+            />
+            <ProfileInfoRow
+              icon='phone-outline'
+              label='Telefone'
+              value={voluntario?.telefone || 'Não informado'}
+              palette={palette}
+            />
+            <ProfileInfoRow
+              icon='email-outline'
+              label='Email'
+              value={voluntario?.email || 'Não informado'}
+              palette={palette}
+            />
           </View>
         </View>
       </FancyBottomSheetModal>
@@ -490,16 +526,18 @@ const styles = StyleSheet.create({
   },
 });
 
-export default memo(EquipeMemberCard, (prev, next) =>
-  prev.integrante.escalaItemId === next.integrante.escalaItemId &&
-  prev.integrante.status === next.integrante.status &&
-  prev.integrante.voluntarioId === next.integrante.voluntarioId &&
-  prev.integrante.nomeFuncao === next.integrante.nomeFuncao &&
-  prev.integrante.voluntario?.nome === next.integrante.voluntario?.nome &&
-  prev.integrante.voluntario?.email === next.integrante.voluntario?.email &&
-  prev.integrante.voluntario?.telefone === next.integrante.voluntario?.telefone &&
-  prev.integrante.voluntario?.fotoThumbUrl === next.integrante.voluntario?.fotoThumbUrl &&
-  prev.isCurrentUser === next.isCurrentUser &&
-  prev.isLeaderMode === next.isLeaderMode &&
-  prev.onRemover === next.onRemover,
+export default memo(
+  EquipeMemberCard,
+  (prev, next) =>
+    prev.integrante.escalaItemId === next.integrante.escalaItemId &&
+    prev.integrante.status === next.integrante.status &&
+    prev.integrante.voluntarioId === next.integrante.voluntarioId &&
+    prev.integrante.nomeFuncao === next.integrante.nomeFuncao &&
+    prev.integrante.voluntario?.nome === next.integrante.voluntario?.nome &&
+    prev.integrante.voluntario?.email === next.integrante.voluntario?.email &&
+    prev.integrante.voluntario?.telefone === next.integrante.voluntario?.telefone &&
+    prev.integrante.voluntario?.fotoThumbUrl === next.integrante.voluntario?.fotoThumbUrl &&
+    prev.isCurrentUser === next.isCurrentUser &&
+    prev.isLeaderMode === next.isLeaderMode &&
+    prev.onRemover === next.onRemover,
 );

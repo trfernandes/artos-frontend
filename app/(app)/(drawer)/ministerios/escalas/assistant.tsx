@@ -71,7 +71,9 @@ const mapEscalaFormToDto = (
               : undefined;
 
           if (!templateId || !UUID_REGEX.test(templateId)) {
-            throw new Error(`O evento "${evento.nome}" usa um template inválido. Selecione novamente a equipe antes de gerar a escala.`);
+            throw new Error(
+              `O evento "${evento.nome}" usa um template inválido. Selecione novamente a equipe antes de gerar a escala.`,
+            );
           }
 
           equipe = {
@@ -294,9 +296,10 @@ function AssistenteWrapper() {
         const eventosInvalidos = (values.eventos ?? [])
           .filter((e) => e.selected && e.template.templateBase)
           .filter((e) => {
-            const id = 'id' in (e.template.templateBase as object)
-              ? (e.template.templateBase as { id?: string }).id
-              : undefined;
+            const id =
+              'id' in (e.template.templateBase as object)
+                ? (e.template.templateBase as { id?: string }).id
+                : undefined;
             return !id || !UUID_REGEX.test(id);
           });
 
@@ -321,7 +324,12 @@ function AssistenteWrapper() {
         Toast.show({
           type: 'error',
           text1: 'Não foi possível gerar a escala.',
-          text2: getApiErrorMessage(error, error instanceof Error ? error.message : 'Revise os eventos selecionados e tente novamente.'),
+          text2: getApiErrorMessage(
+            error,
+            error instanceof Error
+              ? error.message
+              : 'Revise os eventos selecionados e tente novamente.',
+          ),
         });
       } finally {
         hideLoading();

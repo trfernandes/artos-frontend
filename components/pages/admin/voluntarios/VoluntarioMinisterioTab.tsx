@@ -21,7 +21,10 @@ import { useThemedStyles } from '../../../../hooks/useThemedStyles';
 import { ThemePalette } from '../../../../constants/colors';
 import DefaultIcons, { CustomIconProps } from '../../../FancyIcons';
 import { ColorUtils } from '../../../../utils/color_utils';
-import { MinisterioTipoEnum, MinisterioTipoLabel } from '../../../../domain/enums/Ministerio/ministerio-tipo.enum';
+import {
+  MinisterioTipoEnum,
+  MinisterioTipoLabel,
+} from '../../../../domain/enums/Ministerio/ministerio-tipo.enum';
 import FancySegmentedControl from '../../../fields/FancySegmentedControl';
 
 type MinisterioStatusFilter = 'all' | MinisterioVoluntarioStatusEnum;
@@ -82,10 +85,18 @@ function getMinisterioTipoLabel(item: ResponseMinisterioVoluntarioDto) {
   return tipo ? MinisterioTipoLabel[tipo] : undefined;
 }
 
-function getMinisterioSummary(ministerios: ResponseMinisterioVoluntarioDto[]): MinisterioJourneySummary {
-  const active = ministerios.filter((item) => item.status === MinisterioVoluntarioStatusEnum.Ativo).length;
-  const inactive = ministerios.filter((item) => item.status === MinisterioVoluntarioStatusEnum.Inativo).length;
-  const longest = [...ministerios].sort((a, b) => getServiceDays(b.dataInicio) - getServiceDays(a.dataInicio))[0];
+function getMinisterioSummary(
+  ministerios: ResponseMinisterioVoluntarioDto[],
+): MinisterioJourneySummary {
+  const active = ministerios.filter(
+    (item) => item.status === MinisterioVoluntarioStatusEnum.Ativo,
+  ).length;
+  const inactive = ministerios.filter(
+    (item) => item.status === MinisterioVoluntarioStatusEnum.Inativo,
+  ).length;
+  const longest = [...ministerios].sort(
+    (a, b) => getServiceDays(b.dataInicio) - getServiceDays(a.dataInicio),
+  )[0];
 
   return {
     total: ministerios.length,
@@ -117,10 +128,22 @@ function MinisterioSummaryStat({
           {label}
         </FancyText>
       </View>
-      <FancyText type='bold' size='large' color='#FFFFFF' numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78}>
+      <FancyText
+        type='bold'
+        size='large'
+        color='#FFFFFF'
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.78}
+      >
         {value}
       </FancyText>
-      <FancyText size='extraSmall' color='rgba(255,255,255,0.7)' numberOfLines={1} style={styles.summaryStatCaption}>
+      <FancyText
+        size='extraSmall'
+        color='rgba(255,255,255,0.7)'
+        numberOfLines={1}
+        style={styles.summaryStatCaption}
+      >
         {caption}
       </FancyText>
     </View>
@@ -194,7 +217,15 @@ function MinisterioFilterChips({
   );
 }
 
-function MinisterioInfoPill({ icon, label, value }: { icon: CustomIconProps; label: string; value: string }) {
+function MinisterioInfoPill({
+  icon,
+  label,
+  value,
+}: {
+  icon: CustomIconProps;
+  label: string;
+  value: string;
+}) {
   const palette = usePallete();
   const styles = useThemedStyles(createViewCardStyles);
 
@@ -205,7 +236,14 @@ function MinisterioInfoPill({ icon, label, value }: { icon: CustomIconProps; lab
         <FancyText size='extraSmall' color={palette.fonts.inactive} numberOfLines={1}>
           {label}
         </FancyText>
-        <FancyText type='bold' size='extraSmall' color={palette.fonts.dark} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78}>
+        <FancyText
+          type='bold'
+          size='extraSmall'
+          color={palette.fonts.dark}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.78}
+        >
           {value}
         </FancyText>
       </View>
@@ -238,7 +276,13 @@ function MinisterioViewCard({ item }: { item: ResponseMinisterioVoluntarioDto })
           {logoUrl ? (
             <Image source={{ uri: logoUrl }} style={styles.logo} />
           ) : (
-            <View style={[styles.logo, styles.logoFallback, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12) }]}>
+            <View
+              style={[
+                styles.logo,
+                styles.logoFallback,
+                { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12) },
+              ]}
+            >
               <FancyText type='bold' size='medium' color={palette.primary}>
                 {initial}
               </FancyText>
@@ -247,10 +291,21 @@ function MinisterioViewCard({ item }: { item: ResponseMinisterioVoluntarioDto })
         </View>
 
         <View style={styles.titleSection}>
-          <FancyText type='bold' size='medium' color={palette.fonts.dark} numberOfLines={1} style={styles.titleText}>
+          <FancyText
+            type='bold'
+            size='medium'
+            color={palette.fonts.dark}
+            numberOfLines={1}
+            style={styles.titleText}
+          >
             {item.ministerio?.nome || 'Ministério'}
           </FancyText>
-          <FancyText size='extraSmall' color={palette.fonts.inactive} numberOfLines={1} style={styles.metaText}>
+          <FancyText
+            size='extraSmall'
+            color={palette.fonts.inactive}
+            numberOfLines={1}
+            style={styles.metaText}
+          >
             {subtitle || 'Vínculo ministerial'}
           </FancyText>
         </View>
@@ -259,14 +314,27 @@ function MinisterioViewCard({ item }: { item: ResponseMinisterioVoluntarioDto })
       </View>
 
       <View style={styles.infoRow}>
-        <MinisterioInfoPill icon={{ library: 'MaterialCommunityIcons', name: 'timer-outline' }} label='Tempo' value={tempo} />
-        <MinisterioInfoPill icon={{ library: 'MaterialCommunityIcons', name: 'calendar-start' }} label='Desde' value={dataInicio} />
+        <MinisterioInfoPill
+          icon={{ library: 'MaterialCommunityIcons', name: 'timer-outline' }}
+          label='Tempo'
+          value={tempo}
+        />
+        <MinisterioInfoPill
+          icon={{ library: 'MaterialCommunityIcons', name: 'calendar-start' }}
+          label='Desde'
+          value={dataInicio}
+        />
       </View>
 
       {(descricao || item.isDelegado || funcoesCount > 0) && (
         <View style={styles.cardFooter}>
           {descricao ? (
-            <FancyText size='extraSmall' color={palette.fonts.inactive} numberOfLines={1} style={styles.descriptionText}>
+            <FancyText
+              size='extraSmall'
+              color={palette.fonts.inactive}
+              numberOfLines={1}
+              style={styles.descriptionText}
+            >
               {descricao}
             </FancyText>
           ) : (
@@ -284,7 +352,13 @@ function MinisterioViewCard({ item }: { item: ResponseMinisterioVoluntarioDto })
               />
             )}
             {item.isDelegado && (
-              <FancyChips label='Delegado' color={palette.terciary} size='small' outlined style={styles.footerChip} />
+              <FancyChips
+                label='Delegado'
+                color={palette.terciary}
+                size='small'
+                outlined
+                style={styles.footerChip}
+              />
             )}
           </View>
         </View>
@@ -307,7 +381,11 @@ function ViewListHeader({
   return (
     <View style={styles.viewHeader}>
       <MinisterioJourneyCard summary={summary} />
-      <MinisterioFilterChips selected={selectedFilter} summary={summary} onChange={onFilterChange} />
+      <MinisterioFilterChips
+        selected={selectedFilter}
+        summary={summary}
+        onChange={onFilterChange}
+      />
     </View>
   );
 }
@@ -487,7 +565,13 @@ export default function VoluntarioMinisterioTab({
   if (mode === 'view') {
     return (
       <View style={styles.viewContainer}>
-        {ministerios.length > 0 && <ViewListHeader summary={summary} selectedFilter={statusFilter} onFilterChange={setStatusFilter} />}
+        {ministerios.length > 0 && (
+          <ViewListHeader
+            summary={summary}
+            selectedFilter={statusFilter}
+            onFilterChange={setStatusFilter}
+          />
+        )}
         <FancyList
           containerStyle={styles.viewList}
           data={filteredMinisterios}
@@ -519,9 +603,28 @@ export default function VoluntarioMinisterioTab({
               const ministerioNome = item.ministerio?.nome?.trim() || 'Ministério';
               const cardProps: FancyCardImageBaseProps = {
                 title: ministerioNome,
-                subtitle: <FancyTextDisplayCard title='Data Inicio:' value={format(DateUtilsApi.dateOnlyFromApi(item.dataInicio), 'dd/MM/yyyy')} />,
-                additionalData1: <FancyTextDisplayCard title='Função:' value={VoluntarioHierarquiaEnumLabel[item.hierarquia]} />,
-                additionalData2: <FancyChips style={{ marginTop: 3 }} label={MinisterioVoluntarioStatusEnumLabel[item.status as MinisterioVoluntarioStatusEnum] ?? ''} />,
+                subtitle: (
+                  <FancyTextDisplayCard
+                    title='Data Inicio:'
+                    value={format(DateUtilsApi.dateOnlyFromApi(item.dataInicio), 'dd/MM/yyyy')}
+                  />
+                ),
+                additionalData1: (
+                  <FancyTextDisplayCard
+                    title='Função:'
+                    value={VoluntarioHierarquiaEnumLabel[item.hierarquia]}
+                  />
+                ),
+                additionalData2: (
+                  <FancyChips
+                    style={{ marginTop: 3 }}
+                    label={
+                      MinisterioVoluntarioStatusEnumLabel[
+                        item.status as MinisterioVoluntarioStatusEnum
+                      ] ?? ''
+                    }
+                  />
+                ),
               };
 
               if (item.ministerio?.logoUrl || item.ministerio?.logoThumbUrl) {
@@ -536,7 +639,13 @@ export default function VoluntarioMinisterioTab({
                   />
                 );
               } else {
-                return <FancyCard.Image key={index} type='letter' props={{ ...cardProps, letter: ministerioNome.charAt(0).toUpperCase() || '?' }} />;
+                return (
+                  <FancyCard.Image
+                    key={index}
+                    type='letter'
+                    props={{ ...cardProps, letter: ministerioNome.charAt(0).toUpperCase() || '?' }}
+                  />
+                );
               }
             }}
           />

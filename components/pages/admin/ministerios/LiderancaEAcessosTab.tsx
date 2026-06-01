@@ -9,7 +9,11 @@ import { FancyCard } from '../../../cards/Horizontal/FancyCard';
 import { AppImages } from '../../../../assets/app_images';
 import AddLiderancaFormModal from './AddLiderancaFormModal';
 import AuxiliarMinisterioFormSheet from './AuxiliarMinisterioFormSheet';
-import { AddAuxiliarFormData, AddLiderFormData, AddMinisterioFormData } from '../../../../domain/schemas/ministerioAdminSchema';
+import {
+  AddAuxiliarFormData,
+  AddLiderFormData,
+  AddMinisterioFormData,
+} from '../../../../domain/schemas/ministerioAdminSchema';
 import { RecursoPermissaoEnumLabel } from '../../../../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
 import { useIgrejaVoluntariosCrud } from '../../../../hooks/useIgrejaVoluntariosCrud';
 import { OrderDirection, Operator, ValueType } from '../../../../domain/utils/query_utils';
@@ -19,7 +23,10 @@ import { useMinisterioVoluntariosCrud } from '../../../../hooks/useMinisterioVol
 import { useAuth } from '../../../../contexts/AuthContext';
 import { MinisterioAcessosRepository } from '../../../../domain/services/MinisterioAcessosRepository';
 import { useLoading } from '../../../../contexts/LoadingContext';
-import { VoluntarioHierarquiaEnum, VoluntarioHierarquiaEnumMap } from '../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
+import {
+  VoluntarioHierarquiaEnum,
+  VoluntarioHierarquiaEnumMap,
+} from '../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
 import { ResponseMinisterioVoluntarioDto } from '../../../../domain/dtos/MinisterioVoluntario/ministerio-voluntario.response';
 import { ResponseVoluntarioDto } from '../../../../domain/dtos/Voluntario/voluntario.response';
 import { FancyAlert } from '../../../modal/FancyAlert';
@@ -36,7 +43,9 @@ type Props =
       ministerioId: string;
     };
 
-const summarizePermissions = (permissions: AddAuxiliarFormData['permissoes'] | ResponseMinisterioVoluntarioDto['permissoes']) => {
+const summarizePermissions = (
+  permissions: AddAuxiliarFormData['permissoes'] | ResponseMinisterioVoluntarioDto['permissoes'],
+) => {
   const labels = (permissions ?? []).map((item) => RecursoPermissaoEnumLabel[item.recurso]);
   return labels.length > 0 ? labels.join(' • ') : 'Sem acessos delegados';
 };
@@ -47,7 +56,14 @@ const getCardImageSource = (item: {
   fotoUrl?: string | null;
 }) =>
   item.voluntario?.fotoThumbUrl || item.voluntario?.fotoUrl || item.fotoThumbUrl || item.fotoUrl
-    ? { uri: item.voluntario?.fotoThumbUrl || item.voluntario?.fotoUrl || item.fotoThumbUrl || item.fotoUrl || '' }
+    ? {
+        uri:
+          item.voluntario?.fotoThumbUrl ||
+          item.voluntario?.fotoUrl ||
+          item.fotoThumbUrl ||
+          item.fotoUrl ||
+          '',
+      }
     : AppImages.emptyProfile;
 
 const toAuxiliarFormData = (member: ResponseMinisterioVoluntarioDto): AddAuxiliarFormData => ({
@@ -65,13 +81,23 @@ const normalizeHierarchy = (hierarquia?: string | number | null) => {
 };
 
 const sortVolunteersByName = <T extends { nome?: string | null }>(items: T[]) =>
-  [...items].sort((a, b) => (a.nome ?? '').localeCompare(b.nome ?? '', 'pt-BR', { sensitivity: 'base' }));
-
-const sortMembersByName = <T extends { voluntarioNome?: string | null; voluntario?: { nome?: string | null } | null }>(items: T[]) =>
   [...items].sort((a, b) =>
-    (a.voluntarioNome ?? a.voluntario?.nome ?? '').localeCompare(b.voluntarioNome ?? b.voluntario?.nome ?? '', 'pt-BR', {
-      sensitivity: 'base',
-    }),
+    (a.nome ?? '').localeCompare(b.nome ?? '', 'pt-BR', { sensitivity: 'base' }),
+  );
+
+const sortMembersByName = <
+  T extends { voluntarioNome?: string | null; voluntario?: { nome?: string | null } | null },
+>(
+  items: T[],
+) =>
+  [...items].sort((a, b) =>
+    (a.voluntarioNome ?? a.voluntario?.nome ?? '').localeCompare(
+      b.voluntarioNome ?? b.voluntario?.nome ?? '',
+      'pt-BR',
+      {
+        sensitivity: 'base',
+      },
+    ),
   );
 
 export default function LiderancaEAcessosTab(props: Props) {
@@ -96,7 +122,10 @@ function SectionContainer({
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeaderRow}>
-        <FancySectionHeader title={title} containerStyle={{ marginLeft: 0, flex: 1, marginBottom: 0 }} />
+        <FancySectionHeader
+          title={title}
+          containerStyle={{ marginLeft: 0, flex: 1, marginBottom: 0 }}
+        />
         <FancyButton
           accessibilityLabel={buttonLabel}
           type='contained'
@@ -157,16 +186,32 @@ function LiderancaEAcessosAddTab() {
   const sortedLideres = useMemo(() => sortMembersByName(lideres), [lideres]);
   const sortedAuxiliares = useMemo(() => sortMembersByName(auxiliares), [auxiliares]);
 
-  const liderVolunteerIds = useMemo(() => new Set(lideres.map((item) => item.voluntarioId)), [lideres]);
-  const auxiliarVolunteerIds = useMemo(() => new Set(auxiliares.map((item) => item.voluntarioId)), [auxiliares]);
+  const liderVolunteerIds = useMemo(
+    () => new Set(lideres.map((item) => item.voluntarioId)),
+    [lideres],
+  );
+  const auxiliarVolunteerIds = useMemo(
+    () => new Set(auxiliares.map((item) => item.voluntarioId)),
+    [auxiliares],
+  );
 
   const eligibleLeaderVolunteers = useMemo(
-    () => sortVolunteersByName((igrejaVoluntarios ?? []).filter((item) => !liderVolunteerIds.has(item.id) && !auxiliarVolunteerIds.has(item.id))),
+    () =>
+      sortVolunteersByName(
+        (igrejaVoluntarios ?? []).filter(
+          (item) => !liderVolunteerIds.has(item.id) && !auxiliarVolunteerIds.has(item.id),
+        ),
+      ),
     [auxiliarVolunteerIds, igrejaVoluntarios, liderVolunteerIds],
   );
 
   const eligibleAuxiliarVolunteers = useMemo(
-    () => sortVolunteersByName((igrejaVoluntarios ?? []).filter((item) => !auxiliarVolunteerIds.has(item.id) && !liderVolunteerIds.has(item.id))),
+    () =>
+      sortVolunteersByName(
+        (igrejaVoluntarios ?? []).filter(
+          (item) => !auxiliarVolunteerIds.has(item.id) && !liderVolunteerIds.has(item.id),
+        ),
+      ),
     [auxiliarVolunteerIds, igrejaVoluntarios, liderVolunteerIds],
   );
 
@@ -197,7 +242,11 @@ function LiderancaEAcessosAddTab() {
         </FancyText>
       </View>
 
-      <SectionContainer title='Líderes' buttonLabel='Adicionar líder' onPress={() => setLeaderModalVisible(true)}>
+      <SectionContainer
+        title='Líderes'
+        buttonLabel='Adicionar líder'
+        onPress={() => setLeaderModalVisible(true)}
+      >
         {sortedLideres.length ? (
           <View style={styles.cards}>
             {sortedLideres.map((item) => (
@@ -221,8 +270,16 @@ function LiderancaEAcessosAddTab() {
                     }),
                   actionButtons: [
                     {
-                      icon: { library: 'MaterialIcons', name: 'delete', size: 18, backgroundColor: '#F05A4F' },
-                      onPress: () => lideresFieldArray.remove(lideres.findIndex((lider) => lider.voluntarioId === item.voluntarioId)),
+                      icon: {
+                        library: 'MaterialIcons',
+                        name: 'delete',
+                        size: 18,
+                        backgroundColor: '#F05A4F',
+                      },
+                      onPress: () =>
+                        lideresFieldArray.remove(
+                          lideres.findIndex((lider) => lider.voluntarioId === item.voluntarioId),
+                        ),
                     },
                   ],
                 }}
@@ -230,7 +287,10 @@ function LiderancaEAcessosAddTab() {
             ))}
           </View>
         ) : (
-          <EmptyState title='Nenhum líder definido' subtitle='Adicione ao menos um líder para a gestão do ministério.' />
+          <EmptyState
+            title='Nenhum líder definido'
+            subtitle='Adicione ao menos um líder para a gestão do ministério.'
+          />
         )}
       </SectionContainer>
 
@@ -273,8 +333,18 @@ function LiderancaEAcessosAddTab() {
                       },
                     },
                     {
-                      icon: { library: 'MaterialIcons', name: 'delete', size: 18, backgroundColor: '#F05A4F' },
-                      onPress: () => auxiliaresFieldArray.remove(auxiliares.findIndex((auxiliar) => auxiliar.voluntarioId === item.voluntarioId)),
+                      icon: {
+                        library: 'MaterialIcons',
+                        name: 'delete',
+                        size: 18,
+                        backgroundColor: '#F05A4F',
+                      },
+                      onPress: () =>
+                        auxiliaresFieldArray.remove(
+                          auxiliares.findIndex(
+                            (auxiliar) => auxiliar.voluntarioId === item.voluntarioId,
+                          ),
+                        ),
                     },
                   ],
                 }}
@@ -306,14 +376,22 @@ function LiderancaEAcessosAddTab() {
         visible={auxiliarModalVisible}
         mode={editingAuxiliar ? 'edit' : 'create'}
         auxiliar={editingAuxiliar}
-        volunteers={editingAuxiliar ? (igrejaVoluntarios ?? []).filter((item) => item.id === editingAuxiliar.voluntarioId) : eligibleAuxiliarVolunteers}
+        volunteers={
+          editingAuxiliar
+            ? (igrejaVoluntarios ?? []).filter((item) => item.id === editingAuxiliar.voluntarioId)
+            : eligibleAuxiliarVolunteers
+        }
         onClose={() => {
           setAuxiliarModalVisible(false);
           setEditingAuxiliar(null);
         }}
         onSave={handleSaveAuxiliar}
       />
-      <VoluntarioSummarySheet visible={!!selectedVoluntario} onClose={() => setSelectedVoluntario(null)} data={selectedVoluntario} />
+      <VoluntarioSummarySheet
+        visible={!!selectedVoluntario}
+        onClose={() => setSelectedVoluntario(null)}
+        data={selectedVoluntario}
+      />
     </ScrollView>
   );
 }
@@ -348,18 +426,30 @@ function LiderancaEAcessosEditTab({ ministerioId }: { ministerioId: string }) {
     [ministerioId],
   );
 
-  const { data: ministerioData, isLoading: isLoadingMinisterio, isError, refetch } = useMinisteriosCrud({
+  const {
+    data: ministerioData,
+    isLoading: isLoadingMinisterio,
+    isError,
+    refetch,
+  } = useMinisteriosCrud({
     autoFetch: true,
     initialParams: ministerioQuery,
     muteMessages: true,
   });
 
-  const { add: addVoluntario, update: updateVoluntario } = useMinisterioVoluntariosCrud({ autoFetch: false, muteMessages: true });
+  const { add: addVoluntario, update: updateVoluntario } = useMinisterioVoluntariosCrud({
+    autoFetch: false,
+    muteMessages: true,
+  });
 
   const currentMinisterio = ministerioData?.[0];
   const memberships = currentMinisterio?.voluntarios ?? [];
-  const lideres = memberships.filter((item) => normalizeHierarchy(item.hierarquia) === VoluntarioHierarquiaEnum.Lider);
-  const auxiliares = memberships.filter((item) => normalizeHierarchy(item.hierarquia) === VoluntarioHierarquiaEnum.Auxiliar);
+  const lideres = memberships.filter(
+    (item) => normalizeHierarchy(item.hierarquia) === VoluntarioHierarquiaEnum.Lider,
+  );
+  const auxiliares = memberships.filter(
+    (item) => normalizeHierarchy(item.hierarquia) === VoluntarioHierarquiaEnum.Auxiliar,
+  );
   const sortedLideres = useMemo(() => sortMembersByName(lideres), [lideres]);
   const sortedAuxiliares = useMemo(() => sortMembersByName(auxiliares), [auxiliares]);
 
@@ -367,28 +457,50 @@ function LiderancaEAcessosEditTab({ ministerioId }: { ministerioId: string }) {
     () =>
       sortVolunteersByName(
         memberships
-        .filter((item) => item.voluntario && item.status !== MinisterioVoluntarioStatusEnum.Inativo)
-        .map((item) => item.voluntario!)
-        .filter((item, index, array) => array.findIndex((candidate) => candidate.id === item.id) === index),
+          .filter(
+            (item) => item.voluntario && item.status !== MinisterioVoluntarioStatusEnum.Inativo,
+          )
+          .map((item) => item.voluntario!)
+          .filter(
+            (item, index, array) =>
+              array.findIndex((candidate) => candidate.id === item.id) === index,
+          ),
       ),
     [memberships],
   );
 
   const availableVolunteerPool = useMemo<ResponseVoluntarioDto[]>(
-    () => (ministryMembers.length ? ministryMembers : sortVolunteersByName(igrejaVoluntarios ?? [])),
+    () =>
+      ministryMembers.length ? ministryMembers : sortVolunteersByName(igrejaVoluntarios ?? []),
     [igrejaVoluntarios, ministryMembers],
   );
 
-  const leaderVolunteerIds = useMemo(() => new Set(lideres.map((item) => item.voluntarioId)), [lideres]);
-  const auxiliarVolunteerIds = useMemo(() => new Set(auxiliares.map((item) => item.voluntarioId)), [auxiliares]);
+  const leaderVolunteerIds = useMemo(
+    () => new Set(lideres.map((item) => item.voluntarioId)),
+    [lideres],
+  );
+  const auxiliarVolunteerIds = useMemo(
+    () => new Set(auxiliares.map((item) => item.voluntarioId)),
+    [auxiliares],
+  );
 
   const eligibleLeaderVolunteers = useMemo(
-    () => sortVolunteersByName(availableVolunteerPool.filter((item) => !leaderVolunteerIds.has(item.id) && !auxiliarVolunteerIds.has(item.id))),
+    () =>
+      sortVolunteersByName(
+        availableVolunteerPool.filter(
+          (item) => !leaderVolunteerIds.has(item.id) && !auxiliarVolunteerIds.has(item.id),
+        ),
+      ),
     [auxiliarVolunteerIds, availableVolunteerPool, leaderVolunteerIds],
   );
 
   const eligibleAuxiliarVolunteers = useMemo(
-    () => sortVolunteersByName(availableVolunteerPool.filter((item) => !auxiliarVolunteerIds.has(item.id) && !leaderVolunteerIds.has(item.id))),
+    () =>
+      sortVolunteersByName(
+        availableVolunteerPool.filter(
+          (item) => !auxiliarVolunteerIds.has(item.id) && !leaderVolunteerIds.has(item.id),
+        ),
+      ),
     [auxiliarVolunteerIds, availableVolunteerPool, leaderVolunteerIds],
   );
 
@@ -402,23 +514,31 @@ function LiderancaEAcessosEditTab({ ministerioId }: { ministerioId: string }) {
       showLoading('Salvando...');
       try {
         if (existing) {
-              await updateVoluntario?.({
-                id: existing.id,
-                data: { hierarquia: Number(VoluntarioHierarquiaEnum.Lider) as any },
-              });
-            } else {
-              await addVoluntario?.({
-                ministerioId,
-                voluntarioId: payload.voluntarioId,
-                hierarquia: Number(VoluntarioHierarquiaEnum.Lider) as any,
-              });
-            }
-            await refetchAll();
+          await updateVoluntario?.({
+            id: existing.id,
+            data: { hierarquia: Number(VoluntarioHierarquiaEnum.Lider) as any },
+          });
+        } else {
+          await addVoluntario?.({
+            ministerioId,
+            voluntarioId: payload.voluntarioId,
+            hierarquia: Number(VoluntarioHierarquiaEnum.Lider) as any,
+          });
+        }
+        await refetchAll();
       } finally {
         hideLoading();
       }
     },
-    [addVoluntario, hideLoading, memberships, ministerioId, refetchAll, showLoading, updateVoluntario],
+    [
+      addVoluntario,
+      hideLoading,
+      memberships,
+      ministerioId,
+      refetchAll,
+      showLoading,
+      updateVoluntario,
+    ],
   );
 
   const handleRemoveLeader = useCallback(
@@ -460,9 +580,14 @@ function LiderancaEAcessosEditTab({ ministerioId }: { ministerioId: string }) {
         }
 
         if (editingAuxiliar) {
-          await MinisterioAcessosRepository.updateAuxiliar(igrejaAtiva!.id, ministerioId, payload.voluntarioId, {
-            permissoes: payload.permissoes,
-          });
+          await MinisterioAcessosRepository.updateAuxiliar(
+            igrejaAtiva!.id,
+            ministerioId,
+            payload.voluntarioId,
+            {
+              permissoes: payload.permissoes,
+            },
+          );
         } else {
           await MinisterioAcessosRepository.addAuxiliar(igrejaAtiva!.id, ministerioId, {
             voluntarioId: payload.voluntarioId,
@@ -475,27 +600,44 @@ function LiderancaEAcessosEditTab({ ministerioId }: { ministerioId: string }) {
         hideLoading();
       }
     },
-    [addVoluntario, editingAuxiliar, hideLoading, igrejaAtiva, memberships, ministerioId, refetchAll, showLoading],
+    [
+      addVoluntario,
+      editingAuxiliar,
+      hideLoading,
+      igrejaAtiva,
+      memberships,
+      ministerioId,
+      refetchAll,
+      showLoading,
+    ],
   );
 
   const handleRemoveAuxiliar = useCallback(
     async (item: ResponseMinisterioVoluntarioDto) => {
-      FancyAlert.alert('Remover auxiliar', 'Deseja remover esse auxiliar e manter o voluntário no ministério?', [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Remover',
-          style: 'destructive',
-          onPress: async () => {
-            showLoading('Salvando...');
-            try {
-              await MinisterioAcessosRepository.removeAuxiliar(igrejaAtiva!.id, ministerioId, item.id);
-              await refetchAll();
-            } finally {
-              hideLoading();
-            }
+      FancyAlert.alert(
+        'Remover auxiliar',
+        'Deseja remover esse auxiliar e manter o voluntário no ministério?',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Remover',
+            style: 'destructive',
+            onPress: async () => {
+              showLoading('Salvando...');
+              try {
+                await MinisterioAcessosRepository.removeAuxiliar(
+                  igrejaAtiva!.id,
+                  ministerioId,
+                  item.id,
+                );
+                await refetchAll();
+              } finally {
+                hideLoading();
+              }
+            },
           },
-        },
-      ]);
+        ],
+      );
     },
     [hideLoading, igrejaAtiva, ministerioId, refetchAll, showLoading],
   );
@@ -507,7 +649,10 @@ function LiderancaEAcessosEditTab({ ministerioId }: { ministerioId: string }) {
   if (isError) {
     return (
       <View style={{ paddingTop: 10 }}>
-        <EmptyState title='Não foi possível carregar liderança e acessos' subtitle='Atualize a tela e tente novamente.' />
+        <EmptyState
+          title='Não foi possível carregar liderança e acessos'
+          subtitle='Atualize a tela e tente novamente.'
+        />
       </View>
     );
   }
@@ -523,7 +668,11 @@ function LiderancaEAcessosEditTab({ ministerioId }: { ministerioId: string }) {
         </FancyText>
       </View>
 
-      <SectionContainer title='Líderes' buttonLabel='Adicionar líder' onPress={() => setLeaderModalVisible(true)}>
+      <SectionContainer
+        title='Líderes'
+        buttonLabel='Adicionar líder'
+        onPress={() => setLeaderModalVisible(true)}
+      >
         {sortedLideres.length ? (
           <View style={styles.cards}>
             {sortedLideres.map((item) => (
@@ -548,7 +697,12 @@ function LiderancaEAcessosEditTab({ ministerioId }: { ministerioId: string }) {
                     }),
                   actionButtons: [
                     {
-                      icon: { library: 'MaterialIcons', name: 'delete', size: 18, backgroundColor: '#F05A4F' },
+                      icon: {
+                        library: 'MaterialIcons',
+                        name: 'delete',
+                        size: 18,
+                        backgroundColor: '#F05A4F',
+                      },
                       onPress: () => void handleRemoveLeader(item),
                     },
                   ],
@@ -557,7 +711,10 @@ function LiderancaEAcessosEditTab({ ministerioId }: { ministerioId: string }) {
             ))}
           </View>
         ) : (
-          <EmptyState title='Nenhum líder definido' subtitle='Adicione ao menos um líder para a gestão do ministério.' />
+          <EmptyState
+            title='Nenhum líder definido'
+            subtitle='Adicione ao menos um líder para a gestão do ministério.'
+          />
         )}
       </SectionContainer>
 
@@ -601,7 +758,12 @@ function LiderancaEAcessosEditTab({ ministerioId }: { ministerioId: string }) {
                       },
                     },
                     {
-                      icon: { library: 'MaterialIcons', name: 'delete', size: 18, backgroundColor: '#F05A4F' },
+                      icon: {
+                        library: 'MaterialIcons',
+                        name: 'delete',
+                        size: 18,
+                        backgroundColor: '#F05A4F',
+                      },
                       onPress: () => void handleRemoveAuxiliar(item),
                     },
                   ],
@@ -634,14 +796,22 @@ function LiderancaEAcessosEditTab({ ministerioId }: { ministerioId: string }) {
         visible={auxiliarModalVisible}
         mode={editingAuxiliar ? 'edit' : 'create'}
         auxiliar={editingAuxiliar}
-        volunteers={editingAuxiliar ? availableVolunteerPool.filter((item) => item.id === editingAuxiliar.voluntarioId) : eligibleAuxiliarVolunteers}
+        volunteers={
+          editingAuxiliar
+            ? availableVolunteerPool.filter((item) => item.id === editingAuxiliar.voluntarioId)
+            : eligibleAuxiliarVolunteers
+        }
         onClose={() => {
           setAuxiliarModalVisible(false);
           setEditingAuxiliar(null);
         }}
         onSave={handleSaveAuxiliar}
       />
-      <VoluntarioSummarySheet visible={!!selectedVoluntario} onClose={() => setSelectedVoluntario(null)} data={selectedVoluntario} />
+      <VoluntarioSummarySheet
+        visible={!!selectedVoluntario}
+        onClose={() => setSelectedVoluntario(null)}
+        data={selectedVoluntario}
+      />
     </ScrollView>
   );
 }

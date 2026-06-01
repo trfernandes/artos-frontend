@@ -22,15 +22,11 @@ import DefaultIcons from '../../../../FancyIcons';
 import { FancyAlert } from '../../../../modal/FancyAlert';
 import ScaleFillIndicator from '../../../../indicators/ScaleFillIndicator';
 import ListaVoluntariosTable from './ListaVoluntariosTable';
-import SubstituirVoluntarioModal, {
-  SubstituicaoConfirmDialog,
-} from './SubstituirVoluntarioModal';
+import SubstituirVoluntarioModal, { SubstituicaoConfirmDialog } from './SubstituirVoluntarioModal';
 import AdicionarVoluntarioModal, {
   AdicionarVoluntarioConfirmDialog,
 } from './AdicionarVoluntarioModal';
-import AdicionarFuncaoModal, {
-  AdicionarFuncaoConfirmDialog,
-} from './AdicionarFuncaoModal';
+import AdicionarFuncaoModal, { AdicionarFuncaoConfirmDialog } from './AdicionarFuncaoModal';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
 import {
   EscalaItemDataType,
@@ -55,11 +51,7 @@ export interface EscalaEventoPageProps {
   onRemoveVoluntario?: (idEscalaItem: string) => Promise<boolean>;
   onDeleteEvento?: (eventoId: string, dataOcorrencia: string) => Promise<boolean>;
   onAdicionarFuncao?: (data: AdicionarFuncaoConfirmDialog) => Promise<boolean>;
-  onExcluirFuncao?: (
-    funcaoId: string,
-    eventoId: string,
-    dataOcorrencia: string,
-  ) => Promise<void>;
+  onExcluirFuncao?: (funcaoId: string, eventoId: string, dataOcorrencia: string) => Promise<void>;
   canEditSetlistOwner?: boolean;
   isUpdatingSetlistOwner?: boolean;
   onUpdateResponsavelSetlist?: (data: {
@@ -140,8 +132,7 @@ export default function EscalaEventoPage({
           value: item.voluntario?.voluntarioId || '',
         }))
         .filter(
-          (item, idx, arr) =>
-            item.value && arr.findIndex((e) => e.value === item.value) === idx,
+          (item, idx, arr) => item.value && arr.findIndex((e) => e.value === item.value) === idx,
         )
         .sort((a, b) => a.title.localeCompare(b.title, 'pt-BR', { sensitivity: 'base' })),
     ],
@@ -152,9 +143,8 @@ export default function EscalaEventoPage({
 
   const responsavelSetlistNome = useMemo(
     () =>
-      data.equipe.find(
-        (item) => item.voluntario?.voluntarioId === responsavelSetlistValue,
-      )?.voluntario?.nome ?? 'Não definido',
+      data.equipe.find((item) => item.voluntario?.voluntarioId === responsavelSetlistValue)
+        ?.voluntario?.nome ?? 'Não definido',
     [data.equipe, responsavelSetlistValue],
   );
 
@@ -187,18 +177,14 @@ export default function EscalaEventoPage({
   );
 
   const handleClearResponsavelSetlist = useCallback(() => {
-    FancyAlert.alert(
-      'Limpar responsável',
-      'Deseja remover quem define o setlist deste evento?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Limpar',
-          style: 'destructive',
-          onPress: () => handleSelectResponsavelSetlist(''),
-        },
-      ],
-    );
+    FancyAlert.alert('Limpar responsável', 'Deseja remover quem define o setlist deste evento?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Limpar',
+        style: 'destructive',
+        onPress: () => handleSelectResponsavelSetlist(''),
+      },
+    ]);
   }, [handleSelectResponsavelSetlist]);
 
   const handleDeleteEvento = useCallback(() => {
@@ -242,7 +228,12 @@ export default function EscalaEventoPage({
         {/* Top row: label + nome + info button + progress */}
         <View style={styles.eventHeaderTopRow}>
           <View style={styles.eventTitleBlock}>
-            <FancyText type='medium' size={9} color={palette.fonts.inactive} style={styles.eventCategoryLabel}>
+            <FancyText
+              type='medium'
+              size={9}
+              color={palette.fonts.inactive}
+              style={styles.eventCategoryLabel}
+            >
               Evento
             </FancyText>
             <FancyText
@@ -349,7 +340,10 @@ export default function EscalaEventoPage({
                   disabled={isFirst}
                   style={[
                     styles.navArrow,
-                    { backgroundColor: ColorUtils.withAlpha(borderColor, isFirst ? 0.06 : 0.1), borderColor: ColorUtils.withAlpha(borderColor, 0.2) },
+                    {
+                      backgroundColor: ColorUtils.withAlpha(borderColor, isFirst ? 0.06 : 0.1),
+                      borderColor: ColorUtils.withAlpha(borderColor, 0.2),
+                    },
                     isFirst && styles.navArrowDisabled,
                   ]}
                   accessibilityLabel='Evento anterior'
@@ -383,7 +377,10 @@ export default function EscalaEventoPage({
                   disabled={isLast}
                   style={[
                     styles.navArrow,
-                    { backgroundColor: ColorUtils.withAlpha(borderColor, isLast ? 0.06 : 0.1), borderColor: ColorUtils.withAlpha(borderColor, 0.2) },
+                    {
+                      backgroundColor: ColorUtils.withAlpha(borderColor, isLast ? 0.06 : 0.1),
+                      borderColor: ColorUtils.withAlpha(borderColor, 0.2),
+                    },
                     isLast && styles.navArrowDisabled,
                   ]}
                   accessibilityLabel='Próximo evento'
@@ -449,9 +446,7 @@ export default function EscalaEventoPage({
             <View style={styles.setlistOwnerPersonRow}>
               {hasResponsavelSetlist ? (
                 <FancyImage
-                  source={
-                    responsavelSetlistFoto ? { uri: responsavelSetlistFoto } : undefined
-                  }
+                  source={responsavelSetlistFoto ? { uri: responsavelSetlistFoto } : undefined}
                   size={30}
                   style={styles.setlistOwnerAvatar}
                 />

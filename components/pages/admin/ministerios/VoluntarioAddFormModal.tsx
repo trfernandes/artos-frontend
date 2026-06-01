@@ -1,5 +1,8 @@
 import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
-import { VoluntarioHierarquiaEnumLabel, VoluntarioHierarquiaEnumList } from '../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
+import {
+  VoluntarioHierarquiaEnumLabel,
+  VoluntarioHierarquiaEnumList,
+} from '../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import ControlledSearchSelect from '../../../forms/ControlledSearchSelect';
@@ -11,7 +14,10 @@ import { useMemo } from 'react';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import { useIgrejaVoluntariosCrud } from '../../../../hooks/useIgrejaVoluntariosCrud';
 import { OrderDirection } from '../../../../domain/utils/query_utils';
-import { AddMinisterioVoluntarioFormData, AddMinisterioVoluntarioSchema } from '../../../../domain/schemas/ministerioAdminSchema';
+import {
+  AddMinisterioVoluntarioFormData,
+  AddMinisterioVoluntarioSchema,
+} from '../../../../domain/schemas/ministerioAdminSchema';
 import { AppImages } from '../../../../assets/app_images';
 
 export default function VoluntarioAddFormModal({
@@ -30,7 +36,8 @@ export default function VoluntarioAddFormModal({
     initialParams: { orderBy: [{ path: 'nome', direction: OrderDirection.ASC }] },
   });
 
-  const dataReady = !voluntariosDoMinisterioCrud.isLoading && !voluntariosDoMinisterioCrud.isLoadingMutation;
+  const dataReady =
+    !voluntariosDoMinisterioCrud.isLoading && !voluntariosDoMinisterioCrud.isLoadingMutation;
 
   const { onLayout } = useScreenReadyLoading({
     dataReady,
@@ -40,7 +47,9 @@ export default function VoluntarioAddFormModal({
 
   const ministerioVoluntariosDropDownList = useMemo<DropDownItemProps<string>[]>(() => {
     const existingIds = props.existingVoluntarios || [];
-    const filteredList = voluntariosDoMinisterioCrud.data.filter((item) => !existingIds.includes(item.id));
+    const filteredList = voluntariosDoMinisterioCrud.data.filter(
+      (item) => !existingIds.includes(item.id),
+    );
     return filteredList.map(
       (item) =>
         ({
@@ -48,9 +57,12 @@ export default function VoluntarioAddFormModal({
           value: item.id,
           left: {
             type: 'image',
-            source: item.fotoThumbUrl || item.fotoUrl ? { uri: item.fotoThumbUrl || item.fotoUrl || '' } : AppImages.emptyProfile,
+            source:
+              item.fotoThumbUrl || item.fotoUrl
+                ? { uri: item.fotoThumbUrl || item.fotoUrl || '' }
+                : AppImages.emptyProfile,
           },
-        } as DropDownItemProps<string>),
+        }) as DropDownItemProps<string>,
     );
   }, [props.existingVoluntarios, voluntariosDoMinisterioCrud.data]);
 
@@ -83,11 +95,17 @@ export default function VoluntarioAddFormModal({
           searchPlaceholder='Buscar voluntário...'
           listItems={ministerioVoluntariosDropDownList}
           onChange={(value) => {
-            const voluntarioNome = voluntariosDoMinisterioCrud.data.find((v) => v.id === value)?.nome || '';
+            const voluntarioNome =
+              voluntariosDoMinisterioCrud.data.find((v) => v.id === value)?.nome || '';
             form.setValue('voluntarioNome', voluntarioNome);
           }}
         />
-        <ControlledBottomSheetSelect control={form.control} name='hierarquia' label='Função' listItems={VoluntarioHierarquiaEnumList} />
+        <ControlledBottomSheetSelect
+          control={form.control}
+          name='hierarquia'
+          label='Função'
+          listItems={VoluntarioHierarquiaEnumList}
+        />
       </FancyModalDialog>
     </View>
   );

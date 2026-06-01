@@ -31,20 +31,17 @@ export default function DashboardLider() {
       contentContainerStyle={styles.scrollContent}
       bottomFade={{ active: true }}
     >
-      <DashboardGreeting
-        nome={nomeLider}
-        subtitulo={igrejaAtiva?.nome}
-      />
+      <DashboardGreeting nome={nomeLider} subtitulo={igrejaAtiva?.nome} />
 
       {/* Saúde do Ministério */}
       {data?.ministerioStats && (
-        <DashboardSection title="Meu ministério">
-          <MinisterioStatsCard ministerio={data.ministerioStats} variant="full" />
+        <DashboardSection title='Meu ministério'>
+          <MinisterioStatsCard ministerio={data.ministerioStats} variant='full' />
         </DashboardSection>
       )}
 
       {/* Próximos Eventos do Ministério */}
-      <DashboardSection title="Próximos eventos">
+      <DashboardSection title='Próximos eventos'>
         {data?.proximosEventosMinisterio && data.proximosEventosMinisterio.length > 0 ? (
           <ScrollView
             horizontal
@@ -55,19 +52,19 @@ export default function DashboardLider() {
               <EventoProximoCard
                 key={evento.occurrenceKey || `${evento.id}::${evento.dataInicio}`}
                 evento={evento}
-                variant="horizontal"
+                variant='horizontal'
               />
             ))}
           </ScrollView>
         ) : (
-          <DashboardEmpty category="eventos" />
+          <DashboardEmpty category='eventos' />
         )}
       </DashboardSection>
 
       {/* Solicitações Pendentes */}
       {data?.solicitacoesPendentes && data.solicitacoesPendentes.length > 0 && (
         <DashboardSection
-          title="Solicitações"
+          title='Solicitações'
           badge={data.solicitacoesPendentes.length}
           onVerMais={() => router.push('/(app)/(drawer)/admin/solicitacoes')}
         >

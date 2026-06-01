@@ -12,6 +12,12 @@ export function useEventoEquipe(eventoId?: string, dataOcorrencia?: string, mini
   return useQuery({
     queryKey: ['evento-equipe', igrejaAtiva.id, eventoId, ministerioId, dataOcorrencia],
     enabled: !!eventoId && !!ministerioId && !!dataOcorrencia,
-    queryFn: () => IgrejaEventosRepository.listarEquipe(igrejaAtiva.id, eventoId!, ministerioId!, dataOcorrencia!),
+    queryFn: () =>
+      IgrejaEventosRepository.listarEquipe(
+        igrejaAtiva.id,
+        eventoId!,
+        ministerioId!,
+        dataOcorrencia!,
+      ),
   });
 }

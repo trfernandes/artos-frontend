@@ -1,9 +1,21 @@
-import { ResponseLoginIgrejaDto, ResponseLoginMinisterioDto } from '../../domain/dtos/login/login.response';
+import {
+  ResponseLoginIgrejaDto,
+  ResponseLoginMinisterioDto,
+} from '../../domain/dtos/login/login.response';
 import { CustomIconProps } from '../FancyIcons';
-import { MinisterioTipoEnum, MinisterioTipoLabel } from '../../domain/enums/Ministerio/ministerio-tipo.enum';
+import {
+  MinisterioTipoEnum,
+  MinisterioTipoLabel,
+} from '../../domain/enums/Ministerio/ministerio-tipo.enum';
 import { IgrejaVoluntarioRoleEnum } from '../../domain/enums/Igreja/voluntario-role.enum';
-import { VoluntarioHierarquiaEnum, VoluntarioHierarquiaEnumLabel } from '../../domain/enums/MinisterioVoluntario/hierarquia.enum';
-import { RecursoPermissaoEnum, TipoPermissaoEnum } from '../../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
+import {
+  VoluntarioHierarquiaEnum,
+  VoluntarioHierarquiaEnumLabel,
+} from '../../domain/enums/MinisterioVoluntario/hierarquia.enum';
+import {
+  RecursoPermissaoEnum,
+  TipoPermissaoEnum,
+} from '../../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
 
 const normalizeMinisterioTipo = (tipo: ResponseLoginMinisterioDto['tipo']): MinisterioTipoEnum => {
   const rawTipo = tipo?.toString() ?? '';
@@ -13,7 +25,9 @@ const normalizeMinisterioTipo = (tipo: ResponseLoginMinisterioDto['tipo']): Mini
     return viaKey;
   }
 
-  return (Object.values(MinisterioTipoEnum) as string[]).includes(rawTipo) ? (rawTipo as MinisterioTipoEnum) : MinisterioTipoEnum.Padrao;
+  return (Object.values(MinisterioTipoEnum) as string[]).includes(rawTipo)
+    ? (rawTipo as MinisterioTipoEnum)
+    : MinisterioTipoEnum.Padrao;
 };
 
 export type DrawerItemData = {
@@ -139,7 +153,9 @@ const hasMinisterioPermission = (
   recurso: RecursoPermissaoEnum,
   permissao: TipoPermissaoEnum,
 ) => {
-  return (ministerio.permissoes ?? []).some((item) => item.recurso === recurso && item.permissoes?.includes(permissao));
+  return (ministerio.permissoes ?? []).some(
+    (item) => item.recurso === recurso && item.permissoes?.includes(permissao),
+  );
 };
 
 // Menus completos do ministério - para líderes e admin
@@ -225,14 +241,22 @@ const getMenuForMinisterio = (
   // Admin ou líder do ministério: todos os menus
   const showFullMenu = isAdmin || isLider;
 
-  let items = showFullMenu ? getMinisterioFullItems(ministerio) : getMinisterioBasicItems(ministerio);
+  let items = showFullMenu
+    ? getMinisterioFullItems(ministerio)
+    : getMinisterioBasicItems(ministerio);
 
   if (isAuxiliar && !isAdmin) {
     const routeParams = `?ministerioId=${ministerio.id}`;
     const ministerioTipo = normalizeMinisterioTipo(ministerio.tipo);
     const filteredItems: DrawerItemData[] = [];
 
-    if (hasMinisterioPermission(ministerio, RecursoPermissaoEnum.AgendaEventos, TipoPermissaoEnum.Visualizar)) {
+    if (
+      hasMinisterioPermission(
+        ministerio,
+        RecursoPermissaoEnum.AgendaEventos,
+        TipoPermissaoEnum.Visualizar,
+      )
+    ) {
       filteredItems.push({
         title: 'Agenda',
         logo: {
@@ -243,7 +267,13 @@ const getMenuForMinisterio = (
       });
     }
 
-    if (hasMinisterioPermission(ministerio, RecursoPermissaoEnum.Escalas, TipoPermissaoEnum.Visualizar)) {
+    if (
+      hasMinisterioPermission(
+        ministerio,
+        RecursoPermissaoEnum.Escalas,
+        TipoPermissaoEnum.Visualizar,
+      )
+    ) {
       filteredItems.push({
         title: 'Escalas',
         logo: {
@@ -254,7 +284,13 @@ const getMenuForMinisterio = (
       });
     }
 
-    if (hasMinisterioPermission(ministerio, RecursoPermissaoEnum.Integrantes, TipoPermissaoEnum.Visualizar)) {
+    if (
+      hasMinisterioPermission(
+        ministerio,
+        RecursoPermissaoEnum.Integrantes,
+        TipoPermissaoEnum.Visualizar,
+      )
+    ) {
       filteredItems.push({
         title: 'Integrantes',
         logo: { type: 'icon', value: { name: 'people', library: 'Octicons', size: 14 } },
@@ -265,7 +301,13 @@ const getMenuForMinisterio = (
       });
     }
 
-    if (hasMinisterioPermission(ministerio, RecursoPermissaoEnum.FuncoesTemplates, TipoPermissaoEnum.Visualizar)) {
+    if (
+      hasMinisterioPermission(
+        ministerio,
+        RecursoPermissaoEnum.FuncoesTemplates,
+        TipoPermissaoEnum.Visualizar,
+      )
+    ) {
       filteredItems.push({
         title: 'Funções',
         logo: {
@@ -324,7 +366,9 @@ const getMenuForMinisterio = (
 
   return [
     {
-      logo: ministerio.logoThumbUrl ? { type: 'logo', value: ministerio.logoThumbUrl } : { type: 'icon', value: defaultIcon },
+      logo: ministerio.logoThumbUrl
+        ? { type: 'logo', value: ministerio.logoThumbUrl }
+        : { type: 'icon', value: defaultIcon },
       title: ministerio.nome ?? 'Ministério',
       subtitle: isAdmin
         ? MinisterioTipoLabel[ministerioTipo]
@@ -336,7 +380,9 @@ const getMenuForMinisterio = (
   ];
 };
 
-export function getMenuForIgreja(igreja: ResponseLoginIgrejaDto | null): { section: string; items: DrawerItemData[] }[] {
+export function getMenuForIgreja(
+  igreja: ResponseLoginIgrejaDto | null,
+): { section: string; items: DrawerItemData[] }[] {
   if (!igreja) {
     return [{ section: 'Pessoal', items: BASE_MENU }];
   }
@@ -369,7 +415,9 @@ export function getMenuForIgreja(igreja: ResponseLoginIgrejaDto | null): { secti
 }
 
 // Mantém compatibilidade com código antigo (deprecated)
-export function getMenuForUser(user: { igrejas?: ResponseLoginIgrejaDto[] }): { section: string; items: DrawerItemData[] }[] {
+export function getMenuForUser(user: {
+  igrejas?: ResponseLoginIgrejaDto[];
+}): { section: string; items: DrawerItemData[] }[] {
   const primeiraIgreja = user?.igrejas?.[0] || null;
   return getMenuForIgreja(primeiraIgreja);
 }

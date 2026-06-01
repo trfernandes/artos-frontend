@@ -22,7 +22,10 @@ export const RecorrenciaSemanaMesEnumOrder = [
   RecorrenciaSemanaMesEnum.Quinta,
 ] as const;
 
-export const RecorrenciaSemanaMesEnumLabel: Record<RecorrenciaSemanaMesEnum, { extenso: string; abreviado: string }> = {
+export const RecorrenciaSemanaMesEnumLabel: Record<
+  RecorrenciaSemanaMesEnum,
+  { extenso: string; abreviado: string }
+> = {
   [RecorrenciaSemanaMesEnum.Primeira]: { extenso: 'Primeira semana', abreviado: '1ª sem' },
   [RecorrenciaSemanaMesEnum.Segunda]: { extenso: 'Segunda semana', abreviado: '2ª sem' },
   [RecorrenciaSemanaMesEnum.Terceira]: { extenso: 'Terceira semana', abreviado: '3ª sem' },

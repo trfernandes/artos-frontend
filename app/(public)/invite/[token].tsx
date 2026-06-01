@@ -42,7 +42,11 @@ function getErrorMessage(error: AxiosError | any): string {
   if (errorCode === 'CONVITE_EXPIRADO' || message?.includes('expirado')) {
     return 'Este convite já expirou. Solicite um novo convite.';
   }
-  if (errorCode === 'CONVITE_REVOGADO' || message?.includes('revogado') || message?.includes('inativo')) {
+  if (
+    errorCode === 'CONVITE_REVOGADO' ||
+    message?.includes('revogado') ||
+    message?.includes('inativo')
+  ) {
     return 'Este convite foi revogado e não pode mais ser utilizado.';
   }
   if (errorCode === 'CONVITE_LIMITE_ATINGIDO' || message?.includes('limite')) {
@@ -125,11 +129,19 @@ export default function InviteTokenPage() {
       const result = await IgrejaRepository.aceitarConvite(urlToken);
 
       if (result.result === 'MEMBER_CREATED') {
-        Toast.show({ type: 'success', text1: 'Bem-vindo!', text2: 'Você agora faz parte da igreja.' });
+        Toast.show({
+          type: 'success',
+          text1: 'Bem-vindo!',
+          text2: 'Você agora faz parte da igreja.',
+        });
         await refreshMe();
         router.replace('/(app)');
       } else if (result.result === 'REQUEST_CREATED') {
-        Toast.show({ type: 'info', text1: 'Solicitação enviada', text2: 'Aguarde a aprovação da liderança.' });
+        Toast.show({
+          type: 'info',
+          text1: 'Solicitação enviada',
+          text2: 'Aguarde a aprovação da liderança.',
+        });
         router.replace('/(app)/join-church/requests');
       }
     } catch (err) {
@@ -148,7 +160,11 @@ export default function InviteTokenPage() {
       Toast.show({ type: 'success', text1: 'Solicitação cancelada.' });
       router.replace('/(app)');
     } catch (err) {
-      Toast.show({ type: 'error', text1: 'Erro ao cancelar solicitação', text2: getErrorMessage(err) });
+      Toast.show({
+        type: 'error',
+        text1: 'Erro ao cancelar solicitação',
+        text2: getErrorMessage(err),
+      });
     } finally {
       setLoadingCancel(false);
     }
@@ -176,7 +192,12 @@ export default function InviteTokenPage() {
   // ── Loading ──────────────────────────────────────────────────────────────────
   if (loadingPreview) {
     return (
-      <AuthScreen showBackButton {...AUTH_SCREEN_LAYOUT_PROPS} scrollContainerStyle={{ paddingHorizontal: 30 }} fieldsContainerStyle={{ gap: 8 }}>
+      <AuthScreen
+        showBackButton
+        {...AUTH_SCREEN_LAYOUT_PROPS}
+        scrollContainerStyle={{ paddingHorizontal: 30 }}
+        fieldsContainerStyle={{ gap: 8 }}
+      >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size='large' color={Pallete.primary} />
           <FancyText style={styles.loadingText}>Carregando convite...</FancyText>
@@ -188,9 +209,19 @@ export default function InviteTokenPage() {
   // ── Erro (expirado, revogado, inválido) ──────────────────────────────────────
   if (error || !preview) {
     return (
-      <AuthScreen showBackButton {...AUTH_SCREEN_LAYOUT_PROPS} scrollContainerStyle={{ paddingHorizontal: 30 }} fieldsContainerStyle={{ gap: 8 }}>
+      <AuthScreen
+        showBackButton
+        {...AUTH_SCREEN_LAYOUT_PROPS}
+        scrollContainerStyle={{ paddingHorizontal: 30 }}
+        fieldsContainerStyle={{ gap: 8 }}
+      >
         <View style={styles.errorIconContainer}>
-          <DefaultIcons.Custom library='MaterialIcons' name='error-outline' size={48} color={Pallete.error} />
+          <DefaultIcons.Custom
+            library='MaterialIcons'
+            name='error-outline'
+            size={48}
+            color={Pallete.error}
+          />
         </View>
         <FancyVerticalSpacer height={4} />
         <FancyText type='bold' size='large' style={styles.centeredText}>
@@ -212,21 +243,36 @@ export default function InviteTokenPage() {
       <AuthScreen
         showBackButton
         centerWithinBackButtonArea
-        centerContainerStyle={({ keyboardVisible }) => !keyboardVisible ? { paddingTop: 0 } : null}
+        centerContainerStyle={({ keyboardVisible }) =>
+          !keyboardVisible ? { paddingTop: 0 } : null
+        }
         contentWidth={{ default: '100%' }}
         scrollContainerStyle={styles.jaMembroScrollContainer}
         fieldsContainerStyle={styles.jaMembroFieldsContainer}
       >
         <View style={styles.churchHeader}>
           {preview.igreja.logoUrl ? (
-            <FancyImage source={{ uri: preview.igreja.logoUrl }} size={72} style={styles.logoImage} />
+            <FancyImage
+              source={{ uri: preview.igreja.logoUrl }}
+              size={72}
+              style={styles.logoImage}
+            />
           ) : (
             <View style={[styles.logoContainer, { width: 72, height: 72, borderRadius: 36 }]}>
-              <DefaultIcons.Custom library='MaterialIcons' name='church' size={36} color={Pallete.primary} />
+              <DefaultIcons.Custom
+                library='MaterialIcons'
+                name='church'
+                size={36}
+                color={Pallete.primary}
+              />
             </View>
           )}
           <FancyVerticalSpacer height={8} />
-          <FancyText type='semiBold' size='large' style={[styles.centeredText, styles.churchNameText]}>
+          <FancyText
+            type='semiBold'
+            size='large'
+            style={[styles.centeredText, styles.churchNameText]}
+          >
             {preview.igreja.nome}
           </FancyText>
           <FancyVerticalSpacer height={14} />
@@ -248,22 +294,45 @@ export default function InviteTokenPage() {
   // ── L4: Solicitação pendente ──────────────────────────────────────────────────
   if (preview.solicitacaoPendente) {
     return (
-      <AuthScreen showBackButton {...AUTH_SCREEN_LAYOUT_PROPS} scrollContainerStyle={{ paddingHorizontal: 30 }} fieldsContainerStyle={{ gap: 8 }}>
+      <AuthScreen
+        showBackButton
+        {...AUTH_SCREEN_LAYOUT_PROPS}
+        scrollContainerStyle={{ paddingHorizontal: 30 }}
+        fieldsContainerStyle={{ gap: 8 }}
+      >
         <View style={styles.churchHeader}>
           {preview.igreja.logoUrl ? (
-            <FancyImage source={{ uri: preview.igreja.logoUrl }} size={72} style={styles.logoImage} />
+            <FancyImage
+              source={{ uri: preview.igreja.logoUrl }}
+              size={72}
+              style={styles.logoImage}
+            />
           ) : (
             <View style={[styles.logoContainer, { width: 72, height: 72, borderRadius: 36 }]}>
-              <DefaultIcons.Custom library='MaterialIcons' name='church' size={36} color={Pallete.primary} />
+              <DefaultIcons.Custom
+                library='MaterialIcons'
+                name='church'
+                size={36}
+                color={Pallete.primary}
+              />
             </View>
           )}
           <FancyVerticalSpacer height={8} />
-          <FancyText type='semiBold' size='large' style={[styles.centeredText, styles.churchNameText]}>
+          <FancyText
+            type='semiBold'
+            size='large'
+            style={[styles.centeredText, styles.churchNameText]}
+          >
             {preview.igreja.nome}
           </FancyText>
           <FancyVerticalSpacer height={6} />
           <View style={styles.aguardandoBadge}>
-            <DefaultIcons.Custom library='MaterialIcons' name='access-time' size={14} color={Pallete.warning} />
+            <DefaultIcons.Custom
+              library='MaterialIcons'
+              name='access-time'
+              size={14}
+              color={Pallete.warning}
+            />
             <FancyText type='semiBold' size='small' style={styles.aguardandoBadgeText}>
               Aguardando aprovação
             </FancyText>
@@ -286,23 +355,43 @@ export default function InviteTokenPage() {
   }
 
   const expiresText = preview.expiresAt
-    ? formatInTimeZone(new Date(preview.expiresAt), 'America/Sao_Paulo', "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
+    ? formatInTimeZone(new Date(preview.expiresAt), 'America/Sao_Paulo', "dd/MM/yyyy 'às' HH:mm", {
+        locale: ptBR,
+      })
     : null;
 
   // ── N1: Não logado + convite válido ──────────────────────────────────────────
   if (!user) {
     return (
-      <AuthScreen showBackButton {...AUTH_SCREEN_LAYOUT_PROPS} scrollContainerStyle={{ paddingHorizontal: 30 }} fieldsContainerStyle={{ gap: 8 }}>
+      <AuthScreen
+        showBackButton
+        {...AUTH_SCREEN_LAYOUT_PROPS}
+        scrollContainerStyle={{ paddingHorizontal: 30 }}
+        fieldsContainerStyle={{ gap: 8 }}
+      >
         <View style={styles.churchHeader}>
           {preview.igreja.logoUrl ? (
-            <FancyImage source={{ uri: preview.igreja.logoUrl }} size={80} style={styles.logoImage} />
+            <FancyImage
+              source={{ uri: preview.igreja.logoUrl }}
+              size={80}
+              style={styles.logoImage}
+            />
           ) : (
             <View style={styles.logoContainer}>
-              <DefaultIcons.Custom library='MaterialIcons' name='church' size={40} color={Pallete.primary} />
+              <DefaultIcons.Custom
+                library='MaterialIcons'
+                name='church'
+                size={40}
+                color={Pallete.primary}
+              />
             </View>
           )}
           <FancyVerticalSpacer height={8} />
-          <FancyText type='semiBold' size='large' style={[styles.centeredText, styles.churchNameText]}>
+          <FancyText
+            type='semiBold'
+            size='large'
+            style={[styles.centeredText, styles.churchNameText]}
+          >
             {preview.igreja.nome}
           </FancyText>
           <FancyVerticalSpacer height={4} />
@@ -316,7 +405,12 @@ export default function InviteTokenPage() {
         <View style={styles.detailGroup}>
           {expiresText && (
             <View style={styles.detailRow}>
-              <DefaultIcons.Custom library='MaterialIcons' name='access-time' size={16} color={Pallete.icons.inactive} />
+              <DefaultIcons.Custom
+                library='MaterialIcons'
+                name='access-time'
+                size={16}
+                color={Pallete.icons.inactive}
+              />
               <FancyText size='small' style={styles.detailText}>
                 Válido até: {expiresText}
               </FancyText>
@@ -324,7 +418,12 @@ export default function InviteTokenPage() {
           )}
           {preview.autoApprove && (
             <View style={styles.detailRow}>
-              <DefaultIcons.Custom library='MaterialIcons' name='check-circle' size={16} color={Pallete.confirm} />
+              <DefaultIcons.Custom
+                library='MaterialIcons'
+                name='check-circle'
+                size={16}
+                color={Pallete.confirm}
+              />
               <FancyText size='small' style={[styles.detailText, { color: Pallete.confirm }]}>
                 Aprovação automática
               </FancyText>
@@ -344,18 +443,32 @@ export default function InviteTokenPage() {
 
   // ── L1/L2: Logado + convite válido ──────────────────────────────────────────
   return (
-    <AuthScreen showBackButton {...AUTH_SCREEN_LAYOUT_PROPS} scrollContainerStyle={{ paddingHorizontal: 30 }} fieldsContainerStyle={{ gap: 8 }}>
+    <AuthScreen
+      showBackButton
+      {...AUTH_SCREEN_LAYOUT_PROPS}
+      scrollContainerStyle={{ paddingHorizontal: 30 }}
+      fieldsContainerStyle={{ gap: 8 }}
+    >
       {/* Cabeçalho com logo e nome da igreja (sempre juntos) */}
       <View style={styles.churchHeader}>
         {preview.igreja.logoUrl ? (
           <FancyImage source={{ uri: preview.igreja.logoUrl }} size={80} style={styles.logoImage} />
         ) : (
           <View style={styles.logoContainer}>
-            <DefaultIcons.Custom library='MaterialIcons' name='church' size={40} color={Pallete.primary} />
+            <DefaultIcons.Custom
+              library='MaterialIcons'
+              name='church'
+              size={40}
+              color={Pallete.primary}
+            />
           </View>
         )}
         <FancyVerticalSpacer height={8} />
-        <FancyText type='semiBold' size='large' style={[styles.centeredText, styles.churchNameText]}>
+        <FancyText
+          type='semiBold'
+          size='large'
+          style={[styles.centeredText, styles.churchNameText]}
+        >
           {preview.igreja.nome}
         </FancyText>
         <FancyVerticalSpacer height={4} />
@@ -370,7 +483,12 @@ export default function InviteTokenPage() {
       <View style={styles.detailGroup}>
         {expiresText && (
           <View style={styles.detailRow}>
-            <DefaultIcons.Custom library='MaterialIcons' name='access-time' size={16} color={Pallete.icons.inactive} />
+            <DefaultIcons.Custom
+              library='MaterialIcons'
+              name='access-time'
+              size={16}
+              color={Pallete.icons.inactive}
+            />
             <FancyText size='small' style={styles.detailText}>
               Válido até: {expiresText}
             </FancyText>
@@ -378,7 +496,12 @@ export default function InviteTokenPage() {
         )}
         {preview.autoApprove && (
           <View style={styles.detailRow}>
-            <DefaultIcons.Custom library='MaterialIcons' name='check-circle' size={16} color={Pallete.confirm} />
+            <DefaultIcons.Custom
+              library='MaterialIcons'
+              name='check-circle'
+              size={16}
+              color={Pallete.confirm}
+            />
             <FancyText size='small' style={[styles.detailText, { color: Pallete.confirm }]}>
               Aprovação automática
             </FancyText>
@@ -390,7 +513,13 @@ export default function InviteTokenPage() {
 
       <View style={styles.buttonGroup}>
         <FancyButton
-          label={loadingAccept ? 'Aceitando...' : preview.autoApprove ? 'Aceitar convite' : 'Solicitar entrada'}
+          label={
+            loadingAccept
+              ? 'Aceitando...'
+              : preview.autoApprove
+                ? 'Aceitar convite'
+                : 'Solicitar entrada'
+          }
           onPress={handleAccept}
           disabled={loadingAccept}
         />

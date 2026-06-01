@@ -32,32 +32,42 @@ export default function EscalaLembreteNotificacaoCard({
   const timeAgoA11y = createdDate ? timeAgoLong(createdDate) : '';
 
   const payload = data.data ?? {};
-  const eventDateTimeSource = typeof payload.dataEvento === 'string' && payload.dataEvento.length > 0
-    ? payload.dataEvento
-    : typeof payload.dataOcorrencia === 'string' && payload.dataOcorrencia.length > 0
-      ? payload.dataOcorrencia
-      : null;
+  const eventDateTimeSource =
+    typeof payload.dataEvento === 'string' && payload.dataEvento.length > 0
+      ? payload.dataEvento
+      : typeof payload.dataOcorrencia === 'string' && payload.dataOcorrencia.length > 0
+        ? payload.dataOcorrencia
+        : null;
   const hasOccurrence = !!eventDateTimeSource;
 
-  const occurrenceTimeInSP = eventDateTimeSource ? formatAppDateTime(eventDateTimeSource, 'HH:mm') : null;
+  const occurrenceTimeInSP = eventDateTimeSource
+    ? formatAppDateTime(eventDateTimeSource, 'HH:mm')
+    : null;
   const isMidnight = occurrenceTimeInSP === '00:00';
 
-  const occurrenceDateLabel = eventDateTimeSource ? formatAppDateTime(eventDateTimeSource, 'dd/MM') : null;
-  const occurrenceMinutes = eventDateTimeSource && !isMidnight ? formatAppDateTime(eventDateTimeSource, 'mm') : null;
-  const occurrenceTimeLabel = hasOccurrence && !isMidnight
-    ? formatAppDateTime(eventDateTimeSource, occurrenceMinutes === '00' ? "HH'h'" : "HH'h'mm")
+  const occurrenceDateLabel = eventDateTimeSource
+    ? formatAppDateTime(eventDateTimeSource, 'dd/MM')
     : null;
-  const eventDateTimeLabel = [occurrenceDateLabel, occurrenceTimeLabel].filter(Boolean).join(' às ');
+  const occurrenceMinutes =
+    eventDateTimeSource && !isMidnight ? formatAppDateTime(eventDateTimeSource, 'mm') : null;
+  const occurrenceTimeLabel =
+    hasOccurrence && !isMidnight
+      ? formatAppDateTime(eventDateTimeSource, occurrenceMinutes === '00' ? "HH'h'" : "HH'h'mm")
+      : null;
+  const eventDateTimeLabel = [occurrenceDateLabel, occurrenceTimeLabel]
+    .filter(Boolean)
+    .join(' às ');
 
   const eventoNome = payload.eventoNome ?? null;
   const funcaoNome = payload.funcaoNome ?? null;
   const ensaioInfo = resolveEventoEnsaioInfo({
     horarioEnsaio: typeof payload.horarioEnsaio === 'string' ? payload.horarioEnsaio : null,
-    horarioEnsaioPadrao: typeof payload.horarioEnsaioPadrao === 'string'
-      ? payload.horarioEnsaioPadrao
-      : typeof payload.evento?.horarioEnsaioPadrao === 'string'
-        ? payload.evento.horarioEnsaioPadrao
-        : null,
+    horarioEnsaioPadrao:
+      typeof payload.horarioEnsaioPadrao === 'string'
+        ? payload.horarioEnsaioPadrao
+        : typeof payload.evento?.horarioEnsaioPadrao === 'string'
+          ? payload.evento.horarioEnsaioPadrao
+          : null,
     isLouvor: true,
     fallbackLabel: ENSAIO_FALLBACK_LABEL,
   });
@@ -66,11 +76,9 @@ export default function EscalaLembreteNotificacaoCard({
   const cardTitle = theme.label;
 
   // Subtítulo compacto numa única linha: "26/04 · 19h · Guitarrista"
-  const metadataLabel = [
-    occurrenceDateLabel,
-    occurrenceTimeLabel,
-    funcaoNome,
-  ].filter(Boolean).join(' · ');
+  const metadataLabel = [occurrenceDateLabel, occurrenceTimeLabel, funcaoNome]
+    .filter(Boolean)
+    .join(' · ');
 
   const scheduleParts = [
     funcaoNome ? `para a função ${funcaoNome}` : null,
@@ -78,11 +86,15 @@ export default function EscalaLembreteNotificacaoCard({
     eventDateTimeLabel ? `no dia ${eventDateTimeLabel}` : null,
   ].filter(Boolean);
   const rehearsalSentence = horarioEnsaio ? `Ensaio às ${horarioEnsaio}.` : ENSAIO_FALLBACK_LABEL;
-  const generatedSubtitle = scheduleParts.length > 0
-    ? [`Você está escalado ${scheduleParts.join(' ')}.`, rehearsalSentence].filter(Boolean).join(' ')
-    : null;
+  const generatedSubtitle =
+    scheduleParts.length > 0
+      ? [`Você está escalado ${scheduleParts.join(' ')}.`, rehearsalSentence]
+          .filter(Boolean)
+          .join(' ')
+      : null;
   const fallbackMsg = data.mensagem?.trim() || data.titulo?.trim() || null;
-  const subtitle = generatedSubtitle || metadataLabel || fallbackMsg || 'Toque para ver os detalhes da escala.';
+  const subtitle =
+    generatedSubtitle || metadataLabel || fallbackMsg || 'Toque para ver os detalhes da escala.';
 
   const a11yLabel = [
     cardTitle + '.',
@@ -90,7 +102,9 @@ export default function EscalaLembreteNotificacaoCard({
     funcaoNome ? funcaoNome + '.' : null,
     occurrenceDateLabel ?? null,
     timeAgoA11y + '.',
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const markerStyles = {
     funcao: [styles.markerText, { color: accentColor }],
@@ -110,30 +124,40 @@ export default function EscalaLembreteNotificacaoCard({
       {funcaoNome ? (
         <>
           {' para a função '}
-          <FancyText size='extraSmall' type='bold' style={markerStyles.funcao}>{funcaoNome}</FancyText>
+          <FancyText size='extraSmall' type='bold' style={markerStyles.funcao}>
+            {funcaoNome}
+          </FancyText>
         </>
       ) : null}
       {eventoNome ? (
         <>
           {' em '}
-          <FancyText size='extraSmall' type='bold' style={markerStyles.evento}>{eventoNome}</FancyText>
+          <FancyText size='extraSmall' type='bold' style={markerStyles.evento}>
+            {eventoNome}
+          </FancyText>
         </>
       ) : null}
       {eventDateTimeLabel ? (
         <>
           {' no dia '}
-          <FancyText size='extraSmall' type='bold' style={markerStyles.data}>{eventDateTimeLabel}</FancyText>
+          <FancyText size='extraSmall' type='bold' style={markerStyles.data}>
+            {eventDateTimeLabel}
+          </FancyText>
         </>
       ) : null}
       {'. '}
       {horarioEnsaio ? (
         <>
           {'Ensaio às '}
-          <FancyText size='extraSmall' type='bold' style={markerStyles.ensaio}>{horarioEnsaio}</FancyText>
+          <FancyText size='extraSmall' type='bold' style={markerStyles.ensaio}>
+            {horarioEnsaio}
+          </FancyText>
           {'.'}
         </>
       ) : (
-        <FancyText size='extraSmall' type='bold' style={markerStyles.ensaio}>{ENSAIO_FALLBACK_LABEL}</FancyText>
+        <FancyText size='extraSmall' type='bold' style={markerStyles.ensaio}>
+          {ENSAIO_FALLBACK_LABEL}
+        </FancyText>
       )}
     </FancyText>
   ) : subtitle ? (
@@ -157,7 +181,10 @@ export default function EscalaLembreteNotificacaoCard({
     >
       <FancyCardIcon
         backgroundColor={ColorUtils.withAlpha(accentColor, 0.045)}
-        containerStyle={[styles.cardContainer, { borderColor: ColorUtils.withAlpha(accentColor, 0.08) }]}
+        containerStyle={[
+          styles.cardContainer,
+          { borderColor: ColorUtils.withAlpha(accentColor, 0.08) },
+        ]}
         centerContainerStyle={styles.centerContainer}
         contentContainerStyle={styles.cardContent}
         cardIcon={{
@@ -167,7 +194,12 @@ export default function EscalaLembreteNotificacaoCard({
         }}
         actionButtons={
           <View style={styles.chevronContainer}>
-            <DefaultIcons.Custom library='MaterialCommunityIcons' name='chevron-right' size={22} color={Pallete.fonts.inactive} />
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='chevron-right'
+              size={22}
+              color={Pallete.fonts.inactive}
+            />
           </View>
         }
         title={
@@ -183,7 +215,12 @@ export default function EscalaLembreteNotificacaoCard({
               </FancyText>
               {timeAgoA11y ? (
                 <>
-                  <FancyText size={10} type='medium' style={[styles.timeSeparator, { color: Pallete.fonts.inactive }]} accessibilityElementsHidden>
+                  <FancyText
+                    size={10}
+                    type='medium'
+                    style={[styles.timeSeparator, { color: Pallete.fonts.inactive }]}
+                    accessibilityElementsHidden
+                  >
                     •
                   </FancyText>
                   <FancyText

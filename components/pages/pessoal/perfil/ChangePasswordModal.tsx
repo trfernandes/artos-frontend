@@ -99,7 +99,11 @@ export default function ChangePasswordModal(props: FancyModalDialogProps<any>) {
 
         <ControlledPasswordInput control={control} name='senhaAtual' label='Senha atual' />
         <ControlledPasswordInput control={control} name='novaSenha' label='Nova senha' />
-        <ControlledPasswordInput control={control} name='confirmarSenha' label='Confirmar nova senha' />
+        <ControlledPasswordInput
+          control={control}
+          name='confirmarSenha'
+          label='Confirmar nova senha'
+        />
       </View>
     </FancyBottomSheetModal>
   );

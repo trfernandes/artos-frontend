@@ -4,7 +4,11 @@ import { UpdateVoluntarioDto } from '../dtos/Voluntario/voluntario.update';
 import { BaseApi } from './BaseApi';
 import apiClient from './api-client';
 
-class VoluntariosApiClass extends BaseApi<ResponseVoluntarioDto, CreateVoluntarioDto, UpdateVoluntarioDto> {
+class VoluntariosApiClass extends BaseApi<
+  ResponseVoluntarioDto,
+  CreateVoluntarioDto,
+  UpdateVoluntarioDto
+> {
   constructor() {
     super('voluntarios');
   }

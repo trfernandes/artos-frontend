@@ -1,5 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, LayoutChangeEvent, Platform, Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import {
+  Animated,
+  LayoutChangeEvent,
+  Platform,
+  Pressable,
+  StyleProp,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from 'react-native';
 import FancyText from '../FancyText';
 import { usePallete } from '../../hooks/usePallete';
 
@@ -55,7 +64,12 @@ export default function FancySegmentedControl<T extends string>({
   return (
     <View style={containerStyle}>
       {label && (
-        <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive} style={{ marginBottom: 6 }}>
+        <FancyText
+          size='extraSmall'
+          type='semiBold'
+          color={palette.fonts.inactive}
+          style={{ marginBottom: 6 }}
+        >
           {label}
         </FancyText>
       )}

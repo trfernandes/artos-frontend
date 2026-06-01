@@ -26,14 +26,16 @@ export default function PerfilIndexPage() {
         />
       ),
     },
-    { title: 'Ministérios', icon: { library: 'Feather', name: 'grid', size: 14 }, content: <MinisteriosTab /> },
+    {
+      title: 'Ministérios',
+      icon: { library: 'Feather', name: 'grid', size: 14 },
+      content: <MinisteriosTab />,
+    },
   ];
 
   return (
     <FancyPageView style={styles.container}>
-      <FancyTabs
-        items={TAB_DATA}
-      />
+      <FancyTabs items={TAB_DATA} />
       {isChangePasswordModalVisible && (
         <ChangePasswordModal
           modalProps={{ visible: isChangePasswordModalVisible }}

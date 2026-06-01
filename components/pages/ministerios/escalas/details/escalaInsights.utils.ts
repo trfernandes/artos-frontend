@@ -74,7 +74,7 @@ export function buildCurrentEscalaInsights(itens: ResponseEscalaItemDto[]): Esca
       continue;
     }
 
-    const voluntarioEntity = (item.voluntario?.voluntario as any);
+    const voluntarioEntity = item.voluntario?.voluntario as any;
     pessoasMap.set(item.voluntarioId, {
       voluntarioId: item.voluntarioId,
       nome: getVoluntarioNome(item),

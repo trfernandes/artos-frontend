@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
 import { DropDownItemProps } from '../components/fields/FancyDropDownItem';
 import {
-     Conjunction,
-     Operator,
-     ValueType,
-     DynamicQuery,
-     OrderDirection,
+  Conjunction,
+  Operator,
+  ValueType,
+  DynamicQuery,
+  OrderDirection,
 } from '../domain/utils/query_utils';
 import { useMinisterioVoluntariosCrud } from './useMinisterioVoluntariosCrud';
 import { MinisterioVoluntarioStatusEnum } from '../domain/enums/MinisterioVoluntario/ministerio-voluntario-status.enum';

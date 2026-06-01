@@ -8,7 +8,14 @@ export type FancyStepsLineProps = {
 
 export default function FancyStepsLine({ ...props }: FancyStepsLineProps) {
   return (
-    <View style={{ width: `${props.width}%`, flexDirection: 'row', borderWidth: 0, borderColor: 'yellow' }}>
+    <View
+      style={{
+        width: `${props.width}%`,
+        flexDirection: 'row',
+        borderWidth: 0,
+        borderColor: 'yellow',
+      }}
+    >
       <View
         style={{
           height: 0,
@@ -17,7 +24,9 @@ export default function FancyStepsLine({ ...props }: FancyStepsLineProps) {
           borderTopColor: props.leftColor,
         }}
       />
-      <View style={{ height: 0, borderTopWidth: 3, width: '50%', borderTopColor: props.rightColor }} />
+      <View
+        style={{ height: 0, borderTopWidth: 3, width: '50%', borderTopColor: props.rightColor }}
+      />
     </View>
   );
 }

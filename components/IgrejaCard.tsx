@@ -31,37 +31,29 @@ export const IgrejaCard = ({ igreja, onPress }: IgrejaCardProps) => {
   const handleSair = () => {
     if (!validateRole(igreja.role)) return;
 
-    FancyAlert.alert(
-      'Sair da Igreja',
-      `Tem certeza que deseja sair de "${igreja.nome}"?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Sim',
-          style: 'destructive',
-          onPress: () => sairDaIgreja({ igrejaId: igreja.id, role: igreja.role }),
-        },
-      ]
-    );
+    FancyAlert.alert('Sair da Igreja', `Tem certeza que deseja sair de "${igreja.nome}"?`, [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Sim',
+        style: 'destructive',
+        onPress: () => sairDaIgreja({ igrejaId: igreja.id, role: igreja.role }),
+      },
+    ]);
   };
 
   return (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
       {/* Avatar / Ícone */}
       <View style={styles.avatar}>
-        <Feather name="home" size={24} color={Pallete.primary} />
+        <Feather name='home' size={24} color={Pallete.primary} />
       </View>
 
       {/* Informações */}
       <View style={styles.info}>
-        <FancyText type="bold" size="medium" numberOfLines={1}>
+        <FancyText type='bold' size='medium' numberOfLines={1}>
           {igreja.nome}
         </FancyText>
-        <FancyText size="small" color={Pallete.fonts.inactive}>
+        <FancyText size='small' color={Pallete.fonts.inactive}>
           {igreja.role}
         </FancyText>
       </View>
@@ -78,7 +70,7 @@ export const IgrejaCard = ({ igreja, onPress }: IgrejaCardProps) => {
         ]}
         triggerComponent={
           <View style={styles.menuTrigger}>
-            <Feather name="more-vertical" size={24} color={Pallete.fonts.dark} />
+            <Feather name='more-vertical' size={24} color={Pallete.fonts.dark} />
           </View>
         }
       />

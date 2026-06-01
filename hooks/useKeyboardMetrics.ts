@@ -18,10 +18,7 @@ export type KeyboardMetrics = {
 export function useKeyboardMetrics(): KeyboardMetrics {
   const { isVisible, height } = useKeyboardState();
 
-  const platformInset = useMemo(
-    () => (Platform.OS === 'ios' ? height : 0),
-    [height],
-  );
+  const platformInset = useMemo(() => (Platform.OS === 'ios' ? height : 0), [height]);
 
   return { visible: isVisible, height, platformInset };
 }

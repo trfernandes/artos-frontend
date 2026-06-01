@@ -48,7 +48,8 @@ export async function shouldPromptReview(): Promise<boolean> {
   if (state.totalPrompts >= MAX_TOTAL_PROMPTS) return false;
 
   if (state.lastPromptDate) {
-    const daysSince = (Date.now() - new Date(state.lastPromptDate).getTime()) / (1000 * 60 * 60 * 24);
+    const daysSince =
+      (Date.now() - new Date(state.lastPromptDate).getTime()) / (1000 * 60 * 60 * 24);
     if (daysSince < MIN_DAYS_BETWEEN_PROMPTS) return false;
   }
 

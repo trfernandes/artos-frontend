@@ -2,13 +2,24 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ExternalUseCrudParams, useCrud } from './hooks/useCrud';
 import { EscalaTemplatesRepository } from './domain/services/EscalaTemplatesRepository';
 import { Operator, ValueType } from './domain/utils/query_utils';
-import { EscalaTemplateFormData, escalaTemplateSchema } from './domain/schemas/escalaTemplateSchema';
+import {
+  EscalaTemplateFormData,
+  escalaTemplateSchema,
+} from './domain/schemas/escalaTemplateSchema';
 import { ResponseEscalaTemplateDto } from './domain/dtos/EscalaTemplate/escala-template.response';
 import { CreateEscalaTemplateDto } from './domain/dtos/EscalaTemplate/escala-template.create';
 import { UpdateEscalaTemplateDto } from './domain/dtos/EscalaTemplate/escala-template.update';
 
-export function useEscalaTemplatesCrud({ autoFetch = false, initialParams = {} }: ExternalUseCrudParams = {}) {
-  return useCrud<ResponseEscalaTemplateDto, EscalaTemplateFormData, CreateEscalaTemplateDto, UpdateEscalaTemplateDto>({
+export function useEscalaTemplatesCrud({
+  autoFetch = false,
+  initialParams = {},
+}: ExternalUseCrudParams = {}) {
+  return useCrud<
+    ResponseEscalaTemplateDto,
+    EscalaTemplateFormData,
+    CreateEscalaTemplateDto,
+    UpdateEscalaTemplateDto
+  >({
     queryKey: 'escala-templates',
     autoFetch,
     initialParams,
@@ -25,7 +36,14 @@ export function useEscalaTemplatesCrud({ autoFetch = false, initialParams = {} }
             },
           ],
         },
-        relations: ['ministerio', 'voluntarios', 'voluntarios.voluntario', 'voluntarios.funcao', 'funcoes', 'funcoes.funcao'],
+        relations: [
+          'ministerio',
+          'voluntarios',
+          'voluntarios.voluntario',
+          'voluntarios.funcao',
+          'funcoes',
+          'funcoes.funcao',
+        ],
         limit: 1,
       });
 

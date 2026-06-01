@@ -47,7 +47,12 @@ export function FancyTextDisplay({
 }
 
 const styles = StyleSheet.create({
-  dataContainer: { flexDirection: 'row', gap: 6, justifyContent: 'flex-start', alignItems: 'center' },
+  dataContainer: {
+    flexDirection: 'row',
+    gap: 6,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+  },
   keyText: {
     lineHeight: 20,
     borderWidth: 0,

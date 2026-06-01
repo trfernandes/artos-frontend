@@ -3,7 +3,10 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEscalaTemplatesCrud } from '../../../../../useEscalaTemplatesCrud';
-import { EscalaTemplateFormData, escalaTemplateSchema } from '../../../../../domain/schemas/escalaTemplateSchema';
+import {
+  EscalaTemplateFormData,
+  escalaTemplateSchema,
+} from '../../../../../domain/schemas/escalaTemplateSchema';
 import { AxiosError } from 'axios';
 import TemplateForm from '../../../../../components/pages/ministerios/templates_equipe/TemplateForm';
 import { strfyObj } from '../../../../../utils/text_utils';
@@ -33,7 +36,11 @@ export default function MinisterioTemplatesAddPage() {
           })
           .catch((error: AxiosError<any, any>) => {
             const errorMessage = error.response?.data?.message;
-            if (errorMessage && errorMessage.trim() === 'Ja existe um template com esse nome para o ministerio informado.') {
+            if (
+              errorMessage &&
+              errorMessage.trim() ===
+                'Ja existe um template com esse nome para o ministerio informado.'
+            ) {
               form.setError('nome', {
                 type: 'custom',
                 message: 'O nome já está sendo utilizado',
@@ -50,7 +57,12 @@ export default function MinisterioTemplatesAddPage() {
 
   return (
     <FormProvider {...form}>
-      <TemplateForm mode='add' ministerioId={ministerioId} onSave={handleOnSave} isLoading={isLoadingMutation} />
+      <TemplateForm
+        mode='add'
+        ministerioId={ministerioId}
+        onSave={handleOnSave}
+        isLoading={isLoadingMutation}
+      />
     </FormProvider>
   );
 }

@@ -2,7 +2,8 @@
 
 ## Prerequisites
 
-1. **Google Play Console Account** - Register at [play.google.com/console](https://play.google.com/console)
+1. **Google Play Console Account** - Register at
+   [play.google.com/console](https://play.google.com/console)
 2. **App Created in Console** - Create your app listing before first submission
 3. **Service Account** - For automated submissions via EAS
 
@@ -74,12 +75,12 @@ Then reference in `eas.json`:
 
 Google Play uses tracks for staged rollouts:
 
-| Track | Purpose |
-|-------|---------|
-| `internal` | Internal testing (up to 100 testers) |
-| `alpha` | Closed testing |
-| `beta` | Open testing |
-| `production` | Public release |
+| Track        | Purpose                              |
+| ------------ | ------------------------------------ |
+| `internal`   | Internal testing (up to 100 testers) |
+| `alpha`      | Closed testing                       |
+| `beta`       | Open testing                         |
+| `production` | Public release                       |
 
 ### Track Configuration
 

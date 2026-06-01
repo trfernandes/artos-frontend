@@ -29,7 +29,8 @@ export const useSairDaIgreja = () => {
       });
     },
     onError: (error: any) => {
-      const mensagem = error?.response?.data?.message || 'Não foi possível sair da igreja. Tente novamente.';
+      const mensagem =
+        error?.response?.data?.message || 'Não foi possível sair da igreja. Tente novamente.';
       Toast.show({
         type: 'error',
         text1: 'Erro',

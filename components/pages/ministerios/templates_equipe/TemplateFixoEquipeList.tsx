@@ -4,9 +4,9 @@ import TemplateFixoEquipeForm from './TemplateFixoEquipeForm';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import { FormProvider, useFieldArray, useForm, useFormContext } from 'react-hook-form';
 import {
-    EscalaTemplateFormData,
-    EscalaTemplateVoluntarioFormData,
-    escalaTemplateVoluntarioSchema,
+  EscalaTemplateFormData,
+  EscalaTemplateVoluntarioFormData,
+  escalaTemplateVoluntarioSchema,
 } from '../../../../domain/schemas/escalaTemplateSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FancyAlert } from '../../../modal/FancyAlert';
@@ -68,7 +68,9 @@ export default function TemplateFixoEquipeList({
       return;
     }
     formAdd.handleSubmit((data) => {
-      const alreadyExists = voluntariosData.some((v) => v.voluntarioId === data.voluntarioId && v.funcaoId === data.funcaoId);
+      const alreadyExists = voluntariosData.some(
+        (v) => v.voluntarioId === data.voluntarioId && v.funcaoId === data.funcaoId,
+      );
 
       if (alreadyExists) {
         formAdd.setError('voluntarioId', { message: 'Voluntário já adicionado.' });
@@ -135,7 +137,13 @@ export default function TemplateFixoEquipeList({
         data={voluntariosData}
         contentContainerStyle={{ paddingTop: 6 }}
         disabled={disabled}
-        renderItem={({ item, index }: { item: EscalaTemplateVoluntarioFormData; index: number }) => {
+        renderItem={({
+          item,
+          index,
+        }: {
+          item: EscalaTemplateVoluntarioFormData;
+          index: number;
+        }) => {
           const voluntarioInfo = voluntariosList.find((option) => option.id === item.voluntarioId);
           const funcaoInfo = funcoesList.find((option) => option.id === item.funcaoId);
           return (
@@ -146,7 +154,12 @@ export default function TemplateFixoEquipeList({
                 subtitle: funcaoInfo?.nome,
                 source:
                   voluntarioInfo?.voluntario?.fotoThumbUrl || voluntarioInfo?.voluntario?.fotoUrl
-                    ? { uri: voluntarioInfo?.voluntario?.fotoThumbUrl || voluntarioInfo?.voluntario?.fotoUrl || '' }
+                    ? {
+                        uri:
+                          voluntarioInfo?.voluntario?.fotoThumbUrl ||
+                          voluntarioInfo?.voluntario?.fotoUrl ||
+                          '',
+                      }
                     : AppImages.emptyProfile,
                 actionButtons: [
                   {

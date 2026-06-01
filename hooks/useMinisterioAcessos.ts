@@ -18,13 +18,22 @@ export function useMinisterioAcessos(igrejaId?: string, ministerioId?: string) {
   };
 
   const addAuxiliar = useMutation({
-    mutationFn: (dto: UpsertMinisterioAuxiliarDto) => MinisterioAcessosRepository.addAuxiliar(igrejaId!, ministerioId!, dto),
+    mutationFn: (dto: UpsertMinisterioAuxiliarDto) =>
+      MinisterioAcessosRepository.addAuxiliar(igrejaId!, ministerioId!, dto),
     onSuccess: invalidate,
   });
 
   const updateAuxiliar = useMutation({
-    mutationFn: ({ voluntarioId, permissoes }: { voluntarioId: string; permissoes: UpsertMinisterioAuxiliarDto['permissoes'] }) =>
-      MinisterioAcessosRepository.updateAuxiliar(igrejaId!, ministerioId!, voluntarioId, { permissoes }),
+    mutationFn: ({
+      voluntarioId,
+      permissoes,
+    }: {
+      voluntarioId: string;
+      permissoes: UpsertMinisterioAuxiliarDto['permissoes'];
+    }) =>
+      MinisterioAcessosRepository.updateAuxiliar(igrejaId!, ministerioId!, voluntarioId, {
+        permissoes,
+      }),
     onSuccess: invalidate,
   });
 
@@ -39,6 +48,7 @@ export function useMinisterioAcessos(igrejaId?: string, ministerioId?: string) {
     addAuxiliar: addAuxiliar.mutateAsync,
     updateAuxiliar: updateAuxiliar.mutateAsync,
     removeAuxiliar: removeAuxiliar.mutateAsync,
-    isLoadingMutation: addAuxiliar.isPending || updateAuxiliar.isPending || removeAuxiliar.isPending,
+    isLoadingMutation:
+      addAuxiliar.isPending || updateAuxiliar.isPending || removeAuxiliar.isPending,
   };
 }

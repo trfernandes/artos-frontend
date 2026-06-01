@@ -8,12 +8,19 @@ import { GetEscalaItensVoluntarioQueryDto } from '../dtos/Escala/get-escala-iten
 import { ResponseEscalaItemDto } from '../dtos/Escala/escala-item.response';
 import { UpdateEscalaItemDto } from '../dtos/Escala/escala-item.update';
 
-class EscalaItensApiClass extends BaseApi<ResponseEscalaItemDto, CreateEscalaItemDto, UpdateEscalaItemDto> {
+class EscalaItensApiClass extends BaseApi<
+  ResponseEscalaItemDto,
+  CreateEscalaItemDto,
+  UpdateEscalaItemDto
+> {
   constructor() {
     super('escalas/itens');
   }
 
-  override async search(query: DynamicQuery, includeFotos: boolean = false): Promise<ResponseEscalaItemDto[]> {
+  override async search(
+    query: DynamicQuery,
+    includeFotos: boolean = false,
+  ): Promise<ResponseEscalaItemDto[]> {
     try {
       const igrejaId = (query as { igrejaId?: string } | undefined)?.igrejaId;
       const params = igrejaId ? { includeFotos, igrejaId } : { includeFotos };
@@ -49,7 +56,9 @@ class EscalaItensApiClass extends BaseApi<ResponseEscalaItemDto, CreateEscalaIte
           metodo: error.config?.method,
           dadosEnviados: (() => {
             try {
-              return typeof error.config?.data === 'string' ? JSON.parse(error.config.data) : error.config?.data;
+              return typeof error.config?.data === 'string'
+                ? JSON.parse(error.config.data)
+                : error.config?.data;
             } catch {
               return error.config?.data;
             }

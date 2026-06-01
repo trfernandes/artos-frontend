@@ -13,16 +13,29 @@ export interface EventoDetailsProps {
   data: EventoInfoTabProps;
 }
 
-export default function EventoDetails({ eventoId, data, ...props }: EventoDetailsProps & FancyModalDialogProps<any>) {
+export default function EventoDetails({
+  eventoId,
+  data,
+  ...props
+}: EventoDetailsProps & FancyModalDialogProps<any>) {
   const initialParams = useMemo<DynamicQuery>(() => {
     return {
       where: {
-        conditions: [{ path: 'id', operator: Operator.EQUALS, value: { type: ValueType.LITERAL, value: eventoId } }],
+        conditions: [
+          {
+            path: 'id',
+            operator: Operator.EQUALS,
+            value: { type: ValueType.LITERAL, value: eventoId },
+          },
+        ],
       },
     };
   }, [eventoId]);
 
-  const { data: eventosList, isLoading: isLoadingEventos } = useEventosCrud({ autoFetch: true, initialParams });
+  const { data: eventosList, isLoading: isLoadingEventos } = useEventosCrud({
+    autoFetch: true,
+    initialParams,
+  });
 
   const [eventoData, setEventoData] = useState<ResponseEventoDto>();
 
@@ -37,7 +50,15 @@ export default function EventoDetails({ eventoId, data, ...props }: EventoDetail
       icon: { ...DefaultIconsNames.info, size: 14, style: { borderWidth: 0, marginTop: -0.5 } },
       content: <EventoInfoTab {...data} />,
     },
-    { title: 'Setlist', icon: { library: 'Fontisto', name: 'play-list', size: 10, style: { borderWidth: 0, marginTop: -1.5 } } },
+    {
+      title: 'Setlist',
+      icon: {
+        library: 'Fontisto',
+        name: 'play-list',
+        size: 10,
+        style: { borderWidth: 0, marginTop: -1.5 },
+      },
+    },
   ];
 
   return (
@@ -50,11 +71,7 @@ export default function EventoDetails({ eventoId, data, ...props }: EventoDetail
       containerStyle={{ height: '80%' }}
       centerContainerStyle={{ flex: 1, borderWidth: 0 }}
     >
-      {isLoadingEventos ? (
-        <FancyLoading />
-      ) : (
-        <FancyTabs items={TAB_CONFIG} variant='compact' />
-      )}
+      {isLoadingEventos ? <FancyLoading /> : <FancyTabs items={TAB_CONFIG} variant='compact' />}
     </FancyModalDialog>
   );
 }

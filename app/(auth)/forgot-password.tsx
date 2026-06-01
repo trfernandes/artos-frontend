@@ -59,48 +59,48 @@ export default function ForgotPasswordPage() {
     <View style={[styles.root, { backgroundColor: Pallete.backgroundColor }]}>
       <SafeAreaView style={styles.safe} edges={['left', 'right']}>
         <KeyboardAvoidingView style={styles.safe} behavior='height'>
-        <View style={[styles.backButtonRow, { top: insets.top + 8 }]}>
-          <FancyButton
-            mode='icon'
-            type='text'
-            onPress={() => router.back()}
-            icon={{ library: 'Feather', name: 'arrow-left', size: 18 }}
-            iconStyle={{ color: Pallete.icons.dark }}
-            containerStyle={{
-              backgroundColor: ColorUtils.withAlpha(Pallete.fonts.dark, 0.08),
-              borderRadius: 22,
-              width: 44,
-              height: 44,
-            }}
-          />
-        </View>
-
-        <View style={[styles.content, { paddingTop: insets.top + 24 }]}>
-          <View style={styles.centerGroup}>
-            <View style={styles.headerGroup}>
-              <FancyText size='large' type='bold' color={Pallete.fonts.dark}>
-                Recuperação de Senha
-              </FancyText>
-              <FancyText size='small' color={Pallete.fonts.inactive}>
-                Informe seu e-mail para receber as instruções de recuperação.
-              </FancyText>
-            </View>
-
-            <ControlledTextInput
-              label='E-mail'
-              name='email'
-              control={control}
-              inputProps={{ autoCapitalize: 'none', keyboardType: 'email-address' }}
-            />
-
+          <View style={[styles.backButtonRow, { top: insets.top + 8 }]}>
             <FancyButton
-              label={isSubmitting ? 'Enviando...' : 'Enviar'}
-              onPress={handleSubmit(onSubmit)}
-              disabled={isSubmitting}
-              icon={{ library: 'Feather', name: 'send', size: 16 }}
+              mode='icon'
+              type='text'
+              onPress={() => router.back()}
+              icon={{ library: 'Feather', name: 'arrow-left', size: 18 }}
+              iconStyle={{ color: Pallete.icons.dark }}
+              containerStyle={{
+                backgroundColor: ColorUtils.withAlpha(Pallete.fonts.dark, 0.08),
+                borderRadius: 22,
+                width: 44,
+                height: 44,
+              }}
             />
           </View>
-        </View>
+
+          <View style={[styles.content, { paddingTop: insets.top + 24 }]}>
+            <View style={styles.centerGroup}>
+              <View style={styles.headerGroup}>
+                <FancyText size='large' type='bold' color={Pallete.fonts.dark}>
+                  Recuperação de Senha
+                </FancyText>
+                <FancyText size='small' color={Pallete.fonts.inactive}>
+                  Informe seu e-mail para receber as instruções de recuperação.
+                </FancyText>
+              </View>
+
+              <ControlledTextInput
+                label='E-mail'
+                name='email'
+                control={control}
+                inputProps={{ autoCapitalize: 'none', keyboardType: 'email-address' }}
+              />
+
+              <FancyButton
+                label={isSubmitting ? 'Enviando...' : 'Enviar'}
+                onPress={handleSubmit(onSubmit)}
+                disabled={isSubmitting}
+                icon={{ library: 'Feather', name: 'send', size: 16 }}
+              />
+            </View>
+          </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </View>

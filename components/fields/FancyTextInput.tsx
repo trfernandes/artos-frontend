@@ -1,4 +1,14 @@
-import { View, StyleSheet, TouchableOpacity, ViewStyle, StyleProp, ViewProps, TextInput, TextInputProps, Pressable } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  ViewStyle,
+  StyleProp,
+  ViewProps,
+  TextInput,
+  TextInputProps,
+  Pressable,
+} from 'react-native';
 import FancyText, { FancyTextProps } from '../FancyText';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import { isValidElement, ReactNode } from 'react';
@@ -33,7 +43,11 @@ export type FancyTextInputProps = {
 
 function generateButtonsComponent(buttons: Button[], iconColor: string) {
   return buttons.map((button, idx) => (
-    <TouchableOpacity style={{ justifyContent: 'center', alignItems: 'center' }} onPress={button.onPress} key={idx}>
+    <TouchableOpacity
+      style={{ justifyContent: 'center', alignItems: 'center' }}
+      onPress={button.onPress}
+      key={idx}
+    >
       <DefaultIcons.Custom size={button.icon.size || 18} color={iconColor} {...button.icon} />
     </TouchableOpacity>
   ));
@@ -50,15 +64,28 @@ export default function FancyTextInput({ disabled = false, ...props }: FancyText
     ...remainingInputProps
   } = props.inputProps ?? {};
   const isMultiline = Boolean(multiline);
-  const normalizedInputStyle = Array.isArray(rawInputStyle) ? rawInputStyle : rawInputStyle ? [rawInputStyle] : [];
+  const normalizedInputStyle = Array.isArray(rawInputStyle)
+    ? rawInputStyle
+    : rawInputStyle
+      ? [rawInputStyle]
+      : [];
   const resolvedPlaceholder = inputPlaceholder ?? props.placeholder;
   const resolvedPlaceholderTextColor = inputPlaceholderTextColor ?? Pallete.fonts.inactive2;
 
   return (
-    <Pressable {...props.inputContainerProps} style={[styles.container, props.containerStyle]} onPress={props.onPress}>
+    <Pressable
+      {...props.inputContainerProps}
+      style={[styles.container, props.containerStyle]}
+      onPress={props.onPress}
+    >
       {props.label && (
         <View style={styles.labelContainer}>
-          <FancyText size={'extraSmall'} type='semiBold' style={[styles.labelText, disabled && styles.labelDisabledText]} {...props.labelProps}>
+          <FancyText
+            size={'extraSmall'}
+            type='semiBold'
+            style={[styles.labelText, disabled && styles.labelDisabledText]}
+            {...props.labelProps}
+          >
             {props.label}
           </FancyText>
         </View>
@@ -76,8 +103,8 @@ export default function FancyTextInput({ disabled = false, ...props }: FancyText
             {isValidElement(props.leftContainer)
               ? props.leftContainer
               : Array.isArray(props.leftContainer)
-              ? generateButtonsComponent(props.leftContainer, Pallete.fonts.dark)
-              : null}
+                ? generateButtonsComponent(props.leftContainer, Pallete.fonts.dark)
+                : null}
           </View>
         )}
         <View style={styles.centerContainer}>
@@ -105,14 +132,20 @@ export default function FancyTextInput({ disabled = false, ...props }: FancyText
             {isValidElement(props.rightContainer)
               ? props.rightContainer
               : Array.isArray(props.rightContainer)
-              ? generateButtonsComponent(props.rightContainer, Pallete.fonts.dark)
-              : null}
+                ? generateButtonsComponent(props.rightContainer, Pallete.fonts.dark)
+                : null}
           </View>
         )}
       </View>
       {props.errorMessage && (
         <View style={styles.errorContainer}>
-          <FancyText size='extraSmall' type='semiBold' style={styles.errorText} accessibilityRole='alert' accessibilityLiveRegion='polite'>
+          <FancyText
+            size='extraSmall'
+            type='semiBold'
+            style={styles.errorText}
+            accessibilityRole='alert'
+            accessibilityLiveRegion='polite'
+          >
             {props.errorMessage || ''}
           </FancyText>
         </View>

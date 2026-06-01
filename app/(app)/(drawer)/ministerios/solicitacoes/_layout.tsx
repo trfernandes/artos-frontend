@@ -10,7 +10,10 @@ export default function MinisterioSolicitacoesLayout() {
         header: (props) => <FancyPageHeader {...props} />,
       }}
     >
-      <Stack.Screen name='index' options={{ title: 'Solicitações', headerRight: () => <MainHeaderButtons /> }} />
+      <Stack.Screen
+        name='index'
+        options={{ title: 'Solicitações', headerRight: () => <MainHeaderButtons /> }}
+      />
     </Stack>
   );
 }

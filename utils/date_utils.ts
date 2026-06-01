@@ -90,7 +90,11 @@ const DateUtils = {
   },
   equal(a?: Date, b?: Date) {
     if (!a || !b) return false;
-    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    return (
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate()
+    );
   },
   normalizeLocalDay(date: Date): Date {
     const zoned = toZonedTime(date, APP_TZ); // UTC -> TZ (ou interpreta date como instante e "vê" na TZ)
@@ -124,7 +128,8 @@ export type IsoDateTimeString = string; // ISO 8601
 export const DateUtilsApi = {
   dateOnlyFromApi(value: string | Date, tz: string = APP_TZ): Date {
     // 1) Normaliza para "yyyy-MM-dd"
-    const ymd = value instanceof Date ? formatInTimeZone(value, tz, 'yyyy-MM-dd') : value.slice(0, 10); // pega "YYYY-MM-DD" mesmo se vier ISO
+    const ymd =
+      value instanceof Date ? formatInTimeZone(value, tz, 'yyyy-MM-dd') : value.slice(0, 10); // pega "YYYY-MM-DD" mesmo se vier ISO
 
     // 2) Constrói Date local (meio-dia local = mais seguro)
     const [y, m, d] = ymd.split('-').map(Number);
@@ -227,7 +232,11 @@ export function normalizeClockTime(value: DateLike, tz: string = APP_TZ): string
   return parsed ? formatInTimeZone(parsed, tz, 'HH:mm:ss') : undefined;
 }
 
-export function formatClockTime(value: DateLike, compact = false, tz: string = APP_TZ): string | undefined {
+export function formatClockTime(
+  value: DateLike,
+  compact = false,
+  tz: string = APP_TZ,
+): string | undefined {
   const normalized = normalizeClockTime(value, tz);
   if (!normalized) return undefined;
 

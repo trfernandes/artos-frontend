@@ -7,7 +7,10 @@ export interface FancyLoadingProps {
   containerStyle?: StyleProp<ViewStyle>;
 }
 
-export default function FancyLoading({ label = 'Carregando...', containerStyle }: FancyLoadingProps) {
+export default function FancyLoading({
+  label = 'Carregando...',
+  containerStyle,
+}: FancyLoadingProps) {
   const palette = usePallete();
 
   return (

@@ -21,7 +21,10 @@ const baseAccountFields = {
   confirmarSenha: z.string('Campo obrigatório'),
 };
 
-const confirmPasswordRefine = (data: { senha: string; confirmarSenha: string }, ctx: z.RefinementCtx) => {
+const confirmPasswordRefine = (
+  data: { senha: string; confirmarSenha: string },
+  ctx: z.RefinementCtx,
+) => {
   if (data.senha !== data.confirmarSenha) {
     ctx.addIssue({ code: 'custom', path: ['confirmarSenha'], message: 'As senhas não coincidem' });
   }

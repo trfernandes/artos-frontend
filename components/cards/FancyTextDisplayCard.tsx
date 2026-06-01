@@ -49,7 +49,12 @@ export function FancyTextDisplayCard({
 }
 
 const styles = StyleSheet.create({
-  dataContainer: { flexDirection: 'row', gap: 3, justifyContent: 'flex-start', alignItems: 'center' },
+  dataContainer: {
+    flexDirection: 'row',
+    gap: 3,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+  },
   keyText: {
     lineHeight: 12,
     borderWidth: 0,

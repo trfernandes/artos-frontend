@@ -64,7 +64,11 @@ export default function YearView({ visualStyle = 'default', ...props }: YearView
                 numberOfLines={1}
                 size={'medium'}
                 type={isSelected ? 'bold' : 'medium'}
-                style={[styles.text, isAgendaPremium ? styles.textAgenda : null, isSelected && styles.selectedText]}
+                style={[
+                  styles.text,
+                  isAgendaPremium ? styles.textAgenda : null,
+                  isSelected && styles.selectedText,
+                ]}
               >
                 {year}
               </FancyText>

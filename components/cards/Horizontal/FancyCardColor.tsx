@@ -17,7 +17,7 @@ export type FancyCardColorProps = {
   | 'containerStyle'
   | 'contentContainerStyle'
   | 'isCollapsable'
-    | 'backgroundColor'
+  | 'backgroundColor'
 >;
 
 export default function FancyCardColor(props: FancyCardColorProps) {
@@ -26,8 +26,18 @@ export default function FancyCardColor(props: FancyCardColorProps) {
   return (
     <FancyBaseCard
       {...props}
-      leftItem={<View style={[styles.colorContainer, { backgroundColor: props.color || palette.primary }]}></View>}
-      rightItem={isValidElement(props.actionButtons) ? props.actionButtons : <FancyActionButtons actions={props.actionButtons} />}
+      leftItem={
+        <View
+          style={[styles.colorContainer, { backgroundColor: props.color || palette.primary }]}
+        ></View>
+      }
+      rightItem={
+        isValidElement(props.actionButtons) ? (
+          props.actionButtons
+        ) : (
+          <FancyActionButtons actions={props.actionButtons} />
+        )
+      }
     />
   );
 }

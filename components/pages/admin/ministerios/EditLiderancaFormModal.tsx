@@ -9,8 +9,13 @@ import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import { VoluntarioHierarquiaLideresEnumList } from '../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
 import { AppImages } from '../../../../assets/app_images';
 
-export default function EditLiderancaFormModal(props: { data: AddLiderFormData } & FancyModalDialogProps<AddLiderFormData>) {
-  const form = useForm<AddLiderFormData>({ resolver: zodResolver(AddLiderSchema), defaultValues: props.data });
+export default function EditLiderancaFormModal(
+  props: { data: AddLiderFormData } & FancyModalDialogProps<AddLiderFormData>,
+) {
+  const form = useForm<AddLiderFormData>({
+    resolver: zodResolver(AddLiderSchema),
+    defaultValues: props.data,
+  });
 
   const { data } = useVoluntariosCrud({ autoFetch: true });
 
@@ -28,7 +33,7 @@ export default function EditLiderancaFormModal(props: { data: AddLiderFormData }
                   ? { uri: v.fotoThumbUrl || v.fotoUrl || '' }
                   : AppImages.emptyProfile,
             },
-          } as DropDownItemProps<string>),
+          }) as DropDownItemProps<string>,
       ) || []
     );
   }, [data]);
@@ -40,9 +45,25 @@ export default function EditLiderancaFormModal(props: { data: AddLiderFormData }
   }, [props.onButton2Press]);
 
   return (
-    <FancyModalDialog {...props} title='Editar Líder' centerContainerStyle={{ gap: 15 }} onButton2Press={onSubmit}>
-      <ControlledDropDown control={form.control} name='voluntarioId' label='Voluntário:' listItems={voluntariosDropDownList} disabled />
-      <ControlledDropDown control={form.control} name='hierarquia' label='Função:' listItems={VoluntarioHierarquiaLideresEnumList} />
+    <FancyModalDialog
+      {...props}
+      title='Editar Líder'
+      centerContainerStyle={{ gap: 15 }}
+      onButton2Press={onSubmit}
+    >
+      <ControlledDropDown
+        control={form.control}
+        name='voluntarioId'
+        label='Voluntário:'
+        listItems={voluntariosDropDownList}
+        disabled
+      />
+      <ControlledDropDown
+        control={form.control}
+        name='hierarquia'
+        label='Função:'
+        listItems={VoluntarioHierarquiaLideresEnumList}
+      />
     </FancyModalDialog>
   );
 }

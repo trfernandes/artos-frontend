@@ -25,7 +25,8 @@ export default function EventoDetails(props: {
   const isLouvorMinisterio = useMemo(
     () =>
       igrejaAtiva?.ministerios?.some(
-        (ministerio) => ministerio.id === props.ministerioId && isLouvorMinisterioTipo(ministerio.tipo),
+        (ministerio) =>
+          ministerio.id === props.ministerioId && isLouvorMinisterioTipo(ministerio.tipo),
       ) ?? false,
     [igrejaAtiva?.ministerios, props.ministerioId],
   );
@@ -84,13 +85,20 @@ export default function EventoDetails(props: {
     }
 
     return tabs;
-  }, [isLouvorMinisterio, isSetlistResponsavel, props.dataOcorrencia, props.evento, props.horarioEnsaio, props.ministerioId, props.ministerioNome, props.responsavelSetlistNome]);
+  }, [
+    isLouvorMinisterio,
+    isSetlistResponsavel,
+    props.dataOcorrencia,
+    props.evento,
+    props.horarioEnsaio,
+    props.ministerioId,
+    props.ministerioNome,
+    props.responsavelSetlistNome,
+  ]);
 
   return (
     <FancyPageView style={styles.container}>
-      <FancyTabs
-        items={TABS_DATA}
-      />
+      <FancyTabs items={TABS_DATA} />
     </FancyPageView>
   );
 }

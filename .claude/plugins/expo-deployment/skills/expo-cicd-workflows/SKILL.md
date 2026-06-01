@@ -1,7 +1,10 @@
 ---
 name: expo-cicd-workflows
-description: Helps understand and write EAS workflow YAML files for Expo projects. Use this skill when the user asks about CI/CD or workflows in an Expo or EAS context, mentions .eas/workflows/, or wants help with EAS build pipelines or deployment automation.
-allowed-tools: "Read,Write,Bash(node:*)"
+description:
+  Helps understand and write EAS workflow YAML files for Expo projects. Use this skill when the user
+  asks about CI/CD or workflows in an Expo or EAS context, mentions .eas/workflows/, or wants help
+  with EAS build pipelines or deployment automation.
+allowed-tools: 'Read,Write,Bash(node:*)'
 version: 1.0.0
 license: MIT License
 ---
@@ -12,7 +15,9 @@ Help developers write and edit EAS CI/CD workflow YAML files.
 
 ## Reference Documentation
 
-Fetch these resources before generating or validating workflow files. Use the fetch script (implemented using Node.js) in this skill's `scripts/` directory; it caches responses using ETags for efficiency:
+Fetch these resources before generating or validating workflow files. Use the fetch script
+(implemented using Node.js) in this skill's `scripts/` directory; it caches responses using ETags
+for efficiency:
 
 ```bash
 # Fetch resources
@@ -26,12 +31,14 @@ node {baseDir}/scripts/fetch.js <url>
    - Trigger types and configurations
    - Runner types, VM images, and all enums
 
-2. **Syntax Documentation** — https://raw.githubusercontent.com/expo/expo/refs/heads/main/docs/pages/eas/workflows/syntax.mdx
+2. **Syntax Documentation** —
+   https://raw.githubusercontent.com/expo/expo/refs/heads/main/docs/pages/eas/workflows/syntax.mdx
    - Overview of workflow YAML syntax
    - Examples and English explanations
    - Expression syntax and contexts
 
-3. **Pre-packaged Jobs** — https://raw.githubusercontent.com/expo/expo/refs/heads/main/docs/pages/eas/workflows/pre-packaged-jobs.mdx
+3. **Pre-packaged Jobs** —
+   https://raw.githubusercontent.com/expo/expo/refs/heads/main/docs/pages/eas/workflows/pre-packaged-jobs.mdx
    - Documentation for supported pre-packaged job types
    - Job-specific parameters and outputs
 
@@ -85,8 +92,10 @@ After generating or editing a workflow file, validate it against the schema:
 node {baseDir}/scripts/validate.js <workflow.yml> [workflow2.yml ...]
 ```
 
-The validator fetches the latest schema and checks the YAML structure. Fix any reported errors before considering the workflow complete.
+The validator fetches the latest schema and checks the YAML structure. Fix any reported errors
+before considering the workflow complete.
 
 ## Answering Questions
 
-When users ask about available options (job types, triggers, runner types, etc.), fetch the schema and derive the answer from it rather than relying on potentially outdated information.
+When users ask about available options (job types, triggers, runner types, etc.), fetch the schema
+and derive the answer from it rather than relying on potentially outdated information.

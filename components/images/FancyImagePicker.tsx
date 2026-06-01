@@ -13,7 +13,12 @@ export interface FancyImagePickerProps {
   onChange?: (image: ImagePicker.ImagePickerAsset | undefined) => void;
 }
 
-export default function FancyImagePicker({ value, size = 120, disabled, onChange }: FancyImagePickerProps) {
+export default function FancyImagePicker({
+  value,
+  size = 120,
+  disabled,
+  onChange,
+}: FancyImagePickerProps) {
   const palette = usePallete();
   const ensureMediaLibraryPermission = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -111,14 +116,26 @@ export default function FancyImagePicker({ value, size = 120, disabled, onChange
         {value ? (
           <FancyAvatarImage source={{ uri: value }} size={size} />
         ) : (
-          <DefaultIcons.Custom library='Feather' name='camera-off' color={palette.icons.inactive} size={45} />
+          <DefaultIcons.Custom
+            library='Feather'
+            name='camera-off'
+            color={palette.icons.inactive}
+            size={45}
+          />
         )}
       </View>
 
       <View style={styles.buttonsContainer}>
         <FancyButton
           icon={{ library: 'Entypo', name: 'images', size: 15 }}
-          containerStyle={{ minWidth: 26, minHeight: 26, width: 35, height: 35, padding: 0, paddingHorizontal: 0 }}
+          containerStyle={{
+            minWidth: 26,
+            minHeight: 26,
+            width: 35,
+            height: 35,
+            padding: 0,
+            paddingHorizontal: 0,
+          }}
           onPress={pickImage}
           disabled={disabled}
         />
@@ -139,7 +156,9 @@ export default function FancyImagePicker({ value, size = 120, disabled, onChange
               height: 35,
               borderWidth: 0,
             },
-            !value && !disabled ? { backgroundColor: palette.terciary } : { backgroundColor: palette.buttons.inactive },
+            !value && !disabled
+              ? { backgroundColor: palette.terciary }
+              : { backgroundColor: palette.buttons.inactive },
           ]}
           onPress={removeImage}
         />

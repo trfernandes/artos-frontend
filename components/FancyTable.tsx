@@ -33,7 +33,10 @@ export default function FancyTable({ ...props }: FancyTable) {
       </View>
       <FancySeparator style={{ marginBottom: 4 }} />
       {props.data.map((item, index) => (
-        <View key={index} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12 }}>
+        <View
+          key={index}
+          style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12 }}
+        >
           {item.map((item, index) => (
             <FancyText
               key={index}

@@ -29,7 +29,10 @@ function extractFieldErrors(data: any): Record<string, string> | undefined {
   return data?.error?.fields ?? data?.fields;
 }
 
-export function normalizeAxiosError(error: unknown, opts?: { isOffline?: boolean; isServerDown?: boolean }): AppError {
+export function normalizeAxiosError(
+  error: unknown,
+  opts?: { isOffline?: boolean; isServerDown?: boolean },
+): AppError {
   if (error instanceof AppError) return error;
 
   if (!axios.isAxiosError(error)) {

@@ -16,7 +16,12 @@ export default function FancyDrawerSeparator(props: FancyDrawerSeparatorProps) {
 
   return (
     <View style={styles.container}>
-      <FancyText size={'small'} type='semiBold' color={isDark ? palette.fonts.light : palette.fonts.inactive} style={{ opacity: isDark ? 0.95 : 1 }}>
+      <FancyText
+        size={'small'}
+        type='semiBold'
+        color={isDark ? palette.fonts.light : palette.fonts.inactive}
+        style={{ opacity: isDark ? 0.95 : 1 }}
+      >
         {props.label}
       </FancyText>
     </View>

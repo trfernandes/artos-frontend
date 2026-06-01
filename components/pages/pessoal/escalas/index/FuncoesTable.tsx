@@ -20,10 +20,7 @@ import {
   SMALL_SIZE_FONT,
 } from '../../../../../constants/font';
 
-export type FuncoesTableVariant =
-  | 'rowCompactPremium'
-  | 'editorialClean'
-  | 'quickActionsMobile';
+export type FuncoesTableVariant = 'rowCompactPremium' | 'editorialClean' | 'quickActionsMobile';
 
 type FuncoesTableProps = {
   data: ResponseEscalaItemDto[];
@@ -168,7 +165,8 @@ function RowCompactPremium({
   const dotColor =
     item.status === EscalaItemStatusEnum.Confirmado
       ? palette.confirm
-      : item.status === EscalaItemStatusEnum.Pendente || item.status === EscalaItemStatusEnum.SubstituicaoSolicitada
+      : item.status === EscalaItemStatusEnum.Pendente ||
+          item.status === EscalaItemStatusEnum.SubstituicaoSolicitada
         ? palette.warning
         : palette.error;
 
@@ -187,23 +185,13 @@ function RowCompactPremium({
       <View style={[styles.statusDot, { backgroundColor: dotColor }]} />
 
       {/* Nome da função — flex 1 */}
-      <FancyText
-        size='small'
-        type='semiBold'
-        style={styles.roleTitle}
-        numberOfLines={1}
-      >
+      <FancyText size='small' type='semiBold' style={styles.roleTitle} numberOfLines={1}>
         {item.funcao?.nome || 'Função'}
       </FancyText>
 
       {/* Status texto neutro — omitido quando Pendente (dot + FAB já comunicam) */}
       {item.status !== EscalaItemStatusEnum.Pendente && (
-        <FancyText
-          size='extraSmall'
-          type='medium'
-          style={styles.statusText}
-          numberOfLines={1}
-        >
+        <FancyText size='extraSmall' type='medium' style={styles.statusText} numberOfLines={1}>
           {EscalaItemStatusEnumLabel[item.status]}
         </FancyText>
       )}
@@ -311,9 +299,7 @@ export default function FuncoesTable({
   variant = 'rowCompactPremium',
 }: FuncoesTableProps) {
   const styles = useThemedStyles(createStyles);
-  const activeVariant = ROW_VARIANT_RENDER_ORDER.includes(variant)
-    ? variant
-    : 'rowCompactPremium';
+  const activeVariant = ROW_VARIANT_RENDER_ORDER.includes(variant) ? variant : 'rowCompactPremium';
 
   return (
     <View style={styles.container}>

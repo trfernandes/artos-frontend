@@ -1,6 +1,7 @@
 # Expo App Design Plugin
 
-Build robust, productivity apps with Expo. Domain-specific knowledge for building mobile applications using Expo and React Native.
+Build robust, productivity apps with Expo. Domain-specific knowledge for building mobile
+applications using Expo and React Native.
 
 ## What This Plugin Does
 

@@ -2,7 +2,11 @@ import { useCallback, useState } from 'react';
 import { FormProvider, useFieldArray, useForm, useFormContext } from 'react-hook-form';
 import { DefaultIconsNames } from '../../../../constants/icons';
 
-import { EscalaTemplateFormData, EscalaTemplateFuncaoFormData, escalaTemplateFuncaoSchema } from '../../../../domain/schemas/escalaTemplateSchema';
+import {
+  EscalaTemplateFormData,
+  EscalaTemplateFuncaoFormData,
+  escalaTemplateFuncaoSchema,
+} from '../../../../domain/schemas/escalaTemplateSchema';
 import FancyContainerList from '../../../container_list/FancyContainerList';
 import { zodResolver } from '@hookform/resolvers/zod';
 import TemplateFuncoesForm from './TemplateFuncoesForm';
@@ -11,8 +15,8 @@ import { FancyCard } from '../../../cards/Horizontal/FancyCard';
 import Toast from 'react-native-toast-message';
 import { FancyAlert } from '../../../modal/FancyAlert';
 import {
-    EscalaTemplateExperienciaEnum,
-    EscalaTemplateExperienciaLabel,
+  EscalaTemplateExperienciaEnum,
+  EscalaTemplateExperienciaLabel,
 } from '../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
 import { useFuncoesDoMinisterio } from '../../../../hooks/useFuncoesDoMinisterio';
 import { FancyTextDisplayCard } from '../../../cards/FancyTextDisplayCard';
@@ -37,7 +41,11 @@ export default function TemplateFuncoesList({
 }: TemplateFuncoesListProps) {
   const palette = usePallete();
   const { control, watch, setValue } = useFormContext<EscalaTemplateFormData>();
-  const { append: addFuncao, update: updateFuncao, remove: removeFuncao } = useFieldArray({ control, name: 'funcoes' });
+  const {
+    append: addFuncao,
+    update: updateFuncao,
+    remove: removeFuncao,
+  } = useFieldArray({ control, name: 'funcoes' });
   const funcoesWatch = watch('funcoes') ?? [];
 
   const [formParams, setFormParams] = useState<{ visible: boolean; mode: 'add' | 'edit' }>();
@@ -46,7 +54,8 @@ export default function TemplateFuncoesList({
     defaultValues: FORM_DEFAULT_VALUES,
   });
 
-  const { funcoesList: funcoesDataList, isLoading: isLoadingFuncoes } = useFuncoesDoMinisterio(ministerioId);
+  const { funcoesList: funcoesDataList, isLoading: isLoadingFuncoes } =
+    useFuncoesDoMinisterio(ministerioId);
 
   const handleOpen = useCallback(
     (mode: 'add' | 'edit') => {
@@ -66,7 +75,9 @@ export default function TemplateFuncoesList({
       }
       formAdd.handleSubmit((data) => {
         if (mode === 'add') {
-          const alreadyExists = funcoesWatch.some((item) => item.funcaoId === data.funcaoId && item.experiencia === data.experiencia);
+          const alreadyExists = funcoesWatch.some(
+            (item) => item.funcaoId === data.funcaoId && item.experiencia === data.experiencia,
+          );
           if (alreadyExists) {
             formAdd.setError('funcaoId', { message: 'Função/Experiência já adicionada.' });
             return;
@@ -146,7 +157,7 @@ export default function TemplateFuncoesList({
     [disabled, funcoesWatch, removeFuncao],
   );
 
-  if(isLoadingFuncoes) return <FancyLoading />;
+  if (isLoadingFuncoes) return <FancyLoading />;
 
   return (
     <>
@@ -162,8 +173,28 @@ export default function TemplateFuncoesList({
           return (
             <FancyCard.Simple
               title={funcaoNome}
-              subtitle={<FancyTextDisplayCard icon={{ library: 'MaterialCommunityIcons', name: 'star-outline', size: 12, color: palette.primary }} value={experienciaLabel} />}
-              additionalData1={<FancyTextDisplayCard icon={{ library: 'MaterialCommunityIcons', name: 'account-multiple-outline', size: 12, color: palette.primary }} value={item.quantidade.toString()} />}
+              subtitle={
+                <FancyTextDisplayCard
+                  icon={{
+                    library: 'MaterialCommunityIcons',
+                    name: 'star-outline',
+                    size: 12,
+                    color: palette.primary,
+                  }}
+                  value={experienciaLabel}
+                />
+              }
+              additionalData1={
+                <FancyTextDisplayCard
+                  icon={{
+                    library: 'MaterialCommunityIcons',
+                    name: 'account-multiple-outline',
+                    size: 12,
+                    color: palette.primary,
+                  }}
+                  value={item.quantidade.toString()}
+                />
+              }
               letter={funcaoNome.charAt(0)}
               actionButtons={[
                 {

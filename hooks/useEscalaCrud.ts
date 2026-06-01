@@ -10,7 +10,10 @@ import { CreateEscalaDto } from '../domain/dtos/Escala/escala.create';
 import { UpdateEscalaDto } from '../domain/dtos/Escala/escala.update';
 import { EscalaFormData } from '../domain/schemas/escalaSchema';
 
-export function useEscalasCrud({ autoFetch = false, initialParams = undefined }: ExternalUseCrudParams = {}) {
+export function useEscalasCrud({
+  autoFetch = false,
+  initialParams = undefined,
+}: ExternalUseCrudParams = {}) {
   const crud = useCrud<ResponseEscalaDto, EscalaFormData, CreateEscalaDto, UpdateEscalaDto>({
     queryKey: 'escalas',
     autoFetch,

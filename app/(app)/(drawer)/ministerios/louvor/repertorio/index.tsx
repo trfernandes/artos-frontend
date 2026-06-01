@@ -11,8 +11,14 @@ import RepertorioCategoriasManagerSheet from '../../../../../../components/pages
 import { useAuth } from '../../../../../../contexts/AuthContext';
 import { MinisterioTipoEnum } from '../../../../../../domain/enums/Ministerio/ministerio-tipo.enum';
 import { VoluntarioHierarquiaEnum } from '../../../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
-import { RecursoPermissaoEnum, TipoPermissaoEnum } from '../../../../../../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
-import { useRepertorioCategorias, useRepertorioMusicas } from '../../../../../../hooks/useRepertorio';
+import {
+  RecursoPermissaoEnum,
+  TipoPermissaoEnum,
+} from '../../../../../../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
+import {
+  useRepertorioCategorias,
+  useRepertorioMusicas,
+} from '../../../../../../hooks/useRepertorio';
 import { usePallete } from '../../../../../../hooks/usePallete';
 import { DefaultIconsNames } from '../../../../../../constants/icons';
 import { ColorUtils } from '../../../../../../utils/color_utils';
@@ -23,8 +29,13 @@ export default function MinisterioLouvorRepertorioIndexPage() {
   const params = useLocalSearchParams<{ ministerioId?: string }>();
   const palette = usePallete();
   const { igrejaAtiva } = useAuth();
-  const ministerioId = params.ministerioId || igrejaAtiva?.ministerios?.find((ministerio) => ministerio.tipo === MinisterioTipoEnum.Louvor)?.id;
-  const ministerioAtual = igrejaAtiva?.ministerios?.find((ministerio) => ministerio.id === ministerioId);
+  const ministerioId =
+    params.ministerioId ||
+    igrejaAtiva?.ministerios?.find((ministerio) => ministerio.tipo === MinisterioTipoEnum.Louvor)
+      ?.id;
+  const ministerioAtual = igrejaAtiva?.ministerios?.find(
+    (ministerio) => ministerio.id === ministerioId,
+  );
   const { data: categorias = [] } = useRepertorioCategorias();
   const { data: musicas = [], removerMusica } = useRepertorioMusicas(ministerioId);
   const [search, setSearch] = useState('');
@@ -39,12 +50,19 @@ export default function MinisterioLouvorRepertorioIndexPage() {
     }
 
     return (ministerioAtual?.permissoes ?? []).some(
-      (item) => item.recurso === RecursoPermissaoEnum.RepertorioSetlist && item.permissoes?.includes(TipoPermissaoEnum.Gerenciar),
+      (item) =>
+        item.recurso === RecursoPermissaoEnum.RepertorioSetlist &&
+        item.permissoes?.includes(TipoPermissaoEnum.Gerenciar),
     );
   }, [ministerioAtual]);
 
   const categoryOptions = useMemo(
-    () => [{ title: 'Todas', value: '' }, ...categorias.filter((item) => item.ativo !== false).map((item) => ({ title: item.nome, value: item.id }))],
+    () => [
+      { title: 'Todas', value: '' },
+      ...categorias
+        .filter((item) => item.ativo !== false)
+        .map((item) => ({ title: item.nome, value: item.id })),
+    ],
     [categorias],
   );
 
@@ -54,7 +72,8 @@ export default function MinisterioLouvorRepertorioIndexPage() {
         .filter((item) => item.ativo !== false)
         .filter((item) => (!categoriaId ? true : item.categoriaId === categoriaId))
         .filter((item) => {
-          const haystack = `${item.nome} ${item.interprete || ''} ${item.categoria?.nome || ''}`.toLowerCase();
+          const haystack =
+            `${item.nome} ${item.interprete || ''} ${item.categoria?.nome || ''}`.toLowerCase();
           return haystack.includes(search.trim().toLowerCase());
         }),
     [categoriaId, musicas, search],
@@ -74,116 +93,119 @@ export default function MinisterioLouvorRepertorioIndexPage() {
   return (
     <>
       <FancyListPage
-      showFab={canManageRepertorio}
-      showSearchBar
-      searchBarProps={{
-        value: search,
-        onSearch: setSearch,
-      }}
-      listProps={{
-        listEmptyProps: {
-          label: 'Nenhuma música no repertório',
-          icon: { library: 'MaterialIcons', name: 'queue-music', size: 68 },
-        },
-        ListHeaderComponent: (
-          <View style={styles.filtersSection}>
-            <FancyBottomSheetSelect
-              containerStyle={styles.categorySelect}
-              title='Categoria'
-              value={categoriaId}
-              onChange={(value) => setCategoriaId(String(value || ''))}
-              listItems={categoryOptions}
-            />
-            {canManageRepertorio ? (
-              <FancyButton
-                label='Gerenciar categorias'
-                type='light'
-                size={34}
-                icon={{ library: 'MaterialCommunityIcons', name: 'shape-outline', size: 16 }}
-                containerStyle={styles.categoriesButton}
-                onPress={() => setCategoriasVisible(true)}
+        showFab={canManageRepertorio}
+        showSearchBar
+        searchBarProps={{
+          value: search,
+          onSearch: setSearch,
+        }}
+        listProps={{
+          listEmptyProps: {
+            label: 'Nenhuma música no repertório',
+            icon: { library: 'MaterialIcons', name: 'queue-music', size: 68 },
+          },
+          ListHeaderComponent: (
+            <View style={styles.filtersSection}>
+              <FancyBottomSheetSelect
+                containerStyle={styles.categorySelect}
+                title='Categoria'
+                value={categoriaId}
+                onChange={(value) => setCategoriaId(String(value || ''))}
+                listItems={categoryOptions}
               />
-            ) : null}
-          </View>
-        ),
-        data: filtered,
-        renderItem: ({ item }) => (
-          <FancyCard.Image
-            type='icon'
-            props={{
-              title: item.nome,
-              subtitle: item.interprete || 'Sem intérprete',
-              additionalData1: (
-                <View style={styles.musicBadgesRow}>
-                  {item.categoria?.nome ? (
-                    <MusicBadge
-                      label={item.categoria.nome}
-                      color={palette.primary}
-                      icon='shape-outline'
-                    />
-                  ) : null}
-                  {item.tomOriginal ? (
-                    <MusicBadge
-                      label={`TOM ${item.tomOriginal}`}
-                      color={palette.secondary}
-                      icon='music-clef-treble'
-                    />
-                  ) : null}
-                  {item.bpmOriginal ? (
-                    <MusicBadge
-                      label={`BPM ${item.bpmOriginal}`}
-                      color={palette.terciary}
-                      icon='metronome'
-                    />
-                  ) : null}
-                </View>
-              ),
-              cardIcon: { library: 'MaterialIcons', name: 'queue-music', size: 20 },
-              containerStyle: styles.musicCard,
-              contentContainerStyle: styles.musicCardContent,
-              centerContainerStyle: styles.musicCardCenter,
-              onPress: () => openMusica(item.id),
-              actionButtons: [
-                canManageRepertorio
-                  ? {
-                      icon: {
-                        library: 'MaterialCommunityIcons',
-                        name: 'dots-vertical',
-                        size: 20,
-                        color: palette.fonts.inactive,
-                        backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.08),
+              {canManageRepertorio ? (
+                <FancyButton
+                  label='Gerenciar categorias'
+                  type='light'
+                  size={34}
+                  icon={{ library: 'MaterialCommunityIcons', name: 'shape-outline', size: 16 }}
+                  containerStyle={styles.categoriesButton}
+                  onPress={() => setCategoriasVisible(true)}
+                />
+              ) : null}
+            </View>
+          ),
+          data: filtered,
+          renderItem: ({ item }) => (
+            <FancyCard.Image
+              type='icon'
+              props={{
+                title: item.nome,
+                subtitle: item.interprete || 'Sem intérprete',
+                additionalData1: (
+                  <View style={styles.musicBadgesRow}>
+                    {item.categoria?.nome ? (
+                      <MusicBadge
+                        label={item.categoria.nome}
+                        color={palette.primary}
+                        icon='shape-outline'
+                      />
+                    ) : null}
+                    {item.tomOriginal ? (
+                      <MusicBadge
+                        label={`TOM ${item.tomOriginal}`}
+                        color={palette.secondary}
+                        icon='music-clef-treble'
+                      />
+                    ) : null}
+                    {item.bpmOriginal ? (
+                      <MusicBadge
+                        label={`BPM ${item.bpmOriginal}`}
+                        color={palette.terciary}
+                        icon='metronome'
+                      />
+                    ) : null}
+                  </View>
+                ),
+                cardIcon: { library: 'MaterialIcons', name: 'queue-music', size: 20 },
+                containerStyle: styles.musicCard,
+                contentContainerStyle: styles.musicCardContent,
+                centerContainerStyle: styles.musicCardCenter,
+                onPress: () => openMusica(item.id),
+                actionButtons: [
+                  canManageRepertorio
+                    ? {
+                        icon: {
+                          library: 'MaterialCommunityIcons',
+                          name: 'dots-vertical',
+                          size: 20,
+                          color: palette.fonts.inactive,
+                          backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.08),
+                        },
+                        onPress: () => setActionsMusica(item),
+                      }
+                    : {
+                        icon: {
+                          library: 'MaterialCommunityIcons',
+                          name: 'chevron-right',
+                          size: 20,
+                          backgroundColor: palette.primary,
+                        },
+                        onPress: () => openMusica(item.id),
                       },
-                      onPress: () => setActionsMusica(item),
-                    }
-                  : {
-                      icon: {
-                        library: 'MaterialCommunityIcons',
-                        name: 'chevron-right',
-                        size: 20,
-                        backgroundColor: palette.primary,
-                      },
-                      onPress: () => openMusica(item.id),
-                    },
-              ],
-            }}
-          />
-        ),
-      }}
-      fabProps={
-        canManageRepertorio
-          ? {
-              onPress: () => {
-                router.push({
-                  pathname: '/ministerios/louvor/repertorio/add',
-                  params: { ministerioId },
-                });
-              },
-            }
-          : undefined
-      }
-    />
+                ],
+              }}
+            />
+          ),
+        }}
+        fabProps={
+          canManageRepertorio
+            ? {
+                onPress: () => {
+                  router.push({
+                    pathname: '/ministerios/louvor/repertorio/add',
+                    params: { ministerioId },
+                  });
+                },
+              }
+            : undefined
+        }
+      />
       {canManageRepertorio ? (
-        <RepertorioCategoriasManagerSheet visible={categoriasVisible} onClose={() => setCategoriasVisible(false)} />
+        <RepertorioCategoriasManagerSheet
+          visible={categoriasVisible}
+          onClose={() => setCategoriasVisible(false)}
+        />
       ) : null}
       <FancyActionSheet
         visible={!!actionsMusica}
@@ -234,7 +256,13 @@ function MusicBadge({
       ]}
     >
       <MaterialCommunityIcons name={icon} size={11} color={color} style={styles.musicBadgeIcon} />
-      <FancyText type='bold' size='extraSmall' numberOfLines={1} color={color} style={styles.musicBadgeText}>
+      <FancyText
+        type='bold'
+        size='extraSmall'
+        numberOfLines={1}
+        color={color}
+        style={styles.musicBadgeText}
+      >
         {label}
       </FancyText>
     </View>

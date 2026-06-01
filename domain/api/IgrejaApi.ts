@@ -52,7 +52,10 @@ class IgrejaApiClass extends BaseApi<ResponseIgrejaDto, CreateIgrejaDto, UpdateI
    * POST /igrejas
    */
   async criarIgreja(dto: CreateIgrejaDto): Promise<ResponseIgrejaDto> {
-    const response = await apiClient.post<ApiEnvelope<ResponseIgrejaDto>>(`/${this.resourceName}`, dto);
+    const response = await apiClient.post<ApiEnvelope<ResponseIgrejaDto>>(
+      `/${this.resourceName}`,
+      dto,
+    );
     return response.data.data;
   }
 
@@ -61,7 +64,9 @@ class IgrejaApiClass extends BaseApi<ResponseIgrejaDto, CreateIgrejaDto, UpdateI
    * GET /igrejas/minhas
    */
   async getMinhasIgrejas(): Promise<ResponseIgrejaDto[]> {
-    const response = await apiClient.get<ApiEnvelope<ResponseIgrejaDto[]>>(`/${this.resourceName}/minhas`);
+    const response = await apiClient.get<ApiEnvelope<ResponseIgrejaDto[]>>(
+      `/${this.resourceName}/minhas`,
+    );
     return response.data.data;
   }
 
@@ -84,7 +89,9 @@ class IgrejaApiClass extends BaseApi<ResponseIgrejaDto, CreateIgrejaDto, UpdateI
    * Verifica se um código de igreja está disponível (Público)
    * GET /igrejas/codigo-disponivel?codigo={codigo}
    */
-  async verificarCodigoDisponivelPublico(codigo: string): Promise<VerificarCodigoIgrejaResponseDto> {
+  async verificarCodigoDisponivelPublico(
+    codigo: string,
+  ): Promise<VerificarCodigoIgrejaResponseDto> {
     const baseURL = apiClient.defaults.baseURL;
     const response = await axios.get<ApiEnvelope<VerificarCodigoIgrejaResponseDto>>(
       `${baseURL}/${this.resourceName}/codigo-disponivel`,
@@ -103,7 +110,10 @@ class IgrejaApiClass extends BaseApi<ResponseIgrejaDto, CreateIgrejaDto, UpdateI
    */
   async criarIgrejaPublico(dto: CreateIgrejaPublicoDto): Promise<ResponseIgrejaDto> {
     const baseURL = apiClient.defaults.baseURL;
-    const response = await axios.post<ApiEnvelope<ResponseIgrejaDto>>(`${baseURL}/${this.resourceName}`, dto);
+    const response = await axios.post<ApiEnvelope<ResponseIgrejaDto>>(
+      `${baseURL}/${this.resourceName}`,
+      dto,
+    );
     return response.data.data;
   }
 
@@ -174,7 +184,10 @@ class IgrejaApiClass extends BaseApi<ResponseIgrejaDto, CreateIgrejaDto, UpdateI
    * Listar voluntários da igreja com busca avançada (JWT)
    * POST /igrejas/{igrejaId}/voluntarios/search
    */
-  async listarVoluntarios(igrejaId: string, query?: DynamicQuery): Promise<ResponseVoluntarioDto[]> {
+  async listarVoluntarios(
+    igrejaId: string,
+    query?: DynamicQuery,
+  ): Promise<ResponseVoluntarioDto[]> {
     const response = await apiClient.post<ApiEnvelope<ResponseVoluntarioDto[]>>(
       `/${this.resourceName}/${igrejaId}/voluntarios/search`,
       query || {},
@@ -188,7 +201,10 @@ class IgrejaApiClass extends BaseApi<ResponseIgrejaDto, CreateIgrejaDto, UpdateI
    * Criar convite para igreja (JWT)
    * POST /igrejas/{igrejaId}/convites
    */
-  async criarConvite(igrejaId: string, dto?: CreateIgrejaConviteDto): Promise<ResponseIgrejaConviteDto> {
+  async criarConvite(
+    igrejaId: string,
+    dto?: CreateIgrejaConviteDto,
+  ): Promise<ResponseIgrejaConviteDto> {
     const response = await apiClient.post<ApiEnvelope<ResponseIgrejaConviteDto>>(
       `/${this.resourceName}/${igrejaId}/convites`,
       dto || {},
@@ -248,7 +264,9 @@ class IgrejaApiClass extends BaseApi<ResponseIgrejaDto, CreateIgrejaDto, UpdateI
    * GET /me/igrejas/solicitacoes
    */
   async listarMinhasSolicitacoes(): Promise<ResponseIgrejaSolicitacaoDto[]> {
-    const response = await apiClient.get<ApiEnvelope<ResponseIgrejaSolicitacaoDto[]>>('/me/igrejas/solicitacoes');
+    const response = await apiClient.get<ApiEnvelope<ResponseIgrejaSolicitacaoDto[]>>(
+      '/me/igrejas/solicitacoes',
+    );
     return response.data.data;
   }
 
@@ -283,7 +301,9 @@ class IgrejaApiClass extends BaseApi<ResponseIgrejaDto, CreateIgrejaDto, UpdateI
    * Iniciar checkout da assinatura (JWT)
    * POST /billing/checkout
    */
-  async criarCheckoutAssinatura(dto: CriarCheckoutAssinaturaDto): Promise<ResponseAssinaturaCheckoutDto> {
+  async criarCheckoutAssinatura(
+    dto: CriarCheckoutAssinaturaDto,
+  ): Promise<ResponseAssinaturaCheckoutDto> {
     const response = await apiClient.post<ApiEnvelope<ResponseAssinaturaCheckoutDto>>(
       `/billing/checkout`,
       dto,
@@ -312,7 +332,10 @@ class IgrejaApiClass extends BaseApi<ResponseIgrejaDto, CreateIgrejaDto, UpdateI
    * Atualizar dados cadastrais da igreja (JWT)
    * PATCH /igrejas/{igrejaId}/dados
    */
-  async updateDados(igrejaId: string, dto: UpdateIgrejaDadosDto): Promise<ResponseIgrejaConfiguracoesDto> {
+  async updateDados(
+    igrejaId: string,
+    dto: UpdateIgrejaDadosDto,
+  ): Promise<ResponseIgrejaConfiguracoesDto> {
     const response = await apiClient.patch<ApiEnvelope<ResponseIgrejaConfiguracoesDto>>(
       `/${this.resourceName}/${igrejaId}/dados`,
       dto,
@@ -324,7 +347,10 @@ class IgrejaApiClass extends BaseApi<ResponseIgrejaDto, CreateIgrejaDto, UpdateI
    * Atualizar modo de entrada da igreja (JWT)
    * PATCH /igrejas/{igrejaId}/modo-entrada
    */
-  async updateModoEntrada(igrejaId: string, dto: UpdateIgrejaModoEntradaDto): Promise<ResponseIgrejaConfiguracoesDto> {
+  async updateModoEntrada(
+    igrejaId: string,
+    dto: UpdateIgrejaModoEntradaDto,
+  ): Promise<ResponseIgrejaConfiguracoesDto> {
     const response = await apiClient.patch<ApiEnvelope<ResponseIgrejaConfiguracoesDto>>(
       `/${this.resourceName}/${igrejaId}/modo-entrada`,
       dto,

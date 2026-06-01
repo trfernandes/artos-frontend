@@ -1,18 +1,44 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { IgrejaMinisteriosRepository } from '../domain/services/IgrejaMinisteriosRepository';
-import { ResponseLoginIgrejaDto, ResponseLoginMinisterioDto } from '../domain/dtos/login/login.response';
+import {
+  ResponseLoginIgrejaDto,
+  ResponseLoginMinisterioDto,
+} from '../domain/dtos/login/login.response';
 import { IgrejaVoluntarioRoleEnum } from '../domain/enums/Igreja/voluntario-role.enum';
 import { VoluntarioHierarquiaEnum } from '../domain/enums/MinisterioVoluntario/hierarquia.enum';
 import { useMemo } from 'react';
-import { RecursoPermissaoEnum, TipoPermissaoEnum } from '../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
+import {
+  RecursoPermissaoEnum,
+  TipoPermissaoEnum,
+} from '../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
 
 const fullPermissions = [
-  { recurso: RecursoPermissaoEnum.AgendaEventos, permissoes: [TipoPermissaoEnum.Visualizar, TipoPermissaoEnum.AlterarOcorrencia] },
-  { recurso: RecursoPermissaoEnum.Escalas, permissoes: [TipoPermissaoEnum.Visualizar, TipoPermissaoEnum.Gerar, TipoPermissaoEnum.Alterar, TipoPermissaoEnum.Publicar] },
-  { recurso: RecursoPermissaoEnum.Integrantes, permissoes: [TipoPermissaoEnum.Visualizar, TipoPermissaoEnum.Gerenciar] },
-  { recurso: RecursoPermissaoEnum.FuncoesTemplates, permissoes: [TipoPermissaoEnum.Visualizar, TipoPermissaoEnum.Gerenciar] },
-  { recurso: RecursoPermissaoEnum.RepertorioSetlist, permissoes: [TipoPermissaoEnum.Visualizar, TipoPermissaoEnum.Gerenciar] },
+  {
+    recurso: RecursoPermissaoEnum.AgendaEventos,
+    permissoes: [TipoPermissaoEnum.Visualizar, TipoPermissaoEnum.AlterarOcorrencia],
+  },
+  {
+    recurso: RecursoPermissaoEnum.Escalas,
+    permissoes: [
+      TipoPermissaoEnum.Visualizar,
+      TipoPermissaoEnum.Gerar,
+      TipoPermissaoEnum.Alterar,
+      TipoPermissaoEnum.Publicar,
+    ],
+  },
+  {
+    recurso: RecursoPermissaoEnum.Integrantes,
+    permissoes: [TipoPermissaoEnum.Visualizar, TipoPermissaoEnum.Gerenciar],
+  },
+  {
+    recurso: RecursoPermissaoEnum.FuncoesTemplates,
+    permissoes: [TipoPermissaoEnum.Visualizar, TipoPermissaoEnum.Gerenciar],
+  },
+  {
+    recurso: RecursoPermissaoEnum.RepertorioSetlist,
+    permissoes: [TipoPermissaoEnum.Visualizar, TipoPermissaoEnum.Gerenciar],
+  },
 ];
 
 /**
@@ -27,10 +53,17 @@ export function useMinisteriosDrawer() {
   const isAdmin = roleUpper === IgrejaVoluntarioRoleEnum.ADMIN || roleUpper === 'OWNER';
 
   // Verifica se precisa buscar ministérios (admin com lista vazia)
-  const shouldFetchMinisterios = isAdmin && !!igrejaAtiva?.id && (!igrejaAtiva.ministerios || igrejaAtiva.ministerios.length === 0);
+  const shouldFetchMinisterios =
+    isAdmin &&
+    !!igrejaAtiva?.id &&
+    (!igrejaAtiva.ministerios || igrejaAtiva.ministerios.length === 0);
 
   // Busca ministérios da API se necessário
-  const { data: ministeriosFetched, isLoading, isFetching } = useQuery({
+  const {
+    data: ministeriosFetched,
+    isLoading,
+    isFetching,
+  } = useQuery({
     queryKey: ['ministerios-drawer', igrejaAtiva?.id, isAdmin],
     queryFn: async () => {
       if (!igrejaAtiva?.id) return [];

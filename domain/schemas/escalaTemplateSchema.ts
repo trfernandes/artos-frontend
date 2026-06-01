@@ -2,7 +2,8 @@ import z from 'zod';
 import { EscalaTemplateExperienciaEnum } from '../enums/EscalaTemplate/escala-template-experiencia.enum';
 import { EscalaTemplateTipoEnum } from '../enums/EscalaTemplate/escala-template-tipo.enum';
 
-const UUID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+const UUID_REGEX =
+  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
 
 export const escalaTemplateTipoSchema = z.union(
   [z.literal(EscalaTemplateTipoEnum.Fixo), z.literal(EscalaTemplateTipoEnum.Funcoes)],
@@ -33,7 +34,9 @@ export const escalaTemplateFuncaoSchema = z.object({
   funcaoId: z.uuid({ error: 'Campo obrigatório' }),
   funcao: z.object({ nome: z.string() }).optional(),
   experiencia: z.enum(EscalaTemplateExperienciaEnum),
-  quantidade: z.coerce.number<number>('Campo obrigatório').min(1, { message: 'A quantidade deve ser no mínimo 1' }),
+  quantidade: z.coerce
+    .number<number>('Campo obrigatório')
+    .min(1, { message: 'A quantidade deve ser no mínimo 1' }),
 });
 
 export const escalaTemplateSchema = z

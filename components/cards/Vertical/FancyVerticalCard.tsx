@@ -45,7 +45,13 @@ export default function FancyVerticalCard({
   const styles = useThemedStyles(createStyles);
 
   return (
-    <View style={[styles.container, containerStyle, cardHeight !== undefined && { height: cardHeight as DimensionValue }]}>
+    <View
+      style={[
+        styles.container,
+        containerStyle,
+        cardHeight !== undefined && { height: cardHeight as DimensionValue },
+      ]}
+    >
       {/* Camada absoluta de topo */}
       <View style={styles.topOverlay}>
         <View style={styles.topLeft}>{topLeftElement}</View>
@@ -68,14 +74,14 @@ export default function FancyVerticalCard({
                   size='extraSmall'
                   type='bold'
                   numberOfLines={2}
-                //   ellipsizeMode='middle'
+                  //   ellipsizeMode='middle'
                   style={{
                     textAlign: 'center',
-                    textAlignVertical:'center',
+                    textAlignVertical: 'center',
                     opacity: 0.8,
                     // borderWidth: 1,
                     // lineHeight: EXTRA_SMALL_SIZE_FONT*2 + 3,
-                    height: (EXTRA_SMALL_SIZE_FONT * 2) + 6, 
+                    height: EXTRA_SMALL_SIZE_FONT * 2 + 6,
                   }}
                 >
                   {title}
@@ -111,67 +117,67 @@ export default function FancyVerticalCard({
 
 function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
-  container: {
-    backgroundColor: palette.backgroundColor2,
-    borderRadius: 8,
-    overflow: 'hidden',
-    gap: 10,
-  },
+    container: {
+      backgroundColor: palette.backgroundColor2,
+      borderRadius: 8,
+      overflow: 'hidden',
+      gap: 10,
+    },
 
-  topOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 6,
-    paddingTop: 6,
-  },
+    topOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 10,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingHorizontal: 6,
+      paddingTop: 6,
+    },
 
-  topLeft: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+    topLeft: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
 
-  topRight: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+    topRight: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
 
-  // =======================
-  //    CONTEÚDO PRINCIPAL
-  // =======================
-  contentContainer: {
-    flex: 1,
-    paddingHorizontal: 10,
-    paddingTop: 18,
-    paddingBottom: 10,
-    gap: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    // borderWidth: 1,
-    borderColor: 'red',
-  },
+    // =======================
+    //    CONTEÚDO PRINCIPAL
+    // =======================
+    contentContainer: {
+      flex: 1,
+      paddingHorizontal: 10,
+      paddingTop: 18,
+      paddingBottom: 10,
+      gap: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      // borderWidth: 1,
+      borderColor: 'red',
+    },
 
-  centerContainer: {
-    // flex: 1,
-    width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    // borderWidth: 1,
-    borderColor: 'blue',
-  },
+    centerContainer: {
+      // flex: 1,
+      width: '100%',
+      justifyContent: 'center',
+      alignItems: 'center',
+      // borderWidth: 1,
+      borderColor: 'blue',
+    },
 
-  bottomContainer: {
-    width: '100%',
-    // height: '35%',
-    gap: 2,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    // borderWidth: 1,
-    borderColor: 'green',
-  },
-});
+    bottomContainer: {
+      width: '100%',
+      // height: '35%',
+      gap: 2,
+      justifyContent: 'flex-start',
+      alignItems: 'center',
+      // borderWidth: 1,
+      borderColor: 'green',
+    },
+  });
 }

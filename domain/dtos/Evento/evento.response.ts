@@ -9,7 +9,7 @@ export type ResponseEventoDto = {
   id: string;
   createdAt: string;
   updatedAt: string;
-  igrejaId:string;
+  igrejaId: string;
   igreja?: ResponseIgrejaDto;
   nome: string;
   descricao?: string;

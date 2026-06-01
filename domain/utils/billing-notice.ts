@@ -92,9 +92,7 @@ export function resolveBillingTrialPhase(
   return 'early';
 }
 
-export function shouldShowBillingNoticeBanner(
-  assinatura?: ResponseIgrejaAssinaturaDto | null,
-) {
+export function shouldShowBillingNoticeBanner(assinatura?: ResponseIgrejaAssinaturaDto | null) {
   if (!assinatura) return false;
 
   return (

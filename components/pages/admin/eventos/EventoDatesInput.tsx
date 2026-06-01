@@ -126,8 +126,14 @@ export default function EventoDatesInput({
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     clearUndoRemoveTimeout();
 
-    setValue('dataTermino', new Date(lastRemovedEndState.dataTermino), { shouldDirty: true, shouldValidate: true });
-    setValue('recorrencia', lastRemovedEndState.recorrencia ?? RecorrenciaEnum.Semanal, { shouldDirty: true, shouldValidate: true });
+    setValue('dataTermino', new Date(lastRemovedEndState.dataTermino), {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    setValue('recorrencia', lastRemovedEndState.recorrencia ?? RecorrenciaEnum.Semanal, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
     setLastRemovedEndState(null);
   };
 
@@ -156,7 +162,9 @@ export default function EventoDatesInput({
     borderColor: ColorUtils.withAlpha(palette.primary, 0.22),
   };
 
-  const combinedErrors = [errors.dataInicio?.message, errors.dataTermino?.message].filter(Boolean).join('\n');
+  const combinedErrors = [errors.dataInicio?.message, errors.dataTermino?.message]
+    .filter(Boolean)
+    .join('\n');
 
   return (
     <View style={{ gap: 4 }}>
@@ -169,7 +177,11 @@ export default function EventoDatesInput({
               size={18}
               color={disabled ? palette.fonts.inactive2 : palette.primary}
             />
-            <FancyText size='small' type='bold' color={disabled ? palette.fonts.inactive2 : palette.fonts.dark}>
+            <FancyText
+              size='small'
+              type='bold'
+              color={disabled ? palette.fonts.inactive2 : palette.fonts.dark}
+            >
               Data e hora
             </FancyText>
           </View>
@@ -240,18 +252,35 @@ export default function EventoDatesInput({
           )}
 
           {!hasEndDate && hasUndoRemoveFeedback && (
-            <View style={[styles.undoRow, { backgroundColor: palette.backgroundColor4, borderColor: palette.borderCard }]}>
-              <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} style={{ flex: 1 }}>
+            <View
+              style={[
+                styles.undoRow,
+                { backgroundColor: palette.backgroundColor4, borderColor: palette.borderCard },
+              ]}
+            >
+              <FancyText
+                size='extraSmall'
+                type='medium'
+                color={palette.fonts.inactive}
+                style={{ flex: 1 }}
+              >
                 Término removido
               </FancyText>
               <Pressable
                 disabled={disabled}
                 onPress={handleUndoRemoveEndDate}
-                style={({ pressed }) => [styles.undoAction, pressed && !disabled ? { opacity: 0.65 } : null]}
+                style={({ pressed }) => [
+                  styles.undoAction,
+                  pressed && !disabled ? { opacity: 0.65 } : null,
+                ]}
                 accessibilityRole='button'
                 accessibilityLabel='Desfazer remoção do término'
               >
-                <FancyText size='extraSmall' type='semiBold' color={disabled ? palette.fonts.inactive2 : palette.primary}>
+                <FancyText
+                  size='extraSmall'
+                  type='semiBold'
+                  color={disabled ? palette.fonts.inactive2 : palette.primary}
+                >
                   Desfazer
                 </FancyText>
               </Pressable>
@@ -276,7 +305,9 @@ export default function EventoDatesInput({
                 color={isEndBeforeStart ? palette.error : palette.fonts.inactive}
                 style={{ flex: 1 }}
               >
-                {isEndBeforeStart ? 'Término deve ser depois do início' : 'Evento sem horário de término'}
+                {isEndBeforeStart
+                  ? 'Término deve ser depois do início'
+                  : 'Evento sem horário de término'}
               </FancyText>
             </View>
           </>
@@ -321,7 +352,13 @@ function DateInput({
                 const year = format(date, 'yyyy');
                 const hour = format(value as Date, 'HH');
                 const minutes = format(value as Date, 'mm');
-                const newDate = new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minutes));
+                const newDate = new Date(
+                  Number(year),
+                  Number(month) - 1,
+                  Number(day),
+                  Number(hour),
+                  Number(minutes),
+                );
                 if (date.getTime() !== newDate.getTime()) {
                   const previousValue = value as Date;
                   fieldOnChange(newDate);
@@ -336,7 +373,11 @@ function DateInput({
                 minute: Number(format(value as Date, 'mm')),
               }}
               panelProps={{ buttonStyle: chipStyle }}
-              sheetProps={{ minuteStep: 5, allowManualInput: true, quickActions: ['now', '+30m', '+1h'] }}
+              sheetProps={{
+                minuteStep: 5,
+                allowManualInput: true,
+                quickActions: ['now', '+30m', '+1h'],
+              }}
               onChange={(time) => {
                 const y = (value as Date).getFullYear();
                 const m = (value as Date).getMonth();
@@ -487,7 +528,9 @@ function InlineActionButton({
         <FancyText size='small' type='semiBold' color={color} numberOfLines={1}>
           {label}
         </FancyText>
-        {tone === 'primary' && <DefaultIcons.Custom library='Feather' name='chevron-right' size={14} color={color} />}
+        {tone === 'primary' && (
+          <DefaultIcons.Custom library='Feather' name='chevron-right' size={14} color={color} />
+        )}
       </View>
     </Pressable>
   );
@@ -515,8 +558,12 @@ function IconActionButton({
       style={({ pressed }) => [
         styles.iconActionButton,
         {
-          backgroundColor: pressed && !disabled ? ColorUtils.withAlpha(palette.error, 0.08) : palette.backgroundColor2,
-          borderColor: pressed && !disabled ? ColorUtils.withAlpha(palette.error, 0.25) : palette.borderCard,
+          backgroundColor:
+            pressed && !disabled
+              ? ColorUtils.withAlpha(palette.error, 0.08)
+              : palette.backgroundColor2,
+          borderColor:
+            pressed && !disabled ? ColorUtils.withAlpha(palette.error, 0.25) : palette.borderCard,
           opacity: disabled ? 0.65 : 1,
         },
       ]}

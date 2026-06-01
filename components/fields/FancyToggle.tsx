@@ -34,7 +34,9 @@ export default function FancyToggle<ValueType>({
 }: FancyToggleProps<ValueType>) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
-  const [selectedOption, setSelectedOption] = useState<ButtonOption<ValueType> | undefined>(option1);
+  const [selectedOption, setSelectedOption] = useState<ButtonOption<ValueType> | undefined>(
+    option1,
+  );
 
   useEffect(() => {
     if (value) {
@@ -52,7 +54,11 @@ export default function FancyToggle<ValueType>({
   return (
     <View style={[styles.container, { pointerEvents: disabled ? 'none' : 'auto' }]}>
       {label && (
-        <FancyText size={'extraSmall'} type='semiBold' color={disabled ? palette.fonts.inactive2 : palette.fonts.inactive}>
+        <FancyText
+          size={'extraSmall'}
+          type='semiBold'
+          color={disabled ? palette.fonts.inactive2 : palette.fonts.inactive}
+        >
           {label}
         </FancyText>
       )}

@@ -7,7 +7,11 @@ import { useTopSafeInset } from '../../hooks/useTopSafeInset';
 import { usePallete } from '../../hooks/usePallete';
 import { DismissKeyboard } from '../DismissKeyboard';
 
-export type FancyFullModalProps = { title?: string; modalProps?: ModalProps; children?: React.ReactNode };
+export type FancyFullModalProps = {
+  title?: string;
+  modalProps?: ModalProps;
+  children?: React.ReactNode;
+};
 
 export default function FancyFullModal({ title, modalProps, children }: FancyFullModalProps) {
   const insets = useSafeAreaInsets();
@@ -35,7 +39,9 @@ export default function FancyFullModal({ title, modalProps, children }: FancyFul
                     leftButton='back'
                     applyTopSafeArea={false}
                     options={{ title }}
-                    leftButtonOnPress={() => modalProps?.onRequestClose?.({} as unknown as NativeSyntheticEvent<any>)}
+                    leftButtonOnPress={() =>
+                      modalProps?.onRequestClose?.({} as unknown as NativeSyntheticEvent<any>)
+                    }
                   />
                 </View>
                 {children}

@@ -5,6 +5,7 @@
 Um **agente que automaticamente encontra e corrige bugs de data/hora** em múltiplos fusos horários.
 
 Você já passou por isso:
+
 - App mostra hora errada quando você viaja
 - Countdown badge pisca "Amanhã" mas é hoje
 - Escala aparece no dia errado ao meio-noite
@@ -84,6 +85,7 @@ Você **NUNCA** quer esses bugs chegando até seus usuários.
 ## 🔍 O Que o Agente Faz
 
 ### Fase 1: Exploração (5 min)
+
 Encontra todas funções que lidam com datas/horas:
 
 ```
@@ -102,6 +104,7 @@ Procurando por:
 ---
 
 ### Fase 2: Testes (3 min)
+
 Cria testes cobrindo múltiplos cenários:
 
 ```
@@ -131,6 +134,7 @@ Testa formato:
 ---
 
 ### Fase 3: Encontra Bugs (2-3 min)
+
 Roda os testes. Cada falha = 1 bug encontrado.
 
 ```
@@ -156,9 +160,11 @@ Roda os testes. Cada falha = 1 bug encontrado.
 ---
 
 ### Fase 4: Corrige Código (10-15 min)
+
 **Importante**: O agente corrige o CÓDIGO, não o teste.
 
 Para cada bug:
+
 1. Lê o código
 2. Identifica o problema
 3. CORRIGE o código
@@ -188,6 +194,7 @@ Para cada bug:
 ---
 
 ### Fase 5: Relatório (1 min)
+
 Gera relatório completo:
 
 ```
@@ -240,26 +247,28 @@ Ver: tests/timezone.test.ts
 
 ## ⏱️ Timeline
 
-| Fase | Duração | O que é feito |
-|------|---------|---|
-| Exploração | 5 min | Encontra funções com data/hora |
-| Teste | 3 min | Cria suite de testes |
-| Encontra bugs | 2-3 min | Roda e identifica falhas |
-| Corrige | 10-15 min | Fixa código (não teste) |
-| Relatório | 1 min | Gera resumo |
-| **Total** | **~30 min** | Suite de testes 100% passando |
+| Fase          | Duração     | O que é feito                  |
+| ------------- | ----------- | ------------------------------ |
+| Exploração    | 5 min       | Encontra funções com data/hora |
+| Teste         | 3 min       | Cria suite de testes           |
+| Encontra bugs | 2-3 min     | Roda e identifica falhas       |
+| Corrige       | 10-15 min   | Fixa código (não teste)        |
+| Relatório     | 1 min       | Gera resumo                    |
+| **Total**     | **~30 min** | Suite de testes 100% passando  |
 
 ---
 
 ## ✅ Pré-requisitos
 
 ### Software
+
 - [ ] Jest ou Vitest instalado
 - [ ] npm test funcionando
 - [ ] timezone-mock disponível (ou será instalado)
 - [ ] TypeScript configurado
 
 ### Verificação Rápida
+
 ```bash
 # Testa se está pronto:
 npm test -- --listTests | head
@@ -279,6 +288,7 @@ npm test -- --init
 **Contexto**: Você vai fazer deploy amanhã. Quer garantir que não tem bugs de timezone.
 
 **Setup**:
+
 ```bash
 # Certifica que app está buildável:
 npm test
@@ -287,11 +297,13 @@ npm test
 ```
 
 **Comando**:
+
 ```
 /audit-timezone
 ```
 
-**Resultado**: 
+**Resultado**:
+
 - 3 bugs encontrados (que você não sabia que existiam!)
 - Todos corrigidos
 - Suite de testes com 48 testes novos
@@ -305,17 +317,20 @@ npm test
 **Contexto**: Usuário reportou: "Horário de ensaio tá errado"
 
 **Setup**:
+
 ```bash
 # Você não sabe exatamente qual função tem bug
 # Agente vai encontrar
 ```
 
 **Comando**:
+
 ```
 /audit-timezone
 ```
 
 **Resultado**:
+
 - Agente encontra a função que tá errada
 - Cria testes que reproduzem o bug
 - Corrige a função
@@ -330,17 +345,20 @@ npm test
 **Contexto**: Você refatorou todo o código de datas. Quer ter certeza que não quebrou nada.
 
 **Setup**:
+
 ```bash
 git checkout refactor/date-logic
 npm test  # Verifica se basic tests passam
 ```
 
 **Comando**:
+
 ```
 /audit-timezone
 ```
 
-**Resultado**: 
+**Resultado**:
+
 - Agente testa seu refactor em múltiplos timezones
 - Se quebrou algo, encontra
 - Se tá tudo certo, confirma com testes robustos
@@ -351,22 +369,27 @@ npm test  # Verifica se basic tests passam
 ## ❓ FAQ
 
 ### P: O agente modifica meus testes?
+
 **A**: Não! Ele CRIA novos testes, não modifica existentes.
 
 Ele cria em: `tests/timezone.test.ts` ou similar.
 
 ### P: Qual timezone brasileiro ele testa?
+
 **A**: `America/Sao_Paulo` (UTC-3, horário de Brasília).
 
 Também testa DST, midnight, etc.
 
 ### P: E Portugal?
+
 **A**: `Europe/Lisbon` (UTC+0/+1 com DST).
 
 ---
 
 ### P: Posso escolher outros timezones?
+
 **A**: Pode pedir:
+
 ```
 /audit-timezone
 Adicionalmente, testar: Australia/Sydney, Asia/Tokyo
@@ -375,9 +398,11 @@ Adicionalmente, testar: Australia/Sydney, Asia/Tokyo
 ---
 
 ### P: Quanto tempo leva?
+
 **A**: ~25-30 minutos total.
 
 Depende de:
+
 - Quantas funções com datas você tem
 - Complexidade do código
 - Número de testes criados
@@ -385,7 +410,9 @@ Depende de:
 ---
 
 ### P: O agente quebra meu código?
+
 **A**: Nunca intencional. Se algo der errado:
+
 ```bash
 git log --oneline  # Vê todos os commits do agente
 git revert [hash]  # Desfaz um
@@ -395,7 +422,9 @@ git reset --hard HEAD~5  # Desfaz últimos 5 commits
 ---
 
 ### P: Posso rodar em production?
+
 **A**: **Não recomendado**. Teste antes:
+
 1. Rode em `develop` branch
 2. Verifique commits
 3. Rode testes localmente
@@ -404,6 +433,7 @@ git reset --hard HEAD~5  # Desfaz últimos 5 commits
 ---
 
 ### P: Meu app não tem testes ainda. Posso usar?
+
 **A**: Sim! Agente cria do zero. Mas setup leva um pouco mais.
 
 ---
@@ -413,6 +443,7 @@ git reset --hard HEAD~5  # Desfaz últimos 5 commits
 ### ❌ Problema: "npm test falha com erro estranho"
 
 **Solução**:
+
 ```bash
 # Limpa cache:
 rm -rf node_modules
@@ -423,6 +454,7 @@ npm test
 ```
 
 Se continuar:
+
 ```bash
 # Vê o erro completo:
 npm test -- --verbose
@@ -433,6 +465,7 @@ npm test -- --verbose
 ### ❌ Problema: "timezone-mock não está instalado"
 
 **Solução**:
+
 ```bash
 npm install --save-dev timezone-mock
 ```
@@ -443,15 +476,16 @@ O agente tenta instalar automaticamente, mas às vezes não funciona.
 
 ### ❌ Problema: "Agente não acha nenhuma função com datas"
 
-**Solução**:
-Suas funções talvez não estejam nomeadas de forma reconhecível.
+**Solução**: Suas funções talvez não estejam nomeadas de forma reconhecível.
 
 Procura:
+
 ```bash
 grep -r "Date\|Time\|timezone\|locale" src/ --include="*.ts"
 ```
 
 Se encontrar funções, renomeia para pattern que agente recogniza:
+
 - `getRehearsalTime`
 - `formatDate`
 - `getCountdownText`
@@ -462,8 +496,8 @@ Se encontrar funções, renomeia para pattern que agente recogniza:
 
 ### ❌ Problema: "Um teste falha mesmo após agente trabalhar"
 
-**Solução**:
-Isso raramente acontece. Se acontecer:
+**Solução**: Isso raramente acontece. Se acontecer:
+
 ```bash
 # Vê qual teste falhou:
 npm test -- --verbose
@@ -499,10 +533,14 @@ git diff
 ## ✨ Dicas
 
 ### Dica 1: Rode antes de viagem
-Se você vai viajar, rode /audit-timezone antes de sair. Garante que seu app funciona em outros timezones.
+
+Se você vai viajar, rode /audit-timezone antes de sair. Garante que seu app funciona em outros
+timezones.
 
 ### Dica 2: Salve o relatório
+
 Após agente terminar, salva o relatório:
+
 ```bash
 # Agente gera em algum lugar, procura:
 find . -name "*timezone*" -name "*report*" -o -name "*audit*"
@@ -511,7 +549,9 @@ find . -name "*timezone*" -name "*report*" -o -name "*audit*"
 ```
 
 ### Dica 3: Adicione ao CI
+
 Depois que agente criar testes:
+
 ```bash
 # No seu CI (GitHub Actions, etc):
 npm test -- tests/timezone.test.ts
@@ -520,7 +560,9 @@ npm test -- tests/timezone.test.ts
 ```
 
 ### Dica 4: Documente suas convenções
+
 Se sua app usa convenções especiais para datas:
+
 ```markdown
 # Convenções de Date/Time
 
@@ -533,7 +575,9 @@ Se sua app usa convenções especiais para datas:
 Salva em: `docs/datetime-conventions.md`
 
 ### Dica 5: Teste em múltiplos locales
+
 Além de timezones, teste locale formatting:
+
 ```bash
 # Muda idioma do telefone
 # Roda sua app

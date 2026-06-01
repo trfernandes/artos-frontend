@@ -4,8 +4,17 @@ import { UpdateMinisterioVoluntarioDto } from '../domain/dtos/MinisterioVoluntar
 import { MinisterioVoluntariosRepository } from '../domain/services/MinisterioVoluntariosRepository';
 import { ExternalUseCrudParams, useCrud } from './useCrud';
 
-export function useMinisterioVoluntariosCrud({ autoFetch = false, initialParams, muteMessages }: ExternalUseCrudParams = {}) {
-  return useCrud<ResponseMinisterioVoluntarioDto, any, CreateMinisterioVoluntarioDto, UpdateMinisterioVoluntarioDto>({
+export function useMinisterioVoluntariosCrud({
+  autoFetch = false,
+  initialParams,
+  muteMessages,
+}: ExternalUseCrudParams = {}) {
+  return useCrud<
+    ResponseMinisterioVoluntarioDto,
+    any,
+    CreateMinisterioVoluntarioDto,
+    UpdateMinisterioVoluntarioDto
+  >({
     initialParams,
     autoFetch,
     queryKey: 'ministerio-voluntarios',

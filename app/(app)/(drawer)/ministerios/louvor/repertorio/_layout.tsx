@@ -20,13 +20,19 @@ export default function MinisterioLouvorRepertorioLayout() {
       />
       <Stack.Screen
         name='add'
-        options={{ title: 'Adicionar Música', headerShown: true,
- header: (props) => <FancyPageHeader leftButton='back' {...props} /> }}
+        options={{
+          title: 'Adicionar Música',
+          headerShown: true,
+          header: (props) => <FancyPageHeader leftButton='back' {...props} />,
+        }}
       />
       <Stack.Screen
         name='edit'
-        options={{ title: 'Editar Música', headerShown: true,
- header: (props) => <FancyPageHeader leftButton='back' {...props} /> }}
+        options={{
+          title: 'Editar Música',
+          headerShown: true,
+          header: (props) => <FancyPageHeader leftButton='back' {...props} />,
+        }}
       />
     </Stack>
   );

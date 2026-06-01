@@ -1,8 +1,8 @@
 import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
 import {
-    VoluntarioHierarquiaEnum,
-    VoluntarioHierarquiaEnumList,
-    VoluntarioHierarquiaEnumMap,
+  VoluntarioHierarquiaEnum,
+  VoluntarioHierarquiaEnumList,
+  VoluntarioHierarquiaEnumMap,
 } from '../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
 import FancyDropDown from '../../../fields/FancyDropDown';
 import { useForm } from 'react-hook-form';
@@ -55,13 +55,20 @@ export default function VoluntarioEditFormModal({
             left: {
               type: 'image',
               source:
-                props.data.fotoThumbUrl || props.data.fotoUrl ? { uri: props.data.fotoThumbUrl || props.data.fotoUrl || '' } : AppImages.emptyProfile,
+                props.data.fotoThumbUrl || props.data.fotoUrl
+                  ? { uri: props.data.fotoThumbUrl || props.data.fotoUrl || '' }
+                  : AppImages.emptyProfile,
             },
           },
         ]}
         value={props.data.id}
       />
-      <ControlledDropDown label='Função' control={form.control} name='hierarquia' listItems={VoluntarioHierarquiaEnumList} />
+      <ControlledDropDown
+        label='Função'
+        control={form.control}
+        name='hierarquia'
+        listItems={VoluntarioHierarquiaEnumList}
+      />
     </FancyModalDialog>
   );
 }

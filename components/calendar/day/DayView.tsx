@@ -98,7 +98,12 @@ export function DayView({
   return (
     <View style={[styles.container, props.containerStyle]}>
       <DayViewHeader visualStyle={visualStyle} />
-      <View style={[styles.weekContainer, visualStyle === 'agendaPremium' ? styles.weekContainerAgenda : null]}>
+      <View
+        style={[
+          styles.weekContainer,
+          visualStyle === 'agendaPremium' ? styles.weekContainerAgenda : null,
+        ]}
+      >
         {daysMatrix.map((week, rowIndex) => (
           <View key={rowIndex} style={styles.weekRow}>
             {week.map((day, columnIndex) => {
@@ -126,22 +131,35 @@ export function DayView({
               const outsideMonth = !isCurrentMonthDay;
 
               if (outsideMonth && !showOtherMonthDays) {
-                return <View key={`empty-${rowIndex}-${columnIndex}`} style={{ width: `${100 / 7}%`, aspectRatio: 1 }} />;
+                return (
+                  <View
+                    key={`empty-${rowIndex}-${columnIndex}`}
+                    style={{ width: `${100 / 7}%`, aspectRatio: 1 }}
+                  />
+                );
               }
 
               const isDisabled = outsideMonth || beforeMinimum || afterMaximum || isPastDate;
               const isToday = DateUtils.equal(cellDate, today);
-              const isSelected = props.selectedDate ? DateUtils.equal(cellDate, props.selectedDate) : false;
+              const isSelected = props.selectedDate
+                ? DateUtils.equal(cellDate, props.selectedDate)
+                : false;
 
-              const markedEntries = props.markedDates?.filter((d) => DateUtils.equal(d.date, cellDate)) ?? [];
+              const markedEntries =
+                props.markedDates?.filter((d) => DateUtils.equal(d.date, cellDate)) ?? [];
 
               const isMarked = markedEntries.length > 0;
 
-              const highlight = markedDatesType === 'SurroundCircle' ? isMarked || isSelected : isSelected;
+              const highlight =
+                markedDatesType === 'SurroundCircle' ? isMarked || isSelected : isSelected;
 
               const showMarker = markedDatesType === 'bottomPoint' && isMarked;
 
-              const dayType: DayProps['type'] = isDisabled ? 'inactive' : isToday ? 'actual' : 'default';
+              const dayType: DayProps['type'] = isDisabled
+                ? 'inactive'
+                : isToday
+                  ? 'actual'
+                  : 'default';
 
               // monta cores dos marcadores (um por evento, com fallback)
               const markerColorsFromMarks = markedEntries.map((m) => m.color || palette.primary);

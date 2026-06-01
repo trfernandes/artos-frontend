@@ -11,7 +11,13 @@ type Props = {
   disabled?: boolean;
 };
 
-export default function SongTextEditorField({ label, value = '', placeholder, onChange, disabled }: Props) {
+export default function SongTextEditorField({
+  label,
+  value = '',
+  placeholder,
+  onChange,
+  disabled,
+}: Props) {
   const handleClear = () => {
     if (!value?.trim()) return;
     const contentLabel = label ? label.toLowerCase() : 'este conteúdo';

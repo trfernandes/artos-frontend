@@ -93,12 +93,26 @@ function resolveDateParam(payload: Record<string, any>, keys: string[]) {
 }
 
 function resolveScaleDateParams(payload: Record<string, any>) {
-  const selectedDate = resolveDateParam(payload, ['selectedDate', 'dataOcorrencia', 'dataEvento', 'date', 'data']);
-  const month = resolveDateParam(payload, ['month', 'mes', 'dataReferencia', 'referenceDate', 'dataInicio']);
+  const selectedDate = resolveDateParam(payload, [
+    'selectedDate',
+    'dataOcorrencia',
+    'dataEvento',
+    'date',
+    'data',
+  ]);
+  const month = resolveDateParam(payload, [
+    'month',
+    'mes',
+    'dataReferencia',
+    'referenceDate',
+    'dataInicio',
+  ]);
   return normalizeParams({ selectedDate, dataOcorrencia: selectedDate, month });
 }
 
-function resolveEscalaSpecificTarget(payload: Record<string, any>): NotificationNavigationTarget | null {
+function resolveEscalaSpecificTarget(
+  payload: Record<string, any>,
+): NotificationNavigationTarget | null {
   const escalaId = firstString(payload, ['escalaId', 'idEscala', 'escala_id']);
   const ministerioId = firstString(payload, ['ministerioId', 'idMinisterio', 'ministerio_id']);
   const dateParams = resolveScaleDateParams(payload);
@@ -136,12 +150,25 @@ function resolveEscalaSpecificTarget(payload: Record<string, any>): Notification
 
 function isCalendarMonthChange(payload: Record<string, any>) {
   const tipo = getNotificationType(payload);
-  const assunto = `${payload.assunto ?? ''} ${payload.contexto ?? ''} ${payload.categoria ?? ''} ${payload.mensagem ?? ''} ${payload.titulo ?? ''}`.toUpperCase();
-  return tipo === 'CALENDARIO_MES_ATUALIZADO' || tipo === 'MES_ATUALIZADO' || assunto.includes('MÊS') || assunto.includes('MES');
+  const assunto =
+    `${payload.assunto ?? ''} ${payload.contexto ?? ''} ${payload.categoria ?? ''} ${payload.mensagem ?? ''} ${payload.titulo ?? ''}`.toUpperCase();
+  return (
+    tipo === 'CALENDARIO_MES_ATUALIZADO' ||
+    tipo === 'MES_ATUALIZADO' ||
+    assunto.includes('MÊS') ||
+    assunto.includes('MES')
+  );
 }
 
 function resolveCalendarMonthTarget(payload: Record<string, any>): NotificationNavigationTarget {
-  const month = resolveDateParam(payload, ['month', 'mes', 'dataReferencia', 'referenceDate', 'dataInicio', 'data']);
+  const month = resolveDateParam(payload, [
+    'month',
+    'mes',
+    'dataReferencia',
+    'referenceDate',
+    'dataInicio',
+    'data',
+  ]);
   return {
     pathname: '/(app)/(drawer)/pessoal/escalas',
     params: normalizeParams({ month, dataReferencia: month }),
@@ -241,7 +268,9 @@ function resolveByTipo(payload: Record<string, any>): NotificationNavigationTarg
     case NotificacaoTipoEnum.EscalaSubstituicaoResolvidaLider:
     case NotificacaoTipoEnum.IndisponibilidadeConflito:
     case 'TESTE_LOCAL':
-      return resolveEscalaSpecificTarget(payload) ?? { pathname: '/(app)/(drawer)/pessoal/escalas' };
+      return (
+        resolveEscalaSpecificTarget(payload) ?? { pathname: '/(app)/(drawer)/pessoal/escalas' }
+      );
 
     case NotificacaoTipoEnum.MinisterioNovoIntegrante:
     case 'COMUNICADO_LIDER':

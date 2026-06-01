@@ -100,7 +100,11 @@ export default function FancyBaseCard({ isCollapsable = false, ...props }: Fancy
               (isValidElement(props.title) ? (
                 props.title
               ) : (
-                <FancyText {...titleTextProps} {...props.titleProps} style={[titleTextProps.style, props.titleProps?.style]}>
+                <FancyText
+                  {...titleTextProps}
+                  {...props.titleProps}
+                  style={[titleTextProps.style, props.titleProps?.style]}
+                >
                   {props.title}
                 </FancyText>
               ))}
@@ -203,6 +207,11 @@ function createStyles(palette: ThemePalette) {
       flexDirection: 'row',
       gap: 8,
     },
-    headerContainer: { flexDirection: 'row', borderWidth: DESIGN_MODE, padding: DESIGN_MODE, gap: 12 },
+    headerContainer: {
+      flexDirection: 'row',
+      borderWidth: DESIGN_MODE,
+      padding: DESIGN_MODE,
+      gap: 12,
+    },
   });
 }

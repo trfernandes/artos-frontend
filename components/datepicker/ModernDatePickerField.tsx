@@ -11,7 +11,9 @@ export type ModernDatePickerFieldProps = {
   readonly?: boolean;
   containerStyle?: StyleProp<ViewStyle>;
   panelProps?: FancyDataPanelProps;
-  sheetProps?: Partial<Omit<ModernDatePickerSheetProps, 'visible' | 'value' | 'onClose' | 'onConfirm'>>;
+  sheetProps?: Partial<
+    Omit<ModernDatePickerSheetProps, 'visible' | 'value' | 'onClose' | 'onConfirm'>
+  >;
 };
 
 export default function ModernDatePickerField({

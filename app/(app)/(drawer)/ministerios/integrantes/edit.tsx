@@ -2,22 +2,30 @@ import FancyButton from '../../../../../components/buttons/FancyButton';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormProvider, useForm } from 'react-hook-form';
-import { MinVoluntarioFormData, minVoluntarioSchema } from '../../../../../domain/schemas/ministerioVoluntariosSchema';
+import {
+  MinVoluntarioFormData,
+  minVoluntarioSchema,
+} from '../../../../../domain/schemas/ministerioVoluntariosSchema';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { DynamicQuery, Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
+import {
+  DynamicQuery,
+  Operator,
+  OrderDirection,
+  ValueType,
+} from '../../../../../domain/utils/query_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
 import IntegranteFormFields from '../../../../../components/pages/ministerios/integrantes/FormFields';
 import { UpdateFuncaoDataDto } from '../../../../../domain/services/MinisterioVoluntarioFuncoesRepository';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { MinisterioVoluntarioStatusEnum } from '../../../../../domain/enums/MinisterioVoluntario/ministerio-voluntario-status.enum';
 import {
-    MinisterioVoluntarioFuncaoStatusEnum,
-    MinisterioVoluntarioFuncaoStatusEnumMap,
+  MinisterioVoluntarioFuncaoStatusEnum,
+  MinisterioVoluntarioFuncaoStatusEnumMap,
 } from '../../../../../domain/enums/MinisterioVoluntarioFuncao/ministerio-voluntario-funcao-status.enum';
 import {
-    EscalaTemplateExperienciaEnum,
-    EscalaTemplateExperienciaEnumMap,
+  EscalaTemplateExperienciaEnum,
+  EscalaTemplateExperienciaEnumMap,
 } from '../../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
@@ -49,7 +57,13 @@ export default function MinisterioIntegrantesEditPage() {
   const voluntarioSearchParams = useMemo<DynamicQuery>(() => {
     return {
       where: {
-        conditions: [{ path: 'id', operator: Operator.EQUALS, value: { type: ValueType.LITERAL, value: params.ministerioVoluntarioId } }],
+        conditions: [
+          {
+            path: 'id',
+            operator: Operator.EQUALS,
+            value: { type: ValueType.LITERAL, value: params.ministerioVoluntarioId },
+          },
+        ],
       },
       relations: ['voluntario'],
       orderBy: [
@@ -61,7 +75,10 @@ export default function MinisterioIntegrantesEditPage() {
     } as DynamicQuery;
   }, [params]);
 
-  const { data, isLoading: isLoadingVoluntario } = useMinisterioVoluntariosCrud({ autoFetch: true, initialParams: voluntarioSearchParams });
+  const { data, isLoading: isLoadingVoluntario } = useMinisterioVoluntariosCrud({
+    autoFetch: true,
+    initialParams: voluntarioSearchParams,
+  });
 
   const voluntarioAtual = useMemo(() => (data && data.length > 0 ? data[0] : null), [data]);
 
@@ -102,8 +119,11 @@ export default function MinisterioIntegrantesEditPage() {
     const funcoes = funcoesData?.map((f) => ({
       id: f.funcao?.id,
       nome: f.funcao?.nome || '',
-      status: MinisterioVoluntarioFuncaoStatusEnumMap[f.status] || MinisterioVoluntarioFuncaoStatusEnum.Ativo,
-      experiencia: EscalaTemplateExperienciaEnumMap[f.experiencia] || EscalaTemplateExperienciaEnum.Iniciante,
+      status:
+        MinisterioVoluntarioFuncaoStatusEnumMap[f.status] ||
+        MinisterioVoluntarioFuncaoStatusEnum.Ativo,
+      experiencia:
+        EscalaTemplateExperienciaEnumMap[f.experiencia] || EscalaTemplateExperienciaEnum.Iniciante,
     }));
 
     form.reset({
@@ -137,7 +157,11 @@ export default function MinisterioIntegrantesEditPage() {
     (errors) => console.log('errors', errors),
   );
 
-  const { funcoesDropDownList, funcoesList, isLoading: isLoadingFuncoesList } = useFuncoesDoMinisterio(params.ministerioId);
+  const {
+    funcoesDropDownList,
+    funcoesList,
+    isLoading: isLoadingFuncoesList,
+  } = useFuncoesDoMinisterio(params.ministerioId);
 
   const voluntarioFuncoesList = useMemo<ResponseMinisterioFuncaoDto[]>(() => {
     const data = form.getValues('funcoes');
@@ -155,7 +179,11 @@ export default function MinisterioIntegrantesEditPage() {
   return (
     <FancyPageView style={{ flex: 1, paddingHorizontal: 18, paddingVertical: 12, gap: 16 }}>
       <FormProvider {...form}>
-        <IntegranteFormFields mode='edit' funcoesList={funcoesList} funcoesDropDownList={funcoesDropDownList} />
+        <IntegranteFormFields
+          mode='edit'
+          funcoesList={funcoesList}
+          funcoesDropDownList={funcoesDropDownList}
+        />
       </FormProvider>
       <FancyButton
         icon={{ ...DefaultIconsNames.save, size: 14 }}

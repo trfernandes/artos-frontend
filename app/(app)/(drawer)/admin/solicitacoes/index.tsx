@@ -153,7 +153,8 @@ export default function SolicitacoesConvitesPage() {
   });
 
   const criarConviteMutation = useMutation({
-    mutationFn: (dto: CreateIgrejaConviteDto) => IgrejaRepository.criarConvite(igrejaAtiva!.id, dto),
+    mutationFn: (dto: CreateIgrejaConviteDto) =>
+      IgrejaRepository.criarConvite(igrejaAtiva!.id, dto),
     onSuccess: (novoConvite) => {
       setConviteGerado(novoConvite);
       setShowNovoConviteModal(false);
@@ -344,19 +345,36 @@ export default function SolicitacoesConvitesPage() {
         icon: { library: 'MaterialCommunityIcons', name: 'ticket-confirmation-outline', size: 16 },
       },
     ],
-    [solicitacoes, convites, isRefetchingSolicitacoes, isRefetchingConvites, aprovarMutation.isPending, rejeitarMutation.isPending, revogarConviteMutation.isPending],
+    [
+      solicitacoes,
+      convites,
+      isRefetchingSolicitacoes,
+      isRefetchingConvites,
+      aprovarMutation.isPending,
+      rejeitarMutation.isPending,
+      revogarConviteMutation.isPending,
+    ],
   );
 
   // ========== LOADING / ERROR STATES ==========
 
-  if ((isLoadingSolicitacoes || isLoadingConvites) && solicitacoes.length === 0 && convites.length === 0) {
+  if (
+    (isLoadingSolicitacoes || isLoadingConvites) &&
+    solicitacoes.length === 0 &&
+    convites.length === 0
+  ) {
     return <FancyLoading />;
   }
 
   if (!igrejaAtiva?.id) {
     return (
       <FancyPageView style={styles.centerContainer}>
-        <DefaultIcons.Custom library='MaterialCommunityIcons' name='church' size={64} color={palette.fonts.inactive} />
+        <DefaultIcons.Custom
+          library='MaterialCommunityIcons'
+          name='church'
+          size={64}
+          color={palette.fonts.inactive}
+        />
         <FancyText size='medium' color={palette.fonts.inactive} style={styles.emptyText}>
           Selecione uma igreja para gerenciar solicitações e convites.
         </FancyText>
@@ -367,7 +385,12 @@ export default function SolicitacoesConvitesPage() {
   if (!hasPermission) {
     return (
       <FancyPageView style={styles.centerContainer}>
-        <DefaultIcons.Custom library='MaterialIcons' name='lock' size={64} color={palette.fonts.inactive} />
+        <DefaultIcons.Custom
+          library='MaterialIcons'
+          name='lock'
+          size={64}
+          color={palette.fonts.inactive}
+        />
         <FancyText size='medium' color={palette.fonts.inactive} style={styles.emptyText}>
           Você não tem permissão para acessar esta área.
         </FancyText>
@@ -388,11 +411,7 @@ export default function SolicitacoesConvitesPage() {
         </View>
 
         {/* Tabs */}
-        <FancyTabs
-          items={tabItems}
-          initialIndex={initialTabIndex}
-          onTabChange={setTabIndex}
-        />
+        <FancyTabs items={tabItems} initialIndex={initialTabIndex} onTabChange={setTabIndex} />
       </View>
 
       {/* FAB para criar convite (só na aba de convites) */}

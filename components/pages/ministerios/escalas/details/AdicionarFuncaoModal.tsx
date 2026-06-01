@@ -26,7 +26,15 @@ export interface AdicionarFuncaoConfirmDialog {
   dataOcorrencia: string;
 }
 
-export default function AdicionarFuncaoModal({ ministerioId, eventoNome, eventoId, dataOcorrencia, dataInicio, dataTermino, ...props }: AdicionarFuncaoModalProps & FancyModalDialogProps<any>) {
+export default function AdicionarFuncaoModal({
+  ministerioId,
+  eventoNome,
+  eventoId,
+  dataOcorrencia,
+  dataInicio,
+  dataTermino,
+  ...props
+}: AdicionarFuncaoModalProps & FancyModalDialogProps<any>) {
   const palette = usePallete();
   const { data: funcoes, isLoading: isLoadingFuncoes } = useMinisterioFuncoesCrud({
     autoFetch: true,
@@ -89,18 +97,27 @@ export default function AdicionarFuncaoModal({ ministerioId, eventoNome, eventoI
         pointerEvents: isLoadingFuncoes ? 'none' : 'auto',
       }}
     >
-      <View style={{
-        backgroundColor: palette.backgroundColor2,
-        borderRadius: 14,
-        borderWidth: 1,
-        borderColor: palette.borderCard,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        gap: 6,
-      }}>
-        <FancyText type='semiBold' size='small'>{eventoNome}</FancyText>
+      <View
+        style={{
+          backgroundColor: palette.backgroundColor2,
+          borderRadius: 14,
+          borderWidth: 1,
+          borderColor: palette.borderCard,
+          paddingHorizontal: 12,
+          paddingVertical: 10,
+          gap: 6,
+        }}
+      >
+        <FancyText type='semiBold' size='small'>
+          {eventoNome}
+        </FancyText>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <DefaultIcons.Custom library='MaterialIcons' name='event' size={12} color={palette.primary} />
+          <DefaultIcons.Custom
+            library='MaterialIcons'
+            name='event'
+            size={12}
+            color={palette.primary}
+          />
           <FancyText size='extraSmall' type='medium'>
             {`${format(dataOcorrencia, 'dd/MM/yyyy')} - ${format(dataInicio!, 'HH:mm')} à ${format(dataTermino!, 'HH:mm')}`}
           </FancyText>

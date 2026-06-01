@@ -21,7 +21,8 @@ const assetToFormFile = (asset: ImagePicker.ImagePickerAsset): FormImageFile => 
   const ext = uri.split('.').pop()?.toLowerCase();
   const name = asset.fileName ?? `foto_${Date.now()}.${ext || 'jpg'}`;
 
-  const type = asset.mimeType ?? (ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg');
+  const type =
+    asset.mimeType ?? (ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg');
 
   return { uri, name, type };
 };

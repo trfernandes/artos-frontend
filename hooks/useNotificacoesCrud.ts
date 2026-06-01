@@ -43,7 +43,9 @@ function filterNotificationsByChurch(notifications: ResponseNotificacaoDto[], ig
 }
 
 function getFlagFromQueryKey(queryKey: readonly unknown[]) {
-  return queryKey[0] === 'notificacoes' && typeof queryKey[1] === 'boolean' ? queryKey[1] : undefined;
+  return queryKey[0] === 'notificacoes' && typeof queryKey[1] === 'boolean'
+    ? queryKey[1]
+    : undefined;
 }
 
 function updateSingleNotificationOnList(
@@ -64,7 +66,11 @@ function updateSingleNotificationOnList(
   return onlyUnreadList ? updated.filter(isUnread) : updated;
 }
 
-function markAllAsReadOnList(list: ResponseNotificacaoDto[], readAt: string, onlyUnreadList: boolean) {
+function markAllAsReadOnList(
+  list: ResponseNotificacaoDto[],
+  readAt: string,
+  onlyUnreadList: boolean,
+) {
   if (onlyUnreadList) return [];
   return list.map((notification) =>
     notification.lidaEm
@@ -77,9 +83,14 @@ function markAllAsReadOnList(list: ResponseNotificacaoDto[], readAt: string, onl
 }
 
 function getUnreadCountFromSnapshots(snapshots: QuerySnapshot) {
-  const allNotificationsSnapshot = snapshots.find(([queryKey]) => getFlagFromQueryKey(queryKey) === false)?.[1];
+  const allNotificationsSnapshot = snapshots.find(
+    ([queryKey]) => getFlagFromQueryKey(queryKey) === false,
+  )?.[1];
   if (!allNotificationsSnapshot) return 0;
-  return allNotificationsSnapshot.reduce((count, notification) => (isUnread(notification) ? count + 1 : count), 0);
+  return allNotificationsSnapshot.reduce(
+    (count, notification) => (isUnread(notification) ? count + 1 : count),
+    0,
+  );
 }
 
 export function useNotificacoesCrud({
@@ -100,7 +111,8 @@ export function useNotificacoesCrud({
 
   const listarQuery = useQuery({
     queryKey: ['notificacoes', apenasNaoLidas, igrejaId],
-    queryFn: async () => filterNotificationsByChurch(await NotificacoesApi.listar(apenasNaoLidas), igrejaId),
+    queryFn: async () =>
+      filterNotificationsByChurch(await NotificacoesApi.listar(apenasNaoLidas), igrejaId),
     enabled: enabled && includeList,
     staleTime: NOTIFICATIONS_STALE_TIME_MS,
   });
@@ -134,7 +146,9 @@ export function useNotificacoesCrud({
         const onlyUnreadList = getFlagFromQueryKey(queryKey) === true;
 
         if (!hadUnreadTarget) {
-          hadUnreadTarget = list.some((notification) => notification.id === id && isUnread(notification));
+          hadUnreadTarget = list.some(
+            (notification) => notification.id === id && isUnread(notification),
+          );
         }
 
         qc.setQueryData(queryKey, updateSingleNotificationOnList(list, id, readAt, onlyUnreadList));
@@ -213,11 +227,15 @@ export function useNotificacoesCrud({
   }, [enabled, includeUnreadCount, contarNaoLidasQuery.refetch]);
 
   return {
-    notificacoes: enabled ? listarQuery.data ?? [] : [],
+    notificacoes: enabled ? (listarQuery.data ?? []) : [],
     isLoading: enabled && includeList ? listarQuery.isLoading : false,
-    isLoadingMutation: enabled ? marcarComoLidoMutation.isPending || marcarTodasComoLidasMutation.isPending : false,
-    quantidadeNaoLidas: enabled && includeUnreadCount ? contarNaoLidasQuery.data ?? 0 : 0,
-    marcarComoLida: enabled ? (id: string) => marcarComoLidoMutation.mutateAsync(id) : noopMarcarComoLida,
+    isLoadingMutation: enabled
+      ? marcarComoLidoMutation.isPending || marcarTodasComoLidasMutation.isPending
+      : false,
+    quantidadeNaoLidas: enabled && includeUnreadCount ? (contarNaoLidasQuery.data ?? 0) : 0,
+    marcarComoLida: enabled
+      ? (id: string) => marcarComoLidoMutation.mutateAsync(id)
+      : noopMarcarComoLida,
     marcarTodasComoLidas: enabled ? () => marcarTodasComoLidasMutation.mutateAsync() : noop,
     refetchNotificacoes,
     refetchQuantidadeNaoLidas,

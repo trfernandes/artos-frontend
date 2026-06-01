@@ -67,7 +67,7 @@ export default function FancyMaskedTextInput({
   inputProps,
   ...props
 }: FancyMaskedTextInputProps) {
-  const pattern = maskType === 'custom' ? (customPattern || '') : MASK_PATTERNS[maskType];
+  const pattern = maskType === 'custom' ? customPattern || '' : MASK_PATTERNS[maskType];
   const maskedValue = applyMask(value || '', pattern);
 
   const handleChangeText = useCallback(
@@ -76,7 +76,7 @@ export default function FancyMaskedTextInput({
       const newMaskedValue = applyMask(rawValue, pattern);
       onChangeText?.(rawValue, newMaskedValue);
     },
-    [pattern, onChangeText]
+    [pattern, onChangeText],
   );
 
   return (

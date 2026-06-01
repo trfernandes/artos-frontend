@@ -32,10 +32,19 @@ export default function FancySettingItem({
   const styles = useThemedStyles(createStyles);
 
   return (
-    <FancyContainer containerStyle={[styles.container, disabled && styles.containerDisabled, containerStyle]}>
+    <FancyContainer
+      containerStyle={[styles.container, disabled && styles.containerDisabled, containerStyle]}
+    >
       <View style={styles.header}>
         <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-          {icon && <DefaultIcons.Custom size={16} color={Pallete.fonts.inactive} {...icon} style={{ borderWidth: 0 }} />}
+          {icon && (
+            <DefaultIcons.Custom
+              size={16}
+              color={Pallete.fonts.inactive}
+              {...icon}
+              style={{ borderWidth: 0 }}
+            />
+          )}
           <FancyText
             size={'small'}
             type='bold'

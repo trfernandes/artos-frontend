@@ -26,7 +26,9 @@ export default function FancyGroup({
   const styles = useThemedStyles(createStyles);
   const isAccentedSummary = variant === 'accentedSummary';
   const resolvedAccentColor = accentColor || palette.primary;
-  const titleBackgroundColor = isAccentedSummary ? palette.backgroundColor2 : palette.backgroundColor;
+  const titleBackgroundColor = isAccentedSummary
+    ? palette.backgroundColor2
+    : palette.backgroundColor;
   const summaryCardBorderColor = ColorUtils.withAlpha(resolvedAccentColor, 0.16);
 
   return (

@@ -1,13 +1,16 @@
 ---
 name: native-data-fetching
-description: Use when implementing or debugging ANY network request, API call, or data fetching. Covers fetch API, axios, React Query, SWR, error handling, caching strategies, offline support.
+description:
+  Use when implementing or debugging ANY network request, API call, or data fetching. Covers fetch
+  API, axios, React Query, SWR, error handling, caching strategies, offline support.
 version: 1.0.0
 license: MIT
 ---
 
 # Expo Networking
 
-**You MUST use this skill for ANY networking work including API requests, data fetching, caching, or network debugging.**
+**You MUST use this skill for ANY networking work including API requests, data fetching, caching, or
+network debugging.**
 
 ## When to Use
 
@@ -47,10 +50,10 @@ const fetchUser = async (userId: string) => {
 
 ```tsx
 const createUser = async (userData: UserData) => {
-  const response = await fetch("https://api.example.com/users", {
-    method: "POST",
+  const response = await fetch('https://api.example.com/users', {
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(userData),
@@ -73,7 +76,7 @@ const createUser = async (userData: UserData) => {
 
 ```tsx
 // app/_layout.tsx
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -96,11 +99,11 @@ export default function RootLayout() {
 **Fetching data**:
 
 ```tsx
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from '@tanstack/react-query';
 
 function UserProfile({ userId }: { userId: string }) {
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["user", userId],
+    queryKey: ['user', userId],
     queryFn: () => fetchUser(userId),
   });
 
@@ -114,7 +117,7 @@ function UserProfile({ userId }: { userId: string }) {
 **Mutations**:
 
 ```tsx
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 function CreateUserForm() {
   const queryClient = useQueryClient();
@@ -123,7 +126,7 @@ function CreateUserForm() {
     mutationFn: createUser,
     onSuccess: () => {
       // Invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
     },
   });
 
@@ -143,9 +146,13 @@ function CreateUserForm() {
 
 ```tsx
 class ApiError extends Error {
-  constructor(message: string, public status: number, public code?: string) {
+  constructor(
+    message: string,
+    public status: number,
+    public code?: string,
+  ) {
     super(message);
-    this.name = "ApiError";
+    this.name = 'ApiError';
   }
 }
 
@@ -155,11 +162,7 @@ const fetchWithErrorHandling = async (url: string, options?: RequestInit) => {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
-      throw new ApiError(
-        error.message || "Request failed",
-        response.status,
-        error.code
-      );
+      throw new ApiError(error.message || 'Request failed', response.status, error.code);
     }
 
     return response.json();
@@ -168,7 +171,7 @@ const fetchWithErrorHandling = async (url: string, options?: RequestInit) => {
       throw error;
     }
     // Network error (no internet, timeout, etc.)
-    throw new ApiError("Network error", 0, "NETWORK_ERROR");
+    throw new ApiError('Network error', 0, 'NETWORK_ERROR');
   }
 };
 ```
@@ -176,11 +179,7 @@ const fetchWithErrorHandling = async (url: string, options?: RequestInit) => {
 **Retry logic**:
 
 ```tsx
-const fetchWithRetry = async (
-  url: string,
-  options?: RequestInit,
-  retries = 3
-) => {
+const fetchWithRetry = async (url: string, options?: RequestInit, retries = 3) => {
   for (let i = 0; i < retries; i++) {
     try {
       return await fetchWithErrorHandling(url, options);
@@ -200,9 +199,9 @@ const fetchWithRetry = async (
 **Token management**:
 
 ```tsx
-import * as SecureStore from "expo-secure-store";
+import * as SecureStore from 'expo-secure-store';
 
-const TOKEN_KEY = "auth_token";
+const TOKEN_KEY = 'auth_token';
 
 export const auth = {
   getToken: () => SecureStore.getItemAsync(TOKEN_KEY),
@@ -218,7 +217,7 @@ const authFetch = async (url: string, options: RequestInit = {}) => {
     ...options,
     headers: {
       ...options.headers,
-      Authorization: token ? `Bearer ${token}` : "",
+      Authorization: token ? `Bearer ${token}` : '',
     },
   });
 };
@@ -255,7 +254,7 @@ const getValidToken = async (): Promise<string> => {
 **Check network status**:
 
 ```tsx
-import NetInfo from "@react-native-community/netinfo";
+import NetInfo from '@react-native-community/netinfo';
 
 // Hook for network status
 function useNetworkStatus() {
@@ -274,8 +273,8 @@ function useNetworkStatus() {
 **Offline-first with React Query**:
 
 ```tsx
-import { onlineManager } from "@tanstack/react-query";
-import NetInfo from "@react-native-community/netinfo";
+import { onlineManager } from '@tanstack/react-query';
+import NetInfo from '@react-native-community/netinfo';
 
 // Sync React Query with network status
 onlineManager.setEventListener((setOnline) => {
@@ -293,7 +292,8 @@ onlineManager.setEventListener((setOnline) => {
 
 **Using environment variables for API configuration**:
 
-Expo supports environment variables with the `EXPO_PUBLIC_` prefix. These are inlined at build time and available in your JavaScript code.
+Expo supports environment variables with the `EXPO_PUBLIC_` prefix. These are inlined at build time
+and available in your JavaScript code.
 
 ```tsx
 // .env
@@ -326,7 +326,7 @@ EXPO_PUBLIC_API_URL=https://api.production.com
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 if (!BASE_URL) {
-  throw new Error("EXPO_PUBLIC_API_URL is not defined");
+  throw new Error('EXPO_PUBLIC_API_URL is not defined');
 }
 
 export const apiClient = {
@@ -338,8 +338,8 @@ export const apiClient = {
 
   post: async <T,>(path: string, body: unknown): Promise<T> => {
     const response = await fetch(`${BASE_URL}${path}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -351,7 +351,8 @@ export const apiClient = {
 **Important notes**:
 
 - Only variables prefixed with `EXPO_PUBLIC_` are exposed to the client bundle
-- Never put secrets (API keys with write access, database passwords) in `EXPO_PUBLIC_` variables—they're visible in the built app
+- Never put secrets (API keys with write access, database passwords) in `EXPO_PUBLIC_`
+  variables—they're visible in the built app
 - Environment variables are inlined at **build time**, not runtime
 - Restart the dev server after changing `.env` files
 - For server-side secrets in API routes, use variables without the `EXPO_PUBLIC_` prefix
@@ -386,7 +387,7 @@ useEffect(() => {
     .then((response) => response.json())
     .then(setData)
     .catch((error) => {
-      if (error.name !== "AbortError") {
+      if (error.name !== 'AbortError') {
         setError(error);
       }
     });
@@ -458,34 +459,29 @@ const data = await response.json();
 **Wrong: Storing tokens in AsyncStorage**
 
 ```tsx
-await AsyncStorage.setItem("token", token); // Not secure!
+await AsyncStorage.setItem('token', token); // Not secure!
 ```
 
 **Right: Use SecureStore for sensitive data**
 
 ```tsx
-await SecureStore.setItemAsync("token", token);
+await SecureStore.setItemAsync('token', token);
 ```
 
 ## Example Invocations
 
-User: "How do I make API calls in React Native?"
--> Use fetch, wrap with error handling
+User: "How do I make API calls in React Native?" -> Use fetch, wrap with error handling
 
-User: "Should I use React Query or SWR?"
--> React Query for complex apps, SWR for simpler needs
+User: "Should I use React Query or SWR?" -> React Query for complex apps, SWR for simpler needs
 
-User: "My app needs to work offline"
--> Use NetInfo for status, React Query persistence for caching
+User: "My app needs to work offline" -> Use NetInfo for status, React Query persistence for caching
 
-User: "How do I handle authentication tokens?"
--> Store in expo-secure-store, implement refresh flow
+User: "How do I handle authentication tokens?" -> Store in expo-secure-store, implement refresh flow
 
-User: "API calls are slow"
--> Check caching strategy, use React Query staleTime
+User: "API calls are slow" -> Check caching strategy, use React Query staleTime
 
-User: "How do I configure different API URLs for dev and prod?"
--> Use EXPO*PUBLIC* env vars with .env.development and .env.production files
+User: "How do I configure different API URLs for dev and prod?" -> Use EXPO*PUBLIC* env vars with
+.env.development and .env.production files
 
-User: "Where should I put my API key?"
--> Client-safe keys: EXPO*PUBLIC* in .env. Secret keys: non-prefixed env vars in API routes only
+User: "Where should I put my API key?" -> Client-safe keys: EXPO*PUBLIC* in .env. Secret keys:
+non-prefixed env vars in API routes only

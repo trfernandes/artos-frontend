@@ -148,7 +148,12 @@ export default function AssistenteResultadoStep() {
 
         <View style={styles.summaryPanel}>
           <View style={styles.summaryHeader}>
-            <View style={[styles.summaryHeaderBadge, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.15) }]}>
+            <View
+              style={[
+                styles.summaryHeaderBadge,
+                { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.15) },
+              ]}
+            >
               <DefaultIcons.Custom
                 library='MaterialCommunityIcons'
                 name='view-dashboard-outline'

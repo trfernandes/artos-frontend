@@ -95,7 +95,12 @@ export default function EventoRepeticaoInputCustom({ modalProps }: { modalProps?
 
   const resumoText =
     semanaDias.length > 0
-      ? generateRecorrenciaJoinableDescription(recorrencia, semanaDias as any, aCadaMeses as any, semanasMes as any)
+      ? generateRecorrenciaJoinableDescription(
+          recorrencia,
+          semanaDias as any,
+          aCadaMeses as any,
+          semanasMes as any,
+        )
       : recorrencia === RecorrenciaEnum.Mensal && semanasMes.length > 0
         ? 'Selecione também o dia da semana'
         : recorrencia === RecorrenciaEnum.Mensal
@@ -142,7 +147,9 @@ export default function EventoRepeticaoInputCustom({ modalProps }: { modalProps?
             onChange={(v) => {
               LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
               recorrenciaForm.setValue('recorrencia', v as RecorrenciaEnum);
-              recorrenciaForm.resetField('recorrenciaACadaMeses', { defaultValue: v === RecorrenciaEnum.Mensal ? 1 : ('' as any) });
+              recorrenciaForm.resetField('recorrenciaACadaMeses', {
+                defaultValue: v === RecorrenciaEnum.Mensal ? 1 : ('' as any),
+              });
               recorrenciaForm.resetField('recorrenciaSemanaDias', { defaultValue: [] });
               recorrenciaForm.resetField('recorrenciaSemanasMes', { defaultValue: [] });
             }}

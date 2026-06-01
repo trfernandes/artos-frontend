@@ -81,9 +81,19 @@ export default function FancyDrawer(props: FancyDrawerProps) {
         }}
       >
         <FancyScrollView
-          topFade={{ style: { borderTopStartRadius: 15, borderTopEndRadius: 15, borderTopRightRadius: 15, borderTopLeftRadius: 15, borderWidth: 0 } }}
-          bottomFade={{ style: { borderBottomStartRadius: 15, borderBottomEndRadius: 15, borderWidth: 0 } }}
-          showsVerticalScrollIndicator={false}        
+          topFade={{
+            style: {
+              borderTopStartRadius: 15,
+              borderTopEndRadius: 15,
+              borderTopRightRadius: 15,
+              borderTopLeftRadius: 15,
+              borderWidth: 0,
+            },
+          }}
+          bottomFade={{
+            style: { borderBottomStartRadius: 15, borderBottomEndRadius: 15, borderWidth: 0 },
+          }}
+          showsVerticalScrollIndicator={false}
           style={styles.menuContainer}
           contentContainerStyle={{ borderRadius: 15, paddingHorizontal: 8, paddingTop: 10 }}
         >
@@ -91,7 +101,7 @@ export default function FancyDrawer(props: FancyDrawerProps) {
 
           {showMinisteriosLoading && (
             <View style={{ paddingVertical: 20, alignItems: 'center' }}>
-              <ActivityIndicator size="small" color={palette.primary} />
+              <ActivityIndicator size='small' color={palette.primary} />
             </View>
           )}
 
@@ -109,7 +119,11 @@ export default function FancyDrawer(props: FancyDrawerProps) {
             title='Sair'
             logo={{
               type: 'icon',
-              value: { name: isSigningOut ? 'progress-clock' : 'exit-to-app', library: 'MaterialCommunityIcons', size: isSigningOut ? 17 : 15 },
+              value: {
+                name: isSigningOut ? 'progress-clock' : 'exit-to-app',
+                library: 'MaterialCommunityIcons',
+                size: isSigningOut ? 17 : 15,
+              },
             }}
             disabled={isSigningOut}
             subtitle={isSigningOut ? 'Saindo...' : undefined}

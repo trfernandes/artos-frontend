@@ -218,7 +218,11 @@ export default function ListaVoluntariosTable({
                     style={[
                       styles.dotsButton,
                       accentColor
-                        ? { backgroundColor: ColorUtils.withAlpha(accentColor, 0.12), borderWidth: 1, borderColor: ColorUtils.withAlpha(accentColor, 0.22) }
+                        ? {
+                            backgroundColor: ColorUtils.withAlpha(accentColor, 0.12),
+                            borderWidth: 1,
+                            borderColor: ColorUtils.withAlpha(accentColor, 0.22),
+                          }
                         : { backgroundColor: ColorUtils.withAlpha(palette.fonts.dark, 0.08) },
                     ]}
                   >
@@ -231,11 +235,9 @@ export default function ListaVoluntariosTable({
                   </TouchableOpacity>
                 )}
               </View>
-
             </View>
           );
         })}
-
       </View>
 
       <FancyBottomSheetModal
@@ -244,20 +246,30 @@ export default function ListaVoluntariosTable({
         title={menuItem?.voluntario?.nome ?? menuItem?.funcao?.nome ?? 'Opções'}
       >
         <View style={styles.menuSheet}>
-          {menuItem && (menuItem.voluntario?.nome
-            ? (
+          {menuItem &&
+            (menuItem.voluntario?.nome ? (
               <>
                 <TouchableOpacity
                   style={styles.menuSheetItem}
                   onPress={() => {
                     setMenuItem(null);
                     requestAnimationFrame(() =>
-                      handleVoluntarioClick(menuItem.voluntario?.minVoluntarioId!, menuItem.voluntario?.voluntarioId!)
+                      handleVoluntarioClick(
+                        menuItem.voluntario?.minVoluntarioId!,
+                        menuItem.voluntario?.voluntarioId!,
+                      ),
                     );
                   }}
                 >
-                  <DefaultIcons.Custom library='MaterialIcons' name='person' size={18} color={palette.icons.dark} />
-                  <FancyText size='small' type='medium' color={palette.fonts.dark}>Ver detalhes</FancyText>
+                  <DefaultIcons.Custom
+                    library='MaterialIcons'
+                    name='person'
+                    size={18}
+                    color={palette.icons.dark}
+                  />
+                  <FancyText size='small' type='medium' color={palette.fonts.dark}>
+                    Ver detalhes
+                  </FancyText>
                 </TouchableOpacity>
                 <View style={styles.menuSheetDivider} />
                 <TouchableOpacity
@@ -267,8 +279,15 @@ export default function ListaVoluntariosTable({
                     requestAnimationFrame(() => onSubstituicaoButtonPressed?.(menuItem));
                   }}
                 >
-                  <DefaultIcons.Custom library='FontAwesome5' name='exchange-alt' size={15} color={palette.icons.dark} />
-                  <FancyText size='small' type='medium' color={palette.fonts.dark}>Substituir voluntário</FancyText>
+                  <DefaultIcons.Custom
+                    library='FontAwesome5'
+                    name='exchange-alt'
+                    size={15}
+                    color={palette.icons.dark}
+                  />
+                  <FancyText size='small' type='medium' color={palette.fonts.dark}>
+                    Substituir voluntário
+                  </FancyText>
                 </TouchableOpacity>
                 <View style={styles.menuSheetDivider} />
                 <TouchableOpacity
@@ -278,8 +297,15 @@ export default function ListaVoluntariosTable({
                     requestAnimationFrame(() => onRemoverVoluntarioPressed?.(menuItem));
                   }}
                 >
-                  <DefaultIcons.Custom library='MaterialIcons' name='person-remove' size={18} color={palette.error} />
-                  <FancyText size='small' type='medium' color={palette.error}>Remover da escala</FancyText>
+                  <DefaultIcons.Custom
+                    library='MaterialIcons'
+                    name='person-remove'
+                    size={18}
+                    color={palette.error}
+                  />
+                  <FancyText size='small' type='medium' color={palette.error}>
+                    Remover da escala
+                  </FancyText>
                 </TouchableOpacity>
               </>
             ) : (
@@ -291,8 +317,15 @@ export default function ListaVoluntariosTable({
                     requestAnimationFrame(() => onAdicionarVoluntarioButtonPressed?.(menuItem));
                   }}
                 >
-                  <DefaultIcons.Custom library='MaterialIcons' name='person-add' size={18} color={palette.primary} />
-                  <FancyText size='small' type='medium' color={palette.fonts.dark}>Adicionar voluntário</FancyText>
+                  <DefaultIcons.Custom
+                    library='MaterialIcons'
+                    name='person-add'
+                    size={18}
+                    color={palette.primary}
+                  />
+                  <FancyText size='small' type='medium' color={palette.fonts.dark}>
+                    Adicionar voluntário
+                  </FancyText>
                 </TouchableOpacity>
                 <View style={styles.menuSheetDivider} />
                 <TouchableOpacity
@@ -302,12 +335,18 @@ export default function ListaVoluntariosTable({
                     requestAnimationFrame(() => onExcluirFuncaoPressed?.(menuItem.funcao?.id!));
                   }}
                 >
-                  <DefaultIcons.Custom library='MaterialIcons' name='delete-outline' size={18} color={palette.error} />
-                  <FancyText size='small' type='medium' color={palette.error}>Excluir função</FancyText>
+                  <DefaultIcons.Custom
+                    library='MaterialIcons'
+                    name='delete-outline'
+                    size={18}
+                    color={palette.error}
+                  />
+                  <FancyText size='small' type='medium' color={palette.error}>
+                    Excluir função
+                  </FancyText>
                 </TouchableOpacity>
               </>
-            )
-          )}
+            ))}
         </View>
       </FancyBottomSheetModal>
 

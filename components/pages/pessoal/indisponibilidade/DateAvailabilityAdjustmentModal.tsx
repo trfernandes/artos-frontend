@@ -129,12 +129,27 @@ export default function DateAvailabilityAdjustmentModal({
           />
         </View>
 
-        <FancyTextInput label='Data' value={DateUtils.formatStableDateBR(data.date)} readonly disabled />
+        <FancyTextInput
+          label='Data'
+          value={DateUtils.formatStableDateBR(data.date)}
+          readonly
+          disabled
+        />
 
         {conflictSummary && (
           <View style={styles.conflictNotice}>
-            <DefaultIcons.Custom library='MaterialCommunityIcons' name='calendar-alert' size={18} color={Pallete.warning} />
-            <FancyText size='extraSmall' type='semiBold' color={Pallete.fonts.inactive} style={styles.conflictText}>
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='calendar-alert'
+              size={18}
+              color={Pallete.warning}
+            />
+            <FancyText
+              size='extraSmall'
+              type='semiBold'
+              color={Pallete.fonts.inactive}
+              style={styles.conflictText}
+            >
               {conflictSummary}
             </FancyText>
           </View>

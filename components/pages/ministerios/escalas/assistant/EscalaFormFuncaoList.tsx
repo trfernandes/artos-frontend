@@ -6,7 +6,10 @@ import FancyContainerList from '../../../../container_list/FancyContainerList';
 import EventoFormFuncaoModal from './EventoFormFuncaoModal';
 import { FieldArrayWithId, useFieldArray, useFormContext } from 'react-hook-form';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
-import { EscalaEventoTemplateFormData, EscalaEventoTemplateFuncaoFormData } from '../../../../../domain/schemas/escalaSchema';
+import {
+  EscalaEventoTemplateFormData,
+  EscalaEventoTemplateFuncaoFormData,
+} from '../../../../../domain/schemas/escalaSchema';
 import { FancyAlert } from '../../../../modal/FancyAlert';
 import { ResponseMinisterioFuncaoDto } from '../../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.response';
 import { EscalaTemplateExperienciaLabel } from '../../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
@@ -105,15 +108,22 @@ export const EscalaFormFuncaoList = React.memo(function EscalaFormFuncaoList({
     ]);
   }, [funcoesArray]);
 
-  const funcoesNomeMap = useMemo(() => new Map(funcoesList.map((funcao) => [funcao.id, funcao.nome ?? ''])), [funcoesList]);
+  const funcoesNomeMap = useMemo(
+    () => new Map(funcoesList.map((funcao) => [funcao.id, funcao.nome ?? ''])),
+    [funcoesList],
+  );
 
   const sortedFuncoesFields = useMemo(() => {
     if (!funcoesArray.fields.length) return [];
 
     return [...funcoesArray.fields].sort((a, b) =>
-      (funcoesNomeMap.get(a.funcaoId) ?? '').localeCompare(funcoesNomeMap.get(b.funcaoId) ?? '', 'pt-BR', {
-        sensitivity: 'base',
-      }),
+      (funcoesNomeMap.get(a.funcaoId) ?? '').localeCompare(
+        funcoesNomeMap.get(b.funcaoId) ?? '',
+        'pt-BR',
+        {
+          sensitivity: 'base',
+        },
+      ),
     );
   }, [funcoesArray.fields, funcoesNomeMap]);
 
@@ -163,7 +173,9 @@ export const EscalaFormFuncaoList = React.memo(function EscalaFormFuncaoList({
       {equipeFormModalProps?.visible && (
         <EventoFormFuncaoModal
           mode={equipeFormModalProps.mode}
-          funcoesSelectionList={equipeFormModalProps.mode === 'add' ? funcoesSelectionList : funcoesDropDownList}
+          funcoesSelectionList={
+            equipeFormModalProps.mode === 'add' ? funcoesSelectionList : funcoesDropDownList
+          }
           data={equipeFormModalProps.data}
           modalProps={{
             onButton1Press: () => setEquipeFormModalProps(null),

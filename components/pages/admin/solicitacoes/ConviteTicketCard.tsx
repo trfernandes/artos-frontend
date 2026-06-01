@@ -3,7 +3,10 @@ import FancyText from '../../../FancyText';
 import FancyButton from '../../../buttons/FancyButton';
 import FancyChips from '../../../FancyChips';
 import DefaultIcons from '../../../FancyIcons';
-import { ResponseIgrejaConviteDto, ConviteStatusType } from '../../../../domain/dtos/Igreja/response-igreja-convite.dto';
+import {
+  ResponseIgrejaConviteDto,
+  ConviteStatusType,
+} from '../../../../domain/dtos/Igreja/response-igreja-convite.dto';
 import { getConviteTheme } from './statusThemes';
 import { usePallete } from '../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../hooks/useThemedStyles';
@@ -46,7 +49,13 @@ export default function ConviteTicketCard({
             size={18}
             color={theme.icon}
           />
-          <FancyText type='bold' size='medium' numberOfLines={1} style={styles.title} color={theme.icon}>
+          <FancyText
+            type='bold'
+            size='medium'
+            numberOfLines={1}
+            style={styles.title}
+            color={theme.icon}
+          >
             {convite.descricao || 'Convite'}
           </FancyText>
         </View>
@@ -118,14 +127,22 @@ export default function ConviteTicketCard({
             size={14}
             color={convite.autoApprove ? palette.confirm : palette.warning}
           />
-          <FancyText size='extraSmall' type='semiBold' color={convite.autoApprove ? palette.confirm : palette.warning}>
+          <FancyText
+            size='extraSmall'
+            type='semiBold'
+            color={convite.autoApprove ? palette.confirm : palette.warning}
+          >
             {convite.autoApprove ? 'Entrada Imediata' : 'Requer Aprovação'}
           </FancyText>
         </View>
       </View>
 
       {/* Botão copiar código */}
-      <TouchableOpacity style={[styles.copyRow, { backgroundColor: `${theme.icon}10` }]} onPress={onCopiarToken} activeOpacity={0.7}>
+      <TouchableOpacity
+        style={[styles.copyRow, { backgroundColor: `${theme.icon}10` }]}
+        onPress={onCopiarToken}
+        activeOpacity={0.7}
+      >
         <DefaultIcons.Custom
           library='MaterialIcons'
           name='content-copy'
@@ -165,7 +182,11 @@ export default function ConviteTicketCard({
               color: palette.error,
             }}
             onPress={onRevogar}
-            containerStyle={[styles.actionButton, styles.revokeButton, { borderColor: palette.error }]}
+            containerStyle={[
+              styles.actionButton,
+              styles.revokeButton,
+              { borderColor: palette.error },
+            ]}
             labelStyle={{ color: palette.error }}
             isLoading={isRevogando}
             disabled={isRevogando}

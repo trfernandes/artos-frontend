@@ -8,7 +8,12 @@ interface ControlledFancyTextAreaProps extends FancyTextAreaProps {
   name: string;
 }
 
-export default function ControlledTextArea({ control, name, inputProps, ...rest }: ControlledFancyTextAreaProps) {
+export default function ControlledTextArea({
+  control,
+  name,
+  inputProps,
+  ...rest
+}: ControlledFancyTextAreaProps) {
   return (
     <Controller
       control={control}

@@ -238,104 +238,104 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
     isLoadingTemplates;
 
   return (
-      <FancyModalDialog
-        {...modalProps}
-        title={`${data?.nome} - ${format(data?.dataOcorrencia!, 'dd/MM/yyyy HH:ss')}`}
-        titleAlign='left'
-        onButton2Press={(_) => {
-          formTemplate.handleSubmit(
-            (data) => {
-              modalProps?.onButton2Press?.(data);
-            },
-            (errors) => {
-              const erro = errors.funcoes || errors.fixos;
+    <FancyModalDialog
+      {...modalProps}
+      title={`${data?.nome} - ${format(data?.dataOcorrencia!, 'dd/MM/yyyy HH:ss')}`}
+      titleAlign='left'
+      onButton2Press={(_) => {
+        formTemplate.handleSubmit(
+          (data) => {
+            modalProps?.onButton2Press?.(data);
+          },
+          (errors) => {
+            const erro = errors.funcoes || errors.fixos;
 
-              if (erro) {
-                FancyAlert.alert('Erro', erro?.message, [
-                  {
-                    text: 'Ok',
-                  },
-                ]);
-              }
-            },
-          )();
-        }}
-        centerContainerStyle={styles.container}
-      >
-        {isDataLoading ? (
-          <FancyLoading />
-        ) : (
-          <>
-            <ControlledSearchSelect
-              label='Template Base'
-              control={formTemplate.control}
-              name='templateBase.id'
-              listItems={templatesDropDownList}
-              searchPlaceholder='Buscar template...'
-              onChange={(newTemplateBaseId) => {
-                handleTemplateBaseChange(newTemplateBaseId as string);
-              }}
-            />
-            <FancyVerticalSpacer height={12} />
+            if (erro) {
+              FancyAlert.alert('Erro', erro?.message, [
+                {
+                  text: 'Ok',
+                },
+              ]);
+            }
+          },
+        )();
+      }}
+      centerContainerStyle={styles.container}
+    >
+      {isDataLoading ? (
+        <FancyLoading />
+      ) : (
+        <>
+          <ControlledSearchSelect
+            label='Template Base'
+            control={formTemplate.control}
+            name='templateBase.id'
+            listItems={templatesDropDownList}
+            searchPlaceholder='Buscar template...'
+            onChange={(newTemplateBaseId) => {
+              handleTemplateBaseChange(newTemplateBaseId as string);
+            }}
+          />
+          <FancyVerticalSpacer height={12} />
 
-            <Controller
-              control={formTemplate.control}
-              name={'tipo'}
-              render={({ field: { onChange, value } }) => (
-                <FancyBottomSheetSelect
-                  label='Tipo de Equipe'
-                  listItems={EnumUtils.getDropDownItems(
-                    EscalaTemplateTipoEnum,
-                    EscalaTemplateTipoLabel,
-                  )}
-                  disabled={templateBaseIdWatch !== ''}
-                  value={value}
-                  onChange={(newValue) => {
-                    if (value === newValue && !value) return;
-                    FancyAlert.alert(
-                      'Alteração de tipo',
-                      'Essa mudança vai resultar em excluir toda a equipe, deseja continuar?',
-                      [
-                        {
-                          text: 'Não',
-                          style: 'cancel',
+          <Controller
+            control={formTemplate.control}
+            name={'tipo'}
+            render={({ field: { onChange, value } }) => (
+              <FancyBottomSheetSelect
+                label='Tipo de Equipe'
+                listItems={EnumUtils.getDropDownItems(
+                  EscalaTemplateTipoEnum,
+                  EscalaTemplateTipoLabel,
+                )}
+                disabled={templateBaseIdWatch !== ''}
+                value={value}
+                onChange={(newValue) => {
+                  if (value === newValue && !value) return;
+                  FancyAlert.alert(
+                    'Alteração de tipo',
+                    'Essa mudança vai resultar em excluir toda a equipe, deseja continuar?',
+                    [
+                      {
+                        text: 'Não',
+                        style: 'cancel',
+                      },
+                      {
+                        text: 'Sim',
+                        style: 'default',
+                        onPress: () => {
+                          onChange(newValue);
+                          handleChangeTipo(newValue);
                         },
-                        {
-                          text: 'Sim',
-                          style: 'default',
-                          onPress: () => {
-                            onChange(newValue);
-                            handleChangeTipo(newValue);
-                          },
-                        },
-                      ],
-                    );
-                  }}
-                />
-              )}
-            />
+                      },
+                    ],
+                  );
+                }}
+              />
+            )}
+          />
 
-            <FancyVerticalSpacer height={16} />
+          <FancyVerticalSpacer height={16} />
 
-            <FormProvider {...formTemplate}>
-              {templateTipoWatch === EscalaTemplateTipoEnum.Funcoes ? (
-                <EscalaFormFuncaoList
-                  ministerioId={ministerioId}
-                  funcoesDropDownList={funcoesDropDownList}
-                  funcoesList={funcoesList}
-                />
-              ) : templateTipoWatch === EscalaTemplateTipoEnum.Fixo ? (
-                <EscalaFormFixoList
-                  funcoesList={funcoesList}
-                  funcoesDropDownList={funcoesDropDownList}
-                  ministerioVoluntariosDropDownList={ministerioVoluntariosDropDownList}
-                  ministerioVoluntariosList={ministerioVoluntariosList}
-                />
-              ) : null}
-            </FormProvider>
-          </>
-        )}
-      </FancyModalDialog>
+          <FormProvider {...formTemplate}>
+            {templateTipoWatch === EscalaTemplateTipoEnum.Funcoes ? (
+              <EscalaFormFuncaoList
+                ministerioId={ministerioId}
+                funcoesDropDownList={funcoesDropDownList}
+                funcoesList={funcoesList}
+              />
+            ) : templateTipoWatch === EscalaTemplateTipoEnum.Fixo ? (
+              <EscalaFormFixoList
+                funcoesList={funcoesList}
+                funcoesDropDownList={funcoesDropDownList}
+                ministerioVoluntariosDropDownList={ministerioVoluntariosDropDownList}
+                ministerioVoluntariosList={ministerioVoluntariosList}
+              />
+            ) : null}
+          </FormProvider>
+        </>
+      )}
+    </FancyModalDialog>
   );
 }
 

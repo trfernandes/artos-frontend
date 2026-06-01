@@ -45,10 +45,7 @@ function resolveStatusCopy(assinatura: ResponseIgrejaAssinaturaDto) {
     const notice = resolveBillingNoticeContent(assinatura);
     return {
       eyebrow: notice.eyebrow,
-      title:
-        assinatura.status === 'trial'
-          ? 'Período avaliativo ativo'
-          : notice.title,
+      title: assinatura.status === 'trial' ? 'Período avaliativo ativo' : notice.title,
       body: notice.body,
     };
   }
@@ -157,9 +154,7 @@ function resolvePrimaryActionIcon(
   palette: ReturnType<typeof usePallete>,
 ): CustomIconProps {
   const iconColor =
-    compact || assinatura.status === 'cancelled'
-      ? palette.primary
-      : palette.fonts.light;
+    compact || assinatura.status === 'cancelled' ? palette.primary : palette.fonts.light;
 
   if (primaryLabel === 'Reativar assinatura') {
     return {
@@ -200,11 +195,7 @@ function resolvePrimaryActionIcon(
   };
 }
 
-function getUsageTone(
-  current: number,
-  max: number,
-  palette: ReturnType<typeof usePallete>,
-) {
+function getUsageTone(current: number, max: number, palette: ReturnType<typeof usePallete>) {
   const safeMax = Math.max(max, 1);
   const ratio = Math.min(current / safeMax, 1);
 
@@ -223,16 +214,16 @@ function getUsageTone(
   }
 
   if (current === max) {
-      return {
-        ratio,
-        valueColor: palette.warning,
-        limitColor: palette.warning,
-        helperLabel: 'No limite do plano',
-        helperColor: palette.warning,
-        helperBackground: withAlpha(palette.warning, '12'),
-        helperBorder: withAlpha(palette.warning, '24'),
-        track: withAlpha(palette.warning, '12'),
-        fill: withAlpha(palette.warning, 'CC'),
+    return {
+      ratio,
+      valueColor: palette.warning,
+      limitColor: palette.warning,
+      helperLabel: 'No limite do plano',
+      helperColor: palette.warning,
+      helperBackground: withAlpha(palette.warning, '12'),
+      helperBorder: withAlpha(palette.warning, '24'),
+      track: withAlpha(palette.warning, '12'),
+      fill: withAlpha(palette.warning, 'CC'),
     };
   }
 
@@ -275,14 +266,10 @@ export default function BillingStatusPanel({
   const hasExceededCapacity =
     assinatura.currentVolunteers > assinatura.maxVolunteers ||
     assinatura.currentMinistries > assinatura.maxMinistries;
-  const hasPendingCheckout =
-    Boolean(assinatura.checkoutUrl) && assinatura.status !== 'cancelled';
-  const resolvedPrimaryLabel =
-    primaryLabel || resolveBillingPrimaryActionLabel(assinatura);
+  const hasPendingCheckout = Boolean(assinatura.checkoutUrl) && assinatura.status !== 'cancelled';
+  const resolvedPrimaryLabel = primaryLabel || resolveBillingPrimaryActionLabel(assinatura);
   const showCapacityUpgradeAction =
-    hasExceededCapacity &&
-    resolvedPrimaryLabel === 'Atualizar plano' &&
-    Boolean(onPrimaryPress);
+    hasExceededCapacity && resolvedPrimaryLabel === 'Atualizar plano' && Boolean(onPrimaryPress);
   const primaryActionIcon = resolvePrimaryActionIcon(
     assinatura,
     resolvedPrimaryLabel,
@@ -314,12 +301,7 @@ export default function BillingStatusPanel({
 
         <View style={styles.heroHeader}>
           <View style={styles.heroMain}>
-            <FancyText
-              size='extraSmall'
-              type='semiBold'
-              color={labelColor}
-              style={styles.eyebrow}
-            >
+            <FancyText size='extraSmall' type='semiBold' color={labelColor} style={styles.eyebrow}>
               {statusCopy.eyebrow}
             </FancyText>
             <FancyText type='bold' size={compact ? 'medium' : 'largeMedium'}>
@@ -411,7 +393,6 @@ export default function BillingStatusPanel({
             Capacidade do plano
           </FancyText>
         </View>
-
 
         <UsageRow
           label='Voluntários'
@@ -523,14 +504,8 @@ function UsageRow({ label, current, max, tone, palette }: UsageRowProps) {
       style={[
         styles.usageCard,
         {
-          backgroundColor: withAlpha(
-            tone.helperLabel ? tone.helperColor : palette.primary,
-            '08',
-          ),
-          borderColor: withAlpha(
-            tone.helperLabel ? tone.helperColor : palette.primary,
-            '16',
-          ),
+          backgroundColor: withAlpha(tone.helperLabel ? tone.helperColor : palette.primary, '08'),
+          borderColor: withAlpha(tone.helperLabel ? tone.helperColor : palette.primary, '16'),
         },
       ]}
     >

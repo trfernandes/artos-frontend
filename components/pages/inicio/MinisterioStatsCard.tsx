@@ -20,7 +20,11 @@ type StatStyles = ReturnType<typeof createStatStyles>;
 type FullStyles = ReturnType<typeof createFullStyles>;
 type CompactStyles = ReturnType<typeof createCompactStyles>;
 
-export default function MinisterioStatsCard({ ministerio, variant = 'full', onPress }: MinisterioStatsCardProps) {
+export default function MinisterioStatsCard({
+  ministerio,
+  variant = 'full',
+  onPress,
+}: MinisterioStatsCardProps) {
   const palette = usePallete();
   const progressStyles = useThemedStyles(createProgressStyles);
   const statStyles = useThemedStyles(createStatStyles);
@@ -51,9 +55,23 @@ export default function MinisterioStatsCard({ ministerio, variant = 'full', onPr
   );
 }
 
-function MinisterioLogo({ url, size = 36, palette }: { url?: string; size?: number; palette: ThemePalette }) {
+function MinisterioLogo({
+  url,
+  size = 36,
+  palette,
+}: {
+  url?: string;
+  size?: number;
+  palette: ThemePalette;
+}) {
   if (url) {
-    return <Image source={{ uri: url }} style={{ width: size, height: size, borderRadius: size / 2 }} contentFit="cover" />;
+    return (
+      <Image
+        source={{ uri: url }}
+        style={{ width: size, height: size, borderRadius: size / 2 }}
+        contentFit='cover'
+      />
+    );
   }
 
   return (
@@ -67,21 +85,37 @@ function MinisterioLogo({ url, size = 36, palette }: { url?: string; size?: numb
         alignItems: 'center',
       }}
     >
-      <DefaultIcons.Custom library="MaterialCommunityIcons" name="account-group" size={size * 0.5} color={palette.primary} />
+      <DefaultIcons.Custom
+        library='MaterialCommunityIcons'
+        name='account-group'
+        size={size * 0.5}
+        color={palette.primary}
+      />
     </View>
   );
 }
 
-function ProgressBar({ percent, palette, styles }: { percent: number; palette: ThemePalette; styles: ProgressStyles }) {
+function ProgressBar({
+  percent,
+  palette,
+  styles,
+}: {
+  percent: number;
+  palette: ThemePalette;
+  styles: ProgressStyles;
+}) {
   const clampedPercent = Math.min(100, Math.max(0, percent));
-  const barColor = clampedPercent >= 80 ? palette.confirm : clampedPercent >= 50 ? palette.warning : palette.error;
+  const barColor =
+    clampedPercent >= 80 ? palette.confirm : clampedPercent >= 50 ? palette.warning : palette.error;
 
   return (
     <View style={styles.container}>
       <View style={styles.barBackground}>
-        <View style={[styles.barFill, { width: `${clampedPercent}%`, backgroundColor: barColor }]} />
+        <View
+          style={[styles.barFill, { width: `${clampedPercent}%`, backgroundColor: barColor }]}
+        />
       </View>
-      <FancyText size="extraSmall" type="bold" color={barColor}>
+      <FancyText size='extraSmall' type='bold' color={barColor}>
         {Math.round(clampedPercent)}%
       </FancyText>
     </View>
@@ -105,11 +139,11 @@ function StatItem({
 }) {
   return (
     <View style={styles.item}>
-      <DefaultIcons.Custom library="MaterialCommunityIcons" name={icon} size={14} color={color} />
-      <FancyText size="medium" type="bold" color={palette.fonts.dark}>
+      <DefaultIcons.Custom library='MaterialCommunityIcons' name={icon} size={14} color={color} />
+      <FancyText size='medium' type='bold' color={palette.fonts.dark}>
         {value}
       </FancyText>
-      <FancyText size="extraSmall" type="normal" color={palette.fonts.inactive}>
+      <FancyText size='extraSmall' type='normal' color={palette.fonts.inactive}>
         {label}
       </FancyText>
     </View>
@@ -139,25 +173,54 @@ function FullCard({
       <View style={fullStyles.header}>
         <MinisterioLogo url={ministerio.ministerioLogoUrl} size={40} palette={palette} />
         <View style={fullStyles.headerText}>
-          <FancyText size="largeMedium" type="bold" color={palette.fonts.dark} numberOfLines={1}>
+          <FancyText size='largeMedium' type='bold' color={palette.fonts.dark} numberOfLines={1}>
             {ministerio.ministerioNome}
           </FancyText>
         </View>
       </View>
 
-      {percentual !== undefined && <ProgressBar percent={percentual} palette={palette} styles={progressStyles} />}
+      {percentual !== undefined && (
+        <ProgressBar percent={percentual} palette={palette} styles={progressStyles} />
+      )}
 
       <View style={fullStyles.statsRow}>
-        <StatItem icon="account-group" value={ministerio.totalVoluntarios} label="Voluntários" color={palette.primary} palette={palette} styles={statStyles} />
-        <StatItem icon="briefcase-outline" value={ministerio.totalFuncoes} label="Funções" color={palette.confirm} palette={palette} styles={statStyles} />
-        <StatItem icon="calendar-check" value={ministerio.totalEscalasAtivas} label="Escalas" color={palette.warning} palette={palette} styles={statStyles} />
+        <StatItem
+          icon='account-group'
+          value={ministerio.totalVoluntarios}
+          label='Voluntários'
+          color={palette.primary}
+          palette={palette}
+          styles={statStyles}
+        />
+        <StatItem
+          icon='briefcase-outline'
+          value={ministerio.totalFuncoes}
+          label='Funções'
+          color={palette.confirm}
+          palette={palette}
+          styles={statStyles}
+        />
+        <StatItem
+          icon='calendar-check'
+          value={ministerio.totalEscalasAtivas}
+          label='Escalas'
+          color={palette.warning}
+          palette={palette}
+          styles={statStyles}
+        />
       </View>
 
       {funcoesDescobertas > 0 && (
         <View style={fullStyles.alertRow}>
-          <DefaultIcons.Custom library="MaterialCommunityIcons" name="alert-circle-outline" size={14} color={palette.warning} />
-          <FancyText size="small" type="medium" color={palette.warning}>
-            {funcoesDescobertas} {funcoesDescobertas === 1 ? 'função sem escala' : 'funções sem escala'}
+          <DefaultIcons.Custom
+            library='MaterialCommunityIcons'
+            name='alert-circle-outline'
+            size={14}
+            color={palette.warning}
+          />
+          <FancyText size='small' type='medium' color={palette.warning}>
+            {funcoesDescobertas}{' '}
+            {funcoesDescobertas === 1 ? 'função sem escala' : 'funções sem escala'}
           </FancyText>
         </View>
       )}
@@ -184,25 +247,54 @@ function CompactCard({
     <Pressable onPress={onPress} style={compactStyles.container}>
       <View style={compactStyles.header}>
         <MinisterioLogo url={ministerio.ministerioLogoUrl} size={32} palette={palette} />
-        <FancyText size="medium" type="bold" color={palette.fonts.dark} numberOfLines={1} style={{ flex: 1 }}>
+        <FancyText
+          size='medium'
+          type='bold'
+          color={palette.fonts.dark}
+          numberOfLines={1}
+          style={{ flex: 1 }}
+        >
           {ministerio.ministerioNome}
         </FancyText>
       </View>
 
-      {percentual !== undefined && <ProgressBar percent={percentual} palette={palette} styles={progressStyles} />}
+      {percentual !== undefined && (
+        <ProgressBar percent={percentual} palette={palette} styles={progressStyles} />
+      )}
 
       <View style={compactStyles.statsRow}>
         <View style={compactStyles.statItem}>
-          <DefaultIcons.Custom library="MaterialCommunityIcons" name="account-group" size={12} color={palette.primary} />
-          <FancyText size="small" type="bold" color={palette.fonts.dark}>{ministerio.totalVoluntarios}</FancyText>
+          <DefaultIcons.Custom
+            library='MaterialCommunityIcons'
+            name='account-group'
+            size={12}
+            color={palette.primary}
+          />
+          <FancyText size='small' type='bold' color={palette.fonts.dark}>
+            {ministerio.totalVoluntarios}
+          </FancyText>
         </View>
         <View style={compactStyles.statItem}>
-          <DefaultIcons.Custom library="MaterialCommunityIcons" name="briefcase-outline" size={12} color={palette.confirm} />
-          <FancyText size="small" type="bold" color={palette.fonts.dark}>{ministerio.totalFuncoes}</FancyText>
+          <DefaultIcons.Custom
+            library='MaterialCommunityIcons'
+            name='briefcase-outline'
+            size={12}
+            color={palette.confirm}
+          />
+          <FancyText size='small' type='bold' color={palette.fonts.dark}>
+            {ministerio.totalFuncoes}
+          </FancyText>
         </View>
         <View style={compactStyles.statItem}>
-          <DefaultIcons.Custom library="MaterialCommunityIcons" name="calendar-check" size={12} color={palette.warning} />
-          <FancyText size="small" type="bold" color={palette.fonts.dark}>{ministerio.totalEscalasAtivas}</FancyText>
+          <DefaultIcons.Custom
+            library='MaterialCommunityIcons'
+            name='calendar-check'
+            size={12}
+            color={palette.warning}
+          />
+          <FancyText size='small' type='bold' color={palette.fonts.dark}>
+            {ministerio.totalEscalasAtivas}
+          </FancyText>
         </View>
       </View>
     </Pressable>

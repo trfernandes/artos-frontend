@@ -4,7 +4,10 @@ import { EscalaTemplateExperienciaEnum } from '../enums/EscalaTemplate/escala-te
 
 export const EscalaEventoTemplateFuncaoSchema = z.object({
   funcaoId: z.uuidv4('Campo obrigatório'),
-  quantidade: z.coerce.number<number>('Campo obrigatório').min(1, 'Valor mínimo permitido é 1').max(10, 'Valor máximo permitido é 10'),
+  quantidade: z.coerce
+    .number<number>('Campo obrigatório')
+    .min(1, 'Valor mínimo permitido é 1')
+    .max(10, 'Valor máximo permitido é 10'),
   experiencia: z.enum(EscalaTemplateExperienciaEnum, 'Campo obrigatório'),
 });
 
@@ -60,10 +63,12 @@ export const EscalaEventosSchema = z
     }
   });
 
-export const EscalaEventosArraySchema = z.array(EscalaEventosSchema).refine((eventos) => eventos.some((e) => e.selected), {
-  message: 'Selecione pelo menos um evento',
-  path: ['selected'],
-});
+export const EscalaEventosArraySchema = z
+  .array(EscalaEventosSchema)
+  .refine((eventos) => eventos.some((e) => e.selected), {
+    message: 'Selecione pelo menos um evento',
+    path: ['selected'],
+  });
 
 const EscalaParticipantesSchema = z.object({
   voluntarioId: z.uuidv4(),
@@ -71,10 +76,12 @@ const EscalaParticipantesSchema = z.object({
   selected: z.boolean(),
 });
 
-export const EscalaParticipantesArraySchema = z.array(EscalaParticipantesSchema).refine((participantes) => participantes.some((p) => p.selected), {
-  message: 'Selecione pelo menos um participante',
-  path: ['selected'],
-});
+export const EscalaParticipantesArraySchema = z
+  .array(EscalaParticipantesSchema)
+  .refine((participantes) => participantes.some((p) => p.selected), {
+    message: 'Selecione pelo menos um participante',
+    path: ['selected'],
+  });
 
 export const EscalaSchema = z
   .object({

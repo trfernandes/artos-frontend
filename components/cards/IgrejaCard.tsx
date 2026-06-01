@@ -52,11 +52,7 @@ export default function IgrejaCard({ igreja, onPress }: IgrejaCardProps) {
 
   return (
     <View style={styles.card}>
-      <TouchableOpacity
-        style={styles.content}
-        activeOpacity={onPress ? 0.7 : 1}
-        onPress={onPress}
-      >
+      <TouchableOpacity style={styles.content} activeOpacity={onPress ? 0.7 : 1} onPress={onPress}>
         {igreja.logoThumbUrl || igreja.logoUrl ? (
           <FancyImage
             source={{ uri: (igreja.logoThumbUrl || igreja.logoUrl) as string }}

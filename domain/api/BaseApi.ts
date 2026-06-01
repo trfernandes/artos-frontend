@@ -31,7 +31,9 @@ export class BaseApi<TResponse, TCreate = unknown, TUpdate = unknown> {
       params: params ?? {},
       dadosEnviados: (() => {
         try {
-          return typeof error.config?.data === 'string' ? JSON.parse(error.config.data) : error.config?.data;
+          return typeof error.config?.data === 'string'
+            ? JSON.parse(error.config.data)
+            : error.config?.data;
         } catch {
           return error.config?.data;
         }
@@ -44,7 +46,9 @@ export class BaseApi<TResponse, TCreate = unknown, TUpdate = unknown> {
 
   async getAll(query?: any): Promise<TResponse[]> {
     try {
-      const response = await apiClient.get<ApiEnvelope<TResponse[]>>(`/${this.resourceName}`, { params: query });
+      const response = await apiClient.get<ApiEnvelope<TResponse[]>>(`/${this.resourceName}`, {
+        params: query,
+      });
       console.log(
         'Class: BaseApi',
         '\n',
@@ -75,7 +79,10 @@ export class BaseApi<TResponse, TCreate = unknown, TUpdate = unknown> {
 
   async search(query: DynamicQuery): Promise<TResponse[]> {
     try {
-      const response = await apiClient.post<ApiEnvelope<TResponse[]>>(`/${this.resourceName}/search`, query);
+      const response = await apiClient.post<ApiEnvelope<TResponse[]>>(
+        `/${this.resourceName}/search`,
+        query,
+      );
       return response.data.data;
     } catch (error) {
       this.logAxiosError('search', error, query);
@@ -85,7 +92,10 @@ export class BaseApi<TResponse, TCreate = unknown, TUpdate = unknown> {
 
   async create(payload: TCreate): Promise<TResponse> {
     try {
-      const response = await apiClient.post<ApiEnvelope<TResponse>>(`/${this.resourceName}`, payload);
+      const response = await apiClient.post<ApiEnvelope<TResponse>>(
+        `/${this.resourceName}`,
+        payload,
+      );
       return response.data.data;
     } catch (error) {
       this.logAxiosError('create', error, payload);
@@ -95,7 +105,10 @@ export class BaseApi<TResponse, TCreate = unknown, TUpdate = unknown> {
 
   async update(id: string, payload: TUpdate): Promise<TResponse> {
     try {
-      const response = await apiClient.put<ApiEnvelope<TResponse>>(`/${this.resourceName}/${id}`, payload);
+      const response = await apiClient.put<ApiEnvelope<TResponse>>(
+        `/${this.resourceName}/${id}`,
+        payload,
+      );
       return response.data.data;
     } catch (error) {
       this.logAxiosError('update', error, { id, payload });

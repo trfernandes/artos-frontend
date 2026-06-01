@@ -1,5 +1,8 @@
 import { FieldArrayWithId, useFieldArray, useFormContext } from 'react-hook-form';
-import { EscalaEventoTemplateFixoFormData, EscalaEventoTemplateFormData } from '../../../../../domain/schemas/escalaSchema';
+import {
+  EscalaEventoTemplateFixoFormData,
+  EscalaEventoTemplateFormData,
+} from '../../../../../domain/schemas/escalaSchema';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import React, { useCallback, useMemo, useState } from 'react';
 import EscalaFormFixoModal from './EscalaFormFixoModal';
@@ -96,21 +99,32 @@ export const EscalaFormFixoList = React.memo(function EscalaFormFixoList({
     [ministerioVoluntariosList],
   );
 
-  const funcoesMap = useMemo(() => new Map(funcoesList.map((funcao) => [funcao.id, funcao.nome ?? ''])), [funcoesList]);
+  const funcoesMap = useMemo(
+    () => new Map(funcoesList.map((funcao) => [funcao.id, funcao.nome ?? ''])),
+    [funcoesList],
+  );
 
   const sortedFixosFields = useMemo(() => {
     if (!fixosArray.fields.length) return [];
 
     const resultado = [...fixosArray.fields].sort((a, b) => {
-      const voluntarioCompare = (voluntariosMap.get(a.minVolId) ?? '').localeCompare(voluntariosMap.get(b.minVolId) ?? '', 'pt-BR', {
-        sensitivity: 'base',
-      });
+      const voluntarioCompare = (voluntariosMap.get(a.minVolId) ?? '').localeCompare(
+        voluntariosMap.get(b.minVolId) ?? '',
+        'pt-BR',
+        {
+          sensitivity: 'base',
+        },
+      );
 
       if (voluntarioCompare !== 0) return voluntarioCompare;
 
-      return (funcoesMap.get(a.funcaoId) ?? '').localeCompare(funcoesMap.get(b.funcaoId) ?? '', 'pt-BR', {
-        sensitivity: 'base',
-      });
+      return (funcoesMap.get(a.funcaoId) ?? '').localeCompare(
+        funcoesMap.get(b.funcaoId) ?? '',
+        'pt-BR',
+        {
+          sensitivity: 'base',
+        },
+      );
     });
 
     return resultado;
@@ -135,7 +149,12 @@ export const EscalaFormFixoList = React.memo(function EscalaFormFixoList({
                 subtitle: funcaoInfo?.nome,
                 source:
                   voluntarioInfo?.voluntario?.fotoThumbUrl || voluntarioInfo?.voluntario?.fotoUrl
-                    ? { uri: voluntarioInfo?.voluntario?.fotoThumbUrl || voluntarioInfo?.voluntario?.fotoUrl || '' }
+                    ? {
+                        uri:
+                          voluntarioInfo?.voluntario?.fotoThumbUrl ||
+                          voluntarioInfo?.voluntario?.fotoUrl ||
+                          '',
+                      }
                     : AppImages.emptyProfile,
                 actionButtons: [
                   {
@@ -166,7 +185,8 @@ export const EscalaFormFixoList = React.memo(function EscalaFormFixoList({
           voluntariosSelectionList={ministerioVoluntariosDropDownList}
           funcoesSelectionList={funcoesDropDownList}
           modalProps={{
-            onButton1Press: () => setModalProps({ visible: false, mode: undefined, data: undefined }),
+            onButton1Press: () =>
+              setModalProps({ visible: false, mode: undefined, data: undefined }),
             onButton2Press: (data) => {
               if (!data) return;
 
@@ -177,7 +197,9 @@ export const EscalaFormFixoList = React.memo(function EscalaFormFixoList({
             },
           }}
           validateUniqueFuncaoOnVoluntario={(data) => {
-            const funcaoAlreadyExists = fixosArray.fields.some((v) => v.minVolId === data.minVolId && v.funcaoId === data.funcaoId);
+            const funcaoAlreadyExists = fixosArray.fields.some(
+              (v) => v.minVolId === data.minVolId && v.funcaoId === data.funcaoId,
+            );
 
             return !funcaoAlreadyExists;
           }}

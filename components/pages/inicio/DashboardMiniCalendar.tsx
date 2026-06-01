@@ -74,7 +74,7 @@ export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendar
     <>
       <FancyCalendar
         markedDates={markedDates}
-        markedDatesType="bottomPoint"
+        markedDatesType='bottomPoint'
         containerStyle={styles.calendar}
         border
         minimumDate={new Date(today.getFullYear(), today.getMonth(), 1)}
@@ -84,7 +84,7 @@ export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendar
 
       {isDetailsModalVisible && (
         <FancyModalDialog
-          title="Detalhes do dia"
+          title='Detalhes do dia'
           modalProps={{ visible: isDetailsModalVisible }}
           onButton1Press={() => setIsDetailsModalVisible(false)}
           button1={{ visible: false }}
@@ -96,24 +96,26 @@ export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendar
         >
           <View style={styles.summaryCard}>
             <View style={styles.summaryDateBadge}>
-              <FancyText size="extraSmall" type="semiBold" color={palette.primary}>
+              <FancyText size='extraSmall' type='semiBold' color={palette.primary}>
                 {selectedDate ? format(selectedDate, 'MMM', { locale: ptBR }).toUpperCase() : '--'}
               </FancyText>
-              <FancyText size="medium" type="bold" color={palette.fonts.dark}>
+              <FancyText size='medium' type='bold' color={palette.fonts.dark}>
                 {selectedDate ? format(selectedDate, 'dd', { locale: ptBR }) : '--'}
               </FancyText>
             </View>
             <View style={styles.summaryDateRow}>
-              <FancyText size="small" type="semiBold" color={palette.fonts.dark}>
-                {selectedDate ? format(selectedDate, "EEEE", { locale: ptBR }) : 'Data não selecionada'}
+              <FancyText size='small' type='semiBold' color={palette.fonts.dark}>
+                {selectedDate
+                  ? format(selectedDate, 'EEEE', { locale: ptBR })
+                  : 'Data não selecionada'}
               </FancyText>
-              <FancyText size="extraSmall" type="medium" color={palette.fonts.inactive}>
+              <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
                 {selectedDate ? format(selectedDate, "'Dia' dd 'de' MMMM", { locale: ptBR }) : ''}
               </FancyText>
             </View>
             <FancyChips
               label={`${escalasDaDataSelecionada.length} escala(s)`}
-              size="small"
+              size='small'
               color={palette.primary}
               backgroundColor={ColorUtils.withAlpha(palette.primary, 0.12)}
               style={styles.summaryChip}
@@ -126,8 +128,8 @@ export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendar
                 <View key={`${escala.id}-${escala.eventoData}-${index}`} style={styles.eventCard}>
                   <View style={styles.eventCardHeader}>
                     <FancyText
-                      size="small"
-                      type="bold"
+                      size='small'
+                      type='bold'
                       color={palette.fonts.dark}
                       numberOfLines={1}
                       style={{ flex: 1 }}
@@ -136,7 +138,7 @@ export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendar
                     </FancyText>
                     <FancyChips
                       label={escala.isConfirmado ? 'Confirmada' : 'Pendente'}
-                      size="small"
+                      size='small'
                       color={escala.isConfirmado ? palette.confirm : palette.warning}
                       backgroundColor={
                         escala.isConfirmado
@@ -148,36 +150,36 @@ export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendar
 
                   <View style={styles.infoRow}>
                     <DefaultIcons.Custom
-                      library="MaterialCommunityIcons"
-                      name="clock-time-four-outline"
+                      library='MaterialCommunityIcons'
+                      name='clock-time-four-outline'
                       size={14}
                       color={palette.primary}
                     />
-                    <FancyText size="extraSmall" type="semiBold" color={palette.fonts.dark}>
-                      {format(parseISO(escala.eventoData), "HH:mm", { locale: ptBR })}
+                    <FancyText size='extraSmall' type='semiBold' color={palette.fonts.dark}>
+                      {format(parseISO(escala.eventoData), 'HH:mm', { locale: ptBR })}
                     </FancyText>
                   </View>
 
                   <View style={styles.infoRow}>
                     <DefaultIcons.Custom
-                      library="MaterialCommunityIcons"
-                      name="briefcase-outline"
+                      library='MaterialCommunityIcons'
+                      name='briefcase-outline'
                       size={14}
                       color={palette.primary}
                     />
-                    <FancyText size="extraSmall" type="semiBold" color={palette.fonts.inactive}>
+                    <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
                       {escala.funcaoNome}
                     </FancyText>
                   </View>
 
                   <View style={styles.infoRow}>
                     <DefaultIcons.Custom
-                      library="MaterialCommunityIcons"
-                      name="account-group-outline"
+                      library='MaterialCommunityIcons'
+                      name='account-group-outline'
                       size={14}
                       color={palette.primary}
                     />
-                    <FancyText size="extraSmall" type="medium" color={palette.fonts.inactive}>
+                    <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
                       {escala.ministerioNome}
                     </FancyText>
                   </View>
@@ -185,12 +187,17 @@ export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendar
                   {escala.eventoLocal ? (
                     <View style={styles.infoRow}>
                       <DefaultIcons.Custom
-                        library="MaterialCommunityIcons"
-                        name="map-marker-outline"
+                        library='MaterialCommunityIcons'
+                        name='map-marker-outline'
                         size={14}
                         color={palette.primary}
                       />
-                      <FancyText size="extraSmall" type="medium" color={palette.fonts.inactive} numberOfLines={1}>
+                      <FancyText
+                        size='extraSmall'
+                        type='medium'
+                        color={palette.fonts.inactive}
+                        numberOfLines={1}
+                      >
                         {escala.eventoLocal}
                       </FancyText>
                     </View>
@@ -201,12 +208,12 @@ export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendar
           ) : (
             <View style={styles.emptyCard}>
               <DefaultIcons.Custom
-                library="MaterialCommunityIcons"
-                name="calendar-remove-outline"
+                library='MaterialCommunityIcons'
+                name='calendar-remove-outline'
                 size={20}
                 color={palette.icons.inactive}
               />
-              <FancyText size="small" type="medium" color={palette.fonts.inactive}>
+              <FancyText size='small' type='medium' color={palette.fonts.inactive}>
                 Nenhuma escala para esta data.
               </FancyText>
             </View>

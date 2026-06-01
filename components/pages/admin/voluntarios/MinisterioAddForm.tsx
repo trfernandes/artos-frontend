@@ -32,13 +32,20 @@ export default function MinisterioAddForm(
   const ministeriosList = useMemo<DropDownItemProps<string>[]>(() => {
     const list =
       ministeriosData
-        ?.filter((ministerio) => props.mode === 'edit' || !props.ministerios?.some((mv) => mv.ministerio?.id! === ministerio.id))
+        ?.filter(
+          (ministerio) =>
+            props.mode === 'edit' ||
+            !props.ministerios?.some((mv) => mv.ministerio?.id! === ministerio.id),
+        )
         .map(
           (ministerio) =>
             ({
               title: ministerio.nome,
               value: ministerio.id,
-              left: { type: 'image', source: ministerio.logoThumbUrl || ministerio.logoUrl || undefined },
+              left: {
+                type: 'image',
+                source: ministerio.logoThumbUrl || ministerio.logoUrl || undefined,
+              },
             }) as DropDownItemProps<string>,
         ) || [];
 
@@ -50,7 +57,9 @@ export default function MinisterioAddForm(
   return (
     <FancyModalDialog
       {...props}
-      onButton2Press={() => form.handleSubmit((data) => props.onButton2Press?.({ ...data, mode: props.mode }))()}
+      onButton2Press={() =>
+        form.handleSubmit((data) => props.onButton2Press?.({ ...data, mode: props.mode }))()
+      }
       centerContainerStyle={{ minHeight: isLoading ? 100 : undefined, justifyContent: 'center' }}
       button2={{ disabled: isLoading }}
     >
@@ -66,7 +75,10 @@ export default function MinisterioAddForm(
         <ControlledDropDown
           label='Função'
           listItems={[
-            { title: VoluntarioHierarquiaEnumLabel[VoluntarioHierarquiaEnum.Lider], value: VoluntarioHierarquiaEnum.Lider },
+            {
+              title: VoluntarioHierarquiaEnumLabel[VoluntarioHierarquiaEnum.Lider],
+              value: VoluntarioHierarquiaEnum.Lider,
+            },
             {
               title: VoluntarioHierarquiaEnumLabel[VoluntarioHierarquiaEnum.Voluntario],
               value: VoluntarioHierarquiaEnum.Voluntario,

@@ -8,7 +8,8 @@ GET /dashboard/igreja/:igrejaId
 
 **Auth**: Bearer Token (voluntario autenticado)
 
-O backend deve identificar o **role** do voluntario na igreja (ADMIN, LIDER, VOLUNTARIO) e retornar os campos correspondentes.
+O backend deve identificar o **role** do voluntario na igreja (ADMIN, LIDER, VOLUNTARIO) e retornar
+os campos correspondentes.
 
 ---
 
@@ -42,6 +43,7 @@ O backend deve identificar o **role** do voluntario na igreja (ADMIN, LIDER, VOL
 ## DTOs Detalhados
 
 ### DashboardEscalaItemDto
+
 Cada escala proxima do voluntario logado.
 
 ```typescript
@@ -58,6 +60,7 @@ Cada escala proxima do voluntario logado.
 ```
 
 **Query**: Buscar `escala_itens` onde:
+
 - `voluntario.voluntario.id` = usuario logado
 - `voluntario.ministerio.igrejaId` = igrejaId
 - `dataOcorrencia` >= hoje
@@ -67,6 +70,7 @@ Cada escala proxima do voluntario logado.
 ---
 
 ### DashboardMinisterioStatsDto
+
 Stats resumidos de um ministerio.
 
 ```typescript
@@ -83,6 +87,7 @@ Stats resumidos de um ministerio.
 ---
 
 ### DashboardEventoProximoDto
+
 Proximo evento com info de preenchimento de escala.
 
 ```typescript
@@ -99,6 +104,7 @@ Proximo evento com info de preenchimento de escala.
 ```
 
 **Query**: Buscar eventos onde:
+
 - `dataInicio` >= hoje
 - Para LIDER: filtrar pelo ministerio que lidera
 - Para ADMIN: todos os eventos da igreja
@@ -108,6 +114,7 @@ Proximo evento com info de preenchimento de escala.
 ---
 
 ### DashboardSolicitacaoDto
+
 Solicitacao pendente (entrada ou substituicao).
 
 ```typescript
@@ -126,18 +133,24 @@ Solicitacao pendente (entrada ou substituicao).
 ## Logica por Role
 
 ### VOLUNTARIO
+
 Retornar apenas:
+
 - `proximasEscalas` (proximas 5)
 - `totalEscalasMes`, `escalasConfirmadas`, `escalasPendentes`
 
 ### LIDER
+
 Retornar tudo do VOLUNTARIO + :
+
 - `ministerioStats` (stats do ministerio que lidera - se lidera mais de um, retornar o primeiro)
 - `proximosEventosMinisterio` (proximos 5 eventos do ministerio)
 - `solicitacoesPendentes` (solicitacoes de entrada + substituicao pendentes)
 
 ### ADMIN
+
 Retornar tudo do VOLUNTARIO + :
+
 - `totalMinisterios`, `totalVoluntarios`, `totalEventosMes`
 - `ministeriosStats` (stats de TODOS os ministerios da igreja)
 - `proximosEventosIgreja` (proximos 5 eventos de toda a igreja)

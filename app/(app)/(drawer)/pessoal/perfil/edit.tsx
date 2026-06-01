@@ -73,7 +73,9 @@ export default function EditProfilePage() {
       fotoUpload: null,
       nome: voluntario.nome ?? '',
       email: voluntario.email ?? '',
-      dataNascimento: voluntario.dataNascimento ? DateUtilsApi.dateOnlyFromApi(voluntario.dataNascimento) : undefined,
+      dataNascimento: voluntario.dataNascimento
+        ? DateUtilsApi.dateOnlyFromApi(voluntario.dataNascimento)
+        : undefined,
       endereco: voluntario.endereco ?? '',
       telefone: voluntario.telefone ?? '',
       status: voluntario.status,
@@ -107,7 +109,9 @@ export default function EditProfilePage() {
 
       const formData = {
         nome: data.nome,
-        dataNascimento: data.dataNascimento ? DateUtilsApi.dateOnlyToApi(data.dataNascimento) : undefined,
+        dataNascimento: data.dataNascimento
+          ? DateUtilsApi.dateOnlyToApi(data.dataNascimento)
+          : undefined,
         endereco: data.endereco || '',
         telefone: data.telefone || '',
         sexo: data.sexo,
@@ -144,8 +148,16 @@ export default function EditProfilePage() {
   return (
     <FancyBasePage showFab={false} showSearchBar={false}>
       <View style={{ flex: 1 }} pointerEvents={isSaving ? 'none' : 'auto'}>
-        <FancyScrollView fill contentContainerStyle={{ gap: 15, paddingHorizontal: 15, paddingBottom: 10 }}>
-          <ControlledImagePicker control={form.control} name='fotoThumbUrl' uploadFieldName='fotoUpload' setValue={form.setValue as any} />
+        <FancyScrollView
+          fill
+          contentContainerStyle={{ gap: 15, paddingHorizontal: 15, paddingBottom: 10 }}
+        >
+          <ControlledImagePicker
+            control={form.control}
+            name='fotoThumbUrl'
+            uploadFieldName='fotoUpload'
+            setValue={form.setValue as any}
+          />
 
           <ControlledTextInput name='nome' control={form.control} label='Nome' />
           <ControlledTextInput name='email' control={form.control} label='E-mail' disabled />

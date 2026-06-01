@@ -4,7 +4,8 @@
 
 Um **agente que gera 5 variantes de design completamente diferentes AO MESMO TEMPO**.
 
-Ao invés de você propor 1 design, iterar, descartar e tentar outro (que leva 3-4 horas), você vê todas as 5 opções lado a lado em **30 minutos**.
+Ao invés de você propor 1 design, iterar, descartar e tentar outro (que leva 3-4 horas), você vê
+todas as 5 opções lado a lado em **30 minutos**.
 
 ```
 Fluxo tradicional:          Fluxo com Design Paralelo:
@@ -38,7 +39,7 @@ Use quando:
 ✅ **Quer explorar rapidamente** sem compromisso  
 ✅ **Precisa apresentar opções** para stakeholder ou PM  
 ✅ **Novidade de feature** e não tem direction clara  
-✅ **Redesign** e quer explorar direções diferentes  
+✅ **Redesign** e quer explorar direções diferentes
 
 ---
 
@@ -51,6 +52,7 @@ Use quando:
 ```
 
 **Exemplos**:
+
 ```
 /paralelo-design team-members-tab
 
@@ -115,29 +117,32 @@ Merge: variant-3
 
 ## ⏱️ Timeline
 
-| Fase | Duração | O que acontece |
-|------|---------|---|
-| Setup | 30s | Agente cria 5 worktrees |
-| Desenvolvimento | 20-25 min | 5 agentes codificam em paralelo |
-| Screenshots | 2-3 min | Tira screenshot de cada variante |
-| Análise | 2 min | Compila matriz comparativa |
-| **Total** | **~30 min** | Você tem 5 opções prontas |
+| Fase            | Duração     | O que acontece                   |
+| --------------- | ----------- | -------------------------------- |
+| Setup           | 30s         | Agente cria 5 worktrees          |
+| Desenvolvimento | 20-25 min   | 5 agentes codificam em paralelo  |
+| Screenshots     | 2-3 min     | Tira screenshot de cada variante |
+| Análise         | 2 min       | Compila matriz comparativa       |
+| **Total**       | **~30 min** | Você tem 5 opções prontas        |
 
 ---
 
 ## ✅ Pré-requisitos
 
 ### Software
+
 - [ ] Git configurado
 - [ ] Node.js 16+
 - [ ] Expo instalado
 
 ### Estado do Projeto
+
 - [ ] Sem mudanças não-committadas (`git status` limpo)
 - [ ] Branch limpa (não em meio a rebase/merge)
 - [ ] Nenhuma git worktree ativa de exploração anterior
 
 ### Verificação Rápida
+
 ```bash
 # Certifica que está tudo limpo:
 git status
@@ -155,6 +160,7 @@ git worktree list
 O agente cria essas 5 designs automaticamente:
 
 ### Variant 1: Grid com Fotos Grandes
+
 ```
 ┌─────────┬─────────┐
 │ Foto 1  │ Foto 2  │
@@ -165,6 +171,7 @@ O agente cria essas 5 designs automaticamente:
 │ Nome 3  │ Nome 4  │
 └─────────┴─────────┘
 ```
+
 - ✅ Visual, elegante
 - ❌ Baixa densidade
 - 💡 Bom para descoberta
@@ -172,12 +179,14 @@ O agente cria essas 5 designs automaticamente:
 ---
 
 ### Variant 2: Lista Densa/Compacta
+
 ```
 1. Nome 1   📞 📧
 2. Nome 2   📞 📧
 3. Nome 3   📞 📧
 4. Nome 4   📞 📧
 ```
+
 - ✅ Muito compacta
 - ✅ Fácil de escanear
 - ❌ Menos visual
@@ -186,6 +195,7 @@ O agente cria essas 5 designs automaticamente:
 ---
 
 ### Variant 3: Cards Tipo Bento
+
 ```
 ┌────────────────────┐
 │ 📸 Nome 1          │
@@ -198,6 +208,7 @@ O agente cria essas 5 designs automaticamente:
 │ 📞  📧  ✉️         │
 └────────────────────┘
 ```
+
 - ✅ Bonito e informativo
 - ✅ Boa densidade
 - ✅ Toque targets grandes
@@ -206,6 +217,7 @@ O agente cria essas 5 designs automaticamente:
 ---
 
 ### Variant 4: Lista com Texto Completo
+
 ```
 Nome Completo
 Role: Coordenador | Team: Louvor
@@ -216,6 +228,7 @@ Role: Volunteer | Team: Crianças
 Contato: 11 91234-5678 | email@...
 ───────────────────────────────────
 ```
+
 - ✅ Muito informativo
 - ✅ Tudo em uma linha
 - ❌ Longo demais em mobile
@@ -224,6 +237,7 @@ Contato: 11 91234-5678 | email@...
 ---
 
 ### Variant 5: 2-Column Roster (Balanço)
+
 ```
 ┌──────────┬──────────┐
 │ Foto 1   │ Foto 2   │
@@ -236,6 +250,7 @@ Contato: 11 91234-5678 | email@...
 │ Role | T │ Role | T │
 └──────────┴──────────┘
 ```
+
 - ✅ Visual e compacta
 - ✅ Balanço bom
 - ✅ Toque targets grandes
@@ -250,6 +265,7 @@ Contato: 11 91234-5678 | email@...
 **Contexto**: Seu PM quer explorar como apresentar voluntários.
 
 **Setup**:
+
 ```bash
 # Certifica branch limpa
 git status  # "nothing to commit"
@@ -257,6 +273,7 @@ git worktree list  # apenas ./main
 ```
 
 **Comando**:
+
 ```
 /paralelo-design team-members-tab
 ```
@@ -264,6 +281,7 @@ git worktree list  # apenas ./main
 **Aguarda**: ~30 minutos
 
 **Resultado**:
+
 - 5 screenshots de diferentes layouts
 - Matriz mostrando:
   - Densidade de informação
@@ -272,7 +290,8 @@ git worktree list  # apenas ./main
   - Visual appeal
 - Recomendação: "Variant 3 (Bento) é o melhor balanço"
 
-**Próximo passo**: 
+**Próximo passo**:
+
 ```bash
 # Se gostou da variant 3, merge:
 git checkout team-variant-3
@@ -291,11 +310,13 @@ git merge team-variant-2
 **Contexto**: Nova feature de agendamento. Não sabe qual layout.
 
 **Setup**:
+
 ```bash
 git status  # Limpo ✅
 ```
 
 **Comando**:
+
 ```
 /paralelo-design volunteer-scheduler
 ```
@@ -309,6 +330,7 @@ git status  # Limpo ✅
 **Contexto**: Event card precisa de redesign. Explorar estilos.
 
 **Comando**:
+
 ```
 /paralelo-design event-card
 ```
@@ -320,14 +342,18 @@ git status  # Limpo ✅
 ## ❓ FAQ
 
 ### P: As 5 variantes sempre são as mesmas?
+
 **A**: Por padrão sim (grid, lista, bento, texto, 2-column). Você pode customizar pedindo:
+
 ```
 /paralelo-design team-members-tab
 Com variantes: grid, carrossel, expandable-list, tabs, avatar-only
 ```
 
 ### P: Qual variante devo escolher?
+
 **A**: A recomendação do agente é baseada em:
+
 - Densidade de informação
 - Touch targets accessíveis (>44px)
 - Facilidade de escanear
@@ -336,13 +362,17 @@ Com variantes: grid, carrossel, expandable-list, tabs, avatar-only
 Mas a escolha é sua! Pode chooser qualquer uma.
 
 ### P: E se nenhuma das 5 for boa?
+
 **A**: Raro, mas possível. Faça:
+
 1. Escolha a mais próxima
 2. Use `/refinamento-autonomo` para iterar
 3. Ou especifique variantes customizadas no próximo /paralelo-design
 
 ### P: Posso escolher 2 elementos de variantes diferentes?
+
 **A**: Sim! Você pode mixar:
+
 - Layout da variant 2
 - Cards da variant 3
 - Cores da variant 5
@@ -350,17 +380,22 @@ Mas a escolha é sua! Pode chooser qualquer uma.
 Mantenha o seu próprio branch e cherry-pick o que gostou.
 
 ### P: Quanto tempo leva mesmo?
+
 **A**: Normalmente 25-35 minutos depending de:
+
 - Tamanho da tela
 - Complexidade dos dados
 - Performance do seu PC
 - Velocidade de Expo
 
 ### P: Preciso fazer nada enquanto ele trabalha?
+
 **A**: Não! É completamente autônomo. Você pode sair, tomar café, fazer outra coisa.
 
 ### P: Git worktrees criadas onde?
+
 **A**: Na mesma pasta do projeto:
+
 ```
 artos_frontend/
 ├── .
@@ -373,6 +408,7 @@ artos_frontend/
 ```
 
 Depois de terminar:
+
 ```bash
 # Remove worktrees não utilizadas:
 git worktree remove ../team-variant-1
@@ -387,6 +423,7 @@ git worktree remove ../team-variant-2
 ### ❌ Problema: "Working tree dirty, not ready for exploration"
 
 **Solução**:
+
 ```bash
 # Commit suas mudanças:
 git add .
@@ -404,6 +441,7 @@ git status  # Deve ser limpo
 ### ❌ Problema: "Git worktree error - variant-1 already exists"
 
 **Solução**:
+
 ```bash
 # Remove worktrees antigas:
 git worktree list
@@ -423,8 +461,7 @@ Depois tenta novamente.
 
 ### ❌ Problema: "Expo error - cannot start on all 5 variants"
 
-**Solução**:
-Cada variant tenta rodar seu próprio Expo na porta 8081. Se conflitar:
+**Solução**: Cada variant tenta rodar seu próprio Expo na porta 8081. Se conflitar:
 
 ```bash
 # Mata todos os Expos:
@@ -439,8 +476,8 @@ taskkill /F /IM node.exe  # Windows
 
 ### ❌ Problema: "Agente criou tudo mas screenshots saem brancas"
 
-**Solução**:
-Seus telefone talvez não conectou. Verifique:
+**Solução**: Seus telefone talvez não conectou. Verifique:
+
 ```bash
 adb devices
 # Deve aparecer seu device
@@ -475,10 +512,13 @@ ps aux | grep expo
 ## ✨ Dicas
 
 ### Dica 1: Comece com componentes simples
+
 Seu primeiro /paralelo-design com um card pequeno, não uma tela inteira.
 
 ### Dica 2: Organize seus screenshots
+
 Depois, salva os 5 screenshots em uma pasta:
+
 ```
 comparisons/
 ├── 2026-05-05_team-members/
@@ -491,19 +531,21 @@ comparisons/
 ```
 
 ### Dica 3: Faça notas rápidas
+
 Durante o agente trabalhar, anote suas primeiras impressões:
+
 ```markdown
 ## Primeiras Impressões
 
-Variant 1 (Grid): Muito espaçoso, acho bonito
-Variant 2 (Lista): Muito compacta, cansa ler
-Variant 3 (Bento): Achei perfeito!
-Variant 4 (Texto): Muita informação
-Variant 5 (2-Col): Também bom, alternativa para variant 3
+Variant 1 (Grid): Muito espaçoso, acho bonito Variant 2 (Lista): Muito compacta, cansa ler Variant 3
+(Bento): Achei perfeito! Variant 4 (Texto): Muita informação Variant 5 (2-Col): Também bom,
+alternativa para variant 3
 ```
 
 ### Dica 4: Teste em diferentes tamanhos
+
 Se seu app suporta múltiplos tamanhos, rode em:
+
 - Telefone pequeno (4.5")
 - Telefone médio (6")
 - Tablet (7-10")
@@ -511,7 +553,9 @@ Se seu app suporta múltiplos tamanhos, rode em:
 Cada layout pode ter comportamento diferente.
 
 ### Dica 5: Considere Dark Mode
+
 O agente captura com seu tema atual. Se seu app usa dark mode, mude antes:
+
 ```
 App Settings → Theme → Dark
 ```

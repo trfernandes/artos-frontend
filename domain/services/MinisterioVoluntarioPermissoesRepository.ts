@@ -14,4 +14,5 @@ class MinisterioVoluntarioPermissoesRepositoryClass extends BaseRepository<
   }
 }
 
-export const MinisterioVoluntarioPermissoesRepository = new MinisterioVoluntarioPermissoesRepositoryClass();
+export const MinisterioVoluntarioPermissoesRepository =
+  new MinisterioVoluntarioPermissoesRepositoryClass();

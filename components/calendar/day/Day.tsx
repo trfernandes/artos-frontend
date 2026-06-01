@@ -69,7 +69,7 @@ function DayComponent({
     isAgendaPremium ? styles.circleAgendaPremium : null,
     showSelectedState &&
       !isDisabled && {
-        backgroundColor: showCircle ? (resolvedMarkerColor || palette.primary) : palette.primary,
+        backgroundColor: showCircle ? resolvedMarkerColor || palette.primary : palette.primary,
       },
     showSelectedState && isDisabled && styles.circleDisabled,
     showTodaySurface && {
@@ -96,14 +96,19 @@ function DayComponent({
     };
 
     const markerStyle = inline ? styles.selectedMarked : styles.marked;
-    const premiumMarkerStyle = inline ? styles.selectedMarkedAgendaPremium : styles.markedAgendaPremium;
+    const premiumMarkerStyle = inline
+      ? styles.selectedMarkedAgendaPremium
+      : styles.markedAgendaPremium;
     const baseMarkerStyle = isAgendaPremium ? premiumMarkerStyle : markerStyle;
 
     const normalizedColors = Array.isArray(markerColor) ? markerColor : [markerColor];
 
     if (Array.isArray(markerColor)) {
       return normalizedColors.map((c, index) => (
-        <View key={`marker-${index}`} style={[baseMarkerStyle, { backgroundColor: resolveColor(c) }]} />
+        <View
+          key={`marker-${index}`}
+          style={[baseMarkerStyle, { backgroundColor: resolveColor(c) }]}
+        />
       ));
     }
 
@@ -114,10 +119,16 @@ function DayComponent({
     <TouchableOpacity style={containerStyles} onPress={handlePress} disabled={isDisabled}>
       {showSelectedState ? (
         <View style={circleStyles}>
-          <FancyText size='medium' type='bold' color={isDisabled ? palette.fonts.inactive : palette.fonts.light}>
+          <FancyText
+            size='medium'
+            type='bold'
+            color={isDisabled ? palette.fonts.inactive : palette.fonts.light}
+          >
             {day}
           </FancyText>
-          {showInlineSelectedMarkers && <View style={styles.selectedMarkerContainer}>{renderMarkers(true)}</View>}
+          {showInlineSelectedMarkers && (
+            <View style={styles.selectedMarkerContainer}>{renderMarkers(true)}</View>
+          )}
         </View>
       ) : (
         <FancyText size='small' type={textWeight} color={textColor}>

@@ -2,7 +2,10 @@ import { useCallback, useState } from 'react';
 import { ExternalUseCrudParams, useCrud } from './useCrud';
 import { Operator, ValueType } from '../domain/utils/query_utils';
 import { EventosRepository } from '../domain/services/EventosRepository';
-import { IgrejaEventosRepository, EventosIntervaloParams } from '../domain/services/IgrejaEventosRepository';
+import {
+  IgrejaEventosRepository,
+  EventosIntervaloParams,
+} from '../domain/services/IgrejaEventosRepository';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ResponseEventoDto } from '../domain/dtos/Evento/evento.response';
 import { CreateEventoDto } from '../domain/dtos/Evento/evento.create';
@@ -113,11 +116,14 @@ export function generateRecorrenciaJoinableDescription(
   };
 
   const formatDias = (dias: RecorrenciaDiaSemanaEnum[]) => {
-    const diasOrdenados = (dias ?? []).slice().sort((a, b) => DIA_SEMANA_ORDER.indexOf(a) - DIA_SEMANA_ORDER.indexOf(b));
+    const diasOrdenados = (dias ?? [])
+      .slice()
+      .sort((a, b) => DIA_SEMANA_ORDER.indexOf(a) - DIA_SEMANA_ORDER.indexOf(b));
 
     const diasInfo = diasOrdenados.map((d) => DIAS_SEMANA[d]).filter(Boolean);
 
-    if (diasInfo.length === 0) return { texto: 'nenhum dia', artigo: null as 'a' | 'o' | null, pluralList: [] as string[] };
+    if (diasInfo.length === 0)
+      return { texto: 'nenhum dia', artigo: null as 'a' | 'o' | null, pluralList: [] as string[] };
 
     const artigos = new Set(diasInfo.map((d) => d.artigo)); // 'a' | 'o'
     const artigoUnico = artigos.size === 1 ? (diasInfo[0].artigo as 'a' | 'o') : null;
@@ -130,7 +136,9 @@ export function generateRecorrenciaJoinableDescription(
 
   const formatSemanas = (semanas: RecorrenciaSemanaMesEnum[]) => {
     const semanasValidas = (semanas ?? []).filter((s) => SEMANAS_MES[s]);
-    const ordenadas = semanasValidas.slice().sort((a, b) => SEMANA_MES_ORDER.indexOf(a) - SEMANA_MES_ORDER.indexOf(b));
+    const ordenadas = semanasValidas
+      .slice()
+      .sort((a, b) => SEMANA_MES_ORDER.indexOf(a) - SEMANA_MES_ORDER.indexOf(b));
 
     const abrevs = ordenadas.map((s) => SEMANAS_MES[s].abreviado);
     return { abrevs, texto: joinComE(abrevs) };
@@ -152,7 +160,8 @@ export function generateRecorrenciaJoinableDescription(
     }
 
     // 2+ dias -> tenta "às" / "aos" se for tudo do mesmo gênero; senão usa "em"
-    const prefixo = artigo === 'a' ? 'Toda semana às' : artigo === 'o' ? 'Toda semana aos' : 'Toda semana em';
+    const prefixo =
+      artigo === 'a' ? 'Toda semana às' : artigo === 'o' ? 'Toda semana aos' : 'Toda semana em';
     return `${prefixo} ${joinComE(pluralList)}`;
   }
 
@@ -173,7 +182,8 @@ export function generateRecorrenciaJoinableDescription(
       const { texto } = formatSemanas(semanasDoMes);
       parteSemanas = texto ? `na ${texto} semana do mês` : 'em nenhuma semana do mês';
       // Se vier "1ª e 2ª" fica melhor como "na 1ª e 2ª semanas..."
-      if (texto.includes(' e ') || texto.includes(',')) parteSemanas = `nas ${texto} semanas do mês`;
+      if (texto.includes(' e ') || texto.includes(','))
+        parteSemanas = `nas ${texto} semanas do mês`;
     }
 
     // Dias
@@ -218,7 +228,9 @@ export function generateRecorrenciaDescription(
       result = 'Todos os dias';
     } else {
       // Ordena os dias com base na ordem definida
-      const diasOrdenados = diasSemana.slice().sort((a, b) => DIA_SEMANA_ORDER.indexOf(a) - DIA_SEMANA_ORDER.indexOf(b));
+      const diasOrdenados = diasSemana
+        .slice()
+        .sort((a, b) => DIA_SEMANA_ORDER.indexOf(a) - DIA_SEMANA_ORDER.indexOf(b));
 
       const dias = diasOrdenados.map((item) => DIAS_SEMANA[item]);
 
@@ -249,7 +261,9 @@ export function generateRecorrenciaDescription(
     } else {
       const semanasValidas = semanasDoMes.filter((item) => SEMANAS_MES[item]);
 
-      const semanasOrdenadas = semanasValidas.slice().sort((a, b) => SEMANA_MES_ORDER.indexOf(a) - SEMANA_MES_ORDER.indexOf(b));
+      const semanasOrdenadas = semanasValidas
+        .slice()
+        .sort((a, b) => SEMANA_MES_ORDER.indexOf(a) - SEMANA_MES_ORDER.indexOf(b));
 
       const semanasAbreviadas = semanasOrdenadas.map((item) => SEMANAS_MES[item].abreviado);
 
@@ -271,7 +285,9 @@ export function generateRecorrenciaDescription(
       result += 'Em todos os dias';
     } else {
       // Ordena os dias com base na ordem definida
-      const diasOrdenados = diasSemana.slice().sort((a, b) => DIA_SEMANA_ORDER.indexOf(a) - DIA_SEMANA_ORDER.indexOf(b));
+      const diasOrdenados = diasSemana
+        .slice()
+        .sort((a, b) => DIA_SEMANA_ORDER.indexOf(a) - DIA_SEMANA_ORDER.indexOf(b));
 
       const dias = diasOrdenados.map((item) => DIAS_SEMANA[item]);
 
@@ -291,7 +307,11 @@ export function generateRecorrenciaDescription(
   return result;
 }
 
-export function useEventosCrud({ autoFetch = false, initialParams = {}, messages = undefined }: ExternalUseCrudParams = {}) {
+export function useEventosCrud({
+  autoFetch = false,
+  initialParams = {},
+  messages = undefined,
+}: ExternalUseCrudParams = {}) {
   const { igrejaAtiva } = useAuth();
 
   if (!igrejaAtiva) {
@@ -339,14 +359,17 @@ export function useEventosCrud({ autoFetch = false, initialParams = {}, messages
 
   const [isLoadingIntervalo, setIsLoadingIntervalo] = useState(false);
 
-  const buscarPorIntervalo = useCallback(async (params: EventosIntervaloParams) => {
-    setIsLoadingIntervalo(true);
-    try {
-      return await IgrejaEventosRepository.buscarPorIntervalo(igrejaAtiva.id, params);
-    } finally {
-      setIsLoadingIntervalo(false);
-    }
-  }, [igrejaAtiva.id]);
+  const buscarPorIntervalo = useCallback(
+    async (params: EventosIntervaloParams) => {
+      setIsLoadingIntervalo(true);
+      try {
+        return await IgrejaEventosRepository.buscarPorIntervalo(igrejaAtiva.id, params);
+      } finally {
+        setIsLoadingIntervalo(false);
+      }
+    },
+    [igrejaAtiva.id],
+  );
 
   return {
     ...crud,

@@ -56,28 +56,25 @@ function MetaInlineItem({
   const palette = usePallete();
 
   return (
-    <View style={{
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.1),
-      borderRadius: 8,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      alignSelf: 'flex-start',
-    }}>
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        backgroundColor: ColorUtils.withAlpha(palette.primary, 0.1),
+        borderRadius: 8,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        alignSelf: 'flex-start',
+      }}
+    >
       <DefaultIcons.Custom
         library={icon.library}
         name={icon.name}
         size={12}
         color={palette.primary}
       />
-      <FancyText
-        type='semiBold'
-        size='extraSmall'
-        color={palette.primary}
-        numberOfLines={1}
-      >
+      <FancyText type='semiBold' size='extraSmall' color={palette.primary} numberOfLines={1}>
         {value}
       </FancyText>
     </View>
@@ -134,10 +131,14 @@ export default function EscalaHeader({
 
   return (
     <View style={[styles.surfaceCard, hasInlineActions && styles.surfaceCardWithActions]}>
-
       <View style={styles.topRow}>
         <View style={styles.titleBlock}>
-          <FancyText type='medium' size={9} color={palette.fonts.inactive} style={styles.categoryLabel}>
+          <FancyText
+            type='medium'
+            size={9}
+            color={palette.fonts.inactive}
+            style={styles.categoryLabel}
+          >
             Escala
           </FancyText>
           <FancyText
@@ -248,7 +249,13 @@ export default function EscalaHeader({
 }
 
 /** Sub-componente isolado para poder usar o hook useActionColors por ação */
-function SecondaryActions({ actions, palette }: { actions: InlineAction[]; palette: ThemePalette }) {
+function SecondaryActions({
+  actions,
+  palette,
+}: {
+  actions: InlineAction[];
+  palette: ThemePalette;
+}) {
   return (
     <>
       {actions.map((action) => (
@@ -258,7 +265,13 @@ function SecondaryActions({ actions, palette }: { actions: InlineAction[]; palet
   );
 }
 
-function SecondaryActionButton({ action, palette }: { action: InlineAction; palette: ThemePalette }) {
+function SecondaryActionButton({
+  action,
+  palette,
+}: {
+  action: InlineAction;
+  palette: ThemePalette;
+}) {
   const { backgroundColor, iconColor } = useActionColors(action.key, palette);
   const isDisabled = !!action.disabled || !!action.isLoading;
 

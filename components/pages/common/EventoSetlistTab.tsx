@@ -18,7 +18,10 @@ import FancyTextInput from '../../fields/FancyTextInput';
 import EventoSetlistEditorSheet from './EventoSetlistEditorSheet';
 import SetListItem from './SetListItem';
 import { getApiErrorMessage } from '../../../domain/api/api-error';
-import { EventoSetlistItemOrigemEnum, ResponseEventoSetlistItemDto } from '../../../domain/dtos/Evento/evento-setlist-item.response';
+import {
+  EventoSetlistItemOrigemEnum,
+  ResponseEventoSetlistItemDto,
+} from '../../../domain/dtos/Evento/evento-setlist-item.response';
 import { useAuth } from '../../../contexts/AuthContext';
 import { usePallete } from '../../../hooks/usePallete';
 import { useEventoSetlist } from '../../../hooks/useEventoSetlist';
@@ -69,7 +72,11 @@ export default function EventoSetlistTab({
     salvarObservacoes,
     isSavingObservacoes,
   } = useEventoSetlistObservacoes(eventoId, dataOcorrenciaIso, ministerioId);
-  const { data: equipeData, refetch: refetchEquipe } = useEventoEquipe(eventoId, dataOcorrenciaIso, ministerioId);
+  const { data: equipeData, refetch: refetchEquipe } = useEventoEquipe(
+    eventoId,
+    dataOcorrenciaIso,
+    ministerioId,
+  );
   const { salvarResponsavelSetlist, isSavingResponsavelSetlist } = useEventoSetlistResponsavel();
 
   const [editorVisible, setEditorVisible] = useState(false);
@@ -83,7 +90,10 @@ export default function EventoSetlistTab({
   const [actionsItem, setActionsItem] = useState<ResponseEventoSetlistItemDto | null>(null);
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
 
-  const repertorio = useMemo(() => (repertorioData ?? []).filter((item) => item.ativo !== false), [repertorioData]);
+  const repertorio = useMemo(
+    () => (repertorioData ?? []).filter((item) => item.ativo !== false),
+    [repertorioData],
+  );
 
   const items = useMemo(() => (data ?? []).slice().sort((a, b) => a.ordem - b.ordem), [data]);
 
@@ -106,27 +116,32 @@ export default function EventoSetlistTab({
           .map((voluntario) => ({
             title: voluntario.nome,
             value: voluntario.id,
-            left: voluntario.fotoThumbUrl || voluntario.fotoUrl
-              ? {
-                  type: 'image' as const,
-                  source: voluntario.fotoThumbUrl || voluntario.fotoUrl || '',
-                }
-              : {
-                  type: 'icon' as const,
-                  icon: {
-                    library: 'MaterialCommunityIcons' as const,
-                    name: 'account-circle-outline',
-                    size: 20,
-                    color: palette.fonts.inactive,
+            left:
+              voluntario.fotoThumbUrl || voluntario.fotoUrl
+                ? {
+                    type: 'image' as const,
+                    source: voluntario.fotoThumbUrl || voluntario.fotoUrl || '',
+                  }
+                : {
+                    type: 'icon' as const,
+                    icon: {
+                      library: 'MaterialCommunityIcons' as const,
+                      name: 'account-circle-outline',
+                      size: 20,
+                      color: palette.fonts.inactive,
+                    },
                   },
-                },
           })),
       ) ?? []
     );
   }, [equipeData?.grupos, palette.fonts.inactive]);
 
-  const responsavelAtualId = equipeData?.responsavelSetlistVoluntario?.id || equipeData?.responsavelSetlistVoluntarioId || '';
-  const responsavelAtualNome = equipeData?.responsavelSetlistVoluntario?.nome || responsavelSetlistNome || null;
+  const responsavelAtualId =
+    equipeData?.responsavelSetlistVoluntario?.id ||
+    equipeData?.responsavelSetlistVoluntarioId ||
+    '';
+  const responsavelAtualNome =
+    equipeData?.responsavelSetlistVoluntario?.nome || responsavelSetlistNome || null;
   const isCurrentUserResponsavel = !!responsavelAtualId && responsavelAtualId === user?.user?.id;
   const responsavelDescricao = responsavelAtualNome
     ? isCurrentUserResponsavel
@@ -296,21 +311,17 @@ export default function EventoSetlistTab({
   };
 
   const confirmDeleteItem = (item: ResponseEventoSetlistItemDto) => {
-    Alert.alert(
-      'Excluir música?',
-      'Essa ação não pode ser desfeita.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Excluir',
-          style: 'destructive',
-          onPress: () => {
-            closeItemActions();
-            void handleDeleteItem(item.id);
-          },
+    Alert.alert('Excluir música?', 'Essa ação não pode ser desfeita.', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Excluir',
+        style: 'destructive',
+        onPress: () => {
+          closeItemActions();
+          void handleDeleteItem(item.id);
         },
-      ],
-    );
+      },
+    ]);
   };
 
   const renderHeader = () => (
@@ -319,7 +330,9 @@ export default function EventoSetlistTab({
         style={[
           styles.ownerCard,
           {
-            backgroundColor: isDark ? palette.backgroundColor4 : ColorUtils.lightenColor(palette.secondary, 0.955),
+            backgroundColor: isDark
+              ? palette.backgroundColor4
+              : ColorUtils.lightenColor(palette.secondary, 0.955),
             borderColor: ColorUtils.withAlpha(palette.secondary, isDark ? 0.32 : 0.16),
           },
         ]}
@@ -329,7 +342,9 @@ export default function EventoSetlistTab({
             style={[
               styles.ownerIconWrap,
               {
-                backgroundColor: isDark ? ColorUtils.withAlpha(palette.secondary, 0.16) : ColorUtils.withAlpha('#FFFFFF', 0.92),
+                backgroundColor: isDark
+                  ? ColorUtils.withAlpha(palette.secondary, 0.16)
+                  : ColorUtils.withAlpha('#FFFFFF', 0.92),
                 borderColor: ColorUtils.withAlpha(palette.secondary, isDark ? 0.28 : 0.14),
               },
             ]}
@@ -347,7 +362,10 @@ export default function EventoSetlistTab({
               <FancyText
                 size='extraSmall'
                 type='semiBold'
-                style={[styles.ownerEyebrow, { color: ColorUtils.withAlpha(palette.secondary, 0.88) }]}
+                style={[
+                  styles.ownerEyebrow,
+                  { color: ColorUtils.withAlpha(palette.secondary, 0.88) },
+                ]}
               >
                 Responsável
               </FancyText>
@@ -368,9 +386,7 @@ export default function EventoSetlistTab({
               color={responsavelAtualNome ? palette.fonts.dark : palette.fonts.inactive}
               style={styles.ownerTitle}
             >
-              {isCurrentUserResponsavel
-                ? 'Você'
-                : responsavelAtualNome || 'Nenhum responsável'}
+              {isCurrentUserResponsavel ? 'Você' : responsavelAtualNome || 'Nenhum responsável'}
             </FancyText>
           </View>
         </View>
@@ -406,7 +422,9 @@ export default function EventoSetlistTab({
           style={[
             styles.observacoesCard,
             {
-              backgroundColor: isDark ? palette.backgroundColor4 : ColorUtils.lightenColor(palette.primary, 0.94),
+              backgroundColor: isDark
+                ? palette.backgroundColor4
+                : ColorUtils.lightenColor(palette.primary, 0.94),
               borderColor: ColorUtils.withAlpha(palette.primary, isDark ? 0.32 : 0.18),
             },
           ]}
@@ -416,7 +434,9 @@ export default function EventoSetlistTab({
               style={[
                 styles.observacoesIconWrap,
                 {
-                  backgroundColor: isDark ? ColorUtils.withAlpha(palette.primary, 0.16) : ColorUtils.withAlpha('#FFFFFF', 0.92),
+                  backgroundColor: isDark
+                    ? ColorUtils.withAlpha(palette.primary, 0.16)
+                    : ColorUtils.withAlpha('#FFFFFF', 0.92),
                   borderColor: ColorUtils.withAlpha(palette.primary, isDark ? 0.28 : 0.14),
                 },
               ]}
@@ -433,22 +453,27 @@ export default function EventoSetlistTab({
               <FancyText
                 size='extraSmall'
                 type='semiBold'
-                style={[styles.ownerEyebrow, { color: ColorUtils.withAlpha(palette.primary, 0.86) }]}
+                style={[
+                  styles.ownerEyebrow,
+                  { color: ColorUtils.withAlpha(palette.primary, 0.86) },
+                ]}
               >
                 Orientações gerais
               </FancyText>
               {/* Título: preview do conteúdo ou estado vazio */}
-            <FancyText
-              size='small'
-              type='semiBold'
-              numberOfLines={2}
-              color={observacoesData?.observacoes?.trim() ? palette.fonts.dark : palette.fonts.inactive}
-              style={styles.observacoesTitle}
-            >
-              {observacoesData?.observacoes?.trim() || 'Nenhuma orientação'}
-            </FancyText>
+              <FancyText
+                size='small'
+                type='semiBold'
+                numberOfLines={2}
+                color={
+                  observacoesData?.observacoes?.trim() ? palette.fonts.dark : palette.fonts.inactive
+                }
+                style={styles.observacoesTitle}
+              >
+                {observacoesData?.observacoes?.trim() || 'Nenhuma orientação'}
+              </FancyText>
+            </View>
           </View>
-        </View>
 
           {isEditable ? (
             <Pressable
@@ -471,9 +496,7 @@ export default function EventoSetlistTab({
         </Pressable>
       )}
 
-      {orderedItems.length > 0 && (
-        <FancySeparator style={styles.sectionDivider} />
-      )}
+      {orderedItems.length > 0 && <FancySeparator style={styles.sectionDivider} />}
 
       {canAddMusic && (
         <View style={styles.listHeader}>
@@ -495,7 +518,12 @@ export default function EventoSetlistTab({
     </View>
   );
 
-  const renderItem = ({ item, drag, isActive, getIndex }: RenderItemParams<ResponseEventoSetlistItemDto>) => {
+  const renderItem = ({
+    item,
+    drag,
+    isActive,
+    getIndex,
+  }: RenderItemParams<ResponseEventoSetlistItemDto>) => {
     const index = (getIndex?.() ?? 0) + 1;
     return (
       <SetListItem
@@ -546,15 +574,24 @@ export default function EventoSetlistTab({
                     ? 'Adicione as músicas desta ocorrência para definir a sequência e acompanhar a duração total.'
                     : 'Quando o responsável montar o SetList, as músicas aparecerão aqui para consulta.'
                 }
-                icon={{ library: 'MaterialCommunityIcons', name: 'playlist-music-outline', size: 56 }}
+                icon={{
+                  library: 'MaterialCommunityIcons',
+                  name: 'playlist-music-outline',
+                  size: 56,
+                }}
                 muted={false}
               />
             </View>
           }
         />
-        {(isMutatingSetlist || deletingItemId) ? (
+        {isMutatingSetlist || deletingItemId ? (
           <View style={styles.blockingOverlay} pointerEvents='auto'>
-            <View style={[styles.blockingOverlayContent, { backgroundColor: palette.backgroundColor4, borderColor: palette.borderCard }]}>
+            <View
+              style={[
+                styles.blockingOverlayContent,
+                { backgroundColor: palette.backgroundColor4, borderColor: palette.borderCard },
+              ]}
+            >
               <FancyLoading
                 label={deletingItemId ? 'Removendo música...' : 'Atualizando setlist...'}
                 containerStyle={{ flex: 0 }}
@@ -637,7 +674,8 @@ export default function EventoSetlistTab({
         <View style={styles.sheetContentWrapper}>
           <View style={styles.sheetContent}>
             <FancyText size='small' color={palette.fonts.inactive}>
-              Use este espaço para orientações gerais da equipe, dinâmica do culto ou observações da ocorrência.
+              Use este espaço para orientações gerais da equipe, dinâmica do culto ou observações da
+              ocorrência.
             </FancyText>
             <FancyTextInput
               label='Observações'
@@ -704,11 +742,7 @@ export default function EventoSetlistTab({
         </View>
       </FancyBottomSheetModal>
 
-      <FancyBottomSheetModal
-        visible={!!actionsItem}
-        onClose={closeItemActions}
-        title='Opções'
-      >
+      <FancyBottomSheetModal visible={!!actionsItem} onClose={closeItemActions} title='Opções'>
         <View style={styles.actionsSheetContent}>
           <Pressable
             onPress={() => {
@@ -744,7 +778,8 @@ export default function EventoSetlistTab({
             disabled={selectedItemIndex < 0 || selectedItemIndex >= orderedItems.length - 1}
             style={[
               styles.actionRow,
-              (selectedItemIndex < 0 || selectedItemIndex >= orderedItems.length - 1) && styles.actionRowDisabled,
+              (selectedItemIndex < 0 || selectedItemIndex >= orderedItems.length - 1) &&
+                styles.actionRowDisabled,
             ]}
           >
             <MaterialCommunityIcons name='arrow-down' size={18} color={palette.fonts.dark} />

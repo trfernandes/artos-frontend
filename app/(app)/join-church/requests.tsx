@@ -21,7 +21,10 @@ import { useThemedStyles } from '../../../hooks/useThemedStyles';
 
 type StatusType = 'PENDING' | 'APPROVED' | 'DENIED' | 'CANCELED';
 
-const STATUS_CONFIG: Record<StatusType, { label: string; color: string; bgColor: string; icon: string; iconLib: string }> = {
+const STATUS_CONFIG: Record<
+  StatusType,
+  { label: string; color: string; bgColor: string; icon: string; iconLib: string }
+> = {
   PENDING: {
     label: 'Aguardando aprovação',
     color: '#D97706',
@@ -64,7 +67,12 @@ export default function JoinChurchRequestsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
 
-  const { data: solicitacoes, isLoading, error, refetch } = useQuery({
+  const {
+    data: solicitacoes,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ['join-church-requests'],
     queryFn: () => IgrejaRepository.listarMinhasSolicitacoes(),
     refetchOnMount: 'always',
@@ -136,13 +144,14 @@ export default function JoinChurchRequestsPage() {
                 </FancyText>
               </View>
             ),
-            additionalData2: isDenied && item.message ? (
-              <View style={styles.messageBox}>
-                <FancyText size='extraSmall' color={Pallete.error}>
-                  {item.message}
-                </FancyText>
-              </View>
-            ) : undefined,
+            additionalData2:
+              isDenied && item.message ? (
+                <View style={styles.messageBox}>
+                  <FancyText size='extraSmall' color={Pallete.error}>
+                    {item.message}
+                  </FancyText>
+                </View>
+              ) : undefined,
             cardIcon: {
               library: 'MaterialCommunityIcons',
               name: 'church',
@@ -190,7 +199,12 @@ export default function JoinChurchRequestsPage() {
     return (
       <FancyPageView style={styles.page}>
         <View style={styles.center}>
-          <DefaultIcons.Custom library='MaterialIcons' name='error-outline' size={48} color={Pallete.fonts.inactive} />
+          <DefaultIcons.Custom
+            library='MaterialIcons'
+            name='error-outline'
+            size={48}
+            color={Pallete.fonts.inactive}
+          />
           <FancyText color={Pallete.fonts.inactive}>Erro ao carregar</FancyText>
           <FancyButton label='Tentar novamente' onPress={() => refetch()} />
         </View>

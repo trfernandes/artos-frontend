@@ -15,7 +15,10 @@ interface EventosDadosFormProps {
   scrollViewProps?: FancyScrollViewProps;
 }
 
-export default function EventosDadosForm({ onlyView = false, scrollViewProps }: EventosDadosFormProps) {
+export default function EventosDadosForm({
+  onlyView = false,
+  scrollViewProps,
+}: EventosDadosFormProps) {
   const { control } = useFormContext<EventoFormData>();
   const [repeticaoModalVisible, setRepeticaoModalVisible] = useState(false);
 
@@ -28,9 +31,17 @@ export default function EventosDadosForm({ onlyView = false, scrollViewProps }: 
       <FancyScrollView contentContainerStyle={styles.fields} {...scrollViewProps}>
         <ControlledTextInput control={control} name='nome' label='Nome' disabled={onlyView} />
         <EventoDatesInput disabled={onlyView} />
-        <EventoRepeticaoInput disabled={onlyView} setRepeticaoModalVisible={setRepeticaoModalVisible} />
+        <EventoRepeticaoInput
+          disabled={onlyView}
+          setRepeticaoModalVisible={setRepeticaoModalVisible}
+        />
         <ControlledTextInput control={control} name='local' label='Local' disabled={onlyView} />
-        <ControlledTextArea control={control} name='descricao' label='Descrição' disabled={onlyView} />
+        <ControlledTextArea
+          control={control}
+          name='descricao'
+          label='Descrição'
+          disabled={onlyView}
+        />
         <ControlledColorPicker control={control} name='cor' horizontal disabled={onlyView} />
       </FancyScrollView>
 

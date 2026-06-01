@@ -39,36 +39,57 @@ export default function ProximaEscalaCard({ escala, onPress }: ProximaEscalaCard
       <View style={styles.topRow}>
         <View style={styles.dateSection}>
           <View style={styles.dateLineRow}>
-            <FancyText size="large" type="bold" color={palette.fonts.dark}>
+            <FancyText size='large' type='bold' color={palette.fonts.dark}>
               {dia}
             </FancyText>
-            <FancyText size="large" type="bold" color={palette.primary}>
+            <FancyText size='large' type='bold' color={palette.primary}>
               {mes}
             </FancyText>
           </View>
-          <FancyText size="extraSmall" type="semiBold" color={palette.fonts.inactive}>
+          <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
             {diaSemanaCapitalized} {hora}
           </FancyText>
         </View>
 
-        <View style={[styles.statusDot, { backgroundColor: escala.isConfirmado ? palette.confirm : palette.warning }]} />
+        <View
+          style={[
+            styles.statusDot,
+            { backgroundColor: escala.isConfirmado ? palette.confirm : palette.warning },
+          ]}
+        />
       </View>
 
       {/* Meio: Evento + Função + Ensaio */}
       <View style={styles.infoSection}>
         <View style={styles.infoRow}>
           <View style={styles.infoIconContainer}>
-            <DefaultIcons.Custom library="MaterialCommunityIcons" name="calendar-text" size={12} color={palette.primary} />
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='calendar-text'
+              size={12}
+              color={palette.primary}
+            />
           </View>
-          <FancyText size="small" type="semiBold" color={palette.fonts.inactive} numberOfLines={1} style={{ flex: 1 }}>
+          <FancyText
+            size='small'
+            type='semiBold'
+            color={palette.fonts.inactive}
+            numberOfLines={1}
+            style={{ flex: 1 }}
+          >
             {escala.eventoNome}
           </FancyText>
         </View>
         <View style={styles.infoRow}>
           <View style={styles.infoIconContainer}>
-            <DefaultIcons.Custom library="MaterialCommunityIcons" name="briefcase-outline" size={12} color={palette.primary} />
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='briefcase-outline'
+              size={12}
+              color={palette.primary}
+            />
           </View>
-          <FancyText size="small" type="semiBold" color={palette.fonts.inactive} numberOfLines={1}>
+          <FancyText size='small' type='semiBold' color={palette.fonts.inactive} numberOfLines={1}>
             {escala.funcaoNome}
           </FancyText>
         </View>
@@ -76,8 +97,19 @@ export default function ProximaEscalaCard({ escala, onPress }: ProximaEscalaCard
           <>
             <View style={styles.separator} />
             <View style={[styles.infoRow, rehearsalBadgeStyle(palette)]}>
-              <DefaultIcons.Custom library="MaterialCommunityIcons" name="music-box-outline" size={14} color={palette.primary} />
-              <FancyText size="small" type="semiBold" color={palette.primary} numberOfLines={1} style={{ flex: 1 }}>
+              <DefaultIcons.Custom
+                library='MaterialCommunityIcons'
+                name='music-box-outline'
+                size={14}
+                color={palette.primary}
+              />
+              <FancyText
+                size='small'
+                type='semiBold'
+                color={palette.primary}
+                numberOfLines={1}
+                style={{ flex: 1 }}
+              >
                 {ensaioInfo.label}
               </FancyText>
             </View>
@@ -90,16 +122,26 @@ export default function ProximaEscalaCard({ escala, onPress }: ProximaEscalaCard
       <View style={styles.infoRow}>
         <View style={styles.infoIconContainer}>
           {escala.ministerioLogoUrl ? (
-            <Image source={{ uri: escala.ministerioLogoUrl }} style={styles.ministerioLogo} contentFit="cover" />
+            <Image
+              source={{ uri: escala.ministerioLogoUrl }}
+              style={styles.ministerioLogo}
+              contentFit='cover'
+            />
           ) : (
             <View style={styles.ministerioLogoCircle}>
-              <FancyText size={7} type="bold" color={palette.fonts.light}>
+              <FancyText size={7} type='bold' color={palette.fonts.light}>
                 {escala.ministerioNome.charAt(0).toUpperCase()}
               </FancyText>
             </View>
           )}
         </View>
-        <FancyText size="extraSmall" type="medium" color={palette.fonts.inactive} numberOfLines={1} style={{ flex: 1 }}>
+        <FancyText
+          size='extraSmall'
+          type='medium'
+          color={palette.fonts.inactive}
+          numberOfLines={1}
+          style={{ flex: 1 }}
+        >
           {escala.ministerioNome}
         </FancyText>
       </View>

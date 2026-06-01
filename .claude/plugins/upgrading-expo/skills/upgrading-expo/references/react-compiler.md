@@ -1,6 +1,7 @@
 # React Compiler
 
-React Compiler is stable in Expo SDK 54 and later. It automatically memoizes components and hooks, eliminating the need for manual `useMemo`, `useCallback`, and `React.memo`.
+React Compiler is stable in Expo SDK 54 and later. It automatically memoizes components and hooks,
+eliminating the need for manual `useMemo`, `useCallback`, and `React.memo`.
 
 ## Enabling React Compiler
 
@@ -46,7 +47,8 @@ const callback = () => doSomething(a);
 
 ## Verifying It's Working
 
-React Compiler runs at build time. Check the Metro bundler output for compilation messages. You can also use React DevTools to verify components are being optimized.
+React Compiler runs at build time. Check the Metro bundler output for compilation messages. You can
+also use React DevTools to verify components are being optimized.
 
 ## Troubleshooting
 
@@ -56,4 +58,5 @@ If you encounter issues:
 2. Clear Metro cache: `npx expo start --clear`
 3. Check for incompatible patterns in your code (rare)
 
-React Compiler is designed to work with idiomatic React code. If it can't safely optimize a component, it skips that component without breaking your app.
+React Compiler is designed to work with idiomatic React code. If it can't safely optimize a
+component, it skips that component without breaking your app.

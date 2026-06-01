@@ -40,7 +40,13 @@ export default function FancyCardLetter({ letter = 'A', ...props }: FancyCardLet
     <FancyBaseCard
       {...props}
       leftItem={<CardLetter letter={letter} styles={styles} palette={palette} />}
-      rightItem={isValidElement(props.actionButtons) ? props.actionButtons : <FancyActionButtons actions={props.actionButtons} />}
+      rightItem={
+        isValidElement(props.actionButtons) ? (
+          props.actionButtons
+        ) : (
+          <FancyActionButtons actions={props.actionButtons} />
+        )
+      }
     />
   );
 }

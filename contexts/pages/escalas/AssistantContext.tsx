@@ -24,7 +24,13 @@ export interface AssistenteEscalaContextData {
 
 const AssistenteEscalaContext = createContext<AssistenteEscalaContextData>({} as any);
 
-export function AssistenteEscalaProvider({ ministerioId, children }: { ministerioId: string; children: React.ReactNode }) {
+export function AssistenteEscalaProvider({
+  ministerioId,
+  children,
+}: {
+  ministerioId: string;
+  children: React.ReactNode;
+}) {
   const [index, setIndex] = useState(0);
   const [resultado, setResultado] = useState<any>(null);
   const [isShouldLoadEvents, setShouldLoadEvents] = useState(true);
@@ -53,7 +59,9 @@ export function AssistenteEscalaProvider({ ministerioId, children }: { ministeri
     [ministerioId, index, resultado, isShouldLoadEvents, isShouldLoadMembers, tempoGeracaoEscala],
   );
 
-  return <AssistenteEscalaContext.Provider value={value}>{children}</AssistenteEscalaContext.Provider>;
+  return (
+    <AssistenteEscalaContext.Provider value={value}>{children}</AssistenteEscalaContext.Provider>
+  );
 }
 
 export function useAssistenteEscala() {

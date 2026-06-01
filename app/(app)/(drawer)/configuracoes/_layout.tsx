@@ -10,7 +10,10 @@ export default function ConfiguracoesLayout() {
         header: (props) => <FancyPageHeader leftButton='menu' {...props} />,
       }}
     >
-      <Stack.Screen name='index' options={{ title: 'Configurações', headerRight: () => <MainHeaderButtons /> }} />
+      <Stack.Screen
+        name='index'
+        options={{ title: 'Configurações', headerRight: () => <MainHeaderButtons /> }}
+      />
     </Stack>
   );
 }

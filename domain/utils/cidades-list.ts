@@ -58,9 +58,7 @@ const CIDADES_POR_UF_FALLBACK: Record<string, DropDownItemProps<string>[]> = {
     { title: 'Crato', value: 'Crato' },
     { title: 'Itapipoca', value: 'Itapipoca' },
   ],
-  DF: [
-    { title: 'Brasília', value: 'Brasília' },
-  ],
+  DF: [{ title: 'Brasília', value: 'Brasília' }],
   ES: [
     { title: 'Vitória', value: 'Vitória' },
     { title: 'Vila Velha', value: 'Vila Velha' },
@@ -251,9 +249,7 @@ function cidadesToDropDownItems(cidades: string[]): DropDownItemProps<string>[] 
  * @param uf Sigla do estado
  * @returns Promise com lista de cidades
  */
-export async function getCidadesPorUf(
-  uf: string,
-): Promise<DropDownItemProps<string>[]> {
+export async function getCidadesPorUf(uf: string): Promise<DropDownItemProps<string>[]> {
   if (!uf) return [];
 
   const cacheKey = `${CACHE_KEY_PREFIX}${uf}`;
@@ -280,15 +276,11 @@ export async function getCidadesPorUf(
     // 4. Fallback para lista local
     console.log(`Usando lista fallback para ${uf}`);
     const fallbackCidades = CIDADES_POR_UF_FALLBACK[uf] || [];
-    return fallbackCidades.sort((a, b) =>
-      a.title.localeCompare(b.title, 'pt-BR'),
-    );
+    return fallbackCidades.sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
   }
 }
 
-export async function getCidadesComCodigoPorUf(
-  uf: string,
-): Promise<DropDownItemProps<string>[]> {
+export async function getCidadesComCodigoPorUf(uf: string): Promise<DropDownItemProps<string>[]> {
   if (!uf) return [];
 
   const cacheKey = `${CACHE_KEY_PREFIX}${uf}_codigos`;

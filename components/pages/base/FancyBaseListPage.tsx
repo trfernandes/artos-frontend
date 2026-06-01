@@ -8,7 +8,9 @@ type FancyBaseListPageProps<ItemT> = {
   topContent?: React.ReactNode;
 };
 
-export default function FancyListPage<ItemT>(props: FancyBasePageProps & FancyBaseListPageProps<ItemT>) {
+export default function FancyListPage<ItemT>(
+  props: FancyBasePageProps & FancyBaseListPageProps<ItemT>,
+) {
   return (
     <FancyBasePage
       {...props}

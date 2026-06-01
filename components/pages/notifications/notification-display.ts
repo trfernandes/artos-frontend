@@ -46,40 +46,69 @@ function formatDateTimeLabel(value?: string) {
 function scaleSubtitle(notification: ResponseNotificacaoDto, payload: Payload) {
   const eventoNome = firstString(payload, ['eventoNome', 'nomeEvento', 'evento']);
   const funcaoNome = firstString(payload, ['funcaoNome', 'nomeFuncao', 'funcao']);
-  const dateSource = firstString(payload, ['dataOcorrencia', 'dataEvento', 'selectedDate', 'date', 'data']);
+  const dateSource = firstString(payload, [
+    'dataOcorrencia',
+    'dataEvento',
+    'selectedDate',
+    'date',
+    'data',
+  ]);
   const dateLabel = formatDateTimeLabel(dateSource);
 
-  const parts = [
-    eventoNome,
-    funcaoNome,
-    dateLabel,
-  ].filter(Boolean);
+  const parts = [eventoNome, funcaoNome, dateLabel].filter(Boolean);
 
   if (parts.length) return parts.join(' · ');
-  return notification.mensagem?.trim() || notification.titulo?.trim() || 'Toque para ver suas escalas.';
+  return (
+    notification.mensagem?.trim() || notification.titulo?.trim() || 'Toque para ver suas escalas.'
+  );
 }
 
 function personSubtitle(notification: ResponseNotificacaoDto, payload: Payload) {
-  const nome = firstString(payload, ['voluntarioNome', 'nomeVoluntario', 'nome', 'convidadoNome', 'nomeConvidado']);
-  const email = firstString(payload, ['voluntarioEmail', 'emailVoluntario', 'email', 'convidadoEmail', 'emailConvidado']);
+  const nome = firstString(payload, [
+    'voluntarioNome',
+    'nomeVoluntario',
+    'nome',
+    'convidadoNome',
+    'nomeConvidado',
+  ]);
+  const email = firstString(payload, [
+    'voluntarioEmail',
+    'emailVoluntario',
+    'email',
+    'convidadoEmail',
+    'emailConvidado',
+  ]);
   const parts = [nome, email].filter(Boolean);
-  return parts.length ? parts.join(' · ') : notification.mensagem?.trim() || notification.titulo?.trim() || 'Toque para ver os detalhes.';
+  return parts.length
+    ? parts.join(' · ')
+    : notification.mensagem?.trim() || notification.titulo?.trim() || 'Toque para ver os detalhes.';
 }
 
 function inviteSubtitle(notification: ResponseNotificacaoDto, payload: Payload) {
   const nome = firstString(payload, ['convidadoNome', 'nomeConvidado', 'nome', 'voluntarioNome']);
-  const email = firstString(payload, ['convidadoEmail', 'emailConvidado', 'email', 'voluntarioEmail']);
+  const email = firstString(payload, [
+    'convidadoEmail',
+    'emailConvidado',
+    'email',
+    'voluntarioEmail',
+  ]);
   const expiresAt = firstString(payload, ['expiraEm', 'dataExpiracao', 'expiresAt', 'expiredAt']);
   const expiresAtLabel = expiresAt ? formatAppDateTime(expiresAt, 'dd/MM/yyyy') : undefined;
-  const parts = [nome, email, expiresAtLabel ? `Expirou em ${expiresAtLabel}` : undefined].filter(Boolean);
-  return parts.length ? parts.join(' · ') : notification.mensagem?.trim() || notification.titulo?.trim() || 'Convite expirado.';
+  const parts = [nome, email, expiresAtLabel ? `Expirou em ${expiresAtLabel}` : undefined].filter(
+    Boolean,
+  );
+  return parts.length
+    ? parts.join(' · ')
+    : notification.mensagem?.trim() || notification.titulo?.trim() || 'Convite expirado.';
 }
 
 function churchLinkSubtitle(notification: ResponseNotificacaoDto, payload: Payload) {
   const igrejaNome = firstString(payload, ['igrejaNome', 'nomeIgreja']);
   const voluntarioNome = firstString(payload, ['voluntarioNome', 'nomeVoluntario', 'nome']);
   const parts = [igrejaNome, voluntarioNome].filter(Boolean);
-  return parts.length ? parts.join(' · ') : notification.mensagem?.trim() || notification.titulo?.trim() || 'Toque para ver os detalhes.';
+  return parts.length
+    ? parts.join(' · ')
+    : notification.mensagem?.trim() || notification.titulo?.trim() || 'Toque para ver os detalhes.';
 }
 
 export function getNotificationSubtitle(notification: ResponseNotificacaoDto) {
@@ -104,6 +133,10 @@ export function getNotificationSubtitle(notification: ResponseNotificacaoDto) {
     case NotificacaoTipoEnum.SistemaAlertaAdmin:
     case NotificacaoTipoEnum.Generic:
     default:
-      return notification.mensagem?.trim() || notification.titulo?.trim() || 'Toque para ver os detalhes.';
+      return (
+        notification.mensagem?.trim() ||
+        notification.titulo?.trim() ||
+        'Toque para ver os detalhes.'
+      );
   }
 }

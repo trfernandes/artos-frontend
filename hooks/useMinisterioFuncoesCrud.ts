@@ -4,8 +4,16 @@ import { UpdateMinisterioFuncaoDto } from '../domain/dtos/MinisterioFuncao/minis
 import { MinisterioFuncoesRepository } from '../domain/services/MinisterioFuncoesRepository';
 import { ExternalUseCrudParams, useCrud } from './useCrud';
 
-export function useMinisterioFuncoesCrud({ autoFetch = false, initialParams = {} }: ExternalUseCrudParams) {
-  return useCrud<ResponseMinisterioFuncaoDto, any, CreateMinisterioFuncaoDto, UpdateMinisterioFuncaoDto>({
+export function useMinisterioFuncoesCrud({
+  autoFetch = false,
+  initialParams = {},
+}: ExternalUseCrudParams) {
+  return useCrud<
+    ResponseMinisterioFuncaoDto,
+    any,
+    CreateMinisterioFuncaoDto,
+    UpdateMinisterioFuncaoDto
+  >({
     queryKey: 'ministerio-funcoes',
     autoFetch,
     initialParams,

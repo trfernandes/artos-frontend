@@ -14,7 +14,10 @@ import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import { EscalaTemplateFormData } from '../../../../domain/schemas/escalaTemplateSchema';
 import { StyleSheet, View } from 'react-native';
 import { useVoluntariosDoMinisterioCrud } from '../../../../hooks/useVoluntariosDoMinisterioCrud';
-import { EscalaTemplateTipoEnum, EscalaTemplateTipoEnumMap } from '../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
+import {
+  EscalaTemplateTipoEnum,
+  EscalaTemplateTipoEnumMap,
+} from '../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
 import { MinisterioFuncaoStatusEnum } from '../../../../domain/enums/MinisterioFuncao/ministerio-funcao-status.enum';
 
 export interface TemplateFormProps {
@@ -24,13 +27,19 @@ export interface TemplateFormProps {
   isLoading?: boolean;
 }
 
-export default function TemplateForm({ mode = 'add', ministerioId, onSave, isLoading = false }: TemplateFormProps) {
+export default function TemplateForm({
+  mode = 'add',
+  ministerioId,
+  onSave,
+  isLoading = false,
+}: TemplateFormProps) {
   const form = useFormContext<EscalaTemplateFormData>();
   const tipoWatch = form.watch('tipo');
   const funcoesWatch = form.watch('funcoes');
   const voluntariosWatch = form.watch('voluntarios');
 
-  const { ministerioVoluntariosDropDownList, ministerioVoluntariosList } = useVoluntariosDoMinisterioCrud(ministerioId);
+  const { ministerioVoluntariosDropDownList, ministerioVoluntariosList } =
+    useVoluntariosDoMinisterioCrud(ministerioId);
 
   //Buscar Funções
   const funcoesGetParams = useMemo(() => {
@@ -72,12 +81,16 @@ export default function TemplateForm({ mode = 'add', ministerioId, onSave, isLoa
   }, [ministerioId, funcoesList]);
 
   const respSetListFuncoesDropDownList = useMemo(() => {
-    const filteredFuncoes = funcoesDropDownList.filter((f) => funcoesWatch?.some((fw: any) => fw.funcaoId === f.value));
+    const filteredFuncoes = funcoesDropDownList.filter((f) =>
+      funcoesWatch?.some((fw: any) => fw.funcaoId === f.value),
+    );
     return [{ title: 'Nenhum', value: undefined }, ...filteredFuncoes];
   }, [funcoesDropDownList]);
 
   const respSetListVoluntariosDropDownList = useMemo(() => {
-    const filteredVoluntarios = ministerioVoluntariosDropDownList.filter((v) => voluntariosWatch?.some((vw: any) => vw.voluntarioId === v.value));
+    const filteredVoluntarios = ministerioVoluntariosDropDownList.filter((v) =>
+      voluntariosWatch?.some((vw: any) => vw.voluntarioId === v.value),
+    );
     return [{ title: 'Nenhum', value: undefined }, ...filteredVoluntarios];
   }, [ministerioVoluntariosDropDownList]);
 
@@ -85,7 +98,12 @@ export default function TemplateForm({ mode = 'add', ministerioId, onSave, isLoa
 
   return (
     <FancyPageView style={[styles.container, { pointerEvents: isFormDisabled ? 'none' : 'auto' }]}>
-      <ControlledTextInput control={form.control} name={'nome'} label='Nome' disabled={isFormDisabled} />
+      <ControlledTextInput
+        control={form.control}
+        name={'nome'}
+        label='Nome'
+        disabled={isFormDisabled}
+      />
       <ControlledBottomSheetSelect
         control={form.control}
         name={'tipo'}
@@ -107,7 +125,11 @@ export default function TemplateForm({ mode = 'add', ministerioId, onSave, isLoa
               disabled={isFormDisabled}
             />
             <View style={{ marginTop: 3, flex: 1 }}>
-              <TemplateFuncoesList funcoesList={funcoesDropDownList} disabled={isFormDisabled} ministerioId={ministerioId ?? ''} />
+              <TemplateFuncoesList
+                funcoesList={funcoesDropDownList}
+                disabled={isFormDisabled}
+                ministerioId={ministerioId ?? ''}
+              />
             </View>
             <FancyErrorText message={form.formState.errors.funcoes?.message!} />
           </>

@@ -37,7 +37,12 @@ export default function DashboardCard({
         surfaceVariant === 'scaleCard' && styles.scaleCardContainer,
       ]}
     >
-      <View style={[styles.iconContainer, { backgroundColor: iconBackgroundColor || ColorUtils.withAlpha(palette.primary, 0.15) }]}>
+      <View
+        style={[
+          styles.iconContainer,
+          { backgroundColor: iconBackgroundColor || ColorUtils.withAlpha(palette.primary, 0.15) },
+        ]}
+      >
         <DefaultIcons.Custom
           library={icon.library}
           name={icon.name}
@@ -49,7 +54,7 @@ export default function DashboardCard({
       <View style={styles.centerContent}>
         <FancyText
           size={16}
-          type="bold"
+          type='bold'
           color={palette.fonts.dark}
           numberOfLines={1}
           adjustsFontSizeToFit
@@ -60,8 +65,8 @@ export default function DashboardCard({
         </FancyText>
 
         <FancyText
-          size="medium"
-          type="semiBold"
+          size='medium'
+          type='semiBold'
           color={palette.fonts.inactive}
           numberOfLines={1}
           style={styles.fitText}
@@ -71,8 +76,8 @@ export default function DashboardCard({
 
         {subtitle && (
           <FancyText
-            size="extraSmall"
-            type="normal"
+            size='extraSmall'
+            type='normal'
             color={palette.fonts.inactive}
             numberOfLines={1}
             adjustsFontSizeToFit

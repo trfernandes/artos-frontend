@@ -1,5 +1,8 @@
 import { useForm } from 'react-hook-form';
-import { EscalaEventoTemplateFixoFormData, EscalaEventoTemplateFixoSchema } from '../../../../../domain/schemas/escalaSchema';
+import {
+  EscalaEventoTemplateFixoFormData,
+  EscalaEventoTemplateFixoSchema,
+} from '../../../../../domain/schemas/escalaSchema';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
 import ControlledSearchSelect from '../../../../forms/ControlledSearchSelect';
 import FancyModalDialog, { FancyModalDialogProps } from '../../../../modal/FancyModalDialog';
@@ -37,7 +40,10 @@ export default function EscalaFormFixoModal({
         form.handleSubmit(
           (data) => {
             const isValid = validateUniqueFuncaoOnVoluntario(data);
-            if (!isValid) form.setError('funcaoId', { message: 'Essa função já foi cadastrada para o usuário' });
+            if (!isValid)
+              form.setError('funcaoId', {
+                message: 'Essa função já foi cadastrada para o usuário',
+              });
             else modalProps?.onButton2Press?.(data);
           },
           (errors) => {

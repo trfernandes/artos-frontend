@@ -7,7 +7,8 @@ license: MIT
 
 # Deployment
 
-This skill covers deploying Expo applications across all platforms using EAS (Expo Application Services).
+This skill covers deploying Expo applications across all platforms using EAS (Expo Application
+Services).
 
 ## References
 

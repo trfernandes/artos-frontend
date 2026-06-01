@@ -23,7 +23,8 @@ type TopElementValueMap = {
   check: { checked: boolean; image: ImageSourcePropType | string };
 };
 
-export type DataType<T extends TopElementType = TopElementType> = BaseDataType & TopElementValueMap[T];
+export type DataType<T extends TopElementType = TopElementType> = BaseDataType &
+  TopElementValueMap[T];
 
 export interface FancyVerticalContainerCardProps<T extends TopElementType = TopElementType> {
   topElementType: T;
@@ -38,7 +39,9 @@ export interface FancyVerticalContainerCardProps<T extends TopElementType = TopE
   containerStyle?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
 
-  onChangeValue?: T extends 'check' ? (item: DataType<'check'>, value: boolean, index: number) => void : undefined;
+  onChangeValue?: T extends 'check'
+    ? (item: DataType<'check'>, value: boolean, index: number) => void
+    : undefined;
   listEmptyProps?: FancyListEmptyProps;
 }
 

@@ -5,7 +5,10 @@ import FancyButton from '../../../buttons/FancyButton';
 import FancyBottomSheetSelect from '../../../fields/FancyBottomSheetSelect';
 import FancyCheckbox from '../../../FancyCheckbox';
 import FancyText from '../../../FancyText';
-import { ResponseMinisterioAcessoDto, ResponseMinisterioAcessoMemberDto } from '../../../../domain/dtos/MinisterioAcesso/ministerio-acesso.response';
+import {
+  ResponseMinisterioAcessoDto,
+  ResponseMinisterioAcessoMemberDto,
+} from '../../../../domain/dtos/MinisterioAcesso/ministerio-acesso.response';
 import { ResponseVoluntarioDto } from '../../../../domain/dtos/Voluntario/voluntario.response';
 import {
   RecursoPermissaoEnum,
@@ -36,7 +39,14 @@ const createEmptyPermissionMap = (): PermissionMap => ({
   [RecursoPermissaoEnum.RepertorioSetlist]: new Set<TipoPermissaoEnum>(),
 });
 
-export default function AuxiliarAcessosEditorSheet({ visible, mode, accessData, auxiliar, onClose, onSave }: Props) {
+export default function AuxiliarAcessosEditorSheet({
+  visible,
+  mode,
+  accessData,
+  auxiliar,
+  onClose,
+  onSave,
+}: Props) {
   const palette = usePallete();
   const [voluntarioId, setVoluntarioId] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -45,7 +55,8 @@ export default function AuxiliarAcessosEditorSheet({ visible, mode, accessData, 
   useEffect(() => {
     if (!visible) return;
     const nextMap = createEmptyPermissionMap();
-    const sourceRows = (auxiliar?.permissoes?.length ? auxiliar.permissoes : accessData?.pacoteAuxiliarPadrao) ?? [];
+    const sourceRows =
+      (auxiliar?.permissoes?.length ? auxiliar.permissoes : accessData?.pacoteAuxiliarPadrao) ?? [];
     sourceRows.forEach((row) => {
       nextMap[row.recurso] = new Set(row.permissoes ?? []);
     });
@@ -123,7 +134,9 @@ export default function AuxiliarAcessosEditorSheet({ visible, mode, accessData, 
     >
       <View style={styles.headerBlock}>
         <FancyText type='bold' size='medium'>
-          {mode === 'create' ? 'Defina o auxiliar e os acessos operacionais' : auxiliar?.voluntario?.nome}
+          {mode === 'create'
+            ? 'Defina o auxiliar e os acessos operacionais'
+            : auxiliar?.voluntario?.nome}
         </FancyText>
         <FancyText size='small' color={palette.fonts.inactive}>
           Auxiliares ajudam na operação do ministério com acessos definidos pela liderança.
@@ -151,7 +164,13 @@ export default function AuxiliarAcessosEditorSheet({ visible, mode, accessData, 
 
       <View style={styles.groupsContainer}>
         {(Object.values(RecursoPermissaoEnum) as RecursoPermissaoEnum[]).map((recurso) => (
-          <View key={recurso} style={[styles.groupCard, { borderColor: palette.border, backgroundColor: palette.backgroundColor2 }]}>
+          <View
+            key={recurso}
+            style={[
+              styles.groupCard,
+              { borderColor: palette.border, backgroundColor: palette.backgroundColor2 },
+            ]}
+          >
             <FancyText type='bold' size='small'>
               {RecursoPermissaoEnumLabel[recurso]}
             </FancyText>

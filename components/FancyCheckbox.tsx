@@ -75,7 +75,15 @@ function createStyles(Pallete: ThemePalette) {
     checkbox: { borderRadius: 50, justifyContent: 'center', alignItems: 'center' },
     checked: { backgroundColor: Pallete.primary },
     disabledChecked: { backgroundColor: Pallete.border },
-    unchecked: { backgroundColor: Pallete.backgroundColor, borderWidth: 1.5, borderColor: Pallete.primary },
-    disabledUnchecked: { backgroundColor: Pallete.backgroundColor, borderWidth: 1.5, borderColor: Pallete.border },
+    unchecked: {
+      backgroundColor: Pallete.backgroundColor,
+      borderWidth: 1.5,
+      borderColor: Pallete.primary,
+    },
+    disabledUnchecked: {
+      backgroundColor: Pallete.backgroundColor,
+      borderWidth: 1.5,
+      borderColor: Pallete.border,
+    },
   });
 }

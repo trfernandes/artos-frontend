@@ -59,9 +59,9 @@ const buildDataUri = (base64: string, mimeType?: string) => {
 
 export const ImageUtils = {
   async uriToBase64(uri: string) {
-//     return await FileSystem.readAsStringAsync(uri, {
-//       encoding: FileSystem.EncodingType.Base64,
-//     });
+    //     return await FileSystem.readAsStringAsync(uri, {
+    //       encoding: FileSystem.EncodingType.Base64,
+    //     });
   },
   stringToBase64(base64: string, mimeType?: string) {
     const sanitized = base64?.trim();
@@ -162,7 +162,10 @@ export const ImageUtils = {
 
     return undefined;
   },
-  normalizeImageSource(source?: string | ImageSourcePropType, options?: { mimeType?: string }): ImageSourcePropType | undefined {
+  normalizeImageSource(
+    source?: string | ImageSourcePropType,
+    options?: { mimeType?: string },
+  ): ImageSourcePropType | undefined {
     if (source === undefined || source === null) {
       return undefined;
     }
@@ -196,7 +199,8 @@ export const ImageUtils = {
   },
 };
 
-const base64Regex = /^(?:data:[^;]+;base64,)?(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+const base64Regex =
+  /^(?:data:[^;]+;base64,)?(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
 
 export const base64StringSchema = z
   .string()

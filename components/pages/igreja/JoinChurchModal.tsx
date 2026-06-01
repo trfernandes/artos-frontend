@@ -147,25 +147,27 @@ export default function JoinChurchModal(props: FancyModalDialogProps<any>) {
   };
 
   const expiresText = preview?.expiresAt
-    ? formatInTimeZone(new Date(preview.expiresAt), 'America/Sao_Paulo', "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
+    ? formatInTimeZone(new Date(preview.expiresAt), 'America/Sao_Paulo', "dd/MM/yyyy 'às' HH:mm", {
+        locale: ptBR,
+      })
     : 'Sem expiração';
 
   return (
     <FancyModalDialog
       {...props}
-      title="Vincular a uma igreja"
+      title='Vincular a uma igreja'
       centerContainerStyle={styles.centerContainer}
       button1={{ label: 'Fechar', visible: true }}
       button2={{ visible: false }}
     >
-      <FancyText size="small" style={styles.description}>
+      <FancyText size='small' style={styles.description}>
         Digite o código de convite fornecido pela liderança da sua igreja.
       </FancyText>
 
       {!preview ? (
         <>
           <FancyTextInput
-            placeholder="Código da igreja"
+            placeholder='Código da igreja'
             value={token}
             disabled={loadingPreview}
             inputProps={{
@@ -186,15 +188,15 @@ export default function JoinChurchModal(props: FancyModalDialogProps<any>) {
         <>
           <View style={styles.previewCard}>
             <FancyImage source={{ uri: DEFAULT_LOGO }} size={60} style={styles.logo} />
-            <FancyText type="semiBold" size="large" style={styles.churchName}>
+            <FancyText type='semiBold' size='large' style={styles.churchName}>
               {preview.igreja.nome}
             </FancyText>
-            <FancyText size="small" style={styles.infoText}>
+            <FancyText size='small' style={styles.infoText}>
               Válido até: {expiresText}
             </FancyText>
             {preview.autoApprove && (
               <View style={styles.autoApproveBadge}>
-                <FancyText size="extraSmall" style={styles.autoApproveText}>
+                <FancyText size='extraSmall' style={styles.autoApproveText}>
                   Aprovação automática
                 </FancyText>
               </View>
@@ -209,8 +211,8 @@ export default function JoinChurchModal(props: FancyModalDialogProps<any>) {
               containerStyle={styles.flexButton}
             />
             <FancyButton
-              label="Outro código"
-              type="outlined"
+              label='Outro código'
+              type='outlined'
               onPress={handleReset}
               disabled={loadingAccept}
               containerStyle={styles.flexButton}
@@ -220,8 +222,8 @@ export default function JoinChurchModal(props: FancyModalDialogProps<any>) {
       )}
 
       <FancyButton
-        label="Ver minhas solicitações"
-        type="text"
+        label='Ver minhas solicitações'
+        type='text'
         onPress={handleViewRequests}
         containerStyle={styles.linkButton}
       />

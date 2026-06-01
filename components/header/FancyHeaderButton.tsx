@@ -11,7 +11,12 @@ export type FancyHeaderButtonProps = {
   containerStyle?: StyleProp<ViewStyle>;
 };
 
-export default function FancyHeaderButton({ icon, onPress, buttonProps, showBackground = false }: FancyHeaderButtonProps) {
+export default function FancyHeaderButton({
+  icon,
+  onPress,
+  buttonProps,
+  showBackground = false,
+}: FancyHeaderButtonProps) {
   const palette = usePallete();
 
   return (

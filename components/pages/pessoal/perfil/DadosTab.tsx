@@ -46,9 +46,10 @@ function ProfileActionItem({
         styles.actionRow,
         {
           borderColor: ColorUtils.withAlpha(accentColor, tone === 'danger' ? 0.18 : 0.14),
-          backgroundColor: tone === 'danger'
-            ? ColorUtils.withAlpha(palette.error, 0.055)
-            : palette.backgroundColor2,
+          backgroundColor:
+            tone === 'danger'
+              ? ColorUtils.withAlpha(palette.error, 0.055)
+              : palette.backgroundColor2,
         },
       ]}
     >
@@ -59,11 +60,7 @@ function ProfileActionItem({
             { backgroundColor: ColorUtils.withAlpha(accentColor, tone === 'danger' ? 0.12 : 0.1) },
           ]}
         >
-          <DefaultIcons.Custom
-            {...icon}
-            color={iconColor}
-            size={icon.size ?? 14}
-          />
+          <DefaultIcons.Custom {...icon} color={iconColor} size={icon.size ?? 14} />
         </View>
         <View style={styles.actionTextBlock}>
           <FancyText
@@ -92,7 +89,9 @@ function ProfileActionItem({
         library='FontAwesome6'
         name='chevron-right'
         size={11}
-        color={tone === 'danger' ? ColorUtils.withAlpha(palette.error, 0.68) : palette.icons.inactive}
+        color={
+          tone === 'danger' ? ColorUtils.withAlpha(palette.error, 0.68) : palette.icons.inactive
+        }
       />
     </TouchableOpacity>
   );
@@ -190,7 +189,12 @@ export default function DadosTab({
         </View>
 
         <View style={styles.section}>
-          <FancyText size='small' type='bold' color={palette.fonts.inactive} style={styles.sectionTitle}>
+          <FancyText
+            size='small'
+            type='bold'
+            color={palette.fonts.inactive}
+            style={styles.sectionTitle}
+          >
             Segurança e conta
           </FancyText>
           <View style={styles.actionStack}>
@@ -211,7 +215,12 @@ export default function DadosTab({
         </View>
 
         <View style={styles.section}>
-          <FancyText size='small' type='bold' color={palette.fonts.inactive} style={styles.sectionTitle}>
+          <FancyText
+            size='small'
+            type='bold'
+            color={palette.fonts.inactive}
+            style={styles.sectionTitle}
+          >
             Legal
           </FancyText>
           <View style={styles.actionStack}>

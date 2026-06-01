@@ -5,7 +5,10 @@ import { Path } from 'react-hook-form';
 import FancyErrorText from './FancyErrorText';
 import { View } from 'react-native';
 
-interface ControlledFancyToggleProps<TFormValues extends FieldValues, TName extends Path<TFormValues>> extends Pick<
+interface ControlledFancyToggleProps<
+  TFormValues extends FieldValues,
+  TName extends Path<TFormValues>,
+> extends Pick<
   FancyToggleProps<PathValue<TFormValues, TName>>,
   'label' | 'option1' | 'option2' | 'disabled'
 > {
@@ -13,11 +16,10 @@ interface ControlledFancyToggleProps<TFormValues extends FieldValues, TName exte
   name: TName;
 }
 
-export default function ControlledToggle<TFormValues extends FieldValues, TName extends Path<TFormValues>>({
-  control,
-  name,
-  ...rest
-}: ControlledFancyToggleProps<TFormValues, TName>) {
+export default function ControlledToggle<
+  TFormValues extends FieldValues,
+  TName extends Path<TFormValues>,
+>({ control, name, ...rest }: ControlledFancyToggleProps<TFormValues, TName>) {
   return (
     <Controller
       control={control}

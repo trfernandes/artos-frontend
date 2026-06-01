@@ -9,7 +9,10 @@ class EscalaItensRepositoryClass extends BaseRepository<ResponseEscalaItemDto, a
     super(EscalaItensApi);
   }
 
-  async search(query: DynamicQuery, includeFotos: boolean = false): Promise<ResponseEscalaItemDto[]> {
+  async search(
+    query: DynamicQuery,
+    includeFotos: boolean = false,
+  ): Promise<ResponseEscalaItemDto[]> {
     return EscalaItensApi.search(query, includeFotos);
   }
 

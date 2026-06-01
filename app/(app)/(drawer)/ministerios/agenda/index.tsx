@@ -20,7 +20,8 @@ export default function MinisterioAgendaIndexPage() {
   const isLouvorMinisterio = useMemo(
     () =>
       igrejaAtiva?.ministerios?.some(
-        (ministerio) => ministerio.id === params.ministerioId && isLouvorMinisterioTipo(ministerio.tipo),
+        (ministerio) =>
+          ministerio.id === params.ministerioId && isLouvorMinisterioTipo(ministerio.tipo),
       ) ?? false,
     [igrejaAtiva?.ministerios, params.ministerioId],
   );
@@ -63,7 +64,9 @@ export default function MinisterioAgendaIndexPage() {
   );
 
   const daysEvents = useMemo(() => {
-    return eventos?.filter((e) => DateUtils.equal(DateUtilsApi.dateOnlyFromApi(e.dataOcorrencia), currentDate));
+    return eventos?.filter((e) =>
+      DateUtils.equal(DateUtilsApi.dateOnlyFromApi(e.dataOcorrencia), currentDate),
+    );
   }, [currentDate, currentMonth, eventos]);
 
   if (isLoading) return <FancyLoading />;
@@ -92,14 +95,19 @@ export default function MinisterioAgendaIndexPage() {
         onRefresh={handleRefresh}
         refreshing={isRefreshing}
         maintainVisibleContentPosition={undefined}
-        listEmptyProps={{ label: 'Nenhum evento neste dia...', icon: { library: 'MaterialCommunityIcons', name: 'calendar-blank-outline', size: 55 } }}
+        listEmptyProps={{
+          label: 'Nenhum evento neste dia...',
+          icon: { library: 'MaterialCommunityIcons', name: 'calendar-blank-outline', size: 55 },
+        }}
         keyExtractor={(item) => `${item.eventoId || item.id}-${item.dataOcorrencia}`}
         renderItem={({ item }) => {
           const eventoId = item.eventoId || item.id;
           return (
             <AgendaEventoCard
               data={item}
-              showEnsaio={isLouvorMinisterio || !!item.horarioEnsaio || !!item.evento?.horarioEnsaioPadrao}
+              showEnsaio={
+                isLouvorMinisterio || !!item.horarioEnsaio || !!item.evento?.horarioEnsaioPadrao
+              }
               onPress={() => {
                 setIsOpeningEvento(true);
                 requestAnimationFrame(() => {

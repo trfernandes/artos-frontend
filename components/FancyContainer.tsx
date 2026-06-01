@@ -13,7 +13,14 @@ export interface FancyContainerProps {
   titleStyle?: StyleProp<TextStyle>;
 }
 
-export default function FancyContainer({ title, icon, children, containerStyle, headerContainerStyle, titleStyle }: FancyContainerProps) {
+export default function FancyContainer({
+  title,
+  icon,
+  children,
+  containerStyle,
+  headerContainerStyle,
+  titleStyle,
+}: FancyContainerProps) {
   const palette = usePallete();
 
   return (

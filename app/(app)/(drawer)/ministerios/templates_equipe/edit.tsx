@@ -2,7 +2,10 @@ import { FormProvider, useForm } from 'react-hook-form';
 import TemplateForm from '../../../../../components/pages/ministerios/templates_equipe/TemplateForm';
 import { router, useLocalSearchParams } from 'expo-router';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { EscalaTemplateFormData, escalaTemplateSchema } from '../../../../../domain/schemas/escalaTemplateSchema';
+import {
+  EscalaTemplateFormData,
+  escalaTemplateSchema,
+} from '../../../../../domain/schemas/escalaTemplateSchema';
 import { useEscalaTemplatesCrud } from '../../../../../useEscalaTemplatesCrud';
 import { useCallback, useEffect, useMemo } from 'react';
 import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
@@ -87,7 +90,13 @@ export default function MinisterioTemplatesEditPage() {
         });
       },
       (errors) =>
-        console.log('Erro no submit do formulário\n', '=> Erros: ', strfyObj(errors), '\n=> Data: ', strfyObj(form.getValues())),
+        console.log(
+          'Erro no submit do formulário\n',
+          '=> Erros: ',
+          strfyObj(errors),
+          '\n=> Data: ',
+          strfyObj(form.getValues()),
+        ),
     ),
     [form.handleSubmit],
   );
@@ -96,7 +105,12 @@ export default function MinisterioTemplatesEditPage() {
 
   return (
     <FormProvider {...form}>
-      <TemplateForm mode='edit' ministerioId={ministerioId} onSave={handleOnSave} isLoading={isLoadingMutation} />
+      <TemplateForm
+        mode='edit'
+        ministerioId={ministerioId}
+        onSave={handleOnSave}
+        isLoading={isLoadingMutation}
+      />
     </FormProvider>
   );
 }

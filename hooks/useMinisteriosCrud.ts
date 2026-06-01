@@ -6,17 +6,29 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ResponseMinisterioDto } from '../domain/dtos/Ministerio/ministerio.response';
 import { CreateMinisterioDto } from '../domain/dtos/Ministerio/ministerio.create';
 import { UpdateMinisterioDto } from '../domain/dtos/Ministerio/ministerio.update';
-import { AddMinisterioFormData, AddMinisterioSchema } from '../domain/schemas/ministerioAdminSchema';
+import {
+  AddMinisterioFormData,
+  AddMinisterioSchema,
+} from '../domain/schemas/ministerioAdminSchema';
 import { useAuth } from '../contexts/AuthContext';
 
-export function useMinisteriosCrud({ autoFetch = false, initialParams = {}, muteMessages }: ExternalUseCrudParams = {}) {
+export function useMinisteriosCrud({
+  autoFetch = false,
+  initialParams = {},
+  muteMessages,
+}: ExternalUseCrudParams = {}) {
   const { igrejaAtiva } = useAuth();
 
   if (!igrejaAtiva) {
     throw new Error('Nenhuma igreja ativa selecionada');
   }
 
-  return useCrud<ResponseMinisterioDto, AddMinisterioFormData, CreateMinisterioDto, UpdateMinisterioDto>({
+  return useCrud<
+    ResponseMinisterioDto,
+    AddMinisterioFormData,
+    CreateMinisterioDto,
+    UpdateMinisterioDto
+  >({
     queryKey: 'ministerios',
     autoFetch,
     initialParams,

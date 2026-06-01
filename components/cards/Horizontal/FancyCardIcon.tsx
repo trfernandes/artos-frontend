@@ -41,8 +41,18 @@ export default function FancyCardIcon(props: FancyCardIconProps) {
     <FancyBaseCard
       {...props}
       containerStyle={[props.containerStyle, { paddingVertical: 7 }]}
-      leftItem={props.cardIcon ? <CardIcon icon={props.cardIcon} styles={styles} palette={palette} /> : undefined}
-      rightItem={isValidElement(props.actionButtons) ? props.actionButtons : <FancyActionButtons actions={props.actionButtons} />}
+      leftItem={
+        props.cardIcon ? (
+          <CardIcon icon={props.cardIcon} styles={styles} palette={palette} />
+        ) : undefined
+      }
+      rightItem={
+        isValidElement(props.actionButtons) ? (
+          props.actionButtons
+        ) : (
+          <FancyActionButtons actions={props.actionButtons} />
+        )
+      }
     />
   );
 }
@@ -67,7 +77,11 @@ function CardIcon({
         },
       ]}
     >
-      <DefaultIcons.Custom size={icon.size || 25} color={icon.color || palette.fonts.light} {...(icon as CustomIconProps)} />
+      <DefaultIcons.Custom
+        size={icon.size || 25}
+        color={icon.color || palette.fonts.light}
+        {...(icon as CustomIconProps)}
+      />
     </View>
   );
 }

@@ -23,11 +23,21 @@ export default function FancyValueLine({
 }) {
   return (
     <View style={[{ gap: 14 }, containerStyle]}>
-      <View style={[multiline ? styles.dataContainerMultiline : styles.dataContainer, dataContainerStyle]}>
+      <View
+        style={[
+          multiline ? styles.dataContainerMultiline : styles.dataContainer,
+          dataContainerStyle,
+        ]}
+      >
         <FancyText size={'small'} type='bold' style={styles.keyText} {...titleStyle}>
           {title}
         </FancyText>
-        <FancyText size='small' type='medium' style={multiline ? styles.valueTextMultiline : styles.valueText} {...valueStyle}>
+        <FancyText
+          size='small'
+          type='medium'
+          style={multiline ? styles.valueTextMultiline : styles.valueText}
+          {...valueStyle}
+        >
           {value}
         </FancyText>
       </View>
@@ -37,8 +47,19 @@ export default function FancyValueLine({
 }
 
 const styles = StyleSheet.create({
-  dataContainer: { flexDirection: 'row', gap: 10, justifyContent: 'flex-start', alignItems: 'flex-start', borderWidth: 0 },
-  dataContainerMultiline: { flexDirection: 'column', gap: 4, justifyContent: 'flex-start', borderWidth: 0 },
+  dataContainer: {
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    borderWidth: 0,
+  },
+  dataContainerMultiline: {
+    flexDirection: 'column',
+    gap: 4,
+    justifyContent: 'flex-start',
+    borderWidth: 0,
+  },
   dataDisplay: { width: '100%', justifyContent: 'space-between' },
   keyText: {
     borderWidth: 0,

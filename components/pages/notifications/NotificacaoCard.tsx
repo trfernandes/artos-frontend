@@ -55,50 +55,162 @@ export function getNotificationToneColor(tone: NotificationTone) {
 // Cada tipo mapeia para: ícone semântico + cor categórica + label orientado ao evento
 export const NOTIFICACAO_THEMES: Record<NotificacaoTipoEnum, NotificationCardTheme> = {
   // ── Escala: lembrete & publicação (azul — informativo) ──────────────────
-  [NotificacaoTipoEnum.EscalaLembrete]:              { icon: makeIcon('bell-ring-outline'),          tone: 'blue',   label: 'Lembrete de escala' },
-  [NotificacaoTipoEnum.EscalaPublicada]:             { icon: makeIcon('calendar-check'),             tone: 'blue',   label: 'Nova escala' },
-  [NotificacaoTipoEnum.EscalaAtualizada]:            { icon: makeIcon('calendar-edit'),              tone: 'amber',  label: 'Escala alterada' },
-  [NotificacaoTipoEnum.EscalaAlterada]:              { icon: makeIcon('calendar-edit'),              tone: 'amber',  label: 'Escala alterada' },
+  [NotificacaoTipoEnum.EscalaLembrete]: {
+    icon: makeIcon('bell-ring-outline'),
+    tone: 'blue',
+    label: 'Lembrete de escala',
+  },
+  [NotificacaoTipoEnum.EscalaPublicada]: {
+    icon: makeIcon('calendar-check'),
+    tone: 'blue',
+    label: 'Nova escala',
+  },
+  [NotificacaoTipoEnum.EscalaAtualizada]: {
+    icon: makeIcon('calendar-edit'),
+    tone: 'amber',
+    label: 'Escala alterada',
+  },
+  [NotificacaoTipoEnum.EscalaAlterada]: {
+    icon: makeIcon('calendar-edit'),
+    tone: 'amber',
+    label: 'Escala alterada',
+  },
 
   // ── Escala: cancelamento & conflito (vermelho — urgente) ────────────────
-  [NotificacaoTipoEnum.EscalaCancelada]:             { icon: makeIcon('calendar-remove'),            tone: 'red',    label: 'Escala cancelada' },
-  [NotificacaoTipoEnum.IndisponibilidadeConflito]:   { icon: makeIcon('calendar-alert'),             tone: 'red',    label: 'Conflito de escala' },
+  [NotificacaoTipoEnum.EscalaCancelada]: {
+    icon: makeIcon('calendar-remove'),
+    tone: 'red',
+    label: 'Escala cancelada',
+  },
+  [NotificacaoTipoEnum.IndisponibilidadeConflito]: {
+    icon: makeIcon('calendar-alert'),
+    tone: 'red',
+    label: 'Conflito de escala',
+  },
 
   // ── Confirmação de presença (âmbar — aguardando ação) ───────────────────
-  [NotificacaoTipoEnum.EscalaConfirmacaoSolicitada]: { icon: makeIcon('calendar-question'),          tone: 'amber',  label: 'Confirme sua presença' },
-  [NotificacaoTipoEnum.EscalaConfirmacaoPendente]:   { icon: makeIcon('calendar-question'),          tone: 'amber',  label: 'Confirme sua presença' },
+  [NotificacaoTipoEnum.EscalaConfirmacaoSolicitada]: {
+    icon: makeIcon('calendar-question'),
+    tone: 'amber',
+    label: 'Confirme sua presença',
+  },
+  [NotificacaoTipoEnum.EscalaConfirmacaoPendente]: {
+    icon: makeIcon('calendar-question'),
+    tone: 'amber',
+    label: 'Confirme sua presença',
+  },
 
   // ── Substituição: solicitação (roxo — requer decisão) ───────────────────
-  [NotificacaoTipoEnum.EscalaSubstituicaoSolicitada]:      { icon: makeIcon('account-switch'),       tone: 'violet', label: 'Substituição solicitada' },
-  [NotificacaoTipoEnum.EscalaSubstituicaoSolicitadaLider]: { icon: makeIcon('account-switch'),       tone: 'violet', label: 'Pedido de substituição' },
-  [NotificacaoTipoEnum.EscalaTrocaSolicitada]:             { icon: makeIcon('swap-horizontal'),      tone: 'violet', label: 'Troca de escala solicitada' },
+  [NotificacaoTipoEnum.EscalaSubstituicaoSolicitada]: {
+    icon: makeIcon('account-switch'),
+    tone: 'violet',
+    label: 'Substituição solicitada',
+  },
+  [NotificacaoTipoEnum.EscalaSubstituicaoSolicitadaLider]: {
+    icon: makeIcon('account-switch'),
+    tone: 'violet',
+    label: 'Pedido de substituição',
+  },
+  [NotificacaoTipoEnum.EscalaTrocaSolicitada]: {
+    icon: makeIcon('swap-horizontal'),
+    tone: 'violet',
+    label: 'Troca de escala solicitada',
+  },
 
   // ── Substituição: resolução (verde — concluído) ──────────────────────────
-  [NotificacaoTipoEnum.EscalaSubstituicaoAceita]:          { icon: makeIcon('account-check'),        tone: 'green',  label: 'Substituição aceita' },
-  [NotificacaoTipoEnum.EscalaSubstituicaoRecusada]:        { icon: makeIcon('account-cancel'),       tone: 'red',    label: 'Substituição recusada' },
-  [NotificacaoTipoEnum.EscalaSubstituicaoResolvidaLider]:  { icon: makeIcon('account-check-outline'),tone: 'green',  label: 'Substituição resolvida' },
-  [NotificacaoTipoEnum.EscalaTrocaAprovada]:               { icon: makeIcon('swap-horizontal'),      tone: 'green',  label: 'Troca aprovada' },
+  [NotificacaoTipoEnum.EscalaSubstituicaoAceita]: {
+    icon: makeIcon('account-check'),
+    tone: 'green',
+    label: 'Substituição aceita',
+  },
+  [NotificacaoTipoEnum.EscalaSubstituicaoRecusada]: {
+    icon: makeIcon('account-cancel'),
+    tone: 'red',
+    label: 'Substituição recusada',
+  },
+  [NotificacaoTipoEnum.EscalaSubstituicaoResolvidaLider]: {
+    icon: makeIcon('account-check-outline'),
+    tone: 'green',
+    label: 'Substituição resolvida',
+  },
+  [NotificacaoTipoEnum.EscalaTrocaAprovada]: {
+    icon: makeIcon('swap-horizontal'),
+    tone: 'green',
+    label: 'Troca aprovada',
+  },
 
   // ── Presença de voluntário (perspectiva do líder) ────────────────────────
-  [NotificacaoTipoEnum.EscalaVoluntarioConfirmou]:   { icon: makeIcon('check-circle-outline'),       tone: 'green',  label: 'Presença confirmada' },
-  [NotificacaoTipoEnum.EscalaVoluntarioRecusou]:     { icon: makeIcon('close-circle-outline'),       tone: 'red',    label: 'Presença recusada' },
+  [NotificacaoTipoEnum.EscalaVoluntarioConfirmou]: {
+    icon: makeIcon('check-circle-outline'),
+    tone: 'green',
+    label: 'Presença confirmada',
+  },
+  [NotificacaoTipoEnum.EscalaVoluntarioRecusou]: {
+    icon: makeIcon('close-circle-outline'),
+    tone: 'red',
+    label: 'Presença recusada',
+  },
 
   // ── Ministério ───────────────────────────────────────────────────────────
-  [NotificacaoTipoEnum.MinisterioNovoIntegrante]:    { icon: makeIcon('account-plus'),               tone: 'green',  label: 'Novo integrante' },
-  [NotificacaoTipoEnum.ComunicadoLider]:             { icon: makeIcon('bullhorn-outline'),           tone: 'cyan',   label: 'Comunicado' },
+  [NotificacaoTipoEnum.MinisterioNovoIntegrante]: {
+    icon: makeIcon('account-plus'),
+    tone: 'green',
+    label: 'Novo integrante',
+  },
+  [NotificacaoTipoEnum.ComunicadoLider]: {
+    icon: makeIcon('bullhorn-outline'),
+    tone: 'cyan',
+    label: 'Comunicado',
+  },
 
   // ── Igreja ───────────────────────────────────────────────────────────────
-  [NotificacaoTipoEnum.IgrejaConviteAceito]:         { icon: makeIcon('handshake'),                  tone: 'green',  label: 'Convite aceito' },
-  [NotificacaoTipoEnum.IgrejaVinculoSolicitado]:     { icon: makeIcon('account-clock'),              tone: 'amber',  label: 'Solicitação de vínculo' },
-  [NotificacaoTipoEnum.IgrejaVinculoAprovado]:       { icon: makeIcon('church'),                     tone: 'green',  label: 'Vínculo aprovado' },
-  [NotificacaoTipoEnum.IgrejaVinculoNegado]:         { icon: makeIcon('church'),                     tone: 'red',    label: 'Vínculo recusado' },
-  [NotificacaoTipoEnum.IgrejaNovoVoluntario]:        { icon: makeIcon('account-plus-outline'),       tone: 'green',  label: 'Novo voluntário' },
-  [NotificacaoTipoEnum.IgrejaConviteExpirado]:       { icon: makeIcon('timer-sand-complete'),        tone: 'amber',  label: 'Convite expirado' },
+  [NotificacaoTipoEnum.IgrejaConviteAceito]: {
+    icon: makeIcon('handshake'),
+    tone: 'green',
+    label: 'Convite aceito',
+  },
+  [NotificacaoTipoEnum.IgrejaVinculoSolicitado]: {
+    icon: makeIcon('account-clock'),
+    tone: 'amber',
+    label: 'Solicitação de vínculo',
+  },
+  [NotificacaoTipoEnum.IgrejaVinculoAprovado]: {
+    icon: makeIcon('church'),
+    tone: 'green',
+    label: 'Vínculo aprovado',
+  },
+  [NotificacaoTipoEnum.IgrejaVinculoNegado]: {
+    icon: makeIcon('church'),
+    tone: 'red',
+    label: 'Vínculo recusado',
+  },
+  [NotificacaoTipoEnum.IgrejaNovoVoluntario]: {
+    icon: makeIcon('account-plus-outline'),
+    tone: 'green',
+    label: 'Novo voluntário',
+  },
+  [NotificacaoTipoEnum.IgrejaConviteExpirado]: {
+    icon: makeIcon('timer-sand-complete'),
+    tone: 'amber',
+    label: 'Convite expirado',
+  },
 
   // ── Sistema ──────────────────────────────────────────────────────────────
-  [NotificacaoTipoEnum.SistemaAlertaAdmin]:          { icon: makeIcon('shield-alert-outline'),       tone: 'gray',   label: 'Alerta do sistema' },
-  [NotificacaoTipoEnum.TesteLocal]:                  { icon: makeIcon('flask-outline'),              tone: 'violet', label: 'Teste' },
-  [NotificacaoTipoEnum.Generic]:                     { icon: makeIcon('bell-outline'),               tone: 'blue',   label: 'Notificação' },
+  [NotificacaoTipoEnum.SistemaAlertaAdmin]: {
+    icon: makeIcon('shield-alert-outline'),
+    tone: 'gray',
+    label: 'Alerta do sistema',
+  },
+  [NotificacaoTipoEnum.TesteLocal]: {
+    icon: makeIcon('flask-outline'),
+    tone: 'violet',
+    label: 'Teste',
+  },
+  [NotificacaoTipoEnum.Generic]: {
+    icon: makeIcon('bell-outline'),
+    tone: 'blue',
+    label: 'Notificação',
+  },
 };
 
 export const DEFAULT_NOTIFICATION_THEME = NOTIFICACAO_THEMES[NotificacaoTipoEnum.Generic];
@@ -115,16 +227,16 @@ export default function NotificacaoCard({
   const createdAt = data.criadaEm || data.createdAt;
   const createdDate = createdAt ? new Date(createdAt) : null;
   const timeLabelLong = createdDate ? timeAgoLong(createdDate) : '';
-  const theme = data.tipo ? (NOTIFICACAO_THEMES[data.tipo] ?? DEFAULT_NOTIFICATION_THEME) : DEFAULT_NOTIFICATION_THEME;
+  const theme = data.tipo
+    ? (NOTIFICACAO_THEMES[data.tipo] ?? DEFAULT_NOTIFICATION_THEME)
+    : DEFAULT_NOTIFICATION_THEME;
   const accentColor = getNotificationToneColor(theme.tone);
   const title = theme.label;
   const subtitle = getNotificationSubtitle(data);
 
-  const a11yLabel = [
-    title + '.',
-    subtitle ? subtitle + '.' : null,
-    timeLabelLong + '.',
-  ].filter(Boolean).join(' ');
+  const a11yLabel = [title + '.', subtitle ? subtitle + '.' : null, timeLabelLong + '.']
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <Pressable
@@ -136,24 +248,46 @@ export default function NotificacaoCard({
     >
       <FancyCardIcon
         backgroundColor={ColorUtils.withAlpha(accentColor, 0.045)}
-        cardIcon={{ ...theme.icon, backgroundColor: ColorUtils.withAlpha(accentColor, 0.14), color: accentColor }}
-        containerStyle={[styles.cardContainer, { borderColor: ColorUtils.withAlpha(accentColor, 0.08) }]}
+        cardIcon={{
+          ...theme.icon,
+          backgroundColor: ColorUtils.withAlpha(accentColor, 0.14),
+          color: accentColor,
+        }}
+        containerStyle={[
+          styles.cardContainer,
+          { borderColor: ColorUtils.withAlpha(accentColor, 0.08) },
+        ]}
         centerContainerStyle={styles.centerContainer}
         contentContainerStyle={styles.cardContent}
         actionButtons={
           <View style={styles.chevronContainer}>
-            <DefaultIcons.Custom library='MaterialCommunityIcons' name='chevron-right' size={22} color={Pallete.fonts.inactive} />
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='chevron-right'
+              size={22}
+              color={Pallete.fonts.inactive}
+            />
           </View>
         }
         title={
           <View style={styles.mainBlock}>
             <View style={styles.titleRow}>
-              <FancyText size={11.5} type='bold' numberOfLines={1} style={[styles.titleText, { color: accentColor }]}>
+              <FancyText
+                size={11.5}
+                type='bold'
+                numberOfLines={1}
+                style={[styles.titleText, { color: accentColor }]}
+              >
                 {title}
               </FancyText>
               {timeLabelLong ? (
                 <>
-                  <FancyText size={10} type='medium' style={[styles.timeSeparator, { color: Pallete.fonts.inactive }]} accessibilityElementsHidden>
+                  <FancyText
+                    size={10}
+                    type='medium'
+                    style={[styles.timeSeparator, { color: Pallete.fonts.inactive }]}
+                    accessibilityElementsHidden
+                  >
                     •
                   </FancyText>
                   <FancyText
@@ -169,7 +303,14 @@ export default function NotificacaoCard({
               ) : null}
             </View>
             {subtitle ? (
-              <FancyText type='medium' size='extraSmall' style={[styles.messageText, { color: ColorUtils.withAlpha(Pallete.fonts.dark, 0.68) }]}>
+              <FancyText
+                type='medium'
+                size='extraSmall'
+                style={[
+                  styles.messageText,
+                  { color: ColorUtils.withAlpha(Pallete.fonts.dark, 0.68) },
+                ]}
+              >
                 {subtitle}
               </FancyText>
             ) : null}

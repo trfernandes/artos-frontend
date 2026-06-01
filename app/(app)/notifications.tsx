@@ -15,12 +15,21 @@ export default function NotificationsPage() {
   const styles = useThemedStyles(createStyles);
   const [dismissedUnreadCount, setDismissedUnreadCount] = useState<number | null>(null);
 
-  const { isLoading, marcarComoLida, marcarTodasComoLidas, notificacoes, refetchNotificacoes, refetchQuantidadeNaoLidas } =
-    useNotificacoesCrud({
-      enabled: true,
-    });
+  const {
+    isLoading,
+    marcarComoLida,
+    marcarTodasComoLidas,
+    notificacoes,
+    refetchNotificacoes,
+    refetchQuantidadeNaoLidas,
+  } = useNotificacoesCrud({
+    enabled: true,
+  });
 
-  const naoLidasData = useMemo(() => notificacoes?.filter((n) => !n.lidaEm || n.lidaEm === null) ?? [], [notificacoes]);
+  const naoLidasData = useMemo(
+    () => notificacoes?.filter((n) => !n.lidaEm || n.lidaEm === null) ?? [],
+    [notificacoes],
+  );
   const unreadCount = naoLidasData.length;
   const totalCount = notificacoes?.length ?? 0;
   const shouldShowUnreadBanner = unreadCount > 0 && dismissedUnreadCount !== unreadCount;
@@ -76,10 +85,14 @@ export default function NotificationsPage() {
             dataList={naoLidasData}
             onPress={handleOpenNotification}
             onMarkAsRead={handleMarkAsRead}
-            sectionHeaderAction={shouldShowUnreadBanner ? {
-              label: 'Marcar todas como lidas',
-              onPress: handleMarcarTodasComoLidas,
-            } : undefined}
+            sectionHeaderAction={
+              shouldShowUnreadBanner
+                ? {
+                    label: 'Marcar todas como lidas',
+                    onPress: handleMarcarTodasComoLidas,
+                  }
+                : undefined
+            }
             listEmptyLabel='Você está em dia!'
             listEmptyHelper='Nenhuma notificação não lida.'
           />
@@ -106,9 +119,7 @@ export default function NotificationsPage() {
   if (isLoading) return <FancyLoading />;
   return (
     <FancyPageView style={styles.container}>
-      <FancyTabs
-        items={TAB_ITEMS}
-      />
+      <FancyTabs items={TAB_ITEMS} />
     </FancyPageView>
   );
 }

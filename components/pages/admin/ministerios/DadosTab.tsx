@@ -6,7 +6,10 @@ import ControlledBottomSheetSelect from '../../../forms/ControlledBottomSheetSel
 
 import FancyScrollView from '../../../FancyScrollView';
 import { EnumUtils } from '../../../../utils/enum_utils';
-import { MinisterioTipoEnum, MinisterioTipoLabel } from '../../../../domain/enums/Ministerio/ministerio-tipo.enum';
+import {
+  MinisterioTipoEnum,
+  MinisterioTipoLabel,
+} from '../../../../domain/enums/Ministerio/ministerio-tipo.enum';
 import { ControlledImagePicker } from '../../../forms/ControlledImagePicker';
 import { AddMinisterioFormData } from '../../../../domain/schemas/ministerioAdminSchema';
 
@@ -15,7 +18,12 @@ export default function DadosTab(props: { mode: 'add' } | { mode: 'edit'; id: st
 
   return (
     <FancyScrollView contentContainerStyle={styles.fieldsContainer} fill>
-      <ControlledImagePicker control={control} name='logoThumbUrl' uploadFieldName='logoUpload' setValue={setValue as any} />
+      <ControlledImagePicker
+        control={control}
+        name='logoThumbUrl'
+        uploadFieldName='logoUpload'
+        setValue={setValue as any}
+      />
       <ControlledTextInput control={control} name='nome' label='Nome' />
       <ControlledBottomSheetSelect
         control={control}

@@ -62,14 +62,19 @@ function AnimatedChip({
       accessibilityRole='checkbox'
       accessibilityState={{ checked: isSelected }}
     >
-      <Animated.View style={[chipStyle, { transform: [{ scale }] }]}>
-        {children}
-      </Animated.View>
+      <Animated.View style={[chipStyle, { transform: [{ scale }] }]}>{children}</Animated.View>
     </Pressable>
   );
 }
 
-export default function FancyDaySelector({ selectedValues, onChange, mode, label, errorMessage, singleSelect = false }: Props) {
+export default function FancyDaySelector({
+  selectedValues,
+  onChange,
+  mode,
+  label,
+  errorMessage,
+  singleSelect = false,
+}: Props) {
   const palette = usePallete();
 
   const handleToggle = (val: string) => {
@@ -93,9 +98,11 @@ export default function FancyDaySelector({ selectedValues, onChange, mode, label
 
   const getLabel = (item: string) => {
     if (mode === 'weekly') {
-      return RecorrenciaDiaSemanaEnumLabel[item as keyof typeof RecorrenciaDiaSemanaEnumLabel].abreviado;
+      return RecorrenciaDiaSemanaEnumLabel[item as keyof typeof RecorrenciaDiaSemanaEnumLabel]
+        .abreviado;
     }
-    return RecorrenciaSemanaMesEnumLabel[item as keyof typeof RecorrenciaSemanaMesEnumLabel].abreviado;
+    return RecorrenciaSemanaMesEnumLabel[item as keyof typeof RecorrenciaSemanaMesEnumLabel]
+      .abreviado;
   };
 
   return (
@@ -117,7 +124,10 @@ export default function FancyDaySelector({ selectedValues, onChange, mode, label
                 styles.chip,
                 isSelected
                   ? { backgroundColor: palette.primary, borderColor: palette.primary }
-                  : { backgroundColor: `${palette.primary}15`, borderColor: `${palette.primary}30` },
+                  : {
+                      backgroundColor: `${palette.primary}15`,
+                      borderColor: `${palette.primary}30`,
+                    },
               ]}
             >
               <FancyText

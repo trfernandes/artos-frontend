@@ -4,7 +4,12 @@ import DefaultIcons from '../FancyIcons';
 import FancyText from '../FancyText';
 import { ColorUtils } from '../../utils/color_utils';
 import { usePallete } from '../../hooks/usePallete';
-import { BOLD_FONT, MEDIUM_SIZE_FONT, SMALL_SIZE_FONT, EXTRA_SMALL_SIZE_FONT } from '../../constants/font';
+import {
+  BOLD_FONT,
+  MEDIUM_SIZE_FONT,
+  SMALL_SIZE_FONT,
+  EXTRA_SMALL_SIZE_FONT,
+} from '../../constants/font';
 
 export type EventoCardContentProps = {
   timeRangeText: string;
@@ -29,26 +34,49 @@ export default function EventoCardContent({
 }: EventoCardContentProps) {
   const palette = usePallete();
   const isDark = palette.backgroundColor === '#121212';
-  const ui = useMemo(() => ({
-    accentText: isDark ? ColorUtils.lightenColor(eventColor, 0.22) : ColorUtils.darkenColor(eventColor, 0.32),
-    accentSoft: ColorUtils.withAlpha(eventColor, isDark ? 0.16 : 0.065),
-    chipBorder: ColorUtils.withAlpha(eventColor, isDark ? 0.28 : 0.11),
-    iconBg: ColorUtils.withAlpha(eventColor, isDark ? 0.18 : 0.075),
-  }), [eventColor, isDark]);
+  const ui = useMemo(
+    () => ({
+      accentText: isDark
+        ? ColorUtils.lightenColor(eventColor, 0.22)
+        : ColorUtils.darkenColor(eventColor, 0.32),
+      accentSoft: ColorUtils.withAlpha(eventColor, isDark ? 0.16 : 0.065),
+      chipBorder: ColorUtils.withAlpha(eventColor, isDark ? 0.28 : 0.11),
+      iconBg: ColorUtils.withAlpha(eventColor, isDark ? 0.18 : 0.075),
+    }),
+    [eventColor, isDark],
+  );
 
   return (
     <View style={styles.root}>
       <View style={styles.rowBetween}>
         <View style={styles.timeRow}>
-          <DefaultIcons.Custom library='MaterialCommunityIcons' name='clock-outline' size={12} color={ui.accentText} />
-          <FancyText size='small' type='semiBold' style={[styles.timeText, { color: ui.accentText }]}>
+          <DefaultIcons.Custom
+            library='MaterialCommunityIcons'
+            name='clock-outline'
+            size={12}
+            color={ui.accentText}
+          />
+          <FancyText
+            size='small'
+            type='semiBold'
+            style={[styles.timeText, { color: ui.accentText }]}
+          >
             {timeRangeText}
           </FancyText>
         </View>
 
         <View style={styles.rightActions}>
-          <View style={[styles.countdownBadge, { backgroundColor: ui.accentSoft, borderColor: ui.chipBorder }]}>
-            <FancyText size='extraSmall' type='semiBold' style={[styles.countdownText, { color: ui.accentText }]}>
+          <View
+            style={[
+              styles.countdownBadge,
+              { backgroundColor: ui.accentSoft, borderColor: ui.chipBorder },
+            ]}
+          >
+            <FancyText
+              size='extraSmall'
+              type='semiBold'
+              style={[styles.countdownText, { color: ui.accentText }]}
+            >
               {countdownLabel}
             </FancyText>
           </View>
@@ -73,25 +101,45 @@ export default function EventoCardContent({
         {title}
       </FancyText>
 
-      {(metaPrimary || metaSecondary) ? (
+      {metaPrimary || metaSecondary ? (
         <View style={styles.metaLine}>
           {metaPrimary ? (
             <View style={styles.metaItem}>
               <View style={[styles.metaDot, { backgroundColor: eventColor }]} />
-              <FancyText size='extraSmall' type='semiBold' style={[styles.metaText, { color: ui.accentText }]} numberOfLines={1}>
+              <FancyText
+                size='extraSmall'
+                type='semiBold'
+                style={[styles.metaText, { color: ui.accentText }]}
+                numberOfLines={1}
+              >
                 {metaPrimary}
               </FancyText>
             </View>
           ) : null}
 
           {metaPrimary && metaSecondary ? (
-            <View style={[styles.metaSeparator, { backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.5) }]} />
+            <View
+              style={[
+                styles.metaSeparator,
+                { backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.5) },
+              ]}
+            />
           ) : null}
 
           {metaSecondary ? (
             <View style={styles.metaItem}>
-              <DefaultIcons.Custom library='MaterialCommunityIcons' name='music-note-eighth' size={11} color={ui.accentText} />
-              <FancyText size='extraSmall' type='medium' style={[styles.metaText, { color: ui.accentText }]} numberOfLines={1}>
+              <DefaultIcons.Custom
+                library='MaterialCommunityIcons'
+                name='music-note-eighth'
+                size={11}
+                color={ui.accentText}
+              />
+              <FancyText
+                size='extraSmall'
+                type='medium'
+                style={[styles.metaText, { color: ui.accentText }]}
+                numberOfLines={1}
+              >
                 {metaSecondary}
               </FancyText>
             </View>

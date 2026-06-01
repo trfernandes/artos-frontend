@@ -57,7 +57,12 @@ export default function FancyStepper({ value, onChange, min = 1, max = 99, label
           accessibilityLabel='Diminuir'
           accessibilityRole='button'
         >
-          <DefaultIcons.Custom library='Feather' name='minus' size={18} color={palette.fonts.dark} />
+          <DefaultIcons.Custom
+            library='Feather'
+            name='minus'
+            size={18}
+            color={palette.fonts.dark}
+          />
         </Pressable>
 
         {/* Valor central */}

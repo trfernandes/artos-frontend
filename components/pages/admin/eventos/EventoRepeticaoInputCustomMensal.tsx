@@ -19,9 +19,20 @@ export default function EventoRepeticaoInputCustomMensal() {
           return (
             <FancyMonthsSlider
               title={
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <FancyText size='small' type='medium' style={{ opacity: 0.7 }}>A cada quantos meses</FancyText>
-                  <FancyText size='small' type='bold'>{`${v} ${v === 1 ? 'mês' : 'meses'}`}</FancyText>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <FancyText size='small' type='medium' style={{ opacity: 0.7 }}>
+                    A cada quantos meses
+                  </FancyText>
+                  <FancyText
+                    size='small'
+                    type='bold'
+                  >{`${v} ${v === 1 ? 'mês' : 'meses'}`}</FancyText>
                 </View>
               }
               value={v}

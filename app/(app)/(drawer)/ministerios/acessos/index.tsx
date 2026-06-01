@@ -28,7 +28,10 @@ export default function MinisterioAcessosIndexPage() {
   const params = useLocalSearchParams<{ ministerioId: string }>();
   const { igrejaAtiva } = useAuth();
   const ministerio = useMemo(
-    () => igrejaAtiva?.ministerios?.find((item) => item.id === params.ministerioId) as ResponseLoginMinisterioDto | undefined,
+    () =>
+      igrejaAtiva?.ministerios?.find((item) => item.id === params.ministerioId) as
+        | ResponseLoginMinisterioDto
+        | undefined,
     [igrejaAtiva?.ministerios, params.ministerioId],
   );
 
@@ -38,14 +41,22 @@ export default function MinisterioAcessosIndexPage() {
     return role === 'ADMIN' || hierarquia === '1';
   }, [igrejaAtiva?.role, ministerio?.hierarquia]);
 
-  const { data, isLoading, isError, error, refetch, addAuxiliar, updateAuxiliar, removeAuxiliar, isLoadingMutation } = useMinisterioAcessos(
-    igrejaAtiva?.id,
-    params.ministerioId,
-  );
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    addAuxiliar,
+    updateAuxiliar,
+    removeAuxiliar,
+    isLoadingMutation,
+  } = useMinisterioAcessos(igrejaAtiva?.id, params.ministerioId);
 
   const [editorMode, setEditorMode] = useState<'create' | 'edit'>('create');
   const [editorVisible, setEditorVisible] = useState(false);
-  const [selectedAuxiliar, setSelectedAuxiliar] = useState<ResponseMinisterioAcessoMemberDto | null>(null);
+  const [selectedAuxiliar, setSelectedAuxiliar] =
+    useState<ResponseMinisterioAcessoMemberDto | null>(null);
   const [selectedVoluntario, setSelectedVoluntario] = useState<any | null>(null);
 
   if (!canManage) {
@@ -83,9 +94,15 @@ export default function MinisterioAcessosIndexPage() {
                 Não foi possível carregar os acessos
               </FancyText>
               <FancyText size='small' color={palette.fonts.inactive}>
-                {(error as Error | undefined)?.message || 'O backend pode estar sem deploy ou o endpoint pode ter falhado.'}
+                {(error as Error | undefined)?.message ||
+                  'O backend pode estar sem deploy ou o endpoint pode ter falhado.'}
               </FancyText>
-              <FancyButton label='Tentar novamente' type='contained' onPress={() => void refetch()} containerStyle={{ marginTop: 8, height: 38 }} />
+              <FancyButton
+                label='Tentar novamente'
+                type='contained'
+                onPress={() => void refetch()}
+                containerStyle={{ marginTop: 8, height: 38 }}
+              />
             </View>
           ) : data?.lideres?.length ? (
             <View style={styles.cards}>
@@ -128,7 +145,10 @@ export default function MinisterioAcessosIndexPage() {
 
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
-            <FancySectionHeader title='Auxiliares' containerStyle={{ marginLeft: 0, flex: 1, marginBottom: 0 }} />
+            <FancySectionHeader
+              title='Auxiliares'
+              containerStyle={{ marginLeft: 0, flex: 1, marginBottom: 0 }}
+            />
             <FancyButton
               label='Adicionar auxiliar'
               type='contained'
@@ -176,16 +196,25 @@ export default function MinisterioAcessosIndexPage() {
                         },
                       },
                       {
-                        icon: { library: 'MaterialIcons', name: 'delete', size: 18, backgroundColor: '#F05A4F' },
+                        icon: {
+                          library: 'MaterialIcons',
+                          name: 'delete',
+                          size: 18,
+                          backgroundColor: '#F05A4F',
+                        },
                         onPress: () => {
-                          FancyAlert.alert('Remover auxiliar', 'Deseja remover a delegação deste auxiliar?', [
-                            { text: 'Cancelar', style: 'cancel' },
-                            {
-                              text: 'Remover',
-                              style: 'destructive',
-                              onPress: () => void removeAuxiliar(item.id),
-                            },
-                          ]);
+                          FancyAlert.alert(
+                            'Remover auxiliar',
+                            'Deseja remover a delegação deste auxiliar?',
+                            [
+                              { text: 'Cancelar', style: 'cancel' },
+                              {
+                                text: 'Remover',
+                                style: 'destructive',
+                                onPress: () => void removeAuxiliar(item.id),
+                              },
+                            ],
+                          );
                         },
                       },
                     ],
@@ -199,7 +228,8 @@ export default function MinisterioAcessosIndexPage() {
                 Nenhum auxiliar configurado
               </FancyText>
               <FancyText size='small' color={palette.fonts.inactive}>
-                Adicione auxiliares para delegar acessos operacionais sem transformar todo mundo em líder.
+                Adicione auxiliares para delegar acessos operacionais sem transformar todo mundo em
+                líder.
               </FancyText>
             </View>
           )}
@@ -217,11 +247,18 @@ export default function MinisterioAcessosIndexPage() {
             await addAuxiliar(payload);
             return;
           }
-          await updateAuxiliar({ voluntarioId: payload.voluntarioId, permissoes: payload.permissoes });
+          await updateAuxiliar({
+            voluntarioId: payload.voluntarioId,
+            permissoes: payload.permissoes,
+          });
         }}
       />
 
-      <VoluntarioSummarySheet visible={!!selectedVoluntario} onClose={() => setSelectedVoluntario(null)} data={selectedVoluntario} />
+      <VoluntarioSummarySheet
+        visible={!!selectedVoluntario}
+        onClose={() => setSelectedVoluntario(null)}
+        data={selectedVoluntario}
+      />
       {isLoadingMutation && <FancyLoading />}
     </FancyPageView>
   );

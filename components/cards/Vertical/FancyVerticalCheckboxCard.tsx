@@ -1,4 +1,11 @@
-import { ImageSourcePropType, StyleProp, StyleSheet, TouchableOpacity, View, ViewStyle } from 'react-native';
+import {
+  ImageSourcePropType,
+  StyleProp,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from 'react-native';
 import FancyVerticalCard, { FancyVerticalCardProps } from './FancyVerticalCard';
 import FancyCheckbox from '../../FancyCheckbox';
 import { ImageComponent } from './FancyVerticalImageCard';
@@ -13,7 +20,12 @@ export type FancyVerticalCheckboxCardProps = {
   containerStyle?: StyleProp<ViewStyle>;
 } & Pick<FancyVerticalCardProps, 'title' | 'subtitle'>;
 
-export default function FancyVerticalCheckboxCard({ source, value, onChangeValue, ...props }: FancyVerticalCheckboxCardProps) {
+export default function FancyVerticalCheckboxCard({
+  source,
+  value,
+  onChangeValue,
+  ...props
+}: FancyVerticalCheckboxCardProps) {
   const palette = usePallete();
 
   return (
@@ -54,10 +66,21 @@ export default function FancyVerticalCheckboxCard({ source, value, onChangeValue
   );
 }
 
-function CheckboxComponent({ value, onChangeValue }: { value: boolean; onChangeValue?: (value: boolean) => void }) {
+function CheckboxComponent({
+  value,
+  onChangeValue,
+}: {
+  value: boolean;
+  onChangeValue?: (value: boolean) => void;
+}) {
   return (
     <TouchableOpacity style={styles.checkboxContainer}>
-      <FancyCheckbox value={value} size={13} iconSize={8} onChangeValue={() => onChangeValue?.(!value)} />
+      <FancyCheckbox
+        value={value}
+        size={13}
+        iconSize={8}
+        onChangeValue={() => onChangeValue?.(!value)}
+      />
     </TouchableOpacity>
   );
 }

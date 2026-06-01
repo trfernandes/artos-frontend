@@ -9,7 +9,13 @@ export type FancyStepsTextProps = {
   onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-export default function FancyStepsText({ text, textColor, maxWidth, containerStyle, onLayout }: FancyStepsTextProps) {
+export default function FancyStepsText({
+  text,
+  textColor,
+  maxWidth,
+  containerStyle,
+  onLayout,
+}: FancyStepsTextProps) {
   return (
     <View
       onLayout={onLayout}
@@ -26,7 +32,7 @@ export default function FancyStepsText({ text, textColor, maxWidth, containerSty
         numberOfLines={2}
         maxFontSizeMultiplier={1}
         size={10}
-        type="semiBold"
+        type='semiBold'
         color={textColor}
         style={{
           textAlign: 'center',

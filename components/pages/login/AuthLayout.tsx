@@ -156,7 +156,7 @@ export default function AuthLayout({
       backgroundColor: Pallete.backgroundColor,
       ...Pallete.shadows[200],
     }),
-    [Pallete]
+    [Pallete],
   );
 
   const backBtn = (
@@ -171,23 +171,29 @@ export default function AuthLayout({
     />
   );
 
-  const inCardHeader = (showBackButton || title) ? (
-    <View style={styles.headerBlock}>
-      {showBackButton && <View style={styles.backButtonRow}>{backBtn}</View>}
-      <View style={styles.titleGroup}>
-        {title && (
-          <FancyText size='large' type='bold' style={styles.titleText}>
-            {title}
-          </FancyText>
-        )}
-        {subtitle && (!hideHeaderOnKeyboard || !isKeyboardVisible) && (
-          <FancyText size='small' type='medium' color={Pallete.fonts.inactive} style={styles.subtitleText}>
-            {subtitle}
-          </FancyText>
-        )}
+  const inCardHeader =
+    showBackButton || title ? (
+      <View style={styles.headerBlock}>
+        {showBackButton && <View style={styles.backButtonRow}>{backBtn}</View>}
+        <View style={styles.titleGroup}>
+          {title && (
+            <FancyText size='large' type='bold' style={styles.titleText}>
+              {title}
+            </FancyText>
+          )}
+          {subtitle && (!hideHeaderOnKeyboard || !isKeyboardVisible) && (
+            <FancyText
+              size='small'
+              type='medium'
+              color={Pallete.fonts.inactive}
+              style={styles.subtitleText}
+            >
+              {subtitle}
+            </FancyText>
+          )}
+        </View>
       </View>
-    </View>
-  ) : null;
+    ) : null;
 
   // Message mode: sem card, sem teclado — conteúdo bare centralizado.
   if (mode === 'message') {
@@ -209,9 +215,7 @@ export default function AuthLayout({
               {header && <View style={styles.headerContent}>{header}</View>}
             </View>
           )}
-          <View style={[styles.flex1, styles.bareContent, contentContainerStyle]}>
-            {children}
-          </View>
+          <View style={[styles.flex1, styles.bareContent, contentContainerStyle]}>{children}</View>
         </View>
       </LoginBase>
     );
@@ -225,10 +229,7 @@ export default function AuthLayout({
         quando o teclado abre, mantendo footer visível sem sobreposição.
         Android: useResizeMode() já cuida via adjustResize — behavior undefined.
       */}
-      <KeyboardAvoidingView
-        behavior='padding'
-        style={styles.flex1}
-      >
+      <KeyboardAvoidingView behavior='padding' style={styles.flex1}>
         <View
           style={[
             styles.outerContainer,

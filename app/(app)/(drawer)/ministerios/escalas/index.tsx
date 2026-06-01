@@ -48,9 +48,11 @@ export default function MinisterioEscalasIndexPage() {
   const [actionsEscala, setActionsEscala] = useState<ResponseEscalaDto | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
 
-  useFocusEffect(useCallback(() => {
-    setIsNavigating(false);
-  }, []));
+  useFocusEffect(
+    useCallback(() => {
+      setIsNavigating(false);
+    }, []),
+  );
   const escalaStatusConfig = useMemo(() => getEscalaStatusConfig(palette), [palette]);
 
   const {

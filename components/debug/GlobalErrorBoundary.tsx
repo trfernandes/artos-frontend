@@ -10,7 +10,10 @@ type GlobalErrorBoundaryState = {
   error: Error | null;
 };
 
-export class GlobalErrorBoundary extends React.Component<GlobalErrorBoundaryProps, GlobalErrorBoundaryState> {
+export class GlobalErrorBoundary extends React.Component<
+  GlobalErrorBoundaryProps,
+  GlobalErrorBoundaryState
+> {
   state: GlobalErrorBoundaryState = {
     error: null,
   };
@@ -40,29 +43,25 @@ export class GlobalErrorBoundary extends React.Component<GlobalErrorBoundaryProp
     return (
       <View style={styles.container}>
         <View style={styles.card}>
-          <Text style={styles.title}>
-            O app encontrou um erro nesta tela
-          </Text>
+          <Text style={styles.title}>O app encontrou um erro nesta tela</Text>
           <Text style={styles.subtitle}>
-            A exceção foi capturada antes de derrubar toda a navegação. Se continuar acontecendo, use o logcat para ver a stack nativa.
+            A exceção foi capturada antes de derrubar toda a navegação. Se continuar acontecendo,
+            use o logcat para ver a stack nativa.
           </Text>
           <ScrollView style={styles.errorBox} contentContainerStyle={styles.errorBoxContent}>
-            <Text style={styles.errorName}>
-              {this.state.error.name || 'Error'}
-            </Text>
+            <Text style={styles.errorName}>{this.state.error.name || 'Error'}</Text>
             <Text style={styles.errorMessage}>
               {this.state.error.message || 'Erro sem mensagem'}
             </Text>
             {this.state.error.stack ? (
-              <Text style={styles.errorStack}>
-                {this.state.error.stack}
-              </Text>
+              <Text style={styles.errorStack}>{this.state.error.stack}</Text>
             ) : null}
           </ScrollView>
-          <Pressable onPress={this.handleRetry} style={({ pressed }) => [styles.button, pressed ? styles.buttonPressed : null]}>
-            <Text style={styles.buttonText}>
-              Tentar novamente
-            </Text>
+          <Pressable
+            onPress={this.handleRetry}
+            style={({ pressed }) => [styles.button, pressed ? styles.buttonPressed : null]}
+          >
+            <Text style={styles.buttonText}>Tentar novamente</Text>
           </Pressable>
         </View>
       </View>

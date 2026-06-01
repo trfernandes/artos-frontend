@@ -29,16 +29,27 @@ export default function SolicitacaoCard({ solicitacao, onPress }: SolicitacaoCar
     <Pressable onPress={onPress} style={styles.container}>
       <View style={styles.avatarContainer}>
         {solicitacao.voluntarioFoto ? (
-          <Image source={{ uri: solicitacao.voluntarioFoto }} style={styles.avatar} contentFit="cover" />
+          <Image
+            source={{ uri: solicitacao.voluntarioFoto }}
+            style={styles.avatar}
+            contentFit='cover'
+          />
         ) : (
           <View style={[styles.avatar, styles.avatarPlaceholder]}>
-            <DefaultIcons.Custom library="MaterialCommunityIcons" name="account" size={20} color={palette.fonts.light} />
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='account'
+              size={20}
+              color={palette.fonts.light}
+            />
           </View>
         )}
 
-        <View style={[styles.typeBadge, isEntrada ? styles.entradaBadge : styles.substituicaoBadge]}>
+        <View
+          style={[styles.typeBadge, isEntrada ? styles.entradaBadge : styles.substituicaoBadge]}
+        >
           <DefaultIcons.Custom
-            library="MaterialCommunityIcons"
+            library='MaterialCommunityIcons'
             name={isEntrada ? 'account-plus' : 'swap-horizontal'}
             size={10}
             color={palette.fonts.light}
@@ -47,14 +58,19 @@ export default function SolicitacaoCard({ solicitacao, onPress }: SolicitacaoCar
       </View>
 
       <View style={styles.content}>
-        <FancyText size="medium" type="bold" color={palette.fonts.dark} numberOfLines={1}>
+        <FancyText size='medium' type='bold' color={palette.fonts.dark} numberOfLines={1}>
           {solicitacao.voluntarioNome}
         </FancyText>
 
         {solicitacao.ministerioNome && (
           <View style={styles.infoRow}>
-            <DefaultIcons.Custom library="MaterialCommunityIcons" name="account-group" size={12} color={palette.fonts.inactive} />
-            <FancyText size="small" type="normal" color={palette.fonts.inactive} numberOfLines={1}>
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='account-group'
+              size={12}
+              color={palette.fonts.inactive}
+            />
+            <FancyText size='small' type='normal' color={palette.fonts.inactive} numberOfLines={1}>
               {solicitacao.ministerioNome}
             </FancyText>
           </View>
@@ -62,21 +78,26 @@ export default function SolicitacaoCard({ solicitacao, onPress }: SolicitacaoCar
 
         <View style={styles.footer}>
           <FancyText
-            size="extraSmall"
-            type="bold"
+            size='extraSmall'
+            type='bold'
             color={isEntrada ? palette.primary : palette.warning}
           >
             {isEntrada ? 'Solicitação de Entrada' : 'Substituição'}
           </FancyText>
 
-          <FancyText size="extraSmall" type="normal" color={palette.fonts.inactive}>
+          <FancyText size='extraSmall' type='normal' color={palette.fonts.inactive}>
             {tempoDecorrido}
           </FancyText>
         </View>
       </View>
 
       <View style={styles.actions}>
-        <DefaultIcons.Custom library="Entypo" name="chevron-right" size={18} color={palette.fonts.inactive} />
+        <DefaultIcons.Custom
+          library='Entypo'
+          name='chevron-right'
+          size={18}
+          color={palette.fonts.inactive}
+        />
       </View>
     </Pressable>
   );

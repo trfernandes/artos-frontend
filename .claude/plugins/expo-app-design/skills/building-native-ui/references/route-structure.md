@@ -6,8 +6,10 @@
 - Use `[]` for dynamic routes, e.g. `[id].tsx`
 - Routes can never be named `(foo).tsx` - use `(foo)/index.tsx` instead
 - Use `(group)` routes to simplify the public URL structure
-- NEVER co-locate components, types, or utilities in the app directory - these should be in separate directories like `components/`, `utils/`, etc.
-- The app directory should only contain route and `_layout` files; every file should export a default component
+- NEVER co-locate components, types, or utilities in the app directory - these should be in separate
+  directories like `components/`, `utils/`, etc.
+- The app directory should only contain route and `_layout` files; every file should export a
+  default component
 - Ensure the app always has a route that matches "/" so the app is never blank
 - ALWAYS use `_layout.tsx` files to define stacks
 
@@ -38,7 +40,7 @@ app/
 Access query parameters with the `useLocalSearchParams` hook:
 
 ```tsx
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from 'expo-router';
 
 function Page() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -55,7 +57,7 @@ For dynamic routes, the parameter name matches the file name:
 Access the current pathname with the `usePathname` hook:
 
 ```tsx
-import { usePathname } from "expo-router";
+import { usePathname } from 'expo-router';
 
 function Component() {
   const pathname = usePathname(); // e.g. "/users/123"
@@ -84,7 +86,9 @@ Groups are useful for:
 
 ## Stacks and Tabs Structure
 
-When an app has tabs, the header and title should be set in a Stack that is nested INSIDE each tab. This allows tabs to have their own headers and distinct histories. The root layout should often not have a header.
+When an app has tabs, the header and title should be set in a Stack that is nested INSIDE each tab.
+This allows tabs to have their own headers and distinct histories. The root layout should often not
+have a header.
 
 - Set the 'headerShown' option to false on the tab layout
 - Use (group) routes to simplify the public URL structure
@@ -107,7 +111,8 @@ app/
 
 ## Array Routes for Multiple Stacks
 
-Use array routes '(index,settings)' to create multiple stacks. This is useful for tabs that need to share screens across stacks.
+Use array routes '(index,settings)' to create multiple stacks. This is useful for tabs that need to
+share screens across stacks.
 
 ```
 app/
@@ -122,12 +127,12 @@ This requires a specialized layout with explicit anchor routes:
 
 ```tsx
 // app/(index,settings)/_layout.tsx
-import { useMemo } from "react";
-import Stack from "expo-router/stack";
+import { useMemo } from 'react';
+import Stack from 'expo-router/stack';
 
 export const unstable_settings = {
-  index: { anchor: "index" },
-  settings: { anchor: "settings" },
+  index: { anchor: 'index' },
+  settings: { anchor: 'settings' },
 };
 
 export default function Layout({ segment }: { segment: string }) {
@@ -135,7 +140,7 @@ export default function Layout({ segment }: { segment: string }) {
 
   const options = useMemo(() => {
     switch (screen) {
-      case "index":
+      case 'index':
         return { headerRight: () => <></> };
       default:
         return {};
@@ -174,7 +179,7 @@ Every directory can have a `_layout.tsx` file that wraps all routes in that dire
 
 ```tsx
 // app/_layout.tsx
-import { Stack } from "expo-router/stack";
+import { Stack } from 'expo-router/stack';
 
 export default function RootLayout() {
   return <Stack />;
@@ -183,14 +188,14 @@ export default function RootLayout() {
 
 ```tsx
 // app/(tabs)/_layout.tsx
-import { NativeTabs, Icon, Label } from "expo-router/unstable-native-tabs";
+import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
 
 export default function TabLayout() {
   return (
     <NativeTabs>
-      <NativeTabs.Trigger name="index">
+      <NativeTabs.Trigger name='index'>
         <Label>Home</Label>
-        <Icon sf="house.fill" />
+        <Icon sf='house.fill' />
       </NativeTabs.Trigger>
     </NativeTabs>
   );
@@ -203,7 +208,7 @@ Export `unstable_settings` to configure route behavior:
 
 ```tsx
 export const unstable_settings = {
-  anchor: "index",
+  anchor: 'index',
 };
 ```
 
@@ -215,14 +220,14 @@ Create a `+not-found.tsx` file to handle unmatched routes:
 
 ```tsx
 // app/+not-found.tsx
-import { Link } from "expo-router";
-import { View, Text } from "react-native";
+import { Link } from 'expo-router';
+import { View, Text } from 'react-native';
 
 export default function NotFound() {
   return (
     <View>
       <Text>Page not found</Text>
-      <Link href="/">Go home</Link>
+      <Link href='/'>Go home</Link>
     </View>
   );
 }

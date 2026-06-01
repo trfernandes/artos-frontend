@@ -132,7 +132,9 @@ export default function MinisterioIndisponibilidadesIndex() {
   const closeModal = () => setModalState((s) => ({ ...s, visible: false }));
 
   const handleConfirm = (mode: 'mark' | 'unmark', date: Date, motivo?: string) => {
-    const registro = indisponibilidadesData.find((d) => DateUtilsApi.compareDateOnlyFromApi(d.data, date));
+    const registro = indisponibilidadesData.find((d) =>
+      DateUtilsApi.compareDateOnlyFromApi(d.data, date),
+    );
 
     closeModal();
 
@@ -177,7 +179,12 @@ export default function MinisterioIndisponibilidadesIndex() {
     })();
   };
 
-  if (isLoadingIndisponibilidades || isLoadingVoluntarios || isLoadingIndisponibilidadesMutation || isRefetchingIndisponibilidades) {
+  if (
+    isLoadingIndisponibilidades ||
+    isLoadingVoluntarios ||
+    isLoadingIndisponibilidadesMutation ||
+    isRefetchingIndisponibilidades
+  ) {
     return <FancyLoading />;
   }
 
@@ -188,7 +195,13 @@ export default function MinisterioIndisponibilidadesIndex() {
   return (
     <FancyPageView style={styles.container}>
       <View style={styles.voluntarioContainer}>
-        <ControlledSearchSelect control={control} name='voluntarioId' label='Voluntário' searchPlaceholder='Buscar voluntário...' listItems={voluntariosDropDownList} />
+        <ControlledSearchSelect
+          control={control}
+          name='voluntarioId'
+          label='Voluntário'
+          searchPlaceholder='Buscar voluntário...'
+          listItems={voluntariosDropDownList}
+        />
       </View>
       {voluntarioId && !isLoadingIndisponibilidades ? (
         <View>
@@ -196,7 +209,9 @@ export default function MinisterioIndisponibilidadesIndex() {
           <FancyCalendar
             selectDateOnPress={false}
             onChangeSelectedDate={(date) => {
-              const registro = indisponibilidadesData.find((d) => DateUtilsApi.compareDateOnlyFromApi(d.data, date));
+              const registro = indisponibilidadesData.find((d) =>
+                DateUtilsApi.compareDateOnlyFromApi(d.data, date),
+              );
               setModalState({
                 visible: true,
                 date,
@@ -204,7 +219,11 @@ export default function MinisterioIndisponibilidadesIndex() {
                 motivo: registro?.motivo ?? null,
               });
             }}
-            containerStyle={{ paddingHorizontal: 5, backgroundColor: 'transparent', borderWidth: 0 }}
+            containerStyle={{
+              paddingHorizontal: 5,
+              backgroundColor: 'transparent',
+              borderWidth: 0,
+            }}
             minimumDate={startDate}
             maximumDate={endDate}
             markedDates={indisponibilidadesData.map((d) => ({
@@ -230,7 +249,10 @@ export default function MinisterioIndisponibilidadesIndex() {
             alignItems: 'center',
           }}
         >
-          <FancyListEmpty label='Nenhum voluntário selecionado...' icon={{ library: 'MaterialCommunityIcons', name: 'calendar-remove-outline', size: 55 }} />
+          <FancyListEmpty
+            label='Nenhum voluntário selecionado...'
+            icon={{ library: 'MaterialCommunityIcons', name: 'calendar-remove-outline', size: 55 }}
+          />
         </View>
       )}
 

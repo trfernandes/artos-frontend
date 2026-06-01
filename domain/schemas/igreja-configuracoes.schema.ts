@@ -20,14 +20,15 @@ export const dadosSchema = z.object({
       .max(2, 'UF inválida')
       .regex(/^[A-Z]{2}$/, 'UF inválida'),
   }),
-  telefone: z.string().refine(
-    (value) => value === '' || /^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/.test(value),
-    'Telefone inválido',
-  ),
-  email: z.string().refine(
-    (value) => value === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
-    'Email inválido',
-  ),
+  telefone: z
+    .string()
+    .refine(
+      (value) => value === '' || /^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/.test(value),
+      'Telefone inválido',
+    ),
+  email: z
+    .string()
+    .refine((value) => value === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value), 'Email inválido'),
   logoUrl: z.string().optional().nullable(),
 });
 
@@ -40,10 +41,9 @@ export const faturamentoSchema = z.object({
     .string()
     .min(1, 'Campo obrigatório')
     .regex(/^\d{10,11}$/, 'Telefone inválido'),
-  emailCobranca: z.string().refine(
-    (value) => value === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
-    'Email inválido',
-  ),
+  emailCobranca: z
+    .string()
+    .refine((value) => value === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value), 'Email inválido'),
   cep: z
     .string()
     .min(1, 'Campo obrigatório')
@@ -52,10 +52,7 @@ export const faturamentoSchema = z.object({
   numero: z.string().min(1, 'Campo obrigatório'),
   bairro: z.string().min(1, 'Campo obrigatório'),
   cidade: z.string().min(1, 'Campo obrigatório'),
-  cidadeIbge: z
-    .string()
-    .min(1, 'Selecione uma cidade válida')
-    .regex(/^\d+$/, 'Cidade inválida'),
+  cidadeIbge: z.string().min(1, 'Selecione uma cidade válida').regex(/^\d+$/, 'Cidade inválida'),
   uf: z
     .string()
     .min(1, 'Campo obrigatório')

@@ -57,7 +57,12 @@ export type EscalaItemEventoDataType = {
 export type EscalaItemEquipeType = {
   idEscalaItem: string;
   voluntario?: EscalaItemEventoDataType['voluntario'];
-  funcao?: { id: string; nome: string; experiencia?: EscalaTemplateExperienciaEnum; expMinima?: EscalaTemplateExperienciaEnum };
+  funcao?: {
+    id: string;
+    nome: string;
+    experiencia?: EscalaTemplateExperienciaEnum;
+    expMinima?: EscalaTemplateExperienciaEnum;
+  };
   status: EscalaItemEventoDataType['status'];
 };
 
@@ -75,7 +80,8 @@ export default function MinisterioEscalasDetailsPage() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [isParametrizacaoOpen, setIsParametrizacaoOpen] = useState(false);
   const { salvarResponsavelSetlist, isSavingResponsavelSetlist } = useEventoSetlistResponsavel();
-  const canEditSetlistOwner = canManageEventoOcorrencia(igrejaAtiva, ministerioId) && viewMode !== 'view';
+  const canEditSetlistOwner =
+    canManageEventoOcorrencia(igrejaAtiva, ministerioId) && viewMode !== 'view';
 
   const initialParams = useMemo<DynamicQuery>(
     () => ({
@@ -182,7 +188,8 @@ export default function MinisterioEscalasDetailsPage() {
     const expMinimaLookup = new Map<string, EscalaTemplateExperienciaEnum>();
     const rawParam = (escalaData?.[0] as any)?.parametrizacao;
     if (rawParam) {
-      const param: EscalaParametrizacaoType = typeof rawParam === 'string' ? JSON.parse(rawParam) : rawParam;
+      const param: EscalaParametrizacaoType =
+        typeof rawParam === 'string' ? JSON.parse(rawParam) : rawParam;
       for (const ev of param.eventos ?? []) {
         for (const f of ev.equipe?.funcoes ?? []) {
           if (f.expMinima != null) {

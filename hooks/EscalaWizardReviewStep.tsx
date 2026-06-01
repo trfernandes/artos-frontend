@@ -36,7 +36,15 @@ export interface EscalaWizardReviewStepProps {
 
 // --- Componentes Visuais Auxiliares ---
 
-const SectionHeader = ({ title, icon, onEdit }: { title: string; icon: any; onEdit?: () => void }) => {
+const SectionHeader = ({
+  title,
+  icon,
+  onEdit,
+}: {
+  title: string;
+  icon: any;
+  onEdit?: () => void;
+}) => {
   const palette = usePallete();
   return (
     <View style={styles.sectionHeader}>
@@ -70,7 +78,6 @@ export function EscalaWizardReviewStep({
   configuracoes,
   onEditStep,
 }: EscalaWizardReviewStepProps) {
-  
   // Agrupamento para o Resumo de Cobertura (Contagem por função)
   const resumoFuncoes = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -83,21 +90,19 @@ export function EscalaWizardReviewStep({
   }, [participantes]);
 
   return (
-    <ScrollView 
-      style={styles.container} 
+    <ScrollView
+      style={styles.container}
       contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
     >
       <Text style={styles.headerTitle}>Resumo da Geração</Text>
-      <Text style={styles.headerSubtitle}>
-        Revise os dados antes de gerar a escala.
-      </Text>
+      <Text style={styles.headerSubtitle}>Revise os dados antes de gerar a escala.</Text>
 
       {/* --- 1. PERÍODO E CONFIGURAÇÕES --- */}
-      <SectionHeader 
-        title="Configurações Gerais" 
-        icon="cog-outline" 
-        onEdit={() => onEditStep?.(0)} 
+      <SectionHeader
+        title='Configurações Gerais'
+        icon='cog-outline'
+        onEdit={() => onEditStep?.(0)}
       />
       <InfoCard>
         <View style={styles.row}>
@@ -119,10 +124,10 @@ export function EscalaWizardReviewStep({
       </InfoCard>
 
       {/* --- 2. EVENTOS SELECIONADOS --- */}
-      <SectionHeader 
-        title={`Eventos (${eventos.length})`} 
-        icon="calendar-month-outline" 
-        onEdit={() => onEditStep?.(1)} 
+      <SectionHeader
+        title={`Eventos (${eventos.length})`}
+        icon='calendar-month-outline'
+        onEdit={() => onEditStep?.(1)}
       />
       <InfoCard>
         {eventos.length === 0 ? (
@@ -130,17 +135,18 @@ export function EscalaWizardReviewStep({
         ) : (
           <View style={styles.eventList}>
             {eventos.map((evento, index) => (
-              <View key={evento.id} style={[
-                styles.eventRow, 
-                index !== eventos.length - 1 && styles.borderBottom
-              ]}>
+              <View
+                key={evento.id}
+                style={[styles.eventRow, index !== eventos.length - 1 && styles.borderBottom]}
+              >
                 <View style={styles.eventIconBg}>
-                  <MaterialCommunityIcons name="church" size={18} color="#4B5563" />
+                  <MaterialCommunityIcons name='church' size={18} color='#4B5563' />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.eventName}>{evento.nome}</Text>
                   <Text style={styles.eventDetail}>
-                    {evento.diaSemana ? `${evento.diaSemana} • ` : ''}{evento.horario}
+                    {evento.diaSemana ? `${evento.diaSemana} • ` : ''}
+                    {evento.horario}
                   </Text>
                 </View>
               </View>
@@ -150,12 +156,12 @@ export function EscalaWizardReviewStep({
       </InfoCard>
 
       {/* --- 3. PARTICIPANTES --- */}
-      <SectionHeader 
-        title={`Equipe Selecionada (${participantes.length})`} 
-        icon="account-group-outline" 
-        onEdit={() => onEditStep?.(2)} 
+      <SectionHeader
+        title={`Equipe Selecionada (${participantes.length})`}
+        icon='account-group-outline'
+        onEdit={() => onEditStep?.(2)}
       />
-      
+
       {/* Resumo de Cobertura (Chips horizontais) */}
       {resumoFuncoes.length > 0 && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.coverageScroll}>
@@ -172,15 +178,15 @@ export function EscalaWizardReviewStep({
       <View style={styles.participantsContainer}>
         {participantes.map((participante) => (
           <View key={participante.id} style={styles.participantCard}>
-            <Image 
-              source={participante.fotoUrl ? { uri: participante.fotoUrl } : AppImages.emptyProfile} 
-              style={styles.avatar} 
+            <Image
+              source={participante.fotoUrl ? { uri: participante.fotoUrl } : AppImages.emptyProfile}
+              style={styles.avatar}
             />
             <View style={styles.participantInfo}>
               <Text style={styles.participantName} numberOfLines={1}>
                 {participante.nome}
               </Text>
-              
+
               {/* Lista de Funções (Badges) */}
               <View style={styles.badgesContainer}>
                 {participante.funcoes.map((funcao) => (
@@ -190,10 +196,10 @@ export function EscalaWizardReviewStep({
             </View>
           </View>
         ))}
-        
+
         {participantes.length === 0 && (
           <View style={styles.emptyState}>
-            <MaterialCommunityIcons name="account-off-outline" size={40} color="#9CA3AF" />
+            <MaterialCommunityIcons name='account-off-outline' size={40} color='#9CA3AF' />
             <Text style={styles.emptyText}>Nenhum participante selecionado.</Text>
           </View>
         )}
@@ -223,7 +229,7 @@ const styles = StyleSheet.create({
     color: '#6B7280', // Gray 500
     marginBottom: 24,
   },
-  
+
   // Headers de Seção
   sectionHeader: {
     flexDirection: 'row',

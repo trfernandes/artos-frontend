@@ -1,6 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { IgrejaEventosRepository } from '../domain/services/IgrejaEventosRepository';
-import { RemoveEventoEnsaioDto, UpdateEventoEnsaioDto } from '../domain/dtos/Evento/update-evento-ensaio.dto';
+import {
+  RemoveEventoEnsaioDto,
+  UpdateEventoEnsaioDto,
+} from '../domain/dtos/Evento/update-evento-ensaio.dto';
 import { useAuth } from '../contexts/AuthContext';
 
 type SaveEventoEnsaioParams = {

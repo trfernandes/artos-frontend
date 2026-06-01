@@ -290,9 +290,7 @@ export default function SubstituicaoCardBase({
           {/* BLOCO 1: EVENTO — nome + meta inline (data/hora · função) */}
           <View style={styles.blockEvento}>
             <View style={styles.eventoTituloRow}>
-              <View
-                style={[styles.eventoColorDot, { backgroundColor: eventoCor }]}
-              />
+              <View style={[styles.eventoColorDot, { backgroundColor: eventoCor }]} />
               <FancyText
                 type='bold'
                 size='medium'
@@ -408,7 +406,6 @@ export default function SubstituicaoCardBase({
               </View>
             </>
           ) : null}
-
         </View>
       </View>
 

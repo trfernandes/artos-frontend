@@ -1,14 +1,14 @@
 import React, { useRef, useState, useEffect } from 'react';
 import {
-    ScrollViewProps,
-    StyleSheet,
-    LayoutChangeEvent,
-    NativeScrollEvent,
-    NativeSyntheticEvent,
-    Animated,
-    StyleProp,
-    ViewStyle,
-    View,
+  ScrollViewProps,
+  StyleSheet,
+  LayoutChangeEvent,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  Animated,
+  StyleProp,
+  ViewStyle,
+  View,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { FADE } from './list/FancyList';
@@ -122,10 +122,7 @@ export default function FancyScrollView(props: FancyScrollViewProps) {
       </KeyboardAwareScrollView>
 
       {topFadeEnabled && (
-        <Animated.View
-          pointerEvents='none'
-          style={[styles.fade, { top: 0, opacity: topFadeAnim }]}
-        >
+        <Animated.View pointerEvents='none' style={[styles.fade, { top: 0, opacity: topFadeAnim }]}>
           <LinearGradient
             colors={topFadeColors}
             style={[StyleSheet.absoluteFill, props.topFade?.style]}

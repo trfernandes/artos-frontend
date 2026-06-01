@@ -22,7 +22,13 @@ type Props = {
 
 export default function RepertorioCategoriasManagerSheet({ visible, onClose }: Props) {
   const palette = usePallete();
-  const { data = [], criarCategoria, atualizarCategoria, removerCategoria, isMutatingCategoria } = useRepertorioCategorias();
+  const {
+    data = [],
+    criarCategoria,
+    atualizarCategoria,
+    removerCategoria,
+    isMutatingCategoria,
+  } = useRepertorioCategorias();
   const [nome, setNome] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
@@ -69,15 +75,16 @@ export default function RepertorioCategoriasManagerSheet({ visible, onClose }: P
   };
 
   return (
-    <FancyBottomSheetModal
-      visible={visible}
-      onClose={onClose}
-      title='Categorias do repertório'
-    >
+    <FancyBottomSheetModal visible={visible} onClose={onClose} title='Categorias do repertório'>
       <View style={styles.sheetContent}>
         <FancyContainer
           title='Nova categoria'
-          icon={{ library: 'MaterialCommunityIcons', name: 'tag-plus-outline', size: 16, color: palette.primary }}
+          icon={{
+            library: 'MaterialCommunityIcons',
+            name: 'tag-plus-outline',
+            size: 16,
+            color: palette.primary,
+          }}
           headerContainerStyle={styles.composerHeader}
         >
           <View style={styles.composerBody}>
@@ -109,13 +116,11 @@ export default function RepertorioCategoriasManagerSheet({ visible, onClose }: P
                   onPress={() => void handleCreate()}
                   disabled={!canCreateCategoria}
                   accessibilityLabel='Adicionar categoria'
-                  containerStyle={
-                    {
-                      backgroundColor: palette.primary,
-                      borderColor: palette.primary,
-                      borderWidth: 0,
-                    }
-                  }
+                  containerStyle={{
+                    backgroundColor: palette.primary,
+                    borderColor: palette.primary,
+                    borderWidth: 0,
+                  }}
                 />
               }
             />
@@ -128,7 +133,12 @@ export default function RepertorioCategoriasManagerSheet({ visible, onClose }: P
               <FancyText size='medium' type='bold' style={styles.listHeaderTitle}>
                 Categorias cadastradas
               </FancyText>
-              <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} style={styles.listCount}>
+              <FancyText
+                size='extraSmall'
+                type='medium'
+                color={palette.fonts.inactive}
+                style={styles.listCount}
+              >
                 {`${categoriasAtivas.length} ${categoriasAtivas.length === 1 ? 'item' : 'itens'}`}
               </FancyText>
             </View>
@@ -163,7 +173,9 @@ export default function RepertorioCategoriasManagerSheet({ visible, onClose }: P
                           </View>
                         ) : (
                           <View style={styles.categoryTitleRow}>
-                            <View style={[styles.categoryIcon, { backgroundColor: palette.primary }]}>
+                            <View
+                              style={[styles.categoryIcon, { backgroundColor: palette.primary }]}
+                            >
                               <DefaultIcons.Custom
                                 library='MaterialCommunityIcons'
                                 name='shape-outline'
@@ -171,7 +183,12 @@ export default function RepertorioCategoriasManagerSheet({ visible, onClose }: P
                                 color={palette.fonts.light}
                               />
                             </View>
-                            <FancyText size='small' type='semiBold' style={styles.categoryName} numberOfLines={1}>
+                            <FancyText
+                              size='small'
+                              type='semiBold'
+                              style={styles.categoryName}
+                              numberOfLines={1}
+                            >
                               {item.nome}
                             </FancyText>
                           </View>
@@ -215,7 +232,12 @@ export default function RepertorioCategoriasManagerSheet({ visible, onClose }: P
                               },
                               {
                                 size: 'small',
-                                icon: { library: 'MaterialCommunityIcons', name: 'archive', size: 15, backgroundColor: palette.error },
+                                icon: {
+                                  library: 'MaterialCommunityIcons',
+                                  name: 'archive',
+                                  size: 15,
+                                  backgroundColor: palette.error,
+                                },
                                 onPress: () => void removerCategoria(item.id),
                               },
                             ]}

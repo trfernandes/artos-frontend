@@ -90,7 +90,9 @@ export default function FancyCalendarVertical<T extends string, A>({
 
   // 3) Índice EXATO do mês atual
   const monthIndexForToday = useMemo(() => {
-    const idx = monthsList.findIndex((m) => m.year === today.getFullYear() && m.month === today.getMonth());
+    const idx = monthsList.findIndex(
+      (m) => m.year === today.getFullYear() && m.month === today.getMonth(),
+    );
     return idx >= 0 ? idx : 0;
   }, [monthsList, today]);
 
@@ -156,7 +158,12 @@ export default function FancyCalendarVertical<T extends string, A>({
                 >
                   {DateUtils.getMonthName(item.month)}
                 </FancyText>
-                <FancyText size='large' type='bold' color={Pallete.fonts.inactive2} style={{ borderWidth: 0 }}>
+                <FancyText
+                  size='large'
+                  type='bold'
+                  color={Pallete.fonts.inactive2}
+                  style={{ borderWidth: 0 }}
+                >
                   {item.year}
                 </FancyText>
               </View>

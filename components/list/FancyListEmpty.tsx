@@ -29,7 +29,12 @@ export default function FancyListEmpty(props: FancyListEmptyProps) {
         size={props.icon?.size || 55}
         color={props.icon?.color || Pallete.fonts.inactive2}
       />
-      <FancyText size={props.labelSize ?? 'large'} type='bold' color={props.labelColor || Pallete.fonts.inactive2} style={{ paddingHorizontal: 15, textAlign: 'center' }}>
+      <FancyText
+        size={props.labelSize ?? 'large'}
+        type='bold'
+        color={props.labelColor || Pallete.fonts.inactive2}
+        style={{ paddingHorizontal: 15, textAlign: 'center' }}
+      >
         {props.label || 'Não há nada por aqui...'}
       </FancyText>
       {props.helperText && (
@@ -41,7 +46,13 @@ export default function FancyListEmpty(props: FancyListEmptyProps) {
         <FancyButton
           label={props.actionLabel}
           onPress={props.onActionPress}
-          icon={props.actionIcon || { library: 'MaterialCommunityIcons', name: 'ticket-confirmation-outline', size: 16 }}
+          icon={
+            props.actionIcon || {
+              library: 'MaterialCommunityIcons',
+              name: 'ticket-confirmation-outline',
+              size: 16,
+            }
+          }
           containerStyle={styles.actionButton}
         />
       )}

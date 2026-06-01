@@ -3,7 +3,11 @@ import { ResponseEscalaTemplateDto } from '../dtos/EscalaTemplate/escala-templat
 import { UpdateEscalaTemplateDto } from '../dtos/EscalaTemplate/escala-template.update';
 import { BaseApi } from './BaseApi';
 
-class EscalaTemplatesApiClass extends BaseApi<ResponseEscalaTemplateDto, CreateEscalaTemplateDto, UpdateEscalaTemplateDto> {
+class EscalaTemplatesApiClass extends BaseApi<
+  ResponseEscalaTemplateDto,
+  CreateEscalaTemplateDto,
+  UpdateEscalaTemplateDto
+> {
   constructor() {
     super('escala-templates');
   }

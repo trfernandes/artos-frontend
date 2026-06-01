@@ -85,7 +85,9 @@ export type ConviteStatusType = keyof typeof CONVITE_STATUS_THEMES;
 
 // Helper para obter tema de solicitação
 export function getSolicitacaoTheme(status: string) {
-  return SOLICITACAO_STATUS_THEMES[status as SolicitacaoStatusType] || SOLICITACAO_STATUS_THEMES.PENDING;
+  return (
+    SOLICITACAO_STATUS_THEMES[status as SolicitacaoStatusType] || SOLICITACAO_STATUS_THEMES.PENDING
+  );
 }
 
 // Helper para obter tema de convite

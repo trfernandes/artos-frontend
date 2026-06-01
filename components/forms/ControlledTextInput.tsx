@@ -5,7 +5,17 @@ import FancyErrorText from './FancyErrorText';
 
 interface ControlledFancyTextInputProps<FormData extends FieldValues>
   extends
-    Pick<FancyTextInputProps, 'label' | 'inputContainerStyle' | 'inputProps' | 'disabled' | 'rightContainer' | 'leftContainer' | 'containerStyle' | 'labelProps'>,
+    Pick<
+      FancyTextInputProps,
+      | 'label'
+      | 'inputContainerStyle'
+      | 'inputProps'
+      | 'disabled'
+      | 'rightContainer'
+      | 'leftContainer'
+      | 'containerStyle'
+      | 'labelProps'
+    >,
     Pick<TextInputProps, 'keyboardType'> {
   control: Control<FormData>;
   name: Path<FormData>;
@@ -31,7 +41,11 @@ export default function ControlledTextInput<FormData extends FieldValues>({
               disabled={disabled}
               {...rest}
               value={
-                value === undefined || value === null ? '' : typeof value === 'string' ? value : String(value)
+                value === undefined || value === null
+                  ? ''
+                  : typeof value === 'string'
+                    ? value
+                    : String(value)
               }
               inputProps={{
                 ...externalInputProps,

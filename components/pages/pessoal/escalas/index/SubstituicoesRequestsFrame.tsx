@@ -48,7 +48,14 @@ export default function SubstituicoesRequestsFrame({
                   color: Pallete.primary,
                 }}
               >
-                <View style={{ borderWidth: 0, flexDirection: 'column', gap: 10, justifyContent: 'space-between' }}>
+                <View
+                  style={{
+                    borderWidth: 0,
+                    flexDirection: 'column',
+                    gap: 10,
+                    justifyContent: 'space-between',
+                  }}
+                >
                   <View style={{ gap: 3 }}>
                     <FancyTextDisplay
                       titleStyle={{ size: 'extraSmall' }}
@@ -59,14 +66,18 @@ export default function SubstituicoesRequestsFrame({
                     <FancyTextDisplay
                       title='Evento:'
                       value={`${item.escalaItem?.evento?.nome} - ${
-                        item.escalaItem?.dataOcorrencia && format(item.escalaItem?.dataOcorrencia, 'dd/MM/yyyy HH:mm')
+                        item.escalaItem?.dataOcorrencia &&
+                        format(item.escalaItem?.dataOcorrencia, 'dd/MM/yyyy HH:mm')
                       }`}
                       titleStyle={{ size: 'extraSmall' }}
                       valueStyle={{ size: 'extraSmall' }}
                     />
                     <FancyTextDisplay
                       title='Data/Hora da solicitação:'
-                      value={item.escalaItem?.dataOcorrencia && format(item.escalaItem?.dataOcorrencia, 'dd/MM/yyyy HH:mm')}
+                      value={
+                        item.escalaItem?.dataOcorrencia &&
+                        format(item.escalaItem?.dataOcorrencia, 'dd/MM/yyyy HH:mm')
+                      }
                       titleStyle={{ size: 'extraSmall' }}
                       valueStyle={{ size: 'extraSmall' }}
                     />
@@ -106,7 +117,13 @@ export default function SubstituicoesRequestsFrame({
               </FancySection>
               <View style={styles.pageIndicatorContainer}>
                 {Array.from({ length: data.length }).map((_, index) => (
-                  <View key={index} style={[styles.pageIndicatorDot, index === pageIndex && styles.pageInidicatorDotActive]} />
+                  <View
+                    key={index}
+                    style={[
+                      styles.pageIndicatorDot,
+                      index === pageIndex && styles.pageInidicatorDotActive,
+                    ]}
+                  />
                 ))}
               </View>
             </View>

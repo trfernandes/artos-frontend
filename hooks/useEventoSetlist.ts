@@ -5,7 +5,11 @@ import { CreateEventoSetlistItemDto } from '../domain/dtos/Evento/evento-setlist
 import { UpdateEventoSetlistItemDto } from '../domain/dtos/Evento/evento-setlist-item.update';
 import { ReorderEventoSetlistDto } from '../domain/dtos/Evento/reorder-evento-setlist.dto';
 
-export function useEventoSetlist(eventoId?: string, dataOcorrencia?: string, ministerioId?: string) {
+export function useEventoSetlist(
+  eventoId?: string,
+  dataOcorrencia?: string,
+  ministerioId?: string,
+) {
   const { igrejaAtiva } = useAuth();
   const queryClient = useQueryClient();
 
@@ -18,7 +22,13 @@ export function useEventoSetlist(eventoId?: string, dataOcorrencia?: string, min
   const query = useQuery({
     queryKey,
     enabled: !!eventoId && !!dataOcorrencia && !!ministerioId,
-    queryFn: () => IgrejaEventosRepository.listarSetlist(igrejaAtiva.id, eventoId!, ministerioId!, dataOcorrencia!),
+    queryFn: () =>
+      IgrejaEventosRepository.listarSetlist(
+        igrejaAtiva.id,
+        eventoId!,
+        ministerioId!,
+        dataOcorrencia!,
+      ),
   });
 
   const invalidate = async () => {
@@ -27,7 +37,8 @@ export function useEventoSetlist(eventoId?: string, dataOcorrencia?: string, min
   };
 
   const createMutation = useMutation({
-    mutationFn: (dto: CreateEventoSetlistItemDto) => IgrejaEventosRepository.criarSetlistItem(igrejaAtiva.id, eventoId!, dto),
+    mutationFn: (dto: CreateEventoSetlistItemDto) =>
+      IgrejaEventosRepository.criarSetlistItem(igrejaAtiva.id, eventoId!, dto),
     onSuccess: invalidate,
   });
   const updateMutation = useMutation({
@@ -37,11 +48,18 @@ export function useEventoSetlist(eventoId?: string, dataOcorrencia?: string, min
   });
   const deleteMutation = useMutation({
     mutationFn: (itemId: string) =>
-      IgrejaEventosRepository.removerSetlistItem(igrejaAtiva.id, eventoId!, itemId, ministerioId!, dataOcorrencia!),
+      IgrejaEventosRepository.removerSetlistItem(
+        igrejaAtiva.id,
+        eventoId!,
+        itemId,
+        ministerioId!,
+        dataOcorrencia!,
+      ),
     onSuccess: invalidate,
   });
   const reorderMutation = useMutation({
-    mutationFn: (dto: ReorderEventoSetlistDto) => IgrejaEventosRepository.reordenarSetlist(igrejaAtiva.id, eventoId!, dto),
+    mutationFn: (dto: ReorderEventoSetlistDto) =>
+      IgrejaEventosRepository.reordenarSetlist(igrejaAtiva.id, eventoId!, dto),
     onSuccess: invalidate,
   });
 
@@ -52,6 +70,9 @@ export function useEventoSetlist(eventoId?: string, dataOcorrencia?: string, min
     removerSetlistItem: deleteMutation.mutateAsync,
     reordenarSetlist: reorderMutation.mutateAsync,
     isMutatingSetlist:
-      createMutation.isPending || updateMutation.isPending || deleteMutation.isPending || reorderMutation.isPending,
+      createMutation.isPending ||
+      updateMutation.isPending ||
+      deleteMutation.isPending ||
+      reorderMutation.isPending,
   };
 }

@@ -12,7 +12,13 @@ import { useIgrejaVoluntariosCrud } from '../../../../../hooks/useIgrejaVoluntar
 import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { DropDownItemProps } from '../../../../../components/fields/FancyDropDownItem';
-import { Condition, DynamicQuery, Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
+import {
+  Condition,
+  DynamicQuery,
+  Operator,
+  OrderDirection,
+  ValueType,
+} from '../../../../../domain/utils/query_utils';
 import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
 import Toast from 'react-native-toast-message';
 import { EscalaTemplateExperienciaEnum } from '../../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
@@ -83,12 +89,18 @@ export default function MinisterioIntegrantesAddPage() {
         left: {
           type: 'image',
           source:
-            voluntario.fotoThumbUrl || voluntario.fotoUrl ? { uri: voluntario.fotoThumbUrl || voluntario.fotoUrl || '' } : AppImages.emptyProfile,
+            voluntario.fotoThumbUrl || voluntario.fotoUrl
+              ? { uri: voluntario.fotoThumbUrl || voluntario.fotoUrl || '' }
+              : AppImages.emptyProfile,
         },
       })) as DropDownItemProps<string>[];
   }, [voluntariosData, integrantesData, ministerioId]);
 
-  const { funcoesList, funcoesDropDownList, isLoading: isLoadingFuncoes } = useFuncoesDoMinisterio(ministerioId);
+  const {
+    funcoesList,
+    funcoesDropDownList,
+    isLoading: isLoadingFuncoes,
+  } = useFuncoesDoMinisterio(ministerioId);
 
   const { add: addVoluntario } = useMinisterioVoluntariosCrud();
   const { add: addFuncaoVoluntario } = useMinisterioVoluntarioFuncoesCrud();
@@ -109,7 +121,9 @@ export default function MinisterioIntegrantesAddPage() {
       setIsSavingIntegrante(true);
 
       try {
-        const funcoesSelecionadas = (data.funcoes ?? []).filter((f) => funcoesList.some((funcao) => funcao.id === f.id));
+        const funcoesSelecionadas = (data.funcoes ?? []).filter((f) =>
+          funcoesList.some((funcao) => funcao.id === f.id),
+        );
 
         const voluntario = await addVoluntario({
           ministerioId,
@@ -166,7 +180,11 @@ export default function MinisterioIntegrantesAddPage() {
           <View style={styles.stepLine} />
           <StepPill index={2} label='Funções' active={validSelectedFuncoes.length > 0} />
           <View style={styles.stepLine} />
-          <StepPill index={3} label='Confirmar' active={!!selectedVoluntarioId && validSelectedFuncoes.length > 0} />
+          <StepPill
+            index={3}
+            label='Confirmar'
+            active={!!selectedVoluntarioId && validSelectedFuncoes.length > 0}
+          />
         </View>
 
         {selectedVoluntario && (
@@ -183,11 +201,24 @@ export default function MinisterioIntegrantesAddPage() {
               <FancyText size='small' type='bold' color={palette.fonts.dark} numberOfLines={1}>
                 {selectedVoluntario.nome}
               </FancyText>
-              <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} numberOfLines={1} ellipsizeMode='middle'>
-                {selectedVoluntario.email || selectedVoluntario.telefone || 'Voluntário selecionado'}
+              <FancyText
+                size='extraSmall'
+                type='medium'
+                color={palette.fonts.inactive}
+                numberOfLines={1}
+                ellipsizeMode='middle'
+              >
+                {selectedVoluntario.email ||
+                  selectedVoluntario.telefone ||
+                  'Voluntário selecionado'}
               </FancyText>
             </View>
-            <DefaultIcons.Custom library='MaterialCommunityIcons' name='check-circle' size={20} color={palette.primary} />
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='check-circle'
+              size={20}
+              color={palette.primary}
+            />
           </View>
         )}
 
@@ -204,10 +235,18 @@ export default function MinisterioIntegrantesAddPage() {
           <FancyText size='extraSmall' type='bold' color={palette.fonts.dark} numberOfLines={1}>
             {selectedVoluntario?.nome || 'Selecione um voluntário'}
           </FancyText>
-          <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} numberOfLines={1}>
+          <FancyText
+            size='extraSmall'
+            type='medium'
+            color={palette.fonts.inactive}
+            numberOfLines={1}
+          >
             {validSelectedFuncoes.length
               ? `${validSelectedFuncoes.length} função${validSelectedFuncoes.length === 1 ? '' : 'ões'}: ${validSelectedFuncoes
-                  .map((funcao) => `${funcao.nome} (${EscalaTemplateExperienciaLabel[funcao.experiencia!]})`)
+                  .map(
+                    (funcao) =>
+                      `${funcao.nome} (${EscalaTemplateExperienciaLabel[funcao.experiencia!]})`,
+                  )
                   .join(', ')}`
               : 'Adicione ao menos uma função se quiser escalar por habilidade.'}
           </FancyText>
@@ -232,10 +271,19 @@ function StepPill({ index, label, active }: { index: number; label: string; acti
 
   return (
     <View style={[styles.stepPill, active && styles.stepPillActive]}>
-      <FancyText size='extraSmall' type='bold' color={active ? palette.fonts.light : palette.fonts.inactive}>
+      <FancyText
+        size='extraSmall'
+        type='bold'
+        color={active ? palette.fonts.light : palette.fonts.inactive}
+      >
         {index}
       </FancyText>
-      <FancyText size='extraSmall' type='semiBold' color={active ? palette.fonts.light : palette.fonts.inactive} numberOfLines={1}>
+      <FancyText
+        size='extraSmall'
+        type='semiBold'
+        color={active ? palette.fonts.light : palette.fonts.inactive}
+        numberOfLines={1}
+      >
         {label}
       </FancyText>
     </View>

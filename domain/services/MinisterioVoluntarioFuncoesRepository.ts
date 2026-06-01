@@ -32,7 +32,10 @@ class MinisterioVoluntarioFuncoesRepositoryClass extends BaseRepository<
     data: UpdateFuncoesDataDto,
   ): Promise<ResponseMinisterioVoluntarioFuncaoDto[]> {
     try {
-      const response = await apiClient.put(`/${apiName}/voluntarios/${ministerioVoluntarioId}/funcoes`, data);
+      const response = await apiClient.put(
+        `/${apiName}/voluntarios/${ministerioVoluntarioId}/funcoes`,
+        data,
+      );
       return response.data.data;
     } catch (error) {
       console.log(`Erro ao atualizar as funcoes ${apiName} ${ministerioVoluntarioId}:`, error);
@@ -41,4 +44,5 @@ class MinisterioVoluntarioFuncoesRepositoryClass extends BaseRepository<
   }
 }
 
-export const MinisterioVoluntarioFuncoesRepository = new MinisterioVoluntarioFuncoesRepositoryClass();
+export const MinisterioVoluntarioFuncoesRepository =
+  new MinisterioVoluntarioFuncoesRepositoryClass();

@@ -22,7 +22,11 @@ export default function CreateIgrejaAccountTabPronto() {
       <FancyText type='bold' size='medium' color={palette.fonts.dark} style={styles.title}>
         Tudo pronto
       </FancyText>
-      <FancyText size='small' color={palette.fonts.inactive} style={[styles.text, styles.textMuted]}>
+      <FancyText
+        size='small'
+        color={palette.fonts.inactive}
+        style={[styles.text, styles.textMuted]}
+      >
         Revise rapidamente os dados e toque em Confirmar para finalizar o cadastro da igreja.
       </FancyText>
     </View>

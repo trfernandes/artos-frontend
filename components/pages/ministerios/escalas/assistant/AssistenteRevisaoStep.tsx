@@ -41,7 +41,12 @@ function SummaryMetric({
 
   return (
     <View style={styles.summaryMetric}>
-      <View style={[styles.summaryMetricBadge, { backgroundColor: ColorUtils.withAlpha(toneColor, 0.12) }]}>
+      <View
+        style={[
+          styles.summaryMetricBadge,
+          { backgroundColor: ColorUtils.withAlpha(toneColor, 0.12) },
+        ]}
+      >
         <DefaultIcons.Custom
           library='MaterialCommunityIcons'
           name={icon as any}
@@ -203,7 +208,11 @@ function EventItem({
                 return (
                   <View key={idx} style={styles.detailRow}>
                     <View style={styles.detailBullet} />
-                    <FancyText size='extraSmall' color={palette.fonts.dark} style={styles.detailText}>
+                    <FancyText
+                      size='extraSmall'
+                      color={palette.fonts.dark}
+                      style={styles.detailText}
+                    >
                       {funcaoNome}
                       <FancyText size='extraSmall' color={palette.fonts.inactive}>
                         {' '}
@@ -223,7 +232,9 @@ function EventItem({
                 Voluntários fixos
               </FancyText>
               {evento.template.fixos.map((f: any, idx: number) => {
-                const vol = ministerioVoluntariosList.find((v) => String(v.id) === String(f.minVolId));
+                const vol = ministerioVoluntariosList.find(
+                  (v) => String(v.id) === String(f.minVolId),
+                );
                 const volNome = vol?.voluntario?.nome || 'Voluntário desconhecido';
                 const funcaoNome =
                   funcoesList.find((fl) => String(fl.id) === String(f.funcaoId))?.nome ||
@@ -240,7 +251,11 @@ function EventItem({
                       size={20}
                       style={styles.fixedVolunteerAvatar}
                     />
-                    <FancyText size='extraSmall' color={palette.fonts.dark} style={styles.detailText}>
+                    <FancyText
+                      size='extraSmall'
+                      color={palette.fonts.dark}
+                      style={styles.detailText}
+                    >
                       {getFirstAndLastName(volNome)}
                       <FancyText size='extraSmall' color={palette.fonts.inactive}>
                         {' '}
@@ -254,7 +269,6 @@ function EventItem({
           ) : null}
         </View>
       ) : null}
-
     </View>
   );
 }
@@ -317,7 +331,9 @@ export default function AssistenteRevisaoStep() {
     return `${format(dataInicio, 'dd MMM', { locale: ptBR })} - ${format(dataTermino, 'dd MMM yyyy', { locale: ptBR })}`;
   }, [dataInicio, dataTermino]);
   const dataInicioResumo = dataInicio ? format(dataInicio, 'dd MMM', { locale: ptBR }) : '--';
-  const dataTerminoResumo = dataTermino ? format(dataTermino, 'dd MMM yyyy', { locale: ptBR }) : '--';
+  const dataTerminoResumo = dataTermino
+    ? format(dataTermino, 'dd MMM yyyy', { locale: ptBR })
+    : '--';
 
   const totalFuncoesResumo = resumoFuncoes.length;
 
@@ -397,18 +413,20 @@ export default function AssistenteRevisaoStep() {
               </FancyText>
             </View>
           </View>
-
         </View>
 
         <View style={styles.summaryMetricsRow}>
-          <SummaryMetric icon='calendar-month-outline' label='Eventos' value={String(eventosSelecionados.length)} />
-          <SummaryMetric icon='account-group-outline' label='Equipe' value={String(participantesSelecionados.length)} />
           <SummaryMetric
-            icon='check-decagram-outline'
-            label='Pronto'
-            value='OK'
-            tone='confirm'
+            icon='calendar-month-outline'
+            label='Eventos'
+            value={String(eventosSelecionados.length)}
           />
+          <SummaryMetric
+            icon='account-group-outline'
+            label='Equipe'
+            value={String(participantesSelecionados.length)}
+          />
+          <SummaryMetric icon='check-decagram-outline' label='Pronto' value='OK' tone='confirm' />
         </View>
       </View>
 
@@ -457,7 +475,12 @@ export default function AssistenteRevisaoStep() {
               size={16}
               color={palette.primary}
             />
-            <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} style={styles.teamSummaryText}>
+            <FancyText
+              size='extraSmall'
+              type='medium'
+              color={palette.fonts.inactive}
+              style={styles.teamSummaryText}
+            >
               {participantesSelecionados.length} voluntários distribuídos em {totalFuncoesResumo}{' '}
               {totalFuncoesResumo === 1 ? 'função' : 'funções'}.
             </FancyText>

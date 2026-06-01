@@ -14,7 +14,10 @@ export type FancyDataNavigatorProps = {
   onOpenPress?: () => void;
 };
 
-export default function FancyDataNavigator({ showOpenButton = false, ...props }: FancyDataNavigatorProps) {
+export default function FancyDataNavigator({
+  showOpenButton = false,
+  ...props
+}: FancyDataNavigatorProps) {
   const Pallete = usePallete();
   const styles = useThemedStyles(createStyles);
   return (
@@ -33,7 +36,12 @@ export default function FancyDataNavigator({ showOpenButton = false, ...props }:
         <View style={styles.buttonsContainer}>
           {showOpenButton && (
             <FancyButton
-              icon={{ name: 'external-link', library: 'Feather', color: Pallete.icons.light, size: 16 }}
+              icon={{
+                name: 'external-link',
+                library: 'Feather',
+                color: Pallete.icons.light,
+                size: 16,
+              }}
               containerStyle={styles.button}
               onPress={props.onOpenPress}
             />
@@ -44,7 +52,12 @@ export default function FancyDataNavigator({ showOpenButton = false, ...props }:
             onPress={props.onPreviousPress}
           />
           <FancyButton
-            icon={{ name: 'chevron-right', library: 'Entypo', color: Pallete.icons.light, size: 18 }}
+            icon={{
+              name: 'chevron-right',
+              library: 'Entypo',
+              color: Pallete.icons.light,
+              size: 18,
+            }}
             containerStyle={styles.button}
             onPress={props.onNextPress}
           />

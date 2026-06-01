@@ -11,7 +11,7 @@ import { FancyAlert } from '../../components/modal/FancyAlert';
 export default function RootLayout() {
   const { user, loading, signOut } = useAuth();
   const navigationRef = useNavigationContainerRef();
-  
+
   // Check for post-login redirects (pending invites, no churches)
   usePostLoginRedirect();
 
@@ -37,7 +37,7 @@ export default function RootLayout() {
             style: 'destructive',
             onPress: () => signOut(),
           },
-        ]
+        ],
       );
     }
   };

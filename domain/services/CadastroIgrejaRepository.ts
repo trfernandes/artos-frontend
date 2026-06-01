@@ -1,20 +1,20 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
-     setItem as setSecureItem,
-     getItem as getSecureItem,
-     deleteItem as deleteSecureItem,
-     setJSON,
-     getJSON,
+  setItem as setSecureItem,
+  getItem as getSecureItem,
+  deleteItem as deleteSecureItem,
+  setJSON,
+  getJSON,
 } from '../../utils/secureStorage';
 import apiClient from '../api/api-client';
 import {
-     CadastroIgrejaStorageDto,
-     CreateCadastroIgrejaDto,
-     CreateCadastroResponseDto,
-     StatusCadastroResponseDto,
-     AlterarEmailCadastroDto,
-     ConfirmarEmailCadastroDto,
-     CadastroIgrejaActionResponseDto,
+  CadastroIgrejaStorageDto,
+  CreateCadastroIgrejaDto,
+  CreateCadastroResponseDto,
+  StatusCadastroResponseDto,
+  AlterarEmailCadastroDto,
+  ConfirmarEmailCadastroDto,
+  CadastroIgrejaActionResponseDto,
 } from '../dtos/Igreja/cadastro-igreja.dto';
 import { AxiosError } from 'axios';
 
@@ -27,7 +27,10 @@ type ApiEnvelope<T> = {
 };
 
 const generateIdempotencyKey = (): string => {
-  if (typeof globalThis.crypto !== 'undefined' && typeof globalThis.crypto.randomUUID === 'function') {
+  if (
+    typeof globalThis.crypto !== 'undefined' &&
+    typeof globalThis.crypto.randomUUID === 'function'
+  ) {
     return globalThis.crypto.randomUUID();
   }
 
@@ -116,9 +119,13 @@ class CadastroIgrejaRepositoryClass {
         await this.salvarIdempotencyKey(key);
       }
 
-      const response = await apiClient.post<ApiEnvelope<CreateCadastroResponseDto>>(API_BASE_PATH, dto, {
-        headers: { 'Idempotency-Key': key },
-      });
+      const response = await apiClient.post<ApiEnvelope<CreateCadastroResponseDto>>(
+        API_BASE_PATH,
+        dto,
+        {
+          headers: { 'Idempotency-Key': key },
+        },
+      );
       return response.data.data;
     } catch (err) {
       const e = err as AxiosError<any>;
@@ -138,12 +145,18 @@ class CadastroIgrejaRepositoryClass {
    * Obtém o status do cadastro
    * GET /public/cadastro-igreja/:cadastroId/status
    */
-  async obterStatus(cadastroId: string, cadastroSecret: string): Promise<StatusCadastroResponseDto> {
-    const response = await apiClient.get<ApiEnvelope<StatusCadastroResponseDto>>(`${API_BASE_PATH}/${cadastroId}/status`, {
-      headers: {
-        'X-Cadastro-Secret': cadastroSecret,
+  async obterStatus(
+    cadastroId: string,
+    cadastroSecret: string,
+  ): Promise<StatusCadastroResponseDto> {
+    const response = await apiClient.get<ApiEnvelope<StatusCadastroResponseDto>>(
+      `${API_BASE_PATH}/${cadastroId}/status`,
+      {
+        headers: {
+          'X-Cadastro-Secret': cadastroSecret,
+        },
       },
-    });
+    );
     return response.data.data;
   }
 
@@ -151,7 +164,10 @@ class CadastroIgrejaRepositoryClass {
    * Reenvia o e-mail de confirmação
    * POST /public/cadastro-igreja/:cadastroId/reenviar-email
    */
-  async reenviarEmail(cadastroId: string, cadastroSecret: string): Promise<CadastroIgrejaActionResponseDto> {
+  async reenviarEmail(
+    cadastroId: string,
+    cadastroSecret: string,
+  ): Promise<CadastroIgrejaActionResponseDto> {
     const response = await apiClient.post<ApiEnvelope<CadastroIgrejaActionResponseDto>>(
       `${API_BASE_PATH}/${cadastroId}/reenviar-email`,
       {},
@@ -189,7 +205,10 @@ class CadastroIgrejaRepositoryClass {
    * Confirma o e-mail e ativa a igreja (chamado via deep link)
    * POST /public/cadastro-igreja/:cadastroId/confirmar-email
    */
-  async confirmarEmail(cadastroId: string, dto: ConfirmarEmailCadastroDto): Promise<CadastroIgrejaActionResponseDto> {
+  async confirmarEmail(
+    cadastroId: string,
+    dto: ConfirmarEmailCadastroDto,
+  ): Promise<CadastroIgrejaActionResponseDto> {
     const response = await apiClient.post<ApiEnvelope<CadastroIgrejaActionResponseDto>>(
       `${API_BASE_PATH}/${cadastroId}/confirmar-email`,
       dto,

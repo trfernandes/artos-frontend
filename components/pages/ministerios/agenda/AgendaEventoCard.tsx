@@ -14,7 +14,11 @@ type AgendaEventoCardProps = {
   onPress: () => void;
 };
 
-export default function AgendaEventoCard({ data, showEnsaio = false, onPress }: AgendaEventoCardProps) {
+export default function AgendaEventoCard({
+  data,
+  showEnsaio = false,
+  onPress,
+}: AgendaEventoCardProps) {
   const palette = usePallete();
   const eventColor = data.cor || palette.primary;
   const isDark = palette.backgroundColor === '#121212';
@@ -51,10 +55,16 @@ export default function AgendaEventoCard({ data, showEnsaio = false, onPress }: 
     () => (isDark ? palette.backgroundColor4 : ColorUtils.lightenColor(eventColor, 0.918)),
     [eventColor, isDark, palette.backgroundColor4],
   );
-  const borderColor = useMemo(() => ColorUtils.withAlpha(eventColor, isDark ? 0.3 : 0.16), [eventColor, isDark]);
+  const borderColor = useMemo(
+    () => ColorUtils.withAlpha(eventColor, isDark ? 0.3 : 0.16),
+    [eventColor, isDark],
+  );
 
   return (
-    <Pressable onPress={onPress} style={[styles.card, { backgroundColor: cardBg, borderColor }, palette.shadows[100]]}>
+    <Pressable
+      onPress={onPress}
+      style={[styles.card, { backgroundColor: cardBg, borderColor }, palette.shadows[100]]}
+    >
       <EventoCardContent
         timeRangeText={timeRangeText}
         countdownLabel={countdownLabel}

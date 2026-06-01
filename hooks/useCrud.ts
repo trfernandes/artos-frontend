@@ -24,7 +24,12 @@ export interface ExternalUseCrudParams {
   muteMessages?: boolean;
 }
 
-export interface UseCrudOptions<TResponse extends CrudIdentifiable, TForm extends FieldValues, TCreate, TUpdate> {
+export interface UseCrudOptions<
+  TResponse extends CrudIdentifiable,
+  TForm extends FieldValues,
+  TCreate,
+  TUpdate,
+> {
   queryKey: string;
 
   fetchAll: () => Promise<TResponse[]>;
@@ -48,7 +53,12 @@ export interface UseCrudOptions<TResponse extends CrudIdentifiable, TForm extend
   toUpdateDto?: (form: TForm, current: TResponse) => TUpdate;
 }
 
-export function useCrud<TResponse extends CrudIdentifiable, TForm extends FieldValues, TCreate = TForm, TUpdate = Partial<TForm>>({
+export function useCrud<
+  TResponse extends CrudIdentifiable,
+  TForm extends FieldValues,
+  TCreate = TForm,
+  TUpdate = Partial<TForm>,
+>({
   queryKey,
   fetchAll,
   fetchOne,
@@ -68,8 +78,12 @@ export function useCrud<TResponse extends CrudIdentifiable, TForm extends FieldV
 
   const [currentItem, setCurrentItem] = useState<TResponse | null>(null);
 
-  const [searchParams, setSearchParams] = useState<DynamicQuery | null>(typeof initialParams === 'string' ? null : initialParams ?? null);
-  const [hasBootstrappedInitialParams, setHasBootstrappedInitialParams] = useState(() => !initialParams);
+  const [searchParams, setSearchParams] = useState<DynamicQuery | null>(
+    typeof initialParams === 'string' ? null : (initialParams ?? null),
+  );
+  const [hasBootstrappedInitialParams, setHasBootstrappedInitialParams] = useState(
+    () => !initialParams,
+  );
   const [isFetchingInitialItem, setIsFetchingInitialItem] = useState(false);
 
   const appliedInitialParamsKeyRef = useRef<string | null>(null);
@@ -155,45 +169,64 @@ export function useCrud<TResponse extends CrudIdentifiable, TForm extends FieldV
 
   const hasReceivedData = dataQuery.data !== undefined;
   const combinedLoading =
-    !hasBootstrappedInitialParams || (!hasReceivedData && (dataQuery.isLoading || dataQuery.isFetching)) || isFetchingInitialItem;
+    !hasBootstrappedInitialParams ||
+    (!hasReceivedData && (dataQuery.isLoading || dataQuery.isFetching)) ||
+    isFetchingInitialItem;
   const combinedRefetching = hasReceivedData && dataQuery.isFetching && !dataQuery.isLoading;
 
   const createMutation = useMutation({
     mutationFn: add,
     onSuccess: async () => {
-      if (!muteMessages) Toast.show({ type: 'success', text1: messages?.successCreate || 'Item criado com sucesso!' });
+      if (!muteMessages)
+        Toast.show({
+          type: 'success',
+          text1: messages?.successCreate || 'Item criado com sucesso!',
+        });
       await queryClient.invalidateQueries({ queryKey: [queryKey] });
     },
     onError: (error) => {
-      if (!muteMessages) Toast.show({ type: 'error', text1: messages?.errorCreate || 'Erro ao criar item.' });
+      if (!muteMessages)
+        Toast.show({ type: 'error', text1: messages?.errorCreate || 'Erro ao criar item.' });
       if (__DEV__) {
         console.log('[useCrud] Create error:', error);
       }
     },
   });
 
-  const updateMutation = update && useMutation({
-    mutationFn: ({ id, data }: { id: string; data: TUpdate }) => update(id, data),
-    onSuccess: async () => {
-      if (!muteMessages) Toast.show({ type: 'success', text1: messages?.successUpdate || 'Item atualizado com sucesso!' });
-      await queryClient.invalidateQueries({ queryKey: [queryKey] });
-    },
-    onError: (error) => {
-      if (!muteMessages) Toast.show({ type: 'error', text1: messages?.errorUpdate || 'Erro ao atualizar item.' });
-      if (__DEV__) {
-        console.log('[useCrud] Update error:', error);
-      }
-    },
-  });
+  const updateMutation =
+    update &&
+    useMutation({
+      mutationFn: ({ id, data }: { id: string; data: TUpdate }) => update(id, data),
+      onSuccess: async () => {
+        if (!muteMessages)
+          Toast.show({
+            type: 'success',
+            text1: messages?.successUpdate || 'Item atualizado com sucesso!',
+          });
+        await queryClient.invalidateQueries({ queryKey: [queryKey] });
+      },
+      onError: (error) => {
+        if (!muteMessages)
+          Toast.show({ type: 'error', text1: messages?.errorUpdate || 'Erro ao atualizar item.' });
+        if (__DEV__) {
+          console.log('[useCrud] Update error:', error);
+        }
+      },
+    });
 
   const removeMutation = useMutation({
     mutationFn: remove,
     onSuccess: async () => {
-      if (!muteMessages) Toast.show({ type: 'success', text1: messages?.successDelete || 'Item removido com sucesso!' });
+      if (!muteMessages)
+        Toast.show({
+          type: 'success',
+          text1: messages?.successDelete || 'Item removido com sucesso!',
+        });
       await queryClient.invalidateQueries({ queryKey: [queryKey] });
     },
     onError: (error) => {
-      if (!muteMessages) Toast.show({ type: 'error', text1: messages?.errorDelete || 'Erro ao remover item.' });
+      if (!muteMessages)
+        Toast.show({ type: 'error', text1: messages?.errorDelete || 'Erro ao remover item.' });
       if (__DEV__) {
         console.log('[useCrud] Delete error:', error);
       }
@@ -202,7 +235,9 @@ export function useCrud<TResponse extends CrudIdentifiable, TForm extends FieldV
 
   const handleSubmit = async (formValues: TForm) => {
     if (currentItem?.id) {
-      const payload = toUpdateDto ? toUpdateDto(formValues, currentItem) : (formValues as unknown as TUpdate);
+      const payload = toUpdateDto
+        ? toUpdateDto(formValues, currentItem)
+        : (formValues as unknown as TUpdate);
       await updateMutation?.mutateAsync({ id: currentItem.id, data: payload });
     } else {
       const payload = toCreateDto ? toCreateDto(formValues) : (formValues as unknown as TCreate);
@@ -226,7 +261,8 @@ export function useCrud<TResponse extends CrudIdentifiable, TForm extends FieldV
     handleSubmit,
 
     isLoading: combinedLoading,
-    isLoadingMutation: createMutation.isPending || updateMutation?.isPending || removeMutation.isPending,
+    isLoadingMutation:
+      createMutation.isPending || updateMutation?.isPending || removeMutation.isPending,
     isRefetching: combinedRefetching,
     isError: dataQuery.isError,
     error: dataQuery.error || createMutation.error || updateMutation?.error || removeMutation.error,

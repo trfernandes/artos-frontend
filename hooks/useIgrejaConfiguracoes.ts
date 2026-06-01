@@ -104,7 +104,8 @@ export function useIgrejaConfiguracoes({
     onError: (error: any) => {
       hideLoading();
       if (!muteMessages) {
-        const message = error?.response?.data?.message || 'Erro ao atualizar modo de entrada. Tente novamente.';
+        const message =
+          error?.response?.data?.message || 'Erro ao atualizar modo de entrada. Tente novamente.';
         Toast.show({
           type: 'error',
           text1: 'Erro',
@@ -138,7 +139,8 @@ export function useIgrejaConfiguracoes({
     onError: (error: any) => {
       hideLoading();
       if (!muteMessages) {
-        const message = error?.response?.data?.message || 'Erro ao atualizar notificações. Tente novamente.';
+        const message =
+          error?.response?.data?.message || 'Erro ao atualizar notificações. Tente novamente.';
         Toast.show({
           type: 'error',
           text1: 'Erro',

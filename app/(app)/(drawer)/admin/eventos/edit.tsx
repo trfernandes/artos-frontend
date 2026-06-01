@@ -46,16 +46,27 @@ export default function EventosEditPage() {
       eventoForm.setValue('nome', eventosData[0]?.nome ?? '');
       eventoForm.setValue('local', eventosData[0]?.local ?? '');
       eventoForm.setValue('cor', eventosData[0]?.cor ?? '#FF8C00');
-      eventoForm.setValue('dataInicio', toZonedTime(eventosData[0]?.dataInicio, 'America/Sao_Paulo'));
+      eventoForm.setValue(
+        'dataInicio',
+        toZonedTime(eventosData[0]?.dataInicio, 'America/Sao_Paulo'),
+      );
       eventoForm.setValue(
         'dataTermino',
-        eventosData[0]?.dataTermino ? toZonedTime(eventosData[0]?.dataTermino, 'America/Sao_Paulo') : undefined,
+        eventosData[0]?.dataTermino
+          ? toZonedTime(eventosData[0]?.dataTermino, 'America/Sao_Paulo')
+          : undefined,
       );
       eventoForm.setValue('descricao', eventosData[0]?.descricao ?? '');
       eventoForm.setValue('recorrencia', eventosData[0]?.recorrencia);
-      eventoForm.setValue('recorrenciaSemanaDias', eventosData[0]?.recorrenciaSemanaDias?.map((item) => item) || []);
+      eventoForm.setValue(
+        'recorrenciaSemanaDias',
+        eventosData[0]?.recorrenciaSemanaDias?.map((item) => item) || [],
+      );
       eventoForm.setValue('recorrenciaACadaMeses', eventosData[0]?.recorrenciaACadaMeses || 1);
-      eventoForm.setValue('recorrenciaSemanasMes', eventosData[0]?.recorrenciaSemanasMes?.map((item) => item) || []);
+      eventoForm.setValue(
+        'recorrenciaSemanasMes',
+        eventosData[0]?.recorrenciaSemanasMes?.map((item) => item) || [],
+      );
     }
   }, [eventosData]);
 
@@ -77,7 +88,9 @@ export default function EventosEditPage() {
           data: {
             ...payload,
             dataInicio: DateUtilsApi.dateTimeToApi(payload.dataInicio),
-            dataTermino: payload.dataTermino ? DateUtilsApi.dateTimeToApi(payload.dataTermino) : undefined,
+            dataTermino: payload.dataTermino
+              ? DateUtilsApi.dateTimeToApi(payload.dataTermino)
+              : undefined,
           },
         });
         router.back();
@@ -92,7 +105,12 @@ export default function EventosEditPage() {
         <EventosDadosForm />
       </FormProvider>
       <View style={styles.buttons}>
-        <FancyButton label='Salvar' icon={{ ...DefaultIconsNames.save, size: 16 }} type='contained' onPress={handleSubmit} />
+        <FancyButton
+          label='Salvar'
+          icon={{ ...DefaultIconsNames.save, size: 16 }}
+          type='contained'
+          onPress={handleSubmit}
+        />
       </View>
     </FancyPageView>
   );

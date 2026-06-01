@@ -38,64 +38,74 @@ export default function ControlledDateInput<FormData extends FieldValues>({
         const selectedDate = (() => {
           if (!value) return undefined;
           const rawValue = value as any;
-          const date = Object.prototype.toString.call(rawValue) === '[object Date]' ? rawValue as Date : new Date(rawValue);
+          const date =
+            Object.prototype.toString.call(rawValue) === '[object Date]'
+              ? (rawValue as Date)
+              : new Date(rawValue);
           return Number.isNaN(date.getTime()) ? undefined : date;
         })();
 
         const isDisabled = disabled || rest.disabled;
 
         return (
-        <View style={{ gap: 5 }}>
-          <FancyTextInput
-            {...rest}
-            onPress={() => {
-              if (!isDisabled) setShowModal(true);
-            }}
-            disabled={isDisabled}
-            value={selectedDate ? selectedDate.toLocaleDateString() : ''}
-            inputProps={{
-              ...rest.inputProps,
-              onBlur,
-              onChangeText: (text) => {
-                text;
-                onChange(text);
-              },
-              editable: false,
-            }}
-            rightContainer={
-              <View style={{ paddingRight: 10 }}>
-                <DefaultIcons.Custom {...DefaultIconsNames['calendar-month']} color={palette.icons.inactive} size={20} />
-              </View>
-            }
-          />
-          {showErrorMessage && error && <FancyErrorText message={error.message!} />}
-          {!isDisabled && showModal && (
-            <FancyModalDialog
-              containerStyle={{ gap: Platform.OS === 'ios' ? 12 : 24 }}
-              buttonContainerStyle={{ marginTop: Platform.OS === 'ios' ? 0 : 8 }}
-              modalProps={{ visible: showModal }}
-              onButton1Press={() => setShowModal(false)}
-              onButton2Press={() => {
-                onChange?.(value);
-                setShowModal(false);
+          <View style={{ gap: 5 }}>
+            <FancyTextInput
+              {...rest}
+              onPress={() => {
+                if (!isDisabled) setShowModal(true);
               }}
-            >
-              <FancyDatePicker
-                calendarProps={{
-                  ...calendarProps,
-                  containerStyle: [{ backgroundColor: 'transparent', borderWidth: 0 }, calendarProps?.containerStyle],
-                  dayModeTopPadding: calendarProps?.dayModeTopPadding ?? 10,
-                  value: selectedDate,
-                  onChangeSelectedDate: onChange,
-                  dayViewProps: {
-                    ...(calendarProps?.dayViewProps ?? {}),
-                    markedDatesType: 'SurroundCircle',
-                  },
+              disabled={isDisabled}
+              value={selectedDate ? selectedDate.toLocaleDateString() : ''}
+              inputProps={{
+                ...rest.inputProps,
+                onBlur,
+                onChangeText: (text) => {
+                  text;
+                  onChange(text);
+                },
+                editable: false,
+              }}
+              rightContainer={
+                <View style={{ paddingRight: 10 }}>
+                  <DefaultIcons.Custom
+                    {...DefaultIconsNames['calendar-month']}
+                    color={palette.icons.inactive}
+                    size={20}
+                  />
+                </View>
+              }
+            />
+            {showErrorMessage && error && <FancyErrorText message={error.message!} />}
+            {!isDisabled && showModal && (
+              <FancyModalDialog
+                containerStyle={{ gap: Platform.OS === 'ios' ? 12 : 24 }}
+                buttonContainerStyle={{ marginTop: Platform.OS === 'ios' ? 0 : 8 }}
+                modalProps={{ visible: showModal }}
+                onButton1Press={() => setShowModal(false)}
+                onButton2Press={() => {
+                  onChange?.(value);
+                  setShowModal(false);
                 }}
-              />
-            </FancyModalDialog>
-          )}
-        </View>
+              >
+                <FancyDatePicker
+                  calendarProps={{
+                    ...calendarProps,
+                    containerStyle: [
+                      { backgroundColor: 'transparent', borderWidth: 0 },
+                      calendarProps?.containerStyle,
+                    ],
+                    dayModeTopPadding: calendarProps?.dayModeTopPadding ?? 10,
+                    value: selectedDate,
+                    onChangeSelectedDate: onChange,
+                    dayViewProps: {
+                      ...(calendarProps?.dayViewProps ?? {}),
+                      markedDatesType: 'SurroundCircle',
+                    },
+                  }}
+                />
+              </FancyModalDialog>
+            )}
+          </View>
         );
       }}
     />

@@ -14,7 +14,7 @@ const targetFile = path.join(
   'start',
   'platforms',
   'android',
-  'adb.js'
+  'adb.js',
 );
 
 const patchMarker = 'return device.pid; // patched by artos_frontend';

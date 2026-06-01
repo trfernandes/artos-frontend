@@ -53,7 +53,10 @@ export default function FancyBpmField({
   const currentValue = draftValue > 0 ? draftValue : 0;
 
   const normalizedPresets = useMemo(
-    () => presetValues.map((item) => clamp(item, min, max)).filter((item, index, arr) => arr.indexOf(item) === index),
+    () =>
+      presetValues
+        .map((item) => clamp(item, min, max))
+        .filter((item, index, arr) => arr.indexOf(item) === index),
     [presetValues, min, max],
   );
 
@@ -96,7 +99,12 @@ export default function FancyBpmField({
   return (
     <>
       <View style={[styles.fieldContainer, containerStyle]}>
-        <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive} style={styles.label}>
+        <FancyText
+          size='extraSmall'
+          type='semiBold'
+          color={palette.fonts.inactive}
+          style={styles.label}
+        >
           {label}
         </FancyText>
 
@@ -156,14 +164,29 @@ export default function FancyBpmField({
             ]}
           >
             <View style={styles.currentValueBlock}>
-              <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive} style={styles.currentEyebrow}>
+              <FancyText
+                size='extraSmall'
+                type='semiBold'
+                color={palette.fonts.inactive}
+                style={styles.currentEyebrow}
+              >
                 BPM atual
               </FancyText>
               <View style={styles.currentValueRow}>
-                <FancyText size='extraLarge' type='bold' color={palette.fonts.dark} style={styles.currentValue}>
+                <FancyText
+                  size='extraLarge'
+                  type='bold'
+                  color={palette.fonts.dark}
+                  style={styles.currentValue}
+                >
                   {currentValue || '—'}
                 </FancyText>
-                <FancyText size='small' type='semiBold' color={palette.fonts.inactive} style={styles.currentUnit}>
+                <FancyText
+                  size='small'
+                  type='semiBold'
+                  color={palette.fonts.inactive}
+                  style={styles.currentUnit}
+                >
                   bpm
                 </FancyText>
               </View>
@@ -193,7 +216,9 @@ export default function FancyBpmField({
                       styles.chip,
                       {
                         backgroundColor: selected ? palette.primary : palette.backgroundColor4,
-                        borderColor: selected ? palette.primary : ColorUtils.withAlpha(palette.border, 0.82),
+                        borderColor: selected
+                          ? palette.primary
+                          : ColorUtils.withAlpha(palette.border, 0.82),
                         ...(!selected ? palette.shadows[100] : {}),
                       },
                     ]}

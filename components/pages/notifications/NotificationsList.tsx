@@ -52,7 +52,12 @@ function SwipeableMarkAsRead({
             swipeableRef.current?.close();
           }}
         >
-          <DefaultIcons.Custom library='MaterialCommunityIcons' name='check' size={18} color={Pallete.fonts.light} />
+          <DefaultIcons.Custom
+            library='MaterialCommunityIcons'
+            name='check'
+            size={18}
+            color={Pallete.fonts.light}
+          />
           <FancyText size='extraSmall' type='semiBold' style={{ color: Pallete.fonts.light }}>
             Lida
           </FancyText>
@@ -190,7 +195,12 @@ export default function NotificationsList({
         label={listEmptyLabel ?? 'Tudo certo por aqui'}
         helperText={listEmptyHelper}
         labelColor={Pallete.fonts.inactive}
-        icon={{ library: 'MaterialCommunityIcons', name: 'bell-check-outline', size: 58, color: Pallete.fonts.inactive }}
+        icon={{
+          library: 'MaterialCommunityIcons',
+          name: 'bell-check-outline',
+          size: 58,
+          color: Pallete.fonts.inactive,
+        }}
       />
     );
   }
@@ -205,7 +215,11 @@ export default function NotificationsList({
           <FancyText
             size='extraSmall'
             type='semiBold'
-            style={{ color: Pallete.fonts.inactive, textTransform: 'uppercase', letterSpacing: 0.7 }}
+            style={{
+              color: Pallete.fonts.inactive,
+              textTransform: 'uppercase',
+              letterSpacing: 0.7,
+            }}
           >
             {section.title}
           </FancyText>

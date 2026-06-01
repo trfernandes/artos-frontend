@@ -1,4 +1,11 @@
-import { View, StyleSheet, StyleProp, ViewStyle, ActivityIndicator, TouchableOpacity } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  StyleProp,
+  ViewStyle,
+  ActivityIndicator,
+  TouchableOpacity,
+} from 'react-native';
 import FancyTextInput from './fields/FancyTextInput';
 import DefaultIcons from './FancyIcons';
 import { useEffect, useRef, useState } from 'react';
@@ -79,7 +86,13 @@ export default function FancySearchBar(props: FancySearchBarProps) {
           value={internalValue} // 🔥 agora usa controlado
           leftContainer={
             <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-              <DefaultIcons.Custom library='Feather' name='search' size={20} color={Pallete.icons.inactive} key='left' />
+              <DefaultIcons.Custom
+                library='Feather'
+                name='search'
+                size={20}
+                color={Pallete.icons.inactive}
+                key='left'
+              />
             </View>
           }
           rightContainer={
@@ -92,7 +105,12 @@ export default function FancySearchBar(props: FancySearchBarProps) {
                 style={{ justifyContent: 'center', alignItems: 'center', paddingRight: 8 }}
                 onPress={() => setInternalValue('')}
               >
-                <DefaultIcons.Custom {...DefaultIconsNames.cancel} size={22} color={Pallete.icons.inactive} key='right' />
+                <DefaultIcons.Custom
+                  {...DefaultIconsNames.cancel}
+                  size={22}
+                  color={Pallete.icons.inactive}
+                  key='right'
+                />
               </TouchableOpacity>
             )
           }
@@ -106,5 +124,11 @@ const styles = StyleSheet.create({
   container: { flexDirection: 'row', gap: 10, borderWidth: 0, borderColor: 'gold' },
   inputContainer: { flex: 1, borderWidth: 0, borderColor: 'gold' },
   buttonContainer: {},
-  button: { borderRadius: 100, width: 45, height: 45, justifyContent: 'center', alignItems: 'center' },
+  button: {
+    borderRadius: 100,
+    width: 45,
+    height: 45,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });

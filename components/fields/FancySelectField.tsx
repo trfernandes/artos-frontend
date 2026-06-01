@@ -1,8 +1,22 @@
 import { useState, useCallback } from 'react';
-import { View, StyleSheet, Pressable, Modal, FlatList, StyleProp, ViewStyle, TextInputProps } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Pressable,
+  Modal,
+  FlatList,
+  StyleProp,
+  ViewStyle,
+  TextInputProps,
+} from 'react-native';
 import FancyText from '../FancyText';
 import { ThemePalette } from '../../constants/colors';
-import { BOLD_FONT, ITALIC_SEMI_BOLD_FONT, MEDIUM_FONT, SMALL_SIZE_FONT } from '../../constants/font';
+import {
+  BOLD_FONT,
+  ITALIC_SEMI_BOLD_FONT,
+  MEDIUM_FONT,
+  SMALL_SIZE_FONT,
+} from '../../constants/font';
 import DefaultIcons from '../FancyIcons';
 import { DefaultIconsNames } from '../../constants/icons';
 import { DropDownItemProps } from './FancyDropDownItem';
@@ -15,7 +29,8 @@ import { usePallete } from '../../hooks/usePallete';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export interface FancySelectFieldProps<T>
-  extends Pick<FancyTextInputProps, 'disabled' | 'label' | 'placeholder'>,
+  extends
+    Pick<FancyTextInputProps, 'disabled' | 'label' | 'placeholder'>,
     Pick<TextInputProps, 'onBlur'> {
   listItems: DropDownItemProps<T>[] | undefined;
   containerStyle?: StyleProp<ViewStyle>;
@@ -66,13 +81,20 @@ export default function FancySelectField<ValueItem>({
               size={30}
               source={
                 ImageUtils.normalizeImageSource(item.left?.source) ??
-                (typeof item.left?.source === 'string' ? { uri: item.left?.source } : item.left?.source)
+                (typeof item.left?.source === 'string'
+                  ? { uri: item.left?.source }
+                  : item.left?.source)
               }
             />
           )}
           <FancyText style={styles.itemText}>{item.title}</FancyText>
           {isSelected && (
-            <DefaultIcons.Custom library='MaterialCommunityIcons' name='check' size={20} color={Pallete.primary} />
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='check'
+              size={20}
+              color={Pallete.primary}
+            />
           )}
         </Pressable>
       );
@@ -119,7 +141,12 @@ export default function FancySelectField<ValueItem>({
                 {modalTitle ?? label ?? 'Selecione'}
               </FancyText>
               <Pressable onPress={() => setIsModalVisible(false)}>
-                <DefaultIcons.Custom library='Ionicons' name='close' size={24} color={Pallete.fonts.dark} />
+                <DefaultIcons.Custom
+                  library='Ionicons'
+                  name='close'
+                  size={24}
+                  color={Pallete.fonts.dark}
+                />
               </Pressable>
             </View>
             <FlatList

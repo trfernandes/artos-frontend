@@ -19,12 +19,27 @@ export const VoluntarioHierarquiaEnumMap: Record<string, VoluntarioHierarquiaEnu
 };
 
 export const VoluntarioHierarquiaEnumList: DropDownItemProps<VoluntarioHierarquiaEnum>[] = [
-  { title: VoluntarioHierarquiaEnumLabel[VoluntarioHierarquiaEnum.Voluntario], value: VoluntarioHierarquiaEnum.Voluntario },
-  { title: VoluntarioHierarquiaEnumLabel[VoluntarioHierarquiaEnum.Lider], value: VoluntarioHierarquiaEnum.Lider },
-  { title: VoluntarioHierarquiaEnumLabel[VoluntarioHierarquiaEnum.Auxiliar], value: VoluntarioHierarquiaEnum.Auxiliar },
+  {
+    title: VoluntarioHierarquiaEnumLabel[VoluntarioHierarquiaEnum.Voluntario],
+    value: VoluntarioHierarquiaEnum.Voluntario,
+  },
+  {
+    title: VoluntarioHierarquiaEnumLabel[VoluntarioHierarquiaEnum.Lider],
+    value: VoluntarioHierarquiaEnum.Lider,
+  },
+  {
+    title: VoluntarioHierarquiaEnumLabel[VoluntarioHierarquiaEnum.Auxiliar],
+    value: VoluntarioHierarquiaEnum.Auxiliar,
+  },
 ];
 
 export const VoluntarioHierarquiaLideresEnumList: DropDownItemProps<VoluntarioHierarquiaEnum>[] = [
-  { title: VoluntarioHierarquiaEnumLabel[VoluntarioHierarquiaEnum.Lider], value: VoluntarioHierarquiaEnum.Lider },
-  { title: VoluntarioHierarquiaEnumLabel[VoluntarioHierarquiaEnum.Auxiliar], value: VoluntarioHierarquiaEnum.Auxiliar },
+  {
+    title: VoluntarioHierarquiaEnumLabel[VoluntarioHierarquiaEnum.Lider],
+    value: VoluntarioHierarquiaEnum.Lider,
+  },
+  {
+    title: VoluntarioHierarquiaEnumLabel[VoluntarioHierarquiaEnum.Auxiliar],
+    value: VoluntarioHierarquiaEnum.Auxiliar,
+  },
 ];

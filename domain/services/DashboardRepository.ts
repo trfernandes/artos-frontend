@@ -1,5 +1,9 @@
 import { addMonths, endOfMonth, isAfter, isBefore, isSameMonth, startOfMonth } from 'date-fns';
-import { ResponseDashboardDto, DashboardEventoProximoDto, DashboardSolicitacaoDto } from '../dtos/Dashboard/dashboard.response';
+import {
+  ResponseDashboardDto,
+  DashboardEventoProximoDto,
+  DashboardSolicitacaoDto,
+} from '../dtos/Dashboard/dashboard.response';
 import { ResponseEscalaItemDto } from '../dtos/Escala/escala-item.response';
 import { ResponseEventoOcorrenciaDto } from '../dtos/Evento/evento-ocorrencia.response.dto';
 import { ResponseLoginMinisterioDto } from '../dtos/login/login.response';
@@ -14,7 +18,13 @@ import { EscalaItensRepository } from './EscalaItensRepository';
 import { IgrejaEventosRepository } from './IgrejaEventosRepository';
 import { IgrejaMinisteriosRepository } from './IgrejaMinisteriosRepository';
 import { IgrejaRepository } from './IgrejaRepository';
-import { Conjunction, DynamicQuery, Operator, OrderDirection, ValueType } from '../utils/query_utils';
+import {
+  Conjunction,
+  DynamicQuery,
+  Operator,
+  OrderDirection,
+  ValueType,
+} from '../utils/query_utils';
 import { getOccurrenceDateTimeIso } from '../../utils/evento-datetime';
 
 export interface GetDashboardParams {
@@ -76,7 +86,9 @@ function isWithinMonth(date: Date, monthBase: Date): boolean {
 }
 
 function getMinisterioIdFromEscalaItem(item: ResponseEscalaItemDto): string | undefined {
-  return item.funcao?.ministerioId || item.voluntario?.ministerioId || item.voluntario?.ministerio?.id;
+  return (
+    item.funcao?.ministerioId || item.voluntario?.ministerioId || item.voluntario?.ministerio?.id
+  );
 }
 
 function mapEscalaItemToDashboard(item: ResponseEscalaItemDto) {
@@ -89,20 +101,26 @@ function mapEscalaItemToDashboard(item: ResponseEscalaItemDto) {
     eventoData,
     funcaoNome: item.funcao?.nome || 'Sem função',
     ministerioId,
-    ministerioNome: item.voluntario?.ministerio?.nome || item.funcao?.ministerio?.nome || 'Ministério',
-    ministerioLogoUrl: item.voluntario?.ministerio?.logoThumbUrl || item.voluntario?.ministerio?.logoUrl || undefined,
+    ministerioNome:
+      item.voluntario?.ministerio?.nome || item.funcao?.ministerio?.nome || 'Ministério',
+    ministerioLogoUrl:
+      item.voluntario?.ministerio?.logoThumbUrl ||
+      item.voluntario?.ministerio?.logoUrl ||
+      undefined,
     eventoLocal: item.evento?.local,
     eventoDescricao: item.evento?.descricao,
     eventoCor: item.evento?.cor,
     horarioEnsaio: item.horarioEnsaio ?? item.evento?.horarioEnsaioPadrao,
     isConfirmado: item.status === EscalaItemStatusEnum.Confirmado,
-    evento: item.evento ? {
-      nome: item.evento.nome,
-      horarioEnsaioPadrao: item.evento.horarioEnsaioPadrao,
-      local: item.evento.local,
-      descricao: item.evento.descricao,
-      cor: item.evento.cor,
-    } : undefined,
+    evento: item.evento
+      ? {
+          nome: item.evento.nome,
+          horarioEnsaioPadrao: item.evento.horarioEnsaioPadrao,
+          local: item.evento.local,
+          descricao: item.evento.descricao,
+          cor: item.evento.cor,
+        }
+      : undefined,
   };
 }
 
@@ -149,7 +167,14 @@ function buildUserEscalasQuery(
       conditions,
     },
     orderBy: [{ path: 'dataOcorrencia', direction: OrderDirection.ASC }],
-    relations: ['escala', 'evento', 'funcao', 'funcao.ministerio', 'voluntario', 'voluntario.ministerio'],
+    relations: [
+      'escala',
+      'evento',
+      'funcao',
+      'funcao.ministerio',
+      'voluntario',
+      'voluntario.ministerio',
+    ],
   };
 }
 
@@ -235,53 +260,60 @@ function buildEventCards(
 
   const seenOccurrenceKeys = new Set<string>();
   const uniqueUpcomingOccurrences = upcomingOccurrences.filter((ocorrencia) => {
-    const occurrenceKey = toOccurrenceKey(ocorrencia.eventoId || ocorrencia.id, ocorrencia.dataOcorrencia);
+    const occurrenceKey = toOccurrenceKey(
+      ocorrencia.eventoId || ocorrencia.id,
+      ocorrencia.dataOcorrencia,
+    );
     if (seenOccurrenceKeys.has(occurrenceKey)) return false;
     seenOccurrenceKeys.add(occurrenceKey);
     return true;
   });
 
-  return uniqueUpcomingOccurrences
-    .slice(0, UPCOMING_LIMIT)
-    .map((ocorrencia) => {
-      const occurrenceKey = toOccurrenceKey(ocorrencia.eventoId || ocorrencia.id, ocorrencia.dataOcorrencia);
-      const stats = statsByOccurrence.get(occurrenceKey);
+  return uniqueUpcomingOccurrences.slice(0, UPCOMING_LIMIT).map((ocorrencia) => {
+    const occurrenceKey = toOccurrenceKey(
+      ocorrencia.eventoId || ocorrencia.id,
+      ocorrencia.dataOcorrencia,
+    );
+    const stats = statsByOccurrence.get(occurrenceKey);
 
-      let totalFuncoes = stats?.totalFuncoes || 0;
-      let totalEscalados = stats?.totalEscalados || 0;
-      let totalConfirmados = stats?.totalConfirmados || 0;
+    let totalFuncoes = stats?.totalFuncoes || 0;
+    let totalEscalados = stats?.totalEscalados || 0;
+    let totalConfirmados = stats?.totalConfirmados || 0;
 
-      if (ministryIds && ministryIds.size > 0 && stats) {
-        totalFuncoes = 0;
-        totalEscalados = 0;
-        totalConfirmados = 0;
-        for (const ministryId of ministryIds) {
-          const item = stats.porMinisterio.get(ministryId);
-          if (!item) continue;
-          totalFuncoes += item.totalFuncoes;
-          totalEscalados += item.totalEscalados;
-          totalConfirmados += item.totalConfirmados;
-        }
+    if (ministryIds && ministryIds.size > 0 && stats) {
+      totalFuncoes = 0;
+      totalEscalados = 0;
+      totalConfirmados = 0;
+      for (const ministryId of ministryIds) {
+        const item = stats.porMinisterio.get(ministryId);
+        if (!item) continue;
+        totalFuncoes += item.totalFuncoes;
+        totalEscalados += item.totalEscalados;
+        totalConfirmados += item.totalConfirmados;
       }
+    }
 
-      const percentualPreenchido = totalFuncoes > 0 ? (totalConfirmados / totalFuncoes) * 100 : 0;
-      return {
-        id: ocorrencia.eventoId || ocorrencia.id,
-        occurrenceKey,
-        nome: ocorrencia.nome,
-        dataInicio: getOccurrenceDateTimeIso(ocorrencia.dataOcorrencia, ocorrencia.evento?.dataInicio),
-        local: ocorrencia.local,
-        cor: ocorrencia.cor || '#3498db',
-        horarioEnsaio: ocorrencia.horarioEnsaio,
-        evento: {
-          horarioEnsaioPadrao: ocorrencia.evento?.horarioEnsaioPadrao,
-        },
-        totalEscalados,
-        totalConfirmados,
-        totalFuncoes,
-        percentualPreenchido,
-      };
-    });
+    const percentualPreenchido = totalFuncoes > 0 ? (totalConfirmados / totalFuncoes) * 100 : 0;
+    return {
+      id: ocorrencia.eventoId || ocorrencia.id,
+      occurrenceKey,
+      nome: ocorrencia.nome,
+      dataInicio: getOccurrenceDateTimeIso(
+        ocorrencia.dataOcorrencia,
+        ocorrencia.evento?.dataInicio,
+      ),
+      local: ocorrencia.local,
+      cor: ocorrencia.cor || '#3498db',
+      horarioEnsaio: ocorrencia.horarioEnsaio,
+      evento: {
+        horarioEnsaioPadrao: ocorrencia.evento?.horarioEnsaioPadrao,
+      },
+      totalEscalados,
+      totalConfirmados,
+      totalFuncoes,
+      percentualPreenchido,
+    };
+  });
 }
 
 function mapSolicitacoes(items: any[]): DashboardSolicitacaoDto[] {
@@ -361,7 +393,14 @@ export class DashboardRepository {
       ? safe(IgrejaRepository.listarVoluntarios(igrejaId), [])
       : Promise.resolve([] as any[]);
 
-    const [rawUserEscalas, rawChurchEscalas, ocorrencias, ministerios, solicitacoes, voluntariosIgreja] = await Promise.all([
+    const [
+      rawUserEscalas,
+      rawChurchEscalas,
+      ocorrencias,
+      ministerios,
+      solicitacoes,
+      voluntariosIgreja,
+    ] = await Promise.all([
       userEscalasPromise,
       churchEscalasPromise,
       ocorrenciasPromise,
@@ -390,7 +429,9 @@ export class DashboardRepository {
       .slice(0, UPCOMING_LIMIT)
       .map(mapEscalaItemToDashboard);
 
-    const escalasConfirmadas = monthEscalas.filter((item) => item.status === EscalaItemStatusEnum.Confirmado).length;
+    const escalasConfirmadas = monthEscalas.filter(
+      (item) => item.status === EscalaItemStatusEnum.Confirmado,
+    ).length;
 
     const base: ResponseDashboardDto = {
       proximasEscalas,
@@ -410,21 +451,28 @@ export class DashboardRepository {
     }).length;
 
     const ministeriosStats = ministerios
-      .filter((ministerio: any) => ministerio.status === MinisterioStatusEnum.Ativo || ministerio.status === undefined)
+      .filter(
+        (ministerio: any) =>
+          ministerio.status === MinisterioStatusEnum.Ativo || ministerio.status === undefined,
+      )
       .map((ministerio: any) => {
         const slotStats = statsByMinisterio.get(ministerio.id);
         const totalFuncoesEscala = slotStats?.totalFuncoes || 0;
         const totalEscaladosEscala = slotStats?.totalEscalados || 0;
-        const percentualPreenchimento = totalFuncoesEscala > 0 ? (totalEscaladosEscala / totalFuncoesEscala) * 100 : 0;
+        const percentualPreenchimento =
+          totalFuncoesEscala > 0 ? (totalEscaladosEscala / totalFuncoesEscala) * 100 : 0;
 
         return {
           ministerioId: ministerio.id,
           ministerioNome: ministerio.nome,
           ministerioLogoUrl: ministerio.logoThumbUrl || ministerio.logoUrl || undefined,
           totalVoluntarios:
-            ministerio.voluntarios?.filter((v: any) => v.status === MinisterioVoluntarioStatusEnum.Ativo).length || 0,
+            ministerio.voluntarios?.filter(
+              (v: any) => v.status === MinisterioVoluntarioStatusEnum.Ativo,
+            ).length || 0,
           totalFuncoes:
-            ministerio.funcoes?.filter((f: any) => f.status === MinisterioFuncaoStatusEnum.Ativo).length ||
+            ministerio.funcoes?.filter((f: any) => f.status === MinisterioFuncaoStatusEnum.Ativo)
+              .length ||
             ministerio.funcoes?.length ||
             0,
           totalEscalasAtivas: slotStats?.eventosAtivos.size || 0,
@@ -447,7 +495,11 @@ export class DashboardRepository {
 
     const leaderMinistryIds = new Set(
       ministeriosUsuario
-        .filter((m) => m.hierarquia === VoluntarioHierarquiaEnum.Lider || m.hierarquia === VoluntarioHierarquiaEnum.Auxiliar)
+        .filter(
+          (m) =>
+            m.hierarquia === VoluntarioHierarquiaEnum.Lider ||
+            m.hierarquia === VoluntarioHierarquiaEnum.Auxiliar,
+        )
         .map((m) => m.id),
     );
     if (leaderMinistryIds.size === 0) {
@@ -457,12 +509,19 @@ export class DashboardRepository {
     }
 
     const ministerioStats =
-      ministeriosStats.find((item) => leaderMinistryIds.has(item.ministerioId)) || ministeriosStats[0] || undefined;
+      ministeriosStats.find((item) => leaderMinistryIds.has(item.ministerioId)) ||
+      ministeriosStats[0] ||
+      undefined;
 
     return {
       ...base,
       ministerioStats,
-      proximosEventosMinisterio: buildEventCards(ocorrencias, statsByOccurrence, now, leaderMinistryIds),
+      proximosEventosMinisterio: buildEventCards(
+        ocorrencias,
+        statsByOccurrence,
+        now,
+        leaderMinistryIds,
+      ),
       solicitacoesPendentes: solicitacoesMapped,
     };
   }

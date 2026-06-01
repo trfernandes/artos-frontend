@@ -9,19 +9,17 @@ export interface FancyStepsNavigationProps {
   containerStyle?: StyleProp<ViewStyle>;
 }
 
-export default function FancyStepsNavigation({ config, stepIndex, setStepIndex, containerStyle }: FancyStepsNavigationProps) {
+export default function FancyStepsNavigation({
+  config,
+  stepIndex,
+  setStepIndex,
+  containerStyle,
+}: FancyStepsNavigationProps) {
   return (
     <View style={[styles.container, containerStyle]}>
       {config.steps[stepIndex]?.actions?.map(({ enabled = true, ...action }, actionIndex) => {
         // Separar props conhecidos do resto
-        const {
-          label,
-          icon,
-          iconPosition,
-          color,
-          onPress,
-          ...buttonProps
-        } = action;
+        const { label, icon, iconPosition, color, onPress, ...buttonProps } = action;
         return (
           <FancyButton
             key={actionIndex}
@@ -29,12 +27,12 @@ export default function FancyStepsNavigation({ config, stepIndex, setStepIndex, 
               enabled && typeof onPress === 'function'
                 ? onPress
                 : onPress === 'next'
-                ? () => {
-                    stepIndex < config.steps.length - 1 ? setStepIndex(stepIndex + 1) : null;
-                  }
-                : () => {
-                    stepIndex > 0 ? setStepIndex(stepIndex - 1) : null;
-                  }
+                  ? () => {
+                      stepIndex < config.steps.length - 1 ? setStepIndex(stepIndex + 1) : null;
+                    }
+                  : () => {
+                      stepIndex > 0 ? setStepIndex(stepIndex - 1) : null;
+                    }
             }
             label={label}
             icon={icon}
@@ -43,7 +41,7 @@ export default function FancyStepsNavigation({ config, stepIndex, setStepIndex, 
             containerStyle={[
               styles.action,
               enabled && color && { backgroundColor: color },
-              { gap: 6 }
+              { gap: 6 },
             ]}
             {...buttonProps}
           />

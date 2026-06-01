@@ -1,13 +1,13 @@
 import {
-    AccessibilityRole,
-    AccessibilityState,
-    GestureResponderEvent,
-    StyleProp,
-    StyleSheet,
-    TextStyle,
-    TouchableOpacity,
-    ViewStyle,
-    ActivityIndicator,
+  AccessibilityRole,
+  AccessibilityState,
+  GestureResponderEvent,
+  StyleProp,
+  StyleSheet,
+  TextStyle,
+  TouchableOpacity,
+  ViewStyle,
+  ActivityIndicator,
 } from 'react-native';
 import { useMemo } from 'react';
 import FancyText, { FancyTextProps } from '../FancyText';
@@ -69,12 +69,10 @@ export default function FancyButton({
   ...props
 }: FancyButtonProps) {
   const palette = usePallete();
-  const {
-    containedParameters,
-    outlinedParameters,
-    textParameters,
-    lightParameters,
-  } = useMemo(() => getFancyButtonParameters(palette), [palette]);
+  const { containedParameters, outlinedParameters, textParameters, lightParameters } = useMemo(
+    () => getFancyButtonParameters(palette),
+    [palette],
+  );
   const height = resolveSize(props.size);
   const minWidth = resolveMinWidth(props.size);
 
@@ -119,7 +117,11 @@ export default function FancyButton({
       accessibilityLabel={props.accessibilityLabel}
       accessibilityHint={props.accessibilityHint}
       accessibilityRole={props.accessibilityRole}
-      accessibilityState={{ ...accessibilityState, busy: showLoading || undefined, disabled: isBtnDisabled }}
+      accessibilityState={{
+        ...accessibilityState,
+        busy: showLoading || undefined,
+        disabled: isBtnDisabled,
+      }}
       style={[
         baseStyles.container,
         iconPosition === 'left' ? { flexDirection: 'row' } : { flexDirection: 'row-reverse' },
@@ -211,7 +213,7 @@ const baseStyles = StyleSheet.create({
     borderRadius: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,    
+    gap: 10,
   },
   mode_icon: { paddingHorizontal: 0 },
   loadingRow: {

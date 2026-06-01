@@ -15,7 +15,10 @@ export function ConnectivityBanner() {
   if (status === 'ok') return null;
 
   const title = status === 'offline' ? 'Sem internet' : 'Servidor indisponível';
-  const subtitle = status === 'offline' ? 'Verifique sua conexão para continuar.' : 'Tente novamente em instantes.';
+  const subtitle =
+    status === 'offline'
+      ? 'Verifique sua conexão para continuar.'
+      : 'Tente novamente em instantes.';
 
   return (
     <View

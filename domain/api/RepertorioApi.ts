@@ -16,18 +16,30 @@ import { ResponseYoutubeSearchItemDto } from '../dtos/Repertorio/youtube-search-
 type ApiEnvelope<T> = { data: T };
 
 class RepertorioApiClass {
-  async searchCategorias(igrejaId: string, query?: DynamicQuery): Promise<ResponseRepertorioCategoriaDto[]> {
-    const response = await apiClient.post<ApiEnvelope<ResponseRepertorioCategoriaDto[]>>(`/igrejas/${igrejaId}/repertorio-categorias/search`, query || {});
+  async searchCategorias(
+    igrejaId: string,
+    query?: DynamicQuery,
+  ): Promise<ResponseRepertorioCategoriaDto[]> {
+    const response = await apiClient.post<ApiEnvelope<ResponseRepertorioCategoriaDto[]>>(
+      `/igrejas/${igrejaId}/repertorio-categorias/search`,
+      query || {},
+    );
     return response.data.data;
   }
 
   async createCategoria(igrejaId: string, dto: CreateRepertorioCategoriaDto) {
-    const response = await apiClient.post<ApiEnvelope<ResponseRepertorioCategoriaDto>>(`/igrejas/${igrejaId}/repertorio-categorias`, dto);
+    const response = await apiClient.post<ApiEnvelope<ResponseRepertorioCategoriaDto>>(
+      `/igrejas/${igrejaId}/repertorio-categorias`,
+      dto,
+    );
     return response.data.data;
   }
 
   async updateCategoria(igrejaId: string, id: string, dto: UpdateRepertorioCategoriaDto) {
-    const response = await apiClient.put<ApiEnvelope<ResponseRepertorioCategoriaDto>>(`/igrejas/${igrejaId}/repertorio-categorias/${id}`, dto);
+    const response = await apiClient.put<ApiEnvelope<ResponseRepertorioCategoriaDto>>(
+      `/igrejas/${igrejaId}/repertorio-categorias/${id}`,
+      dto,
+    );
     return response.data.data;
   }
 
@@ -35,14 +47,25 @@ class RepertorioApiClass {
     await apiClient.delete(`/igrejas/${igrejaId}/repertorio-categorias/${id}`);
   }
 
-  async searchYoutubeVersions(igrejaId: string, query: string, limit = 6): Promise<ResponseYoutubeSearchItemDto[]> {
-    const response = await apiClient.get<ApiEnvelope<ResponseYoutubeSearchItemDto[]>>(`/igrejas/${igrejaId}/repertorio/youtube/search`, {
-      params: { query, limit },
-    });
+  async searchYoutubeVersions(
+    igrejaId: string,
+    query: string,
+    limit = 6,
+  ): Promise<ResponseYoutubeSearchItemDto[]> {
+    const response = await apiClient.get<ApiEnvelope<ResponseYoutubeSearchItemDto[]>>(
+      `/igrejas/${igrejaId}/repertorio/youtube/search`,
+      {
+        params: { query, limit },
+      },
+    );
     return response.data.data;
   }
 
-  async searchMusicas(igrejaId: string, ministerioId: string, query?: DynamicQuery): Promise<ResponseRepertorioMusicaDto[]> {
+  async searchMusicas(
+    igrejaId: string,
+    ministerioId: string,
+    query?: DynamicQuery,
+  ): Promise<ResponseRepertorioMusicaDto[]> {
     const response = await apiClient.post<ApiEnvelope<ResponseRepertorioMusicaDto[]>>(
       `/igrejas/${igrejaId}/ministerios/${ministerioId}/repertorio-musicas/search`,
       query || {},
@@ -65,7 +88,12 @@ class RepertorioApiClass {
     return response.data.data;
   }
 
-  async updateMusica(igrejaId: string, ministerioId: string, id: string, dto: UpdateRepertorioMusicaDto) {
+  async updateMusica(
+    igrejaId: string,
+    ministerioId: string,
+    id: string,
+    dto: UpdateRepertorioMusicaDto,
+  ) {
     const response = await apiClient.put<ApiEnvelope<ResponseRepertorioMusicaDto>>(
       `/igrejas/${igrejaId}/ministerios/${ministerioId}/repertorio-musicas/${id}`,
       dto,
@@ -74,7 +102,9 @@ class RepertorioApiClass {
   }
 
   async removeMusica(igrejaId: string, ministerioId: string, id: string) {
-    await apiClient.delete(`/igrejas/${igrejaId}/ministerios/${ministerioId}/repertorio-musicas/${id}`);
+    await apiClient.delete(
+      `/igrejas/${igrejaId}/ministerios/${ministerioId}/repertorio-musicas/${id}`,
+    );
   }
 
   async listSecoes(igrejaId: string, musicaId: string) {
@@ -92,7 +122,12 @@ class RepertorioApiClass {
     return response.data.data;
   }
 
-  async updateSecao(igrejaId: string, musicaId: string, secaoId: string, dto: UpdateRepertorioMusicaSecaoDto) {
+  async updateSecao(
+    igrejaId: string,
+    musicaId: string,
+    secaoId: string,
+    dto: UpdateRepertorioMusicaSecaoDto,
+  ) {
     const response = await apiClient.patch<ApiEnvelope<ResponseRepertorioMusicaSecaoDto>>(
       `/igrejas/${igrejaId}/repertorio/musicas/${musicaId}/secoes/${secaoId}`,
       dto,

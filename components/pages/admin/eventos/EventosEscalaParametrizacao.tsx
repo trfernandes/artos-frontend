@@ -16,7 +16,11 @@ export type EventosEscalaParametrizacaoProps = {
   onButton2Press?: () => void;
 };
 
-export default function EventosEscalaParametrizacao({ modalProps, onButton1Press, onButton2Press }: EventosEscalaParametrizacaoProps) {
+export default function EventosEscalaParametrizacao({
+  modalProps,
+  onButton1Press,
+  onButton2Press,
+}: EventosEscalaParametrizacaoProps) {
   const Pallete = usePallete();
   const [data, setData] = useState<
     Array<{
@@ -53,7 +57,10 @@ export default function EventosEscalaParametrizacao({ modalProps, onButton1Press
   const [selectedTemplate, setSelectedTemplate] = useState('1');
 
   return (
-    <FancyFullModal title="Parametrização" modalProps={{ visible: modalProps?.visible, onRequestClose: onButton1Press }}>
+    <FancyFullModal
+      title='Parametrização'
+      modalProps={{ visible: modalProps?.visible, onRequestClose: onButton1Press }}
+    >
       <View style={styles.contentContainer}>
         <FancyDropDown
           label='Template'
@@ -76,7 +83,12 @@ export default function EventosEscalaParametrizacao({ modalProps, onButton1Press
                   type='letter'
                   props={{
                     title: item.funcao,
-                    subtitle: item.experiencia === '1' ? 'Baixa' : item.experiencia === '2' ? 'Media' : 'Alta',
+                    subtitle:
+                      item.experiencia === '1'
+                        ? 'Baixa'
+                        : item.experiencia === '2'
+                          ? 'Media'
+                          : 'Alta',
                     letter: item.quantidade.toString(),
                     actionButtons: [
                       {
@@ -127,9 +139,15 @@ export default function EventosEscalaParametrizacao({ modalProps, onButton1Press
               ]}
             />
           )}
-          {templateList.find((item) => item.id === selectedTemplate)?.tipo === 'Fixo' && <View></View>}
+          {templateList.find((item) => item.id === selectedTemplate)?.tipo === 'Fixo' && (
+            <View></View>
+          )}
         </View>
-        <FancyButton label='Confirmar' icon={{ ...DefaultIconsNames.confirm, size: 16 }} onPress={onButton2Press} />
+        <FancyButton
+          label='Confirmar'
+          icon={{ ...DefaultIconsNames.confirm, size: 16 }}
+          onPress={onButton2Press}
+        />
         {modalEditFuncaoParams.visible && (
           <FancyModalDialog
             title={modalEditFuncaoParams.mode === 'add' ? 'Nova Função' : 'Editar Função'}

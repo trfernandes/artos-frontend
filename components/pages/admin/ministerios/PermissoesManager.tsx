@@ -14,20 +14,34 @@ import {
   TipoPermissaoEnumLabel,
 } from '../../../../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
 
-export default function PermissoesManager(props: { data: ResponseMinisterioVoluntarioPermissaoDto[]; disabled?: boolean }) {
+export default function PermissoesManager(props: {
+  data: ResponseMinisterioVoluntarioPermissaoDto[];
+  disabled?: boolean;
+}) {
   const Pallete = usePallete();
   const styles = useThemedStyles(createStyles);
   return (
     <FancyContainerList
-      data={(Object.entries(RecursosPermissoesTable) as [RecursoPermissaoEnum, (typeof RecursosPermissoesTable)[RecursoPermissaoEnum]][]).filter(
-        ([_, permissoes]) => permissoes && permissoes.length > 0,
-      )}
+      data={(
+        Object.entries(RecursosPermissoesTable) as [
+          RecursoPermissaoEnum,
+          (typeof RecursosPermissoesTable)[RecursoPermissaoEnum],
+        ][]
+      ).filter(([_, permissoes]) => permissoes && permissoes.length > 0)}
       contentContainerStyle={{ paddingVertical: 5 }}
       renderItem={({ item: [recurso, permissoes] }) => (
         <View style={styles.permissaoContainer}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <DefaultIcons.Custom library='MaterialIcons' name='arrow-right' style={{ borderWidth: 0, marginLeft: -8 }} />
-            <FancyText type='bold' size={'small'} color={props.disabled ? Pallete.icons.inactive : Pallete.icons.dark}>
+            <DefaultIcons.Custom
+              library='MaterialIcons'
+              name='arrow-right'
+              style={{ borderWidth: 0, marginLeft: -8 }}
+            />
+            <FancyText
+              type='bold'
+              size={'small'}
+              color={props.disabled ? Pallete.icons.inactive : Pallete.icons.dark}
+            >
               {RecursoPermissaoEnumLabel[recurso]}
             </FancyText>
           </View>
@@ -59,7 +73,8 @@ export default function PermissoesManager(props: { data: ResponseMinisterioVolun
                     disabled={props.disabled}
                     size={16}
                     value={props.data.some(
-                      (permissao) => permissao.recurso === recurso && permissao.permissoes?.includes(item),
+                      (permissao) =>
+                        permissao.recurso === recurso && permissao.permissoes?.includes(item),
                     )}
                   />
                 </View>

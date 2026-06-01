@@ -13,7 +13,12 @@ type Props = {
   isLoading?: boolean;
 };
 
-export default function CancelarSubstituicaoModal({ visible, onClose, onConfirm, isLoading }: Props) {
+export default function CancelarSubstituicaoModal({
+  visible,
+  onClose,
+  onConfirm,
+  isLoading,
+}: Props) {
   const palette = usePallete();
   const [motivo, setMotivo] = useState('');
 

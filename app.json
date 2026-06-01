@@ -18,9 +18,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "br.app.diakonia",
       "buildNumber": "1",
-      "associatedDomains": [
-        "applinks:diakonia.app.br"
-      ],
+      "associatedDomains": ["applinks:diakonia.app.br"],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -35,10 +33,7 @@
       "softwareKeyboardLayoutMode": "resize",
       "package": "com.church.artos",
       "versionCode": 1,
-      "permissions": [
-        "INTERNET",
-        "VIBRATE"
-      ],
+      "permissions": ["INTERNET", "VIBRATE"],
       "blockedPermissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
@@ -56,10 +51,7 @@
               "pathPrefix": "/invite"
             }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         }
       ]
     },

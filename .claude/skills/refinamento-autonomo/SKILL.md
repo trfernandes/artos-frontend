@@ -14,6 +14,7 @@ Refina um componente de UI iterativamente até ele corresponder exatamente a uma
 ```
 
 **Exemplo:**
+
 ```
 /refinamento-autonomo notifications-card design/notifications-card.png
 ```
@@ -37,9 +38,11 @@ Refina um componente de UI iterativamente até ele corresponder exatamente a uma
 ### Para Android físico (o que você tá usando)
 
 1. **Conecte o telefone via USB**
+
    ```bash
    adb devices
    ```
+
    Deve mostrar seu device conectado
 
 2. **Ative USB Debugging no telefone**
@@ -48,6 +51,7 @@ Refina um componente de UI iterativamente até ele corresponder exatamente a uma
    - Autorize a conexão no telefone
 
 3. **Inicie o app no telefone**
+
    ```bash
    npx expo start
    # Escaneia o QR code com seu telefone
@@ -59,9 +63,11 @@ Refina um componente de UI iterativamente até ele corresponder exatamente a uma
    ```
 
 ### Teste rápido
+
 ```bash
 node scripts/take-screenshot.js test.png
 ```
+
 Vai tirar um screenshot em 2 segundos! ✨
 
 ## Requisitos
@@ -76,6 +82,7 @@ Vai tirar um screenshot em 2 segundos! ✨
 ## Resultado esperado
 
 Componente visualmente idêntico à spec, com:
+
 - ✅ 3+ screenshots (iterações)
 - ✅ Commits documentando cada mudança
 - ✅ Tabela final mostrando progresso

@@ -10,8 +10,8 @@ import FancyLoading from '../../../../../components/FancyLoading';
 import Toast from 'react-native-toast-message';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import {
-    VoluntarioStatusEnum,
-    VoluntarioStatusEnumLabel,
+  VoluntarioStatusEnum,
+  VoluntarioStatusEnumLabel,
 } from '../../../../../domain/enums/Voluntario/voluntario-status.enum';
 import { AppImages } from '../../../../../assets/app_images';
 import { useLoading } from '../../../../../contexts/LoadingContext';
@@ -109,7 +109,9 @@ export default function VoluntariosIndexPage() {
   }, [data, searchText, user?.user.id]);
 
   const sorteredData = useMemo(() => {
-    return [...filteredData].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
+    return [...filteredData].sort((a, b) =>
+      a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }),
+    );
   }, [filteredData]);
 
   // Early returns AFTER all hooks
@@ -135,14 +137,27 @@ export default function VoluntariosIndexPage() {
           searchText.trim().length > 0
             ? {
                 label: 'Nenhum voluntário encontrado',
-                icon: { library: 'MaterialCommunityIcons', name: 'account-group-outline', size: 68 },
+                icon: {
+                  library: 'MaterialCommunityIcons',
+                  name: 'account-group-outline',
+                  size: 68,
+                },
               }
             : {
                 label: 'Nenhum voluntário cadastrado',
-                icon: { library: 'MaterialCommunityIcons', name: 'account-group-outline', size: 68 },
-                helperText: 'Para cadastrar voluntários, envie um convite e aguarde a entrada deles na igreja.',
+                icon: {
+                  library: 'MaterialCommunityIcons',
+                  name: 'account-group-outline',
+                  size: 68,
+                },
+                helperText:
+                  'Para cadastrar voluntários, envie um convite e aguarde a entrada deles na igreja.',
                 actionLabel: 'Ir para Convites',
-                actionIcon: { library: 'MaterialCommunityIcons', name: 'ticket-confirmation-outline', size: 16 },
+                actionIcon: {
+                  library: 'MaterialCommunityIcons',
+                  name: 'ticket-confirmation-outline',
+                  size: 16,
+                },
                 onActionPress: () =>
                   router.push({
                     pathname: '/admin/solicitacoes',
@@ -151,7 +166,8 @@ export default function VoluntariosIndexPage() {
               },
         data: sorteredData,
         renderItem: ({ item, index }) => {
-          const statusColor = item.status === VoluntarioStatusEnum.ATIVO ? palette.primary : palette.error;
+          const statusColor =
+            item.status === VoluntarioStatusEnum.ATIVO ? palette.primary : palette.error;
           return (
             <FancyListItemCard
               title={item.nome}
@@ -164,11 +180,11 @@ export default function VoluntariosIndexPage() {
                     : AppImages.emptyProfile,
               }}
               meta={
-                    <FancyChips
-                      label={VoluntarioStatusEnumLabel[item.status]}
-                      color={statusColor}
-                      size='small'
-                    />
+                <FancyChips
+                  label={VoluntarioStatusEnumLabel[item.status]}
+                  color={statusColor}
+                  size='small'
+                />
               }
               trailing={{ type: 'menu', onPress: () => setActionsVoluntario(item) }}
               contentStyle={isLoadingMutation ? { opacity: 0.68 } : undefined}
@@ -194,7 +210,8 @@ export default function VoluntariosIndexPage() {
             },
           },
           {
-            label: actionsVoluntario?.status === VoluntarioStatusEnum.ATIVO ? 'Desativar' : 'Ativar',
+            label:
+              actionsVoluntario?.status === VoluntarioStatusEnum.ATIVO ? 'Desativar' : 'Ativar',
             icon:
               actionsVoluntario?.status === VoluntarioStatusEnum.ATIVO
                 ? { library: 'FontAwesome6', name: 'thumbs-down', size: 16 }

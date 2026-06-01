@@ -17,7 +17,10 @@ import YoutubeVersionSearchSheet from './YoutubeVersionSearchSheet';
 import { usePallete } from '../../../hooks/usePallete';
 import { DefaultIconsNames } from '../../../constants/icons';
 import { ColorUtils } from '../../../utils/color_utils';
-import { ResponseEventoSetlistItemDto, EventoSetlistItemOrigemEnum } from '../../../domain/dtos/Evento/evento-setlist-item.response';
+import {
+  ResponseEventoSetlistItemDto,
+  EventoSetlistItemOrigemEnum,
+} from '../../../domain/dtos/Evento/evento-setlist-item.response';
 import { ResponseRepertorioMusicaDto } from '../../../domain/dtos/Repertorio/repertorio-musica.response';
 import { ResponseYoutubeSearchItemDto } from '../../../domain/dtos/Repertorio/youtube-search-item.response';
 
@@ -42,7 +45,25 @@ type Props = {
   canEdit: boolean;
 };
 
-const TONS = ['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B'];
+const TONS = [
+  'C',
+  'C#',
+  'Db',
+  'D',
+  'D#',
+  'Eb',
+  'E',
+  'F',
+  'F#',
+  'Gb',
+  'G',
+  'G#',
+  'Ab',
+  'A',
+  'A#',
+  'Bb',
+  'B',
+];
 
 export default function EventoSetlistEditorSheet({
   visible,
@@ -53,7 +74,9 @@ export default function EventoSetlistEditorSheet({
   canEdit,
 }: Props) {
   const palette = usePallete();
-  const [tipoOrigem, setTipoOrigem] = useState<EventoSetlistItemOrigemEnum>(EventoSetlistItemOrigemEnum.MANUAL);
+  const [tipoOrigem, setTipoOrigem] = useState<EventoSetlistItemOrigemEnum>(
+    EventoSetlistItemOrigemEnum.MANUAL,
+  );
   const [repertorioMusicaId, setRepertorioMusicaId] = useState<string>('');
   const [nome, setNome] = useState('');
   const [interprete, setInterprete] = useState('');
@@ -92,7 +115,14 @@ export default function EventoSetlistEditorSheet({
   );
 
   const toneOptions = useMemo(() => TONS.map((tone) => ({ title: tone, value: tone })), []);
-  const youtubeInitialQuery = useMemo(() => [nome, interprete].filter((entry) => entry.trim()).join(' ').trim(), [nome, interprete]);
+  const youtubeInitialQuery = useMemo(
+    () =>
+      [nome, interprete]
+        .filter((entry) => entry.trim())
+        .join(' ')
+        .trim(),
+    [nome, interprete],
+  );
 
   const hydrateFromRepertorio = (musicId: string) => {
     setRepertorioMusicaId(musicId);
@@ -172,7 +202,11 @@ export default function EventoSetlistEditorSheet({
             <FancyText type='semiBold' size='small'>
               Como adicionar esta canção
             </FancyText>
-            <FancyText size='extraSmall' color={palette.fonts.inactive} style={styles.originHelperText}>
+            <FancyText
+              size='extraSmall'
+              color={palette.fonts.inactive}
+              style={styles.originHelperText}
+            >
               {origemDescription}
             </FancyText>
           </View>
@@ -206,7 +240,12 @@ export default function EventoSetlistEditorSheet({
         readonly={!isEditingEnabled}
         errorMessage={nomeError ? 'Informe o nome da música' : undefined}
         inputProps={{
-          onChangeText: isEditingEnabled ? (text) => { setNome(text); if (text.trim()) setNomeError(false); } : undefined,
+          onChangeText: isEditingEnabled
+            ? (text) => {
+                setNome(text);
+                if (text.trim()) setNomeError(false);
+              }
+            : undefined,
           editable: isEditingEnabled,
           placeholder: 'Ex: Grato Sou — sem versão ou canal',
         }}
@@ -215,13 +254,19 @@ export default function EventoSetlistEditorSheet({
         label='Intérprete'
         value={interprete}
         readonly={!isEditingEnabled}
-        inputProps={{ onChangeText: isEditingEnabled ? setInterprete : undefined, editable: isEditingEnabled }}
+        inputProps={{
+          onChangeText: isEditingEnabled ? setInterprete : undefined,
+          editable: isEditingEnabled,
+        }}
       />
       <FancyTextInput
         label='Link da versão'
         value={versaoUrl}
         readonly={!isEditingEnabled}
-        inputProps={{ onChangeText: isEditingEnabled ? setVersaoUrl : undefined, editable: isEditingEnabled }}
+        inputProps={{
+          onChangeText: isEditingEnabled ? setVersaoUrl : undefined,
+          editable: isEditingEnabled,
+        }}
         rightContainer={
           <View style={styles.versaoUrlIcons}>
             {canEdit ? (
@@ -289,7 +334,8 @@ export default function EventoSetlistEditorSheet({
   const letraTab = (
     <View style={styles.tabSection}>
       <FancyText size='extraSmall' color={palette.fonts.inactive} style={styles.tabIntro}>
-        Defina a letra que será usada nesta ocorrência. Você pode adaptar o conteúdo para esta apresentação.
+        Defina a letra que será usada nesta ocorrência. Você pode adaptar o conteúdo para esta
+        apresentação.
       </FancyText>
       <SongTextEditorField
         label='Letra'
@@ -361,14 +407,11 @@ export default function EventoSetlistEditorSheet({
         <View style={styles.sheetContentWrapper}>
           <View style={styles.sheetContent}>
             <FancyText size='small' color={palette.fonts.inactive} style={styles.sheetSubtitle}>
-              Organize os dados principais da música e ajuste letra ou cifra por ocorrência quando necessário.
+              Organize os dados principais da música e ajuste letra ou cifra por ocorrência quando
+              necessário.
             </FancyText>
 
-            <FancyTabs
-              items={tabs}
-              keepMounted
-              variant='compact'
-            />
+            <FancyTabs items={tabs} keepMounted variant='compact' />
           </View>
           {isSaving ? (
             <Pressable

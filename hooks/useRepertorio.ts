@@ -26,7 +26,8 @@ export function useRepertorioCategorias(query?: DynamicQuery) {
   };
 
   const createMutation = useMutation({
-    mutationFn: (dto: CreateRepertorioCategoriaDto) => RepertorioRepository.createCategoria(igrejaAtiva.id, dto),
+    mutationFn: (dto: CreateRepertorioCategoriaDto) =>
+      RepertorioRepository.createCategoria(igrejaAtiva.id, dto),
     onSuccess: invalidate,
   });
   const updateMutation = useMutation({
@@ -44,7 +45,8 @@ export function useRepertorioCategorias(query?: DynamicQuery) {
     criarCategoria: createMutation.mutateAsync,
     atualizarCategoria: updateMutation.mutateAsync,
     removerCategoria: deleteMutation.mutateAsync,
-    isMutatingCategoria: createMutation.isPending || updateMutation.isPending || deleteMutation.isPending,
+    isMutatingCategoria:
+      createMutation.isPending || updateMutation.isPending || deleteMutation.isPending,
   };
 }
 
@@ -64,11 +66,14 @@ export function useRepertorioMusicas(ministerioId?: string, query?: DynamicQuery
   });
 
   const invalidate = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['repertorio-musicas', igrejaAtiva.id, ministerioId] });
+    await queryClient.invalidateQueries({
+      queryKey: ['repertorio-musicas', igrejaAtiva.id, ministerioId],
+    });
   };
 
   const createMutation = useMutation({
-    mutationFn: (dto: CreateRepertorioMusicaDto) => RepertorioRepository.createMusica(igrejaAtiva.id, ministerioId!, dto),
+    mutationFn: (dto: CreateRepertorioMusicaDto) =>
+      RepertorioRepository.createMusica(igrejaAtiva.id, ministerioId!, dto),
     onSuccess: invalidate,
   });
   const updateMutation = useMutation({
@@ -77,7 +82,8 @@ export function useRepertorioMusicas(ministerioId?: string, query?: DynamicQuery
     onSuccess: invalidate,
   });
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => RepertorioRepository.removeMusica(igrejaAtiva.id, ministerioId!, id),
+    mutationFn: (id: string) =>
+      RepertorioRepository.removeMusica(igrejaAtiva.id, ministerioId!, id),
     onSuccess: invalidate,
   });
 
@@ -86,7 +92,8 @@ export function useRepertorioMusicas(ministerioId?: string, query?: DynamicQuery
     criarMusica: createMutation.mutateAsync,
     atualizarMusica: updateMutation.mutateAsync,
     removerMusica: deleteMutation.mutateAsync,
-    isMutatingMusica: createMutation.isPending || updateMutation.isPending || deleteMutation.isPending,
+    isMutatingMusica:
+      createMutation.isPending || updateMutation.isPending || deleteMutation.isPending,
   };
 }
 
@@ -102,6 +109,7 @@ export function useYoutubeVersionSearch(query?: string, enabled = true, limit = 
   return useQuery({
     queryKey: ['youtube-version-search', igrejaAtiva.id, normalizedQuery, limit],
     enabled: enabled && normalizedQuery.length >= 2,
-    queryFn: () => RepertorioRepository.searchYoutubeVersions(igrejaAtiva.id, normalizedQuery, limit),
+    queryFn: () =>
+      RepertorioRepository.searchYoutubeVersions(igrejaAtiva.id, normalizedQuery, limit),
   });
 }

@@ -1,7 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { usePallete } from '../../../hooks/usePallete';
-import { DashboardEscalaItemDto, ResponseDashboardDto } from '../../../domain/dtos/Dashboard/dashboard.response';
+import {
+  DashboardEscalaItemDto,
+  ResponseDashboardDto,
+} from '../../../domain/dtos/Dashboard/dashboard.response';
 import { router } from 'expo-router';
 import DashboardSection from './DashboardSection';
 import DashboardCard from './DashboardCard';
@@ -42,26 +45,44 @@ export default function DashboardEscalasSection({ data }: DashboardEscalasSectio
   return (
     <>
       {/* KPIs do mês */}
-      <DashboardSection title="Minhas escalas" onVerMais={() => router.push('/(app)/(drawer)/pessoal/escalas')}>
+      <DashboardSection
+        title='Minhas escalas'
+        onVerMais={() => router.push('/(app)/(drawer)/pessoal/escalas')}
+      >
         <View style={styles.kpiRow}>
           <DashboardCard
-            title="Total"
+            title='Total'
             value={data?.totalEscalasMes ?? 0}
-            icon={{ library: 'MaterialCommunityIcons', name: 'calendar-month', size: 12, color: Pallete.primary }}
+            icon={{
+              library: 'MaterialCommunityIcons',
+              name: 'calendar-month',
+              size: 12,
+              color: Pallete.primary,
+            }}
             iconBackgroundColor={`${Pallete.primary}15`}
             surfaceVariant='infoBlue'
           />
           <DashboardCard
-            title="Confirmadas"
+            title='Confirmadas'
             value={data?.escalasConfirmadas ?? 0}
-            icon={{ library: 'MaterialCommunityIcons', name: 'check-circle-outline', size: 12, color: Pallete.confirm }}
+            icon={{
+              library: 'MaterialCommunityIcons',
+              name: 'check-circle-outline',
+              size: 12,
+              color: Pallete.confirm,
+            }}
             iconBackgroundColor={`${Pallete.confirm}15`}
             surfaceVariant='infoBlue'
           />
           <DashboardCard
-            title="Pendentes"
+            title='Pendentes'
             value={data?.escalasPendentes ?? 0}
-            icon={{ library: 'MaterialCommunityIcons', name: 'clock-outline', size: 12, color: Pallete.warning }}
+            icon={{
+              library: 'MaterialCommunityIcons',
+              name: 'clock-outline',
+              size: 12,
+              color: Pallete.warning,
+            }}
             iconBackgroundColor={`${Pallete.warning}15`}
             surfaceVariant='infoBlue'
           />
@@ -70,7 +91,7 @@ export default function DashboardEscalasSection({ data }: DashboardEscalasSectio
 
       {/* Próximas escalas - scroll horizontal */}
       <DashboardSection
-        title="Próximas escalas"
+        title='Próximas escalas'
         onVerMais={() => router.push('/(app)/(drawer)/pessoal/escalas')}
       >
         {proximasEscalasUnicas.length > 0 ? (
@@ -80,16 +101,20 @@ export default function DashboardEscalasSection({ data }: DashboardEscalasSectio
             contentContainerStyle={styles.horizontalScroll}
           >
             {proximasEscalasUnicas.map((escala, index) => (
-              <ProximaEscalaCard key={`${escala.id}-${escala.eventoData}-${index}`} escala={escala} onPress={() => setSelectedEscala(escala)} />
+              <ProximaEscalaCard
+                key={`${escala.id}-${escala.eventoData}-${index}`}
+                escala={escala}
+                onPress={() => setSelectedEscala(escala)}
+              />
             ))}
           </ScrollView>
         ) : (
-          <DashboardEmpty category="escalas" />
+          <DashboardEmpty category='escalas' />
         )}
       </DashboardSection>
 
       {/* Mini calendário */}
-      <DashboardSection title="Calendário">
+      <DashboardSection title='Calendário'>
         <DashboardMiniCalendar escalas={data?.proximasEscalas} />
       </DashboardSection>
 

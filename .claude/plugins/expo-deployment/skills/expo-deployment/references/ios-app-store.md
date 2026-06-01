@@ -15,6 +15,7 @@ eas credentials -p ios
 ```
 
 This interactive flow helps you:
+
 - Create or select a distribution certificate
 - Create or select a provisioning profile
 - Configure App Store Connect API key (recommended)
@@ -160,18 +161,19 @@ Find `ascAppId` in App Store Connect → App Information → Apple ID.
 
 ### Common Rejection Reasons
 
-| Issue | Solution |
-|-------|----------|
-| Crashes/bugs | Test thoroughly before submission |
-| Incomplete metadata | Fill all required fields |
-| Placeholder content | Remove "lorem ipsum" and test data |
-| Missing login credentials | Provide demo account |
-| Privacy policy missing | Add URL in App Store Connect |
-| Guideline 4.2 (minimum functionality) | Ensure app provides value |
+| Issue                                 | Solution                           |
+| ------------------------------------- | ---------------------------------- |
+| Crashes/bugs                          | Test thoroughly before submission  |
+| Incomplete metadata                   | Fill all required fields           |
+| Placeholder content                   | Remove "lorem ipsum" and test data |
+| Missing login credentials             | Provide demo account               |
+| Privacy policy missing                | Add URL in App Store Connect       |
+| Guideline 4.2 (minimum functionality) | Ensure app provides value          |
 
 ### Expedited Review
 
 Request expedited review for:
+
 - Critical bug fixes
 - Time-sensitive events
 - Security issues
@@ -242,7 +244,8 @@ Gradual rollout over 7 days:
 }
 ```
 
-Rollout: Day 1 (1%) → Day 2 (2%) → Day 3 (5%) → Day 4 (10%) → Day 5 (20%) → Day 6 (50%) → Day 7 (100%)
+Rollout: Day 1 (1%) → Day 2 (2%) → Day 3 (5%) → Day 4 (10%) → Day 5 (20%) → Day 6 (50%) → Day 7
+(100%)
 
 ## Certificates and Provisioning
 

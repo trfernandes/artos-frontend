@@ -25,13 +25,22 @@ export default function ProximaEscalaItem({
     >
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <DefaultIcons.Custom library='MaterialIcons' name='arrow-right' style={{ borderWidth: 0, marginLeft: -14 }} />
+          <DefaultIcons.Custom
+            library='MaterialIcons'
+            name='arrow-right'
+            style={{ borderWidth: 0, marginLeft: -14 }}
+          />
           <FancyText size={'extraSmall'} type='bold'>
             {DateUtils.formatStableDateBR(data)}
           </FancyText>
         </View>
         <View style={{ flexDirection: 'row', gap: 0, paddingLeft: 5 }}>
-          <FancyText size={'extraSmall'} type='medium' style={{ textAlign: 'left' }} numberOfLines={2}>
+          <FancyText
+            size={'extraSmall'}
+            type='medium'
+            style={{ textAlign: 'left' }}
+            numberOfLines={2}
+          >
             {nomeEvento} - {nomeFuncao}
           </FancyText>
         </View>

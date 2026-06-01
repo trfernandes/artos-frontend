@@ -30,11 +30,39 @@ export const MUSIC_LIST = [
     observacoes: 'Não vamos cantar a ponte',
     categoria: 'Celebração',
   },
-  { order: 2, nome: 'Quero Jesus', artista: 'Brasa Music', tom: 'D', bpm: '130', categoria: 'Adoração' },
-  { order: 3, nome: 'Nada mais', artista: 'Fhop music', tom: 'G', bpm: '130', categoria: 'Adoração' },
+  {
+    order: 2,
+    nome: 'Quero Jesus',
+    artista: 'Brasa Music',
+    tom: 'D',
+    bpm: '130',
+    categoria: 'Adoração',
+  },
+  {
+    order: 3,
+    nome: 'Nada mais',
+    artista: 'Fhop music',
+    tom: 'G',
+    bpm: '130',
+    categoria: 'Adoração',
+  },
   { order: 4, nome: 'Altar', artista: 'Brasa music', tom: 'G', bpm: '130', categoria: 'Adoração' },
-  { order: 5, nome: 'Meu Salvador', artista: 'Avivah music', tom: 'B', bpm: '128', categoria: 'Celebração' },
-  { order: 6, nome: 'Batendo a Porta', artista: 'FHOP Music', tom: 'F', bpm: '126', categoria: 'Adoração' },
+  {
+    order: 5,
+    nome: 'Meu Salvador',
+    artista: 'Avivah music',
+    tom: 'B',
+    bpm: '128',
+    categoria: 'Celebração',
+  },
+  {
+    order: 6,
+    nome: 'Batendo a Porta',
+    artista: 'FHOP Music',
+    tom: 'F',
+    bpm: '126',
+    categoria: 'Adoração',
+  },
   { order: 7, nome: 'Sublime', artista: 'FHOP Music', tom: 'G', bpm: '132', categoria: 'Adoração' },
 ];
 
@@ -42,7 +70,11 @@ export default function EventosSetListForm() {
   const Pallete = usePallete();
   const [data, setData] = useState<Array<Music>>(MUSIC_LIST);
 
-  const [musicFormParams, setMusicFormParams] = useState<{ visible: boolean; mode: 'add' | 'edit'; music: Music }>({
+  const [musicFormParams, setMusicFormParams] = useState<{
+    visible: boolean;
+    mode: 'add' | 'edit';
+    music: Music;
+  }>({
     visible: false,
     mode: 'add',
     music: { order: 0, nome: '', artista: '', tom: '', bpm: '' },
@@ -65,7 +97,13 @@ export default function EventosSetListForm() {
               actionButtons: [
                 {
                   icon: { ...DefaultIconsNames.edit, size: 18 },
-                  onPress: () => setMusicFormParams((prev) => ({ ...prev, visible: true, mode: 'edit', music: item })),
+                  onPress: () =>
+                    setMusicFormParams((prev) => ({
+                      ...prev,
+                      visible: true,
+                      mode: 'edit',
+                      music: item,
+                    })),
                 },
                 { icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error } },
               ],
@@ -98,13 +136,20 @@ export default function EventosSetListForm() {
               subtitle: musica.artista,
               value: musica.order.toString(),
             }))}
-            onChange={(value) => setMusicFormParams((prev) => ({ ...prev, music: { ...prev.music, order: Number(value) } }))}
+            onChange={(value) =>
+              setMusicFormParams((prev) => ({
+                ...prev,
+                music: { ...prev.music, order: Number(value) },
+              }))
+            }
           />
           <FancyDropDown
             label='Tom'
             value={musicFormParams.music.tom}
             listItems={TONS.map((tom) => ({ title: tom, value: tom }))}
-            onChange={(value) => setMusicFormParams((prev) => ({ ...prev, music: { ...prev.music, tom: value } }))}
+            onChange={(value) =>
+              setMusicFormParams((prev) => ({ ...prev, music: { ...prev.music, tom: value } }))
+            }
           />
           <FancyTextInput
             label='Bpm'
@@ -112,14 +157,19 @@ export default function EventosSetListForm() {
             inputProps={{
               keyboardType: 'numeric',
               maxLength: 3,
-              onChangeText: (value) => setMusicFormParams((prev) => ({ ...prev, music: { ...prev.music, bpm: value } })),
+              onChangeText: (value) =>
+                setMusicFormParams((prev) => ({ ...prev, music: { ...prev.music, bpm: value } })),
             }}
           />
           <FancyTextArea
             label='Observações'
             value={musicFormParams.music.observacoes}
             inputProps={{
-              onChangeText: (value) => setMusicFormParams((prev) => ({ ...prev, music: { ...prev.music, observacoes: value } })),
+              onChangeText: (value) =>
+                setMusicFormParams((prev) => ({
+                  ...prev,
+                  music: { ...prev.music, observacoes: value },
+                })),
             }}
           />
         </FancyModalDialog>

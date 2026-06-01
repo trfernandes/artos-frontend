@@ -10,8 +10,15 @@ export default function MinisterioEventosLayout() {
         header: (props) => <FancyPageHeader {...props} />,
       }}
     >
-      <Stack.Screen name='index' options={{ title: 'Agenda', headerShown: true,
- header: (props) => <FancyPageHeader leftButton='menu' {...props} />, headerRight: () => <MainHeaderButtons /> }} />
+      <Stack.Screen
+        name='index'
+        options={{
+          title: 'Agenda',
+          headerShown: true,
+          header: (props) => <FancyPageHeader leftButton='menu' {...props} />,
+          headerRight: () => <MainHeaderButtons />,
+        }}
+      />
       <Stack.Screen
         name='details'
         options={{
