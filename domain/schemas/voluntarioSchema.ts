@@ -15,7 +15,7 @@ const baseAccountFields = {
 
   senha: z
     .string('Campo obrigatório')
-    .min(6, { message: 'A senha deve ter pelo menos 6 caracteres' })
+    .min(8, { message: 'A senha deve ter pelo menos 8 caracteres' })
     .max(100, { message: 'A senha pode ter no máximo 100 caracteres' }),
 
   confirmarSenha: z.string('Campo obrigatório'),

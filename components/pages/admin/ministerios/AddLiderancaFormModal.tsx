@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import Toast from 'react-native-toast-message';
 import { zodResolver } from '@hookform/resolvers/zod';
 import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
 import ControlledSearchSelect from '../../../forms/ControlledSearchSelect';
@@ -41,7 +42,13 @@ export default function AddLiderancaFormModal({ volunteers, ...props }: Props) {
       (formData) => {
         onConfirm?.({ ...formData, hierarquia: VoluntarioHierarquiaEnum.Lider });
       },
-      (errors) => console.log(errors),
+      () => {
+        Toast.show({
+          type: 'error',
+          text1: 'Selecione um voluntário',
+          text2: 'Toque em um nome da lista para continuar.',
+        });
+      },
     )();
   }, [form, onConfirm]);
 
@@ -60,19 +67,11 @@ export default function AddLiderancaFormModal({ volunteers, ...props }: Props) {
         listItems={voluntariosDropDownList}
         onChange={(value) => {
           const selected = voluntariosDropDownList.find((item) => item.value === value);
+          const sourceUri = (selected?.left as any)?.source?.uri;
+          const fotoUri = typeof sourceUri === 'string' ? sourceUri : null;
           form.setValue('voluntarioNome', selected?.title || '');
-          form.setValue(
-            'fotoUrl',
-            ((selected?.left as any)?.source?.uri ??
-              (selected?.left as any)?.source ??
-              null) as any,
-          );
-          form.setValue(
-            'fotoThumbUrl',
-            ((selected?.left as any)?.source?.uri ??
-              (selected?.left as any)?.source ??
-              null) as any,
-          );
+          form.setValue('fotoUrl', fotoUri);
+          form.setValue('fotoThumbUrl', fotoUri);
           form.setValue('hierarquia', VoluntarioHierarquiaEnum.Lider);
         }}
       />

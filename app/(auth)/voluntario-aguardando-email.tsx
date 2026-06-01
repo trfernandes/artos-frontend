@@ -1,13 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import AuthLayout from '../../components/pages/login/AuthLayout';
 import FancyText from '../../components/FancyText';
 import FancyButton from '../../components/buttons/FancyButton';
 import DefaultIcons from '../../components/FancyIcons';
 import { ThemePalette } from '../../constants/colors';
 import { ColorUtils } from '../../utils/color_utils';
-import { EXTRA_LARGE_SIZE_FONT, MEDIUM_SIZE_FONT } from '../../constants/font';
 import { VoluntarioEmailRepository } from '../../domain/services/VoluntarioEmailRepository';
 import { useConnectivity } from '../../core/network/connectivity/ConnectivityProvider';
 import { usePallete } from '../../hooks/usePallete';
@@ -18,10 +17,6 @@ import {
   clearPendingLoginAttempt,
   getPendingLoginAttempt,
 } from '../../core/auth/pendingLoginAttemptStore';
-import {
-  AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
-  AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
-} from '../../constants/authTypography';
 
 const POLLING_INTERVAL_MS = 15000;
 const AUTO_CHECK_INTERVAL_SECONDS = Math.floor(POLLING_INTERVAL_MS / 1000);
@@ -29,6 +24,7 @@ const AUTO_CHECK_INTERVAL_SECONDS = Math.floor(POLLING_INTERVAL_MS / 1000);
 export default function VoluntarioAguardandoEmailPage() {
   const Pallete = usePallete();
   const styles = useThemedStyles(createStyles);
+  const insets = useSafeAreaInsets();
   const { email: emailParam } = useLocalSearchParams<{ email?: string }>();
   const { signIn } = useAuth();
 
@@ -154,176 +150,184 @@ export default function VoluntarioAguardandoEmailPage() {
   };
 
   return (
-    <AuthLayout
-      showBackButton
-      hideCard
-      onPressBack={() => router.replace('/(auth)/login')}
-      compactTitleOnKeyboard='Confirme seu e-mail'
-      header={
-        <View style={{ gap: 5 }}>
-          <FancyText
-            size='extraLarge'
-            type='bold'
-            color='white'
-            style={{
-              lineHeight: EXTRA_LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
+    <View style={[styles.root, { backgroundColor: Pallete.backgroundColor }]}>
+      <SafeAreaView style={styles.safe} edges={['left', 'right']}>
+        <View style={[styles.backButtonRow, { top: insets.top + 8 }]}>
+          <FancyButton
+            mode='icon'
+            type='text'
+            onPress={() => router.replace('/(auth)/login')}
+            icon={{ library: 'Feather', name: 'arrow-left', size: 18 }}
+            iconStyle={{ color: Pallete.icons.dark }}
+            containerStyle={{
+              backgroundColor: ColorUtils.withAlpha(Pallete.fonts.dark, 0.08),
+              borderRadius: 22,
+              width: 44,
+              height: 44,
             }}
-          >
-            Confirme seu e-mail
-          </FancyText>
-          <FancyText
-            size='medium'
-            type='medium'
-            color='white'
-            style={{
-              lineHeight: MEDIUM_SIZE_FONT * AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
-            }}
-          >
-            Enviamos um link de ativação para sua conta
-          </FancyText>
+          />
         </View>
-      }
-    >
-      <View style={styles.content}>
-        {/* Card informativo */}
-        <View style={styles.card}>
-          {/* Ícone */}
-          <View style={styles.iconContainer}>
-            <DefaultIcons.Custom
-              library='MaterialCommunityIcons'
-              name='email-outline'
-              size={40}
-              color={Pallete.primary}
-            />
-          </View>
 
-          {/* Email */}
-          {emailParam ? (
-            <View style={styles.emailSection}>
-              <FancyText
-                size='extraSmall'
-                color={Pallete.fonts.inactive}
-                style={{ textAlign: 'center' }}
-              >
-                E-mail cadastrado
+        <View style={[styles.content, { paddingTop: insets.top + 24 }]}>
+          <View style={styles.centerGroup}>
+            <View style={styles.headerGroup}>
+              <FancyText size='large' type='bold' color={Pallete.fonts.dark}>
+                Confirme seu e-mail
               </FancyText>
-              <FancyText
-                size='medium'
-                type='semiBold'
-                style={{ textAlign: 'center' }}
-                numberOfLines={1}
-                ellipsizeMode='middle'
-              >
-                {emailParam}
+              <FancyText size='small' color={Pallete.fonts.inactive}>
+                Enviamos um link de ativação para sua conta
               </FancyText>
             </View>
-          ) : null}
 
-          {/* Status */}
-          <View style={styles.statusSection}>
-            <View style={styles.statusBadge}>
+            {/* Ícone */}
+            <View style={styles.iconContainer}>
               <DefaultIcons.Custom
                 library='MaterialCommunityIcons'
-                name='clock-outline'
-                size={16}
-                color={Pallete.warning}
+                name='email-outline'
+                size={40}
+                color={Pallete.primary}
               />
-              <FancyText size='extraSmall' type='medium' color={Pallete.warning}>
-                Aguardando confirmação
-              </FancyText>
             </View>
-          </View>
 
-          {/* Dicas */}
-          <View style={styles.tipsSection}>
-            <View style={styles.tipRow}>
-              <DefaultIcons.Custom
-                library='Feather'
-                name='info'
-                size={14}
-                color={Pallete.fonts.inactive}
+            {/* Email */}
+            {emailParam ? (
+              <View style={styles.emailSection}>
+                <FancyText
+                  size='extraSmall'
+                  color={Pallete.fonts.inactive}
+                  style={{ textAlign: 'center' }}
+                >
+                  E-mail cadastrado
+                </FancyText>
+                <FancyText
+                  size='medium'
+                  type='semiBold'
+                  style={{ textAlign: 'center' }}
+                  numberOfLines={1}
+                  ellipsizeMode='middle'
+                >
+                  {emailParam}
+                </FancyText>
+              </View>
+            ) : null}
+
+            {/* Status */}
+            <View style={styles.statusSection}>
+              <View style={styles.statusBadge}>
+                <DefaultIcons.Custom
+                  library='MaterialCommunityIcons'
+                  name='clock-outline'
+                  size={16}
+                  color={Pallete.warning}
+                />
+                <FancyText size='extraSmall' type='medium' color={Pallete.warning}>
+                  Aguardando confirmação
+                </FancyText>
+              </View>
+            </View>
+
+            {/* Dicas */}
+            <View style={styles.tipsSection}>
+              <View style={styles.tipRow}>
+                <DefaultIcons.Custom
+                  library='Feather'
+                  name='info'
+                  size={14}
+                  color={Pallete.fonts.inactive}
+                />
+                <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={{ flex: 1 }}>
+                  Verifique a caixa de spam/lixo eletrônico
+                </FancyText>
+              </View>
+              <View style={styles.tipRow}>
+                <DefaultIcons.Custom
+                  library='Feather'
+                  name='info'
+                  size={14}
+                  color={Pallete.fonts.inactive}
+                />
+                <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={{ flex: 1 }}>
+                  Após confirmar, toque em Verificar agora ou aguarde a verificação automática
+                </FancyText>
+              </View>
+            </View>
+
+            {/* Botões */}
+            <View style={styles.actionsContainer}>
+              <FancyButton
+                label={
+                  isVerificando
+                    ? 'Verificando...'
+                    : hasPendingAttempt
+                      ? `Verificar agora (${autoCheckCountdown}s)`
+                      : 'Verificar agora'
+                }
+                type='contained'
+                isLoading={isVerificando}
+                loadingText='Verificando...'
+                spinnerSize='small'
+                icon={{ library: 'Feather', name: 'check-circle', size: 18 }}
+                containerStyle={styles.primaryButton}
+                disabled={isVerificando || isServerUnavailable || !hasPendingAttempt}
+                onPress={() => {
+                  setAutoCheckCountdown(AUTO_CHECK_INTERVAL_SECONDS);
+                  void verificarConfirmacao(true);
+                }}
               />
-              <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={{ flex: 1 }}>
-                Verifique a caixa de spam/lixo eletrônico
-              </FancyText>
-            </View>
-            <View style={styles.tipRow}>
-              <DefaultIcons.Custom
-                library='Feather'
-                name='info'
-                size={14}
-                color={Pallete.fonts.inactive}
+
+              <FancyButton
+                label='Reenviar e-mail'
+                type='outlined'
+                isLoading={isReenviando}
+                loadingText='Reenviando...'
+                spinnerSize='small'
+                icon={{ library: 'Feather', name: 'mail', size: 18, color: Pallete.primary }}
+                containerStyle={styles.secondaryButton}
+                disabled={isReenviando || isServerUnavailable || !emailParam}
+                onPress={handleReenviar}
               />
-              <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={{ flex: 1 }}>
-                Após confirmar, toque em Verificar agora ou aguarde a verificação automática
-              </FancyText>
+
+              <FancyButton
+                label='Voltar ao login'
+                type='text'
+                icon={{ library: 'Feather', name: 'arrow-left', size: 18, color: Pallete.primary }}
+                containerStyle={styles.tertiaryButton}
+                onPress={() => router.replace('/(auth)/login')}
+              />
             </View>
-          </View>
-
-          {/* Divider */}
-          <View style={styles.divider} />
-
-          {/* Botões */}
-          <View style={styles.actionsContainer}>
-            <FancyButton
-              label={
-                isVerificando
-                  ? 'Verificando...'
-                  : hasPendingAttempt
-                    ? `Verificar agora (${autoCheckCountdown}s)`
-                    : 'Verificar agora'
-              }
-              type='contained'
-              isLoading={isVerificando}
-              loadingText='Verificando...'
-              spinnerSize='small'
-              icon={{ library: 'Feather', name: 'check-circle', size: 18 }}
-              containerStyle={styles.primaryButton}
-              disabled={isVerificando || isServerUnavailable || !hasPendingAttempt}
-              onPress={() => {
-                setAutoCheckCountdown(AUTO_CHECK_INTERVAL_SECONDS);
-                void verificarConfirmacao(true);
-              }}
-            />
-
-            <FancyButton
-              label='Reenviar e-mail'
-              type='outlined'
-              isLoading={isReenviando}
-              loadingText='Reenviando...'
-              spinnerSize='small'
-              icon={{ library: 'Feather', name: 'mail', size: 18, color: Pallete.primary }}
-              containerStyle={styles.secondaryButton}
-              disabled={isReenviando || isServerUnavailable || !emailParam}
-              onPress={handleReenviar}
-            />
-
-            <FancyButton
-              label='Voltar ao login'
-              type='text'
-              icon={{ library: 'Feather', name: 'arrow-left', size: 18, color: Pallete.primary }}
-              containerStyle={styles.tertiaryButton}
-              onPress={() => router.replace('/(auth)/login')}
-            />
           </View>
         </View>
-      </View>
-    </AuthLayout>
+      </SafeAreaView>
+    </View>
   );
 }
 
 function createStyles(Pallete: ThemePalette) {
   return StyleSheet.create({
-    content: {
-      gap: 16,
+    root: {
+      flex: 1,
     },
-    card: {
-      backgroundColor: Pallete.backgroundColor,
-      borderRadius: 16,
-      padding: 20,
-      gap: 16,
+    safe: {
+      flex: 1,
+    },
+    backButtonRow: {
+      position: 'absolute',
+      left: 24,
+      zIndex: 10,
+    },
+    content: {
+      flex: 1,
+      justifyContent: 'center',
+      paddingHorizontal: 24,
+      paddingBottom: 24,
+    },
+    centerGroup: {
+      gap: 14,
       alignItems: 'center',
-      ...Pallete.shadows[200],
+    },
+    headerGroup: {
+      gap: 2,
+      alignSelf: 'stretch',
     },
     iconContainer: {
       width: 72,
@@ -359,11 +363,6 @@ function createStyles(Pallete: ThemePalette) {
       flexDirection: 'row',
       alignItems: 'flex-start',
       gap: 8,
-    },
-    divider: {
-      width: '100%',
-      height: 1,
-      backgroundColor: ColorUtils.withAlpha(Pallete.fonts.inactive, 0.13),
     },
     actionsContainer: {
       gap: 10,

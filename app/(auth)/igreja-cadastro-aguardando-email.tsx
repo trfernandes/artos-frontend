@@ -1,37 +1,32 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useCooldown } from '../../hooks/useCooldown';
 import { StyleSheet, View, Modal } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import AuthLayout from '../../components/pages/login/AuthLayout';
 import FancyText from '../../components/FancyText';
 import FancyButton from '../../components/buttons/FancyButton';
 import DefaultIcons from '../../components/FancyIcons';
 import FancyLoading from '../../components/FancyLoading';
 import { ThemePalette } from '../../constants/colors';
-import { EXTRA_LARGE_SIZE_FONT, MEDIUM_SIZE_FONT } from '../../constants/font';
 import { useCadastroIgrejaEmail } from '../../hooks/useCadastroIgrejaEmail';
 import { ColorUtils } from '../../utils/color_utils';
 import FancyTextInput from '../../components/fields/FancyTextInput';
 import { useConnectivity } from '../../core/network/connectivity/ConnectivityProvider';
 import { ResponseLoginDto } from '../../domain/dtos/login/login.response';
-import { useAuth } from '../../contexts/AuthContext';
+import { setPendingWelcomeAuth } from '../../core/auth/pendingWelcomeStore';
 import { usePallete } from '../../hooks/usePallete';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
-import {
-  AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
-  AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
-} from '../../constants/authTypography';
 
 export default function IgrejaCadastroAguardandoEmailPage() {
   const Pallete = usePallete();
   const styles = useThemedStyles(createStyles);
+  const insets = useSafeAreaInsets();
   const [modalVisible, setModalVisible] = useState(false);
   const [novoEmail, setNovoEmail] = useState('');
   const isProcessingLoginRef = useRef(false);
 
   const { status: connectivityStatus } = useConnectivity();
   const isServerUnavailable = connectivityStatus !== 'ok';
-  const { signInWithData } = useAuth();
 
   const realizarLoginAutomatico = useCallback(
     async (authData: any) => {
@@ -52,14 +47,16 @@ export default function IgrejaCadastroAguardandoEmailPage() {
             igrejas: authData.igrejas || [],
           };
 
-          // Usa o método do AuthContext para fazer login com os dados
-          await signInWithData(loginData);
+          // Guarda os dados de auth para a welcome efetivar o login no CTA.
+          // O login NÃO é feito aqui: enquanto user permanece null, a welcome
+          // (rota pública de (auth)) consegue renderizar antes do dashboard.
+          setPendingWelcomeAuth(loginData);
 
           // Limpa dados do cadastro
           await limparDadosCadastro();
 
-          // Redireciona para a tela inicial
-          router.replace('/');
+          // Tela dedicada de boas-vindas pós-confirmação
+          router.replace('/(auth)/welcome');
         } else {
           // Se não houver dados de auth, vai para login
           await limparDadosCadastro();
@@ -71,7 +68,9 @@ export default function IgrejaCadastroAguardandoEmailPage() {
         router.replace('/(auth)/login');
       }
     },
-    [signInWithData],
+    // limparDadosCadastro é declarado abaixo (vem do hook); referenciá-lo aqui
+    // causaria TDZ. É estável (useCallback []), então o closure basta.
+    [],
   );
 
   const {
@@ -161,7 +160,7 @@ export default function IgrejaCadastroAguardandoEmailPage() {
 
   // Se não há dados de cadastro, voltar para criar igreja (apenas após terminar o loading)
   useEffect(() => {
-    if (!loadingDados && !dadosCadastro) {
+    if (!loadingDados && !dadosCadastro && !isProcessingLoginRef.current) {
       router.replace('/(auth)/create-igreja-account');
     }
   }, [dadosCadastro, loadingDados]);
@@ -169,9 +168,9 @@ export default function IgrejaCadastroAguardandoEmailPage() {
   // Loading inicial - só mostra se estiver carregando os dados do storage
   if (loadingDados) {
     return (
-      <AuthLayout hideCard>
+      <View style={[styles.root, styles.center, { backgroundColor: Pallete.backgroundColor }]}>
         <FancyLoading />
-      </AuthLayout>
+      </View>
     );
   }
 
@@ -182,172 +181,176 @@ export default function IgrejaCadastroAguardandoEmailPage() {
   const isExpirado = status?.statusSolicitacao === 'EXPIRADO';
 
   return (
-    <AuthLayout
-      showBackButton
-      hideCard
-      onPressBack={() => router.replace('/(auth)/login')}
-      compactTitleOnKeyboard='Confirme seu e-mail'
-      header={
-        <View style={{ gap: 5, alignItems: 'center' }}>
-          <FancyText
-            size='extraLarge'
-            type='bold'
-            color='white'
-            style={{
-              lineHeight: EXTRA_LARGE_SIZE_FONT * AUTH_TITLE_LINE_HEIGHT_MULTIPLIER,
-              textAlign: 'center',
+    <View style={[styles.root, { backgroundColor: Pallete.backgroundColor }]}>
+      <SafeAreaView style={styles.safe} edges={['left', 'right']}>
+        <View style={[styles.backButtonRow, { top: insets.top + 8 }]}>
+          <FancyButton
+            mode='icon'
+            type='text'
+            onPress={() => router.replace('/(auth)/login')}
+            icon={{ library: 'Feather', name: 'arrow-left', size: 18 }}
+            iconStyle={{ color: Pallete.icons.dark }}
+            containerStyle={{
+              backgroundColor: ColorUtils.withAlpha(Pallete.fonts.dark, 0.08),
+              borderRadius: 22,
+              width: 44,
+              height: 44,
             }}
-          >
-            Confirme seu e-mail
-          </FancyText>
-          <FancyText
-            size='medium'
-            type='medium'
-            color='white'
-            style={{
-              textAlign: 'center',
-              lineHeight: MEDIUM_SIZE_FONT * AUTH_SUBTITLE_LINE_HEIGHT_MULTIPLIER,
-            }}
-          >
-            Enviamos um link de confirmação para ativar sua igreja
-          </FancyText>
+          />
         </View>
-      }
-    >
-      <View style={styles.content}>
-        {/* Card com informações */}
-        <View style={styles.card}>
-          {/* Ícone de email */}
-          <View style={styles.iconContainer}>
-            <DefaultIcons.Custom
-              library='MaterialCommunityIcons'
-              name='email-outline'
-              size={40}
-              color={Pallete.primary}
-            />
-          </View>
 
-          {/* Email */}
-          <View style={styles.emailSection}>
-            <FancyText
-              size='extraSmall'
-              color={Pallete.fonts.inactive}
-              style={{ textAlign: 'center', alignSelf: 'center' }}
-            >
-              E-mail do responsável
-            </FancyText>
-            <FancyText
-              size='medium'
-              type='semiBold'
-              style={{ textAlign: 'center', alignSelf: 'center', flexShrink: 0, maxWidth: '100%' }}
-              numberOfLines={1}
-              ellipsizeMode='middle'
-            >
-              {dadosCadastro.responsavelEmail}
-            </FancyText>
-          </View>
+        <View style={[styles.content, { paddingTop: insets.top + 24 }]}>
+          <View style={styles.centerGroup}>
+            <View style={styles.headerGroup}>
+              <FancyText size='large' type='bold' color={Pallete.fonts.dark}>
+                Confirme seu e-mail
+              </FancyText>
+              <FancyText size='small' color={Pallete.fonts.inactive}>
+                Enviamos um link de confirmação para ativar sua igreja
+              </FancyText>
+            </View>
 
-          {/* Status */}
-          <View style={styles.statusSection}>
-            <View style={[styles.statusBadge, isExpirado && styles.statusBadgeExpirado]}>
+            {/* Ícone de email */}
+            <View style={styles.iconContainer}>
               <DefaultIcons.Custom
                 library='MaterialCommunityIcons'
-                name={isExpirado ? 'alert-circle' : 'clock-outline'}
-                size={16}
-                color={isExpirado ? Pallete.error : Pallete.warning}
+                name='email-outline'
+                size={40}
+                color={Pallete.primary}
               />
+            </View>
+
+            {/* Email */}
+            <View style={styles.emailSection}>
               <FancyText
                 size='extraSmall'
-                type='medium'
-                color={isExpirado ? Pallete.error : Pallete.warning}
+                color={Pallete.fonts.inactive}
+                style={{ textAlign: 'center', alignSelf: 'center' }}
               >
-                {isExpirado ? 'Link expirado' : 'Aguardando confirmação'}
+                E-mail do responsável
+              </FancyText>
+              <FancyText
+                size='medium'
+                type='semiBold'
+                style={{
+                  textAlign: 'center',
+                  alignSelf: 'center',
+                  flexShrink: 0,
+                  maxWidth: '100%',
+                }}
+                numberOfLines={1}
+                ellipsizeMode='middle'
+              >
+                {dadosCadastro.responsavelEmail}
               </FancyText>
             </View>
 
-            {status?.emailEnviadoEm && (
-              <FancyText size='extraSmall' color={Pallete.fonts.inactive}>
-                Enviado {formatarTempoRelativo(status.emailEnviadoEm)}
-              </FancyText>
-            )}
+            {/* Status */}
+            <View style={styles.statusSection}>
+              <View style={[styles.statusBadge, isExpirado && styles.statusBadgeExpirado]}>
+                <DefaultIcons.Custom
+                  library='MaterialCommunityIcons'
+                  name={isExpirado ? 'alert-circle' : 'clock-outline'}
+                  size={16}
+                  color={isExpirado ? Pallete.error : Pallete.warning}
+                />
+                <FancyText
+                  size='extraSmall'
+                  type='medium'
+                  color={isExpirado ? Pallete.error : Pallete.warning}
+                >
+                  {isExpirado ? 'Link expirado' : 'Aguardando confirmação'}
+                </FancyText>
+              </View>
 
-            {status?.linkExpiraEm && !isExpirado && (
-              <FancyText size='extraSmall' color={Pallete.fonts.inactive}>
-                Expira em: {formatarExpiracao(status.linkExpiraEm)}
-              </FancyText>
-            )}
-          </View>
+              {status?.emailEnviadoEm && (
+                <FancyText size='extraSmall' color={Pallete.fonts.inactive}>
+                  Enviado {formatarTempoRelativo(status.emailEnviadoEm)}
+                </FancyText>
+              )}
 
-          {/* Dicas */}
-          <View style={styles.tipsSection}>
-            <View style={styles.tipRow}>
-              <DefaultIcons.Custom
-                library='Feather'
-                name='info'
-                size={14}
-                color={Pallete.fonts.inactive}
-              />
-              <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={{ flex: 1 }}>
-                Verifique a caixa de spam/lixo eletrônico
-              </FancyText>
+              {status?.linkExpiraEm && !isExpirado && (
+                <FancyText size='extraSmall' color={Pallete.fonts.inactive}>
+                  Expira em: {formatarExpiracao(status.linkExpiraEm)}
+                </FancyText>
+              )}
             </View>
-            <View style={styles.tipRow}>
-              <DefaultIcons.Custom
-                library='Feather'
-                name='check-circle'
-                size={14}
-                color={Pallete.fonts.inactive}
+
+            {/* Dicas */}
+            <View style={styles.tipsSection}>
+              <View style={styles.tipRow}>
+                <DefaultIcons.Custom
+                  library='Feather'
+                  name='info'
+                  size={14}
+                  color={Pallete.fonts.inactive}
+                />
+                <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={{ flex: 1 }}>
+                  Verifique a caixa de spam/lixo eletrônico
+                </FancyText>
+              </View>
+              <View style={styles.tipRow}>
+                <DefaultIcons.Custom
+                  library='Feather'
+                  name='check-circle'
+                  size={14}
+                  color={Pallete.fonts.inactive}
+                />
+                <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={{ flex: 1 }}>
+                  Após confirmar, toque em "Já confirmei"
+                </FancyText>
+              </View>
+            </View>
+
+            {/* Botões de ação */}
+            <View style={styles.actionsContainer}>
+              {/* Botão primário - Já confirmei */}
+              <FancyButton
+                label={isVerificando ? 'Verificando...' : 'Já confirmei'}
+                type='contained'
+                disabled={isVerificando || isServerUnavailable}
+                icon={{ library: 'Feather', name: 'check', size: 18 }}
+                containerStyle={styles.primaryButton}
+                onPress={handleVerificar}
               />
-              <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={{ flex: 1 }}>
-                Após confirmar, toque em "Já confirmei"
-              </FancyText>
+
+              {/* Botão secundário - Reenviar */}
+              <FancyButton
+                label={cooldownAtivo ? `Reenviar em ${cooldownRestante}s` : 'Reenviar e-mail'}
+                type='outlined'
+                isLoading={isReenviando}
+                loadingText='Reenviando...'
+                spinnerSize='small'
+                icon={{ library: 'Feather', name: 'mail', size: 18, color: Pallete.primary }}
+                containerStyle={styles.secondaryButton}
+                disabled={isReenviando || cooldownAtivo || isServerUnavailable}
+                onPress={() => {
+                  if (isReenviando || cooldownAtivo || isServerUnavailable) return;
+                  handleReenviar();
+                }}
+              />
+              {reenviadoMsg && (
+                <FancyText
+                  size='extraSmall'
+                  color={Pallete.confirm}
+                  style={{ textAlign: 'center' }}
+                >
+                  {reenviadoMsg}
+                </FancyText>
+              )}
+
+              {/* Link - Alterar email */}
+              <FancyButton
+                label='Alterar e-mail'
+                type='text'
+                icon={{ library: 'Feather', name: 'edit-2', size: 16 }}
+                disabled={isServerUnavailable}
+                onPress={handleAbrirModalAlterarEmail}
+              />
             </View>
           </View>
         </View>
-
-        {/* Botões de ação */}
-        <View style={styles.actionsContainer}>
-          {/* Botão primário - Já confirmei */}
-          <FancyButton
-            label={isVerificando ? 'Verificando...' : 'Já confirmei'}
-            type='contained'
-            disabled={isVerificando || isServerUnavailable}
-            icon={{ library: 'Feather', name: 'check', size: 18 }}
-            containerStyle={styles.primaryButton}
-            onPress={handleVerificar}
-          />
-
-          {/* Botão secundário - Reenviar */}
-          <FancyButton
-            label={cooldownAtivo ? `Reenviar em ${cooldownRestante}s` : 'Reenviar e-mail'}
-            type='outlined'
-            isLoading={isReenviando}
-            loadingText='Reenviando...'
-            spinnerSize='small'
-            icon={{ library: 'Feather', name: 'mail', size: 18, color: Pallete.primary }}
-            containerStyle={styles.secondaryButton}
-            disabled={isReenviando || cooldownAtivo || isServerUnavailable}
-            onPress={() => {
-              if (isReenviando || cooldownAtivo || isServerUnavailable) return;
-              handleReenviar();
-            }}
-          />
-          {reenviadoMsg && (
-            <FancyText size='extraSmall' color={Pallete.confirm} style={{ textAlign: 'center' }}>
-              {reenviadoMsg}
-            </FancyText>
-          )}
-
-          {/* Link - Alterar email */}
-          <FancyButton
-            label='Alterar e-mail'
-            type='text'
-            icon={{ library: 'Feather', name: 'edit-2', size: 16 }}
-            disabled={isServerUnavailable}
-            onPress={handleAbrirModalAlterarEmail}
-          />
-        </View>
-      </View>
+      </SafeAreaView>
 
       {/* Modal para alterar email */}
       <Modal
@@ -406,37 +409,56 @@ export default function IgrejaCadastroAguardandoEmailPage() {
           </View>
         </View>
       </Modal>
-    </AuthLayout>
+    </View>
   );
 }
 
 function createStyles(Pallete: ThemePalette) {
   return StyleSheet.create({
-    modalInputWrapper: {
-      width: '100%',
+    root: {
+      flex: 1,
+    },
+    safe: {
+      flex: 1,
+    },
+    center: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    backButtonRow: {
+      position: 'absolute',
+      left: 24,
+      zIndex: 10,
     },
     content: {
-      gap: 20,
-      width: '100%',
+      flex: 1,
+      justifyContent: 'center',
+      paddingHorizontal: 24,
+      paddingBottom: 24,
     },
-    card: {
-      backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.05),
-      borderRadius: 12,
-      padding: 20,
-      gap: 16,
+    centerGroup: {
+      gap: 14,
       alignItems: 'center',
+    },
+    headerGroup: {
+      gap: 2,
+      alignSelf: 'stretch',
+    },
+    modalInputWrapper: {
+      width: '100%',
     },
     iconContainer: {
       width: 72,
       height: 72,
       borderRadius: 36,
-      backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.1),
+      backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.08),
       justifyContent: 'center',
       alignItems: 'center',
     },
     emailSection: {
       alignItems: 'center',
       gap: 4,
+      width: '100%',
     },
     statusSection: {
       alignItems: 'center',
@@ -446,28 +468,31 @@ function createStyles(Pallete: ThemePalette) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
-      backgroundColor: ColorUtils.withAlpha(Pallete.warning, 0.1),
+      backgroundColor: ColorUtils.withAlpha(Pallete.warning, 0.094),
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 20,
     },
     statusBadgeExpirado: {
-      backgroundColor: ColorUtils.withAlpha(Pallete.error, 0.1),
+      backgroundColor: ColorUtils.withAlpha(Pallete.error, 0.094),
     },
     tipsSection: {
       width: '100%',
       gap: 8,
-      paddingTop: 8,
-      borderTopWidth: 1,
-      borderTopColor: Pallete.borderCard,
     },
     tipRow: {
       flexDirection: 'row',
       alignItems: 'flex-start',
       gap: 8,
     },
+    divider: {
+      width: '100%',
+      height: 1,
+      backgroundColor: ColorUtils.withAlpha(Pallete.fonts.inactive, 0.13),
+    },
     actionsContainer: {
-      gap: 12,
+      gap: 10,
+      width: '100%',
     },
     primaryButton: {
       width: '100%',

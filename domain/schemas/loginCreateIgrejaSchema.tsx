@@ -46,7 +46,7 @@ export const LoginCreateIgrejaSchema = z
       .string('Campo obrigatório')
       .min(1, 'Campo obrigatório')
       .email('E-mail inválido'),
-    responsavelSenha: z.string('Campo obrigatório').min(6, 'Senha deve ter no mínimo 6 caracteres'),
+    responsavelSenha: z.string('Campo obrigatório').min(8, 'Senha deve ter no mínimo 8 caracteres'),
     responsavelConfirmarSenha: z
       .string('Campo obrigatório')
       .min(6, 'Senha deve ter no mínimo 6 caracteres'),
@@ -81,8 +81,10 @@ export const LoginCreateIgrejaStepFields = {
     'responsavelConfirmarSenha',
     'responsavelWhatsapp',
   ] as const,
-  2: ['plano', 'ciclo', 'modoCadastroPlano'] as const,
-  3: [] as const,
+  // Trial-first: a etapa "Plano" foi removida do wizard. plano/ciclo/modoCadastroPlano
+  // são enviados a partir dos defaults (crescimento/MONTHLY/avaliacao) e não exigem
+  // validação por etapa. A etapa 2 agora é a Revisão.
+  2: [] as const,
 };
 
 export type LoginCreateIgrejaFormData = z.infer<typeof LoginCreateIgrejaSchema>;

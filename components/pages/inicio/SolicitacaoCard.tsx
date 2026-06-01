@@ -76,19 +76,17 @@ export default function SolicitacaoCard({ solicitacao, onPress }: SolicitacaoCar
           </View>
         )}
 
-        <View style={styles.footer}>
-          <FancyText
-            size='extraSmall'
-            type='bold'
-            color={isEntrada ? palette.primary : palette.warning}
-          >
-            {isEntrada ? 'Solicitação de Entrada' : 'Substituição'}
-          </FancyText>
+        <FancyText
+          size='extraSmall'
+          type='bold'
+          color={isEntrada ? palette.primary : palette.warning}
+        >
+          {isEntrada ? 'Solicitação de Entrada' : 'Substituição'}
+        </FancyText>
 
-          <FancyText size='extraSmall' type='normal' color={palette.fonts.inactive}>
-            {tempoDecorrido}
-          </FancyText>
-        </View>
+        <FancyText size='extraSmall' type='normal' color={palette.fonts.inactive}>
+          {tempoDecorrido}
+        </FancyText>
       </View>
 
       <View style={styles.actions}>
@@ -147,18 +145,12 @@ function createStyles(palette: ThemePalette) {
     },
     content: {
       flex: 1,
-      gap: 4,
+      gap: 1,
     },
     infoRow: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 4,
-    },
-    footer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginTop: 2,
     },
     actions: {
       justifyContent: 'center',

@@ -10,7 +10,6 @@ import CreateIgrejaAccountTabDados, {
   useCodigoCheck,
 } from '../../components/pages/login/createAccount/create-igreja-account-tab-dados';
 import CreateIgrejaAccountTabResponsavel from '../../components/pages/login/createAccount/create-igreja-account-tab-responsavel';
-import CreateIgrejaAccountTabPlano from '../../components/pages/login/createAccount/create-igreja-account-tab-plano';
 import CreateIgrejaAccountTabPronto from '../../components/pages/login/createAccount/create-igreja-account-tab-pronto';
 import { FormProvider } from 'react-hook-form';
 import { LoginCreateIgrejaStepFields } from '../../domain/schemas/loginCreateIgrejaSchema';
@@ -47,7 +46,11 @@ function CreateIgrejaAccountPageContent() {
       responsavelWhatsapp: '',
       responsavelSenha: '',
       responsavelConfirmarSenha: '',
-      plano: 'starter',
+      // Trial-first: a etapa de escolha de plano foi removida do signup. Toda igreja
+      // começa no trial semeado com o plano mais alto (crescimento), liberando todos os
+      // limites durante a avaliação; a conversão para um plano pago acontece depois em
+      // Configurações (checkout Asaas).
+      plano: 'crescimento',
       ciclo: 'MONTHLY',
       modoCadastroPlano: 'avaliacao',
     },
@@ -60,7 +63,7 @@ function CreateIgrejaAccountPageContent() {
     const fieldsToValidate =
       LoginCreateIgrejaStepFields[stepIndex as keyof typeof LoginCreateIgrejaStepFields];
     const isValid = await form.trigger(fieldsToValidate as any);
-    if (isValid && stepIndex < 3) {
+    if (isValid && stepIndex < 2) {
       setStepIndex(stepIndex + 1);
     }
   };
@@ -101,24 +104,6 @@ function CreateIgrejaAccountPageContent() {
       {
         title: 'Contato',
         content: <CreateIgrejaAccountTabResponsavel />,
-        actions: [
-          {
-            label: 'Voltar',
-            onPress: 'previous',
-            iconPosition: 'left',
-            icon: { library: 'Feather', name: 'arrow-left', size: 16 },
-          },
-          {
-            label: 'Próximo',
-            onPress: () => handleNext(),
-            iconPosition: 'right',
-            icon: { library: 'Feather', name: 'arrow-right', size: 16 },
-          },
-        ],
-      },
-      {
-        title: 'Plano',
-        content: <CreateIgrejaAccountTabPlano />,
         actions: [
           {
             label: 'Voltar',

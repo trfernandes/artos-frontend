@@ -104,6 +104,7 @@ export default function RootLayout() {
                     header: (headerParams) => (
                       <FancyPageHeader
                         leftButton={'back'}
+                        leftButtonOnPress={handleJoinChurchBackPress}
                         {...headerParams}
                         options={{
                           title: 'Minhas solicitações',

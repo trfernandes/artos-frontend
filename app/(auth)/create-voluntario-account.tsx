@@ -6,10 +6,11 @@ import FancyText from '../../components/FancyText';
 import FancyImage from '../../components/images/FancyImage';
 import { KeyboardAwareScrollView, useResizeMode } from 'react-native-keyboard-controller';
 import { router } from 'expo-router';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import ControlledTextInput from '../../components/forms/ControlledTextInput';
 import ControlledPasswordInput from '../../components/forms/ControlledPasswordInput';
+import PasswordStrengthMeter from '../../components/forms/PasswordStrengthMeter';
 import { AxiosError } from 'axios';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -70,6 +71,8 @@ export default function CreateVoluntarioAccountPage() {
     resolver: zodResolver(temConvitePendente ? createAccountViaConviteSchema : createAccountSchema),
     defaultValues: { nome: '', email: '', senha: '', confirmarSenha: '', codigoIgreja: '' },
   });
+
+  const senhaValue = useWatch({ control: createForm.control, name: 'senha' });
 
   const handleCancelarConvite = async () => {
     await AsyncStorage.multiRemove(['pendingInvite', 'pendingInviteToken']);
@@ -320,13 +323,16 @@ export default function CreateVoluntarioAccountPage() {
                       labelProps={{ style: { color: Pallete.fonts.dark } }}
                       inputProps={{ autoCapitalize: 'none' }}
                     />
-                    <ControlledPasswordInput
-                      label='Senha'
-                      name='senha'
-                      control={createForm.control}
-                      labelProps={{ style: { color: Pallete.fonts.dark } }}
-                      inputProps={{ secureTextEntry: true }}
-                    />
+                    <View style={styles.passwordField}>
+                      <ControlledPasswordInput
+                        label='Senha'
+                        name='senha'
+                        control={createForm.control}
+                        labelProps={{ style: { color: Pallete.fonts.dark } }}
+                        inputProps={{ secureTextEntry: true }}
+                      />
+                      <PasswordStrengthMeter password={senhaValue ?? ''} />
+                    </View>
                     <ControlledPasswordInput
                       label='Confirmar a Senha'
                       name='confirmarSenha'
@@ -416,6 +422,9 @@ const styles = StyleSheet.create({
   },
   fieldsArea: {
     gap: 16,
+  },
+  passwordField: {
+    gap: 8,
   },
   actionsFooter: {
     paddingTop: 12,

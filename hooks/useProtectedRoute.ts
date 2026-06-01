@@ -14,6 +14,7 @@ const PUBLIC_ROUTE_PREFIXES = [
   '/reset-password',
   '/igreja-cadastro-aguardando-email',
   '/voluntario-aguardando-email',
+  '/welcome',
   '/invite/',
 ];
 

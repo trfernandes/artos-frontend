@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 import { AxiosError } from 'axios';
 import FancyButton from '../../../components/buttons/FancyButton';
@@ -68,6 +69,12 @@ export default function JoinChurchPage() {
   const Pallete = usePallete();
   const styles = useThemedStyles(createStyles);
   const { refreshMe } = useAuth();
+  const { data: solicitacoes } = useQuery({
+    queryKey: ['join-church-requests'],
+    queryFn: () => IgrejaRepository.listarMinhasSolicitacoes(),
+    refetchOnMount: 'always',
+  });
+  const pendingCount = solicitacoes?.filter((s) => s.status === 'PENDING').length ?? 0;
   const [token, setToken] = useState('');
   const [preview, setPreview] = useState<ResponseConvitePreviewDto | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
@@ -366,17 +373,26 @@ export default function JoinChurchPage() {
 
         {/* Link para ver solicitações */}
         <View style={styles.footer}>
-          <FancyButton
-            label='Ver minhas solicitações'
-            type='text'
-            onPress={() => router.push('/(app)/join-church/requests')}
-            icon={{
-              library: 'MaterialIcons',
-              name: 'history',
-              size: 18,
-              color: Pallete.primary,
-            }}
-          />
+          <View style={styles.footerButtonWrap}>
+            <FancyButton
+              label='Ver minhas solicitações'
+              type='text'
+              onPress={() => router.push('/(app)/join-church/requests')}
+              icon={{
+                library: 'MaterialIcons',
+                name: 'history',
+                size: 18,
+                color: Pallete.primary,
+              }}
+            />
+            {pendingCount > 0 && (
+              <View style={styles.badge} pointerEvents='none'>
+                <FancyText size='extraSmall' type='bold' color={Pallete.fonts.light}>
+                  {pendingCount}
+                </FancyText>
+              </View>
+            )}
+          </View>
         </View>
       </FancyScrollView>
     </FancyPageView>
@@ -451,7 +467,6 @@ function createStyles(Pallete: ThemePalette) {
     },
     infoText: {
       flex: 1,
-      fontStyle: 'italic',
     },
     previewSection: {
       flex: 1,
@@ -529,6 +544,21 @@ function createStyles(Pallete: ThemePalette) {
     footer: {
       marginTop: 'auto',
       paddingTop: 10,
+      alignItems: 'center',
+    },
+    footerButtonWrap: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'center',
+      gap: 6,
+    },
+    badge: {
+      minWidth: 20,
+      height: 20,
+      borderRadius: 10,
+      paddingHorizontal: 6,
+      backgroundColor: Pallete.warning,
+      justifyContent: 'center',
       alignItems: 'center',
     },
   });

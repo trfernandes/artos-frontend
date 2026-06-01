@@ -20,6 +20,10 @@ export default function FancyStepsNavigation({
       {config.steps[stepIndex]?.actions?.map(({ enabled = true, ...action }, actionIndex) => {
         // Separar props conhecidos do resto
         const { label, icon, iconPosition, color, onPress, ...buttonProps } = action;
+        // Mantém a cor de fundo customizada também durante o loading.
+        // Sem isso, ao ficar disabled (enabled=false) durante o submit, o botão
+        // cairia no estilo de disabled (cinza) com spinner/texto brancos — cores quebradas.
+        const keepCustomBg = !!color && (enabled || !!buttonProps.isLoading);
         return (
           <FancyButton
             key={actionIndex}
@@ -38,11 +42,7 @@ export default function FancyStepsNavigation({
             icon={icon}
             iconPosition={iconPosition}
             disabled={!enabled}
-            containerStyle={[
-              styles.action,
-              enabled && color && { backgroundColor: color },
-              { gap: 6 },
-            ]}
+            containerStyle={[styles.action, keepCustomBg && { backgroundColor: color }, { gap: 6 }]}
             {...buttonProps}
           />
         );

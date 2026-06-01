@@ -1,5 +1,5 @@
 import { View, StyleSheet } from 'react-native';
-import FancyScrollView, { FancyScrollViewProps } from '../../../FancyScrollView';
+import FancyFormScrollView, { FancyFormScrollViewProps } from '../../../FancyFormScrollView';
 import EventoRepeticaoInput from './EventoRepeticaoInput';
 import { useFormContext } from 'react-hook-form';
 import ControlledTextInput from '../../../forms/ControlledTextInput';
@@ -12,7 +12,7 @@ import { useState } from 'react';
 
 interface EventosDadosFormProps {
   onlyView?: boolean;
-  scrollViewProps?: FancyScrollViewProps;
+  scrollViewProps?: FancyFormScrollViewProps;
 }
 
 export default function EventosDadosForm({
@@ -28,7 +28,7 @@ export default function EventosDadosForm({
         flex: 1,
       }}
     >
-      <FancyScrollView contentContainerStyle={styles.fields} {...scrollViewProps}>
+      <FancyFormScrollView contentContainerStyle={styles.fields} {...scrollViewProps}>
         <ControlledTextInput control={control} name='nome' label='Nome' disabled={onlyView} />
         <EventoDatesInput disabled={onlyView} />
         <EventoRepeticaoInput
@@ -43,7 +43,7 @@ export default function EventosDadosForm({
           disabled={onlyView}
         />
         <ControlledColorPicker control={control} name='cor' horizontal disabled={onlyView} />
-      </FancyScrollView>
+      </FancyFormScrollView>
 
       {repeticaoModalVisible && (
         <EventoRepeticaoInputCustom

@@ -92,14 +92,12 @@ export default function ConviteGeradoModal({
 
           {/* Chip de tipo de entrada */}
           <View style={styles.entryTypeContainer}>
-            <View style={styles.entryTypeIcon}>
-              <DefaultIcons.Custom
-                library='MaterialIcons'
-                name={convite.autoApprove ? 'flash-on' : 'hourglass-empty'}
-                size={16}
-                color={convite.autoApprove ? palette.confirm : palette.warning}
-              />
-            </View>
+            <DefaultIcons.Custom
+              library='MaterialIcons'
+              name={convite.autoApprove ? 'flash-on' : 'hourglass-empty'}
+              size={16}
+              color={convite.autoApprove ? palette.confirm : palette.warning}
+            />
             <FancyText
               size='small'
               type='semiBold'
@@ -186,13 +184,10 @@ function createStyles(palette: ThemePalette) {
     },
     entryTypeContainer: {
       flexDirection: 'row',
-      alignItems: 'flex-start',
+      alignItems: 'center',
       gap: 5,
       paddingVertical: 4,
       width: '100%',
-    },
-    entryTypeIcon: {
-      marginTop: 2,
     },
     actions: {
       width: '100%',

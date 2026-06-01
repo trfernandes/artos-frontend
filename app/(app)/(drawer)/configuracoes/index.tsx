@@ -1,4 +1,12 @@
-import { StyleSheet, View, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  ActivityIndicator,
+  Platform,
+  StyleProp,
+  ViewStyle,
+} from 'react-native';
 import { uploadToCloudinaryUnsigned } from '../../../../services/cloudinary_upload';
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../../../../config/cloudinary';
 import FancyPageView from '../../../../components/containers/FancyPageView';
@@ -30,7 +38,7 @@ import ControlledSearchSelect from '../../../../components/forms/ControlledSearc
 import ControlledMaskedTextInput from '../../../../components/forms/ControlledMaskedTextInput';
 import FancyButton from '../../../../components/buttons/FancyButton';
 import { ThemePalette } from '../../../../constants/colors';
-import DefaultIcons from '../../../../components/FancyIcons';
+import DefaultIcons, { IconLibrary } from '../../../../components/FancyIcons';
 import FancyText from '../../../../components/FancyText';
 import { ModoEntradaEnum } from '../../../../domain/enums/modo-entrada.enum';
 import ControlledFancyToggle from '../../../../components/forms/ControlledFancyToggle';
@@ -95,9 +103,6 @@ const normalizeOptionalValue = (value?: string | null) => {
 
 const normalizeComparableValue = (value?: string | null) => (value ?? '').trim().toLowerCase();
 
-const COMPLETE_STATUS_LABEL = 'Completo';
-const PENDING_STATUS_LABEL = 'Incompleto';
-
 const isFaturamentoCompleto = (faturamento?: Partial<FaturamentoFormData> | null) =>
   Boolean(
     faturamento?.cnpj &&
@@ -147,6 +152,101 @@ const isEnderecoCobrancaIgualAoDaIgreja = (
     normalizeComparableValue(endereco.cidade) === normalizeComparableValue(faturamento.cidade) &&
     normalizeComparableValue(endereco.uf) === normalizeComparableValue(faturamento.uf),
   );
+
+type SectionStatus = 'neutral' | 'complete' | 'incomplete' | 'error';
+
+const getSectionStatus = (p: {
+  valid: boolean; // preenchido E sem erro de validação
+  complete: boolean; // campos obrigatórios não-vazios
+  hasInteraction: boolean; // já mexeu (dirty), mas ainda não tentou salvar
+  attemptedSave: boolean;
+}): SectionStatus => {
+  if (p.attemptedSave && !p.valid) return 'error';
+  if (p.valid) return 'complete';
+  if (p.hasInteraction) return 'incomplete';
+  return 'neutral';
+};
+
+type SectionStatusPillData = { label: string; color: string; background: string };
+
+type SectionVisuals = {
+  badgeBackground: string;
+  iconLibrary: IconLibrary;
+  iconName: string;
+  iconColor: string;
+  pill: SectionStatusPillData | null;
+};
+
+const getStatusVisuals = (
+  status: SectionStatus,
+  palette: ReturnType<typeof usePallete>,
+  defaultIcon: { library: IconLibrary; name: string },
+): SectionVisuals => {
+  switch (status) {
+    case 'error':
+      return {
+        badgeBackground: ColorUtils.withAlpha(palette.error, 0.12),
+        iconLibrary: 'MaterialIcons',
+        iconName: 'error-outline',
+        iconColor: palette.error,
+        pill: {
+          label: 'Revisar',
+          color: palette.error,
+          background: ColorUtils.withAlpha(palette.error, 0.14),
+        },
+      };
+    case 'complete':
+      return {
+        badgeBackground: ColorUtils.withAlpha(palette.confirm, 0.12),
+        iconLibrary: defaultIcon.library,
+        iconName: defaultIcon.name,
+        iconColor: palette.confirm,
+        pill: {
+          label: 'Completo',
+          color: palette.confirm,
+          background: ColorUtils.withAlpha(palette.confirm, 0.12),
+        },
+      };
+    case 'incomplete':
+      return {
+        badgeBackground: ColorUtils.withAlpha(palette.warning, 0.12),
+        iconLibrary: defaultIcon.library,
+        iconName: defaultIcon.name,
+        iconColor: palette.warning,
+        pill: {
+          label: 'Incompleto',
+          color: palette.warning,
+          background: ColorUtils.withAlpha(palette.warning, 0.14),
+        },
+      };
+    default:
+      return {
+        badgeBackground: ColorUtils.withAlpha(palette.primary, 0.1),
+        iconLibrary: defaultIcon.library,
+        iconName: defaultIcon.name,
+        iconColor: palette.primary,
+        pill: null,
+      };
+  }
+};
+
+const SectionStatusPill = ({
+  pill,
+  containerStyle,
+}: {
+  pill: SectionStatusPillData | null;
+  containerStyle: StyleProp<ViewStyle>;
+}) => {
+  if (!pill) return null;
+
+  return (
+    <View style={[containerStyle, { backgroundColor: pill.background }]}>
+      <FancyText size='extraSmall' type='semiBold' color={pill.color}>
+        {pill.label}
+      </FancyText>
+    </View>
+  );
+};
 
 export default function ConfiguracoesPage() {
   const { igrejaAtiva, user, updateUser } = useAuth();
@@ -299,6 +399,9 @@ export default function ConfiguracoesPage() {
     [faturamentoValues],
   );
   const dadosDirtyFields = dadosForm.formState.dirtyFields;
+  const dadosErrors = dadosForm.formState.errors;
+  const faturamentoDirtyFields = faturamentoForm.formState.dirtyFields;
+  const faturamentoErrors = faturamentoForm.formState.errors;
   const hasUnsavedDadosChanges =
     dadosForm.formState.isDirty || faturamentoForm.formState.isDirty || isUploadingImage;
   const generalSectionComplete = Boolean(
@@ -312,14 +415,11 @@ export default function ConfiguracoesPage() {
     enderecoValues?.cidade?.trim() &&
     enderecoValues?.uf?.trim(),
   );
+  // hasInteraction = só dirty (não inclui tentativa de salvar — esse é o gatilho de "erro")
   const generalSectionHasInteraction = Boolean(
-    hasAttemptedDadosSave ||
-    dadosDirtyFields.nome ||
-    dadosDirtyFields.telefone ||
-    dadosDirtyFields.email,
+    dadosDirtyFields.nome || dadosDirtyFields.telefone || dadosDirtyFields.email,
   );
   const addressSectionHasInteraction = Boolean(
-    hasAttemptedDadosSave ||
     dadosDirtyFields.endereco?.cep ||
     dadosDirtyFields.endereco?.rua ||
     dadosDirtyFields.endereco?.numero ||
@@ -328,8 +428,62 @@ export default function ConfiguracoesPage() {
     dadosDirtyFields.endereco?.cidade ||
     dadosDirtyFields.endereco?.uf,
   );
-  const generalSectionShowIncomplete = !generalSectionComplete && generalSectionHasInteraction;
-  const addressSectionShowIncomplete = !addressSectionComplete && addressSectionHasInteraction;
+  const billingSectionHasInteraction = Boolean(
+    faturamentoDirtyFields.cnpj ||
+    faturamentoDirtyFields.telefoneCobranca ||
+    faturamentoDirtyFields.emailCobranca ||
+    faturamentoDirtyFields.cep ||
+    faturamentoDirtyFields.rua ||
+    faturamentoDirtyFields.numero ||
+    faturamentoDirtyFields.bairro ||
+    faturamentoDirtyFields.complemento ||
+    faturamentoDirtyFields.cidade ||
+    faturamentoDirtyFields.cidadeIbge ||
+    faturamentoDirtyFields.uf,
+  );
+  const generalSectionHasError = Boolean(
+    dadosErrors.nome || dadosErrors.telefone || dadosErrors.email,
+  );
+  const addressSectionHasError = Boolean(
+    dadosErrors.endereco?.cep ||
+    dadosErrors.endereco?.rua ||
+    dadosErrors.endereco?.numero ||
+    dadosErrors.endereco?.bairro ||
+    dadosErrors.endereco?.complemento ||
+    dadosErrors.endereco?.cidade ||
+    dadosErrors.endereco?.uf,
+  );
+  const billingSectionHasError = Object.keys(faturamentoErrors).length > 0;
+  const generalSectionStatus = getSectionStatus({
+    valid: Boolean(nomeValue?.trim()) && !generalSectionHasError,
+    complete: generalSectionComplete,
+    hasInteraction: generalSectionHasInteraction,
+    attemptedSave: hasAttemptedDadosSave,
+  });
+  const addressSectionStatus = getSectionStatus({
+    valid: addressSectionComplete && !addressSectionHasError,
+    complete: addressSectionComplete,
+    hasInteraction: addressSectionHasInteraction,
+    attemptedSave: hasAttemptedDadosSave,
+  });
+  const billingSectionStatus = getSectionStatus({
+    valid: billingProfileComplete && !billingSectionHasError,
+    complete: billingProfileComplete,
+    hasInteraction: billingSectionHasInteraction,
+    attemptedSave: hasAttemptedDadosSave,
+  });
+  const generalSectionVisuals = getStatusVisuals(generalSectionStatus, palette, {
+    library: 'MaterialCommunityIcons',
+    name: 'information-outline',
+  });
+  const addressSectionVisuals = getStatusVisuals(addressSectionStatus, palette, {
+    library: 'MaterialCommunityIcons',
+    name: 'map-marker-outline',
+  });
+  const billingSectionVisuals = getStatusVisuals(billingSectionStatus, palette, {
+    library: 'MaterialCommunityIcons',
+    name: 'credit-card-outline',
+  });
   const billingStatusLabel = billingProfileComplete ? 'Cobrança completa' : 'Cobrança incompleta';
   const billingAddressSummary = useMemo(() => {
     const parts = [
@@ -727,8 +881,8 @@ export default function ConfiguracoesPage() {
 
   // Handlers
   const handleSalvarDados = async () => {
-    setHasAttemptedDadosSave(true);
     const dadosValid = await dadosForm.trigger();
+    setHasAttemptedDadosSave(true);
     if (!dadosValid) {
       const dataErrors = dadosForm.formState.errors;
       const hasAddressErrors = Boolean(
@@ -741,12 +895,22 @@ export default function ConfiguracoesPage() {
         dataErrors.endereco?.uf,
       );
       openAccordionSection(hasAddressErrors ? 'address' : 'general');
+      Toast.show({
+        type: 'error',
+        text1: 'Revise os dados',
+        text2: 'Há campos obrigatórios ou inválidos. Confira a seção destacada.',
+      });
       return;
     }
 
     const faturamentoValido = await faturamentoForm.trigger();
     if (!faturamentoValido) {
       openAccordionSection('billing');
+      Toast.show({
+        type: 'error',
+        text1: 'Revise os dados',
+        text2: 'Há campos obrigatórios ou inválidos. Confira a seção destacada.',
+      });
       return;
     }
 
@@ -929,26 +1093,14 @@ export default function ConfiguracoesPage() {
                     <View
                       style={[
                         styles.accordionIconBadge,
-                        {
-                          backgroundColor: generalSectionComplete
-                            ? ColorUtils.withAlpha(palette.confirm, 0.12)
-                            : generalSectionShowIncomplete
-                              ? ColorUtils.withAlpha(palette.warning, 0.12)
-                              : ColorUtils.withAlpha(palette.primary, 0.1),
-                        },
+                        { backgroundColor: generalSectionVisuals.badgeBackground },
                       ]}
                     >
                       <DefaultIcons.Custom
-                        library='MaterialCommunityIcons'
-                        name='information-outline'
+                        library={generalSectionVisuals.iconLibrary}
+                        name={generalSectionVisuals.iconName}
                         size={18}
-                        color={
-                          generalSectionComplete
-                            ? palette.confirm
-                            : generalSectionShowIncomplete
-                              ? palette.warning
-                              : palette.primary
-                        }
+                        color={generalSectionVisuals.iconColor}
                       />
                     </View>
                     <View style={styles.accordionHeaderText}>
@@ -962,26 +1114,10 @@ export default function ConfiguracoesPage() {
                   </View>
                 }
                 subtitle={
-                  generalSectionComplete || generalSectionShowIncomplete ? (
-                    <View
-                      style={[
-                        styles.accordionStatusPill,
-                        {
-                          backgroundColor: generalSectionComplete
-                            ? ColorUtils.withAlpha(palette.confirm, 0.12)
-                            : ColorUtils.withAlpha(palette.warning, 0.14),
-                        },
-                      ]}
-                    >
-                      <FancyText
-                        size='extraSmall'
-                        type='semiBold'
-                        color={generalSectionComplete ? palette.confirm : palette.warning}
-                      >
-                        {generalSectionComplete ? COMPLETE_STATUS_LABEL : PENDING_STATUS_LABEL}
-                      </FancyText>
-                    </View>
-                  ) : undefined
+                  <SectionStatusPill
+                    pill={generalSectionVisuals.pill}
+                    containerStyle={styles.accordionStatusPill}
+                  />
                 }
                 contentContainerStyle={styles.accordionContent}
                 headerContainerStyle={styles.accordionHeader}
@@ -990,15 +1126,18 @@ export default function ConfiguracoesPage() {
                   styles.accordionSection,
                   {
                     borderColor:
-                      accordionOpenSection === 'general'
-                        ? ColorUtils.withAlpha(palette.primary, 0.24)
-                        : palette.borderCard,
+                      generalSectionStatus === 'error' ? palette.error : palette.borderCard,
+                    borderWidth: generalSectionStatus === 'error' ? 1.5 : 1,
                   },
                 ]}
                 containerExpandedContainerStyle={[
                   styles.accordionSection,
                   {
-                    borderColor: ColorUtils.withAlpha(palette.primary, 0.24),
+                    borderColor:
+                      generalSectionStatus === 'error'
+                        ? palette.error
+                        : ColorUtils.withAlpha(palette.primary, 0.24),
+                    borderWidth: generalSectionStatus === 'error' ? 1.5 : 1,
                   },
                 ]}
                 iconProps={{ size: 22, color: palette.fonts.inactive }}
@@ -1086,26 +1225,14 @@ export default function ConfiguracoesPage() {
                     <View
                       style={[
                         styles.accordionIconBadge,
-                        {
-                          backgroundColor: addressSectionComplete
-                            ? ColorUtils.withAlpha(palette.confirm, 0.12)
-                            : addressSectionShowIncomplete
-                              ? ColorUtils.withAlpha(palette.warning, 0.12)
-                              : ColorUtils.withAlpha(palette.primary, 0.1),
-                        },
+                        { backgroundColor: addressSectionVisuals.badgeBackground },
                       ]}
                     >
                       <DefaultIcons.Custom
-                        library='MaterialCommunityIcons'
-                        name='map-marker-outline'
+                        library={addressSectionVisuals.iconLibrary}
+                        name={addressSectionVisuals.iconName}
                         size={18}
-                        color={
-                          addressSectionComplete
-                            ? palette.confirm
-                            : addressSectionShowIncomplete
-                              ? palette.warning
-                              : palette.primary
-                        }
+                        color={addressSectionVisuals.iconColor}
                       />
                     </View>
                     <View style={styles.accordionHeaderText}>
@@ -1119,26 +1246,10 @@ export default function ConfiguracoesPage() {
                   </View>
                 }
                 subtitle={
-                  addressSectionComplete || addressSectionShowIncomplete ? (
-                    <View
-                      style={[
-                        styles.accordionStatusPill,
-                        {
-                          backgroundColor: addressSectionComplete
-                            ? ColorUtils.withAlpha(palette.confirm, 0.12)
-                            : ColorUtils.withAlpha(palette.warning, 0.14),
-                        },
-                      ]}
-                    >
-                      <FancyText
-                        size='extraSmall'
-                        type='semiBold'
-                        color={addressSectionComplete ? palette.confirm : palette.warning}
-                      >
-                        {addressSectionComplete ? COMPLETE_STATUS_LABEL : PENDING_STATUS_LABEL}
-                      </FancyText>
-                    </View>
-                  ) : undefined
+                  <SectionStatusPill
+                    pill={addressSectionVisuals.pill}
+                    containerStyle={styles.accordionStatusPill}
+                  />
                 }
                 contentContainerStyle={styles.accordionContent}
                 headerContainerStyle={styles.accordionHeader}
@@ -1147,15 +1258,18 @@ export default function ConfiguracoesPage() {
                   styles.accordionSection,
                   {
                     borderColor:
-                      accordionOpenSection === 'address'
-                        ? ColorUtils.withAlpha(palette.primary, 0.24)
-                        : palette.borderCard,
+                      addressSectionStatus === 'error' ? palette.error : palette.borderCard,
+                    borderWidth: addressSectionStatus === 'error' ? 1.5 : 1,
                   },
                 ]}
                 containerExpandedContainerStyle={[
                   styles.accordionSection,
                   {
-                    borderColor: ColorUtils.withAlpha(palette.primary, 0.24),
+                    borderColor:
+                      addressSectionStatus === 'error'
+                        ? palette.error
+                        : ColorUtils.withAlpha(palette.primary, 0.24),
+                    borderWidth: addressSectionStatus === 'error' ? 1.5 : 1,
                   },
                 ]}
                 iconProps={{ size: 22, color: palette.fonts.inactive }}
@@ -1236,18 +1350,14 @@ export default function ConfiguracoesPage() {
                     <View
                       style={[
                         styles.accordionIconBadge,
-                        {
-                          backgroundColor: billingProfileComplete
-                            ? ColorUtils.withAlpha(palette.confirm, 0.12)
-                            : ColorUtils.withAlpha(palette.warning, 0.12),
-                        },
+                        { backgroundColor: billingSectionVisuals.badgeBackground },
                       ]}
                     >
                       <DefaultIcons.Custom
-                        library='MaterialCommunityIcons'
-                        name='credit-card-outline'
+                        library={billingSectionVisuals.iconLibrary}
+                        name={billingSectionVisuals.iconName}
                         size={18}
-                        color={billingProfileComplete ? palette.confirm : palette.warning}
+                        color={billingSectionVisuals.iconColor}
                       />
                     </View>
                     <View style={styles.accordionHeaderText}>
@@ -1261,24 +1371,10 @@ export default function ConfiguracoesPage() {
                   </View>
                 }
                 subtitle={
-                  <View
-                    style={[
-                      styles.accordionStatusPill,
-                      {
-                        backgroundColor: billingProfileComplete
-                          ? ColorUtils.withAlpha(palette.confirm, 0.12)
-                          : ColorUtils.withAlpha(palette.warning, 0.14),
-                      },
-                    ]}
-                  >
-                    <FancyText
-                      size='extraSmall'
-                      type='semiBold'
-                      color={billingProfileComplete ? palette.confirm : palette.warning}
-                    >
-                      {billingProfileComplete ? COMPLETE_STATUS_LABEL : PENDING_STATUS_LABEL}
-                    </FancyText>
-                  </View>
+                  <SectionStatusPill
+                    pill={billingSectionVisuals.pill}
+                    containerStyle={styles.accordionStatusPill}
+                  />
                 }
                 contentContainerStyle={styles.accordionContent}
                 headerContainerStyle={styles.accordionHeader}
@@ -1288,17 +1384,23 @@ export default function ConfiguracoesPage() {
                   highlightedAccordionSection === 'billing' && styles.accordionSectionHighlighted,
                   {
                     borderColor:
-                      accordionOpenSection === 'billing' ||
-                      highlightedAccordionSection === 'billing'
-                        ? ColorUtils.withAlpha(palette.primary, 0.32)
-                        : palette.borderCard,
+                      billingSectionStatus === 'error'
+                        ? palette.error
+                        : highlightedAccordionSection === 'billing'
+                          ? ColorUtils.withAlpha(palette.primary, 0.32)
+                          : palette.borderCard,
+                    borderWidth: billingSectionStatus === 'error' ? 1.5 : 1,
                   },
                 ]}
                 containerExpandedContainerStyle={[
                   styles.accordionSection,
                   highlightedAccordionSection === 'billing' && styles.accordionSectionHighlighted,
                   {
-                    borderColor: ColorUtils.withAlpha(palette.primary, 0.32),
+                    borderColor:
+                      billingSectionStatus === 'error'
+                        ? palette.error
+                        : ColorUtils.withAlpha(palette.primary, 0.32),
+                    borderWidth: billingSectionStatus === 'error' ? 1.5 : 1,
                   },
                 ]}
                 iconProps={{ size: 22, color: palette.fonts.inactive }}
