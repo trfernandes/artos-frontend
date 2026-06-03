@@ -68,7 +68,7 @@ export const LightPalette: ThemePalette = {
   secondary: '#8E44AD',
   terciary: '#F67E3B',
   warning: '#F5A623',
-  error: '#E74C3C',
+  error: '#C0392B',
   confirm: '#228B22',
   disabled: '#F6F6F6',
   disabled2: '#AABBD5',

@@ -113,16 +113,31 @@ export default function FancyImagePicker({
           backgroundColor: palette.backgroundColor2,
         }}
       >
-        {value ? (
-          <FancyAvatarImage source={{ uri: value }} size={size} />
-        ) : (
+        {/* IMPORTANTE: avatar e ícone "camera-off" ficam SEMPRE montados; só a
+            opacity alterna. Montar/desmontar (ou trocar o tipo) deste slot ao
+            remover a foto faz o Android crashar com "addViewAt: failed to insert
+            view into parent at index", especialmente quando a tela é desmontada
+            logo depois (router.back() após salvar). */}
+        <FancyAvatarImage
+          source={{ uri: value ?? '' }}
+          size={size}
+          style={{ opacity: value ? 1 : 0 }}
+        />
+        <View
+          style={{
+            position: 'absolute',
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: value ? 0 : 1,
+          }}
+        >
           <DefaultIcons.Custom
             library='Feather'
             name='camera-off'
             color={palette.icons.inactive}
             size={45}
           />
-        )}
+        </View>
       </View>
 
       <View style={styles.buttonsContainer}>

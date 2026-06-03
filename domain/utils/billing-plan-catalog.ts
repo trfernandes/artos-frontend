@@ -47,3 +47,21 @@ export function resolveBillingPlanName(plan?: BillingPlanCode | string | null) {
   if (!plan || plan === 'free') return 'Gratuito';
   return BILLING_PLAN_OPTIONS.find((option) => option.codigo === plan)?.nome ?? 'Plano ativo';
 }
+
+/**
+ * Dias do trial gratuito semeado no cadastro da igreja.
+ * ATENÇÃO: cópia estática de `BILLING_TRIAL_DAYS` do backend
+ * (igreja-cadastro-solicitacoes.service / billing.service). Manter em sincronia.
+ */
+export const BILLING_TRIAL_DAYS = 14;
+
+/**
+ * Label de preço-âncora derivado do plano mais barato do catálogo (STARTER).
+ * Ex.: "a partir de R$ 39,90/mês". Se a tabela de planos mudar, o aviso acompanha.
+ */
+export function precoInicialLabel(): string {
+  // Espaço inquebrável dentro do preço para que "R$ 39,90/mês" quebre como bloco
+  // único (nunca "R$" numa linha e o valor na seguinte).
+  const preco = BILLING_PLAN_OPTIONS[0].monthlyPrice.replace(' ', ' ');
+  return `a partir de ${preco}`;
+}

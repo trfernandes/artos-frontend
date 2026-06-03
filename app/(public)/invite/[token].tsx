@@ -1,4 +1,5 @@
 import { StyleSheet, View, ActivityIndicator } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
 import Toast from 'react-native-toast-message';
@@ -9,7 +10,6 @@ import FancyText from '../../../components/FancyText';
 import FancyVerticalSpacer from '../../../components/FancyVerticalSpacer';
 import FancyImage from '../../../components/images/FancyImage';
 import DefaultIcons from '../../../components/FancyIcons';
-import AuthScreen from '../../../components/pages/login/AuthScreen';
 import { ThemePalette } from '../../../constants/colors';
 import { usePallete } from '../../../hooks/usePallete';
 import { useThemedStyles } from '../../../hooks/useThemedStyles';
@@ -23,12 +23,46 @@ import { ptBR } from 'date-fns/locale';
 const PENDING_INVITE_KEY = 'pendingInvite';
 const PENDING_INVITE_TOKEN_KEY = 'pendingInviteToken'; // legado
 
-// AuthScreen usa position:'absolute' para rotas fora de (auth).
-// Estas props forçam layout em fluxo normal + largura total, igual às telas de auth.
-const AUTH_SCREEN_LAYOUT_PROPS = {
-  containerPosition: { default: 'relative' as const },
-  contentWidth: { default: '100%' as const },
-} as const;
+/**
+ * Shell flat das telas de auth (mesmo padrão de login/forgot-password):
+ * fundo sólido, botão voltar circular no canto, conteúdo centralizado
+ * verticalmente com gutter de 24px. Sem card, sem gradiente.
+ */
+function InviteFlatLayout({
+  children,
+  onPressBack,
+}: {
+  children: React.ReactNode;
+  onPressBack?: () => void;
+}) {
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View style={[styles.root, { backgroundColor: Pallete.backgroundColor }]}>
+      <SafeAreaView style={styles.safe} edges={['left', 'right']}>
+        <View style={[styles.backButtonRow, { top: insets.top + 8 }]}>
+          <FancyButton
+            mode='icon'
+            type='text'
+            onPress={onPressBack || (() => router.back())}
+            icon={{ library: 'Feather', name: 'arrow-left', size: 18 }}
+            iconStyle={{ color: Pallete.icons.dark }}
+            containerStyle={{
+              backgroundColor: ColorUtils.withAlpha(Pallete.fonts.dark, 0.08),
+              borderRadius: 22,
+              width: 44,
+              height: 44,
+            }}
+          />
+        </View>
+
+        <View style={[styles.content, { paddingTop: insets.top + 24 }]}>{children}</View>
+      </SafeAreaView>
+    </View>
+  );
+}
 
 function getErrorMessage(error: AxiosError | any): string {
   const data = error?.response?.data;
@@ -192,29 +226,19 @@ export default function InviteTokenPage() {
   // ── Loading ──────────────────────────────────────────────────────────────────
   if (loadingPreview) {
     return (
-      <AuthScreen
-        showBackButton
-        {...AUTH_SCREEN_LAYOUT_PROPS}
-        scrollContainerStyle={{ paddingHorizontal: 30 }}
-        fieldsContainerStyle={{ gap: 8 }}
-      >
+      <InviteFlatLayout>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size='large' color={Pallete.primary} />
           <FancyText style={styles.loadingText}>Carregando convite...</FancyText>
         </View>
-      </AuthScreen>
+      </InviteFlatLayout>
     );
   }
 
   // ── Erro (expirado, revogado, inválido) ──────────────────────────────────────
   if (error || !preview) {
     return (
-      <AuthScreen
-        showBackButton
-        {...AUTH_SCREEN_LAYOUT_PROPS}
-        scrollContainerStyle={{ paddingHorizontal: 30 }}
-        fieldsContainerStyle={{ gap: 8 }}
-      >
+      <InviteFlatLayout onPressBack={handleBack}>
         <View style={styles.errorIconContainer}>
           <DefaultIcons.Custom
             library='MaterialIcons'
@@ -223,40 +247,24 @@ export default function InviteTokenPage() {
             color={Pallete.error}
           />
         </View>
-        <FancyVerticalSpacer height={4} />
         <FancyText type='bold' size='large' style={styles.centeredText}>
           Convite indisponível
         </FancyText>
-        <FancyVerticalSpacer height={4} />
         <FancyText style={[styles.centeredText, styles.errorText]}>
           {error || 'Convite não encontrado'}
         </FancyText>
-        <FancyVerticalSpacer height={16} />
         <FancyButton label='Voltar' onPress={handleBack} />
-      </AuthScreen>
+      </InviteFlatLayout>
     );
   }
 
   // ── L3: Já é membro ──────────────────────────────────────────────────────────
   if (preview.jaMembro) {
     return (
-      <AuthScreen
-        showBackButton
-        centerWithinBackButtonArea
-        centerContainerStyle={({ keyboardVisible }) =>
-          !keyboardVisible ? { paddingTop: 0 } : null
-        }
-        contentWidth={{ default: '100%' }}
-        scrollContainerStyle={styles.jaMembroScrollContainer}
-        fieldsContainerStyle={styles.jaMembroFieldsContainer}
-      >
+      <InviteFlatLayout>
         <View style={styles.churchHeader}>
           {preview.igreja.logoUrl ? (
-            <FancyImage
-              source={{ uri: preview.igreja.logoUrl }}
-              size={72}
-              style={styles.logoImage}
-            />
+            <FancyImage source={{ uri: preview.igreja.logoUrl }} size={72} style={styles.logoImage} />
           ) : (
             <View style={[styles.logoContainer, { width: 72, height: 72, borderRadius: 36 }]}>
               <DefaultIcons.Custom
@@ -268,11 +276,7 @@ export default function InviteTokenPage() {
             </View>
           )}
           <FancyVerticalSpacer height={8} />
-          <FancyText
-            type='semiBold'
-            size='large'
-            style={[styles.centeredText, styles.churchNameText]}
-          >
+          <FancyText type='semiBold' size='large' style={[styles.centeredText, styles.churchNameText]}>
             {preview.igreja.nome}
           </FancyText>
           <FancyVerticalSpacer height={14} />
@@ -281,32 +285,22 @@ export default function InviteTokenPage() {
               ✓ Você já é membro
             </FancyText>
           </View>
-          <FancyVerticalSpacer height={14} />
         </View>
 
         <View style={styles.buttonGroup}>
           <FancyButton label='Voltar' onPress={() => router.replace('/(app)')} />
         </View>
-      </AuthScreen>
+      </InviteFlatLayout>
     );
   }
 
   // ── L4: Solicitação pendente ──────────────────────────────────────────────────
   if (preview.solicitacaoPendente) {
     return (
-      <AuthScreen
-        showBackButton
-        {...AUTH_SCREEN_LAYOUT_PROPS}
-        scrollContainerStyle={{ paddingHorizontal: 30 }}
-        fieldsContainerStyle={{ gap: 8 }}
-      >
+      <InviteFlatLayout>
         <View style={styles.churchHeader}>
           {preview.igreja.logoUrl ? (
-            <FancyImage
-              source={{ uri: preview.igreja.logoUrl }}
-              size={72}
-              style={styles.logoImage}
-            />
+            <FancyImage source={{ uri: preview.igreja.logoUrl }} size={72} style={styles.logoImage} />
           ) : (
             <View style={[styles.logoContainer, { width: 72, height: 72, borderRadius: 36 }]}>
               <DefaultIcons.Custom
@@ -318,11 +312,7 @@ export default function InviteTokenPage() {
             </View>
           )}
           <FancyVerticalSpacer height={8} />
-          <FancyText
-            type='semiBold'
-            size='large'
-            style={[styles.centeredText, styles.churchNameText]}
-          >
+          <FancyText type='semiBold' size='large' style={[styles.centeredText, styles.churchNameText]}>
             {preview.igreja.nome}
           </FancyText>
           <FancyVerticalSpacer height={6} />
@@ -333,7 +323,7 @@ export default function InviteTokenPage() {
               size={14}
               color={Pallete.warning}
             />
-            <FancyText type='semiBold' size='small' style={styles.aguardandoBadgeText}>
+            <FancyText type='semiBold' size='medium' style={styles.aguardandoBadgeText}>
               Aguardando aprovação
             </FancyText>
           </View>
@@ -350,7 +340,7 @@ export default function InviteTokenPage() {
             />
           )}
         </View>
-      </AuthScreen>
+      </InviteFlatLayout>
     );
   }
 
@@ -363,19 +353,10 @@ export default function InviteTokenPage() {
   // ── N1: Não logado + convite válido ──────────────────────────────────────────
   if (!user) {
     return (
-      <AuthScreen
-        showBackButton
-        {...AUTH_SCREEN_LAYOUT_PROPS}
-        scrollContainerStyle={{ paddingHorizontal: 30 }}
-        fieldsContainerStyle={{ gap: 8 }}
-      >
+      <InviteFlatLayout>
         <View style={styles.churchHeader}>
           {preview.igreja.logoUrl ? (
-            <FancyImage
-              source={{ uri: preview.igreja.logoUrl }}
-              size={80}
-              style={styles.logoImage}
-            />
+            <FancyImage source={{ uri: preview.igreja.logoUrl }} size={80} style={styles.logoImage} />
           ) : (
             <View style={styles.logoContainer}>
               <DefaultIcons.Custom
@@ -387,20 +368,14 @@ export default function InviteTokenPage() {
             </View>
           )}
           <FancyVerticalSpacer height={8} />
-          <FancyText
-            type='semiBold'
-            size='large'
-            style={[styles.centeredText, styles.churchNameText]}
-          >
+          <FancyText type='semiBold' size='large' style={[styles.centeredText, styles.churchNameText]}>
             {preview.igreja.nome}
           </FancyText>
           <FancyVerticalSpacer height={4} />
-          <FancyText type='bold' size='large' style={styles.centeredText}>
+          <FancyText type='bold' size='extraLarge' style={styles.centeredText}>
             Você foi convidado!
           </FancyText>
         </View>
-
-        <FancyVerticalSpacer height={2} />
 
         <View style={styles.detailGroup}>
           {expiresText && (
@@ -411,44 +386,49 @@ export default function InviteTokenPage() {
                 size={16}
                 color={Pallete.icons.inactive}
               />
-              <FancyText size='small' style={styles.detailText}>
+              <FancyText size='medium' style={styles.detailText}>
                 Válido até: {expiresText}
               </FancyText>
             </View>
           )}
-          {preview.autoApprove && (
+          {preview.autoApprove ? (
             <View style={styles.detailRow}>
               <DefaultIcons.Custom
                 library='MaterialIcons'
                 name='check-circle'
-                size={16}
+                size={18}
                 color={Pallete.confirm}
               />
-              <FancyText size='small' style={[styles.detailText, { color: Pallete.confirm }]}>
+              <FancyText type='semiBold' size='medium' style={[styles.detailText, { color: Pallete.confirm }]}>
                 Aprovação automática
+              </FancyText>
+            </View>
+          ) : (
+            <View style={styles.detailRow}>
+              <DefaultIcons.Custom
+                library='MaterialIcons'
+                name='schedule'
+                size={18}
+                color={Pallete.warning}
+              />
+              <FancyText type='semiBold' size='medium' style={[styles.detailText, { color: Pallete.warning }]}>
+                Requer aprovação da liderança
               </FancyText>
             </View>
           )}
         </View>
-
-        <FancyVerticalSpacer height={4} />
 
         <View style={styles.buttonGroup}>
           <FancyButton label='Já tenho conta' onPress={handleLoginPress} />
           <FancyButton label='Criar conta' type='outlined' onPress={handleCreateAccountPress} />
         </View>
-      </AuthScreen>
+      </InviteFlatLayout>
     );
   }
 
   // ── L1/L2: Logado + convite válido ──────────────────────────────────────────
   return (
-    <AuthScreen
-      showBackButton
-      {...AUTH_SCREEN_LAYOUT_PROPS}
-      scrollContainerStyle={{ paddingHorizontal: 30 }}
-      fieldsContainerStyle={{ gap: 8 }}
-    >
+    <InviteFlatLayout onPressBack={handleBack}>
       {/* Cabeçalho com logo e nome da igreja (sempre juntos) */}
       <View style={styles.churchHeader}>
         {preview.igreja.logoUrl ? (
@@ -464,20 +444,14 @@ export default function InviteTokenPage() {
           </View>
         )}
         <FancyVerticalSpacer height={8} />
-        <FancyText
-          type='semiBold'
-          size='large'
-          style={[styles.centeredText, styles.churchNameText]}
-        >
+        <FancyText type='semiBold' size='large' style={[styles.centeredText, styles.churchNameText]}>
           {preview.igreja.nome}
         </FancyText>
         <FancyVerticalSpacer height={4} />
-        <FancyText type='bold' size='large' style={styles.centeredText}>
+        <FancyText type='bold' size='extraLarge' style={styles.centeredText}>
           Você foi convidado!
         </FancyText>
       </View>
-
-      <FancyVerticalSpacer height={2} />
 
       {/* Detalhes do convite */}
       <View style={styles.detailGroup}>
@@ -489,27 +463,37 @@ export default function InviteTokenPage() {
               size={16}
               color={Pallete.icons.inactive}
             />
-            <FancyText size='small' style={styles.detailText}>
+            <FancyText size='medium' style={styles.detailText}>
               Válido até: {expiresText}
             </FancyText>
           </View>
         )}
-        {preview.autoApprove && (
+        {preview.autoApprove ? (
           <View style={styles.detailRow}>
             <DefaultIcons.Custom
               library='MaterialIcons'
               name='check-circle'
-              size={16}
+              size={18}
               color={Pallete.confirm}
             />
-            <FancyText size='small' style={[styles.detailText, { color: Pallete.confirm }]}>
+            <FancyText type='semiBold' size='medium' style={[styles.detailText, { color: Pallete.confirm }]}>
               Aprovação automática
+            </FancyText>
+          </View>
+        ) : (
+          <View style={styles.detailRow}>
+            <DefaultIcons.Custom
+              library='MaterialIcons'
+              name='schedule'
+              size={18}
+              color={Pallete.warning}
+            />
+            <FancyText type='semiBold' size='medium' style={[styles.detailText, { color: Pallete.warning }]}>
+              Requer aprovação da liderança
             </FancyText>
           </View>
         )}
       </View>
-
-      <FancyVerticalSpacer height={4} />
 
       <View style={styles.buttonGroup}>
         <FancyButton
@@ -523,19 +507,32 @@ export default function InviteTokenPage() {
           onPress={handleAccept}
           disabled={loadingAccept}
         />
-        <FancyButton
-          label='Cancelar'
-          type='outlined'
-          onPress={handleBack}
-          disabled={loadingAccept}
-        />
+        <FancyButton label='Cancelar' type='outlined' onPress={handleBack} disabled={loadingAccept} />
       </View>
-    </AuthScreen>
+    </InviteFlatLayout>
   );
 }
 
 function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
+    root: {
+      flex: 1,
+    },
+    safe: {
+      flex: 1,
+    },
+    content: {
+      flex: 1,
+      justifyContent: 'center',
+      paddingHorizontal: 24,
+      paddingBottom: 24,
+      gap: 14,
+    },
+    backButtonRow: {
+      position: 'absolute',
+      left: 24,
+      zIndex: 10,
+    },
     loadingContainer: {
       alignItems: 'center',
       gap: 16,
@@ -585,16 +582,6 @@ function createStyles(palette: ThemePalette) {
     errorText: {
       color: palette.error,
     },
-    // L3 — Já é membro
-    jaMembroScrollContainer: {
-      flexGrow: 1,
-      paddingVertical: 0,
-      paddingHorizontal: 30,
-      justifyContent: 'center',
-    },
-    jaMembroFieldsContainer: {
-      gap: 16,
-    },
     jaMembroBadge: {
       backgroundColor: ColorUtils.withAlpha(palette.confirm, 0.12),
       paddingHorizontal: 14,
@@ -605,7 +592,6 @@ function createStyles(palette: ThemePalette) {
     jaMembroBadgeText: {
       color: palette.confirm,
     },
-    // L4 — Aguardando aprovação
     aguardandoBadge: {
       flexDirection: 'row',
       alignItems: 'center',

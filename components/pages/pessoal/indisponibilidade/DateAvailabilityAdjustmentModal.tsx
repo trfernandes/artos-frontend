@@ -1,17 +1,15 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
-import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
+import { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
+import FancyBottomSheetModal from '../../../modal/FancyBottomSheetModal';
 import ControlledTextArea from '../../../forms/ControlledTextArea';
 import FancyTextInput from '../../../fields/FancyTextInput';
 import FancyToggle from '../../../fields/FancyToggle';
-import { ThemePalette } from '../../../../constants/colors';
+import FancyButton from '../../../buttons/FancyButton';
 import { usePallete } from '../../../../hooks/usePallete';
-import { useThemedStyles } from '../../../../hooks/useThemedStyles';
-import FancyText from '../../../FancyText';
-import DefaultIcons from '../../../FancyIcons';
 import DateUtils from '../../../../utils/date_utils';
 
 const schema = z.object({
@@ -33,18 +31,15 @@ export type DateAvailabilityAdjustmentModalProps = {
     motivo?: string | null;
   };
   modalProps?: FancyModalDialogProps<any>;
-  conflictSummary?: string;
   onConfirm: (mode: 'mark' | 'unmark', date: Date, motivo?: string) => void;
 };
 
 export default function DateAvailabilityAdjustmentModal({
   data,
   modalProps,
-  conflictSummary,
   onConfirm,
 }: DateAvailabilityAdjustmentModalProps) {
-  const Pallete = usePallete();
-  const styles = useThemedStyles(createStyles);
+  const palette = usePallete();
   const [selectedStatus, setSelectedStatus] = useState<'available' | 'unavailable'>(data.status);
 
   const { control, handleSubmit, reset, watch } = useForm<DateAvailabilityForm>({
@@ -91,43 +86,45 @@ export default function DateAvailabilityAdjustmentModal({
   };
 
   return (
-    <FancyModalDialog
-      {...modalProps}
-      onButton1Press={handleModalClose}
-      showCloseButton={false}
+    <FancyBottomSheetModal
+      visible
+      onClose={handleModalClose}
       title='Detalhes da data'
-      closeOnBackdropPress={false}
-      dismissKeyboardOnBackdropPress
-      avoidKeyboard
-      containerStyle={styles.modalContainer}
-      centerContainerStyle={styles.centerContainer}
-      buttonContainerStyle={styles.buttonContainer}
-      onButton2Press={handleConfirmPress}
-      button2={{ disabled: !canSubmit }}
-    >
-      <ScrollView
-        keyboardShouldPersistTaps='handled'
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-      >
-        <View style={styles.toggleContainer}>
-          <FancyToggle<'available' | 'unavailable'>
-            option1={{
-              title: 'Disponível',
-              value: 'available',
-              activeContainerStyle: { backgroundColor: Pallete.primary },
-              activeLabelProps: { color: Pallete.fonts.light },
-            }}
-            option2={{
-              title: 'Indisponível',
-              value: 'unavailable',
-              activeContainerStyle: { backgroundColor: Pallete.error },
-              activeLabelProps: { color: Pallete.fonts.light },
-            }}
-            value={selectedStatus}
-            onChange={setSelectedStatus}
+      keyboardExtraOffset={0}
+      footer={
+        <View style={styles.footerActions}>
+          <FancyButton
+            label='Cancelar'
+            type='outlined'
+            onPress={handleModalClose}
+            containerStyle={styles.footerButton}
+          />
+          <FancyButton
+            label='Confirmar'
+            onPress={handleConfirmPress}
+            disabled={!canSubmit}
+            containerStyle={styles.footerButton}
           />
         </View>
+      }
+    >
+      <View style={styles.content}>
+        <FancyToggle<'available' | 'unavailable'>
+          option1={{
+            title: 'Disponível',
+            value: 'available',
+            activeContainerStyle: { backgroundColor: palette.primary },
+            activeLabelProps: { color: palette.fonts.light },
+          }}
+          option2={{
+            title: 'Indisponível',
+            value: 'unavailable',
+            activeContainerStyle: { backgroundColor: palette.error },
+            activeLabelProps: { color: palette.fonts.light },
+          }}
+          value={selectedStatus}
+          onChange={setSelectedStatus}
+        />
 
         <FancyTextInput
           label='Data'
@@ -135,25 +132,6 @@ export default function DateAvailabilityAdjustmentModal({
           readonly
           disabled
         />
-
-        {conflictSummary && (
-          <View style={styles.conflictNotice}>
-            <DefaultIcons.Custom
-              library='MaterialCommunityIcons'
-              name='calendar-alert'
-              size={18}
-              color={Pallete.warning}
-            />
-            <FancyText
-              size='extraSmall'
-              type='semiBold'
-              color={Pallete.fonts.inactive}
-              style={styles.conflictText}
-            >
-              {conflictSummary}
-            </FancyText>
-          </View>
-        )}
 
         {shouldShowMotivoForm && (
           <ControlledTextArea
@@ -163,41 +141,22 @@ export default function DateAvailabilityAdjustmentModal({
             placeholder='Descreva o motivo'
           />
         )}
-      </ScrollView>
-    </FancyModalDialog>
+      </View>
+    </FancyBottomSheetModal>
   );
 }
 
-function createStyles(palette: ThemePalette) {
-  return StyleSheet.create({
-    modalContainer: {
-      maxHeight: '82%',
-    },
-    centerContainer: {
-      maxHeight: 360,
-    },
-    buttonContainer: {
-      marginTop: 4,
-    },
-    content: {
-      gap: 12,
-      paddingHorizontal: 5,
-      paddingBottom: 8,
-    },
-    toggleContainer: {
-      width: '100%',
-    },
-    conflictNotice: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      gap: 8,
-      padding: 10,
-      borderRadius: 12,
-      backgroundColor: `${palette.warning}14`,
-    },
-    conflictText: {
-      flex: 1,
-      lineHeight: 16,
-    },
-  });
-}
+const styles = StyleSheet.create({
+  content: {
+    gap: 14,
+  },
+  footerActions: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingBottom: 2,
+  },
+  footerButton: {
+    flex: 1,
+    height: 38,
+  },
+});

@@ -3,18 +3,17 @@ import { useEffect, useState } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import FancyButton from '../../components/buttons/FancyButton';
 import FancyText from '../../components/FancyText';
-import FancyImage from '../../components/images/FancyImage';
 import { KeyboardAwareScrollView, useResizeMode } from 'react-native-keyboard-controller';
 import { router } from 'expo-router';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import ControlledTextInput from '../../components/forms/ControlledTextInput';
 import ControlledPasswordInput from '../../components/forms/ControlledPasswordInput';
+import FancyErrorText from '../../components/forms/FancyErrorText';
 import PasswordStrengthMeter from '../../components/forms/PasswordStrengthMeter';
 import { AxiosError } from 'axios';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import DefaultIcons from '../../components/FancyIcons';
 import { useVoluntariosCrud } from '../../hooks/useVoluntariosCrud';
 import {
   createAccountSchema,
@@ -23,6 +22,39 @@ import {
 import { useConnectivity } from '../../core/network/connectivity/ConnectivityProvider';
 import { usePallete } from '../../hooks/usePallete';
 import { ColorUtils } from '../../utils/color_utils';
+import ConviteIgrejaCard from '../../components/cards/ConviteIgrejaCard';
+import { IgrejaRepository } from '../../domain/services/IgrejaRepository';
+import { ResponseConvitePreviewDto } from '../../domain/dtos/Igreja/response-convite-preview.dto';
+import { extractInviteToken } from '../../utils/inviteToken';
+import DefaultIcons from '../../components/FancyIcons';
+
+function getConviteErrorMessage(error: AxiosError | any): string {
+  const data = error?.response?.data;
+  const status = error?.response?.status;
+  const errorCode = data?.code || data?.error?.code || data?.errorCode;
+  const message = data?.message || data?.error?.message;
+
+  if (status === 404 || errorCode === 'CONVITE_NAO_ENCONTRADO') {
+    return 'Convite não encontrado. Verifique o código e tente novamente.';
+  }
+  if (errorCode === 'CONVITE_EXPIRADO' || message?.includes('expirado')) {
+    return 'Este convite já expirou. Solicite um novo convite.';
+  }
+  if (
+    errorCode === 'CONVITE_REVOGADO' ||
+    message?.includes('revogado') ||
+    message?.includes('inativo')
+  ) {
+    return 'Este convite foi revogado e não pode mais ser utilizado.';
+  }
+  if (errorCode === 'CONVITE_LIMITE_ATINGIDO' || message?.includes('limite')) {
+    return 'Este convite atingiu o limite de usos.';
+  }
+  if (message) {
+    return message;
+  }
+  return 'Não foi possível validar o código. Tente novamente.';
+}
 
 export default function CreateVoluntarioAccountPage() {
   // Android: faz a janela redimensionar quando o teclado abre (adjustResize).
@@ -33,30 +65,54 @@ export default function CreateVoluntarioAccountPage() {
   const { status: connectivityStatus } = useConnectivity();
   const isServerUnavailable = connectivityStatus !== 'ok';
 
-  const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [temConvitePendente, setTemConvitePendente] = useState(false);
   const [conviteIgreja, setConviteIgreja] = useState<{
     nome: string;
     logoUrl?: string | null;
   } | null>(null);
 
+  // Preview rico do convite (manual ou re-buscado no caminho link).
+  const [convitePreview, setConvitePreview] = useState<ResponseConvitePreviewDto | null>(null);
+  // Token de convite já validado (manual) ou recuperado do AsyncStorage (link).
+  const [conviteToken, setConviteToken] = useState<string | null>(null);
+  const [validatingCode, setValidatingCode] = useState(false);
+  const [codeError, setCodeError] = useState<string | null>(null);
+
+  // "Convite ativo" = veio por link OU o usuário validou um código manualmente.
+  const conviteAtivo = temConvitePendente || !!convitePreview;
+
   useEffect(() => {
     const checkPendingInvite = async () => {
       const raw = await AsyncStorage.getItem('pendingInvite');
       const legacyToken = await AsyncStorage.getItem('pendingInviteToken');
+
+      let token: string | null = null;
+      let igrejaFallback: { nome: string; logoUrl?: string | null } | null = null;
+
       if (raw) {
         try {
           const pending = JSON.parse(raw);
-          setTemConvitePendente(true);
-          setMostrarFormulario(true);
-          if (pending.igreja) setConviteIgreja(pending.igreja);
+          token = pending?.token ?? null;
+          if (pending.igreja) igrejaFallback = pending.igreja;
         } catch {
-          setTemConvitePendente(true);
-          setMostrarFormulario(true);
+          // payload inválido — segue só com o legado abaixo
         }
-      } else if (legacyToken) {
-        setTemConvitePendente(true);
-        setMostrarFormulario(true);
+      }
+      if (!token && legacyToken) token = legacyToken;
+
+      if (!token) return;
+
+      setTemConvitePendente(true);
+      setConviteToken(token);
+      if (igrejaFallback) setConviteIgreja(igrejaFallback);
+
+      // Re-busca o preview para popular o card rico (autoApprove/validade) e
+      // revalidar o token. Em caso de falha, mantém o fallback nome/logo.
+      try {
+        const preview = await IgrejaRepository.getConvitePreview(token);
+        setConvitePreview(preview);
+      } catch {
+        // mantém o card mínimo via conviteIgreja
       }
     };
     checkPendingInvite();
@@ -68,7 +124,7 @@ export default function CreateVoluntarioAccountPage() {
   });
 
   const createForm = useForm({
-    resolver: zodResolver(temConvitePendente ? createAccountViaConviteSchema : createAccountSchema),
+    resolver: zodResolver(conviteAtivo ? createAccountViaConviteSchema : createAccountSchema),
     defaultValues: { nome: '', email: '', senha: '', confirmarSenha: '', codigoIgreja: '' },
   });
 
@@ -78,51 +134,82 @@ export default function CreateVoluntarioAccountPage() {
     await AsyncStorage.multiRemove(['pendingInvite', 'pendingInviteToken']);
     setTemConvitePendente(false);
     setConviteIgreja(null);
+    setConvitePreview(null);
+    setConviteToken(null);
+    createForm.setValue('codigoIgreja', '');
+  };
+
+  // Valida o código digitado ANTES de criar a conta. Sucesso → mostra o card e
+  // revela o formulário; erro → mensagem inline e bloqueia o avanço.
+  const handleValidarCodigo = async () => {
+    const raw = createForm.getValues('codigoIgreja') ?? '';
+    const token = extractInviteToken(raw);
+    if (!token) {
+      setCodeError('Informe o código da igreja.');
+      return;
+    }
+
+    setValidatingCode(true);
+    setCodeError(null);
+    try {
+      const preview = await IgrejaRepository.getConvitePreview(token);
+      setConvitePreview(preview);
+      setConviteToken(token);
+    } catch (error: AxiosError | any) {
+      setCodeError(getConviteErrorMessage(error));
+    } finally {
+      setValidatingCode(false);
+    }
+  };
+
+  // Valida ao sair do campo, mas só quando há algo digitado — evita acusar
+  // "Informe o código" só por focar e sair vazio.
+  const handleBlurCodigo = () => {
+    const raw = createForm.getValues('codigoIgreja') ?? '';
+    if (raw.trim()) handleValidarCodigo();
+  };
+
+  // Volta ao "gate" para o usuário digitar outro código.
+  const handleTrocarCodigo = () => {
+    setConvitePreview(null);
+    setConviteToken(null);
+    setCodeError(null);
     createForm.setValue('codigoIgreja', '');
   };
 
   const handleSubmit = createForm.handleSubmit(async (data) => {
+    // Não cria conta sem um código validado — evita o caminho de igrejaJoinError.
+    if (!conviteToken) {
+      setCodeError('Valide o código da igreja antes de continuar.');
+      return;
+    }
     try {
       const payload: any = {
         nome: data.nome,
         email: data.email,
         senha: data.senha,
+        // Token já validado (manual ou via link).
+        codigoIgreja: conviteToken,
       };
-
-      if (temConvitePendente) {
-        try {
-          const raw = await AsyncStorage.getItem('pendingInvite');
-          const legacy = await AsyncStorage.getItem('pendingInviteToken');
-          const inviteToken = raw ? (JSON.parse(raw)?.token ?? null) : legacy;
-          payload.codigoIgreja = inviteToken ?? '';
-        } catch {
-          payload.codigoIgreja = '';
-        }
-      } else {
-        payload.codigoIgreja = data.codigoIgreja?.trim() ?? '';
-      }
 
       try {
         const result = await add(payload);
         const anyResult = result as any;
 
         if (anyResult?.igrejaJoinError) {
+          // Corrida rara: token expirou/esgotou entre validar e submeter.
+          // igrejaJoinError é um objeto { code, message } — renderizar só a string.
           Toast.show({
             type: 'error',
             text1: 'Conta criada',
-            text2: anyResult.igrejaJoinError,
+            text2: anyResult.igrejaJoinError?.message ?? 'Não foi possível vincular ao convite.',
             visibilityTime: 5000,
-          });
-        } else if (data.codigoIgreja && data.codigoIgreja.trim()) {
-          Toast.show({
-            type: 'success',
-            text1: 'Conta criada com sucesso!',
-            text2: 'Faça login para acessar.',
           });
         } else {
           Toast.show({
             type: 'success',
             text1: 'Conta criada com sucesso!',
+            text2: 'Faça login para acessar.',
           });
         }
       } catch (error: AxiosError | any) {
@@ -194,178 +281,143 @@ export default function CreateVoluntarioAccountPage() {
                 </FancyText>
               </View>
 
-              {!mostrarFormulario ? (
-                <View style={styles.entryState}>
-                  <View
-                    style={[
-                      styles.infoBox,
-                      Pallete.shadows[200],
-                      {
-                        backgroundColor: Pallete.backgroundColor2,
-                        borderWidth: StyleSheet.hairlineWidth,
-                        borderColor: Pallete.borderCard,
-                      },
-                    ]}
-                  >
-                    <FancyText type='semiBold' size='small' color={Pallete.fonts.dark}>
-                      Você já tem o código ou convite da igreja?
-                    </FancyText>
-                    <FancyText
-                      size='extraSmall'
-                      type='medium'
-                      color={Pallete.fonts.inactive}
-                      style={styles.boxHint}
-                    >
-                      Se ainda não recebeu, peça ao responsável da igreja. Sem esse código, o
-                      cadastro não consegue te vincular ao lugar certo.
-                    </FancyText>
-                  </View>
-
-                  <FancyButton
-                    label='Tenho o código'
-                    onPress={() => setMostrarFormulario(true)}
-                    icon={{ library: 'MaterialCommunityIcons', name: 'arrow-right', size: 16 }}
-                    iconPosition='right'
-                  />
-                  <FancyButton
-                    type='text'
-                    label='Já tenho conta'
-                    onPress={() => router.push('/(auth)/login')}
-                    labelStyle={{ color: Pallete.fonts.link }}
-                    containerStyle={styles.secondaryActionButton}
-                  />
-                </View>
-              ) : (
-                <View style={styles.formState}>
-                  {temConvitePendente && (
+              <View style={styles.formState}>
+                <View style={styles.fieldsArea}>
+                  {conviteAtivo ? (
+                    // Código validado → card no lugar do campo.
+                    <ConviteIgrejaCard
+                      igreja={
+                        convitePreview?.igreja ?? {
+                          nome: conviteIgreja?.nome ?? 'Igreja',
+                          logoUrl: conviteIgreja?.logoUrl ?? null,
+                        }
+                      }
+                      autoApprove={convitePreview?.autoApprove}
+                      expiresAt={convitePreview?.expiresAt}
+                      onRemove={temConvitePendente ? handleCancelarConvite : handleTrocarCodigo}
+                    />
+                  ) : (
+                    // Card com campo do código + botão "Validar" ao lado.
                     <View
                       style={[
-                        styles.conviteBox,
+                        styles.codeCard,
                         Pallete.shadows[200],
                         {
-                          backgroundColor: Pallete.backgroundColor2,
-                          borderWidth: StyleSheet.hairlineWidth,
-                          borderColor: Pallete.borderCard,
+                          backgroundColor: Pallete.backgroundColor,
+                          borderWidth: 1.5,
+                          borderColor: Pallete.primary,
                         },
                       ]}
                     >
-                      <View style={styles.conviteBoxHeader}>
-                        {conviteIgreja?.logoUrl ? (
-                          <FancyImage
-                            source={{ uri: conviteIgreja.logoUrl }}
-                            size={40}
-                            style={styles.conviteBoxLogo}
+                      <View style={styles.codeCardRow}>
+                        <View
+                          style={[
+                            styles.codeCardIcon,
+                            { backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.12) },
+                          ]}
+                        >
+                          <DefaultIcons.Custom
+                            library='MaterialIcons'
+                            name='church'
+                            size={24}
+                            color={Pallete.primary}
                           />
-                        ) : (
-                          <View
-                            style={[
-                              styles.conviteBoxLogoFallback,
-                              { backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.12) },
-                            ]}
-                          >
-                            <DefaultIcons.Custom
-                              library='MaterialIcons'
-                              name='church'
-                              size={20}
-                              color={Pallete.primary}
-                            />
-                          </View>
-                        )}
-                        <View style={styles.conviteBoxTexts}>
+                        </View>
+                        <View style={styles.codeCardTexts}>
                           <FancyText type='semiBold' size='small' color={Pallete.fonts.dark}>
-                            {conviteIgreja?.nome
-                              ? `Convidado para ${conviteIgreja.nome}`
-                              : '🎉 Você foi convidado!'}
+                            Código do convite
                           </FancyText>
                           <FancyText
                             size='extraSmall'
                             type='medium'
                             color={Pallete.fonts.inactive}
-                            style={styles.boxHint}
                           >
-                            Crie sua conta para aceitar o convite.
+                            Digite o código que você recebeu da sua igreja.
                           </FancyText>
                         </View>
-                        <FancyButton
-                          type='text'
-                          onPress={handleCancelarConvite}
-                          icon={{ library: 'Ionicons', name: 'close', size: 18 }}
-                          containerStyle={styles.cancelConviteButton}
-                        />
+                      </View>
+
+                      <View>
+                        <View style={styles.codeRow}>
+                          <View style={styles.codeInput}>
+                            <ControlledTextInput
+                              name='codigoIgreja'
+                              control={createForm.control}
+                              showErrorMessage={false}
+                              inputProps={{
+                                autoCapitalize: 'none',
+                                onChangeText: (text) => {
+                                  if (!text.trim() && codeError) setCodeError(null);
+                                },
+                                onSubmitEditing: handleValidarCodigo,
+                                onBlur: handleBlurCodigo,
+                              }}
+                            />
+                          </View>
+                          <FancyButton
+                            mode='icon'
+                            onPress={handleValidarCodigo}
+                            disabled={validatingCode || isServerUnavailable}
+                            icon={{ library: 'Feather', name: 'arrow-right', size: 18 }}
+                            containerStyle={styles.codeButton}
+                          />
+                        </View>
+                        {codeError && (
+                          <View style={styles.codeError}>
+                            <FancyErrorText message={codeError} />
+                          </View>
+                        )}
                       </View>
                     </View>
                   )}
 
-                  <View style={styles.fieldsArea}>
-                    {!temConvitePendente && (
-                      <ControlledTextInput
-                        label='Código da igreja'
-                        name='codigoIgreja'
-                        control={createForm.control}
-                        labelProps={{ style: { color: Pallete.fonts.dark } }}
-                        inputProps={{
-                          autoCapitalize: 'none',
-                          placeholder: 'Digite o código recebido',
-                          placeholderTextColor: Pallete.fonts.inactive2,
-                        }}
-                      />
-                    )}
-                    <ControlledTextInput
-                      label='Nome'
-                      name='nome'
-                      control={createForm.control}
-                      labelProps={{ style: { color: Pallete.fonts.dark } }}
-                    />
-                    <ControlledTextInput
-                      label='E-mail'
-                      name='email'
-                      control={createForm.control}
-                      labelProps={{ style: { color: Pallete.fonts.dark } }}
-                      inputProps={{ autoCapitalize: 'none' }}
-                    />
-                    <View style={styles.passwordField}>
-                      <ControlledPasswordInput
-                        label='Senha'
-                        name='senha'
-                        control={createForm.control}
-                        labelProps={{ style: { color: Pallete.fonts.dark } }}
-                        inputProps={{ secureTextEntry: true }}
-                      />
-                      <PasswordStrengthMeter password={senhaValue ?? ''} />
-                    </View>
+                  <ControlledTextInput
+                    label='Nome'
+                    name='nome'
+                    control={createForm.control}
+                    labelProps={{ style: { color: Pallete.fonts.dark } }}
+                  />
+                  <ControlledTextInput
+                    label='E-mail'
+                    name='email'
+                    control={createForm.control}
+                    labelProps={{ style: { color: Pallete.fonts.dark } }}
+                    inputProps={{ autoCapitalize: 'none' }}
+                  />
+                  <View style={styles.passwordField}>
                     <ControlledPasswordInput
-                      label='Confirmar a Senha'
-                      name='confirmarSenha'
+                      label='Senha'
+                      name='senha'
                       control={createForm.control}
                       labelProps={{ style: { color: Pallete.fonts.dark } }}
                       inputProps={{ secureTextEntry: true }}
                     />
+                    <PasswordStrengthMeter password={senhaValue ?? ''} />
                   </View>
-
-                  <View style={styles.actionsFooter}>
-                    <FancyButton
-                      label={isLoadingMutation ? 'Confirmando...' : 'Criar conta'}
-                      onPress={handleSubmit}
-                      disabled={isLoadingMutation || isServerUnavailable}
-                      icon={{ library: 'Feather', name: 'check', size: 16 }}
-                    />
-                    {!temConvitePendente && (
-                      <FancyButton
-                        type='text'
-                        label='Ainda não tenho o código'
-                        onPress={() => setMostrarFormulario(false)}
-                        labelStyle={{ color: Pallete.fonts.link }}
-                      />
-                    )}
-                  </View>
+                  <ControlledPasswordInput
+                    label='Confirmar a Senha'
+                    name='confirmarSenha'
+                    control={createForm.control}
+                    labelProps={{ style: { color: Pallete.fonts.dark } }}
+                    inputProps={{ secureTextEntry: true }}
+                  />
                 </View>
-              )}
+
+                <View style={styles.actionsFooter}>
+                  <FancyButton
+                    label={isLoadingMutation ? 'Confirmando...' : 'Criar conta'}
+                    onPress={handleSubmit}
+                    disabled={isLoadingMutation || isServerUnavailable}
+                    icon={{ library: 'Feather', name: 'check', size: 16 }}
+                  />
+                </View>
+              </View>
             </View>
           </KeyboardAwareScrollView>
         </View>
       </SafeAreaView>
 
-      {isLoadingMutation && (
+      {(isLoadingMutation || validatingCode) && (
         <View
           style={[
             styles.loadingOverlay,
@@ -375,7 +427,7 @@ export default function CreateVoluntarioAccountPage() {
           <View style={[styles.loadingBox, { backgroundColor: Pallete.backgroundColor }]}>
             <ActivityIndicator size='large' color={Pallete.primary} />
             <FancyText size='small' type='medium'>
-              Criando conta...
+              {validatingCode ? 'Validando código...' : 'Criando conta...'}
             </FancyText>
           </View>
         </View>
@@ -423,53 +475,49 @@ const styles = StyleSheet.create({
   fieldsArea: {
     gap: 16,
   },
+  codeCard: {
+    borderRadius: 16,
+    padding: 14,
+    gap: 12,
+  },
+  codeCardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  codeCardIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  codeCardTexts: {
+    flex: 1,
+    gap: 2,
+  },
+  codeRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  codeButton: {
+    width: 44,
+    height: 43,
+    borderRadius: 10,
+  },
+  codeInput: {
+    flex: 1,
+  },
+  codeError: {
+    marginTop: 5,
+  },
   passwordField: {
     gap: 8,
   },
   actionsFooter: {
     paddingTop: 12,
     gap: 8,
-  },
-  entryState: {
-    gap: 12,
-  },
-  infoBox: {
-    borderRadius: 16,
-    padding: 16,
-    gap: 6,
-  },
-  conviteBox: {
-    borderRadius: 16,
-    padding: 14,
-  },
-  cancelConviteButton: {
-    minHeight: 44,
-    minWidth: 44,
-    alignSelf: 'center',
-    marginRight: -13,
-  },
-  conviteBoxHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  conviteBoxLogo: {
-    borderRadius: 20,
-  },
-  conviteBoxLogoFallback: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  conviteBoxTexts: {
-    flex: 1,
-    gap: 2,
-  },
-  secondaryActionButton: {
-    minHeight: 30,
-    marginTop: -2,
   },
   loadingOverlay: {
     position: 'absolute',

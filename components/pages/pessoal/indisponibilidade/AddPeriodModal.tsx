@@ -3,15 +3,14 @@ import { StyleSheet, View } from 'react-native';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
-import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
+import { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
+import FancyBottomSheetModal from '../../../modal/FancyBottomSheetModal';
 import ControlledTextArea from '../../../forms/ControlledTextArea';
 import ControlledDateInput from '../../../forms/ControlledDateInput';
 import { differenceInDays } from 'date-fns';
-import DateUtils, { DateUtilsApi } from '../../../../utils/date_utils';
 import { FancyAlert } from '../../../modal/FancyAlert';
 import FancyText from '../../../FancyText';
 import FancyButton from '../../../buttons/FancyButton';
-import { usePallete } from '../../../../hooks/usePallete';
 
 const schema = z
   .object({
@@ -40,7 +39,6 @@ export type AddPeriodoModalProps = {
 };
 
 export default function AddPeriodoModal({ visible, modalProps, onConfirm }: AddPeriodoModalProps) {
-  const palette = usePallete();
   const { control, handleSubmit, setValue, trigger } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -65,111 +63,60 @@ export default function AddPeriodoModal({ visible, modalProps, onConfirm }: AddP
   const currentDate = new Date();
   const maxDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 4, 0);
 
-  const applyShortcut = (type: 'weekend' | 'sevenDays' | 'restOfMonth') => {
-    // Use SP-aware "today" to avoid device-TZ date drift for international travelers
-    const todayKey = DateUtils.dayKey(new Date());
-    const start = DateUtilsApi.dateOnlyFromApi(todayKey);
-    const end = DateUtilsApi.dateOnlyFromApi(todayKey);
+  const handleClose = () => modalProps?.onButton1Press?.();
 
-    if (type === 'weekend') {
-      const daysUntilSaturday = (6 - start.getDay() + 7) % 7;
-      start.setDate(start.getDate() + daysUntilSaturday);
-      end.setTime(start.getTime());
-      end.setDate(start.getDate() + 1);
+  const handleSave = async () => {
+    if (differenceInDays(dataTermino || new Date(), dataInicio || new Date()) > 31) {
+      FancyAlert.alert('Erro', 'O período não pode ser maior que 31 dias.');
+      return;
     }
 
-    if (type === 'sevenDays') {
-      end.setDate(start.getDate() + 6);
-    }
+    const valid = await trigger();
 
-    if (type === 'restOfMonth') {
-      end.setFullYear(start.getFullYear(), start.getMonth() + 1, 0);
-    }
+    if (!valid) return;
 
-    setValue('dataInicio', start, { shouldValidate: true, shouldDirty: true });
-    setValue('dataTermino', end, { shouldValidate: true, shouldDirty: true });
+    FancyAlert.alert(
+      'Confirmação',
+      <View style={{ paddingBottom: 20, gap: 15 }}>
+        <FancyText type='medium' size='medium'>
+          Deseja realmente adicionar este período de indisponibilidade?
+        </FancyText>
+        <FancyText type='bold' size='small'>
+          Atenção! Se houver alguma data já indisponível ela será sobreescrevida!
+        </FancyText>
+      </View>,
+      [
+        {
+          text: 'Não',
+          style: 'destructive',
+        },
+        {
+          text: 'Sim, estou ciente',
+          onPress: () => handleSubmit(submit)(),
+        },
+      ],
+    );
   };
 
   return (
-    <FancyModalDialog
-      {...modalProps}
+    <FancyBottomSheetModal
+      visible={visible}
+      onClose={handleClose}
       title='Adicionar Período de Indisponibilidade'
-      closeOnBackdropPress={false}
-      dismissKeyboardOnBackdropPress
-      dismissKeyboardOnContentBlankPress
-      button1={{ label: 'Cancelar' }}
-      button2={{
-        label: 'Salvar',
-        onPress: async () => {
-          if (differenceInDays(dataTermino || new Date(), dataInicio || new Date()) > 31) {
-            FancyAlert.alert('Erro', 'O período não pode ser maior que 31 dias.');
-            return;
-          }
-
-          const valid = await trigger();
-
-          if (!valid) return;
-
-          FancyAlert.alert(
-            'Confirmação',
-            <View style={{ paddingBottom: 20, gap: 15 }}>
-              <FancyText type='medium' size='medium'>
-                Deseja realmente adicionar este período de indisponibilidade?
-              </FancyText>
-              <FancyText type='bold' size='small'>
-                Atenção! Se houver alguma data já indisponível ela será sobreescrevida!
-              </FancyText>
-            </View>,
-            [
-              {
-                text: 'Não',
-                style: 'destructive',
-              },
-              {
-                text: 'Sim, estou ciente',
-
-                onPress: () => handleSubmit(submit)(),
-              },
-            ],
-          );
-        },
-      }}
-    >
-      <View style={{ gap: 16 }}>
-        <View style={styles.shortcuts}>
-          <FancyText size='extraSmall' type='bold' color={palette.fonts.inactive}>
-            Atalhos rápidos
-          </FancyText>
-          <View style={styles.shortcutRow}>
-            <FancyButton
-              label='Fim de semana'
-              type='light'
-              size={{ w: 0, h: 34 }}
-              onPress={() => applyShortcut('weekend')}
-              containerStyle={styles.shortcutButton}
-              labelProps={{ size: 'extraSmall' }}
-              icon={{ library: 'MaterialCommunityIcons', name: 'calendar-weekend', size: 15 }}
-            />
-            <FancyButton
-              label='7 dias'
-              type='light'
-              size={{ w: 0, h: 34 }}
-              onPress={() => applyShortcut('sevenDays')}
-              containerStyle={styles.shortcutButton}
-              labelProps={{ size: 'extraSmall' }}
-              icon={{ library: 'MaterialCommunityIcons', name: 'calendar-range', size: 15 }}
-            />
-            <FancyButton
-              label='Mês'
-              type='light'
-              size={{ w: 0, h: 34 }}
-              onPress={() => applyShortcut('restOfMonth')}
-              containerStyle={styles.shortcutButton}
-              labelProps={{ size: 'extraSmall' }}
-              icon={{ library: 'MaterialCommunityIcons', name: 'calendar-end', size: 15 }}
-            />
-          </View>
+      keyboardExtraOffset={0}
+      footer={
+        <View style={styles.footerActions}>
+          <FancyButton
+            label='Cancelar'
+            type='outlined'
+            onPress={handleClose}
+            containerStyle={styles.footerButton}
+          />
+          <FancyButton label='Salvar' onPress={handleSave} containerStyle={styles.footerButton} />
         </View>
+      }
+    >
+      <View style={styles.content}>
         <ControlledDateInput
           control={control}
           name='dataInicio'
@@ -194,20 +141,21 @@ export default function AddPeriodoModal({ visible, modalProps, onConfirm }: AddP
         />
         <ControlledTextArea control={control} name='motivo' label='Motivo' />
       </View>
-    </FancyModalDialog>
+    </FancyBottomSheetModal>
   );
 }
 
 const styles = StyleSheet.create({
-  shortcuts: {
-    gap: 8,
+  content: {
+    gap: 16,
   },
-  shortcutRow: {
+  footerActions: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 10,
+    paddingBottom: 2,
   },
-  shortcutButton: {
+  footerButton: {
     flex: 1,
-    paddingHorizontal: 6,
+    height: 38,
   },
 });

@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useMemo, useState } from 'react';
+import { useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Modal,
@@ -9,7 +9,6 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  Keyboard,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from '@react-native-community/blur';
@@ -19,6 +18,7 @@ import FancyText from '../FancyText';
 import DefaultIcons from '../FancyIcons';
 import { ColorUtils } from '../../utils/color_utils';
 import { usePallete } from '../../hooks/usePallete';
+import { useKeyboardMetrics } from '../../hooks/useKeyboardMetrics';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const ANIMATION_DURATION = 180;
@@ -55,16 +55,26 @@ export default function FancyBottomSheetModal({
   const backdropAnim = useRef(new Animated.Value(0)).current;
   const sheetTranslateY = useRef(new Animated.Value(SHEET_TRANSLATE_Y)).current;
   const dragY = useRef(new Animated.Value(0)).current;
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  // Altura do teclado via react-native-keyboard-controller (fonte única do app).
+  // O Keyboard.addListener nativo não dispara dentro de um <Modal> no Android,
+  // por isso o sheet não subia acima do teclado nesse caso.
+  const { height: keyboardHeight } = useKeyboardMetrics();
+  // No iOS a altura reportada inclui a safe area inferior (já aplicada como
+  // padding do sheet), então descontamos insets.bottom para não subir demais.
+  // No Android o keyboard-controller mede a altura acima da barra de navegação,
+  // então NÃO descontamos — descontar deixava o footer atrás do teclado.
   const keyboardOffset =
     avoidKeyboard && visible && keyboardHeight > 0
-      ? Math.max(0, keyboardHeight - insets.bottom + keyboardExtraOffset)
+      ? Math.max(
+          0,
+          keyboardHeight - (Platform.OS === 'ios' ? insets.bottom : 0) + keyboardExtraOffset,
+        )
       : 0;
   const sheetMaxHeight =
     keyboardOffset > 0
       ? Math.max(180, SCREEN_HEIGHT * 0.88 - keyboardOffset)
       : SCREEN_HEIGHT * 0.88;
-  const sheetBottomPadding = keyboardOffset > 0 ? 16 : insets.bottom + 16;
+  const sheetBottomPadding = keyboardOffset > 0 ? 6 : insets.bottom + 16;
 
   useEffect(() => {
     if (visible) {
@@ -85,25 +95,6 @@ export default function FancyBottomSheetModal({
       ]).start();
     }
   }, [visible]);
-
-  useEffect(() => {
-    if (!visible || !avoidKeyboard) {
-      setKeyboardHeight(0);
-      return;
-    }
-
-    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-    const showSubscription = Keyboard.addListener(showEvent, (event) => {
-      setKeyboardHeight(event.endCoordinates?.height ?? 0);
-    });
-    const hideSubscription = Keyboard.addListener(hideEvent, () => setKeyboardHeight(0));
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, [avoidKeyboard, visible]);
 
   const handleClose = useCallback(() => {
     if (closeDisabled) return;
@@ -337,6 +328,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingHorizontal: 25,
-    paddingTop: 8,
+    paddingTop: 4,
   },
 });

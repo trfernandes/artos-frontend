@@ -9,20 +9,22 @@ import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import { useEffect, useRef, useState } from 'react';
 import FancyButton from '../../../../../components/buttons/FancyButton';
 import { DefaultIconsNames } from '../../../../../constants/icons';
-import FancyVerticalSpacer from '../../../../../components/FancyVerticalSpacer';
 import ControlledDateInput from '../../../../../components/forms/ControlledDateInput';
 import FancyLoading from '../../../../../components/FancyLoading';
 import { ControlledImagePicker } from '../../../../../components/forms/ControlledImagePicker';
-import FancyScrollView from '../../../../../components/FancyScrollView';
+import FancyFormScrollView from '../../../../../components/FancyFormScrollView';
 import { useVoluntariosCrud } from '../../../../../hooks/useVoluntariosCrud';
 import { updateProfileSchema } from '../../../../../domain/schemas/voluntarioSchema';
 import { DateUtilsApi } from '../../../../../utils/date_utils';
 import { SexoEnum, SexoEnumLabel } from '../../../../../domain/enums/common/sexo-enum';
-import { router } from 'expo-router';
 import { sendImageToServer } from '../../../../../utils/image_utils';
+import { useLoading } from '../../../../../contexts/LoadingContext';
+import { useKeyboardState } from 'react-native-keyboard-controller';
 
 export default function EditProfilePage() {
   const { user, updateUser } = useAuth();
+  const { showLoading, hideLoading } = useLoading();
+  const keyboardVisible = useKeyboardState((s) => s.isVisible);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isMountedRef = useRef(true);
   const cacheBusterRef = useRef(0);
@@ -85,18 +87,27 @@ export default function EditProfilePage() {
 
   const handleSubmit = form.handleSubmit(async (data) => {
     if (isSubmitting) return;
+    if (!user?.user?.id) return;
+
     setIsSubmitting(true);
+    showLoading('Salvando...');
 
     try {
-      if (!user?.user?.id) return;
+      // 3 estados da foto: upload novo, remoção (limpou sem subir outra) ou
+      // inalterada. `undefined` = não mexer no campo; `null` = remover no backend.
+      const hasNewUpload = !!data.fotoUpload?.uri;
+      const photoRemoved = !hasNewUpload && !data.fotoThumbUrl;
 
-      let fotoUrlToSend: string | undefined;
-      let fotoThumbUrlToSend: string | undefined;
+      let fotoUrlToSend: string | null | undefined;
+      let fotoThumbUrlToSend: string | null | undefined;
       let fotoUrlPreview: string | undefined;
       let fotoThumbPreview: string | undefined;
 
-      if (data.fotoUpload?.uri) {
-        const { imageThumbUrl, imageUrl } = await sendImageToServer('voluntarios', data.fotoUpload);
+      if (hasNewUpload) {
+        const { imageThumbUrl, imageUrl } = await sendImageToServer(
+          'voluntarios',
+          data.fotoUpload!,
+        );
 
         fotoUrlToSend = imageUrl;
         fotoThumbUrlToSend = imageThumbUrl;
@@ -105,6 +116,9 @@ export default function EditProfilePage() {
         const suffix = `v=${cacheBusterRef.current}`;
         fotoUrlPreview = `${imageUrl}${imageUrl.includes('?') ? '&' : '?'}${suffix}`;
         fotoThumbPreview = `${imageThumbUrl}${imageThumbUrl.includes('?') ? '&' : '?'}${suffix}`;
+      } else if (photoRemoved) {
+        fotoUrlToSend = null;
+        fotoThumbUrlToSend = null;
       }
 
       const formData = {
@@ -128,13 +142,14 @@ export default function EditProfilePage() {
         user: {
           ...user.user,
           nome: data.nome,
-          fotoThumbUrl: fotoThumbPreview ?? fotoThumbUrlToSend ?? user.user.fotoThumbUrl,
-          fotoUrl: fotoUrlPreview ?? fotoUrlToSend ?? user.user.fotoUrl,
+          fotoThumbUrl: photoRemoved
+            ? null
+            : (fotoThumbPreview ?? fotoThumbUrlToSend ?? user.user.fotoThumbUrl),
+          fotoUrl: photoRemoved ? null : (fotoUrlPreview ?? fotoUrlToSend ?? user.user.fotoUrl),
         },
       });
-
-      router.back();
     } finally {
+      hideLoading();
       if (isMountedRef.current) {
         setIsSubmitting(false);
       }
@@ -145,12 +160,23 @@ export default function EditProfilePage() {
 
   const isSaving = isSubmitting || isLoadingMutation;
 
+  const saveButton = (
+    <FancyButton
+      label='Salvar'
+      disabled={isSaving}
+      icon={{ ...DefaultIconsNames.save, size: 16 }}
+      onPress={handleSubmit}
+      containerStyle={{ marginBottom: 15 }}
+    />
+  );
+
   return (
     <FancyBasePage showFab={false} showSearchBar={false}>
       <View style={{ flex: 1 }} pointerEvents={isSaving ? 'none' : 'auto'}>
-        <FancyScrollView
+        <FancyFormScrollView
           fill
-          contentContainerStyle={{ gap: 15, paddingHorizontal: 15, paddingBottom: 10 }}
+          keyboardDismissMode='none'
+          contentContainerStyle={{ flexGrow: 1, gap: 15, paddingHorizontal: 15, paddingBottom: 10 }}
         >
           <ControlledImagePicker
             control={form.control}
@@ -178,17 +204,15 @@ export default function EditProfilePage() {
             option2={{ title: SexoEnumLabel[SexoEnum.Feminino], value: SexoEnum.Feminino }}
           />
 
-          <FancyVerticalSpacer height={10} />
-        </FancyScrollView>
+          {keyboardVisible && (
+            <>
+              <View style={{ flex: 1 }} />
+              {saveButton}
+            </>
+          )}
+        </FancyFormScrollView>
 
-        <FancyButton
-          label='Salvar'
-          isLoading={isSaving}
-          disabled={isSaving}
-          icon={{ ...DefaultIconsNames.save, size: 16 }}
-          onPress={handleSubmit}
-          containerStyle={{ marginHorizontal: 15, marginBottom: 15 }}
-        />
+        {!keyboardVisible && <View style={{ paddingHorizontal: 15 }}>{saveButton}</View>}
       </View>
     </FancyBasePage>
   );

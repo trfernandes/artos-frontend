@@ -108,6 +108,7 @@ function CreateIgrejaAccountPageContent() {
           {
             label: 'Voltar',
             onPress: 'previous',
+            type: 'outlined',
             iconPosition: 'left',
             icon: { library: 'Feather', name: 'arrow-left', size: 16 },
           },
@@ -126,6 +127,7 @@ function CreateIgrejaAccountPageContent() {
           {
             label: 'Voltar',
             onPress: 'previous',
+            type: 'outlined',
             iconPosition: 'left',
             icon: { library: 'Feather', name: 'arrow-left', size: 16 },
           },

@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TextStyle,
   TouchableOpacity,
+  View,
   ViewStyle,
   ActivityIndicator,
 } from 'react-native';
@@ -135,74 +136,62 @@ export default function FancyButton({
       activeOpacity={isBtnDisabled ? 1 : 0.7}
       onPress={!isBtnDisabled ? props.onPress : undefined}
     >
-      {/* Se loading, mostra spinner à esquerda do texto, ocupando o lugar do ícone se houver */}
-      {showLoading ? (
-        <>
+      {/* IMPORTANTE: NUNCA trocar o tipo de elemento no mesmo índice entre os
+          estados loading/normal — isso faz o Android crashar com "addViewAt:
+          failed to insert view into parent at index" quando a re-renderização
+          coincide com churn de árvore (ex.: toast + router.back() ao salvar).
+          Por isso o ícone e o spinner ficam SEMPRE montados juntos no mesmo
+          slot, e só a opacity alterna. */}
+      {(props.icon || showLoading) && (
+        <View style={baseStyles.leadingSlot}>
+          {props.icon
+            ? DefaultIcons.Custom({
+                ...props.icon,
+                size: props.icon.size || height - 8,
+                style: [
+                  {
+                    textAlign: 'center',
+                    textAlignVertical: 'center',
+                  },
+                  isBtnDisabled ? parameters.disabledIconStyle : parameters.iconStyle,
+                  props.iconStyle,
+                  ...(props.icon.color !== undefined ? [{ color: props.icon.color }] : []),
+                  props.icon.style,
+                  showLoading && { opacity: 0 },
+                ],
+              })
+            : null}
           <ActivityIndicator
             size={spinnerSize}
             color={loadingColor || (isBtnDisabled ? palette.icons.dark : palette.primary)}
-            style={loadingLabel ? { marginRight: 8 } : undefined}
+            style={[
+              props.icon ? baseStyles.spinnerOverlay : undefined,
+              { opacity: showLoading ? 1 : 0 },
+            ]}
           />
-          {loadingLabel ? (
-            <FancyText
-              {...restLabelProps}
-              type={restLabelProps.type ?? 'semiBold'}
-              size={props.labelProps?.size ?? 'small'}
-              numberOfLines={numberOfLines}
-              minimumFontScale={minimumFontScale}
-              style={[
-                { textAlign: 'center' },
-                loadingColor
-                  ? { color: loadingColor }
-                  : isBtnDisabled
-                    ? parameters.disabledTextStyle
-                    : parameters.textStyle,
-                props.labelStyle,
-                labelPropsStyle,
-              ]}
-              {...textProps}
-            >
-              {loadingLabel}
-            </FancyText>
-          ) : null}
-        </>
-      ) : (
-        <>
-          {/* Ícone à esquerda se não loading */}
-          {props.icon &&
-            DefaultIcons.Custom({
-              ...props.icon,
-              size: props.icon.size || height - 8,
-              style: [
-                {
-                  textAlign: 'center',
-                  textAlignVertical: 'center',
-                },
-                isBtnDisabled ? parameters.disabledIconStyle : parameters.iconStyle,
-                props.iconStyle,
-                ...(props.icon.color !== undefined ? [{ color: props.icon.color }] : []),
-                props.icon.style,
-              ],
-            })}
-          {props.label && mode === 'default' && (
-            <FancyText
-              {...restLabelProps}
-              type={restLabelProps.type ?? 'semiBold'}
-              size={props.labelProps?.size ?? 'small'}
-              numberOfLines={numberOfLines}
-              minimumFontScale={minimumFontScale}
-              style={[
-                { textAlign: 'center' },
-                isBtnDisabled ? parameters.disabledTextStyle : parameters.textStyle,
-                props.labelStyle,
-                labelPropsStyle,
-              ]}
-              {...textProps}
-            >
-              {props.label}
-            </FancyText>
-          )}
-        </>
+        </View>
+      )}
+      {((props.label && mode === 'default') || (showLoading && loadingLabel)) && (
+        <FancyText
+          {...restLabelProps}
+          type={restLabelProps.type ?? 'semiBold'}
+          size={props.labelProps?.size ?? 'small'}
+          numberOfLines={numberOfLines}
+          minimumFontScale={minimumFontScale}
+          style={[
+            { textAlign: 'center' },
+            showLoading && loadingColor
+              ? { color: loadingColor }
+              : isBtnDisabled
+                ? parameters.disabledTextStyle
+                : parameters.textStyle,
+            props.labelStyle,
+            labelPropsStyle,
+          ]}
+          {...textProps}
+        >
+          {showLoading ? loadingLabel : props.label}
+        </FancyText>
       )}
     </TouchableOpacity>
   );
@@ -216,6 +205,17 @@ const baseStyles = StyleSheet.create({
     gap: 10,
   },
   mode_icon: { paddingHorizontal: 0 },
+  leadingSlot: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  spinnerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
   loadingRow: {
     flexDirection: 'row',
     alignItems: 'center',

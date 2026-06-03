@@ -401,7 +401,6 @@ export default function IndisponibilidadeIndexPage() {
             status: modalState.status!,
             motivo: modalState.motivo ?? undefined,
           }}
-          conflictSummary='Conflitos com escalas serão sinalizados para a liderança quando existirem escalas nessa data.'
           modalProps={{ onButton1Press: closeModal }}
           onConfirm={handleConfirm}
         />

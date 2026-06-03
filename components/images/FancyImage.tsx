@@ -20,48 +20,57 @@ export default function FancyImage({
   const isEmptyProfilePlaceholder =
     source === AppImages.emptyProfile || resolvedSource === AppImages.emptyProfile;
 
-  if (isEmptyProfilePlaceholder) {
-    return (
-      <View
-        style={[
-          {
-            width: size,
-            height: size,
-            borderRadius: size / 2,
-            backgroundColor: '#E2E8F0',
-            borderWidth: Math.max(1, Math.round(size * 0.03)),
-            borderColor: '#CBD5E1',
-            justifyContent: 'center',
-            alignItems: 'center',
-            ...Pallete.shadows[200],
-          },
-          style as any,
-          disabled && styles.placeholderDisabled,
-        ]}
-      >
-        <DefaultIcons.Custom
-          library='MaterialIcons'
-          name='person'
-          size={Math.max(18, Math.round(size * 0.52))}
-          color='#94A3B8'
-        />
-      </View>
-    );
-  }
-
+  // IMPORTANTE: NUNCA montar/desmontar nem trocar o tipo de elemento nativo no
+  // mesmo slot. Alternar <Image> <-> ícone (ou montar/desmontar um deles) faz o
+  // Android crashar com "addViewAt: failed to insert view into parent at index"
+  // durante a reconciliação — sobretudo quando a tela é desmontada logo depois
+  // (ex.: router.back() após salvar). Por isso a <Image> e o ícone ficam SEMPRE
+  // montados, nesta ordem, e só a opacity alterna. Assim a contagem e os tipos
+  // dos filhos nunca mudam e não há operação addViewAt/removeView para falhar.
   return (
-    <Image
-      contentFit='cover'
-      transition={100}
-      priority='low'
-      cachePolicy='memory-disk'
-      source={resolvedSource}
+    <View
       style={[
-        { width: size, height: size, borderRadius: size / 2, ...Pallete.shadows[200] },
-        style,
-        disabled && resolvedSource !== undefined && styles.blackAndWhiteFilter,
+        {
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          overflow: 'hidden',
+          justifyContent: 'center',
+          alignItems: 'center',
+          ...Pallete.shadows[200],
+        },
+        isEmptyProfilePlaceholder && {
+          backgroundColor: '#E2E8F0',
+          borderWidth: Math.max(1, Math.round(size * 0.03)),
+          borderColor: '#CBD5E1',
+        },
+        style as any,
+        disabled && isEmptyProfilePlaceholder && styles.placeholderDisabled,
       ]}
-    />
+    >
+      <Image
+        contentFit='cover'
+        transition={100}
+        priority='low'
+        cachePolicy='memory-disk'
+        source={isEmptyProfilePlaceholder ? undefined : resolvedSource}
+        style={[
+          { width: size, height: size },
+          disabled && resolvedSource !== undefined && styles.blackAndWhiteFilter,
+          isEmptyProfilePlaceholder && { opacity: 0 },
+        ]}
+      />
+      <DefaultIcons.Custom
+        library='MaterialIcons'
+        name='person'
+        size={Math.max(18, Math.round(size * 0.52))}
+        color='#94A3B8'
+        style={{
+          position: 'absolute',
+          opacity: isEmptyProfilePlaceholder ? 1 : 0,
+        }}
+      />
+    </View>
   );
 }
 

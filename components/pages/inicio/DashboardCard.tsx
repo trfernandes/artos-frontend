@@ -65,10 +65,12 @@ export default function DashboardCard({
         </FancyText>
 
         <FancyText
-          size='medium'
+          size='small'
           type='semiBold'
           color={palette.fonts.inactive}
           numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.85}
           style={styles.fitText}
         >
           {title}
