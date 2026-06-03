@@ -51,6 +51,10 @@ export function resolveBillingPrimaryActionLabel(
     return 'Escolher plano';
   }
 
+  if (assinatura.status === 'overdue') {
+    return 'Retomar pagamento';
+  }
+
   if (assinatura.status === 'cancelled') {
     return 'Reativar assinatura';
   }
@@ -98,6 +102,7 @@ export function shouldShowBillingNoticeBanner(assinatura?: ResponseIgrejaAssinat
   return (
     assinatura.status === 'trial' ||
     assinatura.status === 'expired' ||
+    assinatura.status === 'overdue' ||
     hasPendingCheckout(assinatura) ||
     hasExceededPlanCapacity(assinatura)
   );
@@ -121,6 +126,18 @@ export function resolveBillingNoticeContent(
       eyebrow: 'Avaliação encerrada',
       title: 'Seu período avaliativo terminou',
       body: 'Assine um plano para continuar usando todos os recursos sem interromper a operação da igreja.',
+      ctaLabel,
+      tone: 'critical',
+    };
+  }
+
+  if (assinatura.status === 'overdue') {
+    return {
+      eyebrow: 'Pagamento em atraso',
+      title: 'Sua cobrança está pendente',
+      body: assinatura.inGracePeriod
+        ? 'Regularize o pagamento para manter o acesso completo antes que a operação da igreja seja interrompida.'
+        : 'O pagamento não foi confirmado. Retome agora para reativar todos os recursos da igreja.',
       ctaLabel,
       tone: 'critical',
     };
