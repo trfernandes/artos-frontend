@@ -50,8 +50,8 @@ export default function FancyDrawerItem({
 }
 
 const styles = StyleSheet.create({
-  container: { borderWidth: 0, paddingVertical: 6, gap: 1 },
-  containerExpandable: { paddingVertical: 8 },
-  headerContainer: { height: 24, borderWidth: 0 },
+  container: { borderWidth: 0, paddingVertical: 9, gap: 1 },
+  containerExpandable: { paddingVertical: 11 },
+  headerContainer: { height: 30, borderWidth: 0 },
   childrenContainer: { paddingHorizontal: 15 },
 });

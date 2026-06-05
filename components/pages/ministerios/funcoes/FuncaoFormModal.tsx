@@ -67,7 +67,7 @@ export default function FuncaoFormModal(
   );
 
   return (
-    <FancyModalDialog {...props} onButton2Press={handleConfirm}>
+    <FancyModalDialog {...props} avoidKeyboard onButton2Press={handleConfirm}>
       <View style={{ gap: 15 }}>
         <ControlledTextInput control={control} name='nome' label='Nome' />
         <ControlledTextArea control={control} name='descricao' label='Descrição' />

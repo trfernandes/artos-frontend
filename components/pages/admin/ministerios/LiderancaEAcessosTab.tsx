@@ -475,6 +475,14 @@ function LiderancaEAcessosEditTab({ ministerioId }: { ministerioId: string }) {
     [igrejaVoluntarios, ministryMembers],
   );
 
+  // Liderança pode ser promovida a partir de QUALQUER voluntário ativo da igreja
+  // (inclusive admins que ainda não são membros do ministério). handleAddLeader já
+  // cria o vínculo quando o escolhido não é membro. Não restringir a ministryMembers.
+  const churchVolunteerPool = useMemo<ResponseVoluntarioDto[]>(
+    () => sortVolunteersByName(igrejaVoluntarios ?? []),
+    [igrejaVoluntarios],
+  );
+
   const leaderVolunteerIds = useMemo(
     () => new Set(lideres.map((item) => item.voluntarioId)),
     [lideres],
@@ -486,12 +494,10 @@ function LiderancaEAcessosEditTab({ ministerioId }: { ministerioId: string }) {
 
   const eligibleLeaderVolunteers = useMemo(
     () =>
-      sortVolunteersByName(
-        availableVolunteerPool.filter(
-          (item) => !leaderVolunteerIds.has(item.id) && !auxiliarVolunteerIds.has(item.id),
-        ),
+      churchVolunteerPool.filter(
+        (item) => !leaderVolunteerIds.has(item.id) && !auxiliarVolunteerIds.has(item.id),
       ),
-    [auxiliarVolunteerIds, availableVolunteerPool, leaderVolunteerIds],
+    [auxiliarVolunteerIds, churchVolunteerPool, leaderVolunteerIds],
   );
 
   const eligibleAuxiliarVolunteers = useMemo(

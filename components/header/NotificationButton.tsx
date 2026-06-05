@@ -50,7 +50,7 @@ export default function NotificationButton() {
       accessibilityLabel={`Notificações${showBadge ? `, ${badgeLabel} não lidas` : ''}`}
     >
       <FancyHeaderButton
-        icon={{ library: 'Feather', name: 'bell', size: NOTIFICATION_ICON_SIZE }}
+        icon={{ library: 'MaterialCommunityIcons', name: 'bell', size: NOTIFICATION_ICON_SIZE }}
         onPress={() => router.push('/notifications')}
         buttonProps={{
           containerStyle: styles.headerButton,
@@ -60,7 +60,7 @@ export default function NotificationButton() {
       {showBadge && (
         // badge posicionado relativo ao container (que envolve o botão de 24×30)
         <View style={styles.badgeWrapper} pointerEvents='none'>
-          <FancyText size={7} type='bold' style={styles.badgeLabel}>
+          <FancyText size={9} type='bold' style={styles.badgeLabel}>
             {badgeLabel}
           </FancyText>
         </View>
@@ -88,9 +88,9 @@ function createStyles(palette: ThemePalette) {
     },
     badgeLabel: {
       color: palette.fonts.light,
-      lineHeight: 9,
+      lineHeight: 11,
       textAlign: 'center',
-      minWidth: 8,
+      minWidth: 10,
       paddingHorizontal: 0,
       includeFontPadding: false,
     },
@@ -98,11 +98,11 @@ function createStyles(palette: ThemePalette) {
       position: 'absolute',
       alignItems: 'center',
       justifyContent: 'center',
-      right: 1,
-      top: 2,
-      minWidth: 12,
-      height: 12,
-      paddingHorizontal: 2,
+      right: -2,
+      top: 0,
+      minWidth: 16,
+      height: 16,
+      paddingHorizontal: 3,
       borderRadius: 999,
       borderWidth: 0,
       backgroundColor: palette.error,

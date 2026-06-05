@@ -40,7 +40,7 @@ export default function TemplateFuncoesList({
   ministerioId,
 }: TemplateFuncoesListProps) {
   const palette = usePallete();
-  const { control, watch, setValue } = useFormContext<EscalaTemplateFormData>();
+  const { control, watch } = useFormContext<EscalaTemplateFormData>();
   const {
     append: addFuncao,
     update: updateFuncao,
@@ -49,6 +49,9 @@ export default function TemplateFuncoesList({
   const funcoesWatch = watch('funcoes') ?? [];
 
   const [formParams, setFormParams] = useState<{ visible: boolean; mode: 'add' | 'edit' }>();
+  // índice da função sendo editada — usado para atualizar a linha correta no field array,
+  // em vez de localizar por funcaoId (que quebra ao trocar a função durante a edição)
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const formAdd = useForm<EscalaTemplateFuncaoFormData>({
     resolver: zodResolver(escalaTemplateFuncaoSchema),
     defaultValues: FORM_DEFAULT_VALUES,
@@ -62,6 +65,7 @@ export default function TemplateFuncoesList({
       if (disabled) {
         return;
       }
+      setEditingIndex(null);
       formAdd.reset(FORM_DEFAULT_VALUES);
       setFormParams({ visible: true, mode });
     },
@@ -74,12 +78,13 @@ export default function TemplateFuncoesList({
         return;
       }
       formAdd.handleSubmit((data) => {
+        // o backend exige funcaoId único por template (@ArrayUnique) — uma função não pode
+        // aparecer duas vezes, senão o save inteiro falha na validação e dá rollback
+        const duplicateIndex = funcoesWatch.findIndex((item) => item.funcaoId === data.funcaoId);
+
         if (mode === 'add') {
-          const alreadyExists = funcoesWatch.some(
-            (item) => item.funcaoId === data.funcaoId && item.experiencia === data.experiencia,
-          );
-          if (alreadyExists) {
-            formAdd.setError('funcaoId', { message: 'Função/Experiência já adicionada.' });
+          if (duplicateIndex !== -1) {
+            formAdd.setError('funcaoId', { message: 'Função já adicionada.' });
             return;
           }
 
@@ -95,11 +100,16 @@ export default function TemplateFuncoesList({
             text1: 'Função adicionada com sucesso!',
           });
         } else if (mode === 'edit') {
-          const index = funcoesWatch.findIndex((item) => item.funcaoId === data.funcaoId);
-          if (index !== -1) {
-            setValue(`funcoes.${index}`, data);
+          if (editingIndex == null) {
+            return;
           }
-          updateFuncao(index, { ...data });
+          // impede colisão com OUTRA linha ao trocar a função durante a edição
+          if (duplicateIndex !== -1 && duplicateIndex !== editingIndex) {
+            formAdd.setError('funcaoId', { message: 'Função já adicionada.' });
+            return;
+          }
+
+          updateFuncao(editingIndex, { ...data });
 
           Toast.show({
             type: 'success',
@@ -107,11 +117,12 @@ export default function TemplateFuncoesList({
           });
         }
 
+        setEditingIndex(null);
         setFormParams({ visible: false, mode: 'add' });
         formAdd.reset(FORM_DEFAULT_VALUES);
       })();
     },
-    [addFuncao, disabled, formAdd, funcoesWatch, setValue, updateFuncao],
+    [addFuncao, disabled, editingIndex, formAdd, funcoesWatch, updateFuncao],
   );
 
   const handleEdit = useCallback(
@@ -124,6 +135,7 @@ export default function TemplateFuncoesList({
         return;
       }
 
+      setEditingIndex(index);
       formAdd.reset({ ...entry });
       setFormParams({ visible: true, mode: 'edit' });
     },
@@ -230,6 +242,7 @@ export default function TemplateFuncoesList({
             mode={formParams.mode}
             modalProps={{ visible: formParams.visible }}
             onButton1Press={() => {
+              setEditingIndex(null);
               formAdd.reset(FORM_DEFAULT_VALUES);
               setFormParams({ visible: false, mode: 'add' });
             }}

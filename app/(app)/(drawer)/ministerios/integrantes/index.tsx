@@ -25,6 +25,7 @@ import {
 import { MinisterioVoluntarioFuncaoStatusEnum } from '../../../../../domain/enums/MinisterioVoluntarioFuncao/ministerio-voluntario-funcao-status.enum';
 import { AppImages } from '../../../../../assets/app_images';
 import { useLoading } from '../../../../../contexts/LoadingContext';
+import FancySegmentedControl from '../../../../../components/fields/FancySegmentedControl';
 import FancyChips from '../../../../../components/FancyChips';
 import { usePallete } from '../../../../../hooks/usePallete';
 import FancyText from '../../../../../components/FancyText';
@@ -33,13 +34,16 @@ import { StyleSheet, View } from 'react-native';
 import { ResponseMinisterioVoluntarioDto } from '../../../../../domain/dtos/MinisterioVoluntario/ministerio-voluntario.response';
 import FancyActionSheet from '../../../../../components/actions/FancyActionSheet';
 
+type StatusFiltro = 'todos' | 'ativos' | 'inativos';
+
 export default function MinisterioIntegrantesIndex() {
   const palette = usePallete();
-  const { showLoading } = useLoading();
+  const { showLoading, hideLoading } = useLoading();
 
   const { ministerioId } = useLocalSearchParams<{ ministerioId: string }>();
 
   const [searchText, setSearchText] = useState('');
+  const [statusFiltro, setStatusFiltro] = useState<StatusFiltro>('todos');
   const [actionsIntegrante, setActionsIntegrante] =
     useState<ResponseMinisterioVoluntarioDto | null>(null);
   const ministerioStatusColorMap = useMemo(() => getMinisterioStatusColorMap(palette), [palette]);
@@ -104,21 +108,28 @@ export default function MinisterioIntegrantesIndex() {
             text: 'Sim',
             style: 'destructive',
             onPress: () => {
-              updateIntegrante?.({
-                id,
-                data: { status: newStatus },
-              })?.then(() => {
-                Toast.show({
-                  text1: `Voluntário ${newStatus === MinisterioVoluntarioStatusEnum.Inativo ? 'desativado' : 'ativado'} com sucesso!`,
-                  type: 'success',
-                });
-              });
+              showLoading();
+              Promise.resolve(updateIntegrante?.({ id, data: { status: newStatus } }))
+                .then(async () => {
+                  await refetch();
+                  Toast.show({
+                    text1: `Voluntário ${newStatus === MinisterioVoluntarioStatusEnum.Inativo ? 'desativado' : 'ativado'} com sucesso!`,
+                    type: 'success',
+                  });
+                })
+                .catch(() => {
+                  Toast.show({
+                    text1: `Erro ao ${newStatus === MinisterioVoluntarioStatusEnum.Inativo ? 'desativar' : 'ativar'} o voluntário.`,
+                    type: 'error',
+                  });
+                })
+                .finally(() => hideLoading());
             },
           },
         ],
       );
     },
-    [updateIntegrante],
+    [updateIntegrante, refetch, showLoading, hideLoading],
   );
 
   const handleRemoveVoluntario = useCallback(
@@ -140,6 +151,15 @@ export default function MinisterioIntegrantesIndex() {
     },
     [removeIntegrante],
   );
+
+  const filteredData = useMemo(() => {
+    const list = data ?? [];
+    if (statusFiltro === 'ativos')
+      return list.filter((i) => i.status === MinisterioVoluntarioStatusEnum.Ativo);
+    if (statusFiltro === 'inativos')
+      return list.filter((i) => i.status === MinisterioVoluntarioStatusEnum.Inativo);
+    return list;
+  }, [data, statusFiltro]);
 
   if (isLoading) return <FancyLoading />;
 
@@ -176,14 +196,31 @@ export default function MinisterioIntegrantesIndex() {
           value: searchText,
           onSearch: (text) => setSearchText(text.trim()),
         }}
+        topContent={
+          <View style={styles.filtroContainer}>
+            <FancySegmentedControl<StatusFiltro>
+              size='sm'
+              options={[
+                { label: 'Todos', value: 'todos' },
+                { label: 'Ativos', value: 'ativos' },
+                { label: 'Inativos', value: 'inativos' },
+              ]}
+              value={statusFiltro}
+              onChange={setStatusFiltro}
+            />
+          </View>
+        }
         listProps={{
           onRefresh: refetch,
           refreshing: isRefetching,
           listEmptyProps: {
-            label: searchText ? 'Nenhum integrante encontrado' : 'Nenhum integrante cadastrado',
+            label:
+              searchText || statusFiltro !== 'todos'
+                ? 'Nenhum integrante encontrado'
+                : 'Nenhum integrante cadastrado',
             icon: { library: 'MaterialCommunityIcons', name: 'account-multiple-outline', size: 68 },
           },
-          data: data,
+          data: filteredData,
           renderItem: ({ item, index }) => (
             <FancyCard.Image
               key={index}
@@ -330,6 +367,9 @@ export default function MinisterioIntegrantesIndex() {
 }
 
 const styles = StyleSheet.create({
+  filtroContainer: {
+    paddingHorizontal: 15,
+  },
   memberCard: {
     borderRadius: 24,
     paddingVertical: 8,

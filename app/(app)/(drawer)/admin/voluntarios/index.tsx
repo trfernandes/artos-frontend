@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { DefaultIconsNames } from '../../../../../constants/icons';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import FancyScreenErrorHandler from '../../../../../components/error/FancyScreenErrorHandler';
 import { useCallback, useMemo, useState } from 'react';
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
@@ -15,18 +15,22 @@ import {
 } from '../../../../../domain/enums/Voluntario/voluntario-status.enum';
 import { AppImages } from '../../../../../assets/app_images';
 import { useLoading } from '../../../../../contexts/LoadingContext';
+import FancySegmentedControl from '../../../../../components/fields/FancySegmentedControl';
 import FancyChips from '../../../../../components/FancyChips';
 import FancyListItemCard from '../../../../../components/cards/FancyListItemCard';
 import FancyActionSheet from '../../../../../components/actions/FancyActionSheet';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { ResponseVoluntarioDto } from '../../../../../domain/dtos/Voluntario/voluntario.response';
 
+type StatusFiltro = 'todos' | 'ativos' | 'inativos';
+
 export default function VoluntariosIndexPage() {
   const palette = usePallete();
   const [searchText, setSearchText] = useState('');
+  const [statusFiltro, setStatusFiltro] = useState<StatusFiltro>('todos');
   const [actionsVoluntario, setActionsVoluntario] = useState<ResponseVoluntarioDto | null>(null);
   const { user } = useAuth();
-  const { showLoading } = useLoading();
+  const { showLoading, hideLoading } = useLoading();
 
   const {
     data,
@@ -58,21 +62,28 @@ export default function VoluntariosIndexPage() {
             text: 'Sim',
             style: 'destructive',
             onPress: () => {
-              updateVoluntario?.({
-                id,
-                data: { status: newStatus },
-              }).then(() => {
-                Toast.show({
-                  text1: `Voluntário ${newStatus === VoluntarioStatusEnum.DESATIVADO ? 'desativado' : 'ativado'} com sucesso!`,
-                  type: 'success',
-                });
-              });
+              showLoading();
+              Promise.resolve(updateVoluntario?.({ id, data: { status: newStatus } }))
+                .then(async () => {
+                  await refetch();
+                  Toast.show({
+                    text1: `Voluntário ${newStatus === VoluntarioStatusEnum.DESATIVADO ? 'desativado' : 'ativado'} com sucesso!`,
+                    type: 'success',
+                  });
+                })
+                .catch(() => {
+                  Toast.show({
+                    text1: `Erro ao ${newStatus === VoluntarioStatusEnum.DESATIVADO ? 'desativar' : 'ativar'} o voluntário.`,
+                    type: 'error',
+                  });
+                })
+                .finally(() => hideLoading());
             },
           },
         ],
       );
     },
-    [updateVoluntario],
+    [updateVoluntario, refetch, showLoading, hideLoading],
   );
 
   const handleDeleteVoluntario = useCallback(
@@ -98,7 +109,12 @@ export default function VoluntariosIndexPage() {
   const filteredData = useMemo(() => {
     const normalized = searchText.trim().toLowerCase();
     const currentUserId = user?.user.id;
-    const baseList = currentUserId ? data.filter((item) => item.id !== currentUserId) : data;
+    let baseList = currentUserId ? data.filter((item) => item.id !== currentUserId) : data;
+
+    if (statusFiltro === 'ativos')
+      baseList = baseList.filter((item) => item.status === VoluntarioStatusEnum.ATIVO);
+    else if (statusFiltro === 'inativos')
+      baseList = baseList.filter((item) => item.status === VoluntarioStatusEnum.DESATIVADO);
 
     if (!normalized) return baseList;
     return baseList.filter((item) => {
@@ -106,7 +122,7 @@ export default function VoluntariosIndexPage() {
       const email = item.email?.toLowerCase() || '';
       return nome.includes(normalized) || email.includes(normalized);
     });
-  }, [data, searchText, user?.user.id]);
+  }, [data, searchText, statusFiltro, user?.user.id]);
 
   const sorteredData = useMemo(() => {
     return [...filteredData].sort((a, b) =>
@@ -131,10 +147,24 @@ export default function VoluntariosIndexPage() {
           setSearchText(text.trim());
         },
       }}
+      topContent={
+        <View style={styles.filtroContainer}>
+          <FancySegmentedControl<StatusFiltro>
+            size='sm'
+            options={[
+              { label: 'Todos', value: 'todos' },
+              { label: 'Ativos', value: 'ativos' },
+              { label: 'Inativos', value: 'inativos' },
+            ]}
+            value={statusFiltro}
+            onChange={setStatusFiltro}
+          />
+        </View>
+      }
       listProps={{
         onRefresh: refetch,
         listEmptyProps:
-          searchText.trim().length > 0
+          searchText.trim().length > 0 || statusFiltro !== 'todos'
             ? {
                 label: 'Nenhum voluntário encontrado',
                 icon: {
@@ -244,6 +274,7 @@ export default function VoluntariosIndexPage() {
 }
 
 const styles = StyleSheet.create({
+  filtroContainer: { paddingHorizontal: 15 },
   container: { gap: 20, borderWidth: 0, borderColor: 'magenta' },
   searchbar: { paddingHorizontal: 18 },
   list_content: { gap: 10 },

@@ -1,7 +1,7 @@
 import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
 import { useFormContext } from 'react-hook-form';
 import { EscalaTemplateVoluntarioFormData } from '../../../../domain/schemas/escalaTemplateSchema';
-import ControlledDropDown from '../../../forms/ControlledDropDown';
+import ControlledBottomSheetSelect from '../../../forms/ControlledBottomSheetSelect';
 import { View } from 'react-native';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import { useMemo } from 'react';
@@ -39,19 +39,17 @@ export default function TemplateFixoEquipeForm({
   return (
     <FancyModalDialog {...props} title='Adicionar Voluntário' onButton2Press={props.onButton2Press}>
       <View style={{ gap: 15 }}>
-        <ControlledDropDown
+        <ControlledBottomSheetSelect
           control={control}
           name='voluntarioId'
           label='Voluntário'
           listItems={sortedVoluntarioList}
-          renderMode='modal'
         />
-        <ControlledDropDown
+        <ControlledBottomSheetSelect
           control={control}
           name='funcaoId'
           label='Função'
           listItems={sortedFuncoesList}
-          renderMode='modal'
         />
       </View>
     </FancyModalDialog>

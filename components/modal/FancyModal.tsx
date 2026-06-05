@@ -113,6 +113,9 @@ const styles = StyleSheet.create({
   },
   centerScroll: {
     width: '100%',
+    // permite o ScrollView encolher dentro do maxHeight do modal e rolar,
+    // em vez de estourar e cortar o último campo/conteúdo na base
+    flexShrink: 1,
   },
   centerContent: {
     flexGrow: 1,

@@ -50,7 +50,10 @@ export default function MinisterioEscalasIndexPage() {
 
   useFocusEffect(
     useCallback(() => {
+      // reset ao focar (retorno) e também no cleanup (blur ao navegar para frente),
+      // garantindo que o overlay "Abrindo escala..." nunca fique preso na tela de detalhes
       setIsNavigating(false);
+      return () => setIsNavigating(false);
     }, []),
   );
   const escalaStatusConfig = useMemo(() => getEscalaStatusConfig(palette), [palette]);
@@ -269,12 +272,14 @@ export default function MinisterioEscalasIndexPage() {
             icon: { ...DefaultIconsNames.edit, size: 16 },
             onPress: () => {
               if (!actionsEscala) return;
+              const escalaId = actionsEscala.id;
+              setActionsEscala(null);
               setIsNavigating(true);
               router.push({
                 pathname: '/ministerios/escalas/details',
                 params: {
                   ministerioId,
-                  escalaId: actionsEscala.id,
+                  escalaId,
                   viewMode: 'edit',
                 },
               });

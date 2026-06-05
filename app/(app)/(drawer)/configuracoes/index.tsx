@@ -26,11 +26,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import {
   dadosSchema,
   faturamentoSchema,
-  modoEntradaSchema,
   notificacoesSchema,
   DadosFormData,
   FaturamentoFormData,
-  ModoEntradaFormData,
   NotificacoesFormData,
 } from '../../../../domain/schemas/igreja-configuracoes.schema';
 import ControlledTextInput from '../../../../components/forms/ControlledTextInput';
@@ -40,7 +38,6 @@ import FancyButton from '../../../../components/buttons/FancyButton';
 import { ThemePalette } from '../../../../constants/colors';
 import DefaultIcons, { IconLibrary } from '../../../../components/FancyIcons';
 import FancyText from '../../../../components/FancyText';
-import { ModoEntradaEnum } from '../../../../domain/enums/modo-entrada.enum';
 import ControlledFancyToggle from '../../../../components/forms/ControlledFancyToggle';
 import FancyCheckbox from '../../../../components/FancyCheckbox';
 import * as Clipboard from 'expo-clipboard';
@@ -267,7 +264,7 @@ export default function ConfiguracoesPage() {
   } = useIgrejaAssinatura({ igrejaId });
 
   // Não executar o hook se não houver igreja ativa
-  const { data, isLoading, updateDados, updateModoEntrada, updateNotificacoes, isUpdating } =
+  const { data, isLoading, updateDados, updateNotificacoes, isUpdating } =
     useIgrejaConfiguracoes({
       igrejaId: igrejaId || '',
       onUpdateDadosSuccess: async (updatedData) => {
@@ -335,15 +332,6 @@ export default function ConfiguracoesPage() {
       : undefined,
   });
 
-  const modoEntradaForm = useForm<ModoEntradaFormData>({
-    resolver: zodResolver(modoEntradaSchema),
-    defaultValues: data
-      ? {
-          modoEntrada: data.modoEntrada,
-        }
-      : undefined,
-  });
-
   const notificacoesForm = useForm<NotificacoesFormData>({
     resolver: zodResolver(notificacoesSchema),
     defaultValues: {
@@ -368,19 +356,6 @@ export default function ConfiguracoesPage() {
   const accordionClearPendingFrameRef = useRef<number | null>(null);
   const [useChurchAddressForBilling, setUseChurchAddressForBilling] = useState(false);
 
-  // States para checkboxes
-  const [canaisPush, setCanaisPush] = useState(
-    data?.configuracoes?.notificacoes?.canais?.push ??
-      data?.notificacoes?.canais?.push ??
-      data?.notificacoes?.canaisPush ??
-      true,
-  );
-  const [canaisWhatsapp, setCanaisWhatsapp] = useState(
-    data?.configuracoes?.notificacoes?.canais?.whatsapp ??
-      data?.notificacoes?.canais?.whatsapp ??
-      data?.notificacoes?.canaisWhatsapp ??
-      false,
-  );
   const ufSelecionada = dadosForm.watch('endereco.uf');
   const enderecoValues = dadosForm.watch('endereco');
   const nomeValue = dadosForm.watch('nome');
@@ -852,10 +827,6 @@ export default function ConfiguracoesPage() {
         isEnderecoCobrancaIgualAoDaIgreja(data.endereco, data.faturamento),
       );
 
-      modoEntradaForm.reset({
-        modoEntrada: data.modoEntrada,
-      });
-
       // Suporte para ambas estruturas: configuracoes.notificacoes ou notificacoes diretamente
       const notificacoes = data.configuracoes?.notificacoes || data.notificacoes;
       if (notificacoes) {
@@ -872,9 +843,6 @@ export default function ConfiguracoesPage() {
           canaisPush: notificacoes.canais?.push ?? notificacoes.canaisPush ?? true,
           canaisWhatsapp: notificacoes.canais?.whatsapp ?? notificacoes.canaisWhatsapp ?? false,
         });
-
-        setCanaisPush(notificacoes.canais?.push ?? notificacoes.canaisPush ?? true);
-        setCanaisWhatsapp(notificacoes.canais?.whatsapp ?? notificacoes.canaisWhatsapp ?? false);
       }
     }
   }, [data, faturamentoForm]);
@@ -963,13 +931,6 @@ export default function ConfiguracoesPage() {
     }
   };
 
-  const handleSalvarModoEntrada = modoEntradaForm.handleSubmit((formData) => {
-    updateModoEntrada({
-      igrejaId: igrejaId!,
-      dto: formData,
-    });
-  });
-
   const handleSalvarNotificacoes = notificacoesForm.handleSubmit((formData) => {
     const lembretesHoras = [...formData.lembretesHoras].sort((a, b) => b - a);
     updateNotificacoes({
@@ -978,8 +939,8 @@ export default function ConfiguracoesPage() {
         notificacoesHabilitadas: formData.notificacoesHabilitadas,
         antecedenciaHoras: lembretesHoras[0],
         lembretesHoras,
-        canaisPush,
-        canaisWhatsapp,
+        canaisPush: formData.canaisPush,
+        canaisWhatsapp: formData.canaisWhatsapp,
       },
     });
   });
@@ -1589,120 +1550,6 @@ export default function ConfiguracoesPage() {
       ),
     },
     {
-      title: 'Acesso',
-      icon: { library: 'MaterialCommunityIcons', name: 'shield-account', size: 16 },
-      content: (
-        <View style={styles.tabWrapper}>
-          <FancyScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.tabContent}
-            showsVerticalScrollIndicator={false}
-            enableOnAndroid={true}
-            extraScrollHeight={100}
-            fill
-          >
-            <TouchableOpacity
-              style={[
-                styles.modoCard,
-                modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.APENAS_CONVITE && [
-                  styles.modoCardSelected,
-                  { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.16) },
-                ],
-              ]}
-              onPress={() =>
-                modoEntradaForm.setValue('modoEntrada', ModoEntradaEnum.APENAS_CONVITE)
-              }
-            >
-              <DefaultIcons.Custom
-                library='MaterialCommunityIcons'
-                name='account-key'
-                size={32}
-                color={
-                  modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.APENAS_CONVITE
-                    ? palette.primary
-                    : palette.fonts.inactive
-                }
-              />
-              <FancyText type='bold' size='medium' style={styles.modoCardTitle}>
-                Apenas Convite
-              </FancyText>
-              <FancyText type='normal' size='small' style={styles.modoCardDesc}>
-                Somente pessoas com convite podem entrar na igreja
-              </FancyText>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.modoCard,
-                modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_COM_APROVACAO && [
-                  styles.modoCardSelected,
-                  { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.16) },
-                ],
-              ]}
-              onPress={() =>
-                modoEntradaForm.setValue('modoEntrada', ModoEntradaEnum.CODIGO_COM_APROVACAO)
-              }
-            >
-              <DefaultIcons.Custom
-                library='MaterialCommunityIcons'
-                name='shield-check'
-                size={32}
-                color={
-                  modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_COM_APROVACAO
-                    ? palette.primary
-                    : palette.fonts.inactive
-                }
-              />
-              <FancyText type='bold' size='medium' style={styles.modoCardTitle}>
-                Código com Aprovação
-              </FancyText>
-              <FancyText type='normal' size='small' style={styles.modoCardDesc}>
-                Qualquer um com código pode solicitar entrada. Um administrador deve aprovar.
-              </FancyText>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.modoCard,
-                modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_LIVRE && [
-                  styles.modoCardSelected,
-                  { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.16) },
-                ],
-              ]}
-              onPress={() => modoEntradaForm.setValue('modoEntrada', ModoEntradaEnum.CODIGO_LIVRE)}
-            >
-              <DefaultIcons.Custom
-                library='MaterialCommunityIcons'
-                name='door-open'
-                size={32}
-                color={
-                  modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_LIVRE
-                    ? palette.primary
-                    : palette.fonts.inactive
-                }
-              />
-              <FancyText type='bold' size='medium' style={styles.modoCardTitle}>
-                Código Livre
-              </FancyText>
-              <FancyText type='normal' size='small' style={styles.modoCardDesc}>
-                Qualquer um com o código entra automaticamente na igreja
-              </FancyText>
-            </TouchableOpacity>
-
-            <View style={styles.buttonContainer}>
-              <FancyButton
-                label='Salvar'
-                icon={{ ...DefaultIconsNames.save, size: 16 }}
-                onPress={handleSalvarModoEntrada}
-                disabled={isUpdating}
-                isLoading={isUpdating}
-              />
-            </View>
-          </FancyScrollView>
-        </View>
-      ),
-    },
-    {
       title: 'Notificações',
       icon: { library: 'MaterialCommunityIcons', name: 'bell', size: 16 },
       content: (
@@ -1780,25 +1627,6 @@ export default function ConfiguracoesPage() {
                   {notificacoesForm.formState.errors.lembretesHoras.message}
                 </FancyText>
               )}
-            </View>
-
-            <View style={styles.canaisContainer}>
-              <FancyText type='medium' size='small' style={styles.canaisLabel}>
-                Canais de notificação:
-              </FancyText>
-
-              <View style={styles.checkboxesContainer}>
-                <FancyCheckbox
-                  label='Notificações Push'
-                  value={canaisPush}
-                  onChangeValue={setCanaisPush}
-                />
-                <FancyCheckbox
-                  label='WhatsApp'
-                  value={canaisWhatsapp}
-                  onChangeValue={setCanaisWhatsapp}
-                />
-              </View>
             </View>
 
             <View style={styles.buttonContainer}>
