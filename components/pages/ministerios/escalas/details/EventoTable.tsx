@@ -562,6 +562,8 @@ export default function EventoTable({
 
       {substituicaoModalProps.isOpen && (
         <SubstituirVoluntarioModal
+          visible={substituicaoModalProps.isOpen}
+          onClose={() => setSubstituicaoModalProps({ isOpen: false })}
           data={{
             ...substituicaoModalProps.data!,
             evento: {
@@ -572,15 +574,11 @@ export default function EventoTable({
             ministerioId,
           }}
           currentEquipe={data.equipe}
-          onButton2Press={async (data) => {
-            const result = await onChangeVoluntario?.(data);
+          onConfirm={async (subData) => {
+            const result = await onChangeVoluntario?.(subData);
             if (result) {
               setSubstituicaoModalProps({ isOpen: false });
             }
-          }}
-          onButton1Press={() => setSubstituicaoModalProps({ isOpen: false })}
-          modalProps={{
-            visible: substituicaoModalProps.isOpen,
           }}
         />
       )}
@@ -612,21 +610,19 @@ export default function EventoTable({
 
       {adicionarFuncaoModalOpen && (
         <AdicionarFuncaoModal
+          visible={adicionarFuncaoModalOpen}
+          onClose={() => setAdicionarFuncaoModalOpen(false)}
           ministerioId={ministerioId}
           eventoNome={data.evento.nome}
           eventoId={data.evento.id}
           dataOcorrencia={DateUtilsApi.dateTimeFromApi(data.dataOcorrencia)}
           dataInicio={data.evento.dataInicio!}
           dataTermino={data.evento.dataTermino!}
-          onButton2Press={async (funcaoData) => {
+          onConfirm={async (funcaoData) => {
             const result = await onAdicionarFuncao?.(funcaoData);
             if (result) {
               setAdicionarFuncaoModalOpen(false);
             }
-          }}
-          onButton1Press={() => setAdicionarFuncaoModalOpen(false)}
-          modalProps={{
-            visible: adicionarFuncaoModalOpen,
           }}
         />
       )}

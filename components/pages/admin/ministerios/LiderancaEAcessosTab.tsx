@@ -807,10 +807,10 @@ function LiderancaEAcessosEditTab({ ministerioId }: { ministerioId: string }) {
           volunteers={eligibleLeaderVolunteers}
           onButton1Press={() => setLeaderModalVisible(false)}
           onButton2Press={async (data) => {
+            setLeaderModalVisible(false);
             if (data) {
               await handleAddLeader(data);
             }
-            setLeaderModalVisible(false);
           }}
         />
       )}

@@ -31,6 +31,7 @@ import { TemplatePadraoEscopoEnum } from '../../../../domain/enums/Evento/templa
 import { MinisterioTipoEnum } from '../../../../domain/enums/Ministerio/ministerio-tipo.enum';
 import { getApiErrorMessage } from '../../../../domain/api/api-error';
 import { useAuth } from '../../../../contexts/AuthContext';
+import { useLoading } from '../../../../contexts/LoadingContext';
 import { useEscalaItensCrud } from '../../../../hooks/useEscalaItensCrud';
 import { DateUtilsApi } from '../../../../utils/date_utils';
 import { canManageEventoOcorrencia } from '../../../../utils/ministerio_permissoes';
@@ -173,6 +174,7 @@ export default function AgendaDetailsDadosTab(props: {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
   const { igrejaAtiva } = useAuth();
+  const { showLoading, hideLoading } = useLoading();
   const canManageOccurrence = canManageEventoOcorrencia(igrejaAtiva, props.ministerioId);
   const isLouvorMinisterio = useMemo(
     () =>
@@ -653,101 +655,86 @@ export default function AgendaDetailsDadosTab(props: {
     }
 
     setIsSavingAll(true);
-    let savedAnything = false;
 
     try {
+      // Fase 1: coletar escopos sem loading modal
+      let templateScope: TemplatePadraoEscopoEnum | null = null;
+      let responsavelScope: TemplatePadraoEscopoEnum | null = null;
+      let ensaioScope: TemplatePadraoEscopoEnum | null = null;
+
       if (templateDirty) {
-        const templateScope = await promptScope('este template da equipe');
-        if (templateScope === 'cancel') {
-          if (savedAnything) {
-            await props.onTemplateSaved?.();
-          }
-          return false;
-        }
-
-        const templateSaved = await saveTemplateByScope(templateScope);
-        if (!templateSaved) {
-          if (savedAnything) {
-            await props.onTemplateSaved?.();
-          }
-          return false;
-        }
-
-        savedAnything = true;
+        const scope = await promptScope('este template da equipe');
+        if (scope === 'cancel') return false;
+        templateScope = scope;
       }
 
       if (isLouvorMinisterio && responsavelSetlistDirty) {
-        const responsavelScope = await promptScope('este responsável do setlist');
-        if (responsavelScope === 'cancel') {
-          if (savedAnything) {
-            await props.onTemplateSaved?.();
-          }
-          return false;
-        }
-
-        const responsavelSaved = await saveResponsavelSetlistByScope(responsavelScope);
-        if (!responsavelSaved) {
-          if (savedAnything) {
-            await props.onTemplateSaved?.();
-          }
-          return false;
-        }
-
-        savedAnything = true;
+        const scope = await promptScope('este responsável do setlist');
+        if (scope === 'cancel') return false;
+        responsavelScope = scope;
       }
 
       if (ensaioDirty) {
-        const ensaioScope = await promptScope('este horário de ensaio');
-        if (ensaioScope === 'cancel') {
-          if (savedAnything) {
-            await props.onTemplateSaved?.();
-            Toast.show({
-              type: 'info',
-              text1: 'Alterações parcialmente salvas',
-              text2: 'O que já foi confirmado foi salvo. As demais alterações continuam pendentes.',
-            });
-          }
-          return false;
-        }
-
-        const ensaioSaved = await saveEnsaioByScope(ensaioScope);
-        if (!ensaioSaved) {
-          if (savedAnything) {
-            await props.onTemplateSaved?.();
-          }
-          return false;
-        }
-
-        savedAnything = true;
+        const scope = await promptScope('este horário de ensaio');
+        if (scope === 'cancel') return false;
+        ensaioScope = scope;
       }
 
-      if (savedAnything) {
-        await props.onTemplateSaved?.();
-        Toast.show({
-          type: 'success',
-          text1: 'Ocorrência atualizada',
-          text2:
-            pendingChangesCount > 1
-              ? 'As alterações da ocorrência foram salvas.'
-              : 'A alteração da ocorrência foi salva.',
-        });
-      }
+      // Fase 2: executar API com loading modal
+      showLoading('Salvando...');
+      try {
+        let savedAnything = false;
 
-      return true;
+        if (templateScope) {
+          const ok = await saveTemplateByScope(templateScope);
+          if (!ok) return false;
+          savedAnything = true;
+        }
+
+        if (responsavelScope) {
+          const ok = await saveResponsavelSetlistByScope(responsavelScope);
+          if (!ok) return false;
+          savedAnything = true;
+        }
+
+        if (ensaioScope) {
+          const ok = await saveEnsaioByScope(ensaioScope);
+          if (!ok) return false;
+          savedAnything = true;
+        }
+
+        if (savedAnything) {
+          await props.onTemplateSaved?.();
+          Toast.show({
+            type: 'success',
+            text1: 'Ocorrência atualizada',
+            text2:
+              pendingChangesCount > 1
+                ? 'As alterações da ocorrência foram salvas.'
+                : 'A alteração da ocorrência foi salva.',
+          });
+        }
+
+        return true;
+      } finally {
+        hideLoading();
+      }
     } finally {
       setIsSavingAll(false);
     }
   }, [
     canManageOccurrence,
     ensaioDirty,
+    hideLoading,
+    isLouvorMinisterio,
     pendingChangesCount,
     promptScope,
     props,
-    isLouvorMinisterio,
     responsavelSetlistDirty,
     saveEnsaioByScope,
     saveResponsavelSetlistByScope,
     saveTemplateByScope,
+    showLoading,
     templateDirty,
   ]);
 
@@ -934,11 +921,11 @@ export default function AgendaDetailsDadosTab(props: {
                       color={palette.fonts.inactive}
                       style={styles.footerStatus}
                     >
-                      {`${pendingChangesCount} alteração${pendingChangesCount > 1 ? 'ões' : ''} pendente${pendingChangesCount > 1 ? 's' : ''}`}
+                      {`${pendingChangesCount} alteraç${pendingChangesCount > 1 ? 'ões' : 'ão'} pendente${pendingChangesCount > 1 ? 's' : ''}`}
                     </FancyText>
                   ) : null}
                   <FancyButton
-                    label='Salvar alterações'
+                    label='Salvar'
                     type='contained'
                     icon={{ ...DefaultIconsNames.save, size: 14 }}
                     containerStyle={styles.saveAllButton}

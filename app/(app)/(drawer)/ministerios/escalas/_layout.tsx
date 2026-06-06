@@ -49,7 +49,7 @@ export default function MinisterioEscalasLayout() {
         name='substituicoes'
         options={{
           headerShown: true,
-          header: (props) => <FancyPageHeader leftButton='back' {...props} />,
+          header: (props) => <FancyPageHeader leftButton='menu' {...props} />,
           title: 'Substituições',
         }}
       />

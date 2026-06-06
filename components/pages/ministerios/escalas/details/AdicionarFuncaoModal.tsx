@@ -1,23 +1,26 @@
-import FancyModalDialog, { FancyModalDialogProps } from '../../../../modal/FancyModalDialog';
-import { StyleSheet, View } from 'react-native';
+import FancyBottomSheetModal from '../../../../modal/FancyBottomSheetModal';
+import { View } from 'react-native';
 import FancyText from '../../../../FancyText';
 import FancySearchSelect from '../../../../fields/FancySearchSelect';
+import FancyButton from '../../../../buttons/FancyButton';
 import { format } from 'date-fns';
 import { useState } from 'react';
 import FancyErrorText from '../../../../forms/FancyErrorText';
 import FancyGroup from '../../../../list/FancyGroup';
 import { useMinisterioFuncoesCrud } from '../../../../../hooks/useMinisterioFuncoesCrud';
 import DefaultIcons from '../../../../FancyIcons';
-import { ColorUtils } from '../../../../../utils/color_utils';
 import { usePallete } from '../../../../../hooks/usePallete';
 
 export interface AdicionarFuncaoModalProps {
+  visible: boolean;
+  onClose: () => void;
   ministerioId: string;
   eventoNome: string;
   eventoId: string;
   dataOcorrencia: Date;
   dataInicio: Date;
   dataTermino: Date;
+  onConfirm: (data: AdicionarFuncaoConfirmDialog) => Promise<void>;
 }
 
 export interface AdicionarFuncaoConfirmDialog {
@@ -27,14 +30,16 @@ export interface AdicionarFuncaoConfirmDialog {
 }
 
 export default function AdicionarFuncaoModal({
+  visible,
+  onClose,
   ministerioId,
   eventoNome,
   eventoId,
   dataOcorrencia,
   dataInicio,
   dataTermino,
-  ...props
-}: AdicionarFuncaoModalProps & FancyModalDialogProps<any>) {
+  onConfirm,
+}: AdicionarFuncaoModalProps) {
   const palette = usePallete();
   const { data: funcoes, isLoading: isLoadingFuncoes } = useMinisterioFuncoesCrud({
     autoFetch: true,
@@ -60,42 +65,51 @@ export default function AdicionarFuncaoModal({
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (): boolean => {
-    if (selectedFuncao) {
-      setErrors({});
-      return true;
+  const handleConfirm = async () => {
+    if (!selectedFuncao) {
+      setErrors({ funcao: 'Campo Obrigatório' });
+      return;
     }
 
-    setErrors({ funcao: 'Campo Obrigatório' });
-    return false;
-  };
-
-  const handleConfirm = async () => {
-    if (handleSubmit()) {
-      try {
-        setIsSubmitting(true);
-        await props.onButton2Press?.({
-          funcaoId: selectedFuncao!,
-          eventoId: eventoId,
-          dataOcorrencia: format(dataOcorrencia, 'yyyy-MM-dd'),
-        });
-      } finally {
-        setIsSubmitting(false);
-      }
+    setErrors({});
+    try {
+      setIsSubmitting(true);
+      await onConfirm({
+        funcaoId: selectedFuncao,
+        eventoId: eventoId,
+        dataOcorrencia: format(dataOcorrencia, 'yyyy-MM-dd'),
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <FancyModalDialog<AdicionarFuncaoConfirmDialog>
-      {...props}
+    <FancyBottomSheetModal
+      visible={visible}
+      onClose={onClose}
       title='Adicionar Função ao Evento'
-      centerContainerStyle={styles.container}
-      onButton2Press={handleConfirm}
-      button1={{ disabled: isSubmitting }}
-      button2={{ isLoading: isSubmitting, loadingText: 'Adicionando...' }}
-      containerStyle={{
-        pointerEvents: isLoadingFuncoes ? 'none' : 'auto',
-      }}
+      closeDisabled={isSubmitting}
+      footer={
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <FancyButton
+            type='outlined'
+            label='Cancelar'
+            onPress={onClose}
+            disabled={isSubmitting}
+            containerStyle={{ flex: 1 }}
+          />
+          <FancyButton
+            type='contained'
+            label='Adicionar'
+            onPress={handleConfirm}
+            isLoading={isSubmitting}
+            loadingText='Adicionando...'
+            disabled={isLoadingFuncoes}
+            containerStyle={{ flex: 1 }}
+          />
+        </View>
+      }
     >
       <View
         style={{
@@ -119,13 +133,13 @@ export default function AdicionarFuncaoModal({
             color={palette.primary}
           />
           <FancyText size='extraSmall' type='medium'>
-            {`${format(dataOcorrencia, 'dd/MM/yyyy')} - ${format(dataInicio!, 'HH:mm')} à ${format(dataTermino!, 'HH:mm')}`}
+            {`${format(dataOcorrencia, 'dd/MM/yyyy')} - ${format(dataInicio, 'HH:mm')} à ${format(dataTermino, 'HH:mm')}`}
           </FancyText>
         </View>
       </View>
 
       <FancyGroup title='Selecionar Função:' contentContainerStyle={{ gap: 15 }}>
-        <View style={{ flexDirection: 'column', gap: 5 }}>
+        <View style={{ gap: 5 }}>
           <FancySearchSelect
             label='Função'
             placeholder='Buscar função...'
@@ -141,13 +155,9 @@ export default function AdicionarFuncaoModal({
             isLoading={isLoadingFuncoes}
             disabled={isSubmitting || isLoadingFuncoes}
           />
-          {errors && <FancyErrorText message={errors['funcao']} />}
+          {errors['funcao'] && <FancyErrorText message={errors['funcao']} />}
         </View>
       </FancyGroup>
-    </FancyModalDialog>
+    </FancyBottomSheetModal>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { gap: 14, paddingTop: 0, paddingBottom: 10 },
-});

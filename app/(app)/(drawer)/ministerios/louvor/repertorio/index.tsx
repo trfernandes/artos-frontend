@@ -9,6 +9,7 @@ import FancyButton from '../../../../../../components/buttons/FancyButton';
 import FancyText from '../../../../../../components/FancyText';
 import RepertorioCategoriasManagerSheet from '../../../../../../components/pages/ministerios/louvor/repertorio/RepertorioCategoriasManagerSheet';
 import { useAuth } from '../../../../../../contexts/AuthContext';
+import { IgrejaVoluntarioRoleEnum } from '../../../../../../domain/enums/Igreja/voluntario-role.enum';
 import { MinisterioTipoEnum } from '../../../../../../domain/enums/Ministerio/ministerio-tipo.enum';
 import { VoluntarioHierarquiaEnum } from '../../../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
 import {
@@ -44,6 +45,8 @@ export default function MinisterioLouvorRepertorioIndexPage() {
   const [actionsMusica, setActionsMusica] = useState<ResponseRepertorioMusicaDto | null>(null);
 
   const canManageRepertorio = useMemo(() => {
+    if (igrejaAtiva?.role === IgrejaVoluntarioRoleEnum.ADMIN) return true;
+
     const hierarquia = ministerioAtual?.hierarquia?.toString();
     if (hierarquia === VoluntarioHierarquiaEnum.Lider || hierarquia === '1') {
       return true;
@@ -54,7 +57,7 @@ export default function MinisterioLouvorRepertorioIndexPage() {
         item.recurso === RecursoPermissaoEnum.RepertorioSetlist &&
         item.permissoes?.includes(TipoPermissaoEnum.Gerenciar),
     );
-  }, [ministerioAtual]);
+  }, [igrejaAtiva?.role, ministerioAtual]);
 
   const categoryOptions = useMemo(
     () => [

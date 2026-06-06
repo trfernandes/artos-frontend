@@ -373,6 +373,10 @@ export default function MinisterioEscalasDetailsPage() {
         });
         return true;
       } catch {
+        Toast.show({
+          type: 'error',
+          text1: 'Não foi possível remover o evento.',
+        });
         return false;
       }
     },

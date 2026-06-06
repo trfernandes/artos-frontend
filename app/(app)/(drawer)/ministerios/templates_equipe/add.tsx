@@ -32,7 +32,7 @@ export default function MinisterioTemplatesAddPage() {
   const handleOnSave = useCallback(
     form.handleSubmit(
       async (data) => {
-        showLoading('Salvando');
+        showLoading('Salvando...');
         try {
           await addTemplate({ ...data, ministerioId: data.ministerioId });
           router.back();

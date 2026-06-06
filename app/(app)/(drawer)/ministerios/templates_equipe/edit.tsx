@@ -83,7 +83,7 @@ export default function MinisterioTemplatesEditPage() {
       async (data) => {
         if (!data.id) return;
 
-        showLoading('Salvando');
+        showLoading('Salvando...');
         try {
           await updateTemplate?.({
             id: data.id,
