@@ -11,6 +11,7 @@ import { AxiosError } from 'axios';
 import TemplateForm from '../../../../../components/pages/ministerios/templates_equipe/TemplateForm';
 import { strfyObj } from '../../../../../utils/text_utils';
 import { EscalaTemplateTipoEnum } from '../../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
+import { useLoading } from '../../../../../contexts/LoadingContext';
 
 export default function MinisterioTemplatesAddPage() {
   const { ministerioId } = useLocalSearchParams<{ ministerioId: string }>();
@@ -26,27 +27,30 @@ export default function MinisterioTemplatesAddPage() {
   });
 
   const { add: addTemplate, isLoadingMutation } = useEscalaTemplatesCrud();
+  const { showLoading, hideLoading } = useLoading();
 
   const handleOnSave = useCallback(
     form.handleSubmit(
-      (data) => {
-        addTemplate({ ...data, ministerioId: data.ministerioId })
-          .then(() => {
-            router.back();
-          })
-          .catch((error: AxiosError<any, any>) => {
-            const errorMessage = error.response?.data?.message;
-            if (
-              errorMessage &&
-              errorMessage.trim() ===
-                'Ja existe um template com esse nome para o ministerio informado.'
-            ) {
-              form.setError('nome', {
-                type: 'custom',
-                message: 'O nome já está sendo utilizado',
-              });
-            }
-          });
+      async (data) => {
+        showLoading('Salvando');
+        try {
+          await addTemplate({ ...data, ministerioId: data.ministerioId });
+          router.back();
+        } catch (error) {
+          const errorMessage = (error as AxiosError<any, any>).response?.data?.message;
+          if (
+            errorMessage &&
+            errorMessage.trim() ===
+              'Ja existe um template com esse nome para o ministerio informado.'
+          ) {
+            form.setError('nome', {
+              type: 'custom',
+              message: 'O nome já está sendo utilizado',
+            });
+          }
+        } finally {
+          hideLoading();
+        }
       },
       (errors) => {
         console.log('Erro ao adicionar template\n', strfyObj(errors));

@@ -3,6 +3,7 @@ import { useState, useRef, useMemo, useEffect } from 'react';
 import { FieldValues, Resolver, UseFormReturn, useForm } from 'react-hook-form';
 import Toast from 'react-native-toast-message';
 import { DynamicQuery } from '../domain/utils/query_utils';
+import { normalizeAxiosError } from '../core/errors/normalizeAxiosError';
 
 export type CrudFormMessages = {
   successCreate?: string;
@@ -186,7 +187,11 @@ export function useCrud<
     },
     onError: (error) => {
       if (!muteMessages)
-        Toast.show({ type: 'error', text1: messages?.errorCreate || 'Erro ao criar item.' });
+        Toast.show({
+          type: 'error',
+          text1: messages?.errorCreate || 'Erro ao criar item.',
+          text2: normalizeAxiosError(error).message,
+        });
       if (__DEV__) {
         console.log('[useCrud] Create error:', error);
       }
@@ -207,7 +212,11 @@ export function useCrud<
       },
       onError: (error) => {
         if (!muteMessages)
-          Toast.show({ type: 'error', text1: messages?.errorUpdate || 'Erro ao atualizar item.' });
+          Toast.show({
+            type: 'error',
+            text1: messages?.errorUpdate || 'Erro ao atualizar item.',
+            text2: normalizeAxiosError(error).message,
+          });
         if (__DEV__) {
           console.log('[useCrud] Update error:', error);
         }
@@ -226,7 +235,11 @@ export function useCrud<
     },
     onError: (error) => {
       if (!muteMessages)
-        Toast.show({ type: 'error', text1: messages?.errorDelete || 'Erro ao remover item.' });
+        Toast.show({
+          type: 'error',
+          text1: messages?.errorDelete || 'Erro ao remover item.',
+          text2: normalizeAxiosError(error).message,
+        });
       if (__DEV__) {
         console.log('[useCrud] Delete error:', error);
       }

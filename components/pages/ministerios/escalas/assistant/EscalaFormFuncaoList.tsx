@@ -170,23 +170,20 @@ export const EscalaFormFuncaoList = React.memo(function EscalaFormFuncaoList({
           },
         ]}
       />
-      {equipeFormModalProps?.visible && (
-        <EventoFormFuncaoModal
-          mode={equipeFormModalProps.mode}
-          funcoesSelectionList={
-            equipeFormModalProps.mode === 'add' ? funcoesSelectionList : funcoesDropDownList
-          }
-          data={equipeFormModalProps.data}
-          modalProps={{
-            onButton1Press: () => setEquipeFormModalProps(null),
-            onButton2Press: (data) => {
-              if (equipeFormModalProps.mode === 'add') handleAddFuncao(data!);
-              else if (equipeFormModalProps.mode === 'edit') handleEditFuncao(data!);
-              setEquipeFormModalProps(null);
-            },
-          }}
-        />
-      )}
+      <EventoFormFuncaoModal
+        visible={!!equipeFormModalProps?.visible}
+        mode={equipeFormModalProps?.mode ?? 'add'}
+        funcoesSelectionList={
+          equipeFormModalProps?.mode === 'edit' ? funcoesDropDownList : funcoesSelectionList
+        }
+        data={equipeFormModalProps?.data}
+        onClose={() => setEquipeFormModalProps(null)}
+        onSubmit={(data) => {
+          if (equipeFormModalProps?.mode === 'edit') handleEditFuncao(data);
+          else handleAddFuncao(data);
+          setEquipeFormModalProps(null);
+        }}
+      />
     </>
   );
 });

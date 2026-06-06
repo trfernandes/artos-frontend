@@ -12,6 +12,7 @@ import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/q
 import FancyLoading from '../../../../../components/FancyLoading';
 import { strfyObj } from '../../../../../utils/text_utils';
 import { EscalaTemplateTipoEnumMap } from '../../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
+import { useLoading } from '../../../../../contexts/LoadingContext';
 
 export default function MinisterioTemplatesEditPage() {
   const { ministerioId, templateId } = useLocalSearchParams<{
@@ -42,6 +43,8 @@ export default function MinisterioTemplatesEditPage() {
     isLoading,
     isLoadingMutation,
   } = useEscalaTemplatesCrud({ autoFetch: true, initialParams: dataParams });
+
+  const { showLoading, hideLoading } = useLoading();
 
   const form = useForm<EscalaTemplateFormData>({
     resolver: zodResolver(escalaTemplateSchema),
@@ -77,17 +80,21 @@ export default function MinisterioTemplatesEditPage() {
 
   const handleOnSave = useCallback(
     form.handleSubmit(
-      (data) => {
+      async (data) => {
         if (!data.id) return;
 
-        updateTemplate?.({
-          id: data.id,
-          data: {
-            ...data,
-          },
-        })?.then(() => {
+        showLoading('Salvando');
+        try {
+          await updateTemplate?.({
+            id: data.id,
+            data: {
+              ...data,
+            },
+          });
           router.back();
-        });
+        } finally {
+          hideLoading();
+        }
       },
       (errors) =>
         console.log(

@@ -213,25 +213,20 @@ export default function MinisterioFuncoesIndex() {
           },
         ]}
       />
-      {funcaoFormModalParams && funcaoFormModalParams.visible && (
-        <FuncaoFormModal
-          title={funcaoFormModalParams.mode === 'edit' ? 'Editar Função' : 'Nova Função'}
-          mode={funcaoFormModalParams.mode || 'add'}
-          editValues={funcaoFormModalParams.editValues}
-          ministerioId={ministerioId!}
-          modalProps={{ visible: true }}
-          onButton1Press={() => setFuncaoFormModalParams({ visible: false })}
-          onButton2Press={(result) => {
-            if (result) {
-              if (result.mode === 'add') {
-                handleConfirm({ mode: 'add', data: result.data as CreateMinisterioFuncaoDto });
-              } else {
-                handleConfirm({ mode: 'edit', data: result.data as UpdateMinisterioFuncaoDto });
-              }
-            }
-          }}
-        />
-      )}
+      <FuncaoFormModal
+        visible={!!funcaoFormModalParams?.visible}
+        mode={funcaoFormModalParams?.mode || 'add'}
+        editValues={funcaoFormModalParams?.editValues}
+        isSaving={isLoadingMutation}
+        onClose={() => setFuncaoFormModalParams({ visible: false })}
+        onSubmit={(result) => {
+          if (result.mode === 'add') {
+            handleConfirm({ mode: 'add', data: result.data as CreateMinisterioFuncaoDto });
+          } else {
+            handleConfirm({ mode: 'edit', data: result.data as UpdateMinisterioFuncaoDto });
+          }
+        }}
+      />
     </FancyListPage>
   );
 }

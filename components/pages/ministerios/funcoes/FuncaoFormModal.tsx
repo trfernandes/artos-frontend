@@ -1,12 +1,13 @@
-import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
+import { useEffect, useMemo } from 'react';
+import { View } from 'react-native';
 import z from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import FancyBottomSheetModal from '../../../modal/FancyBottomSheetModal';
+import FancyButton from '../../../buttons/FancyButton';
 import ControlledTextInput from '../../../forms/ControlledTextInput';
 import ControlledTextArea from '../../../forms/ControlledTextArea';
 import ControlledToggle from '../../../forms/ControlledFancyToggle';
-import { View } from 'react-native';
-import { useEffect, useMemo } from 'react';
 import { MinisterioFuncaoStatusEnum } from '../../../../domain/enums/MinisterioFuncao/ministerio-funcao-status.enum';
 import { ResponseMinisterioFuncaoDto } from '../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.response';
 import { CreateMinisterioFuncaoDto } from '../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.create';
@@ -20,58 +21,75 @@ const schema = z.object({
   status: z.enum(MinisterioFuncaoStatusEnum).optional(),
 });
 
-export default function FuncaoFormModal(
-  props: FancyModalDialogProps<{
-    mode: 'add' | 'edit';
-    data: CreateMinisterioFuncaoDto | UpdateMinisterioFuncaoDto;
-  }> & {
-    ministerioId: string;
-  } & {
-    mode: 'add' | 'edit';
-    editValues?: ResponseMinisterioFuncaoDto;
-  },
-) {
+export type FuncaoFormResult = {
+  mode: 'add' | 'edit';
+  data: CreateMinisterioFuncaoDto | UpdateMinisterioFuncaoDto;
+};
+
+type Props = {
+  visible: boolean;
+  mode: 'add' | 'edit';
+  editValues?: ResponseMinisterioFuncaoDto;
+  isSaving?: boolean;
+  onClose: () => void;
+  onSubmit: (result: FuncaoFormResult) => void;
+};
+
+export default function FuncaoFormModal({
+  visible,
+  mode,
+  editValues,
+  isSaving,
+  onClose,
+  onSubmit,
+}: Props) {
   const { control, handleSubmit, reset } = useForm({
     resolver: zodResolver(schema),
   });
 
   useEffect(() => {
-    if (!props.editValues) {
-      return;
-    }
+    if (!visible) return;
 
-    if (props.mode === 'edit') {
+    if (mode === 'edit' && editValues) {
       reset({
-        id: props.editValues?.id,
-        nome: props.editValues.nome,
-        descricao: props.editValues.descricao || '',
-        status: props.editValues.status,
+        id: editValues.id,
+        nome: editValues.nome,
+        descricao: editValues.descricao || '',
+        status: editValues.status,
       });
-    } else if (props.mode === 'add') {
+    } else {
       reset({ id: undefined, nome: '', descricao: '', status: MinisterioFuncaoStatusEnum.Ativo });
     }
-  }, [props.mode, props.editValues]);
+  }, [visible, mode, editValues]);
 
   const handleConfirm = useMemo(
     () =>
       handleSubmit(
-        async (data) => {
-          props.onButton2Press?.({
-            mode: props.mode,
-            data,
-          });
-        },
+        async (data) => onSubmit({ mode, data }),
         (errors) => console.log('Erros do Função Form', strfyObj(errors)),
       ),
-    [props],
+    [handleSubmit, mode, onSubmit],
   );
 
   return (
-    <FancyModalDialog {...props} avoidKeyboard onButton2Press={handleConfirm}>
+    <FancyBottomSheetModal
+      visible={visible}
+      onClose={onClose}
+      title={mode === 'edit' ? 'Editar Função' : 'Nova Função'}
+      footer={
+        <FancyButton
+          label={mode === 'edit' ? 'Salvar' : 'Adicionar'}
+          type='contained'
+          isLoading={isSaving}
+          onPress={handleConfirm}
+          containerStyle={{ marginBottom: 8 }}
+        />
+      }
+    >
       <View style={{ gap: 15 }}>
         <ControlledTextInput control={control} name='nome' label='Nome' />
         <ControlledTextArea control={control} name='descricao' label='Descrição' />
-        {props.mode === 'edit' && (
+        {mode === 'edit' && (
           <ControlledToggle
             control={control}
             name='status'
@@ -87,6 +105,6 @@ export default function FuncaoFormModal(
           />
         )}
       </View>
-    </FancyModalDialog>
+    </FancyBottomSheetModal>
   );
 }

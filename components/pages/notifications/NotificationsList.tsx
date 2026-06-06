@@ -192,6 +192,7 @@ export default function NotificationsList({
   if (!dataList || dataList.length === 0) {
     return (
       <FancyListEmpty
+        muted={false}
         label={listEmptyLabel ?? 'Tudo certo por aqui'}
         helperText={listEmptyHelper}
         labelColor={Pallete.fonts.inactive}
