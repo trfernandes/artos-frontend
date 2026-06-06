@@ -116,11 +116,13 @@ export class BaseApi<TResponse, TCreate = unknown, TUpdate = unknown> {
     }
   }
 
-  async delete(id: string): Promise<void> {
+  async delete(id: string, igrejaId?: string): Promise<void> {
     try {
-      await apiClient.delete(`/${this.resourceName}/${id}`);
+      await apiClient.delete(`/${this.resourceName}/${id}`, {
+        params: igrejaId ? { igrejaId } : undefined,
+      });
     } catch (error) {
-      this.logAxiosError('delete', error, { id });
+      this.logAxiosError('delete', error, { id, igrejaId });
       throw error;
     }
   }

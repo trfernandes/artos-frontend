@@ -50,8 +50,8 @@ export function useMinisteriosCrud({
       return result[0];
     },
     add: (data) => MinisteriosRepository.add(data),
-    update: (id, data) => MinisteriosRepository.update(id, data),
-    remove: (id) => MinisteriosRepository.remove(id),
+    update: (id, data) => MinisteriosRepository.update(id, { ...data, igrejaId: igrejaAtiva.id }),
+    remove: (id) => MinisteriosRepository.remove(id, igrejaAtiva.id),
     resolver: zodResolver(AddMinisterioSchema),
     muteMessages,
     messages: {

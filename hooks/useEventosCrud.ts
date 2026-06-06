@@ -353,7 +353,7 @@ export function useEventosCrud({
     update: (id, data) => {
       return EventosRepository.update(id, { ...data, igrejaId: igrejaAtiva.id });
     },
-    remove: (id) => EventosRepository.remove(id),
+    remove: (id) => EventosRepository.remove(id, igrejaAtiva.id),
     resolver: zodResolver(eventoSchema),
   });
 

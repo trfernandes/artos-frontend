@@ -28,7 +28,7 @@ export abstract class BaseRepository<TResponse, TCreate, TUpdate> {
     return this.api.update(id, payload);
   }
 
-  remove(id: string): Promise<void> {
-    return this.api.delete(id);
+  remove(id: string, igrejaId?: string): Promise<void> {
+    return this.api.delete(id, igrejaId);
   }
 }
