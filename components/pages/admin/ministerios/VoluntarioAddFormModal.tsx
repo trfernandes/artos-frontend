@@ -1,16 +1,11 @@
-import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
-import {
-  VoluntarioHierarquiaEnumLabel,
-  VoluntarioHierarquiaEnumList,
-} from '../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
+import { useEffect, useMemo } from 'react';
+import { View } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import FancyBottomSheetModal from '../../../modal/FancyBottomSheetModal';
+import FancyButton from '../../../buttons/FancyButton';
 import ControlledSearchSelect from '../../../forms/ControlledSearchSelect';
-import ControlledBottomSheetSelect from '../../../forms/ControlledBottomSheetSelect';
-import { useScreenReadyLoading } from '../../../../hooks/useScreenReadyLoading';
-import { View } from 'react-native';
-import FancyText from '../../../FancyText';
-import { useMemo } from 'react';
+import { VoluntarioHierarquiaEnum } from '../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import { useIgrejaVoluntariosCrud } from '../../../../hooks/useIgrejaVoluntariosCrud';
 import { OrderDirection } from '../../../../domain/utils/query_utils';
@@ -22,13 +17,20 @@ import { AppImages } from '../../../../assets/app_images';
 
 export default function VoluntarioAddFormModal({
   ministerioId,
-  ...props
+  existingVoluntarios,
+  visible,
+  onClose,
+  onSubmit,
 }: {
   ministerioId: string;
   existingVoluntarios?: string[];
-} & FancyModalDialogProps<AddMinisterioVoluntarioFormData>) {
-  const form = useForm({
+  visible: boolean;
+  onClose: () => void;
+  onSubmit: (data: AddMinisterioVoluntarioFormData) => void;
+}) {
+  const form = useForm<AddMinisterioVoluntarioFormData>({
     resolver: zodResolver(AddMinisterioVoluntarioSchema),
+    defaultValues: { hierarquia: VoluntarioHierarquiaEnum.Voluntario },
   });
 
   const voluntariosDoMinisterioCrud = useIgrejaVoluntariosCrud({
@@ -36,17 +38,13 @@ export default function VoluntarioAddFormModal({
     initialParams: { orderBy: [{ path: 'nome', direction: OrderDirection.ASC }] },
   });
 
-  const dataReady =
-    !voluntariosDoMinisterioCrud.isLoading && !voluntariosDoMinisterioCrud.isLoadingMutation;
-
-  const { onLayout } = useScreenReadyLoading({
-    dataReady,
-    resetKey: ministerioId,
-    waitTransition: true,
-  });
+  useEffect(() => {
+    if (!visible) return;
+    form.reset({ hierarquia: VoluntarioHierarquiaEnum.Voluntario });
+  }, [visible]);
 
   const ministerioVoluntariosDropDownList = useMemo<DropDownItemProps<string>[]>(() => {
-    const existingIds = props.existingVoluntarios || [];
+    const existingIds = existingVoluntarios || [];
     const filteredList = voluntariosDoMinisterioCrud.data.filter(
       (item) => !existingIds.includes(item.id),
     );
@@ -64,30 +62,30 @@ export default function VoluntarioAddFormModal({
           },
         }) as DropDownItemProps<string>,
     );
-  }, [props.existingVoluntarios, voluntariosDoMinisterioCrud.data]);
+  }, [existingVoluntarios, voluntariosDoMinisterioCrud.data]);
 
-  const hierarquiaWatch = form.watch('hierarquia');
-
-  if (voluntariosDoMinisterioCrud.isLoading || voluntariosDoMinisterioCrud.isLoadingMutation) {
-    return null;
-  }
+  const handleConfirm = () => {
+    form.handleSubmit(
+      (data) => onSubmit(data),
+      (errors) => console.log('VoluntarioAddFormModal form errors', errors),
+    )();
+  };
 
   return (
-    <View onLayout={onLayout}>
-      <FancyText>{VoluntarioHierarquiaEnumLabel[hierarquiaWatch]}</FancyText>
-      <FancyModalDialog
-        title={'Adicionar Voluntário'}
-        {...props}
-        centerContainerStyle={{ gap: 15 }}
-        onButton2Press={() =>
-          form.handleSubmit(
-            (data) => {
-              props.onButton2Press?.(data);
-            },
-            (errors) => console.log('VoluntarioAddFormModal form errors', errors),
-          )()
-        }
-      >
+    <FancyBottomSheetModal
+      visible={visible}
+      onClose={onClose}
+      title='Adicionar Voluntário'
+      footer={
+        <FancyButton
+          label='Adicionar'
+          type='contained'
+          isLoading={voluntariosDoMinisterioCrud.isLoadingMutation}
+          onPress={handleConfirm}
+        />
+      }
+    >
+      <View style={{ gap: 12 }}>
         <ControlledSearchSelect
           control={form.control}
           name='voluntarioId'
@@ -100,13 +98,7 @@ export default function VoluntarioAddFormModal({
             form.setValue('voluntarioNome', voluntarioNome);
           }}
         />
-        <ControlledBottomSheetSelect
-          control={form.control}
-          name='hierarquia'
-          label='Função'
-          listItems={VoluntarioHierarquiaEnumList}
-        />
-      </FancyModalDialog>
-    </View>
+      </View>
+    </FancyBottomSheetModal>
   );
 }

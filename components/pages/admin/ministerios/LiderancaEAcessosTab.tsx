@@ -276,10 +276,19 @@ function LiderancaEAcessosAddTab() {
                         size: 18,
                         backgroundColor: '#F05A4F',
                       },
-                      onPress: () =>
+                      onPress: () => {
+                        if (lideres.length <= 1) {
+                          FancyAlert.alert(
+                            'Líder obrigatório',
+                            'O ministério precisa de ao menos um líder. Adicione outro líder antes de remover este.',
+                            [{ text: 'Entendi', style: 'cancel' }],
+                          );
+                          return;
+                        }
                         lideresFieldArray.remove(
                           lideres.findIndex((lider) => lider.voluntarioId === item.voluntarioId),
-                        ),
+                        );
+                      },
                     },
                   ],
                 }}
@@ -549,6 +558,14 @@ function LiderancaEAcessosEditTab({ ministerioId }: { ministerioId: string }) {
 
   const handleRemoveLeader = useCallback(
     async (item: ResponseMinisterioVoluntarioDto) => {
+      if (lideres.length <= 1) {
+        FancyAlert.alert(
+          'Líder obrigatório',
+          'O ministério precisa de ao menos um líder. Adicione outro líder antes de remover este.',
+          [{ text: 'Entendi', style: 'cancel' }],
+        );
+        return;
+      }
       FancyAlert.alert('Remover liderança', 'Deseja remover esse líder da gestão do ministério?', [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -569,7 +586,7 @@ function LiderancaEAcessosEditTab({ ministerioId }: { ministerioId: string }) {
         },
       ]);
     },
-    [hideLoading, refetchAll, showLoading, updateVoluntario],
+    [hideLoading, lideres.length, refetchAll, showLoading, updateVoluntario],
   );
 
   const handleSaveAuxiliar = useCallback(

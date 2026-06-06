@@ -97,13 +97,21 @@ export default function VoluntariosIndexPage() {
             text: 'Sim, estou ciente',
             style: 'destructive',
             onPress: () => {
-              removeVoluntario(voluntarioId);
+              showLoading();
+              Promise.resolve(removeVoluntario?.(voluntarioId))
+                .then(async () => {
+                  await refetch();
+                })
+                .catch(() => {
+                  // O toast de erro já é exibido pelo onError do useCrud
+                })
+                .finally(() => hideLoading());
             },
           },
         ],
       );
     },
-    [removeVoluntario],
+    [removeVoluntario, refetch, showLoading, hideLoading],
   );
 
   const filteredData = useMemo(() => {

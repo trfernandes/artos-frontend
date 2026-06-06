@@ -143,7 +143,6 @@ export default function AuxiliarMinisterioFormSheet({
           disabled={!voluntarioId}
           isLoading={isSaving}
           onPress={handleSave}
-          containerStyle={{ marginBottom: 8 }}
         />
       }
     >

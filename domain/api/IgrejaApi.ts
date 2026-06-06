@@ -195,6 +195,14 @@ class IgrejaApiClass extends BaseApi<ResponseIgrejaDto, CreateIgrejaDto, UpdateI
     return response.data.data;
   }
 
+  /**
+   * Remover voluntário da igreja (JWT)
+   * DELETE /igrejas/{igrejaId}/voluntarios/{voluntarioId}
+   */
+  async removerVoluntario(igrejaId: string, voluntarioId: string): Promise<void> {
+    await apiClient.delete(`/${this.resourceName}/${igrejaId}/voluntarios/${voluntarioId}`);
+  }
+
   // ========== CONVITES ==========
 
   /**

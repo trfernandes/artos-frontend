@@ -176,7 +176,8 @@ export function useCrud<
   const combinedRefetching = hasReceivedData && dataQuery.isFetching && !dataQuery.isLoading;
 
   const createMutation = useMutation({
-    mutationFn: add,
+    mutationFn:
+      add ?? (() => Promise.reject(new Error('Operação de criação não suportada neste recurso.'))),
     onSuccess: async () => {
       if (!muteMessages)
         Toast.show({
@@ -224,7 +225,9 @@ export function useCrud<
     });
 
   const removeMutation = useMutation({
-    mutationFn: remove,
+    mutationFn:
+      remove ??
+      (() => Promise.reject(new Error('Operação de remoção não suportada neste recurso.'))),
     onSuccess: async () => {
       if (!muteMessages)
         Toast.show({

@@ -32,6 +32,11 @@ export interface IntegranteFormFieldsProps {
   voluntariosDropDownList?: DropDownItemProps<string>[];
   funcoesDropDownList?: DropDownItemProps<string>[];
   funcoesList: ResponseMinisterioFuncaoDto[];
+  /**
+   * Permite renderizar apenas uma seção do formulário (usado no wizard de adição).
+   * Quando omitido, renderiza voluntário + funções (comportamento da tela de edição).
+   */
+  section?: 'voluntario' | 'funcoes';
 }
 
 export default function IntegranteFormFields({
@@ -39,6 +44,7 @@ export default function IntegranteFormFields({
   funcoesDropDownList,
   funcoesList,
   mode,
+  section,
 }: IntegranteFormFieldsProps) {
   const palette = usePallete();
   //   console.log('IntegranteFormFields render', strfyObj({ voluntariosDropDownList, funcoesDropDownList, funcoesList, mode }));
@@ -117,121 +123,129 @@ export default function IntegranteFormFields({
     });
   }, [fieldsFuncao]);
 
+  const showVoluntario = section !== 'funcoes';
+  const showFuncoes = section !== 'voluntario';
+
   return (
     <View style={styles.root}>
-      {mode === 'add' ? (
-        <ControlledSearchSelect
-          control={control}
-          name='voluntarioId'
-          label='Voluntário'
-          listItems={voluntariosDropDownList}
-          searchPlaceholder='Buscar voluntário...'
-        />
-      ) : (
-        <View style={styles.profileHeader}>
-          <FancyImage
-            source={
-              getValues('voluntarioFoto')
-                ? { uri: getValues('voluntarioFoto') }
-                : AppImages.emptyProfile
-            }
-            size={46}
+      {showVoluntario &&
+        (mode === 'add' ? (
+          <ControlledSearchSelect
+            control={control}
+            name='voluntarioId'
+            label='Voluntário'
+            listItems={voluntariosDropDownList}
+            searchPlaceholder='Buscar voluntário...'
           />
-          <View style={styles.profileText}>
-            <FancyText size='medium' type='bold' style={styles.profileName} numberOfLines={2}>
-              {getValues('voluntarioNome')}
-            </FancyText>
-            <FancyText
-              size='small'
-              type='medium'
-              style={styles.profileEmail}
-              numberOfLines={1}
-              ellipsizeMode='middle'
-            >
-              {getValues('voluntarioEmail')}
-            </FancyText>
-            {getValues('voluntarioStatus') && (
-              <FancyChips
+        ) : (
+          <View style={styles.profileHeader}>
+            <FancyImage
+              source={
+                getValues('voluntarioFoto')
+                  ? { uri: getValues('voluntarioFoto') }
+                  : AppImages.emptyProfile
+              }
+              size={46}
+            />
+            <View style={styles.profileText}>
+              <FancyText size='medium' type='bold' style={styles.profileName} numberOfLines={2}>
+                {getValues('voluntarioNome')}
+              </FancyText>
+              <FancyText
                 size='small'
-                style={styles.statusChip}
-                label={
-                  MinisterioVoluntarioStatusEnumLabel[
-                    MinisterioVoluntarioStatusEnumMap[getValues('voluntarioStatus')!]
-                  ]
-                }
-                color={
-                  MinisterioVoluntarioStatusEnumMap[getValues('voluntarioStatus')!] ===
-                  MinisterioVoluntarioStatusEnum.Ativo
-                    ? palette.primary
-                    : palette.error
-                }
+                type='medium'
+                style={styles.profileEmail}
+                numberOfLines={1}
+                ellipsizeMode='middle'
+              >
+                {getValues('voluntarioEmail')}
+              </FancyText>
+              {getValues('voluntarioStatus') && (
+                <FancyChips
+                  size='small'
+                  style={styles.statusChip}
+                  label={
+                    MinisterioVoluntarioStatusEnumLabel[
+                      MinisterioVoluntarioStatusEnumMap[getValues('voluntarioStatus')!]
+                    ]
+                  }
+                  color={
+                    MinisterioVoluntarioStatusEnumMap[getValues('voluntarioStatus')!] ===
+                    MinisterioVoluntarioStatusEnum.Ativo
+                      ? palette.primary
+                      : palette.error
+                  }
+                />
+              )}
+            </View>
+          </View>
+        ))}
+
+      {showFuncoes && (
+        <>
+          <FancyContainerList
+            title='Funções'
+            contentContainerStyle={styles.funcoesContent}
+            buttons={[
+              {
+                icon: { ...DefaultIconsNames.add, size: 19 },
+                onPress: () => {
+                  handleClearForm();
+                  setFormModalOptions({ visible: true, mode: 'add' });
+                },
+              },
+            ]}
+            data={sortedFuncoesList}
+            renderItem={({ item }) => (
+              <FancyCard.Image
+                key={item.id}
+                type='icon'
+                props={{
+                  title: item.nome,
+                  subtitle: EscalaTemplateExperienciaLabel[item.experiencia!],
+                  containerStyle: styles.funcaoCard,
+                  contentContainerStyle: styles.funcaoCardContent,
+                  centerContainerStyle: styles.funcaoCardCenter,
+                  cardIcon: {
+                    library: 'FontAwesome6',
+                    name: 'person-rays',
+                    size: 18,
+                  },
+                  actionButtons: [
+                    {
+                      icon: { ...DefaultIconsNames.edit, size: 17 },
+                      onPress: () => handleEdit(item),
+                    },
+                    {
+                      icon: {
+                        ...DefaultIconsNames.delete,
+                        size: 18,
+                        backgroundColor: palette.error,
+                      },
+                      onPress: () => handleDelete(item.id),
+                    },
+                  ],
+                }}
               />
             )}
-          </View>
-        </View>
-      )}
-
-      <FancyContainerList
-        title='Funções'
-        contentContainerStyle={styles.funcoesContent}
-        buttons={[
-          {
-            icon: { ...DefaultIconsNames.add, size: 19 },
-            onPress: () => {
-              handleClearForm();
-              setFormModalOptions({ visible: true, mode: 'add' });
-            },
-          },
-        ]}
-        data={sortedFuncoesList}
-        renderItem={({ item }) => (
-          <FancyCard.Image
-            key={item.id}
-            type='icon'
-            props={{
-              title: item.nome,
-              subtitle: EscalaTemplateExperienciaLabel[item.experiencia!],
-              containerStyle: styles.funcaoCard,
-              contentContainerStyle: styles.funcaoCardContent,
-              centerContainerStyle: styles.funcaoCardCenter,
-              cardIcon: {
-                library: 'FontAwesome6',
-                name: 'person-rays',
-                size: 18,
-              },
-              actionButtons: [
-                {
-                  icon: { ...DefaultIconsNames.edit, size: 17 },
-                  onPress: () => handleEdit(item),
-                },
-                {
-                  icon: {
-                    ...DefaultIconsNames.delete,
-                    size: 18,
-                    backgroundColor: palette.error,
-                  },
-                  onPress: () => handleDelete(item.id),
-                },
-              ],
-            }}
           />
-        )}
-      />
 
-      {formModalOptions.visible && (
-        <FormProvider {...formModal}>
-          <IntegranteFormModal
-            mode={formModalOptions.mode}
-            title={formModalOptions.mode === 'add' ? 'Adicionar Função' : 'Editar Função'}
-            funcoesDropDownList={
-              formModalOptions.mode === 'edit' ? funcoesDropDownList : notUsedFuncoesList
-            }
-            onButton2Press={() => handleSave()}
-            onButton1Press={() => {
-              setFormModalOptions({ visible: false, mode: 'add' });
-            }}
-          />
-        </FormProvider>
+          {formModalOptions.visible && (
+            <FormProvider {...formModal}>
+              <IntegranteFormModal
+                mode={formModalOptions.mode}
+                title={formModalOptions.mode === 'add' ? 'Adicionar Função' : 'Editar Função'}
+                funcoesDropDownList={
+                  formModalOptions.mode === 'edit' ? funcoesDropDownList : notUsedFuncoesList
+                }
+                onButton2Press={() => handleSave()}
+                onButton1Press={() => {
+                  setFormModalOptions({ visible: false, mode: 'add' });
+                }}
+              />
+            </FormProvider>
+          )}
+        </>
       )}
     </View>
   );

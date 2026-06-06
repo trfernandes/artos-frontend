@@ -122,6 +122,13 @@ class IgrejaRepositoryClass extends BaseRepository<
     return IgrejaApi.listarVoluntarios(igrejaId, query);
   }
 
+  /**
+   * Remover voluntário da igreja (JWT)
+   */
+  removerVoluntario(igrejaId: string, voluntarioId: string): Promise<void> {
+    return IgrejaApi.removerVoluntario(igrejaId, voluntarioId);
+  }
+
   // ========== CONVITES (ADMIN) ==========
 
   /**

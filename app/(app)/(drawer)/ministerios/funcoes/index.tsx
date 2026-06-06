@@ -26,9 +26,11 @@ import FancyListItemCard from '../../../../../components/cards/FancyListItemCard
 import FancyActionSheet from '../../../../../components/actions/FancyActionSheet';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { ColorUtils } from '../../../../../utils/color_utils';
+import { useLoading } from '../../../../../contexts/LoadingContext';
 
 export default function MinisterioFuncoesIndex() {
   const palette = usePallete();
+  const { showLoading, hideLoading } = useLoading();
   const [funcaoFormModalParams, setFuncaoFormModalParams] = useState<
     | {
         mode?: 'add' | 'edit';
@@ -85,33 +87,40 @@ export default function MinisterioFuncoesIndex() {
   });
 
   const handleConfirm = useCallback(
-    ({
+    async ({
       mode,
       data,
     }:
       | { mode: 'add'; data: CreateMinisterioFuncaoDto }
       | { mode: 'edit'; data: UpdateMinisterioFuncaoDto }) => {
-      if (mode === 'add') {
-        addFuncao?.({
-          ministerioId: ministerioId!,
-          nome: data.nome!,
-          descricao: data.descricao,
-          status: data.status!,
-        });
-      } else if (mode === 'edit') {
-        updateFuncao?.({
-          id: data.id!,
-          data: {
-            nome: data.nome,
-            descricao: data.descricao,
-            status: data.status,
-            ministerioId: ministerioId!,
-          },
-        });
-      }
       setFuncaoFormModalParams({ visible: false });
+      showLoading('Salvando');
+      try {
+        if (mode === 'add') {
+          await addFuncao?.({
+            ministerioId: ministerioId!,
+            nome: data.nome!,
+            descricao: data.descricao,
+            status: data.status!,
+          });
+        } else if (mode === 'edit') {
+          await updateFuncao?.({
+            id: data.id!,
+            data: {
+              nome: data.nome,
+              descricao: data.descricao,
+              status: data.status,
+              ministerioId: ministerioId!,
+            },
+          });
+        }
+      } catch {
+        // O toast de erro já é exibido pelo onError do useCrud
+      } finally {
+        hideLoading();
+      }
     },
-    [ministerioId, addFuncao, updateFuncao],
+    [ministerioId, addFuncao, updateFuncao, showLoading, hideLoading],
   );
 
   const handleDeleteFuncao = useCallback(

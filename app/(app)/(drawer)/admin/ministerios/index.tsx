@@ -26,7 +26,7 @@ import { ResponseMinisterioDto } from '../../../../../domain/dtos/Ministerio/min
 
 export default function MinisteriosIndex() {
   const palette = usePallete();
-  const { showLoading } = useLoading();
+  const { showLoading, hideLoading } = useLoading();
   const { user, updateUser } = useAuth();
 
   const [searchText, setSearchText] = useState('');
@@ -92,25 +92,31 @@ export default function MinisteriosIndex() {
             text: 'Sim, estou ciente',
             style: 'destructive',
             onPress: () => {
-              removeMinisterio?.(ministerioId);
-
-              //Remover ministério do usuário logado, se houver
-              const hasMinisterio = user?.igrejas?.some((igreja) =>
-                igreja.ministerios?.some((m) => m.id === ministerioId),
-              );
-              if (hasMinisterio && user) {
-                const igrejasAtualizadas = user.igrejas.map((igreja) => ({
-                  ...igreja,
-                  ministerios: (igreja.ministerios || []).filter((m) => m.id !== ministerioId),
-                }));
-                updateUser({ igrejas: igrejasAtualizadas });
-              }
+              showLoading('Removendo...');
+              Promise.resolve(removeMinisterio?.(ministerioId))
+                .then(() => {
+                  //Remover ministério do usuário logado, somente após sucesso
+                  const hasMinisterio = user?.igrejas?.some((igreja) =>
+                    igreja.ministerios?.some((m) => m.id === ministerioId),
+                  );
+                  if (hasMinisterio && user) {
+                    const igrejasAtualizadas = user.igrejas.map((igreja) => ({
+                      ...igreja,
+                      ministerios: (igreja.ministerios || []).filter((m) => m.id !== ministerioId),
+                    }));
+                    updateUser({ igrejas: igrejasAtualizadas });
+                  }
+                })
+                .catch(() => {
+                  // O toast de erro já é exibido pelo onError do useCrud
+                })
+                .finally(() => hideLoading());
             },
           },
         ],
       );
     },
-    [removeMinisterio, user, updateUser],
+    [removeMinisterio, user, updateUser, showLoading, hideLoading],
   );
 
   if (isError) {

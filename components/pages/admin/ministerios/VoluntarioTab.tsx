@@ -9,7 +9,6 @@ import {
 import { FancyActionButtons } from '../../../cards/Horizontal/FancyCardActionButtons';
 import { FancyCard } from '../../../cards/Horizontal/FancyCard';
 import FancyLoading from '../../../FancyLoading';
-import { FancyTextDisplayCard } from '../../../cards/FancyTextDisplayCard';
 import { useMinisterioVoluntariosCrud } from '../../../../hooks/useMinisterioVoluntariosCrud';
 import { useCallback, useMemo, useState } from 'react';
 import {
@@ -157,18 +156,7 @@ export default function VoluntarioTab({ ministerioId }: VoluntarioTabProps) {
               ? ColorUtils.lightenColor(Pallete.primary, 0.8)
               : undefined,
             title: item.voluntario?.nome,
-            subtitle: item.voluntario?.email || (
-              <FancyTextDisplayCard
-                title='Função:'
-                value={VoluntarioHierarquiaEnumLabel[item.hierarquia]}
-              />
-            ),
-            additionalData1: item.voluntario?.email ? (
-              <FancyTextDisplayCard
-                title='Função:'
-                value={VoluntarioHierarquiaEnumLabel[item.hierarquia]}
-              />
-            ) : undefined,
+            subtitle: item.voluntario?.email || undefined,
             source:
               item.voluntario?.fotoUrl || item.voluntario?.fotoThumbUrl
                 ? { uri: item.voluntario?.fotoThumbUrl || item.voluntario?.fotoUrl }
@@ -247,13 +235,13 @@ export default function VoluntarioTab({ ministerioId }: VoluntarioTabProps) {
         <VoluntarioAddFormModal
           ministerioId={ministerioId}
           existingVoluntarios={minVoluntsList.map((mv) => mv.voluntarioId)}
-          modalProps={{ visible: true }}
-          onButton1Press={() => {
+          visible={addFormParams.visible}
+          onClose={() => {
             setAddFormParams({ visible: false });
             hideLoading();
           }}
-          onButton2Press={(data) => {
-            data && handleAddVoluntario(data);
+          onSubmit={(data) => {
+            handleAddVoluntario(data);
             setAddFormParams({ visible: false });
           }}
         />

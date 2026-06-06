@@ -20,5 +20,11 @@ export function useIgrejaVoluntariosCrud({
     fetchAll: () => IgrejaRepository.listarVoluntarios(igrejaAtiva.id),
     search: (query) => IgrejaRepository.listarVoluntarios(igrejaAtiva.id, query),
     fetchOne: undefined,
+    remove: (voluntarioId: string) =>
+      IgrejaRepository.removerVoluntario(igrejaAtiva.id, voluntarioId),
+    messages: {
+      successDelete: 'Voluntário excluído com sucesso!',
+      errorDelete: 'Erro ao excluir voluntário.',
+    },
   });
 }
