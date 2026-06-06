@@ -1,5 +1,6 @@
 import { EscalaItemEquipeType } from '../../../../../app/(app)/(drawer)/ministerios/escalas/details';
-import FancyModalDialog, { FancyModalDialogProps } from '../../../../modal/FancyModalDialog';
+import FancyBottomSheetModal from '../../../../modal/FancyBottomSheetModal';
+import FancyButton from '../../../../buttons/FancyButton';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import FancyText from '../../../../FancyText';
 import FancyAvatarImage from '../../../../images/FancyImage';
@@ -23,6 +24,8 @@ import DefaultIcons from '../../../../FancyIcons';
 import { ColorUtils } from '../../../../../utils/color_utils';
 
 export interface SubstituirVoluntarioModalProps {
+  visible: boolean;
+  onClose: () => void;
   data: EscalaItemEquipeType & {
     ministerioId: string;
     idEscalaItem: string;
@@ -33,6 +36,7 @@ export interface SubstituirVoluntarioModalProps {
     };
   };
   currentEquipe?: EscalaItemEquipeType[];
+  onConfirm: (data: SubstituicaoConfirmDialog) => Promise<void>;
 }
 
 export interface SubstituicaoConfirmDialog {
@@ -42,10 +46,12 @@ export interface SubstituicaoConfirmDialog {
 }
 
 export default function SubstituirVoluntarioModal({
+  visible,
+  onClose,
   data,
   currentEquipe,
-  ...props
-}: SubstituirVoluntarioModalProps & FancyModalDialogProps<any>) {
+  onConfirm,
+}: SubstituirVoluntarioModalProps) {
   const palette = usePallete();
   const [disponiveisNaData, setDisponiveisNaData] = useState(false);
   const [temMesmaFuncao, setTemMesmaFuncao] = useState(false);
@@ -216,34 +222,27 @@ export default function SubstituirVoluntarioModal({
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (): boolean => {
-    if (selectedSubstituto) {
-      setErrors({});
-      return true;
-    }
-
-    setErrors({ substituto: 'Campo Obrigatório' });
-    return false;
-  };
-
   const handleConfirm = () => {
+    if (!selectedSubstituto) {
+      setErrors({ substituto: 'Campo Obrigatório' });
+      return;
+    }
+    setErrors({});
     FancyAlert.alert('Confirmação', 'Você deseja realmente confirmar a substituição?', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Confirmar',
         style: 'destructive',
         onPress: async () => {
-          if (handleSubmit()) {
-            try {
-              setIsSubmitting(true);
-              await props.onButton2Press?.({
-                idEscalaItem: data.idEscalaItem,
-                idVoluntario: data.voluntario?.minVoluntarioId,
-                idSubstituto: selectedSubstituto!,
-              });
-            } finally {
-              setIsSubmitting(false);
-            }
+          try {
+            setIsSubmitting(true);
+            await onConfirm({
+              idEscalaItem: data.idEscalaItem,
+              idVoluntario: data.voluntario?.minVoluntarioId ?? '',
+              idSubstituto: selectedSubstituto,
+            });
+          } finally {
+            setIsSubmitting(false);
           }
         },
       },
@@ -251,21 +250,31 @@ export default function SubstituirVoluntarioModal({
   };
 
   return (
-    <FancyModalDialog<SubstituicaoConfirmDialog>
-      {...props}
+    <FancyBottomSheetModal
+      visible={visible}
+      onClose={onClose}
       title='Substituição'
-      centerContainerStyle={styles.container}
-      onButton2Press={handleConfirm}
-      button1={{ disabled: isSubmitting }}
-      button2={{ isLoading: isSubmitting, loadingText: 'Substituindo...' }}
-      containerStyle={{
-        pointerEvents:
-          isLoadingMinisterioVoluntarios ||
-          isLoadingMinisterioVoluntariosMutation ||
-          isLoadingSubstitutos
-            ? 'none'
-            : 'auto',
-      }}
+      closeDisabled={isSubmitting}
+      footer={
+        <View style={styles.footer}>
+          <FancyButton
+            type='outlined'
+            label='Cancelar'
+            onPress={onClose}
+            disabled={isSubmitting}
+            containerStyle={styles.footerButton}
+          />
+          <FancyButton
+            type='contained'
+            label='Substituir'
+            onPress={handleConfirm}
+            isLoading={isSubmitting}
+            loadingText='Substituindo...'
+            disabled={isSubmitting || isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation || isLoadingSubstitutos}
+            containerStyle={styles.footerButton}
+          />
+        </View>
+      }
     >
       <View
         style={{
@@ -276,6 +285,12 @@ export default function SubstituirVoluntarioModal({
           paddingHorizontal: 12,
           paddingVertical: 10,
           gap: 6,
+          pointerEvents:
+            isLoadingMinisterioVoluntarios ||
+            isLoadingMinisterioVoluntariosMutation ||
+            isLoadingSubstitutos
+              ? 'none'
+              : 'auto',
         }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -354,9 +369,9 @@ export default function SubstituirVoluntarioModal({
                 placeholder='Buscar voluntário...'
                 value={selectedSubstituto}
                 onChange={(value) => {
-                  setSelectedSubstituto(Array.isArray(value) ? value[0] || null : value);
+                  setSelectedSubstituto(Array.isArray(value) ? (value[0] ?? null) : value);
                   setErrors((prev) => {
-                    const { substituto, ...rest } = prev;
+                    const { substituto: _substituto, ...rest } = prev;
                     return rest;
                   });
                 }}
@@ -368,15 +383,22 @@ export default function SubstituirVoluntarioModal({
                   isLoadingMinisterioVoluntariosMutation
                 }
               />
-              {errors && <FancyErrorText message={errors['substituto']} />}
+              {errors['substituto'] && <FancyErrorText message={errors['substituto']} />}
             </View>
           </View>
         </View>
       </FancyGroup>
-    </FancyModalDialog>
+    </FancyBottomSheetModal>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 14, paddingTop: 0, paddingBottom: 10 },
+  footer: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingBottom: 8,
+  },
+  footerButton: {
+    flex: 1,
+  },
 });

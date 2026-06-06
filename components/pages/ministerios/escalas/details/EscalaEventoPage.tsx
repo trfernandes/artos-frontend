@@ -642,6 +642,8 @@ export default function EscalaEventoPage({
       {/* ── Modals ──────────────────────────────────────────────────────────── */}
       {substituicaoModalProps.isOpen && (
         <SubstituirVoluntarioModal
+          visible={substituicaoModalProps.isOpen}
+          onClose={() => setSubstituicaoModalProps({ isOpen: false })}
           data={{
             ...substituicaoModalProps.data!,
             evento: {
@@ -652,12 +654,10 @@ export default function EscalaEventoPage({
             ministerioId,
           }}
           currentEquipe={data.equipe}
-          onButton2Press={async (subData) => {
+          onConfirm={async (subData) => {
             const ok = await onChangeVoluntario?.(subData);
             if (ok) setSubstituicaoModalProps({ isOpen: false });
           }}
-          onButton1Press={() => setSubstituicaoModalProps({ isOpen: false })}
-          modalProps={{ visible: substituicaoModalProps.isOpen }}
         />
       )}
 
@@ -684,18 +684,18 @@ export default function EscalaEventoPage({
 
       {adicionarFuncaoModalOpen && (
         <AdicionarFuncaoModal
+          visible={adicionarFuncaoModalOpen}
+          onClose={() => setAdicionarFuncaoModalOpen(false)}
           ministerioId={ministerioId}
           eventoNome={data.evento.nome}
           eventoId={data.evento.id}
           dataOcorrencia={DateUtilsApi.dateTimeFromApi(data.dataOcorrencia)}
           dataInicio={data.evento.dataInicio!}
           dataTermino={data.evento.dataTermino!}
-          onButton2Press={async (funcaoData) => {
+          onConfirm={async (funcaoData) => {
             const ok = await onAdicionarFuncao?.(funcaoData);
             if (ok) setAdicionarFuncaoModalOpen(false);
           }}
-          onButton1Press={() => setAdicionarFuncaoModalOpen(false)}
-          modalProps={{ visible: adicionarFuncaoModalOpen }}
         />
       )}
 
