@@ -1,4 +1,4 @@
-import { Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { format } from 'date-fns';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -8,10 +8,10 @@ import { DateUtilsApi } from '../../../../../utils/date_utils';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 import { useEventoHeaderState } from '../../../../../hooks/useEventoHeaderState';
+import { useLoading } from '../../../../../contexts/LoadingContext';
 
 import FancyText from '../../../../FancyText';
 import FancyScrollView from '../../../../FancyScrollView';
-import FancyLoading from '../../../../FancyLoading';
 import FancyBottomSheetModal from '../../../../modal/FancyBottomSheetModal';
 import FancyButton from '../../../../buttons/FancyButton';
 import FancyImage from '../../../../images/FancyImage';
@@ -80,6 +80,7 @@ export default function EscalaEventoPage({
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
   const isEditMode = !viewMode || viewMode === 'edit';
+  const { showLoading, hideLoading } = useLoading();
 
   const {
     hasEventPassed,
@@ -104,10 +105,6 @@ export default function EscalaEventoPage({
 
   const [adicionarFuncaoModalOpen, setAdicionarFuncaoModalOpen] = useState(false);
   const [eventoDetailsVisible, setEventoDetailsVisible] = useState(false);
-  const [loadingAction, setLoadingAction] = useState<{ visible: boolean; label: string }>({
-    visible: false,
-    label: '',
-  });
 
   // ── Setlist owner state ───────────────────────────────────────────────────────
   const responsavelSelectRef = useRef<FancyBottomSheetSelectRef>(null);
@@ -162,15 +159,18 @@ export default function EscalaEventoPage({
       setResponsavelSetlistValue(nextValue);
 
       void (async () => {
-        setLoadingAction({ visible: true, label: 'Salvando responsável...' });
-        const ok =
-          (await onUpdateResponsavelSetlist?.({
-            eventoId: data.evento.id,
-            dataOcorrencia: data.dataOcorrencia,
-            responsavelVoluntarioId: nextValue || null,
-          })) ?? false;
-        if (!ok) setResponsavelSetlistValue(previousValue);
-        setLoadingAction({ visible: false, label: '' });
+        showLoading('Salvando responsável...');
+        try {
+          const ok =
+            (await onUpdateResponsavelSetlist?.({
+              eventoId: data.evento.id,
+              dataOcorrencia: data.dataOcorrencia,
+              responsavelVoluntarioId: nextValue || null,
+            })) ?? false;
+          if (!ok) setResponsavelSetlistValue(previousValue);
+        } finally {
+          hideLoading();
+        }
       })();
     },
     [data.dataOcorrencia, data.evento.id, onUpdateResponsavelSetlist, responsavelSetlistValue],
@@ -195,10 +195,10 @@ export default function EscalaEventoPage({
         style: 'destructive',
         onPress: async () => {
           try {
-            setLoadingAction({ visible: true, label: 'Excluindo evento...' });
+            showLoading('Excluindo evento...');
             await onDeleteEvento?.(data.evento.id, data.dataOcorrencia);
           } finally {
-            setLoadingAction({ visible: false, label: '' });
+            hideLoading();
           }
         },
       },
@@ -604,10 +604,10 @@ export default function EscalaEventoPage({
                     style: 'destructive',
                     onPress: async () => {
                       try {
-                        setLoadingAction({ visible: true, label: 'Removendo voluntário...' });
+                        showLoading('Removendo voluntário...');
                         await onRemoveVoluntario?.(equipeItem.idEscalaItem);
                       } finally {
-                        setLoadingAction({ visible: false, label: '' });
+                        hideLoading();
                       }
                     },
                   },
@@ -625,10 +625,10 @@ export default function EscalaEventoPage({
                     style: 'destructive',
                     onPress: async () => {
                       try {
-                        setLoadingAction({ visible: true, label: 'Excluindo função...' });
+                        showLoading('Excluindo função...');
                         await onExcluirFuncao?.(funcaoId, data.evento.id, data.dataOcorrencia);
                       } finally {
-                        setLoadingAction({ visible: false, label: '' });
+                        hideLoading();
                       }
                     },
                   },
@@ -760,17 +760,6 @@ export default function EscalaEventoPage({
           )}
         </View>
       </FancyBottomSheetModal>
-
-      <Modal visible={loadingAction.visible} transparent animationType='fade'>
-        <View style={styles.blockingOverlay}>
-          <View style={styles.blockingOverlayContent}>
-            <FancyLoading
-              label={loadingAction.label}
-              containerStyle={{ flex: 0, alignSelf: 'center' }}
-            />
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
@@ -975,21 +964,6 @@ function createStyles(palette: ThemePalette) {
     hiddenSelect: {
       height: 0,
       minHeight: 0,
-    },
-    // ── Blocking overlay ─────────────────────────────────────────────────────
-    blockingOverlay: {
-      ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(0,0,0,0.12)',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 50,
-    },
-    blockingOverlayContent: {
-      minWidth: 180,
-      paddingHorizontal: 18,
-      paddingVertical: 16,
-      borderRadius: 12,
-      backgroundColor: palette.backgroundColor,
     },
   });
 }
