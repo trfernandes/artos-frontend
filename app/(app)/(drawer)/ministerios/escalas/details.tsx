@@ -24,6 +24,7 @@ import { TemplatePadraoEscopoEnum } from '../../../../../domain/enums/Evento/tem
 import { getApiErrorMessage } from '../../../../../domain/api/api-error';
 import { canManageEventoOcorrencia } from '../../../../../utils/ministerio_permissoes';
 import { combineOccurrenceWithEventTime } from '../../../../../utils/evento-datetime';
+import { useLoading } from '../../../../../contexts/LoadingContext';
 
 export type EscalaItemDataType = {
   dataOcorrencia: string;
@@ -80,6 +81,7 @@ export default function MinisterioEscalasDetailsPage() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [isParametrizacaoOpen, setIsParametrizacaoOpen] = useState(false);
   const { salvarResponsavelSetlist, isSavingResponsavelSetlist } = useEventoSetlistResponsavel();
+  const { showLoading, hideLoading } = useLoading();
   const canEditSetlistOwner =
     canManageEventoOcorrencia(igrejaAtiva, ministerioId) && viewMode !== 'view';
 
@@ -320,10 +322,11 @@ export default function MinisterioEscalasDetailsPage() {
           text1: 'Voluntário adicionado à função.',
         });
         return true;
-      } catch {
+      } catch (error) {
         Toast.show({
           type: 'error',
           text1: 'Não foi possível adicionar o voluntário.',
+          text2: getApiErrorMessage(error, 'Tente novamente em instantes.'),
         });
         return false;
       }
@@ -394,6 +397,7 @@ export default function MinisterioEscalasDetailsPage() {
       responsavelVoluntarioId: string | null;
     }): Promise<boolean> => {
       try {
+        showLoading('Salvando...');
         await salvarResponsavelSetlist({
           eventoId,
           data: {
@@ -416,9 +420,11 @@ export default function MinisterioEscalasDetailsPage() {
           text2: getApiErrorMessage(error, 'Não foi possível salvar o responsável do setlist.'),
         });
         return false;
+      } finally {
+        hideLoading();
       }
     },
-    [refetchEscala, salvarResponsavelSetlist],
+    [refetchEscala, salvarResponsavelSetlist, showLoading, hideLoading],
   );
 
   const handleAdicionarFuncao = useCallback(

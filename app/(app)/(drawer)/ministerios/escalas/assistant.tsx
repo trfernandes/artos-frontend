@@ -338,7 +338,7 @@ function AssistenteWrapper() {
     [generateEscala],
   );
 
-  const handleViewResults = useCallback(() => {
+  const handleAbrirEscala = useCallback(() => {
     if (!resultado) return;
 
     router.push({
@@ -346,7 +346,7 @@ function AssistenteWrapper() {
       params: {
         ministerioId,
         escalaId: resultado.id,
-        viewMode: 'view',
+        viewMode: 'edit',
       },
     });
   }, [resultado]);
@@ -598,27 +598,24 @@ function AssistenteWrapper() {
         content: <AssistenteResultadoStep />,
         actions: [
           {
-            label: 'Reiniciar',
+            label: 'Fechar',
+            type: 'outlined',
             icon: {
               library: 'MaterialCommunityIcons',
-              name: 'arrow-u-left-top',
-              size: 14,
+              name: 'close',
+              size: 16,
             },
-            onPress: () => {
-              setIndex(0);
-              setResultado(null);
-              form.reset();
-            },
+            onPress: () => router.back(),
           },
           {
-            label: 'Visualizar',
+            label: 'Abrir escala',
             icon: {
               library: 'MaterialCommunityIcons',
-              name: 'table-eye',
-              size: 14,
+              name: 'table-edit',
+              size: 16,
             },
-            color: Pallete.secondary,
-            onPress: handleViewResults,
+            color: Pallete.primary,
+            onPress: handleAbrirEscala,
           },
         ],
       },

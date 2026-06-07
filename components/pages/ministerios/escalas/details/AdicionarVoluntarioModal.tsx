@@ -1,5 +1,7 @@
 import { EscalaItemEquipeType } from '../../../../../app/(app)/(drawer)/ministerios/escalas/details';
-import FancyModalDialog, { FancyModalDialogProps } from '../../../../modal/FancyModalDialog';
+import { FancyModalDialogProps } from '../../../../modal/FancyModalDialog';
+import FancyBottomSheetModal from '../../../../modal/FancyBottomSheetModal';
+import FancyButton from '../../../../buttons/FancyButton';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import FancyText from '../../../../FancyText';
 import FancySearchSelect from '../../../../fields/FancySearchSelect';
@@ -226,123 +228,130 @@ export default function AdicionarVoluntarioModal({
     }
   };
 
+  const isBusy =
+    isLoadingMinisterioVoluntarios ||
+    isLoadingMinisterioVoluntariosMutation ||
+    isLoadingVoluntarios;
+
   return (
-    <FancyModalDialog<AdicionarVoluntarioConfirmDialog>
-      {...props}
+    <FancyBottomSheetModal
+      visible={!!props.modalProps?.visible}
+      onClose={() => props.onButton1Press?.()}
       title='Selecionar Voluntário'
-      centerContainerStyle={styles.container}
-      onButton2Press={handleConfirm}
-      button1={{ disabled: isSubmitting }}
-      button2={{ isLoading: isSubmitting, loadingText: 'Adicionando...' }}
-      containerStyle={{
-        pointerEvents:
-          isLoadingMinisterioVoluntarios ||
-          isLoadingMinisterioVoluntariosMutation ||
-          isLoadingVoluntarios
-            ? 'none'
-            : 'auto',
-      }}
+      closeDisabled={isSubmitting}
+      footer={
+        <FancyButton
+          label='Adicionar'
+          loadingText='Adicionando...'
+          icon={{ library: 'MaterialCommunityIcons', name: 'account-plus', size: 18 }}
+          isLoading={isSubmitting}
+          disabled={isSubmitting || isBusy}
+          onPress={() => void handleConfirm()}
+        />
+      }
     >
-      <View
-        style={{
-          backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
-          borderRadius: 10,
-          borderWidth: StyleSheet.hairlineWidth,
-          borderColor: ColorUtils.withAlpha(palette.primary, 0.25),
-          paddingHorizontal: 12,
-          paddingVertical: 10,
-          gap: 6,
-        }}
-      >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <DefaultIcons.Custom
-            library='MaterialIcons'
-            name='event'
-            size={12}
-            color={palette.primary}
-          />
-          <FancyText size='extraSmall' type='medium'>
-            {`${format(data?.evento.dataOcorrencia, 'dd/MM/yyyy')} - ${format(data?.evento.dataInicio!, 'HH:mm')} à ${format(data?.evento.dataTermino!, 'HH:mm')}`}
-          </FancyText>
-        </View>
+      <View style={[styles.container, { pointerEvents: isBusy ? 'none' : 'auto' }]}>
         <View
           style={{
-            height: StyleSheet.hairlineWidth,
-            backgroundColor: ColorUtils.withAlpha(palette.borderCard, 0.7),
+            backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
+            borderRadius: 10,
+            borderWidth: StyleSheet.hairlineWidth,
+            borderColor: ColorUtils.withAlpha(palette.primary, 0.25),
+            paddingHorizontal: 12,
+            paddingVertical: 10,
+            gap: 6,
           }}
-        />
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <DefaultIcons.Custom
-            library='MaterialIcons'
-            name='work-outline'
-            size={12}
-            color={palette.primary}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <DefaultIcons.Custom
+              library='MaterialIcons'
+              name='event'
+              size={12}
+              color={palette.primary}
+            />
+            <FancyText size='extraSmall' type='medium'>
+              {`${format(data?.evento.dataOcorrencia, 'dd/MM/yyyy')} - ${format(data?.evento.dataInicio!, 'HH:mm')} à ${format(data?.evento.dataTermino!, 'HH:mm')}`}
+            </FancyText>
+          </View>
+          <View
+            style={{
+              height: StyleSheet.hairlineWidth,
+              backgroundColor: ColorUtils.withAlpha(palette.borderCard, 0.7),
+            }}
           />
-          <FancyText size='extraSmall' type='medium'>
-            {data?.funcao?.nome}
-          </FancyText>
-        </View>
-      </View>
-
-      <FancyGroup>
-        <View style={{ gap: 8 }}>
-          <FancyText size='small' type='bold'>
-            Selecionar Voluntário:
-          </FancyText>
-
-          <View style={{ gap: 12 }}>
-            <View style={{ gap: 8 }}>
-              <FancyCheckbox
-                value={disponiveisNaData}
-                onChangeValue={setDisponiveisNaData}
-                label='Disponíveis na data'
-                disabled={isSubmitting}
-              />
-              <FancyCheckbox
-                value={temMesmaFuncao}
-                onChangeValue={setTemMesmaFuncao}
-                label='Tem a mesma função'
-                disabled={isSubmitting}
-              />
-            </View>
-
-            {isLoadingVoluntarios && (
-              <View
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 }}
-              >
-                <ActivityIndicator size='small' color={palette.primary} />
-                <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                  Filtrando voluntários...
-                </FancyText>
-              </View>
-            )}
-
-            <View style={{ flexDirection: 'column', gap: 5 }}>
-              <FancySearchSelect
-                label='Voluntário'
-                placeholder='Buscar voluntário...'
-                value={selectedVoluntario}
-                onChange={(value) => {
-                  setSelectedVoluntario(Array.isArray(value) ? value[0] || null : value);
-                  setErrors((prev) => {
-                    const { voluntario, ...rest } = prev;
-                    return rest;
-                  });
-                }}
-                listItems={voluntariosDropDownList}
-                disabled={
-                  isSubmitting ||
-                  isLoadingMinisterioVoluntarios ||
-                  isLoadingMinisterioVoluntariosMutation ||
-                  isLoadingVoluntarios
-                }
-              />
-              {errors && <FancyErrorText message={errors['voluntario']} />}
-            </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <DefaultIcons.Custom
+              library='MaterialIcons'
+              name='work-outline'
+              size={12}
+              color={palette.primary}
+            />
+            <FancyText size='extraSmall' type='medium'>
+              {data?.funcao?.nome}
+            </FancyText>
           </View>
         </View>
-      </FancyGroup>
-    </FancyModalDialog>
+
+        <FancyGroup>
+          <View style={{ gap: 8 }}>
+            <FancyText size='small' type='bold'>
+              Selecionar Voluntário:
+            </FancyText>
+
+            <View style={{ gap: 12 }}>
+              <View style={{ gap: 8 }}>
+                <FancyCheckbox
+                  value={disponiveisNaData}
+                  onChangeValue={setDisponiveisNaData}
+                  label='Disponíveis na data'
+                  disabled={isSubmitting}
+                />
+                <FancyCheckbox
+                  value={temMesmaFuncao}
+                  onChangeValue={setTemMesmaFuncao}
+                  label='Tem a mesma função'
+                  disabled={isSubmitting}
+                />
+              </View>
+
+              {isLoadingVoluntarios && (
+                <View
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 }}
+                >
+                  <ActivityIndicator size='small' color={palette.primary} />
+                  <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                    Filtrando voluntários...
+                  </FancyText>
+                </View>
+              )}
+
+              <View style={{ flexDirection: 'column', gap: 5 }}>
+                <FancySearchSelect
+                  label='Voluntário'
+                  placeholder='Buscar voluntário...'
+                  value={selectedVoluntario}
+                  onChange={(value) => {
+                    setSelectedVoluntario(Array.isArray(value) ? value[0] || null : value);
+                    setErrors((prev) => {
+                      const { voluntario, ...rest } = prev;
+                      return rest;
+                    });
+                  }}
+                  listItems={voluntariosDropDownList}
+                  disabled={
+                    isSubmitting ||
+                    isLoadingMinisterioVoluntarios ||
+                    isLoadingMinisterioVoluntariosMutation ||
+                    isLoadingVoluntarios
+                  }
+                />
+                {errors && <FancyErrorText message={errors['voluntario']} />}
+              </View>
+            </View>
+          </View>
+        </FancyGroup>
+      </View>
+    </FancyBottomSheetModal>
   );
 }
 

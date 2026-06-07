@@ -29,6 +29,7 @@ import {
   TipoPermissaoEnum,
 } from '../../../../../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
 import { useRepertorioCategorias, useRepertorioMusicas } from '../../../../../hooks/useRepertorio';
+import { useLoading } from '../../../../../contexts/LoadingContext';
 import { RepertorioRepository } from '../../../../../domain/services/RepertorioRepository';
 import Toast from 'react-native-toast-message';
 import { getApiErrorMessage } from '../../../../../domain/api/api-error';
@@ -84,6 +85,7 @@ export default function RepertorioEditorScreen({
   );
   const { data: categorias = [] } = useRepertorioCategorias(ministerioId);
   const { criarMusica, atualizarMusica, isMutatingMusica } = useRepertorioMusicas(ministerioId);
+  const { showLoading, hideLoading } = useLoading();
   const [categoriasVisible, setCategoriasVisible] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
 
@@ -185,6 +187,7 @@ export default function RepertorioEditorScreen({
       return;
     }
 
+    showLoading('Salvando...');
     try {
       const payload = {
         ministerioId,
@@ -210,6 +213,8 @@ export default function RepertorioEditorScreen({
         text1: 'Erro ao salvar música',
         text2: getApiErrorMessage(error, 'Não foi possível salvar a música do repertório.'),
       });
+    } finally {
+      hideLoading();
     }
   };
 

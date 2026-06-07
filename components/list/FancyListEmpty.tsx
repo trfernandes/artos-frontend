@@ -38,7 +38,7 @@ export default function FancyListEmpty(props: FancyListEmptyProps) {
         {props.label || 'Não há nada por aqui...'}
       </FancyText>
       {props.helperText && (
-        <FancyText size='small' color={Pallete.fonts.inactive2} style={styles.helperText}>
+        <FancyText size='small' color={Pallete.fonts.inactive} style={styles.helperText}>
           {props.helperText}
         </FancyText>
       )}

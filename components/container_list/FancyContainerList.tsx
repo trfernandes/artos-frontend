@@ -44,6 +44,9 @@ export default function FancyContainerList<ItemT>({
     <FancyContainer
       containerStyle={[
         styles.container,
+        // quando virtualizado, o card preenche o espaço do pai (flex) para a lista rolar dentro;
+        // quando não-virtualizado (embutido em um scroll externo), dimensiona por conteúdo
+        virtualized && styles.flexFill,
         containerStyle,
         disabled ? { opacity: 0.6, pointerEvents: 'none' } : { pointerEvents: 'auto' },
       ]}
@@ -72,7 +75,9 @@ export default function FancyContainerList<ItemT>({
         )}
       </View>
       <FancySeparator />
-      <View style={[styles.contentContainer, contentContainerStyle]}>
+      <View
+        style={[styles.contentContainer, virtualized && styles.flexFill, contentContainerStyle]}
+      >
         {virtualized ? (
           <FancyList<ItemT>
             data={items}
@@ -84,7 +89,7 @@ export default function FancyContainerList<ItemT>({
             }
           />
         ) : hasItems ? (
-          <View style={[styles.listContainerStyle, containerStyle]}>
+          <View style={containerStyle}>
             <View style={[styles.listContentStyle, contentContainerStyle]}>
               {items.map((item, index) => (
                 <React.Fragment key={index}>
@@ -114,8 +119,8 @@ function createStyles(palette: ThemePalette) {
       borderColor: palette.border,
       ...palette.shadows[300],
       borderRadius: 10,
-      flex: 1,
     },
+    flexFill: { flex: 1 },
     headerContainer: {
       paddingHorizontal: 15,
       paddingVertical: 10,
@@ -142,7 +147,6 @@ function createStyles(palette: ThemePalette) {
       borderWidth: DESIGN_MODE,
       borderColor: 'greenyellow',
       gap: 10,
-      flex: 1,
     },
     listContentStyle: {
       gap: 10,

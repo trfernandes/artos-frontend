@@ -25,6 +25,10 @@ import { DefaultIconsNames } from '../../../../../../constants/icons';
 import { ColorUtils } from '../../../../../../utils/color_utils';
 import FancyActionSheet from '../../../../../../components/actions/FancyActionSheet';
 import { ResponseRepertorioMusicaDto } from '../../../../../../domain/dtos/Repertorio/repertorio-musica.response';
+import { useLoading } from '../../../../../../contexts/LoadingContext';
+import { getApiErrorMessage } from '../../../../../../domain/api/api-error';
+import { FancyAlert } from '../../../../../../components/modal/FancyAlert';
+import Toast from 'react-native-toast-message';
 
 export default function MinisterioLouvorRepertorioIndexPage() {
   const params = useLocalSearchParams<{ ministerioId?: string }>();
@@ -39,6 +43,7 @@ export default function MinisterioLouvorRepertorioIndexPage() {
   );
   const { data: categorias = [] } = useRepertorioCategorias(ministerioId);
   const { data: musicas = [], removerMusica } = useRepertorioMusicas(ministerioId);
+  const { showLoading, hideLoading } = useLoading();
   const [search, setSearch] = useState('');
   const [categoriaId, setCategoriaId] = useState('');
   const [categoriasVisible, setCategoriasVisible] = useState(false);
@@ -91,6 +96,38 @@ export default function MinisterioLouvorRepertorioIndexPage() {
         readOnly: canManageRepertorio ? '0' : '1',
       },
     });
+  };
+
+  const handleExcluirMusica = (musica: ResponseRepertorioMusicaDto) => {
+    FancyAlert.alert(
+      'Excluir música',
+      `Tem certeza que deseja excluir "${musica.nome}" do repertório?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: async () => {
+            showLoading('Excluindo...');
+            try {
+              await removerMusica(musica.id);
+              Toast.show({ type: 'success', text1: 'Música excluída com sucesso!' });
+            } catch (error) {
+              Toast.show({
+                type: 'error',
+                text1: 'Erro ao excluir música',
+                text2: getApiErrorMessage(
+                  error,
+                  'Não foi possível excluir a música do repertório.',
+                ),
+              });
+            } finally {
+              hideLoading();
+            }
+          },
+        },
+      ],
+    );
   };
 
   return (
@@ -231,7 +268,7 @@ export default function MinisterioLouvorRepertorioIndexPage() {
             destructive: true,
             icon: { ...DefaultIconsNames.delete, size: 18 },
             onPress: () => {
-              if (actionsMusica) void removerMusica(actionsMusica.id);
+              if (actionsMusica) handleExcluirMusica(actionsMusica);
             },
           },
         ]}

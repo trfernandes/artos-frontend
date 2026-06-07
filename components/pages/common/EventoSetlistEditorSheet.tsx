@@ -15,6 +15,7 @@ import FancyToggle from '../../fields/FancyToggle';
 import FancyText from '../../FancyText';
 import YoutubeVersionSearchSheet from './YoutubeVersionSearchSheet';
 import { usePallete } from '../../../hooks/usePallete';
+import { useLoading } from '../../../contexts/LoadingContext';
 import { DefaultIconsNames } from '../../../constants/icons';
 import { ColorUtils } from '../../../utils/color_utils';
 import {
@@ -74,8 +75,9 @@ export default function EventoSetlistEditorSheet({
   canEdit,
 }: Props) {
   const palette = usePallete();
+  const { showLoading, hideLoading } = useLoading();
   const [tipoOrigem, setTipoOrigem] = useState<EventoSetlistItemOrigemEnum>(
-    EventoSetlistItemOrigemEnum.MANUAL,
+    EventoSetlistItemOrigemEnum.REPERTORIO,
   );
   const [repertorioMusicaId, setRepertorioMusicaId] = useState<string>('');
   const [nome, setNome] = useState('');
@@ -91,7 +93,7 @@ export default function EventoSetlistEditorSheet({
   const [youtubeSearchVisible, setYoutubeSearchVisible] = useState(false);
 
   useEffect(() => {
-    setTipoOrigem(item?.tipoOrigem ?? EventoSetlistItemOrigemEnum.MANUAL);
+    setTipoOrigem(item?.tipoOrigem ?? EventoSetlistItemOrigemEnum.REPERTORIO);
     setRepertorioMusicaId(item?.repertorioMusicaId ?? '');
     setNome(item?.nome ?? '');
     setInterprete(item?.interprete ?? '');
@@ -156,6 +158,7 @@ export default function EventoSetlistEditorSheet({
     setNomeError(false);
 
     setIsSaving(true);
+    showLoading('Salvando...');
     try {
       await onSave({
         itemId: item?.id,
@@ -173,6 +176,7 @@ export default function EventoSetlistEditorSheet({
       onClose();
     } finally {
       setIsSaving(false);
+      hideLoading();
     }
   };
 
@@ -215,8 +219,8 @@ export default function EventoSetlistEditorSheet({
             label='Origem'
             value={tipoOrigem}
             onChange={isEditingEnabled ? setTipoOrigem : () => undefined}
-            option1={{ title: 'Manual', value: EventoSetlistItemOrigemEnum.MANUAL }}
-            option2={{ title: 'Repertório', value: EventoSetlistItemOrigemEnum.REPERTORIO }}
+            option1={{ title: 'Repertório', value: EventoSetlistItemOrigemEnum.REPERTORIO }}
+            option2={{ title: 'Manual', value: EventoSetlistItemOrigemEnum.MANUAL }}
           />
 
           {tipoOrigem === EventoSetlistItemOrigemEnum.REPERTORIO ? (

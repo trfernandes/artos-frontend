@@ -136,6 +136,7 @@ export default function TemplateFixoEquipeList({
         title={'Formação da Equipe'}
         data={voluntariosData}
         contentContainerStyle={{ paddingTop: 6 }}
+        virtualized={false}
         disabled={disabled}
         renderItem={({
           item,

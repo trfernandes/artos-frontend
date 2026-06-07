@@ -177,6 +177,7 @@ export default function TemplateFuncoesList({
         title={'Formação da Equipe'}
         data={funcoesWatch}
         contentContainerStyle={{ paddingTop: 6 }}
+        virtualized={false}
         disabled={disabled}
         renderItem={({ item, index }: { item: EscalaTemplateFuncaoFormData; index: number }) => {
           const matchedOption = funcoesDataList.find((funcao) => funcao.id === item.funcaoId);

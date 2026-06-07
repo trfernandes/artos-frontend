@@ -60,9 +60,9 @@ export default function FancyTabHeaderItem({
       accessibilityRole='tab'
       accessibilityState={{ selected: isActive }}
     >
-      <View style={styles.innerContent}>
+      <View style={[styles.innerContent, equalWidth && styles.innerContentEqualWidth]}>
         {props.icon ? (
-          <View style={styles.iconContainer}>
+          <View style={[styles.iconContainer, equalWidth && styles.iconContainerEqualWidth]}>
             <DefaultIcons.Custom
               {...props.icon}
               size={compact ? 12 : 14}
@@ -78,6 +78,7 @@ export default function FancyTabHeaderItem({
           style={[
             styles.title,
             compact && styles.titleCompact,
+            equalWidth && styles.titleEqualWidth,
             {
               color: isActive ? palette.fonts.light : palette.fonts.inactive,
             },
@@ -152,15 +153,31 @@ function createStyles(palette: ThemePalette) {
       justifyContent: 'center',
       gap: 5,
     },
+    // com largura fixa (equalWidth), o ícone fica ancorado à esquerda e o título
+    // ocupa toda a largura para centralizar de fato dentro da aba
+    innerContentEqualWidth: {
+      alignSelf: 'stretch',
+      gap: 0,
+    },
     iconContainer: {
       width: 14,
       alignItems: 'center',
       justifyContent: 'center',
     },
+    iconContainerEqualWidth: {
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      bottom: 0,
+    },
     title: {
       lineHeight: 14,
       includeFontPadding: false,
       paddingTop: 0,
+    },
+    titleEqualWidth: {
+      flex: 1,
+      textAlign: 'center',
     },
     titleCompact: {
       lineHeight: 12,

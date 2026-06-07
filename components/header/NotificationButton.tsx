@@ -8,7 +8,7 @@ import { useThemedStyles } from '../../hooks/useThemedStyles';
 import FancyText from '../FancyText';
 import { onNotificationEvent } from '../../core/events/notification-events';
 
-const NOTIFICATION_ICON_SIZE = 18;
+const NOTIFICATION_ICON_SIZE = 21;
 
 export default function NotificationButton() {
   const styles = useThemedStyles(createStyles);
