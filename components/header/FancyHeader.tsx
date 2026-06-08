@@ -81,7 +81,7 @@ const HeaderMenuButton = (props: { title?: string; onPress?: () => void; color: 
   <View
     style={[
       styles.buttonContainer,
-      { position: 'absolute', left: HEADER_HORIZONTAL_GUTTER, gap: 10 },
+      { position: 'absolute', left: HEADER_HORIZONTAL_GUTTER, top: 0, bottom: 0, gap: 10 },
     ]}
   >
     <FancyHeaderButton
@@ -113,7 +113,7 @@ const HeaderBackButton = (props: { title?: string; onPress: () => void; color: s
   <View
     style={[
       styles.buttonContainer,
-      { position: 'absolute', left: HEADER_HORIZONTAL_GUTTER, gap: 10, borderWidth: 0 },
+      { position: 'absolute', left: HEADER_HORIZONTAL_GUTTER, top: 0, bottom: 0, gap: 10, borderWidth: 0 },
     ]}
   >
     <FancyHeaderButton

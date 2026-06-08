@@ -170,6 +170,6 @@ export default function TemplateForm({
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { paddingTop: 10, gap: 14, paddingHorizontal: 20, paddingBottom: 10 },
+  scrollContent: { flexGrow: 1, paddingTop: 10, gap: 14, paddingHorizontal: 20, paddingBottom: 10 },
   footer: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 15 },
 });

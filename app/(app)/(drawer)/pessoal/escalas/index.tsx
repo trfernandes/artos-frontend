@@ -300,8 +300,14 @@ export default function MinhasEscalasIndexPage() {
           // se quiser separar também por horário, manter o ISO inteiro faz sentido
           const dataISO = dataDate.toISOString();
 
-          // 2) chave = EVENTO + DATA_OCORRENCIA
-          const key = `${eventoId}::${dataISO}`;
+          // ministério deste item (mesma expressão usada para definir agrupado.ministerio)
+          const ministerioIdKey = item.voluntario?.ministerio?.id ?? item.escala?.ministerio?.id ?? '';
+
+          // 2) chave = EVENTO + DATA_OCORRENCIA + MINISTÉRIO
+          // inclui o ministério para não fundir escalas de ministérios distintos no mesmo
+          // culto/data — caso contrário o ministerioId enviado ao backend (ex.: ao salvar
+          // música no setlist) pode ser o de outro ministério e a validação falha.
+          const key = `${eventoId}::${dataISO}::${ministerioIdKey}`;
 
           let agrupado = map.get(key);
           if (!agrupado) {
