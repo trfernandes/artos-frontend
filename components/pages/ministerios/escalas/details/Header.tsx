@@ -38,8 +38,6 @@ export default function Header({
     statusDistribution,
     periodStart,
     periodEnd,
-    createdAt,
-    updatedAt,
   } = useMemo(() => {
     const items = escala?.itens ?? [];
 
@@ -66,8 +64,6 @@ export default function Header({
 
     const startDate = DateUtilsApi.dateOnlyFromApi(escala.dataInicio);
     const endDate = DateUtilsApi.dateOnlyFromApi(escala.dataTermino);
-    const createdDate = new Date(escala.createdAt);
-    const updatedDate = new Date(escala.updatedAt);
 
     return {
       confirmedCount: resolvedTotal > 0 ? resolvedConfirmed : undefined,
@@ -75,8 +71,6 @@ export default function Header({
       statusDistribution: resolvedDistribution,
       periodStart: startDate,
       periodEnd: endDate,
-      createdAt: createdDate,
-      updatedAt: updatedDate,
     };
   }, [escala]);
 
@@ -173,8 +167,6 @@ export default function Header({
         status={escala.status}
         periodStart={periodStart}
         periodEnd={periodEnd}
-        createdAt={createdAt}
-        updatedAt={updatedAt}
         confirmedCount={confirmedCount}
         totalCount={totalCount}
         statusDistribution={statusDistribution}

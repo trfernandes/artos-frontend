@@ -11,6 +11,7 @@ import { usePallete } from '../../hooks/usePallete';
 const HEADER_CONTENT_HEIGHT = 40;
 const HEADER_HORIZONTAL_GUTTER = 15;
 const IOS_TOP_INSET_REDUCTION = 12;
+const ANDROID_TOP_INSET_REDUCTION = 5;
 
 export type FancyHeaderProps = {
   leftButton?: 'menu' | 'back' | 'close' | React.ReactNode;
@@ -27,7 +28,7 @@ export default function FancyPageHeader({
   ...props
 }: FancyHeaderProps) {
   const nav = useNavigation<DrawerNavigationProp<Record<string, object>>>();
-  const topSafeInset = useTopSafeInset(Platform.OS === 'ios' ? IOS_TOP_INSET_REDUCTION : 0);
+  const topSafeInset = useTopSafeInset(Platform.OS === 'ios' ? IOS_TOP_INSET_REDUCTION : ANDROID_TOP_INSET_REDUCTION);
   const palette = usePallete();
   const topInset = applyTopSafeArea ? topSafeInset : 0;
   const headerHeight = topInset + HEADER_CONTENT_HEIGHT;

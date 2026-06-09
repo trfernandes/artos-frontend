@@ -209,33 +209,112 @@ export default function EscalaEventoPage({
   const showNav = pagerProps && pagerProps.total > 1;
   const isFirst = pagerProps ? pagerProps.currentIndex === 0 : true;
   const isLast = pagerProps ? pagerProps.currentIndex === pagerProps.total - 1 : true;
-  const dotColor = (active: boolean) =>
-    active ? borderColor : ColorUtils.withAlpha(borderColor, 0.3);
 
   return (
     <View style={styles.pageContainer}>
-      {/* ── Event header card ───────────────────────────────────────────────── */}
+      {/* ── Card unificado (full-height, equipe scroll interno) ─────────────── */}
       <View
-        style={[
-          styles.eventHeader,
-          {
-            borderColor: ColorUtils.withAlpha(borderColor, 0.28),
-            backgroundColor: palette.backgroundColor,
-            borderLeftColor: borderColor,
-          },
-        ]}
-      >
-        {/* Top row: label + nome + info button + progress */}
-        <View style={styles.eventHeaderTopRow}>
-          <View style={styles.eventTitleBlock}>
-            <FancyText
-              type='medium'
-              size={9}
-              color={palette.fonts.inactive}
-              style={styles.eventCategoryLabel}
-            >
-              Evento
-            </FancyText>
+          style={[
+            styles.unifiedCard,
+            {
+              borderColor: ColorUtils.withAlpha(borderColor, 0.28),
+              backgroundColor: palette.backgroundColor,
+              borderLeftColor: borderColor,
+            },
+          ]}
+        >
+          {/* ── Seção Evento ──────────────────────────────────────────────────── */}
+          <View style={styles.eventSection}>
+            {/* Linha 1: label "Evento" + ações */}
+            <View style={styles.eventHeaderTopRow}>
+              <View style={styles.eventLabelGroup}>
+                <FancyText
+                  type='medium'
+                  size={11}
+                  color={palette.fonts.inactive}
+                  style={styles.eventCategoryLabel}
+                >
+                  Evento
+                </FancyText>
+                {showNav && (
+                  <FancyText
+                    type='semiBold'
+                    size={11}
+                    color={ColorUtils.withAlpha(borderColor, 0.9)}
+                  >
+                    {`· ${pagerProps!.currentIndex + 1}/${pagerProps!.total}`}
+                  </FancyText>
+                )}
+              </View>
+
+              <View style={styles.eventHeaderActions}>
+                {showNav && (
+                  <>
+                    <TouchableOpacity
+                      onPress={pagerProps!.onPrev}
+                      disabled={isFirst}
+                      style={styles.headerIconButton}
+                      accessibilityLabel='Evento anterior'
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <DefaultIcons.Custom
+                        library='MaterialIcons'
+                        name='chevron-left'
+                        size={20}
+                        color={isFirst ? ColorUtils.withAlpha(borderColor, 0.25) : borderColor}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={pagerProps!.onNext}
+                      disabled={isLast}
+                      style={styles.headerIconButton}
+                      accessibilityLabel='Próximo evento'
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <DefaultIcons.Custom
+                        library='MaterialIcons'
+                        name='chevron-right'
+                        size={20}
+                        color={isLast ? ColorUtils.withAlpha(borderColor, 0.25) : borderColor}
+                      />
+                    </TouchableOpacity>
+                    <View style={styles.headerActionsDivider} />
+                  </>
+                )}
+
+                <TouchableOpacity
+                  onPress={() => setEventoDetailsVisible(true)}
+                  style={styles.headerIconButton}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  accessibilityLabel='Ver detalhes do evento'
+                >
+                  <DefaultIcons.Custom
+                    library='MaterialIcons'
+                    name='info-outline'
+                    size={20}
+                    color={ColorUtils.withAlpha(borderColor, 0.8)}
+                  />
+                </TouchableOpacity>
+
+                {isEditMode && (
+                  <TouchableOpacity
+                    onPress={handleDeleteEvento}
+                    style={styles.headerIconButton}
+                    accessibilityLabel='Excluir evento'
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <DefaultIcons.Custom
+                      library='MaterialIcons'
+                      name='delete-outline'
+                      size={20}
+                      color={palette.error}
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+
+            {/* Linha 2: nome do evento */}
             <FancyText
               type='bold'
               size={14}
@@ -245,204 +324,88 @@ export default function EscalaEventoPage({
             >
               {data.evento.nome}
             </FancyText>
-          </View>
 
-          <View style={styles.eventHeaderActions}>
-            <TouchableOpacity
-              onPress={() => setEventoDetailsVisible(true)}
-              style={styles.infoButton}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              accessibilityLabel='Ver detalhes do evento'
-            >
-              <DefaultIcons.Custom
-                library='MaterialIcons'
-                name='info-outline'
-                size={16}
-                color={ColorUtils.withAlpha(borderColor, 0.8)}
-              />
-            </TouchableOpacity>
-
-            {eventTotal > 0 && (
-              <ScaleFillIndicator
-                filledCount={eventConfirmed}
-                totalCount={eventTotal}
-                label=''
-                showContainer={false}
-                size='compact'
-                donutSize={18}
-                donutStrokeWidth={2.6}
-                textSize={11}
-                progressColor={eventProgressColor}
-              />
-            )}
-          </View>
-        </View>
-
-        {/* Meta row: data, hora, local */}
-        <View style={styles.eventMetaRow}>
-          <View style={styles.metaGroup}>
-            <DefaultIcons.Custom
-              library='MaterialIcons'
-              name='event'
-              size={13}
-              color={ColorUtils.withAlpha(borderColor, 0.9)}
-            />
-            <FancyText type='semiBold' size='small' color={eventMetaColor}>
-              {format(data.dataOcorrencia, 'dd/MM/yyyy')}
-            </FancyText>
-          </View>
-
-          {data.evento.dataInicio && data.evento.dataTermino && (
-            <View style={styles.metaGroup}>
-              <DefaultIcons.Custom
-                library='MaterialIcons'
-                name='access-time'
-                size={13}
-                color={ColorUtils.withAlpha(borderColor, 0.9)}
-              />
-              <FancyText type='semiBold' size='small' color={eventMetaColor}>
-                {`${format(data.evento.dataInicio, 'HH:mm')} – ${format(
-                  data.evento.dataTermino,
-                  'HH:mm',
-                )}`}
-              </FancyText>
-            </View>
-          )}
-
-          {data.evento.local ? (
-            <View style={styles.metaGroup}>
-              <DefaultIcons.Custom
-                library='MaterialIcons'
-                name='place'
-                size={13}
-                color={palette.fonts.inactive}
-              />
-              <FancyText
-                type='medium'
-                size='small'
-                color={palette.fonts.inactive}
-                numberOfLines={1}
-                style={styles.localText}
-              >
-                {data.evento.local}
-              </FancyText>
-            </View>
-          ) : null}
-        </View>
-
-        {/* Navigation row: arrows + dots + delete */}
-        {(showNav || isEditMode) && (
-          <View style={styles.navRow}>
-            {showNav ? (
-              <>
-                <TouchableOpacity
-                  onPress={pagerProps.onPrev}
-                  disabled={isFirst}
-                  style={[
-                    styles.navArrow,
-                    {
-                      backgroundColor: ColorUtils.withAlpha(borderColor, isFirst ? 0.06 : 0.1),
-                      borderColor: ColorUtils.withAlpha(borderColor, 0.2),
-                    },
-                    isFirst && styles.navArrowDisabled,
-                  ]}
-                  accessibilityLabel='Evento anterior'
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
+            {/* Meta: data/hora + local */}
+            <View style={styles.eventMetaRow}>
+              <View style={styles.metaDateTimeRow}>
+                <View style={styles.metaGroup}>
                   <DefaultIcons.Custom
                     library='MaterialIcons'
-                    name='chevron-left'
-                    size={20}
-                    color={isFirst ? ColorUtils.withAlpha(borderColor, 0.3) : borderColor}
+                    name='event'
+                    size={13}
+                    color={ColorUtils.withAlpha(borderColor, 0.9)}
                   />
-                </TouchableOpacity>
-
-                <View style={styles.dotsRow}>
-                  {Array.from({ length: pagerProps.total }).map((_, i) => (
-                    <View
-                      key={i}
-                      style={[
-                        styles.dot,
-                        {
-                          backgroundColor: dotColor(i === pagerProps.currentIndex),
-                          width: i === pagerProps.currentIndex ? 18 : 6,
-                        },
-                      ]}
-                    />
-                  ))}
+                  <FancyText type='semiBold' size={11} color={eventMetaColor}>
+                    {format(data.dataOcorrencia, 'dd/MM/yyyy')}
+                  </FancyText>
                 </View>
 
-                <TouchableOpacity
-                  onPress={pagerProps.onNext}
-                  disabled={isLast}
-                  style={[
-                    styles.navArrow,
-                    {
-                      backgroundColor: ColorUtils.withAlpha(borderColor, isLast ? 0.06 : 0.1),
-                      borderColor: ColorUtils.withAlpha(borderColor, 0.2),
-                    },
-                    isLast && styles.navArrowDisabled,
-                  ]}
-                  accessibilityLabel='Próximo evento'
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
+                {data.evento.dataInicio && data.evento.dataTermino && (
+                  <View style={styles.metaGroup}>
+                    <DefaultIcons.Custom
+                      library='MaterialIcons'
+                      name='access-time'
+                      size={13}
+                      color={ColorUtils.withAlpha(borderColor, 0.9)}
+                    />
+                    <FancyText type='semiBold' size={11} color={eventMetaColor}>
+                      {`${format(data.evento.dataInicio, 'HH:mm')} – ${format(
+                        data.evento.dataTermino,
+                        'HH:mm',
+                      )}`}
+                    </FancyText>
+                  </View>
+                )}
+
+                {eventTotal > 0 && (
+                  <View style={styles.metaConfirmIndicator}>
+                    <ScaleFillIndicator
+                      filledCount={eventConfirmed}
+                      totalCount={eventTotal}
+                      label=''
+                      showContainer={false}
+                      size='compact'
+                      donutSize={18}
+                      donutStrokeWidth={2.6}
+                      textSize={11}
+                      progressColor={eventProgressColor}
+                    />
+                  </View>
+                )}
+              </View>
+
+              {data.evento.local ? (
+                <View style={styles.metaGroup}>
                   <DefaultIcons.Custom
                     library='MaterialIcons'
-                    name='chevron-right'
-                    size={20}
-                    color={isLast ? ColorUtils.withAlpha(borderColor, 0.3) : borderColor}
+                    name='place'
+                    size={13}
+                    color={ColorUtils.withAlpha(borderColor, 0.9)}
                   />
-                </TouchableOpacity>
-              </>
-            ) : (
-              <View style={{ flex: 1 }} />
-            )}
+                  <FancyText
+                    type='medium'
+                    size={11}
+                    color={palette.fonts.inactive}
+                    numberOfLines={1}
+                    style={styles.localText}
+                  >
+                    {data.evento.local}
+                  </FancyText>
+                </View>
+              ) : null}
+            </View>
 
-            {isEditMode && (
-              <TouchableOpacity
-                onPress={handleDeleteEvento}
-                style={styles.navDeleteButton}
-                accessibilityLabel='Excluir evento'
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <DefaultIcons.Custom
-                  library='MaterialIcons'
-                  name='delete-outline'
-                  size={16}
-                  color={palette.error}
-                />
-              </TouchableOpacity>
-            )}
           </View>
-        )}
-      </View>
 
-      {/* ── Scrollable content ──────────────────────────────────────────────── */}
-      <FancyScrollView
-        fill
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps='handled'
-      >
-        {/* Setlist owner section */}
-        <View
-          style={[
-            styles.card,
-            { borderColor: palette.borderCard, backgroundColor: palette.backgroundColor },
-          ]}
-        >
-          <View style={styles.cardLabelRow}>
-            <DefaultIcons.Custom
-              library='MaterialCommunityIcons'
-              name='music-note-outline'
-              size={14}
-              color={palette.primary}
-            />
-            <FancyText size='small' type='semiBold' color={palette.fonts.dark}>
-              Quem define o Setlist?
+          {/* ── Divisor → Setlist ─────────────────────────────────────────────── */}
+          <View style={styles.sectionDivider}>
+            <FancyText type='medium' size={11} color={palette.fonts.inactive}>
+              Setlist
             </FancyText>
           </View>
 
-          <View style={styles.setlistOwnerContentRow}>
+          {/* ── Seção Setlist ─────────────────────────────────────────────────── */}
+          <View style={styles.setlistSection}>
             <View style={styles.setlistOwnerPersonRow}>
               {hasResponsavelSetlist ? (
                 <FancyImage
@@ -468,68 +431,142 @@ export default function EscalaEventoPage({
                 <FancyText
                   type='bold'
                   size='extraSmall'
-                  color={hasResponsavelSetlist ? palette.fonts.dark : palette.fonts.inactive}
+                  color={hasResponsavelSetlist ? palette.fonts.dark : palette.fonts.inactive2}
                 >
                   {responsavelSetlistNome}
                 </FancyText>
               </View>
-            </View>
 
-            {canEditSetlistOwnerHere && (
-              <View style={styles.setlistOwnerActions}>
-                <FancyButton
-                  type='contained'
-                  mode='icon'
-                  size={{ w: 32, h: 28 }}
-                  icon={{
-                    library: 'MaterialCommunityIcons',
-                    name: responsavelSetlistValue ? 'swap-horizontal' : 'account-plus-outline',
-                    size: 15,
-                    color: ColorUtils.darkenColor(borderColor, 0.12),
-                  }}
-                  containerStyle={[
-                    styles.setlistOwnerButton,
-                    {
-                      backgroundColor: ColorUtils.withAlpha(borderColor, 0.14),
-                      borderWidth: 1,
-                      borderColor: ColorUtils.withAlpha(borderColor, 0.22),
-                    },
-                  ]}
-                  accessibilityLabel={
-                    responsavelSetlistValue
-                      ? 'Trocar responsável do setlist'
-                      : 'Selecionar responsável do setlist'
-                  }
-                  disabled={isUpdatingSetlistOwner}
-                  onPress={() => responsavelSelectRef.current?.open()}
-                />
-
-                {hasResponsavelSetlist && (
+              {canEditSetlistOwnerHere && (
+                <View style={styles.setlistOwnerActions}>
                   <FancyButton
-                    type='light'
-                    mode='icon'
-                    size={{ w: 32, h: 28 }}
+                    type='text'
+                    size={{ w: 0, h: 28 }}
+                    label={responsavelSetlistValue ? 'Trocar' : 'Definir'}
+                    labelProps={{ size: 'extraSmall' }}
+                    labelStyle={{ color: ColorUtils.darkenColor(borderColor, 0.12) }}
                     icon={{
                       library: 'MaterialCommunityIcons',
-                      name: 'close-circle-outline',
+                      name: responsavelSetlistValue ? 'swap-horizontal' : 'account-plus-outline',
                       size: 15,
-                      color: ColorUtils.withAlpha(palette.fonts.dark, 0.72),
+                      color: ColorUtils.darkenColor(borderColor, 0.12),
                     }}
-                    containerStyle={[
-                      styles.setlistOwnerButton,
-                      {
-                        backgroundColor: ColorUtils.withAlpha(palette.fonts.dark, 0.08),
-                        borderWidth: 1,
-                        borderColor: ColorUtils.withAlpha(palette.fonts.dark, 0.1),
-                      },
-                    ]}
-                    accessibilityLabel='Limpar responsável do setlist'
+                    iconPosition='left'
+                    containerStyle={styles.setlistOwnerLinkButton}
+                    accessibilityLabel={
+                      responsavelSetlistValue
+                        ? 'Trocar responsável do setlist'
+                        : 'Selecionar responsável do setlist'
+                    }
                     disabled={isUpdatingSetlistOwner}
-                    onPress={handleClearResponsavelSetlist}
+                    onPress={() => responsavelSelectRef.current?.open()}
                   />
-                )}
-              </View>
+
+                  {hasResponsavelSetlist && (
+                    <FancyButton
+                      type='light'
+                      mode='icon'
+                      size={{ w: 26, h: 26 }}
+                      icon={{
+                        library: 'MaterialCommunityIcons',
+                        name: 'close-circle-outline',
+                        size: 14,
+                        color: ColorUtils.withAlpha(palette.fonts.dark, 0.5),
+                      }}
+                      containerStyle={[
+                        styles.setlistOwnerButton,
+                        {
+                          backgroundColor: ColorUtils.withAlpha(palette.fonts.dark, 0.06),
+                          borderWidth: 1,
+                          borderColor: ColorUtils.withAlpha(palette.fonts.dark, 0.08),
+                        },
+                      ]}
+                      accessibilityLabel='Limpar responsável do setlist'
+                      disabled={isUpdatingSetlistOwner}
+                      onPress={handleClearResponsavelSetlist}
+                    />
+                  )}
+                </View>
+              )}
+            </View>
+          </View>
+
+          {/* ── Divisor → Equipe ──────────────────────────────────────────────── */}
+          <View style={styles.sectionDivider}>
+            <FancyText type='medium' size={11} color={palette.fonts.inactive}>
+              Equipe
+            </FancyText>
+            {isEditMode && (
+              <FancyButton
+                type='text'
+                label='Nova Função'
+                labelProps={{ size: 'extraSmall' }}
+                icon={{ library: 'MaterialIcons', name: 'add', size: 13, color: palette.primary }}
+                iconPosition='left'
+                containerStyle={styles.addFuncaoButton}
+                onPress={() => setAdicionarFuncaoModalOpen(true)}
+                accessibilityLabel='Adicionar nova função'
+              />
             )}
+          </View>
+
+          {/* ── Seção Equipe ──────────────────────────────────────────────────── */}
+          <View style={styles.equipeSection}>
+            <FancyScrollView contentContainerStyle={styles.equipeScrollContent}>
+            <ListaVoluntariosTable
+              data={data.equipe}
+              viewMode={viewMode}
+              accentColor={borderColor}
+              onSubstituicaoButtonPressed={(item) =>
+                setSubstituicaoModalProps({ isOpen: true, data: item })
+              }
+              onAdicionarVoluntarioButtonPressed={(item) =>
+                setAdicionarModalProps({ isOpen: true, data: item })
+              }
+              onRemoverVoluntarioPressed={(equipeItem) => {
+                FancyAlert.alert(
+                  'Remover voluntário',
+                  'Deseja remover o voluntário desta função? A função permanecerá vaga na escala.',
+                  [
+                    { text: 'Cancelar', style: 'cancel' },
+                    {
+                      text: 'Remover',
+                      style: 'destructive',
+                      onPress: async () => {
+                        try {
+                          showLoading('Removendo voluntário...');
+                          await onRemoveVoluntario?.(equipeItem.idEscalaItem);
+                        } finally {
+                          hideLoading();
+                        }
+                      },
+                    },
+                  ],
+                );
+              }}
+              onExcluirFuncaoPressed={(funcaoId) => {
+                FancyAlert.alert(
+                  'Excluir Função',
+                  'Deseja realmente excluir esta função do evento?',
+                  [
+                    { text: 'Cancelar', style: 'cancel' },
+                    {
+                      text: 'Excluir',
+                      style: 'destructive',
+                      onPress: async () => {
+                        try {
+                          showLoading('Excluindo função...');
+                          await onExcluirFuncao?.(funcaoId, data.evento.id, data.dataOcorrencia);
+                        } finally {
+                          hideLoading();
+                        }
+                      },
+                    },
+                  ],
+                );
+              }}
+            />
+            </FancyScrollView>
           </View>
 
           {/* Hidden select trigger */}
@@ -545,99 +582,7 @@ export default function EscalaEventoPage({
               containerStyle={styles.hiddenSelect}
             />
           </View>
-        </View>
-
-        {/* Equipe section */}
-        <View
-          style={[
-            styles.card,
-            { borderColor: palette.borderCard, backgroundColor: palette.backgroundColor },
-          ]}
-        >
-          <View style={styles.cardLabelRow}>
-            <DefaultIcons.Custom
-              library='MaterialCommunityIcons'
-              name='account-group-outline'
-              size={14}
-              color={palette.primary}
-            />
-            <FancyText size='small' type='semiBold' color={palette.fonts.dark} style={{ flex: 1 }}>
-              Equipe
-            </FancyText>
-            {isEditMode && (
-              <TouchableOpacity
-                onPress={() => setAdicionarFuncaoModalOpen(true)}
-                style={styles.addFuncaoButton}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <DefaultIcons.Custom
-                  library='MaterialIcons'
-                  name='add'
-                  size={13}
-                  color={palette.icons.light}
-                />
-                <FancyText size='extraSmall' type='semiBold' color={palette.fonts.light}>
-                  Nova Função
-                </FancyText>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <ListaVoluntariosTable
-            data={data.equipe}
-            viewMode={viewMode}
-            accentColor={borderColor}
-            onSubstituicaoButtonPressed={(item) =>
-              setSubstituicaoModalProps({ isOpen: true, data: item })
-            }
-            onAdicionarVoluntarioButtonPressed={(item) =>
-              setAdicionarModalProps({ isOpen: true, data: item })
-            }
-            onRemoverVoluntarioPressed={(equipeItem) => {
-              FancyAlert.alert(
-                'Remover voluntário',
-                'Deseja remover o voluntário desta função? A função permanecerá vaga na escala.',
-                [
-                  { text: 'Cancelar', style: 'cancel' },
-                  {
-                    text: 'Remover',
-                    style: 'destructive',
-                    onPress: async () => {
-                      try {
-                        showLoading('Removendo voluntário...');
-                        await onRemoveVoluntario?.(equipeItem.idEscalaItem);
-                      } finally {
-                        hideLoading();
-                      }
-                    },
-                  },
-                ],
-              );
-            }}
-            onExcluirFuncaoPressed={(funcaoId) => {
-              FancyAlert.alert(
-                'Excluir Função',
-                'Deseja realmente excluir esta função do evento?',
-                [
-                  { text: 'Cancelar', style: 'cancel' },
-                  {
-                    text: 'Excluir',
-                    style: 'destructive',
-                    onPress: async () => {
-                      try {
-                        showLoading('Excluindo função...');
-                        await onExcluirFuncao?.(funcaoId, data.evento.id, data.dataOcorrencia);
-                      } finally {
-                        hideLoading();
-                      }
-                    },
-                  },
-                ],
-              );
-            }}
-          />
-        </View>
-      </FancyScrollView>
+      </View>
 
       {/* ── Modals ──────────────────────────────────────────────────────────── */}
       {substituicaoModalProps.isOpen && (
@@ -769,23 +714,23 @@ function createStyles(palette: ThemePalette) {
     pageContainer: {
       flex: 1,
     },
-    // ── Event header card ─────────────────────────────────────────────────────
-    eventHeader: {
-      marginHorizontal: 14,
-      marginTop: 10,
-      paddingHorizontal: 14,
-      paddingTop: 10,
-      paddingBottom: 10,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderLeftWidth: 4,
-      gap: 3,
-      ...palette.shadows[100],
-    },
+    // ── Event section (inside unified card) ──────────────────────────────────
     eventHeaderTopRow: {
       flexDirection: 'row',
-      alignItems: 'flex-start',
+      alignItems: 'center',
       gap: 8,
+    },
+    eventLabelGroup: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+      flex: 1,
+    },
+    headerActionsDivider: {
+      width: 1,
+      height: 16,
+      backgroundColor: palette.border,
+      marginHorizontal: 2,
     },
     eventTitleBlock: {
       flex: 1,
@@ -796,26 +741,32 @@ function createStyles(palette: ThemePalette) {
       marginBottom: 1,
     },
     eventName: {
-      lineHeight: 22,
+      lineHeight: 18,
+      marginTop: -2,
     },
     eventHeaderActions: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
     },
-    infoButton: {
-      width: 26,
-      height: 26,
+    headerIconButton: {
+      width: 30,
+      height: 30,
       alignItems: 'center',
       justifyContent: 'center',
     },
     eventMetaRow: {
+      flexDirection: 'column',
+      gap: 4,
+      marginTop: 2,
+    },
+    metaDateTimeRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      flexWrap: 'wrap',
-      columnGap: 10,
-      rowGap: 2,
-      marginTop: 2,
+      gap: 10,
+    },
+    metaConfirmIndicator: {
+      marginLeft: 'auto',
     },
     metaGroup: {
       flexDirection: 'row',
@@ -825,67 +776,54 @@ function createStyles(palette: ThemePalette) {
     localText: {
       maxWidth: 160,
     },
-    // ── Navigation ───────────────────────────────────────────────────────────
-    navRow: {
+    // ── Scrollable content ───────────────────────────────────────────────────
+    scrollContent: {
+      paddingBottom: 30,
+    },
+    // ── Unified card ─────────────────────────────────────────────────────────
+    unifiedCard: {
+      marginHorizontal: 14,
+      marginTop: 10,
+      marginBottom: 10,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderLeftWidth: 4,
+      backgroundColor: palette.backgroundColor,
+      overflow: 'hidden',
+      flex: 1,
+      ...palette.shadows[200],
+    },
+    eventSection: {
+      paddingHorizontal: 14,
+      paddingTop: 7,
+      paddingBottom: 10,
+      gap: 3,
+    },
+    sectionDivider: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginTop: 6,
-      gap: 6,
-    },
-    navArrow: {
-      width: 32,
-      height: 32,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: 999,
-      borderWidth: 1,
-    },
-    navArrowDisabled: {
-      opacity: 0.45,
-    },
-    navDeleteButton: {
-      width: 32,
-      height: 32,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: 999,
-      backgroundColor: ColorUtils.withAlpha(palette.error, 0.1),
-      borderWidth: 1,
-      borderColor: ColorUtils.withAlpha(palette.error, 0.2),
-    },
-    dotsRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 5,
-      flex: 1,
-      justifyContent: 'center',
-    },
-    dot: {
-      height: 6,
-      borderRadius: 3,
-    },
-    // ── Scrollable content ───────────────────────────────────────────────────
-    scrollContent: {
-      padding: 14,
-      paddingTop: 10,
-      gap: 10,
-      paddingBottom: 30,
-    },
-    // ── Cards ────────────────────────────────────────────────────────────────
-    card: {
-      borderRadius: 12,
-      borderWidth: 1,
-      paddingHorizontal: 12,
-      paddingTop: 8,
-      paddingBottom: 16,
+      paddingHorizontal: 14,
+      paddingVertical: 9,
       gap: 8,
-      ...palette.shadows[100],
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: palette.borderCard,
     },
-    cardLabelRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
+    sectionDividerLine: {
+      flex: 1,
+      height: StyleSheet.hairlineWidth,
+    },
+    setlistSection: {
+      paddingHorizontal: 14,
+      paddingTop: 6,
+      paddingBottom: 16,
+    },
+    equipeSection: {
+      paddingHorizontal: 12,
+      flex: 1,
+    },
+    equipeScrollContent: {
+      paddingBottom: 16,
     },
     detailsSheet: {
       gap: 12,
@@ -906,28 +844,18 @@ function createStyles(palette: ThemePalette) {
       gap: 2,
     },
     addFuncaoButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
       alignSelf: 'center',
-      gap: 3,
-      backgroundColor: palette.primary,
-      paddingHorizontal: 9,
-      paddingVertical: 4,
-      borderRadius: 999,
+      paddingHorizontal: 2,
+      height: 28,
+      minWidth: 0,
     },
     // ── Setlist owner ────────────────────────────────────────────────────────
-    setlistOwnerContentRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 12,
-    },
     setlistOwnerPersonRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      flex: 1,
       minWidth: 0,
       gap: 9,
+      paddingLeft: 6,
     },
     setlistOwnerAvatar: {
       borderRadius: 15,
@@ -956,7 +884,13 @@ function createStyles(palette: ThemePalette) {
       alignSelf: 'center',
       borderRadius: 999,
     },
+    setlistOwnerLinkButton: {
+      alignSelf: 'center',
+      paddingHorizontal: 4,
+      minWidth: 0,
+    },
     hiddenSelectWrapper: {
+      position: 'absolute',
       height: 0,
       opacity: 0,
       overflow: 'hidden',

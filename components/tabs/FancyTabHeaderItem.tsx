@@ -62,7 +62,7 @@ export default function FancyTabHeaderItem({
     >
       <View style={[styles.innerContent, equalWidth && styles.innerContentEqualWidth]}>
         {props.icon ? (
-          <View style={[styles.iconContainer, equalWidth && styles.iconContainerEqualWidth]}>
+          <View style={styles.iconContainer}>
             <DefaultIcons.Custom
               {...props.icon}
               size={compact ? 12 : 14}
@@ -153,22 +153,16 @@ function createStyles(palette: ThemePalette) {
       justifyContent: 'center',
       gap: 5,
     },
-    // com largura fixa (equalWidth), o ícone fica ancorado à esquerda e o título
-    // ocupa toda a largura para centralizar de fato dentro da aba
+    // com largura fixa (equalWidth), o conteúdo preenche a aba e o título usa
+    // flex:1 para centralizar/truncar — o ícone segue no fluxo com o gap padrão,
+    // garantindo espaçamento entre ícone e texto.
     innerContentEqualWidth: {
       alignSelf: 'stretch',
-      gap: 0,
     },
     iconContainer: {
       width: 14,
       alignItems: 'center',
       justifyContent: 'center',
-    },
-    iconContainerEqualWidth: {
-      position: 'absolute',
-      left: 0,
-      top: 0,
-      bottom: 0,
     },
     title: {
       lineHeight: 14,

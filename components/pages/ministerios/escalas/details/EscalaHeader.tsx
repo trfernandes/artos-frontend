@@ -6,10 +6,7 @@ import DefaultIcons from '../../../../FancyIcons';
 import EscalaStatusBadge from './EscalaStatusBadge';
 import EscalaHealthIndicator from './EscalaHealthIndicator';
 import {
-  formatPeriod,
-  formatRelativeOrDate,
   formatShortDate,
-  isStaleUpdate,
   StatusDistribution,
 } from './escalaHeader.utils';
 import { usePallete } from '../../../../../hooks/usePallete';
@@ -34,8 +31,6 @@ export type EscalaHeaderProps = {
   status: EscalaStatusEnum;
   periodStart: Date;
   periodEnd: Date;
-  createdAt: Date;
-  updatedAt: Date;
   confirmedCount?: number;
   totalCount?: number;
   statusDistribution?: StatusDistribution;
@@ -46,50 +41,12 @@ export type EscalaHeaderProps = {
   actions?: InlineAction[];
 };
 
-function MetaInlineItem({
-  icon,
-  value,
-}: {
-  icon: { library: 'MaterialIcons' | 'MaterialCommunityIcons'; name: string };
-  value: string;
-}) {
-  const palette = usePallete();
-
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-        backgroundColor: ColorUtils.withAlpha(palette.primary, 0.1),
-        borderRadius: 8,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        alignSelf: 'flex-start',
-      }}
-    >
-      <DefaultIcons.Custom
-        library={icon.library}
-        name={icon.name}
-        size={12}
-        color={palette.primary}
-      />
-      <FancyText type='semiBold' size='extraSmall' color={palette.primary} numberOfLines={1}>
-        {value}
-      </FancyText>
-    </View>
-  );
-}
-
 /**
  * Mapeia a chave da ação para uma cor de fundo semântica do palette.
  * Ações sem mapeamento usam o fundo neutro padrão do app.
  */
 function useActionColors(key: string, palette: ThemePalette) {
   const coloredKeys: Record<string, string> = {
-    publish: palette.confirm,
-    insights: palette.warning,
-    parametrizacao: palette.secondary,
     delete: palette.error,
   };
   const bg = coloredKeys[key];
@@ -105,8 +62,6 @@ export default function EscalaHeader({
   status,
   periodStart,
   periodEnd,
-  createdAt,
-  updatedAt,
   confirmedCount,
   totalCount,
   statusDistribution,
@@ -118,10 +73,6 @@ export default function EscalaHeader({
 }: EscalaHeaderProps) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
-  const createdLabel = `Criada em ${formatShortDate(createdAt, true)}`;
-  const updatedLabel = `Atualizada ${formatRelativeOrDate(updatedAt)}`;
-  const periodLabel = formatPeriod(periodStart, periodEnd);
-  const hasStaleWarning = isStaleUpdate(updatedAt);
   const hasHealth = confirmedCount !== undefined && totalCount !== undefined;
   const showCompact = variant === 'compact';
   const inlineActions = actions ?? [];
@@ -135,7 +86,7 @@ export default function EscalaHeader({
         <View style={styles.titleBlock}>
           <FancyText
             type='medium'
-            size={9}
+            size={11}
             color={palette.fonts.inactive}
             style={styles.categoryLabel}
           >
@@ -157,10 +108,23 @@ export default function EscalaHeader({
       </View>
 
       <View style={styles.metaInlineRow}>
-        <MetaInlineItem
-          icon={{ library: 'MaterialCommunityIcons', name: 'calendar-range' }}
-          value={periodLabel}
-        />
+        <View style={styles.periodBlock}>
+          <DefaultIcons.Custom
+            library='MaterialCommunityIcons'
+            name='calendar-range'
+            size={13}
+            color={palette.primary}
+          />
+          <View style={styles.periodDate}>
+            <FancyText size={9} type='medium' color={palette.fonts.inactive}>De</FancyText>
+            <FancyText size={11} type='semiBold' color={palette.primary}>{formatShortDate(periodStart)}</FancyText>
+          </View>
+          <FancyText size={11} type='medium' color={palette.fonts.inactive}>·</FancyText>
+          <View style={styles.periodDate}>
+            <FancyText size={9} type='medium' color={palette.fonts.inactive}>Até</FancyText>
+            <FancyText size={11} type='semiBold' color={palette.primary}>{formatShortDate(periodEnd)}</FancyText>
+          </View>
+        </View>
         {hasHealth && (
           <EscalaHealthIndicator
             confirmedCount={confirmedCount}
@@ -171,41 +135,14 @@ export default function EscalaHeader({
         )}
       </View>
 
-      {showCompact ? (
-        <>
-          {onOpenDetails && (
-            <FancyButton
-              type='text'
-              label='Ver detalhes'
-              onPress={onOpenDetails}
-              containerStyle={styles.detailsLink}
-              labelStyle={{ color: palette.primary }}
-            />
-          )}
-        </>
-      ) : (
-        <View style={styles.metaFooter}>
-          <FancyText
-            type='medium'
-            size={9}
-            color={palette.fonts.inactive}
-            numberOfLines={1}
-            style={styles.metaFooterText}
-          >
-            {`${createdLabel} • ${updatedLabel}`}
-          </FancyText>
-
-          {hasStaleWarning && (
-            <View style={styles.staleTag}>
-              <DefaultIcons.Custom
-                library='MaterialIcons'
-                name='warning-amber'
-                size={12}
-                color={palette.warning}
-              />
-            </View>
-          )}
-        </View>
+      {showCompact && onOpenDetails && (
+        <FancyButton
+          type='text'
+          label='Ver detalhes'
+          onPress={onOpenDetails}
+          containerStyle={styles.detailsLink}
+          labelStyle={{ color: palette.primary }}
+        />
       )}
 
       {primaryActionLabel && onPrimaryActionPress ? (
@@ -219,7 +156,6 @@ export default function EscalaHeader({
 
       {hasInlineActions && (
         <>
-          <View style={styles.actionsDivider} />
           <View style={styles.actionsRow}>
             {/* Ações primárias: pill com label + ícone */}
             {primaryActions.map((action) => (
@@ -227,7 +163,8 @@ export default function EscalaHeader({
                 key={action.key}
                 type='contained'
                 label={action.label}
-                icon={{ ...action.icon, size: 15, color: palette.icons.light }}
+                labelProps={{ size: 'extraSmall' }}
+                icon={{ ...action.icon, size: 14, color: palette.icons.light }}
                 iconPosition='left'
                 isLoading={action.isLoading}
                 disabled={action.disabled}
@@ -345,6 +282,14 @@ function createStyles(palette: ThemePalette) {
       flexWrap: 'wrap',
       marginTop: 3,
     },
+    periodBlock: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    periodDate: {
+      gap: 1,
+    },
     metaInlineItem: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -359,24 +304,6 @@ function createStyles(palette: ThemePalette) {
     metaInlineValue: {
       flexShrink: 1,
     },
-    metaFooter: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-      justifyContent: 'space-between',
-      marginTop: 6,
-    },
-    metaFooterText: {
-      flex: 1,
-    },
-    staleTag: {
-      width: 20,
-      height: 20,
-      borderRadius: 10,
-      backgroundColor: ColorUtils.withAlpha(palette.warning, 0.22),
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
     detailsLink: {
       alignSelf: 'flex-start',
       paddingHorizontal: 0,
@@ -387,16 +314,13 @@ function createStyles(palette: ThemePalette) {
       height: 36,
       borderRadius: 10,
     },
-    actionsDivider: {
-      height: 1,
-      backgroundColor: palette.borderCard,
-    },
     actionsRow: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: 6,
-      paddingVertical: 10,
+      paddingTop: 8,
+      paddingBottom: 10,
     },
     actionsSecondaryGroup: {
       flexDirection: 'row',

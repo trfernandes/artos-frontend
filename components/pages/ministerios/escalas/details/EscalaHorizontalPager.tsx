@@ -31,12 +31,24 @@ export default function EscalaHorizontalPager({
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
+  // Identidade estrutural das páginas (muda só em adição/remoção/reordenação de
+  // evento, não em edições internas como equipe/setlist). Usada como `key` do
+  // PagerView: quando muda, o nativo remonta e remede as páginas — sem isso o
+  // pager-view colapsa o conteúdo flex das páginas restantes ao excluir um
+  // evento, deixando visível só o card de cabeçalho ("card de cima").
+  const pagesKey = useMemo(
+    () => eventosData.map((item) => item.evento.id + item.dataOcorrencia).join('|'),
+    [eventosData],
+  );
+
+  // Página inicial segura após remontagem: mantém o usuário próximo de onde
+  // estava (clampada ao novo tamanho da lista).
+  const safeInitialPage = Math.min(currentIndex, eventosData.length - 1);
+
   // If eventosData changes length (e.g. event deleted), clamp currentIndex
   useEffect(() => {
     if (eventosData.length > 0 && currentIndex >= eventosData.length) {
-      const clamped = eventosData.length - 1;
-      setCurrentIndex(clamped);
-      pagerRef.current?.setPageWithoutAnimation(clamped);
+      setCurrentIndex(eventosData.length - 1);
     }
   }, [eventosData.length, currentIndex]);
 
@@ -58,9 +70,10 @@ export default function EscalaHorizontalPager({
 
   return (
     <PagerView
+      key={pagesKey}
       ref={pagerRef}
       style={styles.pager}
-      initialPage={initialIndex}
+      initialPage={safeInitialPage}
       onPageSelected={(e) => {
         setCurrentIndex(e.nativeEvent.position);
         hideLoading();

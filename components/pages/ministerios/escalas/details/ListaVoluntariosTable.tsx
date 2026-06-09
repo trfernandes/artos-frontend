@@ -143,7 +143,7 @@ export default function ListaVoluntariosTable({
           const hasVoluntario = !!equipeItem.voluntario?.nome;
 
           return (
-            <View key={index} style={[styles.rowBlock, palette.shadows[100]]}>
+            <View key={index}>
               <View style={styles.row}>
                 {/* Avatar com dot de status */}
                 {hasVoluntario ? (
@@ -200,7 +200,7 @@ export default function ListaVoluntariosTable({
                         : ''}
                   </FancyText>
                   {hasVoluntario ? (
-                    <FancyText type='semiBold' size={13}>
+                    <FancyText type='semiBold' size={12}>
                       {getFirstAndLastName(equipeItem.voluntario?.nome)}
                     </FancyText>
                   ) : (
@@ -215,26 +215,18 @@ export default function ListaVoluntariosTable({
                   <TouchableOpacity
                     hitSlop={ACTION_HIT_SLOP}
                     onPress={() => setMenuItem(equipeItem)}
-                    style={[
-                      styles.dotsButton,
-                      accentColor
-                        ? {
-                            backgroundColor: ColorUtils.withAlpha(accentColor, 0.12),
-                            borderWidth: 1,
-                            borderColor: ColorUtils.withAlpha(accentColor, 0.22),
-                          }
-                        : { backgroundColor: ColorUtils.withAlpha(palette.fonts.dark, 0.08) },
-                    ]}
+                    style={styles.dotsButton}
                   >
                     <DefaultIcons.Custom
                       library='Entypo'
                       name='dots-three-vertical'
-                      size={12}
-                      color={accentColor ?? palette.icons.dark}
+                      size={14}
+                      color={accentColor ?? palette.icons.inactive}
                     />
                   </TouchableOpacity>
                 )}
               </View>
+              {index < (data?.length ?? 0) - 1 && <View style={styles.rowDivider} />}
             </View>
           );
         })}
@@ -366,17 +358,18 @@ export default function ListaVoluntariosTable({
 function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
     container: {
-      gap: 8,
+      gap: 0,
     },
-    rowBlock: {
-      borderRadius: 12,
-      backgroundColor: palette.backgroundColor2,
+    rowDivider: {
+      height: StyleSheet.hairlineWidth,
+      marginLeft: 50,
+      backgroundColor: ColorUtils.withAlpha(palette.fonts.dark, 0.07),
     },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: 9,
-      paddingHorizontal: 10,
+      paddingVertical: 10,
+      paddingHorizontal: 4,
       gap: 10,
       minHeight: 44,
     },
@@ -432,7 +425,7 @@ function createStyles(palette: ThemePalette) {
       alignItems: 'center',
       gap: 14,
       paddingVertical: 14,
-      paddingHorizontal: 4,
+      paddingHorizontal: 16,
     },
     menuSheetDivider: {
       height: 1,
