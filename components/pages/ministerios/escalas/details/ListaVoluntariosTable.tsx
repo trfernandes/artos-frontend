@@ -14,7 +14,7 @@ import {
 } from '../../../../../domain/enums/Escala/escala-item-status.enum';
 import { EscalaTemplateExperienciaLabel } from '../../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
 import { AppImages } from '../../../../../assets/app_images';
-import FancyBottomSheetModal from '../../../../modal/FancyBottomSheetModal';
+import FancyActionSheet from '../../../../actions/FancyActionSheet';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 import { useAppTheme } from '../../../../../hooks/useAppTheme';
@@ -133,10 +133,12 @@ export default function ListaVoluntariosTable({
 
   const isEditMode = !viewMode || viewMode === 'edit';
 
+  const validEquipe = data?.filter((item) => !!item.funcao?.id) ?? [];
+
   return (
     <>
       <View style={styles.container}>
-        {data?.map((equipeItem, index) => {
+        {validEquipe.map((equipeItem, index) => {
           const voluntarioData = voluntariosList.find(
             (v) => v.id === equipeItem.voluntario?.voluntarioId,
           );
@@ -226,121 +228,47 @@ export default function ListaVoluntariosTable({
                   </TouchableOpacity>
                 )}
               </View>
-              {index < (data?.length ?? 0) - 1 && <View style={styles.rowDivider} />}
+              {index < validEquipe.length - 1 && <View style={styles.rowDivider} />}
             </View>
           );
         })}
       </View>
 
-      <FancyBottomSheetModal
+      <FancyActionSheet
         visible={!!menuItem}
         onClose={() => setMenuItem(null)}
         title={menuItem?.voluntario?.nome ?? menuItem?.funcao?.nome ?? 'Opções'}
-      >
-        <View style={styles.menuSheet}>
-          {menuItem &&
-            (menuItem.voluntario?.nome ? (
-              <>
-                <TouchableOpacity
-                  style={styles.menuSheetItem}
-                  onPress={() => {
-                    setMenuItem(null);
-                    requestAnimationFrame(() =>
-                      handleVoluntarioClick(
-                        menuItem.voluntario?.minVoluntarioId!,
-                        menuItem.voluntario?.voluntarioId!,
-                      ),
-                    );
-                  }}
-                >
-                  <DefaultIcons.Custom
-                    library='MaterialIcons'
-                    name='person'
-                    size={18}
-                    color={palette.icons.dark}
-                  />
-                  <FancyText size='small' type='medium' color={palette.fonts.dark}>
-                    Ver detalhes
-                  </FancyText>
-                </TouchableOpacity>
-                <View style={styles.menuSheetDivider} />
-                <TouchableOpacity
-                  style={styles.menuSheetItem}
-                  onPress={() => {
-                    setMenuItem(null);
-                    requestAnimationFrame(() => onSubstituicaoButtonPressed?.(menuItem));
-                  }}
-                >
-                  <DefaultIcons.Custom
-                    library='FontAwesome5'
-                    name='exchange-alt'
-                    size={15}
-                    color={palette.icons.dark}
-                  />
-                  <FancyText size='small' type='medium' color={palette.fonts.dark}>
-                    Substituir voluntário
-                  </FancyText>
-                </TouchableOpacity>
-                <View style={styles.menuSheetDivider} />
-                <TouchableOpacity
-                  style={styles.menuSheetItem}
-                  onPress={() => {
-                    setMenuItem(null);
-                    requestAnimationFrame(() => onRemoverVoluntarioPressed?.(menuItem));
-                  }}
-                >
-                  <DefaultIcons.Custom
-                    library='MaterialIcons'
-                    name='person-remove'
-                    size={18}
-                    color={palette.error}
-                  />
-                  <FancyText size='small' type='medium' color={palette.error}>
-                    Remover da escala
-                  </FancyText>
-                </TouchableOpacity>
-              </>
-            ) : (
-              <>
-                <TouchableOpacity
-                  style={styles.menuSheetItem}
-                  onPress={() => {
-                    setMenuItem(null);
-                    requestAnimationFrame(() => onAdicionarVoluntarioButtonPressed?.(menuItem));
-                  }}
-                >
-                  <DefaultIcons.Custom
-                    library='MaterialIcons'
-                    name='person-add'
-                    size={18}
-                    color={palette.primary}
-                  />
-                  <FancyText size='small' type='medium' color={palette.fonts.dark}>
-                    Adicionar voluntário
-                  </FancyText>
-                </TouchableOpacity>
-                <View style={styles.menuSheetDivider} />
-                <TouchableOpacity
-                  style={styles.menuSheetItem}
-                  onPress={() => {
-                    setMenuItem(null);
-                    requestAnimationFrame(() => onExcluirFuncaoPressed?.(menuItem.funcao?.id!));
-                  }}
-                >
-                  <DefaultIcons.Custom
-                    library='MaterialIcons'
-                    name='delete-outline'
-                    size={18}
-                    color={palette.error}
-                  />
-                  <FancyText size='small' type='medium' color={palette.error}>
-                    Excluir função
-                  </FancyText>
-                </TouchableOpacity>
-              </>
-            ))}
-        </View>
-      </FancyBottomSheetModal>
+        actions={menuItem ? (menuItem.voluntario?.nome ? [
+          {
+            label: 'Ver detalhes',
+            icon: { library: 'MaterialIcons' as const, name: 'person', size: 18 },
+            onPress: () => handleVoluntarioClick(menuItem.voluntario!.minVoluntarioId!, menuItem.voluntario!.voluntarioId!),
+          },
+          {
+            label: 'Substituir voluntário',
+            icon: { library: 'FontAwesome5' as const, name: 'exchange-alt', size: 15 },
+            onPress: () => onSubstituicaoButtonPressed?.(menuItem),
+          },
+          {
+            label: 'Remover da escala',
+            icon: { library: 'MaterialIcons' as const, name: 'person-remove', size: 18 },
+            onPress: () => onRemoverVoluntarioPressed?.(menuItem),
+            destructive: true,
+          },
+        ] : [
+          {
+            label: 'Adicionar voluntário',
+            icon: { library: 'MaterialIcons' as const, name: 'person-add', size: 18 },
+            onPress: () => onAdicionarVoluntarioButtonPressed?.(menuItem),
+          },
+          {
+            label: 'Excluir função',
+            icon: { library: 'MaterialIcons' as const, name: 'delete-outline', size: 18 },
+            onPress: () => onExcluirFuncaoPressed?.(menuItem.funcao?.id!),
+            destructive: true,
+          },
+        ]) : []}
+      />
 
       {voluntarioDetailsProps.isVisible &&
         voluntarioDetailsProps.ministerioVoluntarioId &&
@@ -416,20 +344,6 @@ function createStyles(palette: ThemePalette) {
       justifyContent: 'center',
       alignItems: 'center',
       alignSelf: 'center',
-    },
-    menuSheet: {
-      paddingBottom: 8,
-    },
-    menuSheetItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 14,
-      paddingVertical: 14,
-      paddingHorizontal: 16,
-    },
-    menuSheetDivider: {
-      height: 1,
-      backgroundColor: palette.borderCard,
     },
   });
 }

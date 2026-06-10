@@ -16,6 +16,7 @@ import FancyLoading from '../../FancyLoading';
 import FancyText from '../../FancyText';
 import FancyTextInput from '../../fields/FancyTextInput';
 import EventoSetlistEditorSheet from './EventoSetlistEditorSheet';
+import FancyActionSheet from '../../actions/FancyActionSheet';
 import SetListItem from './SetListItem';
 import { getApiErrorMessage } from '../../../domain/api/api-error';
 import {
@@ -742,66 +743,36 @@ export default function EventoSetlistTab({
         </View>
       </FancyBottomSheetModal>
 
-      <FancyBottomSheetModal visible={!!actionsItem} onClose={closeItemActions} title='Opções'>
-        <View style={styles.actionsSheetContent}>
-          <Pressable
-            onPress={() => {
-              if (!actionsItem) return;
-              closeItemActions();
-              openItemEditor(actionsItem);
-            }}
-            style={styles.actionRow}
-          >
-            <MaterialCommunityIcons name='pencil-outline' size={18} color={palette.fonts.dark} />
-            <FancyText type='semiBold' size='small' style={styles.actionLabel}>
-              Editar
-            </FancyText>
-          </Pressable>
-
-          <Pressable
-            onPress={selectedItemIndex > 0 ? () => void moveItemBySheet('up') : undefined}
-            disabled={selectedItemIndex <= 0}
-            style={[styles.actionRow, selectedItemIndex <= 0 && styles.actionRowDisabled]}
-          >
-            <MaterialCommunityIcons name='arrow-up' size={18} color={palette.fonts.dark} />
-            <FancyText type='semiBold' size='small' style={styles.actionLabel}>
-              Mover para cima
-            </FancyText>
-          </Pressable>
-
-          <Pressable
-            onPress={
-              selectedItemIndex >= 0 && selectedItemIndex < orderedItems.length - 1
-                ? () => void moveItemBySheet('down')
-                : undefined
-            }
-            disabled={selectedItemIndex < 0 || selectedItemIndex >= orderedItems.length - 1}
-            style={[
-              styles.actionRow,
-              (selectedItemIndex < 0 || selectedItemIndex >= orderedItems.length - 1) &&
-                styles.actionRowDisabled,
-            ]}
-          >
-            <MaterialCommunityIcons name='arrow-down' size={18} color={palette.fonts.dark} />
-            <FancyText type='semiBold' size='small' style={styles.actionLabel}>
-              Mover para baixo
-            </FancyText>
-          </Pressable>
-
-          <Pressable
-            onPress={() => {
-              if (!actionsItem) return;
-              confirmDeleteItem(actionsItem);
-            }}
-            style={styles.actionRow}
-          >
-            <MaterialCommunityIcons name='trash-can-outline' size={18} color='#EF4444' />
-            <FancyText type='semiBold' size='small' style={styles.actionLabelDanger}>
-              Excluir
-            </FancyText>
-          </Pressable>
-        </View>
-      </FancyBottomSheetModal>
+      <FancyActionSheet
+        visible={!!actionsItem}
+        onClose={closeItemActions}
+        title='Opções'
+        actions={actionsItem ? [
+          {
+            label: 'Editar',
+            icon: { library: 'MaterialCommunityIcons' as const, name: 'pencil-outline', size: 18 },
+            onPress: () => openItemEditor(actionsItem),
+          },
+          {
+            label: 'Mover para cima',
+            icon: { library: 'MaterialCommunityIcons' as const, name: 'arrow-up', size: 18 },
+            onPress: () => void moveItemBySheet('up'),
+            disabled: selectedItemIndex <= 0,
+          },
+          {
+            label: 'Mover para baixo',
+            icon: { library: 'MaterialCommunityIcons' as const, name: 'arrow-down', size: 18 },
+            onPress: () => void moveItemBySheet('down'),
+            disabled: selectedItemIndex < 0 || selectedItemIndex >= orderedItems.length - 1,
+          },
+          {
+            label: 'Excluir',
+            icon: { library: 'MaterialCommunityIcons' as const, name: 'trash-can-outline', size: 18 },
+            onPress: () => confirmDeleteItem(actionsItem),
+            destructive: true,
+          },
+        ] : []}
+      />
     </>
   );
 }
@@ -961,30 +932,6 @@ const styles = StyleSheet.create({
   sheetBlockingOverlay: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 10,
-  },
-  actionsSheetContent: {
-    gap: 2,
-    marginTop: -6,
-    marginBottom: -16,
-  },
-  actionRow: {
-    minHeight: 42,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  actionRowDisabled: {
-    opacity: 0.4,
-  },
-  actionLabel: {
-    flex: 1,
-  },
-  actionLabelDanger: {
-    flex: 1,
-    color: '#EF4444',
   },
   blockingOverlay: {
     ...StyleSheet.absoluteFillObject,

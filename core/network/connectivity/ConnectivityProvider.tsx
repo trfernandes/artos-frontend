@@ -13,6 +13,11 @@ import { pingHealth } from '../health';
 
 export type ConnectivityStatus = 'ok' | 'offline' | 'serverDown';
 
+// Evita "piscar" o banner com estados transitórios ao voltar do background,
+// enquanto a rede ainda está reconectando.
+const OFFLINE_DEBOUNCE_MS = 1200;
+const FOREGROUND_HEALTHCHECK_DELAY_MS = 1500;
+
 type ConnectivityContextValue = {
   status: ConnectivityStatus;
   isOffline: boolean;
@@ -28,6 +33,8 @@ export function ConnectivityProvider({ children }: { children: React.ReactNode }
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const appStateRef = useRef(AppState.currentState);
+  const offlineDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const foregroundDelayRef = useRef<NodeJS.Timeout | null>(null);
 
   const runHealthCheck = useCallback(async () => {
     if (isOffline) {
@@ -50,9 +57,28 @@ export function ConnectivityProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     const unsub = NetInfo.addEventListener((state) => {
       const offline = !(state.isConnected && state.isInternetReachable !== false);
-      setIsOffline(offline);
+
+      if (offlineDebounceRef.current) {
+        clearTimeout(offlineDebounceRef.current);
+        offlineDebounceRef.current = null;
+      }
+
+      if (!offline) {
+        setIsOffline(false);
+        return;
+      }
+
+      // Espera um pouco antes de marcar como offline: ao voltar do
+      // background o NetInfo pode reportar offline momentaneamente
+      // enquanto a rede ainda está reconectando.
+      offlineDebounceRef.current = setTimeout(() => {
+        setIsOffline(true);
+      }, OFFLINE_DEBOUNCE_MS);
     });
-    return () => unsub();
+    return () => {
+      unsub();
+      if (offlineDebounceRef.current) clearTimeout(offlineDebounceRef.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -74,15 +100,24 @@ export function ConnectivityProvider({ children }: { children: React.ReactNode }
 
       const wentForeground = prev.match(/inactive|background/) && next === 'active';
       if (wentForeground) {
-        void runHealthCheck();
-        startPolling();
+        if (foregroundDelayRef.current) clearTimeout(foregroundDelayRef.current);
+        // Dá um tempo para a rede reconectar antes de checar o servidor,
+        // evitando falso "servidor indisponível" logo após voltar ao app.
+        foregroundDelayRef.current = setTimeout(() => {
+          void runHealthCheck();
+          startPolling();
+        }, FOREGROUND_HEALTHCHECK_DELAY_MS);
       }
       if (next !== 'active') {
         if (timerRef.current) clearInterval(timerRef.current);
+        if (foregroundDelayRef.current) clearTimeout(foregroundDelayRef.current);
       }
     });
 
-    return () => sub.remove();
+    return () => {
+      sub.remove();
+      if (foregroundDelayRef.current) clearTimeout(foregroundDelayRef.current);
+    };
   }, [runHealthCheck, startPolling]);
 
   const status: ConnectivityStatus = isOffline ? 'offline' : isServerDown ? 'serverDown' : 'ok';

@@ -12,6 +12,11 @@ import {
   UpdateEventoEnsaioDto,
 } from '../dtos/Evento/update-evento-ensaio.dto';
 import {
+  RemoveEventoOcorrenciaDadosDto,
+  ResponseEventoOcorrenciaDadosDto,
+  UpdateEventoOcorrenciaDadosDto,
+} from '../dtos/Evento/update-evento-ocorrencia-dados.dto';
+import {
   RemoveEventoSetlistResponsavelDto,
   UpdateEventoSetlistResponsavelDto,
 } from '../dtos/Evento/update-evento-setlist-responsavel.dto';
@@ -123,6 +128,38 @@ class IgrejaEventosApiClass {
   ): Promise<ResponseEventoEnsaioDto | null> {
     const response = await apiClient.delete<ApiEnvelope<ResponseEventoEnsaioDto | null>>(
       `/${this.resourceName}/${igrejaId}/eventos/${eventoId}/ensaio`,
+      { params },
+    );
+    return response.data?.data ?? null;
+  }
+
+  /**
+   * Atualizar dados (data/hora/local) da ocorrência por escopo (JWT)
+   * PATCH /igrejas/{igrejaId}/eventos/{eventoId}/ocorrencia-dados
+   */
+  async atualizarDadosOcorrencia(
+    igrejaId: string,
+    eventoId: string,
+    dto: UpdateEventoOcorrenciaDadosDto,
+  ): Promise<ResponseEventoOcorrenciaDadosDto> {
+    const response = await apiClient.patch<ApiEnvelope<ResponseEventoOcorrenciaDadosDto>>(
+      `/${this.resourceName}/${igrejaId}/eventos/${eventoId}/ocorrencia-dados`,
+      dto,
+    );
+    return response.data.data;
+  }
+
+  /**
+   * Remover override de dados da ocorrência por escopo/data (JWT)
+   * DELETE /igrejas/{igrejaId}/eventos/{eventoId}/ocorrencia-dados?escopo=...&dataReferencia=...
+   */
+  async removerDadosOcorrencia(
+    igrejaId: string,
+    eventoId: string,
+    params: RemoveEventoOcorrenciaDadosDto,
+  ): Promise<ResponseEventoOcorrenciaDadosDto | null> {
+    const response = await apiClient.delete<ApiEnvelope<ResponseEventoOcorrenciaDadosDto | null>>(
+      `/${this.resourceName}/${igrejaId}/eventos/${eventoId}/ocorrencia-dados`,
       { params },
     );
     return response.data?.data ?? null;

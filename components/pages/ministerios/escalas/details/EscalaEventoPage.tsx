@@ -1,4 +1,4 @@
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { format } from 'date-fns';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -19,6 +19,7 @@ import FancyBottomSheetSelect, {
   FancyBottomSheetSelectRef,
 } from '../../../../fields/FancyBottomSheetSelect';
 import DefaultIcons from '../../../../FancyIcons';
+import FancyActionSheet, { FancyActionSheetItem } from '../../../../actions/FancyActionSheet';
 import { FancyAlert } from '../../../../modal/FancyAlert';
 import ScaleFillIndicator from '../../../../indicators/ScaleFillIndicator';
 import ListaVoluntariosTable from './ListaVoluntariosTable';
@@ -28,6 +29,7 @@ import AdicionarVoluntarioModal, {
 } from './AdicionarVoluntarioModal';
 import AdicionarFuncaoModal, { AdicionarFuncaoConfirmDialog } from './AdicionarFuncaoModal';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
+import { AppImages } from '../../../../../assets/app_images';
 import {
   EscalaItemDataType,
   EscalaItemEquipeType,
@@ -105,6 +107,7 @@ export default function EscalaEventoPage({
 
   const [adicionarFuncaoModalOpen, setAdicionarFuncaoModalOpen] = useState(false);
   const [eventoDetailsVisible, setEventoDetailsVisible] = useState(false);
+  const [eventoMenuOpen, setEventoMenuOpen] = useState(false);
 
   // ── Setlist owner state ───────────────────────────────────────────────────────
   const responsavelSelectRef = useRef<FancyBottomSheetSelectRef>(null);
@@ -210,6 +213,48 @@ export default function EscalaEventoPage({
   const isFirst = pagerProps ? pagerProps.currentIndex === 0 : true;
   const isLast = pagerProps ? pagerProps.currentIndex === pagerProps.total - 1 : true;
 
+  // Cor de texto-no-acento (mesmo padrão do link do setlist)
+  const accentLabelColor = ColorUtils.darkenColor(borderColor, 0.12);
+
+  // Iniciais do responsável (fallback quando definido mas sem foto)
+  const responsavelSetlistIniciais = useMemo(() => {
+    const parts = responsavelSetlistNome.trim().split(/\s+/).filter(Boolean);
+    const first = parts[0]?.charAt(0) ?? '';
+    const last = parts.length > 1 ? parts[parts.length - 1].charAt(0) : '';
+    return (first + last).toUpperCase();
+  }, [responsavelSetlistNome]);
+
+  // Ações do menu de evento (overflow)
+  const eventoMenuActions: FancyActionSheetItem[] = [
+    {
+      label: 'Ver dados do evento',
+      icon: { library: 'MaterialIcons', name: 'info-outline', size: 18 },
+      onPress: () => setEventoDetailsVisible(true),
+    },
+  ];
+  if (isEditMode) {
+    eventoMenuActions.push({
+      label: 'Excluir evento',
+      icon: { library: 'MaterialIcons', name: 'delete-outline', size: 18 },
+      onPress: handleDeleteEvento,
+      destructive: true,
+    });
+  }
+
+  const renderSectionEyebrow = (label: string) => (
+    <View style={styles.sectionEyebrow}>
+      <View style={[styles.sectionEyebrowTick, { backgroundColor: accentLabelColor }]} />
+      <FancyText
+        type='semiBold'
+        size={10}
+        color={accentLabelColor}
+        style={styles.sectionEyebrowText}
+      >
+        {label.toUpperCase()}
+      </FancyText>
+    </View>
+  );
+
   return (
     <View style={styles.pageContainer}>
       {/* ── Card unificado (full-height, equipe scroll interno) ─────────────── */}
@@ -227,90 +272,26 @@ export default function EscalaEventoPage({
           <View style={styles.eventSection}>
             {/* Linha 1: label "Evento" + ações */}
             <View style={styles.eventHeaderTopRow}>
-              <View style={styles.eventLabelGroup}>
-                <FancyText
-                  type='medium'
-                  size={11}
-                  color={palette.fonts.inactive}
-                  style={styles.eventCategoryLabel}
-                >
-                  Evento
-                </FancyText>
-                {showNav && (
-                  <FancyText
-                    type='semiBold'
-                    size={11}
-                    color={ColorUtils.withAlpha(borderColor, 0.9)}
-                  >
-                    {`· ${pagerProps!.currentIndex + 1}/${pagerProps!.total}`}
-                  </FancyText>
-                )}
-              </View>
+              <View style={styles.eventLabelGroup}>{renderSectionEyebrow('Evento')}</View>
 
               <View style={styles.eventHeaderActions}>
-                {showNav && (
-                  <>
-                    <TouchableOpacity
-                      onPress={pagerProps!.onPrev}
-                      disabled={isFirst}
-                      style={styles.headerIconButton}
-                      accessibilityLabel='Evento anterior'
-                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    >
-                      <DefaultIcons.Custom
-                        library='MaterialIcons'
-                        name='chevron-left'
-                        size={20}
-                        color={isFirst ? ColorUtils.withAlpha(borderColor, 0.25) : borderColor}
-                      />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={pagerProps!.onNext}
-                      disabled={isLast}
-                      style={styles.headerIconButton}
-                      accessibilityLabel='Próximo evento'
-                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    >
-                      <DefaultIcons.Custom
-                        library='MaterialIcons'
-                        name='chevron-right'
-                        size={20}
-                        color={isLast ? ColorUtils.withAlpha(borderColor, 0.25) : borderColor}
-                      />
-                    </TouchableOpacity>
-                    <View style={styles.headerActionsDivider} />
-                  </>
-                )}
-
-                <TouchableOpacity
-                  onPress={() => setEventoDetailsVisible(true)}
-                  style={styles.headerIconButton}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  accessibilityLabel='Ver detalhes do evento'
-                >
-                  <DefaultIcons.Custom
-                    library='MaterialIcons'
-                    name='info-outline'
-                    size={20}
-                    color={ColorUtils.withAlpha(borderColor, 0.8)}
-                  />
-                </TouchableOpacity>
-
-                {isEditMode && (
-                  <TouchableOpacity
-                    onPress={handleDeleteEvento}
-                    style={styles.headerIconButton}
-                    accessibilityLabel='Excluir evento'
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <DefaultIcons.Custom
-                      library='MaterialIcons'
-                      name='delete-outline'
-                      size={20}
-                      color={palette.error}
-                    />
-                  </TouchableOpacity>
-                )}
+                <FancyButton
+                  type='text'
+                  mode='icon'
+                  size={{ w: 30, h: 30 }}
+                  icon={{
+                    library: 'Entypo',
+                    name: 'dots-three-vertical',
+                    size: 14,
+                    color: ColorUtils.withAlpha(palette.fonts.dark, 0.55),
+                  }}
+                  containerStyle={[
+                    styles.headerActionChip,
+                    { backgroundColor: ColorUtils.withAlpha(palette.fonts.dark, 0.06) },
+                  ]}
+                  onPress={() => setEventoMenuOpen(true)}
+                  accessibilityLabel='Mais ações do evento'
+                />
               </View>
             </View>
 
@@ -398,19 +379,17 @@ export default function EscalaEventoPage({
           </View>
 
           {/* ── Divisor → Setlist ─────────────────────────────────────────────── */}
-          <View style={styles.sectionDivider}>
-            <FancyText type='medium' size={11} color={palette.fonts.inactive}>
-              Setlist
-            </FancyText>
-          </View>
+          <View style={styles.sectionDivider}>{renderSectionEyebrow('Setlist')}</View>
 
           {/* ── Seção Setlist ─────────────────────────────────────────────────── */}
           <View style={styles.setlistSection}>
             <View style={styles.setlistOwnerPersonRow}>
               {hasResponsavelSetlist ? (
                 <FancyImage
-                  source={responsavelSetlistFoto ? { uri: responsavelSetlistFoto } : undefined}
-                  size={30}
+                  source={
+                    responsavelSetlistFoto ? { uri: responsavelSetlistFoto } : AppImages.emptyProfile
+                  }
+                  size={36}
                   style={styles.setlistOwnerAvatar}
                 />
               ) : (
@@ -441,18 +420,20 @@ export default function EscalaEventoPage({
                 <View style={styles.setlistOwnerActions}>
                   <FancyButton
                     type='text'
-                    size={{ w: 0, h: 28 }}
                     label={responsavelSetlistValue ? 'Trocar' : 'Definir'}
-                    labelProps={{ size: 'extraSmall' }}
-                    labelStyle={{ color: ColorUtils.darkenColor(borderColor, 0.12) }}
+                    labelProps={{ size: 'extraSmall', type: 'semiBold' }}
+                    labelStyle={{ color: accentLabelColor }}
                     icon={{
                       library: 'MaterialCommunityIcons',
                       name: responsavelSetlistValue ? 'swap-horizontal' : 'account-plus-outline',
-                      size: 15,
-                      color: ColorUtils.darkenColor(borderColor, 0.12),
+                      size: 14,
+                      color: accentLabelColor,
                     }}
                     iconPosition='left'
-                    containerStyle={styles.setlistOwnerLinkButton}
+                    containerStyle={[
+                      styles.addFuncaoButton,
+                      { backgroundColor: ColorUtils.withAlpha(borderColor, 0.1) },
+                    ]}
                     accessibilityLabel={
                       responsavelSetlistValue
                         ? 'Trocar responsável do setlist'
@@ -469,16 +450,16 @@ export default function EscalaEventoPage({
                       size={{ w: 26, h: 26 }}
                       icon={{
                         library: 'MaterialCommunityIcons',
-                        name: 'close-circle-outline',
+                        name: 'account-minus-outline',
                         size: 14,
-                        color: ColorUtils.withAlpha(palette.fonts.dark, 0.5),
+                        color: ColorUtils.withAlpha(palette.error, 0.75),
                       }}
                       containerStyle={[
                         styles.setlistOwnerButton,
                         {
-                          backgroundColor: ColorUtils.withAlpha(palette.fonts.dark, 0.06),
+                          backgroundColor: ColorUtils.withAlpha(palette.error, 0.10),
                           borderWidth: 1,
-                          borderColor: ColorUtils.withAlpha(palette.fonts.dark, 0.08),
+                          borderColor: ColorUtils.withAlpha(palette.error, 0.18),
                         },
                       ]}
                       accessibilityLabel='Limpar responsável do setlist'
@@ -493,17 +474,19 @@ export default function EscalaEventoPage({
 
           {/* ── Divisor → Equipe ──────────────────────────────────────────────── */}
           <View style={styles.sectionDivider}>
-            <FancyText type='medium' size={11} color={palette.fonts.inactive}>
-              Equipe
-            </FancyText>
+            {renderSectionEyebrow('Equipe')}
             {isEditMode && (
               <FancyButton
                 type='text'
                 label='Nova Função'
-                labelProps={{ size: 'extraSmall' }}
-                icon={{ library: 'MaterialIcons', name: 'add', size: 13, color: palette.primary }}
+                labelProps={{ size: 'extraSmall', type: 'semiBold' }}
+                labelStyle={{ color: accentLabelColor }}
+                icon={{ library: 'MaterialIcons', name: 'add', size: 14, color: accentLabelColor }}
                 iconPosition='left'
-                containerStyle={styles.addFuncaoButton}
+                containerStyle={[
+                  styles.addFuncaoButton,
+                  { backgroundColor: ColorUtils.withAlpha(borderColor, 0.1) },
+                ]}
                 onPress={() => setAdicionarFuncaoModalOpen(true)}
                 accessibilityLabel='Adicionar nova função'
               />
@@ -569,6 +552,89 @@ export default function EscalaEventoPage({
             </FancyScrollView>
           </View>
 
+          {/* ── Rodapé: navegação entre eventos (‹ 3 / 13 ›) ──────────────────── */}
+          {showNav && (
+            <View style={styles.pagerFooter}>
+              {/* Voltar — outlined (par de navegação: só o avanço é preenchido) */}
+              <FancyButton
+                type='outlined'
+                mode='icon'
+                size={{ w: 30, h: 30 }}
+                disabled={isFirst}
+                icon={{
+                  library: 'MaterialIcons',
+                  name: 'chevron-left',
+                  size: 20,
+                  color: isFirst ? ColorUtils.withAlpha(borderColor, 0.3) : borderColor,
+                }}
+                containerStyle={[
+                  styles.pagerNavButton,
+                  { borderColor: ColorUtils.withAlpha(borderColor, isFirst ? 0.2 : 0.5) },
+                ]}
+                onPress={pagerProps!.onPrev}
+                accessibilityLabel='Evento anterior'
+              />
+
+              <View style={styles.pagerDots}>
+                {(() => {
+                  const total = pagerProps!.total;
+                  const current = pagerProps!.currentIndex;
+                  const MAX = 13;
+                  let start = 0;
+                  let end = total;
+                  if (total > MAX) {
+                    start = Math.min(Math.max(0, current - Math.floor(MAX / 2)), total - MAX);
+                    end = start + MAX;
+                  }
+                  return Array.from({ length: end - start }, (_, k) => {
+                    const idx = start + k;
+                    const active = idx === current;
+                    const isEdge = total > MAX && (k === 0 || k === end - start - 1);
+                    const base = isEdge ? 4 : 6;
+                    return (
+                      <View
+                        key={idx}
+                        style={[
+                          styles.pagerDot,
+                          {
+                            width: active ? 8 : base,
+                            height: active ? 8 : base,
+                            backgroundColor: active
+                              ? borderColor
+                              : ColorUtils.withAlpha(borderColor, 0.25),
+                          },
+                        ]}
+                      />
+                    );
+                  });
+                })()}
+              </View>
+
+              {/* Avançar — preenchido (ação de avanço do par) */}
+              <FancyButton
+                type='light'
+                mode='icon'
+                size={{ w: 30, h: 30 }}
+                disabled={isLast}
+                icon={{
+                  library: 'MaterialIcons',
+                  name: 'chevron-right',
+                  size: 20,
+                  color: isLast ? ColorUtils.withAlpha(borderColor, 0.3) : borderColor,
+                }}
+                containerStyle={[
+                  styles.pagerNavButton,
+                  {
+                    backgroundColor: ColorUtils.withAlpha(borderColor, isLast ? 0.06 : 0.14),
+                    borderColor: 'transparent',
+                  },
+                ]}
+                onPress={pagerProps!.onNext}
+                accessibilityLabel='Próximo evento'
+              />
+            </View>
+          )}
+
           {/* Hidden select trigger */}
           <View style={styles.hiddenSelectWrapper}>
             <FancyBottomSheetSelect
@@ -585,6 +651,13 @@ export default function EscalaEventoPage({
       </View>
 
       {/* ── Modals ──────────────────────────────────────────────────────────── */}
+      <FancyActionSheet
+        visible={eventoMenuOpen}
+        onClose={() => setEventoMenuOpen(false)}
+        title={data.evento.nome}
+        actions={eventoMenuActions}
+      />
+
       {substituicaoModalProps.isOpen && (
         <SubstituirVoluntarioModal
           visible={substituicaoModalProps.isOpen}
@@ -736,24 +809,31 @@ function createStyles(palette: ThemePalette) {
       flex: 1,
       minWidth: 0,
     },
-    eventCategoryLabel: {
-      letterSpacing: 0.4,
-      marginBottom: 1,
+    sectionEyebrow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    sectionEyebrowTick: {
+      width: 3,
+      height: 11,
+      borderRadius: 2,
+    },
+    sectionEyebrowText: {
+      letterSpacing: 0.8,
     },
     eventName: {
       lineHeight: 18,
-      marginTop: -2,
+      marginTop: -4,
     },
     eventHeaderActions: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
     },
-    headerIconButton: {
-      width: 30,
-      height: 30,
-      alignItems: 'center',
-      justifyContent: 'center',
+    headerActionChip: {
+      borderRadius: 999,
+      borderWidth: 0,
     },
     eventMetaRow: {
       flexDirection: 'column',
@@ -794,8 +874,8 @@ function createStyles(palette: ThemePalette) {
       ...palette.shadows[200],
     },
     eventSection: {
-      paddingHorizontal: 14,
-      paddingTop: 7,
+      paddingHorizontal: 18,
+      paddingTop: 10,
       paddingBottom: 10,
       gap: 3,
     },
@@ -803,7 +883,7 @@ function createStyles(palette: ThemePalette) {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: 14,
+      paddingHorizontal: 18,
       paddingVertical: 9,
       gap: 8,
       borderTopWidth: StyleSheet.hairlineWidth,
@@ -814,12 +894,12 @@ function createStyles(palette: ThemePalette) {
       height: StyleSheet.hairlineWidth,
     },
     setlistSection: {
-      paddingHorizontal: 14,
+      paddingHorizontal: 18,
       paddingTop: 6,
       paddingBottom: 16,
     },
     equipeSection: {
-      paddingHorizontal: 12,
+      paddingHorizontal: 16,
       flex: 1,
     },
     equipeScrollContent: {
@@ -843,11 +923,36 @@ function createStyles(palette: ThemePalette) {
       flex: 1,
       gap: 2,
     },
-    addFuncaoButton: {
+    accentGhostChip: {
       alignSelf: 'center',
-      paddingHorizontal: 2,
+      paddingHorizontal: 10,
       height: 28,
       minWidth: 0,
+      borderRadius: 999,
+    },
+    // ── Rodapé de navegação entre eventos ────────────────────────────────────
+    pagerFooter: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 18,
+      paddingVertical: 12,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: palette.borderCard,
+    },
+    pagerNavButton: {
+      borderRadius: 999,
+    },
+    pagerDots: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 5,
+      marginHorizontal: 12,
+    },
+    pagerDot: {
+      borderRadius: 999,
     },
     // ── Setlist owner ────────────────────────────────────────────────────────
     setlistOwnerPersonRow: {
@@ -858,17 +963,17 @@ function createStyles(palette: ThemePalette) {
       paddingLeft: 6,
     },
     setlistOwnerAvatar: {
-      borderRadius: 15,
+      borderRadius: 18,
     },
     setlistOwnerAvatarPlaceholder: {
-      width: 30,
-      height: 30,
-      borderRadius: 15,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12),
+      backgroundColor: palette.backgroundColor3,
       borderWidth: 1,
-      borderColor: ColorUtils.withAlpha(palette.primary, 0.16),
+      borderColor: palette.borderCard,
     },
     setlistOwnerTextBlock: {
       flex: 1,
@@ -888,6 +993,13 @@ function createStyles(palette: ThemePalette) {
       alignSelf: 'center',
       paddingHorizontal: 4,
       minWidth: 0,
+    },
+    addFuncaoButton: {
+      height: 26,
+      borderRadius: 999,
+      paddingHorizontal: 8,
+      minWidth: 0,
+      alignSelf: 'center',
     },
     hiddenSelectWrapper: {
       position: 'absolute',

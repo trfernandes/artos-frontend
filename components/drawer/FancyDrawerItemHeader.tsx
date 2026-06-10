@@ -67,7 +67,13 @@ export default function FancyDrawerItemHeader(
         )}
       </View>
       <View style={styles.headerContainer}>
-        <FancyText size={'small'} type='semiBold' color={titleColor}>
+        <FancyText
+          size={'small'}
+          type='semiBold'
+          color={titleColor}
+          numberOfLines={1}
+          style={styles.title}
+        >
           {props.title}
         </FancyText>
         {props.subtitle && (
@@ -75,7 +81,8 @@ export default function FancyDrawerItemHeader(
             size={'small'}
             type='medium'
             color={subtitleColor}
-            style={{ paddingTop: 0, opacity: isDark ? 0.9 : 1 }}
+            numberOfLines={1}
+            style={[styles.subtitle, { opacity: isDark ? 0.9 : 1 }]}
           >
             {` - ${props.subtitle}`}
           </FancyText>
@@ -113,6 +120,13 @@ function createStyles(_palette: ThemePalette) {
       flexDirection: 'row',
       paddingTop: 2,
       borderColor: 'red',
+    },
+    title: {
+      flexShrink: 1,
+    },
+    subtitle: {
+      paddingTop: 0,
+      flexShrink: 0,
     },
     collapseContainer: {},
   });

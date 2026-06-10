@@ -32,6 +32,9 @@ export type EscalaItemDataType = {
   equipe: EscalaItemEquipeType[];
   escalaItemId: string;
   responsavelSetlistVoluntarioId?: string | null;
+  dataHoraInicioOcorrencia?: Date | null;
+  dataHoraTerminoOcorrencia?: Date | null;
+  localOcorrencia?: string | null;
 };
 
 export type EscalaItemEventoDataType = {
@@ -68,6 +71,7 @@ export type EscalaItemEquipeType = {
 };
 
 function getOccurrenceStartTimestamp(grupo: EscalaItemDataType) {
+  if (grupo.dataHoraInicioOcorrencia) return grupo.dataHoraInicioOcorrencia.getTime();
   return combineOccurrenceWithEventTime(grupo.dataOcorrencia, grupo.evento.dataInicio).getTime();
 }
 
@@ -214,6 +218,13 @@ export default function MinisterioEscalasDetailsPage() {
           equipe: [],
           escalaItemId: item.id!,
           responsavelSetlistVoluntarioId: item.responsavelSetlistVoluntarioId ?? null,
+          dataHoraInicioOcorrencia: item.dataHoraInicioOcorrencia
+            ? new Date(item.dataHoraInicioOcorrencia)
+            : null,
+          dataHoraTerminoOcorrencia: item.dataHoraTerminoOcorrencia
+            ? new Date(item.dataHoraTerminoOcorrencia)
+            : null,
+          localOcorrencia: item.localOcorrencia ?? null,
         } as EscalaItemDataType;
         mapa.set(chave, grupo);
       }
@@ -227,6 +238,8 @@ export default function MinisterioEscalasDetailsPage() {
       )?.experiencia as EscalaTemplateExperienciaEnum | undefined;
 
       const expMinima = expMinimaLookup.get(`${item.evento?.id}-${item.funcao?.id}`);
+
+      if (!item.funcao?.id) continue;
 
       grupo.equipe.push({
         idEscalaItem: item?.id!,

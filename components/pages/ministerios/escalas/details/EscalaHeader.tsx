@@ -51,8 +51,8 @@ function useActionColors(key: string, palette: ThemePalette) {
   };
   const bg = coloredKeys[key];
   return {
-    backgroundColor: bg ?? palette.backgroundColor3,
-    iconColor: bg ? palette.icons.light : palette.icons.dark,
+    backgroundColor: bg ?? ColorUtils.withAlpha(palette.primary, 0.08),
+    iconColor: bg ? palette.icons.light : palette.primary,
     isColored: Boolean(bg),
   };
 }
@@ -82,48 +82,58 @@ export default function EscalaHeader({
 
   return (
     <View style={[styles.surfaceCard, hasInlineActions && styles.surfaceCardWithActions]}>
-      <View style={styles.topRow}>
-        <View style={styles.titleBlock}>
-          <FancyText
-            type='medium'
-            size={11}
-            color={palette.fonts.inactive}
-            style={styles.categoryLabel}
-          >
-            Escala
-          </FancyText>
-          <FancyText
-            type='bold'
-            size='largeMedium'
-            color={palette.fonts.dark}
-            numberOfLines={1}
-            style={styles.titleText}
-          >
-            {title}
+      <View style={styles.eyebrowRow}>
+        <View style={styles.eyebrow}>
+          <View style={[styles.eyebrowTick, { backgroundColor: palette.primary }]} />
+          <FancyText type='semiBold' size={10} color={palette.primary} style={styles.eyebrowText}>
+            ESCALA
           </FancyText>
         </View>
+        {primaryActionLabel && onPrimaryActionPress ? (
+          <FancyButton
+            type='contained'
+            label={primaryActionLabel}
+            labelProps={{ size: 'extraSmall', type: 'semiBold' }}
+            onPress={onPrimaryActionPress}
+            containerStyle={styles.primaryPill}
+          />
+        ) : null}
+      </View>
+
+      <View style={styles.topRow}>
+        <FancyText
+          type='bold'
+          size='largeMedium'
+          color={palette.fonts.dark}
+          numberOfLines={1}
+          style={styles.titleText}
+        >
+          {title}
+        </FancyText>
         <View style={styles.topActions}>
           <EscalaStatusBadge status={status} />
         </View>
       </View>
 
       <View style={styles.metaInlineRow}>
-        <View style={styles.periodBlock}>
+        <View
+          style={[
+            styles.periodPill,
+            {
+              backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
+              borderColor: ColorUtils.withAlpha(palette.primary, 0.18),
+            },
+          ]}
+        >
           <DefaultIcons.Custom
             library='MaterialCommunityIcons'
             name='calendar-range'
-            size={13}
+            size={12}
             color={palette.primary}
           />
-          <View style={styles.periodDate}>
-            <FancyText size={9} type='medium' color={palette.fonts.inactive}>De</FancyText>
-            <FancyText size={11} type='semiBold' color={palette.primary}>{formatShortDate(periodStart)}</FancyText>
-          </View>
-          <FancyText size={11} type='medium' color={palette.fonts.inactive}>·</FancyText>
-          <View style={styles.periodDate}>
-            <FancyText size={9} type='medium' color={palette.fonts.inactive}>Até</FancyText>
-            <FancyText size={11} type='semiBold' color={palette.primary}>{formatShortDate(periodEnd)}</FancyText>
-          </View>
+          <FancyText size={11} type='semiBold' color={palette.primary}>
+            {`${formatShortDate(periodStart)} – ${formatShortDate(periodEnd)}`}
+          </FancyText>
         </View>
         {hasHealth && (
           <EscalaHealthIndicator
@@ -144,15 +154,6 @@ export default function EscalaHeader({
           labelStyle={{ color: palette.primary }}
         />
       )}
-
-      {primaryActionLabel && onPrimaryActionPress ? (
-        <FancyButton
-          type='contained'
-          label={primaryActionLabel}
-          onPress={onPrimaryActionPress}
-          containerStyle={styles.primaryActionButton}
-        />
-      ) : null}
 
       {hasInlineActions && (
         <>
@@ -253,23 +254,35 @@ function createStyles(palette: ThemePalette) {
     surfaceCardWithActions: {
       paddingBottom: 0,
     },
+    eyebrowRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 8,
+      marginBottom: 4,
+    },
+    eyebrow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    eyebrowTick: {
+      width: 3,
+      height: 11,
+      borderRadius: 2,
+    },
+    eyebrowText: {
+      letterSpacing: 0.8,
+    },
     topRow: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: 10,
     },
-    titleBlock: {
-      flex: 1,
-      minWidth: 0,
-      gap: 1,
-    },
-    categoryLabel: {
-      letterSpacing: 0.4,
-      marginBottom: 1,
-    },
     titleText: {
       lineHeight: 20,
+      flex: 1,
     },
     topActions: {
       flexDirection: 'row',
@@ -280,15 +293,17 @@ function createStyles(palette: ThemePalette) {
       alignItems: 'center',
       justifyContent: 'space-between',
       flexWrap: 'wrap',
-      marginTop: 3,
+      marginTop: 5,
     },
-    periodBlock: {
+    periodPill: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 10,
-    },
-    periodDate: {
-      gap: 1,
+      gap: 6,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 999,
+      borderWidth: 1,
+      alignSelf: 'flex-start',
     },
     metaInlineItem: {
       flexDirection: 'row',
@@ -308,11 +323,6 @@ function createStyles(palette: ThemePalette) {
       alignSelf: 'flex-start',
       paddingHorizontal: 0,
       height: 28,
-    },
-    primaryActionButton: {
-      marginTop: 8,
-      height: 36,
-      borderRadius: 10,
     },
     actionsRow: {
       flexDirection: 'row',

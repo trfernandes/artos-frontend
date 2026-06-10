@@ -11,6 +11,11 @@ import {
   ResponseEventoEnsaioDto,
   UpdateEventoEnsaioDto,
 } from '../dtos/Evento/update-evento-ensaio.dto';
+import {
+  RemoveEventoOcorrenciaDadosDto,
+  ResponseEventoOcorrenciaDadosDto,
+  UpdateEventoOcorrenciaDadosDto,
+} from '../dtos/Evento/update-evento-ocorrencia-dados.dto';
 import { CreateEventoSetlistItemDto } from '../dtos/Evento/evento-setlist-item.create';
 import { ResponseEventoSetlistItemDto } from '../dtos/Evento/evento-setlist-item.response';
 import { UpdateEventoSetlistItemDto } from '../dtos/Evento/evento-setlist-item.update';
@@ -96,6 +101,28 @@ class IgrejaEventosRepositoryClass {
     params: RemoveEventoEnsaioDto,
   ): Promise<ResponseEventoEnsaioDto | null> {
     return IgrejaEventosApi.removerEnsaio(igrejaId, eventoId, params);
+  }
+
+  /**
+   * Atualizar dados (data/hora/local) da ocorrência por escopo (JWT)
+   */
+  atualizarDadosOcorrencia(
+    igrejaId: string,
+    eventoId: string,
+    dto: UpdateEventoOcorrenciaDadosDto,
+  ): Promise<ResponseEventoOcorrenciaDadosDto> {
+    return IgrejaEventosApi.atualizarDadosOcorrencia(igrejaId, eventoId, dto);
+  }
+
+  /**
+   * Remover override de dados da ocorrência por escopo/data (JWT)
+   */
+  removerDadosOcorrencia(
+    igrejaId: string,
+    eventoId: string,
+    params: RemoveEventoOcorrenciaDadosDto,
+  ): Promise<ResponseEventoOcorrenciaDadosDto | null> {
+    return IgrejaEventosApi.removerDadosOcorrencia(igrejaId, eventoId, params);
   }
 
   atualizarResponsavelSetlist(

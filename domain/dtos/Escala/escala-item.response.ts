@@ -15,6 +15,9 @@ export type ResponseEscalaItemDto = {
   eventoId: string;
   evento?: ResponseEventoDto;
   dataOcorrencia: string;
+  dataHoraInicioOcorrencia?: string | null;
+  dataHoraTerminoOcorrencia?: string | null;
+  localOcorrencia?: string | null;
   voluntarioId?: string;
   voluntario?: ResponseMinisterioVoluntarioDto;
   funcaoId?: string;

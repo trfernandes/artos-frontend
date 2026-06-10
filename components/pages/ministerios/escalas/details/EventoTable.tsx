@@ -112,6 +112,11 @@ export default function EventoTable({
   }, []);
 
   const hasEventPassed = useMemo(() => {
+    if (data.dataHoraInicioOcorrencia) {
+      const endAt = data.dataHoraTerminoOcorrencia ?? data.dataHoraInicioOcorrencia;
+      return endAt.getTime() < Date.now();
+    }
+
     const occurrenceDate = DateUtilsApi.dateOnlyFromApi(data.dataOcorrencia);
     const endAt = new Date(occurrenceDate);
     const startHour = data.evento.dataInicio?.getHours?.() ?? 0;
@@ -129,7 +134,13 @@ export default function EventoTable({
     }
 
     return endAt.getTime() < Date.now();
-  }, [data.dataOcorrencia, data.evento.dataInicio, data.evento.dataTermino]);
+  }, [
+    data.dataOcorrencia,
+    data.dataHoraInicioOcorrencia,
+    data.dataHoraTerminoOcorrencia,
+    data.evento.dataInicio,
+    data.evento.dataTermino,
+  ]);
 
   const {
     borderColor,
@@ -354,9 +365,12 @@ export default function EventoTable({
                     color={eventMetaColor}
                   />
                   <FancyText type='semiBold' size={10} color={eventMetaColor}>{`${format(
-                    data.evento.dataInicio!,
+                    data.dataHoraInicioOcorrencia ?? data.evento.dataInicio!,
                     'HH:mm',
-                  )} - ${format(data.evento.dataTermino!, 'HH:mm')}`}</FancyText>
+                  )} - ${format(
+                    data.dataHoraTerminoOcorrencia ?? data.evento.dataTermino!,
+                    'HH:mm',
+                  )}`}</FancyText>
                 </View>
               </View>
             </View>

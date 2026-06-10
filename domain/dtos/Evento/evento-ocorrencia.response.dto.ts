@@ -18,6 +18,9 @@ export type ResponseEventoOcorrenciaDto = {
   recorrenciaSemanasMes?: RecorrenciaSemanaMesEnum[];
   recorrenciaACadaMeses?: number;
   dataOcorrencia: string;
+  dataInicio?: string;
+  dataTermino?: string | null;
+  dadosOcorrenciaOrigem?: TemplatePadraoOrigemEnum;
   eventoId: string;
   evento?: ResponseEventoDto;
   templatePadraoId?: string;

@@ -56,7 +56,19 @@ export default function MinisterioEscalasIndexPage() {
       return () => setIsNavigating(false);
     }, []),
   );
+
   const escalaStatusConfig = useMemo(() => getEscalaStatusConfig(palette), [palette]);
+
+  const openEscalaDetails = useCallback(
+    (escalaId: string) => {
+      setIsNavigating(true);
+      router.push({
+        pathname: '/ministerios/escalas/details',
+        params: { ministerioId, escalaId, viewMode: 'edit' },
+      });
+    },
+    [ministerioId],
+  );
 
   const {
     data: escalas,
@@ -83,6 +95,12 @@ export default function MinisterioEscalasIndexPage() {
       orderBy: [{ path: 'dataInicio', direction: OrderDirection.DESC }],
     },
   });
+
+  useFocusEffect(
+    useCallback(() => {
+      refetchEscalas();
+    }, [refetchEscalas]),
+  );
 
   const handleDeletePress = useCallback(
     (escalaId: string) => {
@@ -159,6 +177,7 @@ export default function MinisterioEscalasIndexPage() {
             <FancyCard.Image
               type='icon'
               props={{
+                onPress: () => openEscalaDetails(item.id),
                 centerContainerStyle: { gap: 4 },
                 cardIcon: {
                   ...DefaultIconsNames['calendar-day'],
@@ -274,15 +293,7 @@ export default function MinisterioEscalasIndexPage() {
               if (!actionsEscala) return;
               const escalaId = actionsEscala.id;
               setActionsEscala(null);
-              setIsNavigating(true);
-              router.push({
-                pathname: '/ministerios/escalas/details',
-                params: {
-                  ministerioId,
-                  escalaId,
-                  viewMode: 'edit',
-                },
-              });
+              openEscalaDetails(escalaId);
             },
           },
           {

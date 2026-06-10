@@ -1,15 +1,21 @@
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Toast from 'react-native-toast-message';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import FancyContainer from '../../../FancyContainer';
 import FancyBottomSheetSelect from '../../../fields/FancyBottomSheetSelect';
+import FancyBottomSheetModal from '../../../modal/FancyBottomSheetModal';
 import FancyButton from '../../../buttons/FancyButton';
 import FancyChips from '../../../FancyChips';
 import FancyLoading from '../../../FancyLoading';
 import FancyText from '../../../FancyText';
+import FancyTextInput from '../../../fields/FancyTextInput';
 import DefaultIcons from '../../../FancyIcons';
 import EventoInfoCard from '../../common/EventoInfoCard';
 import ModernTimePickerSheet from '../../../time_picker/ModernTimePickerSheet';
+import ModernDatePickerField from '../../../datepicker/ModernDatePickerField';
+import ModernTimePickerField from '../../../time_picker/ModernTimePickerField';
 import { FancyAlert } from '../../../modal/FancyAlert';
 import { useEscalaTemplatesCrud } from '../../../../useEscalaTemplatesCrud';
 import {
@@ -25,6 +31,7 @@ import { ResponseEventoOcorrenciaDto } from '../../../../domain/dtos/Evento/even
 import { EscalaTemplateTipoLabel } from '../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
 import { useEventoTemplatePadrao } from '../../../../hooks/useEventoTemplatePadrao';
 import { useEventoEnsaio } from '../../../../hooks/useEventoEnsaio';
+import { useEventoOcorrenciaDados } from '../../../../hooks/useEventoOcorrenciaDados';
 import { useEventoSetlistResponsavel } from '../../../../hooks/useEventoSetlistResponsavel';
 import { TemplatePadraoOrigemEnum } from '../../../../domain/enums/Evento/template-padrao-origem.enum';
 import { TemplatePadraoEscopoEnum } from '../../../../domain/enums/Evento/template-padrao-escopo.enum';
@@ -33,7 +40,7 @@ import { getApiErrorMessage } from '../../../../domain/api/api-error';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useLoading } from '../../../../contexts/LoadingContext';
 import { useEscalaItensCrud } from '../../../../hooks/useEscalaItensCrud';
-import { DateUtilsApi } from '../../../../utils/date_utils';
+import DateUtils, { DateUtilsApi } from '../../../../utils/date_utils';
 import { canManageEventoOcorrencia } from '../../../../utils/ministerio_permissoes';
 import { usePallete } from '../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../hooks/useThemedStyles';
@@ -60,6 +67,12 @@ const ResponsavelSetlistOrigemLabel = {
 
 type HourMinute = { hour: number; minute: number };
 type ScopePromptResult = TemplatePadraoEscopoEnum | 'cancel';
+
+type DadosOcorrenciaDraft = {
+  dataInicio: Date;
+  dataTermino: Date | null;
+  local: string;
+};
 
 export type AgendaDetailsDadosTabActions = {
   saveAllChanges: () => Promise<boolean>;
@@ -93,6 +106,39 @@ function getMinutesOfDay(value: HourMinute): number {
 
 function normalizeSelectValue(value?: string | null) {
   return value ?? '';
+}
+
+function withTimeFromDate(datePart: Date, timeSource: Date): Date {
+  return new Date(
+    datePart.getFullYear(),
+    datePart.getMonth(),
+    datePart.getDate(),
+    timeSource.getHours(),
+    timeSource.getMinutes(),
+    0,
+    0,
+  );
+}
+
+function withHourMinute(datePart: Date, time: HourMinute): Date {
+  return new Date(
+    datePart.getFullYear(),
+    datePart.getMonth(),
+    datePart.getDate(),
+    time.hour,
+    time.minute,
+    0,
+    0,
+  );
+}
+
+function formatOccurrenceDateLabel(date: Date): string {
+  const label = format(date, "EEE, d 'de' MMM", { locale: ptBR });
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+function serializeDadosOcorrencia(value: DadosOcorrenciaDraft): string {
+  return `${value.dataInicio.getTime()}|${value.dataTermino ? value.dataTermino.getTime() : ''}|${value.local}`;
 }
 
 function OccurrenceFieldSection({
@@ -161,6 +207,128 @@ function OccurrenceFieldSection({
   );
 }
 
+function OcorrenciaDadosEditorSheet({
+  visible,
+  value,
+  hasTermino,
+  showRestoreDefault,
+  onClose,
+  onConfirm,
+  onRestoreDefault,
+}: {
+  visible: boolean;
+  value: DadosOcorrenciaDraft;
+  hasTermino: boolean;
+  showRestoreDefault: boolean;
+  onClose: () => void;
+  onConfirm: (value: DadosOcorrenciaDraft) => void;
+  onRestoreDefault: () => void;
+}) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+  const [draft, setDraft] = useState<DadosOcorrenciaDraft>(value);
+
+  useEffect(() => {
+    if (visible) setDraft(value);
+  }, [visible, value]);
+
+  const footer = (
+    <View style={styles.editorFooterButtons}>
+      <FancyButton
+        label='Cancelar'
+        type='outlined'
+        onPress={onClose}
+        containerStyle={styles.editorFooterButton}
+      />
+      <FancyButton
+        label='Confirmar'
+        onPress={() => onConfirm(draft)}
+        containerStyle={styles.editorFooterButton}
+      />
+    </View>
+  );
+
+  return (
+    <FancyBottomSheetModal
+      visible={visible}
+      onClose={onClose}
+      title='Data, horário e local'
+      footer={footer}
+    >
+      <View style={styles.editorContainer}>
+        <View style={styles.editorField}>
+          <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
+            Data
+          </FancyText>
+          <ModernDatePickerField
+            value={draft.dataInicio}
+            onChange={(date) =>
+              setDraft((prev) => ({
+                ...prev,
+                dataInicio: withTimeFromDate(date, prev.dataInicio),
+                dataTermino: prev.dataTermino ? withTimeFromDate(date, prev.dataTermino) : null,
+              }))
+            }
+          />
+        </View>
+
+        <View style={styles.editorField}>
+          <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
+            Horário de início
+          </FancyText>
+          <ModernTimePickerField
+            value={{ hour: draft.dataInicio.getHours(), minute: draft.dataInicio.getMinutes() }}
+            onChange={(time) =>
+              setDraft((prev) => ({ ...prev, dataInicio: withHourMinute(prev.dataInicio, time) }))
+            }
+          />
+        </View>
+
+        {hasTermino && draft.dataTermino ? (
+          <View style={styles.editorField}>
+            <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
+              Horário de término
+            </FancyText>
+            <ModernTimePickerField
+              value={{
+                hour: draft.dataTermino.getHours(),
+                minute: draft.dataTermino.getMinutes(),
+              }}
+              onChange={(time) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  dataTermino: prev.dataTermino ? withHourMinute(prev.dataTermino, time) : null,
+                }))
+              }
+            />
+          </View>
+        ) : null}
+
+        <View style={styles.editorField}>
+          <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
+            Local
+          </FancyText>
+          <FancyTextInput
+            value={draft.local}
+            placeholder='Local da ocorrência'
+            inputProps={{
+              onChangeText: (text) => setDraft((prev) => ({ ...prev, local: text })),
+            }}
+          />
+        </View>
+
+        {showRestoreDefault ? (
+          <Pressable onPress={onRestoreDefault} style={styles.restoreDefaultButton}>
+            <FancyText size='small' type='semiBold' color={palette.primary}>
+              Restaurar padrão do evento
+            </FancyText>
+          </Pressable>
+        ) : null}
+      </View>
+    </FancyBottomSheetModal>
+  );
+}
+
 export default function AgendaDetailsDadosTab(props: {
   ministerioId: string;
   dataOcorrenciaIso: string;
@@ -221,6 +389,8 @@ export default function AgendaDetailsDadosTab(props: {
   const { salvarTemplatePadrao, removerTemplatePadrao, isSavingTemplatePadrao } =
     useEventoTemplatePadrao();
   const { salvarEnsaio, removerEnsaio, isSavingEnsaio } = useEventoEnsaio();
+  const { salvarDadosOcorrencia, removerDadosOcorrencia, isSavingDadosOcorrencia } =
+    useEventoOcorrenciaDados();
   const { salvarResponsavelSetlist, removerResponsavelSetlist, isSavingResponsavelSetlist } =
     useEventoSetlistResponsavel();
   const escalaSearchParams = useMemo(
@@ -286,6 +456,23 @@ export default function AgendaDetailsDadosTab(props: {
     [props.ocorrencia?.responsavelSetlistVoluntarioId],
   );
 
+  const resolvedDadosOcorrencia = useMemo<DadosOcorrenciaDraft>(() => {
+    const dataInicio = props.ocorrencia?.dataInicio
+      ? new Date(props.ocorrencia.dataInicio)
+      : new Date(props.dataOcorrenciaDate);
+    const dataTermino = props.ocorrencia?.dataTermino
+      ? new Date(props.ocorrencia.dataTermino)
+      : null;
+    const local = props.ocorrencia?.local ?? props.evento.local ?? '';
+    return { dataInicio, dataTermino, local };
+  }, [
+    props.dataOcorrenciaDate,
+    props.evento.local,
+    props.ocorrencia?.dataInicio,
+    props.ocorrencia?.dataTermino,
+    props.ocorrencia?.local,
+  ]);
+
   const resolvedTemplateName = useMemo(() => {
     const resolvedTemplate =
       props.ocorrencia?.templatePadrao?.nome ??
@@ -305,12 +492,16 @@ export default function AgendaDetailsDadosTab(props: {
   const [responsavelSetlistId, setResponsavelSetlistId] = useState<string>(
     resolvedResponsavelSetlistId,
   );
+  const [dadosOcorrencia, setDadosOcorrencia] =
+    useState<DadosOcorrenciaDraft>(resolvedDadosOcorrencia);
   const [isSavingAll, setIsSavingAll] = useState(false);
   const [isTimePickerVisible, setIsTimePickerVisible] = useState(false);
+  const [isDadosSheetVisible, setIsDadosSheetVisible] = useState(false);
 
   const previousResolvedTemplateIdRef = useRef(resolvedTemplateId);
   const previousResolvedEnsaioRef = useRef(serializeHourMinute(resolvedEnsaio));
   const previousResolvedResponsavelRef = useRef(resolvedResponsavelSetlistId);
+  const previousResolvedDadosRef = useRef(serializeDadosOcorrencia(resolvedDadosOcorrencia));
 
   useEffect(() => {
     setTemplateId((currentTemplateId) => {
@@ -340,16 +531,36 @@ export default function AgendaDetailsDadosTab(props: {
     });
   }, [resolvedResponsavelSetlistId]);
 
+  useEffect(() => {
+    const nextResolvedDados = serializeDadosOcorrencia(resolvedDadosOcorrencia);
+    setDadosOcorrencia((current) => {
+      const previousResolvedDados = previousResolvedDadosRef.current;
+      const hasLocalEdits = serializeDadosOcorrencia(current) !== previousResolvedDados;
+      previousResolvedDadosRef.current = nextResolvedDados;
+      return hasLocalEdits ? current : resolvedDadosOcorrencia;
+    });
+  }, [resolvedDadosOcorrencia]);
+
   const templateDirty = templateId !== resolvedTemplateId;
   const ensaioDirty = serializeHourMinute(ensaioTime) !== serializeHourMinute(resolvedEnsaio);
   const responsavelSetlistDirty =
     isLouvorMinisterio && responsavelSetlistId !== resolvedResponsavelSetlistId;
+  const dadosDirty =
+    serializeDadosOcorrencia(dadosOcorrencia) !== serializeDadosOcorrencia(resolvedDadosOcorrencia);
   const hasUnsavedChanges =
-    canManageOccurrence && (templateDirty || ensaioDirty || responsavelSetlistDirty);
+    canManageOccurrence &&
+    (templateDirty || ensaioDirty || responsavelSetlistDirty || dadosDirty);
   const pendingChangesCount =
-    Number(templateDirty) + Number(ensaioDirty) + Number(responsavelSetlistDirty);
+    Number(templateDirty) +
+    Number(ensaioDirty) +
+    Number(responsavelSetlistDirty) +
+    Number(dadosDirty);
   const isMutating =
-    isSavingAll || isSavingTemplatePadrao || isSavingEnsaio || isSavingResponsavelSetlist;
+    isSavingAll ||
+    isSavingTemplatePadrao ||
+    isSavingEnsaio ||
+    isSavingResponsavelSetlist ||
+    isSavingDadosOcorrencia;
   const currentEnsaioDisplay = useMemo(() => {
     if (ensaioTime) return formatHourMinuteToTime(ensaioTime);
     return resolvedEnsaioDisplay;
@@ -410,6 +621,34 @@ export default function AgendaDetailsDadosTab(props: {
       ResponsavelSetlistOrigemLabel[origem as keyof typeof ResponsavelSetlistOrigemLabel] || null
     );
   }, [props.ocorrencia?.responsavelSetlistOrigem]);
+
+  const origemDadosLabel = useMemo(() => {
+    const origem = props.ocorrencia?.dadosOcorrenciaOrigem;
+    if (!origem) return null;
+    return TemplatePadraoOrigemLabel[origem as keyof typeof TemplatePadraoOrigemLabel] || null;
+  }, [props.ocorrencia?.dadosOcorrenciaOrigem]);
+
+  const hasTermino = dadosOcorrencia.dataTermino !== null;
+
+  const dadosDisplayLabel = useMemo(() => {
+    const dateLabel = formatOccurrenceDateLabel(dadosOcorrencia.dataInicio);
+    const startTime = DateUtils.formatHour(
+      dadosOcorrencia.dataInicio.getHours(),
+      dadosOcorrencia.dataInicio.getMinutes(),
+    );
+    if (dadosOcorrencia.dataTermino) {
+      const endTime = DateUtils.formatHour(
+        dadosOcorrencia.dataTermino.getHours(),
+        dadosOcorrencia.dataTermino.getMinutes(),
+      );
+      return `${dateLabel} · ${startTime} – ${endTime}`;
+    }
+    return `${dateLabel} · ${startTime}`;
+  }, [dadosOcorrencia]);
+
+  const showRestoreDefault =
+    canManageOccurrence &&
+    props.ocorrencia?.dadosOcorrenciaOrigem === TemplatePadraoOrigemEnum.OCORRENCIA;
 
   const resolvedResponsavelSetlistName = useMemo(() => {
     if (props.ocorrencia?.responsavelSetlistVoluntario?.nome) {
@@ -478,7 +717,8 @@ export default function AgendaDetailsDadosTab(props: {
     setTemplateId(resolvedTemplateId);
     setEnsaioTime(resolvedEnsaio);
     setResponsavelSetlistId(resolvedResponsavelSetlistId);
-  }, [resolvedEnsaio, resolvedResponsavelSetlistId, resolvedTemplateId]);
+    setDadosOcorrencia(resolvedDadosOcorrencia);
+  }, [resolvedDadosOcorrencia, resolvedEnsaio, resolvedResponsavelSetlistId, resolvedTemplateId]);
 
   useEffect(() => {
     props.onUnsavedChangesChange?.(hasUnsavedChanges);
@@ -640,6 +880,90 @@ export default function AgendaDetailsDadosTab(props: {
     ],
   );
 
+  const saveDadosByScope = useCallback(
+    async (escopo: TemplatePadraoEscopoEnum) => {
+      const eventoId = props.ocorrencia?.eventoId || props.evento.id;
+      if (!eventoId) return false;
+
+      try {
+        const response = await salvarDadosOcorrencia({
+          eventoId,
+          data: {
+            dataReferencia: props.dataOcorrenciaIso,
+            escopo,
+            dataInicio: dadosOcorrencia.dataInicio.toISOString(),
+            dataTermino: dadosOcorrencia.dataTermino
+              ? dadosOcorrencia.dataTermino.toISOString()
+              : undefined,
+            local: dadosOcorrencia.local || undefined,
+          },
+        });
+
+        const shouldRemoveOccurrenceOverride =
+          escopo === TemplatePadraoEscopoEnum.SERIE &&
+          response?.dadosOcorrenciaOrigem === TemplatePadraoOrigemEnum.OCORRENCIA;
+
+        if (shouldRemoveOccurrenceOverride) {
+          await removerDadosOcorrencia({
+            eventoId,
+            params: {
+              escopo: TemplatePadraoEscopoEnum.OCORRENCIA,
+              dataReferencia: props.dataOcorrenciaIso,
+            },
+          });
+        }
+
+        return true;
+      } catch (error) {
+        Toast.show({
+          type: 'error',
+          text1: 'Erro ao salvar data, horário e local',
+          text2: getApiErrorMessage(error, 'Não foi possível salvar os dados da ocorrência.'),
+        });
+        return false;
+      }
+    },
+    [
+      dadosOcorrencia,
+      props.dataOcorrenciaIso,
+      props.evento.id,
+      props.ocorrencia?.eventoId,
+      removerDadosOcorrencia,
+      salvarDadosOcorrencia,
+    ],
+  );
+
+  const handleRestaurarPadrao = useCallback(async () => {
+    const eventoId = props.ocorrencia?.eventoId || props.evento.id;
+    if (!eventoId) return;
+
+    showLoading('Restaurando...');
+    try {
+      await removerDadosOcorrencia({
+        eventoId,
+        params: {
+          escopo: TemplatePadraoEscopoEnum.OCORRENCIA,
+          dataReferencia: props.dataOcorrenciaIso,
+        },
+      });
+      await props.onTemplateSaved?.();
+      Toast.show({
+        type: 'success',
+        text1: 'Padrão restaurado',
+        text2: 'A ocorrência voltou a usar os dados padrão do evento.',
+      });
+      setIsDadosSheetVisible(false);
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Erro ao restaurar padrão',
+        text2: getApiErrorMessage(error, 'Não foi possível restaurar o padrão do evento.'),
+      });
+    } finally {
+      hideLoading();
+    }
+  }, [hideLoading, props, removerDadosOcorrencia, showLoading]);
+
   const saveAllChanges = useCallback(async (): Promise<boolean> => {
     if (!canManageOccurrence) {
       Toast.show({
@@ -650,7 +974,7 @@ export default function AgendaDetailsDadosTab(props: {
       return false;
     }
 
-    if (!templateDirty && !ensaioDirty && !responsavelSetlistDirty) {
+    if (!templateDirty && !ensaioDirty && !responsavelSetlistDirty && !dadosDirty) {
       return true;
     }
 
@@ -661,6 +985,7 @@ export default function AgendaDetailsDadosTab(props: {
       let templateScope: TemplatePadraoEscopoEnum | null = null;
       let responsavelScope: TemplatePadraoEscopoEnum | null = null;
       let ensaioScope: TemplatePadraoEscopoEnum | null = null;
+      let dadosScope: TemplatePadraoEscopoEnum | null = null;
 
       if (templateDirty) {
         const scope = await promptScope('este template da equipe');
@@ -678,6 +1003,12 @@ export default function AgendaDetailsDadosTab(props: {
         const scope = await promptScope('este horário de ensaio');
         if (scope === 'cancel') return false;
         ensaioScope = scope;
+      }
+
+      if (dadosDirty) {
+        const scope = await promptScope('a data, horário e local desta ocorrência');
+        if (scope === 'cancel') return false;
+        dadosScope = scope;
       }
 
       // Fase 2: executar API com loading modal
@@ -703,6 +1034,12 @@ export default function AgendaDetailsDadosTab(props: {
           savedAnything = true;
         }
 
+        if (dadosScope) {
+          const ok = await saveDadosByScope(dadosScope);
+          if (!ok) return false;
+          savedAnything = true;
+        }
+
         if (savedAnything) {
           await props.onTemplateSaved?.();
           Toast.show({
@@ -724,6 +1061,7 @@ export default function AgendaDetailsDadosTab(props: {
     }
   }, [
     canManageOccurrence,
+    dadosDirty,
     ensaioDirty,
     hideLoading,
     isLouvorMinisterio,
@@ -731,6 +1069,7 @@ export default function AgendaDetailsDadosTab(props: {
     promptScope,
     props,
     responsavelSetlistDirty,
+    saveDadosByScope,
     saveEnsaioByScope,
     saveResponsavelSetlistByScope,
     saveTemplateByScope,
@@ -770,6 +1109,83 @@ export default function AgendaDetailsDadosTab(props: {
           children={
             <>
               <View style={styles.sectionsContent}>
+                <OccurrenceFieldSection
+                  label='Data, horário e local'
+                  origin={origemDadosLabel}
+                  dirty={dadosDirty}
+                  editor={
+                    <View style={styles.editorGroup}>
+                      {canManageOccurrence ? (
+                        <Pressable
+                          disabled={isMutating}
+                          onPress={() => setIsDadosSheetVisible(true)}
+                          style={[
+                            styles.timePickerTrigger,
+                            {
+                              backgroundColor: palette.backgroundColor4,
+                              borderColor: dadosDirty ? palette.primary : palette.borderCard,
+                            },
+                            isMutating && styles.timePickerTriggerDisabled,
+                          ]}
+                        >
+                          <View
+                            style={[
+                              styles.timePickerIconWrap,
+                              { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14) },
+                            ]}
+                          >
+                            <DefaultIcons.Custom
+                              {...DefaultIconsNames['calendar-day']}
+                              size={18}
+                              color={palette.primary}
+                            />
+                          </View>
+
+                          <View style={styles.timePickerContent}>
+                            <View style={styles.timePickerTitleRow}>
+                              <FancyText
+                                size='extraSmall'
+                                type='semiBold'
+                                color={palette.fonts.inactive}
+                              >
+                                Data e horário
+                              </FancyText>
+                            </View>
+
+                            <FancyText size='medium' type='bold' color={palette.fonts.dark}>
+                              {dadosDisplayLabel}
+                            </FancyText>
+
+                            <FancyText
+                              size='extraSmall'
+                              type='medium'
+                              color={palette.fonts.inactive}
+                              style={styles.timePickerHint}
+                            >
+                              {dadosOcorrencia.local
+                                ? `${dadosOcorrencia.local} · toque para editar`
+                                : 'Toque para editar'}
+                            </FancyText>
+                          </View>
+
+                          <View style={styles.timePickerChevronWrap}>
+                            <DefaultIcons.Custom
+                              {...DefaultIconsNames['chevron-down']}
+                              size={16}
+                              color={palette.fonts.inactive}
+                            />
+                          </View>
+                        </Pressable>
+                      ) : (
+                        <FancyText type='medium' size='small' color={palette.fonts.dark}>
+                          {dadosDisplayLabel}
+                          {dadosOcorrencia.local ? ` · ${dadosOcorrencia.local}` : ''}
+                        </FancyText>
+                      )}
+                    </View>
+                  }
+                />
+
                 <OccurrenceFieldSection
                   label='Template da equipe'
                   origin={origemTemplateLabel}
@@ -942,6 +1358,19 @@ export default function AgendaDetailsDadosTab(props: {
           }
         />
       )}
+
+      <OcorrenciaDadosEditorSheet
+        visible={isDadosSheetVisible}
+        value={dadosOcorrencia}
+        hasTermino={hasTermino}
+        showRestoreDefault={showRestoreDefault}
+        onClose={() => setIsDadosSheetVisible(false)}
+        onConfirm={(value) => {
+          setDadosOcorrencia(value);
+          setIsDadosSheetVisible(false);
+        }}
+        onRestoreDefault={handleRestaurarPadrao}
+      />
     </ScrollView>
   );
 }
@@ -1081,6 +1510,26 @@ function createStyles(palette: ThemePalette) {
       width: 28,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    editorContainer: {
+      gap: 18,
+      paddingBottom: 8,
+    },
+    editorField: {
+      gap: 8,
+    },
+    editorFooterButtons: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    editorFooterButton: {
+      flex: 1,
+      height: 44,
+    },
+    restoreDefaultButton: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 10,
     },
   });
 }
