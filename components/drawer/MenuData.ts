@@ -370,11 +370,14 @@ const getMenuForMinisterio = (
         ? { type: 'logo', value: ministerio.logoThumbUrl }
         : { type: 'icon', value: defaultIcon },
       title: ministerio.nome ?? 'Ministério',
-      subtitle: isAdmin
-        ? MinisterioTipoLabel[ministerioTipo]
-        : ministerio.hierarquia
-          ? VoluntarioHierarquiaEnumLabel[ministerio.hierarquia]
-          : '',
+      subtitle:
+        String(ministerio.hierarquia) === VoluntarioHierarquiaEnum.Lider
+          ? VoluntarioHierarquiaEnumLabel[VoluntarioHierarquiaEnum.Lider]
+          : isAdmin
+            ? MinisterioTipoLabel[ministerioTipo]
+            : ministerio.hierarquia
+              ? (VoluntarioHierarquiaEnumLabel[ministerio.hierarquia as VoluntarioHierarquiaEnum] ?? '')
+              : '',
       items,
     },
   ];

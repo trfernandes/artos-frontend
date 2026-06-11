@@ -7,7 +7,7 @@ import FancySectionHeader from '../../../cards/Horizontal/FancySectionHeader';
 import FancyButton from '../../../buttons/FancyButton';
 import { FancyCard } from '../../../cards/Horizontal/FancyCard';
 import { AppImages } from '../../../../assets/app_images';
-import AddLiderancaFormModal from './AddLiderancaFormModal';
+import AddLiderancaFormSheet from './AddLiderancaFormSheet';
 import AuxiliarMinisterioFormSheet from './AuxiliarMinisterioFormSheet';
 import {
   AddAuxiliarFormData,
@@ -368,18 +368,14 @@ function LiderancaEAcessosAddTab() {
         )}
       </SectionContainer>
 
-      {leaderModalVisible && (
-        <AddLiderancaFormModal
-          volunteers={eligibleLeaderVolunteers}
-          onButton1Press={() => setLeaderModalVisible(false)}
-          onButton2Press={(data) => {
-            if (data) {
-              lideresFieldArray.append({ ...data, hierarquia: VoluntarioHierarquiaEnum.Lider });
-            }
-            setLeaderModalVisible(false);
-          }}
-        />
-      )}
+      <AddLiderancaFormSheet
+        visible={leaderModalVisible}
+        volunteers={eligibleLeaderVolunteers}
+        onClose={() => setLeaderModalVisible(false)}
+        onSave={(data) => {
+          lideresFieldArray.append({ ...data, hierarquia: VoluntarioHierarquiaEnum.Lider });
+        }}
+      />
 
       <AuxiliarMinisterioFormSheet
         visible={auxiliarModalVisible}
@@ -802,18 +798,12 @@ function LiderancaEAcessosEditTab({ ministerioId }: { ministerioId: string }) {
         )}
       </SectionContainer>
 
-      {leaderModalVisible && (
-        <AddLiderancaFormModal
-          volunteers={eligibleLeaderVolunteers}
-          onButton1Press={() => setLeaderModalVisible(false)}
-          onButton2Press={async (data) => {
-            setLeaderModalVisible(false);
-            if (data) {
-              await handleAddLeader(data);
-            }
-          }}
-        />
-      )}
+      <AddLiderancaFormSheet
+        visible={leaderModalVisible}
+        volunteers={eligibleLeaderVolunteers}
+        onClose={() => setLeaderModalVisible(false)}
+        onSave={handleAddLeader}
+      />
 
       <AuxiliarMinisterioFormSheet
         visible={auxiliarModalVisible}

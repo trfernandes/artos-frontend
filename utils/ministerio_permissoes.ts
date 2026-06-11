@@ -23,7 +23,7 @@ export function hasMinisterioPermission(
   permissao: TipoPermissaoEnum,
 ) {
   if (!ministerio) return false;
-  if (ministerio.hierarquia === VoluntarioHierarquiaEnum.Lider) return true;
+  if (String(ministerio.hierarquia) === VoluntarioHierarquiaEnum.Lider) return true;
 
   return (
     ministerio.permissoes?.some(
@@ -46,7 +46,7 @@ export function canManageEventoOcorrencia(
   if (!ministerio) return false;
 
   return (
-    ministerio.hierarquia === VoluntarioHierarquiaEnum.Lider ||
+    String(ministerio.hierarquia) === VoluntarioHierarquiaEnum.Lider ||
     hasMinisterioPermission(
       ministerio,
       RecursoPermissaoEnum.AgendaEventos,
