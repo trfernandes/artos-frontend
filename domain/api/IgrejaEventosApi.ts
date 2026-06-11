@@ -12,8 +12,11 @@ import {
   UpdateEventoEnsaioDto,
 } from '../dtos/Evento/update-evento-ensaio.dto';
 import {
+  CancelEventoOcorrenciaDto,
   RemoveEventoOcorrenciaDadosDto,
+  ResponseEventoOcorrenciaCancelamentoDto,
   ResponseEventoOcorrenciaDadosDto,
+  RestoreEventoOcorrenciaDto,
   UpdateEventoOcorrenciaDadosDto,
 } from '../dtos/Evento/update-evento-ocorrencia-dados.dto';
 import {
@@ -163,6 +166,30 @@ class IgrejaEventosApiClass {
       { params },
     );
     return response.data?.data ?? null;
+  }
+
+  async cancelarOcorrencia(
+    igrejaId: string,
+    eventoId: string,
+    dto: CancelEventoOcorrenciaDto,
+  ): Promise<ResponseEventoOcorrenciaCancelamentoDto> {
+    const response = await apiClient.patch<ApiEnvelope<ResponseEventoOcorrenciaCancelamentoDto>>(
+      `/${this.resourceName}/${igrejaId}/eventos/${eventoId}/ocorrencia-cancelamento`,
+      dto,
+    );
+    return response.data.data;
+  }
+
+  async restaurarOcorrencia(
+    igrejaId: string,
+    eventoId: string,
+    params: RestoreEventoOcorrenciaDto,
+  ): Promise<ResponseEventoOcorrenciaCancelamentoDto> {
+    const response = await apiClient.delete<ApiEnvelope<ResponseEventoOcorrenciaCancelamentoDto>>(
+      `/${this.resourceName}/${igrejaId}/eventos/${eventoId}/ocorrencia-cancelamento`,
+      { params },
+    );
+    return response.data.data;
   }
 
   async atualizarResponsavelSetlist(

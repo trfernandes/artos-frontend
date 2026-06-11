@@ -59,6 +59,7 @@ export default function AssistenteEventosStep() {
         if (!isMounted) return;
 
         const mapeados = (resultado ?? [])
+          .filter((ocorrencia) => !ocorrencia?.cancelada)
           .map((ocorrencia) => {
             if (!ocorrencia) return null;
 

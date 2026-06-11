@@ -60,10 +60,17 @@ export default function AgendaEventoCard({
     [eventColor, isDark],
   );
 
+  const isCancelled = data.cancelada === true;
+
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.card, { backgroundColor: cardBg, borderColor }, palette.shadows[100]]}
+      style={[
+        styles.card,
+        { backgroundColor: cardBg, borderColor },
+        palette.shadows[100],
+        isCancelled && { opacity: 0.55 },
+      ]}
     >
       <EventoCardContent
         timeRangeText={timeRangeText}
@@ -73,6 +80,7 @@ export default function AgendaEventoCard({
         metaPrimary={showEnsaio ? undefined : data.local || data.evento?.local || undefined}
         metaSecondary={ensaioInfo.label}
         isAccordion={false}
+        isCancelled={isCancelled}
       />
     </Pressable>
   );

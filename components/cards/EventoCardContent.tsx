@@ -20,6 +20,7 @@ export type EventoCardContentProps = {
   metaSecondary?: string;
   isAccordion?: boolean;
   isExpanded?: boolean;
+  isCancelled?: boolean;
 };
 
 export default function EventoCardContent({
@@ -31,6 +32,7 @@ export default function EventoCardContent({
   metaSecondary,
   isAccordion = false,
   isExpanded = false,
+  isCancelled = false,
 }: EventoCardContentProps) {
   const palette = usePallete();
   const isDark = palette.backgroundColor === '#121212';
@@ -69,15 +71,23 @@ export default function EventoCardContent({
           <View
             style={[
               styles.countdownBadge,
-              { backgroundColor: ui.accentSoft, borderColor: ui.chipBorder },
+              isCancelled
+                ? {
+                    backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.1),
+                    borderColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.25),
+                  }
+                : { backgroundColor: ui.accentSoft, borderColor: ui.chipBorder },
             ]}
           >
             <FancyText
               size='extraSmall'
               type='semiBold'
-              style={[styles.countdownText, { color: ui.accentText }]}
+              style={[
+                styles.countdownText,
+                { color: isCancelled ? palette.fonts.inactive : ui.accentText },
+              ]}
             >
-              {countdownLabel}
+              {isCancelled ? 'Cancelado' : countdownLabel}
             </FancyText>
           </View>
           <View style={[styles.actionButton, { backgroundColor: ui.iconBg }]}>
@@ -94,9 +104,12 @@ export default function EventoCardContent({
       <FancyText
         size='medium'
         type='bold'
-        style={styles.title}
+        style={[
+          styles.title,
+          isCancelled && { textDecorationLine: 'line-through', color: palette.fonts.inactive },
+        ]}
         numberOfLines={isAccordion ? 1 : 2}
-        color={palette.fonts.dark}
+        color={isCancelled ? palette.fonts.inactive : palette.fonts.dark}
       >
         {title}
       </FancyText>

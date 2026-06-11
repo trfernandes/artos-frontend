@@ -13,6 +13,7 @@ import { ResponseEventoOcorrenciaDto } from '../../../../../domain/dtos/Evento/e
 import { useAuth } from '../../../../../contexts/AuthContext';
 import AgendaEventoCard from '../../../../../components/pages/ministerios/agenda/AgendaEventoCard';
 import { isLouvorMinisterioTipo } from '../../../../../utils/evento-ensaio';
+import { ColorUtils } from '../../../../../utils/color_utils';
 
 export default function MinisterioAgendaIndexPage() {
   const params = useLocalSearchParams<{ ministerioId: string }>();
@@ -84,7 +85,7 @@ export default function MinisterioAgendaIndexPage() {
         markedDatesType='bottomPoint'
         markedDates={eventos?.map((e) => ({
           date: DateUtilsApi.dateOnlyFromApi(e.dataOcorrencia),
-          color: e.cor,
+          color: e.cancelada ? ColorUtils.withAlpha(e.cor, 0.3) : e.cor,
         }))}
         value={currentDate}
       />

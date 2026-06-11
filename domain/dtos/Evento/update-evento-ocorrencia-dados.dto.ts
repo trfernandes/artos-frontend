@@ -23,3 +23,12 @@ export type ResponseEventoOcorrenciaDadosDto = {
   local: string | null;
   dadosOcorrenciaOrigem: TemplatePadraoOrigemEnum;
 };
+
+export type CancelEventoOcorrenciaDto = { dataReferencia: string };
+export type RestoreEventoOcorrenciaDto = { dataReferencia: string };
+export type ResponseEventoOcorrenciaCancelamentoDto = {
+  eventoId: string;
+  dataReferencia: string;
+  cancelada: boolean;
+  canceladaEm?: string | null;
+};

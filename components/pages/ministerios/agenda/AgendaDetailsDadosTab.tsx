@@ -32,6 +32,7 @@ import { EscalaTemplateTipoLabel } from '../../../../domain/enums/EscalaTemplate
 import { useEventoTemplatePadrao } from '../../../../hooks/useEventoTemplatePadrao';
 import { useEventoEnsaio } from '../../../../hooks/useEventoEnsaio';
 import { useEventoOcorrenciaDados } from '../../../../hooks/useEventoOcorrenciaDados';
+import { useEventoOcorrenciaCancelamento } from '../../../../hooks/useEventoOcorrenciaCancelamento';
 import { useEventoSetlistResponsavel } from '../../../../hooks/useEventoSetlistResponsavel';
 import { TemplatePadraoOrigemEnum } from '../../../../domain/enums/Evento/template-padrao-origem.enum';
 import { TemplatePadraoEscopoEnum } from '../../../../domain/enums/Evento/template-padrao-escopo.enum';
@@ -391,6 +392,8 @@ export default function AgendaDetailsDadosTab(props: {
   const { salvarEnsaio, removerEnsaio, isSavingEnsaio } = useEventoEnsaio();
   const { salvarDadosOcorrencia, removerDadosOcorrencia, isSavingDadosOcorrencia } =
     useEventoOcorrenciaDados();
+  const { cancelarOcorrencia, restaurarOcorrencia, isMutatingCancelamento } =
+    useEventoOcorrenciaCancelamento();
   const { salvarResponsavelSetlist, removerResponsavelSetlist, isSavingResponsavelSetlist } =
     useEventoSetlistResponsavel();
   const escalaSearchParams = useMemo(
@@ -560,7 +563,8 @@ export default function AgendaDetailsDadosTab(props: {
     isSavingTemplatePadrao ||
     isSavingEnsaio ||
     isSavingResponsavelSetlist ||
-    isSavingDadosOcorrencia;
+    isSavingDadosOcorrencia ||
+    isMutatingCancelamento;
   const currentEnsaioDisplay = useMemo(() => {
     if (ensaioTime) return formatHourMinuteToTime(ensaioTime);
     return resolvedEnsaioDisplay;
@@ -964,6 +968,62 @@ export default function AgendaDetailsDadosTab(props: {
     }
   }, [hideLoading, props, removerDadosOcorrencia, showLoading]);
 
+  const isCancelada = props.ocorrencia?.cancelada === true;
+
+  const handleCancelarOcorrencia = useCallback(() => {
+    const eventoId = props.ocorrencia?.eventoId || props.evento.id;
+    FancyAlert.alert(
+      'Cancelar esta ocorrência?',
+      'A ocorrência continuará aparecendo na agenda marcada como cancelada. Você pode restaurá-la a qualquer momento.',
+      [
+        { text: 'Voltar', style: 'destructive' },
+        {
+          text: 'Cancelar ocorrência',
+          onPress: async () => {
+            showLoading('Cancelando...');
+            try {
+              await cancelarOcorrencia({
+                eventoId,
+                data: { dataReferencia: props.dataOcorrenciaIso },
+              });
+              await props.onTemplateSaved?.();
+              Toast.show({ type: 'success', text1: 'Ocorrência cancelada' });
+            } catch (error) {
+              Toast.show({
+                type: 'error',
+                text1: 'Erro ao cancelar',
+                text2: getApiErrorMessage(error, 'Não foi possível cancelar a ocorrência.'),
+              });
+            } finally {
+              hideLoading();
+            }
+          },
+        },
+      ],
+    );
+  }, [cancelarOcorrencia, hideLoading, props, showLoading]);
+
+  const handleRestaurarOcorrencia = useCallback(async () => {
+    const eventoId = props.ocorrencia?.eventoId || props.evento.id;
+    showLoading('Restaurando...');
+    try {
+      await restaurarOcorrencia({
+        eventoId,
+        params: { dataReferencia: props.dataOcorrenciaIso },
+      });
+      await props.onTemplateSaved?.();
+      Toast.show({ type: 'success', text1: 'Ocorrência restaurada' });
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Erro ao restaurar',
+        text2: getApiErrorMessage(error, 'Não foi possível restaurar a ocorrência.'),
+      });
+    } finally {
+      hideLoading();
+    }
+  }, [hideLoading, props, restaurarOcorrencia, showLoading]);
+
   const saveAllChanges = useCallback(async (): Promise<boolean> => {
     if (!canManageOccurrence) {
       Toast.show({
@@ -1328,6 +1388,53 @@ export default function AgendaDetailsDadosTab(props: {
                   }
                 />
               </View>
+
+              {canManageOccurrence ? (
+                <View style={[styles.cancelSection, { borderTopColor: palette.borderCard }]}>
+                  {isCancelada ? (
+                    <>
+                      <View
+                        style={[
+                          styles.cancelledBadge,
+                          { backgroundColor: ColorUtils.withAlpha(palette.error, 0.08) },
+                        ]}
+                      >
+                        <FancyText size='small' type='semiBold' color={palette.error}>
+                          Ocorrência cancelada
+                        </FancyText>
+                        {props.ocorrencia?.canceladaEm ? (
+                          <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                            {format(new Date(props.ocorrencia.canceladaEm), "d 'de' MMM 'de' yyyy", {
+                              locale: ptBR,
+                            })}
+                          </FancyText>
+                        ) : null}
+                      </View>
+                      <FancyButton
+                        label='Restaurar ocorrência'
+                        type='outlined'
+                        containerStyle={styles.cancelButton}
+                        disabled={isMutating}
+                        isLoading={isMutatingCancelamento}
+                        onPress={() => {
+                          void handleRestaurarOcorrencia();
+                        }}
+                      />
+                    </>
+                  ) : (
+                    <FancyButton
+                      label='Cancelar esta ocorrência'
+                      type='outlined'
+                      containerStyle={[styles.cancelButton, { borderColor: palette.error }]}
+                      disabled={isMutating}
+                      isLoading={isMutatingCancelamento}
+                      labelStyle={{ color: palette.error }}
+                      onPress={handleCancelarOcorrencia}
+                    />
+                  )}
+                </View>
+              ) : null}
+
               {canManageOccurrence ? (
                 <View style={[styles.footer, { borderTopColor: palette.borderCard }]}>
                   {hasUnsavedChanges ? (
@@ -1441,6 +1548,23 @@ function createStyles(palette: ThemePalette) {
     originBadgeText: {
       lineHeight: 15,
       opacity: 0.78,
+    },
+    cancelSection: {
+      paddingHorizontal: 15,
+      paddingTop: 18,
+      marginTop: 4,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      gap: 10,
+    },
+    cancelButton: {
+      width: '100%',
+      height: 44,
+    },
+    cancelledBadge: {
+      borderRadius: 12,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      gap: 2,
     },
     footer: {
       paddingHorizontal: 15,

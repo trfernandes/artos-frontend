@@ -32,4 +32,6 @@ export type ResponseEventoOcorrenciaDto = {
   responsavelSetlistVoluntario?: ResponseVoluntarioDto | null;
   responsavelSetlistOrigem?: TemplatePadraoOrigemEnum | null;
   setlistResumo?: ResponseEventoSetlistItemDto[];
+  cancelada?: boolean;
+  canceladaEm?: string | null;
 };

@@ -12,8 +12,11 @@ import {
   UpdateEventoEnsaioDto,
 } from '../dtos/Evento/update-evento-ensaio.dto';
 import {
+  CancelEventoOcorrenciaDto,
   RemoveEventoOcorrenciaDadosDto,
+  ResponseEventoOcorrenciaCancelamentoDto,
   ResponseEventoOcorrenciaDadosDto,
+  RestoreEventoOcorrenciaDto,
   UpdateEventoOcorrenciaDadosDto,
 } from '../dtos/Evento/update-evento-ocorrencia-dados.dto';
 import { CreateEventoSetlistItemDto } from '../dtos/Evento/evento-setlist-item.create';
@@ -123,6 +126,22 @@ class IgrejaEventosRepositoryClass {
     params: RemoveEventoOcorrenciaDadosDto,
   ): Promise<ResponseEventoOcorrenciaDadosDto | null> {
     return IgrejaEventosApi.removerDadosOcorrencia(igrejaId, eventoId, params);
+  }
+
+  cancelarOcorrencia(
+    igrejaId: string,
+    eventoId: string,
+    dto: CancelEventoOcorrenciaDto,
+  ): Promise<ResponseEventoOcorrenciaCancelamentoDto> {
+    return IgrejaEventosApi.cancelarOcorrencia(igrejaId, eventoId, dto);
+  }
+
+  restaurarOcorrencia(
+    igrejaId: string,
+    eventoId: string,
+    params: RestoreEventoOcorrenciaDto,
+  ): Promise<ResponseEventoOcorrenciaCancelamentoDto> {
+    return IgrejaEventosApi.restaurarOcorrencia(igrejaId, eventoId, params);
   }
 
   atualizarResponsavelSetlist(
