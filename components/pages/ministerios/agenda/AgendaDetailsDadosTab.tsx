@@ -728,25 +728,32 @@ export default function AgendaDetailsDadosTab(props: {
     props.onUnsavedChangesChange?.(hasUnsavedChanges);
   }, [hasUnsavedChanges, props]);
 
-  const promptScope = useCallback((fieldLabel: string): Promise<ScopePromptResult> => {
-    return new Promise((resolve) => {
-      FancyAlert.alert(
-        `Como deseja aplicar ${fieldLabel.toLowerCase()}?`,
-        'Você pode aplicar só nesta data ou para esta e as próximas ocorrências.',
-        [
-          { text: 'Cancelar', style: 'destructive', onPress: () => resolve('cancel') },
-          {
-            text: 'Apenas nesta data',
-            onPress: () => resolve(TemplatePadraoEscopoEnum.OCORRENCIA),
-          },
-          {
-            text: 'Em todas a partir daqui',
-            onPress: () => resolve(TemplatePadraoEscopoEnum.SERIE),
-          },
-        ],
-      );
-    });
-  }, []);
+  const promptConsolidatedScope = useCallback(
+    (fieldLabels: string[]): Promise<ScopePromptResult> => {
+      return new Promise((resolve) => {
+        const joined =
+          fieldLabels.length === 1
+            ? fieldLabels[0]
+            : fieldLabels.slice(0, -1).join(', ') + ' e ' + fieldLabels[fieldLabels.length - 1];
+        FancyAlert.alert(
+          'Onde aplicar as alterações?',
+          `Você alterou: ${joined}. Deseja salvar só nesta data ou em todas as ocorrências a partir daqui?`,
+          [
+            { text: 'Cancelar', style: 'destructive', onPress: () => resolve('cancel') },
+            {
+              text: 'Apenas nesta data',
+              onPress: () => resolve(TemplatePadraoEscopoEnum.OCORRENCIA),
+            },
+            {
+              text: 'Em todas a partir daqui',
+              onPress: () => resolve(TemplatePadraoEscopoEnum.SERIE),
+            },
+          ],
+        );
+      });
+    },
+    [],
+  );
 
   const saveTemplateByScope = useCallback(
     async (escopo: TemplatePadraoEscopoEnum) => {
@@ -1047,22 +1054,17 @@ export default function AgendaDetailsDadosTab(props: {
       let ensaioScope: TemplatePadraoEscopoEnum | null = null;
       let dadosScope: TemplatePadraoEscopoEnum | null = null;
 
-      if (templateDirty) {
-        const scope = await promptScope('este template da equipe');
-        if (scope === 'cancel') return false;
-        templateScope = scope;
-      }
+      const propagableLabels: string[] = [];
+      if (templateDirty) propagableLabels.push('template da equipe');
+      if (isLouvorMinisterio && responsavelSetlistDirty) propagableLabels.push('responsável do setlist');
+      if (ensaioDirty) propagableLabels.push('horário de ensaio');
 
-      if (isLouvorMinisterio && responsavelSetlistDirty) {
-        const scope = await promptScope('este responsável do setlist');
+      if (propagableLabels.length > 0) {
+        const scope = await promptConsolidatedScope(propagableLabels);
         if (scope === 'cancel') return false;
-        responsavelScope = scope;
-      }
-
-      if (ensaioDirty) {
-        const scope = await promptScope('este horário de ensaio');
-        if (scope === 'cancel') return false;
-        ensaioScope = scope;
+        if (templateDirty) templateScope = scope;
+        if (isLouvorMinisterio && responsavelSetlistDirty) responsavelScope = scope;
+        if (ensaioDirty) ensaioScope = scope;
       }
 
       if (dadosDirty) {
@@ -1124,7 +1126,7 @@ export default function AgendaDetailsDadosTab(props: {
     hideLoading,
     isLouvorMinisterio,
     pendingChangesCount,
-    promptScope,
+    promptConsolidatedScope,
     props,
     responsavelSetlistDirty,
     saveDadosByScope,
