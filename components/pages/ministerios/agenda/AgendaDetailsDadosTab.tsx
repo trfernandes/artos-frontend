@@ -978,7 +978,7 @@ export default function AgendaDetailsDadosTab(props: {
       [
         { text: 'Voltar', style: 'destructive' },
         {
-          text: 'Cancelar ocorrência',
+          text: 'Sim',
           onPress: async () => {
             showLoading('Cancelando...');
             try {
@@ -1066,9 +1066,7 @@ export default function AgendaDetailsDadosTab(props: {
       }
 
       if (dadosDirty) {
-        const scope = await promptScope('a data, horário e local desta ocorrência');
-        if (scope === 'cancel') return false;
-        dadosScope = scope;
+        dadosScope = TemplatePadraoEscopoEnum.OCORRENCIA;
       }
 
       // Fase 2: executar API com loading modal
@@ -1389,51 +1387,6 @@ export default function AgendaDetailsDadosTab(props: {
                 />
               </View>
 
-              {canManageOccurrence ? (
-                <View style={[styles.cancelSection, { borderTopColor: palette.borderCard }]}>
-                  {isCancelada ? (
-                    <>
-                      <View
-                        style={[
-                          styles.cancelledBadge,
-                          { backgroundColor: ColorUtils.withAlpha(palette.error, 0.08) },
-                        ]}
-                      >
-                        <FancyText size='small' type='semiBold' color={palette.error}>
-                          Ocorrência cancelada
-                        </FancyText>
-                        {props.ocorrencia?.canceladaEm ? (
-                          <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
-                            {format(new Date(props.ocorrencia.canceladaEm), "d 'de' MMM 'de' yyyy", {
-                              locale: ptBR,
-                            })}
-                          </FancyText>
-                        ) : null}
-                      </View>
-                      <FancyButton
-                        label='Restaurar ocorrência'
-                        type='outlined'
-                        containerStyle={styles.cancelButton}
-                        disabled={isMutating}
-                        isLoading={isMutatingCancelamento}
-                        onPress={() => {
-                          void handleRestaurarOcorrencia();
-                        }}
-                      />
-                    </>
-                  ) : (
-                    <FancyButton
-                      label='Cancelar esta ocorrência'
-                      type='outlined'
-                      containerStyle={[styles.cancelButton, { borderColor: palette.error }]}
-                      disabled={isMutating}
-                      isLoading={isMutatingCancelamento}
-                      labelStyle={{ color: palette.error }}
-                      onPress={handleCancelarOcorrencia}
-                    />
-                  )}
-                </View>
-              ) : null}
 
               {canManageOccurrence ? (
                 <View style={[styles.footer, { borderTopColor: palette.borderCard }]}>
@@ -1465,6 +1418,78 @@ export default function AgendaDetailsDadosTab(props: {
           }
         />
       )}
+
+      {canManageOccurrence ? (
+        <View
+          style={[
+            styles.dangerZoneCard,
+            {
+              borderColor: ColorUtils.withAlpha(palette.error, 0.28),
+              backgroundColor: ColorUtils.withAlpha(palette.error, 0.04),
+            },
+          ]}
+        >
+          {isCancelada ? (
+            <>
+              <View style={styles.dangerZoneHeader}>
+                <DefaultIcons.Custom
+                  library='MaterialCommunityIcons'
+                  name='cancel'
+                  size={17}
+                  color={palette.error}
+                />
+                <View style={{ flex: 1, gap: 2 }}>
+                  <FancyText size='small' type='semiBold' color={palette.error}>
+                    Ocorrência cancelada
+                  </FancyText>
+                  {props.ocorrencia?.canceladaEm ? (
+                    <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                      {'Cancelada em '}
+                      {format(new Date(props.ocorrencia.canceladaEm), "d 'de' MMM 'de' yyyy", {
+                        locale: ptBR,
+                      })}
+                    </FancyText>
+                  ) : null}
+                </View>
+              </View>
+              <FancyButton
+                label='Restaurar ocorrência'
+                type='outlined'
+                containerStyle={styles.dangerZoneButton}
+                disabled={isMutating}
+                isLoading={isMutatingCancelamento}
+                onPress={() => void handleRestaurarOcorrencia()}
+              />
+            </>
+          ) : (
+            <>
+              <View style={styles.dangerZoneHeader}>
+                <DefaultIcons.Custom
+                  library='MaterialCommunityIcons'
+                  name='alert-circle-outline'
+                  size={17}
+                  color={palette.error}
+                />
+                <FancyText size='small' type='semiBold' color={palette.error}>
+                  Atenção
+                </FancyText>
+              </View>
+              <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                Cancele esta ocorrência caso ela não aconteça. Ela continuará visível na agenda marcada como cancelada e pode ser restaurada a qualquer momento.
+              </FancyText>
+              <FancyButton
+                label='Cancelar esta ocorrência'
+                type='outlined'
+                containerStyle={[styles.dangerZoneButton, { borderColor: palette.error }]}
+                labelStyle={{ color: palette.error }}
+                disabled={isMutating}
+                isLoading={isMutatingCancelamento}
+                onPress={handleCancelarOcorrencia}
+              />
+            </>
+          )}
+        </View>
+      ) : null}
 
       <OcorrenciaDadosEditorSheet
         visible={isDadosSheetVisible}
@@ -1549,22 +1574,21 @@ function createStyles(palette: ThemePalette) {
       lineHeight: 15,
       opacity: 0.78,
     },
-    cancelSection: {
-      paddingHorizontal: 15,
-      paddingTop: 18,
-      marginTop: 4,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      gap: 10,
+    dangerZoneCard: {
+      borderWidth: 1,
+      borderRadius: 18,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      gap: 12,
     },
-    cancelButton: {
+    dangerZoneHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    dangerZoneButton: {
       width: '100%',
-      height: 44,
-    },
-    cancelledBadge: {
-      borderRadius: 12,
-      paddingHorizontal: 14,
-      paddingVertical: 10,
-      gap: 2,
+      height: 42,
     },
     footer: {
       paddingHorizontal: 15,
