@@ -9,9 +9,9 @@ import AgendaDetailsDadosTab, {
 import AgendaDetailsEscalaTab from '../../../../../components/pages/ministerios/agenda/AgendaDetailsEscalaTab';
 import EventoSetlistTab from '../../../../../components/pages/common/EventoSetlistTab';
 import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
-import FancyLoading from '../../../../../components/FancyLoading';
 import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useLoading } from '../../../../../contexts/LoadingContext';
 import { ResponseEventoOcorrenciaDto } from '../../../../../domain/dtos/Evento/evento-ocorrencia.response.dto';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import { useAuth } from '../../../../../contexts/AuthContext';
@@ -29,6 +29,7 @@ export default function MinisterioAgendaDetailsPage() {
   }>();
   const navigation = useNavigation<any>();
   const { igrejaAtiva } = useAuth();
+  const { showLoading, hideLoading } = useLoading();
   const eventoId = params.eventoId || params.id || '';
   const canManageAgenda = canManageEventoOcorrencia(igrejaAtiva, params.ministerioId);
   const isLouvorMinisterio = useMemo(
@@ -219,7 +220,18 @@ export default function MinisterioAgendaDetailsPage() {
     params.ministerioId,
   ]);
 
-  if (isLoading || isLoadingOcorrencia || !eventoId || !data[0]) return <FancyLoading />;
+  const isLoadingData = isLoading || isLoadingOcorrencia || !eventoId || !data[0];
+
+  useEffect(() => {
+    if (isLoadingData) {
+      showLoading('Carregando...');
+    } else {
+      hideLoading();
+    }
+    return () => hideLoading();
+  }, [isLoadingData, showLoading, hideLoading]);
+
+  if (isLoadingData) return null;
 
   return (
     <FancyPageView style={styles.container}>

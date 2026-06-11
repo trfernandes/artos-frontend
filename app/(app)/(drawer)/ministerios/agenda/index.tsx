@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
 import FancyCalendar from '../../../../../components/calendar/FancyCalendar';
 import FancyList from '../../../../../components/list/FancyList';
@@ -14,10 +14,12 @@ import { useAuth } from '../../../../../contexts/AuthContext';
 import AgendaEventoCard from '../../../../../components/pages/ministerios/agenda/AgendaEventoCard';
 import { isLouvorMinisterioTipo } from '../../../../../utils/evento-ensaio';
 import { ColorUtils } from '../../../../../utils/color_utils';
+import { useLoading } from '../../../../../contexts/LoadingContext';
 
 export default function MinisterioAgendaIndexPage() {
   const params = useLocalSearchParams<{ ministerioId: string }>();
   const { igrejaAtiva } = useAuth();
+  const { showLoading, hideLoading } = useLoading();
   const isLouvorMinisterio = useMemo(
     () =>
       igrejaAtiva?.ministerios?.some(
@@ -30,7 +32,6 @@ export default function MinisterioAgendaIndexPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [currentMonth, setCurrenMonth] = useState(new Date());
   const [eventos, setEventos] = useState<ResponseEventoOcorrenciaDto[]>();
-  const [isOpeningEvento, setIsOpeningEvento] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { buscarPorIntervalo, isLoading } = useEventosCrud({ autoFetch: false });
@@ -59,9 +60,9 @@ export default function MinisterioAgendaIndexPage() {
 
   useFocusEffect(
     useCallback(() => {
-      setIsOpeningEvento(false);
+      hideLoading();
       void carregarEventosMes();
-    }, [carregarEventosMes]),
+    }, [carregarEventosMes, hideLoading]),
   );
 
   const daysEvents = useMemo(() => {
@@ -110,7 +111,7 @@ export default function MinisterioAgendaIndexPage() {
                 isLouvorMinisterio || !!item.horarioEnsaio || !!item.evento?.horarioEnsaioPadrao
               }
               onPress={() => {
-                setIsOpeningEvento(true);
+                showLoading('Abrindo evento...');
                 requestAnimationFrame(() => {
                   router.push({
                     pathname: '/ministerios/agenda/details',
@@ -127,7 +128,6 @@ export default function MinisterioAgendaIndexPage() {
         }}
         containerStyle={styles.listContainer}
       />
-      {isOpeningEvento ? <FancyLoading label='Abrindo evento...' /> : null}
     </FancyPageView>
   );
 }
