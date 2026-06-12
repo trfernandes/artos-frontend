@@ -195,7 +195,7 @@ function createStyles(palette: ThemePalette) {
       padding: DESIGN_MODE,
       borderColor: 'gold',
       gap: 6,
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
       overflow: 'hidden',
     },
     rightContainer: {

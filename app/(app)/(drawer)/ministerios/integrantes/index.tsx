@@ -333,6 +333,11 @@ export default function MinisterioIntegrantesIndex() {
         onClose={() => setActionsIntegrante(null)}
         actions={[
           {
+            label: 'Editar',
+            icon: { ...DefaultIconsNames.edit, size: 18 },
+            onPress: () => actionsIntegrante && openEdit(actionsIntegrante),
+          },
+          {
             label: selectedIsActive ? 'Desativar' : 'Ativar',
             disabled: isLoadingMutation,
             icon: {

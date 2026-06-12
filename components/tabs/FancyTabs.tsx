@@ -95,7 +95,7 @@ export default function FancyTabs(props: FancyTabsProps) {
 function createStyles(Pallete: ThemePalette) {
   return StyleSheet.create({
     container: {
-      paddingTop: 2,
+      paddingTop: 4,
       gap: 8,
       backgroundColor: Pallete.backgroundColor,
     },

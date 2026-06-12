@@ -124,7 +124,6 @@ function createStyles(palette: ThemePalette) {
       borderRadius: 12,
       minHeight: 34,
       justifyContent: 'center',
-      overflow: 'hidden',
       paddingHorizontal: 11,
       paddingVertical: 5,
       borderWidth: 1,

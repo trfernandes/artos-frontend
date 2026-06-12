@@ -19,7 +19,7 @@ export default function FancyListPage<ItemT>(
           {props.topContent}
           <FancyList
             {...props.listProps}
-            contentContainerStyle={{ gap: 10, paddingHorizontal: 15 }}
+            contentContainerStyle={{ gap: 10, paddingHorizontal: 15, paddingTop: 4 }}
             containerStyle={{ flex: 1 }}
             bottomSpace={40}
           />
