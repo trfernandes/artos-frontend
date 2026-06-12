@@ -66,8 +66,13 @@
         {
           "backgroundColor": "#ffffff",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 400,
-          "resizeMode": "contain"
+          "ios": {
+            "resizeMode": "cover"
+          },
+          "android": {
+            "resizeMode": "contain",
+            "imageWidth": 400
+          }
         }
       ],
       [
