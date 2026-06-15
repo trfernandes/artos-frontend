@@ -10,8 +10,8 @@ import { usePallete } from '../../hooks/usePallete';
 
 const HEADER_CONTENT_HEIGHT = 40;
 const HEADER_HORIZONTAL_GUTTER = 15;
-const IOS_TOP_INSET_REDUCTION = 12;
-const ANDROID_TOP_INSET_REDUCTION = 5;
+const IOS_TOP_INSET_REDUCTION = 6;
+const ANDROID_TOP_INSET_REDUCTION = 0;
 
 export type FancyHeaderProps = {
   leftButton?: 'menu' | 'back' | 'close' | React.ReactNode;

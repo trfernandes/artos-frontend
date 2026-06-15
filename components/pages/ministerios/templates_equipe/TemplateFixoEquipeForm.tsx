@@ -1,20 +1,26 @@
-import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
 import { useFormContext } from 'react-hook-form';
 import { EscalaTemplateVoluntarioFormData } from '../../../../domain/schemas/escalaTemplateSchema';
 import ControlledBottomSheetSelect from '../../../forms/ControlledBottomSheetSelect';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import { useMemo } from 'react';
+import FancyBottomSheetModal from '../../../modal/FancyBottomSheetModal';
+import FancyButton from '../../../buttons/FancyButton';
 
-type TemplateFixoEquipeFormProps = FancyModalDialogProps<void> & {
+interface TemplateFixoEquipeFormProps {
+  visible: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
   voluntarioList?: DropDownItemProps<string>[];
   funcoesList?: DropDownItemProps<string>[];
-};
+}
 
 export default function TemplateFixoEquipeForm({
+  visible,
+  onClose,
+  onConfirm,
   voluntarioList,
   funcoesList,
-  ...props
 }: TemplateFixoEquipeFormProps) {
   const { control } = useFormContext<EscalaTemplateVoluntarioFormData>();
   const sortedVoluntarioList = useMemo(
@@ -37,7 +43,22 @@ export default function TemplateFixoEquipeForm({
   );
 
   return (
-    <FancyModalDialog {...props} title='Adicionar Voluntário' onButton2Press={props.onButton2Press}>
+    <FancyBottomSheetModal
+      visible={visible}
+      onClose={onClose}
+      title='Adicionar Voluntário'
+      footer={
+        <View style={styles.buttonsRow}>
+          <FancyButton
+            label='Cancelar'
+            type='outlined'
+            onPress={onClose}
+            containerStyle={styles.button}
+          />
+          <FancyButton label='Confirmar' onPress={onConfirm} containerStyle={styles.button} />
+        </View>
+      }
+    >
       <View style={{ gap: 15 }}>
         <ControlledBottomSheetSelect
           control={control}
@@ -52,6 +73,17 @@ export default function TemplateFixoEquipeForm({
           listItems={sortedFuncoesList}
         />
       </View>
-    </FancyModalDialog>
+    </FancyBottomSheetModal>
   );
 }
+
+const styles = StyleSheet.create({
+  buttonsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  button: {
+    flex: 1,
+    height: 36,
+  },
+});

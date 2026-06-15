@@ -7,14 +7,10 @@ import { ResponseEventoDto } from '../../../../domain/dtos/Evento/evento.respons
 import { RecorrenciaDiaSemanaEnumMap } from '../../../../domain/enums/Evento/recorrencia-dia-semana.enum';
 import { RecorrenciaSemanaMesEnumMap } from '../../../../domain/enums/Evento/recorrencia-semana-mes.enum';
 import { RecorrenciaEnumMap } from '../../../../domain/enums/Evento/recorrencia.enum';
-import { FancyTextDisplayCard } from '../../../cards/FancyTextDisplayCard';
 import { FancyAlert } from '../../../modal/FancyAlert';
 import { DateUtilsApi } from '../../../../utils/date_utils';
-import FancyBaseCard from '../../../cards/Horizontal/FancyBaseCard';
-import {
-  ActionButtonProps,
-  FancyActionButtons,
-} from '../../../cards/Horizontal/FancyCardActionButtons';
+import FancyListItemCard from '../../../cards/FancyListItemCard';
+import FancyText from '../../../FancyText';
 import { formatInTimeZone } from 'date-fns-tz';
 import { APP_TZ } from '../../../../utils/date_utils';
 import FancyActionSheet from '../../../actions/FancyActionSheet';
@@ -41,10 +37,8 @@ export default function EventosListView({
   const palette = usePallete();
   const [actionsEvento, setActionsEvento] = useState<ResponseEventoDto | null>(null);
   const { containerStyle: listContainerStyle, listEmptyProps, ...restListProps } = listProps || {};
-  const formatEventoDateTime = (value?: string) =>
-    value
-      ? formatInTimeZone(DateUtilsApi.dateTimeFromApi(value), APP_TZ, 'dd/MM/yyyy HH:mm')
-      : 'Sem término';
+  const formatEventoTime = (value?: string) =>
+    value ? formatInTimeZone(DateUtilsApi.dateTimeFromApi(value), APP_TZ, 'HH:mm') : '--:--';
 
   return (
     <View style={[styles.container, containerStyle]}>
@@ -61,79 +55,36 @@ export default function EventosListView({
         bottomSpace={80}
         contentContainerStyle={[styles.listContent, contentContainerStyle]}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
-        renderItem={({ item, index }: { item: ResponseEventoDto; index: number }) => {
-          const actionButtons: ActionButtonProps[] = [
-            {
-              icon: {
-                library: 'MaterialCommunityIcons',
-                name: 'dots-vertical',
-                size: 20,
-                color: palette.fonts.inactive,
-                backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.08),
-              },
-              onPress: () => setActionsEvento(item),
-            },
-          ];
+        renderItem={({ item }: { item: ResponseEventoDto; index: number }) => {
+          const inicio = DateUtilsApi.dateOnlyFromApi(item.dataInicio);
+          const eventoCor = item.cor || palette.primary;
+          const recorrenciaDescricao = generateRecorrenciaJoinableDescription(
+            RecorrenciaEnumMap[item.recorrencia!],
+            item.recorrenciaSemanaDias?.map((i) => RecorrenciaDiaSemanaEnumMap[i]) || [],
+            item.recorrenciaACadaMeses!,
+            item.recorrenciaSemanasMes?.map((i) => RecorrenciaSemanaMesEnumMap[i]) || [],
+          );
 
           return (
-            <FancyBaseCard
-              key={index}
+            <FancyListItemCard
+              onPress={() => onEditItem(item)}
+              leading={{
+                type: 'date',
+                day: String(inicio.getDate()).padStart(2, '0'),
+                month: inicio.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', ''),
+                color: eventoCor,
+                backgroundColor: ColorUtils.withAlpha(eventoCor, 0.12),
+              }}
               title={item.nome}
-              subtitle={
-                <View style={styles.firstInfoRow}>
-                  <FancyTextDisplayCard
-                    value={formatEventoDateTime(item.dataInicio)}
-                    icon={{
-                      library: 'MaterialCommunityIcons',
-                      name: 'calendar-clock',
-                      size: 13,
-                      color: palette.primary,
-                      style: styles.dataIcon,
-                    }}
-                    containerStyle={styles.dataRow}
-                    valueStyle={{ type: 'medium' }}
-                  />
-                </View>
+              subtitle={`${formatEventoTime(item.dataInicio)} — ${formatEventoTime(item.dataTermino)}`}
+              meta={
+                recorrenciaDescricao ? (
+                  <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                    {recorrenciaDescricao}
+                  </FancyText>
+                ) : undefined
               }
-              additionalData1={
-                <FancyTextDisplayCard
-                  value={formatEventoDateTime(item.dataTermino)}
-                  icon={{
-                    library: 'MaterialCommunityIcons',
-                    name: 'calendar-check',
-                    size: 13,
-                    color: palette.primary,
-                    style: styles.dataIcon,
-                  }}
-                  containerStyle={styles.dataRow}
-                  valueStyle={{ type: 'medium' }}
-                />
-              }
-              additionalData2={
-                <FancyTextDisplayCard
-                  value={generateRecorrenciaJoinableDescription(
-                    RecorrenciaEnumMap[item.recorrencia!],
-                    item.recorrenciaSemanaDias?.map((i) => RecorrenciaDiaSemanaEnumMap[i]) || [],
-                    item.recorrenciaACadaMeses!,
-                    item.recorrenciaSemanasMes?.map((i) => RecorrenciaSemanaMesEnumMap[i]) || [],
-                  )}
-                  icon={{
-                    library: 'MaterialCommunityIcons',
-                    name: 'calendar-sync',
-                    size: 13,
-                    color: palette.primary,
-                    style: styles.dataIconTopAligned,
-                  }}
-                  containerStyle={styles.dataRowMultiline}
-                  valueStyle={{ type: 'medium', style: styles.dataValueMultiline }}
-                />
-              }
-              leftItem={
-                <View
-                  style={[styles.eventColorLine, { backgroundColor: item.cor || palette.primary }]}
-                />
-              }
-              rightItem={<FancyActionButtons actions={actionButtons} />}
+              trailing={{ type: 'menu', onPress: () => setActionsEvento(item) }}
             />
           );
         }}
@@ -215,31 +166,5 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: 10,
-  },
-  dataRow: {
-    alignItems: 'center',
-    gap: 6,
-  },
-  dataRowMultiline: {
-    alignItems: 'flex-start',
-    gap: 6,
-  },
-  dataIcon: {
-    marginTop: 0,
-  },
-  dataIconTopAligned: {
-    marginTop: 1,
-  },
-  dataValueMultiline: {
-    lineHeight: 13,
-  },
-  firstInfoRow: {
-    marginTop: 4,
-  },
-  eventColorLine: {
-    width: 3,
-    flex: 1,
-    marginVertical: 10,
-    borderRadius: 3,
   },
 });

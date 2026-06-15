@@ -606,6 +606,31 @@ function Select-Target {
     }
   }
 
+  if ($TargetMode -eq "emulator" -and $PreferredAvdName) {
+    $preferredRunning = $runningEmulators | Where-Object {
+      $_.Name -like "$PreferredAvdName*" -or $_.DeviceArgument -eq $PreferredAvdName
+    } | Select-Object -First 1
+
+    if ($preferredRunning) {
+      Write-Host "Usando emulador preferido ja aberto: $($preferredRunning.Name)" -ForegroundColor Green
+      return [PSCustomObject]@{
+        Index = 1
+        Kind = "connected"
+        Target = $preferredRunning
+      }
+    }
+
+    $preferredStopped = $stoppedEmulators | Where-Object { $_ -eq $PreferredAvdName } | Select-Object -First 1
+    if ($preferredStopped) {
+      Write-Host "Abrindo emulador preferido automaticamente: $preferredStopped" -ForegroundColor Green
+      return [PSCustomObject]@{
+        Index = 1
+        Kind = "avd"
+        Target = $preferredStopped
+      }
+    }
+  }
+
   if ($availableOptions.Count -eq 1 -and $availableOptions[0].Kind -eq "connected") {
     Write-Host "Destino encontrado. Usando automaticamente: $($availableOptions[0].Target.Name)" -ForegroundColor Green
     return [PSCustomObject]@{
@@ -798,27 +823,3 @@ try {
     Stop-Transcript | Out-Null
   }
 }
-  if ($TargetMode -eq "emulator" -and $PreferredAvdName) {
-    $preferredRunning = $runningEmulators | Where-Object {
-      $_.Name -like "$PreferredAvdName*" -or $_.DeviceArgument -eq $PreferredAvdName
-    } | Select-Object -First 1
-
-    if ($preferredRunning) {
-      Write-Host "Usando emulador preferido ja aberto: $($preferredRunning.Name)" -ForegroundColor Green
-      return [PSCustomObject]@{
-        Index = 1
-        Kind = "connected"
-        Target = $preferredRunning
-      }
-    }
-
-    $preferredStopped = $stoppedEmulators | Where-Object { $_ -eq $PreferredAvdName } | Select-Object -First 1
-    if ($preferredStopped) {
-      Write-Host "Abrindo emulador preferido automaticamente: $preferredStopped" -ForegroundColor Green
-      return [PSCustomObject]@{
-        Index = 1
-        Kind = "avd"
-        Target = $preferredStopped
-      }
-    }
-  }

@@ -1,13 +1,15 @@
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import FancyList from '../../../list/FancyList';
+import FancyText from '../../../FancyText';
+import FancyButton from '../../../buttons/FancyButton';
+import FancyListItemCard from '../../../cards/FancyListItemCard';
+import FancyChips from '../../../FancyChips';
+import FancyActionSheet from '../../../actions/FancyActionSheet';
 import { usePallete } from '../../../../hooks/usePallete';
 import {
   VoluntarioHierarquiaEnum,
   VoluntarioHierarquiaEnumLabel,
-  VoluntarioHierarquiaEnumMap,
 } from '../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
-import { FancyActionButtons } from '../../../cards/Horizontal/FancyCardActionButtons';
-import { FancyCard } from '../../../cards/Horizontal/FancyCard';
 import FancyLoading from '../../../FancyLoading';
 import { useMinisterioVoluntariosCrud } from '../../../../hooks/useMinisterioVoluntariosCrud';
 import { useCallback, useMemo, useState } from 'react';
@@ -18,15 +20,14 @@ import {
   ValueType,
 } from '../../../../domain/utils/query_utils';
 import VoluntarioEditFormModal from './VoluntarioEditFormModal';
-import FancyFab from '../../../buttons/FancyFab';
 import VoluntarioAddFormModal from './VoluntarioAddFormModal';
 import { useLoading } from '../../../../contexts/LoadingContext';
-import { FancyCardImageProps } from '../../../cards/Horizontal/FancyCardImage';
-import { ColorUtils } from '../../../../utils/color_utils';
+import { DefaultIconsNames } from '../../../../constants/icons';
 import {
   AddMinisterioVoluntarioFormData,
   EditMinisterioVoluntarioFormData,
 } from '../../../../domain/schemas/ministerioAdminSchema';
+import { ResponseMinisterioVoluntarioDto } from '../../../../domain/dtos/MinisterioVoluntario/ministerio-voluntario.response';
 import { AppImages } from '../../../../assets/app_images';
 import { FancyAlert } from '../../../modal/FancyAlert';
 import VoluntarioSummarySheet from '../../common/VoluntarioSummarySheet';
@@ -71,6 +72,9 @@ export default function VoluntarioTab({ ministerioId }: VoluntarioTabProps) {
 
   const [addFormParams, setAddFormParams] = useState<{ visible: boolean }>({ visible: false });
   const [selectedVoluntario, setSelectedVoluntario] = useState<any | null>(null);
+  const [actionsVoluntario, setActionsVoluntario] = useState<ResponseMinisterioVoluntarioDto | null>(
+    null,
+  );
 
   const { showLoading, hideLoading } = useLoading();
 
@@ -82,7 +86,7 @@ export default function VoluntarioTab({ ministerioId }: VoluntarioTabProps) {
         await addVoluntario({
           ministerioId: ministerioId,
           voluntarioId: data.voluntarioId,
-          hierarquia: VoluntarioHierarquiaEnumMap[data.hierarquia],
+          hierarquia: data.hierarquia,
         });
       } finally {
         hideLoading();
@@ -97,7 +101,7 @@ export default function VoluntarioTab({ ministerioId }: VoluntarioTabProps) {
       try {
         await updateVoluntario?.({
           id: data.id,
-          data: { hierarquia: VoluntarioHierarquiaEnumMap[data.hierarquia] },
+          data: { hierarquia: data.hierarquia },
         });
       } finally {
         hideLoading();
@@ -134,10 +138,29 @@ export default function VoluntarioTab({ ministerioId }: VoluntarioTabProps) {
     [FancyAlert.alert, removeVoluntario, showLoading, hideLoading],
   );
 
+  const hierarquiaColor = (hierarquia: VoluntarioHierarquiaEnum) => {
+    if (hierarquia === VoluntarioHierarquiaEnum.Lider) return Pallete.primary;
+    if (hierarquia === VoluntarioHierarquiaEnum.Auxiliar) return Pallete.secondary;
+    return Pallete.fonts.inactive;
+  };
+
   if (isLoading) return <FancyLoading />;
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={styles.root}>
+      <View style={styles.header}>
+        <FancyText size='medium' type='bold' style={styles.headerTitle}>
+          Voluntários ({minVoluntsList.length})
+        </FancyText>
+        <FancyButton
+          mode='icon'
+          type='contained'
+          icon={{ ...DefaultIconsNames.add, size: 19, color: Pallete.icons.light }}
+          onPress={() => setAddFormParams({ visible: true })}
+          containerStyle={styles.addButton}
+        />
+      </View>
+
       <FancyList
         data={minVoluntsList}
         bottomSpace={45}
@@ -147,21 +170,27 @@ export default function VoluntarioTab({ ministerioId }: VoluntarioTabProps) {
           icon: { library: 'MaterialCommunityIcons', name: 'account-group-outline', size: 55 },
         }}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => {
-          const commonProps: FancyCardImageProps = {
-            backgroundColor: [
-              VoluntarioHierarquiaEnum.Lider,
-              VoluntarioHierarquiaEnum.Auxiliar,
-            ].includes(VoluntarioHierarquiaEnumMap[item.hierarquia])
-              ? ColorUtils.lightenColor(Pallete.primary, 0.8)
-              : undefined,
-            title: item.voluntario?.nome,
-            subtitle: item.voluntario?.email || undefined,
-            source:
-              item.voluntario?.fotoUrl || item.voluntario?.fotoThumbUrl
-                ? { uri: item.voluntario?.fotoThumbUrl || item.voluntario?.fotoUrl }
-                : AppImages.emptyProfile,
-            onPress: () =>
+        renderItem={({ item }) => (
+          <FancyListItemCard
+            title={item.voluntario?.nome || ''}
+            subtitle={item.voluntario?.email || undefined}
+            leading={{
+              type: 'image',
+              size: 46,
+              source:
+                item.voluntario?.fotoThumbUrl || item.voluntario?.fotoUrl
+                  ? { uri: item.voluntario?.fotoThumbUrl || item.voluntario?.fotoUrl }
+                  : AppImages.emptyProfile,
+            }}
+            status={
+              <FancyChips
+                label={VoluntarioHierarquiaEnumLabel[item.hierarquia]}
+                color={hierarquiaColor(item.hierarquia)}
+                size='small'
+              />
+            }
+            trailing={{ type: 'menu', onPress: () => setActionsVoluntario(item) }}
+            onPress={() =>
               setSelectedVoluntario({
                 nome: item.voluntario?.nome || '-',
                 email: item.voluntario?.email || null,
@@ -170,63 +199,54 @@ export default function VoluntarioTab({ ministerioId }: VoluntarioTabProps) {
                 fotoThumbUrl: item.voluntario?.fotoThumbUrl || null,
                 papelLabel: VoluntarioHierarquiaEnumLabel[item.hierarquia],
                 statusLabel: MinisterioVoluntarioStatusEnumLabel[item.status],
-              }),
-            actionButtons: (
-              <FancyActionButtons
-                actions={[
-                  {
-                    icon: { library: 'MaterialIcons', name: 'edit', size: 18 },
-                    onPress: () => {
-                      setEditFormVisible(true);
-                      setEditFormParams({
-                        mode: 'edit',
-                        visible: true,
-                        data: {
-                          id: item.id,
-                          voluntarioId: item.voluntarioId,
-                          voluntarioNome: item.voluntario?.nome!,
-                          hierarquia: item.hierarquia,
-                          fotoUrl: item.voluntario?.fotoUrl || null,
-                          fotoThumbUrl: item.voluntario?.fotoThumbUrl || null,
-                        },
-                      });
-                    },
-                  },
-                  {
-                    icon: {
-                      library: 'MaterialIcons',
-                      name: 'delete',
-                      size: 18,
-                      backgroundColor: Pallete.error,
-                    },
-                    onPress: () => {
-                      handleRemoveVoluntario(item.id);
-                    },
-                  },
-                ]}
-              />
-            ),
-          };
-          return <FancyCard.Image key={item.id} type={'image'} props={commonProps} />;
-        }}
+              })
+            }
+          />
+        )}
       />
-      <FancyFab
-        right={0}
-        onPress={() => {
-          setAddFormParams({ visible: true });
-        }}
+
+      <FancyActionSheet
+        visible={!!actionsVoluntario}
+        onClose={() => setActionsVoluntario(null)}
+        actions={[
+          {
+            label: 'Editar papel',
+            icon: { ...DefaultIconsNames.edit, size: 18 },
+            onPress: () => {
+              if (!actionsVoluntario) return;
+              setEditFormVisible(true);
+              setEditFormParams({
+                mode: 'edit',
+                visible: true,
+                data: {
+                  id: actionsVoluntario.id,
+                  voluntarioId: actionsVoluntario.voluntarioId,
+                  voluntarioNome: actionsVoluntario.voluntario?.nome!,
+                  hierarquia: actionsVoluntario.hierarquia,
+                  fotoUrl: actionsVoluntario.voluntario?.fotoUrl || null,
+                  fotoThumbUrl: actionsVoluntario.voluntario?.fotoThumbUrl || null,
+                },
+              });
+            },
+          },
+          {
+            label: 'Remover',
+            destructive: true,
+            icon: { ...DefaultIconsNames.delete, size: 18 },
+            onPress: () => {
+              if (actionsVoluntario) handleRemoveVoluntario(actionsVoluntario.id);
+            },
+          },
+        ]}
       />
-      {editFormVisible && (
+
+      {editFormParams?.data && (
         <VoluntarioEditFormModal
-          ministerioId={ministerioId}
-          data={editFormParams?.data!}
-          modalProps={{ visible: true }}
-          onButton1Press={() => {
-            setEditFormVisible(false);
-            hideLoading();
-          }}
-          onButton2Press={(data) => {
-            data && handleEditVoluntario(data);
+          visible={editFormVisible}
+          data={editFormParams.data}
+          onClose={() => setEditFormVisible(false)}
+          onSubmit={(data) => {
+            handleEditVoluntario(data);
             setEditFormVisible(false);
           }}
         />
@@ -254,3 +274,25 @@ export default function VoluntarioTab({ ministerioId }: VoluntarioTabProps) {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+  },
+  headerTitle: {
+    flex: 1,
+    opacity: 0.7,
+  },
+  addButton: {
+    minHeight: 25,
+    height: 25,
+    minWidth: 25,
+    width: 25,
+  },
+});

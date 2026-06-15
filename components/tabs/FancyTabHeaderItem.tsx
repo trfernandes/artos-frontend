@@ -1,4 +1,4 @@
-import { LayoutChangeEvent, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { LayoutChangeEvent, Pressable, StyleSheet, View } from 'react-native';
 import { TabItem } from './FancyTabs';
 import FancyText from '../FancyText';
 import DefaultIcons from '../FancyIcons';
@@ -16,18 +16,6 @@ export type FancyTabHeaderItemProps = {
   compact?: boolean;
 } & TabItem;
 
-const ACTIVE_SHADOW = Platform.select({
-  ios: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2.5,
-  },
-  android: {
-    elevation: 1,
-  },
-  default: {},
-});
 
 export default function FancyTabHeaderItem({
   status = 'active',
@@ -55,7 +43,7 @@ export default function FancyTabHeaderItem({
         equalWidth && styles.containerEqualWidth,
         calculatedWidth ? { width: calculatedWidth } : undefined,
         compact && styles.containerCompact,
-        isActive ? [styles.active, ACTIVE_SHADOW] : styles.inactive,
+        isActive ? styles.active : styles.inactive,
       ]}
       accessibilityRole='tab'
       accessibilityState={{ selected: isActive }}
@@ -121,13 +109,11 @@ export default function FancyTabHeaderItem({
 function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
     container: {
-      borderRadius: 12,
+      borderRadius: 999,
       minHeight: 34,
       justifyContent: 'center',
       paddingHorizontal: 11,
       paddingVertical: 5,
-      borderWidth: 1,
-      borderColor: ColorUtils.withAlpha(palette.border, 0.7),
       backgroundColor: palette.backgroundColor2,
     },
     containerEqualWidth: {
@@ -135,13 +121,12 @@ function createStyles(palette: ThemePalette) {
     },
     containerCompact: {
       minHeight: 30,
-      borderRadius: 10,
+      borderRadius: 999,
       paddingHorizontal: 9,
       paddingVertical: 4,
     },
     active: {
       backgroundColor: palette.primary,
-      borderColor: palette.primary,
     },
     inactive: {
       backgroundColor: palette.backgroundColor2,
@@ -167,6 +152,7 @@ function createStyles(palette: ThemePalette) {
       lineHeight: 14,
       includeFontPadding: false,
       paddingTop: 0,
+      flexShrink: 1,
     },
     titleEqualWidth: {
       flex: 1,

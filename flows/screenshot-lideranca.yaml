@@ -1,0 +1,28 @@
+# Flow: Screenshot da aba Liderança e Acessos no admin de um ministério
+#
+# Uso:
+#   maestro test flows/screenshot-lideranca.yaml \
+#     -e APP_EMAIL=xxx -e APP_PASSWORD=xxx \
+#     -e MINISTERIO_NAME="Louvor"
+
+appId: com.church.artos
+---
+- launchApp
+- runFlow: _login.yaml
+
+# Ir para Admin via drawer
+- tapOn:
+    point: "2%,50%"
+- waitForAnimationToEnd
+- tapOn: "Admin"
+- waitForAnimationToEnd
+
+# Abrir o ministério
+- tapOn: ${MINISTERIO_NAME}
+- waitForAnimationToEnd
+
+# Ir para aba Liderança e Acessos
+- tapOn: "Liderança"
+- waitForAnimationToEnd
+
+- takeScreenshot: screenshot-lideranca

@@ -14,6 +14,7 @@ export type FancyChipsProps = {
   color?: string;
   backgroundColor?: string;
   icon?: CustomIconProps;
+  dot?: boolean;
   size?: 'small' | 'medium' | 'large';
   outlined?: boolean;
   onPress?: () => void;
@@ -26,6 +27,7 @@ export default function FancyChips({
   color,
   backgroundColor,
   icon,
+  dot = false,
   size = 'medium',
   outlined = false,
   onPress,
@@ -61,6 +63,17 @@ export default function FancyChips({
         style,
       ]}
     >
+      {dot && !icon && (
+        <View
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: 3,
+            backgroundColor: resolvedColor,
+            marginRight: 6,
+          }}
+        />
+      )}
       {icon && (
         <DefaultIcons.Custom
           library={icon.library}

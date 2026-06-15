@@ -1,6 +1,6 @@
 # Open Android Emulator and position the window on screen
 
-$avdName = "Pixel_6_Pro_API_34"
+$avdName = "Pixel_5_API_34"
 
 # Load Win32 API for window positioning
 Add-Type @"

@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import FuncaoFormModal from '../../../../../components/pages/ministerios/funcoes/FuncaoFormModal';
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
 import { useMinisterioFuncoesCrud } from '../../../../../hooks/useMinisterioFuncoesCrud';
-import { useLocalSearchParams } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import {
   Condition,
   DynamicQuery,
@@ -85,6 +85,12 @@ export default function MinisterioFuncoesIndex() {
     initialParams: searchParams,
     autoFetch: true,
   });
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
 
   const handleConfirm = useCallback(
     async ({
@@ -170,6 +176,13 @@ export default function MinisterioFuncoesIndex() {
             status === MinisterioFuncaoStatusEnum.Ativo ? palette.primary : palette.error;
           return (
             <FancyListItemCard
+              onPress={() =>
+                setFuncaoFormModalParams({
+                  visible: true,
+                  mode: 'edit',
+                  editValues: item,
+                })
+              }
               title={item.nome}
               subtitle={item.descricao?.trim() || 'Sem descrição cadastrada'}
               leading={{
@@ -182,12 +195,12 @@ export default function MinisterioFuncoesIndex() {
                 color: statusColor,
                 backgroundColor: ColorUtils.withAlpha(statusColor, 0.12),
               }}
-              meta={
+              status={
                 <FancyChips
                   size='small'
                   label={MinisterioFuncaoStatusEnumLabel[status]}
                   color={statusColor}
-                  style={{ paddingVertical: 1, paddingHorizontal: 6 }}
+                  dot
                 />
               }
               trailing={{ type: 'menu', onPress: () => setActionsFuncao(item) }}

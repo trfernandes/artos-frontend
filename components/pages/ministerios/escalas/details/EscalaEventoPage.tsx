@@ -316,7 +316,7 @@ export default function EscalaEventoPage({
                     size={13}
                     color={ColorUtils.withAlpha(borderColor, 0.9)}
                   />
-                  <FancyText type='semiBold' size={11} color={eventMetaColor}>
+                  <FancyText type='semiBold' size={12} color={eventMetaColor}>
                     {format(data.dataOcorrencia, 'dd/MM/yyyy')}
                   </FancyText>
                 </View>
@@ -329,7 +329,7 @@ export default function EscalaEventoPage({
                       size={13}
                       color={ColorUtils.withAlpha(borderColor, 0.9)}
                     />
-                    <FancyText type='semiBold' size={11} color={eventMetaColor}>
+                    <FancyText type='semiBold' size={12} color={eventMetaColor}>
                       {`${format(data.evento.dataInicio, 'HH:mm')} – ${format(
                         data.evento.dataTermino,
                         'HH:mm',
@@ -348,7 +348,7 @@ export default function EscalaEventoPage({
                       size='compact'
                       donutSize={18}
                       donutStrokeWidth={2.6}
-                      textSize={11}
+                      textSize={12}
                       progressColor={eventProgressColor}
                     />
                   </View>
@@ -365,7 +365,7 @@ export default function EscalaEventoPage({
                   />
                   <FancyText
                     type='medium'
-                    size={11}
+                    size={12}
                     color={palette.fonts.inactive}
                     numberOfLines={1}
                     style={styles.localText}

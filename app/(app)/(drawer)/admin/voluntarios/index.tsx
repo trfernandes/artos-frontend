@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { StyleSheet, View } from 'react-native';
 import FancyScreenErrorHandler from '../../../../../components/error/FancyScreenErrorHandler';
@@ -18,6 +18,7 @@ import { useLoading } from '../../../../../contexts/LoadingContext';
 import FancySegmentedControl from '../../../../../components/fields/FancySegmentedControl';
 import FancyChips from '../../../../../components/FancyChips';
 import FancyListItemCard from '../../../../../components/cards/FancyListItemCard';
+import FancyListStats from '../../../../../components/list/FancyListStats';
 import FancyActionSheet from '../../../../../components/actions/FancyActionSheet';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { ResponseVoluntarioDto } from '../../../../../domain/dtos/Voluntario/voluntario.response';
@@ -45,6 +46,12 @@ export default function VoluntariosIndexPage() {
   } = useIgrejaVoluntariosCrud({
     autoFetch: true,
   });
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
 
   const handleChangeStatus = useCallback(
     (id: string, nome: string, newStatus: VoluntarioStatusEnum) => {
@@ -138,6 +145,17 @@ export default function VoluntariosIndexPage() {
     );
   }, [filteredData]);
 
+  const stats = useMemo(() => {
+    const currentUserId = user?.user.id;
+    const baseList = currentUserId ? data.filter((item) => item.id !== currentUserId) : data;
+    const ativos = baseList.filter((item) => item.status === VoluntarioStatusEnum.ATIVO).length;
+    return {
+      total: baseList.length,
+      ativos,
+      inativos: baseList.length - ativos,
+    };
+  }, [data, user?.user.id]);
+
   // Early returns AFTER all hooks
   if (isError) {
     return <FancyScreenErrorHandler error={error!} onTryAgrainPress={refetch} />;
@@ -156,17 +174,26 @@ export default function VoluntariosIndexPage() {
         },
       }}
       topContent={
-        <View style={styles.filtroContainer}>
-          <FancySegmentedControl<StatusFiltro>
-            size='sm'
-            options={[
-              { label: 'Todos', value: 'todos' },
-              { label: 'Ativos', value: 'ativos' },
-              { label: 'Inativos', value: 'inativos' },
+        <View style={styles.topContainer}>
+          <FancyListStats
+            items={[
+              { label: 'Total', value: stats.total },
+              { label: 'Ativos', value: stats.ativos, color: palette.primary },
+              { label: 'Inativos', value: stats.inativos, color: palette.error },
             ]}
-            value={statusFiltro}
-            onChange={setStatusFiltro}
           />
+          <View style={styles.filtroContainer}>
+            <FancySegmentedControl<StatusFiltro>
+              size='sm'
+              options={[
+                { label: 'Todos', value: 'todos' },
+                { label: 'Ativos', value: 'ativos' },
+                { label: 'Inativos', value: 'inativos' },
+              ]}
+              value={statusFiltro}
+              onChange={setStatusFiltro}
+            />
+          </View>
         </View>
       }
       listProps={{
@@ -208,20 +235,29 @@ export default function VoluntariosIndexPage() {
             item.status === VoluntarioStatusEnum.ATIVO ? palette.primary : palette.error;
           return (
             <FancyListItemCard
+              onPress={() => {
+                showLoading();
+                router.push({
+                  pathname: '/admin/voluntarios/details',
+                  params: { id: item.id },
+                });
+              }}
               title={item.nome}
               subtitle={item.email}
               leading={{
                 type: 'image',
+                size: 40,
                 source:
                   item.fotoThumbUrl || item.fotoUrl
                     ? { uri: item.fotoThumbUrl || item.fotoUrl || '' }
                     : AppImages.emptyProfile,
               }}
-              meta={
+              status={
                 <FancyChips
                   label={VoluntarioStatusEnumLabel[item.status]}
                   color={statusColor}
                   size='small'
+                  dot
                 />
               }
               trailing={{ type: 'menu', onPress: () => setActionsVoluntario(item) }}
@@ -282,6 +318,7 @@ export default function VoluntariosIndexPage() {
 }
 
 const styles = StyleSheet.create({
+  topContainer: { gap: 12 },
   filtroContainer: { paddingHorizontal: 15 },
   container: { gap: 20, borderWidth: 0, borderColor: 'magenta' },
   searchbar: { paddingHorizontal: 18 },

@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useLocalSearchParams } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
 import { useAuth } from '../../../../../contexts/AuthContext';
@@ -135,6 +135,7 @@ export default function MinhasEscalasIndexPage() {
     data: solicitacoesDeSubstituicao,
     update: updateSubstituicao,
     isLoadingMutation: isLoadingSubsMut,
+    refetch: refetchSubstituicoes,
   } = useEscalaSubstituicoesCrud({
     autoFetch: true,
     initialParams: substituicoesParams,
@@ -229,6 +230,13 @@ export default function MinhasEscalasIndexPage() {
   useEffect(() => {
     loadMonthEscalas();
   }, [loadMonthEscalas]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadMonthEscalas();
+      refetchSubstituicoes();
+    }, [loadMonthEscalas, refetchSubstituicoes]),
+  );
 
   useEffect(() => {
     const escalaId = firstRouteParam(params.escalaId);

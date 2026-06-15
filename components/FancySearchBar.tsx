@@ -11,6 +11,7 @@ import DefaultIcons from './FancyIcons';
 import { useEffect, useRef, useState } from 'react';
 import { DefaultIconsNames } from '../constants/icons';
 import { usePallete } from '../hooks/usePallete';
+import FancyButton from './buttons/FancyButton';
 
 export type FancySearchBarProps = {
   value?: string; // 🔥 novo
@@ -76,6 +77,7 @@ export default function FancySearchBar(props: FancySearchBarProps) {
       <View style={styles.inputContainer}>
         <FancyTextInput
           placeholder={props.placeholder ?? 'Digite aqui para pesquisar....'}
+          inputContainerStyle={styles.inputCard}
           inputProps={{
             onChangeText: setInternalValue,
             style: {
@@ -97,12 +99,12 @@ export default function FancySearchBar(props: FancySearchBarProps) {
           }
           rightContainer={
             isLoading ? (
-              <View style={{ justifyContent: 'center', alignItems: 'center', paddingRight: 10 }}>
+              <View style={{ justifyContent: 'center', alignItems: 'center' }}>
                 <ActivityIndicator size={'small'} />
               </View>
-            ) : (
+            ) : internalValue.length > 0 ? (
               <TouchableOpacity
-                style={{ justifyContent: 'center', alignItems: 'center', paddingRight: 8 }}
+                style={{ justifyContent: 'center', alignItems: 'center' }}
                 onPress={() => setInternalValue('')}
               >
                 <DefaultIcons.Custom
@@ -112,10 +114,29 @@ export default function FancySearchBar(props: FancySearchBarProps) {
                   key='right'
                 />
               </TouchableOpacity>
-            )
+            ) : undefined
           }
         />
       </View>
+      {props.onOptionsButtonPress && (
+        <FancyButton
+          mode='icon'
+          type='light'
+          size={44}
+          icon={{
+            library: 'MaterialCommunityIcons',
+            name: 'tune-variant',
+            size: 18,
+            color: Pallete.primary,
+          }}
+          containerStyle={[
+            styles.filterButton,
+            { backgroundColor: Pallete.backgroundColor, ...Pallete.shadows[200] },
+          ]}
+          onPress={props.onOptionsButtonPress}
+          accessibilityLabel='Filtros'
+        />
+      )}
     </View>
   );
 }
@@ -123,6 +144,8 @@ export default function FancySearchBar(props: FancySearchBarProps) {
 const styles = StyleSheet.create({
   container: { flexDirection: 'row', gap: 10, borderWidth: 0, borderColor: 'gold' },
   inputContainer: { flex: 1, borderWidth: 0, borderColor: 'gold' },
+  inputCard: { borderRadius: 16, borderWidth: 0 },
+  filterButton: { borderRadius: 14, borderWidth: 0 },
   buttonContainer: {},
   button: {
     borderRadius: 100,

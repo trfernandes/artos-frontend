@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { FormProvider, useFieldArray, useForm, useFormContext } from 'react-hook-form';
 import { DefaultIconsNames } from '../../../../constants/icons';
 
@@ -7,21 +8,21 @@ import {
   EscalaTemplateFuncaoFormData,
   escalaTemplateFuncaoSchema,
 } from '../../../../domain/schemas/escalaTemplateSchema';
-import FancyContainerList from '../../../container_list/FancyContainerList';
 import { zodResolver } from '@hookform/resolvers/zod';
 import TemplateFuncoesForm from './TemplateFuncoesForm';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
-import { FancyCard } from '../../../cards/Horizontal/FancyCard';
 import Toast from 'react-native-toast-message';
 import { FancyAlert } from '../../../modal/FancyAlert';
-import {
-  EscalaTemplateExperienciaEnum,
-  EscalaTemplateExperienciaLabel,
-} from '../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
+import { EscalaTemplateExperienciaLabel } from '../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
+import { EscalaTemplateExperienciaEnum } from '../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
 import { useFuncoesDoMinisterio } from '../../../../hooks/useFuncoesDoMinisterio';
-import { FancyTextDisplayCard } from '../../../cards/FancyTextDisplayCard';
 import FancyLoading from '../../../FancyLoading';
 import { usePallete } from '../../../../hooks/usePallete';
+import FancyText from '../../../FancyText';
+import FancyButton from '../../../buttons/FancyButton';
+import FancyListItemCard from '../../../cards/FancyListItemCard';
+import FancyListEmpty from '../../../list/FancyListEmpty';
+import FancyActionSheet from '../../../actions/FancyActionSheet';
 
 interface TemplateFuncoesListProps {
   disabled?: boolean;
@@ -52,6 +53,10 @@ export default function TemplateFuncoesList({
   // índice da função sendo editada — usado para atualizar a linha correta no field array,
   // em vez de localizar por funcaoId (que quebra ao trocar a função durante a edição)
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [actionsItem, setActionsItem] = useState<{
+    item: EscalaTemplateFuncaoFormData;
+    index: number;
+  } | null>(null);
   const formAdd = useForm<EscalaTemplateFuncaoFormData>({
     resolver: zodResolver(escalaTemplateFuncaoSchema),
     defaultValues: FORM_DEFAULT_VALUES,
@@ -172,86 +177,106 @@ export default function TemplateFuncoesList({
   if (isLoadingFuncoes) return <FancyLoading />;
 
   return (
-    <>
-      <FancyContainerList
-        title={'Formação da Equipe'}
-        data={funcoesWatch}
-        contentContainerStyle={{ paddingTop: 6 }}
-        virtualized={false}
-        disabled={disabled}
-        renderItem={({ item, index }: { item: EscalaTemplateFuncaoFormData; index: number }) => {
-          const matchedOption = funcoesDataList.find((funcao) => funcao.id === item.funcaoId);
-          const funcaoNome = matchedOption?.nome || item.funcao?.nome || 'Função não encontrada';
-          const experienciaLabel = EscalaTemplateExperienciaLabel[item.experiencia];
-          return (
-            <FancyCard.Simple
-              title={funcaoNome}
-              subtitle={
-                <FancyTextDisplayCard
-                  icon={{
-                    library: 'MaterialCommunityIcons',
-                    name: 'star-outline',
-                    size: 12,
-                    color: palette.primary,
-                  }}
-                  value={experienciaLabel}
-                />
-              }
-              additionalData1={
-                <FancyTextDisplayCard
-                  icon={{
-                    library: 'MaterialCommunityIcons',
-                    name: 'account-multiple-outline',
-                    size: 12,
-                    color: palette.primary,
-                  }}
-                  value={item.quantidade.toString()}
-                />
-              }
-              letter={funcaoNome.charAt(0)}
-              actionButtons={[
-                {
-                  icon: {
-                    ...DefaultIconsNames.edit,
-                    backgroundColor: palette.primary,
-                    size: 16,
-                  },
-                  onPress: disabled ? undefined : () => handleEdit(index),
-                },
-                {
-                  icon: {
-                    ...DefaultIconsNames.delete,
-                    size: 16,
-                    backgroundColor: palette.error,
-                  },
-                  onPress: disabled ? undefined : () => handleRemove(index),
-                },
-              ]}
-            />
-          );
-        }}
-        buttons={[
+    <View style={styles.root}>
+      <View style={styles.header}>
+        <FancyText size='medium' type='bold' style={styles.headerTitle}>
+          Formação da Equipe ({funcoesWatch.length})
+        </FancyText>
+        {!disabled && (
+          <FancyButton
+            mode='icon'
+            type='contained'
+            icon={{ ...DefaultIconsNames.add, size: 19, color: palette.icons.light }}
+            onPress={() => handleOpen('add')}
+            containerStyle={styles.addButton}
+          />
+        )}
+      </View>
+
+      {funcoesWatch.length > 0 ? (
+        <View style={styles.listContent}>
+          {funcoesWatch.map((item, index) => {
+            const matchedOption = funcoesDataList.find((funcao) => funcao.id === item.funcaoId);
+            const funcaoNome = matchedOption?.nome || item.funcao?.nome || 'Função não encontrada';
+            const experienciaLabel = EscalaTemplateExperienciaLabel[item.experiencia];
+            return (
+              <FancyListItemCard
+                key={item.id ?? index}
+                title={funcaoNome}
+                subtitle={`${experienciaLabel} · ${item.quantidade} ${item.quantidade === 1 ? 'pessoa' : 'pessoas'}`}
+                leading={{ type: 'letter', letter: funcaoNome.charAt(0) }}
+                trailing={
+                  disabled ? undefined : { type: 'menu', onPress: () => setActionsItem({ item, index }) }
+                }
+              />
+            );
+          })}
+        </View>
+      ) : (
+        <FancyListEmpty label='Nenhuma função cadastrada' />
+      )}
+
+      <FancyActionSheet
+        visible={!!actionsItem}
+        onClose={() => setActionsItem(null)}
+        actions={[
           {
-            icon: { ...DefaultIconsNames.add, size: 20, style: { width: 20, height: 20 } },
-            onPress: disabled ? undefined : () => handleOpen('add'),
+            label: 'Editar',
+            icon: { ...DefaultIconsNames.edit, size: 18 },
+            onPress: () => {
+              if (actionsItem) handleEdit(actionsItem.index);
+            },
+          },
+          {
+            label: 'Excluir',
+            destructive: true,
+            icon: { ...DefaultIconsNames.delete, size: 18 },
+            onPress: () => {
+              if (actionsItem) handleRemove(actionsItem.index);
+            },
           },
         ]}
       />
+
       <FormProvider {...formAdd}>
         {formParams?.visible && (
           <TemplateFuncoesForm
             mode={formParams.mode}
-            modalProps={{ visible: formParams.visible }}
-            onButton1Press={() => {
+            visible={formParams.visible}
+            onClose={() => {
               setEditingIndex(null);
               formAdd.reset(FORM_DEFAULT_VALUES);
               setFormParams({ visible: false, mode: 'add' });
             }}
-            onButton2Press={() => handleConfirm(formParams.mode)}
+            onConfirm={() => handleConfirm(formParams.mode)}
             funcoesList={funcoesList}
           />
         )}
       </FormProvider>
-    </>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    gap: 10,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  headerTitle: {
+    flex: 1,
+    opacity: 0.7,
+  },
+  addButton: {
+    minHeight: 25,
+    height: 25,
+    minWidth: 25,
+    width: 25,
+  },
+  listContent: {
+    gap: 8,
+  },
+});

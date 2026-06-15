@@ -1,11 +1,12 @@
 import { useFormContext } from 'react-hook-form';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { EscalaTemplateFuncaoFormData } from '../../../../domain/schemas/escalaTemplateSchema';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import ControlledSearchSelect from '../../../forms/ControlledSearchSelect';
 import ControlledBottomSheetSelect from '../../../forms/ControlledBottomSheetSelect';
-import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
-import { useCallback, useMemo } from 'react';
+import FancyBottomSheetModal from '../../../modal/FancyBottomSheetModal';
+import FancyButton from '../../../buttons/FancyButton';
+import { useMemo } from 'react';
 import { EnumUtils } from '../../../../utils/enum_utils';
 import {
   EscalaTemplateExperienciaEnum,
@@ -13,19 +14,22 @@ import {
 } from '../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
 import ControlledNumberInput from '../../../forms/ControlledNumberInput';
 
-type TemplateFuncoesFormProps = FancyModalDialogProps<void> & {
+interface TemplateFuncoesFormProps {
   mode: 'add' | 'edit';
-  voluntarioList?: DropDownItemProps<string>[];
+  visible: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
   funcoesList?: DropDownItemProps<string>[];
-};
+}
 
 export default function TemplateFuncoesForm({
   mode = 'add',
-  voluntarioList,
+  visible,
+  onClose,
+  onConfirm,
   funcoesList,
-  ...props
 }: TemplateFuncoesFormProps) {
-  const { control, handleSubmit } = useFormContext<EscalaTemplateFuncaoFormData>();
+  const { control } = useFormContext<EscalaTemplateFuncaoFormData>();
   const sortedFuncoesList = useMemo(
     () =>
       [...(funcoesList ?? [])].sort((a, b) =>
@@ -45,21 +49,22 @@ export default function TemplateFuncoesForm({
     ) as DropDownItemProps<EscalaTemplateExperienciaEnum>[];
   }, []);
 
-  const handleConfirm = useCallback(
-    handleSubmit(
-      (_) => {
-        props.onButton2Press?.();
-      },
-      (errors) => console.log('Erros do Funcoes Form', JSON.stringify(errors)),
-    ),
-    [props],
-  );
-
   return (
-    <FancyModalDialog
-      {...props}
+    <FancyBottomSheetModal
+      visible={visible}
+      onClose={onClose}
       title={mode === 'add' ? 'Adicionar Função' : 'Editar Função'}
-      onButton2Press={handleConfirm}
+      footer={
+        <View style={styles.buttonsRow}>
+          <FancyButton
+            label='Cancelar'
+            type='outlined'
+            onPress={onClose}
+            containerStyle={styles.button}
+          />
+          <FancyButton label='Confirmar' onPress={onConfirm} containerStyle={styles.button} />
+        </View>
+      }
     >
       <View style={{ gap: 15 }}>
         <ControlledSearchSelect
@@ -84,6 +89,17 @@ export default function TemplateFuncoesForm({
           max={10}
         />
       </View>
-    </FancyModalDialog>
+    </FancyBottomSheetModal>
   );
 }
+
+const styles = StyleSheet.create({
+  buttonsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  button: {
+    flex: 1,
+    height: 36,
+  },
+});

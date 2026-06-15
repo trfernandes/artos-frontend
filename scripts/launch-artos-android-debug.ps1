@@ -3,7 +3,7 @@ param(
   [string]$EnvName = "staging",
   [ValidateSet("emulator", "device", "any")]
   [string]$TargetMode = "emulator",
-  [string]$PreferredAvdName = "Pixel_6_Pro_API_34"
+  [string]$PreferredAvdName = "Pixel_5_API_34"
 )
 
 $ErrorActionPreference = "Stop"

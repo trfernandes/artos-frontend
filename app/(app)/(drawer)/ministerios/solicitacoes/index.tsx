@@ -1,9 +1,11 @@
-import { View } from 'react-native';
-import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
+import { Pressable, StyleSheet, View } from 'react-native';
+import FancyListItemCard from '../../../../../components/cards/FancyListItemCard';
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { DefaultIconsNames } from '../../../../../constants/icons';
+import DefaultIcons from '../../../../../components/FancyIcons';
 import FancyText from '../../../../../components/FancyText';
+import { ColorUtils } from '../../../../../utils/color_utils';
 import { useState } from 'react';
 import Visualizar from '../../../../../components/pages/ministerios/solicitacoes/Visualizar';
 
@@ -44,47 +46,75 @@ export default function MinisterioSolicitacoesIndex() {
         },
         data: DATA,
         renderItem: ({ item }) => (
-          <FancyCard.Image
-            type='icon'
-            props={{
-              title: (
-                <View style={{ gap: 3, paddingBottom: 5 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                    <FancyText size={'small'} type='medium'>
-                      De:
-                    </FancyText>
-                    <FancyText size={'small'} type='semiBold'>
-                      {item.solicitante}
-                    </FancyText>
-                  </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                    <FancyText size={'small'} type='medium'>
-                      Para:
-                    </FancyText>
-                    <FancyText size={'small'} type='semiBold'>
-                      {item.substituo}
-                    </FancyText>
-                  </View>
-                </View>
-              ),
-              cardIcon: {
-                ...DefaultIconsNames.refresh,
-                size: 15,
-              },
-              subtitle: `${item.evento.dataFim.toLocaleDateString()} - ${item.evento.dataFim.toLocaleDateString()}`,
-              additionalData1: `${item.evento.nome}`,
-              additionalData2: `${item.funcao}`,
-              actionButtons: [
-                {
-                  icon: { ...DefaultIconsNames.confirm, size: 18 },
-                  onPress: () => setVisualizarModal(true),
-                },
-                {
-                  icon: { ...DefaultIconsNames.delete, size: 18, backgroundColor: Pallete.error },
-                  onPress: () => {},
-                },
-              ],
+          <FancyListItemCard
+            onPress={() => setVisualizarModal(true)}
+            leading={{
+              type: 'icon',
+              icon: { ...DefaultIconsNames.refresh, size: 18 },
+              color: Pallete.primary,
+              backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.12),
             }}
+            title={
+              <View style={styles.fromToBlock}>
+                <View style={styles.fromToRow}>
+                  <FancyText size='small' type='medium' color={Pallete.fonts.inactive}>
+                    De:
+                  </FancyText>
+                  <FancyText size='small' type='semiBold' numberOfLines={1}>
+                    {item.solicitante}
+                  </FancyText>
+                </View>
+                <View style={styles.fromToRow}>
+                  <FancyText size='small' type='medium' color={Pallete.fonts.inactive}>
+                    Para:
+                  </FancyText>
+                  <FancyText size='small' type='semiBold' numberOfLines={1}>
+                    {item.substituo}
+                  </FancyText>
+                </View>
+              </View>
+            }
+            meta={
+              <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive}>
+                {`${item.evento.nome}  ·  ${item.funcao}`}
+              </FancyText>
+            }
+            trailing={
+              <View style={styles.actionsRow}>
+                <Pressable
+                  hitSlop={6}
+                  onPress={() => setVisualizarModal(true)}
+                  style={[
+                    styles.actionBtn,
+                    { backgroundColor: ColorUtils.withAlpha(Pallete.confirm, 0.14) },
+                  ]}
+                  accessibilityRole='button'
+                  accessibilityLabel='Aprovar'
+                >
+                  <DefaultIcons.Custom
+                    {...DefaultIconsNames.confirm}
+                    size={16}
+                    color={Pallete.confirm}
+                  />
+                </Pressable>
+                <Pressable
+                  hitSlop={6}
+                  onPress={() => {}}
+                  style={[
+                    styles.actionBtn,
+                    { backgroundColor: ColorUtils.withAlpha(Pallete.error, 0.14) },
+                  ]}
+                  accessibilityRole='button'
+                  accessibilityLabel='Recusar'
+                >
+                  <DefaultIcons.Custom
+                    {...DefaultIconsNames.delete}
+                    size={16}
+                    color={Pallete.error}
+                  />
+                </Pressable>
+              </View>
+            }
           />
         ),
       }}
@@ -99,3 +129,16 @@ export default function MinisterioSolicitacoesIndex() {
     </FancyListPage>
   );
 }
+
+const styles = StyleSheet.create({
+  fromToBlock: { gap: 3 },
+  fromToRow: { flexDirection: 'row', alignItems: 'center', gap: 5, minWidth: 0 },
+  actionsRow: { flexDirection: 'row', gap: 6, alignItems: 'center' },
+  actionBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

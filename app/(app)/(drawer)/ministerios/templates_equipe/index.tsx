@@ -1,7 +1,12 @@
-import { router, useLocalSearchParams } from 'expo-router';
-import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { StyleSheet, View } from 'react-native';
+import FancyListItemCard from '../../../../../components/cards/FancyListItemCard';
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
+import FancyListStats from '../../../../../components/list/FancyListStats';
+import FancySegmentedControl from '../../../../../components/fields/FancySegmentedControl';
+import FancyText from '../../../../../components/FancyText';
 import { usePallete } from '../../../../../hooks/usePallete';
+import { ColorUtils } from '../../../../../utils/color_utils';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { useCallback, useMemo, useState } from 'react';
 import { useEscalaTemplatesCrud } from '../../../../../useEscalaTemplatesCrud';
@@ -18,7 +23,6 @@ import {
   EscalaTemplateTipoEnumMap,
   EscalaTemplateTipoEnum,
 } from '../../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
-import { FancyTextDisplayCard } from '../../../../../components/cards/FancyTextDisplayCard';
 import FancyActionSheet from '../../../../../components/actions/FancyActionSheet';
 import { ResponseEscalaTemplateDto } from '../../../../../domain/dtos/EscalaTemplate/escala-template.response';
 
@@ -26,6 +30,7 @@ export default function MinisterioTemplateEquipeIndex() {
   const Pallete = usePallete();
   const [searchText, setSearchText] = useState('');
   const [actionsTemplate, setActionsTemplate] = useState<ResponseEscalaTemplateDto | null>(null);
+  const [tipoFiltro, setTipoFiltro] = useState<'todos' | EscalaTemplateTipoEnum>('todos');
 
   const { ministerioId } = useLocalSearchParams<{ ministerioId: string }>();
 
@@ -74,6 +79,12 @@ export default function MinisterioTemplateEquipeIndex() {
     initialParams: searchParams,
   });
 
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
+
   const handleSearch = useCallback((value: string) => {
     setSearchText(value.trim());
   }, []);
@@ -107,6 +118,20 @@ export default function MinisterioTemplateEquipeIndex() {
     [removeTemplate],
   );
 
+  const filteredTemplates = useMemo(() => {
+    const list = templatesData ?? [];
+    if (tipoFiltro === 'todos') return list;
+    return list.filter((item) => EscalaTemplateTipoEnumMap[item.tipo] === tipoFiltro);
+  }, [templatesData, tipoFiltro]);
+
+  const stats = useMemo(() => {
+    const list = templatesData ?? [];
+    const fixos = list.filter(
+      (item) => EscalaTemplateTipoEnumMap[item.tipo] === EscalaTemplateTipoEnum.Fixo,
+    ).length;
+    return { total: list.length, fixos, funcoes: list.length - fixos };
+  }, [templatesData]);
+
   if (isLoading) return <FancyLoading />;
 
   return (
@@ -121,6 +146,29 @@ export default function MinisterioTemplateEquipeIndex() {
       }}
       showSearchBar
       searchBarProps={{ value: searchText, onSearch: handleSearch }}
+      topContent={
+        <View style={styles.topContainer}>
+          <FancyListStats
+            items={[
+              { label: 'Total', value: stats.total },
+              { label: 'Equipe Fixa', value: stats.fixos, color: Pallete.primary },
+              { label: 'Por Funções', value: stats.funcoes, color: Pallete.secondary },
+            ]}
+          />
+          <View style={styles.filtroContainer}>
+            <FancySegmentedControl<'todos' | EscalaTemplateTipoEnum>
+              size='sm'
+              options={[
+                { label: 'Todos', value: 'todos' },
+                { label: 'Equipe Fixa', value: EscalaTemplateTipoEnum.Fixo },
+                { label: 'Por Funções', value: EscalaTemplateTipoEnum.Funcoes },
+              ]}
+              value={tipoFiltro}
+              onChange={setTipoFiltro}
+            />
+          </View>
+        </View>
+      }
       listProps={{
         onRefresh: refetch,
         refreshing: isRefetching,
@@ -128,57 +176,34 @@ export default function MinisterioTemplateEquipeIndex() {
           label: searchText ? 'Nenhum template encontrado' : 'Nenhum template cadastrado',
           icon: { library: 'MaterialCommunityIcons', name: 'file-document-outline', size: 68 },
         },
-        data: templatesData,
+        data: filteredTemplates,
         renderItem: ({ item }) => {
           const tipoLabel = EscalaTemplateTipoLabel[item.tipo];
-          const dimensaoEquipe =
-            EscalaTemplateTipoEnumMap[item.tipo] === EscalaTemplateTipoEnum.Fixo
-              ? item.voluntarios?.length
-              : item.funcoes?.length;
+          const isFixo = EscalaTemplateTipoEnumMap[item.tipo] === EscalaTemplateTipoEnum.Fixo;
+          const dimensaoEquipe = isFixo ? item.voluntarios?.length : item.funcoes?.length;
+          const dimensaoLabel = isFixo ? 'integrantes' : 'funções';
           return (
-            <FancyCard.Image
-              type='icon'
-              props={{
-                title: item.nome,
-                subtitle: (
-                  <FancyTextDisplayCard
-                    icon={{
-                      library: 'MaterialCommunityIcons',
-                      name: 'tag-outline',
-                      size: 12,
-                      color: Pallete.primary,
-                    }}
-                    value={tipoLabel}
-                  />
-                ),
-                additionalData1: (
-                  <FancyTextDisplayCard
-                    icon={{
-                      library: 'MaterialCommunityIcons',
-                      name: 'account-group-outline',
-                      size: 12,
-                      color: Pallete.primary,
-                    }}
-                    value={(dimensaoEquipe ?? 0).toString()}
-                  />
-                ),
-                cardIcon: {
-                  ...DefaultIconsNames.group,
-                  size: 18,
-                  style: { marginTop: -2.5 },
-                },
-                actionButtons: [
-                  {
-                    icon: {
-                      library: 'MaterialCommunityIcons',
-                      name: 'dots-vertical',
-                      size: 20,
-                      backgroundColor: Pallete.secondary,
-                    },
-                    onPress: () => setActionsTemplate(item),
-                  },
-                ],
+            <FancyListItemCard
+              onPress={() => item.id && handleEdit(item.id)}
+              leading={{
+                type: 'icon',
+                icon: { ...DefaultIconsNames.group, size: 18 },
+                color: Pallete.secondary,
+                backgroundColor: ColorUtils.withAlpha(Pallete.secondary, 0.12),
               }}
+              title={item.nome}
+              subtitle={tipoLabel}
+              meta={
+                <FancyText
+                  size='extraSmall'
+                  type='medium'
+                  color={Pallete.fonts.inactive}
+                  style={styles.meta}
+                >
+                  {`${dimensaoEquipe ?? 0} ${dimensaoLabel}`}
+                </FancyText>
+              }
+              trailing={{ type: 'menu', onPress: () => setActionsTemplate(item) }}
             />
           );
         },
@@ -205,3 +230,14 @@ export default function MinisterioTemplateEquipeIndex() {
     </FancyListPage>
   );
 }
+
+const styles = StyleSheet.create({
+  topContainer: { gap: 12 },
+  filtroContainer: {
+    paddingHorizontal: 15,
+  },
+  meta: {
+    lineHeight: 15,
+    includeFontPadding: false,
+  },
+});

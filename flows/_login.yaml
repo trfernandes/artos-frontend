@@ -1,0 +1,11 @@
+# Subflow: login
+# Uso: - runFlow: _login.yaml
+# Vars necessárias: APP_EMAIL, APP_PASSWORD
+#
+# Só faz login se a tela de login estiver visível (app pode já estar logado).
+appId: com.church.artos
+---
+- runFlow:
+    when:
+      visible: "Entre na sua conta"
+    file: _do_login.yaml

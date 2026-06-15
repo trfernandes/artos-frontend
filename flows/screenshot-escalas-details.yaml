@@ -1,0 +1,35 @@
+# Flow: Screenshot da tela Detalhes da Escala
+#
+# Uso:
+#   maestro test flows/screenshot-escalas-details.yaml \
+#     -e APP_EMAIL=xxx -e APP_PASSWORD=xxx \
+#     -e MINISTERIO_NAME="Louvor"
+#
+# O screenshot é salvo em: ~/.maestro/tests/<timestamp>/screenshot-escalas-details.png
+
+appId: com.church.artos
+---
+- launchApp
+- runFlow: _login.yaml
+
+# Abrir drawer
+- tapOn:
+    point: "2%,50%"
+- waitForAnimationToEnd
+
+# Expandir o ministério no drawer
+- tapOn: ${MINISTERIO_NAME}
+- waitForAnimationToEnd
+
+# Ir para Escalas
+- tapOn: "Escalas"
+- waitForAnimationToEnd
+
+# Abrir a primeira escala da lista
+- tapOn:
+    index: 0
+- waitForAnimationToEnd:
+    timeout: 6000
+
+# Screenshot da tela Detalhes da Escala
+- takeScreenshot: screenshot-escalas-details

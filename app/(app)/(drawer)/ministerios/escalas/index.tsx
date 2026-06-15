@@ -1,6 +1,6 @@
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
 import { DateUtilsApi } from '../../../../../utils/date_utils';
-import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
+import FancyListItemCard from '../../../../../components/cards/FancyListItemCard';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEscalasCrud } from '../../../../../hooks/useEscalaCrud';
@@ -20,7 +20,6 @@ import {
 import { EscalaItemStatusEnum } from '../../../../../domain/enums/Escala/escala-item-status.enum';
 import { View } from 'react-native';
 import FancyText from '../../../../../components/FancyText';
-import DefaultIcons from '../../../../../components/FancyIcons';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { ColorUtils } from '../../../../../utils/color_utils';
 import FancyActionSheet from '../../../../../components/actions/FancyActionSheet';
@@ -170,107 +169,40 @@ export default function MinisterioEscalasIndexPage() {
           const occurrencesCount = new Set(
             itemsWithEvento.map((i) => `${i.eventoId}::${i.dataOcorrencia}`),
           ).size;
-          const hasConfirmation = totalCount > 0;
-          const hasOccurrences = occurrencesCount > 0;
+          const metaParts: string[] = [];
+          if (totalCount > 0) metaParts.push(`${confirmedPercent}% confirmações`);
+          if (occurrencesCount > 0) metaParts.push(`${occurrencesCount} eventos`);
+
+          const statusCfg = escalaStatusConfig[item.status];
 
           return (
-            <FancyCard.Image
-              type='icon'
-              props={{
-                onPress: () => openEscalaDetails(item.id),
-                centerContainerStyle: { gap: 4 },
-                cardIcon: {
-                  ...DefaultIconsNames['calendar-day'],
-                  size: 18,
-                },
-                title: item.nome,
-                subtitle: (
-                  <View
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}
-                  >
-                    <View style={{ width: 14, alignItems: 'center', justifyContent: 'center' }}>
-                      <DefaultIcons.Custom
-                        library='MaterialCommunityIcons'
-                        name='calendar-range'
-                        size={13}
-                        color={palette.primary}
-                      />
-                    </View>
-                    <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
-                      {formatPeriodo(item.dataInicio, item.dataTermino)}
-                    </FancyText>
-                  </View>
-                ),
-                additionalData1:
-                  hasConfirmation || hasOccurrences ? (
-                    <View style={{ gap: 3 }}>
-                      {hasConfirmation && (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <View
-                            style={{ width: 14, alignItems: 'center', justifyContent: 'center' }}
-                          >
-                            <DefaultIcons.Custom
-                              library='MaterialCommunityIcons'
-                              name='account-check-outline'
-                              size={15}
-                              color={palette.primary}
-                            />
-                          </View>
-                          <FancyText
-                            size='extraSmall'
-                            type='semiBold'
-                            color={palette.fonts.inactive}
-                          >
-                            {`${confirmedPercent}% confirmações`}
-                          </FancyText>
-                        </View>
-                      )}
-                      {hasOccurrences && (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <View
-                            style={{ width: 14, alignItems: 'center', justifyContent: 'center' }}
-                          >
-                            <DefaultIcons.Custom
-                              library='MaterialCommunityIcons'
-                              name='calendar-multiple'
-                              size={12}
-                              color={palette.primary}
-                            />
-                          </View>
-                          <FancyText
-                            size='extraSmall'
-                            type='semiBold'
-                            color={palette.fonts.inactive}
-                          >
-                            {`${occurrencesCount} eventos`}
-                          </FancyText>
-                        </View>
-                      )}
-                    </View>
-                  ) : undefined,
-                additionalData2: (
-                  <View style={{ marginTop: 6 }}>
-                    <FancyChips
-                      {...escalaStatusConfig[item.status]}
-                      label={EscalaStatusEnumLabel[item.status]}
-                      size='small'
-                    />
-                  </View>
-                ),
-                actionButtons: [
-                  {
-                    icon: {
-                      library: 'MaterialCommunityIcons',
-                      name: 'dots-vertical',
-                      size: 20,
-                      color: palette.fonts.inactive,
-                      backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.08),
-                    },
-                    size: 'medium',
-                    onPress: () => setActionsEscala(item),
-                  },
-                ],
+            <FancyListItemCard
+              onPress={() => openEscalaDetails(item.id)}
+              leading={{
+                type: 'icon',
+                icon: { library: 'MaterialCommunityIcons', name: 'calendar-range', size: 20 },
+                color: palette.primary,
+                backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12),
               }}
+              title={item.nome}
+              subtitle={formatPeriodo(item.dataInicio, item.dataTermino)}
+              meta={
+                metaParts.length > 0 ? (
+                  <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                    {metaParts.join('  ·  ')}
+                  </FancyText>
+                ) : undefined
+              }
+              status={
+                <FancyChips
+                  label={EscalaStatusEnumLabel[item.status]}
+                  color={statusCfg.color}
+                  backgroundColor={statusCfg.background}
+                  size='small'
+                  dot
+                />
+              }
+              trailing={{ type: 'menu', onPress: () => setActionsEscala(item) }}
             />
           );
         },

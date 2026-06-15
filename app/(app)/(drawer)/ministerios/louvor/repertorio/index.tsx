@@ -3,7 +3,8 @@ import { StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import FancyListPage from '../../../../../../components/pages/base/FancyBaseListPage';
-import { FancyCard } from '../../../../../../components/cards/Horizontal/FancyCard';
+import FancyLoading from '../../../../../../components/FancyLoading';
+import FancyListItemCard from '../../../../../../components/cards/FancyListItemCard';
 import FancyBottomSheetSelect from '../../../../../../components/fields/FancyBottomSheetSelect';
 import FancyButton from '../../../../../../components/buttons/FancyButton';
 import FancyText from '../../../../../../components/FancyText';
@@ -42,7 +43,7 @@ export default function MinisterioLouvorRepertorioIndexPage() {
     (ministerio) => ministerio.id === ministerioId,
   );
   const { data: categorias = [] } = useRepertorioCategorias(ministerioId);
-  const { data: musicas = [], removerMusica } = useRepertorioMusicas(ministerioId);
+  const { data: musicas = [], removerMusica, isLoading } = useRepertorioMusicas(ministerioId);
   const { showLoading, hideLoading } = useLoading();
   const [search, setSearch] = useState('');
   const [categoriaId, setCategoriaId] = useState('');
@@ -130,6 +131,8 @@ export default function MinisterioLouvorRepertorioIndexPage() {
     );
   };
 
+  if (isLoading) return <FancyLoading label='Carregando...' />;
+
   return (
     <>
       <FancyListPage
@@ -166,67 +169,54 @@ export default function MinisterioLouvorRepertorioIndexPage() {
             </View>
           ),
           data: filtered,
-          renderItem: ({ item }) => (
-            <FancyCard.Image
-              type='icon'
-              props={{
-                title: item.nome,
-                subtitle: item.interprete || 'Sem intérprete',
-                additionalData1: (
-                  <View style={styles.musicBadgesRow}>
-                    {item.categoria?.nome ? (
-                      <MusicBadge
-                        label={item.categoria.nome}
-                        color={palette.primary}
-                        icon='shape-outline'
-                      />
-                    ) : null}
-                    {item.tomOriginal ? (
-                      <MusicBadge
-                        label={`TOM ${item.tomOriginal}`}
-                        color={palette.secondary}
-                        icon='music-clef-treble'
-                      />
-                    ) : null}
-                    {item.bpmOriginal ? (
-                      <MusicBadge
-                        label={`BPM ${item.bpmOriginal}`}
-                        color={palette.terciary}
-                        icon='metronome'
-                      />
-                    ) : null}
-                  </View>
-                ),
-                cardIcon: { library: 'MaterialIcons', name: 'queue-music', size: 20 },
-                containerStyle: styles.musicCard,
-                contentContainerStyle: styles.musicCardContent,
-                centerContainerStyle: styles.musicCardCenter,
-                onPress: () => openMusica(item.id),
-                actionButtons: [
+          renderItem: ({ item }) => {
+            const hasBadges = Boolean(item.categoria?.nome || item.tomOriginal || item.bpmOriginal);
+            return (
+              <FancyListItemCard
+                onPress={() => openMusica(item.id)}
+                leading={{
+                  type: 'icon',
+                  icon: { library: 'MaterialIcons', name: 'queue-music', size: 20 },
+                  color: palette.primary,
+                  backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12),
+                }}
+                title={item.nome}
+                subtitle={item.interprete || 'Sem intérprete'}
+                meta={
+                  hasBadges ? (
+                    <View style={styles.musicBadgesRow}>
+                      {item.categoria?.nome ? (
+                        <MusicBadge
+                          label={item.categoria.nome}
+                          color={palette.primary}
+                          icon='shape-outline'
+                        />
+                      ) : null}
+                      {item.tomOriginal ? (
+                        <MusicBadge
+                          label={`TOM ${item.tomOriginal}`}
+                          color={palette.secondary}
+                          icon='music-clef-treble'
+                        />
+                      ) : null}
+                      {item.bpmOriginal ? (
+                        <MusicBadge
+                          label={`BPM ${item.bpmOriginal}`}
+                          color={palette.terciary}
+                          icon='metronome'
+                        />
+                      ) : null}
+                    </View>
+                  ) : undefined
+                }
+                trailing={
                   canManageRepertorio
-                    ? {
-                        icon: {
-                          library: 'MaterialCommunityIcons',
-                          name: 'dots-vertical',
-                          size: 20,
-                          color: palette.fonts.inactive,
-                          backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.08),
-                        },
-                        onPress: () => setActionsMusica(item),
-                      }
-                    : {
-                        icon: {
-                          library: 'MaterialCommunityIcons',
-                          name: 'chevron-right',
-                          size: 20,
-                          backgroundColor: palette.primary,
-                        },
-                        onPress: () => openMusica(item.id),
-                      },
-                ],
-              }}
-            />
-          ),
+                    ? { type: 'menu', onPress: () => setActionsMusica(item) }
+                    : { type: 'chevron', onPress: () => openMusica(item.id) }
+                }
+              />
+            );
+          },
         }}
         fabProps={
           canManageRepertorio
@@ -320,16 +310,6 @@ const styles = StyleSheet.create({
   },
   categoriesButton: {
     alignSelf: 'flex-start',
-  },
-  musicCard: {
-    borderRadius: 24,
-    paddingVertical: 8,
-  },
-  musicCardContent: {
-    paddingVertical: 3,
-  },
-  musicCardCenter: {
-    gap: 2,
   },
   musicBadgesRow: {
     flexDirection: 'row',

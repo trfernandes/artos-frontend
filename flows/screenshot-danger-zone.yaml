@@ -1,0 +1,42 @@
+# Flow: Screenshot da Zona de Risco numa ocorrência de agenda
+#
+# Uso:
+#   maestro test flows/screenshot-danger-zone.yaml \
+#     -e APP_EMAIL=xxx -e APP_PASSWORD=xxx \
+#     -e MINISTERIO_NAME="Louvor" \
+#     -e EVENTO_TITLE="Domingo"
+#
+# O screenshot é salvo em: ~/.maestro/tests/<timestamp>/screenshot-danger-zone.png
+
+appId: com.church.artos
+---
+- launchApp
+- runFlow: _login.yaml
+
+# Abrir drawer e ir para Ministérios
+- tapOn:
+    point: "2%,50%"
+- waitForAnimationToEnd
+- tapOn: "Ministérios"
+- waitForAnimationToEnd
+
+# Selecionar o ministério pelo nome
+- tapOn: ${MINISTERIO_NAME}
+- waitForAnimationToEnd
+
+# Ir para aba Agenda
+- tapOn: "Agenda"
+- waitForAnimationToEnd
+
+# Abrir a ocorrência
+- tapOn: ${EVENTO_TITLE}
+- waitForAnimationToEnd
+
+# Garantir que chegou nos detalhes (a aba Dados está visível)
+- assertVisible: "Dados"
+
+# Scroll até o fim para ver a zona de risco
+- scroll
+
+# Screenshot
+- takeScreenshot: screenshot-danger-zone

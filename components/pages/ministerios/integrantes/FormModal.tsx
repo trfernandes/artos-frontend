@@ -1,5 +1,7 @@
 import { useFormContext } from 'react-hook-form';
-import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
+import { StyleSheet, View } from 'react-native';
+import FancyBottomSheetModal from '../../../modal/FancyBottomSheetModal';
+import FancyButton from '../../../buttons/FancyButton';
 import { MinVoluntarioFuncaoFormData } from '../../../../domain/schemas/ministerioVoluntariosSchema';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import { useMemo } from 'react';
@@ -14,11 +16,20 @@ import ControlledBottomSheetSelect from '../../../forms/ControlledBottomSheetSel
 interface IntegranteFormModalProps {
   funcoesDropDownList?: DropDownItemProps<string>[];
   mode: 'add' | 'edit';
+  visible: boolean;
+  title?: string;
+  onButton1Press?: () => void;
+  onButton2Press?: () => void;
 }
 
-export default function IntegranteFormModal(
-  props: IntegranteFormModalProps & FancyModalDialogProps<string>,
-) {
+export default function IntegranteFormModal({
+  funcoesDropDownList,
+  mode,
+  visible,
+  title,
+  onButton1Press,
+  onButton2Press,
+}: IntegranteFormModalProps) {
   const { control } = useFormContext<MinVoluntarioFuncaoFormData>();
 
   const experiencaList = useMemo<DropDownItemProps<EscalaTemplateExperienciaEnum>[]>(() => {
@@ -31,13 +42,28 @@ export default function IntegranteFormModal(
   }, []);
 
   return (
-    <FancyModalDialog centerContainerStyle={{ gap: 15 }} {...props}>
+    <FancyBottomSheetModal
+      visible={visible}
+      onClose={() => onButton1Press?.()}
+      title={title}
+      footer={
+        <View style={styles.buttonsRow}>
+          <FancyButton
+            label='Cancelar'
+            type='outlined'
+            onPress={onButton1Press}
+            containerStyle={styles.button}
+          />
+          <FancyButton label='Confirmar' onPress={onButton2Press} containerStyle={styles.button} />
+        </View>
+      }
+    >
       <ControlledSearchSelect
         name='id'
         label='Função'
         control={control}
-        listItems={props.funcoesDropDownList}
-        disabled={props.mode === 'edit'}
+        listItems={funcoesDropDownList}
+        disabled={mode === 'edit'}
         searchPlaceholder='Buscar função...'
       />
       <ControlledBottomSheetSelect
@@ -46,6 +72,17 @@ export default function IntegranteFormModal(
         label='Experiência'
         listItems={experiencaList}
       />
-    </FancyModalDialog>
+    </FancyBottomSheetModal>
   );
 }
+
+const styles = StyleSheet.create({
+  buttonsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  button: {
+    flex: 1,
+    height: 36,
+  },
+});

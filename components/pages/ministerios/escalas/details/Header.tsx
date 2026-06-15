@@ -131,22 +131,6 @@ export default function Header({
               },
             ]
           : []),
-        ...(escala.status !== EscalaStatusEnum.Gerada
-          ? [
-              {
-                key: 'recalculate',
-                icon: {
-                  library: 'MaterialCommunityIcons' as const,
-                  name: 'calculator-variant-outline',
-                },
-                label: isRegenerating ? 'Recalculando...' : 'Recalcular',
-                variant: 'primary' as const,
-                isLoading: isRegenerating,
-                disabled: true,
-                onPress: onGeneratePress,
-              },
-            ]
-          : []),
         ...insightAction,
         ...parametrizacaoAction,
         {

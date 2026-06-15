@@ -1,14 +1,16 @@
-import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
+import { useEffect } from 'react';
+import { View } from 'react-native';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import z from 'zod';
+import FancyBottomSheetModal from '../../../modal/FancyBottomSheetModal';
+import FancyButton from '../../../buttons/FancyButton';
+import FancyDropDown from '../../../fields/FancyDropDown';
+import ControlledDropDown from '../../../forms/ControlledDropDown';
 import {
   VoluntarioHierarquiaEnum,
   VoluntarioHierarquiaEnumList,
-  VoluntarioHierarquiaEnumMap,
 } from '../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
-import FancyDropDown from '../../../fields/FancyDropDown';
-import { useForm } from 'react-hook-form';
-import z from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import ControlledDropDown from '../../../forms/ControlledDropDown';
 import { EditMinisterioVoluntarioFormData } from '../../../../domain/schemas/ministerioAdminSchema';
 import { AppImages } from '../../../../assets/app_images';
 
@@ -17,58 +19,66 @@ const EditSchema = z.object({
 });
 
 export default function VoluntarioEditFormModal({
-  ministerioId,
-  ...props
+  data,
+  visible,
+  onClose,
+  onSubmit,
 }: {
-  ministerioId: string;
   data: EditMinisterioVoluntarioFormData;
-} & FancyModalDialogProps<EditMinisterioVoluntarioFormData>) {
+  visible: boolean;
+  onClose: () => void;
+  onSubmit: (data: EditMinisterioVoluntarioFormData) => void;
+}) {
   const form = useForm({
     resolver: zodResolver(EditSchema),
-    defaultValues: {
-      hierarquia: VoluntarioHierarquiaEnumMap[props.data.hierarquia],
-    },
+    defaultValues: { hierarquia: data.hierarquia },
   });
 
+  useEffect(() => {
+    if (!visible) return;
+    form.reset({ hierarquia: data.hierarquia });
+  }, [visible, data.hierarquia]);
+
+  const handleConfirm = () => {
+    form.handleSubmit(
+      (formData) => onSubmit({ ...data, hierarquia: formData.hierarquia }),
+      (error) => console.log('VoluntarioEditFormModal form error', error),
+    )();
+  };
+
   return (
-    <FancyModalDialog
-      title={'Editar Voluntário'}
-      {...props}
-      centerContainerStyle={{ gap: 15 }}
-      onButton2Press={() => {
-        form.handleSubmit(
-          (data) => {
-            props.onButton2Press?.({ ...props.data, hierarquia: data.hierarquia });
-            form.reset();
-          },
-          (error) => console.log('VoluntarioEditFormModal form error', error),
-        )();
-      }}
+    <FancyBottomSheetModal
+      visible={visible}
+      onClose={onClose}
+      title='Editar Voluntário'
+      footer={<FancyButton label='Salvar' type='contained' onPress={handleConfirm} />}
     >
-      <FancyDropDown
-        label='Voluntário'
-        disabled
-        listItems={[
-          {
-            title: props.data.voluntarioNome,
-            value: props.data.id,
-            left: {
-              type: 'image',
-              source:
-                props.data.fotoThumbUrl || props.data.fotoUrl
-                  ? { uri: props.data.fotoThumbUrl || props.data.fotoUrl || '' }
-                  : AppImages.emptyProfile,
+      <View style={{ gap: 12 }}>
+        <FancyDropDown
+          label='Voluntário'
+          disabled
+          listItems={[
+            {
+              title: data.voluntarioNome,
+              value: data.id,
+              left: {
+                type: 'image',
+                source:
+                  data.fotoThumbUrl || data.fotoUrl
+                    ? { uri: data.fotoThumbUrl || data.fotoUrl || '' }
+                    : AppImages.emptyProfile,
+              },
             },
-          },
-        ]}
-        value={props.data.id}
-      />
-      <ControlledDropDown
-        label='Função'
-        control={form.control}
-        name='hierarquia'
-        listItems={VoluntarioHierarquiaEnumList}
-      />
-    </FancyModalDialog>
+          ]}
+          value={data.id}
+        />
+        <ControlledDropDown
+          label='Função'
+          control={form.control}
+          name='hierarquia'
+          listItems={VoluntarioHierarquiaEnumList}
+        />
+      </View>
+    </FancyBottomSheetModal>
   );
 }

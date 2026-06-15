@@ -4,6 +4,7 @@ import FancyScreenErrorHandler from '../../../../../components/error/FancyScreen
 
 import { useMinisteriosCrud } from '../../../../../hooks/useMinisteriosCrud';
 import { useCallback, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
 import { Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
@@ -47,6 +48,12 @@ export default function MinisteriosIndex() {
       orderBy: [{ path: 'nome', direction: OrderDirection.ASC }],
     },
   });
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
 
   const handleChangeStatus = useCallback(
     (ministerioId: string, ministerioNome: string, newStatus: MinisterioStatusEnum) => {
@@ -172,6 +179,13 @@ export default function MinisteriosIndex() {
             status === MinisterioStatusEnum.Ativo ? palette.primary : palette.error;
           return (
             <FancyListItemCard
+              onPress={() => {
+                showLoading();
+                router.push({
+                  pathname: '/admin/ministerios/edit',
+                  params: { id: item.id },
+                });
+              }}
               title={item.nome}
               subtitle={MinisterioTipoLabel[item.tipo]}
               leading={

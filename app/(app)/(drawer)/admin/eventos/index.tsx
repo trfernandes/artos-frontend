@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
-import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import EventosListView from '../../../../../components/pages/admin/eventos/EventosListView';
 import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
 import FancyLoading from '../../../../../components/FancyLoading';
@@ -16,8 +16,15 @@ export default function EventosIndexPage() {
     isLoading,
     setSearchParams,
     remove,
+    refetch,
     isLoadingMutation: isLoadingRemove,
   } = useEventosCrud({ autoFetch: false });
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
 
   const eventosData = useMemo<ResponseEventoDto[]>(() => {
     return data.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));

@@ -4,12 +4,14 @@ import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native'
 import FancyText, { FancyTextProps } from '../FancyText';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import { usePallete } from '../../hooks/usePallete';
+import { useAppTheme } from '../../hooks/useAppTheme';
 import { ColorUtils } from '../../utils/color_utils';
 
 type Leading =
-  | { type: 'image'; source?: ImageProps['source'] }
+  | { type: 'image'; source?: ImageProps['source']; size?: number }
   | { type: 'icon'; icon: CustomIconProps; color?: string; backgroundColor?: string }
-  | { type: 'letter'; letter: string; color?: string; backgroundColor?: string };
+  | { type: 'letter'; letter: string; color?: string; backgroundColor?: string }
+  | { type: 'date'; day: string; month: string; color?: string; backgroundColor?: string };
 
 type Trailing =
   | { type: 'chevron'; onPress?: () => void }
@@ -45,17 +47,20 @@ export default function FancyListItemCard({
   subtitleProps,
   accessibilityLabel,
 }: FancyListItemCardProps) {
-  const palette = usePallete();
+  const { palette, isDark } = useAppTheme();
   const Container = onPress ? Pressable : View;
+  // Claro: card branco sobre página cinza. Escuro: card levemente mais claro que a página
+  // (#1A1A1A sobre #121212) — mantém a elevação correta nos dois temas.
+  const cardBg = isDark ? palette.backgroundColor2 : palette.backgroundColor;
 
   return (
     <Container
       style={[
         styles.card,
         {
-          backgroundColor: palette.backgroundColor2,
-          borderColor: ColorUtils.withAlpha(palette.borderCard ?? palette.border, 0.72),
-          ...palette.shadows[100],
+          backgroundColor: cardBg,
+          borderColor: ColorUtils.withAlpha(palette.borderCard ?? palette.border, 0.45),
+          ...palette.shadows[200],
         },
         containerStyle,
       ]}
@@ -123,11 +128,18 @@ function LeadingItem({ leading }: { leading: Leading }) {
       : (leading.backgroundColor ?? ColorUtils.withAlpha(fallbackColor, 0.12));
 
   if (leading.type === 'image') {
+    const size = leading.size ?? 46;
     return (
-      <View style={[styles.leading, { backgroundColor: fallbackBg }]}>
+      <View
+        style={[
+          styles.leading,
+          styles.leadingCircle,
+          { width: size, height: size, borderRadius: size / 2, backgroundColor: fallbackBg },
+        ]}
+      >
         <Image
           source={leading.source}
-          style={styles.image}
+          style={{ width: size, height: size }}
           cachePolicy='memory-disk'
           transition={120}
         />
@@ -137,19 +149,44 @@ function LeadingItem({ leading }: { leading: Leading }) {
 
   if (leading.type === 'letter') {
     return (
-      <View style={[styles.leading, { backgroundColor: fallbackBg }]}>
-        <FancyText type='bold' size='extraSmall' color={fallbackColor} numberOfLines={1}>
+      <View style={[styles.leading, styles.leadingCircle, { backgroundColor: fallbackBg }]}>
+        <FancyText type='bold' size='small' color={fallbackColor} numberOfLines={1}>
           {leading.letter}
         </FancyText>
       </View>
     );
   }
 
+  if (leading.type === 'date') {
+    return (
+      <View style={[styles.leading, styles.leadingSquircle, { backgroundColor: fallbackBg }]}>
+        <FancyText
+          type='bold'
+          size={17}
+          color={fallbackColor}
+          numberOfLines={1}
+          style={styles.dateDay}
+        >
+          {leading.day}
+        </FancyText>
+        <FancyText
+          type='medium'
+          size={9}
+          color={fallbackColor}
+          numberOfLines={1}
+          style={styles.dateMonth}
+        >
+          {leading.month.toUpperCase()}
+        </FancyText>
+      </View>
+    );
+  }
+
   return (
-    <View style={[styles.leading, { backgroundColor: fallbackBg }]}>
+    <View style={[styles.leading, styles.leadingSquircle, { backgroundColor: fallbackBg }]}>
       <DefaultIcons.Custom
         {...leading.icon}
-        size={leading.icon.size ?? 18}
+        size={leading.icon.size ?? 20}
         color={leading.icon.color ?? fallbackColor}
       />
     </View>
@@ -197,28 +234,41 @@ function TrailingItem({
 
 const styles = StyleSheet.create({
   card: {
-    minHeight: 76,
-    borderRadius: 22,
-    borderWidth: 0.7,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    minHeight: 78,
+    borderRadius: 18,
+    borderWidth: 0.5,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
   leading: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 46,
+    height: 46,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
     overflow: 'hidden',
   },
+  leadingCircle: {
+    borderRadius: 23,
+  },
+  leadingSquircle: {
+    borderRadius: 14,
+  },
   image: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 46,
+    height: 46,
+  },
+  dateDay: {
+    lineHeight: 19,
+    includeFontPadding: false,
+  },
+  dateMonth: {
+    lineHeight: 11,
+    includeFontPadding: false,
+    letterSpacing: 0.4,
   },
   content: {
     flex: 1,
