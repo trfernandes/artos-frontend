@@ -1,0 +1,68 @@
+# Flow: Permissões de líder não-admin — regressão do bug hierarquia enum
+#
+# Bug: API devolvia hierarquia como número (1), frontend comparava como string ('1').
+# Resultado: líder era barrado em Agenda, Escalas e Repertório do próprio ministério.
+# Fix: @Transform no LoginMinisterioDto + helper matchesHierarquia no service.
+#
+# Uso:
+#   maestro test flows/lider-permissoes.yaml \
+#     -e APP_EMAIL=lider@suaigreja.com \
+#     -e APP_PASSWORD=SuaSenha123
+#
+# Pré-condição:
+#   - Conta com role LIDER (não ADMIN) em pelo menos um ministério
+#   - O drawer deve exibir os itens do ministério (Agenda, Escalas, Repertório)
+#
+# O que verifica:
+#   - Agenda abre sem mensagem de "Sem permissão"
+#   - Escalas abre sem mensagem de "Acesso negado"
+#   - Repertório abre sem mensagem de "Sem permissão"
+
+appId: com.church.artos
+---
+- launchApp:
+    clearState: true
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- runFlow: _login.yaml
+
+- assertVisible: "Início"
+
+# --- Agenda ---
+- tapOn:
+    point: "2%,50%"
+- waitForAnimationToEnd
+
+- tapOn: "Agenda"
+- waitForAnimationToEnd:
+    timeout: 4000
+
+- assertNotVisible: "Sem permissão"
+- assertNotVisible: "Acesso negado"
+- assertNotVisible: "Você não tem permissão"
+
+# --- Escalas ---
+- tapOn:
+    point: "2%,50%"
+- waitForAnimationToEnd
+
+- tapOn: "Escalas"
+- waitForAnimationToEnd:
+    timeout: 4000
+
+- assertNotVisible: "Sem permissão"
+- assertNotVisible: "Acesso negado"
+
+# --- Repertório ---
+- tapOn:
+    point: "2%,50%"
+- waitForAnimationToEnd
+
+- tapOn: "Repertório"
+- waitForAnimationToEnd:
+    timeout: 4000
+
+- assertNotVisible: "Sem permissão"
+- assertNotVisible: "Acesso negado"

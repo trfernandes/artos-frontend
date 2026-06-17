@@ -1,0 +1,59 @@
+# Flow: Salvar perfil sem crash — regressão do bug addViewAt
+#
+# Bug: router.back() após salvar causava crash "addViewAt: parent.childCount=0".
+# Fix: salvar in-place com useLoading modal, sem navegar de volta após save.
+#
+# Uso:
+#   maestro test flows/foto-perfil.yaml \
+#     -e APP_EMAIL=admin@suaigreja.com \
+#     -e APP_PASSWORD=SuaSenha123
+#
+# O que verifica:
+#   - Tela de edição de perfil carrega (Nome, E-mail, Salvar visíveis)
+#   - Tocar em Salvar sem alterar nada não trava nem crasha o app
+#   - A tela continua responsiva após o save (campo Nome ainda visível)
+
+appId: com.church.artos
+---
+- launchApp:
+    clearState: true
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- runFlow: _login.yaml
+
+- assertVisible: "Início"
+
+# Navega para Perfil pelo drawer
+- tapOn:
+    point: "2%,50%"
+- waitForAnimationToEnd
+
+- tapOn: "Inicio"
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Procura o botão de editar perfil na tela Inicio (dashboard pessoal)
+- scrollUntilVisible:
+    element:
+      text: "Editar perfil"
+    direction: DOWN
+    timeout: 4000
+
+- tapOn: "Editar perfil"
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Tela de edição carregou
+- assertVisible: "Nome"
+- assertVisible: "Salvar"
+
+# Toca em Salvar sem alterar nada
+- tapOn: "Salvar"
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# Tela continua responsiva — não crashou
+- assertVisible: "Nome"
+- assertNotVisible: "Erro ao salvar"

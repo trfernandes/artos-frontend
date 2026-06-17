@@ -1,0 +1,29 @@
+# Flow: Smoke — login de admin e verificação do home
+#
+# Uso:
+#   maestro test flows/smoke-login.yaml \
+#     -e APP_EMAIL=admin@suaigreja.com \
+#     -e APP_PASSWORD=SuaSenha123
+#
+# O que verifica:
+#   - App lança sem crash
+#   - Tela de login renderiza
+#   - Login com credenciais válidas redireciona para Home
+#   - Header "Início" e seção "Ministérios" visíveis no dashboard admin
+
+appId: com.church.artos
+---
+- launchApp:
+    clearState: true
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- runFlow: _login.yaml
+
+# Fora da tela de login
+- assertNotVisible: "Entrar"
+
+# Home do admin carregou
+- assertVisible: "Início"
+- assertVisible: "Ministérios"

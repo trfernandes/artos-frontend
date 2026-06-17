@@ -1,0 +1,21 @@
+# Roda todos os smoke tests de pré-lançamento em sequência
+#
+# Variáveis necessárias:
+#   APP_EMAIL      — e-mail do admin
+#   APP_PASSWORD   — senha do admin
+#
+# Para o teste de líder (lider-permissoes.yaml), rodar separado com credenciais
+# de uma conta com role LIDER:
+#   maestro test flows/lider-permissoes.yaml -e APP_EMAIL=lider@... -e APP_PASSWORD=...
+#
+# Uso (admin):
+#   maestro test flows/run-smoke.yaml \
+#     -e APP_EMAIL=admin@suaigreja.com \
+#     -e APP_PASSWORD=SuaSenha123
+
+appId: com.church.artos
+---
+- runFlow: smoke-login.yaml
+- runFlow: billing-status.yaml
+- runFlow: billing-modal-planos.yaml
+- runFlow: foto-perfil.yaml

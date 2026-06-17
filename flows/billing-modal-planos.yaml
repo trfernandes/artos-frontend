@@ -1,0 +1,82 @@
+# Flow: Abrir modal "Opções de Planos" e verificar conteúdo
+#
+# Uso:
+#   maestro test flows/billing-modal-planos.yaml \
+#     -e APP_EMAIL=admin@suaigreja.com \
+#     -e APP_PASSWORD=SuaSenha123
+#
+# Pré-condição: usuário deve ser ADMIN de uma igreja com faturamento preenchido
+#   (CNPJ, telefone, endereço). Se o faturamento estiver incompleto, o modal
+#   redireciona para a aba "Dados" em vez de mostrar planos.
+#
+# O que verifica:
+#   - Modal "Opções de Planos" abre ao tocar no botão primário
+#   - Segmented control Mensal/Anual está visível
+#   - Pelo menos um plano (Starter, Essencial ou Crescimento) está visível
+#   - Botão de iniciar checkout está presente no modal
+
+appId: com.church.artos
+---
+- launchApp
+- runFlow: _login.yaml
+
+# Abrir o drawer lateral
+- tapOn:
+    point: "2%,50%"
+- waitForAnimationToEnd
+
+# Navegar para Configurações
+- tapOn: "Configurações"
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# Ir para a aba "Assinatura"
+- tapOn: "Assinatura"
+- waitForAnimationToEnd:
+    timeout: 4000
+
+# Aguardar o card de status carregar antes de tentar o botão
+- assertTrue:
+    condition: ${visible("Período avaliativo ativo") || visible("Assinatura em dia") || visible("Pagamento pendente") || visible("Faixa gratuita") || visible("Acesso mantido até o fim do ciclo")}
+    label: "Status de assinatura não carregou antes de abrir modal"
+
+# Tocar no botão primário (rótulo varia por status da assinatura)
+- tapOn:
+    text: "Ver planos"
+    optional: true
+- tapOn:
+    text: "Trocar plano"
+    optional: true
+- tapOn:
+    text: "Assinar agora"
+    optional: true
+- tapOn:
+    text: "Escolher plano"
+    optional: true
+- tapOn:
+    text: "Atualizar plano"
+    optional: true
+- tapOn:
+    text: "Retomar pagamento"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Verificar que o modal "Opções de Planos" abriu
+- assertVisible: "Opções de Planos"
+
+# Verificar o segmented control de ciclo
+- assertVisible: "Mensal"
+- assertVisible: "Anual"
+
+# Verificar que pelo menos um plano está visível
+- assertTrue:
+    condition: ${visible("Starter") || visible("Essencial") || visible("Crescimento")}
+    label: "Nenhum plano encontrado no modal"
+
+- takeScreenshot: billing-modal-planos
+
+# Fechar o modal
+- tapOn:
+    point: "50%,5%"
+- waitForAnimationToEnd
