@@ -2,9 +2,12 @@
 # Uso: - runFlow: _login.yaml
 # Vars necessárias: APP_EMAIL, APP_PASSWORD
 #
-# Só faz login se a tela de login estiver visível (app pode já estar logado).
+# Aguarda o app estabilizar (login screen OU home screen visível), depois
+# faz login apenas se necessário.
 appId: com.church.artos
 ---
+- waitForAnimationToEnd:
+    timeout: 10000
 - runFlow:
     when:
       visible: "Entre na sua conta"

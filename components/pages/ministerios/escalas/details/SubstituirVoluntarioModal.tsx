@@ -3,7 +3,6 @@ import FancyBottomSheetModal from '../../../../modal/FancyBottomSheetModal';
 import FancyButton from '../../../../buttons/FancyButton';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import FancyText from '../../../../FancyText';
-import FancyAvatarImage from '../../../../images/FancyImage';
 import FancySearchSelect from '../../../../fields/FancySearchSelect';
 import FancyCheckbox from '../../../../FancyCheckbox';
 import { format } from 'date-fns';
@@ -19,9 +18,8 @@ import FancyGroup from '../../../../list/FancyGroup';
 import { AppImages } from '../../../../../assets/app_images';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { usePallete } from '../../../../../hooks/usePallete';
-import { getFirstAndLastName } from '../../../../../utils/text_utils';
-import DefaultIcons from '../../../../FancyIcons';
-import { ColorUtils } from '../../../../../utils/color_utils';
+import FancyListItemCard from '../../../../cards/FancyListItemCard';
+import FancyChips from '../../../../FancyChips';
 
 export interface SubstituirVoluntarioModalProps {
   visible: boolean;
@@ -189,6 +187,10 @@ export default function SubstituirVoluntarioModal({
           const voluntario = minVoluntario.voluntario as any;
           return {
             title: voluntario?.nome,
+            subtitle: minVoluntario.funcoes
+              ?.map((f) => f.funcao?.nome)
+              .filter(Boolean)
+              .join(', '),
             value: minVoluntario.id,
             left: {
               type: 'image',
@@ -278,13 +280,7 @@ export default function SubstituirVoluntarioModal({
     >
       <View
         style={{
-          backgroundColor: palette.backgroundColor2,
-          borderRadius: 14,
-          borderWidth: 1,
-          borderColor: palette.borderCard,
-          paddingHorizontal: 12,
-          paddingVertical: 10,
-          gap: 6,
+          gap: 10,
           pointerEvents:
             isLoadingMinisterioVoluntarios ||
             isLoadingMinisterioVoluntariosMutation ||
@@ -293,48 +289,39 @@ export default function SubstituirVoluntarioModal({
               : 'auto',
         }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <DefaultIcons.Custom
-            library='MaterialIcons'
-            name='event'
-            size={12}
-            color={palette.primary}
-          />
-          <FancyText size='extraSmall' type='medium'>
-            {`${format(data?.evento.dataOcorrencia, 'dd/MM/yyyy')} - ${format(data?.evento.dataInicio!, 'HH:mm')} à ${format(data?.evento.dataTermino!, 'HH:mm')}`}
-          </FancyText>
-        </View>
-        <View
-          style={{
-            height: StyleSheet.hairlineWidth,
-            backgroundColor: ColorUtils.withAlpha(palette.borderCard, 0.7),
+        <FancyListItemCard
+          leading={{
+            type: 'date',
+            day: String(data.evento.dataOcorrencia.getDate()).padStart(2, '0'),
+            month: data.evento.dataOcorrencia
+              .toLocaleDateString('pt-BR', { month: 'short' })
+              .replace('.', ''),
           }}
+          title={data?.funcao?.nome ?? ''}
+          subtitle={`${format(data?.evento.dataOcorrencia, 'dd/MM/yyyy')} - ${format(data?.evento.dataInicio!, 'HH:mm')} à ${format(data?.evento.dataTermino!, 'HH:mm')}`}
         />
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <FancyAvatarImage
-            source={
+
+        <FancyListItemCard
+          leading={{
+            type: 'image',
+            source:
               data.voluntario?.fotoUrl || data.voluntario?.fotoThumbUrl
                 ? { uri: data.voluntario?.fotoThumbUrl || data.voluntario?.fotoUrl || '' }
-                : AppImages.emptyProfile
-            }
-            size={20}
-            style={{ width: 20, height: 20 }}
-          />
-          <View>
-            <FancyText size={10} color={palette.fonts.inactive}>
-              {data?.funcao?.nome}
-            </FancyText>
-            <FancyText size={12} type='semiBold'>
-              {getFirstAndLastName(data?.voluntario?.nome)}
-            </FancyText>
-          </View>
-        </View>
+                : AppImages.emptyProfile,
+          }}
+          title={data?.voluntario?.nome ?? ''}
+          subtitle={data?.funcao?.nome}
+          status={<FancyChips label='Atual' color={palette.warning} outlined />}
+        />
       </View>
       <FancyGroup>
         <View style={{ gap: 8 }}>
-          <FancyText size='small' type='bold'>
-            Para:
-          </FancyText>
+          <View style={styles.sectionEyebrow}>
+            <View style={[styles.sectionEyebrowTick, { backgroundColor: palette.primary }]} />
+            <FancyText type='semiBold' size={10} color={palette.primary} style={styles.sectionEyebrowText}>
+              PARA
+            </FancyText>
+          </View>
 
           <View style={{ gap: 12 }}>
             <View style={{ gap: 8 }}>
@@ -400,5 +387,18 @@ const styles = StyleSheet.create({
   },
   footerButton: {
     flex: 1,
+  },
+  sectionEyebrow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  sectionEyebrowTick: {
+    width: 3,
+    height: 11,
+    borderRadius: 2,
+  },
+  sectionEyebrowText: {
+    letterSpacing: 0.8,
   },
 });

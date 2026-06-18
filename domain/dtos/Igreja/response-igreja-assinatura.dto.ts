@@ -11,6 +11,7 @@ export type ResponseIgrejaAssinaturaDto = {
   daysRemainingInTrial: number;
   inGracePeriod: boolean;
   canManageBilling: boolean;
+  hasPendingPlanChange?: boolean;
   currentVolunteers: number;
   currentMinistries: number;
   maxVolunteers: number;

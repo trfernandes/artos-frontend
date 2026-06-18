@@ -1,5 +1,5 @@
 import FancyBottomSheetModal from '../../../../modal/FancyBottomSheetModal';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import FancyText from '../../../../FancyText';
 import FancySearchSelect from '../../../../fields/FancySearchSelect';
 import FancyButton from '../../../../buttons/FancyButton';
@@ -8,8 +8,8 @@ import { useState } from 'react';
 import FancyErrorText from '../../../../forms/FancyErrorText';
 import FancyGroup from '../../../../list/FancyGroup';
 import { useMinisterioFuncoesCrud } from '../../../../../hooks/useMinisterioFuncoesCrud';
-import DefaultIcons from '../../../../FancyIcons';
 import { usePallete } from '../../../../../hooks/usePallete';
+import FancyListItemCard from '../../../../cards/FancyListItemCard';
 
 export interface AdicionarFuncaoModalProps {
   visible: boolean;
@@ -111,34 +111,24 @@ export default function AdicionarFuncaoModal({
         </View>
       }
     >
-      <View
-        style={{
-          backgroundColor: palette.backgroundColor2,
-          borderRadius: 14,
-          borderWidth: 1,
-          borderColor: palette.borderCard,
-          paddingHorizontal: 12,
-          paddingVertical: 10,
-          gap: 6,
+      <FancyListItemCard
+        leading={{
+          type: 'date',
+          day: String(dataOcorrencia.getDate()).padStart(2, '0'),
+          month: dataOcorrencia.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', ''),
         }}
-      >
-        <FancyText type='semiBold' size='small'>
-          {eventoNome}
-        </FancyText>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <DefaultIcons.Custom
-            library='MaterialIcons'
-            name='event'
-            size={12}
-            color={palette.primary}
-          />
-          <FancyText size='extraSmall' type='medium'>
-            {`${format(dataOcorrencia, 'dd/MM/yyyy')} - ${format(dataInicio, 'HH:mm')} à ${format(dataTermino, 'HH:mm')}`}
-          </FancyText>
-        </View>
-      </View>
+        title={eventoNome}
+        subtitle={`${format(dataOcorrencia, 'dd/MM/yyyy')} - ${format(dataInicio, 'HH:mm')} à ${format(dataTermino, 'HH:mm')}`}
+      />
 
-      <FancyGroup title='Selecionar Função:' contentContainerStyle={{ gap: 15 }}>
+      <FancyGroup contentContainerStyle={{ gap: 15 }}>
+        <View style={{ gap: 8 }}>
+          <View style={styles.sectionEyebrow}>
+            <View style={[styles.sectionEyebrowTick, { backgroundColor: palette.primary }]} />
+            <FancyText type='semiBold' size={10} color={palette.primary} style={styles.sectionEyebrowText}>
+              SELECIONAR FUNÇÃO
+            </FancyText>
+          </View>
         <View style={{ gap: 5 }}>
           <FancySearchSelect
             label='Função'
@@ -157,7 +147,24 @@ export default function AdicionarFuncaoModal({
           />
           {errors['funcao'] && <FancyErrorText message={errors['funcao']} />}
         </View>
+        </View>
       </FancyGroup>
     </FancyBottomSheetModal>
   );
 }
+
+const styles = StyleSheet.create({
+  sectionEyebrow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  sectionEyebrowTick: {
+    width: 3,
+    height: 11,
+    borderRadius: 2,
+  },
+  sectionEyebrowText: {
+    letterSpacing: 0.8,
+  },
+});

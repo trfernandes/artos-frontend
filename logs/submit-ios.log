@@ -1,14 +1,14 @@
-[12/06/2026 15:12:27,21] Iniciando submit iOS
+[15/06/2026  8:11:36,48] Iniciando submit iOS
 Resolved "production" environment for the build. Learn more: https://docs.expo.dev/eas/environment-variables/#setting-the-environment-for-your-builds
 No environment variables with visibility "Plain text" and "Sensitive" found for the "production" environment on EAS.
 Environment variables loaded from the "production" build profile "env" configuration: EAS_GRADLE_CACHE, SENTRY_DISABLE_AUTO_UPLOAD, EXPO_PUBLIC_API_URL, EXPO_PUBLIC_SENTRY_DSN.
 
-- Incrementing buildNumber from 46 to 47.
-v Incremented buildNumber from 46 to 47.
+- Incrementing buildNumber from 47 to 48.
+? Incremented buildNumber from 47 to 48.
 
 
 ios.buildNumber field in app config is ignored when version source is set to remote, but this value will still be in the manifest available via expo-constants. It's recommended to remove this value from app config.
-v Using remote iOS credentials (Expo server)
+? Using remote iOS credentials (Expo server)
 
 Distribution Certificate is not validated for non-interactive builds.
 Skipping Provisioning Profile validation on Apple Servers because we aren't authenticated.
@@ -38,12 +38,14 @@ All credentials are ready to build @trfernandes/artos_frontend (br.app.diakonia)
 
 Compressing project files and uploading to EAS Build. Learn more: https://expo.fyi/eas-build-archive
 - Compressing project files
-- Uploading to EAS Build (0 / 43.8 MB)
-v Uploaded to EAS 3s
+- Uploading to EAS Build (0 / 43.9 MB)
+? Uploaded to EAS 3s
 - Computing project fingerprint
-v Computed project fingerprint
+?? Computing the project fingerprint is taking longer than expected...
+? To skip this step, set the environment variable: EAS_SKIP_AUTO_FINGERPRINT=1
+? Computed project fingerprint
 
-See logs: https://expo.dev/accounts/trfernandes/projects/artos_frontend/builds/3713a9a8-6403-4040-af01-d4b7b5cd5099
+See logs: https://expo.dev/accounts/trfernandes/projects/artos_frontend/builds/ebfdcd82-44b6-4217-8b89-1ccc9ddc7073
 
 ASC App ID:                 6759353187
 Project ID:                 8de609c4-80b9-4a57-9d70-b8c16383e892
@@ -52,26 +54,26 @@ App Store Connect API Key:
     Key Source:  local
     Key Path  :  ./ios.p8
 Build:                      
-    Build ID    :  3713a9a8-6403-4040-af01-d4b7b5cd5099
-    Build Date  :  12/06/2026, 15:13:21
+    Build ID    :  ebfdcd82-44b6-4217-8b89-1ccc9ddc7073
+    Build Date  :  15/06/2026, 08:14:15
     App Version :  1.0.0
-    Build number:  47
+    Build number:  48
 
 - Scheduling iOS submission
-v Scheduled iOS submission
+? Scheduled iOS submission
 
-Submission details: https://expo.dev/accounts/trfernandes/projects/artos_frontend/submissions/b0013b4e-e994-4f23-bbf7-958f1f138cf7
+Submission details: https://expo.dev/accounts/trfernandes/projects/artos_frontend/submissions/fc89bfbd-4999-42ae-a782-6a671f354faa
 
 Waiting for build to complete. You can press Ctrl+C to exit.
 - Waiting for build to complete.
-v Build finished
+? Build finished
 
 ?? iOS app:
-https://expo.dev/artifacts/eas/1kYUwy8CyyxykBKsVoFXS0slDMq5L86XFOrEyZajIXE.ipa
+https://expo.dev/artifacts/eas/-otgmaRftQuzSTReK9zxWBoLD2sbItgKSUp4pPw5D34.ipa
 
 Waiting for submission to complete. You can press Ctrl+C to exit.
 - Submitting
-v Submitted your app to Apple App Store Connect!
+? Submitted your app to Apple App Store Connect!
 
 Your binary has been successfully uploaded to App Store Connect!
 - It is now being processed by Apple - you will receive an email when the processing finishes.

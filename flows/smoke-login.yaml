@@ -13,17 +13,19 @@
 
 appId: com.church.artos
 ---
-- launchApp:
-    clearState: true
+- launchApp
 
 - waitForAnimationToEnd:
     timeout: 5000
+
+# Expo dev build: toca no servidor se o picker aparecer
+- runFlow: _handle_expo_picker.yaml
 
 - runFlow: _login.yaml
 
 # Fora da tela de login
 - assertNotVisible: "Entrar"
 
-# Home do admin carregou
+# Home do admin carregou — "Visão geral" sempre presente para ADMIN
 - assertVisible: "Início"
-- assertVisible: "Ministérios"
+- assertVisible: "Visão geral"

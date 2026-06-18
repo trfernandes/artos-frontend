@@ -66,6 +66,10 @@ export function useVoluntariosDoMinisterioCrud(
       const voluntario = mv.voluntario as ResponseVoluntarioDto | null | undefined;
       return {
         title: voluntario?.nome ?? '',
+        subtitle: mv.funcoes
+          ?.map((f) => f.funcao?.nome)
+          .filter(Boolean)
+          .join(', '),
         value: mv.id ?? '',
         left: {
           type: 'image',

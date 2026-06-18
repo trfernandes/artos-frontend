@@ -20,11 +20,12 @@
 
 appId: com.church.artos
 ---
-- launchApp:
-    clearState: true
+- launchApp
 
 - waitForAnimationToEnd:
     timeout: 5000
+
+- runFlow: _handle_expo_picker.yaml
 
 - runFlow: _login.yaml
 

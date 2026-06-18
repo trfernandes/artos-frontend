@@ -61,7 +61,7 @@ export default function FancyTabHeaderItem({
 
         <FancyText
           type='semiBold'
-          size='extraSmall'
+          size={10}
           numberOfLines={1}
           style={[
             styles.title,

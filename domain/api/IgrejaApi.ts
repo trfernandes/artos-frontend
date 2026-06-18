@@ -323,6 +323,10 @@ class IgrejaApiClass extends BaseApi<ResponseIgrejaDto, CreateIgrejaDto, UpdateI
     await apiClient.post('/billing/cancel', { churchId: igrejaId });
   }
 
+  async cancelarTrocaDePlano(igrejaId: string): Promise<void> {
+    await apiClient.post('/billing/cancel-plan-change', { churchId: igrejaId });
+  }
+
   // ========== CONFIGURAÇÕES ==========
 
   /**

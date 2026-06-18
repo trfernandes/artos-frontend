@@ -126,12 +126,40 @@ export function useIgrejaAssinatura({ igrejaId, autoFetch = true }: UseIgrejaAss
     },
   });
 
+  const cancelPlanChangeMutation = useMutation({
+    mutationFn: async () => {
+      if (!igrejaId) throw new Error('igrejaId ausente');
+      return await IgrejaRepository.cancelarTrocaDePlano(igrejaId);
+    },
+    onMutate: () => showLoading('Cancelando troca de plano...'),
+    onSettled: () => hideLoading(),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey });
+      Toast.show({
+        type: 'success',
+        text1: 'Troca de plano cancelada',
+        text2: 'Sua assinatura anterior foi restaurada.',
+      });
+    },
+    onError: (error: any) => {
+      const message =
+        error?.response?.data?.message || 'Não foi possível cancelar a troca de plano agora.';
+      Toast.show({
+        type: 'error',
+        text1: 'Falha ao cancelar troca',
+        text2: message,
+      });
+    },
+  });
+
   return {
     ...query,
     iniciarCheckout: checkoutMutation.mutate,
     retomarCheckout: resumeCheckoutMutation.mutate,
     cancelarAssinatura: cancelMutation.mutate,
+    cancelarTrocaDePlano: cancelPlanChangeMutation.mutate,
     isAbrindoCheckout: checkoutMutation.isPending || resumeCheckoutMutation.isPending,
     isCancelandoAssinatura: cancelMutation.isPending,
+    isCancelandoTrocaDePlano: cancelPlanChangeMutation.isPending,
   };
 }

@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useMemo } from 'react';
+import { useRef, useEffect, useCallback, useMemo, useState } from 'react';
 import {
   View,
   Modal,
@@ -52,6 +52,7 @@ export default function FancyBottomSheetModal({
     ? ColorUtils.withAlpha('#000000', Platform.OS === 'ios' ? 0.5 : 0.65)
     : ColorUtils.withAlpha('#020617', Platform.OS === 'ios' ? 0.4 : 0.55);
   const insets = useSafeAreaInsets();
+  const [hasMounted, setHasMounted] = useState(false);
   const backdropAnim = useRef(new Animated.Value(0)).current;
   const sheetTranslateY = useRef(new Animated.Value(SHEET_TRANSLATE_Y)).current;
   const dragY = useRef(new Animated.Value(0)).current;
@@ -75,6 +76,10 @@ export default function FancyBottomSheetModal({
       ? Math.max(180, SCREEN_HEIGHT * 0.88 - keyboardOffset)
       : SCREEN_HEIGHT * 0.88;
   const sheetBottomPadding = keyboardOffset > 0 ? 6 : insets.bottom + 16;
+
+  useEffect(() => {
+    if (visible && !hasMounted) setHasMounted(true);
+  }, [visible]);
 
   useEffect(() => {
     if (visible) {
@@ -263,7 +268,7 @@ export default function FancyBottomSheetModal({
       onRequestClose={handleClose}
       statusBarTranslucent
     >
-      {sheetContent}
+      {hasMounted ? sheetContent : null}
     </Modal>
   );
 }

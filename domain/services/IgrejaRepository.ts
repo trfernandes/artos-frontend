@@ -202,6 +202,10 @@ class IgrejaRepositoryClass extends BaseRepository<
     return IgrejaApi.cancelarAssinatura(igrejaId);
   }
 
+  cancelarTrocaDePlano(igrejaId: string): Promise<void> {
+    return IgrejaApi.cancelarTrocaDePlano(igrejaId);
+  }
+
   // ========== CONFIGURAÇÕES ==========
 
   /**

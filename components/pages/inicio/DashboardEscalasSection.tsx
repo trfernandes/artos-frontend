@@ -49,43 +49,34 @@ export default function DashboardEscalasSection({ data }: DashboardEscalasSectio
         title='Minhas escalas'
         onVerMais={() => router.push('/(app)/(drawer)/pessoal/escalas')}
       >
-        <View style={styles.kpiRow}>
-          <DashboardCard
-            title='Total'
-            value={data?.totalEscalasMes ?? 0}
-            icon={{
-              library: 'MaterialCommunityIcons',
-              name: 'calendar-month',
-              size: 12,
-              color: Pallete.primary,
-            }}
-            iconBackgroundColor={`${Pallete.primary}15`}
-            surfaceVariant='infoBlue'
-          />
-          <DashboardCard
-            title='Confirmadas'
-            value={data?.escalasConfirmadas ?? 0}
-            icon={{
-              library: 'MaterialCommunityIcons',
-              name: 'check-circle-outline',
-              size: 12,
-              color: Pallete.confirm,
-            }}
-            iconBackgroundColor={`${Pallete.confirm}15`}
-            surfaceVariant='infoBlue'
-          />
-          <DashboardCard
-            title='Pendentes'
-            value={data?.escalasPendentes ?? 0}
-            icon={{
-              library: 'MaterialCommunityIcons',
-              name: 'clock-outline',
-              size: 12,
-              color: Pallete.warning,
-            }}
-            iconBackgroundColor={`${Pallete.warning}15`}
-            surfaceVariant='infoBlue'
-          />
+        <View style={styles.kpiGrid}>
+          <View style={styles.kpiItem}>
+            <DashboardCard
+              title='Total'
+              value={data?.totalEscalasMes ?? 0}
+              icon={{ library: 'MaterialCommunityIcons', name: 'calendar-month', size: 20, color: Pallete.primary }}
+              iconBackgroundColor={`${Pallete.primary}1F`}
+              accentColor={Pallete.primary}
+            />
+          </View>
+          <View style={styles.kpiItem}>
+            <DashboardCard
+              title='Confirmadas'
+              value={data?.escalasConfirmadas ?? 0}
+              icon={{ library: 'MaterialCommunityIcons', name: 'check-circle-outline', size: 20, color: Pallete.confirm }}
+              iconBackgroundColor={`${Pallete.confirm}1F`}
+              accentColor={Pallete.confirm}
+            />
+          </View>
+          <View style={styles.kpiItemFull}>
+            <DashboardCard
+              title='Pendentes'
+              value={data?.escalasPendentes ?? 0}
+              icon={{ library: 'MaterialCommunityIcons', name: 'clock-outline', size: 20, color: Pallete.warning }}
+              iconBackgroundColor={`${Pallete.warning}1F`}
+              accentColor={Pallete.warning}
+            />
+          </View>
         </View>
       </DashboardSection>
 
@@ -175,13 +166,23 @@ export default function DashboardEscalasSection({ data }: DashboardEscalasSectio
 }
 
 const styles = StyleSheet.create({
-  kpiRow: {
+  kpiGrid: {
     flexDirection: 'row',
-    gap: 8,
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  kpiItem: {
+    flexBasis: '47%',
+    flexGrow: 1,
+  },
+  kpiItemFull: {
+    flexBasis: '100%',
+    flexGrow: 1,
   },
   horizontalScroll: {
     gap: 10,
     paddingRight: 5,
+    paddingVertical: 4,
   },
   sheetContent: {
     gap: 14,

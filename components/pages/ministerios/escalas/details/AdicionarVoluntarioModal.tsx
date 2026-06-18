@@ -18,8 +18,7 @@ import FancyGroup from '../../../../list/FancyGroup';
 import { AppImages } from '../../../../../assets/app_images';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { usePallete } from '../../../../../hooks/usePallete';
-import DefaultIcons from '../../../../FancyIcons';
-import { ColorUtils } from '../../../../../utils/color_utils';
+import FancyListItemCard from '../../../../cards/FancyListItemCard';
 
 export interface AdicionarVoluntarioModalProps {
   data: EscalaItemEquipeType & {
@@ -171,6 +170,10 @@ export default function AdicionarVoluntarioModal({
           const voluntario = minVoluntario.voluntario as any;
           return {
             title: voluntario?.nome,
+            subtitle: minVoluntario.funcoes
+              ?.map((f) => f.funcao?.nome)
+              .filter(Boolean)
+              .join(', '),
             value: minVoluntario.id,
             left: {
               type: 'image',
@@ -251,52 +254,26 @@ export default function AdicionarVoluntarioModal({
       }
     >
       <View style={[styles.container, { pointerEvents: isBusy ? 'none' : 'auto' }]}>
-        <View
-          style={{
-            backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
-            borderRadius: 10,
-            borderWidth: StyleSheet.hairlineWidth,
-            borderColor: ColorUtils.withAlpha(palette.primary, 0.25),
-            paddingHorizontal: 12,
-            paddingVertical: 10,
-            gap: 6,
+        <FancyListItemCard
+          leading={{
+            type: 'date',
+            day: String(data.evento.dataOcorrencia.getDate()).padStart(2, '0'),
+            month: data.evento.dataOcorrencia
+              .toLocaleDateString('pt-BR', { month: 'short' })
+              .replace('.', ''),
           }}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <DefaultIcons.Custom
-              library='MaterialIcons'
-              name='event'
-              size={12}
-              color={palette.primary}
-            />
-            <FancyText size='extraSmall' type='medium'>
-              {`${format(data?.evento.dataOcorrencia, 'dd/MM/yyyy')} - ${format(data?.evento.dataInicio!, 'HH:mm')} à ${format(data?.evento.dataTermino!, 'HH:mm')}`}
-            </FancyText>
-          </View>
-          <View
-            style={{
-              height: StyleSheet.hairlineWidth,
-              backgroundColor: ColorUtils.withAlpha(palette.borderCard, 0.7),
-            }}
-          />
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <DefaultIcons.Custom
-              library='MaterialIcons'
-              name='work-outline'
-              size={12}
-              color={palette.primary}
-            />
-            <FancyText size='extraSmall' type='medium'>
-              {data?.funcao?.nome}
-            </FancyText>
-          </View>
-        </View>
+          title={data?.funcao?.nome ?? ''}
+          subtitle={`${format(data?.evento.dataOcorrencia, 'dd/MM/yyyy')} - ${format(data?.evento.dataInicio!, 'HH:mm')} à ${format(data?.evento.dataTermino!, 'HH:mm')}`}
+        />
 
         <FancyGroup>
           <View style={{ gap: 8 }}>
-            <FancyText size='small' type='bold'>
-              Selecionar Voluntário:
-            </FancyText>
+            <View style={styles.sectionEyebrow}>
+              <View style={[styles.sectionEyebrowTick, { backgroundColor: palette.primary }]} />
+              <FancyText type='semiBold' size={10} color={palette.primary} style={styles.sectionEyebrowText}>
+                SELECIONAR VOLUNTÁRIO
+              </FancyText>
+            </View>
 
             <View style={{ gap: 12 }}>
               <View style={{ gap: 8 }}>
@@ -357,4 +334,17 @@ export default function AdicionarVoluntarioModal({
 
 const styles = StyleSheet.create({
   container: { gap: 14, paddingTop: 0, paddingBottom: 10 },
+  sectionEyebrow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  sectionEyebrowTick: {
+    width: 3,
+    height: 11,
+    borderRadius: 2,
+  },
+  sectionEyebrowText: {
+    letterSpacing: 0.8,
+  },
 });

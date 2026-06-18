@@ -499,8 +499,10 @@ export default function ConfiguracoesPage() {
     iniciarCheckout,
     retomarCheckout,
     cancelarAssinatura,
+    cancelarTrocaDePlano,
     isAbrindoCheckout,
     isCancelandoAssinatura,
+    isCancelandoTrocaDePlano,
   } = useIgrejaAssinatura({ igrejaId });
 
   // Não executar o hook se não houver igreja ativa
@@ -771,6 +773,7 @@ export default function ConfiguracoesPage() {
   const canResumePendingCheckout = Boolean(
     assinatura?.checkoutUrl && assinatura.status !== 'cancelled',
   );
+  const hasPendingPlanChange = Boolean(assinatura?.hasPendingPlanChange);
   const hasExceededPlanCapacity = Boolean(
     assinatura &&
     (assinatura.currentVolunteers > assinatura.maxVolunteers ||
@@ -892,6 +895,19 @@ export default function ConfiguracoesPage() {
       [
         { text: 'Voltar', style: 'default' },
         { text: 'Sim', style: 'destructive', onPress: () => cancelarAssinatura() },
+      ],
+    );
+  };
+
+  const handleCancelarTrocaDePlano = () => {
+    if (!igrejaId) return;
+
+    FancyAlert.alert(
+      'Cancelar troca de plano',
+      'O pagamento pendente será descartado e sua assinatura anterior será restaurada. Deseja continuar?',
+      [
+        { text: 'Voltar', style: 'default' },
+        { text: 'Sim', style: 'destructive', onPress: () => cancelarTrocaDePlano() },
       ],
     );
   };
@@ -1691,8 +1707,17 @@ export default function ConfiguracoesPage() {
               assinatura={assinatura}
               onPrimaryPress={handlePrimaryBillingAction}
               primaryLabel={billingPrimaryLabel}
-              onSecondaryPress={canCancelCurrentSubscription ? handleCancelarAssinatura : undefined}
-              isSecondaryLoading={isCancelandoAssinatura}
+              onSecondaryPress={
+                hasPendingPlanChange
+                  ? handleCancelarTrocaDePlano
+                  : canCancelCurrentSubscription
+                    ? handleCancelarAssinatura
+                    : undefined
+              }
+              secondaryLabel={hasPendingPlanChange ? 'Cancelar troca de plano' : undefined}
+              isSecondaryLoading={
+                hasPendingPlanChange ? isCancelandoTrocaDePlano : isCancelandoAssinatura
+              }
             />
           ) : (
             <View style={styles.billingLoadingCard}>

@@ -27,7 +27,13 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BlurView } from 'expo-blur';
 import FancyText, { FancyTextProps } from '../FancyText';
 import { ThemePalette } from '../../constants/colors';
-import { BOLD_FONT, ITALIC_MEDIUM_FONT, MEDIUM_FONT, SMALL_SIZE_FONT } from '../../constants/font';
+import {
+  BOLD_FONT,
+  EXTRA_SMALL_SIZE_FONT,
+  ITALIC_MEDIUM_FONT,
+  MEDIUM_FONT,
+  SMALL_SIZE_FONT,
+} from '../../constants/font';
 import DefaultIcons from '../FancyIcons';
 import { DropDownItemProps } from './FancyDropDownItem';
 import { FancyTextInputProps } from './FancyTextInput';
@@ -451,14 +457,19 @@ function FancySearchSelectInner<ValueItem>(
                           }
                         />
                       )}
-                      <FancyText
-                        style={[
-                          styles.itemText,
-                          isSelected && { color: palette.primary, fontFamily: BOLD_FONT },
-                        ]}
-                      >
-                        {item.title}
-                      </FancyText>
+                      <View style={styles.itemTextContainer}>
+                        <FancyText
+                          style={[
+                            styles.itemText,
+                            isSelected && { color: palette.primary, fontFamily: BOLD_FONT },
+                          ]}
+                        >
+                          {item.title}
+                        </FancyText>
+                        {item.subtitle && (
+                          <FancyText style={styles.itemSubtitle}>{item.subtitle}</FancyText>
+                        )}
+                      </View>
                       {multiSelect ? (
                         <View pointerEvents='none'>
                           <FancyCheckbox value={isSelected} size={22} iconSize={12} />
@@ -700,11 +711,19 @@ function createStyles(palette: ThemePalette) {
       gap: 12,
       borderRadius: 12,
     },
+    itemTextContainer: {
+      flex: 1,
+      gap: 2,
+    },
     itemText: {
       fontFamily: MEDIUM_FONT,
       fontSize: SMALL_SIZE_FONT,
       color: palette.fonts.dark,
-      flex: 1,
+    },
+    itemSubtitle: {
+      fontFamily: MEDIUM_FONT,
+      fontSize: EXTRA_SMALL_SIZE_FONT,
+      color: palette.fonts.inactive,
     },
     checkContainer: {
       width: 24,

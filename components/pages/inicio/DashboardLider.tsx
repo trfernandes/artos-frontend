@@ -90,5 +90,6 @@ const styles = StyleSheet.create({
   horizontalScroll: {
     gap: 10,
     paddingRight: 5,
+    paddingVertical: 4,
   },
 });

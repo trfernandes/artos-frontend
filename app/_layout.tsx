@@ -27,6 +27,7 @@ import { useProtectedRoute } from '../hooks/useProtectedRoute';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { GlobalErrorBoundary } from '../components/debug/GlobalErrorBoundary';
+import AppSplashOverlay from '../components/AppSplashOverlay';
 
 const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
 
@@ -45,6 +46,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default Sentry.wrap(function RootLayout() {
   const [queryClient] = useState(() => createQueryClient());
+  const [splashVisible, setSplashVisible] = useState(true);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -55,7 +57,7 @@ export default Sentry.wrap(function RootLayout() {
               <QueryClientProvider client={queryClient}>
                 <AuthProvider>
                   <ConnectivityProvider>
-                    <RootLayoutNav />
+                    <RootLayoutNav onReady={() => setSplashVisible(false)} />
                   </ConnectivityProvider>
                 </AuthProvider>
               </QueryClientProvider>
@@ -63,11 +65,12 @@ export default Sentry.wrap(function RootLayout() {
           </ThemeProvider>
         </KeyboardProvider>
       </SafeAreaProvider>
+      <AppSplashOverlay visible={splashVisible} />
     </GestureHandlerRootView>
   );
 });
 
-function RootLayoutNav() {
+function RootLayoutNav({ onReady }: { onReady: () => void }) {
   useProtectedRoute();
 
   const { user, loading, isSigningOut } = useAuth();
@@ -97,11 +100,14 @@ function RootLayoutNav() {
     MontserratThinItalic: require('../assets/fonts/montserrat/Montserrat-ThinItalic.ttf'),
   });
 
-  // esconder splash quando tudo estiver pronto
+  // esconder a splash nativa imediatamente — o AppSplashOverlay (JS, full-bleed)
+  // assume a tela enquanto fontes/auth carregam
   useEffect(() => {
-    if (fontsLoaded && !loading) {
-      SplashScreen.hideAsync();
-    }
+    SplashScreen.hideAsync();
+  }, []);
+
+  useEffect(() => {
+    if (fontsLoaded && !loading) onReady();
   }, [fontsLoaded, loading]);
 
   // registrar notificações quando logar
