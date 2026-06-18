@@ -53,7 +53,8 @@ export function useIgrejaAssinatura({ igrejaId, autoFetch = true }: UseIgrejaAss
     mutationFn: async (dto: CriarCheckoutAssinaturaDto) => {
       return await IgrejaRepository.criarCheckoutAssinatura(dto);
     },
-    onMutate: () => showLoading('Preparando pagamento...'),
+    onMutate: (dto: CriarCheckoutAssinaturaDto) =>
+      showLoading(dto.changePlan ? 'Trocando de plano...' : 'Preparando pagamento...'),
     onSettled: () => hideLoading(),
     onSuccess: async (response) => {
       if (!response.checkoutUrl) {

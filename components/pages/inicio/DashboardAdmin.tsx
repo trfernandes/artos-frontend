@@ -22,7 +22,20 @@ import { resolveBillingPrimaryActionLabel } from '../../../domain/utils/billing-
 export default function DashboardAdmin() {
   const { user, igrejaAtiva } = useAuth();
   const { data, isLoading, isError, error, hasServerData, refetch } = useDashboard();
-  const { data: assinatura } = useIgrejaAssinatura({ igrejaId: igrejaAtiva?.id });
+  const { data: assinatura, retomarCheckout } = useIgrejaAssinatura({ igrejaId: igrejaAtiva?.id });
+  const canResumePendingCheckout = Boolean(
+    assinatura?.checkoutUrl && assinatura.status !== 'cancelled',
+  );
+  const handleBillingPrimaryPress = () => {
+    if (canResumePendingCheckout && assinatura?.checkoutUrl) {
+      retomarCheckout(assinatura.checkoutUrl);
+      return;
+    }
+    router.push({
+      pathname: '/(app)/(drawer)/configuracoes',
+      params: { tab: 'plano', openPlans: '1' },
+    });
+  };
 
   if (isLoading) return <FancyLoading />;
   if (isError && !hasServerData && error) {
@@ -125,12 +138,7 @@ export default function DashboardAdmin() {
           assinatura={assinatura}
           compact
           primaryLabel={resolveBillingPrimaryActionLabel(assinatura)}
-          onPrimaryPress={() =>
-            router.push({
-              pathname: '/(app)/(drawer)/configuracoes',
-              params: { tab: 'plano', openPlans: '1' },
-            })
-          }
+          onPrimaryPress={handleBillingPrimaryPress}
         />
       ) : null}
     </FancyScrollView>
@@ -147,5 +155,6 @@ const styles = StyleSheet.create({
   horizontalScroll: {
     gap: 10,
     paddingRight: 5,
+    paddingVertical: 4,
   },
 });

@@ -1,21 +1,14 @@
-import {
-  StyleSheet,
-  View,
-  TouchableOpacity,
-  ActivityIndicator,
-  Platform,
-  StyleProp,
-  ViewStyle,
-} from 'react-native';
+import { StyleSheet, View, ScrollView, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { uploadToCloudinaryUnsigned } from '../../../../services/cloudinary_upload';
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../../../../config/cloudinary';
 import FancyPageView from '../../../../components/containers/FancyPageView';
 import FancyTabs, { TabItem } from '../../../../components/tabs/FancyTabs';
 import FancySegmentedTabs from '../../../../components/tabs/FancySegmentedTabs';
-import FancyAccordeon from '../../../../components/FancyAccordeon';
+import FancyListItemCard from '../../../../components/cards/FancyListItemCard';
+import FancyChips from '../../../../components/FancyChips';
 import FancyScrollView from '../../../../components/FancyScrollView';
 import { DefaultIconsNames } from '../../../../constants/icons';
-import { useMemo, useState, useEffect, useRef } from 'react';
+import { useMemo, useState, useEffect, ReactNode } from 'react';
 import { useCallback } from 'react';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -38,8 +31,8 @@ import FancyButton from '../../../../components/buttons/FancyButton';
 import { ThemePalette } from '../../../../constants/colors';
 import DefaultIcons, { IconLibrary } from '../../../../components/FancyIcons';
 import FancyText from '../../../../components/FancyText';
-import ControlledFancyToggle from '../../../../components/forms/ControlledFancyToggle';
 import FancyCheckbox from '../../../../components/FancyCheckbox';
+import FancyPillToggle from '../../../../components/FancyPillToggle';
 import * as Clipboard from 'expo-clipboard';
 import Toast from 'react-native-toast-message';
 import {
@@ -47,7 +40,9 @@ import {
   FormImageFile,
 } from '../../../../components/forms/ControlledImagePicker';
 import { usePallete } from '../../../../hooks/usePallete';
+import { useLoading } from '../../../../contexts/LoadingContext';
 import { useThemedStyles } from '../../../../hooks/useThemedStyles';
+import { useAppTheme } from '../../../../hooks/useAppTheme';
 import { ColorUtils } from '../../../../utils/color_utils';
 import { UF_LIST } from '../../../../domain/utils/uf-list';
 import { getCidadesComCodigoPorUf, getCidadesPorUf } from '../../../../domain/utils/cidades-list';
@@ -57,36 +52,23 @@ import BillingStatusPanel from '../../../../components/billing/BillingStatusPane
 import {
   BILLING_PLAN_OPTIONS,
   BillingCycleCode,
+  resolveBillingPlanName,
 } from '../../../../domain/utils/billing-plan-catalog';
+import { ResponseIgrejaAssinaturaDto } from '../../../../domain/dtos/Igreja/response-igreja-assinatura.dto';
 import { resolveBillingPrimaryActionLabel } from '../../../../domain/utils/billing-notice';
 import FancyBottomSheetModal from '../../../../components/modal/FancyBottomSheetModal';
 import { FancyAlert } from '../../../../components/modal/FancyAlert';
+import FancyVerticalSpacer from '../../../../components/FancyVerticalSpacer';
 
 const REMINDER_OPTIONS = [
-  {
-    title: '1 semana antes',
-    value: 168,
-    description: 'Ideal para escalas semanais e eventos maiores.',
-  },
-  {
-    title: '72 horas antes',
-    value: 72,
-    description: 'Ajuda quem se organiza com alguns dias de antecedência.',
-  },
-  { title: '48 horas antes', value: 48, description: 'Lembrete intermediário bastante comum.' },
-  {
-    title: '24 horas antes',
-    value: 24,
-    description: 'O padrão mais usado para escalas de igreja.',
-  },
-  { title: '12 horas antes', value: 12, description: 'Bom para reforçar no dia anterior.' },
-  {
-    title: '3 horas antes',
-    value: 3,
-    description: 'Útil para confirmar deslocamento e preparação.',
-  },
-  { title: '2 horas antes', value: 2, description: 'Boa janela para quem precisa sair de casa.' },
-  { title: '1 hora antes', value: 1, description: 'Último lembrete antes do compromisso.' },
+  { title: '1 semana antes', shortLabel: '1 sem', value: 168 },
+  { title: '72 horas antes', shortLabel: '72h', value: 72 },
+  { title: '48 horas antes', shortLabel: '48h', value: 48 },
+  { title: '24 horas antes', shortLabel: '24h', value: 24 },
+  { title: '12 horas antes', shortLabel: '12h', value: 12 },
+  { title: '3 horas antes', shortLabel: '3h', value: 3 },
+  { title: '2 horas antes', shortLabel: '2h', value: 2 },
+  { title: '1 hora antes', shortLabel: '1h', value: 1 },
 ] as const;
 
 const DEFAULT_REMINDER_HOURS = [24, 2, 1];
@@ -178,7 +160,21 @@ const getStatusVisuals = (
   status: SectionStatus,
   palette: ReturnType<typeof usePallete>,
   defaultIcon: { library: IconLibrary; name: string },
+  accent: string,
 ): SectionVisuals => {
+  // O ícone usa SEMPRE a cor de identidade da seção (accent) — exceto em erro,
+  // onde o vermelho prevalece como sinal de alerta. O estado (Completo/Incompleto)
+  // vive apenas no chip, para o card não ficar monocromático.
+  const accentBadge: Pick<
+    SectionVisuals,
+    'badgeBackground' | 'iconLibrary' | 'iconName' | 'iconColor'
+  > = {
+    badgeBackground: ColorUtils.withAlpha(accent, 0.12),
+    iconLibrary: defaultIcon.library,
+    iconName: defaultIcon.name,
+    iconColor: accent,
+  };
+
   switch (status) {
     case 'error':
       return {
@@ -194,10 +190,7 @@ const getStatusVisuals = (
       };
     case 'complete':
       return {
-        badgeBackground: ColorUtils.withAlpha(palette.confirm, 0.12),
-        iconLibrary: defaultIcon.library,
-        iconName: defaultIcon.name,
-        iconColor: palette.confirm,
+        ...accentBadge,
         pill: {
           label: 'Completo',
           color: palette.confirm,
@@ -206,10 +199,7 @@ const getStatusVisuals = (
       };
     case 'incomplete':
       return {
-        badgeBackground: ColorUtils.withAlpha(palette.warning, 0.12),
-        iconLibrary: defaultIcon.library,
-        iconName: defaultIcon.name,
-        iconColor: palette.warning,
+        ...accentBadge,
         pill: {
           label: 'Incompleto',
           color: palette.warning,
@@ -218,36 +208,286 @@ const getStatusVisuals = (
       };
     default:
       return {
-        badgeBackground: ColorUtils.withAlpha(palette.primary, 0.1),
-        iconLibrary: defaultIcon.library,
-        iconName: defaultIcon.name,
-        iconColor: palette.primary,
+        ...accentBadge,
         pill: null,
       };
   }
 };
 
-const SectionStatusPill = ({
-  pill,
-  containerStyle,
+const SectionCard = ({
+  visuals,
+  title,
+  summary,
+  summaryNumberOfLines = 1,
+  status,
+  highlighted,
+  expanded,
+  onToggle,
+  styles,
+  palette,
+  children,
 }: {
-  pill: SectionStatusPillData | null;
-  containerStyle: StyleProp<ViewStyle>;
+  visuals: SectionVisuals;
+  title: string;
+  summary: string;
+  summaryNumberOfLines?: number;
+  status: SectionStatus;
+  highlighted?: boolean;
+  expanded: boolean;
+  onToggle: () => void;
+  styles: ReturnType<typeof createStyles>;
+  palette: ThemePalette;
+  children: ReactNode;
 }) => {
-  if (!pill) return null;
-
+  const { isDark } = useAppTheme();
+  const cardBg = isDark ? palette.backgroundColor2 : palette.backgroundColor;
   return (
-    <View style={[containerStyle, { backgroundColor: pill.background }]}>
-      <FancyText size='extraSmall' type='semiBold' color={pill.color}>
-        {pill.label}
-      </FancyText>
+    <View
+      style={[
+        styles.flatSection,
+        highlighted && styles.flatSectionHighlighted,
+        {
+          backgroundColor: cardBg,
+          borderColor:
+            status === 'error' ? palette.error : ColorUtils.withAlpha(palette.borderCard, 0.45),
+          borderWidth: status === 'error' ? 1.5 : 0.5,
+        },
+      ]}
+    >
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={onToggle}
+        accessibilityRole='button'
+        accessibilityState={{ expanded }}
+        accessibilityLabel={`${title}. ${expanded ? 'Recolher' : 'Expandir'} seção`}
+        style={styles.flatSectionHeader}
+      >
+        <View style={[styles.flatSectionIconBadge, { backgroundColor: visuals.badgeBackground }]}>
+          <DefaultIcons.Custom
+            library={visuals.iconLibrary}
+            name={visuals.iconName}
+            size={20}
+            color={visuals.iconColor}
+          />
+        </View>
+        <View style={styles.flatSectionHeaderText}>
+          <FancyText type='semiBold' size='small'>
+            {title}
+          </FancyText>
+          <FancyText
+            size='extraSmall'
+            color={palette.fonts.inactive}
+            numberOfLines={summaryNumberOfLines}
+          >
+            {summary}
+          </FancyText>
+        </View>
+        {visuals.pill ? (
+          <FancyChips
+            label={visuals.pill.label}
+            color={visuals.pill.color}
+            backgroundColor={visuals.pill.background}
+            size='small'
+            dot
+          />
+        ) : null}
+        <DefaultIcons.Custom
+          library='MaterialCommunityIcons'
+          name={expanded ? 'chevron-up' : 'chevron-down'}
+          size={22}
+          color={palette.icons.inactive}
+        />
+      </TouchableOpacity>
+      {expanded ? <View style={styles.flatSectionContent}>{children}</View> : null}
     </View>
   );
 };
 
+type PlanSummary = {
+  badgeLabel: string;
+  badgeColor: string;
+  badgeBackground: string;
+  statusLabel: string;
+  statusIcon: { library: IconLibrary; name: string };
+};
+
+const getPlanSummary = (
+  assinatura: ResponseIgrejaAssinaturaDto | undefined,
+  palette: ThemePalette,
+): PlanSummary => {
+  if (!assinatura) {
+    return {
+      badgeLabel: '—',
+      badgeColor: palette.fonts.inactive,
+      badgeBackground: ColorUtils.withAlpha(palette.fonts.inactive, 0.12),
+      statusLabel: '—',
+      statusIcon: { library: 'MaterialCommunityIcons', name: 'help-circle-outline' },
+    };
+  }
+
+  if (assinatura.status === 'trial') {
+    const accent = palette.plans.avaliacao;
+    return {
+      badgeLabel: 'Avaliação',
+      badgeColor: accent.text,
+      badgeBackground: ColorUtils.withAlpha(accent.accent, 0.12),
+      statusLabel: 'Em avaliação',
+      statusIcon: { library: 'MaterialCommunityIcons', name: 'clock-outline' },
+    };
+  }
+
+  if (assinatura.status === 'overdue') {
+    return {
+      badgeLabel: 'Pagamento pendente',
+      badgeColor: palette.warning,
+      badgeBackground: ColorUtils.withAlpha(palette.warning, 0.14),
+      statusLabel: 'Pendente',
+      statusIcon: { library: 'MaterialCommunityIcons', name: 'alert-circle-outline' },
+    };
+  }
+
+  if (assinatura.status === 'cancelled' || assinatura.status === 'expired') {
+    const label = assinatura.status === 'cancelled' ? 'Cancelada' : 'Expirada';
+    return {
+      badgeLabel: label,
+      badgeColor: palette.error,
+      badgeBackground: ColorUtils.withAlpha(palette.error, 0.12),
+      statusLabel: label,
+      statusIcon: { library: 'MaterialCommunityIcons', name: 'close-circle-outline' },
+    };
+  }
+
+  const planAccent =
+    assinatura.plan === 'starter' ||
+    assinatura.plan === 'essencial' ||
+    assinatura.plan === 'crescimento'
+      ? palette.plans[assinatura.plan]
+      : { accent: palette.primary, text: palette.primary };
+
+  return {
+    badgeLabel: resolveBillingPlanName(assinatura.plan),
+    badgeColor: planAccent.text,
+    badgeBackground: ColorUtils.withAlpha(planAccent.accent, 0.12),
+    statusLabel: 'Ativa',
+    statusIcon: { library: 'MaterialCommunityIcons', name: 'check-decagram-outline' },
+  };
+};
+
+const HeroStatCard = ({
+  icon,
+  label,
+  value,
+  accent,
+  valueColor,
+  ratio,
+  styles,
+  palette,
+}: {
+  icon: { library: IconLibrary; name: string };
+  label: string;
+  value: string;
+  accent?: string;
+  valueColor?: string;
+  ratio?: number;
+  styles: ReturnType<typeof createStyles>;
+  palette: ThemePalette;
+}) => {
+  const { isDark } = useAppTheme();
+  const cardBg = isDark ? palette.backgroundColor2 : palette.backgroundColor;
+  const accentColor = accent ?? palette.primary;
+  return (
+    <View style={[styles.heroStatCard, { backgroundColor: cardBg }]}>
+      <View style={styles.heroStatTop}>
+        <DefaultIcons.Custom
+          library={icon.library}
+          name={icon.name}
+          size={14}
+          color={accentColor}
+        />
+        <FancyText size='extraSmall' color={palette.fonts.inactive} numberOfLines={1}>
+          {label}
+        </FancyText>
+      </View>
+      <FancyText
+        type='semiBold'
+        size='largeMedium'
+        color={valueColor ?? palette.fonts.dark}
+        numberOfLines={1}
+      >
+        {value}
+      </FancyText>
+      {typeof ratio === 'number' ? (
+        <View
+          style={[
+            styles.heroStatTrack,
+            { backgroundColor: ColorUtils.withAlpha(accentColor, 0.14) },
+          ]}
+        >
+          <View
+            style={[
+              styles.heroStatFill,
+              {
+                backgroundColor: accentColor,
+                width: `${Math.max(Math.min(ratio, 1) * 100, 6)}%`,
+              },
+            ]}
+          />
+        </View>
+      ) : null}
+    </View>
+  );
+};
+
+const ReminderChip = ({
+  label,
+  selected,
+  onPress,
+  styles,
+  palette,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+  styles: ReturnType<typeof createStyles>;
+  palette: ThemePalette;
+}) => (
+  <TouchableOpacity
+    activeOpacity={0.85}
+    onPress={onPress}
+    accessibilityRole='button'
+    accessibilityState={{ selected }}
+    style={[
+      styles.reminderChip,
+      selected
+        ? { backgroundColor: palette.primary, borderColor: palette.primary }
+        : {
+            backgroundColor: palette.backgroundColor4,
+            borderColor: ColorUtils.withAlpha(palette.borderCard, 0.7),
+          },
+    ]}
+  >
+    {selected ? (
+      <DefaultIcons.Custom
+        library='MaterialCommunityIcons'
+        name='check'
+        size={14}
+        color={palette.fonts.light}
+      />
+    ) : null}
+    <FancyText
+      type={selected ? 'semiBold' : 'medium'}
+      size='small'
+      color={selected ? palette.fonts.light : palette.fonts.dark}
+    >
+      {label}
+    </FancyText>
+  </TouchableOpacity>
+);
+
 export default function ConfiguracoesPage() {
   const { igrejaAtiva, user, updateUser } = useAuth();
   const palette = usePallete();
+  const { showLoading } = useLoading();
   const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
   const igrejaId = igrejaAtiva?.id;
@@ -264,29 +504,28 @@ export default function ConfiguracoesPage() {
   } = useIgrejaAssinatura({ igrejaId });
 
   // Não executar o hook se não houver igreja ativa
-  const { data, isLoading, updateDados, updateNotificacoes, isUpdating } =
-    useIgrejaConfiguracoes({
-      igrejaId: igrejaId || '',
-      onUpdateDadosSuccess: async (updatedData) => {
-        // Atualizar a igreja no contexto de autenticação
-        if (user?.igrejas && igrejaAtiva) {
-          const igrejasAtualizadas = user.igrejas.map((igreja) =>
-            igreja.id === igrejaAtiva.id
-              ? {
-                  ...igreja,
-                  nome: updatedData.nome,
-                  logoUrl: updatedData.logoUrl,
-                  logoThumbUrl: updatedData.logoThumbUrl,
-                  // Preservar os ministérios da igreja atual
-                  ministerios: igreja.ministerios,
-                }
-              : igreja,
-          );
+  const { data, isLoading, updateDados, updateNotificacoes, isUpdating } = useIgrejaConfiguracoes({
+    igrejaId: igrejaId || '',
+    onUpdateDadosSuccess: async (updatedData) => {
+      // Atualizar a igreja no contexto de autenticação
+      if (user?.igrejas && igrejaAtiva) {
+        const igrejasAtualizadas = user.igrejas.map((igreja) =>
+          igreja.id === igrejaAtiva.id
+            ? {
+                ...igreja,
+                nome: updatedData.nome,
+                logoUrl: updatedData.logoUrl,
+                logoThumbUrl: updatedData.logoThumbUrl,
+                // Preservar os ministérios da igreja atual
+                ministerios: igreja.ministerios,
+              }
+            : igreja,
+        );
 
-          await updateUser({ igrejas: igrejasAtualizadas });
-        }
-      },
-    });
+        await updateUser({ igrejas: igrejasAtualizadas });
+      }
+    },
+  });
 
   // State para controlar upload de imagem
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -342,18 +581,21 @@ export default function ConfiguracoesPage() {
     },
   });
   const selectedReminderHours = notificacoesForm.watch('lembretesHoras');
+  const notificacoesHabilitadas = notificacoesForm.watch('notificacoesHabilitadas');
   const [billingCycle, setBillingCycle] = useState<BillingCycleCode>('MONTHLY');
   const [billingPlansModalVisible, setBillingPlansModalVisible] = useState(false);
   const [activeTabIndex, setActiveTabIndex] = useState(tab === 'plano' ? 3 : 0);
-  const [accordionOpenSection, setAccordionOpenSection] = useState<DataSectionKey | null>(null);
   const [hasAttemptedDadosSave, setHasAttemptedDadosSave] = useState(false);
   const [highlightedAccordionSection, setHighlightedAccordionSection] =
     useState<DataSectionKey | null>(null);
-  const [pendingAccordionSection, setPendingAccordionSection] = useState<DataSectionKey | null>(
-    null,
-  );
-  const accordionOpenFrameRef = useRef<number | null>(null);
-  const accordionClearPendingFrameRef = useRef<number | null>(null);
+  const [expandedSections, setExpandedSections] = useState<Record<DataSectionKey, boolean>>({
+    general: true,
+    address: false,
+    billing: false,
+  });
+  const toggleSection = useCallback((key: DataSectionKey) => {
+    setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  }, []);
   const [useChurchAddressForBilling, setUseChurchAddressForBilling] = useState(false);
 
   const ufSelecionada = dadosForm.watch('endereco.uf');
@@ -447,19 +689,24 @@ export default function ConfiguracoesPage() {
     hasInteraction: billingSectionHasInteraction,
     attemptedSave: hasAttemptedDadosSave,
   });
-  const generalSectionVisuals = getStatusVisuals(generalSectionStatus, palette, {
-    library: 'MaterialCommunityIcons',
-    name: 'information-outline',
-  });
-  const addressSectionVisuals = getStatusVisuals(addressSectionStatus, palette, {
-    library: 'MaterialCommunityIcons',
-    name: 'map-marker-outline',
-  });
-  const billingSectionVisuals = getStatusVisuals(billingSectionStatus, palette, {
-    library: 'MaterialCommunityIcons',
-    name: 'credit-card-outline',
-  });
-  const billingStatusLabel = billingProfileComplete ? 'Cobrança completa' : 'Cobrança incompleta';
+  const generalSectionVisuals = getStatusVisuals(
+    generalSectionStatus,
+    palette,
+    { library: 'MaterialCommunityIcons', name: 'information-outline' },
+    palette.primary,
+  );
+  const addressSectionVisuals = getStatusVisuals(
+    addressSectionStatus,
+    palette,
+    { library: 'MaterialCommunityIcons', name: 'map-marker-outline' },
+    palette.terciary,
+  );
+  const billingSectionVisuals = getStatusVisuals(
+    billingSectionStatus,
+    palette,
+    { library: 'MaterialCommunityIcons', name: 'credit-card-outline' },
+    palette.secondary,
+  );
   const billingAddressSummary = useMemo(() => {
     const parts = [
       faturamentoForm.getValues('rua'),
@@ -567,41 +814,8 @@ export default function ConfiguracoesPage() {
       .join(', ');
   }, [selectedReminderHours]);
 
-  const setAccordionSectionState = (
-    section: DataSectionKey,
-    expanded: boolean,
-    highlight = false,
-  ) => {
-    if (highlight) {
-      setHighlightedAccordionSection(section);
-    }
-
-    if (
-      pendingAccordionSection === null &&
-      ((expanded && accordionOpenSection === section) ||
-        (!expanded && accordionOpenSection !== section))
-    ) {
-      return;
-    }
-
-    if (accordionOpenFrameRef.current !== null) {
-      cancelAnimationFrame(accordionOpenFrameRef.current);
-    }
-    if (accordionClearPendingFrameRef.current !== null) {
-      cancelAnimationFrame(accordionClearPendingFrameRef.current);
-    }
-
-    setPendingAccordionSection(section);
-    accordionOpenFrameRef.current = requestAnimationFrame(() => {
-      setAccordionOpenSection(expanded ? section : null);
-      accordionClearPendingFrameRef.current = requestAnimationFrame(() => {
-        setPendingAccordionSection(null);
-      });
-    });
-  };
-
-  const openAccordionSection = (section: DataSectionKey, highlight = false) => {
-    setAccordionSectionState(section, true, highlight);
+  const highlightAccordionSection = (section: DataSectionKey) => {
+    setHighlightedAccordionSection(section);
   };
 
   const syncBillingAddressWithChurch = (markDirty: boolean) => {
@@ -760,23 +974,17 @@ export default function ConfiguracoesPage() {
   useEffect(() => {
     if (!highlightedAccordionSection) return;
 
+    // Garante que a seção destacada (erro de validação / atalho de cobrança)
+    // esteja aberta para o usuário ver o conteúdo realçado.
+    const section = highlightedAccordionSection;
+    setExpandedSections((prev) => (prev[section] ? prev : { ...prev, [section]: true }));
+
     const timeout = setTimeout(() => {
       setHighlightedAccordionSection(null);
     }, 2200);
 
     return () => clearTimeout(timeout);
   }, [highlightedAccordionSection]);
-
-  useEffect(() => {
-    return () => {
-      if (accordionOpenFrameRef.current !== null) {
-        cancelAnimationFrame(accordionOpenFrameRef.current);
-      }
-      if (accordionClearPendingFrameRef.current !== null) {
-        cancelAnimationFrame(accordionClearPendingFrameRef.current);
-      }
-    };
-  }, []);
 
   // Atualizar forms quando data carregar
   useEffect(() => {
@@ -862,7 +1070,7 @@ export default function ConfiguracoesPage() {
         dataErrors.endereco?.cidade ||
         dataErrors.endereco?.uf,
       );
-      openAccordionSection(hasAddressErrors ? 'address' : 'general');
+      highlightAccordionSection(hasAddressErrors ? 'address' : 'general');
       Toast.show({
         type: 'error',
         text1: 'Revise os dados',
@@ -873,7 +1081,7 @@ export default function ConfiguracoesPage() {
 
     const faturamentoValido = await faturamentoForm.trigger();
     if (!faturamentoValido) {
-      openAccordionSection('billing');
+      highlightAccordionSection('billing');
       Toast.show({
         type: 'error',
         text1: 'Revise os dados',
@@ -962,14 +1170,14 @@ export default function ConfiguracoesPage() {
   const handleAbrirConfiguracaoFaturamento = () => {
     closeBillingPlansModal();
     setActiveTabIndex(0);
-    openAccordionSection('billing', true);
+    highlightAccordionSection('billing');
   };
 
   const handleIniciarCheckout = (plan: (typeof BILLING_PLAN_OPTIONS)[number]['codigo']) => {
     if (!billingProfileComplete) {
       closeBillingPlansModal();
       setActiveTabIndex(0);
-      openAccordionSection('billing', true);
+      highlightAccordionSection('billing');
       FancyAlert.alert(
         'Cobrança incompleta',
         'Complete os dados de cobrança da igreja antes de iniciar a assinatura.',
@@ -978,19 +1186,22 @@ export default function ConfiguracoesPage() {
       return;
     }
 
+    const isChangingPlan = ['active', 'trial', 'overdue'].includes(assinatura?.status ?? '');
+    const dto = { churchId: igrejaId!, plan, cycle: billingCycle, changePlan: isChangingPlan };
     closeBillingPlansModal();
-    iniciarCheckout({
-      churchId: igrejaId!,
-      plan,
-      cycle: billingCycle,
-    });
+    // Aguarda o Modal do bottom sheet fechar antes de abrir o Modal de loading —
+    // dois Modals nativas simultâneos no Android causam conflito silencioso.
+    setTimeout(() => {
+      showLoading(isChangingPlan ? 'Trocando de plano...' : 'Preparando pagamento...');
+      iniciarCheckout(dto);
+    }, 350);
   };
 
   const handleToggleUseChurchAddress = (nextValue: boolean) => {
     setUseChurchAddressForBilling(nextValue);
     if (nextValue) {
       syncBillingAddressWithChurch(true);
-      openAccordionSection('billing');
+      highlightAccordionSection('billing');
     }
   };
 
@@ -1042,66 +1253,15 @@ export default function ConfiguracoesPage() {
             fill
           >
             <View style={styles.dataSectionsStack}>
-              <FancyAccordeon
-                expanded={accordionOpenSection === 'general'}
-                onExpandedChange={(expanded) => {
-                  setAccordionSectionState('general', expanded);
-                }}
-                disabled={pendingAccordionSection !== null && pendingAccordionSection !== 'general'}
-                isLoading={pendingAccordionSection === 'general'}
-                title={
-                  <View style={styles.accordionHeaderMain}>
-                    <View
-                      style={[
-                        styles.accordionIconBadge,
-                        { backgroundColor: generalSectionVisuals.badgeBackground },
-                      ]}
-                    >
-                      <DefaultIcons.Custom
-                        library={generalSectionVisuals.iconLibrary}
-                        name={generalSectionVisuals.iconName}
-                        size={18}
-                        color={generalSectionVisuals.iconColor}
-                      />
-                    </View>
-                    <View style={styles.accordionHeaderText}>
-                      <FancyText type='semiBold' size='small'>
-                        Geral
-                      </FancyText>
-                      <FancyText size='extraSmall' color={palette.fonts.inactive} numberOfLines={1}>
-                        {generalSectionSummary}
-                      </FancyText>
-                    </View>
-                  </View>
-                }
-                subtitle={
-                  <SectionStatusPill
-                    pill={generalSectionVisuals.pill}
-                    containerStyle={styles.accordionStatusPill}
-                  />
-                }
-                contentContainerStyle={styles.accordionContent}
-                headerContainerStyle={styles.accordionHeader}
-                headerExpandedContainerStyle={styles.accordionHeaderExpanded}
-                containerContainerStyle={[
-                  styles.accordionSection,
-                  {
-                    borderColor:
-                      generalSectionStatus === 'error' ? palette.error : palette.borderCard,
-                    borderWidth: generalSectionStatus === 'error' ? 1.5 : 1,
-                  },
-                ]}
-                containerExpandedContainerStyle={[
-                  styles.accordionSection,
-                  {
-                    borderColor:
-                      generalSectionStatus === 'error'
-                        ? palette.error
-                        : ColorUtils.withAlpha(palette.primary, 0.24),
-                    borderWidth: generalSectionStatus === 'error' ? 1.5 : 1,
-                  },
-                ]}
-                iconProps={{ size: 22, color: palette.fonts.inactive }}
+              <SectionCard
+                visuals={generalSectionVisuals}
+                status={generalSectionStatus}
+                title='Geral'
+                summary={generalSectionSummary}
+                expanded={expandedSections.general}
+                onToggle={() => toggleSection('general')}
+                styles={styles}
+                palette={palette}
               >
                 <View style={styles.avatarContainer}>
                   <ControlledImagePicker
@@ -1109,16 +1269,9 @@ export default function ConfiguracoesPage() {
                     name='logoUrl'
                     setValue={dadosForm.setValue}
                     uploadFieldName={'logoFile' as any}
+                    size={100}
+                    buttonSize={33}
                   />
-                </View>
-
-                <View style={styles.sectionCopyBlock}>
-                  <FancyText type='semiBold' size='small'>
-                    Informações principais
-                  </FancyText>
-                  <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                    Ajuste o que a equipe vê primeiro ao entrar na igreja.
-                  </FancyText>
                 </View>
 
                 <ControlledTextInput
@@ -1141,109 +1294,40 @@ export default function ConfiguracoesPage() {
                   keyboardType='email-address'
                 />
 
-                <View style={styles.codigoCard}>
-                  <View style={styles.codigoHeader}>
-                    <DefaultIcons.Custom
-                      library='MaterialCommunityIcons'
-                      name='qrcode'
-                      size={20}
-                      color={palette.primary}
-                    />
-                    <FancyText type='medium' size='small' style={styles.codigoTitulo}>
-                      Código da Igreja
-                    </FancyText>
-                  </View>
-                  <View style={styles.codigoBody}>
-                    <FancyText type='bold' size='extraLarge' style={styles.codigoTexto}>
-                      {data?.codigo || '---'}
-                    </FancyText>
-                    <FancyText type='normal' size='extraSmall' style={styles.codigoDesc}>
-                      Compartilhe este código para convidar pessoas
-                    </FancyText>
-                  </View>
-                  <TouchableOpacity style={styles.codigoCopyButton} onPress={handleCopiarCodigo}>
-                    <DefaultIcons.Custom
-                      library='MaterialCommunityIcons'
-                      name='content-copy'
-                      size={16}
-                      color={palette.primary}
-                    />
-                    <FancyText type='medium' size='small' style={styles.codigoCopyText}>
-                      Copiar Código
-                    </FancyText>
-                  </TouchableOpacity>
-                </View>
-              </FancyAccordeon>
-              <FancyAccordeon
-                expanded={accordionOpenSection === 'address'}
-                onExpandedChange={(expanded) => {
-                  setAccordionSectionState('address', expanded);
-                }}
-                disabled={pendingAccordionSection !== null && pendingAccordionSection !== 'address'}
-                isLoading={pendingAccordionSection === 'address'}
-                title={
-                  <View style={styles.accordionHeaderMain}>
-                    <View
-                      style={[
-                        styles.accordionIconBadge,
-                        { backgroundColor: addressSectionVisuals.badgeBackground },
-                      ]}
-                    >
+                <FancyListItemCard
+                  leading={{
+                    icon: { library: 'MaterialCommunityIcons', name: 'qrcode' },
+                    type: 'icon',
+                  }}
+                  title={data?.codigo || '---'}
+                  titleProps={{ size: 'small', style: styles.codigoTexto }}
+                  subtitle='Compartilhe este código para convidar pessoas'
+                  onPress={handleCopiarCodigo}
+                  trailing={
+                    <View style={styles.codigoCopyTrailing}>
                       <DefaultIcons.Custom
-                        library={addressSectionVisuals.iconLibrary}
-                        name={addressSectionVisuals.iconName}
-                        size={18}
-                        color={addressSectionVisuals.iconColor}
+                        library='MaterialCommunityIcons'
+                        name='content-copy'
+                        size={16}
+                        color={palette.primary}
                       />
-                    </View>
-                    <View style={styles.accordionHeaderText}>
-                      <FancyText type='semiBold' size='small'>
-                        Endereço
-                      </FancyText>
-                      <FancyText size='extraSmall' color={palette.fonts.inactive} numberOfLines={1}>
-                        {addressSectionSummary}
+                      <FancyText type='medium' size='extraSmall' color={palette.primary}>
+                        Copiar
                       </FancyText>
                     </View>
-                  </View>
-                }
-                subtitle={
-                  <SectionStatusPill
-                    pill={addressSectionVisuals.pill}
-                    containerStyle={styles.accordionStatusPill}
-                  />
-                }
-                contentContainerStyle={styles.accordionContent}
-                headerContainerStyle={styles.accordionHeader}
-                headerExpandedContainerStyle={styles.accordionHeaderExpanded}
-                containerContainerStyle={[
-                  styles.accordionSection,
-                  {
-                    borderColor:
-                      addressSectionStatus === 'error' ? palette.error : palette.borderCard,
-                    borderWidth: addressSectionStatus === 'error' ? 1.5 : 1,
-                  },
-                ]}
-                containerExpandedContainerStyle={[
-                  styles.accordionSection,
-                  {
-                    borderColor:
-                      addressSectionStatus === 'error'
-                        ? palette.error
-                        : ColorUtils.withAlpha(palette.primary, 0.24),
-                    borderWidth: addressSectionStatus === 'error' ? 1.5 : 1,
-                  },
-                ]}
-                iconProps={{ size: 22, color: palette.fonts.inactive }}
+                  }
+                />
+              </SectionCard>
+              <SectionCard
+                visuals={addressSectionVisuals}
+                status={addressSectionStatus}
+                title='Endereço'
+                summary={addressSectionSummary}
+                expanded={expandedSections.address}
+                onToggle={() => toggleSection('address')}
+                styles={styles}
+                palette={palette}
               >
-                <View style={styles.sectionCopyBlock}>
-                  <FancyText type='semiBold' size='small'>
-                    Endereço da igreja
-                  </FancyText>
-                  <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                    Esse é o endereço principal da igreja.
-                  </FancyText>
-                </View>
-
                 <ControlledMaskedTextInput
                   control={dadosForm.control}
                   name='endereco.cep'
@@ -1298,103 +1382,19 @@ export default function ConfiguracoesPage() {
                     }
                   }}
                 />
-              </FancyAccordeon>
-              <FancyAccordeon
-                expanded={accordionOpenSection === 'billing'}
-                onExpandedChange={(expanded) => {
-                  setAccordionSectionState('billing', expanded);
-                }}
-                disabled={pendingAccordionSection !== null && pendingAccordionSection !== 'billing'}
-                isLoading={pendingAccordionSection === 'billing'}
-                title={
-                  <View style={styles.accordionHeaderMain}>
-                    <View
-                      style={[
-                        styles.accordionIconBadge,
-                        { backgroundColor: billingSectionVisuals.badgeBackground },
-                      ]}
-                    >
-                      <DefaultIcons.Custom
-                        library={billingSectionVisuals.iconLibrary}
-                        name={billingSectionVisuals.iconName}
-                        size={18}
-                        color={billingSectionVisuals.iconColor}
-                      />
-                    </View>
-                    <View style={styles.accordionHeaderText}>
-                      <FancyText type='semiBold' size='small'>
-                        Cobrança
-                      </FancyText>
-                      <FancyText size='extraSmall' color={palette.fonts.inactive} numberOfLines={2}>
-                        {billingSectionSummary}
-                      </FancyText>
-                    </View>
-                  </View>
-                }
-                subtitle={
-                  <SectionStatusPill
-                    pill={billingSectionVisuals.pill}
-                    containerStyle={styles.accordionStatusPill}
-                  />
-                }
-                contentContainerStyle={styles.accordionContent}
-                headerContainerStyle={styles.accordionHeader}
-                headerExpandedContainerStyle={styles.accordionHeaderExpanded}
-                containerContainerStyle={[
-                  styles.accordionSection,
-                  highlightedAccordionSection === 'billing' && styles.accordionSectionHighlighted,
-                  {
-                    borderColor:
-                      billingSectionStatus === 'error'
-                        ? palette.error
-                        : highlightedAccordionSection === 'billing'
-                          ? ColorUtils.withAlpha(palette.primary, 0.32)
-                          : palette.borderCard,
-                    borderWidth: billingSectionStatus === 'error' ? 1.5 : 1,
-                  },
-                ]}
-                containerExpandedContainerStyle={[
-                  styles.accordionSection,
-                  highlightedAccordionSection === 'billing' && styles.accordionSectionHighlighted,
-                  {
-                    borderColor:
-                      billingSectionStatus === 'error'
-                        ? palette.error
-                        : ColorUtils.withAlpha(palette.primary, 0.32),
-                    borderWidth: billingSectionStatus === 'error' ? 1.5 : 1,
-                  },
-                ]}
-                iconProps={{ size: 22, color: palette.fonts.inactive }}
+              </SectionCard>
+              <SectionCard
+                visuals={billingSectionVisuals}
+                status={billingSectionStatus}
+                title='Cobrança'
+                summary={billingSectionSummary}
+                summaryNumberOfLines={2}
+                highlighted={highlightedAccordionSection === 'billing'}
+                expanded={expandedSections.billing}
+                onToggle={() => toggleSection('billing')}
+                styles={styles}
+                palette={palette}
               >
-                <View style={styles.billingContentHeader}>
-                  <View style={styles.sectionCopyBlock}>
-                    <FancyText type='semiBold' size='small'>
-                      Dados de cobrança
-                    </FancyText>
-                    <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                      Esses dados são usados no checkout da assinatura.
-                    </FancyText>
-                  </View>
-                  <View
-                    style={[
-                      styles.billingProfilePill,
-                      {
-                        backgroundColor: billingProfileComplete
-                          ? ColorUtils.withAlpha(palette.confirm, 0.12)
-                          : ColorUtils.withAlpha(palette.warning, 0.14),
-                      },
-                    ]}
-                  >
-                    <FancyText
-                      size='extraSmall'
-                      type='semiBold'
-                      color={billingProfileComplete ? palette.confirm : palette.warning}
-                    >
-                      {billingStatusLabel}
-                    </FancyText>
-                  </View>
-                </View>
-
                 <ControlledMaskedTextInput
                   control={faturamentoForm.control}
                   name='cnpj'
@@ -1445,17 +1445,16 @@ export default function ConfiguracoesPage() {
                 </TouchableOpacity>
 
                 {useChurchAddressForBilling ? (
-                  <>
-                    <View style={styles.addressPreviewCard}>
-                      <FancyText type='medium' size='small'>
-                        Endereço em uso
-                      </FancyText>
-                      <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                        {billingAddressSummary ||
-                          'Preencha o endereço da igreja para reutilizar aqui.'}
-                      </FancyText>
-                    </View>
-                  </>
+                  <FancyListItemCard
+                    leading={{
+                      icon: { library: 'MaterialCommunityIcons', name: 'map-marker-outline' },
+                      type: 'icon',
+                    }}
+                    title='Endereço em uso'
+                    subtitle={
+                      billingAddressSummary || 'Preencha o endereço da igreja para reutilizar aqui.'
+                    }
+                  />
                 ) : (
                   <>
                     <ControlledMaskedTextInput
@@ -1525,7 +1524,7 @@ export default function ConfiguracoesPage() {
                     />
                   </>
                 )}
-              </FancyAccordeon>
+              </SectionCard>
             </View>
           </FancyScrollView>
           <View
@@ -1562,22 +1561,53 @@ export default function ConfiguracoesPage() {
             extraScrollHeight={100}
             fill
           >
-            <ControlledFancyToggle
-              control={notificacoesForm.control}
-              name='notificacoesHabilitadas'
-              label='Lembretes automáticos'
-              option1={{ title: 'Habilitado', value: true }}
-              option2={{ title: 'Desabilitado', value: false }}
-            />
+            <View style={styles.sectionEyebrow}>
+              <View style={[styles.sectionEyebrowTick, { backgroundColor: palette.primary }]} />
+              <FancyText
+                type='semiBold'
+                size={10}
+                color={palette.primary}
+                style={styles.sectionEyebrowText}
+              >
+                LEMBRETES AUTOMÁTICOS
+              </FancyText>
+            </View>
+
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() =>
+                notificacoesForm.setValue('notificacoesHabilitadas', !notificacoesHabilitadas, {
+                  shouldDirty: true,
+                })
+              }
+              style={styles.toggleRow}
+            >
+              <View style={{ flex: 1, gap: 1 }}>
+                <FancyText size='small' type='semiBold' color={palette.fonts.dark}>
+                  Enviar lembretes automáticos
+                </FancyText>
+                <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                  Notifica voluntários sobre escalas futuras
+                </FancyText>
+              </View>
+              <View pointerEvents='none'>
+                <FancyPillToggle value={!!notificacoesHabilitadas} />
+              </View>
+            </TouchableOpacity>
 
             <View style={styles.remindersContainer}>
               <View style={styles.remindersHeader}>
-                <FancyText type='medium' size='small' style={styles.canaisLabel}>
-                  Horários dos lembretes
-                </FancyText>
-                <FancyText type='normal' size='extraSmall' style={styles.remindersSummary}>
-                  {reminderLabel}
-                </FancyText>
+                <View style={styles.sectionEyebrow}>
+                  <View style={[styles.sectionEyebrowTick, { backgroundColor: palette.primary }]} />
+                  <FancyText
+                    type='semiBold'
+                    size={10}
+                    color={palette.primary}
+                    style={styles.sectionEyebrowText}
+                  >
+                    HORÁRIOS DOS LEMBRETES
+                  </FancyText>
+                </View>
               </View>
 
               <FancyText type='normal' size='extraSmall' style={styles.remindersHelp}>
@@ -1585,41 +1615,16 @@ export default function ConfiguracoesPage() {
               </FancyText>
 
               <View style={styles.remindersList}>
-                {REMINDER_OPTIONS.map((option) => {
-                  const selected = selectedReminderHours?.includes(option.value) ?? false;
-
-                  return (
-                    <TouchableOpacity
-                      key={option.value}
-                      style={[
-                        styles.reminderOption,
-                        selected && styles.reminderOptionSelected,
-                        selected && {
-                          borderColor: palette.primary,
-                          backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12),
-                        },
-                      ]}
-                      onPress={() => toggleReminderHour(option.value)}
-                      activeOpacity={0.85}
-                    >
-                      <View pointerEvents='none'>
-                        <FancyCheckbox value={selected} />
-                      </View>
-                      <View style={styles.reminderOptionText}>
-                        <FancyText type='semiBold' size='small'>
-                          {option.title}
-                        </FancyText>
-                        <FancyText
-                          type='normal'
-                          size='extraSmall'
-                          style={styles.reminderOptionDescription}
-                        >
-                          {option.description}
-                        </FancyText>
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
+                {REMINDER_OPTIONS.map((option) => (
+                  <ReminderChip
+                    key={option.value}
+                    label={option.shortLabel}
+                    selected={selectedReminderHours?.includes(option.value) ?? false}
+                    onPress={() => toggleReminderHour(option.value)}
+                    styles={styles}
+                    palette={palette}
+                  />
+                ))}
               </View>
 
               {!!notificacoesForm.formState.errors.lembretesHoras?.message && (
@@ -1717,7 +1722,14 @@ export default function ConfiguracoesPage() {
               />
             </View>
 
-            <View style={styles.planList}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              decelerationRate='fast'
+              snapToInterval={264}
+              snapToAlignment='start'
+              contentContainerStyle={styles.planList}
+            >
               {BILLING_PLAN_OPTIONS.map((plan) => {
                 const matchesCurrentSelection =
                   assinatura?.plan === plan.codigo && assinatura?.cycle === billingCycle;
@@ -1729,260 +1741,259 @@ export default function ConfiguracoesPage() {
                   assinatura.status !== 'cancelled' &&
                   assinatura.plan === plan.codigo &&
                   assinatura.cycle === billingCycle;
-                const switchLocked = assinatura?.status === 'active' && !isCurrent;
-                const isReactivationOption =
-                  assinatura?.status === 'cancelled' && matchesCurrentSelection;
+                const switchLocked = false;
                 const isRecommended = plan.codigo === 'essencial';
                 const isUpgradeRecommendation =
                   hasExceededPlanCapacity && recommendedUpgradePlan?.codigo === plan.codigo;
-                const planBadgeLabel = isUpgradeRecommendation
-                  ? 'Recomendado para o uso atual'
-                  : plan.highlight;
                 const priceLabel = billingCycle === 'YEARLY' ? plan.yearlyPrice : plan.monthlyPrice;
                 const [priceValue, priceSuffix] = priceLabel.split('/');
-                const pricePeriodLabel = billingCycle === 'YEARLY' ? 'por ano' : 'por mês';
-                const resolvedPriceMeta = priceSuffix
-                  ? priceSuffix === 'mês' || priceSuffix === 'ano'
-                    ? pricePeriodLabel
-                    : `${priceSuffix} · ${pricePeriodLabel}`
-                  : pricePeriodLabel;
                 const planAccent =
                   plan.codigo === 'starter'
                     ? palette.primary
                     : plan.codigo === 'essencial'
-                      ? palette.confirm
+                      ? palette.secondary
                       : palette.terciary;
-                const featureColumns = [
-                  [
-                    `Até ${plan.maxVolunteers} voluntários ativos`,
-                    `Cobrança ${billingCycle === 'YEARLY' ? 'anual' : 'mensal'}`,
-                  ],
-                  [
-                    `Até ${plan.maxMinistries} ministérios ativos`,
-                    'Feito para o ritmo atual da igreja',
-                  ],
-                ];
-                const buttonContainerStyle =
-                  isCurrent || isPending
-                    ? {
-                        borderColor: planAccent,
-                        backgroundColor: 'transparent',
-                      }
-                    : switchLocked
-                      ? {
-                          borderColor: ColorUtils.withAlpha(planAccent, 0.28),
-                          backgroundColor: 'transparent',
-                        }
-                      : {
-                          backgroundColor: planAccent,
-                          borderColor: planAccent,
-                        };
-                const buttonLabelStyle = {
-                  color:
-                    isCurrent || isPending
-                      ? planAccent
-                      : switchLocked
-                        ? palette.fonts.inactive
-                        : palette.fonts.light,
-                };
-                const planButtonIcon = isCurrent
-                  ? {
-                      library: 'MaterialCommunityIcons' as const,
-                      name: 'check-circle-outline',
-                      size: 16,
-                      color: planAccent,
-                    }
+                const planIconName =
+                  plan.codigo === 'starter'
+                    ? 'rocket-launch-outline'
+                    : plan.codigo === 'essencial'
+                      ? 'star-outline'
+                      : 'trending-up';
+                const planBadge = isCurrent
+                  ? { label: 'Atual', color: planAccent }
                   : isPending
-                    ? {
-                        library: 'MaterialCommunityIcons' as const,
-                        name: 'credit-card-outline',
-                        size: 16,
-                        color: planAccent,
-                      }
-                    : switchLocked
-                      ? {
-                          library: 'MaterialCommunityIcons' as const,
-                          name: 'lock-outline',
-                          size: 16,
-                          color: palette.fonts.inactive,
-                        }
-                      : {
-                          library: 'MaterialCommunityIcons' as const,
-                          name: 'credit-card-check-outline',
-                          size: 16,
-                          color: palette.fonts.light,
-                        };
+                    ? { label: 'Pendente', color: palette.warning }
+                    : isUpgradeRecommendation
+                      ? { label: 'Recomendado', color: planAccent }
+                      : isRecommended && plan.highlight
+                        ? { label: plan.highlight, color: planAccent }
+                        : switchLocked
+                          ? { label: 'Bloqueado', color: palette.fonts.inactive }
+                          : null;
+                const hasActivePlan = ['active', 'trial', 'overdue'].includes(assinatura?.status ?? '');
+                const planButtonLabel =
+                  isCurrent || switchLocked
+                    ? null
+                    : isPending
+                      ? 'Continuar'
+                      : hasActivePlan
+                        ? 'Trocar plano'
+                        : 'Assinar';
+                const isHighlighted = (isRecommended || isUpgradeRecommendation) && !isCurrent;
+                const planFeatures: string[] =
+                  plan.codigo === 'starter'
+                    ? [
+                        `${plan.maxVolunteers} voluntários`,
+                        `${plan.maxMinistries} ministérios`,
+                        'Escalas e agenda',
+                        'Repertório e funções',
+                      ]
+                    : plan.codigo === 'essencial'
+                      ? [
+                          `${plan.maxVolunteers} voluntários`,
+                          `${plan.maxMinistries} ministérios`,
+                          'Tudo do Starter',
+                          'Suporte prioritário',
+                        ]
+                      : [
+                          `${plan.maxVolunteers} voluntários`,
+                          `${plan.maxMinistries} ministérios`,
+                          'Tudo do Essencial',
+                          'Suporte prioritário',
+                        ];
 
                 return (
                   <View
                     key={plan.codigo}
                     style={[
                       styles.planCard,
-                      (isRecommended || isUpgradeRecommendation) && styles.planCardRecommended,
                       {
-                        backgroundColor: palette.backgroundColor2,
-                        borderColor:
-                          isCurrent || isPending
+                        backgroundColor: isHighlighted
+                          ? ColorUtils.withAlpha(planAccent, 0.06)
+                          : palette.backgroundColor,
+                        borderColor: isCurrent
+                          ? planAccent
+                          : isHighlighted && planBadge
                             ? planAccent
-                            : isUpgradeRecommendation
-                              ? ColorUtils.withAlpha(planAccent, 0.68)
-                              : isRecommended
-                                ? ColorUtils.withAlpha(planAccent, 0.5)
-                                : ColorUtils.withAlpha(planAccent, 0.24),
+                            : isHighlighted
+                              ? ColorUtils.withAlpha(planAccent, 0.5)
+                              : ColorUtils.withAlpha(palette.borderCard, 0.45),
+                        borderWidth: isCurrent || isHighlighted ? 1.5 : 0.5,
                       },
+                      switchLocked && { opacity: 0.45 },
                     ]}
                   >
-                    <View
-                      style={[
-                        styles.planAccentBar,
-                        { backgroundColor: ColorUtils.withAlpha(planAccent, 0.92) },
-                      ]}
-                    />
-
-                    <View style={styles.planHeader}>
-                      <View style={styles.planHeaderText}>
-                        <FancyText type='semiBold' size='large' color={planAccent}>
-                          {plan.nome}
-                        </FancyText>
-                        <FancyText
-                          type='medium'
-                          size='small'
-                          color={ColorUtils.withAlpha(palette.fonts.dark, 0.82)}
-                        >
-                          {plan.descricao}
+                    {/* Faixa "Mais escolhido" — só para plano destacado */}
+                    {planBadge && isHighlighted ? (
+                      <View style={[styles.planBanner, { backgroundColor: planAccent }]}>
+                        <FancyText type='semiBold' size='extraSmall' color={palette.fonts.light}>
+                          {planBadge.label}
                         </FancyText>
                       </View>
-                      {Platform.OS !== 'ios' ? (
-                        <View style={styles.planPriceBlock}>
-                          {planBadgeLabel ? (
-                            <View
-                              style={[
-                                styles.planBadge,
-                                { backgroundColor: ColorUtils.withAlpha(planAccent, 0.1) },
-                              ]}
-                            >
-                              <FancyText size='small' type='semiBold' color={planAccent}>
-                                {planBadgeLabel}
-                              </FancyText>
-                            </View>
-                          ) : null}
-                          <View style={styles.planPriceTextBlock}>
-                            <FancyText
-                              type='bold'
-                              size='extraLarge'
-                              color={planAccent}
-                              style={styles.planPriceValue}
-                            >
-                              {priceValue}
-                            </FancyText>
-                            <FancyText
-                              type='semiBold'
-                              size='extraSmall'
-                              color={ColorUtils.withAlpha(planAccent, 0.82)}
-                              style={styles.planPricePeriod}
-                            >
-                              {resolvedPriceMeta}
-                            </FancyText>
-                          </View>
-                        </View>
+                    ) : null}
+
+                    <View style={styles.planCardContent}>
+                    {/* Cabeçalho: ícone + nome + badge (não-highlighted) */}
+                    <View style={styles.planCardHeader}>
+                      <View
+                        style={[
+                          styles.planCardIcon,
+                          { backgroundColor: ColorUtils.withAlpha(planAccent, 0.12) },
+                        ]}
+                      >
+                        <DefaultIcons.Custom
+                          library='MaterialCommunityIcons'
+                          name={planIconName}
+                          size={18}
+                          color={planAccent}
+                        />
+                      </View>
+                      <FancyText type='semiBold' size='small' color={isHighlighted ? planAccent : palette.fonts.dark} style={{ flex: 1 }} numberOfLines={1}>
+                        {plan.nome}
+                      </FancyText>
+                      {planBadge && !isHighlighted ? (
+                        <FancyChips
+                          label={planBadge.label}
+                          color={planBadge.color}
+                          backgroundColor={ColorUtils.withAlpha(planBadge.color, 0.12)}
+                          size='small'
+                          dot
+                        />
                       ) : null}
                     </View>
 
-                    <View
-                      style={[
-                        styles.planDivider,
-                        { backgroundColor: ColorUtils.withAlpha(planAccent, 0.12) },
-                      ]}
-                    />
+                    {/* Preço em destaque — Text nesting garante inline em Android */}
+                    {Platform.OS !== 'ios' ? (
+                      <View style={styles.planPriceBlock}>
+                        <FancyText type='bold' size={22} color={isHighlighted ? planAccent : palette.fonts.dark}>
+                          {priceValue}
+                          {priceSuffix ? (
+                            <FancyText type='normal' size='small' color={palette.fonts.inactive}>
+                              {' '}/{priceSuffix}
+                            </FancyText>
+                          ) : null}
+                        </FancyText>
+                        <FancyText type='normal' size='extraSmall' color={palette.fonts.inactive}>
+                          cobrado {billingCycle === 'YEARLY' ? 'anualmente' : 'mensalmente'}
+                        </FancyText>
+                      </View>
+                    ) : null}
 
-                    <View style={styles.planFeatureGrid}>
-                      {featureColumns.map((column, columnIndex) => (
-                        <View
-                          key={`${plan.codigo}-feature-column-${columnIndex}`}
-                          style={styles.planFeatureColumn}
-                        >
-                          {column.map((feature) => (
-                            <View key={`${plan.codigo}-${feature}`} style={styles.planFeatureItem}>
-                              <View
-                                style={[
-                                  styles.planFeatureMarker,
-                                  {
-                                    backgroundColor: ColorUtils.withAlpha(planAccent, 0.12),
-                                    borderColor: ColorUtils.withAlpha(planAccent, 0.22),
-                                  },
-                                ]}
-                              >
-                                <View
-                                  style={[
-                                    styles.planFeatureMarkerDot,
-                                    { backgroundColor: ColorUtils.withAlpha(planAccent, 0.9) },
-                                  ]}
-                                />
-                              </View>
-                              <FancyText size='extraSmall' color={palette.fonts.dark}>
-                                {feature}
-                              </FancyText>
-                            </View>
-                          ))}
+                    {/* Lista de features com check */}
+                    <View style={styles.planFeatureList}>
+                      {planFeatures.map((feature) => (
+                        <View key={feature} style={styles.planFeatureRow}>
+                          <DefaultIcons.Custom
+                            library='MaterialCommunityIcons'
+                            name='check-circle-outline'
+                            size={15}
+                            color={planAccent}
+                          />
+                          <FancyText size='extraSmall' color={palette.fonts.dark}>
+                            {feature}
+                          </FancyText>
                         </View>
                       ))}
                     </View>
 
-                    {isCurrent ? (
-                      <FancyText size='extraSmall' type='semiBold' color={planAccent}>
-                        Plano atual
-                      </FancyText>
-                    ) : isUpgradeRecommendation ? (
-                      <FancyText size='extraSmall' type='semiBold' color={planAccent}>
-                        Resolve o uso atual da igreja
-                      </FancyText>
-                    ) : isReactivationOption ? (
-                      <FancyText size='extraSmall' type='semiBold' color={planAccent}>
-                        Último plano usado
-                      </FancyText>
-                    ) : isPending ? (
-                      <FancyText size='extraSmall' type='semiBold' color={planAccent}>
-                        Pagamento pendente para esta faixa
-                      </FancyText>
+                    {/* CTA */}
+                    {planButtonLabel ? (
+                      <FancyButton
+                        label={planButtonLabel}
+                        type={isPending ? 'outlined' : 'contained'}
+                        labelProps={{ size: 'extraSmall' }}
+                        disabled={
+                          isLoadingAssinatura ||
+                          isAbrindoCheckout ||
+                          !!(isPending && !assinatura?.checkoutUrl)
+                        }
+                        onPress={() => handleIniciarCheckout(plan.codigo)}
+                        icon={{
+                          library: 'MaterialCommunityIcons',
+                          name: isPending ? 'credit-card-outline' : 'credit-card-check-outline',
+                          size: 16,
+                          color: isPending ? planAccent : palette.fonts.light,
+                        }}
+                        containerStyle={[
+                          styles.planCardCta,
+                          isPending
+                            ? { borderColor: planAccent, backgroundColor: 'transparent' }
+                            : { backgroundColor: planAccent, borderColor: planAccent },
+                        ]}
+                        labelStyle={{ color: isPending ? planAccent : palette.fonts.light }}
+                      />
                     ) : null}
-
-                    <FancyButton
-                      label={
-                        isCurrent
-                          ? 'Plano atual'
-                          : isReactivationOption
-                            ? 'Assinar'
-                            : isPending
-                              ? 'Continuar'
-                              : switchLocked
-                                ? 'Indisponível por enquanto'
-                                : 'Assinar'
-                      }
-                      type={isCurrent || isPending ? 'outlined' : 'contained'}
-                      disabled={
-                        isCurrent ||
-                        switchLocked ||
-                        isLoadingAssinatura ||
-                        isAbrindoCheckout ||
-                        !!(isPending && !assinatura?.checkoutUrl)
-                      }
-                      onPress={() => handleIniciarCheckout(plan.codigo)}
-                      icon={planButtonIcon}
-                      containerStyle={buttonContainerStyle}
-                      labelStyle={buttonLabelStyle}
-                    />
+                    </View>{/* planCardContent */}
                   </View>
                 );
               })}
-            </View>
+            </ScrollView>
           </FancyBottomSheetModal>
         </FancyScrollView>
       ),
     },
   ];
 
+  const planSummary = getPlanSummary(assinatura, palette);
+
   return (
     <FancyPageView style={styles.container}>
+      <View style={styles.heroSection}>
+        <FancyListItemCard
+          leading={
+            data?.logoUrl
+              ? { type: 'image', source: { uri: data.logoUrl }, size: 46 }
+              : { type: 'icon', icon: { library: 'MaterialCommunityIcons', name: 'church' } }
+          }
+          title={data?.nome || 'Minha igreja'}
+          subtitle={data?.codigo ? `Código ${data.codigo}` : undefined}
+          trailing={
+            <View style={[styles.heroPlanBadge, { backgroundColor: planSummary.badgeBackground }]}>
+              <FancyText size='extraSmall' type='semiBold' color={planSummary.badgeColor}>
+                {planSummary.badgeLabel}
+              </FancyText>
+            </View>
+          }
+        />
+        <View style={styles.heroStatsRow}>
+          <HeroStatCard
+            icon={{ library: 'MaterialCommunityIcons', name: 'account-group-outline' }}
+            label='Voluntários'
+            value={assinatura ? `${assinatura.currentVolunteers}/${assinatura.maxVolunteers}` : '—'}
+            accent={palette.primary}
+            ratio={
+              assinatura
+                ? assinatura.currentVolunteers / Math.max(assinatura.maxVolunteers, 1)
+                : undefined
+            }
+            styles={styles}
+            palette={palette}
+          />
+          <HeroStatCard
+            icon={{ library: 'MaterialCommunityIcons', name: 'view-grid-outline' }}
+            label='Ministérios'
+            value={assinatura ? `${assinatura.currentMinistries}/${assinatura.maxMinistries}` : '—'}
+            accent={palette.terciary}
+            ratio={
+              assinatura
+                ? assinatura.currentMinistries / Math.max(assinatura.maxMinistries, 1)
+                : undefined
+            }
+            styles={styles}
+            palette={palette}
+          />
+          <HeroStatCard
+            icon={planSummary.statusIcon}
+            label='Assinatura'
+            value={planSummary.statusLabel}
+            accent={planSummary.badgeColor}
+            valueColor={planSummary.badgeColor}
+            styles={styles}
+            palette={palette}
+          />
+        </View>
+      </View>
+      <FancyVerticalSpacer height={12} />
       <FancyTabs items={TAB_DATA} initialIndex={activeTabIndex} onTabChange={setActiveTabIndex} />
     </FancyPageView>
   );
@@ -1992,6 +2003,46 @@ function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
     container: {
       flex: 1,
+    },
+    heroSection: {
+      paddingHorizontal: 15,
+      paddingTop: 12,
+      gap: 10,
+    },
+    heroPlanBadge: {
+      borderRadius: 999,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+    },
+    heroStatsRow: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    heroStatCard: {
+      flex: 1,
+      backgroundColor: palette.backgroundColor2,
+      borderWidth: 0.5,
+      borderColor: ColorUtils.withAlpha(palette.borderCard, 0.45),
+      borderRadius: 16,
+      paddingVertical: 11,
+      paddingHorizontal: 11,
+      gap: 7,
+      alignItems: 'stretch',
+      ...palette.shadows[200],
+    },
+    heroStatTop: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+    },
+    heroStatTrack: {
+      height: 5,
+      borderRadius: 999,
+      overflow: 'hidden',
+    },
+    heroStatFill: {
+      height: '100%',
+      borderRadius: 999,
     },
     loadingContainer: {
       flex: 1,
@@ -2012,7 +2063,8 @@ function createStyles(palette: ThemePalette) {
       flex: 1,
     },
     tabContent: {
-      paddingVertical: 15,
+      paddingTop: 8,
+      paddingBottom: 15,
       gap: 16,
     },
     dataTabLayout: {
@@ -2025,8 +2077,18 @@ function createStyles(palette: ThemePalette) {
     dataSectionsStack: {
       gap: 12,
     },
-    sectionCopyBlock: {
-      gap: 4,
+    sectionEyebrow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    sectionEyebrowTick: {
+      width: 3,
+      height: 11,
+      borderRadius: 2,
+    },
+    sectionEyebrowText: {
+      letterSpacing: 0.8,
     },
     dataFooter: {
       paddingTop: 10,
@@ -2040,58 +2102,40 @@ function createStyles(palette: ThemePalette) {
       paddingHorizontal: 18,
       ...palette.shadows[100],
     },
-    accordionSection: {
+    flatSection: {
       borderWidth: 1,
       borderRadius: 18,
-      backgroundColor: palette.backgroundColor4,
+      backgroundColor: palette.backgroundColor2,
       overflow: 'hidden',
-      ...palette.shadows[100],
+      ...palette.shadows[200],
     },
-    accordionSectionHighlighted: {
+    flatSectionHighlighted: {
       shadowColor: palette.primary,
       shadowOpacity: 0.18,
       shadowRadius: 10,
       elevation: 2,
     },
-    accordionHeader: {
-      backgroundColor: palette.backgroundColor4,
-    },
-    accordionHeaderExpanded: {
-      backgroundColor: palette.backgroundColor4,
-    },
-    accordionHeaderMain: {
-      flex: 1,
+    flatSectionHeader: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
     },
-    accordionIconBadge: {
-      width: 38,
-      height: 38,
-      borderRadius: 19,
+    flatSectionIconBadge: {
+      width: 46,
+      height: 46,
+      borderRadius: 14,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    accordionHeaderText: {
+    flatSectionHeaderText: {
       flex: 1,
-      minHeight: 38,
+      minHeight: 46,
       justifyContent: 'center',
       gap: 2,
     },
-    accordionHeaderTitleRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 10,
-    },
-    accordionStatusPill: {
-      borderRadius: 999,
-      minWidth: 72,
-      paddingHorizontal: 10,
-      paddingVertical: 5,
-      alignItems: 'center',
-    },
-    accordionContent: {
+    flatSectionContent: {
       gap: 14,
       paddingHorizontal: 16,
       paddingBottom: 16,
@@ -2107,77 +2151,17 @@ function createStyles(palette: ThemePalette) {
     // Avatar / Logo
     avatarContainer: {
       alignItems: 'center',
-      marginBottom: 8,
+      marginVertical: 8,
     },
 
-    // Código da Igreja - Novo Layout
-    codigoCard: {
-      backgroundColor: palette.backgroundColor2,
-      borderRadius: 12,
-      padding: 16,
-      gap: 12,
-      borderWidth: 1,
-      borderColor: palette.borderCard,
-      ...palette.shadows[100],
-    },
-    codigoHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
-    codigoTitulo: {
-      opacity: 0.7,
-    },
-    codigoBody: {
-      alignItems: 'center',
-      paddingVertical: 12,
-      gap: 4,
-    },
+    // Código da Igreja
     codigoTexto: {
-      letterSpacing: 2,
+      letterSpacing: 1,
       color: palette.primary,
     },
-    codigoDesc: {
-      opacity: 0.6,
-      textAlign: 'center',
-    },
-    codigoCopyButton: {
-      flexDirection: 'row',
+    codigoCopyTrailing: {
       alignItems: 'center',
-      justifyContent: 'center',
-      gap: 8,
-      paddingVertical: 10,
-      paddingHorizontal: 16,
-      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14),
-      borderRadius: 8,
-    },
-    codigoCopyText: {
-      color: palette.primary,
-    },
-    billingProfileCard: {
-      borderWidth: 1,
-      borderRadius: 16,
-      padding: 16,
-      gap: 12,
-      ...palette.shadows[100],
-    },
-    billingProfileHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      gap: 12,
-    },
-    billingProfileHeaderText: {
-      flex: 1,
-      gap: 4,
-    },
-    billingProfilePill: {
-      borderRadius: 999,
-      paddingHorizontal: 10,
-      paddingVertical: 5,
-    },
-    billingContentHeader: {
-      gap: 8,
+      gap: 2,
     },
     sameAddressRow: {
       flexDirection: 'row',
@@ -2191,14 +2175,6 @@ function createStyles(palette: ThemePalette) {
     sameAddressText: {
       flex: 1,
       gap: 4,
-    },
-    addressPreviewCard: {
-      borderRadius: 14,
-      borderWidth: 1,
-      borderColor: palette.borderCard,
-      backgroundColor: palette.backgroundColor,
-      padding: 14,
-      gap: 6,
     },
 
     // Modo de Entrada Cards
@@ -2227,6 +2203,12 @@ function createStyles(palette: ThemePalette) {
     canaisContainer: {
       gap: 12,
     },
+    toggleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingVertical: 4,
+    },
     remindersContainer: {
       gap: 10,
     },
@@ -2242,31 +2224,19 @@ function createStyles(palette: ThemePalette) {
       lineHeight: 18,
     },
     remindersList: {
-      gap: 10,
-    },
-    reminderOption: {
       flexDirection: 'row',
-      alignItems: 'flex-start',
-      gap: 12,
-      padding: 14,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: palette.borderCard,
-      backgroundColor: palette.backgroundColor4,
+      flexWrap: 'wrap',
+      gap: 8,
     },
-    reminderOptionSelected: {
-      borderWidth: 1.5,
-    },
-    reminderOptionText: {
-      flex: 1,
+    reminderChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
       gap: 4,
-    },
-    reminderOptionDescription: {
-      opacity: 0.7,
-      lineHeight: 18,
-    },
-    canaisLabel: {
-      opacity: 0.7,
+      minHeight: 34,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 999,
+      borderWidth: 1,
     },
     checkboxesContainer: {
       gap: 12,
@@ -2277,7 +2247,8 @@ function createStyles(palette: ThemePalette) {
 
     // Assinatura
     assinaturaContainer: {
-      paddingVertical: 15,
+      paddingTop: 8,
+      paddingBottom: 15,
       gap: 16,
     },
     billingLoadingCard: {
@@ -2302,95 +2273,56 @@ function createStyles(palette: ThemePalette) {
       flexDirection: 'row',
       gap: 10,
     },
-    periodButton: {
-      flex: 1,
-      borderWidth: 1,
-      borderColor: palette.borderCard,
-      borderRadius: 999,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
-      alignItems: 'center',
-    },
     planList: {
-      gap: 12,
+      flexDirection: 'row',
+      gap: 10,
+      paddingBottom: 4,
     },
     planCard: {
-      borderWidth: 1,
-      borderRadius: 18,
-      padding: 16,
-      gap: 14,
+      width: 254,
+      borderRadius: 16,
       overflow: 'hidden',
-      ...palette.shadows[100],
-    },
-    planCardRecommended: {
-      borderWidth: 1.5,
-    },
-    planAccentBar: {
-      height: 6,
-      borderRadius: 999,
-      marginBottom: 2,
-    },
-    planHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      gap: 14,
-      alignItems: 'flex-start',
-    },
-    planHeaderText: {
       flex: 1,
-      gap: 6,
     },
-    planPriceBlock: {
-      alignItems: 'flex-end',
-      gap: 10,
-      minWidth: 128,
-    },
-    planPriceTextBlock: {
-      alignItems: 'flex-end',
-      gap: 0,
-    },
-    planPriceValue: {
-      lineHeight: 38,
-    },
-    planPricePeriod: {
-      letterSpacing: 0.2,
-      marginTop: -4,
-    },
-    planBadge: {
-      borderRadius: 999,
-      paddingHorizontal: 10,
-      paddingVertical: 5,
-    },
-    planDivider: {
-      height: 1,
-      width: '100%',
-    },
-    planFeatureGrid: {
-      flexDirection: 'row',
-      gap: 14,
-    },
-    planFeatureColumn: {
-      flex: 1,
-      gap: 12,
-    },
-    planFeatureItem: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      gap: 10,
-    },
-    planFeatureMarker: {
-      width: 18,
-      height: 18,
-      borderRadius: 999,
-      borderWidth: 1,
+    planBanner: {
+      height: 24,
       alignItems: 'center',
       justifyContent: 'center',
-      marginTop: 1,
     },
-    planFeatureMarkerDot: {
-      width: 6,
-      height: 6,
-      borderRadius: 999,
+    planCardContent: {
+      padding: 14,
+      gap: 12,
+      flex: 1,
+    },
+    planCardHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    planCardIcon: {
+      width: 34,
+      height: 34,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+    },
+    planPriceBlock: {
+      gap: 2,
+    },
+    planFeatureList: {
+      gap: 7,
+      flex: 1,
+      justifyContent: 'center',
+    },
+    planFeatureRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 7,
+    },
+    planCardCta: {
+      marginTop: 2,
+      minHeight: 40,
     },
   });
 }

@@ -9,6 +9,7 @@ import DefaultIcons from '../FancyIcons';
 export interface FancyImagePickerProps {
   value?: string | null; // pode ser URL (Cloudinary) ou uri local (file:///)
   size?: number;
+  buttonSize?: number;
   disabled?: boolean;
   onChange?: (image: ImagePicker.ImagePickerAsset | undefined) => void;
 }
@@ -16,6 +17,7 @@ export interface FancyImagePickerProps {
 export default function FancyImagePicker({
   value,
   size = 120,
+  buttonSize = 35,
   disabled,
   onChange,
 }: FancyImagePickerProps) {
@@ -132,22 +134,22 @@ export default function FancyImagePicker({
           }}
         >
           <DefaultIcons.Custom
-            library='Feather'
-            name='camera-off'
+            library='MaterialCommunityIcons'
+            name='church'
             color={palette.icons.inactive}
-            size={45}
+            size={Math.round(size * 0.42)}
           />
         </View>
       </View>
 
       <View style={styles.buttonsContainer}>
         <FancyButton
-          icon={{ library: 'Entypo', name: 'images', size: 15 }}
+          icon={{ library: 'Entypo', name: 'images', size: Math.round(buttonSize * 0.43) }}
           containerStyle={{
             minWidth: 26,
             minHeight: 26,
-            width: 35,
-            height: 35,
+            width: buttonSize,
+            height: buttonSize,
             padding: 0,
             paddingHorizontal: 0,
           }}
@@ -158,8 +160,8 @@ export default function FancyImagePicker({
           icon={{
             library: 'MaterialCommunityIcons',
             name: 'image-remove',
-            color: !value && !disabled ? palette.icons.light : palette.icons.inactive,
-            size: 15,
+            color: value && !disabled ? palette.icons.light : palette.icons.inactive,
+            size: Math.round(buttonSize * 0.43),
           }}
           disabled={!value || disabled}
           containerStyle={[
@@ -167,12 +169,12 @@ export default function FancyImagePicker({
               paddingHorizontal: 0,
               minWidth: 26,
               minHeight: 26,
-              width: 35,
-              height: 35,
+              width: buttonSize,
+              height: buttonSize,
               borderWidth: 0,
             },
-            !value && !disabled
-              ? { backgroundColor: palette.terciary }
+            value && !disabled
+              ? { backgroundColor: palette.error }
               : { backgroundColor: palette.buttons.inactive },
           ]}
           onPress={removeImage}

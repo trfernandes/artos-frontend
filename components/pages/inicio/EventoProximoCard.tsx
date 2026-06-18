@@ -31,75 +31,89 @@ export default function EventoProximoCard({
     horarioEnsaioPadrao: evento.evento?.horarioEnsaioPadrao,
   });
 
-  return (
-    <Pressable
-      onPress={onPress}
-      style={[styles.container, variant === 'horizontal' && styles.horizontalContainer]}
-    >
-      <View style={[styles.leftColorLine, { backgroundColor: evento.cor || palette.primary }]} />
+  const accentColor = evento.cor || palette.primary;
 
+  if (variant === 'horizontal') {
+    return (
+      <Pressable
+        onPress={onPress}
+        style={[styles.container, styles.horizontalContainer]}
+      >
+        {/* Inner view handles overflow:hidden so the accent strip respects border-radius
+            without clipping the shadow on the outer Pressable (Android limitation) */}
+        <View style={styles.horizontalInner}>
+          <View style={[styles.accentStrip, { backgroundColor: accentColor }]} />
+          <View style={styles.content}>
+            <View style={styles.dateChip}>
+              <FancyText size='extraSmall' type='semiBold' color={accentColor}>
+                {dataFormatada}
+              </FancyText>
+            </View>
+            <FancyText
+              size='small'
+              type='semiBold'
+              color={palette.fonts.dark}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.82}
+            >
+              {evento.nome}
+            </FancyText>
+            <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} numberOfLines={1}>
+              {horaFormatada}
+              {evento.local ? `  ·  ${evento.local}` : ''}
+            </FancyText>
+            <View style={styles.progressSection}>
+              <ScaleFillIndicator
+                filledCount={evento.totalConfirmados}
+                totalCount={evento.totalFuncoes}
+                label='confirmados'
+                showContainer={false}
+                size='compact'
+                centerColor={palette.backgroundColor}
+                textColor={palette.fonts.inactive}
+                percentColor={accentColor}
+                textType='medium'
+                textSize='extraSmall'
+                donutSize={9}
+                donutStrokeWidth={1.6}
+              />
+            </View>
+          </View>
+        </View>
+      </Pressable>
+    );
+  }
+
+  return (
+    <Pressable onPress={onPress} style={styles.container}>
+      <View style={[styles.leftColorLine, { backgroundColor: accentColor }]} />
       <View style={styles.content}>
-        <FancyText
-          size='small'
-          type='semiBold'
-          color={palette.fonts.dark}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.82}
-        >
+        <FancyText size='small' type='semiBold' color={palette.fonts.dark} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.82}>
           {evento.nome}
         </FancyText>
-
         <View style={styles.infoRow}>
-          <DefaultIcons.Custom
-            library='MaterialCommunityIcons'
-            name='calendar'
-            size={12}
-            color={palette.primary}
-          />
+          <DefaultIcons.Custom library='MaterialCommunityIcons' name='calendar' size={12} color={palette.primary} />
           <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
             {dataFormatada} às {horaFormatada}
           </FancyText>
         </View>
-
         {ensaioInfo.shouldShow && (
           <View style={styles.infoRow}>
-            <DefaultIcons.Custom
-              library='MaterialCommunityIcons'
-              name='music-box-outline'
-              size={12}
-              color={palette.primary}
-            />
-            <FancyText
-              size='extraSmall'
-              type='medium'
-              color={palette.fonts.inactive}
-              numberOfLines={1}
-            >
+            <DefaultIcons.Custom library='MaterialCommunityIcons' name='music-box-outline' size={12} color={palette.primary} />
+            <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} numberOfLines={1}>
               {ensaioInfo.label}
             </FancyText>
           </View>
         )}
-
         {evento.local && (
           <View style={styles.infoRow}>
-            <DefaultIcons.Custom
-              library='MaterialCommunityIcons'
-              name='map-marker-outline'
-              size={12}
-              color={palette.primary}
-            />
-            <FancyText
-              size='extraSmall'
-              type='medium'
-              color={palette.fonts.inactive}
-              numberOfLines={1}
-            >
+            <DefaultIcons.Custom library='MaterialCommunityIcons' name='map-marker-outline' size={12} color={palette.primary} />
+            <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} numberOfLines={1}>
               {evento.local}
             </FancyText>
           </View>
         )}
-
         <View style={styles.progressSection}>
           <ScaleFillIndicator
             filledCount={evento.totalConfirmados}
@@ -126,15 +140,32 @@ function createStyles(palette: ThemePalette) {
     container: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: palette.backgroundColor4,
-      borderWidth: 1,
-      borderColor: ColorUtils.withAlpha(palette.primary, 0.22),
+      backgroundColor: palette.backgroundColor,
+      borderWidth: 0.5,
+      borderColor: ColorUtils.withAlpha(palette.borderCard, 0.45),
       borderRadius: 18,
-      overflow: 'hidden',
-      ...palette.shadows[100],
+      ...palette.shadows[200],
     },
     horizontalContainer: {
-      width: 248,
+      width: 220,
+      flexDirection: 'column',
+      alignItems: 'stretch',
+    },
+    horizontalInner: {
+      flex: 1,
+      borderRadius: 17,
+      overflow: 'hidden',
+    },
+    accentStrip: {
+      height: 3,
+      width: '100%',
+    },
+    dateChip: {
+      alignSelf: 'flex-start',
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.1),
+      borderRadius: 999,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
     },
     leftColorLine: {
       width: 4,
@@ -146,9 +177,7 @@ function createStyles(palette: ThemePalette) {
     },
     content: {
       flex: 1,
-      paddingTop: 10,
-      paddingBottom: 10,
-      paddingRight: 16,
+      padding: 12,
       gap: 5,
     },
     infoRow: {

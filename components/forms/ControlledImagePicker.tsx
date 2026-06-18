@@ -13,6 +13,8 @@ type ControlledFancyImagePickerProps<FormData extends FieldValues> = {
   name: Path<FormData>; // string (fotoUrl preview)
   setValue: UseFormSetValue<FormData>;
   uploadFieldName?: Path<FormData>; // FormImageFile | null
+  size?: number;
+  buttonSize?: number;
 };
 
 const assetToFormFile = (asset: ImagePicker.ImagePickerAsset): FormImageFile => {
@@ -32,6 +34,8 @@ export function ControlledImagePicker<FormData extends FieldValues>({
   name,
   setValue,
   uploadFieldName,
+  size,
+  buttonSize,
 }: ControlledFancyImagePickerProps<FormData>) {
   return (
     <Controller
@@ -40,6 +44,8 @@ export function ControlledImagePicker<FormData extends FieldValues>({
       render={({ field }) => (
         <FancyImagePicker
           value={field.value as any}
+          size={size}
+          buttonSize={buttonSize}
           onChange={(asset) => {
             if (!asset) {
               field.onChange(null);

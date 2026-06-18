@@ -3,7 +3,6 @@ import { View, StyleSheet, Pressable } from 'react-native';
 import FancyText from '../../FancyText';
 import DefaultIcons, { CustomIconProps } from '../../FancyIcons';
 import { ThemePalette } from '../../../constants/colors';
-import { usePallete } from '../../../hooks/usePallete';
 import { useThemedStyles } from '../../../hooks/useThemedStyles';
 import { ColorUtils } from '../../../utils/color_utils';
 
@@ -14,6 +13,9 @@ type DashboardCardProps = {
   icon: CustomIconProps;
   iconBackgroundColor?: string;
   onPress?: () => void;
+  layout?: 'center' | 'horizontal';
+  accentColor?: string;
+  /** @deprecated use layout + iconBackgroundColor instead */
   surfaceVariant?: 'default' | 'infoBlue' | 'scaleCard';
 };
 
@@ -24,74 +26,78 @@ export default function DashboardCard({
   icon,
   iconBackgroundColor,
   onPress,
-  surfaceVariant = 'default',
+  layout = 'horizontal',
+  accentColor,
 }: DashboardCardProps) {
-  const palette = usePallete();
   const styles = useThemedStyles(createStyles);
 
-  const content = (
-    <View
-      style={[
-        styles.container,
-        surfaceVariant === 'infoBlue' && styles.infoBlueContainer,
-        surfaceVariant === 'scaleCard' && styles.scaleCardContainer,
-      ]}
-    >
-      <View
-        style={[
-          styles.iconContainer,
-          { backgroundColor: iconBackgroundColor || ColorUtils.withAlpha(palette.primary, 0.15) },
-        ]}
-      >
-        <DefaultIcons.Custom
-          library={icon.library}
-          name={icon.name}
-          size={icon.size || 12}
-          color={icon.color || palette.primary}
-        />
-      </View>
-
-      <View style={styles.centerContent}>
-        <FancyText
-          size={16}
-          type='bold'
-          color={palette.fonts.dark}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.82}
-          style={[styles.fitText, styles.valueText]}
+  const content =
+    layout === 'horizontal' ? (
+      <View style={styles.container}>
+        <View
+          style={[
+            styles.squircle,
+            { backgroundColor: iconBackgroundColor || ColorUtils.withAlpha(accentColor ?? '#534ab7', 0.12) },
+          ]}
         >
-          {value}
-        </FancyText>
+          <DefaultIcons.Custom
+            library={icon.library}
+            name={icon.name}
+            size={icon.size || 20}
+            color={icon.color || accentColor}
+          />
+        </View>
 
-        <FancyText
-          size='small'
-          type='semiBold'
-          color={palette.fonts.inactive}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.85}
-          style={styles.fitText}
-        >
-          {title}
-        </FancyText>
-
-        {subtitle && (
+        <View style={styles.rightContent}>
           <FancyText
-            size='extraSmall'
-            type='normal'
-            color={palette.fonts.inactive}
+            size={20}
+            type='bold'
             numberOfLines={1}
             adjustsFontSizeToFit
-            minimumFontScale={0.88}
-            style={styles.fitText}
+            minimumFontScale={0.8}
           >
-            {subtitle}
+            {value}
           </FancyText>
-        )}
+          <FancyText size='small' type='medium' numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
+            {title}
+          </FancyText>
+          {subtitle ? (
+            <FancyText size='extraSmall' type='normal' numberOfLines={1}>
+              {subtitle}
+            </FancyText>
+          ) : null}
+        </View>
       </View>
-    </View>
-  );
+    ) : (
+      <View style={styles.centerContainer}>
+        <View
+          style={[
+            styles.centerIcon,
+            { backgroundColor: iconBackgroundColor || ColorUtils.withAlpha(accentColor ?? '#534ab7', 0.15) },
+          ]}
+        >
+          <DefaultIcons.Custom
+            library={icon.library}
+            name={icon.name}
+            size={icon.size || 12}
+            color={icon.color || accentColor}
+          />
+        </View>
+        <View style={styles.centerContent}>
+          <FancyText size={16} type='bold' numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.82} style={styles.fitText}>
+            {value}
+          </FancyText>
+          <FancyText size='small' type='semiBold' numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85} style={styles.fitText}>
+            {title}
+          </FancyText>
+          {subtitle ? (
+            <FancyText size='extraSmall' type='normal' numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.88} style={styles.fitText}>
+              {subtitle}
+            </FancyText>
+          ) : null}
+        </View>
+      </View>
+    );
 
   if (onPress) {
     return (
@@ -111,22 +117,39 @@ function createStyles(palette: ThemePalette) {
     },
     container: {
       flex: 1,
-      backgroundColor: palette.backgroundColor2,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      backgroundColor: palette.backgroundColor,
       borderRadius: 16,
+      borderWidth: 0.5,
+      borderColor: ColorUtils.withAlpha(palette.borderCard, 0.45),
+      padding: 12,
+      ...palette.shadows[200],
+    },
+    squircle: {
+      width: 36,
+      height: 36,
+      borderRadius: 11,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+    },
+    rightContent: {
+      flex: 1,
+      gap: 1,
+    },
+    centerContainer: {
+      flex: 1,
+      backgroundColor: palette.backgroundColor,
+      borderRadius: 16,
+      borderWidth: 0.5,
+      borderColor: ColorUtils.withAlpha(palette.borderCard, 0.45),
       padding: 8,
       minHeight: 80,
-      ...palette.shadows[100],
+      ...palette.shadows[200],
     },
-    infoBlueContainer: {
-      backgroundColor: palette.backgroundColor4,
-      borderWidth: 1,
-      borderColor: ColorUtils.withAlpha(palette.primary, 0.22),
-    },
-    scaleCardContainer: {
-      borderWidth: 1,
-      borderColor: ColorUtils.withAlpha(palette.border, 0.45),
-    },
-    iconContainer: {
+    centerIcon: {
       position: 'absolute',
       top: 8,
       left: 8,
@@ -146,9 +169,6 @@ function createStyles(palette: ThemePalette) {
     fitText: {
       width: '100%',
       textAlign: 'center',
-    },
-    valueText: {
-      opacity: 0.8,
     },
   });
 }
