@@ -782,7 +782,7 @@ export default function ConfiguracoesPage() {
   const canCancelCurrentSubscription = Boolean(
     assinatura?.canManageBilling &&
     assinatura?.status &&
-    ['active', 'trial', 'overdue'].includes(assinatura.status),
+    ['active', 'overdue'].includes(assinatura.status),
   );
   const billingPrimaryLabel = resolveBillingPrimaryActionLabel(assinatura);
   const recommendedUpgradePlan = useMemo(() => {

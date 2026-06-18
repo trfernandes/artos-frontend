@@ -169,6 +169,16 @@ export function resolveBillingNoticeContent(
     };
   }
 
+  if (trialPhase === 'expired') {
+    return {
+      eyebrow: 'Avaliação encerrada',
+      title: 'Seu período avaliativo terminou',
+      body: 'Assine um plano para continuar usando todos os recursos sem interromper a operação da igreja.',
+      ctaLabel,
+      tone: 'critical',
+    };
+  }
+
   if (trialPhase === 'ending') {
     return {
       eyebrow: 'Versão avaliativa',

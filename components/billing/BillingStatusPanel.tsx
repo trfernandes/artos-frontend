@@ -11,6 +11,7 @@ import { resolveBillingPlanName } from '../../domain/utils/billing-plan-catalog'
 import {
   resolveBillingNoticeContent,
   resolveBillingPrimaryActionLabel,
+  resolveBillingTrialPhase,
 } from '../../domain/utils/billing-notice';
 
 type BillingStatusPanelProps = {
@@ -35,9 +36,13 @@ function formatDate(value?: string | null) {
 function resolveStatusCopy(assinatura: ResponseIgrejaAssinaturaDto) {
   if (assinatura.status === 'trial' || assinatura.status === 'expired') {
     const notice = resolveBillingNoticeContent(assinatura);
+    const trialPhase = resolveBillingTrialPhase(assinatura);
     return {
       eyebrow: notice.eyebrow,
-      title: assinatura.status === 'trial' ? 'Período avaliativo ativo' : notice.title,
+      title:
+        assinatura.status === 'trial' && trialPhase !== 'expired'
+          ? 'Período avaliativo ativo'
+          : notice.title,
     };
   }
   switch (assinatura.status) {
@@ -166,7 +171,7 @@ export default function BillingStatusPanel({
 
   const metaParts = [resolveBillingPlanName(assinatura.plan), resolveCycleLabel(assinatura.cycle)];
   if (!compact) metaParts.push(formatCurrency(Number(assinatura.amount ?? 0)));
-  if (assinatura.status === 'trial') {
+  if (assinatura.status === 'trial' && resolveBillingTrialPhase(assinatura) !== 'expired') {
     metaParts.push(`Teste até ${formatDate(assinatura.trialEndsAt)}`);
   } else if (assinatura.currentPeriodEnd) {
     metaParts.push(`${resolvePeriodMetricLabel(assinatura.status)} ${formatDate(assinatura.currentPeriodEnd)}`);
