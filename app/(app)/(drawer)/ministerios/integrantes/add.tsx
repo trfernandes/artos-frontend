@@ -294,6 +294,7 @@ function createStyles(palette: ThemePalette) {
       flex: 1,
       gap: 16,
       alignItems: 'center',
+      paddingHorizontal: 15,
     },
     contentContainer: {
       width: '100%',

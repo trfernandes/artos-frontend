@@ -88,11 +88,6 @@ export default function TemplateFixoEquipeList({
 
       formAdd.reset();
       setFormVisible(false);
-
-      Toast.show({
-        type: 'success',
-        text1: 'Voluntário adicionado com sucesso!',
-      });
     })();
   }, [append, disabled, formAdd, voluntariosData]);
 

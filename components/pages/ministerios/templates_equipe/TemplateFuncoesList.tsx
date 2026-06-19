@@ -100,10 +100,6 @@ export default function TemplateFuncoesList({
             quantidade: data.quantidade,
           });
 
-          Toast.show({
-            type: 'success',
-            text1: 'Função adicionada com sucesso!',
-          });
         } else if (mode === 'edit') {
           if (editingIndex == null) {
             return;
@@ -115,11 +111,6 @@ export default function TemplateFuncoesList({
           }
 
           updateFuncao(editingIndex, { ...data });
-
-          Toast.show({
-            type: 'success',
-            text1: 'Função atualizada com sucesso!',
-          });
         }
 
         setEditingIndex(null);
@@ -213,7 +204,9 @@ export default function TemplateFuncoesList({
           })}
         </View>
       ) : (
-        <FancyListEmpty label='Nenhuma função cadastrada' />
+        <View style={styles.emptyContainer}>
+          <FancyListEmpty label='Nenhuma função cadastrada' />
+        </View>
       )}
 
       <FancyActionSheet
@@ -278,5 +271,8 @@ const styles = StyleSheet.create({
   },
   listContent: {
     gap: 8,
+  },
+  emptyContainer: {
+    minHeight: 120,
   },
 });

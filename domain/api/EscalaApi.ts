@@ -15,7 +15,7 @@ class EscalasApiClass extends BaseApi<
 
   async generate(data: CreateEscalaDto): Promise<ResponseEscalaDto> {
     try {
-      const response = await apiClient.post(`/${this.resourceName}/gerar`, data);
+      const response = await apiClient.post(`/${this.resourceName}/gerar`, data, { timeout: 120000 });
       return response.data.data;
     } catch (error) {
       console.log(`Erro ao gerar ${this.resourceName}:`, error);
@@ -25,7 +25,7 @@ class EscalasApiClass extends BaseApi<
 
   async regenerate(escalaId: string): Promise<ResponseEscalaDto> {
     try {
-      const response = await apiClient.post(`/${this.resourceName}/${escalaId}/regerar`);
+      const response = await apiClient.post(`/${this.resourceName}/${escalaId}/regerar`, undefined, { timeout: 120000 });
       return response.data.data;
     } catch (error) {
       console.log(`Erro ao regerar ${this.resourceName}:`, error);
