@@ -191,10 +191,7 @@ export default function MinisterioIntegrantesIndex() {
         showFab
         fabProps={{
           onPress: () =>
-            router.push({
-              pathname: '/ministerios/integrantes/add',
-              params: { ministerioId },
-            }),
+            router.push({ pathname: '/ministerios/integrantes/add', params: { ministerioId } }),
         }}
         showSearchBar
         searchBarProps={{

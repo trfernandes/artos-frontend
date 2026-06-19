@@ -24,6 +24,8 @@ import { usePallete } from '../../../../../hooks/usePallete';
 import { ColorUtils } from '../../../../../utils/color_utils';
 import FancyActionSheet from '../../../../../components/actions/FancyActionSheet';
 import { ResponseEscalaDto } from '../../../../../domain/dtos/Escala/escala.response';
+import { useBillingWriteAccess } from '../../../../../hooks/useBillingWriteAccess';
+import BillingNoticeBanner from '../../../../../components/billing/BillingNoticeBanner';
 
 export function getEscalaStatusConfig(palette: ThemePalette) {
   return {
@@ -57,6 +59,10 @@ export default function MinisterioEscalasIndexPage() {
   );
 
   const escalaStatusConfig = useMemo(() => getEscalaStatusConfig(palette), [palette]);
+
+  const { isBlocked, assinatura } = useBillingWriteAccess();
+  const handleBillingCta = () =>
+    router.push({ pathname: '/(app)/(drawer)/configuracoes', params: { tab: 'plano', openPlans: '1' } });
 
   const openEscalaDetails = useCallback(
     (escalaId: string) => {
@@ -143,12 +149,29 @@ export default function MinisterioEscalasIndexPage() {
         onSearch: (text) => setSearchText(text.trim()),
       }}
       fabProps={{
-        onPress: () =>
-          router.push({
-            pathname: '/ministerios/escalas/assistant',
-            params: { ministerioId },
-          }),
+        disabled: isBlocked,
+        onPress: () => {
+          if (isBlocked) {
+            FancyAlert.alert(
+              'Assinatura inativa',
+              'Sua assinatura não está ativa. Escolha um plano para continuar.',
+              [
+                { text: 'Fechar', style: 'cancel' },
+                { text: 'Ver planos', onPress: handleBillingCta },
+              ],
+            );
+            return;
+          }
+          router.push({ pathname: '/ministerios/escalas/assistant', params: { ministerioId } });
+        },
       }}
+      topContent={
+        isBlocked ? (
+          <View style={{ paddingHorizontal: 15 }}>
+            <BillingNoticeBanner assinatura={assinatura} onPress={handleBillingCta} />
+          </View>
+        ) : undefined
+      }
       listProps={{
         onRefresh: refetchEscalas,
         refreshing: isRefetchingEscalas,

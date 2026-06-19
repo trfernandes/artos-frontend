@@ -410,9 +410,11 @@ const HeroStatCard = ({
       </View>
       <FancyText
         type='semiBold'
-        size='largeMedium'
+        size='medium'
         color={valueColor ?? palette.fonts.dark}
         numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.75}
       >
         {value}
       </FancyText>
@@ -591,7 +593,7 @@ export default function ConfiguracoesPage() {
   const [highlightedAccordionSection, setHighlightedAccordionSection] =
     useState<DataSectionKey | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<DataSectionKey, boolean>>({
-    general: true,
+    general: false,
     address: false,
     billing: false,
   });
@@ -912,13 +914,30 @@ export default function ConfiguracoesPage() {
     );
   };
 
-  const openBillingPlansModal = () => setBillingPlansModalVisible(true);
+  const openBillingPlansModal = () => {
+    if (!billingProfileComplete) {
+      setActiveTabIndex(0);
+      highlightAccordionSection('billing');
+      FancyAlert.alert(
+        'Cobrança incompleta',
+        'Preencha os dados de cobrança da igreja antes de assinar.',
+        [{ text: 'Ok', style: 'default' }],
+      );
+      return;
+    }
+    setBillingPlansModalVisible(true);
+  };
 
   useEffect(() => {
     if (tab === 'plano' && openPlans === '1' && activeTabIndex === 3) {
+      if (!billingProfileComplete) {
+        setActiveTabIndex(0);
+        highlightAccordionSection('billing');
+        return;
+      }
       setBillingPlansModalVisible(true);
     }
-  }, [activeTabIndex, openPlans, tab]);
+  }, [activeTabIndex, openPlans, tab, billingProfileComplete]);
   const closeBillingPlansModal = () => setBillingPlansModalVisible(false);
 
   const toggleReminderHour = (hour: number) => {
@@ -1263,6 +1282,7 @@ export default function ConfiguracoesPage() {
             style={styles.scrollView}
             contentContainerStyle={styles.dataScrollContent}
             showsVerticalScrollIndicator={false}
+            keyboardDismissMode='none'
             enableOnAndroid={true}
             extraScrollHeight={100}
             keyboardShouldPersistTaps='handled'
@@ -1704,6 +1724,7 @@ export default function ConfiguracoesPage() {
 
           {assinatura ? (
             <BillingStatusPanel
+              compact
               assinatura={assinatura}
               onPrimaryPress={handlePrimaryBillingAction}
               primaryLabel={billingPrimaryLabel}
@@ -1766,7 +1787,17 @@ export default function ConfiguracoesPage() {
                   assinatura.status !== 'cancelled' &&
                   assinatura.plan === plan.codigo &&
                   assinatura.cycle === billingCycle;
-                const switchLocked = false;
+                const isIncompatible = Boolean(
+                  assinatura &&
+                  (plan.maxVolunteers < assinatura.currentVolunteers ||
+                    plan.maxMinistries < assinatura.currentMinistries),
+                );
+                const switchLocked = isIncompatible;
+                const incompatibilityReason = !isIncompatible || !assinatura
+                  ? null
+                  : plan.maxVolunteers < assinatura.currentVolunteers
+                    ? `Suporta até ${plan.maxVolunteers} voluntários (você tem ${assinatura.currentVolunteers})`
+                    : `Suporta até ${plan.maxMinistries} ministérios (você tem ${assinatura.currentMinistries})`;
                 const isRecommended = plan.codigo === 'essencial';
                 const isUpgradeRecommendation =
                   hasExceededPlanCapacity && recommendedUpgradePlan?.codigo === plan.codigo;
@@ -1790,20 +1821,23 @@ export default function ConfiguracoesPage() {
                     ? { label: 'Pendente', color: palette.warning }
                     : isUpgradeRecommendation
                       ? { label: 'Recomendado', color: planAccent }
-                      : isRecommended && plan.highlight
-                        ? { label: plan.highlight, color: planAccent }
-                        : switchLocked
-                          ? { label: 'Bloqueado', color: palette.fonts.inactive }
+                      : switchLocked
+                        ? { label: 'Incompatível', color: palette.fonts.inactive }
+                        : isRecommended && plan.highlight
+                          ? { label: plan.highlight, color: planAccent }
                           : null;
-                const hasActivePlan = ['active', 'trial', 'overdue'].includes(assinatura?.status ?? '');
+                const hasActivePlan = ['active', 'overdue'].includes(assinatura?.status ?? '');
+                const isTrial = assinatura?.status === 'trial';
                 const planButtonLabel =
                   isCurrent || switchLocked
                     ? null
                     : isPending
                       ? 'Continuar'
-                      : hasActivePlan
-                        ? 'Trocar plano'
-                        : 'Assinar';
+                      : isTrial
+                        ? 'Escolher plano'
+                        : hasActivePlan
+                          ? 'Trocar plano'
+                          : 'Assinar';
                 const isHighlighted = (isRecommended || isUpgradeRecommendation) && !isCurrent;
                 const planFeatures: string[] =
                   plan.codigo === 'starter'
@@ -1947,6 +1981,18 @@ export default function ConfiguracoesPage() {
                         ]}
                         labelStyle={{ color: isPending ? planAccent : palette.fonts.light }}
                       />
+                    ) : isIncompatible && incompatibilityReason ? (
+                      <View style={styles.planIncompatibleLabel}>
+                        <DefaultIcons.Custom
+                          library='MaterialCommunityIcons'
+                          name='information-outline'
+                          size={13}
+                          color={palette.fonts.inactive}
+                        />
+                        <FancyText size='extraSmall' color={palette.fonts.inactive} style={{ flex: 1 }}>
+                          {incompatibilityReason}
+                        </FancyText>
+                      </View>
                     ) : null}
                     </View>{/* planCardContent */}
                   </View>
@@ -2344,6 +2390,13 @@ function createStyles(palette: ThemePalette) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 7,
+    },
+    planIncompatibleLabel: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+      paddingHorizontal: 2,
+      marginTop: 2,
     },
     planCardCta: {
       marginTop: 2,

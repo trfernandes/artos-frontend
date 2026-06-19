@@ -15,11 +15,16 @@ import AgendaEventoCard from '../../../../../components/pages/ministerios/agenda
 import { isLouvorMinisterioTipo } from '../../../../../utils/evento-ensaio';
 import { ColorUtils } from '../../../../../utils/color_utils';
 import { useLoading } from '../../../../../contexts/LoadingContext';
+import { useBillingWriteAccess } from '../../../../../hooks/useBillingWriteAccess';
+import BillingNoticeBanner from '../../../../../components/billing/BillingNoticeBanner';
 
 export default function MinisterioAgendaIndexPage() {
   const params = useLocalSearchParams<{ ministerioId: string }>();
   const { igrejaAtiva } = useAuth();
   const { showLoading, hideLoading } = useLoading();
+  const { isBlocked, assinatura } = useBillingWriteAccess();
+  const handleBillingCta = () =>
+    router.push({ pathname: '/(app)/(drawer)/configuracoes', params: { tab: 'plano', openPlans: '1' } });
   const isLouvorMinisterio = useMemo(
     () =>
       igrejaAtiva?.ministerios?.some(
@@ -75,6 +80,9 @@ export default function MinisterioAgendaIndexPage() {
 
   return (
     <FancyPageView style={styles.container}>
+      {isBlocked && (
+        <BillingNoticeBanner assinatura={assinatura} onPress={handleBillingCta} />
+      )}
       <FancyCalendar
         containerStyle={styles.calendarContainer}
         visualStyle='agendaPremium'

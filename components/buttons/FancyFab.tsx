@@ -12,6 +12,7 @@ export type FABProps = {
   left?: number;
   right?: number;
   bottom?: number;
+  disabled?: boolean;
 };
 
 export default function FancyFab({
@@ -23,6 +24,7 @@ export default function FancyFab({
   onPress,
   backgroundColor,
   size = 50,
+  disabled = false,
 }: FABProps) {
   const Pallete = usePallete();
   return (
@@ -37,6 +39,7 @@ export default function FancyFab({
           width: size,
           height: size,
           backgroundColor: backgroundColor || Pallete.terciary,
+          opacity: disabled ? 0.45 : 1,
         },
       ]}
       onPress={onPress}

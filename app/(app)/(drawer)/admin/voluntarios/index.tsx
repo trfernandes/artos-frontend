@@ -22,6 +22,8 @@ import FancyListStats from '../../../../../components/list/FancyListStats';
 import FancyActionSheet from '../../../../../components/actions/FancyActionSheet';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { ResponseVoluntarioDto } from '../../../../../domain/dtos/Voluntario/voluntario.response';
+import { useBillingWriteAccess } from '../../../../../hooks/useBillingWriteAccess';
+import BillingNoticeBanner from '../../../../../components/billing/BillingNoticeBanner';
 
 type StatusFiltro = 'todos' | 'ativos' | 'inativos';
 
@@ -32,6 +34,9 @@ export default function VoluntariosIndexPage() {
   const [actionsVoluntario, setActionsVoluntario] = useState<ResponseVoluntarioDto | null>(null);
   const { user } = useAuth();
   const { showLoading, hideLoading } = useLoading();
+  const { isBlocked, isVolunteerLimitReached, assinatura } = useBillingWriteAccess();
+  const handleBillingCta = () =>
+    router.push({ pathname: '/(app)/(drawer)/configuracoes', params: { tab: 'plano', openPlans: '1' } });
 
   const {
     data,
@@ -175,6 +180,11 @@ export default function VoluntariosIndexPage() {
       }}
       topContent={
         <View style={styles.topContainer}>
+          {(isBlocked || isVolunteerLimitReached) && (
+            <View style={{ paddingHorizontal: 15 }}>
+              <BillingNoticeBanner assinatura={assinatura} onPress={handleBillingCta} />
+            </View>
+          )}
           <FancyListStats
             items={[
               { label: 'Total', value: stats.total },

@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { View } from 'react-native';
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
 import FancyScreenErrorHandler from '../../../../../components/error/FancyScreenErrorHandler';
 
@@ -24,11 +25,17 @@ import FancyActionSheet from '../../../../../components/actions/FancyActionSheet
 import { usePallete } from '../../../../../hooks/usePallete';
 import { ColorUtils } from '../../../../../utils/color_utils';
 import { ResponseMinisterioDto } from '../../../../../domain/dtos/Ministerio/ministerio.response';
+import { useBillingWriteAccess } from '../../../../../hooks/useBillingWriteAccess';
+import BillingNoticeBanner from '../../../../../components/billing/BillingNoticeBanner';
 
 export default function MinisteriosIndex() {
   const palette = usePallete();
   const { showLoading, hideLoading } = useLoading();
   const { user, updateUser } = useAuth();
+  const { isBlocked, isMinistryLimitReached, assinatura } = useBillingWriteAccess();
+  const blockFab = isBlocked || isMinistryLimitReached;
+  const handleBillingCta = () =>
+    router.push({ pathname: '/(app)/(drawer)/configuracoes', params: { tab: 'plano', openPlans: '1' } });
 
   const [searchText, setSearchText] = useState('');
   const [actionsMinisterio, setActionsMinisterio] = useState<ResponseMinisterioDto | null>(null);
@@ -137,7 +144,32 @@ export default function MinisteriosIndex() {
   return (
     <FancyListPage
       showSearchBar
-      fabProps={{ onPress: () => router.push('/admin/ministerios/add') }}
+      fabProps={{
+        disabled: blockFab,
+        onPress: () => {
+          if (blockFab) {
+            FancyAlert.alert(
+              isBlocked ? 'Assinatura inativa' : 'Limite atingido',
+              isBlocked
+                ? 'Sua assinatura não está ativa. Escolha um plano para continuar.'
+                : 'Você atingiu o limite de ministérios do seu plano. Faça upgrade para adicionar mais.',
+              [
+                { text: 'Fechar', style: 'cancel' },
+                { text: 'Ver planos', onPress: handleBillingCta },
+              ],
+            );
+            return;
+          }
+          router.push('/admin/ministerios/add');
+        },
+      }}
+      topContent={
+        blockFab ? (
+          <View style={{ paddingHorizontal: 15 }}>
+            <BillingNoticeBanner assinatura={assinatura} onPress={handleBillingCta} />
+          </View>
+        ) : undefined
+      }
       searchBarProps={{
         value: searchText,
         onSearch: (text) => {

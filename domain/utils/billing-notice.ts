@@ -18,6 +18,27 @@ export type BillingNoticeContent = {
   tone: 'info' | 'warning' | 'critical';
 };
 
+export function isSubscriptionWriteBlocked(assinatura?: ResponseIgrejaAssinaturaDto | null): boolean {
+  if (!assinatura) return false;
+  const phase = resolveBillingTrialPhase(assinatura);
+  if (phase === 'expired') return true;
+  if (assinatura.status === 'expired') return true;
+  if (assinatura.status === 'overdue') return true;
+  if (assinatura.status === 'cancelled') {
+    return !assinatura.currentPeriodEnd || new Date(assinatura.currentPeriodEnd) < new Date();
+  }
+  return false;
+}
+
+export function isPlanLimitReached(
+  assinatura: ResponseIgrejaAssinaturaDto | null | undefined,
+  type: 'volunteers' | 'ministries',
+): boolean {
+  if (!assinatura) return false;
+  if (type === 'volunteers') return assinatura.currentVolunteers >= assinatura.maxVolunteers;
+  return assinatura.currentMinistries >= assinatura.maxMinistries;
+}
+
 export function hasPendingCheckout(assinatura?: ResponseIgrejaAssinaturaDto | null) {
   return Boolean(assinatura?.checkoutUrl) && assinatura?.status !== 'cancelled';
 }
@@ -104,7 +125,8 @@ export function shouldShowBillingNoticeBanner(assinatura?: ResponseIgrejaAssinat
     assinatura.status === 'expired' ||
     assinatura.status === 'overdue' ||
     hasPendingCheckout(assinatura) ||
-    hasExceededPlanCapacity(assinatura)
+    hasExceededPlanCapacity(assinatura) ||
+    isSubscriptionWriteBlocked(assinatura)
   );
 }
 
@@ -166,6 +188,16 @@ export function resolveBillingNoticeContent(
           : 'Atualize o plano para manter a operação da igreja dentro da capacidade ideal.',
       ctaLabel,
       tone: 'warning',
+    };
+  }
+
+  if (assinatura.status === 'cancelled') {
+    return {
+      eyebrow: 'Assinatura cancelada',
+      title: 'Sua assinatura foi encerrada',
+      body: 'Reative sua assinatura para continuar usando todos os recursos da igreja.',
+      ctaLabel,
+      tone: 'critical',
     };
   }
 

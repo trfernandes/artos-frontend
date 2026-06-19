@@ -30,7 +30,7 @@ function formatCurrency(value: number) {
 
 function formatDate(value?: string | null) {
   if (!value) return '—';
-  return new Date(value).toLocaleDateString('pt-BR');
+  return new Date(value).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
 }
 
 function resolveStatusCopy(assinatura: ResponseIgrejaAssinaturaDto) {
@@ -205,7 +205,8 @@ export default function BillingStatusPanel({
               size='extraSmall'
               type='semiBold'
               color={ColorUtils.withAlpha(statusColor, 0.9)}
-              style={styles.eyebrow}
+              style={[styles.eyebrow, { flex: 1 }]}
+              numberOfLines={1}
             >
               {statusCopy.eyebrow}
             </FancyText>
@@ -311,15 +312,17 @@ function SimpleUsageBar({ label, current, max, tone, palette }: SimpleUsageBarPr
   return (
     <View style={styles.usageBar}>
       <View style={styles.usageBarTop}>
-        <FancyText size='small' type='semiBold' color={palette.fonts.dark}>
+        <FancyText size='small' type='semiBold' color={palette.fonts.dark} style={{ flex: 1 }}>
           {label}
         </FancyText>
-        <FancyText type='bold' size='medium' color={tone.valueColor}>
-          {current}
-          <FancyText type='semiBold' size='small' color={tone.limitColor}>
-            {' '}/ {max}
+        <View style={styles.usageValueRow}>
+          <FancyText type='bold' size='medium' color={tone.valueColor}>
+            {current}
           </FancyText>
-        </FancyText>
+          <FancyText type='semiBold' size='small' color={tone.limitColor}>
+            {' / '}{max}
+          </FancyText>
+        </View>
       </View>
 
       <View style={[styles.barTrack, { backgroundColor: tone.track }]}>
@@ -385,6 +388,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: 12,
+  },
+  usageValueRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    flexShrink: 0,
   },
   barTrack: {
     height: 6,
