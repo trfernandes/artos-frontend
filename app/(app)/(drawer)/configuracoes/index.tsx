@@ -48,6 +48,7 @@ import { UF_LIST } from '../../../../domain/utils/uf-list';
 import { getCidadesComCodigoPorUf, getCidadesPorUf } from '../../../../domain/utils/cidades-list';
 import { DropDownItemProps } from '../../../../components/fields/FancyDropDownItem';
 import { useIgrejaAssinatura } from '../../../../hooks/useIgrejaAssinatura';
+import { NotificacoesApi } from '../../../../domain/api/NotificacoesApi';
 import BillingStatusPanel from '../../../../components/billing/BillingStatusPanel';
 import {
   BILLING_PLAN_OPTIONS,
@@ -614,6 +615,7 @@ export default function ConfiguracoesPage() {
   const [billingCitiesList, setBillingCitiesList] = useState<DropDownItemProps<string>[]>([]);
   const [isLoadingBillingCities, setIsLoadingBillingCities] = useState(false);
   const [billingCitiesError, setBillingCitiesError] = useState<string | null>(null);
+  const [isSendingTestPush, setIsSendingTestPush] = useState(false);
   const faturamentoValues = faturamentoForm.watch();
   const billingProfileComplete = useMemo(
     () => isFaturamentoCompleto(faturamentoValues),
@@ -1188,6 +1190,18 @@ export default function ConfiguracoesPage() {
     });
   });
 
+  const handleEnviarTestePush = async () => {
+    setIsSendingTestPush(true);
+    try {
+      await NotificacoesApi.enviarTestePush();
+      Toast.show({ type: 'success', text1: 'Notificação de teste enviada!' });
+    } catch {
+      Toast.show({ type: 'error', text1: 'Erro ao enviar notificação de teste' });
+    } finally {
+      setIsSendingTestPush(false);
+    }
+  };
+
   const handleCopiarCodigo = async () => {
     if (data?.codigo) {
       await Clipboard.setStringAsync(data.codigo);
@@ -1677,6 +1691,14 @@ export default function ConfiguracoesPage() {
                 onPress={handleSalvarNotificacoes}
                 disabled={isUpdating}
                 isLoading={isUpdating}
+              />
+              <FancyButton
+                label='Enviar notificação de teste'
+                icon={{ library: 'Ionicons', name: 'notifications-outline', size: 16 }}
+                type='outlined'
+                onPress={handleEnviarTestePush}
+                disabled={isSendingTestPush}
+                isLoading={isSendingTestPush}
               />
             </View>
           </FancyScrollView>
@@ -2217,6 +2239,7 @@ function createStyles(palette: ThemePalette) {
     buttonContainer: {
       marginTop: 10,
       paddingBottom: 20,
+      gap: 10,
     },
 
     // Avatar / Logo
