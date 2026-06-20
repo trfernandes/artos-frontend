@@ -294,6 +294,7 @@ export default function MinisterioEscalasDetailsPage() {
 
   const handleSubstituirVoluntario = useCallback(
     async (data: SubstituicaoConfirmDialog): Promise<boolean> => {
+      showLoading('Substituindo voluntário...');
       try {
         await updateEscalaItem?.({
           id: data.idEscalaItem,
@@ -314,9 +315,11 @@ export default function MinisterioEscalasDetailsPage() {
           text1: 'Não foi possível substituir o voluntário.',
         });
         return false;
+      } finally {
+        hideLoading();
       }
     },
-    [updateEscalaItem, refetchEscala],
+    [updateEscalaItem, refetchEscala, showLoading, hideLoading],
   );
 
   const handleAdicionarVoluntario = useCallback(

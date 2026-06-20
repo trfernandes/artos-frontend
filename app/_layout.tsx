@@ -1,7 +1,7 @@
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SplashScreen, Stack } from 'expo-router';
-import { Modal, Platform, StyleSheet, View } from 'react-native';
+import { AppState, Modal, Platform, StyleSheet, View } from 'react-native';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { useFonts } from 'expo-font';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -119,6 +119,20 @@ function RootLayoutNav({ onReady }: { onReady: () => void }) {
         }
       });
     }
+  }, [user?.user?.id]);
+
+  // re-verificar token ao voltar para o foreground (token pode ter rotacionado)
+  useEffect(() => {
+    if (!user?.user?.id) return;
+    const voluntarioId = user.user.id;
+
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') {
+        registerForPushNotificationsAsync(voluntarioId).catch(() => {});
+      }
+    });
+
+    return () => subscription.remove();
   }, [user?.user?.id]);
 
   // sincroniza barra de navegação Android (3 botões) com o tema atual

@@ -5,7 +5,6 @@ import PagerView from 'react-native-pager-view';
 import DateUtils, { DateUtilsApi } from '../../../../../utils/date_utils';
 import { EscalaItemDataType } from '../../../../../app/(app)/(drawer)/ministerios/escalas/details';
 import EscalaEventoPage, { EscalaEventoPageProps } from './EscalaEventoPage';
-import { useLoading } from '../../../../../contexts/LoadingContext';
 
 type PagerProps = Omit<EscalaEventoPageProps, 'data' | 'pagerProps'>;
 
@@ -18,7 +17,7 @@ export default function EscalaHorizontalPager({
   ...pageProps
 }: EscalaHorizontalPagerProps) {
   const pagerRef = useRef<PagerView>(null);
-  const { showLoading, hideLoading } = useLoading();
+  const isTransitioning = useRef(false);
 
   // ── Compute initial page (first future event) ────────────────────────────
   const initialIndex = useMemo(() => {
@@ -53,15 +52,17 @@ export default function EscalaHorizontalPager({
   }, [eventosData.length, currentIndex]);
 
   const goToPrev = useCallback(() => {
+    if (isTransitioning.current) return;
     const next = Math.max(0, currentIndex - 1);
-    showLoading('Carregando evento...');
+    isTransitioning.current = true;
     pagerRef.current?.setPage(next);
     setCurrentIndex(next);
   }, [currentIndex]);
 
   const goToNext = useCallback(() => {
+    if (isTransitioning.current) return;
     const next = Math.min(eventosData.length - 1, currentIndex + 1);
-    showLoading('Carregando evento...');
+    isTransitioning.current = true;
     pagerRef.current?.setPage(next);
     setCurrentIndex(next);
   }, [currentIndex, eventosData.length]);
@@ -76,7 +77,7 @@ export default function EscalaHorizontalPager({
       initialPage={safeInitialPage}
       onPageSelected={(e) => {
         setCurrentIndex(e.nativeEvent.position);
-        hideLoading();
+        isTransitioning.current = false;
       }}
       overdrag={false}
     >
