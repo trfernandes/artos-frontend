@@ -3,10 +3,9 @@ import { Animated, Platform, StyleSheet } from 'react-native';
 
 type AppSplashOverlayProps = {
   visible: boolean;
-  // iOS only: called after the overlay image is decoded and painted. The caller
-  // uses this to trigger SplashScreen.hideAsync() only after the image is ready,
-  // preventing a 1-frame gap where the native splash is gone but the overlay
-  // image hasn't been decoded yet. Ignored on Android (undefined).
+  // iOS only: called after the overlay is ready. The caller uses this to
+  // trigger SplashScreen.hideAsync() only after the first paint, preventing a
+  // 1-frame gap where the native splash is gone but the app hasn't rendered.
   onImageReady?: () => void;
 };
 
@@ -18,18 +17,22 @@ type AppSplashOverlayProps = {
 // Animated embutido é dirigido por JS com callback explícito de fim, sem essa
 // mágica de ciclo de vida, então a saída sempre completa e desmonta.
 export default function AppSplashOverlay({ visible, onImageReady }: AppSplashOverlayProps) {
-  // No iOS a splash NATIVA (storyboard) já mostra a mesma splash-icon.png cheia e
-  // estática antes do JS carregar. Se o overlay reanimar a entrada da logo
-  // (opacity 0→1, scale 0.92→1), o usuário vê a logo aparecer, encolher/sumir e
-  // voltar — um "duplo splash". Por isso a entrada só roda no Android, onde a
-  // splash nativa é só o fundo navy (sem logo) e a entrada evita que ela fique
-  // estática. No iOS o overlay nasce com a logo já cheia, continuando o nativo
-  // sem pulo; só o fade-out (comum aos dois) executa.
+  // No Android a splash nativa é só o fundo navy (sem logo), então o overlay
+  // exibe a imagem full-screen com fade-in. No iOS a splash nativa (storyboard)
+  // já mostra o logo centralizado; o overlay serve apenas como fundo sólido
+  // para cobrir o intervalo entre o fim da splash nativa e o primeiro render
+  // do app, evitando o efeito "logo grande → logo pequeno".
   const isAndroid = Platform.OS === 'android';
   const [rendered, setRendered] = useState(true);
   const containerOpacity = useRef(new Animated.Value(1)).current;
   const logoOpacity = useRef(new Animated.Value(isAndroid ? 0 : 1)).current;
   const logoScale = useRef(new Animated.Value(isAndroid ? 0.92 : 1)).current;
+
+  // iOS: notifica prontidão no primeiro frame, sem depender de imagem alguma.
+  useEffect(() => {
+    if (isAndroid) return;
+    onImageReady?.();
+  }, [isAndroid, onImageReady]);
 
   // entrada única da logo (fade + leve crescimento) — sem loop, pra não correr
   // risco de ser cortada no meio de um ciclo quando a splash sai. Só no Android.
@@ -66,15 +69,16 @@ export default function AppSplashOverlay({ visible, onImageReady }: AppSplashOve
       pointerEvents='none'
       style={[StyleSheet.absoluteFillObject, styles.background, { opacity: containerOpacity }]}
     >
-      <Animated.Image
-        source={require('../assets/images/splash-icon.png')}
-        style={[
-          StyleSheet.absoluteFillObject,
-          { opacity: logoOpacity, transform: [{ scale: logoScale }] },
-        ]}
-        resizeMode='cover'
-        onLoad={onImageReady}
-      />
+      {isAndroid && (
+        <Animated.Image
+          source={require('../assets/images/splash-icon.png')}
+          style={[
+            StyleSheet.absoluteFillObject,
+            { opacity: logoOpacity, transform: [{ scale: logoScale }] },
+          ]}
+          resizeMode='cover'
+        />
+      )}
     </Animated.View>
   );
 }

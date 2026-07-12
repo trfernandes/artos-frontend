@@ -174,10 +174,10 @@ function RootLayoutNav({
   // própria SplashScreenView (logcat: 2ª "SplashScreenView" ~3s depois da
   // Activity ficar "Displayed"), que renderiza com fundo branco e causa flash.
   // iOS: hideAsync() é chamado pelo AppSplashOverlay via onImageReady, só depois
-  // que o Animated.Image confirma (onLoad) que a imagem está decodificada —
-  // evita o gap de 1-2 frames entre a splash nativa sair e a logo ser pintada.
+  // que o overlay JS já pintou seu primeiro frame — evita o gap de 1-2 frames
+  // entre a splash nativa sair e o app estar visível.
   useEffect(() => {
-    if (Platform.OS !== 'ios') {
+    if (Platform.OS !== "ios") {
       SplashScreen.hideAsync().finally(() => onNativeSplashHidden());
     }
   }, []);
