@@ -120,7 +120,14 @@ export default Sentry.wrap(function RootLayout() {
           </ThemeProvider>
         </KeyboardProvider>
       </SafeAreaProvider>
-      <AppSplashOverlay visible={splashVisible} />
+      <AppSplashOverlay
+        visible={splashVisible}
+        onImageReady={
+          Platform.OS === 'ios'
+            ? () => SplashScreen.hideAsync().finally(() => handleNativeSplashHidden())
+            : undefined
+        }
+      />
     </GestureHandlerRootView>
   );
 });
@@ -161,15 +168,18 @@ function RootLayoutNav({
     MontserratThinItalic: require('../assets/fonts/montserrat/Montserrat-ThinItalic.ttf'),
   });
 
-  // esconder a splash nativa assim que possível — o AppSplashOverlay já cobre
-  // a tela com fundo sólido (View com backgroundColor) desde o primeiro render,
-  // independente do Image terminar de decodificar. Atrasar hideAsync() aqui dá
-  // tempo pro shim de compatibilidade do expo-splash-screen recriar sua própria
-  // SplashScreenView (visível no logcat como uma 2ª "SplashScreenView" já dentro
-  // do processo do app, construída ~3s depois da Activity ficar "Displayed"),
-  // que renderiza com fundo branco e causa o flash antes do app aparecer.
+  // Android: esconder a splash nativa assim que possível — o AppSplashOverlay já
+  // cobre a tela com fundo sólido desde o primeiro render. Atrasar hideAsync()
+  // aqui dá tempo pro shim de compatibilidade do expo-splash-screen recriar sua
+  // própria SplashScreenView (logcat: 2ª "SplashScreenView" ~3s depois da
+  // Activity ficar "Displayed"), que renderiza com fundo branco e causa flash.
+  // iOS: hideAsync() é chamado pelo AppSplashOverlay via onImageReady, só depois
+  // que o Animated.Image confirma (onLoad) que a imagem está decodificada —
+  // evita o gap de 1-2 frames entre a splash nativa sair e a logo ser pintada.
   useEffect(() => {
-    SplashScreen.hideAsync().finally(() => onNativeSplashHidden());
+    if (Platform.OS !== 'ios') {
+      SplashScreen.hideAsync().finally(() => onNativeSplashHidden());
+    }
   }, []);
 
   useEffect(() => {

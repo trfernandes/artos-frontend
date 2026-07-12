@@ -3,6 +3,11 @@ import { Animated, Platform, StyleSheet } from 'react-native';
 
 type AppSplashOverlayProps = {
   visible: boolean;
+  // iOS only: called after the overlay image is decoded and painted. The caller
+  // uses this to trigger SplashScreen.hideAsync() only after the image is ready,
+  // preventing a 1-frame gap where the native splash is gone but the overlay
+  // image hasn't been decoded yet. Ignored on Android (undefined).
+  onImageReady?: () => void;
 };
 
 // Usamos o Animated embutido do React Native (não o react-native-reanimated).
@@ -12,7 +17,7 @@ type AppSplashOverlayProps = {
 // desmontado de fato, deixando a splash presa pra sempre por cima do app. O
 // Animated embutido é dirigido por JS com callback explícito de fim, sem essa
 // mágica de ciclo de vida, então a saída sempre completa e desmonta.
-export default function AppSplashOverlay({ visible }: AppSplashOverlayProps) {
+export default function AppSplashOverlay({ visible, onImageReady }: AppSplashOverlayProps) {
   // No iOS a splash NATIVA (storyboard) já mostra a mesma splash-icon.png cheia e
   // estática antes do JS carregar. Se o overlay reanimar a entrada da logo
   // (opacity 0→1, scale 0.92→1), o usuário vê a logo aparecer, encolher/sumir e
@@ -68,6 +73,7 @@ export default function AppSplashOverlay({ visible }: AppSplashOverlayProps) {
           { opacity: logoOpacity, transform: [{ scale: logoScale }] },
         ]}
         resizeMode='cover'
+        onLoad={onImageReady}
       />
     </Animated.View>
   );
