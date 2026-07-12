@@ -76,6 +76,18 @@ export const NOTIFICACAO_THEMES: Record<NotificacaoTipoEnum, NotificationCardThe
     label: 'Escala alterada',
   },
 
+  // ── Escala: geração assíncrona ──────────────────────────────────────────
+  [NotificacaoTipoEnum.EscalaGerada]: {
+    icon: makeIcon('calendar-check-outline'),
+    tone: 'green',
+    label: 'Escala gerada',
+  },
+  [NotificacaoTipoEnum.EscalaErroGerada]: {
+    icon: makeIcon('calendar-alert'),
+    tone: 'red',
+    label: 'Falha na geração',
+  },
+
   // ── Escala: cancelamento & conflito (vermelho — urgente) ────────────────
   [NotificacaoTipoEnum.EscalaCancelada]: {
     icon: makeIcon('calendar-remove'),

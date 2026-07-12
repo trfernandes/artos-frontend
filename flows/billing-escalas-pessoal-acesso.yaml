@@ -1,0 +1,37 @@
+# Flow: Tela de Escalas pessoais acessivel com billing ativo
+#
+# Uso:
+#   maestro test flows/billing-escalas-pessoal-acesso.yaml
+#
+# Pre-condicao: conta Ativa (isBlocked=false)
+# Rota: pessoal/escalas (escalas do usuario logado, nao requer ministerioId)
+#
+# O que verifica:
+#   - Tela de escalas pessoais carrega sem crash
+#   - Nenhum banner de billing visivel (active = sem bloqueio)
+#   - Nenhum modal de billing aberto automaticamente
+
+appId: com.church.artos
+---
+- launchApp
+- runFlow: _login.yaml
+
+- openLink: diakonia:///inicio
+- extendedWaitUntil:
+    visible: "Início"
+    timeout: 120000
+
+- openLink: diakonia:///pessoal/escalas
+- waitForAnimationToEnd:
+    timeout: 15000
+
+# Tela carregou sem bloqueio de billing
+- assertNotVisible: "Avaliação encerrada"
+- assertNotVisible: "Pagamento em atraso"
+- assertNotVisible: "Capacidade excedida"
+- assertNotVisible: "Assinatura cancelada"
+- assertNotVisible: "Assinatura inativa"
+- assertNotVisible: "Escolher plano"
+- assertNotVisible: "Opcoes de Planos"
+
+- takeScreenshot: billing-escalas-pessoal-acesso

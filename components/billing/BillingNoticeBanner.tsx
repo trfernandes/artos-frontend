@@ -112,9 +112,9 @@ export default function BillingNoticeBanner({
             </View>
           </View>
 
-          {onPress ? (
+          {onPress && assinatura.canManageBilling ? (
             <FancyButton
-              label={notice.ctaLabel}
+              label='Gerenciar assinatura'
               onPress={onPress}
               type={compact ? 'outlined' : 'contained'}
               icon={{
@@ -137,6 +137,14 @@ export default function BillingNoticeBanner({
               ]}
               labelStyle={compact ? { color: toneColor } : undefined}
             />
+          ) : !assinatura.canManageBilling ? (
+            <FancyText
+              size={compact ? 'extraSmall' : 'small'}
+              type='semiBold'
+              color={ColorUtils.withAlpha(palette.fonts.dark, 0.65)}
+            >
+              Fale com o administrador da igreja
+            </FancyText>
           ) : null}
         </View>
       </LinearGradient>

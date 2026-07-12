@@ -10,8 +10,13 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
+// No cold start do Android, o valor reportado logo após a troca de tema da
+// splash (postSplashScreenTheme) pode vir nulo/incorreto antes do SO resolver
+// o modo noturno real. A splash é sempre escura, então tratamos esse caso
+// indefinido como 'dark' — evita o flash claro que aparecia antes da correção
+// via Appearance.addChangeListener.
 function normalizeScheme(colorScheme: ColorSchemeName): ThemeMode {
-  return colorScheme === 'dark' ? 'dark' : 'light';
+  return colorScheme === 'light' ? 'light' : 'dark';
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {

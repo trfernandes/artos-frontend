@@ -9,7 +9,7 @@ import { usePostLoginRedirect } from '../../hooks/usePostLoginRedirect';
 import { FancyAlert } from '../../components/modal/FancyAlert';
 
 export default function RootLayout() {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, signOut, isSigningOut } = useAuth();
   const navigationRef = useNavigationContainerRef();
 
   // Check for post-login redirects (pending invites, no churches)
@@ -17,7 +17,7 @@ export default function RootLayout() {
 
   if (loading) return null;
 
-  if (!user) {
+  if (!user && !isSigningOut) {
     return <Redirect href='/(auth)/login' />;
   }
 

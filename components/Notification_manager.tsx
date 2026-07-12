@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
+import Toast from 'react-native-toast-message';
 import { emitNotificationEvent } from '../core/events/notification-events';
 import { openNotification } from '../services/notification-routing';
+import { NotificacaoTipoEnum } from '../domain/enums/Notificacao/tipo-notificacao.enum';
 
 export function NotificationsManager() {
   const lastResponseHandled = useRef(false);
@@ -25,6 +27,14 @@ export function NotificationsManager() {
     const subRec = Notifications.addNotificationReceivedListener((notification) => {
       console.log('[Notifications] Recebida:', notification.request.content);
       const payload = (notification.request.content.data as Record<string, any>) || {};
+      const tipo = payload?.tipo as string | undefined;
+
+      if (tipo === NotificacaoTipoEnum.EscalaGerada) {
+        Toast.show({ type: 'success', text1: 'Escala gerada com sucesso!', text2: notification.request.content.body ?? undefined });
+      } else if (tipo === NotificacaoTipoEnum.EscalaErroGerada) {
+        Toast.show({ type: 'error', text1: 'Falha na geração da escala', text2: notification.request.content.body ?? undefined });
+      }
+
       emitNotificationEvent('notification_received_foreground', { payload });
     });
 

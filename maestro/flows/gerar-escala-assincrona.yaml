@@ -1,0 +1,118 @@
+appId: com.church.artos
+---
+# ═══════════════════════════════════════════════════════════════════
+# Teste: Geração assíncrona de escala
+#
+# O que valida:
+#   1. Wizard fecha no passo "Pronto" com botões "Ir ao início" / "Acompanhar"
+#   2. "Acompanhar" navega para details.tsx mostrando o banner "Gerando..."
+#   3. Polling detecta conclusão e o banner some (timeout 60s)
+#
+# Estrutura do drawer (MenuData.ts):
+#   Pessoal: Inicio | Minhas Indisponibilidades | Minhas Escalas
+#   Igreja (admin): Eventos | Ministérios→/admin/ministerios | Voluntários | Configurações
+#   Ministérios: [nome do ministério, expansível] → Acessos | Agenda | Escalas | …
+# ═══════════════════════════════════════════════════════════════════
+
+# ── 1. Ponto de partida: tela inicial ────────────────────────────────────
+- openLink: diakonia:///inicio
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# ── 2. Abrir drawer via swipe ────────────────────────────────────────────
+- swipe:
+    direction: RIGHT
+    duration: 600
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# ── 3. Expandir o ministério no drawer (item expansível, colapsado por padrão)
+#       Toca no nome do ministério para revelar os sub-itens
+- tapOn:
+    text: "Ministério de Louvor"
+- waitForAnimationToEnd:
+    timeout: 1500
+
+# ── 4. Tocar em "Escalas" (sub-item que aparece após expandir)
+- tapOn:
+    text: "Escalas"
+- waitForAnimationToEnd:
+    timeout: 4000
+
+# ── 5. Verificar que estamos na lista de escalas e abrir o assistente (FAB)
+- assertVisible:
+    text: "Escalas"
+
+- tapOn:
+    point: "95%, 90%"
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# ── 6. Step 1 — Dados: preencher nome ───────────────────────────────────
+- assertVisible:
+    text: "Como quer chamar essa escala?"
+
+- tapOn:
+    text: "Como quer chamar essa escala?"
+- inputText: "Escala Async Maestro"
+- hideKeyboard
+- waitForAnimationToEnd:
+    timeout: 1000
+
+# Avança sem alterar datas (usa defaults)
+- tapOn:
+    text: "Próximo"
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# ── 7. Step 2 — Eventos: selecionar ao menos um ──────────────────────────
+# Tenta selecionar todos se botão existir
+- tapOn:
+    text: "Selecionar todos"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 1000
+
+- tapOn:
+    text: "Próximo"
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# ── 8. Step 3 — Equipe: aceitar padrão ──────────────────────────────────
+- tapOn:
+    text: "Próximo"
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# ── 9. Step 4 — Revisar e gerar ─────────────────────────────────────────
+- tapOn:
+    text: "Gerar"
+- waitForAnimationToEnd:
+    timeout: 10000
+
+# ── 10. Verificar passo "Pronto" com geração assíncrona ─────────────────
+- assertVisible:
+    text: "Geração iniciada!"
+
+- assertVisible:
+    text: "Acompanhar"
+
+- assertVisible:
+    text: "Ir ao início"
+
+# ── 11. Acompanhar → details.tsx ─────────────────────────────────────────
+- tapOn:
+    text: "Acompanhar"
+- waitForAnimationToEnd:
+    timeout: 4000
+
+# ── 12. Verificar banner "Gerando..." na tela de detalhes ────────────────
+- assertVisible:
+    text: "Gerando itens da escala..."
+
+# ── 13. Aguardar polling detectar conclusão (backend demora ~5-20s) ───────
+- waitForAnimationToEnd:
+    timeout: 60000
+
+- assertNotVisible:
+    text: "Gerando itens da escala..."

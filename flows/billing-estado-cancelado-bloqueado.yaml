@@ -1,0 +1,98 @@
+# Flow: Assinatura cancelada com periodo EXPIRADO — bloqueio ativo + banner nas listas
+#
+# Uso:
+#   1. Rodar SQL de setup no Neon (ver abaixo)
+#   2. maestro test flows/billing-estado-cancelado-bloqueado.yaml
+#   3. Rodar SQL de revert IMEDIATAMENTE apos o teste
+#
+# ════════════════════════════════════════════════
+# SQL SETUP (rodar antes):
+#
+#   UPDATE subscriptions
+#   SET status = 'cancelled',
+#       "currentPeriodEnd" = NOW() - INTERVAL '1 day'
+#   WHERE "churchId" = (SELECT id FROM igrejas WHERE codigo = 'teste-church');
+#   UPDATE igrejas SET "subscriptionStatus" = 'cancelled' WHERE codigo = 'teste-church';
+#
+# SQL REVERT (rodar apos):
+#
+#   UPDATE subscriptions
+#   SET status = 'active',
+#       "currentPeriodEnd" = '2026-07-18'
+#   WHERE "churchId" = (SELECT id FROM igrejas WHERE codigo = 'teste-church');
+#   UPDATE igrejas SET "subscriptionStatus" = 'active' WHERE codigo = 'teste-church';
+# ════════════════════════════════════════════════
+#
+# O que verifica:
+#   isSubscriptionWriteBlocked = true (cancelled + currentPeriodEnd < now)
+#   → isBlocked = true
+#   → BillingNoticeBanner visivel em voluntarios e ministerios
+#
+#   Diferenca critica vs billing-estado-cancelado.yaml:
+#     - Aqui currentPeriodEnd = passado → bloqueio ativo
+#     - La currentPeriodEnd = futuro → sem bloqueio (acesso mantido)
+#
+#   BillingNoticeBanner (telas de lista):
+#     resolveBillingNoticeContent para cancelled+blocked:
+#     eyebrow = "Assinatura cancelada"
+#     title = "Sua assinatura foi encerrada"
+#
+#   BillingStatusPanel (Configuracoes aba Assinatura):
+#     pill = "Cancelada"
+#     CTA = "Gerenciar assinatura"
+
+appId: com.church.artos
+---
+- launchApp
+- runFlow: _login.yaml
+- openLink: diakonia:///inicio
+- extendedWaitUntil:
+    visible: "Início"
+    timeout: 120000
+
+# ── Passo 1: Banner em Voluntarios (isBlocked=true) ────────────────────────
+# Nota: cancelled+blocked torna o plano efectivo FREE (maxVolunteers=0).
+# 30 voluntarios > 0 → hasExceededPlanCapacity=true, que tem prioridade sobre
+# isBlocked em resolveBillingNoticeContent (linha 181 < 194).
+# O banner correto aqui e "Capacidade excedida", nao "Assinatura cancelada".
+- openLink: diakonia:///admin/voluntarios
+- extendedWaitUntil:
+    visible: "Capacidade excedida"
+    timeout: 30000
+- assertVisible: "Capacidade excedida"
+- assertVisible: "Seu uso atual já ultrapassa o plano contratado"
+- assertNotVisible: "Assinatura em dia"
+- assertNotVisible: "Avaliação encerrada"
+- takeScreenshot: billing-cancelado-bloqueado-voluntarios
+
+# ── Passo 2: Banner em Ministerios (blockFab=true) ─────────────────────────
+- openLink: diakonia:///admin/ministerios
+- extendedWaitUntil:
+    visible: "Capacidade excedida"
+    timeout: 30000
+- assertVisible: "Capacidade excedida"
+- assertVisible: "Seu uso atual já ultrapassa o plano contratado"
+- takeScreenshot: billing-cancelado-bloqueado-ministerios
+
+# ── Passo 3: BillingStatusPanel em Configuracoes ───────────────────────────
+- openLink: diakonia:///configuracoes
+- waitForAnimationToEnd:
+    timeout: 15000
+- runFlow:
+    when:
+      visible: "Servidor indisponível"
+    file: _retry_servidor.yaml
+- extendedWaitUntil:
+    visible: "Assinatura"
+    timeout: 15000
+- tapOn:
+    text: "Assinatura"
+    index: 1
+- extendedWaitUntil:
+    visible: "Cancelada"
+    timeout: 30000
+- assertVisible: "Cancelada"
+- assertVisible: "Gerenciar assinatura"
+- assertNotVisible: "Ativa"
+- assertNotVisible: "Assinatura em dia"
+- takeScreenshot: billing-cancelado-bloqueado-configuracoes

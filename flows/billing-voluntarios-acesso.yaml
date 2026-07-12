@@ -1,0 +1,35 @@
+# Flow: Tela de Voluntarios acessivel com billing em estado permissivo
+#
+# Uso:
+#   maestro test flows/billing-voluntarios-acesso.yaml
+#
+# Pre-condicao: assinatura ativa (trial valido, active, overdue na graca,
+#   ou cancelled ainda vigente). NAO usar com conta bloqueada.
+#
+# O que verifica:
+#   - Tela de voluntarios carrega sem crash e sem bloqueio de billing
+#   - Lista de voluntarios visivel (billing NAO impediu acesso)
+#   - Sem modal de billing abrindo automaticamente
+
+appId: com.church.artos
+---
+- launchApp
+- runFlow: _login.yaml
+
+- assertVisible: "Início"
+
+- openLink: diakonia:///admin/voluntarios
+- waitForAnimationToEnd:
+    timeout: 15000
+
+# Tela de voluntarios carregou (billing nao bloqueou)
+- assertVisible: "Voluntários"
+
+# Lista populada: Total visivel indica que dados carregaram
+- assertVisible: "Total"
+
+# Nenhum modal de billing bloqueando
+- assertNotVisible: "Escolher plano"
+- assertNotVisible: "Opcoes de Planos"
+
+- takeScreenshot: billing-voluntarios-acesso

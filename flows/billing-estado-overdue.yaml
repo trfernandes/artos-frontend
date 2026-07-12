@@ -1,0 +1,90 @@
+# Flow: Conta overdue (pagamento em atraso) — banner + bloqueio de escrita
+#
+# Uso:
+#   1. Rodar SQL de setup no Neon (ver abaixo)
+#   2. maestro test flows/billing-estado-overdue.yaml
+#   3. Rodar SQL de revert IMEDIATAMENTE apos o teste
+#
+# ════════════════════════════════════════════════
+# SQL SETUP (rodar antes):
+#
+#   UPDATE subscriptions
+#   SET status = 'overdue'
+#   WHERE "churchId" = (SELECT id FROM igrejas WHERE codigo = 'teste-church');
+#   UPDATE igrejas SET "subscriptionStatus" = 'overdue' WHERE codigo = 'teste-church';
+#
+# SQL REVERT (rodar apos):
+#
+#   UPDATE subscriptions
+#   SET status = 'active',
+#       "currentPeriodEnd" = '2026-07-18'
+#   WHERE "churchId" = (SELECT id FROM igrejas WHERE codigo = 'teste-church');
+#   UPDATE igrejas SET "subscriptionStatus" = 'active' WHERE codigo = 'teste-church';
+# ════════════════════════════════════════════════
+#
+# O que verifica:
+#   isSubscriptionWriteBlocked = true para status='overdue' (sempre, com ou sem grace)
+#
+#   BillingNoticeBanner nos screens de lista:
+#     eyebrow="Pagamento em atraso", title="Sua cobranca esta pendente"
+#     ctaLabel="Retomar pagamento" (abre portal externo via abrirPortalDeAssinatura)
+#
+#   BillingStatusPanel (Configuracoes aba Assinatura):
+#     eyebrow="Assinatura", title="Pagamento pendente", pill="Pendente"
+#     (resolveStatusCopy: case 'overdue' -> title="Pagamento pendente")
+#
+#   NOTA: dashboard (inicio) nao tem BillingNoticeBanner.
+
+appId: com.church.artos
+---
+- launchApp
+- runFlow: _login.yaml
+- openLink: diakonia:///inicio
+- extendedWaitUntil:
+    visible: "Início"
+    timeout: 120000
+
+# ── Passo 1: Banner em Voluntarios ─────────────────────────────────────────
+- openLink: diakonia:///admin/voluntarios
+- extendedWaitUntil:
+    visible: "Pagamento em atraso"
+    timeout: 30000
+# Banner: eyebrow="Pagamento em atraso", title="Sua cobranca esta pendente"
+- assertVisible: "Pagamento em atraso"
+- assertVisible: "Sua cobrança está pendente"
+- takeScreenshot: billing-overdue-voluntarios
+
+# ── Passo 2: Banner em Ministerios ─────────────────────────────────────────
+- openLink: diakonia:///admin/ministerios
+- extendedWaitUntil:
+    visible: "Pagamento em atraso"
+    timeout: 30000
+- assertVisible: "Pagamento em atraso"
+- assertVisible: "Sua cobrança está pendente"
+- takeScreenshot: billing-overdue-ministerios
+
+# ── Passo 3: BillingStatusPanel em Configuracoes ───────────────────────────
+- openLink: diakonia:///configuracoes
+- waitForAnimationToEnd:
+    timeout: 15000
+- runFlow:
+    when:
+      visible: "Servidor indisponível"
+    file: _retry_servidor.yaml
+- extendedWaitUntil:
+    visible: "Assinatura"
+    timeout: 15000
+- tapOn:
+    text: "Assinatura"
+    index: 1
+- extendedWaitUntil:
+    visible: "Pagamento pendente"
+    timeout: 30000
+# BillingStatusPanel: resolveStatusCopy para overdue -> "Pagamento pendente"
+- assertVisible: "Pagamento pendente"
+- assertVisible: "Pendente"
+# Gerenciar assinatura e o unico CTA (primaryLabel override)
+- assertVisible: "Gerenciar assinatura"
+- assertNotVisible: "Assinatura em dia"
+- assertNotVisible: "Ativa"
+- takeScreenshot: billing-overdue-configuracoes

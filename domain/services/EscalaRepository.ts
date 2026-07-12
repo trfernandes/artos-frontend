@@ -29,6 +29,10 @@ class EscalaRepositoryClass extends BaseRepository<ResponseEscalaDto, CreateEsca
     return EscalasApi.getParametrizacao(escalaId);
   }
 
+  getAuditoria(escalaId: string): Promise<any> {
+    return EscalasApi.getAuditoria(escalaId);
+  }
+
   validarNome(
     igrejaId: string,
     ministerioId: string,

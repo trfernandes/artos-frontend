@@ -10,8 +10,6 @@ import { JoinByCodigoDto } from '../dtos/Igreja/join-by-codigo.dto';
 import { ResponseIgrejaVoluntarioDto } from '../dtos/Igreja/response-igreja-voluntario.dto';
 import { AprovarMembroDto } from '../dtos/Igreja/aprovar-membro.dto';
 import { ResponseIgrejaAssinaturaDto } from '../dtos/Igreja/response-igreja-assinatura.dto';
-import { CriarCheckoutAssinaturaDto } from '../dtos/Igreja/criar-checkout-assinatura.dto';
-import { ResponseAssinaturaCheckoutDto } from '../dtos/Igreja/response-assinatura-checkout.dto';
 import { ResponseAceitarConviteDto } from '../dtos/Igreja/response-aceitar-convite.dto';
 import { ResponseConvitePreviewDto } from '../dtos/Igreja/response-convite-preview.dto';
 import { ResponseIgrejaConviteDto } from '../dtos/Igreja/response-igreja-convite.dto';
@@ -306,25 +304,14 @@ class IgrejaApiClass extends BaseApi<ResponseIgrejaDto, CreateIgrejaDto, UpdateI
   }
 
   /**
-   * Iniciar checkout da assinatura (JWT)
-   * POST /billing/checkout
+   * Solicitar link assinado do portal web de assinatura (JWT)
+   * POST /billing/portal-token
    */
-  async criarCheckoutAssinatura(
-    dto: CriarCheckoutAssinaturaDto,
-  ): Promise<ResponseAssinaturaCheckoutDto> {
-    const response = await apiClient.post<ApiEnvelope<ResponseAssinaturaCheckoutDto>>(
-      `/billing/checkout`,
-      dto,
-    );
+  async solicitarPortalAssinatura(igrejaId: string): Promise<{ url: string }> {
+    const response = await apiClient.post<ApiEnvelope<{ url: string }>>(`/billing/portal-token`, {
+      churchId: igrejaId,
+    });
     return response.data.data;
-  }
-
-  async cancelarAssinatura(igrejaId: string): Promise<void> {
-    await apiClient.post('/billing/cancel', { churchId: igrejaId });
-  }
-
-  async cancelarTrocaDePlano(igrejaId: string): Promise<void> {
-    await apiClient.post('/billing/cancel-plan-change', { churchId: igrejaId });
   }
 
   // ========== CONFIGURAÇÕES ==========

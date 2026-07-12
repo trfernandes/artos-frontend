@@ -4,6 +4,7 @@ import DefaultIcons from '../../../FancyIcons';
 import { usePallete } from '../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../hooks/useThemedStyles';
 import { ThemePalette } from '../../../../constants/colors';
+import { ColorUtils } from '../../../../utils/color_utils';
 
 type SummaryCardsProps = {
   pendentes: number;
@@ -24,14 +25,24 @@ function SummaryCardItem({ icon, iconLib, value, label, color }: SummaryCardItem
   const styles = useThemedStyles(createStyles);
 
   return (
-    <View style={[styles.card, { backgroundColor: `${color}12` }]}>
-      <View style={[styles.iconContainer, { backgroundColor: `${color}20` }]}>
-        <DefaultIcons.Custom library={iconLib} name={icon as any} size={20} color={color} />
+    <View style={[styles.card, { backgroundColor: ColorUtils.withAlpha(color, 0.07) }]}>
+      <View style={styles.topRow}>
+        <View
+          style={[styles.iconContainer, { backgroundColor: ColorUtils.withAlpha(color, 0.12) }]}
+        >
+          <DefaultIcons.Custom library={iconLib} name={icon as any} size={18} color={color} />
+        </View>
+        <FancyText type='bold' size='large' style={{ color }}>
+          {value}
+        </FancyText>
       </View>
-      <FancyText type='bold' size='large' style={{ color }}>
-        {value}
-      </FancyText>
-      <FancyText size='extraSmall' type='bold' color={palette.fonts.inactive} numberOfLines={1}>
+      <FancyText
+        size='extraSmall'
+        type='bold'
+        color={palette.fonts.inactive}
+        numberOfLines={2}
+        style={styles.label}
+      >
         {label}
       </FancyText>
     </View>
@@ -84,18 +95,26 @@ function createStyles(palette: ThemePalette) {
     card: {
       flex: 1,
       alignItems: 'center',
-      paddingVertical: 14,
-      paddingHorizontal: 8,
+      paddingVertical: 12,
+      paddingHorizontal: 6,
       borderRadius: 14,
       gap: 4,
     },
+    topRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
     iconContainer: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
       justifyContent: 'center',
       alignItems: 'center',
-      marginBottom: 2,
+    },
+    label: {
+      alignSelf: 'stretch',
+      textAlign: 'center',
     },
   });
 }

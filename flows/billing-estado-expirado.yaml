@@ -1,0 +1,96 @@
+# Flow: Conta expirada — banners e bloqueio de escrita
+#
+# Uso:
+#   1. Rodar SQL de setup no Neon (ver abaixo)
+#   2. maestro test flows/billing-estado-expirado.yaml
+#   3. Rodar SQL de revert IMEDIATAMENTE apos o teste
+#
+# ════════════════════════════════════════════════
+# SQL SETUP (rodar antes):
+#
+#   UPDATE subscriptions
+#   SET status = 'expired',
+#       "currentPeriodEnd" = NOW() - INTERVAL '1 day'
+#   WHERE "churchId" = (SELECT id FROM igrejas WHERE codigo = 'teste-church');
+#   UPDATE igrejas SET "subscriptionStatus" = 'expired' WHERE codigo = 'teste-church';
+#
+# SQL REVERT (rodar apos):
+#
+#   UPDATE subscriptions
+#   SET status = 'active',
+#       "currentPeriodEnd" = '2026-07-18'
+#   WHERE "churchId" = (SELECT id FROM igrejas WHERE codigo = 'teste-church');
+#   UPDATE igrejas SET "subscriptionStatus" = 'active' WHERE codigo = 'teste-church';
+# ════════════════════════════════════════════════
+#
+# O que verifica:
+#   isSubscriptionWriteBlocked = true para status='expired'
+#
+#   BillingNoticeBanner aparece em (condicao: isBlocked=true):
+#     - admin/voluntarios (isBlocked || isVolunteerLimitReached)
+#     - admin/ministerios (blockFab = isBlocked || isMinistryLimitReached)
+#     - ministerios/escalas e agenda (isBlocked)
+#
+#   BillingStatusPanel (Configuracoes aba Assinatura):
+#     eyebrow="Avaliacao encerrada", title="Seu periodo avaliativo terminou", pill="Expirada"
+#
+#   NOTA: dashboard (inicio) nao tem BillingNoticeBanner — nao assertar la.
+
+appId: com.church.artos
+---
+- launchApp
+- runFlow: _login.yaml
+# openLink enqueueia a navegacao — Expo Router a processa quando o bundle termina
+# Necessario para cold starts do Metro onde a splash e estatica (sem animacao)
+- openLink: diakonia:///inicio
+- extendedWaitUntil:
+    visible: "Início"
+    timeout: 120000
+
+# ── Passo 1: Banner em Voluntarios ─────────────────────────────────────────
+- openLink: diakonia:///admin/voluntarios
+- extendedWaitUntil:
+    visible: "Avaliação encerrada"
+    timeout: 30000
+# Banner: eyebrow="Avaliacao encerrada", title="Seu periodo avaliativo terminou"
+- assertVisible: "Avaliação encerrada"
+- assertVisible: "Seu período avaliativo terminou"
+# Conta expirada — sem acesso ativo
+- assertNotVisible: "Assinatura em dia"
+- takeScreenshot: billing-expirado-voluntarios
+
+# ── Passo 2: Banner em Ministerios (banner visivel = blockFab=true = FAB off) ─
+- openLink: diakonia:///admin/ministerios
+- extendedWaitUntil:
+    visible: "Avaliação encerrada"
+    timeout: 30000
+- assertVisible: "Avaliação encerrada"
+- assertVisible: "Seu período avaliativo terminou"
+- takeScreenshot: billing-expirado-ministerios
+
+# ── Passo 3: BillingStatusPanel em Configuracoes ───────────────────────────
+- openLink: diakonia:///configuracoes
+- waitForAnimationToEnd:
+    timeout: 15000
+- runFlow:
+    when:
+      visible: "Servidor indisponível"
+    file: _retry_servidor.yaml
+- extendedWaitUntil:
+    visible: "Assinatura"
+    timeout: 15000
+- tapOn:
+    text: "Assinatura"
+    index: 1
+- extendedWaitUntil:
+    visible: "Avaliação encerrada"
+    timeout: 30000
+# BillingStatusPanel: resolveStatusCopy para expired
+- assertVisible: "Avaliação encerrada"
+- assertVisible: "Seu período avaliativo terminou"
+- assertVisible: "Expirada"
+# Unico CTA da aba (primaryLabel override = "Gerenciar assinatura")
+- assertVisible: "Gerenciar assinatura"
+- assertNotVisible: "Assinatura em dia"
+- assertNotVisible: "Ativa"
+- takeScreenshot: billing-expirado-configuracoes

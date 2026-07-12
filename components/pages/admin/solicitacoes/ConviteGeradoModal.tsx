@@ -1,7 +1,9 @@
-import { View, StyleSheet, Modal } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import FancyText from '../../../FancyText';
 import FancyButton from '../../../buttons/FancyButton';
 import DefaultIcons from '../../../FancyIcons';
+import FancyBottomSheetModal from '../../../modal/FancyBottomSheetModal';
+import FancyListItemCard from '../../../cards/FancyListItemCard';
 import { ResponseIgrejaConviteDto } from '../../../../domain/dtos/Igreja/response-igreja-convite.dto';
 import { usePallete } from '../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../hooks/useThemedStyles';
@@ -28,177 +30,131 @@ export default function ConviteGeradoModal({
   if (!convite) return null;
 
   return (
-    <Modal visible={!!convite} transparent animationType='fade' onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={styles.card}>
-          {/* Ícone de sucesso */}
-          <View style={styles.successIconContainer}>
-            <DefaultIcons.Custom
-              library='MaterialIcons'
-              name='check-circle'
-              size={56}
-              color={palette.confirm}
-            />
-          </View>
-
-          {/* Título */}
-          <FancyText type='bold' size='extraLarge' style={styles.title}>
-            Convite Criado!
+    <FancyBottomSheetModal
+      visible={!!convite}
+      onClose={onClose}
+      footer={
+        <View style={styles.footer}>
+          <FancyButton
+            label='Compartilhar'
+            icon={{ library: 'MaterialIcons', name: 'share', size: 18 }}
+            onPress={onCompartilhar}
+          />
+          <FancyButton
+            label='Fechar'
+            type='text'
+            icon={{ library: 'MaterialIcons', name: 'close', size: 18, color: palette.primary }}
+            onPress={onClose}
+          />
+        </View>
+      }
+    >
+      {/* Header de sucesso */}
+      <View style={styles.header}>
+        <DefaultIcons.Custom
+          library='MaterialIcons'
+          name='check-circle'
+          size={48}
+          color={palette.confirm}
+        />
+        <FancyText type='bold' size='extraLarge' style={styles.title}>
+          Convite Criado!
+        </FancyText>
+        <FancyText size='small' color={palette.fonts.inactive} style={styles.subtitle}>
+          Compartilhe o código ou link com quem deseja convidar
+        </FancyText>
+        <View style={styles.entryChip}>
+          <DefaultIcons.Custom
+            library='MaterialIcons'
+            name={convite.autoApprove ? 'flash-on' : 'hourglass-empty'}
+            size={14}
+            color={convite.autoApprove ? palette.confirm : palette.warning}
+          />
+          <FancyText
+            size='small'
+            type='semiBold'
+            color={convite.autoApprove ? palette.confirm : palette.warning}
+          >
+            {convite.autoApprove ? 'Entrada Imediata' : 'Requer Aprovação'}
           </FancyText>
-
-          <FancyText size='small' color={palette.fonts.inactive} style={styles.subtitle}>
-            Compartilhe o código ou link com quem deseja convidar
-          </FancyText>
-
-          {/* Token Box */}
-          <View style={styles.conviteBox}>
-            <FancyText size='small' type='bold' color={palette.fonts.inactive}>
-              Código do convite
-            </FancyText>
-            <FancyButton
-              label='Copiar'
-              type='text'
-              size={32}
-              icon={{
-                library: 'MaterialIcons',
-                name: 'content-copy',
-                size: 14,
-                color: palette.primary,
-              }}
-              onPress={onCopiarToken}
-              containerStyle={styles.copyActionButton}
-            />
-          </View>
-
-          {/* Link Box */}
-          <View style={styles.conviteBox}>
-            <FancyText size='small' type='bold' color={palette.fonts.inactive}>
-              Link de convite
-            </FancyText>
-            <FancyButton
-              label='Copiar'
-              type='text'
-              size={32}
-              icon={{
-                library: 'MaterialIcons',
-                name: 'content-copy',
-                size: 14,
-                color: palette.primary,
-              }}
-              onPress={onCopiarLink}
-              containerStyle={styles.copyActionButton}
-            />
-          </View>
-
-          {/* Chip de tipo de entrada */}
-          <View style={styles.entryTypeContainer}>
-            <DefaultIcons.Custom
-              library='MaterialIcons'
-              name={convite.autoApprove ? 'flash-on' : 'hourglass-empty'}
-              size={16}
-              color={convite.autoApprove ? palette.confirm : palette.warning}
-            />
-            <FancyText
-              size='small'
-              type='semiBold'
-              color={convite.autoApprove ? palette.confirm : palette.warning}
-            >
-              {convite.autoApprove ? 'Entrada Imediata' : 'Requer Aprovação'}
-            </FancyText>
-          </View>
-
-          {/* Botões de ação */}
-          <View style={styles.actions}>
-            <FancyButton
-              label='Compartilhar'
-              icon={{
-                library: 'MaterialIcons',
-                name: 'share',
-                size: 18,
-                color: palette.fonts.light,
-              }}
-              onPress={onCompartilhar}
-              containerStyle={styles.shareButton}
-            />
-
-            <FancyButton
-              label='Fechar'
-              type='text'
-              icon={{
-                library: 'MaterialIcons',
-                name: 'close',
-                size: 18,
-                color: palette.primary,
-              }}
-              onPress={onClose}
-              containerStyle={styles.closeButton}
-            />
-          </View>
         </View>
       </View>
-    </Modal>
+
+      <View style={styles.cardsStack}>
+        <FancyListItemCard
+          leading={{ type: 'icon', icon: { library: 'MaterialCommunityIcons', name: 'qrcode' } }}
+          title={convite.token}
+          titleProps={{ numberOfLines: 1 }}
+          subtitle='Código do convite'
+          onPress={onCopiarToken}
+          accessibilityLabel='Copiar código do convite'
+          trailing={<CopyTrailing palette={palette} />}
+        />
+
+        <FancyListItemCard
+          leading={{ type: 'icon', icon: { library: 'MaterialCommunityIcons', name: 'link-variant' } }}
+          title={convite.inviteLink}
+          titleProps={{ numberOfLines: 1 }}
+          subtitle='Link de convite'
+          onPress={onCopiarLink}
+          accessibilityLabel='Copiar link de convite'
+          trailing={<CopyTrailing palette={palette} />}
+        />
+      </View>
+    </FancyBottomSheetModal>
+  );
+}
+
+function CopyTrailing({ palette }: { palette: ThemePalette }) {
+  return (
+    <View style={staticStyles.copyTrailing}>
+      <DefaultIcons.Custom
+        library='MaterialIcons'
+        name='content-copy'
+        size={15}
+        color={palette.primary}
+      />
+      <FancyText size='extraSmall' type='semiBold' color={palette.primary}>
+        Copiar
+      </FancyText>
+    </View>
   );
 }
 
 function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
-    overlay: {
-      flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      justifyContent: 'center',
+    header: {
       alignItems: 'center',
-      padding: 24,
-    },
-    card: {
-      backgroundColor: palette.backgroundColor,
-      borderRadius: 24,
-      padding: 28,
-      width: '100%',
-      maxWidth: 380,
-      alignItems: 'center',
-      gap: 12,
-      ...palette.shadows[300],
-    },
-    successIconContainer: {
-      marginBottom: 4,
+      gap: 6,
+      paddingBottom: 4,
     },
     title: {
       textAlign: 'center',
+      marginTop: 4,
     },
     subtitle: {
       textAlign: 'center',
-      marginBottom: 8,
     },
-    conviteBox: {
-      width: '100%',
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      backgroundColor: `${palette.primary}12`,
-      borderRadius: 10,
-      paddingVertical: 10,
-      paddingHorizontal: 14,
-    },
-    copyActionButton: {
-      paddingHorizontal: 8,
-    },
-    entryTypeContainer: {
+    entryChip: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 5,
-      paddingVertical: 4,
-      width: '100%',
+      marginTop: 4,
     },
-    actions: {
-      width: '100%',
+    cardsStack: {
       gap: 8,
-      marginTop: 12,
+      marginTop: -10,
+      marginBottom: 14,
     },
-    shareButton: {
-      width: '100%',
-    },
-    closeButton: {
-      width: '100%',
+    footer: {
+      gap: 8,
     },
   });
 }
+
+const staticStyles = StyleSheet.create({
+  copyTrailing: {
+    alignItems: 'center',
+    gap: 2,
+  },
+});

@@ -1,0 +1,5 @@
+appId: com.church.artos
+---
+- openLink: diakonia:///admin/ministerios
+- waitForAnimationToEnd:
+    timeout: 4000

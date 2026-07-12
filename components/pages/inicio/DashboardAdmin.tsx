@@ -17,25 +17,14 @@ import { router } from 'expo-router';
 import { useIgrejaAssinatura } from '../../../hooks/useIgrejaAssinatura';
 import BillingStatusPanel from '../../billing/BillingStatusPanel';
 import BillingNoticeBanner from '../../billing/BillingNoticeBanner';
-import { resolveBillingPrimaryActionLabel } from '../../../domain/utils/billing-notice';
+import { BILLING_STATUS_VISIBLE } from '../../../domain/utils/billing-platform';
 
 export default function DashboardAdmin() {
   const { user, igrejaAtiva } = useAuth();
   const { data, isLoading, isError, error, hasServerData, refetch } = useDashboard();
-  const { data: assinatura, retomarCheckout } = useIgrejaAssinatura({ igrejaId: igrejaAtiva?.id });
-  const canResumePendingCheckout = Boolean(
-    assinatura?.checkoutUrl && assinatura.status !== 'cancelled',
-  );
-  const handleBillingPrimaryPress = () => {
-    if (canResumePendingCheckout && assinatura?.checkoutUrl) {
-      retomarCheckout(assinatura.checkoutUrl);
-      return;
-    }
-    router.push({
-      pathname: '/(app)/(drawer)/configuracoes',
-      params: { tab: 'plano', openPlans: '1' },
-    });
-  };
+  const { data: assinatura, abrirPortalDeAssinatura } = useIgrejaAssinatura({
+    igrejaId: igrejaAtiva?.id,
+  });
 
   if (isLoading) return <FancyLoading />;
   if (isError && !hasServerData && error) {
@@ -52,15 +41,9 @@ export default function DashboardAdmin() {
     >
       <DashboardGreeting nome={nomeAdmin} subtitulo={igrejaAtiva?.nome} />
 
-      <BillingNoticeBanner
-        assinatura={assinatura}
-        onPress={() =>
-          router.push({
-            pathname: '/(app)/(drawer)/configuracoes',
-            params: { tab: 'plano', openPlans: '1' },
-          })
-        }
-      />
+      {BILLING_STATUS_VISIBLE && (
+        <BillingNoticeBanner assinatura={assinatura} onPress={abrirPortalDeAssinatura} />
+      )}
 
       {/* KPIs da Igreja */}
       <DashboardSection title='Visão geral'>
@@ -133,12 +116,12 @@ export default function DashboardAdmin() {
       {/* Minhas Escalas - widget reutilizável */}
       <DashboardEscalasSection data={data} />
 
-      {assinatura ? (
+      {BILLING_STATUS_VISIBLE && assinatura ? (
         <BillingStatusPanel
           assinatura={assinatura}
           compact
-          primaryLabel={resolveBillingPrimaryActionLabel(assinatura)}
-          onPrimaryPress={handleBillingPrimaryPress}
+          primaryLabel='Gerenciar assinatura'
+          onPrimaryPress={abrirPortalDeAssinatura}
         />
       ) : null}
     </FancyScrollView>

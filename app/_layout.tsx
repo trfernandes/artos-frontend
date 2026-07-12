@@ -1,5 +1,6 @@
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
+import { Asset } from 'expo-asset';
 import { SplashScreen, Stack } from 'expo-router';
 import { AppState, Modal, Platform, StyleSheet, View } from 'react-native';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
@@ -8,7 +9,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 import { createToastConfig } from '../utils/toast_config';
 import { FancyAlertConnector, FancyAlertProvider } from '../components/modal/FancyAlert';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { registerForPushNotificationsAsync } from '../services/notifications';
 import { NotificationsManager } from '../components/Notification_manager';
 import { AppReviewManager } from '../components/AppReviewManager';
@@ -44,9 +45,60 @@ if (sentryDsn) {
 
 SplashScreen.preventAutoHideAsync();
 
+const splashImageReady = Asset.fromModule(
+  require('../assets/images/splash-icon.png'),
+).downloadAsync();
+
+// No Android, depois de hideAsync() o shim de compatibilidade do
+// expo-splash-screen ainda reconstrói (e depois remove) uma 2ª SplashScreenView
+// própria dentro do processo do app — medido via logcat entre ~500ms e ~950ms
+// depois da Activity ficar "Displayed", renderizando com fundo incorreto nesse
+// intervalo. Mantemos o overlay (cor sempre correta) por um tempo mínimo a
+// partir da confirmação de que o hideAsync() nativo realmente resolveu — e não
+// a partir do module-load do JS — porque em cold starts lentos (throttling do
+// Android) essa reconstrução nativa atrasa na mesma proporção; ancorar num
+// timestamp fixo cedo demais deixaria o buffer curto demais exatamente nos
+// cold starts mais lentos, que são os que mais precisam dele.
+const MIN_SPLASH_VISIBLE_MS = 1400;
+
+// Rede de segurança: se por qualquer motivo `onReady` (fonts+auth) ou
+// `onNativeSplashHidden` (SplashScreen.hideAsync()) nunca disparar — ex.: uma
+// promise que não resolve nem rejeita num device/cold start específico — a
+// splash JS não pode ficar presa pra sempre. Esse teto garante que o app
+// sempre destrava, mesmo que o timing "ideal" acima falhe.
+const MAX_SPLASH_VISIBLE_MS = 4000;
+
 export default Sentry.wrap(function RootLayout() {
   const [queryClient] = useState(() => createQueryClient());
   const [splashVisible, setSplashVisible] = useState(true);
+  const readyAtRef = useRef<number | null>(null);
+  const nativeHiddenAtRef = useRef<number | null>(null);
+
+  const scheduleHide = () => {
+    if (readyAtRef.current == null || nativeHiddenAtRef.current == null) return;
+    const anchor = Math.max(readyAtRef.current, nativeHiddenAtRef.current);
+    const remaining = MIN_SPLASH_VISIBLE_MS - (Date.now() - anchor);
+    if (remaining <= 0) {
+      setSplashVisible(false);
+    } else {
+      setTimeout(() => setSplashVisible(false), remaining);
+    }
+  };
+
+  const handleReady = () => {
+    readyAtRef.current = Date.now();
+    scheduleHide();
+  };
+
+  const handleNativeSplashHidden = () => {
+    nativeHiddenAtRef.current = Date.now();
+    scheduleHide();
+  };
+
+  useEffect(() => {
+    const safetyTimer = setTimeout(() => setSplashVisible(false), MAX_SPLASH_VISIBLE_MS);
+    return () => clearTimeout(safetyTimer);
+  }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -57,7 +109,10 @@ export default Sentry.wrap(function RootLayout() {
               <QueryClientProvider client={queryClient}>
                 <AuthProvider>
                   <ConnectivityProvider>
-                    <RootLayoutNav onReady={() => setSplashVisible(false)} />
+                    <RootLayoutNav
+                      onReady={handleReady}
+                      onNativeSplashHidden={handleNativeSplashHidden}
+                    />
                   </ConnectivityProvider>
                 </AuthProvider>
               </QueryClientProvider>
@@ -70,7 +125,13 @@ export default Sentry.wrap(function RootLayout() {
   );
 });
 
-function RootLayoutNav({ onReady }: { onReady: () => void }) {
+function RootLayoutNav({
+  onReady,
+  onNativeSplashHidden,
+}: {
+  onReady: () => void;
+  onNativeSplashHidden: () => void;
+}) {
   useProtectedRoute();
 
   const { user, loading, isSigningOut } = useAuth();
@@ -100,10 +161,15 @@ function RootLayoutNav({ onReady }: { onReady: () => void }) {
     MontserratThinItalic: require('../assets/fonts/montserrat/Montserrat-ThinItalic.ttf'),
   });
 
-  // esconder a splash nativa imediatamente — o AppSplashOverlay (JS, full-bleed)
-  // assume a tela enquanto fontes/auth carregam
+  // esconder a splash nativa assim que possível — o AppSplashOverlay já cobre
+  // a tela com fundo sólido (View com backgroundColor) desde o primeiro render,
+  // independente do Image terminar de decodificar. Atrasar hideAsync() aqui dá
+  // tempo pro shim de compatibilidade do expo-splash-screen recriar sua própria
+  // SplashScreenView (visível no logcat como uma 2ª "SplashScreenView" já dentro
+  // do processo do app, construída ~3s depois da Activity ficar "Displayed"),
+  // que renderiza com fundo branco e causa o flash antes do app aparecer.
   useEffect(() => {
-    SplashScreen.hideAsync();
+    SplashScreen.hideAsync().finally(() => onNativeSplashHidden());
   }, []);
 
   useEffect(() => {
@@ -176,7 +242,7 @@ function RootLayoutNav({ onReady }: { onReady: () => void }) {
           style={[styles.navigationContainer, { backgroundColor: safeAreaBackgroundColor }]}
           edges={['bottom']}
         >
-          <Stack>
+          <Stack screenOptions={{ contentStyle: { backgroundColor: palette.backgroundColor } }}>
             <Stack.Screen name='(app)' options={{ headerShown: false }} />
             <Stack.Screen name='(auth)' options={{ headerShown: false }} />
             <Stack.Screen name='(public)' options={{ headerShown: false }} />

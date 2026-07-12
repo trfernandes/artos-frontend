@@ -18,7 +18,9 @@ export type BillingNoticeContent = {
   tone: 'info' | 'warning' | 'critical';
 };
 
-export function isSubscriptionWriteBlocked(assinatura?: ResponseIgrejaAssinaturaDto | null): boolean {
+export function isSubscriptionWriteBlocked(
+  assinatura?: ResponseIgrejaAssinaturaDto | null,
+): boolean {
   if (!assinatura) return false;
   const phase = resolveBillingTrialPhase(assinatura);
   if (phase === 'expired') return true;
@@ -147,7 +149,7 @@ export function resolveBillingNoticeContent(
     return {
       eyebrow: 'Avaliação encerrada',
       title: 'Seu período avaliativo terminou',
-      body: 'Assine um plano para continuar usando todos os recursos sem interromper a operação da igreja.',
+      body: 'O acesso completo aos recursos fica limitado até a assinatura ser regularizada.',
       ctaLabel,
       tone: 'critical',
     };
@@ -158,8 +160,8 @@ export function resolveBillingNoticeContent(
       eyebrow: 'Pagamento em atraso',
       title: 'Sua cobrança está pendente',
       body: assinatura.inGracePeriod
-        ? 'Regularize o pagamento para manter o acesso completo antes que a operação da igreja seja interrompida.'
-        : 'O pagamento não foi confirmado. Retome agora para reativar todos os recursos da igreja.',
+        ? 'Há uma cobrança pendente. O acesso completo será interrompido caso não seja regularizada.'
+        : 'O pagamento não foi confirmado e o acesso está limitado.',
       ctaLabel,
       tone: 'critical',
     };
@@ -171,8 +173,8 @@ export function resolveBillingNoticeContent(
       title: 'Sua assinatura já pode ser concluída',
       body:
         assinatura.status === 'trial'
-          ? 'Retome o pagamento para manter a operação ativa quando a avaliação terminar.'
-          : 'Retome o checkout para concluir a assinatura sem precisar reiniciar o processo.',
+          ? 'Há um pagamento em aberto para quando o período avaliativo terminar.'
+          : 'Há um pagamento em aberto para esta assinatura.',
       ctaLabel,
       tone: trialPhase === 'ending' ? 'warning' : 'info',
     };
@@ -184,8 +186,8 @@ export function resolveBillingNoticeContent(
       title: 'Seu uso atual já ultrapassa o plano contratado',
       body:
         assinatura.status === 'trial'
-          ? 'Atualize o plano agora para seguir testando já na faixa mais adequada ao volume da igreja.'
-          : 'Atualize o plano para manter a operação da igreja dentro da capacidade ideal.',
+          ? 'O uso atual já ultrapassa a faixa prevista para o período avaliativo.'
+          : 'O uso atual já ultrapassa a capacidade contratada.',
       ctaLabel,
       tone: 'warning',
     };
@@ -195,7 +197,7 @@ export function resolveBillingNoticeContent(
     return {
       eyebrow: 'Assinatura cancelada',
       title: 'Sua assinatura foi encerrada',
-      body: 'Reative sua assinatura para continuar usando todos os recursos da igreja.',
+      body: 'O acesso aos recursos completos fica limitado até a reativação da assinatura.',
       ctaLabel,
       tone: 'critical',
     };
@@ -205,7 +207,7 @@ export function resolveBillingNoticeContent(
     return {
       eyebrow: 'Avaliação encerrada',
       title: 'Seu período avaliativo terminou',
-      body: 'Assine um plano para continuar usando todos os recursos sem interromper a operação da igreja.',
+      body: 'O acesso completo aos recursos fica limitado até a assinatura ser regularizada.',
       ctaLabel,
       tone: 'critical',
     };
@@ -215,7 +217,7 @@ export function resolveBillingNoticeContent(
     return {
       eyebrow: 'Versão avaliativa',
       title: `${formatDayCount(daysRemaining)} restantes`,
-      body: 'Seu acesso avaliativo está perto do fim. Assine agora para manter a operação ativa sem interrupções.',
+      body: 'Seu acesso avaliativo está perto do fim.',
       ctaLabel,
       tone: 'critical',
     };
@@ -225,7 +227,7 @@ export function resolveBillingNoticeContent(
     return {
       eyebrow: 'Versão avaliativa',
       title: `${formatDayCount(daysRemaining)} restantes`,
-      body: 'Escolha um plano para continuar usando o app sem interromper a rotina da igreja.',
+      body: 'Restam poucos dias de acesso avaliativo completo.',
       ctaLabel,
       tone: 'warning',
     };
@@ -234,7 +236,7 @@ export function resolveBillingNoticeContent(
   return {
     eyebrow: 'Versão avaliativa',
     title: `${formatDayCount(daysRemaining)} restantes`,
-    body: 'Você está usando o app com acesso completo. Explore a operação da igreja e assine quando fizer sentido.',
+    body: 'Você está usando o app com acesso completo durante o período avaliativo.',
     ctaLabel,
     tone: 'info',
   };

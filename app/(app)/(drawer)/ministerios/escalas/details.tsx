@@ -1,8 +1,13 @@
 import FancyPageView from '../../../../../components/containers/FancyPageView';
 import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import FancyLoading from '../../../../../components/FancyLoading';
+import FancyText from '../../../../../components/FancyText';
+import DefaultIcons from '../../../../../components/FancyIcons';
+import { ActivityIndicator } from 'react-native';
+import { usePallete } from '../../../../../hooks/usePallete';
+import { ColorUtils } from '../../../../../utils/color_utils';
 import Header from '../../../../../components/pages/ministerios/escalas/details/Header';
 import EscalaHorizontalPager from '../../../../../components/pages/ministerios/escalas/details/EscalaHorizontalPager';
 import { useEscalaItensCrud } from '../../../../../hooks/useEscalaItensCrud';
@@ -84,6 +89,10 @@ export default function MinisterioEscalasDetailsPage() {
   const { igrejaAtiva } = useAuth();
   const [isPublishing, setIsPublishing] = useState(false);
   const [isParametrizacaoOpen, setIsParametrizacaoOpen] = useState(false);
+  const [auditoria, setAuditoria] = useState<any>(null);
+  const [isAuditoriaOpen, setIsAuditoriaOpen] = useState(false);
+  const palette = usePallete();
+  const prevStatusRef = useRef<EscalaStatusEnum | undefined>(undefined);
   const { salvarResponsavelSetlist, isSavingResponsavelSetlist } = useEventoSetlistResponsavel();
   const { showLoading, hideLoading } = useLoading();
   const canEditSetlistOwner =
@@ -140,6 +149,25 @@ export default function MinisterioEscalasDetailsPage() {
 
   // Marca o início
   if (!startRef.current) startRef.current = performance.now();
+
+  // Polling enquanto status = Gerando
+  useEffect(() => {
+    if (escalaData?.[0]?.status !== EscalaStatusEnum.Gerando) return;
+    const interval = setInterval(() => { refetchEscala(); }, 4000);
+    return () => clearInterval(interval);
+  }, [escalaData?.[0]?.status]);
+
+  // Detectar transição Gerando → Gerada para toast + auditoria
+  useEffect(() => {
+    const escala = escalaData?.[0];
+    if (!escala) return;
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = escala.status;
+    if (prev === EscalaStatusEnum.Gerando && escala.status === EscalaStatusEnum.Gerada) {
+      Toast.show({ type: 'success', text1: 'Escala gerada com sucesso!' });
+      EscalaRepository.getAuditoria(escalaId).then(setAuditoria).catch(() => {});
+    }
+  }, [escalaData?.[0]?.status]);
 
   //   const {
   //     data: escalaItensData,
@@ -536,7 +564,7 @@ export default function MinisterioEscalasDetailsPage() {
       return;
     }
 
-    if (escala.status !== EscalaStatusEnum.Gerada) {
+    if (escala.status !== EscalaStatusEnum.Gerada && escala.status !== EscalaStatusEnum.Erro) {
       return;
     }
 
@@ -552,12 +580,13 @@ export default function MinisterioEscalasDetailsPage() {
             try {
               await regenerateEscala?.(escalaId);
               await refetchEscala();
-              Toast.show({
-                type: 'success',
-                text1: 'Escala recalculada com sucesso!',
-              });
+              // Não toastar sucesso aqui — o polling detecta a transição Gerando → Gerada
             } catch (error) {
-              console.log('Erro ao recalcular escala:', error);
+              Toast.show({
+                type: 'error',
+                text1: 'Não foi possível recalcular.',
+                text2: getApiErrorMessage(error, 'Tente novamente em instantes.'),
+              });
             }
           },
         },
@@ -592,6 +621,9 @@ export default function MinisterioEscalasDetailsPage() {
     return <FancyLoading />;
   }
 
+  const escalaStatus = escalaData?.[0]?.status;
+  const isGerando = escalaStatus === EscalaStatusEnum.Gerando;
+  const isErro = escalaStatus === EscalaStatusEnum.Erro;
   const isBlockingScreen = isRegenerating || isPublishing;
   const blockingLabel = isPublishing ? 'Publicando escala...' : 'Recalculando escala...';
 
@@ -615,21 +647,86 @@ export default function MinisterioEscalasDetailsPage() {
           onDeletePress={handleDeletePress}
           onParametrizacaoPress={() => setIsParametrizacaoOpen(true)}
         />
-        <EscalaHorizontalPager
-          eventosData={eventosData}
-          viewMode={viewMode}
-          ministerioId={ministerioId}
-          escalaId={escalaId}
-          canEditSetlistOwner={canEditSetlistOwner}
-          isUpdatingSetlistOwner={isSavingResponsavelSetlist}
-          onUpdateResponsavelSetlist={handleUpdateResponsavelSetlist}
-          onChangeVoluntario={handleSubstituirVoluntario}
-          onAddVoluntario={handleAdicionarVoluntario}
-          onRemoveVoluntario={handleRemoverVoluntario}
-          onDeleteEvento={handleDeleteEvento}
-          onAdicionarFuncao={handleAdicionarFuncao}
-          onExcluirFuncao={handleExcluirFuncao}
-        />
+
+        {isGerando && (
+          <View style={styles.statusBanner}>
+            <ActivityIndicator size='small' color={palette.secondary} />
+            <FancyText size='small' type='medium' color={palette.secondary}>
+              Gerando itens da escala...
+            </FancyText>
+          </View>
+        )}
+
+        {isErro && (
+          <View style={[styles.statusBanner, { backgroundColor: ColorUtils.withAlpha(palette.error, 0.08) }]}>
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='alert-circle-outline'
+              size={18}
+              color={palette.error}
+            />
+            <FancyText size='small' type='medium' color={palette.error} style={{ flex: 1 }}>
+              Falha na geração da escala.
+            </FancyText>
+            <FancyText
+              size='small'
+              type='semiBold'
+              color={palette.error}
+              onPress={handleGeneratePress}
+            >
+              Tentar novamente
+            </FancyText>
+          </View>
+        )}
+
+        {auditoria && !isGerando && (
+          <View style={[styles.statusBanner, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.06), flexDirection: 'column', alignItems: 'flex-start', gap: 6 }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <DefaultIcons.Custom
+                library='MaterialCommunityIcons'
+                name='chart-bar'
+                size={16}
+                color={palette.primary}
+              />
+              <FancyText size='small' type='semiBold' color={palette.primary} style={{ flex: 1 }}>
+                Relatório de geração
+              </FancyText>
+              <FancyText
+                size='small'
+                type='medium'
+                color={palette.primary}
+                onPress={() => setIsAuditoriaOpen((v) => !v)}
+              >
+                {isAuditoriaOpen ? 'Fechar' : 'Ver'}
+              </FancyText>
+            </View>
+            {isAuditoriaOpen && (
+              <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                {Array.isArray(auditoria)
+                  ? `${auditoria.length} slot(s) processados`
+                  : 'Dados de auditoria disponíveis'}
+              </FancyText>
+            )}
+          </View>
+        )}
+
+        {!isGerando && (
+          <EscalaHorizontalPager
+            eventosData={eventosData}
+            viewMode={viewMode}
+            ministerioId={ministerioId}
+            escalaId={escalaId}
+            canEditSetlistOwner={canEditSetlistOwner}
+            isUpdatingSetlistOwner={isSavingResponsavelSetlist}
+            onUpdateResponsavelSetlist={handleUpdateResponsavelSetlist}
+            onChangeVoluntario={handleSubstituirVoluntario}
+            onAddVoluntario={handleAdicionarVoluntario}
+            onRemoveVoluntario={handleRemoverVoluntario}
+            onDeleteEvento={handleDeleteEvento}
+            onAdicionarFuncao={handleAdicionarFuncao}
+            onExcluirFuncao={handleExcluirFuncao}
+          />
+        )}
       </FancyPageView>
 
       {isBlockingScreen && (
@@ -655,6 +752,14 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   container: { flex: 1 },
+  statusBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: 'transparent',
+  },
   blockingOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.12)',

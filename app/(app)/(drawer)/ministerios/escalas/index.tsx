@@ -29,6 +29,11 @@ import BillingNoticeBanner from '../../../../../components/billing/BillingNotice
 
 export function getEscalaStatusConfig(palette: ThemePalette) {
   return {
+    [EscalaStatusEnum.Gerando]: {
+      label: 'Gerando...',
+      color: palette.secondary,
+      background: ColorUtils.withAlpha(palette.secondary, 0.14),
+    },
     [EscalaStatusEnum.Gerada]: {
       label: 'Gerada',
       color: palette.primary,
@@ -38,6 +43,16 @@ export function getEscalaStatusConfig(palette: ThemePalette) {
       label: 'Publicada',
       color: palette.warning,
       background: ColorUtils.withAlpha(palette.warning, 0.18),
+    },
+    [EscalaStatusEnum.Cancelada]: {
+      label: 'Cancelada',
+      color: palette.fonts.inactive,
+      background: ColorUtils.withAlpha(palette.fonts.inactive, 0.12),
+    },
+    [EscalaStatusEnum.Erro]: {
+      label: 'Erro',
+      color: palette.error,
+      background: ColorUtils.withAlpha(palette.error, 0.14),
     },
   } as const;
 }
@@ -60,9 +75,13 @@ export default function MinisterioEscalasIndexPage() {
 
   const escalaStatusConfig = useMemo(() => getEscalaStatusConfig(palette), [palette]);
 
-  const { isBlocked, assinatura } = useBillingWriteAccess();
-  const handleBillingCta = () =>
-    router.push({ pathname: '/(app)/(drawer)/configuracoes', params: { tab: 'plano', openPlans: '1' } });
+  const {
+    isBlocked,
+    assinatura,
+    showBillingBanner,
+    billingBlockedMessage,
+    abrirPortalDeAssinatura,
+  } = useBillingWriteAccess();
 
   const openEscalaDetails = useCallback(
     (escalaId: string) => {
@@ -152,12 +171,18 @@ export default function MinisterioEscalasIndexPage() {
         disabled: isBlocked,
         onPress: () => {
           if (isBlocked) {
+            if (billingBlockedMessage) {
+              FancyAlert.alert('Acesso limitado', billingBlockedMessage, [
+                { text: 'Ok', style: 'default' },
+              ]);
+              return;
+            }
             FancyAlert.alert(
               'Assinatura inativa',
               'Sua assinatura não está ativa. Escolha um plano para continuar.',
               [
                 { text: 'Fechar', style: 'cancel' },
-                { text: 'Ver planos', onPress: handleBillingCta },
+                { text: 'Ver planos', onPress: abrirPortalDeAssinatura },
               ],
             );
             return;
@@ -166,9 +191,9 @@ export default function MinisterioEscalasIndexPage() {
         },
       }}
       topContent={
-        isBlocked ? (
+        isBlocked && showBillingBanner ? (
           <View style={{ paddingHorizontal: 15 }}>
-            <BillingNoticeBanner assinatura={assinatura} onPress={handleBillingCta} />
+            <BillingNoticeBanner assinatura={assinatura} onPress={abrirPortalDeAssinatura} />
           </View>
         ) : undefined
       }

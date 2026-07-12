@@ -312,12 +312,9 @@ function AssistenteWrapper() {
           return;
         }
 
-        showLoading('Gerando escala...');
-        const start = Date.now();
+        showLoading('Iniciando geração...');
         const payload = mapEscalaFormToDto(ministerioId, user?.user?.id!, values);
         const resultado = await generateEscala(payload);
-        const time = Date.now() - start;
-        setTempoGeracaoEscala?.(time);
         setResultado(resultado);
         nextStep();
       } catch (error) {
@@ -598,23 +595,23 @@ function AssistenteWrapper() {
         content: <AssistenteResultadoStep />,
         actions: [
           {
-            label: 'Fechar',
+            label: 'Ir ao início',
             type: 'outlined',
             icon: {
               library: 'MaterialCommunityIcons',
-              name: 'close',
+              name: 'home-outline',
               size: 16,
             },
             onPress: () => router.back(),
           },
           {
-            label: 'Abrir escala',
+            label: 'Acompanhar',
             icon: {
               library: 'MaterialCommunityIcons',
-              name: 'table-edit',
+              name: 'eye-outline',
               size: 16,
             },
-            color: Pallete.primary,
+            color: Pallete.secondary,
             onPress: handleAbrirEscala,
           },
         ],

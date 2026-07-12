@@ -5,224 +5,69 @@ import { ptBR } from 'date-fns/locale';
 import { useAssistenteEscala } from '../../../../../contexts/pages/escalas/AssistantContext';
 import DefaultIcons from '../../../../FancyIcons';
 import FancyText from '../../../../FancyText';
-import { TimeUtils } from '../../../../../utils/timer_util';
 import { DateUtilsApi } from '../../../../../utils/date_utils';
 import { ThemePalette } from '../../../../../constants/colors';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 import { ColorUtils } from '../../../../../utils/color_utils';
 
-type ResumoMetricRowProps = {
-  label: string;
-  value: string | number;
-  withDivider?: boolean;
-  icon: {
-    library: any;
-    name: string;
-    size?: number;
-    color?: string;
-  };
-  iconBackgroundColor?: string;
-};
-
-function ResumoMetricRow({
-  label,
-  value,
-  withDivider = false,
-  icon,
-  iconBackgroundColor,
-}: ResumoMetricRowProps) {
-  const palette = usePallete();
-  const styles = useThemedStyles(createStyles);
-
-  return (
-    <View style={[styles.metricRow, withDivider && styles.metricRowDivider]}>
-      <View style={styles.metricLeft}>
-        <View
-          style={[
-            styles.metricIconBadge,
-            { backgroundColor: iconBackgroundColor || ColorUtils.withAlpha(palette.primary, 0.15) },
-          ]}
-        >
-          <DefaultIcons.Custom
-            library={icon.library}
-            name={icon.name}
-            size={icon.size || 12}
-            color={icon.color || palette.primary}
-          />
-        </View>
-        <FancyText size='small' type='medium' color={palette.fonts.inactive} numberOfLines={1}>
-          {label}
-        </FancyText>
-      </View>
-
-      <FancyText
-        size='largeMedium'
-        type='bold'
-        color={palette.fonts.dark}
-        style={styles.metricValue}
-      >
-        {value}
-      </FancyText>
-    </View>
-  );
-}
-
 export default function AssistenteResultadoStep() {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
-  const { resultado, tempoGeracaoEscala } = useAssistenteEscala();
-
-  const quantEventos = useMemo(() => {
-    const set = new Set<string>();
-
-    for (const item of resultado.itens) {
-      const key = `${item.evento.id}-${new Date(item.dataOcorrencia).toISOString()}`;
-      set.add(key);
-    }
-
-    return set.size;
-  }, [resultado.itens]);
-
-  const quantParticipantes = useMemo(() => {
-    const set = new Set<string>();
-
-    for (const item of resultado.itens) {
-      if (!item.voluntario?.id) continue;
-      set.add(item.voluntario.id);
-    }
-
-    return set.size;
-  }, [resultado.itens]);
-
-  const periodoInicio = useMemo(
-    () => format(DateUtilsApi.dateOnlyFromApi(resultado.dataInicio), 'dd/MM/yyyy'),
-    [resultado.dataInicio],
-  );
-
-  const periodoFim = useMemo(
-    () => format(DateUtilsApi.dateOnlyFromApi(resultado.dataTermino), 'dd/MM/yyyy'),
-    [resultado.dataTermino],
-  );
+  const { resultado } = useAssistenteEscala();
 
   const periodoResumo = useMemo(
     () =>
-      `${format(DateUtilsApi.dateOnlyFromApi(resultado.dataInicio), 'dd MMM', { locale: ptBR })} - ${format(
+      `${format(DateUtilsApi.dateOnlyFromApi(resultado.dataInicio), 'dd MMM', { locale: ptBR })} – ${format(
         DateUtilsApi.dateOnlyFromApi(resultado.dataTermino),
-        'dd MMM',
+        'dd MMM yyyy',
         { locale: ptBR },
       )}`,
     [resultado.dataInicio, resultado.dataTermino],
   );
 
-  const periodoDias = useMemo(() => {
-    const inicio = DateUtilsApi.dateOnlyFromApi(resultado.dataInicio).getTime();
-    const fim = DateUtilsApi.dateOnlyFromApi(resultado.dataTermino).getTime();
-    return Math.max(1, Math.floor((fim - inicio) / (1000 * 60 * 60 * 24)) + 1);
-  }, [resultado.dataInicio, resultado.dataTermino]);
-
-  const tempoTotal = useMemo(
-    () => TimeUtils.formatMillis(tempoGeracaoEscala ?? 0),
-    [tempoGeracaoEscala],
-  );
-
   return (
     <View style={styles.container}>
       <View style={styles.contentWrapper}>
-        <View style={styles.successHeader}>
-          <DefaultIcons.Custom
-            library='FontAwesome6'
-            name='circle-check'
-            size={44}
-            color={palette.confirm}
-          />
-          <View style={styles.successTextWrap}>
-            <FancyText size='large' type='bold' color={palette.fonts.dark}>
-              Sua escala está pronta
-            </FancyText>
-            <FancyText size='small' type='medium' color={palette.fonts.inactive}>
-              Confira o resumo final da geração automática.
-            </FancyText>
+        <View style={styles.header}>
+          <View style={[styles.iconBadge, { backgroundColor: ColorUtils.withAlpha(palette.secondary, 0.14) }]}>
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='clock-fast'
+              size={40}
+              color={palette.secondary}
+            />
           </View>
+          <FancyText size='large' type='bold' color={palette.fonts.dark} style={styles.title}>
+            Geração iniciada!
+          </FancyText>
+          <FancyText size='small' type='medium' color={palette.fonts.inactive} style={styles.subtitle}>
+            A escala está sendo processada em segundo plano. Você receberá uma notificação ao concluir.
+          </FancyText>
         </View>
 
-        <View style={styles.summaryPanel}>
-          <View style={styles.summaryHeader}>
-            <View
-              style={[
-                styles.summaryHeaderBadge,
-                { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.15) },
-              ]}
-            >
-              <DefaultIcons.Custom
-                library='MaterialCommunityIcons'
-                name='view-dashboard-outline'
-                size={13}
-                color={palette.primary}
-              />
-            </View>
-            <View style={styles.summaryHeaderTextWrap}>
-              <FancyText size='small' type='bold' color={palette.fonts.dark}>
-                Resumo final da escala
-              </FancyText>
-              <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
-                Visão geral da geração automática
-              </FancyText>
-            </View>
-          </View>
-
-          <View style={styles.periodHero}>
-            <FancyText size='small' type='medium' color={palette.fonts.inactive}>
-              Período da escala
+        <View style={[styles.infoCard, { borderColor: ColorUtils.withAlpha(palette.secondary, 0.18) }]}>
+          <View style={styles.infoRow}>
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='table-edit'
+              size={14}
+              color={palette.secondary}
+            />
+            <FancyText size='small' type='semiBold' color={palette.fonts.dark} numberOfLines={1}>
+              {resultado.nome}
             </FancyText>
-
-            <FancyText
-              size='large'
-              type='bold'
-              color={palette.fonts.dark}
-              style={styles.periodPrimaryValue}
-            >
+          </View>
+          <View style={styles.infoRow}>
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='calendar-range'
+              size={14}
+              color={palette.fonts.inactive}
+            />
+            <FancyText size='small' type='medium' color={palette.fonts.inactive}>
               {periodoResumo}
             </FancyText>
-            <FancyText
-              size='small'
-              type='medium'
-              color={palette.fonts.inactive}
-              style={styles.periodMetaLine}
-            >
-              {periodoInicio} a {periodoFim}
-            </FancyText>
-            <FancyText
-              size='extraSmall'
-              type='semiBold'
-              color={palette.primary}
-              style={styles.periodCoverage}
-            >
-              {periodoDias} dias de cobertura
-            </FancyText>
-          </View>
-
-          <View style={styles.kpiList}>
-            <ResumoMetricRow
-              label='Eventos'
-              value={quantEventos}
-              withDivider
-              icon={{ library: 'MaterialCommunityIcons', name: 'calendar-month', size: 12 }}
-              iconBackgroundColor={ColorUtils.withAlpha(palette.primary, 0.15)}
-            />
-            <ResumoMetricRow
-              label='Voluntários'
-              value={quantParticipantes}
-              withDivider
-              icon={{ library: 'MaterialCommunityIcons', name: 'account-group', size: 12 }}
-              iconBackgroundColor={ColorUtils.withAlpha(palette.secondary, 0.15)}
-            />
-            <ResumoMetricRow
-              label='Tempo de geração'
-              value={tempoTotal}
-              icon={{ library: 'MaterialCommunityIcons', name: 'timer-outline', size: 12 }}
-              iconBackgroundColor={ColorUtils.withAlpha(palette.confirm, 0.15)}
-            />
           </View>
         </View>
       </View>
@@ -242,116 +87,43 @@ function createStyles(palette: ThemePalette) {
       maxWidth: 620,
       alignSelf: 'center',
       paddingHorizontal: 14,
-      gap: 34,
+      gap: 24,
+      alignItems: 'center',
     },
-    successHeader: {
+    header: {
+      alignItems: 'center',
+      gap: 10,
+    },
+    iconBadge: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 9,
+      marginBottom: 4,
     },
-    successTextWrap: {
-      alignItems: 'center',
-      gap: 3,
+    title: {
+      textAlign: 'center',
     },
-    summaryPanel: {
+    subtitle: {
+      textAlign: 'center',
+      lineHeight: 20,
+      maxWidth: 280,
+    },
+    infoCard: {
       width: '100%',
-      borderRadius: 14,
+      borderRadius: 12,
       borderWidth: 1,
-      borderColor: ColorUtils.withAlpha(palette.primary, 0.18),
       backgroundColor: palette.backgroundColor,
-      paddingVertical: 14,
-      paddingHorizontal: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 14,
+      gap: 8,
       ...palette.shadows[100],
     },
-    summaryHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 9,
-    },
-    summaryHeaderBadge: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderWidth: 1,
-      borderColor: ColorUtils.withAlpha(palette.border, 0.28),
-    },
-    summaryHeaderTextWrap: {
-      gap: 2,
-    },
-    periodHero: {
-      marginTop: 12,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: ColorUtils.withAlpha(palette.primary, 0.14),
-      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.06),
-      paddingVertical: 8,
-      paddingHorizontal: 12,
-      gap: 2,
-    },
-    periodHeroHeader: {
+    infoRow: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
-    },
-    heroIconBadge: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderWidth: 1,
-      borderColor: ColorUtils.withAlpha(palette.border, 0.28),
-    },
-    periodPrimaryValue: {
-      marginTop: 2,
-    },
-    periodMetaLine: {
-      lineHeight: 17,
-    },
-    periodCoverage: {
-      marginTop: 1,
-    },
-    kpiList: {
-      marginTop: 10,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: ColorUtils.withAlpha(palette.primary, 0.1),
-      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.045),
-      overflow: 'hidden',
-    },
-    metricRow: {
-      minHeight: 42,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: 6,
-      paddingHorizontal: 12,
-    },
-    metricRowDivider: {
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: ColorUtils.withAlpha(palette.primary, 0.1),
-    },
-    metricLeft: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-      flex: 1,
-      minWidth: 0,
-      marginRight: 8,
-    },
-    metricIconBadge: {
-      width: 22,
-      height: 22,
-      borderRadius: 11,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderWidth: 1,
-      borderColor: ColorUtils.withAlpha(palette.border, 0.24),
-    },
-    metricValue: {
-      textAlign: 'right',
     },
   });
 }

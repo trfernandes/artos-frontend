@@ -41,7 +41,7 @@ export function ConnectivityProvider({ children }: { children: React.ReactNode }
       setIsServerDown(false);
       return;
     }
-    const ok = await pingHealth(2500);
+    const ok = await pingHealth(8000);
     setIsServerDown(!ok);
   }, [isOffline]);
 

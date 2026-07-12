@@ -4,6 +4,16 @@
     "appVersionSource": "remote"
   },
   "build": {
+    "e2e": {
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease",
+        "env": {
+          "SENTRY_DISABLE_AUTO_UPLOAD": "true",
+          "EXPO_PUBLIC_API_URL": "https://artos-backend-nwg5.onrender.com"
+        }
+      }
+    },
     "production": {
       "autoIncrement": true,
       "env": {

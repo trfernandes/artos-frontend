@@ -18,6 +18,7 @@ import { ResponseConvitePreviewDto } from '../../../domain/dtos/Igreja/response-
 import { extractInviteToken } from '../../../utils/inviteToken';
 import { usePallete } from '../../../hooks/usePallete';
 import { useThemedStyles } from '../../../hooks/useThemedStyles';
+import { ColorUtils } from '../../../utils/color_utils';
 
 function getErrorMessage(error: AxiosError | any): string {
   const data = error?.response?.data;
@@ -418,8 +419,8 @@ function createStyles(Pallete: ThemePalette) {
     iconContainer: {
       width: 88,
       height: 88,
-      borderRadius: 44,
-      backgroundColor: `${Pallete.primary}15`,
+      borderRadius: 14,
+      backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.08),
       justifyContent: 'center',
       alignItems: 'center',
       marginBottom: 20,
@@ -447,7 +448,7 @@ function createStyles(Pallete: ThemePalette) {
       flexDirection: 'row',
       alignItems: 'flex-start',
       gap: 10,
-      backgroundColor: `${Pallete.error}10`,
+      backgroundColor: ColorUtils.withAlpha(Pallete.error, 0.06),
       paddingHorizontal: 14,
       paddingVertical: 12,
       borderRadius: 10,
@@ -503,7 +504,7 @@ function createStyles(Pallete: ThemePalette) {
       width: 100,
       height: 100,
       borderRadius: 50,
-      backgroundColor: `${Pallete.primary}12`,
+      backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.07),
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -522,10 +523,10 @@ function createStyles(Pallete: ThemePalette) {
       gap: 12,
     },
     infoIconContainer: {
-      width: 36,
-      height: 36,
+      width: 34,
+      height: 34,
       borderRadius: 10,
-      backgroundColor: `${Pallete.primary}08`,
+      backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.05),
       justifyContent: 'center',
       alignItems: 'center',
     },

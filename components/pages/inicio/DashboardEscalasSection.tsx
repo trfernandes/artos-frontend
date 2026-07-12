@@ -49,30 +49,33 @@ export default function DashboardEscalasSection({ data }: DashboardEscalasSectio
         title='Minhas escalas'
         onVerMais={() => router.push('/(app)/(drawer)/pessoal/escalas')}
       >
-        <View style={styles.kpiGrid}>
-          <View style={styles.kpiItem}>
+        <View style={styles.kpiRow}>
+          <View style={styles.kpiCard}>
             <DashboardCard
+              layout='center'
               title='Total'
               value={data?.totalEscalasMes ?? 0}
-              icon={{ library: 'MaterialCommunityIcons', name: 'calendar-month', size: 20, color: Pallete.primary }}
+              icon={{ library: 'MaterialCommunityIcons', name: 'calendar-month', size: 16, color: Pallete.primary }}
               iconBackgroundColor={`${Pallete.primary}1F`}
               accentColor={Pallete.primary}
             />
           </View>
-          <View style={styles.kpiItem}>
+          <View style={styles.kpiCard}>
             <DashboardCard
+              layout='center'
               title='Confirmadas'
               value={data?.escalasConfirmadas ?? 0}
-              icon={{ library: 'MaterialCommunityIcons', name: 'check-circle-outline', size: 20, color: Pallete.confirm }}
+              icon={{ library: 'MaterialCommunityIcons', name: 'check-circle-outline', size: 16, color: Pallete.confirm }}
               iconBackgroundColor={`${Pallete.confirm}1F`}
               accentColor={Pallete.confirm}
             />
           </View>
-          <View style={styles.kpiItemFull}>
+          <View style={styles.kpiCard}>
             <DashboardCard
+              layout='center'
               title='Pendentes'
               value={data?.escalasPendentes ?? 0}
-              icon={{ library: 'MaterialCommunityIcons', name: 'clock-outline', size: 20, color: Pallete.warning }}
+              icon={{ library: 'MaterialCommunityIcons', name: 'clock-outline', size: 16, color: Pallete.warning }}
               iconBackgroundColor={`${Pallete.warning}1F`}
               accentColor={Pallete.warning}
             />
@@ -166,18 +169,12 @@ export default function DashboardEscalasSection({ data }: DashboardEscalasSectio
 }
 
 const styles = StyleSheet.create({
-  kpiGrid: {
+  kpiRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
+    gap: 8,
   },
-  kpiItem: {
-    flexBasis: '47%',
-    flexGrow: 1,
-  },
-  kpiItemFull: {
-    flexBasis: '100%',
-    flexGrow: 1,
+  kpiCard: {
+    flex: 1,
   },
   horizontalScroll: {
     gap: 10,

@@ -10,7 +10,6 @@ import { ColorUtils } from '../../utils/color_utils';
 import { resolveBillingPlanName } from '../../domain/utils/billing-plan-catalog';
 import {
   resolveBillingNoticeContent,
-  resolveBillingPrimaryActionLabel,
   resolveBillingTrialPhase,
 } from '../../domain/utils/billing-notice';
 
@@ -24,10 +23,6 @@ type BillingStatusPanelProps = {
   isSecondaryLoading?: boolean;
 };
 
-function formatCurrency(value: number) {
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
 function formatDate(value?: string | null) {
   if (!value) return '—';
   return new Date(value).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
@@ -38,7 +33,7 @@ function resolveStatusCopy(assinatura: ResponseIgrejaAssinaturaDto) {
     const notice = resolveBillingNoticeContent(assinatura);
     const trialPhase = resolveBillingTrialPhase(assinatura);
     return {
-      eyebrow: notice.eyebrow,
+      eyebrow: 'Assinatura',
       title:
         assinatura.status === 'trial' && trialPhase !== 'expired'
           ? 'Período avaliativo ativo'
@@ -62,7 +57,9 @@ function resolveCycleLabel(cycle?: string | null) {
 }
 
 function resolvePeriodMetricLabel(status: ResponseIgrejaAssinaturaDto['status']) {
-  return status === 'cancelled' ? 'Válido até' : 'Renova em';
+  if (status === 'cancelled') return 'Válido até';
+  if (status === 'expired') return 'Expirou em';
+  return 'Renova em';
 }
 
 function resolveStatusAccentColor(
@@ -85,12 +82,18 @@ function resolveStatusAccentColor(
 
 function resolveStatusPillLabel(status: ResponseIgrejaAssinaturaDto['status']) {
   switch (status) {
-    case 'trial':    return 'Teste';
-    case 'active':   return 'Ativa';
-    case 'overdue':  return 'Pendente';
-    case 'cancelled': return 'Cancelada';
-    case 'expired':  return 'Expirada';
-    default:         return 'Gratuita';
+    case 'trial':
+      return 'Teste';
+    case 'active':
+      return 'Ativa';
+    case 'overdue':
+      return 'Pendente';
+    case 'cancelled':
+      return 'Cancelada';
+    case 'expired':
+      return 'Expirada';
+    default:
+      return 'Gratuita';
   }
 }
 
@@ -105,11 +108,26 @@ function resolvePrimaryActionIcon(
   if (primaryLabel === 'Reativar assinatura')
     return { library: 'MaterialCommunityIcons', name: 'refresh', size: 16, color: iconColor };
   if (primaryLabel === 'Retomar pagamento')
-    return { library: 'MaterialCommunityIcons', name: 'credit-card-outline', size: 16, color: iconColor };
+    return {
+      library: 'MaterialCommunityIcons',
+      name: 'credit-card-outline',
+      size: 16,
+      color: iconColor,
+    };
   if (['Assinar agora', 'Escolher plano', 'Atualizar plano'].includes(primaryLabel))
-    return { library: 'MaterialCommunityIcons', name: 'credit-card-fast-outline', size: 16, color: iconColor };
+    return {
+      library: 'MaterialCommunityIcons',
+      name: 'credit-card-fast-outline',
+      size: 16,
+      color: iconColor,
+    };
 
-  return { library: 'MaterialCommunityIcons', name: 'view-grid-outline', size: 16, color: iconColor };
+  return {
+    library: 'MaterialCommunityIcons',
+    name: 'view-grid-outline',
+    size: 16,
+    color: iconColor,
+  };
 }
 
 function getUsageTone(current: number, max: number, palette: ReturnType<typeof usePallete>) {
@@ -153,7 +171,7 @@ export default function BillingStatusPanel({
   assinatura,
   compact = false,
   onPrimaryPress,
-  primaryLabel = 'Ver planos',
+  primaryLabel = 'Gerenciar assinatura',
   onSecondaryPress,
   secondaryLabel = 'Cancelar assinatura',
   isSecondaryLoading = false,
@@ -163,18 +181,25 @@ export default function BillingStatusPanel({
   const statusColor = resolveStatusAccentColor(assinatura.status, palette);
   const cardBg = isDark ? palette.backgroundColor2 : palette.backgroundColor;
 
-  const volunteersTone = getUsageTone(assinatura.currentVolunteers, assinatura.maxVolunteers, palette);
-  const ministriesTone = getUsageTone(assinatura.currentMinistries, assinatura.maxMinistries, palette);
-  const hasPendingCheckout = Boolean(assinatura.checkoutUrl) && assinatura.status !== 'cancelled';
-  const resolvedPrimaryLabel = primaryLabel || resolveBillingPrimaryActionLabel(assinatura);
-  const primaryActionIcon = resolvePrimaryActionIcon(assinatura, resolvedPrimaryLabel, compact, palette);
+  const volunteersTone = getUsageTone(
+    assinatura.currentVolunteers,
+    assinatura.maxVolunteers,
+    palette,
+  );
+  const ministriesTone = getUsageTone(
+    assinatura.currentMinistries,
+    assinatura.maxMinistries,
+    palette,
+  );
+  const primaryActionIcon = resolvePrimaryActionIcon(assinatura, primaryLabel, compact, palette);
 
   const metaParts = [resolveBillingPlanName(assinatura.plan), resolveCycleLabel(assinatura.cycle)];
-  if (!compact) metaParts.push(formatCurrency(Number(assinatura.amount ?? 0)));
   if (assinatura.status === 'trial' && resolveBillingTrialPhase(assinatura) !== 'expired') {
     metaParts.push(`Teste até ${formatDate(assinatura.trialEndsAt)}`);
   } else if (assinatura.currentPeriodEnd) {
-    metaParts.push(`${resolvePeriodMetricLabel(assinatura.status)} ${formatDate(assinatura.currentPeriodEnd)}`);
+    metaParts.push(
+      `${resolvePeriodMetricLabel(assinatura.status)} ${formatDate(assinatura.currentPeriodEnd)}`,
+    );
   }
   const metaLine = metaParts.join('  ·  ');
 
@@ -251,49 +276,43 @@ export default function BillingStatusPanel({
         </View>
       </View>
 
-      {hasPendingCheckout ? (
-        <View
-          style={[
-            styles.warningBox,
-            {
-              backgroundColor: ColorUtils.withAlpha(palette.primary, 0.06),
-              borderColor: ColorUtils.withAlpha(palette.primary, 0.14),
-            },
-          ]}
-        >
-          <FancyText size='small' type='bold'>
-            Pagamento pendente
-          </FancyText>
-          <FancyText size='small' type='medium' color={ColorUtils.withAlpha(palette.fonts.dark, 0.7)}>
-            O checkout continua disponível para você retomar quando quiser.
-          </FancyText>
-        </View>
-      ) : null}
-
       {onPrimaryPress ? (
         <View style={styles.footer}>
-          <FancyButton
-            label={resolvedPrimaryLabel}
-            onPress={onPrimaryPress}
-            type={compact ? 'outlined' : 'contained'}
-            icon={primaryActionIcon}
-          />
-          {onSecondaryPress ? (
-            <FancyButton
-              label={secondaryLabel}
-              onPress={onSecondaryPress}
-              type='text'
-              icon={{
-                library: 'MaterialCommunityIcons',
-                name: 'close-circle-outline',
-                size: 16,
-                color: palette.error,
-              }}
-              isLoading={isSecondaryLoading}
-              containerStyle={styles.secondaryAction}
-              labelStyle={{ color: palette.error }}
-            />
-          ) : null}
+          {assinatura.canManageBilling ? (
+            <>
+              <FancyButton
+                label={primaryLabel}
+                onPress={onPrimaryPress}
+                type={compact ? 'outlined' : 'contained'}
+                icon={primaryActionIcon}
+              />
+              {onSecondaryPress ? (
+                <FancyButton
+                  label={secondaryLabel}
+                  onPress={onSecondaryPress}
+                  type='text'
+                  icon={{
+                    library: 'MaterialCommunityIcons',
+                    name: 'close-circle-outline',
+                    size: 16,
+                    color: palette.error,
+                  }}
+                  isLoading={isSecondaryLoading}
+                  containerStyle={styles.secondaryAction}
+                  labelStyle={{ color: palette.error }}
+                />
+              ) : null}
+            </>
+          ) : (
+            <FancyText
+              size='small'
+              type='semiBold'
+              color={ColorUtils.withAlpha(palette.fonts.dark, 0.6)}
+              style={styles.neutralHint}
+            >
+              Fale com o administrador da igreja para gerenciar a assinatura.
+            </FancyText>
+          )}
         </View>
       ) : null}
     </View>
@@ -320,7 +339,8 @@ function SimpleUsageBar({ label, current, max, tone, palette }: SimpleUsageBarPr
             {current}
           </FancyText>
           <FancyText type='semiBold' size='small' color={tone.limitColor}>
-            {' / '}{max}
+            {' / '}
+            {max}
           </FancyText>
         </View>
       </View>
@@ -373,9 +393,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.55,
     textTransform: 'uppercase',
   },
-  metaLine: {
-    marginTop: 2,
-  },
+  metaLine: {},
   cardBody: {
     padding: 14,
     gap: 12,
@@ -413,15 +431,12 @@ const styles = StyleSheet.create({
     height: 7,
     borderRadius: 999,
   },
-  warningBox: {
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 13,
-    gap: 6,
-  },
   footer: {
     paddingTop: 2,
     gap: 6,
+  },
+  neutralHint: {
+    textAlign: 'center',
   },
   secondaryAction: {
     alignSelf: 'center',

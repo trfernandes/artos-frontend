@@ -129,7 +129,7 @@ export default function FancyCalendarVertical<T extends string, A>({
       initialScrollIndex={monthIndexForToday}
       keyExtractor={(item) => `${item.year}-${item.month}`}
       contentContainerStyle={[styles.container, contentContainerStyle]}
-      ListFooterComponent={<View></View>}
+      ListFooterComponent={null}
       renderItem={({ item, index }) => {
         const isCurrentMonth = item.year === today.getFullYear() && item.month === today.getMonth();
 

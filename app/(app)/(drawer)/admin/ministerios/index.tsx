@@ -32,10 +32,15 @@ export default function MinisteriosIndex() {
   const palette = usePallete();
   const { showLoading, hideLoading } = useLoading();
   const { user, updateUser } = useAuth();
-  const { isBlocked, isMinistryLimitReached, assinatura } = useBillingWriteAccess();
+  const {
+    isBlocked,
+    isMinistryLimitReached,
+    assinatura,
+    showBillingBanner,
+    billingBlockedMessage,
+    abrirPortalDeAssinatura,
+  } = useBillingWriteAccess();
   const blockFab = isBlocked || isMinistryLimitReached;
-  const handleBillingCta = () =>
-    router.push({ pathname: '/(app)/(drawer)/configuracoes', params: { tab: 'plano', openPlans: '1' } });
 
   const [searchText, setSearchText] = useState('');
   const [actionsMinisterio, setActionsMinisterio] = useState<ResponseMinisterioDto | null>(null);
@@ -148,6 +153,12 @@ export default function MinisteriosIndex() {
         disabled: blockFab,
         onPress: () => {
           if (blockFab) {
+            if (billingBlockedMessage) {
+              FancyAlert.alert('Acesso limitado', billingBlockedMessage, [
+                { text: 'Ok', style: 'default' },
+              ]);
+              return;
+            }
             FancyAlert.alert(
               isBlocked ? 'Assinatura inativa' : 'Limite atingido',
               isBlocked
@@ -155,7 +166,7 @@ export default function MinisteriosIndex() {
                 : 'Você atingiu o limite de ministérios do seu plano. Faça upgrade para adicionar mais.',
               [
                 { text: 'Fechar', style: 'cancel' },
-                { text: 'Ver planos', onPress: handleBillingCta },
+                { text: 'Ver planos', onPress: abrirPortalDeAssinatura },
               ],
             );
             return;
@@ -164,9 +175,9 @@ export default function MinisteriosIndex() {
         },
       }}
       topContent={
-        blockFab ? (
+        blockFab && showBillingBanner ? (
           <View style={{ paddingHorizontal: 15 }}>
-            <BillingNoticeBanner assinatura={assinatura} onPress={handleBillingCta} />
+            <BillingNoticeBanner assinatura={assinatura} onPress={abrirPortalDeAssinatura} />
           </View>
         ) : undefined
       }

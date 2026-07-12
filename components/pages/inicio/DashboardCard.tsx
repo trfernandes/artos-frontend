@@ -87,7 +87,7 @@ export default function DashboardCard({
           <FancyText size={16} type='bold' numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.82} style={styles.fitText}>
             {value}
           </FancyText>
-          <FancyText size='small' type='semiBold' numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85} style={styles.fitText}>
+          <FancyText size='extraSmall' type='semiBold' numberOfLines={2} style={styles.fitText}>
             {title}
           </FancyText>
           {subtitle ? (

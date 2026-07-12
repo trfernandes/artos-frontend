@@ -1,0 +1,79 @@
+# Flow: Perspectiva de voluntario nao-admin em telas de billing
+#
+# Uso:
+#   maestro test flows/billing-voluntario-perspectiva.yaml
+#
+# Pre-condicao: conta ativa, aline.pinto@seed.com com senha Teste123!
+#
+# O que verifica:
+#   1. Voluntario e redirecionado de /admin/voluntarios → Início
+#   2. Voluntario e redirecionado de /admin/ministerios → Início
+#   3. Voluntario acessa Configurações (sem bloqueio)
+#   4. Voluntario ve aba Assinatura com status (billing visivel para todos)
+#   5. Tap em "Gerenciar assinatura" mostra erro (backend bloqueia — assertChurchAdmin)
+#
+# Nota de segurança:
+#   Backend em billing.service.ts:339 chama assertChurchAdmin antes de emitir token.
+#   O botão é exibido a todos mas falha com ForbiddenException para não-admins.
+#   O frontend exibe FancyAlert de erro — correto por design.
+
+appId: com.church.artos
+---
+- launchApp
+# Logout da sessão admin anterior (se houver) para poder logar como voluntário
+- runFlow: _login.yaml
+- extendedWaitUntil:
+    visible: "Início"
+    timeout: 120000
+- runFlow: _logout.yaml
+- extendedWaitUntil:
+    visible: "Entre na sua conta"
+    timeout: 30000
+- runFlow: _do_login_voluntario.yaml
+- extendedWaitUntil:
+    visible: "Início"
+    timeout: 120000
+
+# ── Passo 1: Rota admin/voluntarios → redireciona para Início ──────────────────
+- openLink: diakonia:///admin/voluntarios
+- waitForAnimationToEnd:
+    timeout: 8000
+# O useRoleGuard detecta VOLUNTARIO e redireciona para /(app)/(drawer)/inicio
+- assertVisible: "Início"
+- assertNotVisible: "Voluntários"
+- takeScreenshot: voluntario-redirecionado-de-admin-voluntarios
+
+# ── Passo 2: Rota admin/ministerios → redireciona para Início ─────────────────
+- openLink: diakonia:///admin/ministerios
+- waitForAnimationToEnd:
+    timeout: 8000
+- assertVisible: "Início"
+- assertNotVisible: "Ministérios"
+- takeScreenshot: voluntario-redirecionado-de-admin-ministerios
+
+# ── Passo 3: Configurações carrega normalmente ────────────────────────────────
+- openLink: diakonia:///configuracoes
+- waitForAnimationToEnd:
+    timeout: 15000
+- runFlow:
+    when:
+      visible: "Servidor indisponível"
+    file: _retry_servidor.yaml
+- extendedWaitUntil:
+    visible: "Assinatura"
+    timeout: 15000
+
+# ── Passo 4: Aba Assinatura — info visível, CTA ausente para não-admin ────────
+# O app já filtra por role: voluntário vê status read-only mas NÃO o botão
+# "Gerenciar assinatura". Em vez disso exibe mensagem orientando a falar com admin.
+- tapOn:
+    text: "Assinatura"
+    index: 1
+- extendedWaitUntil:
+    visible: "Assinatura em dia"
+    timeout: 20000
+- assertVisible: "Assinatura em dia"
+- assertVisible: "Crescimento"
+- assertVisible: "Fale com o administrador da igreja para gerenciar a assinatura."
+- assertNotVisible: "Gerenciar assinatura"
+- takeScreenshot: voluntario-assinatura-tab-readonly

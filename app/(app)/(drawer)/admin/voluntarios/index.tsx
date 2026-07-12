@@ -34,9 +34,13 @@ export default function VoluntariosIndexPage() {
   const [actionsVoluntario, setActionsVoluntario] = useState<ResponseVoluntarioDto | null>(null);
   const { user } = useAuth();
   const { showLoading, hideLoading } = useLoading();
-  const { isBlocked, isVolunteerLimitReached, assinatura } = useBillingWriteAccess();
-  const handleBillingCta = () =>
-    router.push({ pathname: '/(app)/(drawer)/configuracoes', params: { tab: 'plano', openPlans: '1' } });
+  const {
+    isBlocked,
+    isVolunteerLimitReached,
+    assinatura,
+    showBillingBanner,
+    abrirPortalDeAssinatura,
+  } = useBillingWriteAccess();
 
   const {
     data,
@@ -180,9 +184,9 @@ export default function VoluntariosIndexPage() {
       }}
       topContent={
         <View style={styles.topContainer}>
-          {(isBlocked || isVolunteerLimitReached) && (
+          {showBillingBanner && (isBlocked || isVolunteerLimitReached) && (
             <View style={{ paddingHorizontal: 15 }}>
-              <BillingNoticeBanner assinatura={assinatura} onPress={handleBillingCta} />
+              <BillingNoticeBanner assinatura={assinatura} onPress={abrirPortalDeAssinatura} />
             </View>
           )}
           <FancyListStats

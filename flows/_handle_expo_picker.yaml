@@ -8,6 +8,6 @@ appId: com.church.artos
     when:
       visible: "DEVELOPMENT SERVERS"
     commands:
-      - tapOn: "http://localhost:8081"
+      - tapOn: "http://10.0.2.2:8081"
       - waitForAnimationToEnd:
-          timeout: 8000
+          timeout: 90000

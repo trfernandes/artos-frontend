@@ -13,6 +13,7 @@ export type FABProps = {
   right?: number;
   bottom?: number;
   disabled?: boolean;
+  testID?: string;
 };
 
 export default function FancyFab({
@@ -25,10 +26,12 @@ export default function FancyFab({
   backgroundColor,
   size = 50,
   disabled = false,
+  testID,
 }: FABProps) {
   const Pallete = usePallete();
   return (
     <TouchableOpacity
+      testID={testID}
       style={[
         styles.container,
         {

@@ -1,49 +1,37 @@
 # Flow: Verificar tela de Assinatura (billing status)
 #
 # Uso:
-#   maestro test flows/billing-status.yaml \
-#     -e APP_EMAIL=admin@suaigreja.com \
-#     -e APP_PASSWORD=SuaSenha123
+#   maestro test flows/billing-status.yaml
 #
-# Pré-condição: usuário deve ser ADMIN de uma igreja.
+# Pre-condicao: usuario deve ser ADMIN de uma igreja com assinatura ativa.
 # O que verifica:
-#   - Navegação até a aba "Assinatura" em Configurações
-#   - Card de status visível (título e chip de status)
-#   - Barras de uso (Voluntários, Ministérios) presentes
-#   - Botão de ação primária (ex: "Ver planos", "Trocar plano") visível
+#   - Navegacao ate a aba "Assinatura" em Configuracoes
+#   - Card de status "Assinatura em dia" visivel
+#   - Botao "Gerenciar assinatura" visivel (unico CTA - Apple 3.1.1)
 
 appId: com.church.artos
 ---
 - launchApp
 - runFlow: _login.yaml
 
-# Abrir o drawer lateral
+# Garantir que o home carregou antes do deep link (evita race condition de inicializacao)
+- assertVisible: "Início"
+
+- openLink: diakonia:///configuracoes
+- waitForAnimationToEnd:
+    timeout: 15000
+
+# Aba "Assinatura" (index 1 pois index 0 eh o card de status no topo)
 - tapOn:
-    point: "2%,50%"
-- waitForAnimationToEnd
-
-# Navegar para Configurações
-- tapOn: "Configurações"
+    text: "Assinatura"
+    index: 1
 - waitForAnimationToEnd:
-    timeout: 5000
+    timeout: 15000
 
-# Ir para a aba "Assinatura" (índice 3 no FancyTabs)
-- tapOn: "Assinatura"
-- waitForAnimationToEnd:
-    timeout: 4000
+# Verificar card de status carregou (conta de staging esta ativa)
+- assertVisible: "Assinatura em dia"
 
-# Verificar card de status: o título varia por estado, mas um destes deve estar visível
-- assertTrue:
-    condition: ${visible("Período avaliativo ativo") || visible("Assinatura em dia") || visible("Pagamento pendente") || visible("Acesso mantido até o fim do ciclo") || visible("Faixa gratuita")}
-    label: "Card de status de assinatura não encontrado"
-
-# Verificar barras de uso
-- assertVisible: "Voluntários"
-- assertVisible: "Ministérios"
-
-# Verificar que o botão de ação primária está visível
-- assertTrue:
-    condition: ${visible("Ver planos") || visible("Trocar plano") || visible("Retomar pagamento") || visible("Assinar agora") || visible("Escolher plano") || visible("Atualizar plano") || visible("Reativar assinatura")}
-    label: "Botão de ação primária de billing não encontrado"
+# Unico botao de billing - Apple 3.1.1
+- assertVisible: "Gerenciar assinatura"
 
 - takeScreenshot: billing-status

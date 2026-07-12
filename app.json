@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "icon": "./assets/images/icon-ios.png",
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "br.app.diakonia",
       "buildNumber": "1",
       "associatedDomains": ["applinks:diakonia.app.br"],
@@ -59,7 +59,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#121212",
+          "backgroundColor": "#151A2C",
           "image": "./assets/images/splash-icon.png",
           "ios": {
             "resizeMode": "cover"

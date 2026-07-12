@@ -22,9 +22,8 @@ export default function MinisterioAgendaIndexPage() {
   const params = useLocalSearchParams<{ ministerioId: string }>();
   const { igrejaAtiva } = useAuth();
   const { showLoading, hideLoading } = useLoading();
-  const { isBlocked, assinatura } = useBillingWriteAccess();
-  const handleBillingCta = () =>
-    router.push({ pathname: '/(app)/(drawer)/configuracoes', params: { tab: 'plano', openPlans: '1' } });
+  const { isBlocked, assinatura, showBillingBanner, abrirPortalDeAssinatura } =
+    useBillingWriteAccess();
   const isLouvorMinisterio = useMemo(
     () =>
       igrejaAtiva?.ministerios?.some(
@@ -80,8 +79,8 @@ export default function MinisterioAgendaIndexPage() {
 
   return (
     <FancyPageView style={styles.container}>
-      {isBlocked && (
-        <BillingNoticeBanner assinatura={assinatura} onPress={handleBillingCta} />
+      {showBillingBanner && isBlocked && (
+        <BillingNoticeBanner assinatura={assinatura} onPress={abrirPortalDeAssinatura} />
       )}
       <FancyCalendar
         containerStyle={styles.calendarContainer}

@@ -1,8 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import * as WebBrowser from 'expo-web-browser';
+import { Linking } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { useLoading } from '../contexts/LoadingContext';
-import { CriarCheckoutAssinaturaDto } from '../domain/dtos/Igreja/criar-checkout-assinatura.dto';
 import { IgrejaRepository } from '../domain/services/IgrejaRepository';
 import { FancyAlert } from '../components/modal/FancyAlert';
 
@@ -25,128 +24,31 @@ export function useIgrejaAssinatura({ igrejaId, autoFetch = true }: UseIgrejaAss
     },
   });
 
-  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-  const refreshAfterCheckoutReturn = async () => {
-    if (!igrejaId) return;
-
-    for (let attempt = 0; attempt < 8; attempt += 1) {
-      const assinatura = await IgrejaRepository.getAssinatura(igrejaId);
-      queryClient.setQueryData(queryKey, assinatura);
-
-      const hasPendingCheckout =
-        Boolean(assinatura.checkoutUrl) && assinatura.status !== 'cancelled';
-      const shouldStop =
-        assinatura.status === 'active' || assinatura.status === 'cancelled' || !hasPendingCheckout;
-
-      if (shouldStop) {
-        return;
-      }
-
-      await wait(1500);
-    }
-
-    await queryClient.invalidateQueries({ queryKey });
-  };
-
-  const checkoutMutation = useMutation({
-    mutationFn: async (dto: CriarCheckoutAssinaturaDto) => {
-      return await IgrejaRepository.criarCheckoutAssinatura(dto);
-    },
-    onMutate: (dto: CriarCheckoutAssinaturaDto) =>
-      showLoading(dto.changePlan ? 'Trocando de plano...' : 'Preparando pagamento...'),
-    onSettled: () => hideLoading(),
-    onSuccess: async (response) => {
-      if (!response.checkoutUrl) {
-        throw new Error('checkoutUrl ausente');
-      }
-
-      await WebBrowser.openBrowserAsync(response.checkoutUrl);
-      await queryClient.invalidateQueries({ queryKey });
-      void refreshAfterCheckoutReturn();
-    },
-    onError: (error: any) => {
-      const message =
-        error?.response?.data?.message || 'Não foi possível iniciar o pagamento agora.';
-      FancyAlert.alert('Falha ao abrir pagamento', message);
-      Toast.show({
-        type: 'error',
-        text1: 'Falha ao abrir pagamento',
-        text2: message,
-      });
-    },
-  });
-
-  const resumeCheckoutMutation = useMutation({
-    mutationFn: async (checkoutUrl: string) => {
-      if (!checkoutUrl) throw new Error('checkoutUrl ausente');
-      return checkoutUrl;
-    },
-    onMutate: () => showLoading('Abrindo pagamento...'),
-    onSettled: () => hideLoading(),
-    onSuccess: async (checkoutUrl) => {
-      await WebBrowser.openBrowserAsync(checkoutUrl);
-      await queryClient.invalidateQueries({ queryKey });
-      void refreshAfterCheckoutReturn();
-    },
-    onError: (error: any) => {
-      const message = error?.message || 'Não foi possível retomar o pagamento agora.';
-      FancyAlert.alert('Falha ao abrir pagamento', message);
-      Toast.show({
-        type: 'error',
-        text1: 'Falha ao abrir pagamento',
-        text2: message,
-      });
-    },
-  });
-
-  const cancelMutation = useMutation({
+  // Único ponto de abertura do portal web de assinatura (diakonia.app.br/assinar) —
+  // consumido por todo ponto de contato de billing no app. Sempre navegador do
+  // sistema via Linking, nunca WebView (checkout tem que sair do app).
+  const abrirPortalMutation = useMutation({
     mutationFn: async () => {
       if (!igrejaId) throw new Error('igrejaId ausente');
-      return await IgrejaRepository.cancelarAssinatura(igrejaId);
+      const { url } = await IgrejaRepository.solicitarPortalAssinatura(igrejaId);
+      const canOpen = await Linking.canOpenURL(url);
+      if (!canOpen) throw new Error('Não foi possível abrir o navegador.');
+      await Linking.openURL(url);
     },
-    onMutate: () => showLoading('Cancelando assinatura...'),
+    onMutate: () => showLoading('Abrindo portal de assinatura...'),
     onSettled: () => hideLoading(),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey });
-      Toast.show({
-        type: 'success',
-        text1: 'Assinatura cancelada',
-        text2: 'O acesso fica liberado até o fim do período já pago.',
-      });
     },
     onError: (error: any) => {
       const message =
-        error?.response?.data?.message || 'Não foi possível cancelar a assinatura agora.';
+        error?.response?.data?.message ||
+        error?.message ||
+        'Não foi possível abrir o portal de assinatura agora.';
+      FancyAlert.alert('Falha ao abrir portal', message);
       Toast.show({
         type: 'error',
-        text1: 'Falha ao cancelar',
-        text2: message,
-      });
-    },
-  });
-
-  const cancelPlanChangeMutation = useMutation({
-    mutationFn: async () => {
-      if (!igrejaId) throw new Error('igrejaId ausente');
-      return await IgrejaRepository.cancelarTrocaDePlano(igrejaId);
-    },
-    onMutate: () => showLoading('Cancelando troca de plano...'),
-    onSettled: () => hideLoading(),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey });
-      Toast.show({
-        type: 'success',
-        text1: 'Troca de plano cancelada',
-        text2: 'Sua assinatura anterior foi restaurada.',
-      });
-    },
-    onError: (error: any) => {
-      const message =
-        error?.response?.data?.message || 'Não foi possível cancelar a troca de plano agora.';
-      Toast.show({
-        type: 'error',
-        text1: 'Falha ao cancelar troca',
+        text1: 'Falha ao abrir portal',
         text2: message,
       });
     },
@@ -154,12 +56,7 @@ export function useIgrejaAssinatura({ igrejaId, autoFetch = true }: UseIgrejaAss
 
   return {
     ...query,
-    iniciarCheckout: checkoutMutation.mutate,
-    retomarCheckout: resumeCheckoutMutation.mutate,
-    cancelarAssinatura: cancelMutation.mutate,
-    cancelarTrocaDePlano: cancelPlanChangeMutation.mutate,
-    isAbrindoCheckout: checkoutMutation.isPending || resumeCheckoutMutation.isPending,
-    isCancelandoAssinatura: cancelMutation.isPending,
-    isCancelandoTrocaDePlano: cancelPlanChangeMutation.isPending,
+    abrirPortalDeAssinatura: abrirPortalMutation.mutate,
+    isAbrindoPortal: abrirPortalMutation.isPending,
   };
 }

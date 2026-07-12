@@ -1,0 +1,68 @@
+# Flow: Conformidade Apple 3.1.1 — billing read-only no app
+#
+# Uso:
+#   maestro test flows/billing-311-compliance.yaml
+#
+# Pre-condicao: usuario ADMIN logado com assinatura ativa (trial, active ou overdue).
+#
+# O que verifica:
+#   1. "Gerenciar assinatura" e o unico CTA de billing no app
+#   2. "Cancelar assinatura" NAO existe no app (movido para o site)
+#   3. Botoes de selecao de plano NAO existem inline no app
+#   4. Modal "Opcoes de Planos" NAO abre (removido)
+#   5. "Cancelar troca de plano" NAO existe no app
+#   6. Dashboard (nao so configuracoes) tambem respeita o CTA unico
+
+appId: com.church.artos
+---
+- launchApp
+- runFlow: _login.yaml
+
+# Aguardar home carregado antes do deep link (evita race condition de inicializacao)
+- assertVisible: "Início"
+
+# Navegar diretamente para configuracoes via deep link (evita encoding de 'c' cedilha)
+- openLink: diakonia:///configuracoes
+- waitForAnimationToEnd:
+    timeout: 15000
+
+# Aba "Assinatura" (index 1 pois index 0 eh o card de status no topo)
+- tapOn:
+    text: "Assinatura"
+    index: 1
+- waitForAnimationToEnd:
+    timeout: 15000
+
+# [COMPLIANCE 3.1.1] Unico botao de billing permitido no app
+- assertVisible: "Gerenciar assinatura"
+
+# [COMPLIANCE 3.1.1] Botoes REMOVIDOS do app - nenhum deve estar visivel
+- assertNotVisible: "Cancelar assinatura"
+- assertNotVisible: "Ver planos"
+- assertNotVisible: "Trocar plano"
+- assertNotVisible: "Assinar agora"
+- assertNotVisible: "Escolher plano"
+- assertNotVisible: "Atualizar plano"
+- assertNotVisible: "Cancelar troca de plano"
+- assertNotVisible: "Opcoes de Planos"
+
+- takeScreenshot: billing-311-compliance
+
+# [COMPLIANCE 3.1.1] Mesmas checagens no dashboard (DashboardAdmin usa o mesmo BillingStatusPanel)
+- openLink: diakonia:///inicio
+- waitForAnimationToEnd:
+    timeout: 15000
+- assertVisible: "Início"
+
+- assertNotVisible: "Cancelar assinatura"
+- assertNotVisible: "Ver planos"
+- assertNotVisible: "Trocar plano"
+- assertNotVisible: "Assinar agora"
+- assertNotVisible: "Escolher plano"
+- assertNotVisible: "Atualizar plano"
+- assertNotVisible: "Retomar pagamento"
+- assertNotVisible: "Reativar assinatura"
+- assertNotVisible: "Cancelar troca de plano"
+- assertNotVisible: "Opcoes de Planos"
+
+- takeScreenshot: billing-311-compliance-dashboard

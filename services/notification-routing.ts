@@ -267,6 +267,8 @@ function resolveByTipo(payload: Record<string, any>): NotificationNavigationTarg
     case NotificacaoTipoEnum.EscalaSubstituicaoSolicitadaLider:
     case NotificacaoTipoEnum.EscalaSubstituicaoResolvidaLider:
     case NotificacaoTipoEnum.IndisponibilidadeConflito:
+    case NotificacaoTipoEnum.EscalaGerada:
+    case NotificacaoTipoEnum.EscalaErroGerada:
     case 'TESTE_LOCAL':
       return (
         resolveEscalaSpecificTarget(payload) ?? { pathname: '/(app)/(drawer)/pessoal/escalas' }
@@ -320,6 +322,8 @@ const TYPE_CANONICAL_TARGETS = new Set<string>([
   NotificacaoTipoEnum.IgrejaConviteExpirado,
   NotificacaoTipoEnum.SistemaAlertaAdmin,
   NotificacaoTipoEnum.TesteLocal,
+  NotificacaoTipoEnum.EscalaGerada,
+  NotificacaoTipoEnum.EscalaErroGerada,
 ]);
 
 export function resolveNotificationTarget(

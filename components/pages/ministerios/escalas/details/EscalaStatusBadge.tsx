@@ -25,9 +25,15 @@ type StatusVisualToken = {
 };
 
 const STATUS_VISUALS: Record<
-  'GERADA' | 'PUBLICADA' | 'RASCUNHO' | 'CANCELADA' | 'FECHADA' | 'EM_EDICAO',
+  'GERADA' | 'PUBLICADA' | 'RASCUNHO' | 'CANCELADA' | 'FECHADA' | 'EM_EDICAO' | 'GERANDO' | 'ERRO',
   StatusVisualToken
 > = {
+  GERANDO: {
+    label: 'Gerando...',
+    color: '#1A7A6B',
+    backgroundColor: 'rgba(26, 122, 107, 0.10)',
+    borderColor: 'rgba(26, 122, 107, 0.18)',
+  },
   GERADA: {
     label: 'Gerada',
     color: '#2F6FD1',
@@ -52,6 +58,12 @@ const STATUS_VISUALS: Record<
     backgroundColor: 'rgba(231, 76, 60, 0.10)',
     borderColor: 'rgba(231, 76, 60, 0.18)',
   },
+  ERRO: {
+    label: 'Erro',
+    color: '#B14236',
+    backgroundColor: 'rgba(231, 76, 60, 0.10)',
+    borderColor: 'rgba(231, 76, 60, 0.18)',
+  },
   FECHADA: {
     label: 'Fechada',
     color: '#4C3C7D',
@@ -67,8 +79,11 @@ const STATUS_VISUALS: Record<
 };
 
 function normalizeStatus(status: EscalaStatusBadgeStatus) {
+  if (status === EscalaStatusEnum.Gerando) return 'GERANDO';
   if (status === EscalaStatusEnum.Gerada) return 'GERADA';
   if (status === EscalaStatusEnum.Publicada) return 'PUBLICADA';
+  if (status === EscalaStatusEnum.Cancelada) return 'CANCELADA';
+  if (status === EscalaStatusEnum.Erro) return 'ERRO';
   return status;
 }
 

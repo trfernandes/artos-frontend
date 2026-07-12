@@ -8,8 +8,6 @@ import { VerificarCodigoIgrejaResponseDto } from '../dtos/Igreja/verificar-codig
 import { JoinByCodigoDto } from '../dtos/Igreja/join-by-codigo.dto';
 import { AprovarMembroDto } from '../dtos/Igreja/aprovar-membro.dto';
 import { ResponseIgrejaAssinaturaDto } from '../dtos/Igreja/response-igreja-assinatura.dto';
-import { CriarCheckoutAssinaturaDto } from '../dtos/Igreja/criar-checkout-assinatura.dto';
-import { ResponseAssinaturaCheckoutDto } from '../dtos/Igreja/response-assinatura-checkout.dto';
 import { ResponseAceitarConviteDto } from '../dtos/Igreja/response-aceitar-convite.dto';
 import { ResponseConvitePreviewDto } from '../dtos/Igreja/response-convite-preview.dto';
 import { ResponseIgrejaConviteDto } from '../dtos/Igreja/response-igreja-convite.dto';
@@ -192,18 +190,10 @@ class IgrejaRepositoryClass extends BaseRepository<
   }
 
   /**
-   * Iniciar checkout da assinatura (JWT)
+   * Solicitar link assinado do portal web de assinatura (JWT)
    */
-  criarCheckoutAssinatura(dto: CriarCheckoutAssinaturaDto): Promise<ResponseAssinaturaCheckoutDto> {
-    return IgrejaApi.criarCheckoutAssinatura(dto);
-  }
-
-  cancelarAssinatura(igrejaId: string): Promise<void> {
-    return IgrejaApi.cancelarAssinatura(igrejaId);
-  }
-
-  cancelarTrocaDePlano(igrejaId: string): Promise<void> {
-    return IgrejaApi.cancelarTrocaDePlano(igrejaId);
+  solicitarPortalAssinatura(igrejaId: string): Promise<{ url: string }> {
+    return IgrejaApi.solicitarPortalAssinatura(igrejaId);
   }
 
   // ========== CONFIGURAÇÕES ==========

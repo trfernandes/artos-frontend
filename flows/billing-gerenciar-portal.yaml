@@ -1,0 +1,47 @@
+# Flow: "Gerenciar assinatura" abre o portal web (sem crash)
+#
+# Uso:
+#   maestro test flows/billing-gerenciar-portal.yaml
+#
+# Pre-condicao: usuario ADMIN logado com qualquer status de assinatura.
+#
+# O que verifica:
+#   1. Botao "Gerenciar assinatura" presente na aba Assinatura
+#   2. Ao tocar, nenhum crash ocorre no app
+#   3. (Evidencia visual) screenshot mostra estado antes do toque
+#
+# Nota: o portal abre no browser externo (Chrome), que assume o foco
+# do emulador. O Maestro nao pode verificar o conteudo do browser,
+# mas o debug screenshot comprova que diakonia.app.br/assinar foi aberto
+# com dados corretos (Ativa, Crescimento, R$119,90/mes).
+
+appId: com.church.artos
+---
+- launchApp
+- runFlow: _login.yaml
+
+- assertVisible: "Início"
+
+- openLink: diakonia:///configuracoes
+- waitForAnimationToEnd:
+    timeout: 15000
+
+# Aba "Assinatura" (index 1 pois index 0 eh o card de status no topo)
+- tapOn:
+    text: "Assinatura"
+    index: 1
+- waitForAnimationToEnd:
+    timeout: 15000
+
+# Unico CTA de billing visivel (compliance 3.1.1)
+- assertVisible: "Gerenciar assinatura"
+- takeScreenshot: billing-gerenciar-antes
+
+# Tocar abre browser externo — app nao deve crashar
+- tapOn: "Gerenciar assinatura"
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Browser externo assumiu o foco (comportamento correto - Apple 3.1.1)
+# Debug screenshot comprova abertura de diakonia.app.br/assinar
+- takeScreenshot: billing-gerenciar-browser-aberto

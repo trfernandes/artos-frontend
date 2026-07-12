@@ -18,30 +18,33 @@ export default function DashboardKpiGrid({
   const palette = usePallete();
 
   return (
-    <View style={styles.grid}>
-      <View style={styles.gridItem}>
+    <View style={styles.row}>
+      <View style={styles.card}>
         <DashboardCard
+          layout='center'
           title='Ministérios'
           value={totalMinisterios}
-          icon={{ library: 'MaterialCommunityIcons', name: 'account-group', size: 20, color: palette.primary }}
+          icon={{ library: 'MaterialCommunityIcons', name: 'account-group', size: 16, color: palette.primary }}
           iconBackgroundColor={ColorUtils.withAlpha(palette.primary, 0.12)}
           accentColor={palette.primary}
         />
       </View>
-      <View style={styles.gridItem}>
+      <View style={styles.card}>
         <DashboardCard
+          layout='center'
           title='Voluntários'
           value={totalVoluntarios}
-          icon={{ library: 'MaterialCommunityIcons', name: 'account-multiple', size: 20, color: palette.secondary }}
+          icon={{ library: 'MaterialCommunityIcons', name: 'account-multiple', size: 16, color: palette.secondary }}
           iconBackgroundColor={ColorUtils.withAlpha(palette.secondary, 0.12)}
           accentColor={palette.secondary}
         />
       </View>
-      <View style={styles.gridItemFull}>
+      <View style={styles.card}>
         <DashboardCard
-          title='Eventos este mês'
+          layout='center'
+          title='Eventos'
           value={totalEventosMes}
-          icon={{ library: 'MaterialCommunityIcons', name: 'calendar-month', size: 20, color: palette.terciary }}
+          icon={{ library: 'MaterialCommunityIcons', name: 'calendar-month', size: 16, color: palette.terciary }}
           iconBackgroundColor={ColorUtils.withAlpha(palette.terciary, 0.12)}
           accentColor={palette.terciary}
         />
@@ -51,17 +54,11 @@ export default function DashboardKpiGrid({
 }
 
 const styles = StyleSheet.create({
-  grid: {
+  row: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
+    gap: 8,
   },
-  gridItem: {
-    flexBasis: '47%',
-    flexGrow: 1,
-  },
-  gridItemFull: {
-    flexBasis: '100%',
-    flexGrow: 1,
+  card: {
+    flex: 1,
   },
 });

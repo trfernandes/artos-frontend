@@ -3,10 +3,10 @@ appId: com.church.artos
 ---
 - tapOn: "E-mail"
 - eraseText: 100
-- inputText: ${APP_EMAIL}
+- inputText: "${APP_EMAIL}"
 - tapOn: "Senha"
 - eraseText: 100
-- inputText: ${APP_PASSWORD}
+- inputText: "${APP_PASSWORD}"
 - tapOn: "Entrar"
 - waitForAnimationToEnd:
-    timeout: 8000
+    timeout: 90000

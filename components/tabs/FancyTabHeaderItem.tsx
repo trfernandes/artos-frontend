@@ -155,7 +155,6 @@ function createStyles(palette: ThemePalette) {
       flexShrink: 1,
     },
     titleEqualWidth: {
-      flex: 1,
       textAlign: 'center',
     },
     titleCompact: {

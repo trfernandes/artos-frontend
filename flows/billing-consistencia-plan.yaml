@@ -1,0 +1,86 @@
+# Flow: Consistencia de dados de billing entre multiplas telas
+#
+# Uso:
+#   maestro test flows/billing-consistencia-plan.yaml
+#
+# Pre-condicao: conta Ativa, Crescimento, 31 voluntarios
+#
+# O que verifica:
+#   - Badge "Crescimento" em Configuracoes header card
+#   - Stat "31/180" no hero card de voluntarios (header, no combinado)
+#   - MetaLine na aba Assinatura mostra texto exato da conta de staging
+#   - Contagem "31" no no separado da barra de uso (aba Assinatura)
+#   - Dados nao mudam ao navegar entre abas e telas
+#
+# Nota sobre texto: Maestro faz full-text match. "31/180" no header e um
+# no separado de "31" na barra de uso da aba Assinatura.
+
+appId: com.church.artos
+---
+- launchApp
+- runFlow: _login.yaml
+
+- openLink: diakonia:///inicio
+- extendedWaitUntil:
+    visible: "Início"
+    timeout: 120000
+
+# --- Passo 1: badge + stat no header card de Configuracoes ---
+- openLink: diakonia:///configuracoes
+- waitForAnimationToEnd:
+    timeout: 15000
+- assertVisible: "Crescimento"
+# Header stat card mostra "31/180" como no unico (confirma UIAutomator dump)
+- assertVisible: "31/180"
+- takeScreenshot: billing-consistencia-configuracoes-header
+
+# --- Passo 2: mesma info na aba Assinatura ---
+- tapOn:
+    text: "Assinatura"
+    index: 1
+- waitForAnimationToEnd:
+    timeout: 15000
+- assertVisible: "Crescimento"
+- assertVisible: "Assinatura em dia"
+# MetaLine: partes estaveis (sem data para evitar stale apos renovacao)
+- assertVisible: "Mensal"
+- assertVisible: "Renova em"
+# Barra de uso: "31" e " / 180" sao nos distintos
+- assertVisible: "31"
+- takeScreenshot: billing-consistencia-aba-assinatura
+
+# --- Passo 3: trocar para aba Dados e voltar ---
+- tapOn: "Dados"
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn:
+    text: "Assinatura"
+    index: 1
+- waitForAnimationToEnd:
+    timeout: 15000
+
+# Dados nao ficaram stale apos re-navegacao
+- assertVisible: "Crescimento"
+- assertVisible: "Assinatura em dia"
+
+# --- Passo 4: tela de Voluntarios deve mostrar contagem consistente ---
+- openLink: diakonia:///admin/voluntarios
+- waitForAnimationToEnd:
+    timeout: 15000
+- assertVisible: "Voluntários"
+# Header de voluntarios mostra o total
+- takeScreenshot: billing-consistencia-voluntarios
+
+# --- Passo 5: voltar a Configuracoes e confirmar dados inalterados ---
+- openLink: diakonia:///configuracoes
+- waitForAnimationToEnd:
+    timeout: 15000
+- tapOn:
+    text: "Assinatura"
+    index: 1
+- waitForAnimationToEnd:
+    timeout: 15000
+- assertVisible: "Crescimento"
+- assertVisible: "31"
+- assertVisible: "Gerenciar assinatura"
+- takeScreenshot: billing-consistencia-final

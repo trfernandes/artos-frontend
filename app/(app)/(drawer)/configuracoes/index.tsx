@@ -1,9 +1,8 @@
-import { StyleSheet, View, ScrollView, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { uploadToCloudinaryUnsigned } from '../../../../services/cloudinary_upload';
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../../../../config/cloudinary';
 import FancyPageView from '../../../../components/containers/FancyPageView';
 import FancyTabs, { TabItem } from '../../../../components/tabs/FancyTabs';
-import FancySegmentedTabs from '../../../../components/tabs/FancySegmentedTabs';
 import FancyListItemCard from '../../../../components/cards/FancyListItemCard';
 import FancyChips from '../../../../components/FancyChips';
 import FancyScrollView from '../../../../components/FancyScrollView';
@@ -40,7 +39,6 @@ import {
   FormImageFile,
 } from '../../../../components/forms/ControlledImagePicker';
 import { usePallete } from '../../../../hooks/usePallete';
-import { useLoading } from '../../../../contexts/LoadingContext';
 import { useThemedStyles } from '../../../../hooks/useThemedStyles';
 import { useAppTheme } from '../../../../hooks/useAppTheme';
 import { ColorUtils } from '../../../../utils/color_utils';
@@ -50,16 +48,12 @@ import { DropDownItemProps } from '../../../../components/fields/FancyDropDownIt
 import { useIgrejaAssinatura } from '../../../../hooks/useIgrejaAssinatura';
 import { NotificacoesApi } from '../../../../domain/api/NotificacoesApi';
 import BillingStatusPanel from '../../../../components/billing/BillingStatusPanel';
-import {
-  BILLING_PLAN_OPTIONS,
-  BillingCycleCode,
-  resolveBillingPlanName,
-} from '../../../../domain/utils/billing-plan-catalog';
+import { resolveBillingPlanName } from '../../../../domain/utils/billing-plan-catalog';
 import { ResponseIgrejaAssinaturaDto } from '../../../../domain/dtos/Igreja/response-igreja-assinatura.dto';
-import { resolveBillingPrimaryActionLabel } from '../../../../domain/utils/billing-notice';
-import FancyBottomSheetModal from '../../../../components/modal/FancyBottomSheetModal';
-import { FancyAlert } from '../../../../components/modal/FancyAlert';
 import FancyVerticalSpacer from '../../../../components/FancyVerticalSpacer';
+
+const CONFIG_TAB_TITLES = ['Dados', 'Notificações', 'Assinatura'];
+const ASSINATURA_TAB_INDEX = CONFIG_TAB_TITLES.indexOf('Assinatura');
 
 const REMINDER_OPTIONS = [
   { title: '1 semana antes', shortLabel: '1 sem', value: 168 },
@@ -490,22 +484,15 @@ const ReminderChip = ({
 export default function ConfiguracoesPage() {
   const { igrejaAtiva, user, updateUser } = useAuth();
   const palette = usePallete();
-  const { showLoading } = useLoading();
   const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
   const igrejaId = igrejaAtiva?.id;
-  const { tab, openPlans } = useLocalSearchParams<{ tab?: string; openPlans?: string }>();
+  const { tab } = useLocalSearchParams<{ tab?: string }>();
   const {
     data: assinatura,
     isLoading: isLoadingAssinatura,
     refetch: refetchAssinatura,
-    iniciarCheckout,
-    retomarCheckout,
-    cancelarAssinatura,
-    cancelarTrocaDePlano,
-    isAbrindoCheckout,
-    isCancelandoAssinatura,
-    isCancelandoTrocaDePlano,
+    abrirPortalDeAssinatura,
   } = useIgrejaAssinatura({ igrejaId });
 
   // Não executar o hook se não houver igreja ativa
@@ -587,9 +574,9 @@ export default function ConfiguracoesPage() {
   });
   const selectedReminderHours = notificacoesForm.watch('lembretesHoras');
   const notificacoesHabilitadas = notificacoesForm.watch('notificacoesHabilitadas');
-  const [billingCycle, setBillingCycle] = useState<BillingCycleCode>('MONTHLY');
-  const [billingPlansModalVisible, setBillingPlansModalVisible] = useState(false);
-  const [activeTabIndex, setActiveTabIndex] = useState(tab === 'plano' ? 3 : 0);
+  const [activeTabIndex, setActiveTabIndex] = useState(
+    tab === 'plano' ? Math.max(ASSINATURA_TAB_INDEX, 0) : 0,
+  );
   const [hasAttemptedDadosSave, setHasAttemptedDadosSave] = useState(false);
   const [highlightedAccordionSection, setHighlightedAccordionSection] =
     useState<DataSectionKey | null>(null);
@@ -774,39 +761,8 @@ export default function ConfiguracoesPage() {
 
     return billingAddressSummary || 'Perfil pronto para checkout';
   }, [billingAddressSummary, billingProfileComplete, useChurchAddressForBilling]);
-  const canResumePendingCheckout = Boolean(
-    assinatura?.checkoutUrl && assinatura.status !== 'cancelled',
-  );
-  const hasPendingPlanChange = Boolean(assinatura?.hasPendingPlanChange);
-  const hasExceededPlanCapacity = Boolean(
-    assinatura &&
-    (assinatura.currentVolunteers > assinatura.maxVolunteers ||
-      assinatura.currentMinistries > assinatura.maxMinistries),
-  );
-  const canCancelCurrentSubscription = Boolean(
-    assinatura?.canManageBilling &&
-    assinatura?.status &&
-    ['active', 'overdue'].includes(assinatura.status),
-  );
-  const billingPrimaryLabel = resolveBillingPrimaryActionLabel(assinatura);
-  const recommendedUpgradePlan = useMemo(() => {
-    if (!hasExceededPlanCapacity || !assinatura) return null;
-
-    return (
-      BILLING_PLAN_OPTIONS.find(
-        (option) =>
-          option.maxVolunteers >= assinatura.currentVolunteers &&
-          option.maxMinistries >= assinatura.currentMinistries,
-      ) ?? BILLING_PLAN_OPTIONS[BILLING_PLAN_OPTIONS.length - 1]
-    );
-  }, [assinatura, hasExceededPlanCapacity]);
   const handlePrimaryBillingAction = () => {
-    if (canResumePendingCheckout && assinatura?.checkoutUrl) {
-      retomarCheckout(assinatura.checkoutUrl);
-      return;
-    }
-
-    openBillingPlansModal();
+    abrirPortalDeAssinatura();
   };
   const reminderLabel = useMemo(() => {
     const values = [...(selectedReminderHours ?? [])].sort((a, b) => b - a);
@@ -879,68 +835,10 @@ export default function ConfiguracoesPage() {
     }
   };
   useEffect(() => {
-    if (assinatura?.cycle === 'MONTHLY' || assinatura?.cycle === 'YEARLY') {
-      setBillingCycle(assinatura.cycle);
-    }
-  }, [assinatura?.cycle]);
-
-  useEffect(() => {
     if (tab === 'plano') {
-      setActiveTabIndex(3);
+      setActiveTabIndex(ASSINATURA_TAB_INDEX);
     }
   }, [tab]);
-
-  const handleCancelarAssinatura = () => {
-    if (!igrejaId) return;
-
-    FancyAlert.alert(
-      'Cancelar assinatura',
-      'A igreja mantém acesso até o fim do período já pago. Deseja continuar?',
-      [
-        { text: 'Voltar', style: 'default' },
-        { text: 'Sim', style: 'destructive', onPress: () => cancelarAssinatura() },
-      ],
-    );
-  };
-
-  const handleCancelarTrocaDePlano = () => {
-    if (!igrejaId) return;
-
-    FancyAlert.alert(
-      'Cancelar troca de plano',
-      'O pagamento pendente será descartado e sua assinatura anterior será restaurada. Deseja continuar?',
-      [
-        { text: 'Voltar', style: 'default' },
-        { text: 'Sim', style: 'destructive', onPress: () => cancelarTrocaDePlano() },
-      ],
-    );
-  };
-
-  const openBillingPlansModal = () => {
-    if (!billingProfileComplete) {
-      setActiveTabIndex(0);
-      highlightAccordionSection('billing');
-      FancyAlert.alert(
-        'Cobrança incompleta',
-        'Preencha os dados de cobrança da igreja antes de assinar.',
-        [{ text: 'Ok', style: 'default' }],
-      );
-      return;
-    }
-    setBillingPlansModalVisible(true);
-  };
-
-  useEffect(() => {
-    if (tab === 'plano' && openPlans === '1' && activeTabIndex === 3) {
-      if (!billingProfileComplete) {
-        setActiveTabIndex(0);
-        highlightAccordionSection('billing');
-        return;
-      }
-      setBillingPlansModalVisible(true);
-    }
-  }, [activeTabIndex, openPlans, tab, billingProfileComplete]);
-  const closeBillingPlansModal = () => setBillingPlansModalVisible(false);
 
   const toggleReminderHour = (hour: number) => {
     const current = notificacoesForm.getValues('lembretesHoras') ?? [];
@@ -1217,33 +1115,8 @@ export default function ConfiguracoesPage() {
   };
 
   const handleAbrirConfiguracaoFaturamento = () => {
-    closeBillingPlansModal();
     setActiveTabIndex(0);
     highlightAccordionSection('billing');
-  };
-
-  const handleIniciarCheckout = (plan: (typeof BILLING_PLAN_OPTIONS)[number]['codigo']) => {
-    if (!billingProfileComplete) {
-      closeBillingPlansModal();
-      setActiveTabIndex(0);
-      highlightAccordionSection('billing');
-      FancyAlert.alert(
-        'Cobrança incompleta',
-        'Complete os dados de cobrança da igreja antes de iniciar a assinatura.',
-        [{ text: 'Ok', style: 'default' }],
-      );
-      return;
-    }
-
-    const isChangingPlan = ['active', 'trial', 'overdue'].includes(assinatura?.status ?? '');
-    const dto = { churchId: igrejaId!, plan, cycle: billingCycle, changePlan: isChangingPlan };
-    closeBillingPlansModal();
-    // Aguarda o Modal do bottom sheet fechar antes de abrir o Modal de loading —
-    // dois Modals nativas simultâneos no Android causam conflito silencioso.
-    setTimeout(() => {
-      showLoading(isChangingPlan ? 'Trocando de plano...' : 'Preparando pagamento...');
-      iniciarCheckout(dto);
-    }, 350);
   };
 
   const handleToggleUseChurchAddress = (nextValue: boolean) => {
@@ -1286,7 +1159,7 @@ export default function ConfiguracoesPage() {
   }
 
   // Tabs - criado após validação de data
-  const TAB_DATA: TabItem[] = [
+  const TAB_DATA_ALL: TabItem[] = [
     {
       title: 'Dados',
       icon: { ...DefaultIconsNames.info, size: 16 },
@@ -1749,283 +1622,19 @@ export default function ConfiguracoesPage() {
               compact
               assinatura={assinatura}
               onPrimaryPress={handlePrimaryBillingAction}
-              primaryLabel={billingPrimaryLabel}
-              onSecondaryPress={
-                hasPendingPlanChange
-                  ? handleCancelarTrocaDePlano
-                  : canCancelCurrentSubscription
-                    ? handleCancelarAssinatura
-                    : undefined
-              }
-              secondaryLabel={hasPendingPlanChange ? 'Cancelar troca de plano' : undefined}
-              isSecondaryLoading={
-                hasPendingPlanChange ? isCancelandoTrocaDePlano : isCancelandoAssinatura
-              }
+              primaryLabel="Gerenciar assinatura"
             />
           ) : (
             <View style={styles.billingLoadingCard}>
               <ActivityIndicator size='small' color={palette.primary} />
             </View>
           )}
-
-          <FancyBottomSheetModal
-            visible={billingPlansModalVisible}
-            onClose={closeBillingPlansModal}
-            title='Opções de Planos'
-          >
-            <View style={styles.planSheetIntro}>
-              <FancyText size='small' color={palette.fonts.inactive}>
-                Escolha o plano da igreja e siga para o pagamento quando quiser concluir.
-              </FancyText>
-            </View>
-
-            <View style={styles.billingPeriodRow}>
-              <FancySegmentedTabs
-                value={billingCycle}
-                onChange={setBillingCycle}
-                options={[
-                  { title: 'Mensal', value: 'MONTHLY' },
-                  { title: 'Anual', value: 'YEARLY' },
-                ]}
-              />
-            </View>
-
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              decelerationRate='fast'
-              snapToInterval={264}
-              snapToAlignment='start'
-              contentContainerStyle={styles.planList}
-            >
-              {BILLING_PLAN_OPTIONS.map((plan) => {
-                const matchesCurrentSelection =
-                  assinatura?.plan === plan.codigo && assinatura?.cycle === billingCycle;
-                const isCurrent =
-                  matchesCurrentSelection &&
-                  ['active', 'trial', 'overdue'].includes(assinatura?.status ?? '');
-                const isPending =
-                  !!assinatura?.checkoutUrl &&
-                  assinatura.status !== 'cancelled' &&
-                  assinatura.plan === plan.codigo &&
-                  assinatura.cycle === billingCycle;
-                const isIncompatible = Boolean(
-                  assinatura &&
-                  (plan.maxVolunteers < assinatura.currentVolunteers ||
-                    plan.maxMinistries < assinatura.currentMinistries),
-                );
-                const switchLocked = isIncompatible;
-                const incompatibilityReason = !isIncompatible || !assinatura
-                  ? null
-                  : plan.maxVolunteers < assinatura.currentVolunteers
-                    ? `Suporta até ${plan.maxVolunteers} voluntários (você tem ${assinatura.currentVolunteers})`
-                    : `Suporta até ${plan.maxMinistries} ministérios (você tem ${assinatura.currentMinistries})`;
-                const isRecommended = plan.codigo === 'essencial';
-                const isUpgradeRecommendation =
-                  hasExceededPlanCapacity && recommendedUpgradePlan?.codigo === plan.codigo;
-                const priceLabel = billingCycle === 'YEARLY' ? plan.yearlyPrice : plan.monthlyPrice;
-                const [priceValue, priceSuffix] = priceLabel.split('/');
-                const planAccent =
-                  plan.codigo === 'starter'
-                    ? palette.primary
-                    : plan.codigo === 'essencial'
-                      ? palette.secondary
-                      : palette.terciary;
-                const planIconName =
-                  plan.codigo === 'starter'
-                    ? 'rocket-launch-outline'
-                    : plan.codigo === 'essencial'
-                      ? 'star-outline'
-                      : 'trending-up';
-                const planBadge = isCurrent
-                  ? { label: 'Atual', color: planAccent }
-                  : isPending
-                    ? { label: 'Pendente', color: palette.warning }
-                    : isUpgradeRecommendation
-                      ? { label: 'Recomendado', color: planAccent }
-                      : switchLocked
-                        ? { label: 'Incompatível', color: palette.fonts.inactive }
-                        : isRecommended && plan.highlight
-                          ? { label: plan.highlight, color: planAccent }
-                          : null;
-                const hasActivePlan = ['active', 'overdue'].includes(assinatura?.status ?? '');
-                const isTrial = assinatura?.status === 'trial';
-                const planButtonLabel =
-                  isCurrent || switchLocked
-                    ? null
-                    : isPending
-                      ? 'Continuar'
-                      : isTrial
-                        ? 'Escolher plano'
-                        : hasActivePlan
-                          ? 'Trocar plano'
-                          : 'Assinar';
-                const isHighlighted = (isRecommended || isUpgradeRecommendation) && !isCurrent;
-                const planFeatures: string[] =
-                  plan.codigo === 'starter'
-                    ? [
-                        `${plan.maxVolunteers} voluntários`,
-                        `${plan.maxMinistries} ministérios`,
-                        'Escalas e agenda',
-                        'Repertório e funções',
-                      ]
-                    : plan.codigo === 'essencial'
-                      ? [
-                          `${plan.maxVolunteers} voluntários`,
-                          `${plan.maxMinistries} ministérios`,
-                          'Tudo do Starter',
-                          'Suporte prioritário',
-                        ]
-                      : [
-                          `${plan.maxVolunteers} voluntários`,
-                          `${plan.maxMinistries} ministérios`,
-                          'Tudo do Essencial',
-                          'Suporte prioritário',
-                        ];
-
-                return (
-                  <View
-                    key={plan.codigo}
-                    style={[
-                      styles.planCard,
-                      {
-                        backgroundColor: isHighlighted
-                          ? ColorUtils.withAlpha(planAccent, 0.06)
-                          : palette.backgroundColor,
-                        borderColor: isCurrent
-                          ? planAccent
-                          : isHighlighted && planBadge
-                            ? planAccent
-                            : isHighlighted
-                              ? ColorUtils.withAlpha(planAccent, 0.5)
-                              : ColorUtils.withAlpha(palette.borderCard, 0.45),
-                        borderWidth: isCurrent || isHighlighted ? 1.5 : 0.5,
-                      },
-                      switchLocked && { opacity: 0.45 },
-                    ]}
-                  >
-                    {/* Faixa "Mais escolhido" — só para plano destacado */}
-                    {planBadge && isHighlighted ? (
-                      <View style={[styles.planBanner, { backgroundColor: planAccent }]}>
-                        <FancyText type='semiBold' size='extraSmall' color={palette.fonts.light}>
-                          {planBadge.label}
-                        </FancyText>
-                      </View>
-                    ) : null}
-
-                    <View style={styles.planCardContent}>
-                    {/* Cabeçalho: ícone + nome + badge (não-highlighted) */}
-                    <View style={styles.planCardHeader}>
-                      <View
-                        style={[
-                          styles.planCardIcon,
-                          { backgroundColor: ColorUtils.withAlpha(planAccent, 0.12) },
-                        ]}
-                      >
-                        <DefaultIcons.Custom
-                          library='MaterialCommunityIcons'
-                          name={planIconName}
-                          size={18}
-                          color={planAccent}
-                        />
-                      </View>
-                      <FancyText type='semiBold' size='small' color={isHighlighted ? planAccent : palette.fonts.dark} style={{ flex: 1 }} numberOfLines={1}>
-                        {plan.nome}
-                      </FancyText>
-                      {planBadge && !isHighlighted ? (
-                        <FancyChips
-                          label={planBadge.label}
-                          color={planBadge.color}
-                          backgroundColor={ColorUtils.withAlpha(planBadge.color, 0.12)}
-                          size='small'
-                          dot
-                        />
-                      ) : null}
-                    </View>
-
-                    {/* Preço em destaque — Text nesting garante inline em Android */}
-                    {Platform.OS !== 'ios' ? (
-                      <View style={styles.planPriceBlock}>
-                        <FancyText type='bold' size={22} color={isHighlighted ? planAccent : palette.fonts.dark}>
-                          {priceValue}
-                          {priceSuffix ? (
-                            <FancyText type='normal' size='small' color={palette.fonts.inactive}>
-                              {' '}/{priceSuffix}
-                            </FancyText>
-                          ) : null}
-                        </FancyText>
-                        <FancyText type='normal' size='extraSmall' color={palette.fonts.inactive}>
-                          cobrado {billingCycle === 'YEARLY' ? 'anualmente' : 'mensalmente'}
-                        </FancyText>
-                      </View>
-                    ) : null}
-
-                    {/* Lista de features com check */}
-                    <View style={styles.planFeatureList}>
-                      {planFeatures.map((feature) => (
-                        <View key={feature} style={styles.planFeatureRow}>
-                          <DefaultIcons.Custom
-                            library='MaterialCommunityIcons'
-                            name='check-circle-outline'
-                            size={15}
-                            color={planAccent}
-                          />
-                          <FancyText size='extraSmall' color={palette.fonts.dark}>
-                            {feature}
-                          </FancyText>
-                        </View>
-                      ))}
-                    </View>
-
-                    {/* CTA */}
-                    {planButtonLabel ? (
-                      <FancyButton
-                        label={planButtonLabel}
-                        type={isPending ? 'outlined' : 'contained'}
-                        labelProps={{ size: 'extraSmall' }}
-                        disabled={
-                          isLoadingAssinatura ||
-                          isAbrindoCheckout ||
-                          !!(isPending && !assinatura?.checkoutUrl)
-                        }
-                        onPress={() => handleIniciarCheckout(plan.codigo)}
-                        icon={{
-                          library: 'MaterialCommunityIcons',
-                          name: isPending ? 'credit-card-outline' : 'credit-card-check-outline',
-                          size: 16,
-                          color: isPending ? planAccent : palette.fonts.light,
-                        }}
-                        containerStyle={[
-                          styles.planCardCta,
-                          isPending
-                            ? { borderColor: planAccent, backgroundColor: 'transparent' }
-                            : { backgroundColor: planAccent, borderColor: planAccent },
-                        ]}
-                        labelStyle={{ color: isPending ? planAccent : palette.fonts.light }}
-                      />
-                    ) : isIncompatible && incompatibilityReason ? (
-                      <View style={styles.planIncompatibleLabel}>
-                        <DefaultIcons.Custom
-                          library='MaterialCommunityIcons'
-                          name='information-outline'
-                          size={13}
-                          color={palette.fonts.inactive}
-                        />
-                        <FancyText size='extraSmall' color={palette.fonts.inactive} style={{ flex: 1 }}>
-                          {incompatibilityReason}
-                        </FancyText>
-                      </View>
-                    ) : null}
-                    </View>{/* planCardContent */}
-                  </View>
-                );
-              })}
-            </ScrollView>
-          </FancyBottomSheetModal>
         </FancyScrollView>
       ),
     },
   ];
+
+  const TAB_DATA = TAB_DATA_ALL.filter((item) => CONFIG_TAB_TITLES.includes(item.title));
 
   const planSummary = getPlanSummary(assinatura, palette);
 
@@ -2359,71 +1968,6 @@ function createStyles(palette: ThemePalette) {
       borderRadius: 18,
       padding: 16,
       gap: 10,
-    },
-    planSheetIntro: {
-      marginTop: -4,
-    },
-    billingPeriodRow: {
-      flexDirection: 'row',
-      gap: 10,
-    },
-    planList: {
-      flexDirection: 'row',
-      gap: 10,
-      paddingBottom: 4,
-    },
-    planCard: {
-      width: 254,
-      borderRadius: 16,
-      overflow: 'hidden',
-      flex: 1,
-    },
-    planBanner: {
-      height: 24,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    planCardContent: {
-      padding: 14,
-      gap: 12,
-      flex: 1,
-    },
-    planCardHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
-    planCardIcon: {
-      width: 34,
-      height: 34,
-      borderRadius: 10,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0,
-    },
-    planPriceBlock: {
-      gap: 2,
-    },
-    planFeatureList: {
-      gap: 7,
-      flex: 1,
-      justifyContent: 'center',
-    },
-    planFeatureRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 7,
-    },
-    planIncompatibleLabel: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 5,
-      paddingHorizontal: 2,
-      marginTop: 2,
-    },
-    planCardCta: {
-      marginTop: 2,
-      minHeight: 40,
     },
   });
 }

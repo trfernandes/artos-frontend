@@ -445,10 +445,14 @@ export class DashboardRepository {
     const { statsByOccurrence, statsByMinisterio } = aggregateEscalas(churchEscalas);
     const solicitacoesMapped = mapSolicitacoes(solicitacoes);
 
-    const totalEventosMes = ocorrencias.filter((item) => {
-      const date = toDateOrNull(item.dataOcorrencia);
-      return date ? isWithinMonth(date, now) : false;
-    }).length;
+    const totalEventosMes = new Set(
+      ocorrencias
+        .filter((item) => {
+          const date = toDateOrNull(item.dataOcorrencia);
+          return date ? isWithinMonth(date, now) : false;
+        })
+        .map((item) => item.eventoId),
+    ).size;
 
     const ministeriosStats = ministerios
       .filter(

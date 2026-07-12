@@ -1,0 +1,82 @@
+# Flow: Stress de navegacao rapida entre telas com billing (sem crash)
+#
+# Uso:
+#   maestro test flows/billing-navegacao-stress.yaml
+#
+# Pre-condicao: conta Ativa
+#
+# O que verifica:
+#   - App nao crasha ao navegar rapidamente entre 6 telas com billing
+#   - Estado de billing permanece correto apos multiplas transicoes
+#   - "Gerenciar assinatura" ainda visivel na visita final a Configuracoes
+#   - Nenhum banner de billing surge indevidamente durante navegacao rapida
+#
+# Adversarial: navegacao sem pause adequado estressа o cache de queries
+# e pode expor race conditions em invalidacao de estado.
+
+appId: com.church.artos
+---
+- launchApp
+- runFlow: _login.yaml
+
+- openLink: diakonia:///inicio
+- extendedWaitUntil:
+    visible: "Início"
+    timeout: 120000
+
+# Volta 1: inicio → voluntarios → ministerios
+- openLink: diakonia:///inicio
+- waitForAnimationToEnd:
+    timeout: 3000
+- assertVisible: "Início"
+
+- openLink: diakonia:///admin/voluntarios
+- waitForAnimationToEnd:
+    timeout: 3000
+- assertVisible: "Voluntários"
+
+- openLink: diakonia:///admin/ministerios
+- waitForAnimationToEnd:
+    timeout: 3000
+- assertVisible: "Ministérios"
+
+# Volta 2: configuracoes → assinatura → inicio
+- openLink: diakonia:///configuracoes
+- waitForAnimationToEnd:
+    timeout: 3000
+- assertVisible: "Crescimento"
+
+- tapOn:
+    text: "Assinatura"
+    index: 1
+- waitForAnimationToEnd:
+    timeout: 3000
+- assertVisible: "Assinatura em dia"
+
+- openLink: diakonia:///inicio
+- waitForAnimationToEnd:
+    timeout: 3000
+- assertVisible: "Início"
+
+# Volta 3: rapido — voluntarios → configuracoes
+- openLink: diakonia:///admin/voluntarios
+- waitForAnimationToEnd:
+    timeout: 3000
+
+- openLink: diakonia:///configuracoes
+- waitForAnimationToEnd:
+    timeout: 3000
+
+- tapOn:
+    text: "Assinatura"
+    index: 1
+- waitForAnimationToEnd:
+    timeout: 15000
+
+# Estado final deve estar correto apos toda a navegacao
+- assertVisible: "Assinatura em dia"
+- assertVisible: "Gerenciar assinatura"
+- assertNotVisible: "Cancelar assinatura"
+- assertNotVisible: "Ver planos"
+
+- takeScreenshot: billing-stress-final

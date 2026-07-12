@@ -31,6 +31,10 @@ export enum NotificacaoTipoEnum {
   IgrejaConviteExpirado = 'IGREJA_CONVITE_EXPIRADO',
   SistemaAlertaAdmin = 'SISTEMA_ALERTA_ADMIN',
 
+  // Geração de escala (admin/líder)
+  EscalaGerada = 'ESCALA_GERADA',
+  EscalaErroGerada = 'ESCALA_ERRO_GERADA',
+
   // Dev
   TesteLocal = 'TESTE_LOCAL',
   Generic = 'GENERIC',

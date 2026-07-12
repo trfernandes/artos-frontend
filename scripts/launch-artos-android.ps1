@@ -464,6 +464,7 @@ function Configure-MetroAccess {
   if ($Target.Type -eq "device") {
     Write-Host "Configurando adb reverse para o celular..." -ForegroundColor Yellow
     Configure-AdbReverse -Serial $Target.Serial -BackendPort $BackendPort
+    return "127.0.0.1"
   }
 
   return Get-LocalIPv4

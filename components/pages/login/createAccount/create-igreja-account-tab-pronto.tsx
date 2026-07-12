@@ -7,10 +7,7 @@ import { usePallete } from '../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../hooks/useThemedStyles';
 import { ColorUtils } from '../../../../utils/color_utils';
 import { LoginCreateIgrejaFormData } from '../../../../domain/schemas/loginCreateIgrejaSchema';
-import {
-  BILLING_TRIAL_DAYS,
-  precoInicialLabel,
-} from '../../../../domain/utils/billing-plan-catalog';
+import { BILLING_TRIAL_DAYS } from '../../../../domain/utils/billing-plan-catalog';
 
 export default function CreateIgrejaAccountTabPronto() {
   const palette = usePallete();
@@ -77,8 +74,7 @@ export default function CreateIgrejaAccountTabPronto() {
           <FancyText size='small' color={palette.fonts.dark} style={styles.trialTexto}>
             <FancyText size='small' type='bold' color={palette.fonts.dark}>
               {BILLING_TRIAL_DAYS} dias grátis
-            </FancyText>{' '}
-            · {precoInicialLabel()}
+            </FancyText>
           </FancyText>
         </View>
       </View>

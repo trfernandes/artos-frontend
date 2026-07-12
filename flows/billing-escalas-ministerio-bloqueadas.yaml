@@ -1,0 +1,86 @@
+# Flow: Tela de escalas e agenda de ministerio bloqueadas por billing expirado
+#
+# Uso:
+#   1. Rodar SQL de setup no Neon (ver abaixo)
+#   2. maestro test flows/billing-escalas-ministerio-bloqueadas.yaml
+#   3. Rodar SQL de revert IMEDIATAMENTE apos o teste
+#
+# ════════════════════════════════════════════════
+# SQL SETUP (rodar antes):
+#
+#   UPDATE subscriptions
+#   SET status = 'expired',
+#       "currentPeriodEnd" = NOW() - INTERVAL '1 day'
+#   WHERE "churchId" = (SELECT id FROM igrejas WHERE codigo = 'teste-church');
+#   UPDATE igrejas SET "subscriptionStatus" = 'expired' WHERE codigo = 'teste-church';
+#
+# SQL REVERT (rodar apos):
+#
+#   UPDATE subscriptions
+#   SET status = 'active',
+#       "currentPeriodEnd" = '2026-07-18'
+#   WHERE "churchId" = (SELECT id FROM igrejas WHERE codigo = 'teste-church');
+#   UPDATE igrejas SET "subscriptionStatus" = 'active' WHERE codigo = 'teste-church';
+# ════════════════════════════════════════════════
+#
+# O que verifica:
+#   isBlocked = true (status='expired')
+#   showBillingBanner = true
+#   Condicao das duas telas: isBlocked && showBillingBanner → banner visivel
+#
+# Nota de implementacao:
+#   Escalas e Agenda possuem early return <FancyLoading /> enquanto carregam dados.
+#   Para garantir que o billing hook ja esta em cache antes de entrar nas telas
+#   (e evitar o race condition banner vs early-return), carregamos Configuracoes
+#   primeiro — o React Query armazena o resultado e as proximas telas o reutilizam.
+#
+# Ministerio usado: Ministerio de Louvor (id=5e50655b-9cbd-45f3-b5f8-711004009e3f)
+
+appId: com.church.artos
+---
+- launchApp
+- runFlow: _login.yaml
+- openLink: diakonia:///inicio
+- extendedWaitUntil:
+    visible: "Início"
+    timeout: 120000
+
+# ── Pre-aquecimento: carrega billing hook em Configuracoes ──────────────────
+# "Avaliação encerrada" so aparece apos tapar na aba Assinatura.
+# Este passo garante que o React Query tem o estado 'expired' em cache.
+- openLink: diakonia:///configuracoes
+- waitForAnimationToEnd:
+    timeout: 15000
+- runFlow:
+    when:
+      visible: "Servidor indisponível"
+    file: _retry_servidor.yaml
+- extendedWaitUntil:
+    visible: "Assinatura"
+    timeout: 15000
+- tapOn:
+    text: "Assinatura"
+    index: 1
+- waitForAnimationToEnd:
+    timeout: 15000
+- assertVisible: "Avaliação encerrada"
+- takeScreenshot: billing-escalas-ministerio-billing-preaquecido
+
+# ── Passo 1: Escalas de ministerio bloqueadas ───────────────────────────────
+- openLink: "diakonia:///ministerios/escalas?ministerioId=5e50655b-9cbd-45f3-b5f8-711004009e3f"
+- extendedWaitUntil:
+    visible: "Avaliação encerrada"
+    timeout: 20000
+- assertVisible: "Avaliação encerrada"
+- assertVisible: "Seu período avaliativo terminou"
+- assertNotVisible: "Assinatura em dia"
+- takeScreenshot: billing-escalas-ministerio-bloqueadas
+
+# ── Passo 2: Agenda de ministerio bloqueada ─────────────────────────────────
+- openLink: "diakonia:///ministerios/agenda?ministerioId=5e50655b-9cbd-45f3-b5f8-711004009e3f"
+- extendedWaitUntil:
+    visible: "Avaliação encerrada"
+    timeout: 20000
+- assertVisible: "Avaliação encerrada"
+- assertVisible: "Seu período avaliativo terminou"
+- takeScreenshot: billing-agenda-ministerio-bloqueada

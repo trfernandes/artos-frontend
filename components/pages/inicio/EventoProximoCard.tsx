@@ -46,7 +46,7 @@ export default function EventoProximoCard({
           <View style={styles.content}>
             <View style={styles.dateChip}>
               <FancyText size='extraSmall' type='semiBold' color={accentColor}>
-                {dataFormatada}
+                {dataFormatada} · {horaFormatada}
               </FancyText>
             </View>
             <FancyText
@@ -59,10 +59,11 @@ export default function EventoProximoCard({
             >
               {evento.nome}
             </FancyText>
-            <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} numberOfLines={1}>
-              {horaFormatada}
-              {evento.local ? `  ·  ${evento.local}` : ''}
-            </FancyText>
+            {evento.local ? (
+              <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} numberOfLines={1}>
+                {evento.local}
+              </FancyText>
+            ) : null}
             <View style={styles.progressSection}>
               <ScaleFillIndicator
                 filledCount={evento.totalConfirmados}

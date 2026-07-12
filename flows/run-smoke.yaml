@@ -16,6 +16,7 @@
 appId: com.church.artos
 ---
 - runFlow: smoke-login.yaml
+- runFlow: billing-311-compliance.yaml
 - runFlow: billing-status.yaml
-- runFlow: billing-modal-planos.yaml
+- runFlow: billing-gerenciar-portal.yaml
 - runFlow: foto-perfil.yaml
