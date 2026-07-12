@@ -1,6 +1,17 @@
 import { z } from 'zod';
 import { ModoEntradaEnum } from '../enums/modo-entrada.enum';
 
+const PHONE_SEQUENCES = ['0123456789', '9876543210'];
+
+// O Asaas rejeita telefones com formato válido mas número de assinante
+// "falso" (dígito repetido ou sequência) — barramos aqui pra não deixar
+// o usuário salvar um placeholder que só vai quebrar no momento da cobrança.
+function hasFakeSubscriberNumber(digits: string): boolean {
+  const subscriberNumber = digits.slice(-8);
+  if (/^(\d)\1+$/.test(subscriberNumber)) return true;
+  return PHONE_SEQUENCES.some((sequence) => sequence.includes(subscriberNumber));
+}
+
 // Schema para validação de dados cadastrais
 export const dadosSchema = z.object({
   nome: z.string().min(1, 'Campo obrigatório'),
@@ -40,7 +51,8 @@ export const faturamentoSchema = z.object({
   telefoneCobranca: z
     .string()
     .min(1, 'Campo obrigatório')
-    .regex(/^\d{10,11}$/, 'Telefone inválido'),
+    .regex(/^\d{10,11}$/, 'Telefone inválido')
+    .refine((value) => !hasFakeSubscriberNumber(value), 'Informe um telefone real (não use sequências ou números repetidos)'),
   emailCobranca: z
     .string()
     .refine((value) => value === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value), 'Email inválido'),

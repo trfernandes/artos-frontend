@@ -97,7 +97,7 @@ const HeaderMenuButton = (props: { title?: string; onPress?: () => void; color: 
     />
     {props.title && (
       <FancyText
-        size='medium'
+        size={Platform.OS === 'ios' ? 'largeMedium' : 'medium'}
         type='bold'
         color={props.color}
         style={styles.headerTitle}
@@ -129,7 +129,7 @@ const HeaderBackButton = (props: { title?: string; onPress: () => void; color: s
     />
     {props.title && (
       <FancyText
-        size='medium'
+        size={Platform.OS === 'ios' ? 'largeMedium' : 'medium'}
         type='bold'
         color={props.color}
         style={styles.headerTitle}

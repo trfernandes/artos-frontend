@@ -53,19 +53,24 @@ export default function AppSplashOverlay({ visible }: AppSplashOverlayProps) {
       style={[StyleSheet.absoluteFillObject, styles.background, { opacity: containerOpacity }]}
     >
       <Animated.Image
-        source={require('../assets/images/splash-icon.png')}
-        style={[
-          StyleSheet.absoluteFillObject,
-          { opacity: logoOpacity, transform: [{ scale: logoScale }] },
-        ]}
-        resizeMode='cover'
+        source={require('../assets/images/logo.png')}
+        style={[styles.logo, { opacity: logoOpacity, transform: [{ scale: logoScale }] }]}
+        resizeMode='contain'
       />
     </Animated.View>
   );
 }
 
+const LOGO_ASPECT_RATIO = 1505 / 244;
+
 const styles = StyleSheet.create({
   background: {
     backgroundColor: '#151A2C',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logo: {
+    width: 240,
+    aspectRatio: LOGO_ASPECT_RATIO,
   },
 });
