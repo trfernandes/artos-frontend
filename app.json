@@ -65,16 +65,6 @@
           "dark": {
             "image": "./assets/images/splash-icon.png",
             "backgroundColor": "#151A2C"
-          },
-          "ios": {
-            "image": "./assets/images/splash-icon-ios.png",
-            "resizeMode": "contain",
-            "imageWidth": 200,
-            "backgroundColor": "#151A2C",
-            "dark": {
-              "image": "./assets/images/splash-icon-ios.png",
-              "backgroundColor": "#151A2C"
-            }
           }
         }
       ],
