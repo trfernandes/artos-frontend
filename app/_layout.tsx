@@ -2,6 +2,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { Asset } from 'expo-asset';
 import { SplashScreen, Stack } from 'expo-router';
+import { setOptions as setSplashScreenOptions } from 'expo-splash-screen';
 import { AppState, Modal, Platform, StyleSheet, View } from 'react-native';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { useFonts } from 'expo-font';
@@ -44,6 +45,13 @@ if (sentryDsn) {
 }
 
 SplashScreen.preventAutoHideAsync();
+
+// iOS: a splash nativa é a ÚNICA splash (padrão oficial do Expo) — fica visível
+// até fonts+auth carregarem e sai com o fade nativo configurado aqui. O
+// AppSplashOverlay nem é montado no iOS; ele existe só pro Android (ver abaixo).
+if (Platform.OS === 'ios') {
+  setSplashScreenOptions({ duration: 400, fade: true });
+}
 
 const splashImageReady = Asset.fromModule(
   require('../assets/images/splash-icon.png'),
@@ -96,7 +104,10 @@ export default Sentry.wrap(function RootLayout() {
   };
 
   useEffect(() => {
-    const safetyTimer = setTimeout(() => setSplashVisible(false), MAX_SPLASH_VISIBLE_MS);
+    const safetyTimer = setTimeout(() => {
+      setSplashVisible(false);
+      SplashScreen.hideAsync();
+    }, MAX_SPLASH_VISIBLE_MS);
     return () => clearTimeout(safetyTimer);
   }, []);
 
@@ -120,14 +131,7 @@ export default Sentry.wrap(function RootLayout() {
           </ThemeProvider>
         </KeyboardProvider>
       </SafeAreaProvider>
-      <AppSplashOverlay
-        visible={splashVisible}
-        onImageReady={
-          Platform.OS === 'ios'
-            ? () => SplashScreen.hideAsync().finally(() => handleNativeSplashHidden())
-            : undefined
-        }
-      />
+      {Platform.OS === 'android' && <AppSplashOverlay visible={splashVisible} />}
     </GestureHandlerRootView>
   );
 });
@@ -173,17 +177,23 @@ function RootLayoutNav({
   // aqui dá tempo pro shim de compatibilidade do expo-splash-screen recriar sua
   // própria SplashScreenView (logcat: 2ª "SplashScreenView" ~3s depois da
   // Activity ficar "Displayed"), que renderiza com fundo branco e causa flash.
-  // iOS: hideAsync() é chamado pelo AppSplashOverlay via onImageReady, só depois
-  // que o overlay JS já pintou seu primeiro frame — evita o gap de 1-2 frames
-  // entre a splash nativa sair e o app estar visível.
+  // iOS: NÃO esconder aqui — a splash nativa é a única splash e fica visível
+  // até o app estar pronto (effect abaixo), saindo com o fade nativo.
   useEffect(() => {
-    if (Platform.OS !== "ios") {
+    if (Platform.OS !== 'ios') {
       SplashScreen.hideAsync().finally(() => onNativeSplashHidden());
     }
   }, []);
 
   useEffect(() => {
-    if (fontsLoaded && !loading) onReady();
+    if (fontsLoaded && !loading) {
+      onReady();
+      // iOS: app pronto — o conteúdo real monta neste commit; o fade nativo de
+      // 400ms revela o app por baixo da splash nativa, sem gap nem handoff.
+      if (Platform.OS === 'ios') {
+        SplashScreen.hideAsync();
+      }
+    }
   }, [fontsLoaded, loading]);
 
   // registrar notificações quando logar
