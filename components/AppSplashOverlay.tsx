@@ -62,7 +62,12 @@ export default function AppSplashOverlay({ visible }: AppSplashOverlayProps) {
           StyleSheet.absoluteFillObject,
           { opacity: logoOpacity, transform: [{ scale: logoScale }] },
         ]}
-        resizeMode='cover'
+        // 'contain' espelha exatamente como a splash nativa Android renderiza a
+        // mesma imagem (logo pequena centralizada sobre fundo sólido, nunca
+        // esticada). Com 'cover', em telas com proporção mais quadrada que a da
+        // imagem (bem alta/estreita), a logo era ampliada e cortada — o bug do
+        // "ako gigante" reaparecendo no Android.
+        resizeMode='contain'
       />
     </Animated.View>
   );
