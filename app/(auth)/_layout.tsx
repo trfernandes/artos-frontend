@@ -18,6 +18,9 @@ export default function AuthLayout() {
       <Stack.Screen name='forgot-password' />
       <Stack.Screen name='create-account' />
       <Stack.Screen name='admin-discovery' />
+      <Stack.Screen name='quiz-vendas' />
+      <Stack.Screen name='quiz-vendas-resultado' />
+      <Stack.Screen name='quiz-vendas-funcionalidades' />
       <Stack.Screen name='create-igreja-account' />
       <Stack.Screen name='igreja-cadastro-aguardando-email' />
       <Stack.Screen name='create-voluntario-account' />
