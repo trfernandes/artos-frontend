@@ -28,6 +28,15 @@ import FancyScrollView from '../../../../../components/FancyScrollView';
 import FancyListItemCard from '../../../../../components/cards/FancyListItemCard';
 import FancyText from '../../../../../components/FancyText';
 import FancyListEmpty from '../../../../../components/list/FancyListEmpty';
+import { TutorialTarget } from '../../../../../components/tutorial/TutorialTarget';
+import { TutorialBanner } from '../../../../../components/tutorial/TutorialBanner';
+import { TutorialOverlay } from '../../../../../components/tutorial/TutorialOverlay';
+import { useScreenTutorial } from '../../../../../hooks/useScreenTutorial';
+import {
+  INDISPONIBILIDADES_TOUR_ID,
+  INDISPONIBILIDADES_TOUR_STEPS,
+  INDISPONIBILIDADES_TOUR_TITLE,
+} from '../../../../../components/tutorial/tours/indisponibilidadesTour';
 
 type ModalState = {
   visible: boolean;
@@ -172,6 +181,13 @@ export default function IndisponibilidadeIndexPage() {
   const [hasSettled, setHasSettled] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const fabAnim = useRef(new Animated.Value(1)).current;
+
+  const tour = useScreenTutorial(
+    INDISPONIBILIDADES_TOUR_ID,
+    INDISPONIBILIDADES_TOUR_TITLE,
+    INDISPONIBILIDADES_TOUR_STEPS,
+  );
+
 
   useEffect(() => {
     fabAnim.setValue(0);
@@ -506,21 +522,28 @@ export default function IndisponibilidadeIndexPage() {
                 <FancyText type="medium" size="extraSmall" color={palette.fonts.dark}>Regras recorrentes</FancyText>
               </View>
             </View>
-            <FancyCalendarVertical<'id', string>
-              highlightCurrentMonth
-              disablePastDates
-              contentContainerStyle={{ paddingHorizontal: 15 }}
-              startDate={calendarStartDate}
-              endDate={calendarEndDate}
-              markedDates={allMarkedDates}
-              onSelectDate={({ date }) => openDateModal(date)}
-              listProps={{
-                bottomSpace: 160,
-                showFade: false,
-                maintainVisibleContentPosition: false,
-              }}
-              daysProps={{ markerColor: palette.error }}
-            />
+            <TutorialTarget
+              id="indisponibilidade-calendario"
+              registerTarget={tour.registerTarget}
+              unregisterTarget={tour.unregisterTarget}
+              style={{ flex: 1 }}
+            >
+              <FancyCalendarVertical<'id', string>
+                highlightCurrentMonth
+                disablePastDates
+                contentContainerStyle={{ paddingHorizontal: 15 }}
+                startDate={calendarStartDate}
+                endDate={calendarEndDate}
+                markedDates={allMarkedDates}
+                onSelectDate={({ date }) => openDateModal(date)}
+                listProps={{
+                  bottomSpace: 160,
+                  showFade: false,
+                  maintainVisibleContentPosition: false,
+                }}
+                daysProps={{ markerColor: palette.error }}
+              />
+            </TutorialTarget>
           </View>
         ),
       },
@@ -608,6 +631,8 @@ export default function IndisponibilidadeIndexPage() {
       openDateModal,
       handleRemoverRegra,
       styles,
+      tour.registerTarget,
+      tour.unregisterTarget,
     ],
   );
 
@@ -625,6 +650,12 @@ export default function IndisponibilidadeIndexPage() {
 
   return (
     <View style={{ flex: 1 }}>
+      {tour.showBanner && (
+        <View style={{ paddingHorizontal: 15, paddingTop: 10 }}>
+          <TutorialBanner onStart={tour.start} onDismiss={tour.skip} />
+        </View>
+      )}
+
       <View style={{ flex: 1, opacity: isBusy ? 0 : 1 }}>
         <FancyTabs
           keepMounted
@@ -637,12 +668,20 @@ export default function IndisponibilidadeIndexPage() {
           style={{ opacity: fabAnim, transform: [{ scale: fabAnim }] }}
         >
           {activeTab === 0 && (
-            <FancyFab
-              icon={{ library: 'MaterialCommunityIcons', name: 'calendar-plus', size: 26 }}
-              onPress={() => setShowPeriodoModal(true)}
-              bottom={10}
-              right={15}
-            />
+            <TutorialTarget
+              id="indisponibilidade-adicionar"
+              registerTarget={tour.registerTarget}
+              unregisterTarget={tour.unregisterTarget}
+              style={{ position: 'absolute', right: 15, bottom: 10, width: 50, height: 50 }}
+              pointerEvents="box-none"
+            >
+              <FancyFab
+                icon={{ library: 'MaterialCommunityIcons', name: 'calendar-plus', size: 26 }}
+                onPress={() => setShowPeriodoModal(true)}
+                bottom={0}
+                right={0}
+              />
+            </TutorialTarget>
           )}
 
           {activeTab === 1 && (
@@ -708,6 +747,8 @@ export default function IndisponibilidadeIndexPage() {
           onConfirm={handleConfirmEditRegra}
         />
       )}
+
+      <TutorialOverlay tour={tour} />
     </View>
   );
 }

@@ -24,6 +24,15 @@ import DateAvailabilityAdjustmentModal from '../../../../../components/pages/pes
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
+import { TutorialTarget } from '../../../../../components/tutorial/TutorialTarget';
+import { TutorialBanner } from '../../../../../components/tutorial/TutorialBanner';
+import { TutorialOverlay } from '../../../../../components/tutorial/TutorialOverlay';
+import { useScreenTutorial } from '../../../../../hooks/useScreenTutorial';
+import {
+  INDISPONIBILIDADES_TOUR_ID,
+  INDISPONIBILIDADES_TOUR_STEPS,
+  INDISPONIBILIDADES_TOUR_TITLE,
+} from '../../../../../components/tutorial/tours/indisponibilidadesTour';
 
 type ModalState = {
   visible: boolean;
@@ -107,6 +116,12 @@ export default function MinisterioIndisponibilidadesIndex() {
     status: 'available',
   });
   const [showPeriodoModal, setShowPeriodoModal] = useState(false);
+
+  const tour = useScreenTutorial(
+    INDISPONIBILIDADES_TOUR_ID,
+    INDISPONIBILIDADES_TOUR_TITLE,
+    INDISPONIBILIDADES_TOUR_STEPS,
+  );
 
   const handleAddPeriodo = async (inicio: Date, fim: Date, motivo: string) => {
     setShowPeriodoModal(false);
@@ -194,6 +209,13 @@ export default function MinisterioIndisponibilidadesIndex() {
 
   return (
     <FancyPageView style={styles.container}>
+      {tour.showBanner && (
+        <>
+          <TutorialBanner onStart={tour.start} onDismiss={tour.skip} />
+          <FancyVerticalSpacer height={15} />
+        </>
+      )}
+
       <View style={styles.voluntarioContainer}>
         <ControlledSearchSelect
           control={control}
@@ -206,40 +228,52 @@ export default function MinisterioIndisponibilidadesIndex() {
       {voluntarioId && !isLoadingIndisponibilidades ? (
         <View>
           <FancyVerticalSpacer height={15} />
-          <FancyCalendar
-            selectDateOnPress={false}
-            onChangeSelectedDate={(date) => {
-              const registro = indisponibilidadesData.find((d) =>
-                DateUtilsApi.compareDateOnlyFromApi(d.data, date),
-              );
-              setModalState({
-                visible: true,
-                date,
-                status: registro ? 'unavailable' : 'available',
-                motivo: registro?.motivo ?? null,
-              });
-            }}
-            containerStyle={{
-              paddingHorizontal: 5,
-              backgroundColor: 'transparent',
-              borderWidth: 0,
-            }}
-            minimumDate={startDate}
-            maximumDate={endDate}
-            markedDates={indisponibilidadesData.map((d) => ({
-              // d.data vem como date-only (YYYY-MM-DD); usar helper evita deslocamento por fuso.
-              date: DateUtilsApi.dateOnlyFromApi(d.data),
-              T: d.id,
-              color: palette.error,
-            }))}
-            markedDatesType='SurroundCircle'
-          />
+          <TutorialTarget
+            id="indisponibilidade-calendario"
+            registerTarget={tour.registerTarget}
+            unregisterTarget={tour.unregisterTarget}
+          >
+            <FancyCalendar
+              selectDateOnPress={false}
+              onChangeSelectedDate={(date) => {
+                const registro = indisponibilidadesData.find((d) =>
+                  DateUtilsApi.compareDateOnlyFromApi(d.data, date),
+                );
+                setModalState({
+                  visible: true,
+                  date,
+                  status: registro ? 'unavailable' : 'available',
+                  motivo: registro?.motivo ?? null,
+                });
+              }}
+              containerStyle={{
+                paddingHorizontal: 5,
+                backgroundColor: 'transparent',
+                borderWidth: 0,
+              }}
+              minimumDate={startDate}
+              maximumDate={endDate}
+              markedDates={indisponibilidadesData.map((d) => ({
+                // d.data vem como date-only (YYYY-MM-DD); usar helper evita deslocamento por fuso.
+                date: DateUtilsApi.dateOnlyFromApi(d.data),
+                T: d.id,
+                color: palette.error,
+              }))}
+              markedDatesType='SurroundCircle'
+            />
+          </TutorialTarget>
           <FancyVerticalSpacer height={15} />
-          <FancyButton
-            label='Adicionar Período'
-            icon={{ ...DefaultIconsNames.add, size: 20 }}
-            onPress={() => setShowPeriodoModal(true)}
-          />
+          <TutorialTarget
+            id="indisponibilidade-adicionar"
+            registerTarget={tour.registerTarget}
+            unregisterTarget={tour.unregisterTarget}
+          >
+            <FancyButton
+              label='Adicionar Período'
+              icon={{ ...DefaultIconsNames.add, size: 20 }}
+              onPress={() => setShowPeriodoModal(true)}
+            />
+          </TutorialTarget>
         </View>
       ) : (
         <View
@@ -275,6 +309,8 @@ export default function MinisterioIndisponibilidadesIndex() {
           onConfirm={handleAddPeriodo}
         />
       )}
+
+      <TutorialOverlay tour={tour} />
     </FancyPageView>
   );
 }

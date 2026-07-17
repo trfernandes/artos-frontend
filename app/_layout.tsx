@@ -5,6 +5,7 @@ import { SplashScreen, Stack } from 'expo-router';
 import { setOptions as setSplashScreenOptions } from 'expo-splash-screen';
 import { AppState, Modal, Platform, StyleSheet, View } from 'react-native';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import { TutorialCatalogProvider } from '../contexts/TutorialCatalogContext';
 import { useFonts } from 'expo-font';
 import { QueryClientProvider } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
@@ -119,12 +120,14 @@ export default Sentry.wrap(function RootLayout() {
             <GlobalErrorBoundary>
               <QueryClientProvider client={queryClient}>
                 <AuthProvider>
-                  <ConnectivityProvider>
-                    <RootLayoutNav
-                      onReady={handleReady}
-                      onNativeSplashHidden={handleNativeSplashHidden}
-                    />
-                  </ConnectivityProvider>
+                  <TutorialCatalogProvider>
+                    <ConnectivityProvider>
+                      <RootLayoutNav
+                        onReady={handleReady}
+                        onNativeSplashHidden={handleNativeSplashHidden}
+                      />
+                    </ConnectivityProvider>
+                  </TutorialCatalogProvider>
                 </AuthProvider>
               </QueryClientProvider>
             </GlobalErrorBoundary>
