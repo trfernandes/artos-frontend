@@ -17,15 +17,18 @@ export function TutorialBanner({ onStart, onDismiss }: TutorialBannerProps) {
     <View
       style={[
         styles.container,
-        { backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.08), borderColor: Pallete.border },
+        {
+          backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.08),
+          borderColor: Pallete.border,
+        },
       ]}
     >
-      <FancyText type="medium" size="small" color={Pallete.fonts.dark}>
+      <FancyText type='medium' size='small' color={Pallete.fonts.dark}>
         Quer conhecer essa tela?
       </FancyText>
       <View style={styles.actions}>
-        <FancyButton type="text" label="Agora não" onPress={onDismiss} />
-        <FancyButton type="outlined" label="Iniciar Tutorial" onPress={onStart} />
+        <FancyButton type='text' label='Agora não' onPress={onDismiss} />
+        <FancyButton type='outlined' label='Iniciar Tutorial' onPress={onStart} />
       </View>
     </View>
   );

@@ -264,7 +264,11 @@ export default function InviteTokenPage() {
       <InviteFlatLayout>
         <View style={styles.churchHeader}>
           {preview.igreja.logoUrl ? (
-            <FancyImage source={{ uri: preview.igreja.logoUrl }} size={72} style={styles.logoImage} />
+            <FancyImage
+              source={{ uri: preview.igreja.logoUrl }}
+              size={72}
+              style={styles.logoImage}
+            />
           ) : (
             <View style={[styles.logoContainer, { width: 72, height: 72, borderRadius: 36 }]}>
               <DefaultIcons.Custom
@@ -276,7 +280,11 @@ export default function InviteTokenPage() {
             </View>
           )}
           <FancyVerticalSpacer height={8} />
-          <FancyText type='semiBold' size='large' style={[styles.centeredText, styles.churchNameText]}>
+          <FancyText
+            type='semiBold'
+            size='large'
+            style={[styles.centeredText, styles.churchNameText]}
+          >
             {preview.igreja.nome}
           </FancyText>
           <FancyVerticalSpacer height={14} />
@@ -300,7 +308,11 @@ export default function InviteTokenPage() {
       <InviteFlatLayout>
         <View style={styles.churchHeader}>
           {preview.igreja.logoUrl ? (
-            <FancyImage source={{ uri: preview.igreja.logoUrl }} size={72} style={styles.logoImage} />
+            <FancyImage
+              source={{ uri: preview.igreja.logoUrl }}
+              size={72}
+              style={styles.logoImage}
+            />
           ) : (
             <View style={[styles.logoContainer, { width: 72, height: 72, borderRadius: 36 }]}>
               <DefaultIcons.Custom
@@ -312,7 +324,11 @@ export default function InviteTokenPage() {
             </View>
           )}
           <FancyVerticalSpacer height={8} />
-          <FancyText type='semiBold' size='large' style={[styles.centeredText, styles.churchNameText]}>
+          <FancyText
+            type='semiBold'
+            size='large'
+            style={[styles.centeredText, styles.churchNameText]}
+          >
             {preview.igreja.nome}
           </FancyText>
           <FancyVerticalSpacer height={6} />
@@ -356,7 +372,11 @@ export default function InviteTokenPage() {
       <InviteFlatLayout>
         <View style={styles.churchHeader}>
           {preview.igreja.logoUrl ? (
-            <FancyImage source={{ uri: preview.igreja.logoUrl }} size={80} style={styles.logoImage} />
+            <FancyImage
+              source={{ uri: preview.igreja.logoUrl }}
+              size={80}
+              style={styles.logoImage}
+            />
           ) : (
             <View style={styles.logoContainer}>
               <DefaultIcons.Custom
@@ -368,7 +388,11 @@ export default function InviteTokenPage() {
             </View>
           )}
           <FancyVerticalSpacer height={8} />
-          <FancyText type='semiBold' size='large' style={[styles.centeredText, styles.churchNameText]}>
+          <FancyText
+            type='semiBold'
+            size='large'
+            style={[styles.centeredText, styles.churchNameText]}
+          >
             {preview.igreja.nome}
           </FancyText>
           <FancyVerticalSpacer height={4} />
@@ -399,7 +423,11 @@ export default function InviteTokenPage() {
                 size={18}
                 color={Pallete.confirm}
               />
-              <FancyText type='semiBold' size='medium' style={[styles.detailText, { color: Pallete.confirm }]}>
+              <FancyText
+                type='semiBold'
+                size='medium'
+                style={[styles.detailText, { color: Pallete.confirm }]}
+              >
                 Aprovação automática
               </FancyText>
             </View>
@@ -411,7 +439,11 @@ export default function InviteTokenPage() {
                 size={18}
                 color={Pallete.warning}
               />
-              <FancyText type='semiBold' size='medium' style={[styles.detailText, { color: Pallete.warning }]}>
+              <FancyText
+                type='semiBold'
+                size='medium'
+                style={[styles.detailText, { color: Pallete.warning }]}
+              >
                 Requer aprovação da liderança
               </FancyText>
             </View>
@@ -444,7 +476,11 @@ export default function InviteTokenPage() {
           </View>
         )}
         <FancyVerticalSpacer height={8} />
-        <FancyText type='semiBold' size='large' style={[styles.centeredText, styles.churchNameText]}>
+        <FancyText
+          type='semiBold'
+          size='large'
+          style={[styles.centeredText, styles.churchNameText]}
+        >
           {preview.igreja.nome}
         </FancyText>
         <FancyVerticalSpacer height={4} />
@@ -476,7 +512,11 @@ export default function InviteTokenPage() {
               size={18}
               color={Pallete.confirm}
             />
-            <FancyText type='semiBold' size='medium' style={[styles.detailText, { color: Pallete.confirm }]}>
+            <FancyText
+              type='semiBold'
+              size='medium'
+              style={[styles.detailText, { color: Pallete.confirm }]}
+            >
               Aprovação automática
             </FancyText>
           </View>
@@ -488,7 +528,11 @@ export default function InviteTokenPage() {
               size={18}
               color={Pallete.warning}
             />
-            <FancyText type='semiBold' size='medium' style={[styles.detailText, { color: Pallete.warning }]}>
+            <FancyText
+              type='semiBold'
+              size='medium'
+              style={[styles.detailText, { color: Pallete.warning }]}
+            >
               Requer aprovação da liderança
             </FancyText>
           </View>
@@ -507,7 +551,12 @@ export default function InviteTokenPage() {
           onPress={handleAccept}
           disabled={loadingAccept}
         />
-        <FancyButton label='Cancelar' type='outlined' onPress={handleBack} disabled={loadingAccept} />
+        <FancyButton
+          label='Cancelar'
+          type='outlined'
+          onPress={handleBack}
+          disabled={loadingAccept}
+        />
       </View>
     </InviteFlatLayout>
   );

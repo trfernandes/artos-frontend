@@ -55,7 +55,12 @@ export default function DashboardEscalasSection({ data }: DashboardEscalasSectio
               layout='center'
               title='Total'
               value={data?.totalEscalasMes ?? 0}
-              icon={{ library: 'MaterialCommunityIcons', name: 'calendar-month', size: 16, color: Pallete.primary }}
+              icon={{
+                library: 'MaterialCommunityIcons',
+                name: 'calendar-month',
+                size: 16,
+                color: Pallete.primary,
+              }}
               iconBackgroundColor={`${Pallete.primary}1F`}
               accentColor={Pallete.primary}
             />
@@ -65,7 +70,12 @@ export default function DashboardEscalasSection({ data }: DashboardEscalasSectio
               layout='center'
               title='Confirmadas'
               value={data?.escalasConfirmadas ?? 0}
-              icon={{ library: 'MaterialCommunityIcons', name: 'check-circle-outline', size: 16, color: Pallete.confirm }}
+              icon={{
+                library: 'MaterialCommunityIcons',
+                name: 'check-circle-outline',
+                size: 16,
+                color: Pallete.confirm,
+              }}
               iconBackgroundColor={`${Pallete.confirm}1F`}
               accentColor={Pallete.confirm}
             />
@@ -75,7 +85,12 @@ export default function DashboardEscalasSection({ data }: DashboardEscalasSectio
               layout='center'
               title='Pendentes'
               value={data?.escalasPendentes ?? 0}
-              icon={{ library: 'MaterialCommunityIcons', name: 'clock-outline', size: 16, color: Pallete.warning }}
+              icon={{
+                library: 'MaterialCommunityIcons',
+                name: 'clock-outline',
+                size: 16,
+                color: Pallete.warning,
+              }}
               iconBackgroundColor={`${Pallete.warning}1F`}
               accentColor={Pallete.warning}
             />

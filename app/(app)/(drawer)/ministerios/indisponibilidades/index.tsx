@@ -229,7 +229,7 @@ export default function MinisterioIndisponibilidadesIndex() {
         <View>
           <FancyVerticalSpacer height={15} />
           <TutorialTarget
-            id="indisponibilidade-calendario"
+            id='indisponibilidade-calendario'
             registerTarget={tour.registerTarget}
             unregisterTarget={tour.unregisterTarget}
           >
@@ -264,7 +264,7 @@ export default function MinisterioIndisponibilidadesIndex() {
           </TutorialTarget>
           <FancyVerticalSpacer height={15} />
           <TutorialTarget
-            id="indisponibilidade-adicionar"
+            id='indisponibilidade-adicionar'
             registerTarget={tour.registerTarget}
             unregisterTarget={tour.unregisterTarget}
           >

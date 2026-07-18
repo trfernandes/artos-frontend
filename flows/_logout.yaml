@@ -8,14 +8,14 @@ appId: com.church.artos
     timeout: 15000
 # Tap no ícone hamburger (top-left corner, ~5%x / ~7%y da tela)
 - tapOn:
-    point: "5%,7%"
+    point: '5%,7%'
 - waitForAnimationToEnd:
     timeout: 3000
 # "Sair" pode estar abaixo do fold — rolar drawer até aparecer
 - scrollUntilVisible:
     element:
-      text: "Sair"
+      text: 'Sair'
     direction: DOWN
-- tapOn: "Sair"
+- tapOn: 'Sair'
 - waitForAnimationToEnd:
     timeout: 15000

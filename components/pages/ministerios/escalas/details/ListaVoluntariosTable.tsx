@@ -238,36 +238,46 @@ export default function ListaVoluntariosTable({
         visible={!!menuItem}
         onClose={() => setMenuItem(null)}
         title={menuItem?.voluntario?.nome ?? menuItem?.funcao?.nome ?? 'Opções'}
-        actions={menuItem ? (menuItem.voluntario?.nome ? [
-          {
-            label: 'Ver detalhes',
-            icon: { library: 'MaterialIcons' as const, name: 'person', size: 18 },
-            onPress: () => handleVoluntarioClick(menuItem.voluntario!.minVoluntarioId!, menuItem.voluntario!.voluntarioId!),
-          },
-          {
-            label: 'Substituir voluntário',
-            icon: { library: 'FontAwesome5' as const, name: 'exchange-alt', size: 15 },
-            onPress: () => onSubstituicaoButtonPressed?.(menuItem),
-          },
-          {
-            label: 'Remover da escala',
-            icon: { library: 'MaterialIcons' as const, name: 'person-remove', size: 18 },
-            onPress: () => onRemoverVoluntarioPressed?.(menuItem),
-            destructive: true,
-          },
-        ] : [
-          {
-            label: 'Adicionar voluntário',
-            icon: { library: 'MaterialIcons' as const, name: 'person-add', size: 18 },
-            onPress: () => onAdicionarVoluntarioButtonPressed?.(menuItem),
-          },
-          {
-            label: 'Excluir função',
-            icon: { library: 'MaterialIcons' as const, name: 'delete-outline', size: 18 },
-            onPress: () => onExcluirFuncaoPressed?.(menuItem.funcao?.id!),
-            destructive: true,
-          },
-        ]) : []}
+        actions={
+          menuItem
+            ? menuItem.voluntario?.nome
+              ? [
+                  {
+                    label: 'Ver detalhes',
+                    icon: { library: 'MaterialIcons' as const, name: 'person', size: 18 },
+                    onPress: () =>
+                      handleVoluntarioClick(
+                        menuItem.voluntario!.minVoluntarioId!,
+                        menuItem.voluntario!.voluntarioId!,
+                      ),
+                  },
+                  {
+                    label: 'Substituir voluntário',
+                    icon: { library: 'FontAwesome5' as const, name: 'exchange-alt', size: 15 },
+                    onPress: () => onSubstituicaoButtonPressed?.(menuItem),
+                  },
+                  {
+                    label: 'Remover da escala',
+                    icon: { library: 'MaterialIcons' as const, name: 'person-remove', size: 18 },
+                    onPress: () => onRemoverVoluntarioPressed?.(menuItem),
+                    destructive: true,
+                  },
+                ]
+              : [
+                  {
+                    label: 'Adicionar voluntário',
+                    icon: { library: 'MaterialIcons' as const, name: 'person-add', size: 18 },
+                    onPress: () => onAdicionarVoluntarioButtonPressed?.(menuItem),
+                  },
+                  {
+                    label: 'Excluir função',
+                    icon: { library: 'MaterialIcons' as const, name: 'delete-outline', size: 18 },
+                    onPress: () => onExcluirFuncaoPressed?.(menuItem.funcao?.id!),
+                    destructive: true,
+                  },
+                ]
+            : []
+        }
       />
 
       {voluntarioDetailsProps.isVisible &&

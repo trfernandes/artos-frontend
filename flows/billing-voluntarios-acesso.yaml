@@ -16,20 +16,20 @@ appId: com.church.artos
 - launchApp
 - runFlow: _login.yaml
 
-- assertVisible: "Início"
+- assertVisible: 'Início'
 
 - openLink: diakonia:///admin/voluntarios
 - waitForAnimationToEnd:
     timeout: 15000
 
 # Tela de voluntarios carregou (billing nao bloqueou)
-- assertVisible: "Voluntários"
+- assertVisible: 'Voluntários'
 
 # Lista populada: Total visivel indica que dados carregaram
-- assertVisible: "Total"
+- assertVisible: 'Total'
 
 # Nenhum modal de billing bloqueando
-- assertNotVisible: "Escolher plano"
-- assertNotVisible: "Opcoes de Planos"
+- assertNotVisible: 'Escolher plano'
+- assertNotVisible: 'Opcoes de Planos'
 
 - takeScreenshot: billing-voluntarios-acesso

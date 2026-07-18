@@ -5,10 +5,7 @@ import { EscalaStatusEnum } from '../../../../../domain/enums/Escala/escala-stat
 import DefaultIcons from '../../../../FancyIcons';
 import EscalaStatusBadge from './EscalaStatusBadge';
 import EscalaHealthIndicator from './EscalaHealthIndicator';
-import {
-  formatShortDate,
-  StatusDistribution,
-} from './escalaHeader.utils';
+import { formatShortDate, StatusDistribution } from './escalaHeader.utils';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 import { ColorUtils } from '../../../../../utils/color_utils';

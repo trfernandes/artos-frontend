@@ -190,7 +190,9 @@ function EquipeMemberCard({
         <FancyBaseCard
           title={displayName}
           subtitle={isOpenSlot ? 'Aguardando escala' : undefined}
-          titleProps={{ style: { color: isCurrentUser ? palette.primary : palette.fonts.dark, opacity: 1 } }}
+          titleProps={{
+            style: { color: isCurrentUser ? palette.primary : palette.fonts.dark, opacity: 1 },
+          }}
           containerStyle={[
             styles.cardContainer,
             isCurrentUser && {

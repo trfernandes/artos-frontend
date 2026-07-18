@@ -30,9 +30,17 @@ export function NotificationsManager() {
       const tipo = payload?.tipo as string | undefined;
 
       if (tipo === NotificacaoTipoEnum.EscalaGerada) {
-        Toast.show({ type: 'success', text1: 'Escala gerada com sucesso!', text2: notification.request.content.body ?? undefined });
+        Toast.show({
+          type: 'success',
+          text1: 'Escala gerada com sucesso!',
+          text2: notification.request.content.body ?? undefined,
+        });
       } else if (tipo === NotificacaoTipoEnum.EscalaErroGerada) {
-        Toast.show({ type: 'error', text1: 'Falha na geração da escala', text2: notification.request.content.body ?? undefined });
+        Toast.show({
+          type: 'error',
+          text1: 'Falha na geração da escala',
+          text2: notification.request.content.body ?? undefined,
+        });
       }
 
       emitNotificationEvent('notification_received_foreground', { payload });

@@ -32,13 +32,7 @@ export default function Header({
 }) {
   if (!escala) return null;
 
-  const {
-    confirmedCount,
-    totalCount,
-    statusDistribution,
-    periodStart,
-    periodEnd,
-  } = useMemo(() => {
+  const { confirmedCount, totalCount, statusDistribution, periodStart, periodEnd } = useMemo(() => {
     const items = escala?.itens ?? [];
 
     const assignedItems = items.filter((item) => Boolean(item.voluntarioId));

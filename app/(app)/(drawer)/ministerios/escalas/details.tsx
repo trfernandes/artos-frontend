@@ -153,7 +153,9 @@ export default function MinisterioEscalasDetailsPage() {
   // Polling enquanto status = Gerando
   useEffect(() => {
     if (escalaData?.[0]?.status !== EscalaStatusEnum.Gerando) return;
-    const interval = setInterval(() => { refetchEscala(); }, 4000);
+    const interval = setInterval(() => {
+      refetchEscala();
+    }, 4000);
     return () => clearInterval(interval);
   }, [escalaData?.[0]?.status]);
 
@@ -165,7 +167,9 @@ export default function MinisterioEscalasDetailsPage() {
     prevStatusRef.current = escala.status;
     if (prev === EscalaStatusEnum.Gerando && escala.status === EscalaStatusEnum.Gerada) {
       Toast.show({ type: 'success', text1: 'Escala gerada com sucesso!' });
-      EscalaRepository.getAuditoria(escalaId).then(setAuditoria).catch(() => {});
+      EscalaRepository.getAuditoria(escalaId)
+        .then(setAuditoria)
+        .catch(() => {});
     }
   }, [escalaData?.[0]?.status]);
 
@@ -658,7 +662,12 @@ export default function MinisterioEscalasDetailsPage() {
         )}
 
         {isErro && (
-          <View style={[styles.statusBanner, { backgroundColor: ColorUtils.withAlpha(palette.error, 0.08) }]}>
+          <View
+            style={[
+              styles.statusBanner,
+              { backgroundColor: ColorUtils.withAlpha(palette.error, 0.08) },
+            ]}
+          >
             <DefaultIcons.Custom
               library='MaterialCommunityIcons'
               name='alert-circle-outline'
@@ -680,7 +689,17 @@ export default function MinisterioEscalasDetailsPage() {
         )}
 
         {auditoria && !isGerando && (
-          <View style={[styles.statusBanner, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.06), flexDirection: 'column', alignItems: 'flex-start', gap: 6 }]}>
+          <View
+            style={[
+              styles.statusBanner,
+              {
+                backgroundColor: ColorUtils.withAlpha(palette.primary, 0.06),
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                gap: 6,
+              },
+            ]}
+          >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <DefaultIcons.Custom
                 library='MaterialCommunityIcons'

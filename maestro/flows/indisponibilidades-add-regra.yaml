@@ -7,10 +7,10 @@ appId: com.church.artos
 - openLink: diakonia:///pessoal/indisponibilidade
 - waitForAnimationToEnd:
     timeout: 4000
-- tapOn: "Regras"
+- tapOn: 'Regras'
 - waitForAnimationToEnd:
     timeout: 2000
 - tapOn:
-    id: "fab-add-regra"
+    id: 'fab-add-regra'
 - waitForAnimationToEnd:
     timeout: 2000

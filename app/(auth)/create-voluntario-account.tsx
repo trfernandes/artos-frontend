@@ -327,11 +327,7 @@ export default function CreateVoluntarioAccountPage() {
                           <FancyText type='semiBold' size='small' color={Pallete.fonts.dark}>
                             Código do convite
                           </FancyText>
-                          <FancyText
-                            size='extraSmall'
-                            type='medium'
-                            color={Pallete.fonts.inactive}
-                          >
+                          <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive}>
                             Digite o código que você recebeu da sua igreja.
                           </FancyText>
                         </View>

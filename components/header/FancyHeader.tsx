@@ -28,7 +28,9 @@ export default function FancyPageHeader({
   ...props
 }: FancyHeaderProps) {
   const nav = useNavigation<DrawerNavigationProp<Record<string, object>>>();
-  const topSafeInset = useTopSafeInset(Platform.OS === 'ios' ? IOS_TOP_INSET_REDUCTION : ANDROID_TOP_INSET_REDUCTION);
+  const topSafeInset = useTopSafeInset(
+    Platform.OS === 'ios' ? IOS_TOP_INSET_REDUCTION : ANDROID_TOP_INSET_REDUCTION,
+  );
   const palette = usePallete();
   const topInset = applyTopSafeArea ? topSafeInset : 0;
   const headerHeight = topInset + HEADER_CONTENT_HEIGHT;
@@ -114,7 +116,14 @@ const HeaderBackButton = (props: { title?: string; onPress: () => void; color: s
   <View
     style={[
       styles.buttonContainer,
-      { position: 'absolute', left: HEADER_HORIZONTAL_GUTTER, top: 0, bottom: 0, gap: 10, borderWidth: 0 },
+      {
+        position: 'absolute',
+        left: HEADER_HORIZONTAL_GUTTER,
+        top: 0,
+        bottom: 0,
+        gap: 10,
+        borderWidth: 0,
+      },
     ]}
   >
     <FancyHeaderButton

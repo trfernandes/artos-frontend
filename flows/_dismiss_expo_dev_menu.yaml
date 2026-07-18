@@ -3,7 +3,7 @@
 # Nao chamar diretamente — acionado por _login.yaml quando "Runtime version" visivel.
 appId: com.church.artos
 ---
-- tapOn: "Continue"
+- tapOn: 'Continue'
 - waitForAnimationToEnd:
     timeout: 3000
 # "Continue" abre o menu completo (Reload / Go home) — fechar com Back

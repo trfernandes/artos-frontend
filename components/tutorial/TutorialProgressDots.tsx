@@ -22,7 +22,9 @@ export function TutorialProgressDots({ total, currentIndex }: TutorialProgressDo
             styles.dot,
             {
               backgroundColor:
-                index === currentIndex ? Pallete.primary : ColorUtils.withAlpha(Pallete.primary, 0.25),
+                index === currentIndex
+                  ? Pallete.primary
+                  : ColorUtils.withAlpha(Pallete.primary, 0.25),
             },
           ]}
         />

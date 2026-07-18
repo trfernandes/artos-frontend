@@ -25,7 +25,13 @@ const flowName = process.argv[2];
 
 if (!flowName) {
   console.error('Uso: node nav.js <flowName>');
-  console.error('Flows disponíveis:', fs.readdirSync(FLOWS_DIR).map(f => f.replace('.yaml', '')).join(', '));
+  console.error(
+    'Flows disponíveis:',
+    fs
+      .readdirSync(FLOWS_DIR)
+      .map((f) => f.replace('.yaml', ''))
+      .join(', '),
+  );
   process.exit(1);
 }
 
@@ -33,12 +39,18 @@ const flowPath = path.join(FLOWS_DIR, `${flowName}.yaml`);
 
 if (!fs.existsSync(flowPath)) {
   console.error(`Flow não encontrado: ${flowPath}`);
-  console.error('Flows disponíveis:', fs.readdirSync(FLOWS_DIR).map(f => f.replace('.yaml', '')).join(', '));
+  console.error(
+    'Flows disponíveis:',
+    fs
+      .readdirSync(FLOWS_DIR)
+      .map((f) => f.replace('.yaml', ''))
+      .join(', '),
+  );
   process.exit(1);
 }
 
-const maestroBin = process.env.MAESTRO_BIN ||
-  `${process.env.USERPROFILE}\\.maestro\\maestro\\bin\\maestro.bat`;
+const maestroBin =
+  process.env.MAESTRO_BIN || `${process.env.USERPROFILE}\\.maestro\\maestro\\bin\\maestro.bat`;
 
 const result = spawnSync(maestroBin, ['--device', DEVICE, 'test', flowPath], {
   encoding: 'utf8',

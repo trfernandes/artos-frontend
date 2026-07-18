@@ -38,7 +38,7 @@ export function TutorialOverlay({ tour }: TutorialOverlayProps) {
     : { bottom: screenHeight - rect.y + 16 };
 
   return (
-    <Modal visible transparent animationType="fade" presentationStyle="overFullScreen">
+    <Modal visible transparent animationType='fade' presentationStyle='overFullScreen'>
       <View style={StyleSheet.absoluteFill}>
         <TutorialSpotlight rect={rect} />
         <TutorialTooltip

@@ -23,52 +23,52 @@ appId: com.church.artos
 
 - openLink: diakonia:///inicio
 - extendedWaitUntil:
-    visible: "Início"
+    visible: 'Início'
     timeout: 120000
 
 # --- Tela 1: Dashboard ---
 - openLink: diakonia:///inicio
 - waitForAnimationToEnd:
     timeout: 15000
-- assertVisible: "Início"
-- assertNotVisible: "Avaliação encerrada"
-- assertNotVisible: "Sua cobrança está pendente"
-- assertNotVisible: "Pagamento em atraso"
-- assertNotVisible: "Capacidade excedida"
-- assertNotVisible: "Assinatura cancelada"
-- assertNotVisible: "Versão avaliativa"
-- assertNotVisible: "Seu período avaliativo terminou"
+- assertVisible: 'Início'
+- assertNotVisible: 'Avaliação encerrada'
+- assertNotVisible: 'Sua cobrança está pendente'
+- assertNotVisible: 'Pagamento em atraso'
+- assertNotVisible: 'Capacidade excedida'
+- assertNotVisible: 'Assinatura cancelada'
+- assertNotVisible: 'Versão avaliativa'
+- assertNotVisible: 'Seu período avaliativo terminou'
 - takeScreenshot: billing-banner-ausente-inicio
 
 # --- Tela 2: Voluntarios ---
 - openLink: diakonia:///admin/voluntarios
 - waitForAnimationToEnd:
     timeout: 15000
-- assertNotVisible: "Avaliação encerrada"
-- assertNotVisible: "Sua cobrança está pendente"
-- assertNotVisible: "Capacidade excedida"
-- assertNotVisible: "Assinatura cancelada"
-- assertNotVisible: "Versão avaliativa"
+- assertNotVisible: 'Avaliação encerrada'
+- assertNotVisible: 'Sua cobrança está pendente'
+- assertNotVisible: 'Capacidade excedida'
+- assertNotVisible: 'Assinatura cancelada'
+- assertNotVisible: 'Versão avaliativa'
 - takeScreenshot: billing-banner-ausente-voluntarios
 
 # --- Tela 3: Ministerios ---
 - openLink: diakonia:///admin/ministerios
 - waitForAnimationToEnd:
     timeout: 15000
-- assertNotVisible: "Avaliação encerrada"
-- assertNotVisible: "Sua cobrança está pendente"
-- assertNotVisible: "Capacidade excedida"
-- assertNotVisible: "Assinatura cancelada"
-- assertNotVisible: "Versão avaliativa"
+- assertNotVisible: 'Avaliação encerrada'
+- assertNotVisible: 'Sua cobrança está pendente'
+- assertNotVisible: 'Capacidade excedida'
+- assertNotVisible: 'Assinatura cancelada'
+- assertNotVisible: 'Versão avaliativa'
 - takeScreenshot: billing-banner-ausente-ministerios
 
 # --- Tela 4: Configuracoes ---
 - openLink: diakonia:///configuracoes
 - waitForAnimationToEnd:
     timeout: 15000
-- assertNotVisible: "Avaliação encerrada"
-- assertNotVisible: "Sua cobrança está pendente"
-- assertNotVisible: "Capacidade excedida"
-- assertNotVisible: "Assinatura cancelada"
-- assertNotVisible: "Versão avaliativa"
+- assertNotVisible: 'Avaliação encerrada'
+- assertNotVisible: 'Sua cobrança está pendente'
+- assertNotVisible: 'Capacidade excedida'
+- assertNotVisible: 'Assinatura cancelada'
+- assertNotVisible: 'Versão avaliativa'
 - takeScreenshot: billing-banner-ausente-configuracoes

@@ -47,7 +47,7 @@ appId: com.church.artos
 - runFlow: _login.yaml
 - openLink: diakonia:///inicio
 - extendedWaitUntil:
-    visible: "Início"
+    visible: 'Início'
     timeout: 120000
 
 # ── Passo 1: Banner em Voluntarios (isBlocked=true) ────────────────────────
@@ -57,21 +57,21 @@ appId: com.church.artos
 # O banner correto aqui e "Capacidade excedida", nao "Assinatura cancelada".
 - openLink: diakonia:///admin/voluntarios
 - extendedWaitUntil:
-    visible: "Capacidade excedida"
+    visible: 'Capacidade excedida'
     timeout: 30000
-- assertVisible: "Capacidade excedida"
-- assertVisible: "Seu uso atual já ultrapassa o plano contratado"
-- assertNotVisible: "Assinatura em dia"
-- assertNotVisible: "Avaliação encerrada"
+- assertVisible: 'Capacidade excedida'
+- assertVisible: 'Seu uso atual já ultrapassa o plano contratado'
+- assertNotVisible: 'Assinatura em dia'
+- assertNotVisible: 'Avaliação encerrada'
 - takeScreenshot: billing-cancelado-bloqueado-voluntarios
 
 # ── Passo 2: Banner em Ministerios (blockFab=true) ─────────────────────────
 - openLink: diakonia:///admin/ministerios
 - extendedWaitUntil:
-    visible: "Capacidade excedida"
+    visible: 'Capacidade excedida'
     timeout: 30000
-- assertVisible: "Capacidade excedida"
-- assertVisible: "Seu uso atual já ultrapassa o plano contratado"
+- assertVisible: 'Capacidade excedida'
+- assertVisible: 'Seu uso atual já ultrapassa o plano contratado'
 - takeScreenshot: billing-cancelado-bloqueado-ministerios
 
 # ── Passo 3: BillingStatusPanel em Configuracoes ───────────────────────────
@@ -80,19 +80,19 @@ appId: com.church.artos
     timeout: 15000
 - runFlow:
     when:
-      visible: "Servidor indisponível"
+      visible: 'Servidor indisponível'
     file: _retry_servidor.yaml
 - extendedWaitUntil:
-    visible: "Assinatura"
+    visible: 'Assinatura'
     timeout: 15000
 - tapOn:
-    text: "Assinatura"
+    text: 'Assinatura'
     index: 1
 - extendedWaitUntil:
-    visible: "Cancelada"
+    visible: 'Cancelada'
     timeout: 30000
-- assertVisible: "Cancelada"
-- assertVisible: "Gerenciar assinatura"
-- assertNotVisible: "Ativa"
-- assertNotVisible: "Assinatura em dia"
+- assertVisible: 'Cancelada'
+- assertVisible: 'Gerenciar assinatura'
+- assertNotVisible: 'Ativa'
+- assertNotVisible: 'Assinatura em dia'
 - takeScreenshot: billing-cancelado-bloqueado-configuracoes

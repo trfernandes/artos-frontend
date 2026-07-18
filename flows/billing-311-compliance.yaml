@@ -19,7 +19,7 @@ appId: com.church.artos
 - runFlow: _login.yaml
 
 # Aguardar home carregado antes do deep link (evita race condition de inicializacao)
-- assertVisible: "Início"
+- assertVisible: 'Início'
 
 # Navegar diretamente para configuracoes via deep link (evita encoding de 'c' cedilha)
 - openLink: diakonia:///configuracoes
@@ -28,23 +28,23 @@ appId: com.church.artos
 
 # Aba "Assinatura" (index 1 pois index 0 eh o card de status no topo)
 - tapOn:
-    text: "Assinatura"
+    text: 'Assinatura'
     index: 1
 - waitForAnimationToEnd:
     timeout: 15000
 
 # [COMPLIANCE 3.1.1] Unico botao de billing permitido no app
-- assertVisible: "Gerenciar assinatura"
+- assertVisible: 'Gerenciar assinatura'
 
 # [COMPLIANCE 3.1.1] Botoes REMOVIDOS do app - nenhum deve estar visivel
-- assertNotVisible: "Cancelar assinatura"
-- assertNotVisible: "Ver planos"
-- assertNotVisible: "Trocar plano"
-- assertNotVisible: "Assinar agora"
-- assertNotVisible: "Escolher plano"
-- assertNotVisible: "Atualizar plano"
-- assertNotVisible: "Cancelar troca de plano"
-- assertNotVisible: "Opcoes de Planos"
+- assertNotVisible: 'Cancelar assinatura'
+- assertNotVisible: 'Ver planos'
+- assertNotVisible: 'Trocar plano'
+- assertNotVisible: 'Assinar agora'
+- assertNotVisible: 'Escolher plano'
+- assertNotVisible: 'Atualizar plano'
+- assertNotVisible: 'Cancelar troca de plano'
+- assertNotVisible: 'Opcoes de Planos'
 
 - takeScreenshot: billing-311-compliance
 
@@ -52,17 +52,17 @@ appId: com.church.artos
 - openLink: diakonia:///inicio
 - waitForAnimationToEnd:
     timeout: 15000
-- assertVisible: "Início"
+- assertVisible: 'Início'
 
-- assertNotVisible: "Cancelar assinatura"
-- assertNotVisible: "Ver planos"
-- assertNotVisible: "Trocar plano"
-- assertNotVisible: "Assinar agora"
-- assertNotVisible: "Escolher plano"
-- assertNotVisible: "Atualizar plano"
-- assertNotVisible: "Retomar pagamento"
-- assertNotVisible: "Reativar assinatura"
-- assertNotVisible: "Cancelar troca de plano"
-- assertNotVisible: "Opcoes de Planos"
+- assertNotVisible: 'Cancelar assinatura'
+- assertNotVisible: 'Ver planos'
+- assertNotVisible: 'Trocar plano'
+- assertNotVisible: 'Assinar agora'
+- assertNotVisible: 'Escolher plano'
+- assertNotVisible: 'Atualizar plano'
+- assertNotVisible: 'Retomar pagamento'
+- assertNotVisible: 'Reativar assinatura'
+- assertNotVisible: 'Cancelar troca de plano'
+- assertNotVisible: 'Opcoes de Planos'
 
 - takeScreenshot: billing-311-compliance-dashboard

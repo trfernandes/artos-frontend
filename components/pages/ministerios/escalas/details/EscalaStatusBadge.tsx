@@ -4,13 +4,7 @@ import { Pallete } from '../../../../../constants/colors';
 import { EscalaStatusEnum } from '../../../../../domain/enums/Escala/escala-status.enum';
 
 export type EscalaStatusBadgeStatus =
-  | EscalaStatusEnum
-  | 'GERADA'
-  | 'PUBLICADA'
-  | 'RASCUNHO'
-  | 'CANCELADA'
-  | 'FECHADA'
-  | 'EM_EDICAO';
+  EscalaStatusEnum | 'GERADA' | 'PUBLICADA' | 'RASCUNHO' | 'CANCELADA' | 'FECHADA' | 'EM_EDICAO';
 
 type EscalaStatusBadgeProps = {
   status: EscalaStatusBadgeStatus;

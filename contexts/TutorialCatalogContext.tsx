@@ -17,7 +17,9 @@ interface TutorialCatalogContextData {
   loading: boolean;
 }
 
-const TutorialCatalogContext = createContext<TutorialCatalogContextData>({} as TutorialCatalogContextData);
+const TutorialCatalogContext = createContext<TutorialCatalogContextData>(
+  {} as TutorialCatalogContextData,
+);
 
 async function getState(): Promise<TutorialState> {
   try {
@@ -64,15 +66,19 @@ export function TutorialCatalogProvider({ children }: TutorialCatalogProviderPro
     });
   };
 
-  const markSeen = (tourId: string) => persistStatus(tourId, { seen: true, seenAt: new Date().toISOString() });
-  const markSkipped = (tourId: string) => persistStatus(tourId, { seen: true, skippedAt: new Date().toISOString() });
+  const markSeen = (tourId: string) =>
+    persistStatus(tourId, { seen: true, seenAt: new Date().toISOString() });
+  const markSkipped = (tourId: string) =>
+    persistStatus(tourId, { seen: true, skippedAt: new Date().toISOString() });
 
   const value = useMemo(
     () => ({ tours, registerTour, isSeen, markSeen, markSkipped, loading }),
     [tours, state, loading],
   );
 
-  return <TutorialCatalogContext.Provider value={value}>{children}</TutorialCatalogContext.Provider>;
+  return (
+    <TutorialCatalogContext.Provider value={value}>{children}</TutorialCatalogContext.Provider>
+  );
 }
 
 export const useTutorialCatalog = () => useContext(TutorialCatalogContext);

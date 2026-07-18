@@ -37,7 +37,10 @@ export default function DashboardCard({
         <View
           style={[
             styles.squircle,
-            { backgroundColor: iconBackgroundColor || ColorUtils.withAlpha(accentColor ?? '#534ab7', 0.12) },
+            {
+              backgroundColor:
+                iconBackgroundColor || ColorUtils.withAlpha(accentColor ?? '#534ab7', 0.12),
+            },
           ]}
         >
           <DefaultIcons.Custom
@@ -58,7 +61,13 @@ export default function DashboardCard({
           >
             {value}
           </FancyText>
-          <FancyText size='small' type='medium' numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
+          <FancyText
+            size='small'
+            type='medium'
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.85}
+          >
             {title}
           </FancyText>
           {subtitle ? (
@@ -73,7 +82,10 @@ export default function DashboardCard({
         <View
           style={[
             styles.centerIcon,
-            { backgroundColor: iconBackgroundColor || ColorUtils.withAlpha(accentColor ?? '#534ab7', 0.15) },
+            {
+              backgroundColor:
+                iconBackgroundColor || ColorUtils.withAlpha(accentColor ?? '#534ab7', 0.15),
+            },
           ]}
         >
           <DefaultIcons.Custom
@@ -84,14 +96,28 @@ export default function DashboardCard({
           />
         </View>
         <View style={styles.centerContent}>
-          <FancyText size={16} type='bold' numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.82} style={styles.fitText}>
+          <FancyText
+            size={16}
+            type='bold'
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.82}
+            style={styles.fitText}
+          >
             {value}
           </FancyText>
           <FancyText size='extraSmall' type='semiBold' numberOfLines={2} style={styles.fitText}>
             {title}
           </FancyText>
           {subtitle ? (
-            <FancyText size='extraSmall' type='normal' numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.88} style={styles.fitText}>
+            <FancyText
+              size='extraSmall'
+              type='normal'
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.88}
+              style={styles.fitText}
+            >
               {subtitle}
             </FancyText>
           ) : null}

@@ -99,7 +99,6 @@ export default function TemplateFuncoesList({
             experiencia: data.experiencia,
             quantidade: data.quantidade,
           });
-
         } else if (mode === 'edit') {
           if (editingIndex == null) {
             return;
@@ -197,7 +196,9 @@ export default function TemplateFuncoesList({
                 subtitle={`${experienciaLabel} · ${item.quantidade} ${item.quantidade === 1 ? 'pessoa' : 'pessoas'}`}
                 leading={{ type: 'letter', letter: funcaoNome.charAt(0) }}
                 trailing={
-                  disabled ? undefined : { type: 'menu', onPress: () => setActionsItem({ item, index }) }
+                  disabled
+                    ? undefined
+                    : { type: 'menu', onPress: () => setActionsItem({ item, index }) }
                 }
               />
             );

@@ -24,8 +24,8 @@ appId: com.church.artos
 - runFlow: _login.yaml
 
 # Fora da tela de login
-- assertNotVisible: "Entrar"
+- assertNotVisible: 'Entrar'
 
 # Home do admin carregou — "Visão geral" sempre presente para ADMIN
-- assertVisible: "Início"
-- assertVisible: "Visão geral"
+- assertVisible: 'Início'
+- assertVisible: 'Visão geral'

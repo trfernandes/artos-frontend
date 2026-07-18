@@ -18,7 +18,7 @@ appId: com.church.artos
 
 - openLink: diakonia:///inicio
 - extendedWaitUntil:
-    visible: "Início"
+    visible: 'Início'
     timeout: 120000
 
 - openLink: diakonia:///pessoal/escalas
@@ -26,12 +26,12 @@ appId: com.church.artos
     timeout: 15000
 
 # Tela carregou sem bloqueio de billing
-- assertNotVisible: "Avaliação encerrada"
-- assertNotVisible: "Pagamento em atraso"
-- assertNotVisible: "Capacidade excedida"
-- assertNotVisible: "Assinatura cancelada"
-- assertNotVisible: "Assinatura inativa"
-- assertNotVisible: "Escolher plano"
-- assertNotVisible: "Opcoes de Planos"
+- assertNotVisible: 'Avaliação encerrada'
+- assertNotVisible: 'Pagamento em atraso'
+- assertNotVisible: 'Capacidade excedida'
+- assertNotVisible: 'Assinatura cancelada'
+- assertNotVisible: 'Assinatura inativa'
+- assertNotVisible: 'Escolher plano'
+- assertNotVisible: 'Opcoes de Planos'
 
 - takeScreenshot: billing-escalas-pessoal-acesso

@@ -309,7 +309,8 @@ export default function MinhasEscalasIndexPage() {
           const dataISO = dataDate.toISOString();
 
           // ministério deste item (mesma expressão usada para definir agrupado.ministerio)
-          const ministerioIdKey = item.voluntario?.ministerio?.id ?? item.escala?.ministerio?.id ?? '';
+          const ministerioIdKey =
+            item.voluntario?.ministerio?.id ?? item.escala?.ministerio?.id ?? '';
 
           // 2) chave = EVENTO + DATA_OCORRENCIA + MINISTÉRIO
           // inclui o ministério para não fundir escalas de ministérios distintos no mesmo

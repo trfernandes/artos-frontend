@@ -60,9 +60,7 @@ const mapEscalaFormToDto = (
       ?.filter((evento) => evento.selected)
       .map((evento) => {
         let equipe:
-          | CreateEscalaEventoEquipePorTemplateDto
-          | CreateEscalaEventoEquipePersonalizadaDto
-          | null;
+          CreateEscalaEventoEquipePorTemplateDto | CreateEscalaEventoEquipePersonalizadaDto | null;
 
         if (evento.template.templateBase) {
           const templateId =

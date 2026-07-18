@@ -30,19 +30,25 @@ export function TutorialTooltip({
   const isLast = stepIndex + 1 >= totalSteps;
 
   return (
-    <View style={[styles.card, { backgroundColor: Pallete.backgroundColor, ...Pallete.shadows[200] }, style]}>
-      <FancyText type="semiBold" size="medium" color={Pallete.fonts.dark}>
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: Pallete.backgroundColor, ...Pallete.shadows[200] },
+        style,
+      ]}
+    >
+      <FancyText type='semiBold' size='medium' color={Pallete.fonts.dark}>
         {title}
       </FancyText>
-      <FancyText type="normal" size="small" color={Pallete.fonts.dark} style={styles.description}>
+      <FancyText type='normal' size='small' color={Pallete.fonts.dark} style={styles.description}>
         {description}
       </FancyText>
       <View style={styles.footer}>
         <TutorialProgressDots total={totalSteps} currentIndex={stepIndex} />
         <View style={styles.actions}>
-          {stepIndex > 0 && <FancyButton type="text" label="Voltar" onPress={onBack} />}
-          <FancyButton type="text" label="Pular" onPress={onSkip} />
-          <FancyButton type="contained" label={isLast ? 'Concluir' : 'Próximo'} onPress={onNext} />
+          {stepIndex > 0 && <FancyButton type='text' label='Voltar' onPress={onBack} />}
+          <FancyButton type='text' label='Pular' onPress={onSkip} />
+          <FancyButton type='contained' label={isLast ? 'Concluir' : 'Próximo'} onPress={onNext} />
         </View>
       </View>
     </View>

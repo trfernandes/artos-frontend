@@ -57,18 +57,18 @@ appId: com.church.artos
 - runFlow: _login.yaml
 - openLink: diakonia:///inicio
 - extendedWaitUntil:
-    visible: "Início"
+    visible: 'Início'
     timeout: 120000
 
 # ── Passo 1: Banner "Capacidade excedida" em Voluntarios ───────────────────
 - openLink: diakonia:///admin/voluntarios
 - extendedWaitUntil:
-    visible: "Capacidade excedida"
+    visible: 'Capacidade excedida'
     timeout: 15000
-- assertVisible: "Capacidade excedida"
-- assertVisible: "Seu uso atual já ultrapassa o plano contratado"
-- assertNotVisible: "Avaliação encerrada"
-- assertNotVisible: "Pagamento em atraso"
+- assertVisible: 'Capacidade excedida'
+- assertVisible: 'Seu uso atual já ultrapassa o plano contratado'
+- assertNotVisible: 'Avaliação encerrada'
+- assertNotVisible: 'Pagamento em atraso'
 - takeScreenshot: billing-limite-voluntarios-banner
 
 # ── Passo 2: Configuracoes — status ativo mas barra em vermelho ─────────────
@@ -77,20 +77,20 @@ appId: com.church.artos
     timeout: 15000
 - runFlow:
     when:
-      visible: "Servidor indisponível"
+      visible: 'Servidor indisponível'
     file: _retry_servidor.yaml
 - extendedWaitUntil:
-    visible: "Assinatura"
+    visible: 'Assinatura'
     timeout: 15000
 - tapOn:
-    text: "Assinatura"
+    text: 'Assinatura'
     index: 1
 - waitForAnimationToEnd:
     timeout: 15000
 # Status permanece ativo mesmo com capacidade excedida
-- assertVisible: "Assinatura em dia"
-- assertVisible: "Ativa"
+- assertVisible: 'Assinatura em dia'
+- assertVisible: 'Ativa'
 # Helper na barra de voluntarios (currentVolunteers=31 - maxVolunteers=30 = 1)
-- assertVisible: "Excedido em 1"
-- assertVisible: "Gerenciar assinatura"
+- assertVisible: 'Excedido em 1'
+- assertVisible: 'Gerenciar assinatura'
 - takeScreenshot: billing-limite-voluntarios-configuracoes
