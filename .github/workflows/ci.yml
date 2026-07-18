@@ -37,7 +37,7 @@ jobs:
     # só roda sob demanda (workflow_dispatch) por ser lento (~15-20min).
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch'
-    timeout-minutes: 30
+    timeout-minutes: 35
 
     steps:
       - uses: actions/checkout@v4
@@ -97,6 +97,12 @@ jobs:
         run: |
           REACT_NATIVE_PACKAGER_HOSTNAME=localhost nohup npx expo start > metro.log 2>&1 &
           npx wait-on http://localhost:8081/status --timeout 60000
+
+      - name: Habilitar KVM (necessário para o emulador rodar acelerado, senão nunca termina de bootar)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
 
       - name: Rodar smoke E2E no emulador
         uses: reactivecircus/android-emulator-runner@v2
