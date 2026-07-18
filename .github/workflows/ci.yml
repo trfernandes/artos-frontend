@@ -98,7 +98,8 @@ jobs:
           REACT_NATIVE_PACKAGER_HOSTNAME=localhost nohup npx expo start > metro.log 2>&1 &
           npx wait-on http://localhost:8081/status --timeout 60000
 
-      - name: Habilitar KVM (necessário para o emulador rodar acelerado, senão nunca termina de bootar)
+      # Sem KVM o emulador roda em emulação por software pura e nunca termina de bootar
+      - name: Habilitar KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
