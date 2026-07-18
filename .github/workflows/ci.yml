@@ -56,6 +56,9 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
+      - name: Restaurar google-services.json (gitignored, guardado como secret)
+        run: echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > google-services.json
+
       - name: Gerar projeto nativo Android (expo prebuild)
         run: npx expo prebuild --platform android --no-install
         env:
