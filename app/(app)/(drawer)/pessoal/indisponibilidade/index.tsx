@@ -46,8 +46,24 @@ type ModalState = {
 };
 
 const DIA_NOMES_COMPLETOS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
-const DIA_NOMES_PLURAL = ['domingos', 'segundas', 'terças', 'quartas', 'quintas', 'sextas', 'sábados'];
-const DIA_ARTIGO_SINGULAR = ['no domingo', 'na segunda', 'na terça', 'na quarta', 'na quinta', 'na sexta', 'no sábado'];
+const DIA_NOMES_PLURAL = [
+  'domingos',
+  'segundas',
+  'terças',
+  'quartas',
+  'quintas',
+  'sextas',
+  'sábados',
+];
+const DIA_ARTIGO_SINGULAR = [
+  'no domingo',
+  'na segunda',
+  'na terça',
+  'na quarta',
+  'na quinta',
+  'na sexta',
+  'no sábado',
+];
 const isMasc = (d: number) => d === 0 || d === 6;
 
 function descreverRegra(regra: ResponseRegraIndisponibilidadeVoluntarioDto): string {
@@ -62,7 +78,10 @@ function descreverRegra(regra: ResponseRegraIndisponibilidadeVoluntarioDto): str
     const allFem = sorted.every((d) => !isMasc(d));
     if (allMasc) return 'Indisponível nos ' + sorted.map((d) => DIA_NOMES_PLURAL[d]).join(', ');
     if (allFem) return 'Indisponível nas ' + sorted.map((d) => DIA_NOMES_PLURAL[d]).join(', ');
-    return 'Indisponível ' + sorted.map((d) => (isMasc(d) ? 'nos ' : 'nas ') + DIA_NOMES_PLURAL[d]).join(', ');
+    return (
+      'Indisponível ' +
+      sorted.map((d) => (isMasc(d) ? 'nos ' : 'nas ') + DIA_NOMES_PLURAL[d]).join(', ')
+    );
   }
   if (regra.tipo === 'PERIODO') {
     const fmtDateOnly = (iso: string) => iso.slice(8, 10) + '/' + iso.slice(5, 7);
@@ -151,8 +170,12 @@ function expandirRegrasParaCalendario(
       } else {
         const ri = new Date(regra.dataInicio + 'T00:00:00Z');
         const rf = new Date(regra.dataFim + 'T00:00:00Z');
-        const rangeIni = ri > inicio ? ri : new Date(Date.UTC(inicio.getFullYear(), inicio.getMonth(), inicio.getDate()));
-        const rangeFim = rf < fim ? rf : new Date(Date.UTC(fim.getFullYear(), fim.getMonth(), fim.getDate()));
+        const rangeIni =
+          ri > inicio
+            ? ri
+            : new Date(Date.UTC(inicio.getFullYear(), inicio.getMonth(), inicio.getDate()));
+        const rangeFim =
+          rf < fim ? rf : new Date(Date.UTC(fim.getFullYear(), fim.getMonth(), fim.getDate()));
         const cur = new Date(rangeIni);
         while (cur <= rangeFim) {
           result.add(toKey(cur));
@@ -177,7 +200,8 @@ export default function IndisponibilidadeIndexPage() {
   });
   const [showPeriodoModal, setShowPeriodoModal] = useState(false);
   const [showRegraModal, setShowRegraModal] = useState(false);
-  const [editingRegra, setEditingRegra] = useState<ResponseRegraIndisponibilidadeVoluntarioDto | null>(null);
+  const [editingRegra, setEditingRegra] =
+    useState<ResponseRegraIndisponibilidadeVoluntarioDto | null>(null);
   const [hasSettled, setHasSettled] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const fabAnim = useRef(new Animated.Value(1)).current;
@@ -187,7 +211,6 @@ export default function IndisponibilidadeIndexPage() {
     INDISPONIBILIDADES_TOUR_TITLE,
     INDISPONIBILIDADES_TOUR_STEPS,
   );
-
 
   useEffect(() => {
     fabAnim.setValue(0);
@@ -286,7 +309,8 @@ export default function IndisponibilidadeIndexPage() {
     muteMessages: false,
   });
 
-  const loadingFlags = isLoadingData || isLoadingMutating || isLoadingRegras || isLoadingMutationRegras;
+  const loadingFlags =
+    isLoadingData || isLoadingMutating || isLoadingRegras || isLoadingMutationRegras;
 
   useEffect(() => {
     if (loadingFlags) {
@@ -424,8 +448,15 @@ export default function IndisponibilidadeIndexPage() {
 
     try {
       const { tipo, diasSemana, dataInicio, dataFim, recorrente, limiteMensal, motivo } = result;
-      await updateRegra?.({ id, data: { tipo, diasSemana, dataInicio, dataFim, recorrente, limiteMensal, motivo } });
-      setLazyToastOptions({ type: 'success', message: 'Regra atualizada com sucesso!', show: true });
+      await updateRegra?.({
+        id,
+        data: { tipo, diasSemana, dataInicio, dataFim, recorrente, limiteMensal, motivo },
+      });
+      setLazyToastOptions({
+        type: 'success',
+        message: 'Regra atualizada com sucesso!',
+        show: true,
+      });
     } catch (error) {
       console.error('Erro ao atualizar regra:', error);
       setLazyToastOptions({ type: 'error', message: 'Erro ao atualizar regra', show: true });
@@ -515,15 +546,19 @@ export default function IndisponibilidadeIndexPage() {
             <View style={styles.legend}>
               <View style={styles.legendItem}>
                 <View style={[styles.legendCircle, { backgroundColor: palette.error }]} />
-                <FancyText type="medium" size="extraSmall" color={palette.fonts.dark}>Dias específicos</FancyText>
+                <FancyText type='medium' size='extraSmall' color={palette.fonts.dark}>
+                  Dias específicos
+                </FancyText>
               </View>
               <View style={styles.legendItem}>
                 <View style={[styles.legendCircle, { backgroundColor: palette.secondary }]} />
-                <FancyText type="medium" size="extraSmall" color={palette.fonts.dark}>Regras recorrentes</FancyText>
+                <FancyText type='medium' size='extraSmall' color={palette.fonts.dark}>
+                  Regras recorrentes
+                </FancyText>
               </View>
             </View>
             <TutorialTarget
-              id="indisponibilidade-calendario"
+              id='indisponibilidade-calendario'
               registerTarget={tour.registerTarget}
               unregisterTarget={tour.unregisterTarget}
               style={{ flex: 1 }}
@@ -551,7 +586,14 @@ export default function IndisponibilidadeIndexPage() {
         title: 'Regras',
         icon: { library: 'MaterialCommunityIcons', name: 'calendar-sync-outline', size: 18 },
         content: regras.length ? (
-          <FancyScrollView contentContainerStyle={{ paddingHorizontal: 15, paddingTop: 8, paddingBottom: 84, gap: 10 }}>
+          <FancyScrollView
+            contentContainerStyle={{
+              paddingHorizontal: 15,
+              paddingTop: 8,
+              paddingBottom: 84,
+              gap: 10,
+            }}
+          >
             {regras.map((regra) => (
               <FancyListItemCard
                 key={regra.id}
@@ -572,15 +614,15 @@ export default function IndisponibilidadeIndexPage() {
                       ]}
                     >
                       <FancyText
-                        size="extraSmall"
-                        type="semiBold"
+                        size='extraSmall'
+                        type='semiBold'
                         color={regra.tipo === 'LIMITE_MENSAL' ? palette.warning : palette.secondary}
                       >
                         {regraChipLabel(regra)}
                       </FancyText>
                     </View>
                     {descreverDetalheRegra(regra) ? (
-                      <FancyText size="extraSmall" type="medium" color={palette.fonts.inactive}>
+                      <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
                         {descreverDetalheRegra(regra)}
                       </FancyText>
                     ) : null}
@@ -601,13 +643,22 @@ export default function IndisponibilidadeIndexPage() {
                 }}
                 trailing={
                   <FancyButton
-                    type="light"
-                    mode="icon"
+                    type='light'
+                    mode='icon'
                     size={{ w: 32, h: 32 }}
-                    icon={{ library: 'MaterialCommunityIcons', name: 'trash-can-outline', size: 17, color: palette.icons.light }}
+                    icon={{
+                      library: 'MaterialCommunityIcons',
+                      name: 'trash-can-outline',
+                      size: 17,
+                      color: palette.icons.light,
+                    }}
                     onPress={() => handleRemoverRegra(regra)}
-                    accessibilityLabel="Remover regra"
-                    containerStyle={{ backgroundColor: palette.error, borderRadius: 16, borderWidth: 0 }}
+                    accessibilityLabel='Remover regra'
+                    containerStyle={{
+                      backgroundColor: palette.error,
+                      borderRadius: 16,
+                      borderWidth: 0,
+                    }}
                   />
                 }
               />
@@ -615,7 +666,7 @@ export default function IndisponibilidadeIndexPage() {
           </FancyScrollView>
         ) : (
           <FancyListEmpty
-            label="Nenhuma regra cadastrada"
+            label='Nenhuma regra cadastrada'
             icon={{ library: 'MaterialCommunityIcons', name: 'calendar-remove-outline', size: 55 }}
             muted
           />
@@ -657,23 +708,16 @@ export default function IndisponibilidadeIndexPage() {
       )}
 
       <View style={{ flex: 1, opacity: isBusy ? 0 : 1 }}>
-        <FancyTabs
-          keepMounted
-          contentGutter={false}
-          items={tabItems}
-          onTabChange={setActiveTab}
-        />
+        <FancyTabs keepMounted contentGutter={false} items={tabItems} onTabChange={setActiveTab} />
 
-        <Animated.View
-          style={{ opacity: fabAnim, transform: [{ scale: fabAnim }] }}
-        >
+        <Animated.View style={{ opacity: fabAnim, transform: [{ scale: fabAnim }] }}>
           {activeTab === 0 && (
             <TutorialTarget
-              id="indisponibilidade-adicionar"
+              id='indisponibilidade-adicionar'
               registerTarget={tour.registerTarget}
               unregisterTarget={tour.unregisterTarget}
               style={{ position: 'absolute', right: 15, bottom: 10, width: 50, height: 50 }}
-              pointerEvents="box-none"
+              pointerEvents='box-none'
             >
               <FancyFab
                 icon={{ library: 'MaterialCommunityIcons', name: 'calendar-plus', size: 26 }}
@@ -686,7 +730,7 @@ export default function IndisponibilidadeIndexPage() {
 
           {activeTab === 1 && (
             <FancyFab
-              testID="fab-add-regra"
+              testID='fab-add-regra'
               icon={{ library: 'MaterialCommunityIcons', name: 'plus', size: 26 }}
               onPress={() => setShowRegraModal(true)}
               bottom={10}

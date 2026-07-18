@@ -33,15 +33,25 @@ function AnimatedDiaChip({
 }) {
   const scale = useRef(new Animated.Value(1)).current;
   const handlePressIn = () =>
-    Animated.spring(scale, { toValue: 0.92, useNativeDriver: true, tension: 300, friction: 20 }).start();
+    Animated.spring(scale, {
+      toValue: 0.92,
+      useNativeDriver: true,
+      tension: 300,
+      friction: 20,
+    }).start();
   const handlePressOut = () =>
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, tension: 300, friction: 20 }).start();
+    Animated.spring(scale, {
+      toValue: 1,
+      useNativeDriver: true,
+      tension: 300,
+      friction: 20,
+    }).start();
   return (
     <Pressable
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      accessibilityRole="checkbox"
+      accessibilityRole='checkbox'
       accessibilityState={{ checked: isSelected }}
     >
       <Animated.View style={[style, { transform: [{ scale }] }]}>{children}</Animated.View>
@@ -69,17 +79,33 @@ const schema = z
     }
     if (val.tipo === 'PERIODO') {
       if (!val.dataInicio) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['dataInicio'], message: 'Data inicial obrigatória' });
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['dataInicio'],
+          message: 'Data inicial obrigatória',
+        });
       }
       if (!val.dataFim) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['dataFim'], message: 'Data final obrigatória' });
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['dataFim'],
+          message: 'Data final obrigatória',
+        });
       }
       if (val.dataInicio && val.dataFim && !val.recorrente && val.dataFim < val.dataInicio) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['dataFim'], message: 'Data final deve ser ≥ data inicial' });
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['dataFim'],
+          message: 'Data final deve ser ≥ data inicial',
+        });
       }
     }
     if (val.tipo === 'LIMITE_MENSAL' && (!val.limiteMensal || val.limiteMensal < 1)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['limiteMensal'], message: 'Informe o limite (mínimo 1)' });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['limiteMensal'],
+        message: 'Informe o limite (mínimo 1)',
+      });
     }
   });
 
@@ -103,7 +129,13 @@ export type AddRegraModalProps = {
   isEditing?: boolean;
 };
 
-export default function AddRegraModal({ visible, onClose, onConfirm, initialValues, isEditing }: AddRegraModalProps) {
+export default function AddRegraModal({
+  visible,
+  onClose,
+  onConfirm,
+  initialValues,
+  isEditing,
+}: AddRegraModalProps) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
 
@@ -125,7 +157,9 @@ export default function AddRegraModal({ visible, onClose, onConfirm, initialValu
       reset({
         tipo: initialValues.tipo ?? 'DIAS_SEMANA',
         diasSemana: initialValues.diasSemana ?? [],
-        dataInicio: initialValues.dataInicio ? new Date(initialValues.dataInicio + 'T00:00:00Z') : null,
+        dataInicio: initialValues.dataInicio
+          ? new Date(initialValues.dataInicio + 'T00:00:00Z')
+          : null,
         dataFim: initialValues.dataFim ? new Date(initialValues.dataFim + 'T00:00:00Z') : null,
         recorrente: initialValues.recorrente ?? false,
         limiteMensal: initialValues.limiteMensal ?? 2,
@@ -205,8 +239,8 @@ export default function AddRegraModal({ visible, onClose, onConfirm, initialValu
       footer={
         <View style={styles.footerActions}>
           <FancyButton
-            label="Cancelar"
-            type="outlined"
+            label='Cancelar'
+            type='outlined'
             onPress={handleClose}
             containerStyle={styles.footerButton}
           />
@@ -220,7 +254,7 @@ export default function AddRegraModal({ visible, onClose, onConfirm, initialValu
     >
       <View style={styles.content}>
         <FancySegmentedControl<RegraIndisponibilidadeTipo>
-          label="Tipo de regra"
+          label='Tipo de regra'
           options={TIPOS}
           value={tipo}
           onChange={(v) => setValue('tipo', v, { shouldValidate: false })}
@@ -229,12 +263,10 @@ export default function AddRegraModal({ visible, onClose, onConfirm, initialValu
         {/* DIAS_SEMANA */}
         {tipo === 'DIAS_SEMANA' && (
           <View style={styles.secao}>
-            <FancyText size="small" type="semiBold" color={palette.fonts.inactive}>
+            <FancyText size='small' type='semiBold' color={palette.fonts.inactive}>
               Dias da semana
             </FancyText>
-            {errors.diasSemana && (
-              <FancyErrorText message={errors.diasSemana.message as string} />
-            )}
+            {errors.diasSemana && <FancyErrorText message={errors.diasSemana.message as string} />}
             <View style={styles.chipRow}>
               {DIAS_NOMES.map((nome, idx) => {
                 const sel = diasSemana.includes(idx);
@@ -247,10 +279,17 @@ export default function AddRegraModal({ visible, onClose, onConfirm, initialValu
                       styles.chip,
                       sel
                         ? { backgroundColor: palette.primary, borderColor: palette.primary }
-                        : { backgroundColor: `${palette.primary}15`, borderColor: `${palette.primary}30` },
+                        : {
+                            backgroundColor: `${palette.primary}15`,
+                            borderColor: `${palette.primary}30`,
+                          },
                     ]}
                   >
-                    <FancyText size="small" type="bold" color={sel ? palette.fonts.light : palette.primary}>
+                    <FancyText
+                      size='small'
+                      type='bold'
+                      color={sel ? palette.fonts.light : palette.primary}
+                    >
                       {nome}
                     </FancyText>
                   </AnimatedDiaChip>
@@ -266,10 +305,17 @@ export default function AddRegraModal({ visible, onClose, onConfirm, initialValu
                       styles.chip,
                       todosSelected
                         ? { backgroundColor: palette.primary, borderColor: palette.primary }
-                        : { backgroundColor: `${palette.primary}15`, borderColor: `${palette.primary}30` },
+                        : {
+                            backgroundColor: `${palette.primary}15`,
+                            borderColor: `${palette.primary}30`,
+                          },
                     ]}
                   >
-                    <FancyText size="small" type="bold" color={todosSelected ? palette.fonts.light : palette.primary}>
+                    <FancyText
+                      size='small'
+                      type='bold'
+                      color={todosSelected ? palette.fonts.light : palette.primary}
+                    >
                       Todos
                     </FancyText>
                   </AnimatedDiaChip>
@@ -282,12 +328,12 @@ export default function AddRegraModal({ visible, onClose, onConfirm, initialValu
         {/* PERIODO */}
         {tipo === 'PERIODO' && (
           <View style={styles.secao}>
-            <ControlledDateInput control={control} name="dataInicio" label="Data início" />
-            <ControlledDateInput control={control} name="dataFim" label="Data fim" />
+            <ControlledDateInput control={control} name='dataInicio' label='Data início' />
+            <ControlledDateInput control={control} name='dataFim' label='Data fim' />
             <ControlledFancyToggle
               control={control}
-              name="recorrente"
-              label="Repetir anualmente"
+              name='recorrente'
+              label='Repetir anualmente'
               option1={{ title: 'Não', value: false }}
               option2={{ title: 'Sim', value: true }}
             />
@@ -299,18 +345,18 @@ export default function AddRegraModal({ visible, onClose, onConfirm, initialValu
           <View style={styles.secao}>
             <ControlledNumberInput
               control={control}
-              name="limiteMensal"
-              title="Escalas por mês"
+              name='limiteMensal'
+              title='Escalas por mês'
               min={1}
               max={31}
             />
-            <FancyText size="extraSmall" type="medium" color={palette.fonts.inactive}>
+            <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
               Você não será escalado mais que este número de vezes em um mesmo mês.
             </FancyText>
           </View>
         )}
 
-        <ControlledTextArea control={control} name="motivo" label="Motivo" />
+        <ControlledTextArea control={control} name='motivo' label='Motivo' />
       </View>
     </FancyBottomSheetModal>
   );
