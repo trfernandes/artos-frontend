@@ -37,7 +37,7 @@ jobs:
     # só roda sob demanda (workflow_dispatch) por ser lento (~15-20min).
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch'
-    timeout-minutes: 35
+    timeout-minutes: 50
 
     steps:
       - uses: actions/checkout@v4
