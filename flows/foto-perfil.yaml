@@ -29,21 +29,11 @@ appId: com.church.artos
     visible: 'Início'
     timeout: 60000
 
-# Navega para Perfil pelo drawer
-- tapOn:
-    point: '2%,50%'
-- waitForAnimationToEnd
-
-- tapOn: 'Início'
+# Navega direto pra tela de perfil (deep link) — o botão "Editar perfil"
+# fica na própria tela pessoal/perfil (DadosTab), não no dashboard Início
+- openLink: diakonia:///pessoal/perfil
 - waitForAnimationToEnd:
-    timeout: 3000
-
-# Procura o botão de editar perfil na tela Início (dashboard pessoal)
-- scrollUntilVisible:
-    element:
-      text: 'Editar perfil'
-    direction: DOWN
-    timeout: 4000
+    timeout: 5000
 
 - tapOn: 'Editar perfil'
 - waitForAnimationToEnd:
