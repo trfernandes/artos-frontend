@@ -34,11 +34,11 @@ appId: com.church.artos
     point: '2%,50%'
 - waitForAnimationToEnd
 
-- tapOn: 'Inicio'
+- tapOn: 'Início'
 - waitForAnimationToEnd:
     timeout: 3000
 
-# Procura o botão de editar perfil na tela Inicio (dashboard pessoal)
+# Procura o botão de editar perfil na tela Início (dashboard pessoal)
 - scrollUntilVisible:
     element:
       text: 'Editar perfil'
