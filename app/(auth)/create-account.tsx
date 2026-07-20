@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemePalette } from '../../constants/colors';
 import { FancyCard } from '../../components/cards/Horizontal/FancyCard';
@@ -105,61 +105,65 @@ export default function ComecarScreen() {
                 }}
               />
 
-              <FancyCard.Image
-                type='icon'
-                props={{
-                  onPress: () => router.push('/(auth)/admin-discovery'),
-                  accessibilityRole: 'button',
-                  accessibilityLabel: 'Sou responsável pela igreja',
-                  title: 'Sou responsável pela igreja',
-                  subtitle: (
-                    <FancyText
-                      size='extraSmall'
-                      type='medium'
-                      color={Pallete.fonts.inactive}
-                      numberOfLines={3}
-                    >
-                      Quero organizar ministérios, voluntários e escalas no app.
-                    </FancyText>
-                  ),
-                  additionalData1: (
-                    <FancyText
-                      size='extraSmall'
-                      type='semiBold'
-                      color={Pallete.fonts.link}
-                      style={{ textDecorationLine: 'underline' }}
-                    >
-                      Conhecer e criar minha igreja
-                    </FancyText>
-                  ),
-                  cardIcon: {
-                    library: 'MaterialCommunityIcons',
-                    name: 'church',
-                    size: 20,
-                    backgroundColor: Pallete.secondary,
-                    color: Pallete.fonts.light,
-                  },
-                  actionButtons: (
-                    <View style={styles.chevronContainer}>
-                      <DefaultIcons.Custom
-                        library='Entypo'
-                        name='chevron-right'
-                        size={22}
-                        color={Pallete.icons.inactive}
-                      />
-                    </View>
-                  ),
-                  containerStyle: [styles.card, styles.cardResponsavel],
-                  contentContainerStyle: styles.cardContent,
-                  centerContainerStyle: { gap: 6 },
-                  titleProps: { color: Pallete.fonts.dark },
-                  backgroundColor: ColorUtils.blendOver(
-                    Pallete.secondary,
-                    0.07,
-                    Pallete.backgroundColor,
-                  ),
-                }}
-              />
+              {/* iOS: Apple Guideline 3.1.1 — cadastro de organização pagante não
+                  pode acontecer dentro do app. Ver ADR sobre isolamento por plataforma. */}
+              {Platform.OS !== 'ios' && (
+                <FancyCard.Image
+                  type='icon'
+                  props={{
+                    onPress: () => router.push('/(auth)/admin-discovery'),
+                    accessibilityRole: 'button',
+                    accessibilityLabel: 'Sou responsável pela igreja',
+                    title: 'Sou responsável pela igreja',
+                    subtitle: (
+                      <FancyText
+                        size='extraSmall'
+                        type='medium'
+                        color={Pallete.fonts.inactive}
+                        numberOfLines={3}
+                      >
+                        Quero organizar ministérios, voluntários e escalas no app.
+                      </FancyText>
+                    ),
+                    additionalData1: (
+                      <FancyText
+                        size='extraSmall'
+                        type='semiBold'
+                        color={Pallete.fonts.link}
+                        style={{ textDecorationLine: 'underline' }}
+                      >
+                        Conhecer e criar minha igreja
+                      </FancyText>
+                    ),
+                    cardIcon: {
+                      library: 'MaterialCommunityIcons',
+                      name: 'church',
+                      size: 20,
+                      backgroundColor: Pallete.secondary,
+                      color: Pallete.fonts.light,
+                    },
+                    actionButtons: (
+                      <View style={styles.chevronContainer}>
+                        <DefaultIcons.Custom
+                          library='Entypo'
+                          name='chevron-right'
+                          size={22}
+                          color={Pallete.icons.inactive}
+                        />
+                      </View>
+                    ),
+                    containerStyle: [styles.card, styles.cardResponsavel],
+                    contentContainerStyle: styles.cardContent,
+                    centerContainerStyle: { gap: 6 },
+                    titleProps: { color: Pallete.fonts.dark },
+                    backgroundColor: ColorUtils.blendOver(
+                      Pallete.secondary,
+                      0.07,
+                      Pallete.backgroundColor,
+                    ),
+                  }}
+                />
+              )}
             </View>
 
             <View style={styles.footer}>

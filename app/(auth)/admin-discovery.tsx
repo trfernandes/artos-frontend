@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import FancyButton from '../../components/buttons/FancyButton';
@@ -112,12 +112,16 @@ export default function AdminDiscoveryPage() {
             </View>
 
             <View style={styles.footer}>
-              <FancyButton
-                label='Cadastrar minha igreja'
-                onPress={() => router.push('/(auth)/create-igreja-account')}
-                icon={{ library: 'MaterialCommunityIcons', name: 'arrow-right', size: 16 }}
-                iconPosition='right'
-              />
+              {/* iOS: Apple Guideline 3.1.1 — cadastro de organização pagante não
+                  pode acontecer dentro do app. Ver ADR sobre isolamento por plataforma. */}
+              {Platform.OS !== 'ios' && (
+                <FancyButton
+                  label='Cadastrar minha igreja'
+                  onPress={() => router.push('/(auth)/create-igreja-account')}
+                  icon={{ library: 'MaterialCommunityIcons', name: 'arrow-right', size: 16 }}
+                  iconPosition='right'
+                />
+              )}
               <FancyButton
                 type='text'
                 label='Já tenho conta'
