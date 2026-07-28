@@ -1,16 +1,16 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import Svg, { Defs, Mask, Rect } from 'react-native-svg';
 import { usePallete } from '../../hooks/usePallete';
 import type { TutorialTargetRect } from '../../hooks/useScreenTutorial';
 
 type TutorialSpotlightProps = {
   rect: TutorialTargetRect;
   padding?: number;
+  radius?: number;
 };
 
-// Sem lib de SVG no projeto: o "recorte" é simulado com 4 retângulos opacos
-// ao redor da área alvo, deixando o miolo transparente.
-export function TutorialSpotlight({ rect, padding = 6 }: TutorialSpotlightProps) {
+export function TutorialSpotlight({ rect, padding = 6, radius = 14 }: TutorialSpotlightProps) {
   const Pallete = usePallete();
 
   const spot = {
@@ -24,66 +24,30 @@ export function TutorialSpotlight({ rect, padding = 6 }: TutorialSpotlightProps)
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents='box-only'>
-      <View
-        style={[
-          styles.mask,
-          { backgroundColor: overlayColor, top: 0, left: 0, right: 0, height: spot.y },
-        ]}
-      />
-      <View
-        style={[
-          styles.mask,
-          {
-            backgroundColor: overlayColor,
-            top: spot.y + spot.height,
-            left: 0,
-            right: 0,
-            bottom: 0,
-          },
-        ]}
-      />
-      <View
-        style={[
-          styles.mask,
-          {
-            backgroundColor: overlayColor,
-            top: spot.y,
-            height: spot.height,
-            left: 0,
-            width: spot.x,
-          },
-        ]}
-      />
-      <View
-        style={[
-          styles.mask,
-          {
-            backgroundColor: overlayColor,
-            top: spot.y,
-            height: spot.height,
-            left: spot.x + spot.width,
-            right: 0,
-          },
-        ]}
-      />
-      <View
-        pointerEvents='none'
-        style={[
-          styles.spotlightBorder,
-          {
-            borderColor: Pallete.primary,
-            top: spot.y,
-            left: spot.x,
-            width: spot.width,
-            height: spot.height,
-          },
-        ]}
-      />
+      <Svg style={StyleSheet.absoluteFill} pointerEvents='none'>
+        <Defs>
+          <Mask id='spotlightMask'>
+            <Rect x={0} y={0} width='100%' height='100%' fill='white' />
+            <Rect
+              x={spot.x}
+              y={spot.y}
+              width={spot.width}
+              height={spot.height}
+              rx={radius}
+              ry={radius}
+              fill='black'
+            />
+          </Mask>
+        </Defs>
+        <Rect
+          x={0}
+          y={0}
+          width='100%'
+          height='100%'
+          fill={overlayColor}
+          mask='url(#spotlightMask)'
+        />
+      </Svg>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  mask: { position: 'absolute' },
-  spotlightBorder: { position: 'absolute', borderWidth: 2, borderRadius: 12 },
-});

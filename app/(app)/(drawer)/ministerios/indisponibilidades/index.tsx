@@ -29,10 +29,10 @@ import { TutorialBanner } from '../../../../../components/tutorial/TutorialBanne
 import { TutorialOverlay } from '../../../../../components/tutorial/TutorialOverlay';
 import { useScreenTutorial } from '../../../../../hooks/useScreenTutorial';
 import {
-  INDISPONIBILIDADES_TOUR_ID,
-  INDISPONIBILIDADES_TOUR_STEPS,
-  INDISPONIBILIDADES_TOUR_TITLE,
-} from '../../../../../components/tutorial/tours/indisponibilidadesTour';
+  INDISPONIBILIDADES_LIDER_TOUR_ID,
+  INDISPONIBILIDADES_LIDER_TOUR_STEPS,
+  INDISPONIBILIDADES_LIDER_TOUR_TITLE,
+} from '../../../../../components/tutorial/tours/indisponibilidadesLiderTour';
 
 type ModalState = {
   visible: boolean;
@@ -118,9 +118,9 @@ export default function MinisterioIndisponibilidadesIndex() {
   const [showPeriodoModal, setShowPeriodoModal] = useState(false);
 
   const tour = useScreenTutorial(
-    INDISPONIBILIDADES_TOUR_ID,
-    INDISPONIBILIDADES_TOUR_TITLE,
-    INDISPONIBILIDADES_TOUR_STEPS,
+    INDISPONIBILIDADES_LIDER_TOUR_ID,
+    INDISPONIBILIDADES_LIDER_TOUR_TITLE,
+    INDISPONIBILIDADES_LIDER_TOUR_STEPS,
   );
 
   const handleAddPeriodo = async (inicio: Date, fim: Date, motivo: string) => {

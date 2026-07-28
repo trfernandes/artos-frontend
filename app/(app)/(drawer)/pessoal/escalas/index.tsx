@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
@@ -33,6 +33,16 @@ import { DateUtilsApi } from '../../../../../utils/date_utils';
 import { ResponseEscalaSubstituicaoDto } from '../../../../../domain/dtos/Escala/escala-substituicao.response';
 import { resolveEventoEnsaioInfo } from '../../../../../utils/evento-ensaio';
 import { ResponseVoluntarioDto } from '../../../../../domain/dtos/Voluntario/voluntario.response';
+import { TutorialTarget } from '../../../../../components/tutorial/TutorialTarget';
+import { TutorialBanner } from '../../../../../components/tutorial/TutorialBanner';
+import { TutorialOverlay } from '../../../../../components/tutorial/TutorialOverlay';
+import { useScreenTutorial } from '../../../../../hooks/useScreenTutorial';
+import {
+  ESCALAS_VOLUNTARIO_TOUR_ID,
+  ESCALAS_VOLUNTARIO_TOUR_STEPS,
+  ESCALAS_VOLUNTARIO_TOUR_TITLE,
+} from '../../../../../components/tutorial/tours/escalasVoluntarioTour';
+import { useJourney } from '../../../../../contexts/JourneyContext';
 
 export const StatusColorMap: Record<EscalaItemStatusEnum, string> = {
   [EscalaItemStatusEnum.Pendente]: '#F59E0B', // Amber 500
@@ -86,6 +96,22 @@ export default function MinhasEscalasIndexPage() {
   const { update: updateEscala, isLoadingMutation: isLoading } = useEscalaItensCrud({
     muteMessages: true,
   });
+
+  const journey = useJourney();
+  const isJourneyStep = journey.currentStep?.tourId === ESCALAS_VOLUNTARIO_TOUR_ID;
+  const tour = useScreenTutorial(
+    ESCALAS_VOLUNTARIO_TOUR_ID,
+    ESCALAS_VOLUNTARIO_TOUR_TITLE,
+    ESCALAS_VOLUNTARIO_TOUR_STEPS,
+    { onComplete: isJourneyStep ? journey.advance : undefined },
+  );
+
+  useEffect(() => {
+    if (isJourneyStep && !tour.isActive && tour.ready) {
+      tour.start();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isJourneyStep, tour.ready]);
 
   const [substituicaoPageParams, setSubstituicaoPageParams] = useState<
     { visible: boolean; dadosEscala?: ResponseEscalaItemDto } | undefined
@@ -509,25 +535,38 @@ export default function MinhasEscalasIndexPage() {
 
   return (
     <FancyPageView style={styles.container}>
+      {tour.showBanner && <TutorialBanner onStart={tour.start} onDismiss={tour.skip} />}
+
       <PendenciasChip count={solicitacoesDeSubstituicao?.length ?? 0} />
 
-      <FancyCalendar
-        containerStyle={styles.calendarContainer}
-        visualStyle='agendaPremium'
-        value={selectedDate}
-        markedDates={markedDates}
-        onChangeSelectedDate={setSelectedDate}
-        onChangeMonthVisualization={(data) => {
-          setShowingMonth(data);
-          if (isBefore(data, new Date())) {
-            setSelectedDate(new Date());
-          } else {
-            setSelectedDate(data);
-          }
-        }}
-      />
+      <TutorialTarget
+        id='escalas-calendario'
+        registerTarget={tour.registerTarget}
+        unregisterTarget={tour.unregisterTarget}
+      >
+        <FancyCalendar
+          containerStyle={styles.calendarContainer}
+          visualStyle='agendaPremium'
+          value={selectedDate}
+          markedDates={markedDates}
+          onChangeSelectedDate={setSelectedDate}
+          onChangeMonthVisualization={(data) => {
+            setShowingMonth(data);
+            if (isBefore(data, new Date())) {
+              setSelectedDate(new Date());
+            } else {
+              setSelectedDate(data);
+            }
+          }}
+        />
+      </TutorialTarget>
       <FancySeparator style={styles.calendarSeparator} />
-      <View style={styles.eventsListContainer}>
+      <TutorialTarget
+        id='escalas-lista-dia'
+        registerTarget={tour.registerTarget}
+        unregisterTarget={tour.unregisterTarget}
+        style={styles.eventsListContainer}
+      >
         {eventosOfSelectedDate.length === 0 ? (
           <FancyListEmpty
             label='Nenhuma escala neste dia'
@@ -578,7 +617,9 @@ export default function MinhasEscalasIndexPage() {
             onButton2Press={() => setEventoPageParams({ visible: false })}
           />
         )}
-      </View>
+      </TutorialTarget>
+
+      <TutorialOverlay tour={tour} />
     </FancyPageView>
   );
 }

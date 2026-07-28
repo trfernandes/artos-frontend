@@ -61,7 +61,8 @@ export default function FancyTabs(props: FancyTabsProps) {
   }, [containerSize.width]);
 
   useEffect(() => {
-    setIndex(initialIndex);
+    goToIndex(initialIndex, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialIndex]);
 
   const goToIndex = (newIndex: number, animated = true) => {

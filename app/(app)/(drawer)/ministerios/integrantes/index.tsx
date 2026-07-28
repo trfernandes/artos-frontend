@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
 import FancyListItemCard from '../../../../../components/cards/FancyListItemCard';
 import FancyListStats from '../../../../../components/list/FancyListStats';
@@ -32,6 +32,15 @@ import FancyText from '../../../../../components/FancyText';
 import { StyleSheet, View } from 'react-native';
 import { ResponseMinisterioVoluntarioDto } from '../../../../../domain/dtos/MinisterioVoluntario/ministerio-voluntario.response';
 import FancyActionSheet from '../../../../../components/actions/FancyActionSheet';
+import { TutorialBanner } from '../../../../../components/tutorial/TutorialBanner';
+import { TutorialOverlay } from '../../../../../components/tutorial/TutorialOverlay';
+import { useScreenTutorial } from '../../../../../hooks/useScreenTutorial';
+import {
+  INTEGRANTES_TOUR_ID,
+  INTEGRANTES_TOUR_STEPS,
+  INTEGRANTES_TOUR_TITLE,
+} from '../../../../../components/tutorial/tours/integrantesTour';
+import { useJourney } from '../../../../../contexts/JourneyContext';
 
 type StatusFiltro = 'todos' | 'ativos' | 'inativos';
 
@@ -46,6 +55,22 @@ export default function MinisterioIntegrantesIndex() {
   const [actionsIntegrante, setActionsIntegrante] =
     useState<ResponseMinisterioVoluntarioDto | null>(null);
   const ministerioStatusColorMap = useMemo(() => getMinisterioStatusColorMap(palette), [palette]);
+
+  const journey = useJourney();
+  const isJourneyStep = journey.currentStep?.tourId === INTEGRANTES_TOUR_ID;
+  const tour = useScreenTutorial(
+    INTEGRANTES_TOUR_ID,
+    INTEGRANTES_TOUR_TITLE,
+    INTEGRANTES_TOUR_STEPS,
+    { onComplete: isJourneyStep ? journey.advance : undefined },
+  );
+
+  useEffect(() => {
+    if (isJourneyStep && !tour.isActive && tour.ready) {
+      tour.start();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isJourneyStep, tour.ready]);
 
   const params = useMemo(() => {
     if (!ministerioId) return undefined;
@@ -193,6 +218,11 @@ export default function MinisterioIntegrantesIndex() {
           onPress: () =>
             router.push({ pathname: '/ministerios/integrantes/add', params: { ministerioId } }),
         }}
+        fabTutorialTarget={{
+          id: 'integrantes-fab',
+          registerTarget: tour.registerTarget,
+          unregisterTarget: tour.unregisterTarget,
+        }}
         showSearchBar
         searchBarProps={{
           value: searchText,
@@ -200,6 +230,7 @@ export default function MinisterioIntegrantesIndex() {
         }}
         topContent={
           <View style={styles.topContainer}>
+            {tour.showBanner && <TutorialBanner onStart={tour.start} onDismiss={tour.skip} />}
             <FancyListStats
               items={[
                 { label: 'Total', value: stats.total },
@@ -321,6 +352,8 @@ export default function MinisterioIntegrantesIndex() {
           },
         ]}
       />
+
+      <TutorialOverlay tour={tour} />
     </>
   );
 }

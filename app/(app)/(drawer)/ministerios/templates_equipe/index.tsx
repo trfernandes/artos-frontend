@@ -8,7 +8,7 @@ import FancyText from '../../../../../components/FancyText';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { ColorUtils } from '../../../../../utils/color_utils';
 import { DefaultIconsNames } from '../../../../../constants/icons';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useEscalaTemplatesCrud } from '../../../../../useEscalaTemplatesCrud';
 import {
   DynamicQuery,
@@ -25,6 +25,15 @@ import {
 } from '../../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
 import FancyActionSheet from '../../../../../components/actions/FancyActionSheet';
 import { ResponseEscalaTemplateDto } from '../../../../../domain/dtos/EscalaTemplate/escala-template.response';
+import { TutorialBanner } from '../../../../../components/tutorial/TutorialBanner';
+import { TutorialOverlay } from '../../../../../components/tutorial/TutorialOverlay';
+import { useScreenTutorial } from '../../../../../hooks/useScreenTutorial';
+import {
+  TEMPLATES_EQUIPE_TOUR_ID,
+  TEMPLATES_EQUIPE_TOUR_STEPS,
+  TEMPLATES_EQUIPE_TOUR_TITLE,
+} from '../../../../../components/tutorial/tours/templatesEquipeTour';
+import { useJourney } from '../../../../../contexts/JourneyContext';
 
 export default function MinisterioTemplateEquipeIndex() {
   const Pallete = usePallete();
@@ -33,6 +42,22 @@ export default function MinisterioTemplateEquipeIndex() {
   const [tipoFiltro, setTipoFiltro] = useState<'todos' | EscalaTemplateTipoEnum>('todos');
 
   const { ministerioId } = useLocalSearchParams<{ ministerioId: string }>();
+
+  const journey = useJourney();
+  const isJourneyStep = journey.currentStep?.tourId === TEMPLATES_EQUIPE_TOUR_ID;
+  const tour = useScreenTutorial(
+    TEMPLATES_EQUIPE_TOUR_ID,
+    TEMPLATES_EQUIPE_TOUR_TITLE,
+    TEMPLATES_EQUIPE_TOUR_STEPS,
+    { onComplete: isJourneyStep ? journey.advance : undefined },
+  );
+
+  useEffect(() => {
+    if (isJourneyStep && !tour.isActive && tour.ready) {
+      tour.start();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isJourneyStep, tour.ready]);
 
   const searchParams = useMemo(() => {
     if (!ministerioId) return undefined;
@@ -144,10 +169,16 @@ export default function MinisterioTemplateEquipeIndex() {
             params: { ministerioId },
           }),
       }}
+      fabTutorialTarget={{
+        id: 'templates-equipe-fab',
+        registerTarget: tour.registerTarget,
+        unregisterTarget: tour.unregisterTarget,
+      }}
       showSearchBar
       searchBarProps={{ value: searchText, onSearch: handleSearch }}
       topContent={
         <View style={styles.topContainer}>
+          {tour.showBanner && <TutorialBanner onStart={tour.start} onDismiss={tour.skip} />}
           <FancyListStats
             items={[
               { label: 'Total', value: stats.total },
@@ -227,6 +258,8 @@ export default function MinisterioTemplateEquipeIndex() {
           },
         ]}
       />
+
+      <TutorialOverlay tour={tour} />
     </FancyListPage>
   );
 }

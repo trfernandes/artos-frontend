@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { LayoutChangeEvent, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import FancyText from '../FancyText';
 import FancyButton from '../buttons/FancyButton';
 import { usePallete } from '../../hooks/usePallete';
@@ -14,6 +14,7 @@ type TutorialTooltipProps = {
   onBack: () => void;
   onSkip: () => void;
   style?: StyleProp<ViewStyle>;
+  onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 export function TutorialTooltip({
@@ -25,12 +26,14 @@ export function TutorialTooltip({
   onBack,
   onSkip,
   style,
+  onLayout,
 }: TutorialTooltipProps) {
   const Pallete = usePallete();
   const isLast = stepIndex + 1 >= totalSteps;
 
   return (
     <View
+      onLayout={onLayout}
       style={[
         styles.card,
         { backgroundColor: Pallete.backgroundColor, ...Pallete.shadows[200] },

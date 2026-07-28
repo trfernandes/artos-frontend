@@ -1,7 +1,7 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import FancyText from '../FancyText';
-import FancyButton from '../buttons/FancyButton';
+import DefaultIcons from '../FancyIcons';
 import { usePallete } from '../../hooks/usePallete';
 import { ColorUtils } from '../../utils/color_utils';
 
@@ -17,24 +17,77 @@ export function TutorialBanner({ onStart, onDismiss }: TutorialBannerProps) {
     <View
       style={[
         styles.container,
-        {
-          backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.08),
-          borderColor: Pallete.border,
-        },
+        { backgroundColor: ColorUtils.blendOver(Pallete.primary, 0.08, Pallete.backgroundColor) },
       ]}
     >
-      <FancyText type='medium' size='small' color={Pallete.fonts.dark}>
-        Quer conhecer essa tela?
-      </FancyText>
-      <View style={styles.actions}>
-        <FancyButton type='text' label='Agora não' onPress={onDismiss} />
-        <FancyButton type='outlined' label='Iniciar Tutorial' onPress={onStart} />
+      <View
+        style={[styles.icon, { backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.14) }]}
+      >
+        <DefaultIcons.Custom
+          library='MaterialCommunityIcons'
+          name='lightbulb-on-outline'
+          size={16}
+          color={Pallete.primary}
+        />
       </View>
+
+      <Pressable
+        onPress={onStart}
+        style={styles.content}
+        hitSlop={4}
+        accessibilityRole='button'
+        accessibilityLabel='Iniciar tutorial desta tela'
+      >
+        <FancyText type='medium' size='extraSmall' color={Pallete.fonts.dark} numberOfLines={2}>
+          Quer conhecer essa tela?{' '}
+          <FancyText type='semiBold' size='extraSmall' color={Pallete.primary}>
+            Iniciar tutorial
+          </FancyText>
+        </FancyText>
+      </Pressable>
+
+      <Pressable
+        onPress={onDismiss}
+        hitSlop={10}
+        style={styles.dismiss}
+        accessibilityRole='button'
+        accessibilityLabel='Dispensar dica'
+      >
+        <DefaultIcons.Custom
+          library='MaterialCommunityIcons'
+          name='close'
+          size={16}
+          color={Pallete.fonts.inactive}
+        />
+      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { borderRadius: 12, borderWidth: 1, padding: 12, gap: 8 },
-  actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8 },
+  container: {
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    minHeight: 44,
+  },
+  icon: {
+    width: 26,
+    height: 26,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  content: { flex: 1, minWidth: 0 },
+  dismiss: {
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
 });

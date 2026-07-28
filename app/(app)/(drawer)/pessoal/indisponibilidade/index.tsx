@@ -37,6 +37,7 @@ import {
   INDISPONIBILIDADES_TOUR_STEPS,
   INDISPONIBILIDADES_TOUR_TITLE,
 } from '../../../../../components/tutorial/tours/indisponibilidadesTour';
+import { useJourney } from '../../../../../contexts/JourneyContext';
 
 type ModalState = {
   visible: boolean;
@@ -206,10 +207,14 @@ export default function IndisponibilidadeIndexPage() {
   const [activeTab, setActiveTab] = useState(0);
   const fabAnim = useRef(new Animated.Value(1)).current;
 
+  const journey = useJourney();
+  const isJourneyStep = journey.currentStep?.tourId === INDISPONIBILIDADES_TOUR_ID;
+
   const tour = useScreenTutorial(
     INDISPONIBILIDADES_TOUR_ID,
     INDISPONIBILIDADES_TOUR_TITLE,
     INDISPONIBILIDADES_TOUR_STEPS,
+    { onComplete: isJourneyStep ? journey.advance : undefined },
   );
 
   useEffect(() => {
@@ -221,6 +226,19 @@ export default function IndisponibilidadeIndexPage() {
       tension: 90,
     }).start();
   }, [activeTab]);
+
+  useEffect(() => {
+    if (tour.isActive && tour.currentStep?.tabIndex !== undefined) {
+      setActiveTab(tour.currentStep.tabIndex);
+    }
+  }, [tour.isActive, tour.currentStep]);
+
+  useEffect(() => {
+    if (isJourneyStep && !tour.isActive && tour.ready) {
+      tour.start();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isJourneyStep, tour.ready]);
 
   const { queryStartDate, queryEndDate, calendarStartDate, calendarEndDate } = useMemo(() => {
     const now = new Date();
@@ -424,9 +442,8 @@ export default function IndisponibilidadeIndexPage() {
     }
   };
 
-  const handleConfirmAddRegra = async (result: AddRegraModalResult) => {
+  const criarRegra = async (result: AddRegraModalResult) => {
     if (!userId || !igrejaId) return;
-    setShowRegraModal(false);
 
     try {
       await addRegra?.({
@@ -439,6 +456,36 @@ export default function IndisponibilidadeIndexPage() {
       console.error('Erro ao criar regra:', error);
       setLazyToastOptions({ type: 'error', message: 'Erro ao criar regra', show: true });
     }
+  };
+
+  const handleConfirmAddRegra = async (result: AddRegraModalResult) => {
+    if (!userId || !igrejaId) return;
+    setShowRegraModal(false);
+
+    if (result.tipo === 'LIMITE_MENSAL' && result.dataInicio) {
+      const regraAberta = regras.find((r) => r.tipo === 'LIMITE_MENSAL' && !r.dataFim);
+      if (regraAberta?.dataInicio && result.dataInicio > regraAberta.dataInicio) {
+        const dataFechamento = new Date(result.dataInicio + 'T00:00:00Z');
+        dataFechamento.setUTCDate(dataFechamento.getUTCDate() - 1);
+        const fechamentoFmt = dataFechamento.toLocaleDateString('pt-BR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          timeZone: 'UTC',
+        });
+        FancyAlert.alert(
+          'Encerrar regra atual?',
+          `Você já tem uma regra de limite mensal em aberto. Ao criar esta nova regra, a atual será encerrada em ${fechamentoFmt}.`,
+          [
+            { text: 'Cancelar', style: 'destructive' },
+            { text: 'Confirmar', onPress: () => criarRegra(result) },
+          ],
+        );
+        return;
+      }
+    }
+
+    await criarRegra(result);
   };
 
   const handleConfirmEditRegra = async (result: AddRegraModalResult) => {
@@ -585,91 +632,108 @@ export default function IndisponibilidadeIndexPage() {
       {
         title: 'Regras',
         icon: { library: 'MaterialCommunityIcons', name: 'calendar-sync-outline', size: 18 },
-        content: regras.length ? (
-          <FancyScrollView
-            contentContainerStyle={{
-              paddingHorizontal: 15,
-              paddingTop: 8,
-              paddingBottom: 84,
-              gap: 10,
-            }}
+        content: (
+          <TutorialTarget
+            id='indisponibilidade-regras-lista'
+            registerTarget={tour.registerTarget}
+            unregisterTarget={tour.unregisterTarget}
+            style={{ flex: 1 }}
           >
-            {regras.map((regra) => (
-              <FancyListItemCard
-                key={regra.id}
-                onPress={() => setEditingRegra(regra)}
-                title={descreverRegra(regra)}
-                subtitle={
-                  <View style={{ gap: 4 }}>
-                    <View
-                      style={[
-                        styles.regraChip,
-                        {
-                          backgroundColor: ColorUtils.withAlpha(
-                            regra.tipo === 'LIMITE_MENSAL' ? palette.warning : palette.secondary,
-                            0.1,
-                          ),
-                          alignSelf: 'flex-start',
-                        },
-                      ]}
-                    >
-                      <FancyText
-                        size='extraSmall'
-                        type='semiBold'
-                        color={regra.tipo === 'LIMITE_MENSAL' ? palette.warning : palette.secondary}
-                      >
-                        {regraChipLabel(regra)}
-                      </FancyText>
-                    </View>
-                    {descreverDetalheRegra(regra) ? (
-                      <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
-                        {descreverDetalheRegra(regra)}
-                      </FancyText>
-                    ) : null}
-                  </View>
-                }
-                leading={{
-                  type: 'icon',
-                  icon: {
-                    library: 'MaterialCommunityIcons',
-                    name: regraIcone(regra) as any,
-                    size: 20,
-                  },
-                  color: regra.tipo === 'LIMITE_MENSAL' ? palette.warning : palette.secondary,
-                  backgroundColor: ColorUtils.withAlpha(
-                    regra.tipo === 'LIMITE_MENSAL' ? palette.warning : palette.secondary,
-                    0.1,
-                  ),
+            {regras.length ? (
+              <FancyScrollView
+                contentContainerStyle={{
+                  paddingHorizontal: 15,
+                  paddingTop: 8,
+                  paddingBottom: 84,
+                  gap: 10,
                 }}
-                trailing={
-                  <FancyButton
-                    type='light'
-                    mode='icon'
-                    size={{ w: 32, h: 32 }}
-                    icon={{
-                      library: 'MaterialCommunityIcons',
-                      name: 'trash-can-outline',
-                      size: 17,
-                      color: palette.icons.light,
+              >
+                {regras.map((regra) => (
+                  <FancyListItemCard
+                    key={regra.id}
+                    onPress={() => setEditingRegra(regra)}
+                    title={descreverRegra(regra)}
+                    subtitle={
+                      <View style={{ gap: 4 }}>
+                        <View
+                          style={[
+                            styles.regraChip,
+                            {
+                              backgroundColor: ColorUtils.withAlpha(
+                                regra.tipo === 'LIMITE_MENSAL'
+                                  ? palette.warning
+                                  : palette.secondary,
+                                0.1,
+                              ),
+                              alignSelf: 'flex-start',
+                            },
+                          ]}
+                        >
+                          <FancyText
+                            size='extraSmall'
+                            type='semiBold'
+                            color={
+                              regra.tipo === 'LIMITE_MENSAL' ? palette.warning : palette.secondary
+                            }
+                          >
+                            {regraChipLabel(regra)}
+                          </FancyText>
+                        </View>
+                        {descreverDetalheRegra(regra) ? (
+                          <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                            {descreverDetalheRegra(regra)}
+                          </FancyText>
+                        ) : null}
+                      </View>
+                    }
+                    leading={{
+                      type: 'icon',
+                      icon: {
+                        library: 'MaterialCommunityIcons',
+                        name: regraIcone(regra) as any,
+                        size: 20,
+                      },
+                      color: regra.tipo === 'LIMITE_MENSAL' ? palette.warning : palette.secondary,
+                      backgroundColor: ColorUtils.withAlpha(
+                        regra.tipo === 'LIMITE_MENSAL' ? palette.warning : palette.secondary,
+                        0.1,
+                      ),
                     }}
-                    onPress={() => handleRemoverRegra(regra)}
-                    accessibilityLabel='Remover regra'
-                    containerStyle={{
-                      backgroundColor: palette.error,
-                      borderRadius: 16,
-                      borderWidth: 0,
-                    }}
+                    trailing={
+                      <FancyButton
+                        type='light'
+                        mode='icon'
+                        size={{ w: 32, h: 32 }}
+                        icon={{
+                          library: 'MaterialCommunityIcons',
+                          name: 'trash-can-outline',
+                          size: 17,
+                          color: palette.icons.light,
+                        }}
+                        onPress={() => handleRemoverRegra(regra)}
+                        accessibilityLabel='Remover regra'
+                        containerStyle={{
+                          backgroundColor: palette.error,
+                          borderRadius: 16,
+                          borderWidth: 0,
+                        }}
+                      />
+                    }
                   />
-                }
+                ))}
+              </FancyScrollView>
+            ) : (
+              <FancyListEmpty
+                label='Nenhuma regra cadastrada'
+                icon={{
+                  library: 'MaterialCommunityIcons',
+                  name: 'calendar-remove-outline',
+                  size: 55,
+                }}
+                muted
               />
-            ))}
-          </FancyScrollView>
-        ) : (
-          <FancyListEmpty
-            label='Nenhuma regra cadastrada'
-            icon={{ library: 'MaterialCommunityIcons', name: 'calendar-remove-outline', size: 55 }}
-            muted
-          />
+            )}
+          </TutorialTarget>
         ),
       },
     ],
@@ -700,17 +764,29 @@ export default function IndisponibilidadeIndexPage() {
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: palette.backgroundColor }}>
       {tour.showBanner && (
-        <View style={{ paddingHorizontal: 15, paddingTop: 10 }}>
+        <View style={{ paddingHorizontal: 15, paddingVertical: 10 }}>
           <TutorialBanner onStart={tour.start} onDismiss={tour.skip} />
         </View>
       )}
 
       <View style={{ flex: 1, opacity: isBusy ? 0 : 1 }}>
-        <FancyTabs keepMounted contentGutter={false} items={tabItems} onTabChange={setActiveTab} />
+        <FancyTabs
+          keepMounted
+          contentGutter={false}
+          items={tabItems}
+          initialIndex={activeTab}
+          onTabChange={setActiveTab}
+        />
 
-        <Animated.View style={{ opacity: fabAnim, transform: [{ scale: fabAnim }] }}>
+        <Animated.View
+          pointerEvents='box-none'
+          style={[
+            StyleSheet.absoluteFillObject,
+            { opacity: fabAnim, transform: [{ scale: fabAnim }] },
+          ]}
+        >
           {activeTab === 0 && (
             <TutorialTarget
               id='indisponibilidade-adicionar'
@@ -729,13 +805,21 @@ export default function IndisponibilidadeIndexPage() {
           )}
 
           {activeTab === 1 && (
-            <FancyFab
-              testID='fab-add-regra'
-              icon={{ library: 'MaterialCommunityIcons', name: 'plus', size: 26 }}
-              onPress={() => setShowRegraModal(true)}
-              bottom={10}
-              right={15}
-            />
+            <TutorialTarget
+              id='indisponibilidade-regras-fab'
+              registerTarget={tour.registerTarget}
+              unregisterTarget={tour.unregisterTarget}
+              style={{ position: 'absolute', right: 15, bottom: 10, width: 50, height: 50 }}
+              pointerEvents='box-none'
+            >
+              <FancyFab
+                testID='fab-add-regra'
+                icon={{ library: 'MaterialCommunityIcons', name: 'plus', size: 26 }}
+                onPress={() => setShowRegraModal(true)}
+                bottom={0}
+                right={0}
+              />
+            </TutorialTarget>
           )}
         </Animated.View>
       </View>

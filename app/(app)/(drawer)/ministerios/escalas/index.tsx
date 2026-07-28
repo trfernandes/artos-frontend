@@ -9,7 +9,7 @@ import FancyLoading from '../../../../../components/FancyLoading';
 
 import { ThemePalette } from '../../../../../constants/colors';
 import FancyChips from '../../../../../components/FancyChips';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { Modal, StyleSheet } from 'react-native';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
@@ -26,6 +26,15 @@ import FancyActionSheet from '../../../../../components/actions/FancyActionSheet
 import { ResponseEscalaDto } from '../../../../../domain/dtos/Escala/escala.response';
 import { useBillingWriteAccess } from '../../../../../hooks/useBillingWriteAccess';
 import BillingNoticeBanner from '../../../../../components/billing/BillingNoticeBanner';
+import { TutorialBanner } from '../../../../../components/tutorial/TutorialBanner';
+import { TutorialOverlay } from '../../../../../components/tutorial/TutorialOverlay';
+import { useScreenTutorial } from '../../../../../hooks/useScreenTutorial';
+import {
+  ESCALAS_LIDER_TOUR_ID,
+  ESCALAS_LIDER_TOUR_STEPS,
+  ESCALAS_LIDER_TOUR_TITLE,
+} from '../../../../../components/tutorial/tours/escalasLiderTour';
+import { useJourney } from '../../../../../contexts/JourneyContext';
 
 export function getEscalaStatusConfig(palette: ThemePalette) {
   return {
@@ -82,6 +91,22 @@ export default function MinisterioEscalasIndexPage() {
     billingBlockedMessage,
     abrirPortalDeAssinatura,
   } = useBillingWriteAccess();
+
+  const journey = useJourney();
+  const isJourneyStep = journey.currentStep?.tourId === ESCALAS_LIDER_TOUR_ID;
+  const tour = useScreenTutorial(
+    ESCALAS_LIDER_TOUR_ID,
+    ESCALAS_LIDER_TOUR_TITLE,
+    ESCALAS_LIDER_TOUR_STEPS,
+    { onComplete: isJourneyStep ? journey.advance : undefined },
+  );
+
+  useEffect(() => {
+    if (isJourneyStep && !tour.isActive && tour.ready) {
+      tour.start();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isJourneyStep, tour.ready]);
 
   const openEscalaDetails = useCallback(
     (escalaId: string) => {
@@ -198,6 +223,7 @@ export default function MinisterioEscalasIndexPage() {
             },
             {
               text: 'Criar manualmente',
+              style: 'default',
               onPress: () =>
                 router.push({ pathname: '/ministerios/escalas/manual', params: { ministerioId } }),
             },
@@ -205,10 +231,18 @@ export default function MinisterioEscalasIndexPage() {
           ]);
         },
       }}
+      fabTutorialTarget={{
+        id: 'escalas-lider-fab',
+        registerTarget: tour.registerTarget,
+        unregisterTarget: tour.unregisterTarget,
+      }}
       topContent={
-        isBlocked && showBillingBanner ? (
-          <View style={{ paddingHorizontal: 15 }}>
-            <BillingNoticeBanner assinatura={assinatura} onPress={abrirPortalDeAssinatura} />
+        (isBlocked && showBillingBanner) || tour.showBanner ? (
+          <View style={{ paddingHorizontal: 15, gap: 10 }}>
+            {tour.showBanner && <TutorialBanner onStart={tour.start} onDismiss={tour.skip} />}
+            {isBlocked && showBillingBanner && (
+              <BillingNoticeBanner assinatura={assinatura} onPress={abrirPortalDeAssinatura} />
+            )}
           </View>
         ) : undefined
       }
@@ -300,6 +334,8 @@ export default function MinisterioEscalasIndexPage() {
           },
         ]}
       />
+
+      <TutorialOverlay tour={tour} />
     </FancyListPage>
   );
 }

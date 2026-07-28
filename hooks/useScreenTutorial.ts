@@ -5,7 +5,18 @@ import type { TourStep } from '../components/tutorial/types';
 
 export type TutorialTargetRect = { x: number; y: number; width: number; height: number };
 
-export function useScreenTutorial(tourId: string, title: string, steps: TourStep[]) {
+export type UseScreenTutorialOptions = {
+  /** Chamado quando o tour termina normalmente (não ao pular). Usado pela jornada
+   * guiada pra avançar pra próxima tela quando este passo é o passo atual dela. */
+  onComplete?: () => void;
+};
+
+export function useScreenTutorial(
+  tourId: string,
+  title: string,
+  steps: TourStep[],
+  options?: UseScreenTutorialOptions,
+) {
   const { registerTour, isSeen, markSeen, markSkipped, loading } = useTutorialCatalog();
   const [isActive, setIsActive] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
@@ -42,11 +53,13 @@ export function useScreenTutorial(tourId: string, title: string, steps: TourStep
   const finish = () => {
     setIsActive(false);
     markSeen(tourId);
+    options?.onComplete?.();
   };
 
   const skip = () => {
     setIsActive(false);
     markSkipped(tourId);
+    options?.onComplete?.();
   };
 
   const next = () => {
@@ -70,6 +83,9 @@ export function useScreenTutorial(tourId: string, title: string, steps: TourStep
     totalSteps: steps.length,
     isActive,
     showBanner,
+    /** Catálogo carregado — usado por jornadas guiadas, que devem iniciar o tour
+     * independente da flag "já visto" (o usuário decidiu iniciar explicitamente). */
+    ready: !loading,
     start,
     next,
     back,
