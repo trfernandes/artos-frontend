@@ -187,7 +187,22 @@ export default function MinisterioEscalasIndexPage() {
             );
             return;
           }
-          router.push({ pathname: '/ministerios/escalas/assistant', params: { ministerioId } });
+          FancyAlert.alert('Nova escala', 'Como deseja criar a escala?', [
+            {
+              text: 'Gerar automaticamente',
+              onPress: () =>
+                router.push({
+                  pathname: '/ministerios/escalas/assistant',
+                  params: { ministerioId },
+                }),
+            },
+            {
+              text: 'Criar manualmente',
+              onPress: () =>
+                router.push({ pathname: '/ministerios/escalas/manual', params: { ministerioId } }),
+            },
+            { text: 'Cancelar', style: 'cancel' },
+          ]);
         },
       }}
       topContent={

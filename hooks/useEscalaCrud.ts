@@ -78,6 +78,34 @@ export function useEscalasCrud({
     },
   });
 
+  const createManualMutation = useMutation({
+    mutationFn: (data: CreateEscalaDto) => EscalaRepository.createManual(data),
+    onSuccess: async () => {
+      await crud.queryClient.invalidateQueries({ queryKey: [crud.queryKey] });
+    },
+    onError: (error) => {
+      const responseData = axios.isAxiosError(error) ? (error.response?.data as any) : null;
+      const responseStatus = axios.isAxiosError(error) ? error.response?.status : null;
+      const errorCode = responseData?.error?.code || responseData?.errorCode;
+      const isDuplicateName =
+        errorCode === 'ESCALA_NOME_DUPLICADO' ||
+        responseData?.statusCode === 409 ||
+        responseStatus === 409;
+
+      Toast.show({
+        type: 'error',
+        text1: isDuplicateName ? 'Nome de escala em uso' : 'Erro ao criar escala.',
+        text2: isDuplicateName
+          ? 'Já existe uma escala com esse nome neste ministério.'
+          : getApiErrorMessage(error, 'Não foi possível criar a escala.'),
+      });
+
+      if (__DEV__) {
+        console.log('[useEscalasCrud] createManual error:', error);
+      }
+    },
+  });
+
   const regenerateMutation = useMutation({
     mutationFn: (escalaId: string) => EscalaRepository.regenerate(escalaId),
     onSuccess: async () => {
@@ -100,6 +128,8 @@ export function useEscalasCrud({
     ...crud,
     generate: generateMutation.mutateAsync,
     isGenerating: generateMutation.isPending,
+    createManual: createManualMutation.mutateAsync,
+    isCreatingManual: createManualMutation.isPending,
     regenerate: regenerateMutation.mutateAsync,
     isRegenerating: regenerateMutation.isPending,
   };

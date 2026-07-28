@@ -22,6 +22,10 @@ import { EscalaRepository } from '../../../../../domain/services/EscalaRepositor
 import { useAuth } from '../../../../../contexts/AuthContext';
 import Toast from 'react-native-toast-message';
 import EscalaParametrizacaoModal from '../../../../../components/pages/ministerios/escalas/details/EscalaParametrizacaoModal';
+import AdicionarItemManualModal, {
+  AdicionarItemManualConfirmDialog,
+} from '../../../../../components/pages/ministerios/escalas/details/AdicionarItemManualModal';
+import { DateUtilsApi } from '../../../../../utils/date_utils';
 import { EscalaTemplateExperienciaEnum } from '../../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
 import { EscalaParametrizacaoType } from '../../../../../domain/dtos/Escala/escala.response';
 import { useEventoSetlistResponsavel } from '../../../../../hooks/useEventoSetlistResponsavel';
@@ -89,6 +93,7 @@ export default function MinisterioEscalasDetailsPage() {
   const { igrejaAtiva } = useAuth();
   const [isPublishing, setIsPublishing] = useState(false);
   const [isParametrizacaoOpen, setIsParametrizacaoOpen] = useState(false);
+  const [isAdicionarItemManualOpen, setIsAdicionarItemManualOpen] = useState(false);
   const [auditoria, setAuditoria] = useState<any>(null);
   const [isAuditoriaOpen, setIsAuditoriaOpen] = useState(false);
   const palette = usePallete();
@@ -505,6 +510,33 @@ export default function MinisterioEscalasDetailsPage() {
     [addEscalaItem, escalaId, refetchEscala],
   );
 
+  const handleAdicionarItemManual = useCallback(
+    async (data: AdicionarItemManualConfirmDialog): Promise<void> => {
+      try {
+        await addEscalaItem?.({
+          escalaId: escalaId,
+          eventoId: data.eventoId,
+          dataOcorrencia: data.dataOcorrencia,
+          funcaoId: data.funcaoId,
+          voluntarioId: data.voluntarioId,
+        });
+        await refetchEscala();
+        setIsAdicionarItemManualOpen(false);
+        Toast.show({
+          type: 'success',
+          text1: 'Item adicionado à escala.',
+        });
+      } catch (error) {
+        Toast.show({
+          type: 'error',
+          text1: 'Não foi possível adicionar o item.',
+          text2: getApiErrorMessage(error, 'Tente novamente em instantes.'),
+        });
+      }
+    },
+    [addEscalaItem, escalaId, refetchEscala],
+  );
+
   const handleExcluirFuncao = useCallback(
     async (funcaoId: string, eventoId: string, dataOcorrencia: string): Promise<void> => {
       try {
@@ -650,6 +682,7 @@ export default function MinisterioEscalasDetailsPage() {
           onGeneratePress={handleGeneratePress}
           onDeletePress={handleDeletePress}
           onParametrizacaoPress={() => setIsParametrizacaoOpen(true)}
+          onAddItemPress={() => setIsAdicionarItemManualOpen(true)}
         />
 
         {isGerando && (
@@ -761,6 +794,18 @@ export default function MinisterioEscalasDetailsPage() {
         escalaId={escalaId}
         onClose={() => setIsParametrizacaoOpen(false)}
       />
+
+      {escalaData?.[0] && (
+        <AdicionarItemManualModal
+          visible={isAdicionarItemManualOpen}
+          onClose={() => setIsAdicionarItemManualOpen(false)}
+          ministerioId={ministerioId}
+          dataInicio={DateUtilsApi.dateOnlyFromApi(escalaData[0].dataInicio)}
+          dataTermino={DateUtilsApi.dateOnlyFromApi(escalaData[0].dataTermino)}
+          itensAtuais={escalaData[0].itens}
+          onConfirm={handleAdicionarItemManual}
+        />
+      )}
     </View>
   );
 }

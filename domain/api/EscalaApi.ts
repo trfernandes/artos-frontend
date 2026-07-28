@@ -23,6 +23,16 @@ class EscalasApiClass extends BaseApi<
     }
   }
 
+  async createManual(data: CreateEscalaDto): Promise<ResponseEscalaDto> {
+    try {
+      const response = await apiClient.post(`/${this.resourceName}/manual`, data);
+      return response.data.data;
+    } catch (error) {
+      console.log(`Erro ao criar ${this.resourceName} manual:`, error);
+      throw error;
+    }
+  }
+
   async regenerate(escalaId: string): Promise<ResponseEscalaDto> {
     try {
       const response = await apiClient.post(`/${this.resourceName}/${escalaId}/regerar`);

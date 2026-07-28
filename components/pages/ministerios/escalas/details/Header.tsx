@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import { ResponseEscalaDto } from '../../../../../domain/dtos/Escala/escala.response';
 import { EscalaStatusEnum } from '../../../../../domain/enums/Escala/escala-status.enum';
+import { EscalaOrigemEnum } from '../../../../../domain/enums/Escala/escala-origem.enum';
 import { EscalaItemStatusEnum } from '../../../../../domain/enums/Escala/escala-item-status.enum';
 import EscalaHeader, { InlineAction } from './EscalaHeader';
 import { useMemo } from 'react';
@@ -18,6 +19,7 @@ export default function Header({
   onGeneratePress,
   onDeletePress,
   onParametrizacaoPress,
+  onAddItemPress,
 }: {
   escala?: ResponseEscalaDto;
   viewMode?: 'view' | 'edit';
@@ -29,6 +31,7 @@ export default function Header({
   onGeneratePress: () => void;
   onDeletePress: () => void;
   onParametrizacaoPress?: () => void;
+  onAddItemPress?: () => void;
 }) {
   if (!escala) return null;
 
@@ -98,33 +101,52 @@ export default function Header({
       ]
     : [];
 
+  const isManual = escala.origem === EscalaOrigemEnum.Manual;
+
+  const primaryStatusAction: InlineAction | undefined =
+    isManual && onAddItemPress
+      ? {
+          key: 'add-item',
+          icon: { library: 'MaterialIcons' as const, name: 'playlist-add' },
+          label: 'Adicionar item',
+          variant: 'primary' as const,
+          disabled: isScreenBlocked,
+          onPress: onAddItemPress,
+        }
+      : !isManual
+        ? {
+            key: 'recalculate',
+            icon: {
+              library: 'MaterialCommunityIcons' as const,
+              name: 'calculator-variant-outline',
+            },
+            label: isRegenerating ? 'Recalculando...' : 'Recalcular',
+            variant: 'primary' as const,
+            isLoading: isRegenerating,
+            disabled: isScreenBlocked || escala.status !== EscalaStatusEnum.Gerada,
+            onPress: onGeneratePress,
+          }
+        : undefined;
+
+  const statusActions: InlineAction[] =
+    escala.status === EscalaStatusEnum.Gerada
+      ? [
+          ...(primaryStatusAction ? [primaryStatusAction] : []),
+          {
+            key: 'publish',
+            icon: { library: 'MaterialIcons' as const, name: 'rocket-launch' },
+            label: 'Publicar escala',
+            variant: 'neutral' as const,
+            isLoading: isPublishing,
+            disabled: isScreenBlocked,
+            onPress: onPublishPress,
+          },
+        ]
+      : [];
+
   const actions: InlineAction[] = canEdit
     ? [
-        ...(escala.status === EscalaStatusEnum.Gerada
-          ? [
-              {
-                key: 'recalculate',
-                icon: {
-                  library: 'MaterialCommunityIcons' as const,
-                  name: 'calculator-variant-outline',
-                },
-                label: isRegenerating ? 'Recalculando...' : 'Recalcular',
-                variant: 'primary' as const,
-                isLoading: isRegenerating,
-                disabled: isScreenBlocked || escala.status !== EscalaStatusEnum.Gerada,
-                onPress: onGeneratePress,
-              },
-              {
-                key: 'publish',
-                icon: { library: 'MaterialIcons' as const, name: 'rocket-launch' },
-                label: 'Publicar escala',
-                variant: 'neutral' as const,
-                isLoading: isPublishing,
-                disabled: isScreenBlocked,
-                onPress: onPublishPress,
-              },
-            ]
-          : []),
+        ...statusActions,
         ...insightAction,
         ...parametrizacaoAction,
         {
