@@ -2,7 +2,6 @@ import { ClickOutsideProvider } from 'react-native-click-outside';
 import { MenuProvider } from 'react-native-popup-menu';
 import { Redirect, Stack, router, useNavigationContainerRef } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
-import { LoadingProvider } from '../../contexts/LoadingContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import FancyPageHeader from '../../components/header/FancyHeader';
 import { usePostLoginRedirect } from '../../hooks/usePostLoginRedirect';
@@ -47,8 +46,7 @@ export default function RootLayout() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <MenuProvider>
           <ClickOutsideProvider>
-            <LoadingProvider>
-              <Stack screenOptions={{ headerShown: false }}>
+            <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name='(drawer)' options={{ headerShown: false }} />
                 <Stack.Screen
                   name='notifications'
@@ -114,7 +112,6 @@ export default function RootLayout() {
                   }}
                 />
               </Stack>
-            </LoadingProvider>
           </ClickOutsideProvider>
         </MenuProvider>
       </GestureHandlerRootView>

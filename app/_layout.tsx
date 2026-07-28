@@ -6,11 +6,17 @@ import { setOptions as setSplashScreenOptions } from 'expo-splash-screen';
 import { AppState, Modal, Platform, StyleSheet, View } from 'react-native';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { TutorialCatalogProvider } from '../contexts/TutorialCatalogContext';
+import { JourneyProvider, useJourney } from '../contexts/JourneyContext';
+import { LoadingProvider } from '../contexts/LoadingContext';
 import { useFonts } from 'expo-font';
 import { QueryClientProvider } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 import { createToastConfig } from '../utils/toast_config';
-import { FancyAlertConnector, FancyAlertProvider } from '../components/modal/FancyAlert';
+import {
+  FancyAlert,
+  FancyAlertConnector,
+  FancyAlertProvider,
+} from '../components/modal/FancyAlert';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { registerForPushNotificationsAsync } from '../services/notifications';
 import { NotificationsManager } from '../components/Notification_manager';
@@ -121,12 +127,16 @@ export default Sentry.wrap(function RootLayout() {
               <QueryClientProvider client={queryClient}>
                 <AuthProvider>
                   <TutorialCatalogProvider>
-                    <ConnectivityProvider>
-                      <RootLayoutNav
-                        onReady={handleReady}
-                        onNativeSplashHidden={handleNativeSplashHidden}
-                      />
-                    </ConnectivityProvider>
+                    <JourneyProvider>
+                      <ConnectivityProvider>
+                        <LoadingProvider>
+                          <RootLayoutNav
+                            onReady={handleReady}
+                            onNativeSplashHidden={handleNativeSplashHidden}
+                          />
+                        </LoadingProvider>
+                      </ConnectivityProvider>
+                    </JourneyProvider>
                   </TutorialCatalogProvider>
                 </AuthProvider>
               </QueryClientProvider>
@@ -198,6 +208,21 @@ function RootLayoutNav({
       }
     }
   }, [fontsLoaded, loading]);
+
+  // retomar jornada guiada interrompida (app fechado / tela trocada no meio do tour)
+  const { pendingResume, resumeJourney, dismissResume } = useJourney();
+  useEffect(() => {
+    if (!user || !pendingResume) return;
+    FancyAlert.alert(
+      'Continuar tutorial?',
+      `Você estava no meio do tutorial "${pendingResume.title}". Quer continuar de onde parou?`,
+      [
+        { text: 'Agora não', style: 'cancel', onPress: dismissResume },
+        { text: 'Continuar', onPress: resumeJourney },
+      ],
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, pendingResume]);
 
   // registrar notificações quando logar
   useEffect(() => {

@@ -3,6 +3,7 @@ export type QuizVendasBucket = 'SO_FALTA_ORGANIZAR' | 'NO_LIMITE' | 'SOBRECARREG
 export interface QuizVendasOption {
   label: string;
   pontos: number;
+  icon: string;
 }
 
 export interface QuizVendasQuestion {
@@ -18,9 +19,9 @@ export const QUIZ_VENDAS_QUESTIONS: QuizVendasQuestion[] = [
     label: '1 · Papel na igreja',
     title: 'Qual seu papel na igreja/ministério?',
     options: [
-      { label: 'Pastor / líder principal', pontos: 1 },
-      { label: 'Líder de ministério', pontos: 2 },
-      { label: 'Coordenador de voluntários', pontos: 3 },
+      { label: 'Pastor / líder principal', pontos: 1, icon: 'account-star' },
+      { label: 'Líder de ministério', pontos: 2, icon: 'account-group' },
+      { label: 'Coordenador de voluntários', pontos: 3, icon: 'account-check' },
     ],
   },
   {
@@ -28,10 +29,10 @@ export const QUIZ_VENDAS_QUESTIONS: QuizVendasQuestion[] = [
     label: '2 · Voluntários',
     title: 'Quantos voluntários você coordena?',
     options: [
-      { label: 'Até 5', pontos: 1 },
-      { label: '6 a 15', pontos: 2 },
-      { label: '16 a 30', pontos: 3 },
-      { label: 'Mais de 30', pontos: 4 },
+      { label: 'Até 5', pontos: 1, icon: 'account' },
+      { label: '6 a 15', pontos: 2, icon: 'account-multiple' },
+      { label: '16 a 30', pontos: 3, icon: 'account-group' },
+      { label: 'Mais de 30', pontos: 4, icon: 'account-supervisor' },
     ],
   },
   {
@@ -39,10 +40,10 @@ export const QUIZ_VENDAS_QUESTIONS: QuizVendasQuestion[] = [
     label: '3 · Horas por mês',
     title: 'Quantas horas por mês você gasta montando escala?',
     options: [
-      { label: 'Menos de 4h', pontos: 1 },
-      { label: '4 a 12h', pontos: 2 },
-      { label: '12 a 24h', pontos: 3 },
-      { label: 'Mais de 24h', pontos: 4 },
+      { label: 'Menos de 4h', pontos: 1, icon: 'clock-fast' },
+      { label: '4 a 12h', pontos: 2, icon: 'clock-outline' },
+      { label: '12 a 24h', pontos: 3, icon: 'clock-alert-outline' },
+      { label: 'Mais de 24h', pontos: 4, icon: 'clock-alert' },
     ],
   },
   {
@@ -50,10 +51,10 @@ export const QUIZ_VENDAS_QUESTIONS: QuizVendasQuestion[] = [
     label: '4 · Falta / lembrete',
     title: 'Com que frequência um voluntário falta ou esquece o compromisso?',
     options: [
-      { label: 'Quase nunca', pontos: 1 },
-      { label: 'Às vezes', pontos: 2 },
-      { label: 'Frequentemente', pontos: 3 },
-      { label: 'Toda semana', pontos: 4 },
+      { label: 'Quase nunca', pontos: 1, icon: 'check-circle-outline' },
+      { label: 'Às vezes', pontos: 2, icon: 'alert-circle-outline' },
+      { label: 'Frequentemente', pontos: 3, icon: 'alert-circle' },
+      { label: 'Toda semana', pontos: 4, icon: 'close-circle-outline' },
     ],
   },
   {
@@ -61,10 +62,10 @@ export const QUIZ_VENDAS_QUESTIONS: QuizVendasQuestion[] = [
     label: '5 · Ferramenta atual',
     title: 'Como você organiza escala e comunicação hoje?',
     options: [
-      { label: 'Planilha', pontos: 1 },
-      { label: 'Grupo de WhatsApp', pontos: 2 },
-      { label: 'Caderno / papel', pontos: 3 },
-      { label: 'Nenhuma ferramenta', pontos: 4 },
+      { label: 'Planilha', pontos: 1, icon: 'table' },
+      { label: 'Grupo de WhatsApp', pontos: 2, icon: 'whatsapp' },
+      { label: 'Caderno / papel', pontos: 3, icon: 'notebook-outline' },
+      { label: 'Nenhuma ferramenta', pontos: 4, icon: 'checkbox-blank-outline' },
     ],
   },
   {
@@ -72,10 +73,10 @@ export const QUIZ_VENDAS_QUESTIONS: QuizVendasQuestion[] = [
     label: '6 · Custo real',
     title: 'Se recuperasse esse tempo, no que investiria?',
     options: [
-      { label: 'Visitas pastorais', pontos: 1 },
-      { label: 'Preparo de mensagem/estudo', pontos: 2 },
-      { label: 'Família', pontos: 3 },
-      { label: 'Descanso', pontos: 4 },
+      { label: 'Visitas pastorais', pontos: 1, icon: 'home-heart' },
+      { label: 'Preparo de mensagem/estudo', pontos: 2, icon: 'book-open-page-variant' },
+      { label: 'Família', pontos: 3, icon: 'human-male-female-child' },
+      { label: 'Descanso', pontos: 4, icon: 'weather-night' },
     ],
   },
 ];

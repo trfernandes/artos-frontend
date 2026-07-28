@@ -1,17 +1,28 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
-import FancyPageView from '../../components/containers/FancyPageView';
 import FancyButton from '../../components/buttons/FancyButton';
 import FancyText from '../../components/FancyText';
+import QuizFlatLayout from '../../components/quiz/QuizFlatLayout';
+import QuizSegmentedProgress from '../../components/quiz/QuizSegmentedProgress';
+import QuizIllustrationPlaceholder from '../../components/quiz/QuizIllustrationPlaceholder';
+import QuizAnswerOption from '../../components/quiz/QuizAnswerOption';
 import { usePallete } from '../../hooks/usePallete';
-import { ColorUtils } from '../../utils/color_utils';
+import { AppImages } from '../../assets/app_images';
 import { QUIZ_VENDAS_QUESTIONS } from '../../constants/quizVendas';
+
+const QUESTION_IMAGES = [
+  AppImages.quizPergunta1,
+  AppImages.quizPergunta2,
+  AppImages.quizPergunta3,
+  AppImages.quizPergunta4,
+  AppImages.quizPergunta5,
+  AppImages.quizPergunta6,
+];
 import { QuizVendasRepository } from '../../domain/services/QuizVendasRepository';
 import { useLoading } from '../../contexts/LoadingContext';
 import Toast from 'react-native-toast-message';
 
-// Scaffold estrutural — estilo final (ilustrações, animações, wave) é etapa de UX separada.
 export default function QuizVendasPage() {
   const Pallete = usePallete();
   const { showLoading, hideLoading } = useLoading();
@@ -20,6 +31,7 @@ export default function QuizVendasPage() {
   const [opcaoSelecionadaIndex, setOpcaoSelecionadaIndex] = useState<Record<string, number>>({});
 
   const question = QUIZ_VENDAS_QUESTIONS[stepIndex];
+  const isFirstStep = stepIndex === 0;
   const isLastStep = stepIndex === QUIZ_VENDAS_QUESTIONS.length - 1;
   const selecionado = respostas[question.id];
   const indiceSelecionado = opcaoSelecionadaIndex[question.id];
@@ -51,92 +63,88 @@ export default function QuizVendasPage() {
         params: { bucket: resultado.bucket, pontuacaoTotal: String(resultado.pontuacaoTotal) },
       });
     } catch {
+      hideLoading();
       Toast.show({
         type: 'error',
         text1: 'Não foi possível calcular o resultado',
         text2: 'Verifique sua conexão e tente novamente.',
       });
-    } finally {
-      hideLoading();
     }
   };
 
+  const voltar = () => {
+    if (isFirstStep) {
+      router.back();
+      return;
+    }
+    setStepIndex((prev) => prev - 1);
+  };
+
+  const pular = () => router.replace('/(auth)/login');
+
   return (
-    <FancyPageView>
-      <View style={styles.progressRow}>
-        {QUIZ_VENDAS_QUESTIONS.map((q, index) => (
-          <View
-            key={q.id}
-            style={[
-              styles.progressDot,
-              {
-                backgroundColor:
-                  index <= stepIndex
-                    ? Pallete.primary
-                    : ColorUtils.withAlpha(Pallete.primary, 0.15),
-              },
-            ]}
+    <QuizFlatLayout
+      onPressBack={voltar}
+      showBackButton={!isFirstStep}
+      hero={<QuizIllustrationPlaceholder image={QUESTION_IMAGES[stepIndex]} height={220} fullBleed />}
+      heroOverlay={
+        <>
+          <FancyText
+            size='extraSmall'
+            type='medium'
+            color={Pallete.fonts.inactive}
+            style={styles.progressLabel}
+          >
+            {`PERGUNTA ${stepIndex + 1} DE ${QUIZ_VENDAS_QUESTIONS.length}`}
+          </FancyText>
+          <QuizSegmentedProgress totalSteps={QUIZ_VENDAS_QUESTIONS.length} currentStep={stepIndex} />
+        </>
+      }
+      footer={
+        <>
+          <FancyButton
+            label={isLastStep ? 'Ver resultado' : 'Continuar'}
+            onPress={avancar}
+            disabled={selecionado === undefined}
+            containerStyle={
+              selecionado !== undefined ? { backgroundColor: Pallete.terciary } : undefined
+            }
+          />
+          <FancyButton
+            type='text'
+            label='Pular'
+            onPress={pular}
+            labelStyle={{ color: Pallete.fonts.inactive }}
+          />
+        </>
+      }
+    >
+      <FancyText size='large' type='bold' color={Pallete.fonts.dark}>
+        {question.title}
+      </FancyText>
+
+      <View style={styles.options}>
+        {question.options.map((option, optionIndex) => (
+          <QuizAnswerOption
+            key={option.label}
+            label={option.label}
+            number={optionIndex + 1}
+            icon={option.icon}
+            selected={indiceSelecionado === optionIndex}
+            onPress={() => selecionarOpcao(optionIndex, option.pontos)}
           />
         ))}
       </View>
-
-      <View style={styles.content}>
-        <FancyText size='small' color={Pallete.fonts.inactive}>
-          {question.label}
-        </FancyText>
-        <FancyText size='large' type='bold' color={Pallete.fonts.dark} style={styles.title}>
-          {question.title}
-        </FancyText>
-
-        <View style={styles.options}>
-          {question.options.map((option, optionIndex) => {
-            const ativo = indiceSelecionado === optionIndex;
-            return (
-              <FancyButton
-                key={option.label}
-                type={ativo ? 'contained' : 'outlined'}
-                label={option.label}
-                onPress={() => selecionarOpcao(optionIndex, option.pontos)}
-              />
-            );
-          })}
-        </View>
-      </View>
-
-      <View style={styles.footer}>
-        <FancyButton
-          label={isLastStep ? 'Ver resultado' : 'Continuar'}
-          onPress={avancar}
-          disabled={selecionado === undefined}
-        />
-      </View>
-    </FancyPageView>
+    </QuizFlatLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  progressRow: {
-    flexDirection: 'row',
-    gap: 6,
-    marginTop: 8,
-  },
-  progressDot: {
-    flex: 1,
-    height: 4,
-    borderRadius: 2,
-  },
-  content: {
-    flex: 1,
-    gap: 20,
-    justifyContent: 'center',
-  },
-  title: {
-    marginTop: 4,
+  progressLabel: {
+    textAlign: 'center',
+    letterSpacing: 0.5,
   },
   options: {
     gap: 10,
-  },
-  footer: {
-    paddingBottom: 8,
   },
 });
