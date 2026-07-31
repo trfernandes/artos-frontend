@@ -17,6 +17,8 @@ import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import { useEscalasCrud } from '../../../../../hooks/useEscalaCrud';
 import { EscalaItemStatusEnum } from '../../../../../domain/enums/Escala/escala-item-status.enum';
 import { EscalaStatusEnum } from '../../../../../domain/enums/Escala/escala-status.enum';
+import { EscalaOrigemEnum } from '../../../../../domain/enums/Escala/escala-origem.enum';
+import FancyFab from '../../../../../components/buttons/FancyFab';
 import FancyScreenErrorHandler from '../../../../../components/error/FancyScreenErrorHandler';
 import { EscalaRepository } from '../../../../../domain/services/EscalaRepository';
 import { useAuth } from '../../../../../contexts/AuthContext';
@@ -682,7 +684,6 @@ export default function MinisterioEscalasDetailsPage() {
           onGeneratePress={handleGeneratePress}
           onDeletePress={handleDeletePress}
           onParametrizacaoPress={() => setIsParametrizacaoOpen(true)}
-          onAddItemPress={() => setIsAdicionarItemManualOpen(true)}
         />
 
         {isGerando && (
@@ -781,9 +782,19 @@ export default function MinisterioEscalasDetailsPage() {
         )}
       </FancyPageView>
 
+      {escalaData?.[0]?.origem === EscalaOrigemEnum.Manual &&
+        (!viewMode || viewMode === 'edit') &&
+        !isBlockingScreen &&
+        !isGerando && (
+          <FancyFab
+            icon={{ library: 'MaterialIcons', name: 'playlist-add', size: 28 }}
+            onPress={() => setIsAdicionarItemManualOpen(true)}
+          />
+        )}
+
       {isBlockingScreen && (
-        <View style={styles.blockingOverlay} pointerEvents='auto'>
-          <View style={styles.blockingOverlayContent}>
+        <View style={[styles.blockingOverlay, { backgroundColor: ColorUtils.withAlpha(palette.fonts.dark, 0.12) }]} pointerEvents='auto'>
+          <View style={[styles.blockingOverlayContent, { backgroundColor: ColorUtils.withAlpha(palette.backgroundColor, 0.96) }]}>
             <FancyLoading label={blockingLabel} containerStyle={{ flex: 0 }} />
           </View>
         </View>
@@ -826,7 +837,6 @@ const styles = StyleSheet.create({
   },
   blockingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.12)',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 50,
@@ -836,6 +846,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 16,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.96)',
   },
 });
