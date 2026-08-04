@@ -23,3 +23,13 @@ sem criar entidade pagante) não é afetado — Apple não restringe isso.
 Até existir um caminho de cadastro fora do app (web ou Android), uma igreja
 nova não consegue se auto-cadastrar a partir de um iPhone. O app iOS só serve
 quem já tem conta ou recebeu convite/código de uma igreja existente.
+
+## Resolução
+
+Página `diakonia-public-site/public/cadastro-igreja/` cobre o caminho fora do
+app: formulário web chama a mesma API pública (`igreja-cadastro-solicitacoes`)
+já usada pelo app, sem mudança de backend. App iOS não referencia essa página
+(nenhum link/CTA dentro do app) — Apple 3.1.1 também proíbe "botões, links
+externos ou outras chamadas para ação" apontando pra fora, então até um link
+discreto reacenderia a objeção. Descoberta da página fica só fora do app
+(site institucional, busca orgânica, indicação).

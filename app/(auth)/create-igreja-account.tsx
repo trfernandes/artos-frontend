@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useResizeMode } from 'react-native-keyboard-controller';
@@ -253,6 +253,16 @@ const styles = StyleSheet.create({
 });
 
 export default function CreateIgrejaAccountPage() {
+  // iOS: Apple Guideline 3.1.1 — bloqueia mesmo se a rota for alcançada por
+  // caminho não gateado (deep link). Ver docs/adr/0001-cadastro-igreja-fora-do-ios.md.
+  useEffect(() => {
+    if (Platform.OS === 'ios') {
+      router.replace('/(auth)/create-account');
+    }
+  }, []);
+
+  if (Platform.OS === 'ios') return null;
+
   return (
     <CodigoCheckProvider>
       <CreateIgrejaAccountPageContent />
