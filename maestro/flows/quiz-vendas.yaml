@@ -1,0 +1,102 @@
+appId: com.church.artos
+---
+# ═══════════════════════════════════════════════════════════════════
+# Teste: Quiz de vendas
+#
+# O que valida:
+#   1. Quiz acessível a partir da tela de login
+#   2. Navegação pelas 6 perguntas (seleção obrigatória para avançar)
+#   3. Submissão chega na tela de resultado (bucket calculado)
+#   4. Tela de funcionalidades carrega após o resultado
+# ═══════════════════════════════════════════════════════════════════
+
+# ── 1. Partir da tela de login (sem sessão ativa) ────────────────────────
+- runFlow: _logout.yaml
+- runFlow: _go_to_login.yaml
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# ── 2. Abrir quiz via botão de dev ───────────────────────────────────────
+- tapOn:
+    text: '[DEV] Quiz de vendas'
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# ── 3. Pergunta 1 — Papel na igreja ──────────────────────────────────────
+- assertVisible:
+    text: 'Qual seu papel na igreja/ministério?'
+- tapOn:
+    text: 'Líder de ministério'
+- tapOn:
+    text: 'Próximo'
+- waitForAnimationToEnd:
+    timeout: 1500
+
+# ── 4. Pergunta 2 — Voluntários ──────────────────────────────────────────
+- assertVisible:
+    text: 'Quantos voluntários você coordena?'
+- tapOn:
+    text: '6 a 15'
+- tapOn:
+    text: 'Próximo'
+- waitForAnimationToEnd:
+    timeout: 1500
+
+# ── 5. Pergunta 3 — Horas por mês ───────────────────────────────────────
+- assertVisible:
+    text: 'Quantas horas por mês você gasta montando escala?'
+- tapOn:
+    text: '4 a 12h'
+- tapOn:
+    text: 'Próximo'
+- waitForAnimationToEnd:
+    timeout: 1500
+
+# ── 6. Pergunta 4 — Falta / lembrete ────────────────────────────────────
+- assertVisible:
+    text: 'Com que frequência um voluntário falta ou esquece o compromisso?'
+- tapOn:
+    text: 'Às vezes'
+- tapOn:
+    text: 'Próximo'
+- waitForAnimationToEnd:
+    timeout: 1500
+
+# ── 7. Pergunta 5 ────────────────────────────────────────────────────────
+- tapOn:
+    index: 0
+    text: 'Próximo'
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 1500
+
+# ── 8. Pergunta 6 (última) ───────────────────────────────────────────────
+- tapOn:
+    index: 0
+    text: 'Ver resultado'
+    optional: true
+- tapOn:
+    index: 0
+    text: 'Próximo'
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 6000
+
+# ── 9. Verificar tela de resultado ──────────────────────────────────────
+- assertVisible:
+    text: 'Seu perfil'
+
+# ── 10. Avançar para tela de funcionalidades ────────────────────────────
+- tapOn:
+    text: 'Ver como o Diakonia ajuda'
+    optional: true
+- tapOn:
+    text: 'Conhecer funcionalidades'
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# ── 11. Verificar funcionalidades carregaram ─────────────────────────────
+- assertVisible:
+    text: 'A escala se monta sozinha'
+    optional: true

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
+import Toast from 'react-native-toast-message';
 import FancyButton from '../../components/buttons/FancyButton';
 import FancyText from '../../components/FancyText';
 import QuizFlatLayout from '../../components/quiz/QuizFlatLayout';
@@ -8,8 +9,10 @@ import QuizSegmentedProgress from '../../components/quiz/QuizSegmentedProgress';
 import QuizIllustrationPlaceholder from '../../components/quiz/QuizIllustrationPlaceholder';
 import QuizAnswerOption from '../../components/quiz/QuizAnswerOption';
 import { usePallete } from '../../hooks/usePallete';
+import { useLoading } from '../../contexts/LoadingContext';
 import { AppImages } from '../../assets/app_images';
 import { QUIZ_VENDAS_QUESTIONS } from '../../constants/quizVendas';
+import { QuizVendasRepository } from '../../domain/services/QuizVendasRepository';
 
 const QUESTION_IMAGES = [
   AppImages.quizPergunta1,
@@ -19,9 +22,6 @@ const QUESTION_IMAGES = [
   AppImages.quizPergunta5,
   AppImages.quizPergunta6,
 ];
-import { QuizVendasRepository } from '../../domain/services/QuizVendasRepository';
-import { useLoading } from '../../contexts/LoadingContext';
-import Toast from 'react-native-toast-message';
 
 export default function QuizVendasPage() {
   const Pallete = usePallete();
@@ -58,6 +58,7 @@ export default function QuizVendasPage() {
         })),
       });
 
+      hideLoading();
       router.push({
         pathname: '/(auth)/quiz-vendas-resultado',
         params: { bucket: resultado.bucket, pontuacaoTotal: String(resultado.pontuacaoTotal) },

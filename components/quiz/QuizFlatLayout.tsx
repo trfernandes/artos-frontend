@@ -14,6 +14,8 @@ export type QuizFlatLayoutProps = {
   heroOverlay?: ReactNode;
   onPressBack?: () => void;
   showBackButton?: boolean;
+  /** Hero ocupa todo o espaço vertical sobrando (imagem preenche o vão) em vez de altura fixa. */
+  heroFlex?: boolean;
 };
 
 const BACK_BUTTON_SIZE = 40;
@@ -26,6 +28,7 @@ export default function QuizFlatLayout({
   heroOverlay,
   onPressBack,
   showBackButton = true,
+  heroFlex = false,
 }: QuizFlatLayoutProps) {
   const Pallete = usePallete();
   const insets = useSafeAreaInsets();
@@ -33,6 +36,18 @@ export default function QuizFlatLayout({
   return (
     <View style={[styles.root, { backgroundColor: Pallete.backgroundColor }]}>
       <SafeAreaView style={styles.safe} edges={['left', 'right']}>
+        {hero && (
+          <View
+            style={[
+              styles.hero,
+              heroFlex && styles.heroFlex,
+              { marginLeft: -insets.left, marginRight: -insets.right },
+            ]}
+          >
+            {hero}
+          </View>
+        )}
+
         {hero && (showBackButton || heroOverlay) && (
           <View
             style={[
@@ -71,11 +86,9 @@ export default function QuizFlatLayout({
           </View>
         )}
 
-        {hero && <View style={styles.hero}>{hero}</View>}
-
         <View
           style={[
-            styles.content,
+            heroFlex ? styles.contentAuto : styles.content,
             {
               paddingTop: hero ? 16 : insets.top + 16,
               paddingBottom: 10,
@@ -95,10 +108,11 @@ export default function QuizFlatLayout({
           )}
 
           <FancyScrollView
-            containerStyle={styles.scrollWrapper}
-            style={styles.scrollWrapper}
+            containerStyle={heroFlex ? undefined : styles.scrollWrapper}
+            style={heroFlex ? undefined : styles.scrollWrapper}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
+            scrollEnabled={!heroFlex}
           >
             {children}
           </FancyScrollView>
@@ -120,10 +134,17 @@ const styles = StyleSheet.create({
   hero: {
     width: '100%',
   },
+  heroFlex: {
+    flex: 1,
+  },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    position: 'relative',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 2,
     paddingHorizontal: 16,
     paddingBottom: 12,
   },
@@ -143,6 +164,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
   },
+  contentAuto: {
+    paddingHorizontal: 24,
+  },
   backButton: {
     height: 40,
     justifyContent: 'flex-start',
@@ -155,6 +179,7 @@ const styles = StyleSheet.create({
     minHeight: 0,
   },
   scrollContent: {
+    flexGrow: 1,
     gap: 16,
     paddingTop: 8,
     paddingBottom: 8,

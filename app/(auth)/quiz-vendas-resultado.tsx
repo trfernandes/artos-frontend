@@ -103,7 +103,7 @@ export default function QuizVendasResultadoPage() {
       footer={
         <FancyButton
           label='Quero resolver isso'
-          onPress={() => router.push('/(auth)/quiz-vendas-funcionalidades')}
+          onPress={() => router.push({ pathname: '/(auth)/quiz-vendas-funcionalidades', params: { bucket: params.bucket } })}
           labelStyle={{ color: Pallete.fonts.light }}
           containerStyle={{ backgroundColor: Pallete.terciary }}
         />
