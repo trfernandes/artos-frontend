@@ -1,5 +1,6 @@
 import { View, StyleSheet, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { ColorUtils } from '../../../utils/color_utils';
 import { router } from 'expo-router';
 import FancyText from '../../FancyText';
 import FancyAvatarImage from '../../images/FancyImage';
@@ -35,7 +36,7 @@ export default function DashboardGreeting({ nome, subtitulo }: DashboardGreeting
     >
       <View style={styles.row}>
         <View style={styles.textGroup}>
-          <FancyText size='extraSmall' type='mediumItalic' color='rgba(255,255,255,0.65)'>
+          <FancyText size='extraSmall' type='mediumItalic' color={ColorUtils.withAlpha(palette.fonts.light, 0.65)}>
             {hojeCapitalizado}
           </FancyText>
 
@@ -54,7 +55,7 @@ export default function DashboardGreeting({ nome, subtitulo }: DashboardGreeting
               <FancyText
                 size='extraSmall'
                 type='medium'
-                color='rgba(255,255,255,0.8)'
+                color={ColorUtils.withAlpha(palette.fonts.light, 0.8)}
                 numberOfLines={1}
                 ellipsizeMode='tail'
                 style={styles.subtitleText}
@@ -108,7 +109,7 @@ function createStyles(palette: ThemePalette) {
       backgroundColor: palette.backgroundColor,
       borderRadius: 100,
       borderWidth: 2,
-      borderColor: 'rgba(255,255,255,0.35)',
+      borderColor: ColorUtils.withAlpha(palette.fonts.light, 0.35),
     },
   });
 }

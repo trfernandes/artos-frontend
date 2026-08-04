@@ -54,7 +54,7 @@ export function FancyAlertProvider({ children }: { children: ReactNode }) {
         onRequestClose={() => setVisible(false)}
       >
         <View style={[styles.backdrop, { backgroundColor: palette.overlays.backdrop }]}>
-          <View style={[styles.card, { backgroundColor: palette.backgroundColor2 }]}>
+          <View style={[styles.card, { backgroundColor: palette.backgroundColor }]}>
             <View>
               {title ? (
                 isValidElement(title) ? (
@@ -91,7 +91,7 @@ export function FancyAlertProvider({ children }: { children: ReactNode }) {
                     shouldStackButtons && styles.buttonStacked,
                     btn.style === 'destructive' ? { backgroundColor: palette.error } : {},
                   ]}
-                  type={btn.style === 'default' ? 'outlined' : 'contained'}
+                  type={btn.style === 'cancel' ? 'text' : btn.style === 'default' ? 'outlined' : 'contained'}
                 />
               ))}
             </View>
@@ -127,7 +127,6 @@ export function FancyAlertConnector() {
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.42)',
     justifyContent: 'center',
     alignItems: 'center',
   },
