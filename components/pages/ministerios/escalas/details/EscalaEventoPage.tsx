@@ -506,7 +506,11 @@ export default function EscalaEventoPage({
             <FancyListEmpty
               icon={{ library: 'MaterialIcons', name: 'groups', size: 48 }}
               label='Nenhuma função criada'
-              helperText={isEditMode ? 'Toque em + Nova Função para adicionar' : undefined}
+              helperText={
+                isEditMode
+                  ? 'Toque em + Nova Função para adicionar'
+                  : 'As funções aparecem aqui quando forem definidas.'
+              }
               muted
             />
           ) : (
