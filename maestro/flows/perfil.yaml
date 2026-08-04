@@ -1,0 +1,5 @@
+appId: com.church.artos
+---
+- openLink: diakonia:///pessoal/perfil
+- waitForAnimationToEnd:
+    timeout: 4000

@@ -1,0 +1,70 @@
+appId: com.church.artos
+---
+# ═══════════════════════════════════════════════════════════════════
+# Teste: Criação de escala manual
+#
+# O que valida:
+#   1. FAB na lista de escalas exibe alerta "Nova escala"
+#   2. Opção "Criar manualmente" navega para manual.tsx
+#   3. Formulário com nome e datas é submetido com sucesso
+#   4. App redireciona para details.tsx da escala criada
+# ═══════════════════════════════════════════════════════════════════
+
+# ── 1. Navegar para escalas do ministério via drawer ─────────────────────
+- openLink: diakonia:///inicio
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- swipe:
+    direction: RIGHT
+    duration: 600
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- tapOn:
+    text: 'Ministério de Louvor'
+- waitForAnimationToEnd:
+    timeout: 1500
+
+- tapOn:
+    text: 'Escalas'
+- waitForAnimationToEnd:
+    timeout: 4000
+
+# ── 2. Abrir FAB ─────────────────────────────────────────────────────────
+- assertVisible:
+    text: 'Escalas'
+
+- tapOn:
+    point: '95%, 90%'
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# ── 3. Selecionar "Criar manualmente" no alerta ──────────────────────────
+- assertVisible:
+    text: 'Nova escala'
+- tapOn:
+    text: 'Criar manualmente'
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# ── 4. Preencher formulário de escala manual ─────────────────────────────
+- assertVisible:
+    text: 'Como quer chamar essa escala?'
+
+- tapOn:
+    text: 'Como quer chamar essa escala?'
+- inputText: 'Escala Manual Maestro'
+- hideKeyboard
+- waitForAnimationToEnd:
+    timeout: 1000
+
+# ── 5. Submeter (datas já têm defaults válidos) ──────────────────────────
+- tapOn:
+    text: 'Criar escala'
+- waitForAnimationToEnd:
+    timeout: 8000
+
+# ── 6. Verificar redirecionamento para details em modo edição ────────────
+- assertVisible:
+    text: 'Escala Manual Maestro'

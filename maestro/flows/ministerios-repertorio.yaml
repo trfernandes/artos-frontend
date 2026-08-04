@@ -1,0 +1,18 @@
+appId: com.church.artos
+---
+# 'Repertório' só aparece no drawer pra ministério tipo Louvor.
+- openLink: diakonia:///inicio
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    point: '6%,4%'
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn:
+    text: 'Ministério de Louvor'
+- waitForAnimationToEnd:
+    timeout: 1500
+- tapOn:
+    text: 'Repertório'
+- waitForAnimationToEnd:
+    timeout: 4000
