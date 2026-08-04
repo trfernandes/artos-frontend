@@ -18,8 +18,8 @@ import { useEscalasCrud } from '../../../../../hooks/useEscalaCrud';
 import { EscalaItemStatusEnum } from '../../../../../domain/enums/Escala/escala-item-status.enum';
 import { EscalaStatusEnum } from '../../../../../domain/enums/Escala/escala-status.enum';
 import { EscalaOrigemEnum } from '../../../../../domain/enums/Escala/escala-origem.enum';
-import FancyFab from '../../../../../components/buttons/FancyFab';
 import FancyScreenErrorHandler from '../../../../../components/error/FancyScreenErrorHandler';
+import FancyListEmpty from '../../../../../components/list/FancyListEmpty';
 import { EscalaRepository } from '../../../../../domain/services/EscalaRepository';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import Toast from 'react-native-toast-message';
@@ -763,7 +763,26 @@ export default function MinisterioEscalasDetailsPage() {
           </View>
         )}
 
-        {!isGerando && (
+        {!isGerando && eventosData.length === 0 && (
+          <FancyListEmpty
+            label='Nenhum evento adicionado'
+            helperText='A escala ainda não possui eventos.'
+            icon={{ library: 'MaterialCommunityIcons', name: 'calendar-text-outline', size: 68 }}
+            actionLabel={
+              escalaData[0].origem === EscalaOrigemEnum.Manual && (!viewMode || viewMode === 'edit') && !isBlockingScreen
+                ? 'Adicionar evento'
+                : undefined
+            }
+            actionIcon={{ library: 'MaterialIcons', name: 'playlist-add', size: 20 }}
+            onActionPress={
+              escalaData[0].origem === EscalaOrigemEnum.Manual && (!viewMode || viewMode === 'edit') && !isBlockingScreen
+                ? () => setIsAdicionarItemManualOpen(true)
+                : undefined
+            }
+          />
+        )}
+
+        {!isGerando && eventosData.length > 0 && (
           <EscalaHorizontalPager
             eventosData={eventosData}
             viewMode={viewMode}
@@ -778,19 +797,15 @@ export default function MinisterioEscalasDetailsPage() {
             onDeleteEvento={handleDeleteEvento}
             onAdicionarFuncao={handleAdicionarFuncao}
             onExcluirFuncao={handleExcluirFuncao}
+            onAdicionarEvento={
+              escalaData[0].origem === EscalaOrigemEnum.Manual && (!viewMode || viewMode === 'edit') && !isBlockingScreen
+                ? () => setIsAdicionarItemManualOpen(true)
+                : undefined
+            }
           />
         )}
       </FancyPageView>
 
-      {escalaData?.[0]?.origem === EscalaOrigemEnum.Manual &&
-        (!viewMode || viewMode === 'edit') &&
-        !isBlockingScreen &&
-        !isGerando && (
-          <FancyFab
-            icon={{ library: 'MaterialIcons', name: 'playlist-add', size: 28 }}
-            onPress={() => setIsAdicionarItemManualOpen(true)}
-          />
-        )}
 
       {isBlockingScreen && (
         <View style={[styles.blockingOverlay, { backgroundColor: ColorUtils.withAlpha(palette.fonts.dark, 0.12) }]} pointerEvents='auto'>

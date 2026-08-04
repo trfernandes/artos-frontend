@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
 import FancySteps from '../../../../../components/steps/FancySteps';
 import { FancyStepsConfig } from '../../../../../components/steps/FancyStepsConfig';
@@ -684,7 +684,9 @@ function AssistenteWrapper() {
       style={[styles.container, { pointerEvents: isGeneratingEscala ? 'none' : 'auto' }]}
     >
       {index === 0 && tour.showBanner && (
-        <TutorialBanner onStart={tour.start} onDismiss={tour.skip} />
+        <View style={styles.bannerWrapper}>
+          <TutorialBanner onStart={tour.start} onDismiss={tour.skip} />
+        </View>
       )}
       <FormProvider {...form}>
         <FancySteps
@@ -714,5 +716,6 @@ export default function MinisterioEscalasAssistenteIndex() {
 }
 
 const styles = StyleSheet.create({
-  container: { paddingVertical: 10, paddingHorizontal: 5 },
+  container: { paddingVertical: 10 },
+  bannerWrapper: { paddingHorizontal: 15, marginBottom: 8 },
 });

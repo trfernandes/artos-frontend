@@ -16,6 +16,15 @@ import { useEscalaNomeValidator } from '../../../../../hooks/useEscalaNomeValida
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import { DateUtilsApi } from '../../../../../utils/date_utils';
+import { TutorialBanner } from '../../../../../components/tutorial/TutorialBanner';
+import { TutorialOverlay } from '../../../../../components/tutorial/TutorialOverlay';
+import { TutorialTarget } from '../../../../../components/tutorial/TutorialTarget';
+import { useScreenTutorial } from '../../../../../hooks/useScreenTutorial';
+import {
+  ESCALA_MANUAL_TOUR_ID,
+  ESCALA_MANUAL_TOUR_STEPS,
+  ESCALA_MANUAL_TOUR_TITLE,
+} from '../../../../../components/tutorial/tours/escalasManualTour';
 
 const DUPLICATE_NAME_MESSAGE = 'Já existe uma escala com esse nome neste ministério.';
 
@@ -25,6 +34,7 @@ export default function EscalaManualPage() {
   const { showLoading, hideLoading } = useLoading();
   const { createManual, isCreatingManual } = useEscalasCrud();
   const { validateNomeDebounced, isCheckingName } = useEscalaNomeValidator(ministerioId);
+  const tour = useScreenTutorial(ESCALA_MANUAL_TOUR_ID, ESCALA_MANUAL_TOUR_TITLE, ESCALA_MANUAL_TOUR_STEPS);
 
   const dataAtual = new Date();
   const form = useForm({
@@ -93,18 +103,32 @@ export default function EscalaManualPage() {
   return (
     <FormProvider {...form}>
       <FancyPageView style={styles.container}>
+        {tour.showBanner && (
+          <View style={styles.bannerWrapper}>
+            <TutorialBanner onStart={tour.start} onDismiss={tour.skip} />
+          </View>
+        )}
+
         <FancyFormScrollView fill contentContainerStyle={styles.scrollContent}>
           <AssistenteParametrosStep isCheckingName={isCheckingName} onNomeBlur={handleNomeBlur} />
         </FancyFormScrollView>
 
         <View style={styles.footer}>
-          <FancyButton
-            label={!isCreatingManual ? 'Criar escala' : 'Criando...'}
-            disabled={isCreatingManual || isCheckingName}
-            icon={{ ...DefaultIconsNames.save, size: 14 }}
-            onPress={handleCriar}
-          />
+          <TutorialTarget
+            id='escala-manual-criar'
+            registerTarget={tour.registerTarget}
+            unregisterTarget={tour.unregisterTarget}
+          >
+            <FancyButton
+              label={!isCreatingManual ? 'Criar escala' : 'Criando...'}
+              disabled={isCreatingManual || isCheckingName}
+              icon={{ ...DefaultIconsNames.save, size: 14 }}
+              onPress={handleCriar}
+            />
+          </TutorialTarget>
         </View>
+
+        <TutorialOverlay tour={tour} />
       </FancyPageView>
     </FormProvider>
   );
@@ -112,6 +136,7 @@ export default function EscalaManualPage() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  bannerWrapper: { paddingHorizontal: 15, paddingTop: 10, marginBottom: 4 },
   scrollContent: { flexGrow: 1, paddingTop: 14, gap: 14, paddingHorizontal: 20, paddingBottom: 10 },
   footer: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 15 },
 });
