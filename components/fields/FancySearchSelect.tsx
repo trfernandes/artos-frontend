@@ -491,7 +491,7 @@ function FancySearchSelectInner<ValueItem>(
                 }}
                 ItemSeparatorComponent={() => <FancySeparator style={{ marginTop: 8 }} />}
                 keyExtractor={(item: DropDownItemProps<ValueItem>, index: number) =>
-                  String(item.value ?? index)
+                  `${index}_${String(item.value ?? '')}`
                 }
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
