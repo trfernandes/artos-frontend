@@ -91,13 +91,13 @@ export default function QuizVendasFuncionalidadesPage() {
         : Pallete.confirm;
 
   const stepColors = [
-    bucketAccent,        // step 0 — caos máximo
-    Pallete.terciary,    // step 1 — laranja, esfriando
-    Pallete.warning,     // step 2 — âmbar, ainda tenso
-    Pallete.secondary,   // step 3 — roxo, cruzamento quente↔frio
-    Pallete.primary,     // step 4 — azul, estruturado
-    Pallete.confirm,     // step 5 — verde, resolvido
-    Pallete.confirm,     // step 6 — paz
+    bucketAccent, // step 0 — caos máximo
+    Pallete.terciary, // step 1 — laranja, esfriando
+    Pallete.warning, // step 2 — âmbar, ainda tenso
+    Pallete.secondary, // step 3 — roxo, cruzamento quente↔frio
+    Pallete.primary, // step 4 — azul, estruturado
+    Pallete.confirm, // step 5 — verde, resolvido
+    Pallete.confirm, // step 6 — paz
   ];
   const accentColor = stepColors[stepIndex];
   const prevAccentColor = stepColors[Math.max(0, stepIndex - 1)];
@@ -203,14 +203,17 @@ export default function QuizVendasFuncionalidadesPage() {
     >
       {isCapaStep && (
         <Animated.View style={[styles.capaCard, slideStyle]}>
-          <View
-            style={[styles.pill, { backgroundColor: ColorUtils.withAlpha(bucketAccent, 0.2) }]}
-          >
+          <View style={[styles.pill, { backgroundColor: ColorUtils.withAlpha(bucketAccent, 0.2) }]}>
             <FancyText size='extraSmall' type='bold' color={bucketAccent} style={styles.pillText}>
               {bucketCopy.tag.toUpperCase()}
             </FancyText>
           </View>
-          <FancyText size='large' type='bold' color={Pallete.fonts.dark} style={styles.capaHeadline}>
+          <FancyText
+            size='large'
+            type='bold'
+            color={Pallete.fonts.dark}
+            style={styles.capaHeadline}
+          >
             {CAPA_HEADLINES[bucket]}
           </FancyText>
           <FancyText size='small' color={Pallete.fonts.inactive} style={styles.capaSubtitle}>
@@ -221,7 +224,12 @@ export default function QuizVendasFuncionalidadesPage() {
 
       {isFeatureStep && feature && (
         <Animated.View style={[styles.featureContent, slideStyle]}>
-          <FancyText size='extraSmall' type='bold' color={accentColor} style={styles.eyebrowCategory}>
+          <FancyText
+            size='extraSmall'
+            type='bold'
+            color={accentColor}
+            style={styles.eyebrowCategory}
+          >
             {feature.category}
           </FancyText>
           <FancyText size='large' type='bold' color={Pallete.fonts.dark}>

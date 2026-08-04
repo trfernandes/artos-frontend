@@ -34,7 +34,11 @@ export default function EscalaManualPage() {
   const { showLoading, hideLoading } = useLoading();
   const { createManual, isCreatingManual } = useEscalasCrud();
   const { validateNomeDebounced, isCheckingName } = useEscalaNomeValidator(ministerioId);
-  const tour = useScreenTutorial(ESCALA_MANUAL_TOUR_ID, ESCALA_MANUAL_TOUR_TITLE, ESCALA_MANUAL_TOUR_STEPS);
+  const tour = useScreenTutorial(
+    ESCALA_MANUAL_TOUR_ID,
+    ESCALA_MANUAL_TOUR_TITLE,
+    ESCALA_MANUAL_TOUR_STEPS,
+  );
 
   const dataAtual = new Date();
   const form = useForm({

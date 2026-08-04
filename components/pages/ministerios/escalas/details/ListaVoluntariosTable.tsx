@@ -32,7 +32,10 @@ export const VoluntarioStatusChipLabels: Record<EscalaItemStatusEnum, string> = 
   [EscalaItemStatusEnum.SubstituicaoSolicitada]: 'Aguard. aprovação',
 };
 
-export function getVoluntarioStatusChipParams(palette: ReturnType<typeof usePallete>, isDark: boolean) {
+export function getVoluntarioStatusChipParams(
+  palette: ReturnType<typeof usePallete>,
+  isDark: boolean,
+) {
   const alpha = isDark ? 0.2 : 0.14;
   return {
     [EscalaItemStatusEnum.Pendente]: {

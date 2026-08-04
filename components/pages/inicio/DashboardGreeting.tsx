@@ -36,7 +36,11 @@ export default function DashboardGreeting({ nome, subtitulo }: DashboardGreeting
     >
       <View style={styles.row}>
         <View style={styles.textGroup}>
-          <FancyText size='extraSmall' type='mediumItalic' color={ColorUtils.withAlpha(palette.fonts.light, 0.65)}>
+          <FancyText
+            size='extraSmall'
+            type='mediumItalic'
+            color={ColorUtils.withAlpha(palette.fonts.light, 0.65)}
+          >
             {hojeCapitalizado}
           </FancyText>
 

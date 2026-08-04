@@ -164,11 +164,7 @@ export default function AdminDiscoveryPage() {
               onPress={() => router.push('/(auth)/login')}
               labelStyle={{ color: Pallete.fonts.link }}
             />
-            <FancyText
-              size='extraSmall'
-              color={Pallete.fonts.inactive}
-              style={styles.helpText}
-            >
+            <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={styles.helpText}>
               {'Não sabe qual escolher? Peça o convite ao seu líder — ele chega por e-mail.'}
             </FancyText>
           </View>

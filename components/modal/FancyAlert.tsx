@@ -91,7 +91,13 @@ export function FancyAlertProvider({ children }: { children: ReactNode }) {
                     shouldStackButtons && styles.buttonStacked,
                     btn.style === 'destructive' ? { backgroundColor: palette.error } : {},
                   ]}
-                  type={btn.style === 'cancel' ? 'text' : btn.style === 'default' ? 'outlined' : 'contained'}
+                  type={
+                    btn.style === 'cancel'
+                      ? 'text'
+                      : btn.style === 'default'
+                        ? 'outlined'
+                        : 'contained'
+                  }
                 />
               ))}
             </View>

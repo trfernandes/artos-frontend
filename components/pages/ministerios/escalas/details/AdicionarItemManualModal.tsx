@@ -257,140 +257,142 @@ export default function AdicionarItemManualModal({
             <ActivityIndicator size='large' color={palette.primary} />
           </View>
         ) : (
-        <View style={{ gap: 8 }}>
-          {eventoGroups.length === 0 && (
-            <FancyText size='small' color={palette.fonts.inactive}>
-              Nenhum evento disponível no período.
-            </FancyText>
-          )}
+          <View style={{ gap: 8 }}>
+            {eventoGroups.length === 0 && (
+              <FancyText size='small' color={palette.fonts.inactive}>
+                Nenhum evento disponível no período.
+              </FancyText>
+            )}
 
-          <View style={{ gap: 10 }}>
-            {eventoGroups.map((grupo) => {
-              const isSelected = grupo.eventoId === selectedEventoId;
-              const showDatePicker = isSelected;
-              return (
-                <Pressable
-                  key={grupo.eventoId}
-                  onPress={() => handleSelectEvento(grupo)}
-                  disabled={isSubmitting}
-                  style={[
-                    styles.eventoCard,
-                    isSelected
-                      ? {
-                          borderColor: palette.primary,
-                          backgroundColor: ColorUtils.withAlpha(palette.primary, 0.06),
-                        }
-                      : {
-                          borderColor: 'transparent',
-                          backgroundColor: palette.backgroundColor2,
-                          ...palette.shadows[100],
-                        },
-                  ]}
-                >
-                  <View style={styles.eventoCardRow}>
-                    <View
-                      style={[
-                        styles.eventoIcon,
-                        { backgroundColor: ColorUtils.withAlpha(grupo.cor, 0.16) },
-                      ]}
-                    >
-                      <DefaultIcons.Custom
-                        library='MaterialCommunityIcons'
-                        name='calendar-outline'
-                        size={20}
-                        color={grupo.cor}
-                      />
-                    </View>
-                    <View style={{ flex: 1, gap: 2 }}>
-                      <FancyText type='semiBold' size='small' color={palette.fonts.dark}>
-                        {grupo.nome}
-                      </FancyText>
-                      <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                        {grupo.ocorrencias.length}{' '}
-                        {grupo.ocorrencias.length === 1 ? 'data no período' : 'datas no período'}
-                      </FancyText>
-                    </View>
-                    {isSelected && selectedOcorrenciaId && (
-                      <DefaultIcons.Custom
-                        library='MaterialCommunityIcons'
-                        name='check-circle'
-                        size={22}
-                        color={palette.primary}
-                      />
-                    )}
-                  </View>
-
-                  {showDatePicker && (
-                    <>
-                      <View style={[styles.dateDivider, { backgroundColor: palette.borderCard }]} />
-                      <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                        Escolha a data:
-                      </FancyText>
-                      <View style={styles.chipRow}>
-                        {grupo.ocorrencias.map((ocorrencia) => {
-                          const isChipSelected = ocorrencia.id === selectedOcorrenciaId;
-                          return (
-                            <Pressable
-                              key={ocorrencia.id}
-                              onPress={() => setSelectedOcorrenciaId(ocorrencia.id)}
-                              disabled={isSubmitting}
-                              style={[
-                                styles.chip,
-                                {
-                                  backgroundColor: isChipSelected
-                                    ? palette.primary
-                                    : palette.backgroundColor,
-                                  borderColor: isChipSelected
-                                    ? palette.primary
-                                    : palette.borderCard,
-                                },
-                              ]}
-                            >
-                              <FancyText
-                                type='semiBold'
-                                size='extraSmall'
-                                color={isChipSelected ? palette.fonts.light : palette.fonts.dark}
-                              >
-                                {format(ocorrencia.dataOcorrencia, 'EEE, dd MMM', {
-                                  locale: ptBR,
-                                })}
-                              </FancyText>
-                            </Pressable>
-                          );
-                        })}
+            <View style={{ gap: 10 }}>
+              {eventoGroups.map((grupo) => {
+                const isSelected = grupo.eventoId === selectedEventoId;
+                const showDatePicker = isSelected;
+                return (
+                  <Pressable
+                    key={grupo.eventoId}
+                    onPress={() => handleSelectEvento(grupo)}
+                    disabled={isSubmitting}
+                    style={[
+                      styles.eventoCard,
+                      isSelected
+                        ? {
+                            borderColor: palette.primary,
+                            backgroundColor: ColorUtils.withAlpha(palette.primary, 0.06),
+                          }
+                        : {
+                            borderColor: 'transparent',
+                            backgroundColor: palette.backgroundColor2,
+                            ...palette.shadows[100],
+                          },
+                    ]}
+                  >
+                    <View style={styles.eventoCardRow}>
+                      <View
+                        style={[
+                          styles.eventoIcon,
+                          { backgroundColor: ColorUtils.withAlpha(grupo.cor, 0.16) },
+                        ]}
+                      >
+                        <DefaultIcons.Custom
+                          library='MaterialCommunityIcons'
+                          name='calendar-outline'
+                          size={20}
+                          color={grupo.cor}
+                        />
                       </View>
-                    </>
-                  )}
-                </Pressable>
-              );
-            })}
-          </View>
+                      <View style={{ flex: 1, gap: 2 }}>
+                        <FancyText type='semiBold' size='small' color={palette.fonts.dark}>
+                          {grupo.nome}
+                        </FancyText>
+                        <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                          {grupo.ocorrencias.length}{' '}
+                          {grupo.ocorrencias.length === 1 ? 'data no período' : 'datas no período'}
+                        </FancyText>
+                      </View>
+                      {isSelected && selectedOcorrenciaId && (
+                        <DefaultIcons.Custom
+                          library='MaterialCommunityIcons'
+                          name='check-circle'
+                          size={22}
+                          color={palette.primary}
+                        />
+                      )}
+                    </View>
 
-          {selectedOcorrencia && (
-            <View style={{ gap: 14 }}>
-              <View style={[styles.dateDivider, { backgroundColor: palette.borderCard }]} />
-              <ControlledSearchSelect
-                control={control}
-                name='funcaoId'
-                label='Função'
-                placeholder='Buscar função...'
-                listItems={funcoesSearchList}
-                isLoading={isLoadingFuncoes}
-                disabled={isSubmitting || isLoadingFuncoes}
-                onChange={() => setValue('voluntarioId', null)}
-              />
-              <ControlledSearchSelect
-                control={control}
-                name='voluntarioId'
-                label='Voluntário (opcional)'
-                placeholder='Buscar voluntário...'
-                listItems={voluntariosSearchList}
-                isLoading={isLoadingMinisterioVoluntarios}
-                disabled={isSubmitting || isLoadingMinisterioVoluntarios}
-              />
+                    {showDatePicker && (
+                      <>
+                        <View
+                          style={[styles.dateDivider, { backgroundColor: palette.borderCard }]}
+                        />
+                        <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                          Escolha a data:
+                        </FancyText>
+                        <View style={styles.chipRow}>
+                          {grupo.ocorrencias.map((ocorrencia) => {
+                            const isChipSelected = ocorrencia.id === selectedOcorrenciaId;
+                            return (
+                              <Pressable
+                                key={ocorrencia.id}
+                                onPress={() => setSelectedOcorrenciaId(ocorrencia.id)}
+                                disabled={isSubmitting}
+                                style={[
+                                  styles.chip,
+                                  {
+                                    backgroundColor: isChipSelected
+                                      ? palette.primary
+                                      : palette.backgroundColor,
+                                    borderColor: isChipSelected
+                                      ? palette.primary
+                                      : palette.borderCard,
+                                  },
+                                ]}
+                              >
+                                <FancyText
+                                  type='semiBold'
+                                  size='extraSmall'
+                                  color={isChipSelected ? palette.fonts.light : palette.fonts.dark}
+                                >
+                                  {format(ocorrencia.dataOcorrencia, 'EEE, dd MMM', {
+                                    locale: ptBR,
+                                  })}
+                                </FancyText>
+                              </Pressable>
+                            );
+                          })}
+                        </View>
+                      </>
+                    )}
+                  </Pressable>
+                );
+              })}
             </View>
-          )}
-        </View>
+
+            {selectedOcorrencia && (
+              <View style={{ gap: 14 }}>
+                <View style={[styles.dateDivider, { backgroundColor: palette.borderCard }]} />
+                <ControlledSearchSelect
+                  control={control}
+                  name='funcaoId'
+                  label='Função'
+                  placeholder='Buscar função...'
+                  listItems={funcoesSearchList}
+                  isLoading={isLoadingFuncoes}
+                  disabled={isSubmitting || isLoadingFuncoes}
+                  onChange={() => setValue('voluntarioId', null)}
+                />
+                <ControlledSearchSelect
+                  control={control}
+                  name='voluntarioId'
+                  label='Voluntário (opcional)'
+                  placeholder='Buscar voluntário...'
+                  listItems={voluntariosSearchList}
+                  isLoading={isLoadingMinisterioVoluntarios}
+                  disabled={isSubmitting || isLoadingMinisterioVoluntarios}
+                />
+              </View>
+            )}
+          </View>
         )}
       </View>
     </FancyBottomSheetModal>

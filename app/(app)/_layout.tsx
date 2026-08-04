@@ -47,71 +47,71 @@ export default function RootLayout() {
         <MenuProvider>
           <ClickOutsideProvider>
             <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name='(drawer)' options={{ headerShown: false }} />
-                <Stack.Screen
-                  name='notifications'
-                  options={{
-                    headerShown: true,
-                    header: (headerParams) => (
-                      <FancyPageHeader
-                        leftButton={'back'}
-                        {...headerParams}
-                        options={{
-                          title: 'Notificações',
-                          headerRight: (options) => headerParams.options.headerRight?.(options),
-                        }}
-                      />
-                    ),
-                  }}
-                />
-                <Stack.Screen
-                  name='notification-detail'
-                  options={{
-                    headerShown: true,
-                    header: (headerParams) => (
-                      <FancyPageHeader
-                        leftButton={'back'}
-                        {...headerParams}
-                        options={{
-                          title: 'Detalhe da notificação',
-                        }}
-                      />
-                    ),
-                  }}
-                />
-                <Stack.Screen
-                  name='join-church/index'
-                  options={{
-                    headerShown: true,
-                    header: (headerParams) => (
-                      <FancyPageHeader
-                        leftButton={'back'}
-                        leftButtonOnPress={handleJoinChurchBackPress}
-                        {...headerParams}
-                        options={{
-                          title: 'Adicionar igreja',
-                        }}
-                      />
-                    ),
-                  }}
-                />
-                <Stack.Screen
-                  name='join-church/requests'
-                  options={{
-                    headerShown: true,
-                    header: (headerParams) => (
-                      <FancyPageHeader
-                        leftButton={'back'}
-                        leftButtonOnPress={handleJoinChurchBackPress}
-                        {...headerParams}
-                        options={{
-                          title: 'Minhas solicitações',
-                        }}
-                      />
-                    ),
-                  }}
-                />
-              </Stack>
+              <Stack.Screen name='(drawer)' options={{ headerShown: false }} />
+              <Stack.Screen
+                name='notifications'
+                options={{
+                  headerShown: true,
+                  header: (headerParams) => (
+                    <FancyPageHeader
+                      leftButton={'back'}
+                      {...headerParams}
+                      options={{
+                        title: 'Notificações',
+                        headerRight: (options) => headerParams.options.headerRight?.(options),
+                      }}
+                    />
+                  ),
+                }}
+              />
+              <Stack.Screen
+                name='notification-detail'
+                options={{
+                  headerShown: true,
+                  header: (headerParams) => (
+                    <FancyPageHeader
+                      leftButton={'back'}
+                      {...headerParams}
+                      options={{
+                        title: 'Detalhe da notificação',
+                      }}
+                    />
+                  ),
+                }}
+              />
+              <Stack.Screen
+                name='join-church/index'
+                options={{
+                  headerShown: true,
+                  header: (headerParams) => (
+                    <FancyPageHeader
+                      leftButton={'back'}
+                      leftButtonOnPress={handleJoinChurchBackPress}
+                      {...headerParams}
+                      options={{
+                        title: 'Adicionar igreja',
+                      }}
+                    />
+                  ),
+                }}
+              />
+              <Stack.Screen
+                name='join-church/requests'
+                options={{
+                  headerShown: true,
+                  header: (headerParams) => (
+                    <FancyPageHeader
+                      leftButton={'back'}
+                      leftButtonOnPress={handleJoinChurchBackPress}
+                      {...headerParams}
+                      options={{
+                        title: 'Minhas solicitações',
+                      }}
+                    />
+                  ),
+                }}
+              />
+            </Stack>
           </ClickOutsideProvider>
         </MenuProvider>
       </GestureHandlerRootView>

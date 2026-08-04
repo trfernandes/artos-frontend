@@ -291,7 +291,7 @@ export default function AddRegraModal({
                       todosSelected
                         ? { backgroundColor: palette.secondary, borderColor: palette.secondary }
                         : {
-                            backgroundColor: ColorUtils.withAlpha(palette.secondary, 0.10),
+                            backgroundColor: ColorUtils.withAlpha(palette.secondary, 0.1),
                             borderColor: ColorUtils.withAlpha(palette.secondary, 0.25),
                           },
                     ]}

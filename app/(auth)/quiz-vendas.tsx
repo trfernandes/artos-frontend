@@ -87,7 +87,9 @@ export default function QuizVendasPage() {
     <QuizFlatLayout
       onPressBack={voltar}
       showBackButton={!isFirstStep}
-      hero={<QuizIllustrationPlaceholder image={QUESTION_IMAGES[stepIndex]} height={220} fullBleed />}
+      hero={
+        <QuizIllustrationPlaceholder image={QUESTION_IMAGES[stepIndex]} height={220} fullBleed />
+      }
       heroOverlay={
         <>
           <FancyText
@@ -98,7 +100,10 @@ export default function QuizVendasPage() {
           >
             {`PERGUNTA ${stepIndex + 1} DE ${QUIZ_VENDAS_QUESTIONS.length}`}
           </FancyText>
-          <QuizSegmentedProgress totalSteps={QUIZ_VENDAS_QUESTIONS.length} currentStep={stepIndex} />
+          <QuizSegmentedProgress
+            totalSteps={QUIZ_VENDAS_QUESTIONS.length}
+            currentStep={stepIndex}
+          />
         </>
       }
       footer={

@@ -45,7 +45,6 @@ import {
 import { useJourney } from '../../../../../contexts/JourneyContext';
 import { usePallete } from '../../../../../hooks/usePallete';
 
-
 export type EscalaDoDiaAgrupada = {
   eventoId: string;
   evento: ResponseEscalaItemDto['evento'];

@@ -506,67 +506,65 @@ export default function EscalaEventoPage({
             <FancyListEmpty
               icon={{ library: 'MaterialIcons', name: 'groups', size: 48 }}
               label='Nenhuma função criada'
-              helperText={
-                isEditMode ? 'Toque em + Nova Função para adicionar' : undefined
-              }
+              helperText={isEditMode ? 'Toque em + Nova Função para adicionar' : undefined}
               muted
             />
           ) : (
-          <FancyScrollView contentContainerStyle={styles.equipeScrollContent}>
-            <ListaVoluntariosTable
-              data={data.equipe}
-              viewMode={viewMode}
-              accentColor={borderColor}
-              onSubstituicaoButtonPressed={(item) =>
-                setSubstituicaoModalProps({ isOpen: true, data: item })
-              }
-              onAdicionarVoluntarioButtonPressed={(item) =>
-                setAdicionarModalProps({ isOpen: true, data: item })
-              }
-              onRemoverVoluntarioPressed={(equipeItem) => {
-                FancyAlert.alert(
-                  'Remover voluntário',
-                  'Deseja remover o voluntário desta função? A função permanecerá vaga na escala.',
-                  [
-                    { text: 'Cancelar', style: 'cancel' },
-                    {
-                      text: 'Remover',
-                      style: 'destructive',
-                      onPress: async () => {
-                        try {
-                          showLoading('Removendo voluntário...');
-                          await onRemoveVoluntario?.(equipeItem.idEscalaItem);
-                        } finally {
-                          hideLoading();
-                        }
+            <FancyScrollView contentContainerStyle={styles.equipeScrollContent}>
+              <ListaVoluntariosTable
+                data={data.equipe}
+                viewMode={viewMode}
+                accentColor={borderColor}
+                onSubstituicaoButtonPressed={(item) =>
+                  setSubstituicaoModalProps({ isOpen: true, data: item })
+                }
+                onAdicionarVoluntarioButtonPressed={(item) =>
+                  setAdicionarModalProps({ isOpen: true, data: item })
+                }
+                onRemoverVoluntarioPressed={(equipeItem) => {
+                  FancyAlert.alert(
+                    'Remover voluntário',
+                    'Deseja remover o voluntário desta função? A função permanecerá vaga na escala.',
+                    [
+                      { text: 'Cancelar', style: 'cancel' },
+                      {
+                        text: 'Remover',
+                        style: 'destructive',
+                        onPress: async () => {
+                          try {
+                            showLoading('Removendo voluntário...');
+                            await onRemoveVoluntario?.(equipeItem.idEscalaItem);
+                          } finally {
+                            hideLoading();
+                          }
+                        },
                       },
-                    },
-                  ],
-                );
-              }}
-              onExcluirFuncaoPressed={(funcaoId) => {
-                FancyAlert.alert(
-                  'Excluir Função',
-                  'Deseja realmente excluir esta função do evento?',
-                  [
-                    { text: 'Cancelar', style: 'cancel' },
-                    {
-                      text: 'Excluir',
-                      style: 'destructive',
-                      onPress: async () => {
-                        try {
-                          showLoading('Excluindo função...');
-                          await onExcluirFuncao?.(funcaoId, data.evento.id, data.dataOcorrencia);
-                        } finally {
-                          hideLoading();
-                        }
+                    ],
+                  );
+                }}
+                onExcluirFuncaoPressed={(funcaoId) => {
+                  FancyAlert.alert(
+                    'Excluir Função',
+                    'Deseja realmente excluir esta função do evento?',
+                    [
+                      { text: 'Cancelar', style: 'cancel' },
+                      {
+                        text: 'Excluir',
+                        style: 'destructive',
+                        onPress: async () => {
+                          try {
+                            showLoading('Excluindo função...');
+                            await onExcluirFuncao?.(funcaoId, data.evento.id, data.dataOcorrencia);
+                          } finally {
+                            hideLoading();
+                          }
+                        },
                       },
-                    },
-                  ],
-                );
-              }}
-            />
-          </FancyScrollView>
+                    ],
+                  );
+                }}
+              />
+            </FancyScrollView>
           )}
         </View>
 
@@ -595,38 +593,39 @@ export default function EscalaEventoPage({
             )}
 
             <View style={[styles.pagerDots, !showNav && styles.pagerDotsHidden]}>
-              {showNav && (() => {
-                const total = pagerProps!.total;
-                const current = pagerProps!.currentIndex;
-                const MAX = 13;
-                let start = 0;
-                let end = total;
-                if (total > MAX) {
-                  start = Math.min(Math.max(0, current - Math.floor(MAX / 2)), total - MAX);
-                  end = start + MAX;
-                }
-                return Array.from({ length: end - start }, (_, k) => {
-                  const idx = start + k;
-                  const active = idx === current;
-                  const isEdge = total > MAX && (k === 0 || k === end - start - 1);
-                  const base = isEdge ? 4 : 6;
-                  return (
-                    <View
-                      key={idx}
-                      style={[
-                        styles.pagerDot,
-                        {
-                          width: active ? 8 : base,
-                          height: active ? 8 : base,
-                          backgroundColor: active
-                            ? borderColor
-                            : ColorUtils.withAlpha(borderColor, 0.25),
-                        },
-                      ]}
-                    />
-                  );
-                });
-              })()}
+              {showNav &&
+                (() => {
+                  const total = pagerProps!.total;
+                  const current = pagerProps!.currentIndex;
+                  const MAX = 13;
+                  let start = 0;
+                  let end = total;
+                  if (total > MAX) {
+                    start = Math.min(Math.max(0, current - Math.floor(MAX / 2)), total - MAX);
+                    end = start + MAX;
+                  }
+                  return Array.from({ length: end - start }, (_, k) => {
+                    const idx = start + k;
+                    const active = idx === current;
+                    const isEdge = total > MAX && (k === 0 || k === end - start - 1);
+                    const base = isEdge ? 4 : 6;
+                    return (
+                      <View
+                        key={idx}
+                        style={[
+                          styles.pagerDot,
+                          {
+                            width: active ? 8 : base,
+                            height: active ? 8 : base,
+                            backgroundColor: active
+                              ? borderColor
+                              : ColorUtils.withAlpha(borderColor, 0.25),
+                          },
+                        ]}
+                      />
+                    );
+                  });
+                })()}
             </View>
 
             <View style={styles.pagerNavRight}>

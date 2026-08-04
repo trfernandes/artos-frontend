@@ -95,7 +95,10 @@ export default function QuizVendasResultadoPage() {
             onPress={() => router.back()}
             containerStyle={[
               styles.backButtonOverlay,
-              { top: insets.top + 8, backgroundColor: ColorUtils.withAlpha(Pallete.backgroundColor, 0.85) },
+              {
+                top: insets.top + 8,
+                backgroundColor: ColorUtils.withAlpha(Pallete.backgroundColor, 0.85),
+              },
             ]}
           />
         </View>
@@ -103,7 +106,12 @@ export default function QuizVendasResultadoPage() {
       footer={
         <FancyButton
           label='Quero resolver isso'
-          onPress={() => router.push({ pathname: '/(auth)/quiz-vendas-funcionalidades', params: { bucket: params.bucket } })}
+          onPress={() =>
+            router.push({
+              pathname: '/(auth)/quiz-vendas-funcionalidades',
+              params: { bucket: params.bucket },
+            })
+          }
           labelStyle={{ color: Pallete.fonts.light }}
           containerStyle={{ backgroundColor: Pallete.terciary }}
         />
@@ -191,7 +199,11 @@ export default function QuizVendasResultadoPage() {
               {donutSegments.map((metrica) => (
                 <View key={metrica.label} style={styles.metricaRow}>
                   <View style={[styles.metricaDot, { backgroundColor: metrica.color }]} />
-                  <FancyText size='extraSmall' color={Pallete.fonts.dark} style={styles.metricaLabel}>
+                  <FancyText
+                    size='extraSmall'
+                    color={Pallete.fonts.dark}
+                    style={styles.metricaLabel}
+                  >
                     {metrica.label}
                   </FancyText>
                   <FancyText size='extraSmall' type='bold' color={Pallete.fonts.dark}>

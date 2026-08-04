@@ -16,7 +16,7 @@ if (!FAL_KEY) {
   process.exit(1);
 }
 
-const OUT_DIR   = path.join(__dirname, '..', 'assets', 'images', 'admin-discovery-v1');
+const OUT_DIR = path.join(__dirname, '..', 'assets', 'images', 'admin-discovery-v1');
 const ASSETS_DIR = path.join(__dirname, '..', 'assets', 'images');
 const STYLE_REF_PATH = 'D:/Downloads/Diakonia/pergunta 5.jpeg';
 
@@ -71,7 +71,11 @@ async function uploadStyleRef() {
     body: JSON.stringify({ file_name: 'ref.jpeg', content_type: 'image/jpeg' }),
   });
   const { upload_url, file_url } = await initRes.json();
-  await fetch(upload_url, { method: 'PUT', body: bytes, headers: { 'Content-Type': 'image/jpeg' } });
+  await fetch(upload_url, {
+    method: 'PUT',
+    body: bytes,
+    headers: { 'Content-Type': 'image/jpeg' },
+  });
   console.log('✓ Style ref uploaded:', file_url);
   return file_url;
 }
@@ -116,9 +120,9 @@ async function generateOne(item, styleRefUrl) {
 async function main() {
   const args = process.argv.slice(2);
   const doPublish = args.includes('--publish');
-  const doAll = !args.filter(a => a.startsWith('--') && a !== '--publish').length;
+  const doAll = !args.filter((a) => a.startsWith('--') && a !== '--publish').length;
 
-  const targets = ILLUSTRATIONS.filter(item => {
+  const targets = ILLUSTRATIONS.filter((item) => {
     if (doAll) return true;
     return args.includes(`--${item.key}`);
   });
@@ -148,4 +152,7 @@ async function main() {
   console.log('\nConcluído.');
 }
 
-main().catch(err => { console.error(err); process.exit(1); });
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

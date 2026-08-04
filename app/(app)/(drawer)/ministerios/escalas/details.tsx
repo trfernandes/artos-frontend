@@ -769,13 +769,17 @@ export default function MinisterioEscalasDetailsPage() {
             helperText='A escala ainda não possui eventos.'
             icon={{ library: 'MaterialCommunityIcons', name: 'calendar-text-outline', size: 68 }}
             actionLabel={
-              escalaData[0].origem === EscalaOrigemEnum.Manual && (!viewMode || viewMode === 'edit') && !isBlockingScreen
+              escalaData[0].origem === EscalaOrigemEnum.Manual &&
+              (!viewMode || viewMode === 'edit') &&
+              !isBlockingScreen
                 ? 'Adicionar evento'
                 : undefined
             }
             actionIcon={{ library: 'MaterialIcons', name: 'playlist-add', size: 20 }}
             onActionPress={
-              escalaData[0].origem === EscalaOrigemEnum.Manual && (!viewMode || viewMode === 'edit') && !isBlockingScreen
+              escalaData[0].origem === EscalaOrigemEnum.Manual &&
+              (!viewMode || viewMode === 'edit') &&
+              !isBlockingScreen
                 ? () => setIsAdicionarItemManualOpen(true)
                 : undefined
             }
@@ -798,7 +802,9 @@ export default function MinisterioEscalasDetailsPage() {
             onAdicionarFuncao={handleAdicionarFuncao}
             onExcluirFuncao={handleExcluirFuncao}
             onAdicionarEvento={
-              escalaData[0].origem === EscalaOrigemEnum.Manual && (!viewMode || viewMode === 'edit') && !isBlockingScreen
+              escalaData[0].origem === EscalaOrigemEnum.Manual &&
+              (!viewMode || viewMode === 'edit') &&
+              !isBlockingScreen
                 ? () => setIsAdicionarItemManualOpen(true)
                 : undefined
             }
@@ -806,10 +812,20 @@ export default function MinisterioEscalasDetailsPage() {
         )}
       </FancyPageView>
 
-
       {isBlockingScreen && (
-        <View style={[styles.blockingOverlay, { backgroundColor: ColorUtils.withAlpha(palette.fonts.dark, 0.12) }]} pointerEvents='auto'>
-          <View style={[styles.blockingOverlayContent, { backgroundColor: ColorUtils.withAlpha(palette.backgroundColor, 0.96) }]}>
+        <View
+          style={[
+            styles.blockingOverlay,
+            { backgroundColor: ColorUtils.withAlpha(palette.fonts.dark, 0.12) },
+          ]}
+          pointerEvents='auto'
+        >
+          <View
+            style={[
+              styles.blockingOverlayContent,
+              { backgroundColor: ColorUtils.withAlpha(palette.backgroundColor, 0.96) },
+            ]}
+          >
             <FancyLoading label={blockingLabel} containerStyle={{ flex: 0 }} />
           </View>
         </View>

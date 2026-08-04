@@ -20,9 +20,7 @@ export function TutorialBanner({ onStart, onDismiss }: TutorialBannerProps) {
         { backgroundColor: ColorUtils.blendOver(Pallete.primary, 0.08, Pallete.backgroundColor) },
       ]}
     >
-      <View
-        style={[styles.icon, { backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.14) }]}
-      >
+      <View style={[styles.icon, { backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.14) }]}>
         <DefaultIcons.Custom
           library='MaterialCommunityIcons'
           name='lightbulb-on-outline'
