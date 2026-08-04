@@ -15,6 +15,7 @@ import FancySegmentedControl from '../../../fields/FancySegmentedControl';
 import { usePallete } from '../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../hooks/useThemedStyles';
 import { ThemePalette } from '../../../../constants/colors';
+import { ColorUtils } from '../../../../utils/color_utils';
 import { RegraIndisponibilidadeTipo } from '../../../../domain/dtos/RegraIndisponibilidadeVoluntario/regra-indisponibilidade-voluntario.response';
 
 const DIAS_NOMES = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -67,7 +68,7 @@ const schema = z
     dataFim: z.date().nullable().optional(),
     recorrente: z.boolean().optional(),
     limiteMensal: z.number().optional(),
-    motivo: z.string().min(1, 'Informe o motivo').max(255, 'Máximo de 255 caracteres'),
+    motivo: z.string().trim().min(1, 'Informe o motivo').max(255, 'Máximo de 255 caracteres'),
   })
   .superRefine((val, ctx) => {
     if (val.tipo === 'DIAS_SEMANA' && (!val.diasSemana || val.diasSemana.length === 0)) {
@@ -100,12 +101,21 @@ const schema = z
         });
       }
     }
-    if (val.tipo === 'LIMITE_MENSAL' && (!val.limiteMensal || val.limiteMensal < 1)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['limiteMensal'],
-        message: 'Informe o limite (mínimo 1)',
-      });
+    if (val.tipo === 'LIMITE_MENSAL') {
+      if (!val.limiteMensal || val.limiteMensal < 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['limiteMensal'],
+          message: 'Informe o limite (mínimo 1)',
+        });
+      }
+      if (!val.dataInicio) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['dataInicio'],
+          message: 'Data de início obrigatória',
+        });
+      }
     }
   });
 
@@ -218,6 +228,9 @@ export default function AddRegraModal({
       result.recorrente = values.recorrente;
     } else if (values.tipo === 'LIMITE_MENSAL') {
       result.limiteMensal = values.limiteMensal;
+      result.dataInicio = values.dataInicio
+        ? values.dataInicio.toISOString().slice(0, 10)
+        : undefined;
     }
     result.motivo = values.motivo.trim();
     onConfirm(result);
@@ -235,7 +248,6 @@ export default function AddRegraModal({
       visible={visible}
       onClose={handleClose}
       title={isEditing ? 'Editar regra de indisponibilidade' : 'Nova regra de indisponibilidade'}
-      keyboardExtraOffset={0}
       footer={
         <View style={styles.footerActions}>
           <FancyButton
@@ -268,6 +280,32 @@ export default function AddRegraModal({
             </FancyText>
             {errors.diasSemana && <FancyErrorText message={errors.diasSemana.message as string} />}
             <View style={styles.chipRow}>
+              {(() => {
+                const todosSelected = TODOS_DIAS.every((d) => diasSemana.includes(d));
+                return (
+                  <AnimatedDiaChip
+                    onPress={() => setAtalho(todosSelected ? [] : TODOS_DIAS)}
+                    isSelected={todosSelected}
+                    style={[
+                      styles.chip,
+                      todosSelected
+                        ? { backgroundColor: palette.secondary, borderColor: palette.secondary }
+                        : {
+                            backgroundColor: ColorUtils.withAlpha(palette.secondary, 0.10),
+                            borderColor: ColorUtils.withAlpha(palette.secondary, 0.25),
+                          },
+                    ]}
+                  >
+                    <FancyText
+                      size='small'
+                      type='bold'
+                      color={todosSelected ? palette.fonts.light : palette.secondary}
+                    >
+                      Todos
+                    </FancyText>
+                  </AnimatedDiaChip>
+                );
+              })()}
               {DIAS_NOMES.map((nome, idx) => {
                 const sel = diasSemana.includes(idx);
                 return (
@@ -280,8 +318,8 @@ export default function AddRegraModal({
                       sel
                         ? { backgroundColor: palette.primary, borderColor: palette.primary }
                         : {
-                            backgroundColor: `${palette.primary}15`,
-                            borderColor: `${palette.primary}30`,
+                            backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
+                            borderColor: ColorUtils.withAlpha(palette.primary, 0.19),
                           },
                     ]}
                   >
@@ -295,32 +333,6 @@ export default function AddRegraModal({
                   </AnimatedDiaChip>
                 );
               })}
-              {(() => {
-                const todosSelected = TODOS_DIAS.every((d) => diasSemana.includes(d));
-                return (
-                  <AnimatedDiaChip
-                    onPress={() => setAtalho(todosSelected ? [] : TODOS_DIAS)}
-                    isSelected={todosSelected}
-                    style={[
-                      styles.chip,
-                      todosSelected
-                        ? { backgroundColor: palette.primary, borderColor: palette.primary }
-                        : {
-                            backgroundColor: `${palette.primary}15`,
-                            borderColor: `${palette.primary}30`,
-                          },
-                    ]}
-                  >
-                    <FancyText
-                      size='small'
-                      type='bold'
-                      color={todosSelected ? palette.fonts.light : palette.primary}
-                    >
-                      Todos
-                    </FancyText>
-                  </AnimatedDiaChip>
-                );
-              })()}
             </View>
           </View>
         )}
@@ -350,8 +362,10 @@ export default function AddRegraModal({
               min={1}
               max={31}
             />
+            <ControlledDateInput control={control} name='dataInicio' label='A partir de' />
             <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
-              Você não será escalado mais que este número de vezes em um mesmo mês.
+              Você não será escalado mais que este número de vezes em um mesmo mês, a partir da data
+              escolhida.
             </FancyText>
           </View>
         )}

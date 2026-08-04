@@ -320,7 +320,7 @@ function createStyles(palette: ThemePalette) {
     container: { paddingBottom: 10, flex: 1, paddingHorizontal: 20 },
     loadingOverlay: {
       ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(0,0,0,0.35)',
+      backgroundColor: palette.overlays.backdrop,
       justifyContent: 'center',
       alignItems: 'center',
       zIndex: 999,
