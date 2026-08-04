@@ -4,9 +4,13 @@ import Toast from 'react-native-toast-message';
 import { emitNotificationEvent } from '../core/events/notification-events';
 import { openNotification } from '../services/notification-routing';
 import { NotificacaoTipoEnum } from '../domain/enums/Notificacao/tipo-notificacao.enum';
+import { useAuth } from '../contexts/AuthContext';
 
 export function NotificationsManager() {
+  const { refreshMe } = useAuth();
   const lastResponseHandled = useRef(false);
+  const refreshMeRef = useRef(refreshMe);
+  refreshMeRef.current = refreshMe;
 
   useEffect(() => {
     // Cold-start: app aberto do estado "killed" via toque na notificação
@@ -18,7 +22,7 @@ export function NotificationsManager() {
         const data = lastResponse.notification.request.content.data as any;
         console.log('[Notifications] Cold-start notification:', data);
         // Delay para garantir que a navegação esteja pronta
-        setTimeout(() => openNotification(data, 'push'), 500);
+        setTimeout(() => openNotification(data, 'push', refreshMeRef.current), 500);
       }
     };
     handleLastNotification();
@@ -51,7 +55,7 @@ export function NotificationsManager() {
       lastResponseHandled.current = true;
       const data = response.notification.request.content.data as any;
       console.log('[Notifications] Clicada, data:', data);
-      openNotification(data, 'push');
+      openNotification(data, 'push', refreshMeRef.current);
     });
 
     return () => {
