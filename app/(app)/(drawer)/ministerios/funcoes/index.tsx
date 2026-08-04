@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import FuncaoFormModal from '../../../../../components/pages/ministerios/funcoes/FuncaoFormModal';
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
 import { useMinisterioFuncoesCrud } from '../../../../../hooks/useMinisterioFuncoesCrud';
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+import { useFocusRefetch } from '../../../../../hooks/useFocusRefetch';
 import {
   Condition,
   DynamicQuery,
@@ -102,17 +103,22 @@ export default function MinisterioFuncoesIndex() {
     isLoading,
     isLoadingMutation,
     refetch,
-    isRefetching,
   } = useMinisterioFuncoesCrud({
     initialParams: searchParams,
     autoFetch: true,
   });
 
-  useFocusEffect(
-    useCallback(() => {
-      refetch();
-    }, [refetch]),
-  );
+  const { isFocusLoading } = useFocusRefetch(refetch);
+
+  const [isPullRefreshing, setIsPullRefreshing] = useState(false);
+  const handlePullRefresh = useCallback(async () => {
+    setIsPullRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setIsPullRefreshing(false);
+    }
+  }, [refetch]);
 
   const handleConfirm = useCallback(
     async ({
@@ -185,6 +191,7 @@ export default function MinisterioFuncoesIndex() {
         unregisterTarget: tour.unregisterTarget,
       }}
       showSearchBar
+      contentLoading={isFocusLoading}
       searchBarProps={{
         value: searchText,
         onSearch: setSearchText,
@@ -193,8 +200,8 @@ export default function MinisterioFuncoesIndex() {
         tour.showBanner ? <TutorialBanner onStart={tour.start} onDismiss={tour.skip} /> : undefined
       }
       listProps={{
-        onRefresh: refetch,
-        refreshing: isRefetching,
+        onRefresh: handlePullRefresh,
+        refreshing: isPullRefreshing,
         listEmptyProps: {
           label: searchText ? 'Nenhuma função encontrada' : 'Nenhuma função cadastrada',
           icon: { library: 'MaterialCommunityIcons', name: 'account-cog-outline', size: 68 },

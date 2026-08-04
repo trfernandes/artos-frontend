@@ -1,4 +1,5 @@
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useFocusRefetch } from '../../../../../hooks/useFocusRefetch';
 import { StyleSheet, View } from 'react-native';
 import FancyListItemCard from '../../../../../components/cards/FancyListItemCard';
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
@@ -98,17 +99,22 @@ export default function MinisterioTemplateEquipeIndex() {
     isLoading,
     isLoadingMutation,
     refetch,
-    isRefetching,
   } = useEscalaTemplatesCrud({
     autoFetch: Boolean(ministerioId),
     initialParams: searchParams,
   });
 
-  useFocusEffect(
-    useCallback(() => {
-      refetch();
-    }, [refetch]),
-  );
+  const { isFocusLoading } = useFocusRefetch(refetch);
+
+  const [isPullRefreshing, setIsPullRefreshing] = useState(false);
+  const handlePullRefresh = useCallback(async () => {
+    setIsPullRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setIsPullRefreshing(false);
+    }
+  }, [refetch]);
 
   const handleSearch = useCallback((value: string) => {
     setSearchText(value.trim());
@@ -175,6 +181,7 @@ export default function MinisterioTemplateEquipeIndex() {
         unregisterTarget: tour.unregisterTarget,
       }}
       showSearchBar
+      contentLoading={isFocusLoading}
       searchBarProps={{ value: searchText, onSearch: handleSearch }}
       topContent={
         <View style={styles.topContainer}>
@@ -201,8 +208,8 @@ export default function MinisterioTemplateEquipeIndex() {
         </View>
       }
       listProps={{
-        onRefresh: refetch,
-        refreshing: isRefetching,
+        onRefresh: handlePullRefresh,
+        refreshing: isPullRefreshing,
         listEmptyProps: {
           label: searchText ? 'Nenhum template encontrado' : 'Nenhum template cadastrado',
           icon: { library: 'MaterialCommunityIcons', name: 'file-document-outline', size: 68 },
