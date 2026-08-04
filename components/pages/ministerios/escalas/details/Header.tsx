@@ -90,7 +90,7 @@ export default function Header({
     ? [
         {
           key: 'parametrizacao',
-          icon: { library: 'MaterialIcons' as const, name: 'tune' },
+          icon: { library: 'MaterialCommunityIcons' as const, name: 'tune' },
           label: 'Ver parâmetros',
           variant: 'neutral' as const,
           disabled: isScreenBlocked,
@@ -122,9 +122,9 @@ export default function Header({
           ...(primaryStatusAction ? [primaryStatusAction] : []),
           {
             key: 'publish',
-            icon: { library: 'MaterialIcons' as const, name: 'rocket-launch' },
+            icon: { library: 'MaterialCommunityIcons' as const, name: 'rocket-launch-outline' },
             label: 'Publicar escala',
-            variant: 'neutral' as const,
+            variant: primaryStatusAction ? ('neutral' as const) : ('primary' as const),
             isLoading: isPublishing,
             disabled: isScreenBlocked,
             onPress: onPublishPress,
@@ -139,7 +139,7 @@ export default function Header({
         ...parametrizacaoAction,
         {
           key: 'delete',
-          icon: { library: 'MaterialIcons' as const, name: 'delete-outline' },
+          icon: { library: 'MaterialCommunityIcons' as const, name: 'delete-outline' },
           label: 'Excluir escala',
           variant: 'danger' as const,
           disabled: isScreenBlocked,
@@ -153,12 +153,12 @@ export default function Header({
       <EscalaHeader
         title={escala.nome}
         status={escala.status}
+        origem={escala.origem}
         periodStart={periodStart}
         periodEnd={periodEnd}
         confirmedCount={confirmedCount}
         totalCount={totalCount}
         statusDistribution={statusDistribution}
-        variant='default'
         actions={actions.length ? actions : undefined}
       />
     </View>

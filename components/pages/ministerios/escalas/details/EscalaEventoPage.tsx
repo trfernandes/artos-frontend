@@ -20,6 +20,7 @@ import FancyBottomSheetSelect, {
 } from '../../../../fields/FancyBottomSheetSelect';
 import DefaultIcons from '../../../../FancyIcons';
 import FancyActionSheet, { FancyActionSheetItem } from '../../../../actions/FancyActionSheet';
+import FancyListEmpty from '../../../../list/FancyListEmpty';
 import { FancyAlert } from '../../../../modal/FancyAlert';
 import ScaleFillIndicator from '../../../../indicators/ScaleFillIndicator';
 import ListaVoluntariosTable from './ListaVoluntariosTable';
@@ -54,6 +55,7 @@ export interface EscalaEventoPageProps {
   onDeleteEvento?: (eventoId: string, dataOcorrencia: string) => Promise<boolean>;
   onAdicionarFuncao?: (data: AdicionarFuncaoConfirmDialog) => Promise<boolean>;
   onExcluirFuncao?: (funcaoId: string, eventoId: string, dataOcorrencia: string) => Promise<void>;
+  onAdicionarEvento?: () => void;
   canEditSetlistOwner?: boolean;
   isUpdatingSetlistOwner?: boolean;
   onUpdateResponsavelSetlist?: (data: {
@@ -75,6 +77,7 @@ export default function EscalaEventoPage({
   onDeleteEvento,
   onAdicionarFuncao,
   onExcluirFuncao,
+  onAdicionarEvento,
   canEditSetlistOwner,
   isUpdatingSetlistOwner,
   onUpdateResponsavelSetlist,
@@ -241,9 +244,14 @@ export default function EscalaEventoPage({
     });
   }
 
-  const renderSectionEyebrow = (label: string) => (
+  const renderSectionEyebrow = (label: string, iconName: string) => (
     <View style={styles.sectionEyebrow}>
-      <View style={[styles.sectionEyebrowTick, { backgroundColor: accentLabelColor }]} />
+      <DefaultIcons.Custom
+        library='MaterialIcons'
+        name={iconName}
+        size={12}
+        color={accentLabelColor}
+      />
       <FancyText
         type='semiBold'
         size={10}
@@ -262,9 +270,9 @@ export default function EscalaEventoPage({
         style={[
           styles.unifiedCard,
           {
-            borderColor: ColorUtils.withAlpha(borderColor, 0.28),
+            borderColor: palette.borderCard,
+            borderTopColor: borderColor,
             backgroundColor: palette.backgroundColor,
-            borderLeftColor: borderColor,
           },
         ]}
       >
@@ -272,7 +280,7 @@ export default function EscalaEventoPage({
         <View style={styles.eventSection}>
           {/* Linha 1: label "Evento" + ações */}
           <View style={styles.eventHeaderTopRow}>
-            <View style={styles.eventLabelGroup}>{renderSectionEyebrow('Evento')}</View>
+            <View style={styles.eventLabelGroup}>{renderSectionEyebrow('Evento', 'event')}</View>
 
             <View style={styles.eventHeaderActions}>
               <FancyButton
@@ -378,7 +386,7 @@ export default function EscalaEventoPage({
         </View>
 
         {/* ── Divisor → Setlist ─────────────────────────────────────────────── */}
-        <View style={styles.sectionDivider}>{renderSectionEyebrow('Setlist')}</View>
+        <View style={styles.sectionDivider}>{renderSectionEyebrow('Setlist', 'music-note')}</View>
 
         {/* ── Seção Setlist ─────────────────────────────────────────────────── */}
         <View style={styles.setlistSection}>
@@ -473,7 +481,7 @@ export default function EscalaEventoPage({
 
         {/* ── Divisor → Equipe ──────────────────────────────────────────────── */}
         <View style={styles.sectionDivider}>
-          {renderSectionEyebrow('Equipe')}
+          {renderSectionEyebrow('Equipe', 'people')}
           {isEditMode && (
             <FancyButton
               type='text'
@@ -494,6 +502,16 @@ export default function EscalaEventoPage({
 
         {/* ── Seção Equipe ──────────────────────────────────────────────────── */}
         <View style={styles.equipeSection}>
+          {data.equipe.filter((item) => !!item.funcao?.id).length === 0 ? (
+            <FancyListEmpty
+              icon={{ library: 'MaterialIcons', name: 'groups', size: 48 }}
+              label='Nenhuma função criada'
+              helperText={
+                isEditMode ? 'Toque em + Nova Função para adicionar' : undefined
+              }
+              muted
+            />
+          ) : (
           <FancyScrollView contentContainerStyle={styles.equipeScrollContent}>
             <ListaVoluntariosTable
               data={data.equipe}
@@ -549,33 +567,35 @@ export default function EscalaEventoPage({
               }}
             />
           </FancyScrollView>
+          )}
         </View>
 
-        {/* ── Rodapé: navegação entre eventos (‹ 3 / 13 ›) ──────────────────── */}
-        {showNav && (
+        {/* ── Rodapé: navegação entre eventos (‹ 3 / 13 ›) + adicionar ──────── */}
+        {(showNav || onAdicionarEvento) && (
           <View style={styles.pagerFooter}>
-            {/* Voltar — outlined (par de navegação: só o avanço é preenchido) */}
-            <FancyButton
-              type='outlined'
-              mode='icon'
-              size={{ w: 30, h: 30 }}
-              disabled={isFirst}
-              icon={{
-                library: 'MaterialIcons',
-                name: 'chevron-left',
-                size: 20,
-                color: isFirst ? ColorUtils.withAlpha(borderColor, 0.3) : borderColor,
-              }}
-              containerStyle={[
-                styles.pagerNavButton,
-                { borderColor: ColorUtils.withAlpha(borderColor, isFirst ? 0.2 : 0.5) },
-              ]}
-              onPress={pagerProps!.onPrev}
-              accessibilityLabel='Evento anterior'
-            />
+            {showNav && (
+              <FancyButton
+                type='outlined'
+                mode='icon'
+                size={{ w: 30, h: 30 }}
+                disabled={isFirst}
+                icon={{
+                  library: 'MaterialIcons',
+                  name: 'chevron-left',
+                  size: 20,
+                  color: isFirst ? ColorUtils.withAlpha(borderColor, 0.3) : borderColor,
+                }}
+                containerStyle={[
+                  styles.pagerNavButton,
+                  { borderColor: ColorUtils.withAlpha(borderColor, isFirst ? 0.2 : 0.5) },
+                ]}
+                onPress={pagerProps!.onPrev}
+                accessibilityLabel='Evento anterior'
+              />
+            )}
 
-            <View style={styles.pagerDots}>
-              {(() => {
+            <View style={[styles.pagerDots, !showNav && styles.pagerDotsHidden]}>
+              {showNav && (() => {
                 const total = pagerProps!.total;
                 const current = pagerProps!.currentIndex;
                 const MAX = 13;
@@ -609,28 +629,56 @@ export default function EscalaEventoPage({
               })()}
             </View>
 
-            {/* Avançar — preenchido (ação de avanço do par) */}
-            <FancyButton
-              type='light'
-              mode='icon'
-              size={{ w: 30, h: 30 }}
-              disabled={isLast}
-              icon={{
-                library: 'MaterialIcons',
-                name: 'chevron-right',
-                size: 20,
-                color: isLast ? ColorUtils.withAlpha(borderColor, 0.3) : borderColor,
-              }}
-              containerStyle={[
-                styles.pagerNavButton,
-                {
-                  backgroundColor: ColorUtils.withAlpha(borderColor, isLast ? 0.06 : 0.14),
-                  borderColor: 'transparent',
-                },
-              ]}
-              onPress={pagerProps!.onNext}
-              accessibilityLabel='Próximo evento'
-            />
+            <View style={styles.pagerNavRight}>
+              {showNav && (
+                <FancyButton
+                  type='light'
+                  mode='icon'
+                  size={{ w: 30, h: 30 }}
+                  disabled={isLast}
+                  icon={{
+                    library: 'MaterialIcons',
+                    name: 'chevron-right',
+                    size: 20,
+                    color: isLast ? ColorUtils.withAlpha(borderColor, 0.3) : borderColor,
+                  }}
+                  containerStyle={[
+                    styles.pagerNavButton,
+                    {
+                      backgroundColor: ColorUtils.withAlpha(borderColor, isLast ? 0.06 : 0.14),
+                      borderColor: 'transparent',
+                    },
+                  ]}
+                  onPress={pagerProps!.onNext}
+                  accessibilityLabel='Próximo evento'
+                />
+              )}
+
+              {onAdicionarEvento && (
+                <FancyButton
+                  type='contained'
+                  label='Novo evento'
+                  labelProps={{ size: 'extraSmall', type: 'semiBold' }}
+                  icon={{
+                    library: 'MaterialIcons',
+                    name: 'playlist-add',
+                    size: 16,
+                  }}
+                  iconPosition='left'
+                  containerStyle={[
+                    styles.pagerNavButton,
+                    {
+                      backgroundColor: borderColor,
+                      borderColor: 'transparent',
+                      height: 30,
+                      paddingHorizontal: 10,
+                    },
+                  ]}
+                  onPress={onAdicionarEvento}
+                  accessibilityLabel='Adicionar evento'
+                />
+              )}
+            </View>
           </View>
         )}
 
@@ -813,11 +861,6 @@ function createStyles(palette: ThemePalette) {
       alignItems: 'center',
       gap: 6,
     },
-    sectionEyebrowTick: {
-      width: 3,
-      height: 11,
-      borderRadius: 2,
-    },
     sectionEyebrowText: {
       letterSpacing: 0.8,
     },
@@ -866,7 +909,7 @@ function createStyles(palette: ThemePalette) {
       marginBottom: 10,
       borderRadius: 12,
       borderWidth: 1,
-      borderLeftWidth: 4,
+      borderTopWidth: 3,
       backgroundColor: palette.backgroundColor,
       overflow: 'hidden',
       flex: 1,
@@ -942,12 +985,20 @@ function createStyles(palette: ThemePalette) {
     pagerNavButton: {
       borderRadius: 999,
     },
+    pagerNavRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
     pagerDots: {
       flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
       gap: 5,
+    },
+    pagerDotsHidden: {
+      flex: 0,
       marginHorizontal: 12,
     },
     pagerDot: {

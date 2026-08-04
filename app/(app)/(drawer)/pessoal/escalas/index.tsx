@@ -43,14 +43,8 @@ import {
   ESCALAS_VOLUNTARIO_TOUR_TITLE,
 } from '../../../../../components/tutorial/tours/escalasVoluntarioTour';
 import { useJourney } from '../../../../../contexts/JourneyContext';
+import { usePallete } from '../../../../../hooks/usePallete';
 
-export const StatusColorMap: Record<EscalaItemStatusEnum, string> = {
-  [EscalaItemStatusEnum.Pendente]: '#F59E0B', // Amber 500
-  [EscalaItemStatusEnum.Confirmado]: '#16A34A', // Green 600
-  [EscalaItemStatusEnum.Ausente]: '#DC2626', // Red 600
-  [EscalaItemStatusEnum.Substituido]: '#2563EB', // Blue 600
-  [EscalaItemStatusEnum.SubstituicaoSolicitada]: '#7C3AED', // Indigo 600
-};
 
 export type EscalaDoDiaAgrupada = {
   eventoId: string;
@@ -81,6 +75,7 @@ function resolveRouteDate(value?: string | string[]) {
 }
 
 export default function MinhasEscalasIndexPage() {
+  const palette = usePallete();
   const { user, igrejaAtiva } = useAuth();
   const params = useLocalSearchParams<{
     selectedDate?: string;
@@ -314,9 +309,9 @@ export default function MinhasEscalasIndexPage() {
 
     return eventos.map((escala) => ({
       date: DateUtilsApi.dateOnlyFromApi(escala.dataOcorrencia),
-      color: escala.evento?.cor ?? '#3498db',
+      color: escala.evento?.cor ?? palette.primary,
     }));
-  }, [escalasDoUsuario]);
+  }, [escalasDoUsuario, palette]);
 
   const loadDayEscalas = useCallback(
     async (date: Date) => {
