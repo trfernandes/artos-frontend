@@ -38,6 +38,13 @@ import {
   INDISPONIBILIDADES_TOUR_TITLE,
 } from '../../../../../components/tutorial/tours/indisponibilidadesTour';
 import { useJourney } from '../../../../../contexts/JourneyContext';
+import {
+  descreverRegra,
+  descreverDetalheRegra,
+  regraIcone,
+  regraChipLabel,
+  expandirRegrasParaCalendario,
+} from '../../../../../domain/utils/regra_indisponibilidade_utils';
 
 type ModalState = {
   visible: boolean;
@@ -45,148 +52,6 @@ type ModalState = {
   status?: 'available' | 'unavailable';
   motivo?: string | null;
 };
-
-const DIA_NOMES_COMPLETOS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
-const DIA_NOMES_PLURAL = [
-  'domingos',
-  'segundas',
-  'terças',
-  'quartas',
-  'quintas',
-  'sextas',
-  'sábados',
-];
-const DIA_ARTIGO_SINGULAR = [
-  'no domingo',
-  'na segunda',
-  'na terça',
-  'na quarta',
-  'na quinta',
-  'na sexta',
-  'no sábado',
-];
-const isMasc = (d: number) => d === 0 || d === 6;
-
-function descreverRegra(regra: ResponseRegraIndisponibilidadeVoluntarioDto): string {
-  if (regra.tipo === 'DIAS_SEMANA' && regra.diasSemana) {
-    const sorted = [...regra.diasSemana].sort((a, b) => a - b);
-    if (sorted.length === 7) return 'Indisponível todos os dias';
-    if (sorted.length === 2 && sorted[0] === 0 && sorted[1] === 6)
-      return 'Indisponível nos fins de semana';
-    if (sorted.length === 5 && sorted.join(',') === '1,2,3,4,5')
-      return 'Indisponível em dias úteis';
-    const allMasc = sorted.every(isMasc);
-    const allFem = sorted.every((d) => !isMasc(d));
-    if (allMasc) return 'Indisponível nos ' + sorted.map((d) => DIA_NOMES_PLURAL[d]).join(', ');
-    if (allFem) return 'Indisponível nas ' + sorted.map((d) => DIA_NOMES_PLURAL[d]).join(', ');
-    return (
-      'Indisponível ' +
-      sorted.map((d) => (isMasc(d) ? 'nos ' : 'nas ') + DIA_NOMES_PLURAL[d]).join(', ')
-    );
-  }
-  if (regra.tipo === 'PERIODO') {
-    const fmtDateOnly = (iso: string) => iso.slice(8, 10) + '/' + iso.slice(5, 7);
-    const inicio = regra.dataInicio ? fmtDateOnly(regra.dataInicio) : '?';
-    const fim = regra.dataFim ? fmtDateOnly(regra.dataFim) : '?';
-    return `Indisponível de ${inicio} a ${fim}${regra.recorrente ? ' (todo ano)' : ''}`;
-  }
-  if (regra.tipo === 'LIMITE_MENSAL') {
-    return `Máximo de ${regra.limiteMensal} escala${(regra.limiteMensal ?? 0) !== 1 ? 's' : ''} por mês`;
-  }
-  return 'Regra de indisponibilidade';
-}
-
-function descreverDetalheRegra(regra: ResponseRegraIndisponibilidadeVoluntarioDto): string {
-  if (regra.tipo === 'DIAS_SEMANA' && regra.diasSemana) {
-    return [...regra.diasSemana]
-      .sort((a, b) => a - b)
-      .map((d) => DIA_NOMES_COMPLETOS[d].slice(0, 3))
-      .join(', ');
-  }
-  if (regra.tipo === 'PERIODO') {
-    const ini = regra.dataInicio ? new Date(regra.dataInicio + 'T00:00:00Z') : null;
-    const fim = regra.dataFim ? new Date(regra.dataFim + 'T00:00:00Z') : null;
-    const fmt = (d: Date) =>
-      d.toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        timeZone: 'UTC',
-      });
-    return ini && fim ? `${fmt(ini)} até ${fmt(fim)}` : '';
-  }
-  if (regra.tipo === 'LIMITE_MENSAL') {
-    return 'Restrição de frequência mensal';
-  }
-  return '';
-}
-
-function regraIcone(regra: ResponseRegraIndisponibilidadeVoluntarioDto): string {
-  if (regra.tipo === 'DIAS_SEMANA') return 'calendar-week';
-  if (regra.tipo === 'LIMITE_MENSAL') return 'counter';
-  if (regra.recorrente) return 'calendar-sync';
-  return 'calendar-range';
-}
-
-function regraChipLabel(regra: ResponseRegraIndisponibilidadeVoluntarioDto): string {
-  if (regra.tipo === 'DIAS_SEMANA') return 'Semanal';
-  if (regra.tipo === 'LIMITE_MENSAL') return 'Frequência';
-  if (regra.recorrente) return 'Anual';
-  return 'Período';
-}
-
-function expandirRegrasParaCalendario(
-  regras: ResponseRegraIndisponibilidadeVoluntarioDto[],
-  inicio: Date,
-  fim: Date,
-): Set<string> {
-  const result = new Set<string>();
-  const toKey = (d: Date) => d.toISOString().slice(0, 10);
-
-  for (const regra of regras) {
-    if (regra.tipo === 'DIAS_SEMANA' && regra.diasSemana) {
-      const cur = new Date(Date.UTC(inicio.getFullYear(), inicio.getMonth(), inicio.getDate()));
-      const endUtc = new Date(Date.UTC(fim.getFullYear(), fim.getMonth(), fim.getDate()));
-      while (cur <= endUtc) {
-        if (regra.diasSemana.includes(cur.getUTCDay())) {
-          result.add(toKey(cur));
-        }
-        cur.setUTCDate(cur.getUTCDate() + 1);
-      }
-    } else if (regra.tipo === 'PERIODO' && regra.dataInicio && regra.dataFim) {
-      if (regra.recorrente) {
-        const mmddInicio = regra.dataInicio.slice(5);
-        const mmddFim = regra.dataFim.slice(5);
-        const crossYear = mmddInicio > mmddFim;
-        const cur = new Date(Date.UTC(inicio.getFullYear(), inicio.getMonth(), inicio.getDate()));
-        const endUtc = new Date(Date.UTC(fim.getFullYear(), fim.getMonth(), fim.getDate()));
-        while (cur <= endUtc) {
-          const mmddAtual = toKey(cur).slice(5);
-          const incluso = crossYear
-            ? mmddAtual >= mmddInicio || mmddAtual <= mmddFim
-            : mmddAtual >= mmddInicio && mmddAtual <= mmddFim;
-          if (incluso) result.add(toKey(cur));
-          cur.setUTCDate(cur.getUTCDate() + 1);
-        }
-      } else {
-        const ri = new Date(regra.dataInicio + 'T00:00:00Z');
-        const rf = new Date(regra.dataFim + 'T00:00:00Z');
-        const rangeIni =
-          ri > inicio
-            ? ri
-            : new Date(Date.UTC(inicio.getFullYear(), inicio.getMonth(), inicio.getDate()));
-        const rangeFim =
-          rf < fim ? rf : new Date(Date.UTC(fim.getFullYear(), fim.getMonth(), fim.getDate()));
-        const cur = new Date(rangeIni);
-        while (cur <= rangeFim) {
-          result.add(toKey(cur));
-          cur.setUTCDate(cur.getUTCDate() + 1);
-        }
-      }
-    }
-  }
-  return result;
-}
 
 export default function IndisponibilidadeIndexPage() {
   const { user, igrejaAtiva } = useAuth();
@@ -451,16 +316,16 @@ export default function IndisponibilidadeIndexPage() {
         voluntarioId: userId,
         igrejaId,
       });
+      setShowRegraModal(false);
       setLazyToastOptions({ type: 'success', message: 'Regra criada com sucesso!', show: true });
     } catch (error) {
+      // hook já exibe o toast com a mensagem real do backend; modal fica aberto p/ o usuário corrigir
       console.error('Erro ao criar regra:', error);
-      setLazyToastOptions({ type: 'error', message: 'Erro ao criar regra', show: true });
     }
   };
 
   const handleConfirmAddRegra = async (result: AddRegraModalResult) => {
     if (!userId || !igrejaId) return;
-    setShowRegraModal(false);
 
     if (result.tipo === 'LIMITE_MENSAL' && result.dataInicio) {
       const regraAberta = regras.find((r) => r.tipo === 'LIMITE_MENSAL' && !r.dataFim);
@@ -890,7 +755,7 @@ function createStyles(palette: ThemePalette) {
     },
     loadingOverlay: {
       ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(0,0,0,0.35)',
+      backgroundColor: palette.overlays.strongBackdrop,
       justifyContent: 'center',
       alignItems: 'center',
       zIndex: 999,

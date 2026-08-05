@@ -10,4 +10,5 @@ export type CreateRegraIndisponibilidadeVoluntarioDto = {
   motivo?: string;
   voluntarioId: string;
   igrejaId: string;
+  ministerioId?: string;
 };
