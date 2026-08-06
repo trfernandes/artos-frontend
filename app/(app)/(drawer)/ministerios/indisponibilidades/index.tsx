@@ -1,10 +1,10 @@
 import { useLocalSearchParams } from 'expo-router';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
-import { StyleSheet, View } from 'react-native';
+import { InteractionManager, StyleSheet, View } from 'react-native';
 import DefaultIcons from '../../../../../components/FancyIcons';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import ControlledSearchSelect from '../../../../../components/forms/ControlledSearchSelect';
 import { useVoluntariosDoMinisterioCrud } from '../../../../../hooks/useVoluntariosDoMinisterioCrud';
 import { useRegrasIndisponibilidadeMinisterioCrud } from '../../../../../hooks/useRegrasIndisponibilidadeMinisterioCrud';
@@ -95,6 +95,29 @@ export default function MinisterioIndisponibilidadesIndex() {
     isLoadingMutation: isLoadingRegrasMutation,
   } = useRegrasIndisponibilidadeMinisterioCrud(ministerioId, voluntarioId);
 
+  const [hasSettled, setHasSettled] = useState(true);
+  useEffect(() => {
+    if (isLoadingRegrasMutation) {
+      setHasSettled(false);
+      return;
+    }
+    const task = InteractionManager.runAfterInteractions(() => setHasSettled(true));
+    return () => task.cancel();
+  }, [isLoadingRegrasMutation]);
+  const isBusy = isLoadingRegrasMutation || !hasSettled;
+
+  const [lazyToastOptions, setLazyToastOptions] = useState<{
+    type: 'success' | 'error';
+    text1: string;
+    text2?: string;
+  } | null>(null);
+  useEffect(() => {
+    if (!isBusy && lazyToastOptions) {
+      Toast.show(lazyToastOptions);
+      setLazyToastOptions(null);
+    }
+  }, [isBusy, lazyToastOptions]);
+
   const tour = useScreenTutorial(
     INDISPONIBILIDADES_LIDER_TOUR_ID,
     INDISPONIBILIDADES_LIDER_TOUR_TITLE,
@@ -141,9 +164,9 @@ export default function MinisterioIndisponibilidadesIndex() {
       try {
         await criarRegra({ ...result, voluntarioId, igrejaId, ministerioId });
         setShowRegraModal(false);
-        Toast.show({ type: 'success', text1: 'Regra criada com sucesso!' });
+        setLazyToastOptions({ type: 'success', text1: 'Regra criada com sucesso!' });
       } catch (error) {
-        Toast.show({
+        setLazyToastOptions({
           type: 'error',
           text1: 'Erro ao criar regra',
           text2: normalizeAxiosError(error).message,
@@ -165,6 +188,7 @@ export default function MinisterioIndisponibilidadesIndex() {
           year: 'numeric',
           timeZone: 'UTC',
         });
+        setShowRegraModal(false);
         FancyAlert.alert(
           'Encerrar regra atual?',
           `Já existe uma regra de limite mensal em aberto para este ministério. Ao criar esta nova regra, a atual será encerrada em ${fechamentoFmt}.`,
@@ -191,9 +215,9 @@ export default function MinisterioIndisponibilidadesIndex() {
         id,
         dto: { tipo, diasSemana, dataInicio, dataFim, recorrente, limiteMensal, motivo },
       });
-      Toast.show({ type: 'success', text1: 'Regra atualizada com sucesso!' });
+      setLazyToastOptions({ type: 'success', text1: 'Regra atualizada com sucesso!' });
     } catch {
-      Toast.show({ type: 'error', text1: 'Erro ao atualizar regra' });
+      setLazyToastOptions({ type: 'error', text1: 'Erro ao atualizar regra' });
     }
   };
 
