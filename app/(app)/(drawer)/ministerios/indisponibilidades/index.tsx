@@ -80,6 +80,7 @@ export default function MinisterioIndisponibilidadesIndex() {
   });
 
   const voluntarioId = watch('voluntarioId');
+  const voluntarioSelecionado = voluntariosList.find((v) => v.id === voluntarioId);
 
   const {
     pessoais,
@@ -503,6 +504,7 @@ export default function MinisterioIndisponibilidadesIndex() {
           visible={showRegraModal}
           onClose={() => setShowRegraModal(false)}
           onConfirm={handleConfirmAddRegra}
+          voluntarioNome={voluntarioSelecionado?.nome}
         />
       )}
 
@@ -510,6 +512,7 @@ export default function MinisterioIndisponibilidadesIndex() {
         <AddRegraModal
           visible={!!editingRegra}
           isEditing
+          voluntarioNome={voluntarioSelecionado?.nome}
           initialValues={{
             tipo: editingRegra.tipo,
             diasSemana: editingRegra.diasSemana ?? undefined,

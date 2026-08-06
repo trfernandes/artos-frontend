@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Animated, Pressable, StyleSheet, View } from 'react-native';
 import { useForm, useWatch, useFormState } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,6 +6,7 @@ import z from 'zod';
 import FancyBottomSheetModal from '../../../modal/FancyBottomSheetModal';
 import ControlledTextArea from '../../../forms/ControlledTextArea';
 import FancyErrorText from '../../../forms/FancyErrorText';
+import { getApiErrorMessage } from '../../../../domain/api/api-error';
 import ControlledDateInput from '../../../forms/ControlledDateInput';
 import ControlledNumberInput from '../../../forms/ControlledNumberInput';
 import ControlledFancyToggle from '../../../forms/ControlledFancyToggle';
@@ -134,9 +135,10 @@ export type AddRegraModalResult = {
 export type AddRegraModalProps = {
   visible: boolean;
   onClose: () => void;
-  onConfirm: (result: AddRegraModalResult) => void;
+  onConfirm: (result: AddRegraModalResult) => Promise<void>;
   initialValues?: Partial<AddRegraModalResult>;
   isEditing?: boolean;
+  voluntarioNome?: string;
 };
 
 export default function AddRegraModal({
@@ -145,6 +147,7 @@ export default function AddRegraModal({
   onConfirm,
   initialValues,
   isEditing,
+  voluntarioNome,
 }: AddRegraModalProps) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
@@ -154,7 +157,7 @@ export default function AddRegraModal({
     defaultValues: {
       tipo: 'DIAS_SEMANA',
       diasSemana: [],
-      dataInicio: null,
+      dataInicio: isEditing ? null : new Date(),
       dataFim: null,
       recorrente: false,
       limiteMensal: 2,
@@ -175,6 +178,16 @@ export default function AddRegraModal({
         limiteMensal: initialValues.limiteMensal ?? 2,
         motivo: initialValues.motivo ?? '',
       });
+    } else if (visible && !isEditing) {
+      reset({
+        tipo: 'DIAS_SEMANA',
+        diasSemana: [],
+        dataInicio: new Date(),
+        dataFim: null,
+        recorrente: false,
+        limiteMensal: 2,
+        motivo: '',
+      });
     } else if (!visible) {
       reset({
         tipo: 'DIAS_SEMANA',
@@ -186,7 +199,7 @@ export default function AddRegraModal({
         motivo: '',
       });
     }
-  }, [visible, initialValues, reset]);
+  }, [visible, initialValues, isEditing, reset]);
 
   const tipo = useWatch({ control, name: 'tipo' });
   const diasSemana = useWatch({ control, name: 'diasSemana' }) ?? [];
@@ -211,12 +224,20 @@ export default function AddRegraModal({
     setValue('diasSemana', dias, { shouldValidate: true });
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (visible) setSubmitError(null);
+  }, [visible]);
+
   const handleClose = () => {
     reset();
+    setSubmitError(null);
     onClose();
   };
 
-  const onSubmit = (values: FormValues) => {
+  const onSubmit = async (values: FormValues) => {
     const result: AddRegraModalResult = { tipo: values.tipo as RegraIndisponibilidadeTipo };
     if (values.tipo === 'DIAS_SEMANA') {
       result.diasSemana = values.diasSemana;
@@ -233,8 +254,17 @@ export default function AddRegraModal({
         : undefined;
     }
     result.motivo = values.motivo.trim();
-    onConfirm(result);
-    reset();
+
+    setSubmitError(null);
+    setIsSubmitting(true);
+    try {
+      await onConfirm(result);
+      // Sucesso: pai fecha o modal (visible=false), o efeito acima reseta o form.
+    } catch (error) {
+      setSubmitError(getApiErrorMessage(error, 'Não foi possível salvar a regra.'));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const TIPOS: { label: string; value: RegraIndisponibilidadeTipo }[] = [
@@ -248,23 +278,28 @@ export default function AddRegraModal({
       visible={visible}
       onClose={handleClose}
       title={isEditing ? 'Editar regra de indisponibilidade' : 'Nova regra de indisponibilidade'}
+      closeDisabled={isSubmitting}
       footer={
         <View style={styles.footerActions}>
           <FancyButton
             label='Cancelar'
             type='outlined'
             onPress={handleClose}
+            disabled={isSubmitting}
             containerStyle={styles.footerButton}
           />
           <FancyButton
             label={isEditing ? 'Atualizar' : 'Salvar'}
             onPress={handleSubmit(onSubmit)}
+            isLoading={isSubmitting}
             containerStyle={styles.footerButton}
           />
         </View>
       }
     >
       <View style={styles.content}>
+        {submitError && <FancyErrorText message={submitError} />}
+
         <FancySegmentedControl<RegraIndisponibilidadeTipo>
           label='Tipo de regra'
           options={TIPOS}
@@ -364,8 +399,9 @@ export default function AddRegraModal({
             />
             <ControlledDateInput control={control} name='dataInicio' label='A partir de' />
             <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
-              Você não será escalado mais que este número de vezes em um mesmo mês, a partir da data
-              escolhida.
+              {voluntarioNome
+                ? `${voluntarioNome.split(' ')[0]} não poderá ser escalado mais que este número de vezes neste ministério em um mesmo mês, a partir da data escolhida.`
+                : 'Você não será escalado mais que este número de vezes em um mesmo mês, a partir da data escolhida.'}
             </FancyText>
           </View>
         )}
