@@ -32,6 +32,29 @@ yarn-error.*
 
 # local env files
 .env*.local
+.env
+.env.staging
 
 # typescript
 *.tsbuildinfo
+
+# native build (android/ios generated)
+android/
+ios/
+
+# aider
+.aider*
+.scratch-*.png
+
+# secrets
+*firebase-adminsdk*.json
+google-services.json
+
+# logs
+logs/
+*.log
+
+# misc
+android.json
+docs/architecture-reviews/
+indisponibilidade-*.png
