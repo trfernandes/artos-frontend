@@ -31,6 +31,9 @@ exceção).
 - Entre seções distintas dentro de `FancyPageView`: usar `FancyVerticalSpacer`
 - Lista: `FancyList` com `FancyListEmpty` para estado vazio
 - Scroll livre: `FancyScrollView` (não `ScrollView` nativo)
+- Espaçamento horizontal de conteúdo que fica dentro de `FancyScrollView`: aplicar em
+  `contentContainerStyle`, nunca no container pai — barra de scroll deve ficar colada na borda da
+  tela. Conteúdo fixo fora do scroll (header, empty state) usa padding próprio separado.
 
 ## Padrões mobile — formulários
 

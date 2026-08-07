@@ -290,3 +290,229 @@ estados positivos/finalizados.
 - `npx tsc --noEmit`: zero erros após wiring das 5 imagens + cores + fix da progress bar.
 - Validação visual no device físico (RQCWC04P4VX, ADB screencap): 6 telas do carrossel conferidas (5
   features + conclusão) em light e dark mode — ok em ambos.
+
+---
+
+# Design System — Indisponibilidades por Ministério (escopo: correção visual)
+
+> Escopo: `app/(app)/(drawer)/ministerios/indisponibilidades/index.tsx` +
+> `components/list/FancyListEmpty.tsx` (nova prop `variant`).
+> Revisão: 2026-08-05
+
+## Regras de Design Confirmadas
+
+- `FancyListEmpty` ganhou `variant?: 'default' | 'compact'` — `compact` renderiza ícone+label em
+  row, alinhado à esquerda, sem `flex:1`/centralização. Motivo: componente tem 32 usos no app, a
+  maioria empty-state de tela cheia; mudar o default quebraria essas telas. Usar `compact` sempre
+  que o empty-state for de uma **seção inline** dentro de uma tela com mais conteúdo (não a tela
+  inteira vazia).
+- Ação "Nova regra" saiu do `FancyFab` flutuante (canto inferior direito, sem vínculo visual com
+  nenhuma seção) e virou `FancyButton type='text'` dentro do header da seção "Regras deste
+  ministério" — a ação só afeta essa seção (confirmado no código: `criarRegra` chama
+  `useRegrasIndisponibilidadeMinisterioCrud`, nunca cria bloqueio pessoal), então o controle agora
+  fica fisicamente onde a ação se aplica.
+- **[confirmed 2026-08-05]** Agrupamento de seção dentro de tela usa card:
+  `backgroundColor: palette.backgroundColor2`, `borderWidth: 0.5`,
+  `borderColor: ColorUtils.withAlpha(palette.borderCard, 0.45)`, `borderRadius: 16`,
+  `padding: 15`, `...palette.shadows[200]`. Confirmado em `configuracoes/index.tsx:1723-1734`
+  (`heroStatCard`). Primeira tentativa (mesma rodada) saiu com `borderWidth: 1` e sem sombra —
+  corrigido após o usuário apontar que o card não batia com o design system; a sombra é obrigatória
+  no padrão de card do app (checklist do `CLAUDE.md`: "sombra via `Pallete.shadows`, nunca
+  `elevation` direto"). Tela Indisponibilidades não aplicava nada disso — os 3 blocos
+  (calendário+legenda, bloqueios pessoais, regras deste ministério) eram `View` soltas sem
+  background/border/sombra, só separadas por `FancyVerticalSpacer`. Fix: cada bloco vira um card
+  nesse padrão; legenda entra dentro do card do calendário (hoje solta, lida como bloco próprio em
+  vez de explicação do gráfico acima dela).
+
+## Direção visual — Componentes (aprovada)
+
+- Empty-states das seções "Bloqueios pessoais" e "Regras deste ministério": `variant='compact'`,
+  ícone 20px (default do compact), sem `icon.size` manual.
+- FAB flutuante removido desta tela; `TutorialTarget id='indisponibilidade-regras-fab'` migrado pro
+  botão inline (mesmo id, tour não precisou mudar de step).
+
+## Audit — 2026-08-05 (index.tsx + FancyListEmpty.tsx)
+
+### Critérios de originalidade
+
+- [1] Troca de logo: N/A — correção estrutural inline, não introduz identidade visual nova.
+- [2] Industry scan: N/A — mesmo motivo.
+- [3] Tells de IA: ✅ nenhum — sem gradiente, ícones já usados no resto do app
+  (`MaterialCommunityIcons`), sem sombra nova.
+- [4] Especificidade do domínio: ✅ — labels e ícones seguem específicos do domínio (bloqueio
+  pessoal / regra de ministério), nada genérico introduzido.
+- [5] Decisão vs default: ✅ — `variant='compact'` e reposicionamento do FAB são decisões
+  registradas com motivo acima, não primeiro valor.
+- [6] Riqueza gráfica: N/A — correção de layout, não tela nova; sem expectativa de gráfico/ilustração.
+
+### Contraste
+
+- `fonts.inactive2` (`#C7C7CC`) sobre `backgroundColor` (`#FFFFFF`), label do empty-state:
+  **1.68:1 — ❌ falha AA** (precisa 4.5:1). Mesmo com `muted` (opacity 0.4) reduzindo ainda mais.
+  **Pré-existente**: é o default do `FancyListEmpty` já usado sem `labelColor` nas 32 telas do app,
+  não uma regressão desta sessão — meu diff só mudou layout (compact), não cor. Registrado como
+  débito, não bloqueio (texto secundário/decorativo de estado vazio, não conteúdo principal da
+  tela; corrigir aqui sem corrigir as outras 31 telas criaria inconsistência nova).
+- `fonts.inactive2` dark (`#73737A`) sobre `#121212`: 3.98:1 — ⚠️ abaixo de 4.5 mas acima de 3:1
+  (mesmo caso, pré-existente).
+- Ícone `lock-outline` do header da seção, `fonts.inactive` (`#6F6F6F`) sobre branco: 5.02:1 — ✅ AA.
+
+### Consistência interna
+
+- Zero hex hardcoded — cores via `usePallete()`/`ColorUtils.withAlpha`, inalterado.
+- `gap: 8` no compact bate com o `gap: 8` já usado no wrapper de cards da mesma tela (linha
+  `{ gap: 8 }` das listas de regras/bloqueios) — mesma unidade, não valor novo.
+- `FancyButton type='text'` com ícone segue o padrão documentado no `CLAUDE.md` do frontend
+  ("Botão terciário/link → `FancyButton type='text'`").
+- `npx tsc --noEmit`: zero erros. `prettier --write` aplicado só nos 2 arquivos tocados.
+
+### Débito de design
+
+- Contraste do label padrão de `FancyListEmpty` (`fonts.inactive2`, 1.68:1 light / 3.98:1 dark)
+  falha AA — problema sistêmico do componente, presente nas 32 telas que o usam, não introduzido
+  nesta sessão. Fix futuro: escurecer o default (ex. usar `fonts.inactive` em vez de `inactive2`
+  quando não-muted, ou aumentar contraste do tom `inactive2` em ambos os temas) — decisão de cor
+  que afeta muitas telas, precisa aprovação do usuário antes de mudar um token global.
+- Critério 6 (riqueza gráfica) não avaliável neste escopo — correção de layout, sem expectativa de
+  ilustração/gráfico novo.
+
+---
+
+# Design System — Título + ícone de card de detalhe/entidade (escopo: EscalaHeader, MinisterioStatsCard)
+
+> Escopo: `EscalaHeader.tsx`, `MinisterioStatsCard.tsx` e demais cards de detalhe/entidade (card
+> único representando 1 item com dados próprios — não list item, não section header).
+> Revisão: 2026-08-05
+
+## Regras de Design Confirmadas
+
+- **[confirmed 2026-08-05, revisado 2026-08-05]** Título de card de detalhe/entidade:
+  `FancyText type='bold' size='medium' color={palette.fonts.dark} numberOfLines={1}` em
+  qualquer variante (cheia e compacta usam o mesmo tamanho agora — `largeMedium` ficava grande
+  demais na variante cheia). Sem `lineHeight` manual — deixar o default do componente. Aplicado
+  em `EscalaHeader.tsx` e `MinisterioStatsCard.tsx` (`FullCard` e `CompactCard`).
+- **[confirmed 2026-08-05]** Subtítulo/eyebrow de seção dentro de um card (ex: "EVENTO",
+  "SETLIST", "EQUIPE" em `EscalaEventoPage.tsx`, via `renderSectionEyebrow`): ícone 12px +
+  `FancyText type='semiBold' size={10} color={accentLabelColor}` com label em uppercase — tier
+  hierárquico abaixo do título do card, não precisa de leading icon circular. Já era consistente
+  nas 3 ocorrências antes desta revisão; documentado aqui como padrão confirmado, sem mudança de
+  código.
+- **[confirmed 2026-08-05]** Ícone/avatar leading antes do título: círculo com
+  `backgroundColor: ColorUtils.withAlpha(corDeReferência, 0.12)`, ícone/imagem por cima na cor
+  cheia. Quando a entidade tem imagem própria (ex: logo do ministério em
+  `MinisterioStatsCard`), usa a imagem; quando não tem (ex: escala não tem logo), usa
+  `MaterialCommunityIcons` relevante ao domínio com cor semântica já em uso no card — nunca cor
+  nova. Achado: `EscalaHeader` não tinha nenhum leading, divergindo de `MinisterioStatsCard`.
+
+## Direção visual — Componentes (aprovada)
+
+- `EscalaHeader.tsx`: leading icon 32px circular, ícone `calendar-range`
+  (`MaterialCommunityIcons`), cor `statusVisual.color` (reaproveita a cor do status já usada na
+  borda-top do card, sem token novo), fundo `withAlpha(statusVisual.color, 0.12)`. Título sem
+  `lineHeight` manual.
+- `IgrejaCard.tsx` fica fora deste escopo — é list item (repete N vezes numa lista), não card de
+  detalhe único; não herda esta regra.
+- `indisponibilidades/index.tsx`: cabeçalhos de seção "Bloqueios pessoais" e "Regras deste
+  ministério" ajustados pra `type='bold'` (eram `semiBold`), alinhando peso com o título de card
+  de detalhe. São section headers dentro de página (não card de detalhe/entidade isolado) — não
+  herdam o leading icon circular tintado; ícone `lock-outline` plano mantido como estava.
+- `indisponibilidades/index.tsx` (revisão seguinte, mesmo dia): ícone `format-list-checks` (plano,
+  16px, `palette.fonts.inactive`) adicionado no header "Regras deste ministério" pra simetria com
+  `lock-outline` de "Bloqueios pessoais" — ambos section headers da mesma página, mesmo peso de
+  leitura. Tamanho dos dois títulos reduzido de `size='medium'` pra `size='small'` — hierarquia
+  menor que título de card de detalhe (que usa `medium`), pois são sub-seções dentro de card, não
+  entidade isolada. `FancyListItemCard`/legenda do calendário (`legend`) ganhou
+  `justifyContent: 'space-between'` pra alinhar item da direita na borda. `FancyListEmpty` ganhou
+  prop `containerStyle` (opcional, não quebra os outros 6 usos de `variant='compact'`) — usada
+  aqui pra centralizar o texto vazio dentro do card (`justifyContent:'center', width:'100%'`),
+  já que o `compact` padrão é alinhado à esquerda (uso original: linha inline fora de card).
+- `indisponibilidades/index.tsx` (3ª revisão, mesmo dia, verificada por print no device): botão
+  "Nova regra" trocado de `type='text'` com label (link azul solto, empurrava título pra 2 linhas)
+  pra botão circular `type='contained' mode='icon' size={38}` só com ícone `plus` — mesmo padrão
+  de `LiderancaEAcessosTab.tsx` e `RepertorioCategoriasManagerSheet.tsx` pra ação de "adicionar
+  item numa seção de card". `type='text'` sem precedente nesse contexto no app; `contained`/`light`
+  ou ícone circular são os únicos padrões usados pra essa ação. Ajuste seguinte, mesmo botão:
+  `size={38}`→`32`, ícone `22`→`24` (círculo menor, ícone relativamente maior).
+- `indisponibilidades/index.tsx` (4ª revisão, mesmo dia, verificada por print no device com dados
+  reais): `cardReadonly` (bloqueios pessoais) tinha `borderStyle:'dashed'`. Toda outra ocorrência
+  de dashed border no app (`EscalaWizardReviewStep`, `AssistenteParticipantesStep`,
+  `AssistenteRevisaoStep`) é pra estado vazio/placeholder — nunca pra item com dado real.
+  Removido `dashed`, mantido `solid` — fundo tintado (`withAlpha(fonts.inactive, 0.04)`) já
+  comunica "somente leitura" sozinho.
+- `indisponibilidades/index.tsx` (5ª revisão, mesmo dia, verificada por print no device com dados
+  reais): leading icon dos itens de "Bloqueios pessoais" usava cor única `palette.fonts.inactive`
+  pros 3 tipos de regra, diferente de "Regras deste ministério" que colore por tipo
+  (`LIMITE_MENSAL`→`warning`, resto→`secondary`). Perdia diferenciação visual entre itens.
+  Alinhado pra usar a mesma lógica de cor por tipo nas duas listas.
+- `indisponibilidades/index.tsx` (6ª revisão, mesmo dia): wrapper `cardReadonly` (box cinza com
+  borda em volta de cada item) removido de "Bloqueios pessoais" a pedido — itens agora são
+  `FancyListItemCard` puro (fundo branco, sem borda extra), diferenciados só pela cor do ícone
+  por tipo (decisão anterior). Style morto `cardReadonly` removido do arquivo.
+- `indisponibilidades/index.tsx` (7ª revisão, mesmo dia, verificada por print no device):
+  `FancyListItemCard` sempre desenha card próprio (bg + borda + shadow, ver
+  `FancyListItemCard.tsx:56-64`) — mesmo sem `containerStyle`, cada item de "Bloqueios pessoais"
+  ainda aparecia com card por trás. Trocado por row simples (`View` com ícone squircle 40px + texto),
+  sem card/shadow/borda — itens ficam soltos dentro do card da seção. `FancyListItemCard` mantido
+  em "Regras deste ministério" (é pressable/editável, faz sentido ter affordance de card lá).
+
+- `indisponibilidades/index.tsx` (8ª revisão, mesmo dia): densidade dos itens reduzida pra caber
+  mais regras sem rolar (ação mais frequente na tela é ler/revisar, não editar — prioriza
+  densidade sobre alvo de toque generoso). 3 achados aprovados:
+  1. Gap entre itens das duas listas (bloqueios pessoais e regras do ministério) era `14` — não é
+     múltiplo de 4 nem 8 (grid do projeto) e era o maior contribuinte pra altura da lista. `14`→`8`.
+  2. `FancyListItemCard` (regras do ministério) tem `minHeight: 78` no componente global (floor
+     pensado pra outras 20+ telas com leading de imagem/avatar 46px) — nos itens desta lista
+     (conteúdo real ~64px sem detalhe) sobrava padding morto. Override local via `containerStyle`
+     (`regraCardFlat`), sem tocar componente global: `minHeight: 64`.
+  3. `paddingVertical` do `FancyListItemCard` é `12`/`12` (24 total) no componente global — reduzido
+     localmente via mesmo `containerStyle` pra `8` (16 total), ainda múltiplo de 4/8.
+  - `regraCardFlat` final: `borderWidth:0, borderColor:'transparent', shadowOpacity:0,
+    shadowColor:'transparent', paddingHorizontal:0, paddingVertical:8, minHeight:64`.
+
+## Log de telas revisadas
+
+| Tela                                        | Data       | Findings                                                                | Resultado         |
+| -------------------------------------------- | ---------- | ------------------------------------------------------------------------ | ------------------ |
+| EscalaHeader vs MinisterioStatsCard (título) | 2026-08-05 | F1 (tamanho/peso/cor já convergiam, faltava documentar), F2 (leading icon ausente em EscalaHeader), F3 (lineHeight manual divergente) | Todos aprovados e implementados |
+| Revisão de tamanho do título (largeMedium → medium) | 2026-08-05 | Título grande demais na variante cheia | Regra revisada; aplicado em EscalaHeader e MinisterioStatsCard (FullCard) |
+| indisponibilidades/index.tsx (peso dos section headers) | 2026-08-05 | semiBold divergia do bold confirmado para título de card | Ajustado pra bold; ícone leading fora de escopo (section header, não card de entidade) |
+| indisponibilidades/index.tsx (densidade de itens) | 2026-08-05 | F1 (gap 14 não é múltiplo de 4/8), F2 (minHeight 78 herdado sobrando padding), F3 (paddingVertical 12/12 do componente global) | Todos aprovados e implementados |
+
+---
+
+# Design System — Banner de erro de submit (escopo: `FancyErrorBanner`)
+
+> Escopo: mensagem de erro em nível de submit/API dentro de modal ou formulário (ex: conflito
+> de regra ao salvar), distinta de erro de campo (validação inline).
+> Revisão: 2026-08-06
+
+## Regra confirmada
+
+- **[confirmed 2026-08-06]** Erro de campo (validação de um input específico, ex:
+  `errors.diasSemana`) continua usando `FancyErrorText` (texto simples, sem fundo) —
+  componente tem 22 usos no app, a maioria erro de campo em `Controlled*`. Não alterado.
+- **[confirmed 2026-08-06]** Erro de nível de submit (falha ao salvar, conflito retornado pela
+  API) usa novo componente `components/forms/FancyErrorBanner.tsx`: fundo
+  `ColorUtils.withAlpha(Pallete.error, 0.12)`, borda `withAlpha(Pallete.error, 0.28)`,
+  `borderRadius: 12`, ícone `alert-circle-outline` (`MaterialCommunityIcons`, 18px,
+  `Pallete.error`) + texto (`FancyErrorText`-style, `size='extraSmall' type='medium'
+  color={Pallete.error}`), row com `gap: 8`.
+- Motivo da separação: transformar todo `FancyErrorText` em banner colorido criaria um bloco
+  vermelho pesado embaixo de cada campo de formulário do app (22 usos) — errado pro caso de uso
+  (erro de campo é leve, discreto; erro de submit é evento raro que merece mais destaque).
+- Referência de padrão já existente no app: `BillingNoticeBanner.tsx` (fundo tint + ícone
+  circular + gradiente) — não reaproveitado diretamente por ser pesado demais (card com gradiente,
+  badge, CTA) pro contexto de erro inline dentro de modal; `FancyErrorBanner` é a versão
+  leve/compacta do mesmo princípio (fundo tint por tom semântico + ícone).
+
+## Onde usar
+
+- Aplicado em `AddRegraModal.tsx:301` (substituiu `FancyErrorText` no `submitError`).
+- Usar em qualquer outro modal/form que hoje mostra erro de submit/API via `FancyErrorText` sem
+  fundo — banner é o padrão daqui pra frente pra esse caso específico.
+
+## Auditoria
+
+- Zero hex hardcoded — cor via `usePallete()`/`ColorUtils.withAlpha`.
+- Sem `elevation`/sombra (não é card, é banner inline leve — sem `Pallete.shadows`).
+- `npx tsc --noEmit`: zero erros.

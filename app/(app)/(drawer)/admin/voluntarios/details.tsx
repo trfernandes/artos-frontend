@@ -17,13 +17,19 @@ import { MinisterioVoluntarioStatusEnum } from '../../../../../domain/enums/Mini
 import { ResponseVoluntarioDto } from '../../../../../domain/dtos/Voluntario/voluntario.response';
 import { useFocusEffect } from 'expo-router';
 import { useLoading } from '../../../../../contexts/LoadingContext';
+import { useAuth } from '../../../../../contexts/AuthContext';
+import { IgrejaRepository } from '../../../../../domain/services/IgrejaRepository';
+import { IgrejaVoluntarioRoleEnum } from '../../../../../domain/enums/Igreja/voluntario-role.enum';
+import { getApiErrorMessage } from '../../../../../domain/api/api-error';
+import Toast from 'react-native-toast-message';
 
 export default function VoluntariosDetailsPage() {
   const parametros = useLocalSearchParams<{
     id: string;
   }>();
 
-  const { hideLoading } = useLoading();
+  const { showLoading, hideLoading } = useLoading();
+  const { igrejaAtiva } = useAuth();
 
   useFocusEffect(() => {
     hideLoading();
@@ -64,6 +70,59 @@ export default function VoluntariosDetailsPage() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  const [membroRole, setMembroRole] = useState<IgrejaVoluntarioRoleEnum | undefined>();
+  const [isLoadingRole, setIsLoadingRole] = useState(false);
+
+  const loadRole = useCallback(() => {
+    if (!igrejaAtiva) return;
+    setIsLoadingRole(true);
+    IgrejaRepository.listarVoluntarios(igrejaAtiva.id, {
+      where: {
+        conditions: [
+          {
+            path: 'voluntario.id',
+            operator: Operator.EQUALS,
+            value: { type: ValueType.LITERAL, value: parametros.id },
+          },
+        ],
+      },
+    })
+      .then((data) => {
+        setMembroRole(data[0]?.role);
+      })
+      .finally(() => {
+        setIsLoadingRole(false);
+      });
+  }, [igrejaAtiva, parametros.id]);
+
+  useEffect(() => {
+    loadRole();
+  }, [loadRole]);
+
+  const isViewerAdmin = igrejaAtiva?.role === IgrejaVoluntarioRoleEnum.ADMIN;
+
+  const handleChangeRole = useCallback(
+    async (novaRole: IgrejaVoluntarioRoleEnum) => {
+      if (!igrejaAtiva || !parametros.id || novaRole === membroRole) return;
+      showLoading('Alterando função...');
+      try {
+        await IgrejaRepository.alterarRoleVoluntario(igrejaAtiva.id, parametros.id, {
+          role: novaRole,
+        });
+        setMembroRole(novaRole);
+        Toast.show({ text1: 'Função alterada com sucesso!', type: 'success' });
+      } catch (error) {
+        Toast.show({
+          text1: getApiErrorMessage(error, 'Erro ao alterar função.'),
+          type: 'error',
+        });
+      } finally {
+        hideLoading();
+      }
+    },
+    [igrejaAtiva, parametros.id, membroRole, showLoading, hideLoading],
+  );
 
   const {
     add: addVoluntarioMinisterio,
@@ -139,7 +198,15 @@ export default function VoluntariosDetailsPage() {
       {
         title: 'Dados',
         icon: { ...DefaultIconsNames.info, size: 16 },
-        content: <VoluntarioDadosTab voluntario={voluntarioData?.[0]!} />,
+        content: (
+          <VoluntarioDadosTab
+            voluntario={voluntarioData?.[0]!}
+            role={membroRole}
+            isLoadingRole={isLoadingRole}
+            canChangeRole={isViewerAdmin}
+            onChangeRole={handleChangeRole}
+          />
+        ),
       },
       {
         title: 'Ministérios',
@@ -160,7 +227,16 @@ export default function VoluntariosDetailsPage() {
         ),
       },
     ],
-    [voluntarioData, handleAddMinisterio, handleUpdateMinisterio, handleChangeStatus],
+    [
+      voluntarioData,
+      handleAddMinisterio,
+      handleUpdateMinisterio,
+      handleChangeStatus,
+      membroRole,
+      isLoadingRole,
+      isViewerAdmin,
+      handleChangeRole,
+    ],
   );
 
   if (isLoadingRemoveVoluntarioMinisterio || isLoadingVoluntarios) return <FancyLoading />;

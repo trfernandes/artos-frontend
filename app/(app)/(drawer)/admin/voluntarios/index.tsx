@@ -22,7 +22,7 @@ import FancyListItemCard from '../../../../../components/cards/FancyListItemCard
 import FancyListStats from '../../../../../components/list/FancyListStats';
 import FancyActionSheet from '../../../../../components/actions/FancyActionSheet';
 import { usePallete } from '../../../../../hooks/usePallete';
-import { ResponseVoluntarioDto } from '../../../../../domain/dtos/Voluntario/voluntario.response';
+import { ResponseVoluntarioIgrejaDto } from '../../../../../domain/dtos/Voluntario/response-voluntario-igreja.dto';
 import { useBillingWriteAccess } from '../../../../../hooks/useBillingWriteAccess';
 import BillingNoticeBanner from '../../../../../components/billing/BillingNoticeBanner';
 
@@ -32,7 +32,9 @@ export default function VoluntariosIndexPage() {
   const palette = usePallete();
   const [searchText, setSearchText] = useState('');
   const [statusFiltro, setStatusFiltro] = useState<StatusFiltro>('todos');
-  const [actionsVoluntario, setActionsVoluntario] = useState<ResponseVoluntarioDto | null>(null);
+  const [actionsVoluntario, setActionsVoluntario] = useState<ResponseVoluntarioIgrejaDto | null>(
+    null,
+  );
   const { user } = useAuth();
   const { showLoading, hideLoading } = useLoading();
   const {

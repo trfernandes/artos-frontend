@@ -120,7 +120,7 @@ function DayComponent({
       {showSelectedState ? (
         <View style={circleStyles}>
           <FancyText
-            size='medium'
+            size='small'
             type='bold'
             color={isDisabled ? palette.fonts.inactive : palette.fonts.light}
           >

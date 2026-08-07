@@ -174,7 +174,8 @@ export default function MinisterioIntegrantesEditPage() {
     })) as ResponseMinisterioFuncaoDto[];
   }, [voluntarioAtual, funcoesList, form]);
 
-  if (isLoadingVoluntario || isLoadingFuncoesList || isLoadingFuncoes) return <FancyLoading />;
+  if (!hasInitialized.current && (isLoadingVoluntario || isLoadingFuncoesList || isLoadingFuncoes))
+    return <FancyLoading />;
 
   return (
     <FancyPageView style={{ flex: 1, paddingHorizontal: 18, paddingVertical: 12, gap: 16 }}>

@@ -1,0 +1,137 @@
+# Flow: Cancelar "Encerrar regra atual?" preserva os dados do formulário (ministério/líder)
+#
+# Uso:
+#   maestro test flows/indisponibilidade-ministerio-regra-mensal-cancelar-preserva-dados.yaml \
+#     -e APP_EMAIL=seu@email.com \
+#     -e APP_PASSWORD=SuaSenha123
+#
+# Contexto: handleConfirmAddRegra (app/(app)/(drawer)/ministerios/indisponibilidades/index.tsx)
+# detecta conflito de LIMITE_MENSAL em aberto e abre o FancyAlert "Encerrar regra atual?".
+# Mesmo par de bugs do flow irmão (pessoal):
+#
+# Bug 1 (Android, corrigido em commit anterior e-2188878): bottom sheet (AddRegraModal)
+# continuava visível quando o FancyAlert abria — dois <Modal> nativos empilhados
+# deixam o segundo invisível/intocável no Android.
+#
+# Bug 2 (regressão introduzida ao reverter o fix acima por engano, corrigida na mesma
+# sessão): fechar o bottom sheet direto perdia os dados digitados se o usuário tocasse
+# "Cancelar". Fix: guarda o resultado pendente em `pendingAddRegra` e reabre o modal
+# com `initialValues` no cancelamento.
+#
+# O que este flow verifica:
+#   - Ao tocar "Cancelar" no alerta, o modal reabre com o motivo preenchido como o
+#     usuário havia digitado.
+#   - Ao tocar "Salvar" de novo e confirmar dessa vez, a regra é criada normalmente.
+
+appId: com.church.artos
+---
+- launchApp:
+    clearState: false
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- runFlow: _handle_expo_picker.yaml
+- runFlow: _login.yaml
+
+- extendedWaitUntil:
+    visible: 'Início'
+    timeout: 120000
+- waitForAnimationToEnd:
+    timeout: 4000
+
+# --- Navegação: drawer > Ministério de Louvor > Indisponibilidades ---
+- tapOn:
+    point: '7%,5%'
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn: 'Ministério de Louvor'
+- waitForAnimationToEnd:
+    timeout: 2000
+- scroll
+- tapOn: 'Indisponibilidades'
+- extendedWaitUntil:
+    visible: 'Regras deste ministério'
+    timeout: 20000
+
+# --- Seleciona voluntário ---
+- tapOn: 'Voluntário'
+- tapOn: 'Ana Costa'
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# --- Limpeza: remove regras LIMITE_MENSAL deixadas por execuções anteriores ---
+- repeat:
+    times: 3
+    commands:
+      - runFlow:
+          when:
+            visible: 'Frequência'
+          commands:
+            - tapOn: 'Remover regra'
+            - tapOn: 'Sim'
+            - waitForAnimationToEnd
+
+# --- Regra 1: LIMITE_MENSAL com dataInicio dia 20, em aberto (sem dataFim) ---
+- tapOn: 'Nova regra'
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn: 'Mensal'
+
+- tapOn: 'A partir de'
+- tapOn: '^20$'
+- tapOn: 'Confirmar'
+
+- tapOn:
+    below: 'Motivo'
+- inputText: 'Teste Maestro - ministerio cancelar preserva'
+- hideKeyboard
+- tapOn: 'Salvar'
+
+- assertVisible: 'Regra criada com sucesso!'
+
+# --- Regra 2: dataInicio dia 25 (sobreposta) — dispara o alerta ---
+- tapOn: 'Nova regra'
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn: 'Mensal'
+
+- tapOn: 'A partir de'
+- tapOn: '^25$'
+- tapOn: 'Confirmar'
+
+- tapOn:
+    below: 'Motivo'
+- inputText: 'Teste Maestro - ministerio cancelar 2'
+- hideKeyboard
+- tapOn: 'Salvar'
+
+- assertVisible: 'Encerrar regra atual?'
+
+# --- Cancela o encerramento ---
+- tapOn: 'Cancelar'
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Modal deve ter reaberto com os dados preservados (não um formulário em branco)
+- assertVisible: 'Nova regra de indisponibilidade'
+- assertVisible: 'Teste Maestro - ministerio cancelar 2'
+
+- takeScreenshot: indisponibilidade-ministerio-regra-mensal-cancelar-preserva-dados
+
+# --- Confirma dessa vez, pra validar que o fluxo completa normalmente depois do cancel ---
+- tapOn: 'Salvar'
+- assertVisible: 'Encerrar regra atual?'
+- tapOn: 'Confirmar'
+- assertVisible: 'Regra criada com sucesso!'
+
+# --- Limpeza final ---
+- repeat:
+    times: 3
+    commands:
+      - runFlow:
+          when:
+            visible: 'Frequência'
+          commands:
+            - tapOn: 'Remover regra'
+            - tapOn: 'Sim'
+            - waitForAnimationToEnd

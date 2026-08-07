@@ -19,23 +19,18 @@ appId: com.church.artos
 - waitForAnimationToEnd:
     timeout: 5000
 
-# ── 2. Abrir drawer via swipe ────────────────────────────────────────────
-- swipe:
-    direction: RIGHT
-    duration: 600
+# ── 2. Abrir drawer via ícone hambúrguer ─────────────────────────────────
+- tapOn:
+    point: '7%, 5%'
 - waitForAnimationToEnd:
     timeout: 2000
 
-# ── 3. Expandir o ministério no drawer (item expansível, colapsado por padrão)
-#       Toca no nome do ministério para revelar os sub-itens
-- tapOn:
-    text: 'Ministério de Louvor'
-- waitForAnimationToEnd:
-    timeout: 1500
-
-# ── 4. Tocar em "Escalas" (sub-item que aparece após expandir)
+# ── 3. Tocar em "Escalas" do Ministério de Louvor ────────────────────────
+# Grupos "Kids" e "Ministério de Louvor" já vêm expandidos por padrão, ambos
+# com item "Escalas" — index 1 é o do Ministério de Louvor (2º grupo)
 - tapOn:
     text: 'Escalas'
+    index: 1
 - waitForAnimationToEnd:
     timeout: 4000
 
@@ -44,7 +39,15 @@ appId: com.church.artos
     text: 'Escalas'
 
 - tapOn:
-    point: '95%, 90%'
+    point: '90%, 87%'
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# FAB abre alerta "Nova escala" com 2 opções — escolher geração automática
+- assertVisible:
+    text: 'Nova escala'
+- tapOn:
+    text: 'Gerar automaticamente'
 - waitForAnimationToEnd:
     timeout: 3000
 
@@ -87,8 +90,9 @@ appId: com.church.artos
 # ── 9. Step 4 — Revisar e gerar ─────────────────────────────────────────
 - tapOn:
     text: 'Gerar'
-- waitForAnimationToEnd:
-    timeout: 10000
+- extendedWaitUntil:
+    visible: 'Geração iniciada!'
+    timeout: 25000
 
 # ── 10. Verificar passo "Pronto" com geração assíncrona ─────────────────
 - assertVisible:

@@ -44,6 +44,7 @@ import {
   descreverDetalheRegra,
   regraIcone,
   regraChipLabel,
+  regraCor,
   expandirRegrasParaCalendario,
 } from '../../../../../domain/utils/regra_indisponibilidade_utils';
 
@@ -63,6 +64,7 @@ export default function MinisterioIndisponibilidadesIndex() {
   const igrejaId = igrejaAtiva?.id;
 
   const [showRegraModal, setShowRegraModal] = useState(false);
+  const [pendingAddRegra, setPendingAddRegra] = useState<AddRegraModalResult | null>(null);
   const [editingRegra, setEditingRegra] =
     useState<ResponseRegraIndisponibilidadeVoluntarioDto | null>(null);
 
@@ -161,17 +163,9 @@ export default function MinisterioIndisponibilidadesIndex() {
   const criar = useCallback(
     async (result: AddRegraModalResult) => {
       if (!voluntarioId || !igrejaId || !ministerioId) return;
-      try {
-        await criarRegra({ ...result, voluntarioId, igrejaId, ministerioId });
-        setShowRegraModal(false);
-        setLazyToastOptions({ type: 'success', text1: 'Regra criada com sucesso!' });
-      } catch (error) {
-        setLazyToastOptions({
-          type: 'error',
-          text1: 'Erro ao criar regra',
-          text2: normalizeAxiosError(error).message,
-        });
-      }
+      await criarRegra({ ...result, voluntarioId, igrejaId, ministerioId });
+      setShowRegraModal(false);
+      setLazyToastOptions({ type: 'success', text1: 'Regra criada com sucesso!' });
     },
     [criarRegra, voluntarioId, igrejaId, ministerioId],
   );
@@ -188,13 +182,32 @@ export default function MinisterioIndisponibilidadesIndex() {
           year: 'numeric',
           timeZone: 'UTC',
         });
+        // Fecha o bottom sheet antes do FancyAlert: dois <Modal> nativos empilhados
+        // deixam o segundo invisivel/intocavel no Android. Guarda o result p/
+        // reabrir preenchido se o usuario cancelar.
+        setPendingAddRegra(result);
         setShowRegraModal(false);
         FancyAlert.alert(
           'Encerrar regra atual?',
           `Já existe uma regra de limite mensal em aberto para este ministério. Ao criar esta nova regra, a atual será encerrada em ${fechamentoFmt}.`,
           [
-            { text: 'Cancelar', style: 'destructive' },
-            { text: 'Confirmar', onPress: () => criar(result) },
+            { text: 'Cancelar', style: 'cancel', onPress: () => setShowRegraModal(true) },
+            {
+              text: 'Confirmar',
+              onPress: async () => {
+                try {
+                  await criar(result);
+                } catch (error) {
+                  setLazyToastOptions({
+                    type: 'error',
+                    text1: 'Erro ao criar regra',
+                    text2: normalizeAxiosError(error).message,
+                  });
+                } finally {
+                  setPendingAddRegra(null);
+                }
+              },
+            },
           ],
         );
         return;
@@ -207,31 +220,28 @@ export default function MinisterioIndisponibilidadesIndex() {
   const handleConfirmEditRegra = async (result: AddRegraModalResult) => {
     if (!editingRegra) return;
     const id = editingRegra.id;
+    const { tipo, diasSemana, dataInicio, dataFim, recorrente, limiteMensal, motivo } = result;
+    // erro exibido inline no próprio modal; modal fica aberto p/ o usuário corrigir
+    await atualizarRegra({
+      id,
+      dto: { tipo, diasSemana, dataInicio, dataFim, recorrente, limiteMensal, motivo },
+    });
     setEditingRegra(null);
-
-    try {
-      const { tipo, diasSemana, dataInicio, dataFim, recorrente, limiteMensal, motivo } = result;
-      await atualizarRegra({
-        id,
-        dto: { tipo, diasSemana, dataInicio, dataFim, recorrente, limiteMensal, motivo },
-      });
-      setLazyToastOptions({ type: 'success', text1: 'Regra atualizada com sucesso!' });
-    } catch {
-      setLazyToastOptions({ type: 'error', text1: 'Erro ao atualizar regra' });
-    }
+    setLazyToastOptions({ type: 'success', text1: 'Regra atualizada com sucesso!' });
   };
 
   const handleRemoverRegra = useCallback(
     (regra: ResponseRegraIndisponibilidadeVoluntarioDto) => {
       FancyAlert.alert(`Remover regra`, `Deseja remover "${descreverRegra(regra)}"?`, [
-        { text: 'Cancelar', style: 'destructive' },
+        { text: 'Cancelar', style: 'cancel' },
         {
           text: 'Sim',
+          style: 'destructive',
           onPress: async () => {
             try {
               await removerRegra(regra.id);
             } catch {
-              Toast.show({ type: 'error', text1: 'Erro ao remover a regra.' });
+              setLazyToastOptions({ type: 'error', text1: 'Erro ao remover a regra.' });
             }
           },
         },
@@ -252,25 +262,28 @@ export default function MinisterioIndisponibilidadesIndex() {
 
   return (
     <FancyPageView style={styles.container}>
-      {tour.showBanner && (
-        <>
-          <TutorialBanner onStart={tour.start} onDismiss={tour.skip} />
-          <FancyVerticalSpacer height={15} />
-        </>
-      )}
+      <View style={styles.headerContent}>
+        {tour.showBanner && (
+          <>
+            <TutorialBanner onStart={tour.start} onDismiss={tour.skip} />
+            <FancyVerticalSpacer height={15} />
+          </>
+        )}
 
-      <ControlledSearchSelect
-        control={control}
-        name='voluntarioId'
-        label='Voluntário'
-        searchPlaceholder='Buscar voluntário...'
-        listItems={voluntariosDropDownList}
-      />
+        <ControlledSearchSelect
+          control={control}
+          name='voluntarioId'
+          label='Voluntário'
+          searchPlaceholder='Buscar voluntário...'
+          listItems={voluntariosDropDownList}
+        />
+      </View>
 
       {!voluntarioId ? (
-        <View style={styles.emptyContainer}>
+        <View style={[styles.emptyContainer, styles.headerContent]}>
           <FancyListEmpty
             label='Nenhum voluntário selecionado...'
+            helperText='Selecione um voluntário no campo acima para ver e gerenciar as regras dele.'
             icon={{ library: 'MaterialCommunityIcons', name: 'calendar-remove-outline', size: 55 }}
           />
         </View>
@@ -330,8 +343,7 @@ export default function MinisterioIndisponibilidadesIndex() {
             {pessoais.length ? (
               <View style={{ gap: 8 }}>
                 {pessoais.map((regra) => {
-                  const corRegra =
-                    regra.tipo === 'LIMITE_MENSAL' ? palette.warning : palette.secondary;
+                  const corRegra = regraCor(regra, palette);
                   const detalhe = descreverDetalheRegra(regra);
                   return (
                     <View key={regra.id} style={styles.pessoalItemRow}>
@@ -422,6 +434,7 @@ export default function MinisterioIndisponibilidadesIndex() {
                     type='contained'
                     mode='icon'
                     size={32}
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                     icon={{ library: 'MaterialCommunityIcons', name: 'plus', size: 24 }}
                     onPress={() => setShowRegraModal(true)}
                   />
@@ -452,9 +465,7 @@ export default function MinisterioIndisponibilidadesIndex() {
                               styles.regraChip,
                               {
                                 backgroundColor: ColorUtils.withAlpha(
-                                  regra.tipo === 'LIMITE_MENSAL'
-                                    ? palette.warning
-                                    : palette.secondary,
+                                  regraCor(regra, palette),
                                   0.1,
                                 ),
                                 alignSelf: 'flex-start',
@@ -464,9 +475,7 @@ export default function MinisterioIndisponibilidadesIndex() {
                             <FancyText
                               size='extraSmall'
                               type='semiBold'
-                              color={
-                                regra.tipo === 'LIMITE_MENSAL' ? palette.warning : palette.secondary
-                              }
+                              color={regraCor(regra, palette)}
                             >
                               {regraChipLabel(regra)}
                             </FancyText>
@@ -480,17 +489,15 @@ export default function MinisterioIndisponibilidadesIndex() {
                           name: regraIcone(regra) as any,
                           size: 20,
                         },
-                        color: regra.tipo === 'LIMITE_MENSAL' ? palette.warning : palette.secondary,
-                        backgroundColor: ColorUtils.withAlpha(
-                          regra.tipo === 'LIMITE_MENSAL' ? palette.warning : palette.secondary,
-                          0.1,
-                        ),
+                        color: regraCor(regra, palette),
+                        backgroundColor: ColorUtils.withAlpha(regraCor(regra, palette), 0.1),
                       }}
                       trailing={
                         <FancyButton
                           type='light'
                           mode='icon'
                           size={{ w: 32, h: 32 }}
+                          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                           icon={{
                             library: 'MaterialCommunityIcons',
                             name: 'trash-can-outline',
@@ -526,9 +533,13 @@ export default function MinisterioIndisponibilidadesIndex() {
       {showRegraModal && (
         <AddRegraModal
           visible={showRegraModal}
-          onClose={() => setShowRegraModal(false)}
+          onClose={() => {
+            setShowRegraModal(false);
+            setPendingAddRegra(null);
+          }}
           onConfirm={handleConfirmAddRegra}
           voluntarioNome={voluntarioSelecionado?.nome}
+          initialValues={pendingAddRegra ?? undefined}
         />
       )}
 
@@ -558,8 +569,9 @@ export default function MinisterioIndisponibilidadesIndex() {
 
 function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
-    container: { paddingBottom: 10, flex: 1, paddingHorizontal: 20 },
-    scrollContent: { paddingBottom: 100 },
+    container: { paddingBottom: 10, flex: 1 },
+    headerContent: { paddingHorizontal: 20 },
+    scrollContent: { paddingBottom: 100, paddingHorizontal: 20 },
     emptyContainer: {
       flex: 1,
       justifyContent: 'center',

@@ -94,11 +94,11 @@ export const EscalaSchema = z
     markParticipantsAll: z.boolean().default(true),
   })
   .superRefine((data, ctx) => {
-    if (data.dataTermino <= data.dataInicio) {
+    if (data.dataTermino < data.dataInicio) {
       ctx.addIssue({
         code: 'custom',
         path: ['dataTermino'],
-        message: 'A data de término deve ser posterior à data de início',
+        message: 'A data de término não pode ser anterior à data de início',
       });
     }
   });

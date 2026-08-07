@@ -4,7 +4,7 @@ appId: com.church.artos
 # Teste: Quiz de vendas
 #
 # O que valida:
-#   1. Quiz acessível a partir da tela de login
+#   1. Quiz acessível via deep link (funil de marketing, sem sessão ativa)
 #   2. Navegação pelas 6 perguntas (seleção obrigatória para avançar)
 #   3. Submissão chega na tela de resultado (bucket calculado)
 #   4. Tela de funcionalidades carrega após o resultado
@@ -16,9 +16,8 @@ appId: com.church.artos
 - waitForAnimationToEnd:
     timeout: 3000
 
-# ── 2. Abrir quiz via botão de dev ───────────────────────────────────────
-- tapOn:
-    text: '[DEV] Quiz de vendas'
+# ── 2. Abrir quiz via deep link (entrada real do funil, sem botão DEV) ───
+- openLink: diakonia:///quiz-vendas
 - waitForAnimationToEnd:
     timeout: 3000
 

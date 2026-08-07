@@ -43,6 +43,7 @@ import {
   descreverDetalheRegra,
   regraIcone,
   regraChipLabel,
+  regraCor,
   expandirRegrasParaCalendario,
 } from '../../../../../domain/utils/regra_indisponibilidade_utils';
 
@@ -66,6 +67,7 @@ export default function IndisponibilidadeIndexPage() {
   });
   const [showPeriodoModal, setShowPeriodoModal] = useState(false);
   const [showRegraModal, setShowRegraModal] = useState(false);
+  const [pendingAddRegra, setPendingAddRegra] = useState<AddRegraModalResult | null>(null);
   const [editingRegra, setEditingRegra] =
     useState<ResponseRegraIndisponibilidadeVoluntarioDto | null>(null);
   const [hasSettled, setHasSettled] = useState(false);
@@ -319,8 +321,12 @@ export default function IndisponibilidadeIndexPage() {
       setShowRegraModal(false);
       setLazyToastOptions({ type: 'success', message: 'Regra criada com sucesso!', show: true });
     } catch (error) {
-      // hook já exibe o toast com a mensagem real do backend; modal fica aberto p/ o usuário corrigir
+      // Fluxo direto (sem conflito de limite mensal): modal ainda aberto, erro
+      // exibido inline pelo próprio AddRegraModal. No fluxo de conflito o modal
+      // já foi fechado antes do FancyAlert; quem trata o erro ali é o onPress
+      // do "Confirmar" (toast via setLazyToastOptions).
       console.error('Erro ao criar regra:', error);
+      throw error;
     }
   };
 
@@ -338,12 +344,33 @@ export default function IndisponibilidadeIndexPage() {
           year: 'numeric',
           timeZone: 'UTC',
         });
+        // Fecha o bottom sheet antes do FancyAlert: dois <Modal> nativos empilhados
+        // deixam o segundo invisivel/intocavel no Android. Guarda o result p/
+        // reabrir preenchido se o usuario cancelar.
+        setPendingAddRegra(result);
+        setShowRegraModal(false);
         FancyAlert.alert(
           'Encerrar regra atual?',
           `Você já tem uma regra de limite mensal em aberto. Ao criar esta nova regra, a atual será encerrada em ${fechamentoFmt}.`,
           [
-            { text: 'Cancelar', style: 'destructive' },
-            { text: 'Confirmar', onPress: () => criarRegra(result) },
+            { text: 'Cancelar', style: 'cancel', onPress: () => setShowRegraModal(true) },
+            {
+              text: 'Confirmar',
+              onPress: async () => {
+                try {
+                  await criarRegra(result);
+                } catch (error) {
+                  console.error('Erro ao criar regra:', error);
+                  setLazyToastOptions({
+                    type: 'error',
+                    message: 'Erro ao criar regra',
+                    show: true,
+                  });
+                } finally {
+                  setPendingAddRegra(null);
+                }
+              },
+            },
           ],
         );
         return;
@@ -356,37 +383,43 @@ export default function IndisponibilidadeIndexPage() {
   const handleConfirmEditRegra = async (result: AddRegraModalResult) => {
     if (!editingRegra || !userId || !igrejaId) return;
     const id = editingRegra.id;
-    setEditingRegra(null);
+    const { tipo, diasSemana, dataInicio, dataFim, recorrente, limiteMensal, motivo } = result;
 
     try {
-      const { tipo, diasSemana, dataInicio, dataFim, recorrente, limiteMensal, motivo } = result;
       await updateRegra?.({
         id,
         data: { tipo, diasSemana, dataInicio, dataFim, recorrente, limiteMensal, motivo },
       });
+      setEditingRegra(null);
       setLazyToastOptions({
         type: 'success',
         message: 'Regra atualizada com sucesso!',
         show: true,
       });
     } catch (error) {
+      // erro exibido inline no próprio modal; modal fica aberto p/ o usuário corrigir
       console.error('Erro ao atualizar regra:', error);
-      setLazyToastOptions({ type: 'error', message: 'Erro ao atualizar regra', show: true });
+      throw error;
     }
   };
 
   const handleRemoverRegra = useCallback(
     (regra: ResponseRegraIndisponibilidadeVoluntarioDto) => {
       FancyAlert.alert(`Remover regra`, `Deseja remover "${descreverRegra(regra)}"?`, [
-        { text: 'Cancelar', style: 'destructive' },
+        { text: 'Cancelar', style: 'cancel' },
         {
           text: 'Sim',
+          style: 'destructive',
           onPress: async () => {
             if (!igrejaId) return;
             try {
               await removeRegraComIgreja({ id: regra.id, igrejaId });
             } catch {
-              Toast.show({ type: 'error', text1: 'Erro ao remover a regra.' });
+              setLazyToastOptions({
+                type: 'error',
+                message: 'Erro ao remover a regra.',
+                show: true,
+              });
             }
           },
         },
@@ -513,83 +546,78 @@ export default function IndisponibilidadeIndexPage() {
                   gap: 10,
                 }}
               >
-                {regras.map((regra) => (
-                  <FancyListItemCard
-                    key={regra.id}
-                    onPress={() => setEditingRegra(regra)}
-                    title={descreverRegra(regra)}
-                    subtitle={
-                      <View style={{ gap: 4 }}>
-                        <View
-                          style={[
-                            styles.regraChip,
-                            {
-                              backgroundColor: ColorUtils.withAlpha(
-                                regra.tipo === 'LIMITE_MENSAL'
-                                  ? palette.warning
-                                  : palette.secondary,
-                                0.1,
-                              ),
-                              alignSelf: 'flex-start',
-                            },
-                          ]}
-                        >
-                          <FancyText
-                            size='extraSmall'
-                            type='semiBold'
-                            color={
-                              regra.tipo === 'LIMITE_MENSAL' ? palette.warning : palette.secondary
-                            }
+                {regras.map((regra) => {
+                  const corRegra = regraCor(regra, palette);
+                  return (
+                    <FancyListItemCard
+                      key={regra.id}
+                      onPress={() => setEditingRegra(regra)}
+                      title={descreverRegra(regra)}
+                      subtitle={
+                        <View style={{ gap: 4 }}>
+                          <View
+                            style={[
+                              styles.regraChip,
+                              {
+                                backgroundColor: ColorUtils.withAlpha(corRegra, 0.1),
+                                alignSelf: 'flex-start',
+                              },
+                            ]}
                           >
-                            {regraChipLabel(regra)}
-                          </FancyText>
+                            <FancyText size='extraSmall' type='semiBold' color={corRegra}>
+                              {regraChipLabel(regra)}
+                            </FancyText>
+                          </View>
+                          {descreverDetalheRegra(regra) ? (
+                            <FancyText
+                              size='extraSmall'
+                              type='medium'
+                              color={palette.fonts.inactive}
+                            >
+                              {descreverDetalheRegra(regra)}
+                            </FancyText>
+                          ) : null}
                         </View>
-                        {descreverDetalheRegra(regra) ? (
-                          <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
-                            {descreverDetalheRegra(regra)}
-                          </FancyText>
-                        ) : null}
-                      </View>
-                    }
-                    leading={{
-                      type: 'icon',
-                      icon: {
-                        library: 'MaterialCommunityIcons',
-                        name: regraIcone(regra) as any,
-                        size: 20,
-                      },
-                      color: regra.tipo === 'LIMITE_MENSAL' ? palette.warning : palette.secondary,
-                      backgroundColor: ColorUtils.withAlpha(
-                        regra.tipo === 'LIMITE_MENSAL' ? palette.warning : palette.secondary,
-                        0.1,
-                      ),
-                    }}
-                    trailing={
-                      <FancyButton
-                        type='light'
-                        mode='icon'
-                        size={{ w: 32, h: 32 }}
-                        icon={{
+                      }
+                      leading={{
+                        type: 'icon',
+                        icon: {
                           library: 'MaterialCommunityIcons',
-                          name: 'trash-can-outline',
-                          size: 17,
-                          color: palette.icons.light,
-                        }}
-                        onPress={() => handleRemoverRegra(regra)}
-                        accessibilityLabel='Remover regra'
-                        containerStyle={{
-                          backgroundColor: palette.error,
-                          borderRadius: 16,
-                          borderWidth: 0,
-                        }}
-                      />
-                    }
-                  />
-                ))}
+                          name: regraIcone(regra) as any,
+                          size: 20,
+                        },
+                        color: corRegra,
+                        backgroundColor: ColorUtils.withAlpha(corRegra, 0.1),
+                      }}
+                      trailing={
+                        <FancyButton
+                          type='light'
+                          mode='icon'
+                          size={{ w: 32, h: 32 }}
+                          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                          icon={{
+                            library: 'MaterialCommunityIcons',
+                            name: 'trash-can-outline',
+                            size: 17,
+                            color: palette.icons.light,
+                          }}
+                          onPress={() => handleRemoverRegra(regra)}
+                          accessibilityLabel='Remover regra'
+                          containerStyle={{
+                            backgroundColor: palette.error,
+                            borderRadius: 16,
+                            borderWidth: 0,
+                          }}
+                        />
+                      }
+                    />
+                  );
+                })}
               </FancyScrollView>
             ) : (
               <FancyListEmpty
                 label='Nenhuma regra cadastrada'
+                helperText='Toque no botão + para criar sua primeira regra de indisponibilidade.'
                 icon={{
                   library: 'MaterialCommunityIcons',
                   name: 'calendar-remove-outline',
@@ -718,8 +746,12 @@ export default function IndisponibilidadeIndexPage() {
       {showRegraModal && (
         <AddRegraModal
           visible={showRegraModal}
-          onClose={() => setShowRegraModal(false)}
+          onClose={() => {
+            setShowRegraModal(false);
+            setPendingAddRegra(null);
+          }}
           onConfirm={handleConfirmAddRegra}
+          initialValues={pendingAddRegra ?? undefined}
         />
       )}
 

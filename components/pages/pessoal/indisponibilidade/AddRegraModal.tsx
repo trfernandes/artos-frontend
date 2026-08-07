@@ -6,6 +6,7 @@ import z from 'zod';
 import FancyBottomSheetModal from '../../../modal/FancyBottomSheetModal';
 import ControlledTextArea from '../../../forms/ControlledTextArea';
 import FancyErrorText from '../../../forms/FancyErrorText';
+import FancyErrorBanner from '../../../forms/FancyErrorBanner';
 import { getApiErrorMessage } from '../../../../domain/api/api-error';
 import ControlledDateInput from '../../../forms/ControlledDateInput';
 import ControlledNumberInput from '../../../forms/ControlledNumberInput';
@@ -25,41 +26,54 @@ const TODOS_DIAS = [0, 1, 2, 3, 4, 5, 6];
 function AnimatedDiaChip({
   onPress,
   isSelected,
+  disabled,
   children,
   style,
 }: {
   onPress: () => void;
   isSelected: boolean;
+  disabled?: boolean;
   children: React.ReactNode;
   style: object;
 }) {
   const scale = useRef(new Animated.Value(1)).current;
-  const handlePressIn = () =>
+  const handlePressIn = () => {
+    if (disabled) return;
     Animated.spring(scale, {
       toValue: 0.92,
       useNativeDriver: true,
       tension: 300,
       friction: 20,
     }).start();
-  const handlePressOut = () =>
+  };
+  const handlePressOut = () => {
+    if (disabled) return;
     Animated.spring(scale, {
       toValue: 1,
       useNativeDriver: true,
       tension: 300,
       friction: 20,
     }).start();
+  };
   return (
     <Pressable
-      onPress={onPress}
+      onPress={disabled ? undefined : onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
+      disabled={disabled}
       accessibilityRole='checkbox'
-      accessibilityState={{ checked: isSelected }}
+      accessibilityState={{ checked: isSelected, disabled }}
     >
-      <Animated.View style={[style, { transform: [{ scale }] }]}>{children}</Animated.View>
+      <Animated.View style={[style, disabled && chipStyles.disabled, { transform: [{ scale }] }]}>
+        {children}
+      </Animated.View>
     </Pressable>
   );
 }
+
+const chipStyles = StyleSheet.create({
+  disabled: { opacity: 0.5 },
+});
 
 const schema = z
   .object({
@@ -213,7 +227,11 @@ export default function AddRegraModal({
     }
   }, [dataInicio, dataFim, setValue]);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const toggleDia = (idx: number) => {
+    if (isSubmitting) return;
     const next = diasSemana.includes(idx)
       ? diasSemana.filter((d) => d !== idx)
       : [...diasSemana, idx];
@@ -221,11 +239,9 @@ export default function AddRegraModal({
   };
 
   const setAtalho = (dias: number[]) => {
+    if (isSubmitting) return;
     setValue('diasSemana', dias, { shouldValidate: true });
   };
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     if (visible) setSubmitError(null);
@@ -259,7 +275,10 @@ export default function AddRegraModal({
     setIsSubmitting(true);
     try {
       await onConfirm(result);
-      // Sucesso: pai fecha o modal (visible=false), o efeito acima reseta o form.
+      // onConfirm resolve com sucesso em 2 casos: (1) regra criada/atualizada —
+      // pai fecha o modal (visible=false), o efeito acima reseta o form; (2) tipo
+      // LIMITE_MENSAL em conflito — pai já fechou o modal antes de abrir o
+      // FancyAlert de confirmação, então este resolve também cai aqui sem erro.
     } catch (error) {
       setSubmitError(getApiErrorMessage(error, 'Não foi possível salvar a regra.'));
     } finally {
@@ -298,12 +317,13 @@ export default function AddRegraModal({
       }
     >
       <View style={styles.content}>
-        {submitError && <FancyErrorText message={submitError} />}
+        {submitError && <FancyErrorBanner message={submitError} />}
 
         <FancySegmentedControl<RegraIndisponibilidadeTipo>
           label='Tipo de regra'
           options={TIPOS}
           value={tipo}
+          disabled={isSubmitting}
           onChange={(v) => setValue('tipo', v, { shouldValidate: false })}
         />
 
@@ -321,6 +341,7 @@ export default function AddRegraModal({
                   <AnimatedDiaChip
                     onPress={() => setAtalho(todosSelected ? [] : TODOS_DIAS)}
                     isSelected={todosSelected}
+                    disabled={isSubmitting}
                     style={[
                       styles.chip,
                       todosSelected
@@ -348,6 +369,7 @@ export default function AddRegraModal({
                     key={idx}
                     onPress={() => toggleDia(idx)}
                     isSelected={sel}
+                    disabled={isSubmitting}
                     style={[
                       styles.chip,
                       sel
@@ -375,14 +397,25 @@ export default function AddRegraModal({
         {/* PERIODO */}
         {tipo === 'PERIODO' && (
           <View style={styles.secao}>
-            <ControlledDateInput control={control} name='dataInicio' label='Data início' />
-            <ControlledDateInput control={control} name='dataFim' label='Data fim' />
+            <ControlledDateInput
+              control={control}
+              name='dataInicio'
+              label='Data início'
+              disabled={isSubmitting}
+            />
+            <ControlledDateInput
+              control={control}
+              name='dataFim'
+              label='Data fim'
+              disabled={isSubmitting}
+            />
             <ControlledFancyToggle
               control={control}
               name='recorrente'
               label='Repetir anualmente'
               option1={{ title: 'Não', value: false }}
               option2={{ title: 'Sim', value: true }}
+              disabled={isSubmitting}
             />
           </View>
         )}
@@ -396,8 +429,14 @@ export default function AddRegraModal({
               title='Escalas por mês'
               min={1}
               max={31}
+              disabled={isSubmitting}
             />
-            <ControlledDateInput control={control} name='dataInicio' label='A partir de' />
+            <ControlledDateInput
+              control={control}
+              name='dataInicio'
+              label='A partir de'
+              disabled={isSubmitting}
+            />
             <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
               {voluntarioNome
                 ? `${voluntarioNome.split(' ')[0]} não poderá ser escalado mais que este número de vezes neste ministério em um mesmo mês, a partir da data escolhida.`
@@ -406,7 +445,12 @@ export default function AddRegraModal({
           </View>
         )}
 
-        <ControlledTextArea control={control} name='motivo' label='Motivo' />
+        <ControlledTextArea
+          control={control}
+          name='motivo'
+          label='Motivo'
+          disabled={isSubmitting}
+        />
       </View>
     </FancyBottomSheetModal>
   );

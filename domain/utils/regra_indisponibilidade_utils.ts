@@ -1,4 +1,5 @@
 import { ResponseRegraIndisponibilidadeVoluntarioDto } from '../dtos/RegraIndisponibilidadeVoluntario/regra-indisponibilidade-voluntario.response';
+import { ThemePalette } from '../../constants/colors';
 
 const DIA_NOMES_PLURAL = [
   'domingos',
@@ -59,6 +60,15 @@ export function regraChipLabel(regra: ResponseRegraIndisponibilidadeVoluntarioDt
   if (regra.tipo === 'LIMITE_MENSAL') return 'Frequência';
   if (regra.recorrente) return 'Anual';
   return 'Período';
+}
+
+export function regraCor(
+  regra: ResponseRegraIndisponibilidadeVoluntarioDto,
+  palette: ThemePalette,
+): string {
+  if (regra.tipo === 'DIAS_SEMANA') return palette.secondary;
+  if (regra.tipo === 'LIMITE_MENSAL') return palette.warning;
+  return palette.secondary;
 }
 
 export function expandirRegrasParaCalendario(
