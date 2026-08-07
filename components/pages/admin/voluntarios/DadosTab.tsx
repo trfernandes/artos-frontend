@@ -15,22 +15,22 @@ import { useThemedStyles } from '../../../../hooks/useThemedStyles';
 import { ThemePalette } from '../../../../constants/colors';
 import { ColorUtils } from '../../../../utils/color_utils';
 
-const ROLE_LABELS: Record<IgrejaVoluntarioRoleEnum, string> = {
+export const ROLE_LABELS: Record<IgrejaVoluntarioRoleEnum, string> = {
   [IgrejaVoluntarioRoleEnum.ADMIN]: 'Administrador',
   [IgrejaVoluntarioRoleEnum.LIDER]: 'Líder',
   [IgrejaVoluntarioRoleEnum.VOLUNTARIO]: 'Voluntário',
 };
 
-const ROLE_ICONS: Record<IgrejaVoluntarioRoleEnum, string> = {
+export const ROLE_ICONS: Record<IgrejaVoluntarioRoleEnum, string> = {
   [IgrejaVoluntarioRoleEnum.ADMIN]: 'shield-account-outline',
   [IgrejaVoluntarioRoleEnum.LIDER]: 'star-outline',
   [IgrejaVoluntarioRoleEnum.VOLUNTARIO]: 'account-outline',
 };
 
-const ROLE_COLOR_KEYS: Record<IgrejaVoluntarioRoleEnum, 'warning' | 'secondary' | 'primary'> = {
+export const ROLE_COLOR_KEYS: Record<IgrejaVoluntarioRoleEnum, 'warning' | 'secondary' | 'terciary'> = {
   [IgrejaVoluntarioRoleEnum.ADMIN]: 'warning',
   [IgrejaVoluntarioRoleEnum.LIDER]: 'secondary',
-  [IgrejaVoluntarioRoleEnum.VOLUNTARIO]: 'primary',
+  [IgrejaVoluntarioRoleEnum.VOLUNTARIO]: 'terciary',
 };
 
 const ROLE_OPTIONS = Object.values(IgrejaVoluntarioRoleEnum);

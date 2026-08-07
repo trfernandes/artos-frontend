@@ -25,6 +25,10 @@ import { usePallete } from '../../../../../hooks/usePallete';
 import { ResponseVoluntarioIgrejaDto } from '../../../../../domain/dtos/Voluntario/response-voluntario-igreja.dto';
 import { useBillingWriteAccess } from '../../../../../hooks/useBillingWriteAccess';
 import BillingNoticeBanner from '../../../../../components/billing/BillingNoticeBanner';
+import {
+  ROLE_LABELS,
+  ROLE_COLOR_KEYS,
+} from '../../../../../components/pages/admin/voluntarios/DadosTab';
 
 type StatusFiltro = 'todos' | 'ativos' | 'inativos';
 
@@ -276,13 +280,21 @@ export default function VoluntariosIndexPage() {
                     ? { uri: item.fotoThumbUrl || item.fotoUrl || '' }
                     : AppImages.emptyProfile,
               }}
-              status={
-                <FancyChips
-                  label={VoluntarioStatusEnumLabel[item.status]}
-                  color={statusColor}
-                  size='small'
-                  dot
-                />
+              meta={
+                <View style={styles.metaChips}>
+                  <FancyChips
+                    label={ROLE_LABELS[item.role]}
+                    color={palette[ROLE_COLOR_KEYS[item.role]]}
+                    size='small'
+                    dot
+                  />
+                  <FancyChips
+                    label={VoluntarioStatusEnumLabel[item.status]}
+                    color={statusColor}
+                    size='small'
+                    dot
+                  />
+                </View>
               }
               trailing={{ type: 'menu', onPress: () => setActionsVoluntario(item) }}
               contentStyle={isLoadingMutation ? { opacity: 0.68 } : undefined}
@@ -347,4 +359,5 @@ const styles = StyleSheet.create({
   container: { gap: 20, borderWidth: 0, borderColor: 'magenta' },
   searchbar: { paddingHorizontal: 18 },
   list_content: { gap: 10 },
+  metaChips: { flexDirection: 'row', gap: 6, marginTop: 4 },
 });
