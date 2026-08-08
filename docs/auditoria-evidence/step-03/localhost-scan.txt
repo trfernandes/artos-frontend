@@ -1,0 +1,6 @@
+.\scripts\run-android.ps1:24:      $_.IPAddress -ne "127.0.0.1" -and
+.\scripts\artos-start.ps1:24:      $_.IPAddress -ne "127.0.0.1" -and
+.\.claude\plugins\expo-app-design\skills\expo-api-routes\SKILL.md:204:This starts a local server at `http://localhost:8081` with full API route support.
+.\.claude\plugins\expo-app-design\skills\expo-api-routes\SKILL.md:209:curl http://localhost:8081/api/hello
+.\.claude\plugins\expo-app-design\skills\expo-api-routes\SKILL.md:210:curl -X POST http://localhost:8081/api/users -H "Content-Type: application/json" -d '{"name":"Test"}'
+.\.claude\plugins\expo-app-design\skills\native-data-fetching\SKILL.md:316:EXPO_PUBLIC_API_URL=http://localhost:3000

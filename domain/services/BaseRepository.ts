@@ -1,37 +1,34 @@
-// src/services/base/BaseRepository.ts
-
 import { BaseApi } from '../api/BaseApi';
-import { Identifiable } from '../models/Indentifiable';
 import { DynamicQuery } from '../utils/query_utils';
 
-export class BaseRepository<T extends Identifiable> {
-  private api: BaseApi<T>;
+export abstract class BaseRepository<TResponse, TCreate, TUpdate> {
+  protected api: BaseApi<TResponse, TCreate, TUpdate>;
 
-  constructor(api: BaseApi<T>) {
+  constructor(api: BaseApi<TResponse, TCreate, TUpdate>) {
     this.api = api;
   }
 
-  async getAll(query?: any): Promise<T[]> {
+  getAll(query?: any): Promise<TResponse[]> {
     return this.api.getAll(query);
   }
 
-  async getById(id: string): Promise<T | null> {
+  getById(id: string): Promise<TResponse> {
     return this.api.getById(id);
   }
 
-  async search(query: DynamicQuery): Promise<T[]> {
+  search(query: DynamicQuery): Promise<TResponse[]> {
     return this.api.search(query);
   }
 
-  async add(data: Omit<T, 'id' | 'createdAt' | 'updatedAt'>): Promise<T> {
-    return this.api.create(data);
+  add(payload: TCreate): Promise<TResponse> {
+    return this.api.create(payload);
   }
 
-  async update(id: string, data: Partial<Omit<T, 'id' | 'createdAt' | 'updatedAt'>>): Promise<T> {
-    return this.api.update(id, data);
+  update(id: string, payload: TUpdate): Promise<TResponse> {
+    return this.api.update(id, payload);
   }
 
-  async remove(id: string): Promise<void> {
-    return this.api.delete(id);
+  remove(id: string, igrejaId?: string): Promise<void> {
+    return this.api.delete(id, igrejaId);
   }
 }

@@ -1,0 +1,92 @@
+1	import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
+2	import z from 'zod';
+3	import { useForm } from 'react-hook-form';
+4	import { zodResolver } from '@hookform/resolvers/zod';
+5	import ControlledTextInput from '../../../forms/ControlledTextInput';
+6	import ControlledTextArea from '../../../forms/ControlledTextArea';
+7	import ControlledToggle from '../../../forms/ControlledFancyToggle';
+8	import { View } from 'react-native';
+9	import { useEffect, useMemo } from 'react';
+10	import { MinisterioFuncaoStatusEnum } from '../../../../domain/enums/MinisterioFuncao/ministerio-funcao-status.enum';
+11	import { ResponseMinisterioFuncaoDto } from '../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.response';
+12	import { CreateMinisterioFuncaoDto } from '../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.create';
+13	import { UpdateMinisterioFuncaoDto } from '../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.update';
+14	import { strfyObj } from '../../../../utils/text_utils';
+15	
+16	const schema = z.object({
+17	  id: z.uuid().optional(),
+18	  nome: z.string('Campo Obrigatório'),
+19	  descricao: z.string().optional(),
+20	  status: z.enum(MinisterioFuncaoStatusEnum).optional(),
+21	});
+22	
+23	export default function FuncaoFormModal(
+24	  props: FancyModalDialogProps<{
+25	    mode: 'add' | 'edit';
+26	    data: CreateMinisterioFuncaoDto | UpdateMinisterioFuncaoDto;
+27	  }> & {
+28	    ministerioId: string;
+29	  } & {
+30	    mode: 'add' | 'edit';
+31	    editValues?: ResponseMinisterioFuncaoDto;
+32	  },
+33	) {
+34	  const { control, handleSubmit, reset } = useForm({
+35	    resolver: zodResolver(schema),
+36	  });
+37	
+38	  useEffect(() => {
+39	    if (!props.editValues) {
+40	      return;
+41	    }
+42	
+43	    if (props.mode === 'edit') {
+44	      reset({
+45	        id: props.editValues?.id,
+46	        nome: props.editValues.nome,
+47	        descricao: props.editValues.descricao || '',
+48	        status: props.editValues.status,
+49	      });
+50	    } else if (props.mode === 'add') {
+51	      reset({ id: undefined, nome: '', descricao: '', status: MinisterioFuncaoStatusEnum.Ativo });
+52	    }
+53	  }, [props.mode, props.editValues]);
+54	
+55	  const handleConfirm = useMemo(
+56	    () =>
+57	      handleSubmit(
+58	        async (data) => {
+59	          props.onButton2Press?.({
+60	            mode: props.mode,
+61	            data,
+62	          });
+63	        },
+64	        (errors) => console.log('Erros do Função Form', strfyObj(errors)),
+65	      ),
+66	    [props],
+67	  );
+68	
+69	  return (
+70	    <FancyModalDialog {...props} onButton2Press={handleConfirm}>
+71	      <View style={{ gap: 15 }}>
+72	        <ControlledTextInput control={control} name='nome' label='Nome' />
+73	        <ControlledTextArea control={control} name='descricao' label='Descrição' />
+74	        {props.mode === 'edit' && (
+75	          <ControlledToggle
+76	            control={control}
+77	            name='status'
+78	            label='Status'
+79	            option1={{
+80	              title: 'Ativo',
+81	              value: MinisterioFuncaoStatusEnum.Ativo,
+82	            }}
+83	            option2={{
+84	              title: 'Inativo',
+85	              value: MinisterioFuncaoStatusEnum.Inativo,
+86	            }}
+87	          />
+88	        )}
+89	      </View>
+90	    </FancyModalDialog>
+91	  );
+92	}

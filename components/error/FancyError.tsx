@@ -1,10 +1,10 @@
 import { View, StyleSheet } from 'react-native';
-import { Pallete } from '../../constants/colors';
 import FancyButton from '../buttons/FancyButton';
 import { DefaultIconsNames } from '../../constants/icons';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import FancyText from '../FancyText';
 import { EXTRA_SMALL_SIZE_FONT, SEMI_BOLD_FONT } from '../../constants/font';
+import { usePallete } from '../../hooks/usePallete';
 
 export interface FancyErrorProps {
   title: string;
@@ -21,16 +21,18 @@ export default function FancyError({
   showTryAgain = true,
   onUpdate,
 }: FancyErrorProps) {
+  const Pallete = usePallete();
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: Pallete.backgroundColor }]}>
       <View style={{ alignItems: 'center', gap: 25 }}>
         {icon && <DefaultIcons.Custom {...icon} />}
         <View style={{ gap: 6, alignItems: 'center' }}>
-          <FancyText size={'medium'} type="bold" color={Pallete.fonts.inactive}>
+          <FancyText size={'medium'} type='bold' color={Pallete.fonts.inactive}>
             {title}
           </FancyText>
           {subtitle && (
-            <FancyText size={'small'} type="medium" color={Pallete.fonts.inactive}>
+            <FancyText size={'small'} type='medium' color={Pallete.fonts.inactive}>
               {subtitle}
             </FancyText>
           )}
@@ -39,7 +41,7 @@ export default function FancyError({
       {showTryAgain && (
         <FancyButton
           icon={{ ...DefaultIconsNames.refresh, size: 15, color: Pallete.icons.inactive }}
-          type="outlined"
+          type='outlined'
           containerStyle={{
             paddingHorizontal: 20,
             borderColor: Pallete.border,
@@ -51,7 +53,7 @@ export default function FancyError({
             fontSize: EXTRA_SMALL_SIZE_FONT,
             fontFamily: SEMI_BOLD_FONT,
           }}
-          label="Tentar novamente"
+          label='Tentar novamente'
           onPress={onUpdate}
         />
       )}
@@ -64,6 +66,8 @@ FancyError.Connection = ({
   subtitle = 'Verifique sua conexão e tente novamente',
   ...props
 }: { title?: string; subtitle?: string } & Pick<FancyErrorProps, 'onUpdate'>) => {
+  const Pallete = usePallete();
+
   return (
     <FancyError
       title={title}
@@ -75,10 +79,12 @@ FancyError.Connection = ({
 };
 
 FancyError.Default = (props: Pick<FancyErrorProps, 'onUpdate'>) => {
+  const Pallete = usePallete();
+
   return (
     <FancyError
-      title="Ocorreu um erro inesperado"
-      subtitle="Por favor tente novamente"
+      title='Ocorreu um erro inesperado'
+      subtitle='Por favor tente novamente'
       icon={{
         library: 'FontAwesome5',
         name: 'car-crash',
@@ -95,7 +101,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Pallete.backgroundColor,
+    backgroundColor: 'transparent',
     gap: 30,
   },
 });

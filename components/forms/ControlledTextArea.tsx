@@ -11,6 +11,7 @@ interface ControlledFancyTextAreaProps extends FancyTextAreaProps {
 export default function ControlledTextArea({
   control,
   name,
+  inputProps,
   ...rest
 }: ControlledFancyTextAreaProps) {
   return (
@@ -21,10 +22,11 @@ export default function ControlledTextArea({
         <View style={{ gap: 5 }}>
           <FancyTextArea
             inputProps={{
+              ...inputProps,
               onBlur,
-              onChangeText: onChange,
-              value,
+              onChangeText: (text) => onChange(text),
             }}
+            value={value}
             disabled={disabled}
             {...rest}
           />

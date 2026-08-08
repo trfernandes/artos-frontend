@@ -1,0 +1,94 @@
+# Flow: Trial com 2 dias restantes (fase "ending") — sem bloqueio, painel correto
+#
+# Uso:
+#   1. Rodar SQL de setup no Neon (ver abaixo)
+#   2. maestro test flows/billing-estado-trial-ending.yaml
+#   3. Rodar SQL de revert IMEDIATAMENTE apos o teste
+#
+# ════════════════════════════════════════════════
+# SQL SETUP (rodar antes):
+#
+#   UPDATE subscriptions
+#   SET status = 'trial',
+#       "trialEndsAt" = NOW() + INTERVAL '2 days',
+#       "currentPeriodEnd" = NOW() + INTERVAL '2 days'
+#   WHERE "churchId" = (SELECT id FROM igrejas WHERE codigo = 'teste-church');
+#   UPDATE igrejas SET "subscriptionStatus" = 'trial' WHERE codigo = 'teste-church';
+#
+# SQL REVERT (rodar apos):
+#
+#   UPDATE subscriptions
+#   SET status = 'active',
+#       "trialEndsAt" = NULL,
+#       "currentPeriodEnd" = '2026-07-18'
+#   WHERE "churchId" = (SELECT id FROM igrejas WHERE codigo = 'teste-church');
+#   UPDATE igrejas SET "subscriptionStatus" = 'active' WHERE codigo = 'teste-church';
+# ════════════════════════════════════════════════
+#
+# O que verifica:
+#   resolveBillingTrialPhase: daysRemaining=2 <= 2 → 'ending' (tone=critical)
+#   isSubscriptionWriteBlocked = false (trial ativo)
+#
+#   BillingStatusPanel (Configuracoes aba Assinatura):
+#     resolveStatusCopy: notice.eyebrow='Versao avaliativa', title='Periodo avaliativo ativo'
+#     (mesmo que trial-warning — o painel usa titulo fixo para trial nao expirado)
+#     pill='Teste'
+#     metaLine inclui 'Teste ate DD/MM' (status=trial, phase!=expired)
+#
+#   Telas de lista SEM banner (isBlocked=false, sem limite atingido):
+#     A condicao de banner em voluntarios/ministerios requer isBlocked ou limite atingido.
+#     Trial sem bloqueio NAO dispara o banner nas listas — apenas no BillingStatusPanel.
+#
+#   Diferenca vs trial-warning: fase 'ending' (tom critico) vs 'warning' (tom aviso).
+#   Testado aqui para cobrir a fronteira de 2 dias no resolveBillingTrialPhase.
+
+appId: com.church.artos
+---
+- launchApp
+- runFlow: _login.yaml
+- openLink: diakonia:///inicio
+- extendedWaitUntil:
+    visible: 'Início'
+    timeout: 120000
+
+# ── Passo 1: BillingStatusPanel em Configuracoes ───────────────────────────
+- openLink: diakonia:///configuracoes
+- waitForAnimationToEnd:
+    timeout: 15000
+- runFlow:
+    when:
+      visible: 'Servidor indisponível'
+    file: _retry_servidor.yaml
+- extendedWaitUntil:
+    visible: 'Assinatura'
+    timeout: 15000
+- tapOn:
+    text: 'Assinatura'
+    index: 1
+- extendedWaitUntil:
+    visible: 'Versão avaliativa'
+    timeout: 30000
+# Mesmo layout que trial-warning: titulo fixo para trial nao expirado
+- assertVisible: 'Versão avaliativa'
+- assertVisible: 'Período avaliativo ativo'
+- assertVisible: 'Teste'
+- assertNotVisible: 'Assinatura em dia'
+- assertNotVisible: 'Expirada'
+- assertNotVisible: 'Ativa'
+- takeScreenshot: billing-trial-ending-configuracoes
+
+# ── Passo 2: Voluntarios — sem banner (trial nao bloqueia sem limite) ─────────
+- openLink: diakonia:///admin/voluntarios
+- waitForAnimationToEnd:
+    timeout: 15000
+- assertNotVisible: 'Avaliação encerrada'
+- assertNotVisible: 'Pagamento em atraso'
+- takeScreenshot: billing-trial-ending-voluntarios
+
+# ── Passo 3: Ministerios — sem banner, FAB habilitado ──────────────────────
+- openLink: diakonia:///admin/ministerios
+- waitForAnimationToEnd:
+    timeout: 15000
+- assertNotVisible: 'Avaliação encerrada'
+- assertNotVisible: 'Pagamento em atraso'
+- takeScreenshot: billing-trial-ending-ministerios

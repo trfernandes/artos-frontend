@@ -1,0 +1,11 @@
+hooks\useDashboard.ts:25:  const query = useQuery({
+hooks\useDashboard.ts:59:  return useQuery({
+hooks\useCrud.ts:147:  const dataQuery = useQuery<TResponse[], Error>({
+hooks\useCadastroIgrejaEmail.ts:57:  const statusQuery = useQuery<StatusCadastroResponseDto | null>({
+hooks\useIgrejaConfiguracoes.ts:27:  const { data, isLoading, error, refetch } = useQuery({
+hooks\useMinisteriosDrawer.ts:24:  const { data: ministeriosFetched, isLoading, isFetching } = useQuery({
+hooks\useNotificacoesCrud.ts:13:  const listarQuery = useQuery({
+hooks\useNotificacoesCrud.ts:19:  const contarNaoLidasQuery = useQuery({
+app\(app)\join-church\requests.tsx:63:  const { data: solicitacoes, isLoading, error, refetch } = useQuery({
+app\(app)\(drawer)\admin\solicitacoes\index.tsx:76:  } = useQuery({
+app\(app)\(drawer)\admin\solicitacoes\index.tsx:104:  } = useQuery({

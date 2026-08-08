@@ -1,0 +1,8 @@
+app\(app)\join-church\requests.tsx:1:import { StyleSheet, View, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
+app\(app)\join-church\requests.tsx:224:        <FlatList
+components\fields\FancySelectField.tsx:2:import { View, StyleSheet, Pressable, Modal, FlatList, StyleProp, ViewStyle, TextInputProps } from 'react-native';
+components\fields\FancySelectField.tsx:121:            <FlatList
+components\pages\notifications\NotificationsList.tsx:3:import { SectionList, SectionListData, View, StyleSheet } from 'react-native';
+components\pages\notifications\NotificationsList.tsx:20:  const groupsData = useMemo<SectionListData<ResponseNotificacaoDto>[]>(() => {
+components\pages\notifications\NotificationsList.tsx:61:    // transformar em sections para o SectionList
+components\pages\notifications\NotificationsList.tsx:90:    <SectionList

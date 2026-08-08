@@ -1,0 +1,766 @@
+1	import {
+2	    StyleSheet,
+3	    View,
+4	    TouchableOpacity,
+5	    ActivityIndicator,
+6	    Platform,
+7	    ScrollView,
+8	} from 'react-native';
+9	import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+10	import { uploadToCloudinaryUnsigned } from '../../../../services/cloudinary_upload';
+11	import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from '../../../../config/cloudinary';
+12	import FancyPageView from '../../../../components/containers/FancyPageView';
+13	import FancyTabs, { TabItem } from '../../../../components/tabs/FancyTabs';
+14	import { DefaultIconsNames } from '../../../../constants/icons';
+15	import { useState, useEffect } from 'react';
+16	import { useIgrejaConfiguracoes } from '../../../../hooks/useIgrejaConfiguracoes';
+17	import { useAuth } from '../../../../contexts/AuthContext';
+18	import { useForm } from 'react-hook-form';
+19	import { zodResolver } from '@hookform/resolvers/zod';
+20	import {
+21	    dadosSchema,
+22	    modoEntradaSchema,
+23	    notificacoesSchema,
+24	    DadosFormData,
+25	    ModoEntradaFormData,
+26	    NotificacoesFormData,
+27	} from '../../../../domain/schemas/igreja-configuracoes.schema';
+28	import ControlledTextInput from '../../../../components/forms/ControlledTextInput';
+29	import ControlledDropDown from '../../../../components/forms/ControlledDropDown';
+30	import ControlledMaskedTextInput from '../../../../components/forms/ControlledMaskedTextInput';
+31	import FancyButton from '../../../../components/buttons/FancyButton';
+32	import { Pallete } from '../../../../constants/colors';
+33	import DefaultIcons from '../../../../components/FancyIcons';
+34	import FancyText from '../../../../components/FancyText';
+35	import { ModoEntradaEnum } from '../../../../domain/enums/modo-entrada.enum';
+36	import ControlledFancyToggle from '../../../../components/forms/ControlledFancyToggle';
+37	import FancyCheckbox from '../../../../components/FancyCheckbox';
+38	import * as Clipboard from 'expo-clipboard';
+39	import Toast from 'react-native-toast-message';
+40	import { ControlledImagePicker, FormImageFile } from '../../../../components/forms/ControlledImagePicker';
+41	
+42	const ESTADOS_BRASIL = [
+43	  { title: 'Acre (AC)', value: 'AC' },
+44	  { title: 'Alagoas (AL)', value: 'AL' },
+45	  { title: 'Amapá (AP)', value: 'AP' },
+46	  { title: 'Amazonas (AM)', value: 'AM' },
+47	  { title: 'Bahia (BA)', value: 'BA' },
+48	  { title: 'Ceará (CE)', value: 'CE' },
+49	  { title: 'Distrito Federal (DF)', value: 'DF' },
+50	  { title: 'Espírito Santo (ES)', value: 'ES' },
+51	  { title: 'Goiás (GO)', value: 'GO' },
+52	  { title: 'Maranhão (MA)', value: 'MA' },
+53	  { title: 'Mato Grosso (MT)', value: 'MT' },
+54	  { title: 'Mato Grosso do Sul (MS)', value: 'MS' },
+55	  { title: 'Minas Gerais (MG)', value: 'MG' },
+56	  { title: 'Pará (PA)', value: 'PA' },
+57	  { title: 'Paraíba (PB)', value: 'PB' },
+58	  { title: 'Paraná (PR)', value: 'PR' },
+59	  { title: 'Pernambuco (PE)', value: 'PE' },
+60	  { title: 'Piauí (PI)', value: 'PI' },
+61	  { title: 'Rio de Janeiro (RJ)', value: 'RJ' },
+62	  { title: 'Rio Grande do Norte (RN)', value: 'RN' },
+63	  { title: 'Rio Grande do Sul (RS)', value: 'RS' },
+64	  { title: 'Rondônia (RO)', value: 'RO' },
+65	  { title: 'Roraima (RR)', value: 'RR' },
+66	  { title: 'Santa Catarina (SC)', value: 'SC' },
+67	  { title: 'São Paulo (SP)', value: 'SP' },
+68	  { title: 'Sergipe (SE)', value: 'SE' },
+69	  { title: 'Tocantins (TO)', value: 'TO' },
+70	];
+71	
+72	const ANTECEDENCIA_OPTIONS = [
+73	  { title: '24 horas antes', value: 24 },
+74	  { title: '48 horas antes', value: 48 },
+75	  { title: '72 horas antes', value: 72 },
+76	  { title: '1 semana antes', value: 168 },
+77	];
+78	
+79	export default function ConfiguracoesPage() {
+80	  const { igrejaAtiva, user, updateUser } = useAuth();
+81	  const igrejaId = igrejaAtiva?.id;
+82	
+83	  // Não executar o hook se não houver igreja ativa
+84	  const { data, isLoading, updateDados, updateModoEntrada, updateNotificacoes, isUpdating } =
+85	    useIgrejaConfiguracoes({
+86	      igrejaId: igrejaId || '',
+87	      onUpdateDadosSuccess: async (updatedData) => {
+88	        // Atualizar a igreja no contexto de autenticação
+89	        if (user?.igrejas && igrejaAtiva) {
+90	          const igrejasAtualizadas = user.igrejas.map((igreja) =>
+91	            igreja.id === igrejaAtiva.id
+92	              ? {
+93	                  ...igreja,
+94	                  nome: updatedData.nome,
+95	                  logoUrl: updatedData.logoUrl,
+96	                  logoThumbUrl: updatedData.logoThumbUrl,
+97	                  // Preservar os ministérios da igreja atual
+98	                  ministerios: igreja.ministerios,
+99	                }
+100	              : igreja
+101	          );
+102	          
+103	          await updateUser({ igrejas: igrejasAtualizadas });
+104	        }
+105	      },
+106	    });
+107	
+108	  // State para controlar upload de imagem
+109	  const [isUploadingImage, setIsUploadingImage] = useState(false);
+110	
+111	  // Forms
+112	  const dadosForm = useForm<DadosFormData>({
+113	    resolver: zodResolver(dadosSchema),
+114	    defaultValues: data
+115	      ? {
+116	          nome: data.nome,
+117	          endereco: {
+118	            cep: data.endereco?.cep || '',
+119	            rua: data.endereco?.rua || '',
+120	            numero: data.endereco?.numero || '',
+121	            complemento: data.endereco?.complemento || '',
+122	            cidade: data.endereco?.cidade || '',
+123	            uf: data.endereco?.uf || '',
+124	          },
+125	          telefone: data.telefone || '',
+126	          email: data.email || '',
+127	          logoUrl: data.logoUrl,
+128	        }
+129	      : undefined,
+130	  });
+131	
+132	  const modoEntradaForm = useForm<ModoEntradaFormData>({
+133	    resolver: zodResolver(modoEntradaSchema),
+134	    defaultValues: data
+135	      ? {
+136	          modoEntrada: data.modoEntrada,
+137	        }
+138	      : undefined,
+139	  });
+140	
+141	  const notificacoesForm = useForm<NotificacoesFormData>({
+142	    resolver: zodResolver(notificacoesSchema),
+143	    defaultValues: {
+144	      notificacoesHabilitadas: false,
+145	      antecedenciaHoras: 24,
+146	      canaisPush: true,
+147	      canaisWhatsapp: false,
+148	    },
+149	  });
+150	
+151	  // States para checkboxes
+152	  const [canaisPush, setCanaisPush] = useState(
+153	    data?.configuracoes?.notificacoes?.canais?.push ?? data?.notificacoes?.canais?.push ?? true
+154	  );
+155	  const [canaisWhatsapp, setCanaisWhatsapp] = useState(
+156	    data?.configuracoes?.notificacoes?.canais?.whatsapp ?? data?.notificacoes?.canais?.whatsapp ?? false
+157	  );
+158	
+159	  // Atualizar forms quando data carregar
+160	  useEffect(() => {
+161	    if (data) {
+162	      console.log('🔄 useEffect - Dados recebidos para reset do form:', JSON.stringify({
+163	        telefone: data.telefone,
+164	        email: data.email,
+165	        nome: data.nome,
+166	      }, null, 2));
+167	      
+168	      dadosForm.reset({
+169	        nome: data.nome || '',
+170	        endereco: {
+171	          cep: data.endereco?.cep || '',
+172	          rua: data.endereco?.rua || '',
+173	          numero: data.endereco?.numero || '',
+174	          complemento: data.endereco?.complemento || '',
+175	          cidade: data.endereco?.cidade || '',
+176	          uf: data.endereco?.uf || '',
+177	        },
+178	        telefone: data.telefone || '',
+179	        email: data.email || '',
+180	        logoUrl: data.logoUrl || '',
+181	      });
+182	
+183	      modoEntradaForm.reset({
+184	        modoEntrada: data.modoEntrada,
+185	      });
+186	
+187	      // Suporte para ambas estruturas: configuracoes.notificacoes ou notificacoes diretamente
+188	      const notificacoes = data.configuracoes?.notificacoes || data.notificacoes;
+189	      if (notificacoes) {
+190	        notificacoesForm.reset({
+191	          notificacoesHabilitadas: notificacoes.habilitadas ?? false,
+192	          antecedenciaHoras: notificacoes.antecedenciaHoras ?? 24,
+193	          canaisPush: notificacoes.canais?.push ?? true,
+194	          canaisWhatsapp: notificacoes.canais?.whatsapp ?? false,
+195	        });
+196	
+197	        setCanaisPush(notificacoes.canais?.push ?? true);
+198	        setCanaisWhatsapp(notificacoes.canais?.whatsapp ?? false);
+199	      }
+200	    }
+201	  }, [data]);
+202	
+203	  // Handlers
+204	  const handleSalvarDados = dadosForm.handleSubmit(async (formData: DadosFormData) => {
+205	    console.log('📤 Dados do form a serem enviados:', JSON.stringify(formData, null, 2));
+206	    
+207	    // Fazer upload da imagem se houver uma nova
+208	    const logoFile = dadosForm.getValues('logoFile' as any) as FormImageFile | null | undefined;
+209	    
+210	    let finalLogoUrl = formData.logoUrl;
+211	    
+212	    if (logoFile?.uri) {
+213	      setIsUploadingImage(true);
+214	      try {
+215	        const result = await uploadToCloudinaryUnsigned(logoFile, {
+216	          cloudName: CLOUDINARY_CLOUD_NAME,
+217	          uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+218	          folder: 'artos/igrejas',
+219	        });
+220	        finalLogoUrl = result.secureUrl;
+221	      } catch (error) {
+222	        console.error('Erro ao fazer upload da logo:', error);
+223	        Toast.show({
+224	          type: 'error',
+225	          text1: 'Erro',
+226	          text2: 'Não foi possível fazer upload da imagem',
+227	        });
+228	        setIsUploadingImage(false);
+229	        return;
+230	      } finally {
+231	        setIsUploadingImage(false);
+232	      }
+233	    }
+234	
+235	    try {
+236	      await updateDados({
+237	        igrejaId: igrejaId!,
+238	        dto: {
+239	          ...formData,
+240	          logoUrl: finalLogoUrl ?? undefined,
+241	        },
+242	      });
+243	    } catch (error) {
+244	      // Erro já tratado pelo hook
+245	    }
+246	  });
+247	
+248	  const handleSalvarModoEntrada = modoEntradaForm.handleSubmit((formData) => {
+249	    updateModoEntrada({
+250	      igrejaId: igrejaId!,
+251	      dto: formData,
+252	    });
+253	  });
+254	
+255	  const handleSalvarNotificacoes = notificacoesForm.handleSubmit((formData) => {
+256	    updateNotificacoes({
+257	      igrejaId: igrejaId!,
+258	      dto: {
+259	        notificacoesHabilitadas: formData.notificacoesHabilitadas,
+260	        antecedenciaHoras: formData.antecedenciaHoras,
+261	        canaisPush,
+262	        canaisWhatsapp,
+263	      },
+264	    });
+265	  });
+266	
+267	  const handleCopiarCodigo = async () => {
+268	    if (data?.codigo) {
+269	      await Clipboard.setStringAsync(data.codigo);
+270	      // Android já mostra feedback nativo ao copiar
+271	      if (Platform.OS !== 'android') {
+272	        Toast.show({
+273	          type: 'success',
+274	          text1: 'Código copiado!',
+275	          text2: 'O código foi copiado para a área de transferência',
+276	        });
+277	      }
+278	    }
+279	  };
+280	
+281	  // Verificar se há igreja ativa
+282	  if (!igrejaId) {
+283	    return (
+284	      <FancyPageView style={styles.container}>
+285	        <View style={styles.loadingContainer}>
+286	          <FancyText>Nenhuma igreja selecionada</FancyText>
+287	        </View>
+288	      </FancyPageView>
+289	    );
+290	  }
+291	
+292	  if (isLoading) {
+293	    return (
+294	      <FancyPageView style={styles.container}>
+295	        <View style={styles.loadingContainer}>
+296	          <ActivityIndicator size="large" color={Pallete.primary} />
+297	        </View>
+298	      </FancyPageView>
+299	    );
+300	  }
+301	
+302	  if (!data) {
+303	    return (
+304	      <FancyPageView style={styles.container}>
+305	        <View style={styles.loadingContainer}>
+306	          <FancyText>Erro ao carregar configurações</FancyText>
+307	        </View>
+308	      </FancyPageView>
+309	    );
+310	  }
+311	
+312	  // Tabs - criado após validação de data
+313	  const TAB_DATA: TabItem[] = [
+314	      {
+315	        title: 'Dados',
+316	        icon: { ...DefaultIconsNames.info, size: 16 },
+317	        content: (
+318	          <View style={styles.tabWrapper}>
+319	            <KeyboardAwareScrollView
+320	              style={styles.scrollView}
+321	              contentContainerStyle={styles.tabContent}
+322	              showsVerticalScrollIndicator={false}
+323	              enableOnAndroid={true}
+324	              extraScrollHeight={100}
+325	            >
+326	              {/* Avatar / Logo */}
+327	              <View style={styles.avatarContainer}>
+328	                <ControlledImagePicker
+329	                  control={dadosForm.control}
+330	                  name="logoUrl"
+331	                  setValue={dadosForm.setValue}
+332	                  uploadFieldName={'logoFile' as any}
+333	                />
+334	              </View>
+335	
+336	              {/* Formulário */}
+337	              <ControlledTextInput control={dadosForm.control} name="nome" label="Nome da Igreja" />
+338	
+339	              <ControlledMaskedTextInput
+340	                control={dadosForm.control}
+341	                name="endereco.cep"
+342	                label="CEP"
+343	                maskType="cep"
+344	              />
+345	
+346	              <ControlledTextInput control={dadosForm.control} name="endereco.rua" label="Rua" />
+347	
+348	              <ControlledTextInput
+349	                control={dadosForm.control}
+350	                name="endereco.numero"
+351	                label="Número"
+352	                keyboardType="numeric"
+353	              />
+354	
+355	              <ControlledTextInput control={dadosForm.control} name="endereco.complemento" label="Complemento" />
+356	
+357	              <ControlledTextInput control={dadosForm.control} name="endereco.cidade" label="Cidade" />
+358	
+359	              <ControlledDropDown control={dadosForm.control} name="endereco.uf" label="UF" listItems={ESTADOS_BRASIL} />
+360	
+361	              <ControlledMaskedTextInput
+362	                control={dadosForm.control}
+363	                name="telefone"
+364	                label="Telefone"
+365	                maskType="phone"
+366	              />
+367	
+368	              <ControlledTextInput
+369	                control={dadosForm.control}
+370	                name="email"
+371	                label="Email"
+372	                keyboardType="email-address"
+373	              />
+374	
+375	              {/* Código da Igreja */}
+376	              <View style={styles.codigoCard}>
+377	                <View style={styles.codigoHeader}>
+378	                  <DefaultIcons.Custom library="MaterialCommunityIcons" name="qrcode" size={20} color={Pallete.primary} />
+379	                  <FancyText type="medium" size="small" style={styles.codigoTitulo}>
+380	                    Código da Igreja
+381	                  </FancyText>
+382	                </View>
+383	                <View style={styles.codigoBody}>
+384	                  <FancyText type="bold" size="extraLarge" style={styles.codigoTexto}>
+385	                    {data?.codigo || '---'}
+386	                  </FancyText>
+387	                  <FancyText type="normal" size="extraSmall" style={styles.codigoDesc}>
+388	                    Compartilhe este código para convidar pessoas
+389	                  </FancyText>
+390	                </View>
+391	                <TouchableOpacity style={styles.codigoCopyButton} onPress={handleCopiarCodigo}>
+392	                  <DefaultIcons.Custom library="MaterialCommunityIcons" name="content-copy" size={16} color={Pallete.primary} />
+393	                  <FancyText type="medium" size="small" style={styles.codigoCopyText}>
+394	                    Copiar Código
+395	                  </FancyText>
+396	                </TouchableOpacity>
+397	              </View>
+398	
+399	              <View style={styles.buttonContainer}>
+400	                <FancyButton
+401	                  label="Salvar Alterações"
+402	                  icon={{ library: 'MaterialCommunityIcons', name: 'content-save', size: 14 }}
+403	                  onPress={handleSalvarDados}
+404	                  disabled={isUpdating || isUploadingImage}
+405	                  isLoading={isUpdating || isUploadingImage}
+406	                />
+407	              </View>
+408	            </KeyboardAwareScrollView>
+409	          </View>
+410	        ),
+411	      },
+412	      {
+413	        title: 'Acesso',
+414	        icon: { library: 'MaterialCommunityIcons', name: 'shield-account', size: 16 },
+415	        content: (
+416	          <View style={styles.tabWrapper}>
+417	            <KeyboardAwareScrollView
+418	              style={styles.scrollView}
+419	              contentContainerStyle={styles.tabContent}
+420	              showsVerticalScrollIndicator={false}
+421	              enableOnAndroid={true}
+422	              extraScrollHeight={100}
+423	            >
+424	              <TouchableOpacity
+425	                style={[
+426	                  styles.modoCard,
+427	                  modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.APENAS_CONVITE &&
+428	                    styles.modoCardSelected,
+429	                ]}
+430	                onPress={() => modoEntradaForm.setValue('modoEntrada', ModoEntradaEnum.APENAS_CONVITE)}
+431	              >
+432	                <DefaultIcons.Custom
+433	                  library="MaterialCommunityIcons"
+434	                  name="account-key"
+435	                  size={32}
+436	                  color={
+437	                    modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.APENAS_CONVITE
+438	                      ? Pallete.primary
+439	                      : '#999'
+440	                  }
+441	                />
+442	                <FancyText type="bold" size="medium" style={styles.modoCardTitle}>
+443	                  Apenas Convite
+444	                </FancyText>
+445	                <FancyText type="normal" size="small" style={styles.modoCardDesc}>
+446	                  Somente pessoas com convite podem entrar na igreja
+447	                </FancyText>
+448	              </TouchableOpacity>
+449	
+450	              <TouchableOpacity
+451	                style={[
+452	                  styles.modoCard,
+453	                  modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_COM_APROVACAO &&
+454	                    styles.modoCardSelected,
+455	                ]}
+456	                onPress={() => modoEntradaForm.setValue('modoEntrada', ModoEntradaEnum.CODIGO_COM_APROVACAO)}
+457	              >
+458	                <DefaultIcons.Custom
+459	                  library="MaterialCommunityIcons"
+460	                  name="shield-check"
+461	                  size={32}
+462	                  color={
+463	                    modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_COM_APROVACAO
+464	                      ? Pallete.primary
+465	                      : '#999'
+466	                  }
+467	                />
+468	                <FancyText type="bold" size="medium" style={styles.modoCardTitle}>
+469	                  Código com Aprovação
+470	                </FancyText>
+471	                <FancyText type="normal" size="small" style={styles.modoCardDesc}>
+472	                  Qualquer um com código pode solicitar entrada. Um administrador deve aprovar.
+473	                </FancyText>
+474	              </TouchableOpacity>
+475	
+476	              <TouchableOpacity
+477	                style={[
+478	                  styles.modoCard,
+479	                  modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_LIVRE &&
+480	                    styles.modoCardSelected,
+481	                ]}
+482	                onPress={() => modoEntradaForm.setValue('modoEntrada', ModoEntradaEnum.CODIGO_LIVRE)}
+483	              >
+484	                <DefaultIcons.Custom
+485	                  library="MaterialCommunityIcons"
+486	                  name="door-open"
+487	                  size={32}
+488	                  color={
+489	                    modoEntradaForm.watch('modoEntrada') === ModoEntradaEnum.CODIGO_LIVRE
+490	                      ? Pallete.primary
+491	                      : '#999'
+492	                  }
+493	                />
+494	                <FancyText type="bold" size="medium" style={styles.modoCardTitle}>
+495	                  Código Livre
+496	                </FancyText>
+497	                <FancyText type="normal" size="small" style={styles.modoCardDesc}>
+498	                  Qualquer um com o código entra automaticamente na igreja
+499	                </FancyText>
+500	              </TouchableOpacity>
+501	
+502	              <View style={styles.buttonContainer}>
+503	                <FancyButton
+504	                  label="Salvar"
+505	                  icon={{ library: 'MaterialCommunityIcons', name: 'shield-check', size: 14 }}
+506	                  onPress={handleSalvarModoEntrada}
+507	                  disabled={isUpdating}
+508	                  isLoading={isUpdating}
+509	                />
+510	              </View>
+511	            </KeyboardAwareScrollView>
+512	          </View>
+513	        ),
+514	      },
+515	      {
+516	        title: 'Notificações',
+517	        icon: { library: 'MaterialCommunityIcons', name: 'bell', size: 16 },
+518	        content: (
+519	          <View style={styles.tabWrapper}>
+520	            <KeyboardAwareScrollView
+521	              style={styles.scrollView}
+522	              contentContainerStyle={styles.tabContent}
+523	              showsVerticalScrollIndicator={false}
+524	              enableOnAndroid={true}
+525	              extraScrollHeight={100}
+526	            >
+527	              <ControlledFancyToggle
+528	                control={notificacoesForm.control}
+529	                name="notificacoesHabilitadas"
+530	                label="Lembretes automáticos"
+531	                option1={{ title: 'Habilitado', value: true }}
+532	                option2={{ title: 'Desabilitado', value: false }}
+533	              />
+534	
+535	              <ControlledDropDown
+536	                control={notificacoesForm.control}
+537	                name="antecedenciaHoras"
+538	                label="Antecedência padrão"
+539	                listItems={ANTECEDENCIA_OPTIONS}
+540	              />
+541	
+542	              <View style={styles.canaisContainer}>
+543	                <FancyText type="medium" size="small" style={styles.canaisLabel}>
+544	                  Canais de notificação:
+545	                </FancyText>
+546	
+547	                <View style={styles.checkboxesContainer}>
+548	                  <FancyCheckbox
+549	                    label="Notificações Push"
+550	                    value={canaisPush}
+551	                    onChangeValue={setCanaisPush}
+552	                  />
+553	                  <FancyCheckbox
+554	                    label="WhatsApp"
+555	                    value={canaisWhatsapp}
+556	                    onChangeValue={setCanaisWhatsapp}
+557	                  />
+558	                </View>
+559	              </View>
+560	
+561	              <View style={styles.buttonContainer}>
+562	                <FancyButton
+563	                  label="Salvar"
+564	                  icon={{ library: 'MaterialCommunityIcons', name: 'bell-check', size: 14 }}
+565	                  onPress={handleSalvarNotificacoes}
+566	                  disabled={isUpdating}
+567	                  isLoading={isUpdating}
+568	                />
+569	              </View>
+570	            </KeyboardAwareScrollView>
+571	          </View>
+572	        ),
+573	      },
+574	      {
+575	        title: 'Assinatura',
+576	        icon: { library: 'MaterialCommunityIcons', name: 'credit-card', size: 16 },
+577	        content: (
+578	          <ScrollView
+579	            style={styles.scrollView}
+580	            contentContainerStyle={styles.assinaturaContainer}
+581	            showsVerticalScrollIndicator={false}
+582	          >
+583	            <View style={styles.assinaturaCard}>
+584	              <View style={styles.assinaturaHeader}>
+585	                <FancyText type="bold" size="large">
+586	                  Plano Gratuito
+587	                </FancyText>
+588	                <View style={styles.badge}>
+589	                  <FancyText type="bold" size="extraSmall" style={styles.badgeText}>
+590	                    Ativo
+591	                  </FancyText>
+592	                </View>
+593	              </View>
+594	              <FancyText type="normal" size="small" style={styles.assinaturaDesc}>
+595	                Em breve você poderá fazer upgrade para planos com mais recursos
+596	              </FancyText>
+597	              <FancyButton
+598	                label="Gerenciar Plano"
+599	                disabled={true}
+600	                type="outlined"
+601	                containerStyle={styles.gerenciarButton}
+602	              />
+603	            </View>
+604	          </ScrollView>
+605	        ),
+606	      },
+607	    ];
+608	
+609	  return (
+610	    <FancyPageView style={styles.container}>
+611	      <FancyTabs
+612	        items={TAB_DATA}
+613	        containerStyle={styles.tabsContainer}
+614	        contentContainerStyle={styles.tabContentContainer}
+615	      />
+616	    </FancyPageView>
+617	  );
+618	}
+619	
+620	const styles = StyleSheet.create({
+621	  container: {
+622	    flex: 1,
+623	  },
+624	  loadingContainer: {
+625	    flex: 1,
+626	    justifyContent: 'center',
+627	    alignItems: 'center',
+628	  },
+629	  tabsContainer: {
+630	    flex: 1,
+631	    paddingHorizontal: 15,
+632	  },
+633	  tabContentContainer: {
+634	    flex: 1,
+635	  },
+636	  tabWrapper: {
+637	    flex: 1,
+638	  },
+639	  scrollView: {
+640	    flex: 1,
+641	  },
+642	  tabContent: {
+643	    paddingVertical: 15,
+644	    gap: 16,
+645	  },
+646	  buttonContainer: {
+647	    marginTop: 10,
+648	    paddingBottom: 20,
+649	  },
+650	
+651	  // Avatar / Logo
+652	  avatarContainer: {
+653	    alignItems: 'center',
+654	    marginBottom: 8,
+655	  },
+656	
+657	  // Código da Igreja - Novo Layout
+658	  codigoCard: {
+659	    backgroundColor: Pallete.backgroundColor,
+660	    borderRadius: 12,
+661	    padding: 16,
+662	    gap: 12,
+663	    borderWidth: 1,
+664	    borderColor: Pallete.border,
+665	    ...Pallete.shadows[100],
+666	  },
+667	  codigoHeader: {
+668	    flexDirection: 'row',
+669	    alignItems: 'center',
+670	    gap: 8,
+671	  },
+672	  codigoTitulo: {
+673	    opacity: 0.7,
+674	  },
+675	  codigoBody: {
+676	    alignItems: 'center',
+677	    paddingVertical: 12,
+678	    gap: 4,
+679	  },
+680	  codigoTexto: {
+681	    letterSpacing: 2,
+682	    color: Pallete.primary,
+683	  },
+684	  codigoDesc: {
+685	    opacity: 0.6,
+686	    textAlign: 'center',
+687	  },
+688	  codigoCopyButton: {
+689	    flexDirection: 'row',
+690	    alignItems: 'center',
+691	    justifyContent: 'center',
+692	    gap: 8,
+693	    paddingVertical: 10,
+694	    paddingHorizontal: 16,
+695	    backgroundColor: '#E3F2FF',
+696	    borderRadius: 8,
+697	  },
+698	  codigoCopyText: {
+699	    color: Pallete.primary,
+700	  },
+701	
+702	  // Modo de Entrada Cards
+703	  modoCard: {
+704	    padding: 20,
+705	    borderRadius: 12,
+706	    borderWidth: 1,
+707	    borderColor: Pallete.border,
+708	    backgroundColor: Pallete.backgroundColor,
+709	    gap: 8,
+710	  },
+711	  modoCardSelected: {
+712	    borderWidth: 2,
+713	    borderColor: Pallete.primary,
+714	    backgroundColor: '#E3F2FF',
+715	  },
+716	  modoCardTitle: {
+717	    marginTop: 8,
+718	  },
+719	  modoCardDesc: {
+720	    opacity: 0.7,
+721	    lineHeight: 18,
+722	  },
+723	
+724	  // Notificações
+725	  canaisContainer: {
+726	    gap: 12,
+727	  },
+728	  canaisLabel: {
+729	    opacity: 0.7,
+730	  },
+731	  checkboxesContainer: {
+732	    gap: 12,
+733	  },
+734	
+735	  // Assinatura
+736	  assinaturaContainer: {
+737	  },
+738	  assinaturaCard: {
+739	    backgroundColor: Pallete.backgroundColor,
+740	    padding: 5,
+741	    paddingTop:15,
+742	    borderRadius: 16,
+743	    gap: 16,
+744	  },
+745	  assinaturaHeader: {
+746	    flexDirection: 'row',
+747	    justifyContent: 'space-between',
+748	    alignItems: 'center',
+749	  },
+750	  badge: {
+751	    backgroundColor: '#D1FAE5',
+752	    paddingHorizontal: 12,
+753	    paddingVertical: 6,
+754	    borderRadius: 999,
+755	  },
+756	  badgeText: {
+757	    color: '#10B981',
+758	  },
+759	  assinaturaDesc: {
+760	    opacity: 0.7,
+761	    lineHeight: 20,
+762	  },
+763	  gerenciarButton: {
+764	    marginTop: 8,
+765	  },
+766	});

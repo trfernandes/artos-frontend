@@ -1,0 +1,114 @@
+1	import FancyButton from '../../../../../components/buttons/FancyButton';
+2	import FancyPageView from '../../../../../components/containers/FancyPageView';
+3	import IntegranteFormFields from '../../../../../components/pages/ministerios/integrantes/FormFields';
+4	import { FormProvider, useForm } from 'react-hook-form';
+5	import { zodResolver } from '@hookform/resolvers/zod';
+6	import { minVoluntarioSchema } from '../../../../../domain/schemas/ministerioVoluntariosSchema';
+7	import { router, useLocalSearchParams } from 'expo-router';
+8	import { useFuncoesDoMinisterio } from '../../../../../hooks/useFuncoesDoMinisterio';
+9	import FancyLoading from '../../../../../components/FancyLoading';
+10	import { useMinisterioVoluntarioFuncoesCrud } from '../../../../../hooks/useMinisterioVoluntarioFuncoesCrud';
+11	import { useVoluntariosCrud } from '../../../../../hooks/useVoluntariosCrud';
+12	import { useMemo } from 'react';
+13	import { DropDownItemProps } from '../../../../../components/fields/FancyDropDownItem';
+14	import { DynamicQuery, OrderDirection } from '../../../../../domain/utils/query_utils';
+15	import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
+16	import Toast from 'react-native-toast-message';
+17	import { EscalaTemplateExperienciaEnum } from '../../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
+18	import { VoluntarioHierarquiaEnum } from '../../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
+19	import { MinisterioVoluntarioFuncaoStatusEnum } from '../../../../../domain/enums/MinisterioVoluntarioFuncao/ministerio-voluntario-funcao-status.enum';
+20	import { AppImages } from '../../../../../assets/app_images';
+21	
+22	export default function MinisterioIntegrantesAddPage() {
+23	  const { ministerioId } = useLocalSearchParams<{ ministerioId: string }>();
+24	
+25	  const form = useForm({ resolver: zodResolver(minVoluntarioSchema) });
+26	
+27	  const initialParams = useMemo(() => {
+28	    return {
+29	      relations: ['ministerios.ministerio'],
+30	      orderBy: [{ path: 'nome', direction: OrderDirection.ASC }],
+31	    } as DynamicQuery;
+32	  }, [ministerioId]);
+33	
+34	  const { data: voluntariosData, isLoading: isLoadingVoluntarios } = useVoluntariosCrud({
+35	    autoFetch: true,
+36	    initialParams,
+37	  });
+38	
+39	  const voluntariosDropDownList = useMemo(() => {
+40	    if (!ministerioId) return [];
+41	
+42	    return voluntariosData
+43	      .filter((v) => !v.ministerios?.some((m) => m.ministerio?.id === ministerioId) || !v.ministerios)
+44	      .map((voluntario) => ({
+45	        title: voluntario?.nome,
+46	        value: voluntario?.id,
+47	        left: {
+48	          type: 'image',
+49	          source:
+50	            voluntario.fotoThumbUrl || voluntario.fotoUrl ? { uri: voluntario.fotoThumbUrl || voluntario.fotoUrl || '' } : AppImages.emptyProfile,
+51	        },
+52	      })) as DropDownItemProps<string>[];
+53	  }, [voluntariosData, ministerioId]);
+54	
+55	  const { funcoesList, funcoesDropDownList, isLoading: isLoadingFuncoes } = useFuncoesDoMinisterio(ministerioId);
+56	
+57	  const { add: addVoluntario } = useMinisterioVoluntariosCrud();
+58	  const { add: addFuncaoVoluntario } = useMinisterioVoluntarioFuncoesCrud();
+59	
+60	  const handleSave = form.handleSubmit(
+61	    (data) => {
+62	      data.funcoes?.forEach(async (f) => {
+63	        const ministerioFuncao = funcoesList.find((funcao) => funcao.id === f.id);
+64	        if (!ministerioFuncao) return;
+65	
+66	        let voluntario = await addVoluntario({
+67	          ministerioId: ministerioId,
+68	          voluntarioId: data.voluntarioId,
+69	          hierarquia: VoluntarioHierarquiaEnum.Voluntario,
+70	        });
+71	
+72	        await addFuncaoVoluntario({
+73	          ministerioVoluntarioId: voluntario?.id!,
+74	          funcaoId: f.id,
+75	          experiencia: f.experiencia || EscalaTemplateExperienciaEnum.Iniciante,
+76	          status: MinisterioVoluntarioFuncaoStatusEnum.Ativo,
+77	        });
+78	
+79	        Toast.show({
+80	          type: 'success',
+81	          text1: 'Integrante adicionado com sucesso!',
+82	        });
+83	
+84	        router.back();
+85	      });
+86	    },
+87	    (errors) => {
+88	      if (__DEV__) {
+89	        console.log('[Ministerios/Integrantes] Validation errors:', errors);
+90	      }
+91	      Toast.show({
+92	        type: 'error',
+93	        text1: 'Erro de validação',
+94	        text2: 'Verifique os campos do formulário',
+95	      });
+96	    },
+97	  );
+98	
+99	  if (isLoadingVoluntarios || isLoadingFuncoes) return <FancyLoading />;
+100	
+101	  return (
+102	    <FancyPageView style={{ flex: 1, paddingHorizontal: 20, paddingVertical: 15, gap: 40 }}>
+103	      <FormProvider {...form}>
+104	        <IntegranteFormFields
+105	          mode='add'
+106	          voluntariosDropDownList={voluntariosDropDownList}
+107	          funcoesDropDownList={funcoesDropDownList}
+108	          funcoesList={funcoesList}
+109	        />
+110	      </FormProvider>
+111	      <FancyButton label='Salvar' onPress={handleSave} />
+112	    </FancyPageView>
+113	  );
+114	}

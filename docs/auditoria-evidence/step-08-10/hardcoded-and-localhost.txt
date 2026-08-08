@@ -1,0 +1,28 @@
+.\.env:1:EXPO_PUBLIC_APP_SECRET_KEY=chave-secreta-do-app
+.\.github\copilot-instructions.md:20:- API base URL and app secret are injected via `EXPO_PUBLIC_API_URL` and `EXPO_PUBLIC_APP_SECRET_KEY` (see `.env`).
+.\app\_layout.tsx:23:  dsn: 'https://b65799084d172913463973ef37b937b0@o4510567624409088.ingest.us.sentry.io/4510567678279680',
+.\scripts\run-android.ps1:24:      $_.IPAddress -ne "127.0.0.1" -and
+.\scripts\artos-start.ps1:24:      $_.IPAddress -ne "127.0.0.1" -and
+.\.claude\plugins\expo-app-design\skills\native-data-fetching\SKILL.md:316:EXPO_PUBLIC_API_URL=http://localhost:3000
+.\docs\auditoria-evidence\step-01\expo-config-public.txt:2:env: export EXPO_PUBLIC_APP_SECRET_KEY EXPO_PUBLIC_API_URL EXPO_PUBLIC_NOTIFICATIONS_DEMO SENTRY_AUTH_TOKEN
+.\docs\auditoria-evidence\step-01\expo-doctor.txt:2:env: export EXPO_PUBLIC_APP_SECRET_KEY EXPO_PUBLIC_API_URL EXPO_PUBLIC_NOTIFICATIONS_DEMO SENTRY_AUTH_TOKEN
+.\docs\auditoria-evidence\step-03\.env.redacted.numbered.txt:1:1	EXPO_PUBLIC_APP_SECRET_KEY=<redacted>
+.\docs\auditoria-evidence\step-03\.env.local.redacted.numbered.txt:2:2	SENTRY_AUTH_TOKEN=<redacted>
+.\docs\auditoria-evidence\step-03\.env.local.redacted.numbered.txt:5:5	EXPO_PUBLIC_APP_SECRET_KEY=<redacted>
+.\docs\auditoria-evidence\step-03\api-url-usage.txt:2:domain\api\api-client.ts:10:    'x-api-key': process.env.EXPO_PUBLIC_APP_SECRET_KEY || '',
+.\docs\auditoria-evidence\step-03\api-url-usage.txt:4:domain\services\CadastroIgrejaRepository.ts:25:const APP_SECRET = Constants.expoConfig?.extra?.EXPO_PUBLIC_APP_SECRET_KEY || '';
+.\docs\auditoria-evidence\step-03\.env.staging.redacted.numbered.txt:2:2	EXPO_PUBLIC_APP_SECRET_KEY=<redacted>
+.\docs\auditoria-evidence\step-03\localhost-scan.txt:1:.\scripts\run-android.ps1:24:      $_.IPAddress -ne "127.0.0.1" -and
+.\docs\auditoria-evidence\step-03\localhost-scan.txt:2:.\scripts\artos-start.ps1:24:      $_.IPAddress -ne "127.0.0.1" -and
+.\docs\auditoria-evidence\step-03\localhost-scan.txt:3:.\.claude\plugins\expo-app-design\skills\expo-api-routes\SKILL.md:204:This starts a local server at `http://localhost:8081` with full API route support.
+.\docs\auditoria-evidence\step-03\localhost-scan.txt:4:.\.claude\plugins\expo-app-design\skills\expo-api-routes\SKILL.md:209:curl http://localhost:8081/api/hello
+.\docs\auditoria-evidence\step-03\localhost-scan.txt:5:.\.claude\plugins\expo-app-design\skills\expo-api-routes\SKILL.md:210:curl -X POST http://localhost:8081/api/users -H "Content-Type: application/json" -d '{"name":"Test"}'
+.\docs\auditoria-evidence\step-03\localhost-scan.txt:6:.\.claude\plugins\expo-app-design\skills\native-data-fetching\SKILL.md:316:EXPO_PUBLIC_API_URL=http://localhost:3000
+.\docs\auditoria-evidence\step-04\domain_api_api-client.ts.numbered.txt:10:10	    'x-api-key': process.env.EXPO_PUBLIC_APP_SECRET_KEY || '',
+.\docs\auditoria-evidence\step-03\security-patterns.txt:2:app\_layout.tsx:23:  dsn: 'https://b65799084d172913463973ef37b937b0@o4510567624409088.ingest.us.sentry.io/4510567678279680',
+.\docs\auditoria-evidence\step-03\security-patterns.txt:141:domain\api\api-client.ts:10:    'x-api-key': process.env.EXPO_PUBLIC_APP_SECRET_KEY || '',
+.\.claude\plugins\expo-app-design\skills\expo-api-routes\SKILL.md:204:This starts a local server at `http://localhost:8081` with full API route support.
+.\.claude\plugins\expo-app-design\skills\expo-api-routes\SKILL.md:209:curl http://localhost:8081/api/hello
+.\.claude\plugins\expo-app-design\skills\expo-api-routes\SKILL.md:210:curl -X POST http://localhost:8081/api/users -H "Content-Type: application/json" -d '{"name":"Test"}'
+.\domain\services\CadastroIgrejaRepository.ts:25:const APP_SECRET = Constants.expoConfig?.extra?.EXPO_PUBLIC_APP_SECRET_KEY || '';
+.\domain\api\api-client.ts:10:    'x-api-key': process.env.EXPO_PUBLIC_APP_SECRET_KEY || '',

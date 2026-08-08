@@ -1,0 +1,92 @@
+# Flow: Assinatura cancelada com periodo ainda valido — sem bloqueio, painel correto
+#
+# Uso:
+#   1. Rodar SQL de setup no Neon (ver abaixo)
+#   2. maestro test flows/billing-estado-cancelado.yaml
+#   3. Rodar SQL de revert IMEDIATAMENTE apos o teste
+#
+# ════════════════════════════════════════════════
+# SQL SETUP (rodar antes):
+#
+#   UPDATE subscriptions
+#   SET status = 'cancelled',
+#       "currentPeriodEnd" = NOW() + INTERVAL '30 days'
+#   WHERE "churchId" = (SELECT id FROM igrejas WHERE codigo = 'teste-church');
+#   UPDATE igrejas SET "subscriptionStatus" = 'cancelled' WHERE codigo = 'teste-church';
+#
+# SQL REVERT (rodar apos):
+#
+#   UPDATE subscriptions
+#   SET status = 'active',
+#       "currentPeriodEnd" = '2026-07-18'
+#   WHERE "churchId" = (SELECT id FROM igrejas WHERE codigo = 'teste-church');
+#   UPDATE igrejas SET "subscriptionStatus" = 'active' WHERE codigo = 'teste-church';
+# ════════════════════════════════════════════════
+#
+# O que verifica:
+#   isSubscriptionWriteBlocked = false (cancelled + currentPeriodEnd futura)
+#   → isBlocked=false → sem banner nas telas de lista
+#
+#   BillingStatusPanel (Configuracoes aba Assinatura):
+#     resolveStatusCopy('cancelled'): eyebrow='Assinatura', title='Acesso mantido ate o fim do ciclo'
+#     pill='Cancelada' (resolveStatusPillLabel)
+#     metaLine inclui 'Valido ate' (resolvePeriodMetricLabel para cancelled)
+#     CTA 'Gerenciar assinatura' (override Apple 3.1.1 na tela de configuracoes)
+#
+#   Telas de lista sem banner (nenhuma condicao de banner e ativa):
+#     voluntarios: (isBlocked || isVolunteerLimitReached) = false
+#     ministerios: blockFab = false
+
+appId: com.church.artos
+---
+- launchApp
+- runFlow: _login.yaml
+- openLink: diakonia:///inicio
+- extendedWaitUntil:
+    visible: 'Início'
+    timeout: 120000
+
+# ── Passo 1: BillingStatusPanel em Configuracoes ───────────────────────────
+- openLink: diakonia:///configuracoes
+- waitForAnimationToEnd:
+    timeout: 15000
+- runFlow:
+    when:
+      visible: 'Servidor indisponível'
+    file: _retry_servidor.yaml
+- extendedWaitUntil:
+    visible: 'Assinatura'
+    timeout: 15000
+- tapOn:
+    text: 'Assinatura'
+    index: 1
+- extendedWaitUntil:
+    visible: 'Acesso mantido até o fim do ciclo'
+    timeout: 30000
+# resolveStatusCopy('cancelled'): title = 'Acesso mantido até o fim do ciclo'
+- assertVisible: 'Acesso mantido até o fim do ciclo'
+# pill = 'Cancelada'
+- assertVisible: 'Cancelada'
+# CTA override Apple 3.1.1
+- assertVisible: 'Gerenciar assinatura'
+# Sem texto de conta ativa
+- assertNotVisible: 'Assinatura em dia'
+- assertNotVisible: 'Ativa'
+- takeScreenshot: billing-cancelado-configuracoes
+
+# ── Passo 2: Voluntarios — sem banner (isBlocked=false, periodo ainda valido) ─
+- openLink: diakonia:///admin/voluntarios
+- waitForAnimationToEnd:
+    timeout: 15000
+- assertNotVisible: 'Assinatura cancelada'
+- assertNotVisible: 'Sua assinatura foi encerrada'
+- assertNotVisible: 'Avaliação encerrada'
+- takeScreenshot: billing-cancelado-voluntarios
+
+# ── Passo 3: Ministerios — sem banner, FAB livre ────────────────────────────
+- openLink: diakonia:///admin/ministerios
+- waitForAnimationToEnd:
+    timeout: 15000
+- assertNotVisible: 'Assinatura cancelada'
+- assertNotVisible: 'Sua assinatura foi encerrada'
+- takeScreenshot: billing-cancelado-ministerios

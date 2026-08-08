@@ -1,0 +1,72 @@
+1	import { useEffect, useState } from 'react';
+2	import { router, useSegments } from 'expo-router';
+3	import AsyncStorage from '@react-native-async-storage/async-storage';
+4	import Toast from 'react-native-toast-message';
+5	import { useAuth } from '../contexts/AuthContext';
+6	
+7	const PENDING_INVITE_TOKEN_KEY = 'pendingInviteToken';
+8	
+9	export function usePostLoginRedirect() {
+10	  const { user, loading } = useAuth();
+11	  const segments = useSegments();
+12	  const [hasChecked, setHasChecked] = useState(false);
+13	
+14	  useEffect(() => {
+15	    const checkAndRedirect = async () => {
+16	      // Aguardar até que a sessão esteja carregada
+17	      if (loading) return;
+18	      
+19	      // Se não estiver logado, resetar check
+20	      if (!user) {
+21	        setHasChecked(false);
+22	        return;
+23	      }
+24	      
+25	      // Se já verificou, não fazer nada
+26	      if (hasChecked) return;
+27	
+28	      // Não redirecionar se já estiver nas telas de join-church ou convite
+29	      const currentPath = '/' + segments.join('/');
+30	      if (
+31	        currentPath.includes('/join-church') ||
+32	        currentPath.includes('/invite')
+33	      ) {
+34	        setHasChecked(true);
+35	        return;
+36	      }
+37	
+38	      // 1. Verificar se tem token de convite pendente
+39	      try {
+40	        const pendingToken = await AsyncStorage.getItem(PENDING_INVITE_TOKEN_KEY);
+41	        if (pendingToken) {
+42	          await AsyncStorage.removeItem(PENDING_INVITE_TOKEN_KEY);
+43	          Toast.show({
+44	            type: 'info',
+45	            text1: 'Processando convite...',
+46	          });
+47	          setHasChecked(true);
+48	          router.replace(`/(public)/invite/${pendingToken}`);
+49	          return;
+50	        }
+51	      } catch (err) {
+52	        console.error('Erro ao verificar token pendente:', err);
+53	      }
+54	
+55	      // 2. Se não tem igrejas, redirecionar para join-church
+56	      if (!user.igrejas || user.igrejas.length === 0) {
+57	        Toast.show({
+58	          type: 'info',
+59	          text1: 'Vincule-se a uma igreja',
+60	          text2: 'Use um código de convite para começar.',
+61	        });
+62	        setHasChecked(true);
+63	        router.replace('/(app)/join-church');
+64	        return;
+65	      }
+66	
+67	      setHasChecked(true);
+68	    };
+69	
+70	    checkAndRedirect();
+71	  }, [user, loading, segments, hasChecked]);
+72	}

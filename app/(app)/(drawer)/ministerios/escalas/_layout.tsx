@@ -1,22 +1,65 @@
 import { Stack } from 'expo-router';
-import FancyHeader from '../../../../../components/header/FancyHeader';
+import FancyPageHeader from '../../../../../components/header/FancyHeader';
 import MainHeaderButtons from '../../../../../components/header/MainHeaderButtons';
 
 export default function MinisterioEscalasLayout() {
   return (
     <Stack
       screenOptions={{
-        header: props => <FancyHeader {...props} />,
+        headerShown: true,
+        header: (props) => <FancyPageHeader {...props} />,
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Escalas', headerRight: () => <MainHeaderButtons /> }} />
       <Stack.Screen
-        name="details"
-        options={{ title: 'Detalhes da Escala', header: props => <FancyHeader leftButton="back" {...props} /> }}
+        name='index'
+        options={{
+          title: 'Escalas',
+          headerShown: true,
+          header: (props) => <FancyPageHeader leftButton='menu' {...props} />,
+          headerRight: () => <MainHeaderButtons />,
+        }}
       />
       <Stack.Screen
-        name="add"
-        options={{ title: 'Nova Escala', header: props => <FancyHeader leftButton="back" {...props} /> }}
+        name='assistant'
+        options={{
+          headerShown: true,
+          header: (props) => <FancyPageHeader leftButton='back' {...props} />,
+          title: 'Assistente de Escalas',
+        }}
+      />
+      <Stack.Screen
+        name='manual'
+        options={{
+          headerShown: true,
+          header: (props) => <FancyPageHeader leftButton='back' {...props} />,
+          title: 'Nova Escala Manual',
+        }}
+      />
+      <Stack.Screen
+        name='details'
+        options={{
+          headerShadowVisible: false,
+          headerShown: true,
+          header: (props) => <FancyPageHeader leftButton='back' {...props} />,
+          title: 'Detalhes da Escala',
+        }}
+      />
+      <Stack.Screen
+        name='insights'
+        options={{
+          headerShadowVisible: false,
+          headerShown: true,
+          header: (props) => <FancyPageHeader leftButton='back' {...props} />,
+          title: 'Insights da Escala',
+        }}
+      />
+      <Stack.Screen
+        name='substituicoes'
+        options={{
+          headerShown: true,
+          header: (props) => <FancyPageHeader leftButton='menu' {...props} />,
+          title: 'Substituições',
+        }}
       />
     </Stack>
   );

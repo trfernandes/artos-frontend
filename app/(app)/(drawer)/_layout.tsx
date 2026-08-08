@@ -1,16 +1,18 @@
 import Drawer from 'expo-router/drawer';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import FancyDrawer from '../../../components/drawer/FancyDrawer';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function _layout() {
+  const { igrejaAtiva, loading } = useAuth();
+
+  if (loading) return null;
+
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <Drawer
-        drawerContent={props => <FancyDrawer {...props} />}
-        screenOptions={{
-          headerShown: false,
-        }}
-      />
-    </GestureHandlerRootView>
+    <Drawer
+      drawerContent={(props) => <FancyDrawer {...props} key={igrejaAtiva?.id} />}
+      screenOptions={{
+        headerShown: false,
+      }}
+    />
   );
 }

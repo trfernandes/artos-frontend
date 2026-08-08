@@ -1,170 +1,210 @@
-import { StyleSheet, View } from 'react-native';
+import { InteractionManager, StyleSheet, View } from 'react-native';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
 import FancyTabs, { TabItem } from '../../../../../components/tabs/FancyTabs';
 import FancyButton from '../../../../../components/buttons/FancyButton';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormProvider, useForm } from 'react-hook-form';
-import { MinisterioFormData, ministerioSchema } from './add';
 import { router, useLocalSearchParams } from 'expo-router';
 import DadosTab from '../../../../../components/pages/admin/ministerios/DadosTab';
-import LiderancaTab, { baseLiderSchema } from '../../../../../components/pages/admin/ministerios/LiderancaTab';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useCallback, useState, useRef } from 'react';
 import { strfyObj } from '../../../../../utils/text_utils';
-import { MinisterioStatusEnumMap, MinisterioTipoEnumMap } from '../../../../../domain/models/Ministerio';
-import { MinisterioVoluntario } from '../../../../../domain/models/MinisterioVoluntario';
-import FancyLoading from '../../../../../components/FancyLoading';
-import z from 'zod';
-import { useMinisterioVoluntarios } from '../../../../../hooks/useMinisterioVoluntarios';
-import { useMinisterios } from '../../../../../hooks/useMinisterios';
-import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
-
-export const editLiderSchema = baseLiderSchema.extend({
-  voluntarioId: z.uuidv4().optional(),
-});
+import { useMinisteriosCrud } from '../../../../../hooks/useMinisteriosCrud';
+import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
+import { useAuth } from '../../../../../contexts/AuthContext';
+import { MinisterioStatusEnumMap } from '../../../../../domain/enums/Ministerio/ministerio-status.enum';
+import { MinisterioTipoEnumMap } from '../../../../../domain/enums/Ministerio/ministerio-tipo.enum';
+import { VoluntarioHierarquiaEnum } from '../../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
+import VoluntarioTab from '../../../../../components/pages/admin/ministerios/VoluntarioTab';
+import { useLoading } from '../../../../../contexts/LoadingContext';
+import { sendImageToServer } from '../../../../../utils/image_utils';
+import { UpdateMinisterioDto } from '../../../../../domain/dtos/Ministerio/ministerio.update';
+import {
+  EditMinisterioFormData,
+  EditMinisterioSchema,
+} from '../../../../../domain/schemas/ministerioAdminSchema';
+import LiderancaEAcessosTab from '../../../../../components/pages/admin/ministerios/LiderancaEAcessosTab';
 
 export default function MinisteriosEditPage() {
+  const params = useLocalSearchParams<{ id: string }>();
+
+  const { showLoading, hideLoading } = useLoading();
+
+  const ministerioSearchParams = useMemo<DynamicQuery>(
+    () => ({
+      where: {
+        conditions: [
+          {
+            path: 'id',
+            operator: Operator.EQUALS,
+            value: { type: ValueType.LITERAL, value: params.id },
+          },
+        ],
+      },
+    }),
+    [params.id],
+  );
+
   const {
     data: ministeriosData,
-    setSearchParams,
     isLoading: loadingMinisterio,
     update: updateMinisterio,
-  } = useMinisterios();
+  } = useMinisteriosCrud({ initialParams: ministerioSearchParams });
 
-  const {
-    add: addVoluntario,
-    update: updateVoluntario,
-    remove: removeVoluntario,
-    isLoading: loadingVoluntarios,
-  } = useMinisterioVoluntarios();
+  const { user, updateUser, igrejaAtiva } = useAuth();
 
-  const params = useLocalSearchParams<{ id: string }>();
   const [tabIndex, setTabIndex] = useState(0);
 
-  const form = useForm<MinisterioFormData>({
-    resolver: zodResolver(ministerioSchema),
+  const form = useForm<EditMinisterioFormData>({
+    resolver: zodResolver(EditMinisterioSchema),
   });
 
   useEffect(() => {
-    if (params.id) {
-      setSearchParams({
-        where: {
-          conditions: [{ path: 'id', operator: Operator.EQUALS, value: { type: ValueType.LITERAL, value: params.id } }],
+    if (!ministeriosData?.[0]) return;
+    const m = ministeriosData[0];
+
+    form.reset({
+      id: m.id!,
+      nome: m.nome!,
+      descricao: m.descricao ?? '',
+      logoUrl: m.logoUrl ?? null,
+      logoThumbUrl: m.logoThumbUrl ?? null,
+      uploadLogo: m.logoThumbUrl || m.logoUrl || '',
+      tipo: MinisterioTipoEnumMap[m.tipo!],
+      status: MinisterioStatusEnumMap[m.status!],
+    });
+  }, [ministeriosData, form]);
+
+  const tabsConfig: TabItem[] = useMemo(
+    () => [
+      {
+        title: 'Dados',
+        icon: {
+          library: DefaultIconsNames.info.library,
+          name: DefaultIconsNames.info.name,
+          size: 16,
         },
-        relations: ['voluntarios', 'voluntarios.voluntario'],
-      });
-    }
-  }, []);
+        content: <DadosTab mode='edit' id={params.id} />,
+      },
+      {
+        title: 'Voluntários',
+        icon: { library: 'Octicons', name: 'people', size: 14 },
+        content: <VoluntarioTab ministerioId={params.id} />,
+      },
+      {
+        title: 'Liderança',
+        icon: { library: 'MaterialCommunityIcons', name: 'account-key-outline', size: 16 },
+        content: <LiderancaEAcessosTab mode='edit' ministerioId={params.id} />,
+      },
+    ],
+    [params.id],
+  );
+
+  const handleSubmit = useCallback(() => {
+    form.handleSubmit(
+      async (data) => {
+        showLoading('Salvando...');
+
+        try {
+          const updateData: UpdateMinisterioDto = {
+            igrejaId: igrejaAtiva!.id,
+            nome: data.nome,
+            descricao: data.descricao === null ? undefined : data.descricao,
+            tipo: data.tipo,
+            status: data.status,
+            logoUrl: null,
+            logoThumbUrl: null,
+          };
+
+          //Enviar logo para o servidor e guardar as URLs retornadas
+          if (data.logoUpload?.uri) {
+            const { imageThumbUrl, imageUrl } = await sendImageToServer(
+              'ministerios',
+              data.logoUpload,
+            );
+
+            updateData.logoUrl = imageUrl;
+            updateData.logoThumbUrl = imageThumbUrl;
+
+            form.setValue('logoUrl', imageUrl);
+            form.setValue('logoThumbUrl', imageThumbUrl);
+            form.setValue('logoUpload', null);
+          }
+
+          const editedMinisterio = await updateMinisterio?.({
+            id: params.id,
+            data: updateData,
+          });
+
+          if (!editedMinisterio) {
+            return;
+          }
+
+          //Atualizar informações do ministério no usuário logado
+          // Atualiza o ministério editado na igreja ativa do usuário logado
+          if (igrejaAtiva) {
+            const hierarquia =
+              editedMinisterio.voluntarios?.find((v) => v.voluntario?.id === user?.user.id)
+                ?.hierarquia ?? VoluntarioHierarquiaEnum.Voluntario;
+            const novoMinisterio = {
+              id: editedMinisterio.id!,
+              nome: editedMinisterio.nome,
+              logoThumbUrl: editedMinisterio.logoThumbUrl,
+              logoUrl: editedMinisterio.logoUrl,
+              tipo: editedMinisterio.tipo,
+              hierarquia,
+            };
+            const novaIgreja = {
+              ...igrejaAtiva,
+              ministerios: [
+                ...igrejaAtiva.ministerios.filter((m) => m.id !== novoMinisterio.id),
+                novoMinisterio,
+              ],
+            };
+            const novasIgrejas = (user?.igrejas || []).map((ig) =>
+              ig.id === igrejaAtiva.id ? novaIgreja : ig,
+            );
+            updateUser({ ...user, igrejas: novasIgrejas });
+          }
+
+          form.reset();
+          router.back();
+        } finally {
+          hideLoading();
+        }
+      },
+      (errors) => console.log('HandleSubmit Errors', strfyObj(errors)),
+    )();
+  }, [form, params.id, updateMinisterio, user, updateUser]);
+
+  const didHideRef = useRef(false);
+  const ready = useMemo(() => !loadingMinisterio, [loadingMinisterio]);
 
   useEffect(() => {
-    if (ministeriosData && ministeriosData.length > 0) {
-      form.setValue('id', ministeriosData[0]?.id!);
-      form.setValue('nome', ministeriosData[0]?.nome!);
-      form.setValue('descricao', ministeriosData[0]?.descricao!);
-      form.setValue('logo', ministeriosData[0]?.logo || '');
-      form.setValue('uploadLogo', ministeriosData[0]?.logo || '');
-      form.setValue('tipo', MinisterioTipoEnumMap[ministeriosData[0]?.tipo!]);
-      if (ministeriosData[0]?.voluntarios && ministeriosData[0]?.voluntarios.length > 0) {
-        const formVoluntarios = (ministeriosData[0]?.voluntarios ?? [])
-          .filter(voluntario => voluntario.voluntario && typeof voluntario.voluntario.id === 'string')
-          .map(voluntario => ({
-            id: voluntario.id,
-            voluntarioId: voluntario.voluntario?.id || voluntario.voluntarioId,
-            voluntarioNome: voluntario.voluntario?.nome!,
-            hierarquia: voluntario.hierarquia,
-            foto: voluntario.voluntario?.foto,
-          }));
-        form.setValue('voluntarios', formVoluntarios);
-      }
-      form.setValue('status', MinisterioStatusEnumMap[ministeriosData[0]?.status!]);
-    }
-  }, [ministeriosData]);
+    if (!ready) return;
+    if (didHideRef.current) return;
 
-  const tabsConfig: TabItem[] = [
-    {
-      title: 'Dados',
-      icon: {
-        library: DefaultIconsNames.info.library,
-        name: DefaultIconsNames.info.name,
-        size: 16,
-      },
-      content: <DadosTab mode={'edit'} id={params.id} />,
-    },
-    {
-      title: 'Liderança',
-      icon: { library: 'Octicons', name: 'id-badge', size: 14 },
-      content: (
-        <LiderancaTab
-          validationSchema={editLiderSchema}
-          options={{ mode: 'edit', id: params.id }}
-          onAddLider={data => {
-            addVoluntario({ hierarquia: data.hierarquia, voluntarioId: data.voluntarioId, ministerioId: params?.id! });
-          }}
-          onEditLider={data => {
-            updateVoluntario({
-              id: data.id!,
-              data: { hierarquia: data.hierarquia, voluntarioId: data.voluntarioId, ministerioId: params?.id! },
-            });
-          }}
-          onDeleteLider={id => {
-            removeVoluntario(id);
-          }}
-        />
-      ),
-    },
-    // {
-    //   title: 'Permissões',
-    //   icon: { library: 'MaterialCommunityIcons', name: 'security', size: 14 },
-    //   content: <PermissoesTab />,
-    // },
-  ];
+    const task = InteractionManager.runAfterInteractions(() => {
+      hideLoading();
+      didHideRef.current = true;
+    });
 
-  const handleSubmit = () => {
-    form.handleSubmit(
-      data => {
-        console.log('HandleSubmit --- Data', strfyObj(data));
-        updateMinisterio({
-          id: params.id,
-          data: {
-            ...data,
-            descricao: data.descricao === null ? undefined : data.descricao,
-            logo: data.logo === null ? undefined : data.logo,
-            voluntarios: data.voluntarios.map(
-              voluntario =>
-                ({
-                  id: voluntario.id,
-                  voluntario: { id: voluntario.voluntarioId },
-                  hierarquia: voluntario.hierarquia,
-                } as MinisterioVoluntario)
-            ),
-          },
-        });
-        form.reset();
-        router.back();
-      },
-      errors => console.log('HandleSubmit Errors', strfyObj(errors))
-    )();
-  };
+    return () => task.cancel();
+  }, [ready, hideLoading]);
 
-  if (loadingMinisterio || loadingVoluntarios) {
-    return <FancyLoading label="Processando..." />;
-  }
+  if (loadingMinisterio) return <FancyPageView />;
 
   return (
     <FancyPageView style={styles.container}>
       <FormProvider {...form}>
-        <FancyTabs
-          onTabChange={setTabIndex}
-          items={tabsConfig}
-          containerStyle={styles.tabsContainer}
-          contentContainerStyle={styles.tabContent}
-        />
+        <FancyTabs onTabChange={setTabIndex} items={tabsConfig} />
       </FormProvider>
+
       {tabIndex === 0 && (
         <View style={styles.buttonsContainer}>
           <FancyButton
-            label="Salvar"
-            type="contained"
+            label='Salvar'
+            type='contained'
             icon={{
               library: DefaultIconsNames.save.library,
               name: DefaultIconsNames.save.name,
@@ -179,8 +219,8 @@ export default function MinisteriosEditPage() {
 }
 
 const styles = StyleSheet.create({
-  container: { paddingVertical: 10, gap: 30 },
+  container: { gap: 30 },
   tabsContainer: { flex: 1, gap: 15 },
   tabContent: { flex: 1, paddingHorizontal: 20, paddingTop: 5 },
-  buttonsContainer: { flexDirection: 'column', gap: 10, paddingHorizontal: 25 },
+  buttonsContainer: { flexDirection: 'column', gap: 10, paddingHorizontal: 20 },
 });

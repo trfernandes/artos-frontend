@@ -1,0 +1,76 @@
+# Flow: Scroll adversarial na aba Assinatura (busca CTAs escondidos abaixo do fold)
+#
+# Uso:
+#   maestro test flows/billing-scroll-adversarial.yaml
+#
+# Pre-condicao: conta Ativa
+#
+# O que verifica:
+#   - "Gerenciar assinatura" visivel antes do scroll
+#   - Scroll completo da tela: NENHUM botao removido aparece abaixo do fold
+#   - "Gerenciar assinatura" ainda presente apos scroll
+#
+# Adversarial: se algum botao proibido for encontrado em qualquer posicao
+# da tela (inclusive abaixo da dobra), o flow falha.
+
+appId: com.church.artos
+---
+- launchApp
+- runFlow: _login.yaml
+
+- openLink: diakonia:///inicio
+- extendedWaitUntil:
+    visible: 'Início'
+    timeout: 120000
+
+- openLink: diakonia:///configuracoes
+- waitForAnimationToEnd:
+    timeout: 15000
+
+- tapOn:
+    text: 'Assinatura'
+    index: 1
+- waitForAnimationToEnd:
+    timeout: 15000
+
+# Estado inicial: unico CTA visivel
+- assertVisible: 'Gerenciar assinatura'
+- takeScreenshot: billing-scroll-topo
+
+# Scroll 1 — inicio do conteudo abaixo do fold
+- swipe:
+    direction: DOWN
+    duration: 700
+- waitForAnimationToEnd:
+    timeout: 1000
+- assertNotVisible: 'Cancelar assinatura'
+- assertNotVisible: 'Ver planos'
+- assertNotVisible: 'Trocar plano'
+- assertNotVisible: 'Assinar agora'
+- assertNotVisible: 'Escolher plano'
+- assertNotVisible: 'Atualizar plano'
+- takeScreenshot: billing-scroll-meio
+
+# Scroll 2 — final da tela
+- swipe:
+    direction: DOWN
+    duration: 700
+- waitForAnimationToEnd:
+    timeout: 1000
+- assertNotVisible: 'Cancelar assinatura'
+- assertNotVisible: 'Ver planos'
+- assertNotVisible: 'Trocar plano'
+- assertNotVisible: 'Assinar agora'
+- assertNotVisible: 'Escolher plano'
+- assertNotVisible: 'Atualizar plano'
+
+# Scroll 3 — garantia de fim de pagina
+- swipe:
+    direction: DOWN
+    duration: 700
+- waitForAnimationToEnd:
+    timeout: 1000
+- assertNotVisible: 'Cancelar assinatura'
+- assertNotVisible: 'Ver planos'
+- assertNotVisible: 'Trocar plano'
+- takeScreenshot: billing-scroll-fundo

@@ -1,0 +1,32 @@
+[18/06/2026  7:57:09,76] Iniciando submit Android sem build
+? eas-cli@20.2.0 is now available.
+To upgrade, run:
+npm install -g eas-cli
+Proceeding with outdated version.
+System.Management.Automation.RemoteException
+
+Project ID:                     8de609c4-80b9-4a57-9d70-b8c16383e892
+Release track:                  internal
+Changes not sent for a review:  false
+Release status:                 DRAFT
+Google Service Account Key:     
+    Key Source   :  local
+    Key Path     :  ./android.json
+    Account Email:  diakonia-service@diakonia-489221.iam.gserviceaccount.com
+Rollout:                        undefined
+Build:                          
+    Build ID    :  3c2c70e5-9f62-4df2-b4ca-4d572f893b8e
+    Build Date  :  18/06/2026, 07:40:13
+    App Version :  1.0.0
+    Version code:  14
+
+- Scheduling Android submission
+v Scheduled Android submission
+
+Submission details: https://expo.dev/accounts/trfernandes/projects/artos_frontend/submissions/a484e808-0f82-40c6-8319-c608065d7719
+
+Waiting for submission to complete. You can press Ctrl+C to exit.
+- Submitting
+v Submitted your app to Google Play Store!
+
+All done!

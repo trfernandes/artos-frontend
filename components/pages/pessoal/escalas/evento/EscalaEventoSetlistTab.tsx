@@ -13,16 +13,23 @@ export default function EscalaEventoSetlistTab() {
         containerStyle={{ flex: 1 }}
         data={MUSIC_LIST}
         renderItem={({ item }) => (
-          <FancyCard.Letter
-            title={item.nome}
-            subtitle={item.artista}
-            additionalData1={`Tom: ${item.tom}  |  Bpm: ${item.bpm}`}
-            letter={item.order.toString()}
-            actionButtons={[{ icon: { ...DefaultIconsNames.open, size: 16 } }]}
+          <FancyCard.Image
+            type='letter'
+            props={{
+              title: item.nome,
+              subtitle: item.artista,
+              additionalData1: `Tom: ${item.tom}  |  Bpm: ${item.bpm}`,
+              letter: item.order.toString(),
+              actionButtons: [{ icon: { ...DefaultIconsNames.open, size: 16 } }],
+            }}
           />
         )}
       />
-      <FancyTextArea label="Observações" disabled value="Vamos faze a 2 e 3 em medley so estrofe e refrão" />
+      <FancyTextArea
+        label='Observações'
+        disabled
+        value='Vamos faze a 2 e 3 em medley so estrofe e refrão'
+      />
       <FancyFab icon={{ ...DefaultIconsNames.edit, size: 26 }} />
     </View>
   );

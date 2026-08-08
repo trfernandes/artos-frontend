@@ -1,0 +1,128 @@
+1	import { useMutation } from '@tanstack/react-query';
+2	import { useForm } from 'react-hook-form';
+3	import { zodResolver } from '@hookform/resolvers/zod';
+4	import Toast from 'react-native-toast-message';
+5	import { IgrejaRepository } from '../domain/services/IgrejaRepository';
+6	import { CadastroIgrejaRepository } from '../domain/services/CadastroIgrejaRepository';
+7	import { CreateCadastroIgrejaDto, CreateCadastroResponseDto, CadastroIgrejaStorageDto } from '../domain/dtos/Igreja/cadastro-igreja.dto';
+8	import { LoginCreateIgrejaFormData, LoginCreateIgrejaSchema } from '../domain/schemas/loginCreateIgrejaSchema';
+9	import { useLoading } from '../contexts/LoadingContext';
+10	
+11	export type UseIgrejaCrudOptions = {
+12	  defaultValues?: Partial<LoginCreateIgrejaFormData>;
+13	  onSuccess?: (data: CreateCadastroResponseDto, storageData: CadastroIgrejaStorageDto) => void;
+14	  onError?: (error: any) => void;
+15	  muteMessages?: boolean;
+16	};
+17	
+18	export function useIgrejaCrud({
+19	  defaultValues,
+20	  onSuccess,
+21	  onError,
+22	  muteMessages = false,
+23	}: UseIgrejaCrudOptions = {}) {
+24	  const { showLoading, hideLoading } = useLoading();
+25	
+26	  const form = useForm<LoginCreateIgrejaFormData>({
+27	    resolver: zodResolver(LoginCreateIgrejaSchema),
+28	    defaultValues,
+29	  });
+30	
+31	  const criarCadastroMutation = useMutation<
+32	    { response: CreateCadastroResponseDto; storageData: CadastroIgrejaStorageDto },
+33	    Error,
+34	    { dto: CreateCadastroIgrejaDto; formData: LoginCreateIgrejaFormData }
+35	  >({
+36	    mutationFn: async ({ dto, formData }) => {
+37	        // Debug: logar entrada do mutationFn
+38	        // eslint-disable-next-line no-console
+39	        console.log('[criarCadastroMutation] mutationFn chamada', { dto });
+40	      const response = await CadastroIgrejaRepository.criarCadastro(dto);
+41	
+42	      // Salvar dados no storage para a tela de confirmação
+43	      const storageData: CadastroIgrejaStorageDto = {
+44	        cadastroId: response.cadastroId,
+45	        cadastroSecret: response.cadastroSecret,
+46	        responsavelEmail: formData.responsavelEmail,
+47	      };
+48	
+49	      await CadastroIgrejaRepository.salvarDadosCadastro(storageData);
+50	
+51	      return { response, storageData };
+52	    },
+53	    onMutate: () => {
+54	      showLoading('Criando cadastro...');
+55	    },
+56	    onSuccess: ({ response, storageData }) => {
+57	      hideLoading();
+58	      if (!muteMessages) {
+59	        Toast.show({
+60	          type: 'success',
+61	          text1: 'Cadastro iniciado!',
+62	          text2: 'Verifique seu e-mail para confirmar.',
+63	        });
+64	      }
+65	      onSuccess?.(response, storageData);
+66	    },
+67	    onError: (error: any) => {
+68	      hideLoading();
+69	      // Log seguro para debug (sem dados sensíveis)
+70	      if (error) {
+71	        // eslint-disable-next-line no-console
+72	        console.log('[criarCadastroMutation] erro:', {
+73	          status: error?.response?.status,
+74	          url: error?.config?.url,
+75	          method: error?.config?.method,
+76	          data: error?.response?.data,
+77	        });
+78	      }
+79	      if (!muteMessages) {
+80	        const message = error?.response?.data?.message || 'Erro ao criar cadastro. Tente novamente.';
+81	        Toast.show({
+82	          type: 'error',
+83	          text1: 'Erro',
+84	          text2: message,
+85	        });
+86	      }
+87	      onError?.(error);
+88	    },
+89	  });
+90	
+91	  const verificarCodigoMutation = useMutation<
+92	    { disponivel: boolean; sugestao?: string },
+93	    Error,
+94	    string
+95	  >({
+96	    mutationFn: (codigo) => IgrejaRepository.verificarCodigoDisponivelPublico(codigo),
+97	  });
+98	
+99	  const handleCriarIgrejaPublico = form.handleSubmit(async (data) => {
+100	    const dto: CreateCadastroIgrejaDto = {
+101	      igrejaNome: data.nome,
+102	      igrejaCidade: data.cidade,
+103	      igrejaUf: data.uf,
+104	      igrejaCodigo: data.codigo,
+105	      responsavelNome: data.responsavelNome,
+106	      responsavelEmail: data.responsavelEmail,
+107	      responsavelSenha: data.responsavelSenha,
+108	    };
+109	
+110	    await criarCadastroMutation.mutateAsync({ dto, formData: data });
+111	  });
+112	
+113	  const verificarCodigo = async (codigo: string) => {
+114	    if (!codigo || codigo.length < 3) {
+115	      return { disponivel: false, sugestao: undefined };
+116	    }
+117	    return verificarCodigoMutation.mutateAsync(codigo);
+118	  };
+119	
+120	  return {
+121	    form,
+122	    handleCriarIgrejaPublico,
+123	    verificarCodigo,
+124	    isSubmitting: criarCadastroMutation.isPending,
+125	    isVerificandoCodigo: verificarCodigoMutation.isPending,
+126	    codigoResult: verificarCodigoMutation.data,
+127	  };
+128	}

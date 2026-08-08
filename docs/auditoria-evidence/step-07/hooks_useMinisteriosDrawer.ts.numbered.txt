@@ -1,0 +1,74 @@
+1	import { useQuery } from '@tanstack/react-query';
+2	import { useAuth } from '../contexts/AuthContext';
+3	import { IgrejaMinisteriosRepository } from '../domain/services/IgrejaMinisteriosRepository';
+4	import { ResponseLoginIgrejaDto, ResponseLoginMinisterioDto } from '../domain/dtos/login/login.response';
+5	import { IgrejaVoluntarioRoleEnum } from '../domain/enums/Igreja/voluntario-role.enum';
+6	import { VoluntarioHierarquiaEnum } from '../domain/enums/MinisterioVoluntario/hierarquia.enum';
+7	import { useMemo } from 'react';
+8	
+9	/**
+10	 * Hook que retorna a igreja ativa com ministérios carregados.
+11	 * Para usuários admin/owner, busca os ministérios da API quando o backend não retorna.
+12	 */
+13	export function useMinisteriosDrawer() {
+14	  const { igrejaAtiva } = useAuth();
+15	
+16	  // Verifica se o usuário é admin/owner
+17	  const roleUpper = igrejaAtiva?.role?.toString().toUpperCase();
+18	  const isAdmin = roleUpper === IgrejaVoluntarioRoleEnum.ADMIN || roleUpper === 'OWNER';
+19	
+20	  // Verifica se precisa buscar ministérios (admin com lista vazia)
+21	  const shouldFetchMinisterios = isAdmin && !!igrejaAtiva?.id && (!igrejaAtiva.ministerios || igrejaAtiva.ministerios.length === 0);
+22	
+23	  // Busca ministérios da API se necessário
+24	  const { data: ministeriosFetched, isLoading, isFetching } = useQuery({
+25	    queryKey: ['ministerios-drawer', igrejaAtiva?.id, isAdmin],
+26	    queryFn: async () => {
+27	      if (!igrejaAtiva?.id) return [];
+28	
+29	      const ministerios = await IgrejaMinisteriosRepository.listarMinisterios(igrejaAtiva.id);
+30	
+31	      // Mapeia para o formato ResponseLoginMinisterioDto
+32	      const mapped: ResponseLoginMinisterioDto[] = ministerios.map((m) => ({
+33	        id: m.id,
+34	        nome: m.nome,
+35	        tipo: m.tipo,
+36	        logoUrl: m.logoUrl || null,
+37	        logoThumbUrl: m.logoThumbUrl || null,
+38	        // Admin tem acesso de líder a todos os ministérios
+39	        hierarquia: VoluntarioHierarquiaEnum.Lider,
+40	      }));
+41	
+42	      return mapped;
+43	    },
+44	    enabled: shouldFetchMinisterios,
+45	    staleTime: 0, // Sempre buscar dados frescos ao trocar de igreja
+46	    gcTime: 0, // Não manter cache quando a igreja mudar
+47	  });
+48	
+49	  // Retorna a igreja ativa com os ministérios (da API se necessário)
+50	  const igrejaAtivaComMinisterios: ResponseLoginIgrejaDto | null = useMemo(() => {
+51	    if (!igrejaAtiva) return null;
+52	
+53	    // Se não é admin ou já tem ministérios, retorna como está
+54	    if (!shouldFetchMinisterios) {
+55	      return igrejaAtiva;
+56	    }
+57	
+58	    // Se é admin e buscou ministérios, retorna com os ministérios da API
+59	    if (ministeriosFetched && ministeriosFetched.length > 0) {
+60	      return {
+61	        ...igrejaAtiva,
+62	        ministerios: ministeriosFetched,
+63	      };
+64	    }
+65	
+66	    return igrejaAtiva;
+67	  }, [igrejaAtiva, shouldFetchMinisterios, ministeriosFetched]);
+68	
+69	  return {
+70	    igrejaAtiva: igrejaAtivaComMinisterios,
+71	    isLoading: shouldFetchMinisterios && (isLoading || isFetching),
+72	    isAdmin,
+73	  };
+74	}

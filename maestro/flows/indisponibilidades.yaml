@@ -1,0 +1,5 @@
+appId: com.church.artos
+---
+- openLink: diakonia:///pessoal/indisponibilidade
+- waitForAnimationToEnd:
+    timeout: 4000

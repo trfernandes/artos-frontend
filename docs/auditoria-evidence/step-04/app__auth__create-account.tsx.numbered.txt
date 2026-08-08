@@ -1,0 +1,257 @@
+1	import { StyleSheet, TouchableOpacity, View } from 'react-native';
+2	import AuthScreen from '../../components/pages/login/AuthScreen';
+3	import { Pallete } from '../../constants/colors';
+4	import FancyButton from '../../components/buttons/FancyButton';
+5	import { EXTRA_LARGE_SIZE_FONT, LARGE_SIZE_FONT } from '../../constants/font';
+6	import FancyText from '../../components/FancyText';
+7	import { router } from 'expo-router';
+8	import { FancyCard } from '../../components/cards/Horizontal/FancyCard';
+9	import DefaultIcons from '../../components/FancyIcons';
+10	import { useState } from 'react';
+11	import FancyModalDialog from '../../components/modal/FancyModalDialog';
+12	
+13	export default function ComecarScreen() {
+14	  const [isHelpModalVisible, setIsHelpModalVisible] = useState(false);
+15	
+16	  return (
+17	    <AuthScreen
+18	      showBackButton
+19	      scrollContainerStyle={styles.scrollContainer}
+20	      fieldsContainerStyle={styles.fieldsContainer}
+21	      contentWidth={{ default: '85%', keyboard: '85%' }}
+22	      headerWidth={{ default: '85%', keyboard: '85%' }}
+23	      alignTopOnKeyboard
+24	      keyboardBottomSpacing={60}
+25	      header={({ keyboardVisible }) => (
+26	        <View style={{ gap: 5, borderWidth: 0 }}>
+27	          <FancyText
+28	            size={!keyboardVisible ? 'extraLarge' : 'large'}
+29	            type='bold'
+30	            color='white'
+31	            style={{ lineHeight: !keyboardVisible ? EXTRA_LARGE_SIZE_FONT * 1.2 : LARGE_SIZE_FONT * 1.2 }}
+32	          >
+33	            Como você vai entrar?
+34	          </FancyText>
+35	          <FancyText size={!keyboardVisible ? 'medium' : 'small'} type='medium' color='white'>
+36	            Escolha uma opção. Você pode voltar e trocar depois.
+37	          </FancyText>
+38	        </View>
+39	      )}
+40	    >
+41	      <View style={styles.content}>
+42	        <View style={styles.cardsContainer}>
+43	          <TouchableOpacity
+44	            activeOpacity={0.85}
+45	            onPress={() => router.push('/(auth)/create-voluntario-account')}
+46	            style={styles.cardWrapper}
+47	          >
+48	            <View style={styles.badge}>
+49	              <FancyText size='extraSmall' type='semiBold' color={Pallete.fonts.light}>
+50	                Recomendado
+51	              </FancyText>
+52	            </View>
+53	            <FancyCard.Image
+54	              type='icon'
+55	              props={{
+56	                title: 'Tenho convite',
+57	                subtitle: (
+58	                  <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive} numberOfLines={3}>
+59	                    Recebi um link ou código da minha igreja para entrar como voluntário.
+60	                  </FancyText>
+61	                ),
+62	                additionalData1: (
+63	                  <FancyText size='extraSmall' type='semiBold' color={Pallete.primary}>
+64	                    Entrar em 30 segundos
+65	                  </FancyText>
+66	                ),
+67	                cardIcon: {
+68	                  library: 'MaterialCommunityIcons',
+69	                  name: 'ticket-confirmation-outline',
+70	                  size: 20,
+71	                  backgroundColor: Pallete.primary,
+72	                  color: Pallete.fonts.light,
+73	                },
+74	                actionButtons: (
+75	                  <View style={styles.chevronContainer}>
+76	                    <DefaultIcons.Custom
+77	                      library='Entypo'
+78	                      name='chevron-right'
+79	                      size={22}
+80	                      color={Pallete.icons.inactive}
+81	                    />
+82	                  </View>
+83	                ),
+84	                containerStyle: [styles.card, styles.cardHighlight],
+85	                contentContainerStyle: styles.cardContent,
+86	                centerContainerStyle: { gap: 6, paddingBottom:5 },
+87	                backgroundColor: Pallete.backgroundColor4,
+88	              }}
+89	            />
+90	          </TouchableOpacity>
+91	
+92	          <TouchableOpacity
+93	            activeOpacity={0.85}
+94	            onPress={() => router.push('/(auth)/create-igreja-account')}
+95	            style={styles.cardWrapper}
+96	          >
+97	            <FancyCard.Image
+98	              type='icon'
+99	              props={{
+100	                title: 'Cadastrar igreja',
+101	                subtitle: (
+102	                  <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive} numberOfLines={3}>
+103	                    Sou responsável. Vou configurar a igreja e convidar voluntários.
+104	                  </FancyText>
+105	                ),
+106	                additionalData1: (
+107	                  <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive}>
+108	                    Leva ~3 minutos
+109	                  </FancyText>
+110	                ),
+111	                cardIcon: {
+112	                  library: 'MaterialCommunityIcons',
+113	                  name: 'church',
+114	                  size: 20,
+115	                  backgroundColor: Pallete.secondary,
+116	                  color: Pallete.fonts.light,
+117	                },
+118	                actionButtons: (
+119	                  <View style={styles.chevronContainer}>
+120	                    <DefaultIcons.Custom
+121	                      library='Entypo'
+122	                      name='chevron-right'
+123	                      size={22}
+124	                      color={Pallete.icons.inactive}
+125	                    />
+126	                  </View>
+127	                ),
+128	                containerStyle: styles.card,
+129	                contentContainerStyle: styles.cardContent,
+130	                centerContainerStyle: { gap: 6,paddingBottom:5 },
+131	              }}
+132	            />
+133	          </TouchableOpacity>
+134	        </View>
+135	
+136	        <View style={styles.footer}>
+137	          <FancyButton
+138	            type='text'
+139	            label='Não sabe qual escolher?'
+140	            onPress={() => setIsHelpModalVisible(true)}
+141	            labelStyle={styles.footerLink}
+142	            containerStyle={styles.footerLinkContainer}
+143	          />
+144	          <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={styles.footerHint}>
+145	            Ainda não recebeu convite? Peça ao seu líder para enviar.
+146	          </FancyText>
+147	        </View>
+148	      </View>
+149	
+150	      {isHelpModalVisible && (
+151	        <FancyModalDialog
+152	          title='Não sabe qual escolher?'
+153	          modalProps={{ visible: isHelpModalVisible }}
+154	          onButton1Press={() => setIsHelpModalVisible(false)}
+155	          button1={{ label: 'Fechar' }}
+156	          button2={{ visible: false }}
+157	          centerContainerStyle={styles.modalContent}
+158	        >
+159	          <View style={styles.modalSection}>
+160	            <FancyText size='small' type='semiBold'>
+161	              Tenho convite
+162	            </FancyText>
+163	            <FancyText size='small' type='medium' color={Pallete.fonts.inactive}>
+164	              Se você vai participar de escalas, normalmente entra por convite.
+165	            </FancyText>
+166	          </View>
+167	          <View style={styles.modalSection}>
+168	            <FancyText size='small' type='semiBold'>
+169	              Cadastrar igreja
+170	            </FancyText>
+171	            <FancyText size='small' type='medium' color={Pallete.fonts.inactive}>
+172	              Se você organiza equipes e quer convidar pessoas, é por aqui.
+173	            </FancyText>
+174	          </View>
+175	        </FancyModalDialog>
+176	      )}
+177	    </AuthScreen>
+178	  );
+179	}
+180	
+181	const styles = StyleSheet.create({
+182	  scrollContainer: {
+183	    flexGrow: 1,
+184	    paddingHorizontal: 40,
+185	    paddingVertical: 0,
+186	    justifyContent: 'center',
+187	    borderColor: 'red',
+188	  },
+189	  fieldsContainer: {
+190	    width: '85%',
+191	    borderRadius: 15,
+192	    borderColor: 'firebrick',
+193	    padding: 24,
+194	    gap: 20,
+195	    backgroundColor: Pallete.backgroundColor,
+196	    ...Pallete.shadows[200],
+197	    justifyContent: 'center',
+198	  },
+199	  content: {
+200	    width: '100%',
+201	    gap: 18,
+202	  },
+203	  cardsContainer: {
+204	    gap: 16,
+205	  },
+206	  cardWrapper: {
+207	    position: 'relative',
+208	  },
+209	  card: {
+210	    width: '100%',
+211	    borderRadius: 30,
+212	    borderWidth: 1,
+213	    borderColor: Pallete.borderCard,
+214	    ...Pallete.shadows[100],
+215	  },
+216	  cardHighlight: {
+217	    borderColor: Pallete.primary,
+218	    borderWidth: 1,
+219	  },
+220	  badge: {
+221	    position: 'absolute',
+222	    right: 14,
+223	    top: -8,
+224	    backgroundColor: Pallete.primary,
+225	    borderRadius: 12,
+226	    paddingHorizontal: 8,
+227	    paddingVertical: 3,
+228	    zIndex: 2,
+229	  },
+230	  cardContent: {
+231	    paddingTop: 10,
+232	  },
+233	  chevronContainer: {
+234	    justifyContent: 'center',
+235	    alignItems: 'center',
+236	  },
+237	  footer: {
+238	    alignItems: 'center',
+239	    gap: 6,
+240	  },
+241	  footerLink: {
+242	    fontSize: 12,
+243	  },
+244	  footerLinkContainer: {
+245	    height: 20,
+246	    alignItems: 'center',
+247	  },
+248	  footerHint: {
+249	    textAlign: 'center',
+250	  },
+251	  modalContent: {
+252	    gap: 16,
+253	  },
+254	  modalSection: {
+255	    gap: 6,
+256	  },
+257	});

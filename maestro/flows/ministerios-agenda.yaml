@@ -1,0 +1,19 @@
+appId: com.church.artos
+---
+# Rota /ministerios/agenda exige ?ministerioId= dinâmico — sem deep link direto.
+# Navega via drawer (tapOn por texto, precisa: nome depende dos dados seedados).
+- openLink: diakonia:///inicio
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    point: '6%,4%'
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn:
+    text: 'Audiovisual'
+- waitForAnimationToEnd:
+    timeout: 1500
+- tapOn:
+    text: 'Agenda'
+- waitForAnimationToEnd:
+    timeout: 4000

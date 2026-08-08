@@ -1,0 +1,185 @@
+1	import { useCallback, useState } from 'react';
+2	import { DefaultIconsNames } from '../../../../constants/icons';
+3	import TemplateFixoEquipeForm from './TemplateFixoEquipeForm';
+4	import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
+5	import { FormProvider, useFieldArray, useForm, useFormContext } from 'react-hook-form';
+6	import {
+7	    EscalaTemplateFormData,
+8	    EscalaTemplateVoluntarioFormData,
+9	    escalaTemplateVoluntarioSchema,
+10	} from '../../../../domain/schemas/escalaTemplateSchema';
+11	import { zodResolver } from '@hookform/resolvers/zod';
+12	import { Pallete } from '../../../../constants/colors';
+13	import { FancyAlert } from '../../../modal/FancyAlert';
+14	import Toast from 'react-native-toast-message';
+15	import { FancyCard } from '../../../cards/Horizontal/FancyCard';
+16	import FancyContainerList from '../../../container_list/FancyContainerList';
+17	import { ResponseMinisterioVoluntarioDto } from '../../../../domain/dtos/MinisterioVoluntario/ministerio-voluntario.response';
+18	import { ResponseMinisterioFuncaoDto } from '../../../../domain/dtos/MinisterioFuncao/ministerio-funcao.response';
+19	import { AppImages } from '../../../../assets/app_images';
+20	
+21	interface TemplateFixoEquipeListProps {
+22	  disabled?: boolean;
+23	  voluntariosList: ResponseMinisterioVoluntarioDto[] | [];
+24	  funcoesList: ResponseMinisterioFuncaoDto[] | [];
+25	  voluntariosDropDownList?: DropDownItemProps<string>[];
+26	  funcoesDropDownList: DropDownItemProps<string>[];
+27	}
+28	
+29	export default function TemplateFixoEquipeList({
+30	  disabled = false,
+31	  voluntariosList = [] as ResponseMinisterioVoluntarioDto[],
+32	  funcoesList = [] as ResponseMinisterioFuncaoDto[],
+33	  voluntariosDropDownList,
+34	  funcoesDropDownList,
+35	}: TemplateFixoEquipeListProps) {
+36	  const { control, watch } = useFormContext<EscalaTemplateFormData>();
+37	  const formAdd = useForm({ resolver: zodResolver(escalaTemplateVoluntarioSchema) });
+38	  const { append, remove } = useFieldArray({
+39	    control,
+40	    name: 'voluntarios',
+41	  });
+42	  const voluntariosWatch = watch('voluntarios');
+43	
+44	  const voluntariosData = (voluntariosWatch ?? []).slice().sort((a, b) => {
+45	    const voluntarioA = voluntariosList.find((v) => v.id === a.voluntarioId);
+46	    const voluntarioB = voluntariosList.find((v) => v.id === b.voluntarioId);
+47	    const nomeA = voluntarioA?.voluntario?.nome?.toLowerCase() || '';
+48	    const nomeB = voluntarioB?.voluntario?.nome?.toLowerCase() || '';
+49	    if (nomeA < nomeB) return -1;
+50	    if (nomeA > nomeB) return 1;
+51	
+52	    const funcaoA = funcoesList.find((f) => f.id === a.funcaoId);
+53	    const funcaoB = funcoesList.find((f) => f.id === b.funcaoId);
+54	    const funcaoNomeA = funcaoA?.nome?.toLowerCase() || '';
+55	    const funcaoNomeB = funcaoB?.nome?.toLowerCase() || '';
+56	    if (funcaoNomeA < funcaoNomeB) return -1;
+57	    if (funcaoNomeA > funcaoNomeB) return 1;
+58	
+59	    return 0;
+60	  });
+61	
+62	  const [formParams, setFormParams] = useState<{ visible: boolean; mode: 'add' | 'edit' }>();
+63	
+64	  const handleConfirm = useCallback(() => {
+65	    if (disabled) {
+66	      return;
+67	    }
+68	    formAdd.handleSubmit((data) => {
+69	      const alreadyExists = voluntariosData.some((v) => v.voluntarioId === data.voluntarioId && v.funcaoId === data.funcaoId);
+70	
+71	      if (alreadyExists) {
+72	        formAdd.setError('voluntarioId', { message: 'Voluntário já adicionado.' });
+73	        return;
+74	      }
+75	
+76	      append({
+77	        voluntarioId: data.voluntarioId,
+78	        funcaoId: data.funcaoId,
+79	      });
+80	
+81	      formAdd.reset();
+82	      setFormParams({ visible: false, mode: 'add' });
+83	
+84	      Toast.show({
+85	        type: 'success',
+86	        text1: 'Voluntário adicionado com sucesso!',
+87	      });
+88	    })();
+89	  }, [append, disabled, formAdd, voluntariosData]);
+90	
+91	  const handleOpen = useCallback(
+92	    (mode: 'add' | 'edit') => {
+93	      if (disabled) {
+94	        return;
+95	      }
+96	      formAdd.reset({ voluntarioId: undefined, funcaoId: undefined, id: undefined });
+97	      setFormParams({ visible: true, mode });
+98	    },
+99	    [disabled, formAdd],
+100	  );
+101	
+102	  const handleRemove = useCallback(
+103	    (index: number) => {
+104	      if (disabled) {
+105	        return;
+106	      }
+107	      const entry = voluntariosData[index];
+108	      if (!entry) {
+109	        return;
+110	      }
+111	
+112	      FancyAlert.alert('Confirmar remoção', 'Tem certeza que deseja remover este voluntário?', [
+113	        { text: 'Não', style: 'destructive' },
+114	        {
+115	          text: 'Sim',
+116	          onPress: () => {
+117	            remove(index);
+118	            Toast.show({
+119	              type: 'success',
+120	              text1: 'Voluntário removido com sucesso!',
+121	            });
+122	          },
+123	        },
+124	      ]);
+125	    },
+126	    [disabled, remove, voluntariosData],
+127	  );
+128	
+129	  return (
+130	    <>
+131	      <FancyContainerList
+132	        title={'Formação da Equipe'}
+133	        data={voluntariosData}
+134	        contentContainerStyle={{ paddingTop: 6 }}
+135	        disabled={disabled}
+136	        renderItem={({ item, index }: { item: EscalaTemplateVoluntarioFormData; index: number }) => {
+137	          const voluntarioInfo = voluntariosList.find((option) => option.id === item.voluntarioId);
+138	          const funcaoInfo = funcoesList.find((option) => option.id === item.funcaoId);
+139	          return (
+140	            <FancyCard.Image
+141	              type='image'
+142	              props={{
+143	                title: voluntarioInfo?.voluntario?.nome,
+144	                subtitle: funcaoInfo?.nome,
+145	                source:
+146	                  voluntarioInfo?.voluntario?.fotoThumbUrl || voluntarioInfo?.voluntario?.fotoUrl
+147	                    ? { uri: voluntarioInfo?.voluntario?.fotoThumbUrl || voluntarioInfo?.voluntario?.fotoUrl || '' }
+148	                    : AppImages.emptyProfile,
+149	                actionButtons: [
+150	                  {
+151	                    icon: {
+152	                      ...DefaultIconsNames.delete,
+153	                      size: 16,
+154	                      backgroundColor: disabled ? Pallete.disabled : Pallete.error,
+155	                    },
+156	                    onPress: disabled ? undefined : () => handleRemove(index),
+157	                  },
+158	                ],
+159	              }}
+160	            />
+161	          );
+162	        }}
+163	        buttons={[
+164	          {
+165	            icon: { ...DefaultIconsNames.add, size: 20, style: { width: 20, height: 20 } },
+166	            onPress: disabled ? undefined : () => handleOpen('add'),
+167	          },
+168	        ]}
+169	      />
+170	      <FormProvider {...formAdd}>
+171	        {formParams?.visible && (
+172	          <TemplateFixoEquipeForm
+173	            modalProps={{ visible: formParams.visible }}
+174	            onButton1Press={() => {
+175	              setFormParams({ visible: false, mode: 'add' });
+176	            }}
+177	            onButton2Press={handleConfirm}
+178	            voluntarioList={voluntariosDropDownList}
+179	            funcoesList={funcoesDropDownList}
+180	          />
+181	        )}
+182	      </FormProvider>
+183	    </>
+184	  );
+185	}

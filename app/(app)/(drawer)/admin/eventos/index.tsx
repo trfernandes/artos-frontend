@@ -1,63 +1,93 @@
-import { StyleSheet, View } from 'react-native';
-import FancyPageView from '../../../../../components/containers/FancyPageView';
-import FancySearchBar from '../../../../../components/FancySearchBar';
-import { router, useNavigation } from 'expo-router';
-import { useLayoutEffect, useState } from 'react';
-import { DefaultIconsNames } from '../../../../../constants/icons';
-import FancyHeaderButton from '../../../../../components/header/FancyHeaderButton';
-import FancyFab from '../../../../../components/buttons/FancyFab';
-import EventoCalendarView from '../../../../../components/pages/admin/eventos/EventoCalendarView';
-import EventosList from '../../../../../components/pages/admin/eventos/EventosList';
-import MainHeaderButtons from '../../../../../components/header/MainHeaderButtons';
-import { useEventos } from '../../../../../hooks/useEventos';
+import { StyleSheet } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import EventosListView from '../../../../../components/pages/admin/eventos/EventosListView';
+import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
+import FancyLoading from '../../../../../components/FancyLoading';
+import FancyBasePage from '../../../../../components/pages/base/FancyBasePage';
+import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
+import { ResponseEventoDto } from '../../../../../domain/dtos/Evento/evento.response';
 
 export default function EventosIndexPage() {
-  const navigation = useNavigation();
-  const [mode, setMode] = useState<'list' | 'calendar'>('list');
+  const [searchText, setSearchText] = useState('');
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <View style={{ flexDirection: 'row' }}>
-          <FancyHeaderButton
-            icon={mode === 'calendar' ? { ...DefaultIconsNames.list } : { ...DefaultIconsNames['calendar-month'] }}
-            onPress={() => setMode(mode === 'list' ? 'calendar' : 'list')}
-            buttonProps={{ containerStyle: { marginRight: 8, borderWidth: 0 } }}
-          />
-          <MainHeaderButtons />
-        </View>
-      ),
+  const {
+    data,
+    isLoading,
+    setSearchParams,
+    remove,
+    refetch,
+    isLoadingMutation: isLoadingRemove,
+  } = useEventosCrud({ autoFetch: false });
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
+
+  const eventosData = useMemo<ResponseEventoDto[]>(() => {
+    return data.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
+  }, [data]);
+
+  if (isLoading) {
+    return <FancyLoading label='Carregando...' />;
+  }
+
+  if (isLoadingRemove) {
+    return <FancyLoading label='Excluindo...' />;
+  }
+
+  const handleEditItem = (evento: ResponseEventoDto) => {
+    router.push({
+      pathname: '/admin/eventos/edit',
+      params: {
+        id: evento.id,
+      },
     });
-  }, [navigation, mode]);
-
-  const { data: eventosData } = useEventos({ autoFetch: false, initialParams: {} });
+  };
 
   return (
-    <FancyPageView style={styles.container}>
-      {mode === 'list' && <FancySearchBar containerStyle={styles.searchbar} />}
-      <View style={styles.contentContainer}>
-        {mode === 'list' ? (
-          <EventosList items={eventosData} listProps={{ style: styles.list }} onPressItem={_ => router.push(`admin/eventos/edit`)} />
-        ) : (
-          <EventoCalendarView items={eventosData} calendarProps={{ containerStyle: styles.calendar }} />
-        )}
-      </View>
-
-      <FancyFab
-        onPress={() => {
-          router.push('admin/eventos/add');
-        }}
+    <FancyBasePage
+      showSearchBar
+      fabProps={{ onPress: () => router.push('admin/eventos/add') }}
+      searchBarProps={{
+        value: searchText,
+        onSearch: (text) => {
+          setSearchText(text.trim());
+          if (text && text.trim() !== '') {
+            setSearchParams({
+              where: {
+                conditions: [
+                  {
+                    path: 'nome',
+                    operator: Operator.ILIKE,
+                    value: {
+                      type: ValueType.LITERAL as const,
+                      value: text.trim(),
+                    },
+                  },
+                ],
+              },
+            });
+          } else {
+            setSearchParams({});
+          }
+        },
+      }}
+    >
+      <EventosListView
+        // containerStyle={{ borderWidth: 1, borderColor: 'red' }}
+        contentContainerStyle={{ paddingHorizontal: 15 }}
+        onEditItem={handleEditItem}
+        data={eventosData}
+        listProps={{ style: styles.list }}
+        onDeleteItem={(event) => remove(event.id!)}
       />
-    </FancyPageView>
+    </FancyBasePage>
   );
 }
 
-const DESIGN_MODE = 0;
-
 const styles = StyleSheet.create({
-  container: { gap: 10, paddingVertical: 10, flex: 1 },
-  searchbar: { marginHorizontal: 20, borderWidth: DESIGN_MODE },
-  contentContainer: { borderWidth: DESIGN_MODE, flex: 1 },
-  list: { paddingHorizontal: 20, paddingTop: 5, borderWidth: DESIGN_MODE },
-  calendar: { borderWidth: DESIGN_MODE, paddingHorizontal: 20 },
+  list: { paddingTop: 5, borderWidth: 0 },
 });

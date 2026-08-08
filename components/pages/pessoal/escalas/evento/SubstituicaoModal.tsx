@@ -3,14 +3,20 @@ import FancyDropDown from '../../../../fields/FancyDropDown';
 import { PEOPLE_DATA } from '../../../admin/eventos/EventosEscalaEquipe';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
 
-export default function SubstituicaoModal(props: Omit<FancyModalDialogProps, 'title'>) {
+export default function SubstituicaoModal(props: Omit<FancyModalDialogProps<any>, 'title'>) {
   return (
-    <FancyModalDialog title="Solicitar Substituição" {...props}>
+    <FancyModalDialog title='Solicitar Substituição' {...props}>
       <FancyDropDown
-        label="Voluntário"
-        placeholder="Selecione o voluntário que irá o substituir"
+        label='Voluntário'
+        placeholder='Selecione o voluntário que irá o substituir'
+        renderMode='modal'
+        // ...existing code...
         listItems={PEOPLE_DATA.map((value, index) => {
-          return { title: value.nome, value: index.toString(), left: { type: 'image', url: value.image } } as DropDownItemProps;
+          return {
+            title: value.nome,
+            value: index.toString(),
+            left: value.image ? { type: 'image', source: value.image } : undefined,
+          } as DropDownItemProps<string>;
         })}
       />
     </FancyModalDialog>

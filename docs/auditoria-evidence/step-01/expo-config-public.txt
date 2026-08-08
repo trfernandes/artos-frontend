@@ -1,0 +1,80 @@
+env: load .env.local .env
+env: export EXPO_PUBLIC_APP_SECRET_KEY EXPO_PUBLIC_API_URL EXPO_PUBLIC_NOTIFICATIONS_DEMO SENTRY_AUTH_TOKEN
+
+{
+  name: [32m'artos_frontend'[39m,
+  slug: [32m'artos_frontend'[39m,
+  version: [32m'1.0.0'[39m,
+  scheme: [32m'diakonia'[39m,
+  orientation: [32m'portrait'[39m,
+  icon: [32m'./assets/icon.png'[39m,
+  userInterfaceStyle: [32m'automatic'[39m,
+  newArchEnabled: [33mtrue[39m,
+  plugins: [
+    [32m'expo-router'[39m,
+    [32m'expo-font'[39m,
+    [32m'expo-notifications'[39m,
+    [
+      [32m'@sentry/react-native/expo'[39m,
+      {
+        url: [32m'https://sentry.io/'[39m,
+        project: [32m'artos-volunteers'[39m,
+        organization: [32m'artos-uw'[39m
+      }
+    ],
+    [32m'expo-secure-store'[39m
+  ],
+  description: [90mundefined[39m,
+  sdkVersion: [32m'54.0.0'[39m,
+  platforms: [
+    [32m'ios'[39m,
+    [32m'android'[39m,
+    [32m'web'[39m
+  ],
+  splash: {
+    image: [32m'./assets/splash-icon.png'[39m,
+    resizeMode: [32m'contain'[39m,
+    backgroundColor: [32m'#ffffff'[39m
+  },
+  ios: {
+    supportsTablet: [33mtrue[39m,
+    bundleIdentifier: [32m'com.church.artos'[39m,
+    buildNumber: [32m'1'[39m,
+    associatedDomains: [
+      [32m'applinks:diakonia.app.br'[39m
+    ]
+  },
+  android: {
+    edgeToEdgeEnabled: [33mtrue[39m,
+    package: [32m'com.church.artos'[39m,
+    versionCode: [33m1[39m,
+    intentFilters: [
+      {
+        action: [32m'VIEW'[39m,
+        autoVerify: [33mtrue[39m,
+        data: [
+          {
+            scheme: [32m'https'[39m,
+            host: [32m'diakonia.app.br'[39m,
+            pathPrefix: [32m'/invite'[39m
+          }
+        ],
+        category: [
+          [32m'BROWSABLE'[39m,
+          [32m'DEFAULT'[39m
+        ]
+      }
+    ],
+    adaptiveIcon: {
+      foregroundImage: [32m'./assets/adaptive-icon.png'[39m,
+      backgroundColor: [32m'#ffffff'[39m
+    }
+  },
+  web: {
+    favicon: [32m'./assets/favicon.png'[39m
+  },
+  extra: {
+    router: {}
+  }
+}
+

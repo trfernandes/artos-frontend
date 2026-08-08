@@ -1,21 +1,19 @@
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import DayViewHeader from './DayHeader';
-import Day from './Day';
-import DateUtils from '../../../utils/data_utils';
-import React from 'react';
+import Day, { DayProps } from './Day';
+import React, { useMemo, useCallback } from 'react';
+import DateUtils from '../../../utils/date_utils';
+import { usePallete } from '../../../hooks/usePallete';
 
 const generateDays = (year: number, month: number): number[][] => {
   const matrix: number[][] = [];
-
-  const firstDayOfWeek = new Date(year, month, 1).getDay(); // 0 (dom) a 6 (sab)
+  const firstDayOfWeek = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const daysInPrevMonth = new Date(year, month, 0).getDate();
 
-  // Quantos dias do mês anterior serão exibidos no calendário
-  const prevMonthDaysToShow = firstDayOfWeek; // Exatamente o número de dias antes do 1º dia do mês
-
+  const prevMonthDaysToShow = firstDayOfWeek;
   const totalCells = prevMonthDaysToShow + daysInMonth;
-  const weeksToShow = totalCells > 35 ? 6 : 5; // 5 ou 6 linhas, conforme necessário
+  const weeksToShow = totalCells > 35 ? 6 : 5;
 
   let dayCounter = 1;
   let nextMonthDayCounter = 1;
@@ -26,13 +24,10 @@ const generateDays = (year: number, month: number): number[][] => {
       const cellIndex = row * 7 + col;
 
       if (cellIndex < prevMonthDaysToShow) {
-        // Dias do mês anterior em ordem crescente
         week.push(daysInPrevMonth - prevMonthDaysToShow + cellIndex + 1);
       } else if (dayCounter <= daysInMonth) {
-        // Dias do mês atual
         week.push(dayCounter++);
       } else {
-        // Dias do próximo mês
         week.push(nextMonthDayCounter++);
       }
     }
@@ -46,74 +41,152 @@ export type DayViewProps = {
   selectedDate?: Date;
   currentDate: Date;
   markedDatesType?: 'bottomPoint' | 'SurroundCircle';
-  markedDates?: Date[];
+  visualStyle?: 'default' | 'agendaPremium';
+  markedDates?: { date: Date; color?: string }[];
   containerStyle?: StyleProp<ViewStyle>;
   onSelectDate: (date: Date) => void;
   showOtherMonthDays?: boolean;
+  daysProps?: Pick<DayProps, 'markerColor'>;
+  minimumDate?: Date;
+  maximumDate?: Date;
+  disablePastDates?: boolean;
 };
 
-export function DayView({ markedDatesType = 'bottomPoint', showOtherMonthDays = true, ...props }: DayViewProps) {
-  const daysMatrix = generateDays(props.currentDate!.getFullYear(), props.currentDate!.getMonth());
+export function DayView({
+  markedDatesType = 'bottomPoint',
+  showOtherMonthDays = true,
+  visualStyle = 'default',
+  minimumDate,
+  maximumDate,
+  disablePastDates = false,
+  ...props
+}: DayViewProps) {
+  const palette = usePallete();
+  const daysMatrix = useMemo(
+    () => generateDays(props.currentDate.getFullYear(), props.currentDate.getMonth()),
+    [props.currentDate],
+  );
+
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
+
+  const normalizedMinimum = useMemo(() => {
+    if (!minimumDate) return undefined;
+    const d = new Date(minimumDate);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, [minimumDate]);
+
+  const normalizedMaximum = useMemo(() => {
+    if (!maximumDate) return undefined;
+    const d = new Date(maximumDate);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, [maximumDate]);
+
+  const handlePress = useCallback(
+    (date: Date, disabled: boolean) => {
+      if (disabled) return;
+      props.onSelectDate?.(date);
+    },
+    [props.onSelectDate],
+  );
 
   return (
     <View style={[styles.container, props.containerStyle]}>
-      <DayViewHeader />
-      <View style={styles.weekContainer}>
-        {daysMatrix.map((week, i) => (
-          <View key={i} style={styles.weekRow}>
-            {week.map((day, j) => {
-              const isPrevMonthDay = i === 0 && day > 7;
-              const isNextMonthDay = i >= 4 && day < 15;
+      <DayViewHeader visualStyle={visualStyle} />
+      <View
+        style={[
+          styles.weekContainer,
+          visualStyle === 'agendaPremium' ? styles.weekContainerAgenda : null,
+        ]}
+      >
+        {daysMatrix.map((week, rowIndex) => (
+          <View key={rowIndex} style={styles.weekRow}>
+            {week.map((day, columnIndex) => {
+              const isPrevMonthDay = rowIndex === 0 && day > 7;
+              const isNextMonthDay = rowIndex >= 4 && day < 15;
               const isCurrentMonthDay = !isPrevMonthDay && !isNextMonthDay;
-              const newDate = new Date(props.currentDate!.getFullYear(), props.currentDate!.getMonth(), day);
-              const isSelected =
-                isCurrentMonthDay &&
-                newDate.getDate() === props.selectedDate?.getDate() &&
-                newDate.getMonth() === props.selectedDate?.getMonth() &&
-                newDate.getFullYear() === props.selectedDate?.getFullYear();
-              const today =
-                isCurrentMonthDay &&
-                newDate.getDate() === new Date().getDate() &&
-                newDate.getMonth() === new Date().getMonth() &&
-                newDate.getFullYear() === new Date().getFullYear();
-              const marked =
-                (isCurrentMonthDay && props.markedDates?.some(d => DateUtils.compareOnlyDate(d, newDate))) ||
-                (isPrevMonthDay &&
-                  props.markedDates?.some(
-                    d => d.getTime() == new Date(props.currentDate!.getFullYear(), props.currentDate!.getMonth() - 1, day).getTime()
-                  )) ||
-                (isNextMonthDay &&
-                  props.markedDates?.some(
-                    d => d.getTime() == new Date(props.currentDate!.getFullYear(), props.currentDate!.getMonth() + 1, day).getTime()
-                  ));
-              return ((isNextMonthDay || isPrevMonthDay) && showOtherMonthDays) || isCurrentMonthDay ? (
+
+              const baseYear = props.currentDate.getFullYear();
+              const baseMonth = props.currentDate.getMonth();
+
+              let targetMonth = baseMonth;
+              if (isPrevMonthDay) {
+                targetMonth -= 1;
+              } else if (isNextMonthDay) {
+                targetMonth += 1;
+              }
+
+              const cellDate = new Date(baseYear, targetMonth, day);
+              cellDate.setHours(0, 0, 0, 0);
+
+              const beforeMinimum = normalizedMinimum ? cellDate < normalizedMinimum : false;
+              const afterMaximum = normalizedMaximum ? cellDate > normalizedMaximum : false;
+              const isPastDate = disablePastDates ? cellDate < today : false;
+
+              const outsideMonth = !isCurrentMonthDay;
+
+              if (outsideMonth && !showOtherMonthDays) {
+                return (
+                  <View
+                    key={`empty-${rowIndex}-${columnIndex}`}
+                    style={{ width: `${100 / 7}%`, aspectRatio: 1 }}
+                  />
+                );
+              }
+
+              const isDisabled = outsideMonth || beforeMinimum || afterMaximum || isPastDate;
+              const isToday = DateUtils.equal(cellDate, today);
+              const isSelected = props.selectedDate
+                ? DateUtils.equal(cellDate, props.selectedDate)
+                : false;
+
+              const markedEntries =
+                props.markedDates?.filter((d) => DateUtils.equal(d.date, cellDate)) ?? [];
+
+              const isMarked = markedEntries.length > 0;
+
+              const highlight =
+                markedDatesType === 'SurroundCircle' ? isMarked || isSelected : isSelected;
+
+              const showMarker = markedDatesType === 'bottomPoint' && isMarked;
+
+              const dayType: DayProps['type'] = isDisabled
+                ? 'inactive'
+                : isToday
+                  ? 'actual'
+                  : 'default';
+
+              // monta cores dos marcadores (um por evento, com fallback)
+              const markerColorsFromMarks = markedEntries.map((m) => m.color || palette.primary);
+
+              let markerColor: DayProps['markerColor'] | undefined;
+
+              if (markerColorsFromMarks.length === 1) {
+                markerColor = markerColorsFromMarks[0];
+              } else if (markerColorsFromMarks.length > 1) {
+                markerColor = markerColorsFromMarks;
+              } else {
+                markerColor = props.daysProps?.markerColor;
+              }
+
+              return (
                 <Day
-                  key={j}
+                  key={`day-${rowIndex}-${columnIndex}`}
                   day={day}
-                  selected={isSelected || (marked && markedDatesType === 'SurroundCircle')}
-                  showMarker={marked && markedDatesType === 'bottomPoint'}
+                  selected={highlight}
+                  type={dayType}
+                  showMarker={showMarker}
                   markerType={markedDatesType}
-                  type={isCurrentMonthDay ? (today ? 'actual' : 'default') : 'inactive'}
-                  onPress={() => {
-                    const date = new Date(
-                      props.currentDate.getFullYear(),
-                      isPrevMonthDay
-                        ? props.currentDate.getMonth() - 1
-                        : isNextMonthDay
-                        ? props.currentDate.getMonth() + 1
-                        : props.currentDate.getMonth(),
-                      day
-                    );
-                    if (isPrevMonthDay) {
-                      date.setMonth(props.currentDate!.getMonth() - 1);
-                    } else if (isNextMonthDay) {
-                      date.setMonth(props.currentDate!.getMonth() + 1);
-                    }
-                    props.onSelectDate?.(date);
-                  }}
+                  markerColor={markerColor}
+                  disabled={isDisabled}
+                  visualStyle={visualStyle}
+                  onPress={() => handlePress(cellDate, isDisabled)}
                 />
-              ) : (
-                <View key={j} style={{ width: `${100 / 9}%` }}></View>
               );
             })}
           </View>
@@ -123,23 +196,21 @@ export function DayView({ markedDatesType = 'bottomPoint', showOtherMonthDays = 
   );
 }
 
-const DESIGN_MODE = 0;
-
 const styles = StyleSheet.create({
-  container: { borderWidth: DESIGN_MODE, borderColor: 'brown', flex: 1 },
+  container: {
+    gap: 6,
+    width: '100%',
+  },
   weekContainer: {
-    flex: 1,
-    borderWidth: DESIGN_MODE,
-    borderColor: 'blue',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 2,
+  },
+  weekContainerAgenda: {
+    gap: 0,
   },
   weekRow: {
-    width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    borderWidth: DESIGN_MODE,
-    borderColor: 'chocolate',
+    alignItems: 'center',
   },
 });
 

@@ -1,0 +1,172 @@
+1	import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+2	import Toast from 'react-native-toast-message';
+3	import { IgrejaRepository } from '../domain/services/IgrejaRepository';
+4	import { useLoading } from '../contexts/LoadingContext';
+5	import { UpdateIgrejaDadosDto } from '../domain/dtos/Igreja/update-igreja-dados.dto';
+6	import { UpdateIgrejaModoEntradaDto } from '../domain/dtos/Igreja/update-igreja-modo-entrada.dto';
+7	import { UpdateIgrejaNotificacoesDto } from '../domain/dtos/Igreja/update-igreja-notificacoes.dto';
+8	import { ResponseIgrejaConfiguracoesDto } from '../domain/dtos/Igreja/response-igreja-configuracoes.dto';
+9	
+10	export type UseIgrejaConfiguracoesOptions = {
+11	  igrejaId: string;
+12	  onUpdateDadosSuccess?: (data: ResponseIgrejaConfiguracoesDto) => void;
+13	  onUpdateDadosError?: (error: any) => void;
+14	  muteMessages?: boolean;
+15	};
+16	
+17	export function useIgrejaConfiguracoes({
+18	  igrejaId,
+19	  onUpdateDadosSuccess,
+20	  onUpdateDadosError,
+21	  muteMessages = false,
+22	}: UseIgrejaConfiguracoesOptions) {
+23	  const { showLoading, hideLoading } = useLoading();
+24	  const queryClient = useQueryClient();
+25	
+26	  // Query para buscar configurações
+27	  const { data, isLoading, error, refetch } = useQuery({
+28	    queryKey: ['igreja-configuracoes', igrejaId],
+29	    queryFn: async () => {
+30	      const result = await IgrejaRepository.getConfiguracoes(igrejaId);
+31	      if (__DEV__) {
+32	        console.log('[IgrejaConfiguracoes] Dados carregados');
+33	      }
+34	      return result;
+35	    },
+36	    enabled: !!igrejaId,
+37	  });
+38	
+39	  // Mutation para atualizar dados cadastrais
+40	  const updateDadosMutation = useMutation<
+41	    ResponseIgrejaConfiguracoesDto,
+42	    Error,
+43	    { igrejaId: string; dto: UpdateIgrejaDadosDto }
+44	  >({
+45	    mutationFn: ({ igrejaId, dto }) => {
+46	      if (__DEV__) {
+47	        console.log('[IgrejaConfiguracoes] Atualizando dados');
+48	      }
+49	      return IgrejaRepository.updateDados(igrejaId, dto);
+50	    },
+51	    onMutate: () => {
+52	      showLoading('Salvando dados...');
+53	    },
+54	    onSuccess: (data) => {
+55	      if (__DEV__) {
+56	        console.log('[IgrejaConfiguracoes] Dados atualizados com sucesso');
+57	      }
+58	      hideLoading();
+59	      queryClient.invalidateQueries({ queryKey: ['igreja-configuracoes', igrejaId] });
+60	      if (!muteMessages) {
+61	        Toast.show({
+62	          type: 'success',
+63	          text1: 'Sucesso!',
+64	          text2: 'Dados atualizados com sucesso',
+65	        });
+66	      }
+67	      onUpdateDadosSuccess?.(data);
+68	    },
+69	    onError: (error: any) => {
+70	      hideLoading();
+71	      if (!muteMessages) {
+72	        const message = error?.response?.data?.message || 'Erro ao salvar dados. Tente novamente.';
+73	        Toast.show({
+74	          type: 'error',
+75	          text1: 'Erro',
+76	          text2: message,
+77	        });
+78	      }
+79	      onUpdateDadosError?.(error);
+80	    },
+81	  });
+82	
+83	  // Mutation para atualizar modo de entrada
+84	  const updateModoEntradaMutation = useMutation<
+85	    ResponseIgrejaConfiguracoesDto,
+86	    Error,
+87	    { igrejaId: string; dto: UpdateIgrejaModoEntradaDto }
+88	  >({
+89	    mutationFn: ({ igrejaId, dto }) => IgrejaRepository.updateModoEntrada(igrejaId, dto),
+90	    onMutate: () => {
+91	      showLoading('Atualizando modo de entrada...');
+92	    },
+93	    onSuccess: () => {
+94	      hideLoading();
+95	      queryClient.invalidateQueries({ queryKey: ['igreja-configuracoes', igrejaId] });
+96	      if (!muteMessages) {
+97	        Toast.show({
+98	          type: 'success',
+99	          text1: 'Sucesso!',
+100	          text2: 'Modo de entrada atualizado com sucesso',
+101	        });
+102	      }
+103	    },
+104	    onError: (error: any) => {
+105	      hideLoading();
+106	      if (!muteMessages) {
+107	        const message = error?.response?.data?.message || 'Erro ao atualizar modo de entrada. Tente novamente.';
+108	        Toast.show({
+109	          type: 'error',
+110	          text1: 'Erro',
+111	          text2: message,
+112	        });
+113	      }
+114	    },
+115	  });
+116	
+117	  // Mutation para atualizar notificações
+118	  const updateNotificacoesMutation = useMutation<
+119	    ResponseIgrejaConfiguracoesDto,
+120	    Error,
+121	    { igrejaId: string; dto: UpdateIgrejaNotificacoesDto }
+122	  >({
+123	    mutationFn: ({ igrejaId, dto }) => IgrejaRepository.updateNotificacoes(igrejaId, dto),
+124	    onMutate: () => {
+125	      showLoading('Atualizando notificações...');
+126	    },
+127	    onSuccess: () => {
+128	      hideLoading();
+129	      queryClient.invalidateQueries({ queryKey: ['igreja-configuracoes', igrejaId] });
+130	      if (!muteMessages) {
+131	        Toast.show({
+132	          type: 'success',
+133	          text1: 'Sucesso!',
+134	          text2: 'Notificações atualizadas com sucesso',
+135	        });
+136	      }
+137	    },
+138	    onError: (error: any) => {
+139	      hideLoading();
+140	      if (!muteMessages) {
+141	        const message = error?.response?.data?.message || 'Erro ao atualizar notificações. Tente novamente.';
+142	        Toast.show({
+143	          type: 'error',
+144	          text1: 'Erro',
+145	          text2: message,
+146	        });
+147	      }
+148	    },
+149	  });
+150	
+151	  return {
+152	    // Query data
+153	    data,
+154	    isLoading,
+155	    error,
+156	    refetch,
+157	
+158	    // Mutations
+159	    updateDados: updateDadosMutation.mutate,
+160	    updateModoEntrada: updateModoEntradaMutation.mutate,
+161	    updateNotificacoes: updateNotificacoesMutation.mutate,
+162	
+163	    // Mutation states
+164	    isUpdatingDados: updateDadosMutation.isPending,
+165	    isUpdatingModoEntrada: updateModoEntradaMutation.isPending,
+166	    isUpdatingNotificacoes: updateNotificacoesMutation.isPending,
+167	    isUpdating:
+168	      updateDadosMutation.isPending ||
+169	      updateModoEntradaMutation.isPending ||
+170	      updateNotificacoesMutation.isPending,
+171	  };
+172	}

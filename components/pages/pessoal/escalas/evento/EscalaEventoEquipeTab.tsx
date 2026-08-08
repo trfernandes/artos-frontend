@@ -1,23 +1,26 @@
-import { StyleSheet, View } from 'react-native';
-import FancyVerticalContainerCard from '../../../../cards/Vertical/FancyVerticalContainerCard';
-import { PEOPLE_DATA } from '../../../admin/eventos/EventosEscalaEquipe';
+import EquipeOcorrenciaView from '../../../common/EquipeOcorrenciaView';
 
-export default function EscalaEventoEquipeTab() {
+export default function EscalaEventoEquipeTab({
+  eventoId,
+  dataOcorrencia,
+  ministerioId,
+  responsavelSetlistVoluntarioId,
+  responsavelSetlistNome,
+}: {
+  eventoId: string;
+  dataOcorrencia: Date;
+  ministerioId?: string;
+  responsavelSetlistVoluntarioId?: string;
+  responsavelSetlistNome?: string;
+}) {
   return (
-    <View style={styles.container}>
-      <FancyVerticalContainerCard
-        data={PEOPLE_DATA.map(item => ({
-          title: item.nome,
-          selected: item.nome === 'Thiago Rodrigo Fernandes',
-          subtitle: item.funcao || '',
-          type: item.type === 'escalado' ? 'image' : 'letter',
-          topElement: { type: 'image', imageUrl: item.image },
-        }))}
-      />
-    </View>
+    <EquipeOcorrenciaView
+      eventoId={eventoId}
+      dataOcorrencia={dataOcorrencia}
+      ministerioId={ministerioId}
+      responsavelSetlistVoluntarioIdFallback={responsavelSetlistVoluntarioId}
+      responsavelSetlistVoluntarioNomeFallback={responsavelSetlistNome}
+      modo='voluntario'
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, borderWidth: 0 },
-});

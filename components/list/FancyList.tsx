@@ -1,9 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState, useRef, RefAttributes } from 'react';
+import { LegendList, LegendListProps } from '@legendapp/list';
+import { useState, useRef } from 'react';
 import {
-  ActivityIndicator,
-  FlatList,
-  FlatListProps,
   LayoutChangeEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -12,24 +10,31 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import FancyListEmpty from './FancyListEmpty';
+import FancyListEmpty, { FancyListEmptyProps } from './FancyListEmpty';
 import { RefreshControl } from 'react-native-gesture-handler';
+import { usePallete } from '../../hooks/usePallete';
+import { ColorUtils } from '../../utils/color_utils';
 
-export const FADE = { colors: { dark: 'rgba(255,255,255,0)', light: 'rgba(255,255,255,0.6)' }, height: 20 };
+export const FADE = {
+  height: 40,
+};
 
 export type FancyListProps<ItemT> = {
   containerStyle?: StyleProp<ViewStyle>;
+  listEmptyProps?: FancyListEmptyProps;
   bottomSpace?: number;
-} & Omit<FlatListProps<ItemT> & RefAttributes<FlatList<ItemT>>, 'refreshControl'>;
+  showFade?: boolean;
+} & Omit<LegendListProps<ItemT>, 'refreshControl'>;
 
-export default function FancyList<ItemT>(props: FancyListProps<ItemT>) {
+export default function FancyList<ItemT>({ showFade = true, ...props }: FancyListProps<ItemT>) {
+  const palette = usePallete();
   const [showTopFade, setShowTopFade] = useState(false);
   const [showBottomFade, setShowBottomFade] = useState(false);
 
   const contentHeight = useRef(0);
   const listHeight = useRef(0);
 
-  const handleContentSizeChange = (w: number, h: number) => {
+  const handleContentSizeChange = (_w: number, h: number) => {
     contentHeight.current = h;
     updateFadeVisibility(0);
   };
@@ -51,49 +56,68 @@ export default function FancyList<ItemT>(props: FancyListProps<ItemT>) {
     setShowBottomFade(scrollable && scrollY + listHeight.current < contentHeight.current - 10);
   };
 
+  const hasData = props.data && props.data.length > 0;
+  const topFadeColors = [
+    ColorUtils.withAlpha(palette.backgroundColor, 1),
+    ColorUtils.withAlpha(palette.backgroundColor, 0),
+  ] as const;
+  const bottomFadeColors = [
+    ColorUtils.withAlpha(palette.backgroundColor, 0),
+    ColorUtils.withAlpha(palette.backgroundColor, 1),
+  ] as const;
+
   return (
-    <View style={props.containerStyle}>
-      {props.data && props.data?.length > 0 ? (
+    <View style={props.containerStyle} onLayout={handleLayout}>
+      {hasData ? (
         <>
-          {props.refreshing ? (
-            <View style={{ borderWidth: 0, flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-              <ActivityIndicator size={'large'} />
-            </View>
-          ) : (
-            <FlatList
-              ListFooterComponent={<View style={{ height: props.bottomSpace || 40 }} />}
-              onContentSizeChange={handleContentSizeChange}
-              contentContainerStyle={[styles.list_content, props.contentContainerStyle]}
-              onScroll={handleScroll}
-              scrollEventThrottle={16}
-              refreshControl={
+          <LegendList
+            data={props.data!}
+            extraData={props.extraData}
+            renderItem={props.renderItem!}
+            recycleItems={props.recycleItems ?? true}
+            maintainVisibleContentPosition={props.maintainVisibleContentPosition ?? true}
+            initialScrollIndex={props.initialScrollIndex}
+            ListFooterComponent={
+              props.ListFooterComponent || <View style={{ height: props.bottomSpace || 10 }} />
+            }
+            onContentSizeChange={handleContentSizeChange}
+            contentContainerStyle={[styles.list_content, props.contentContainerStyle]}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            keyExtractor={props.keyExtractor}
+            keyboardShouldPersistTaps={props.keyboardShouldPersistTaps ?? 'handled'}
+            keyboardDismissMode={props.keyboardDismissMode ?? 'on-drag'}
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
+            refreshControl={
+              props.onRefresh !== undefined ? (
                 <RefreshControl
-                  size={100}
                   refreshing={props.refreshing || false}
-                  onRefresh={props.onRefresh || undefined}
+                  onRefresh={props.onRefresh}
                 />
-              }
-              {...props}
-            />
-          )}
-          {showTopFade && (
+              ) : undefined
+            }
+            ItemSeparatorComponent={props.ItemSeparatorComponent}
+          />
+
+          {showFade && showTopFade && (
             <LinearGradient
-              colors={[FADE.colors.light, FADE.colors.dark]}
+              colors={topFadeColors}
               style={[styles.fade, { top: 0 }]}
-              pointerEvents="none"
+              pointerEvents='none'
             />
           )}
 
-          {showBottomFade && (
+          {showFade && showBottomFade && (
             <LinearGradient
-              colors={[FADE.colors.dark, FADE.colors.light]}
-              style={[styles.fade, { bottom: 0, borderWidth: 0 }]}
-              pointerEvents="none"
+              colors={bottomFadeColors}
+              style={[styles.fade, { bottom: 0 }]}
+              pointerEvents='none'
             />
           )}
         </>
       ) : (
-        <FancyListEmpty />
+        <FancyListEmpty {...props.listEmptyProps} />
       )}
     </View>
   );
@@ -103,19 +127,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     position: 'relative',
-  },
-  item: {
-    padding: 20,
-    fontSize: 18,
+    borderWidth: 1,
   },
   fade: {
-    borderWidth: 0,
-    borderColor: 'lightpink',
     position: 'absolute',
     left: 0,
     right: 0,
     height: FADE.height,
     zIndex: 1,
+    borderRadius: 10,
+    // borderWidth: 1,
   },
   list_content: { gap: 10 },
 });

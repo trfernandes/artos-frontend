@@ -1,12 +1,29 @@
 import { StyleSheet, View } from 'react-native';
 import FancyText from '../../FancyText';
-import { Pallete } from '../../../constants/colors';
+import { ThemePalette } from '../../../constants/colors';
+import { usePallete } from '../../../hooks/usePallete';
+import { useThemedStyles } from '../../../hooks/useThemedStyles';
+import { EXTRA_SMALL_SIZE_FONT } from '../../../constants/font';
 
-export default function DayViewHeader() {
+export default function DayViewHeader({
+  visualStyle = 'default',
+}: {
+  visualStyle?: 'default' | 'agendaPremium';
+}) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+  const isAgendaPremium = visualStyle === 'agendaPremium';
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isAgendaPremium ? styles.containerAgendaPremium : null]}>
       {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((d, i) => (
-        <FancyText size={'small'} type="semiBold" key={i} color={Pallete.fonts.inactive} style={styles.dayHeader}>
+        <FancyText
+          key={i}
+          size='medium'
+          type='bold'
+          color={isAgendaPremium ? palette.fonts.inactive : palette.fonts.inactive}
+          style={[styles.dayHeader, isAgendaPremium ? styles.dayHeaderAgendaPremium : null]}
+        >
           {d}
         </FancyText>
       ))}
@@ -14,7 +31,26 @@ export default function DayViewHeader() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  dayHeader: { width: `${100 / 11}%`, textAlign: 'center' },
-});
+function createStyles(_palette: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    containerAgendaPremium: {
+      paddingBottom: 4,
+      paddingHorizontal: 2,
+    },
+    dayHeader: {
+      width: `${100 / 7}%`,
+      textAlign: 'center',
+    },
+    dayHeaderAgendaPremium: {
+      fontSize: EXTRA_SMALL_SIZE_FONT,
+      opacity: 0.88,
+      letterSpacing: 0.7,
+      textTransform: 'uppercase',
+    },
+  });
+}

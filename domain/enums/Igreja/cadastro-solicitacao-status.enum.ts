@@ -1,0 +1,6 @@
+export enum IgrejaCadastroSolicitacaoStatusEnum {
+  AGUARDANDO_EMAIL = 'AGUARDANDO_EMAIL',
+  CONCLUIDO = 'CONCLUIDO',
+  EXPIRADO = 'EXPIRADO',
+  CANCELADO = 'CANCELADO',
+}

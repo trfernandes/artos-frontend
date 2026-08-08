@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd:*)",
+      "Bash(npx tsc:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(while read file)",
+      "Bash(do if grep -q \"TextInput\\\\|FancyText\" \"$file\")",
+      "Bash(then echo \"$file\")",
+      "Bash(fi)",
+      "Bash(done)",
+      "Bash(wc:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": ["expo"]
+}

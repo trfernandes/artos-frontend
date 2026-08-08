@@ -1,15 +1,18 @@
 import { StyleSheet, View } from 'react-native';
-import FancyBaseCard, { FancyBaseCardProps } from './FancyBaseCard';
-import { ActionButton, FancyActionButtons } from './FancyCardActionButtons';
-import { isValidElement, ReactNode } from 'react';
-import { Pallete } from '../../../constants/colors';
+import FancyBaseCard from './FancyBaseCard';
+import { FancyActionButtons } from './FancyCardActionButtons';
+import { isValidElement } from 'react';
+import { ThemePalette } from '../../../constants/colors';
 import FancyText from '../../FancyText';
+import { FancyCardImageBaseProps } from './FancyCard';
+import { usePallete } from '../../../hooks/usePallete';
+import { useThemedStyles } from '../../../hooks/useThemedStyles';
 
 export type FancyCardLetterProps = {
   letter?: string;
-  actionButtons?: ActionButton | ActionButton[] | ReactNode;
 } & Pick<
-  FancyBaseCardProps,
+  FancyCardImageBaseProps,
+  | 'actionButtons'
   | 'title'
   | 'subtitle'
   | 'additionalData1'
@@ -18,25 +21,48 @@ export type FancyCardLetterProps = {
   | 'containerStyle'
   | 'contentContainerStyle'
   | 'titleProps'
-  | 'subtitleProps'  | 'isCollapsable' 
+  | 'subtitleProps'
+  | 'isCollapsable'
+  | 'centerContainerStyle'
+  | 'backgroundColor'
+  | 'onPress'
+  | 'onLongPress'
+  | 'delayLongPress'
+  | 'accessibilityRole'
+  | 'accessibilityLabel'
 >;
 
 export default function FancyCardLetter({ letter = 'A', ...props }: FancyCardLetterProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+
   return (
     <FancyBaseCard
       {...props}
-      leftItem={<CardLetter letter={letter} />}
+      leftItem={<CardLetter letter={letter} styles={styles} palette={palette} />}
       rightItem={
-        isValidElement(props.actionButtons) ? props.actionButtons : <FancyActionButtons actions={props.actionButtons} />
+        isValidElement(props.actionButtons) ? (
+          props.actionButtons
+        ) : (
+          <FancyActionButtons actions={props.actionButtons} />
+        )
       }
     />
   );
 }
 
-function CardLetter({ letter }: { letter: string }) {
+function CardLetter({
+  letter,
+  styles,
+  palette,
+}: {
+  letter: string;
+  styles: ReturnType<typeof createStyles>;
+  palette: ThemePalette;
+}) {
   return (
     <View style={styles.letterContainer}>
-      <FancyText type="bold" size={'large'} style={styles.letter}>
+      <FancyText type='bold' size={'large'} style={[styles.letter, { color: palette.fonts.light }]}>
         {letter}
       </FancyText>
     </View>
@@ -45,15 +71,17 @@ function CardLetter({ letter }: { letter: string }) {
 
 const HEIGHT = 40;
 
-const styles = StyleSheet.create({
-  letterContainer: {
-    backgroundColor: Pallete.primary,
-    borderRadius: 100,
-    marginRight: 5,
-    width: HEIGHT,
-    height: HEIGHT,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  letter: { color: 'white', lineHeight: 20, borderWidth: 0 },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    letterContainer: {
+      backgroundColor: palette.primary,
+      borderRadius: 100,
+      marginRight: 5,
+      width: HEIGHT,
+      height: HEIGHT,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    letter: { lineHeight: 20, borderWidth: 0 },
+  });
+}

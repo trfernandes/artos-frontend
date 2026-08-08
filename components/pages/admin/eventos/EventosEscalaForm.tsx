@@ -1,7 +1,7 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import FancySettingItem from '../../../FancySettingItem';
 import FancyButton from '../../../buttons/FancyButton';
-import { Pallete } from '../../../../constants/colors';
+import { usePallete } from '../../../../hooks/usePallete';
 import FancyText from '../../../FancyText';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import EventosEscalaParametrizacao from './EventosEscalaParametrizacao';
@@ -9,13 +9,14 @@ import { useState } from 'react';
 import EventosEscalaEquipe from './EventosEscalaEquipe';
 
 export default function EventosEscalaForm() {
+  const Pallete = usePallete();
   const [paramsModalVisible, setParamsModalVisible] = useState(false);
   const [modalEquipeVisible, setModalEquipeVisible] = useState(false);
   return (
     <View style={styles.container}>
       <FancySettingItem
-        label="Parametrização"
-        value="Nenhuma"
+        label='Parametrização'
+        value='Nenhuma'
         options={[]}
         rightComponent={
           <TouchableOpacity
@@ -27,12 +28,12 @@ export default function EventosEscalaForm() {
               paddingTop: 5,
             }}
           >
-            <FancyText size="small" type="medium" style={{ borderWidth: 0 }}>
+            <FancyText size='small' type='medium' style={{ borderWidth: 0 }}>
               Nenhuma
             </FancyText>
             <FancyButton
-              mode="icon"
-              type="text"
+              mode='icon'
+              type='text'
               size={25}
               icon={{ ...DefaultIconsNames['chevron-right'], color: Pallete.icons.inactive }}
               onPress={() => setParamsModalVisible(true)}
@@ -45,34 +46,34 @@ export default function EventosEscalaForm() {
       >
         <View style={styles.settingsItemsContainer}>
           <View style={styles.settingItemData}>
-            <FancyText size={'small'} type="semiBold">
+            <FancyText size={'small'} type='semiBold'>
               Template
             </FancyText>
-            <FancyText size="small" type="medium" color={Pallete.icons.inactive}>
+            <FancyText size='small' type='medium' color={Pallete.icons.inactive}>
               Equipe Completa
             </FancyText>
           </View>
           <View style={styles.settingItemData}>
-            <FancyText size={'small'} type="semiBold">
+            <FancyText size={'small'} type='semiBold'>
               Tipo
             </FancyText>
-            <FancyText size="small" type="medium" color={Pallete.icons.inactive}>
+            <FancyText size='small' type='medium' color={Pallete.icons.inactive}>
               Funções
             </FancyText>
           </View>
 
           <View style={styles.settingItemData}>
-            <FancyText size={'small'} type="semiBold">
+            <FancyText size={'small'} type='semiBold'>
               Tamanho da Equipe
             </FancyText>
-            <FancyText size="small" type="medium" color={Pallete.icons.inactive}>
+            <FancyText size='small' type='medium' color={Pallete.icons.inactive}>
               11 Voluntários
             </FancyText>
           </View>
         </View>
       </FancySettingItem>
       <FancySettingItem
-        label="Equipe"
+        label='Equipe'
         options={[]}
         icon={{ ...DefaultIconsNames.group, size: 18 }}
         rightComponent={
@@ -85,12 +86,12 @@ export default function EventosEscalaForm() {
               paddingTop: 5,
             }}
           >
-            <FancyText size="small" type="medium" style={{ borderWidth: 0 }}>
+            <FancyText size='small' type='medium' style={{ borderWidth: 0 }}>
               Não Gerado
             </FancyText>
             <FancyButton
-              mode="icon"
-              type="text"
+              mode='icon'
+              type='text'
               size={25}
               icon={{ ...DefaultIconsNames['chevron-right'], color: Pallete.icons.inactive }}
               onPress={() => setParamsModalVisible(true)}
@@ -103,8 +104,8 @@ export default function EventosEscalaForm() {
       {paramsModalVisible && (
         <EventosEscalaParametrizacao
           modalProps={{ visible: paramsModalVisible }}
-          onClose={() => setParamsModalVisible(false)}
-          onConfirm={() => {
+          onButton1Press={() => setParamsModalVisible(false)}
+          onButton2Press={() => {
             setParamsModalVisible(false);
           }}
         />

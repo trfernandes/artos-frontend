@@ -1,0 +1,44 @@
+{
+  "cli": {
+    "version": ">= 12.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "e2e": {
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease",
+        "env": {
+          "SENTRY_DISABLE_AUTO_UPLOAD": "true",
+          "EXPO_PUBLIC_API_URL": "https://artos-backend-nwg5.onrender.com"
+        }
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EAS_GRADLE_CACHE": "1",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
+        "EXPO_PUBLIC_API_URL": "https://artos-backend-nwg5.onrender.com",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://b65799084d172913463973ef37b937b0@o4510567624409088.ingest.us.sentry.io/4510567678279680"
+      },
+      "android": {},
+      "ios": {}
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "6759353187",
+        "ascApiKeyPath": "./ios.p8",
+        "ascApiKeyId": "C5MF5W6DSK",
+        "ascApiKeyIssuerId": "4d3e55d5-6f5a-4fbc-9f30-f2a3ed29090a"
+      },
+      "android": {
+        "releaseStatus": "draft",
+        "track": "internal",
+        "serviceAccountKeyPath": "./android.json"
+      }
+    }
+  }
+}

@@ -1,0 +1,53 @@
+# Flow: Salvar perfil sem crash — regressão do bug addViewAt
+#
+# Bug: router.back() após salvar causava crash "addViewAt: parent.childCount=0".
+# Fix: salvar in-place com useLoading modal, sem navegar de volta após save.
+#
+# Uso:
+#   maestro test flows/foto-perfil.yaml \
+#     -e APP_EMAIL=admin@suaigreja.com \
+#     -e APP_PASSWORD=SuaSenha123
+#
+# O que verifica:
+#   - Tela de edição de perfil carrega (Nome, E-mail, Salvar visíveis)
+#   - Tocar em Salvar sem alterar nada não trava nem crasha o app
+#   - A tela continua responsiva após o save (campo Nome ainda visível)
+
+appId: com.church.artos
+---
+- launchApp
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- runFlow: _handle_expo_picker.yaml
+
+- runFlow: _login.yaml
+
+# Timeout maior que o default (17s): emulador do CI é mais lento pra bundlar/navegar pós-login
+- extendedWaitUntil:
+    visible: 'Início'
+    timeout: 60000
+
+# Navega direto pra tela de perfil (deep link) — o botão "Editar perfil"
+# fica na própria tela pessoal/perfil (DadosTab), não no dashboard Início
+- openLink: diakonia:///pessoal/perfil
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- tapOn: 'Editar perfil'
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Tela de edição carregou
+- assertVisible: 'Nome'
+- assertVisible: 'Salvar'
+
+# Toca em Salvar sem alterar nada
+- tapOn: 'Salvar'
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# Tela continua responsiva — não crashou
+- assertVisible: 'Nome'
+- assertNotVisible: 'Erro ao salvar'

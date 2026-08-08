@@ -1,0 +1,48 @@
+1	import { useForm } from 'react-hook-form';
+2	import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
+3	import { AddLiderSchema, AddLiderFormData } from '../../../../domain/schemas/ministerioAdminSchema';
+4	import { zodResolver } from '@hookform/resolvers/zod';
+5	import ControlledDropDown from '../../../forms/ControlledDropDown';
+6	import { useVoluntariosCrud } from '../../../../hooks/useVoluntariosCrud';
+7	import { useCallback, useMemo } from 'react';
+8	import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
+9	import { VoluntarioHierarquiaLideresEnumList } from '../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
+10	import { AppImages } from '../../../../assets/app_images';
+11	
+12	export default function EditLiderancaFormModal(props: { data: AddLiderFormData } & FancyModalDialogProps<AddLiderFormData>) {
+13	  const form = useForm<AddLiderFormData>({ resolver: zodResolver(AddLiderSchema), defaultValues: props.data });
+14	
+15	  const { data } = useVoluntariosCrud({ autoFetch: true });
+16	
+17	  const voluntariosDropDownList = useMemo<DropDownItemProps<string>[]>(() => {
+18	    return (
+19	      data?.map(
+20	        (v) =>
+21	          ({
+22	            title: v.nome,
+23	            value: v.id,
+24	            left: {
+25	              type: 'image',
+26	              source:
+27	                v.fotoUrl || v.fotoThumbUrl
+28	                  ? { uri: v.fotoThumbUrl || v.fotoUrl || '' }
+29	                  : AppImages.emptyProfile,
+30	            },
+31	          } as DropDownItemProps<string>),
+32	      ) || []
+33	    );
+34	  }, [data]);
+35	
+36	  const onSubmit = useCallback(() => {
+37	    form.handleSubmit((formData) => {
+38	      props.onButton2Press?.(formData);
+39	    })();
+40	  }, [props.onButton2Press]);
+41	
+42	  return (
+43	    <FancyModalDialog {...props} title='Editar Líder' centerContainerStyle={{ gap: 15 }} onButton2Press={onSubmit}>
+44	      <ControlledDropDown control={form.control} name='voluntarioId' label='Voluntário:' listItems={voluntariosDropDownList} disabled />
+45	      <ControlledDropDown control={form.control} name='hierarquia' label='Função:' listItems={VoluntarioHierarquiaLideresEnumList} />
+46	    </FancyModalDialog>
+47	  );
+48	}

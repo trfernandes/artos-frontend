@@ -1,0 +1,178 @@
+1	import { useForm } from 'react-hook-form';
+2	import { View } from 'react-native';
+3	import FancyBasePage from '../../../../../components/pages/base/FancyBasePage';
+4	import { zodResolver } from '@hookform/resolvers/zod';
+5	import ControlledTextInput from '../../../../../components/forms/ControlledTextInput';
+6	import ControlledToggle from '../../../../../components/forms/ControlledFancyToggle';
+7	import { useAuth } from '../../../../../contexts/AuthContext';
+8	import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
+9	import { useEffect, useRef, useState } from 'react';
+10	import FancyButton from '../../../../../components/buttons/FancyButton';
+11	import { DefaultIconsNames } from '../../../../../constants/icons';
+12	import FancyVerticalSpacer from '../../../../../components/FancyVerticalSpacer';
+13	import ControlledDateInput from '../../../../../components/forms/ControlledDateInput';
+14	import FancyLoading from '../../../../../components/FancyLoading';
+15	import { ControlledImagePicker } from '../../../../../components/forms/ControlledImagePicker';
+16	import FancyScrollView from '../../../../../components/FancyScrollView';
+17	import { useVoluntariosCrud } from '../../../../../hooks/useVoluntariosCrud';
+18	import { updateProfileSchema } from '../../../../../domain/schemas/voluntarioSchema';
+19	import { DateUtilsApi } from '../../../../../utils/date_utils';
+20	import { SexoEnum, SexoEnumLabel } from '../../../../../domain/enums/common/sexo-enum';
+21	import { VoluntarioStatusEnum } from '../../../../../domain/enums/Voluntario/voluntario-status.enum';
+22	import { router } from 'expo-router';
+23	import { sendImageToServer } from '../../../../../utils/image_utils';
+24	
+25	export default function EditProfilePage() {
+26	  const { user, updateUser } = useAuth();
+27	  const [isSubmitting, setIsSubmitting] = useState(false);
+28	  const isMountedRef = useRef(true);
+29	  const cacheBusterRef = useRef(0);
+30	
+31	  useEffect(() => {
+32	    return () => {
+33	      isMountedRef.current = false;
+34	    };
+35	  }, []);
+36	
+37	  const form = useForm({
+38	    resolver: zodResolver(updateProfileSchema),
+39	    defaultValues: {
+40	      sexo: SexoEnum.Masculino,
+41	      fotoUrl: null,
+42	      fotoThumbUrl: null,
+43	      fotoUpload: null,
+44	    },
+45	  });
+46	
+47	  const {
+48	    data: voluntarioData,
+49	    update: updateVoluntario,
+50	    isLoadingMutation,
+51	    isLoading,
+52	  } = useVoluntariosCrud({
+53	    autoFetch: true,
+54	    initialParams: {
+55	      where: {
+56	        conditions: [
+57	          {
+58	            path: 'id',
+59	            operator: Operator.EQUALS,
+60	            value: { value: user?.user?.id!, type: ValueType.LITERAL },
+61	          },
+62	        ],
+63	      },
+64	    },
+65	  });
+66	
+67	  useEffect(() => {
+68	    const voluntario = voluntarioData?.[0];
+69	    if (!voluntario) return;
+70	
+71	    form.reset({
+72	      fotoUrl: voluntario.fotoUrl ?? null,
+73	      fotoThumbUrl: voluntario.fotoThumbUrl ?? null,
+74	      fotoUpload: null,
+75	      nome: voluntario.nome ?? '',
+76	      email: voluntario.email ?? '',
+77	      dataNascimento: voluntario.dataNascimento ? DateUtilsApi.dateOnlyFromApi(voluntario.dataNascimento) : undefined,
+78	      endereco: voluntario.endereco ?? '',
+79	      telefone: voluntario.telefone ?? '',
+80	      status: voluntario.status,
+81	      sexo: voluntario.sexo,
+82	    });
+83	  }, [voluntarioData]);
+84	
+85	  const handleSubmit = form.handleSubmit(async (data) => {
+86	    if (isSubmitting) return;
+87	    setIsSubmitting(true);
+88	
+89	    try {
+90	      let fotoUrlToSend: string | undefined;
+91	      let fotoThumbUrlToSend: string | undefined;
+92	      let fotoUrlPreview: string | undefined;
+93	      let fotoThumbPreview: string | undefined;
+94	
+95	      if (data.fotoUpload?.uri) {
+96	        const { imageThumbUrl, imageUrl } = await sendImageToServer('voluntarios', data.fotoUpload);
+97	
+98	        fotoUrlToSend = imageUrl;
+99	        fotoThumbUrlToSend = imageThumbUrl;
+100	
+101	        cacheBusterRef.current = Date.now();
+102	        const suffix = `v=${cacheBusterRef.current}`;
+103	        fotoUrlPreview = `${imageUrl}${imageUrl.includes('?') ? '&' : '?'}${suffix}`;
+104	        fotoThumbPreview = `${imageThumbUrl}${imageThumbUrl.includes('?') ? '&' : '?'}${suffix}`;
+105	      }
+106	
+107	      const formData = {
+108	        nome: data.nome,
+109	        dataNascimento: data.dataNascimento ? DateUtilsApi.dateOnlyToApi(data.dataNascimento) : undefined,
+110	        status: VoluntarioStatusEnum.Inativo,
+111	        endereco: data.endereco || '',
+112	        telefone: data.telefone || '',
+113	        sexo: data.sexo,
+114	        ...(fotoUrlToSend !== undefined ? { fotoUrl: fotoUrlToSend } : null),
+115	        ...(fotoThumbUrlToSend !== undefined ? { fotoThumbUrl: fotoThumbUrlToSend } : null),
+116	      };
+117	
+118	      await updateVoluntario({
+119	        id: user?.user?.id!,
+120	        data: formData,
+121	      });
+122	
+123	      await updateUser({
+124	        user: {
+125	          ...user?.user,
+126	          nome: data.nome,
+127	          fotoThumbUrl: fotoThumbPreview ?? fotoThumbUrlToSend ?? user?.user?.fotoThumbUrl,
+128	          fotoUrl: fotoUrlPreview ?? fotoUrlToSend ?? user?.user?.fotoUrl,
+129	        },
+130	      });
+131	
+132	      router.back();
+133	    } finally {
+134	      if (isMountedRef.current) {
+135	        setIsSubmitting(false);
+136	      }
+137	    }
+138	  });
+139	
+140	  if (isLoading) return <FancyLoading />;
+141	
+142	  const isSaving = isSubmitting || isLoadingMutation;
+143	
+144	  return (
+145	    <FancyBasePage showFab={false} showSearchBar={false}>
+146	      <View style={{ flex: 1 }} pointerEvents={isSaving ? 'none' : 'auto'}>
+147	        <FancyScrollView fill contentContainerStyle={{ gap: 15, paddingHorizontal: 15, paddingBottom: 10 }}>
+148	          <ControlledImagePicker control={form.control} name='fotoThumbUrl' uploadFieldName='fotoUpload' setValue={form.setValue as any} />
+149	
+150	          <ControlledTextInput name='nome' control={form.control} label='Nome' />
+151	          <ControlledTextInput name='email' control={form.control} label='E-mail' disabled />
+152	          <ControlledDateInput name='dataNascimento' control={form.control} label='Data de Nascimento' />
+153	          <ControlledTextInput name='endereco' control={form.control} label='Endereço' />
+154	          <ControlledTextInput name='telefone' control={form.control} label='Telefone' />
+155	
+156	          <ControlledToggle
+157	            name='sexo'
+158	            control={form.control}
+159	            label='Sexo'
+160	            option1={{ title: SexoEnumLabel[SexoEnum.Masculino], value: SexoEnum.Masculino }}
+161	            option2={{ title: SexoEnumLabel[SexoEnum.Feminino], value: SexoEnum.Feminino }}
+162	          />
+163	
+164	          <FancyVerticalSpacer height={10} />
+165	        </FancyScrollView>
+166	
+167	        <FancyButton
+168	          label='Salvar'
+169	          isLoading={isSaving}
+170	          disabled={isSaving}
+171	          icon={{ ...DefaultIconsNames.save, size: 16 }}
+172	          onPress={handleSubmit}
+173	          containerStyle={{ marginHorizontal: 15, marginBottom: 15 }}
+174	        />
+175	      </View>
+176	    </FancyBasePage>
+177	  );
+178	}

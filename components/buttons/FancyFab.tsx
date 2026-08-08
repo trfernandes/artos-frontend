@@ -1,5 +1,5 @@
 import { StyleSheet, TouchableOpacity } from 'react-native';
-import { Pallete } from '../../constants/colors';
+import { usePallete } from '../../hooks/usePallete';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import { DefaultIconsNames } from '../../constants/icons';
 
@@ -12,6 +12,8 @@ export type FABProps = {
   left?: number;
   right?: number;
   bottom?: number;
+  disabled?: boolean;
+  testID?: string;
 };
 
 export default function FancyFab({
@@ -23,9 +25,28 @@ export default function FancyFab({
   onPress,
   backgroundColor,
   size = 50,
+  disabled = false,
+  testID,
 }: FABProps) {
+  const Pallete = usePallete();
   return (
-    <TouchableOpacity style={[styles.container, { top, left, right, bottom, width: size, height: size, backgroundColor: backgroundColor || Pallete.terciary }]} onPress={onPress}>
+    <TouchableOpacity
+      testID={testID}
+      style={[
+        styles.container,
+        {
+          top,
+          left,
+          right,
+          bottom,
+          width: size,
+          height: size,
+          backgroundColor: backgroundColor || Pallete.terciary,
+          opacity: disabled ? 0.45 : 1,
+        },
+      ]}
+      onPress={onPress}
+    >
       <DefaultIcons.Custom size={icon.size || size - 10} color={Pallete.fonts.light} {...icon} />
     </TouchableOpacity>
   );
@@ -40,6 +61,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 15,
     bottom: 15,
-    zIndex: 1000000,
+    zIndex: 100,
   },
 });

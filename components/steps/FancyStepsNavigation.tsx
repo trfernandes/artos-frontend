@@ -9,35 +9,49 @@ export interface FancyStepsNavigationProps {
   containerStyle?: StyleProp<ViewStyle>;
 }
 
-export default function FancyStepsNavigation({ config, stepIndex, setStepIndex, containerStyle }: FancyStepsNavigationProps) {
+export default function FancyStepsNavigation({
+  config,
+  stepIndex,
+  setStepIndex,
+  containerStyle,
+}: FancyStepsNavigationProps) {
   return (
     <View style={[styles.container, containerStyle]}>
-      {config.steps[stepIndex]?.actions?.map(({ enabled = true, ...action }, actionIndex) => (
-        <FancyButton
-          key={actionIndex}
-          onPress={
-            enabled && typeof action.onPress === 'function'
-              ? action.onPress
-              : action.onPress === 'next'
-              ? () => {
-                  stepIndex < config.steps.length - 1 ? setStepIndex(stepIndex + 1) : null;
-                }
-              : () => {
-                  stepIndex > 0 ? setStepIndex(stepIndex - 1) : null;
-                }
-          }
-          label={action.label}
-          icon={action.icon}
-          iconPosition={action.iconPosition}
-          disabled={!enabled}
-          containerStyle={[styles.action, action.color && { backgroundColor: action.color }]}
-        />
-      ))}
+      {config.steps[stepIndex]?.actions?.map(({ enabled = true, ...action }, actionIndex) => {
+        // Separar props conhecidos do resto
+        const { label, icon, iconPosition, color, onPress, ...buttonProps } = action;
+        // Mantém a cor de fundo customizada também durante o loading.
+        // Sem isso, ao ficar disabled (enabled=false) durante o submit, o botão
+        // cairia no estilo de disabled (cinza) com spinner/texto brancos — cores quebradas.
+        const keepCustomBg = !!color && (enabled || !!buttonProps.isLoading);
+        return (
+          <FancyButton
+            key={actionIndex}
+            onPress={
+              enabled && typeof onPress === 'function'
+                ? onPress
+                : onPress === 'next'
+                  ? () => {
+                      stepIndex < config.steps.length - 1 ? setStepIndex(stepIndex + 1) : null;
+                    }
+                  : () => {
+                      stepIndex > 0 ? setStepIndex(stepIndex - 1) : null;
+                    }
+            }
+            label={label}
+            icon={icon}
+            iconPosition={iconPosition}
+            disabled={!enabled}
+            containerStyle={[styles.action, keepCustomBg && { backgroundColor: color }, { gap: 6 }]}
+            {...buttonProps}
+          />
+        );
+      })}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flexDirection: 'row', gap: 10, paddingHorizontal: 20 },
+  container: { flexDirection: 'row', gap: 10, width: '100%' },
   action: { flex: 1 },
 });

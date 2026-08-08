@@ -1,0 +1,127 @@
+1	import { useEffect, useState } from 'react';
+2	import { StyleSheet, View } from 'react-native';
+3	import { useForm } from 'react-hook-form';
+4	import { zodResolver } from '@hookform/resolvers/zod';
+5	import z from 'zod';
+6	import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
+7	import ControlledTextArea from '../../../forms/ControlledTextArea';
+8	import FancyTextInput from '../../../fields/FancyTextInput';
+9	import FancyToggle from '../../../fields/FancyToggle';
+10	import { Pallete } from '../../../../constants/colors';
+11	
+12	const schema = z.object({
+13	  motivo: z
+14	    .string()
+15	    .max(500, 'O motivo deve ter no maximo 500 caracteres')
+16	    .refine((value) => value.trim().length === 0 || value.trim().length >= 3, {
+17	      message: 'O motivo deve ter ao menos 3 caracteres',
+18	    }),
+19	});
+20	
+21	type DateAvailabilityForm = z.infer<typeof schema>;
+22	
+23	export type DateAvailabilityAdjustmentModalProps = {
+24	  data: {
+25	    id?: string;
+26	    date: Date;
+27	    status: 'available' | 'unavailable';
+28	    motivo?: string | null;
+29	  };
+30	  modalProps?: FancyModalDialogProps<any>;
+31	  onConfirm: (mode: 'mark' | 'unmark', date: Date, motivo?: string) => void;
+32	};
+33	
+34	export default function DateAvailabilityAdjustmentModal({ data, modalProps, onConfirm }: DateAvailabilityAdjustmentModalProps) {
+35	  const [selectedStatus, setSelectedStatus] = useState<'available' | 'unavailable'>(data.status);
+36	
+37	  const { control, handleSubmit, reset, watch } = useForm<DateAvailabilityForm>({
+38	    resolver: zodResolver(schema),
+39	    defaultValues: { motivo: data.motivo ?? '' },
+40	  });
+41	
+42	  useEffect(() => {
+43	    reset({ motivo: data.motivo ?? '' });
+44	    setSelectedStatus(data.status);
+45	  }, [data.date.getTime(), data.motivo, data.status, reset]);
+46	
+47	  const motivoValue = watch('motivo');
+48	  const trimmedCurrentMotivo = (motivoValue ?? '').trim();
+49	  const trimmedOriginalMotivo = (data.motivo ?? '').trim();
+50	
+51	  const hasSelectionChanged = selectedStatus !== data.status;
+52	  const hasMotivoChanged = trimmedCurrentMotivo !== trimmedOriginalMotivo;
+53	  const canSubmit = hasSelectionChanged || (selectedStatus === 'unavailable' && hasMotivoChanged);
+54	  const shouldShowMotivoForm = selectedStatus === 'unavailable';
+55	
+56	  const submitToMarkUnavailable = handleSubmit((formData) => {
+57	    const trimmedMotivo = formData.motivo.trim();
+58	    onConfirm('mark', data.date, trimmedMotivo.length > 0 ? trimmedMotivo : undefined);
+59	  });
+60	
+61	  const handleConfirmPress = () => {
+62	    if (!canSubmit) {
+63	      return;
+64	    }
+65	
+66	    if (selectedStatus === 'unavailable') {
+67	      submitToMarkUnavailable();
+68	      return;
+69	    }
+70	
+71	    onConfirm('unmark', data.date);
+72	  };
+73	
+74	  const handleModalClose = () => {
+75	    reset({ motivo: data.motivo ?? '' });
+76	    setSelectedStatus(data.status);
+77	    modalProps?.onButton1Press?.();
+78	  };
+79	
+80	  return (
+81	    <FancyModalDialog
+82	      {...modalProps}
+83	      onButton1Press={handleModalClose}
+84	      showCloseButton={false}
+85	      title='Detalhes da data'
+86	      onButton2Press={handleConfirmPress}
+87	      button2={{ disabled: !canSubmit }}
+88	    >
+89	      <View style={styles.content}>
+90	        <View style={styles.toggleContainer}>
+91	          <FancyToggle<'available' | 'unavailable'>
+92	            option1={{
+93	              title: 'Disponível',
+94	              value: 'available',
+95	              activeContainerStyle: { backgroundColor: Pallete.primary },
+96	              activeLabelProps: { color: Pallete.fonts.light },
+97	            }}
+98	            option2={{
+99	              title: 'Indisponível',
+100	              value: 'unavailable',
+101	              activeContainerStyle: { backgroundColor: Pallete.error },
+102	              activeLabelProps: { color: Pallete.fonts.light },
+103	            }}
+104	            value={selectedStatus}
+105	            onChange={setSelectedStatus}
+106	          />
+107	        </View>
+108	
+109	        <FancyTextInput label='Data' value={data.date.toLocaleDateString()} readonly disabled />
+110	
+111	        {shouldShowMotivoForm && (
+112	          <ControlledTextArea control={control} name='motivo' label='Motivo' placeholder='Descreva o motivo' />
+113	        )}
+114	      </View>
+115	    </FancyModalDialog>
+116	  );
+117	}
+118	
+119	const styles = StyleSheet.create({
+120	  content: {
+121	    gap: 12,
+122	    paddingHorizontal: 5,
+123	  },
+124	  toggleContainer: {
+125	    width: '100%',
+126	  },
+127	});

@@ -1,102 +1,75 @@
 import { DrawerContentComponentProps } from '@react-navigation/drawer';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ActivityIndicator, Linking, Platform } from 'react-native';
+import { useMemo, useCallback } from 'react';
+import Toast from 'react-native-toast-message';
 import FancyDrawerHeader from './FancyDrawerHeader';
-import { CustomIconProps } from '../FancyIcons';
-import { router } from 'expo-router';
 import FancyDrawerItem from './FancyDrawerItem';
 import FancyDrawerSeparator from './FancyDrawerSeparator';
 import FancyScrollView from '../FancyScrollView';
+import { useAuth } from '../../contexts/AuthContext';
+import { useMinisteriosDrawer } from '../../hooks/useMinisteriosDrawer';
+import { getMenuForIgreja } from './MenuData';
+import { ThemePalette } from '../../constants/colors';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export type FancyDrawerProps = {} & DrawerContentComponentProps;
 
-export type DrawerItemData = {
-  icon?: CustomIconProps;
-  label: string;
-  items?: DrawerItemData[];
-  onPress?: () => void;
-};
-
-const BASE_MENU: DrawerItemData[] = [
-  {
-    icon: { name: 'home', library: 'Octicons', size: 18 },
-    label: 'Início',
-    onPress: () => router.push('/'),
-  },
-  {
-    label: 'Indisponibilidade',
-    icon: { name: 'calendar-times', library: 'FontAwesome6', size: 18 },
-    onPress: () => router.push('/pessoal/indisponibilidade'),
-  },
-  {
-    label: 'Escalas',
-    icon: { name: 'calendar-today', library: 'MaterialCommunityIcons', size: 21 },
-    onPress: () => router.push('/pessoal/escalas'),
-  },
-];
-
-const ADMIN_MENU: DrawerItemData[] = [
-  {
-    icon: { name: 'calendar-month', library: 'MaterialCommunityIcons', size: 21 },
-    label: 'Eventos',
-    onPress: () => router.replace('/admin/eventos'),
-  },
-  {
-    icon: { name: 'grid', library: 'Feather', size: 18 },
-    label: 'Ministérios',
-    onPress: () => router.replace('/admin/ministerios'),
-  },
-  {
-    icon: { name: 'people', library: 'Octicons', size: 18 },
-    label: 'Voluntários',
-    onPress: () => router.replace('/admin/voluntarios'),
-  },
-];
-
-const LEADER_MENU: DrawerItemData[] = [
-  {
-    icon: { name: 'music', library: 'Feather', size: 18 },
-    label: 'Louvor',
-    items: [
-      {
-        label: 'Escalas',
-        icon: { name: 'calendar-month', library: 'MaterialCommunityIcons', size: 21 },
-        onPress: () => router.replace('/ministerios/escalas'),
-      },
-      {
-        label: 'Integrantes',
-        icon: { name: 'people', library: 'Octicons', size: 18 },
-        onPress: () => router.replace('/ministerios/integrantes'),
-      },
-      {
-        label: 'Funções',
-        icon: { library: 'FontAwesome6', name: 'person-rays', size: 18 },
-        onPress: () => router.replace('/ministerios/funcoes'),
-      },
-      {
-        label: 'Repertório',
-        icon: { name: 'playlist-music-outline', library: 'MaterialCommunityIcons', size: 20 },
-        onPress: () => router.replace('/ministerios/louvor/repertorio'),
-      },
-      {
-        label: 'Solicitações',
-        icon: { name: 'file-send-outline', library: 'MaterialCommunityIcons', size: 20 },
-        onPress: () => router.replace('/ministerios/solicitacoes'),
-      },
-      {
-        label: 'Templates de Equipe',
-        icon: { name: 'file-document-outline', library: 'MaterialCommunityIcons', size: 20 },
-        onPress: () => router.replace('/ministerios/templates_equipe'),
-      },
-      // {
-      //   label: 'Configurações',
-      //   icon: { ...DefaultIconsNames.options, size: 18 },
-      //   onPress: () => router.replace('/ministerios/configuracoes'),
-      // },
-    ],
-  },
-];
-
 export default function FancyDrawer(props: FancyDrawerProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+  const { signOut, isSigningOut } = useAuth();
+  const { igrejaAtiva, isLoading, isAdmin } = useMinisteriosDrawer();
+  const { navigation } = props;
+
+  const handleOpenStoreReview = useCallback(() => {
+    const storeUrl = Platform.select({
+      ios: 'https://apps.apple.com/app/id6759353187',
+      android: 'https://play.google.com/store/apps/details?id=com.church.artos',
+    });
+
+    if (!storeUrl || storeUrl.includes('__APP_ID__')) {
+      Toast.show({
+        type: 'info',
+        text1: 'Avaliação indisponível',
+        text2: 'A avaliação da App Store será habilitada após a publicação.',
+      });
+      return;
+    }
+
+    Linking.openURL(storeUrl);
+  }, []);
+
+  const handleSignOut = useCallback(async () => {
+    await signOut();
+  }, [signOut]);
+
+  const menuSections = useMemo(() => getMenuForIgreja(igrejaAtiva), [igrejaAtiva]);
+
+  const sections = useMemo(() => {
+    return menuSections.map((section, sectionIndex) => (
+      <View key={sectionIndex}>
+        <FancyDrawerSeparator label={section.section} />
+        {section.items.map((item, itemIndex) => {
+          const isExpandable = Boolean(item.items && item.items.length);
+          const defaultCollapsed = isExpandable ? true : undefined;
+
+          return (
+            <FancyDrawerItem
+              key={`${sectionIndex}-${itemIndex}`}
+              {...item}
+              isDefaultCollapsed={defaultCollapsed}
+              onNavigate={() => navigation.closeDrawer?.()}
+            />
+          );
+        })}
+      </View>
+    ));
+  }, [menuSections, navigation]);
+
+  // Mostra loading enquanto busca os ministérios para admins
+  const showMinisteriosLoading = isAdmin && isLoading;
+
   return (
     <View style={styles.container}>
       <FancyDrawerHeader />
@@ -104,43 +77,81 @@ export default function FancyDrawer(props: FancyDrawerProps) {
         style={{
           width: '100%',
           flex: 1,
-          borderColor: 'red',
           zIndex: 10,
-          marginTop: -15,
         }}
       >
         <FancyScrollView
-          topFade={{ style: { borderTopStartRadius: 15, borderTopEndRadius: 15, borderWidth: 0 } }}
-          showsVerticalScrollIndicator={true}
+          topFade={{
+            style: {
+              borderTopStartRadius: 15,
+              borderTopEndRadius: 15,
+              borderTopRightRadius: 15,
+              borderTopLeftRadius: 15,
+              borderWidth: 0,
+            },
+          }}
+          bottomFade={{
+            style: { borderBottomStartRadius: 15, borderBottomEndRadius: 15, borderWidth: 0 },
+          }}
+          showsVerticalScrollIndicator={false}
           style={styles.menuContainer}
-          contentContainerStyle={{ borderRadius: 15 }}
+          contentContainerStyle={{ borderRadius: 15, paddingHorizontal: 8, paddingTop: 10 }}
         >
-          <FancyDrawerSeparator label="Pessoal" />
-          {BASE_MENU.map((item, index) => (
-            <FancyDrawerItem key={index} {...item} />
-          ))}
+          {sections}
 
-          <FancyDrawerSeparator label="Ministérios" />
-          {LEADER_MENU.map((item, index) => (
-            <FancyDrawerItem key={index} {...item} />
-          ))}
+          {showMinisteriosLoading && (
+            <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+              <ActivityIndicator size='small' color={palette.primary} />
+            </View>
+          )}
 
-          <FancyDrawerSeparator label="Administração" />
-          {ADMIN_MENU.map((item, index) => (
-            <FancyDrawerItem key={index} {...item} />
-          ))}
+          <FancyDrawerSeparator label={'Outros'} />
+          <FancyDrawerItem
+            title='Ajuda'
+            logo={{
+              type: 'icon',
+              value: { name: 'help-circle-outline', library: 'MaterialCommunityIcons', size: 17 },
+            }}
+            onPress={{ type: 'GoToRoute', routeName: '/ajuda' }}
+            onNavigate={() => navigation.closeDrawer?.()}
+          />
+          <FancyDrawerItem
+            title='Avaliar o App'
+            logo={{
+              type: 'icon',
+              value: { name: 'star-outline', library: 'MaterialCommunityIcons', size: 17 },
+            }}
+            onPress={{ type: 'RunMethod', method: handleOpenStoreReview }}
+            onNavigate={() => navigation.closeDrawer?.()}
+          />
+          <FancyDrawerItem
+            title='Sair'
+            logo={{
+              type: 'icon',
+              value: {
+                name: isSigningOut ? 'progress-clock' : 'exit-to-app',
+                library: 'MaterialCommunityIcons',
+                size: isSigningOut ? 17 : 15,
+              },
+            }}
+            disabled={isSigningOut}
+            subtitle={isSigningOut ? 'Saindo...' : undefined}
+            onPress={{ type: 'RunMethod', method: handleSignOut }}
+            onNavigate={() => navigation.closeDrawer?.()}
+          />
         </FancyScrollView>
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { alignItems: 'center', flex: 1 },
-  menuContainer: {
-    // marginTop: -15,
-    backgroundColor: 'white',
-    paddingHorizontal: 3,
-    borderRadius: 15,
-  },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: { alignItems: 'center', flex: 1, backgroundColor: palette.backgroundColor },
+    menuContainer: {
+      backgroundColor: palette.backgroundColor,
+      paddingHorizontal: 3,
+      borderRadius: 15,
+    },
+  });
+}

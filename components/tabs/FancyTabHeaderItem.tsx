@@ -1,81 +1,178 @@
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { LayoutChangeEvent, Pressable, StyleSheet, View } from 'react-native';
 import { TabItem } from './FancyTabs';
 import FancyText from '../FancyText';
 import DefaultIcons from '../FancyIcons';
-import { Pallete } from '../../constants/colors';
+import { ThemePalette } from '../../constants/colors';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
+import { ColorUtils } from '../../utils/color_utils';
 
 export type FancyTabHeaderItemProps = {
   status: 'active' | 'inactive';
   onPress?: () => void;
+  onMeasuredLayout?: (layout: { x: number; width: number }) => void;
+  equalWidth?: boolean;
+  calculatedWidth?: number;
+  compact?: boolean;
 } & TabItem;
 
 export default function FancyTabHeaderItem({
   status = 'active',
+  onMeasuredLayout,
+  equalWidth = false,
+  calculatedWidth,
+  compact = false,
   ...props
 }: FancyTabHeaderItemProps) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+  const isActive = status === 'active';
+
+  const handleLayout = (event: LayoutChangeEvent) => {
+    const { x, width } = event.nativeEvent.layout;
+    onMeasuredLayout?.({ x, width });
+  };
+
   return (
-    <TouchableOpacity
+    <Pressable
+      onPress={props.onPress}
+      onLayout={handleLayout}
       style={[
         styles.container,
-        status === 'active' ? styles.containerActive : styles.containerInactive,
+        equalWidth && styles.containerEqualWidth,
+        calculatedWidth ? { width: calculatedWidth } : undefined,
+        compact && styles.containerCompact,
+        isActive ? styles.active : styles.inactive,
       ]}
-      onPress={props.onPress}
+      accessibilityRole='tab'
+      accessibilityState={{ selected: isActive }}
     >
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: 6,
-        }}
-      >
-        {props.icon && (
+      <View style={[styles.innerContent, equalWidth && styles.innerContentEqualWidth]}>
+        {props.icon ? (
           <View style={styles.iconContainer}>
             <DefaultIcons.Custom
               {...props.icon}
-              size={props.icon.size || 18}
-              color={
-                props.icon.color || status === 'active'
-                  ? Pallete.fonts.light
-                  : Pallete.fonts.inactive
-              }
+              size={compact ? 12 : 14}
+              color={isActive ? palette.fonts.light : palette.fonts.inactive}
             />
           </View>
-        )}
-        <View style={styles.titleContaner}>
-          <FancyText
-            type={status === 'active' ? 'semiBold' : 'semiBoldItalic'}
-            size={'extraSmall'}
-            style={{
-              borderWidth: 0,
-              lineHeight: 17,
-              color: status === 'active' ? Pallete.fonts.light : Pallete.fonts.inactive,
-            }}
+        ) : null}
+
+        <FancyText
+          type='semiBold'
+          size={10}
+          numberOfLines={1}
+          style={[
+            styles.title,
+            compact && styles.titleCompact,
+            equalWidth && styles.titleEqualWidth,
+            {
+              color: isActive ? palette.fonts.light : palette.fonts.inactive,
+            },
+          ]}
+        >
+          {props.title}
+        </FancyText>
+
+        {typeof props.badgeCount === 'number' && props.badgeCount > 0 ? (
+          <View
+            style={[
+              styles.badge,
+              {
+                backgroundColor: isActive
+                  ? palette.fonts.light
+                  : ColorUtils.withAlpha(palette.primary, 0.18),
+              },
+            ]}
           >
-            {props.title}
-          </FancyText>
-        </View>
+            <FancyText
+              type='bold'
+              size={9}
+              numberOfLines={1}
+              style={[
+                styles.badgeText,
+                {
+                  color: palette.primary,
+                },
+              ]}
+            >
+              {props.badgeCount > 99 ? '99+' : props.badgeCount}
+            </FancyText>
+          </View>
+        ) : null}
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    borderRadius: 50,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    flexDirection: 'row',
-    alignItems: 'stretch',
-    justifyContent: 'center',
-    flex: 1,
-    gap: 6,
-  },
-  containerActive: { backgroundColor: Pallete.primary },
-  containerInactive: {
-    borderWidth: 0.2,
-    borderColor: Pallete.border,
-    backgroundColor: Pallete.backgroundColor2,
-  },
-  iconContainer: { borderWidth: 0, justifyContent: 'center', width: 20, alignItems: 'center' },
-  titleContaner: { borderWidth: 0, justifyContent: 'center' },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      borderRadius: 999,
+      minHeight: 34,
+      justifyContent: 'center',
+      paddingHorizontal: 11,
+      paddingVertical: 5,
+      backgroundColor: palette.backgroundColor2,
+    },
+    containerEqualWidth: {
+      flex: 1,
+    },
+    containerCompact: {
+      minHeight: 30,
+      borderRadius: 999,
+      paddingHorizontal: 9,
+      paddingVertical: 4,
+    },
+    active: {
+      backgroundColor: palette.primary,
+    },
+    inactive: {
+      backgroundColor: palette.backgroundColor2,
+    },
+    innerContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 5,
+    },
+    // com largura fixa (equalWidth), o conteúdo preenche a aba e o título usa
+    // flex:1 para centralizar/truncar — o ícone segue no fluxo com o gap padrão,
+    // garantindo espaçamento entre ícone e texto.
+    innerContentEqualWidth: {
+      alignSelf: 'stretch',
+    },
+    iconContainer: {
+      width: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    title: {
+      lineHeight: 14,
+      includeFontPadding: false,
+      paddingTop: 0,
+      flexShrink: 1,
+    },
+    titleEqualWidth: {
+      textAlign: 'center',
+    },
+    titleCompact: {
+      lineHeight: 12,
+      paddingTop: 0,
+    },
+    badge: {
+      minWidth: 17,
+      height: 17,
+      borderRadius: 999,
+      paddingHorizontal: 3,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginLeft: 1,
+    },
+    badgeText: {
+      lineHeight: 11,
+      includeFontPadding: false,
+      textAlign: 'center',
+    },
+  });
+}

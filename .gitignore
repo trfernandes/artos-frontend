@@ -8,6 +8,8 @@ node_modules/
 dist/
 web-build/
 expo-env.d.ts
+android/
+ios/
 
 # Native
 .kotlin/
@@ -17,6 +19,8 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
+android.json
+google-services.json
 
 # Metro
 .metro-health-check*
@@ -31,30 +35,34 @@ yarn-error.*
 *.pem
 
 # local env files
-.env*.local
 .env
-.env.staging
+.env.*
+!.env.example
+
+# local credentials / logs
+logs/
+*firebase-adminsdk*.json
 
 # typescript
 *.tsbuildinfo
 
-# native build (android/ios generated)
-android/
-ios/
-
-# aider
+# maestro
+flows/.env
 .aider*
-.scratch-*.png
 
-# secrets
-*firebase-adminsdk*.json
-google-services.json
-
-# logs
-logs/
-*.log
+# debug artifacts (screenshots, uiautomator dumps, logcat, adb pull temporários)
+*.png
+!assets/**/*.png
+!docs/**/*.png
+ui*.xml
+uipoll*.xml
+window_dump*.txt
+logcat_*.txt
+.artifacts/
+burst*/
+timed*/
+.tmp-*
+CTempscreen1.png
 
 # misc
-android.json
 docs/architecture-reviews/
-indisponibilidade-*.png

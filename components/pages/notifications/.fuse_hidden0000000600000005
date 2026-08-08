@@ -1,0 +1,135 @@
+import { Pressable, StyleSheet, View } from 'react-native';
+import FancyCardIcon from '../../cards/Horizontal/FancyCardIcon';
+import FancyText from '../../FancyText';
+import { DefaultIconsNames } from '../../../constants/icons';
+import { ResponseNotificacaoDto } from '../../../domain/dtos/Notificacao/notificacao.response';
+import { NotificacaoTipoEnum } from '../../../domain/enums/Notificacao/tipo-notificacao.enum';
+import { CustomIconProps } from '../../FancyIcons';
+import { usePallete } from '../../../hooks/usePallete';
+
+// Tempo abreviado para caber na linha do titulo sem cortar
+function timeAgoShort(date: Date): string {
+  const now = new Date();
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  if (seconds < 60) return 'agora';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}m`;
+  return `${Math.floor(months / 12)}a`;
+}
+
+const NOTIFICACAO_ICONS: Partial<Record<NotificacaoTipoEnum, CustomIconProps>> = {
+  [NotificacaoTipoEnum.EscalaPublicada]: { library: 'MaterialCommunityIcons', name: 'calendar-check', size: 14 },
+  [NotificacaoTipoEnum.EscalaAlterada]: { library: 'MaterialCommunityIcons', name: 'calendar-edit', size: 14 },
+  [NotificacaoTipoEnum.EscalaCancelada]: { library: 'MaterialCommunityIcons', name: 'calendar-remove', size: 14 },
+  [NotificacaoTipoEnum.EscalaConfirmacaoPendente]: { library: 'MaterialCommunityIcons', name: 'calendar-clock', size: 14 },
+  [NotificacaoTipoEnum.EscalaSubstituicaoSolicitada]: { library: 'MaterialCommunityIcons', name: 'account-switch', size: 14 },
+  [NotificacaoTipoEnum.EscalaSubstituicaoAceita]: { library: 'MaterialCommunityIcons', name: 'account-check', size: 14 },
+  [NotificacaoTipoEnum.EscalaSubstituicaoRecusada]: { library: 'MaterialCommunityIcons', name: 'account-cancel', size: 14 },
+  [NotificacaoTipoEnum.EscalaVoluntarioConfirmou]: { library: 'MaterialCommunityIcons', name: 'check-circle-outline', size: 14 },
+  [NotificacaoTipoEnum.EscalaVoluntarioRecusou]: { library: 'MaterialCommunityIcons', name: 'close-circle-outline', size: 14 },
+  [NotificacaoTipoEnum.EscalaSubstituicaoSolicitadaLider]: { library: 'MaterialCommunityIcons', name: 'account-switch-outline', size: 14 },
+  [NotificacaoTipoEnum.EscalaSubstituicaoResolvidaLider]: { library: 'MaterialCommunityIcons', name: 'account-check-outline', size: 14 },
+  [NotificacaoTipoEnum.MinisterioNovoIntegrante]: { library: 'MaterialCommunityIcons', name: 'account-plus', size: 14 },
+  [NotificacaoTipoEnum.IndisponibilidadeConflito]: { library: 'MaterialCommunityIcons', name: 'alert-circle-outline', size: 14 },
+  [NotificacaoTipoEnum.IgrejaVinculoAprovado]: { library: 'MaterialCommunityIcons', name: 'church', size: 14 },
+  [NotificacaoTipoEnum.IgrejaVinculoNegado]: { library: 'MaterialCommunityIcons', name: 'church', size: 14 },
+  [NotificacaoTipoEnum.IgrejaVinculoSolicitado]: { library: 'MaterialCommunityIcons', name: 'account-clock', size: 14 },
+  [NotificacaoTipoEnum.IgrejaConviteAceito]: { library: 'MaterialCommunityIcons', name: 'handshake', size: 14 },
+  [NotificacaoTipoEnum.IgrejaNovoVoluntario]: { library: 'MaterialCommunityIcons', name: 'account-plus-outline', size: 14 },
+  [NotificacaoTipoEnum.IgrejaConviteExpirado]: { library: 'MaterialCommunityIcons', name: 'timer-sand-complete', size: 14 },
+};
+
+const DEFAULT_ICON: CustomIconProps = { library: 'MaterialCommunityIcons', name: 'bell-outline', size: 14 };
+
+export default function NotificacaoCard({
+  data,
+  onPress,
+}: {
+  data: ResponseNotificacaoDto;
+  onPress?: (notification: ResponseNotificacaoDto) => void;
+}) {
+  const Pallete = usePallete();
+
+  const createdAt = data.criadaEm || data.createdAt;
+  const timeLabel = createdAt ? timeAgoShort(new Date(createdAt)) : '';
+  const title = data.titulo?.trim() ? data.titulo : 'Notificacao';
+
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.pressable, pressed && styles.pressed]}
+      onPress={() => onPress?.(data)}
+      disabled={!onPress}
+      accessibilityRole={onPress ? 'button' : undefined}
+    >
+      <FancyCardIcon
+        cardIcon={data.tipo ? NOTIFICACAO_ICONS[data.tipo] ?? DEFAULT_ICON : DEFAULT_ICON}
+        title={
+          // Linha 1: titulo + tempo abreviado
+          <View style={styles.titleRow}>
+            <FancyText size='small' type='semiBold' numberOfLines={1} style={[styles.titleText, { color: Pallete.fonts.dark }]}>
+              {title}
+            </FancyText>
+            <FancyText size='extraSmall' type='normal' style={[styles.timeText, { color: Pallete.fonts.inactive }]}>
+              {timeLabel}
+            </FancyText>
+          </View>
+        }
+        subtitle={
+          data.mensagem ? (
+            <FancyText
+              type='medium'
+              size='extraSmall'
+              numberOfLines={2}
+              style={[styles.messageLine, { color: Pallete.fonts.inactive }]}
+            >
+              {data.mensagem}
+            </FancyText>
+          ) : null
+        }
+        actionButtons={[
+          {
+            icon: {
+              ...DefaultIconsNames['chevron-right'],
+              size: 18,
+              color: Pallete.fonts.inactive,
+              backgroundColor: 'transparent',
+            },
+            size: 'small',
+          },
+        ]}
+      />
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  pressable: {
+    borderRadius: 24,
+  },
+  pressed: {
+    opacity: 0.85,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
+  },
+  titleText: {
+    flex: 1,
+    opacity: 0.9,
+  },
+  timeText: {
+    flexShrink: 0,
+    opacity: 0.55,
+  },
+  messageLine: {
+    lineHeight: 17,
+    opacity: 0.75,
+  },
+});

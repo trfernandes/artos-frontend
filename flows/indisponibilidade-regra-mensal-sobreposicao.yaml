@@ -1,0 +1,102 @@
+# Flow: Regra de indisponibilidade LIMITE_MENSAL — campo dataInicio + aviso de auto-encerramento
+#
+# Uso:
+#   maestro test flows/indisponibilidade-regra-mensal-sobreposicao.yaml \
+#     -e APP_EMAIL=seu@email.com \
+#     -e APP_PASSWORD=SuaSenha123
+#
+# O que verifica:
+#   - Criação de regra LIMITE_MENSAL com o campo "A partir de" (dataInicio) via FancyDatePicker
+#   - Ao criar uma segunda regra LIMITE_MENSAL em aberto com dataInicio posterior à primeira,
+#     o app exibe o FancyAlert "Encerrar regra atual?" (auto-encerramento da regra anterior)
+#     — ver handleConfirmAddRegra em app/(app)/(drawer)/pessoal/indisponibilidade/index.tsx
+#   - Confirmar o alerta cria a segunda regra normalmente
+#
+# Nota: o backend também valida sobreposição (regras-indisponibilidade-voluntarios.service.ts),
+# mas o aviso ao usuário é responsabilidade do frontend — este flow cobre a UX, não a API.
+
+appId: com.church.artos
+---
+- launchApp
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- runFlow: _handle_expo_picker.yaml
+- runFlow: _login.yaml
+
+- extendedWaitUntil:
+    visible: 'Início'
+    timeout: 120000
+- waitForAnimationToEnd:
+    timeout: 4000
+
+# Único openLink do fluxo — dois openLink em sequência disparam onNewIntent
+# enquanto o ReactHost bridgeless ainda está reinicializando do primeiro,
+# travando o app numa tela escura (ReactNoCrashSoftException: "context is not ready").
+- openLink: diakonia:///pessoal/indisponibilidade
+- extendedWaitUntil:
+    visible: 'Regras'
+    timeout: 20000
+
+- tapOn: 'Regras'
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# --- Limpeza: remove regras LIMITE_MENSAL deixadas por execuções anteriores ---
+# (chip "Frequência" é exclusivo do tipo LIMITE_MENSAL — não afeta regras Semanal/Período)
+- repeat:
+    times: 3
+    commands:
+      - runFlow:
+          when:
+            visible: 'Frequência'
+          commands:
+            - tapOn: 'Remover regra'
+            - tapOn: 'Sim'
+            - waitForAnimationToEnd
+
+# --- Regra 1: LIMITE_MENSAL com dataInicio dia 20, em aberto (sem dataFim) ---
+# FAB sem texto/label acessível — usa posição relativa (testID não vira resource-id neste build)
+- tapOn:
+    point: '89%,90%'
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: 'Mensal'
+
+- tapOn: 'A partir de'
+- tapOn: '^20$'
+- tapOn: 'Confirmar'
+
+- tapOn:
+    below: 'Motivo'
+- inputText: 'Teste Maestro - regra 1'
+- tapOn: 'Salvar'
+
+- assertVisible: 'Regra criada com sucesso!'
+- assertVisible: 'Máximo de 2 escalas por mês'
+
+# --- Regra 2: dataInicio dia 25 (posterior e sobreposta à regra 1 em aberto) ---
+# Deve disparar o aviso de auto-encerramento antes de salvar.
+- tapOn:
+    point: '89%,90%'
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: 'Mensal'
+
+- tapOn: 'A partir de'
+- tapOn: '^25$'
+- tapOn: 'Confirmar'
+
+- tapOn:
+    below: 'Motivo'
+- inputText: 'Teste Maestro - regra 2'
+- hideKeyboard
+- tapOn: 'Salvar'
+
+- assertVisible: 'Encerrar regra atual?'
+- assertVisible: 'Você já tem uma regra de limite mensal em aberto'
+- tapOn: 'Confirmar'
+
+- assertVisible: 'Regra criada com sucesso!'
+
+- takeScreenshot: indisponibilidade-regra-mensal-sobreposicao

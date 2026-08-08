@@ -1,96 +1,130 @@
+import { StyleSheet, View } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { router } from 'expo-router';
-import { View, StyleSheet } from 'react-native';
+import z from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import Toast from 'react-native-toast-message';
+
 import FancyButton from '../../components/buttons/FancyButton';
 import FancyText from '../../components/FancyText';
-import FancyTextInput from '../../components/fields/FancyTextInput';
-import LoginBase from '../../components/pages/login/LoginBase';
-import { Pallete } from '../../constants/colors';
-import { DefaultIconsNames } from '../../constants/icons';
+import ControlledTextInput from '../../components/forms/ControlledTextInput';
+import { usePallete } from '../../hooks/usePallete';
+import { ColorUtils } from '../../utils/color_utils';
+import { useAuth } from '../../contexts/AuthContext';
+import { getApiErrorMessage } from '../../domain/api/api-error';
+
+const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Informe o e-mail')
+    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'O formato é inválido'),
+});
+
+type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
+  const { forgotPassword } = useAuth();
+  const Pallete = usePallete();
+  const insets = useSafeAreaInsets();
+
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<ForgotPasswordFormData>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: { email: '' },
+  });
+
+  const onSubmit = async (data: ForgotPasswordFormData) => {
+    try {
+      await forgotPassword(data.email);
+      Toast.show({
+        type: 'success',
+        text1: 'E-mail enviado!',
+        text2: 'Se o e-mail existir, você receberá as instruções de recuperação.',
+      });
+    } catch (error) {
+      const message = getApiErrorMessage(
+        error,
+        'Não foi possível solicitar a recuperação de senha.',
+      );
+      Toast.show({ type: 'error', text1: 'Erro', text2: message });
+    }
+  };
+
   return (
-    <LoginBase>
-      <View style={styles.container}>
-        <View style={styles.logoContainer}>
-          <FancyButton
-            icon={{ ...DefaultIconsNames['chevron-left'], color: Pallete.icons.dark }}
-            size={30}
-            onPress={() => router.back()}
-            containerStyle={{ backgroundColor: Pallete.backgroundColor3 }}
-          />
-        </View>
-        <View style={styles.topContainer}>
-          <View style={styles.titleContainer}>
-            <FancyText size={'extraLarge'} type="semiBold" color="white" style={{ fontSize: 17 }}>
-              Recuperação de Senha
-            </FancyText>
-            <FancyText
-              size={'medium'}
-              type="medium"
-              color="white"
-              style={{ width: 220, borderWidth: 0, fontSize: 12, lineHeight: 18 }}
-            >
-              Informe seu e‑mail para receber as instruções de recuperação
-            </FancyText>
+    <View style={[styles.root, { backgroundColor: Pallete.backgroundColor }]}>
+      <SafeAreaView style={styles.safe} edges={['left', 'right']}>
+        <KeyboardAvoidingView style={styles.safe} behavior='height'>
+          <View style={[styles.backButtonRow, { top: insets.top + 8 }]}>
+            <FancyButton
+              mode='icon'
+              type='text'
+              onPress={() => router.back()}
+              icon={{ library: 'Feather', name: 'arrow-left', size: 18 }}
+              iconStyle={{ color: Pallete.icons.dark }}
+              containerStyle={{
+                backgroundColor: ColorUtils.withAlpha(Pallete.fonts.dark, 0.08),
+                borderRadius: 22,
+                width: 44,
+                height: 44,
+              }}
+            />
           </View>
 
-          <View style={styles.centerContainer}>
-            <View style={styles.fieldsContainer}>
-              <FancyTextInput label="E-mail" />
-              <FancyButton label="Enviar" />
+          <View style={[styles.content, { paddingTop: insets.top + 24 }]}>
+            <View style={styles.centerGroup}>
+              <View style={styles.headerGroup}>
+                <FancyText size='large' type='bold' color={Pallete.fonts.dark}>
+                  Recuperação de Senha
+                </FancyText>
+                <FancyText size='small' color={Pallete.fonts.inactive}>
+                  Informe seu e-mail para receber as instruções de recuperação.
+                </FancyText>
+              </View>
+
+              <ControlledTextInput
+                label='E-mail'
+                name='email'
+                control={control}
+                inputProps={{ autoCapitalize: 'none', keyboardType: 'email-address' }}
+              />
+
+              <FancyButton
+                label={isSubmitting ? 'Enviando...' : 'Enviar'}
+                onPress={handleSubmit(onSubmit)}
+                disabled={isSubmitting}
+                icon={{ library: 'Feather', name: 'send', size: 16 }}
+              />
             </View>
           </View>
-        </View>
-      </View>
-    </LoginBase>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 }
 
-const DESIGN_MODE = 0;
-
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: 'transparent',
+  root: { flex: 1 },
+  safe: { flex: 1 },
+  content: {
     flex: 1,
-    borderWidth: DESIGN_MODE,
-    borderColor: 'gold',
-    paddingHorizontal: 40,
-    paddingVertical: 20,
-    justifyContent: 'flex-start',
-    gap: 20,
-  },
-  topContainer: { flex: 1, gap: 40, justifyContent: 'center' },
-  centerContainer: {
-    flex: 0,
-    // flexGrow: 10,
-    borderWidth: DESIGN_MODE,
-    borderColor: 'chocolate',
     justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingBottom: 24,
   },
-  bottomSpacer: { flex: 0, borderWidth: DESIGN_MODE, borderColor: 'deepskyblue' },
-  logoContainer: {
+  backButtonRow: {
     position: 'absolute',
-    left: 40,
-    top: 40,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    borderWidth: DESIGN_MODE,
-    borderColor: 'forestgreen',
+    left: 24,
+    zIndex: 10,
   },
-  titleContainer: {
+  centerGroup: {
+    gap: 14,
+  },
+  headerGroup: {
     gap: 2,
-    borderWidth: DESIGN_MODE,
-    borderColor: 'magenta',
-    justifyContent: 'center',
-  },
-
-  fieldsContainer: {
-    borderWidth: DESIGN_MODE,
-    borderRadius: 15,
-    borderColor: 'firebrick',
-    padding: 25,
-    gap: 25,
-    backgroundColor: Pallete.backgroundColor,
-    ...Pallete.shadows[200],
   },
 });

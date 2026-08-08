@@ -1,0 +1,158 @@
+app\_layout.tsx:44:  console.log('App started');
+utils\image_utils.ts:104:      console.log('Falha na conversao da imagem para Base64:', error);
+utils\text_utils.ts:60:  console.log(
+domain\api\BaseApi.ts:20:      console.error(`[BaseApi] Erro inesperado em ${context}:`, error);
+domain\api\BaseApi.ts:42:    console.log('[BaseApi] AxiosError:', strfyObj(errorInfo));
+domain\api\BaseApi.ts:48:      console.log(
+domain\utils\cidades-list.ts:262:      console.log(`Cidades carregadas do cache para ${uf}`);
+domain\utils\cidades-list.ts:267:    console.log(`Buscando cidades da API do IBGE para ${uf}`);
+domain\utils\cidades-list.ts:278:    console.log(`Usando lista fallback para ${uf}`);
+domain\utils\cache-utils.ts:43:    console.error('Error reading cache:', error);
+domain\utils\cache-utils.ts:62:    console.error('Error writing cache:', error);
+domain\utils\cache-utils.ts:74:    console.error('Error removing cache:', error);
+domain\utils\cache-utils.ts:88:    console.error('Error clearing cache by pattern:', error);
+contexts\AuthContext.tsx:73:          console.log('[Auth] Erro ao carregar storage:', error);
+contexts\AuthContext.tsx:267:      console.error('Erro ao atualizar sessão:', error);
+hooks\useEscalaCrud.ts:73:        console.log('[useEscalasCrud] generate error:', error);
+hooks\useCrud.ts:170:        console.log('[useCrud] Create error:', error);
+hooks\useCrud.ts:184:        console.log('[useCrud] Update error:', error);
+hooks\useCrud.ts:198:        console.log('[useCrud] Delete error:', error);
+hooks\useCadastroIgrejaEmail.ts:48:        console.log('Erro ao carregar dados do cadastro:', error);
+hooks\useAppReview.ts:68:    console.log('[AppReview] Review solicitado com sucesso.');
+hooks\useAppReview.ts:71:    console.log('[AppReview] Erro ao solicitar review:', error);
+hooks\useIndisponibilidadesVoluntariosCrud.ts:58:      console.log(error);
+hooks\useIndisponibilidadesVoluntariosCrud.ts:76:      console.log(error);
+domain\api\IndisponibilidadesVoluntariosApi.ts:19:      console.log('[IndisponibilidadesApi] CREATE');
+domain\api\IndisponibilidadesVoluntariosApi.ts:27:      console.log('[IndisponibilidadesApi] SEARCH');
+domain\api\IndisponibilidadesVoluntariosApi.ts:38:      console.log('[IndisponibilidadesApi] UPSERT -', payload.indisponibilidades.length, 'itens');
+domain\api\IndisponibilidadesVoluntariosApi.ts:46:      console.log('[IndisponibilidadesApi] UPDATE -', id);
+domain\api\IndisponibilidadesVoluntariosApi.ts:54:      console.log('[IndisponibilidadesApi] DELETE -', id);
+hooks\useIgrejaCrud.ts:39:        console.log('[criarCadastroMutation] mutationFn chamada', { dto });
+hooks\useIgrejaCrud.ts:72:        console.log('[criarCadastroMutation] erro:', {
+app\(auth)\login.tsx:145:        console.error('Erro ao salvar credenciais no SecureStore:', secureStoreError);
+domain\api\EventosApi.ts:20:      console.log('Erro ao buscar eventos por intervalo:', error);
+app\(auth)\igreja-cadastro-aguardando-email.tsx:60:      console.log('Erro ao realizar login automático:', error);
+app\(auth)\create-voluntario-account.tsx:82:      console.log(error);
+domain\api\EscalaItensApi.ts:25:        console.log('Erro ao buscar:', strfyObj(error, 300));
+domain\api\EscalaItensApi.ts:27:        console.error('Erro inesperado:', error);
+domain\api\EscalaItensApi.ts:60:        console.log('Erro ao buscar por Id de voluntário:', strfyObj(errorInfo));
+domain\api\EscalaItensApi.ts:62:        console.error('Erro inesperado:', error);
+domain\api\EscalaItensApi.ts:82:        console.log('Erro ao deletar item de escala:', strfyObj(errorInfo));
+domain\api\EscalaItensApi.ts:84:        console.error('Erro inesperado:', error);
+domain\api\EscalaApi.ts:17:      console.log(`Erro ao gerar ${this.resourceName}:`, error);
+domain\api\EscalaApi.ts:30:      console.log(`Erro ao remover itens de ${this.resourceName}:`, error);
+hooks\usePostLoginRedirect.ts:52:        console.error('Erro ao verificar token pendente:', err);
+hooks\useIgrejaConfiguracoes.ts:32:        console.log('[IgrejaConfiguracoes] Dados carregados');
+hooks\useIgrejaConfiguracoes.ts:47:        console.log('[IgrejaConfiguracoes] Atualizando dados');
+hooks\useIgrejaConfiguracoes.ts:56:        console.log('[IgrejaConfiguracoes] Dados atualizados com sucesso');
+hooks\useMinisterioVoluntarioFuncoesCrud.ts:61:      console.log(error);
+domain\services\MinisterioVoluntarioFuncoesRepository.ts:38:      console.log(`Erro ao atualizar as funcoes ${apiName} ${ministerioVoluntarioId}:`, error);
+domain\services\DashboardRepository.ts:98:      console.log('[DashboardRepository] optional source failed:', error);
+domain\services\CadastroIgrejaRepository.ts:128:      console.log('[cadastro-igreja] request failed');
+domain\services\CadastroIgrejaRepository.ts:129:      console.log('url:', e.config?.baseURL, e.config?.url);
+domain\services\CadastroIgrejaRepository.ts:130:      console.log('method:', e.config?.method);
+domain\services\CadastroIgrejaRepository.ts:131:      console.log('message:', e.message);
+domain\services\CadastroIgrejaRepository.ts:132:      console.log('status:', e.response?.status);
+domain\services\CadastroIgrejaRepository.ts:133:      console.log('data:', e.response?.data);
+components\error\FancyScreenErrorHandler.tsx:15:    console.log(
+components\error\FancyScreenErrorHandler.tsx:32:    console.log(
+components\cards\Vertical\FancyVerticalContainerCard.tsx:93:  // console.log(
+app\(app)\(drawer)\pessoal\indisponibilidade\index.tsx:167:      console.error('Erro ao registrar período:', error);
+app\(app)\(drawer)\pessoal\indisponibilidade\index.tsx:220:      console.error('Erro ao atualizar data:', error);
+components\Notification_manager.tsx:19:      console.log('[Notifications] Notificação de teste local clicada.');
+components\Notification_manager.tsx:53:        console.log('[Notifications] Cold-start notification:', data);
+components\Notification_manager.tsx:62:      console.log('[Notifications] Recebida:', notification.request.content);
+components\Notification_manager.tsx:69:      console.log('[Notifications] Clicada, data:', data);
+components\images\FancyImagePicker.tsx:43:      console.log('Erro ao selecionar imagem:', error);
+app\(app)\(drawer)\configuracoes\index.tsx:162:      console.log('🔄 useEffect - Dados recebidos para reset do form:', JSON.stringify({
+app\(app)\(drawer)\configuracoes\index.tsx:205:    console.log('📤 Dados do form a serem enviados:', JSON.stringify(formData, null, 2));
+app\(app)\(drawer)\configuracoes\index.tsx:222:        console.error('Erro ao fazer upload da logo:', error);
+components\pages\ministerios\templates_equipe\TemplateFuncoesForm.tsx:36:      (errors) => console.log('Erros do Funcoes Form', JSON.stringify(errors)),
+app\(app)\(drawer)\ministerios\templates_equipe\edit.tsx:90:        console.log('Erro no submit do formulário\n', '=> Erros: ', strfyObj(errors), '\n=> Data: ', strfyObj(form.getValues())),
+app\(app)\(drawer)\ministerios\templates_equipe\add.tsx:45:        console.log('Erro ao adicionar template\n', strfyObj(errors));
+components\pages\pessoal\escalas\index\SubstituicaoModalPage.tsx:106:            console.log('[SubstituicaoModal] Validation errors:', errors);
+components\pages\login\createAccount\create-igreja-account-tab-dados.tsx:149:        console.log('Erro ao verificar código:', error);
+components\pages\login\createAccount\create-igreja-account-tab-dados.tsx:242:        console.error('Erro ao carregar cidades:', error);
+app\(app)\(drawer)\admin\voluntarios\details.tsx:55:          console.log('[Admin/Voluntarios] Data loaded:', data.length, 'voluntarios');
+app\(app)\(drawer)\admin\ministerios\edit.tsx:197:      (errors) => console.log('HandleSubmit Errors', strfyObj(errors)),
+app\(app)\(drawer)\admin\ministerios\add.tsx:112:        console.log(`Erro ao adicionar ministério\n ${strfyObj(errors)}`);
+components\pages\admin\eventos\EventoRepeticaoInputCustom.tsx:138:            (errors) => console.log(strfyObj(errors)),
+app\(app)\(drawer)\ministerios\funcoes\index.tsx:97:        console.log('Updating funcao with data:', data);
+components\pages\admin\ministerios\AddLiderancaFormModal.tsx:48:      (errors) => console.log(errors),
+app\(app)\(drawer)\admin\eventos\edit.tsx:85:      (error) => console.log(error),
+components\pages\ministerios\funcoes\FuncaoFormModal.tsx:64:        (errors) => console.log('Erros do Função Form', strfyObj(errors)),
+app\(app)\(drawer)\admin\eventos\add.tsx:67:          console.log('[Admin/Eventos] Validation errors:', errors);
+components\pages\ministerios\integrantes\FormFields.tsx:38:  //   console.log('IntegranteFormFields render', strfyObj({ voluntariosDropDownList, funcoesDropDownList, funcoesList, mode }));
+components\pages\ministerios\integrantes\FormFields.tsx:66:    // console.log('Saving funcao data:', strfyObj({ data, funcoesList }));
+app\(app)\(drawer)\ministerios\escalas\assistant.tsx:195:          console.log('[AssistenteEscala] erro ao validar nome no blur:', error);
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:103:        console.log('\n\n');
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:104:        console.log(separator);
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:105:        console.log('[TemplatePadrao] SALVAR - REQUEST');
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:106:        console.log(`[TemplatePadrao] eventoId: ${eventoId}`);
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:107:        console.log('[TemplatePadrao] payload:', JSON.stringify(payload, null, 2));
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:108:        console.log(separator);
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:109:        console.log('\n\n');
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:121:          console.log('\n\n');
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:122:          console.log(separator);
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:123:          console.log('[TemplatePadrao] SALVAR - RESPONSE');
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:124:          console.log('[TemplatePadrao] data:', JSON.stringify(response, null, 2));
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:125:          console.log(separator);
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:126:          console.log('\n\n');
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:141:            console.log('\n\n');
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:142:            console.log(separator);
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:143:            console.log('[TemplatePadrao] REMOVER OVERRIDE DE OCORRENCIA - REQUEST');
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:144:            console.log(`[TemplatePadrao] eventoId: ${eventoId}`);
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:145:            console.log('[TemplatePadrao] params:', JSON.stringify(deleteParams, null, 2));
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:146:            console.log(separator);
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:147:            console.log('\n\n');
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:157:            console.log('\n\n');
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:158:            console.log(separator);
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:159:            console.log('[TemplatePadrao] REMOVER OVERRIDE DE OCORRENCIA - RESPONSE');
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:160:            console.log('[TemplatePadrao] data:', JSON.stringify(deleteResponse, null, 2));
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:161:            console.log(separator);
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:162:            console.log('\n\n');
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:183:          console.log('\n\n');
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:184:          console.log(separator);
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:185:          console.log('[TemplatePadrao] SALVAR - ERROR');
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:186:          console.log('[TemplatePadrao] message:', getApiErrorMessage(error, 'Erro ao salvar template padrão.'));
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:187:          console.log('[TemplatePadrao] raw:', error);
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:188:          console.log(separator);
+components\pages\ministerios\agenda\AgendaDetailsDadosTab.tsx:189:          console.log('\n\n');
+components\pages\ministerios\escalas\assistant\AssistenteEventosStep.tsx:112:        console.error('Erro ao buscar eventos:', error);
+components\pages\ministerios\escalas\assistant\AssistenteEventosStep.tsx:134:      console.log('handleSaveTemplate CHAMADO');
+components\pages\ministerios\escalas\assistant\AssistenteEventosStep.tsx:135:      console.log('Dados recebidos:', JSON.stringify(data, null, 2));
+components\pages\ministerios\escalas\assistant\AssistenteEventosStep.tsx:136:      console.log('eventoFormProps.index:', eventoFormProps.index);
+components\pages\ministerios\escalas\assistant\AssistenteEventosStep.tsx:137:      console.log('eventoFormProps.data?.eventoId:', eventoFormProps.data?.eventoId);
+components\pages\ministerios\escalas\assistant\AssistenteEventosStep.tsx:140:      console.log('\nTodos os eventos na lista:');
+components\pages\ministerios\escalas\assistant\AssistenteEventosStep.tsx:142:        console.log(`  [${idx}] eventoId: ${e.eventoId}, nome: ${e.nome}`);
+components\pages\ministerios\escalas\assistant\AssistenteEventosStep.tsx:148:        console.log('\nUsando índice direto:', eventoFormProps.index);
+components\pages\ministerios\escalas\assistant\AssistenteEventosStep.tsx:149:        console.log('Evento encontrado:', evento ? 'SIM' : 'NÃO');
+components\pages\ministerios\escalas\assistant\AssistenteEventosStep.tsx:152:          console.log('Atualizando evento no índice', eventoFormProps.index);
+components\pages\ministerios\escalas\assistant\AssistenteEventosStep.tsx:153:          console.log('Evento antes da atualização:', JSON.stringify(evento, null, 2));
+components\pages\ministerios\escalas\assistant\AssistenteEventosStep.tsx:160:          console.log('Evento após atualização:', JSON.stringify(updatedEvento, null, 2));
+components\pages\ministerios\escalas\assistant\AssistenteEventosStep.tsx:164:          console.log('Fechando modal');
+components\pages\ministerios\escalas\assistant\AssistenteEventosStep.tsx:167:          console.error('ERRO: Evento não encontrado no índice:', eventoFormProps.index);
+components\pages\ministerios\escalas\assistant\AssistenteEventosStep.tsx:170:        console.error('ERRO: Índice não foi passado!');
+components\pages\ministerios\escalas\assistant\AssistenteEventosStep.tsx:304:                      console.log('\n=== ABRINDO MODAL PARA EDITAR ===');
+components\pages\ministerios\escalas\assistant\AssistenteEventosStep.tsx:305:                      console.log('Índice do item na lista:', index);
+components\pages\ministerios\escalas\assistant\AssistenteEventosStep.tsx:306:                      console.log('EventoId do item:', item.eventoId);
+components\pages\ministerios\escalas\assistant\AssistenteEventosStep.tsx:307:                      console.log('Nome do evento:', item.nome);
+components\pages\ministerios\escalas\assistant\AssistenteEventosStep.tsx:308:                      console.log('Template atual:', JSON.stringify(item.template, null, 2));
+components\pages\admin\ministerios\VoluntarioAddFormModal.tsx:75:            (errors) => console.log('VoluntarioAddFormModal form errors', errors),
+components\pages\admin\ministerios\VoluntarioTab.tsx:60:      console.log('Adicionando voluntario', data);
+components\pages\admin\ministerios\VoluntarioEditFormModal.tsx:44:          (error) => console.log('VoluntarioEditFormModal form error', error),
+app\(app)\(drawer)\ministerios\escalas\details.tsx:221:    console.log(`⏱️ Tempo de processamento dos resultados: ${end - start} ms`);
+app\(app)\(drawer)\ministerios\escalas\details.tsx:322:        console.error('Erro ao excluir função:', error);
+app\(app)\(drawer)\ministerios\escalas\details.tsx:368:    console.log('Erro ao carregar dados da escala:', isError ? 'isError' : 'isErrorEscalaItens');
+app\(app)\(drawer)\ministerios\integrantes\add.tsx:89:        console.log('[Ministerios/Integrantes] Validation errors:', errors);
+app\(app)\(drawer)\ministerios\integrantes\edit.tsx:107:    console.log('Voluntario Atual: ', strfyObj({ voluntarioAtual, funcoesData, funcoes }));
+app\(app)\(drawer)\ministerios\integrantes\edit.tsx:130:    (errors) => console.log('errors', errors),
+app\(app)\(drawer)\ministerios\integrantes\edit.tsx:138:    // console.log('Dados: ', strfyObj({ funcoesList, data }));
+components\pages\ministerios\escalas\assistant\EscalaFormFixoModal.tsx:44:            console.log('Erro no formulário de adição de equipe', strfyObj(errors));
+components\pages\ministerios\escalas\assistant\EventoFormModal.tsx:107:      console.log('\n=== MODAL RECEBEU DADOS (useEffect reset) ===');
+components\pages\ministerios\escalas\assistant\EventoFormModal.tsx:108:      console.log('EventoId:', data.eventoId);
+components\pages\ministerios\escalas\assistant\EventoFormModal.tsx:109:      console.log('Nome:', data.nome);
+components\pages\ministerios\escalas\assistant\EventoFormModal.tsx:110:      console.log('Template recebido:', JSON.stringify(data.template, null, 2));
+components\pages\ministerios\escalas\assistant\EventoFormModal.tsx:132:      console.log('Limpando templateBase porque funções/fixos foram editados');
+components\pages\ministerios\escalas\assistant\EventoFormModal.tsx:260:              console.log('EventoFormModal - Salvando template:', JSON.stringify(data, null, 2));
+components\pages\ministerios\escalas\assistant\EventoFormFuncaoModal.tsx:40:            console.log('Erro no formulário de adição de equipe', strfyObj(errors));

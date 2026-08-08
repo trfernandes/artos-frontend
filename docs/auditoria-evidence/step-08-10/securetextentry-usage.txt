@@ -1,0 +1,3 @@
+app\(auth)\create-voluntario-account.tsx:130:            <ControlledPasswordInput label='Senha' name='senha' control={createForm.control} inputProps={{ secureTextEntry: true }} />
+app\(auth)\create-voluntario-account.tsx:135:              inputProps={{ secureTextEntry: true }}
+components\fields\FancyPasswordInput.tsx:13:      inputProps={{ ...props.inputProps, secureTextEntry: !showPassword }}

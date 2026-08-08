@@ -1,0 +1,88 @@
+# Flow: onboarding "Cadastrar minha igreja" — aba Revisão ("Pronto")
+#
+# Uso:
+#   maestro test flows/create-igreja-tab-pronto.yaml
+#
+# Contexto: cobertura nova (zero antes) para o item 4 da lista de testes da
+# auditoria 3.1.1. O preço-âncora ("a partir de R$ 39,90/mês") foi removido
+# desta tela — este flow confirma que a tela renderiza corretamente sem ele
+# e sem regressão de layout, e NAO envia o cadastro (nao aperta "Confirmar")
+# para nao criar contas de teste espúrias no backend a cada execução.
+#
+# Primeira execução: os seletores de UF/Cidade (bottom sheet de busca) podem
+# precisar de ajuste fino — não há flow anterior cobrindo esse componente
+# para copiar o padrão exato de interação.
+
+appId: com.church.artos
+---
+- launchApp
+- runFlow: _login.yaml
+
+# Onboarding limpo cai em "Já tenho conta" / tela de login — voltar e criar conta
+- runFlow:
+    when:
+      visible: 'Já tenho conta'
+    commands:
+      - tapOn: 'Criar conta'
+
+- openLink: diakonia:///create-igreja-account
+- waitForAnimationToEnd:
+    timeout: 15000
+
+- assertVisible: 'Cadastrar minha igreja'
+
+# Etapa 1 — Igreja
+- tapOn: 'Qual o nome da sua igreja?'
+- inputText: 'Igreja Teste E2E Onboarding'
+- tapOn: 'Estado'
+- inputText: 'São Paulo'
+- tapOn: 'São Paulo'
+- waitForAnimationToEnd:
+    timeout: 8000
+- tapOn: 'Cidade'
+- inputText: 'São Paulo'
+- tapOn:
+    text: 'São Paulo'
+    index: 0
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Código é gerado automaticamente a partir do nome (debounce ~2s); se já
+# estiver em uso, a tela oferece uma sugestão — usa-la em vez de editar manualmente
+- waitForAnimationToEnd:
+    timeout: 3000
+- runFlow:
+    when:
+      visible: 'Usar sugestão'
+    commands:
+      - tapOn: 'Usar sugestão'
+
+- tapOn: 'Próximo'
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# Etapa 2 — Contato
+- tapOn: 'Nome do Responsável'
+- inputText: 'Responsavel Teste E2E'
+- tapOn: 'E-mail'
+- inputText: 'e2e-onboarding@teste.com'
+- tapOn: 'Senha'
+- inputText: 'Teste123!'
+- tapOn: 'Confirmar Senha'
+- inputText: 'Teste123!'
+- tapOn: 'WhatsApp'
+- inputText: '11999999999'
+- hideKeyboard
+- tapOn: 'Próximo'
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# Etapa 3 — Revisão ("Pronto")
+- assertVisible: 'Tudo pronto'
+- assertVisible: '14 dias grátis'
+
+# [COMPLIANCE 3.1.1] Preço-âncora removido — nao pode reaparecer nesta tela
+- assertNotVisible: 'R$'
+
+- takeScreenshot: create-igreja-tab-pronto
+# Nao submete o cadastro — encerra o flow aqui de proposito

@@ -1,0 +1,34 @@
+# Flow: Smoke — login de admin e verificação do home
+#
+# Uso:
+#   maestro test flows/smoke-login.yaml \
+#     -e APP_EMAIL=admin@suaigreja.com \
+#     -e APP_PASSWORD=SuaSenha123
+#
+# O que verifica:
+#   - App lança sem crash
+#   - Tela de login renderiza
+#   - Login com credenciais válidas redireciona para Home
+#   - Header "Início" e seção "Ministérios" visíveis no dashboard admin
+
+appId: com.church.artos
+---
+- launchApp
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# Expo dev build: toca no servidor se o picker aparecer
+- runFlow: _handle_expo_picker.yaml
+
+- runFlow: _login.yaml
+
+# Fora da tela de login
+- assertNotVisible: 'Entrar'
+
+# Home do admin carregou — "Visão geral" sempre presente para ADMIN
+# Timeout maior que o default (17s): emulador do CI é mais lento pra bundlar/navegar pós-login
+- extendedWaitUntil:
+    visible: 'Início'
+    timeout: 60000
+- assertVisible: 'Visão geral'

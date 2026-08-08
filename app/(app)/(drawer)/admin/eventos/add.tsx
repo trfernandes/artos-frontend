@@ -1,12 +1,19 @@
 import { StyleSheet } from 'react-native';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
-import FancyButton from '../../../../../components/buttons/FancyButton';
-import { DefaultIconsNames } from '../../../../../constants/icons';
 import { FormProvider, useForm } from 'react-hook-form';
-import { EventoFormData, eventoSchema } from '../../../../../hooks/useEventos';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { router } from 'expo-router';
+import { eventoSchema } from '../../../../../domain/schemas/eventoSchema';
+import { RecorrenciaEnum } from '../../../../../domain/enums/Evento/recorrencia.enum';
+import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
+import { DateUtilsApi } from '../../../../../utils/date_utils';
+import { CreateEventoDto } from '../../../../../domain/dtos/Evento/evento.create';
+import FancyLoading from '../../../../../components/FancyLoading';
+import FancyButton from '../../../../../components/buttons/FancyButton';
 import EventosDadosForm from '../../../../../components/pages/admin/eventos/EventosDadosForm';
-import { RecorrenciaEnum } from '../../../../../domain/models/Evento';
+import { DefaultIconsNames } from '../../../../../constants/icons';
+import { useAuth } from '../../../../../contexts/AuthContext';
+import Toast from 'react-native-toast-message';
 
 export function getDefaultEventoTimes() {
   const now = new Date();
@@ -19,7 +26,6 @@ export function getDefaultEventoTimes() {
   rounded.setSeconds(0);
   rounded.setMilliseconds(0);
 
-  // Definir início e término
   const dataInicio = rounded;
   const dataTermino = new Date(rounded);
   dataTermino.setHours(dataInicio.getHours() + 1);
@@ -29,36 +35,63 @@ export function getDefaultEventoTimes() {
 
 export default function EventosAddPage() {
   const { dataInicio, dataTermino } = getDefaultEventoTimes();
+  const { igrejaAtiva } = useAuth();
 
-  const form = useForm<EventoFormData>({
+  const form = useForm({
     resolver: zodResolver(eventoSchema),
     defaultValues: {
       recorrencia: RecorrenciaEnum.Nunca,
-      // recorrenciaSemanaDias: [],
+      cor: '#FF8C00',
       dataInicio: dataInicio,
       dataTermino: dataTermino,
     },
   });
 
-  const onSubmit = (data: any) => {
-    console.log('HandleSubmit --- Data', data);
+  const { add, isError, isLoading, isLoadingMutation } = useEventosCrud();
+
+  const handleSubmit = async () => {
+    form.handleSubmit(
+      async (data) => {
+        const { horarioEnsaioPadrao: _horarioEnsaioPadrao, ...payload } = data;
+        const newEvento: CreateEventoDto = {
+          ...payload,
+          igrejaId: igrejaAtiva!.id,
+          cor: payload.cor,
+          dataInicio: DateUtilsApi.dateTimeToApi(payload.dataInicio),
+          dataTermino: payload.dataTermino && DateUtilsApi.dateTimeToApi(payload.dataTermino),
+          recorrencia: payload.recorrencia || RecorrenciaEnum.Nunca,
+        };
+        await add(newEvento);
+        router.back();
+      },
+      (errors) => {
+        if (__DEV__) {
+          console.log('[Admin/Eventos] Validation errors:', errors);
+        }
+        Toast.show({
+          type: 'error',
+          text1: 'Erro de validação',
+          text2: 'Verifique os campos do formulário',
+        });
+      },
+    )();
   };
 
-  const onError = (errors: any) => {
-    console.log('HandleSubmit Errors', errors);
-  };
+  if (isLoadingMutation) return <FancyLoading label='Salvando...' />;
+
+  if (isLoading) return <FancyLoading />;
 
   return (
     <FancyPageView style={styles.container}>
       <FormProvider {...form}>
         <EventosDadosForm />
         <FancyButton
-          label="Salvar"
+          containerStyle={{ margin: 15, marginBottom: 0 }}
+          label={isLoading ? 'Salvando...' : 'Salvar'}
+          disabled={isLoading}
           icon={{ ...DefaultIconsNames.save, size: 16 }}
-          type="contained"
-          onPress={() => {
-            form.handleSubmit(onSubmit, onError)();
-          }}
+          type='contained'
+          onPress={handleSubmit}
         />
       </FormProvider>
     </FancyPageView>
@@ -70,8 +103,6 @@ const styles = StyleSheet.create({
     flex: 1,
     borderWidth: 0,
     borderColor: 'lightgreen',
-    paddingTop: 15,
     paddingBottom: 5,
-    paddingHorizontal: 20,
   },
 });

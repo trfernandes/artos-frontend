@@ -1,0 +1,130 @@
+1	import { DrawerContentComponentProps } from '@react-navigation/drawer';
+2	import { StyleSheet, View, ActivityIndicator, Linking, Platform } from 'react-native';
+3	import { useMemo, useCallback } from 'react';
+4	import FancyDrawerHeader from './FancyDrawerHeader';
+5	import FancyDrawerItem from './FancyDrawerItem';
+6	import FancyDrawerSeparator from './FancyDrawerSeparator';
+7	import FancyScrollView from '../FancyScrollView';
+8	import { useAuth } from '../../contexts/AuthContext';
+9	import { useMinisteriosDrawer } from '../../hooks/useMinisteriosDrawer';
+10	import { getMenuForIgreja } from './MenuData';
+11	import { Pallete } from '../../constants/colors';
+12	
+13	export type FancyDrawerProps = {} & DrawerContentComponentProps;
+14	
+15	export default function FancyDrawer(props: FancyDrawerProps) {
+16	  const { signOut } = useAuth();
+17	  const { igrejaAtiva, isLoading, isAdmin } = useMinisteriosDrawer();
+18	  const { navigation } = props;
+19	
+20	  const handleOpenStoreReview = useCallback(() => {
+21	    const storeUrl = Platform.select({
+22	      ios: 'https://apps.apple.com/app/id__APP_ID__', // TODO: substituir pelo Apple ID real quando publicado
+23	      android: 'https://play.google.com/store/apps/details?id=com.church.artos',
+24	    });
+25	    if (storeUrl) Linking.openURL(storeUrl);
+26	  }, []);
+27	
+28	  const menuSections = useMemo(() => getMenuForIgreja(igrejaAtiva), [igrejaAtiva]);
+29	
+30	  const firstExpandableIndex = useMemo(() => {
+31	    let index = 0;
+32	    for (const section of menuSections) {
+33	      for (const item of section.items) {
+34	        const isExpandable = Boolean(item.items && item.items.length);
+35	        if (isExpandable) {
+36	          return index;
+37	        }
+38	        index += 1;
+39	      }
+40	    }
+41	    return -1;
+42	  }, [menuSections]);
+43	
+44	  let itemRunningIndex = -1;
+45	
+46	  const sections = useMemo(() => {
+47	    return menuSections.map((section, sectionIndex) => (
+48	      <View key={sectionIndex}>
+49	        <FancyDrawerSeparator label={section.section} />
+50	        {section.items.map((item, itemIndex) => {
+51	          itemRunningIndex += 1;
+52	          const isExpandable = Boolean(item.items && item.items.length);
+53	          const defaultCollapsed = isExpandable ? true : undefined;
+54	
+55	          return (
+56	            <FancyDrawerItem
+57	              key={`${sectionIndex}-${itemIndex}`}
+58	              {...item}
+59	              isDefaultCollapsed={defaultCollapsed}
+60	              onNavigate={() => navigation.closeDrawer?.()}
+61	            />
+62	          );
+63	        })}
+64	      </View>
+65	    ));
+66	  }, [menuSections, firstExpandableIndex, navigation, itemRunningIndex]);
+67	
+68	  // Mostra loading enquanto busca os ministérios para admins
+69	  const showMinisteriosLoading = isAdmin && isLoading;
+70	
+71	  return (
+72	    <View style={styles.container}>
+73	      <FancyDrawerHeader />
+74	      <View
+75	        style={{
+76	          width: '100%',
+77	          flex: 1,
+78	          borderColor: 'red',
+79	          zIndex: 10,
+80	          marginTop: -15,
+81	        }}
+82	      >
+83	        <FancyScrollView
+84	          topFade={{ style: { borderTopStartRadius: 15, borderTopEndRadius: 15, borderTopRightRadius: 15, borderTopLeftRadius: 15, borderWidth: 0 } }}
+85	          bottomFade={{ style: { borderBottomStartRadius: 15, borderBottomEndRadius: 15, borderWidth: 0 } }}
+86	          showsVerticalScrollIndicator={false}        
+87	          style={styles.menuContainer}
+88	          contentContainerStyle={{ borderRadius: 15, paddingHorizontal: 8, paddingTop: 10 }}
+89	        >
+90	          {sections}
+91	
+92	          {showMinisteriosLoading && (
+93	            <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+94	              <ActivityIndicator size="small" color={Pallete.primary} />
+95	            </View>
+96	          )}
+97	
+98	          <FancyDrawerSeparator label={'Outros'} />
+99	          <FancyDrawerItem
+100	            title='Avaliar o App'
+101	            logo={{
+102	              type: 'icon',
+103	              value: { name: 'star-outline', library: 'MaterialCommunityIcons', size: 17 },
+104	            }}
+105	            onPress={{ type: 'RunMethod', method: handleOpenStoreReview }}
+106	            onNavigate={() => navigation.closeDrawer?.()}
+107	          />
+108	          <FancyDrawerItem
+109	            title='Sair'
+110	            logo={{
+111	              type: 'icon',
+112	              value: { name: 'exit-to-app', library: 'MaterialCommunityIcons', size: 15 },
+113	            }}
+114	            onPress={{ type: 'RunMethod', method: signOut }}
+115	            onNavigate={() => navigation.closeDrawer?.()}
+116	          />
+117	        </FancyScrollView>
+118	      </View>
+119	    </View>
+120	  );
+121	}
+122	
+123	const styles = StyleSheet.create({
+124	  container: { alignItems: 'center', flex: 1 },
+125	  menuContainer: {
+126	    backgroundColor: 'white',
+127	    paddingHorizontal: 3,
+128	    borderRadius: 15,
+129	  },
+130	});

@@ -1,17 +1,35 @@
 import { Alert, StyleSheet, View } from 'react-native';
 import FancyContainerList from '../../../container_list/FancyContainerList';
 import FancyDropDown from '../../../fields/FancyDropDown';
-import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
+import FancyModalDialog from '../../../modal/FancyModalDialog';
 import { FancyCard } from '../../../cards/Horizontal/FancyCard';
 import { useState } from 'react';
-import { Pallete } from '../../../../constants/colors';
+import { usePallete } from '../../../../hooks/usePallete';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import FancyFullModal from '../../../modal/FancyFullModal';
 import FancyButton from '../../../buttons/FancyButton';
 import FancyTextInput from '../../../fields/FancyTextInput';
 
-export default function EventosEscalaParametrizacao(props: Omit<FancyModalDialogProps, 'title'>) {
-  const [data, setData] = useState<Array<{ order: Number; funcao: string; experiencia: string; quantidade: number }>>([
+export type EventosEscalaParametrizacaoProps = {
+  modalProps?: { visible: boolean };
+  onButton1Press?: () => void;
+  onButton2Press?: () => void;
+};
+
+export default function EventosEscalaParametrizacao({
+  modalProps,
+  onButton1Press,
+  onButton2Press,
+}: EventosEscalaParametrizacaoProps) {
+  const Pallete = usePallete();
+  const [data, setData] = useState<
+    Array<{
+      order: Number;
+      funcao: string;
+      experiencia: string;
+      quantidade: number;
+    }>
+  >([
     { order: 1, funcao: 'Guitarrista', experiencia: '1', quantidade: 1 },
     { order: 2, funcao: 'Tecladista', experiencia: '3', quantidade: 2 },
     { order: 3, funcao: 'Violonista', experiencia: '2', quantidade: 1 },
@@ -39,10 +57,13 @@ export default function EventosEscalaParametrizacao(props: Omit<FancyModalDialog
   const [selectedTemplate, setSelectedTemplate] = useState('1');
 
   return (
-    <FancyFullModal {...props}>
+    <FancyFullModal
+      title='Parametrização'
+      modalProps={{ visible: modalProps?.visible, onRequestClose: onButton1Press }}
+    >
       <View style={styles.contentContainer}>
         <FancyDropDown
-          label="Template"
+          label='Template'
           value={selectedTemplate}
           listItems={[
             { title: 'Equipe Completa', value: '1' },
@@ -51,45 +72,63 @@ export default function EventosEscalaParametrizacao(props: Omit<FancyModalDialog
           onChange={setSelectedTemplate}
         />
         <View style={{ flex: 1 }}>
-          {templateList.find(item => item.id === selectedTemplate)?.tipo === 'Funcoes' && (
+          {templateList.find((item) => item.id === selectedTemplate)?.tipo === 'Funcoes' && (
             <FancyContainerList
               title={'Formação da Equipe'}
               data={data}
               contentContainerStyle={{ paddingHorizontal: 5 }}
               containerStyle={{ flex: 1 }}
               renderItem={({ item }) => (
-                <FancyCard.Letter
-                  title={item.funcao}
-                  subtitle={item.experiencia === '1' ? 'Baixa' : item.experiencia === '2' ? 'Media' : 'Alta'}
-                  letter={item.quantidade.toString()}
-                  actionButtons={[
-                    {
-                      icon: { ...DefaultIconsNames.edit, size: 15 },
-                      size: 28,
-                      onPress: () =>
-                        setModalEditFuncaoParams(prev => ({
-                          ...prev,
-                          mode: 'edit',
-                          quantidade: item.quantidade,
-                          experiencia: item.experiencia,
-                          visible: true,
-                        })),
-                    },
-                    {
-                      icon: { ...DefaultIconsNames.delete, size: 16, backgroundColor: Pallete.error },
-                      size: 28,
-                      onPress: () => {
-                        Alert.alert('Excluir', 'Tem certeza que deseja excluir essa funcao?', [{ text: 'Cancelar' }, { text: 'Confirmar' }]);
+                <FancyCard.Image
+                  type='letter'
+                  props={{
+                    title: item.funcao,
+                    subtitle:
+                      item.experiencia === '1'
+                        ? 'Baixa'
+                        : item.experiencia === '2'
+                          ? 'Media'
+                          : 'Alta',
+                    letter: item.quantidade.toString(),
+                    actionButtons: [
+                      {
+                        icon: {
+                          ...DefaultIconsNames.edit,
+                          size: 15,
+                        },
+                        size: 'small',
+                        onPress: () =>
+                          setModalEditFuncaoParams((prev) => ({
+                            ...prev,
+                            mode: 'edit',
+                            quantidade: item.quantidade,
+                            experiencia: item.experiencia,
+                            visible: true,
+                          })),
                       },
-                    },
-                  ]}
+                      {
+                        icon: {
+                          ...DefaultIconsNames.delete,
+                          size: 16,
+                          backgroundColor: Pallete.error,
+                        },
+                        size: 'small',
+                        onPress: () => {
+                          Alert.alert('Excluir', 'Tem certeza que deseja excluir essa funcao?', [
+                            { text: 'Cancelar' },
+                            { text: 'Confirmar' },
+                          ]);
+                        },
+                      },
+                    ],
+                  }}
                 />
               )}
               buttons={[
                 {
                   icon: { ...DefaultIconsNames.add, size: 18 },
                   onPress: () =>
-                    setModalEditFuncaoParams(prev => ({
+                    setModalEditFuncaoParams((prev) => ({
                       ...prev,
                       visible: true,
                       mode: 'add',
@@ -100,47 +139,79 @@ export default function EventosEscalaParametrizacao(props: Omit<FancyModalDialog
               ]}
             />
           )}
-          {templateList.find(item => item.id === selectedTemplate)?.tipo === 'Fixo' && <View></View>}
+          {templateList.find((item) => item.id === selectedTemplate)?.tipo === 'Fixo' && (
+            <View></View>
+          )}
         </View>
-        <FancyButton label="Confirmar" icon={{ ...DefaultIconsNames.confirm, size: 16 }} onPress={props.onConfirm} />
+        <FancyButton
+          label='Confirmar'
+          icon={{ ...DefaultIconsNames.confirm, size: 16 }}
+          onPress={onButton2Press}
+        />
         {modalEditFuncaoParams.visible && (
           <FancyModalDialog
             title={modalEditFuncaoParams.mode === 'add' ? 'Nova Função' : 'Editar Função'}
             modalProps={{
               visible: modalEditFuncaoParams.visible,
             }}
-            onClose={() => setModalEditFuncaoParams(prev => ({ ...prev, visible: false }))}
-            onConfirm={() => setModalEditFuncaoParams(prev => ({ ...prev, visible: false }))}
+            onButton1Press={() =>
+              setModalEditFuncaoParams((prev) => ({
+                ...prev,
+                visible: false,
+              }))
+            }
+            onButton2Press={() =>
+              setModalEditFuncaoParams((prev) => ({
+                ...prev,
+                visible: false,
+              }))
+            }
             centerContainerStyle={{ gap: 15 }}
           >
             {modalEditFuncaoParams.mode === 'add' && (
               <FancyDropDown
-                label="Função"
-                listItems={funcoesList.map(item => ({ title: item.nome, value: item.id }))}
+                label='Função'
+                listItems={funcoesList.map((item) => ({
+                  title: item.nome,
+                  value: item.id,
+                }))}
                 value={modalEditFuncaoParams.funcao}
-                onChange={value => setModalEditFuncaoParams(prev => ({ ...prev, funcao: value }))}
+                onChange={(value) =>
+                  setModalEditFuncaoParams((prev) => ({
+                    ...prev,
+                    funcao: value,
+                  }))
+                }
               />
             )}
             <FancyTextInput
-              label="Quantidade"
+              label='Quantidade'
               inputProps={{
                 keyboardType: 'numeric',
                 maxLength: 2,
-                onChangeText: value => {
-                  setModalEditFuncaoParams(prev => ({ ...prev, quantidade: +value }));
+                onChangeText: (value) => {
+                  setModalEditFuncaoParams((prev) => ({
+                    ...prev,
+                    quantidade: +value,
+                  }));
                 },
               }}
               value={modalEditFuncaoParams.quantidade.toString()}
             />
             <FancyDropDown
-              label="Experiência"
+              label='Experiência'
               value={modalEditFuncaoParams.experiencia}
               listItems={[
                 { title: 'Alta', value: '3' },
                 { title: 'Média', value: '2' },
                 { title: 'Baixa', value: '1' },
               ]}
-              onChange={value => setModalEditFuncaoParams(prev => ({ ...prev, experiencia: value }))}
+              onChange={(value) =>
+                setModalEditFuncaoParams((prev) => ({
+                  ...prev,
+                  experiencia: value,
+                }))
+              }
             />
           </FancyModalDialog>
         )}

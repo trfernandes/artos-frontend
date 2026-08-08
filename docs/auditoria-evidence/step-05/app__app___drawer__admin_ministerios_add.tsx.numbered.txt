@@ -1,0 +1,203 @@
+1	import { StyleSheet, View } from 'react-native';
+2	import FancyPageView from '../../../../../components/containers/FancyPageView';
+3	import FancyStepsHeader from '../../../../../components/steps/FancyStepsHeader';
+4	import { useState } from 'react';
+5	import FancyStepsNavigation from '../../../../../components/steps/FancyStepsNavigation';
+6	import { FancyStepsConfig } from '../../../../../components/steps/FancyStepsConfig';
+7	import { Pallete } from '../../../../../constants/colors';
+8	import DadosTab from '../../../../../components/pages/admin/ministerios/DadosTab';
+9	import { DefaultIconsNames } from '../../../../../constants/icons';
+10	import { FormProvider, useForm } from 'react-hook-form';
+11	import { zodResolver } from '@hookform/resolvers/zod';
+12	import Toast from 'react-native-toast-message';
+13	import { strfyObj } from '../../../../../utils/text_utils';
+14	import FancyLoading from '../../../../../components/FancyLoading';
+15	import { router } from 'expo-router';
+16	import { useMinisteriosCrud as useMinisteriosCrud } from '../../../../../hooks/useMinisteriosCrud';
+17	import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
+18	import { useAuth } from '../../../../../contexts/AuthContext';
+19	import { MinisterioStatusEnum } from '../../../../../domain/enums/Ministerio/ministerio-status.enum';
+20	import { ResponseMinisterioDto } from '../../../../../domain/dtos/Ministerio/ministerio.response';
+21	import LiderancaTab from '../../../../../components/pages/admin/ministerios/LiderancaTab';
+22	import { AddMinisterioFormData, AddMinisterioSchema } from '../../../../../domain/schemas/ministerioAdminSchema';
+23	import { sendImageToServer } from '../../../../../utils/image_utils';
+24	import { CreateMinisterioDto } from '../../../../../domain/dtos/Ministerio/ministerio.create';
+25	import { useLoading } from '../../../../../contexts/LoadingContext';
+26	
+27	export default function MinisteriosAddPage() {
+28	  const [stepIndex, setStepIndex] = useState(0);
+29	
+30	  const { showLoading, hideLoading } = useLoading();
+31	
+32	  const form = useForm<AddMinisterioFormData>({
+33	    resolver: zodResolver(AddMinisterioSchema),
+34	    defaultValues: { status: MinisterioStatusEnum.Ativo, logoUpload: null, logoUrl: null, logoThumbUrl: null },
+35	  });
+36	
+37	  const { user, updateUser, igrejaAtiva } = useAuth();
+38	
+39	  const { add: addMinisterios, isLoading: isLoadingMinisterios } = useMinisteriosCrud();
+40	  const { add: addVoluntarios, isLoading: isLoadingVoluntarios } = useMinisterioVoluntariosCrud({ muteMessages: true });
+41	
+42	  const handleSubmit = async () => {
+43	    await form.handleSubmit(
+44	      async (data) => {
+45	        showLoading('Salvando');
+46	
+47	        try {
+48	          const { voluntarios, ...ministerio } = data;
+49	
+50	          const newMinisterioData: CreateMinisterioDto = {
+51	            igrejaId: igrejaAtiva!.id,
+52	            nome: ministerio.nome,
+53	            tipo: ministerio.tipo,
+54	            descricao: ministerio.descricao || undefined,
+55	            status: MinisterioStatusEnum.Ativo,
+56	            logoUrl: null,
+57	            logoThumbUrl: null,
+58	          };
+59	
+60	          //Enviar logo para o servidor e guardar as URLs retornadas
+61	          if (data.logoUpload?.uri) {
+62	            const { imageThumbUrl, imageUrl } = await sendImageToServer('ministerios', data.logoUpload);
+63	
+64	            newMinisterioData.logoUrl = imageUrl;
+65	            newMinisterioData.logoThumbUrl = imageThumbUrl;
+66	
+67	            form.setValue('logoUrl', imageUrl);
+68	            form.setValue('logoThumbUrl', imageThumbUrl);
+69	            form.setValue('logoUpload', null);
+70	          }
+71	
+72	          const newMinisterio: ResponseMinisterioDto = await addMinisterios(newMinisterioData);
+73	
+74	          // Adiciona voluntários ao ministério
+75	          await Promise.all(
+76	            voluntarios.map((voluntario) =>
+77	              addVoluntarios({
+78	                ministerioId: newMinisterio.id,
+79	                voluntarioId: voluntario.voluntarioId,
+80	                hierarquia: voluntario.hierarquia,
+81	              }),
+82	            ),
+83	          );
+84	
+85	          // Atualiza o usuário logado com o novo ministério na igreja ativa
+86	          if (igrejaAtiva) {
+87	            const novaIgreja = {
+88	              ...igrejaAtiva,
+89	              ministerios: [
+90	                ...igrejaAtiva.ministerios,
+91	                {
+92	                  id: newMinisterio.id!,
+93	                  nome: newMinisterio.nome,
+94	                  tipo: newMinisterio.tipo,
+95	                  hierarquia: voluntarios[0]?.hierarquia, // ou lógica adequada
+96	                  logoUrl: newMinisterio.logoUrl,
+97	                  logoThumbUrl: newMinisterio.logoThumbUrl,
+98	                },
+99	              ],
+100	            };
+101	            const novasIgrejas = (user?.igrejas || []).map((ig) => (ig.id === igrejaAtiva.id ? novaIgreja : ig));
+102	            updateUser({ ...user, igrejas: novasIgrejas });
+103	          }
+104	
+105	          form.reset();
+106	          router.back();
+107	        } finally {
+108	          hideLoading();
+109	        }
+110	      },
+111	      (errors) => {
+112	        console.log(`Erro ao adicionar ministério\n ${strfyObj(errors)}`);
+113	        Toast.show({
+114	          type: 'error',
+115	          text1: 'Erro',
+116	          text2: errors.voluntarios?.message || 'Erro ao submeter o formulário',
+117	        });
+118	      },
+119	    )();
+120	  };
+121	
+122	  const STEPS: FancyStepsConfig = {
+123	    steps: [
+124	      {
+125	        title: 'Dados',
+126	        content: <DadosTab mode={'add'} />,
+127	        actions: [
+128	          {
+129	            label: 'Anterior',
+130	            icon: {
+131	              library: DefaultIconsNames['arrow-left'].library,
+132	              name: DefaultIconsNames['arrow-left'].name,
+133	              size: 20,
+134	            },
+135	            enabled: false,
+136	          },
+137	          {
+138	            label: 'Próximo',
+139	            icon: {
+140	              library: DefaultIconsNames['arrow-right'].library,
+141	              name: DefaultIconsNames['arrow-right'].name,
+142	              size: 20,
+143	            },
+144	            iconPosition: 'right',
+145	            onPress: async () => {
+146	              const isValid = await form.trigger(['id', 'nome', 'tipo', 'descricao']);
+147	              if (isValid) {
+148	                setStepIndex(1);
+149	              }
+150	            },
+151	          },
+152	        ],
+153	      },
+154	      {
+155	        title: 'Liderança',
+156	        content: <LiderancaTab />,
+157	        actions: [
+158	          {
+159	            label: 'Anterior',
+160	            icon: { library: 'Feather', name: 'arrow-left', size: 20 },
+161	            onPress: 'previous',
+162	          },
+163	          {
+164	            label: 'Finalizar',
+165	            icon: { library: 'Feather', name: 'check', size: 20 },
+166	            iconPosition: 'right',
+167	            onPress: handleSubmit,
+168	            color: Pallete.confirm,
+169	          },
+170	        ],
+171	      },
+172	    ],
+173	  };
+174	
+175	  if (isLoadingMinisterios || isLoadingVoluntarios) {
+176	    return <FancyLoading />;
+177	  }
+178	
+179	  return (
+180	    <FancyPageView style={styles.container}>
+181	      <FancyStepsHeader index={stepIndex} config={STEPS} containerStyle={{ paddingHorizontal: 15 }} />
+182	      <FormProvider {...form}>
+183	        <View style={styles.contentContainer}>{STEPS.steps[stepIndex].content}</View>
+184	      </FormProvider>
+185	      <FancyStepsNavigation
+186	        config={STEPS}
+187	        stepIndex={stepIndex}
+188	        setStepIndex={setStepIndex}
+189	        containerStyle={{ paddingHorizontal: 15 }}
+190	      />
+191	    </FancyPageView>
+192	  );
+193	}
+194	
+195	const styles = StyleSheet.create({
+196	  container: { paddingVertical: 5, gap: 20, alignItems: 'center' },
+197	  contentContainer: { width: '100%', gap: 20, flex: 1, paddingHorizontal: 15 },
+198	  buttonsContainer: { width: '100%', gap: 10, flexDirection: 'row' },
+199	  button: {
+200	    flex: 1,
+201	  },
+202	  errorText: { color: Pallete.error },
+203	});

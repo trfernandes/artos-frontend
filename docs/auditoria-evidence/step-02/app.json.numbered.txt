@@ -1,0 +1,63 @@
+1	{
+2	  "expo": {
+3	    "name": "artos_frontend",
+4	    "slug": "artos_frontend",
+5	    "version": "1.0.0",
+6	    "scheme": "diakonia",
+7	    "orientation": "portrait",
+8	    "icon": "./assets/icon.png",
+9	    "userInterfaceStyle": "automatic",
+10	    "newArchEnabled": true,
+11	    "splash": {
+12	      "image": "./assets/splash-icon.png",
+13	      "resizeMode": "contain",
+14	      "backgroundColor": "#ffffff"
+15	    },
+16	    "ios": {
+17	      "supportsTablet": true,
+18	      "bundleIdentifier": "com.church.artos",
+19	      "buildNumber": "1",
+20	      "associatedDomains": ["applinks:diakonia.app.br"]
+21	    },
+22	    "android": {
+23	      "adaptiveIcon": {
+24	        "foregroundImage": "./assets/adaptive-icon.png",
+25	        "backgroundColor": "#ffffff"
+26	      },
+27	      "edgeToEdgeEnabled": true,
+28	      "package": "com.church.artos",
+29	      "versionCode": 1,
+30	      "intentFilters": [
+31	        {
+32	          "action": "VIEW",
+33	          "autoVerify": true,
+34	          "data": [
+35	            {
+36	              "scheme": "https",
+37	              "host": "diakonia.app.br",
+38	              "pathPrefix": "/invite"
+39	            }
+40	          ],
+41	          "category": ["BROWSABLE", "DEFAULT"]
+42	        }
+43	      ]
+44	    },
+45	    "web": {
+46	      "favicon": "./assets/favicon.png"
+47	    },
+48	    "plugins": [
+49	      "expo-router",
+50	      "expo-font",
+51	      "expo-notifications",
+52	      [
+53	        "@sentry/react-native/expo",
+54	        {
+55	          "url": "https://sentry.io/",
+56	          "project": "artos-volunteers",
+57	          "organization": "artos-uw"
+58	        }
+59	      ],
+60	      "expo-secure-store"
+61	    ]
+62	  }
+63	}

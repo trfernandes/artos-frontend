@@ -1,0 +1,3 @@
+.env: API_URL=remote; APP_SECRET_KEY_present=True
+.env.local: API_URL=local; APP_SECRET_KEY_present=True
+.env.staging: API_URL=remote; APP_SECRET_KEY_present=True

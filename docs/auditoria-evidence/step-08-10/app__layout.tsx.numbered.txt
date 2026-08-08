@@ -1,0 +1,150 @@
+1	import { GestureHandlerRootView } from 'react-native-gesture-handler';
+2	import { SplashScreen, Stack, useSegments } from 'expo-router';
+3	import { StyleSheet, View } from 'react-native';
+4	import { AuthProvider, useAuth } from '../contexts/AuthContext';
+5	import { useFonts } from 'expo-font';
+6	import { QueryClientProvider } from '@tanstack/react-query';
+7	import Toast from 'react-native-toast-message';
+8	import { toastConfig } from '../utils/toast_config';
+9	import { FancyAlertConnector, FancyAlertProvider } from '../components/modal/FancyAlert';
+10	import { useEffect, useState } from 'react';
+11	import { registerForPushNotificationsAsync } from '../services/notifications';
+12	import { NotificationsManager } from '../components/Notification_manager';
+13	import { AppReviewManager } from '../components/AppReviewManager';
+14	import * as Sentry from '@sentry/react-native';
+15	import { ConnectivityProvider } from '../core/network/connectivity/ConnectivityProvider';
+16	import { createQueryClient } from '../core/react-query/queryClient';
+17	import { ConnectivityBanner } from '../components/FancyConnectivityBanner';
+18	import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+19	import { StatusBar } from 'expo-status-bar';
+20	import { Pallete } from '../constants/colors';
+21	
+22	Sentry.init({
+23	  dsn: 'https://b65799084d172913463973ef37b937b0@o4510567624409088.ingest.us.sentry.io/4510567678279680',
+24	
+25	  // Adds more context data to events (IP address, cookies, user, etc.)
+26	  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+27	  sendDefaultPii: true,
+28	
+29	  // Enable Logs
+30	  enableLogs: true,
+31	
+32	  // Configure Session Replay
+33	  replaysSessionSampleRate: 0.1,
+34	  replaysOnErrorSampleRate: 1,
+35	  integrations: [Sentry.mobileReplayIntegration()],
+36	
+37	  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+38	  // spotlight: __DEV__,
+39	});
+40	
+41	SplashScreen.preventAutoHideAsync();
+42	
+43	export default Sentry.wrap(function RootLayout() {
+44	  console.log('App started');
+45	  const [queryClient] = useState(() => createQueryClient());
+46	
+47	  return (
+48	    <GestureHandlerRootView style={{ flex: 1 }}>
+49	      <SafeAreaProvider>
+50	        <QueryClientProvider client={queryClient}>
+51	          <AuthProvider>
+52	            <ConnectivityProvider>
+53	              <RootLayoutNav />
+54	            </ConnectivityProvider>
+55	          </AuthProvider>
+56	        </QueryClientProvider>
+57	      </SafeAreaProvider>
+58	    </GestureHandlerRootView>
+59	  );
+60	});
+61	
+62	function RootLayoutNav() {
+63	  const { user, loading } = useAuth();
+64	  const segments = useSegments();
+65	  const isAuthRoute = segments[0] === '(auth)';
+66	  const statusBarStyle: 'light' | 'dark' = isAuthRoute ? 'light' : 'dark';
+67	  const safeAreaBackgroundColor = isAuthRoute ? '#FFFFFF' : Pallete.backgroundColor;
+68	
+69	  const [fontsLoaded] = useFonts({
+70	    MontserratBlack: require('../assets/fonts/montserrat/Montserrat-Black.ttf'),
+71	    MontserratBlackItalic: require('../assets/fonts/montserrat/Montserrat-BlackItalic.ttf'),
+72	    MontserratBold: require('../assets/fonts/montserrat/Montserrat-Bold.ttf'),
+73	    MontserratBoldItalic: require('../assets/fonts/montserrat/Montserrat-BoldItalic.ttf'),
+74	    MontserratExtraBold: require('../assets/fonts/montserrat/Montserrat-ExtraBold.ttf'),
+75	    MontserratExtraBoldItalic: require('../assets/fonts/montserrat/Montserrat-ExtraBoldItalic.ttf'),
+76	    MontserratExtraLight: require('../assets/fonts/montserrat/Montserrat-ExtraLight.ttf'),
+77	    MontserratExtraLightItalic: require('../assets/fonts/montserrat/Montserrat-ExtraLightItalic.ttf'),
+78	    MontserratItalic: require('../assets/fonts/montserrat/Montserrat-Italic.ttf'),
+79	    MontserratLight: require('../assets/fonts/montserrat/Montserrat-Light.ttf'),
+80	    MontserratLightItalic: require('../assets/fonts/montserrat/Montserrat-LightItalic.ttf'),
+81	    MontserratMedium: require('../assets/fonts/montserrat/Montserrat-Medium.ttf'),
+82	    MontserratMediumItalic: require('../assets/fonts/montserrat/Montserrat-MediumItalic.ttf'),
+83	    MontserratRegular: require('../assets/fonts/montserrat/Montserrat-Regular.ttf'),
+84	    MontserratSemiBold: require('../assets/fonts/montserrat/Montserrat-SemiBold.ttf'),
+85	    MontserratSemiBoldItalic: require('../assets/fonts/montserrat/Montserrat-SemiBoldItalic.ttf'),
+86	    MontserratThin: require('../assets/fonts/montserrat/Montserrat-Thin.ttf'),
+87	    MontserratThinItalic: require('../assets/fonts/montserrat/Montserrat-ThinItalic.ttf'),
+88	  });
+89	
+90	  // esconder splash quando tudo estiver pronto
+91	  useEffect(() => {
+92	    if (fontsLoaded && !loading) {
+93	      SplashScreen.hideAsync();
+94	    }
+95	  }, [fontsLoaded, loading]);
+96	
+97	  // registrar notificações quando logar
+98	  useEffect(() => {
+99	    if (user?.user?.id) {
+100	      registerForPushNotificationsAsync(user.user.id);
+101	    }
+102	  }, [user?.user?.id]);
+103	
+104	  if (!fontsLoaded || loading) {
+105	    return null;
+106	  }
+107	
+108	  return (
+109	    <FancyAlertProvider>
+110	      <View style={styles.rootContainer}>
+111	        <NotificationsManager />
+112	        {user && <AppReviewManager />}
+113	        <StatusBar
+114	          backgroundColor='transparent'
+115	          style={statusBarStyle}
+116	          translucent
+117	        />
+118	        <SafeAreaView
+119	          style={[styles.navigationContainer, { backgroundColor: safeAreaBackgroundColor }]}
+120	          edges={['bottom']}
+121	        >
+122	          <Stack>
+123	            <Stack.Screen name='(app)' options={{ headerShown: false }} />
+124	            <Stack.Screen name='(auth)' options={{ headerShown: false }} />
+125	            <Stack.Screen name='(public)' options={{ headerShown: false }} />
+126	          </Stack>
+127	        </SafeAreaView>
+128	        <Toast config={toastConfig} position='bottom' visibilityTime={4000} />
+129	        <FancyAlertConnector />
+130	        <ConnectivityBanner />
+131	      </View>
+132	    </FancyAlertProvider>
+133	  );
+134	}
+135	
+136	const styles = StyleSheet.create({
+137	  rootContainer: {
+138	    flex: 1,
+139	  },
+140	  navigationContainer: {
+141	    flex: 1,
+142	  },
+143	  authBackgroundExpanded: {
+144	    top: 0,
+145	    left: 0,
+146	    right: -360,
+147	    bottom: 0,
+148	    borderRadius: 0,
+149	  },
+150	});

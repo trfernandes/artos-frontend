@@ -1,92 +1,363 @@
 import { router } from 'expo-router';
-import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
-import { Pallete } from '../../../../../constants/colors';
+import { useFocusRefetch } from '../../../../../hooks/useFocusRefetch';
 import { DefaultIconsNames } from '../../../../../constants/icons';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import FancyScreenErrorHandler from '../../../../../components/error/FancyScreenErrorHandler';
-import { useState } from 'react';
-import FancyBaseListPage from '../../../../../components/pages/base/FancyBaseListPage';
-import { Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
-import { useVoluntarios } from '../../../../../hooks/useVoluntarios';
+import { useCallback, useMemo, useState } from 'react';
+import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
+import { useIgrejaVoluntariosCrud } from '../../../../../hooks/useIgrejaVoluntariosCrud';
+import { useAuth } from '../../../../../contexts/AuthContext';
+import FancyLoading from '../../../../../components/FancyLoading';
+import Toast from 'react-native-toast-message';
+import { FancyAlert } from '../../../../../components/modal/FancyAlert';
+import {
+  VoluntarioStatusEnum,
+  VoluntarioStatusEnumLabel,
+} from '../../../../../domain/enums/Voluntario/voluntario-status.enum';
+import { AppImages } from '../../../../../assets/app_images';
+import { useLoading } from '../../../../../contexts/LoadingContext';
+import FancySegmentedControl from '../../../../../components/fields/FancySegmentedControl';
+import FancyChips from '../../../../../components/FancyChips';
+import FancyListItemCard from '../../../../../components/cards/FancyListItemCard';
+import FancyListStats from '../../../../../components/list/FancyListStats';
+import FancyActionSheet from '../../../../../components/actions/FancyActionSheet';
+import { usePallete } from '../../../../../hooks/usePallete';
+import { ResponseVoluntarioIgrejaDto } from '../../../../../domain/dtos/Voluntario/response-voluntario-igreja.dto';
+import { useBillingWriteAccess } from '../../../../../hooks/useBillingWriteAccess';
+import BillingNoticeBanner from '../../../../../components/billing/BillingNoticeBanner';
+import {
+  ROLE_LABELS,
+  ROLE_COLOR_KEYS,
+} from '../../../../../components/pages/admin/voluntarios/DadosTab';
 
-const phoneRegex = /^\(?[1-9]{2}\)?\s?(?:9[1-9]\d{3}-?\d{4}|\d{4}-?\d{4})$/;
+type StatusFiltro = 'todos' | 'ativos' | 'inativos';
 
 export default function VoluntariosIndexPage() {
+  const palette = usePallete();
   const [searchText, setSearchText] = useState('');
-  const { data, setSearchParams, isLoading, error, refetch, isRefetching, isError } = useVoluntarios({
-    autoFetch: false,
-    initialParams: { orderBy: [{ path: 'nome', direction: OrderDirection.ASC }] },
+  const [statusFiltro, setStatusFiltro] = useState<StatusFiltro>('todos');
+  const [actionsVoluntario, setActionsVoluntario] = useState<ResponseVoluntarioIgrejaDto | null>(
+    null,
+  );
+  const { user } = useAuth();
+  const { showLoading, hideLoading } = useLoading();
+  const {
+    isBlocked,
+    isVolunteerLimitReached,
+    assinatura,
+    showBillingBanner,
+    abrirPortalDeAssinatura,
+  } = useBillingWriteAccess();
+
+  const {
+    data,
+    isLoading,
+    error,
+    refetch,
+    isError,
+    isLoadingMutation,
+    update: updateVoluntario,
+    remove: removeVoluntario,
+  } = useIgrejaVoluntariosCrud({
+    autoFetch: true,
   });
 
+  const { isFocusLoading } = useFocusRefetch(refetch);
+
+  const [isPullRefreshing, setIsPullRefreshing] = useState(false);
+  const handlePullRefresh = useCallback(async () => {
+    setIsPullRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setIsPullRefreshing(false);
+    }
+  }, [refetch]);
+
+  const handleChangeStatus = useCallback(
+    (id: string, nome: string, newStatus: VoluntarioStatusEnum) => {
+      FancyAlert.alert(
+        newStatus === VoluntarioStatusEnum.DESATIVADO
+          ? 'Desativação de Voluntário'
+          : 'Ativação de Voluntário',
+        `Tem certeza que deseja "${newStatus === VoluntarioStatusEnum.DESATIVADO ? 'DESATIVAR' : 'ATIVAR'}" o voluntário "${nome}"?`,
+        [
+          {
+            text: 'Não',
+            style: 'cancel',
+          },
+          {
+            text: 'Sim',
+            style: 'destructive',
+            onPress: () => {
+              showLoading();
+              Promise.resolve(updateVoluntario?.({ id, data: { status: newStatus } }))
+                .then(async () => {
+                  await refetch();
+                  Toast.show({
+                    text1: `Voluntário ${newStatus === VoluntarioStatusEnum.DESATIVADO ? 'desativado' : 'ativado'} com sucesso!`,
+                    type: 'success',
+                  });
+                })
+                .catch(() => {
+                  Toast.show({
+                    text1: `Erro ao ${newStatus === VoluntarioStatusEnum.DESATIVADO ? 'desativar' : 'ativar'} o voluntário.`,
+                    type: 'error',
+                  });
+                })
+                .finally(() => hideLoading());
+            },
+          },
+        ],
+      );
+    },
+    [updateVoluntario, refetch, showLoading, hideLoading],
+  );
+
+  const handleDeleteVoluntario = useCallback(
+    (voluntarioId: string) => {
+      FancyAlert.alert(
+        'Excluir definitivamente este voluntário?',
+        `A exclusão deste voluntário é permanente. Todos os vínculos com ministérios, funções, escalas e relatórios históricos serão removidos e não poderão ser recuperados. Se você não quiser perder o histórico, use a opção "Desativar" em vez de excluir.`,
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Sim, estou ciente',
+            style: 'destructive',
+            onPress: () => {
+              showLoading();
+              Promise.resolve(removeVoluntario?.(voluntarioId))
+                .then(async () => {
+                  await refetch();
+                })
+                .catch(() => {
+                  // O toast de erro já é exibido pelo onError do useCrud
+                })
+                .finally(() => hideLoading());
+            },
+          },
+        ],
+      );
+    },
+    [removeVoluntario, refetch, showLoading, hideLoading],
+  );
+
+  const filteredData = useMemo(() => {
+    const normalized = searchText.trim().toLowerCase();
+    const currentUserId = user?.user.id;
+    let baseList = currentUserId ? data.filter((item) => item.id !== currentUserId) : data;
+
+    if (statusFiltro === 'ativos')
+      baseList = baseList.filter((item) => item.status === VoluntarioStatusEnum.ATIVO);
+    else if (statusFiltro === 'inativos')
+      baseList = baseList.filter((item) => item.status === VoluntarioStatusEnum.DESATIVADO);
+
+    if (!normalized) return baseList;
+    return baseList.filter((item) => {
+      const nome = item.nome?.toLowerCase() || '';
+      const email = item.email?.toLowerCase() || '';
+      return nome.includes(normalized) || email.includes(normalized);
+    });
+  }, [data, searchText, statusFiltro, user?.user.id]);
+
+  const sorteredData = useMemo(() => {
+    return [...filteredData].sort((a, b) =>
+      a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }),
+    );
+  }, [filteredData]);
+
+  const stats = useMemo(() => {
+    const currentUserId = user?.user.id;
+    const baseList = currentUserId ? data.filter((item) => item.id !== currentUserId) : data;
+    const ativos = baseList.filter((item) => item.status === VoluntarioStatusEnum.ATIVO).length;
+    return {
+      total: baseList.length,
+      ativos,
+      inativos: baseList.length - ativos,
+    };
+  }, [data, user?.user.id]);
+
+  // Early returns AFTER all hooks
   if (isError) {
     return <FancyScreenErrorHandler error={error!} onTryAgrainPress={refetch} />;
   }
 
+  if (isLoading) return <FancyLoading />;
+
   return (
-    <FancyBaseListPage
+    <FancyListPage
+      showFab={false}
+      showSearchBar
+      contentLoading={isFocusLoading}
       searchBarProps={{
         value: searchText,
-        onSearch: text => {
+        onSearch: (text) => {
           setSearchText(text.trim());
-          if (text && text.trim() !== '') {
-            setSearchParams({
-              where: {
-                conditions: [
-                  { path: 'nome', operator: Operator.ILIKE, value: { type: ValueType.LITERAL, value: text.trim() } },
-                ],
-              },
-            });
-          } else {
-            setSearchParams({});
-          }
         },
       }}
-      listProps={{
-        refreshing: isLoading || isRefetching,
-        onRefresh: refetch,
-        data: data?.sort((a, b) => a.nome.localeCompare(b.nome)) || [],
-        renderItem: ({ item, index }) => (
-          <FancyCard.Image
-            key={index}
-            type="image"
-            props={{
-              title: item.nome,
-              subtitle: item.email,
-              source: item.foto,
-              actionButtons: [
-                {
-                  icon: {
-                    ...DefaultIconsNames.edit,
-                    size: 18,
-                  },
-                  onPress: () => {
-                    router.push({
-                      pathname: '/admin/voluntarios/details',
-                      params: {
-                        id: item.id,
-                      },
-                    });
-                  },
-                },
-                {
-                  icon: {
-                    library: DefaultIconsNames.delete.library,
-                    name: DefaultIconsNames.delete.name,
-                    size: 18,
-                    backgroundColor: Pallete.error,
-                  },
-                },
-              ],
-            }}
+      topContent={
+        <View style={styles.topContainer}>
+          {showBillingBanner && (isBlocked || isVolunteerLimitReached) && (
+            <View style={{ paddingHorizontal: 15 }}>
+              <BillingNoticeBanner assinatura={assinatura} onPress={abrirPortalDeAssinatura} />
+            </View>
+          )}
+          <FancyListStats
+            items={[
+              { label: 'Total', value: stats.total },
+              { label: 'Ativos', value: stats.ativos, color: palette.primary },
+              { label: 'Inativos', value: stats.inativos, color: palette.error },
+            ]}
           />
-        ),
+          <View style={styles.filtroContainer}>
+            <FancySegmentedControl<StatusFiltro>
+              size='sm'
+              options={[
+                { label: 'Todos', value: 'todos' },
+                { label: 'Ativos', value: 'ativos' },
+                { label: 'Inativos', value: 'inativos' },
+              ]}
+              value={statusFiltro}
+              onChange={setStatusFiltro}
+            />
+          </View>
+        </View>
+      }
+      listProps={{
+        onRefresh: handlePullRefresh,
+        refreshing: isPullRefreshing,
+        listEmptyProps:
+          searchText.trim().length > 0 || statusFiltro !== 'todos'
+            ? {
+                label: 'Nenhum voluntário encontrado',
+                icon: {
+                  library: 'MaterialCommunityIcons',
+                  name: 'account-group-outline',
+                  size: 68,
+                },
+              }
+            : {
+                label: 'Nenhum voluntário cadastrado',
+                icon: {
+                  library: 'MaterialCommunityIcons',
+                  name: 'account-group-outline',
+                  size: 68,
+                },
+                helperText:
+                  'Para cadastrar voluntários, envie um convite e aguarde a entrada deles na igreja.',
+                actionLabel: 'Ir para Convites',
+                actionIcon: {
+                  library: 'MaterialCommunityIcons',
+                  name: 'ticket-confirmation-outline',
+                  size: 16,
+                },
+                onActionPress: () =>
+                  router.push({
+                    pathname: '/admin/solicitacoes',
+                    params: { tab: 'convites' },
+                  }),
+              },
+        data: sorteredData,
+        renderItem: ({ item, index }) => {
+          const statusColor =
+            item.status === VoluntarioStatusEnum.ATIVO ? palette.primary : palette.error;
+          return (
+            <FancyListItemCard
+              onPress={() => {
+                showLoading();
+                router.push({
+                  pathname: '/admin/voluntarios/details',
+                  params: { id: item.id },
+                });
+              }}
+              title={item.nome}
+              subtitle={item.email}
+              leading={{
+                type: 'image',
+                size: 40,
+                source:
+                  item.fotoThumbUrl || item.fotoUrl
+                    ? { uri: item.fotoThumbUrl || item.fotoUrl || '' }
+                    : AppImages.emptyProfile,
+              }}
+              meta={
+                <View style={styles.metaChips}>
+                  <FancyChips
+                    label={ROLE_LABELS[item.role]}
+                    color={palette[ROLE_COLOR_KEYS[item.role]]}
+                    size='small'
+                    dot
+                  />
+                  <FancyChips
+                    label={VoluntarioStatusEnumLabel[item.status]}
+                    color={statusColor}
+                    size='small'
+                    dot
+                  />
+                </View>
+              }
+              trailing={{ type: 'menu', onPress: () => setActionsVoluntario(item) }}
+              contentStyle={isLoadingMutation ? { opacity: 0.68 } : undefined}
+            />
+          );
+        },
       }}
-    ></FancyBaseListPage>
+    >
+      <FancyActionSheet
+        visible={!!actionsVoluntario}
+        onClose={() => setActionsVoluntario(null)}
+        actions={[
+          {
+            label: 'Abrir detalhes',
+            icon: { ...DefaultIconsNames.edit, size: 18 },
+            onPress: () => {
+              if (!actionsVoluntario) return;
+              showLoading();
+              router.push({
+                pathname: '/admin/voluntarios/details',
+                params: { id: actionsVoluntario.id },
+              });
+            },
+          },
+          {
+            label:
+              actionsVoluntario?.status === VoluntarioStatusEnum.ATIVO ? 'Desativar' : 'Ativar',
+            icon:
+              actionsVoluntario?.status === VoluntarioStatusEnum.ATIVO
+                ? { library: 'FontAwesome6', name: 'thumbs-down', size: 16 }
+                : { library: 'FontAwesome6', name: 'thumbs-up', size: 16 },
+            disabled: isLoadingMutation,
+            onPress: () => {
+              if (!actionsVoluntario) return;
+              handleChangeStatus(
+                actionsVoluntario.id!,
+                actionsVoluntario.nome,
+                actionsVoluntario.status === VoluntarioStatusEnum.ATIVO
+                  ? VoluntarioStatusEnum.DESATIVADO
+                  : VoluntarioStatusEnum.ATIVO,
+              );
+            },
+          },
+          {
+            label: 'Excluir',
+            destructive: true,
+            disabled: isLoadingMutation,
+            icon: { library: 'FontAwesome6', name: 'trash-can', size: 16 },
+            onPress: () => {
+              if (actionsVoluntario) handleDeleteVoluntario(actionsVoluntario.id!);
+            },
+          },
+        ]}
+      />
+    </FancyListPage>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 20, paddingTop: 10, borderWidth: 0, borderColor: 'magenta' },
+  topContainer: { gap: 12 },
+  filtroContainer: { paddingHorizontal: 15 },
+  container: { gap: 20, borderWidth: 0, borderColor: 'magenta' },
   searchbar: { paddingHorizontal: 18 },
-  list_content: { paddingHorizontal: 18, gap: 10 },
+  list_content: { gap: 10 },
+  metaChips: { flexDirection: 'row', gap: 6, marginTop: 4 },
 });

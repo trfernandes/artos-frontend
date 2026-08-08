@@ -2,50 +2,37 @@ import { StyleSheet } from 'react-native';
 import ControlledTextInput from '../../../forms/ControlledTextInput';
 import { useFormContext } from 'react-hook-form';
 import ControlledTextArea from '../../../forms/ControlledTextArea';
-import ControlledFancyDropDown from '../../../forms/ControlledFancyDropDown';
-import { MinisterioStatusEnum, MinisterioStatusLabel, MinisterioTipoEnum, MinisterioTipoLabel } from '../../../../domain/models/Ministerio';
+import ControlledBottomSheetSelect from '../../../forms/ControlledBottomSheetSelect';
+
 import FancyScrollView from '../../../FancyScrollView';
-import { MinisterioFormData } from '../../../../app/(app)/(drawer)/admin/ministerios/add';
 import { EnumUtils } from '../../../../utils/enum_utils';
-import ControlledFancyToggle from '../../../forms/ControlledFancyToggle';
-import FancyImagePicker from '../../../images/FancyImagePicker';
-import { ImageUtils } from '../../../../utils/image_utils';
+import {
+  MinisterioTipoEnum,
+  MinisterioTipoLabel,
+} from '../../../../domain/enums/Ministerio/ministerio-tipo.enum';
+import { ControlledImagePicker } from '../../../forms/ControlledImagePicker';
+import { AddMinisterioFormData } from '../../../../domain/schemas/ministerioAdminSchema';
 
 export default function DadosTab(props: { mode: 'add' } | { mode: 'edit'; id: string }) {
-  const { watch, control, setValue } = useFormContext<MinisterioFormData>();
-  const logoWatch = watch('logo');
+  const { control, setValue } = useFormContext<AddMinisterioFormData>();
 
   return (
-    <FancyScrollView contentContainerStyle={styles.fieldsContainer}>
-      <FancyImagePicker
-        value={logoWatch}
-        onChange={image => {
-          setValue('logo', image && image?.base64 ? ImageUtils.stringToBase64(image.base64) : undefined);
-          setValue('uploadLogo', image?.uri);
-        }}
-      />
-      <ControlledTextInput control={control} name="nome" label="Nome" />
-      <ControlledFancyDropDown
+    <FancyScrollView contentContainerStyle={styles.fieldsContainer} fill>
+      <ControlledImagePicker
         control={control}
-        name="tipo"
-        label="Tipo"
+        name='logoThumbUrl'
+        uploadFieldName='logoUpload'
+        setValue={setValue as any}
+      />
+      <ControlledTextInput control={control} name='nome' label='Nome' />
+      <ControlledBottomSheetSelect
+        control={control}
+        name='tipo'
+        label='Tipo'
         disabled={props.mode === 'edit'}
         listItems={EnumUtils.getDropDownItems(MinisterioTipoEnum, MinisterioTipoLabel)}
       />
-      <ControlledTextArea control={control} name="descricao" label="Descrição" />
-      <ControlledFancyToggle
-        control={control}
-        name="status"
-        label="Status"
-        option1={{
-          title: MinisterioStatusLabel[MinisterioStatusEnum.Ativo],
-          value: MinisterioStatusEnum.Ativo,
-        }}
-        option2={{
-          title: MinisterioStatusLabel[MinisterioStatusEnum.Inativo],
-          value: MinisterioStatusEnum.Inativo,
-        }}
-      />
+      <ControlledTextArea control={control} name='descricao' label='Descrição' />
     </FancyScrollView>
   );
 }

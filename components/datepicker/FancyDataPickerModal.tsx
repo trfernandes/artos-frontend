@@ -1,7 +1,8 @@
-import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import { useState } from 'react';
+import { StyleProp, View, ViewStyle } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 import FancyDataPanel, { FancyDataPanelProps } from '../FancyDataPanel';
-import DateUtils from '../../utils/data_utils';
+import DateUtils from '../../utils/date_utils';
 import FancyDatePicker from './FancyDatePicker';
 import FancyModalDialog from '../modal/FancyModalDialog';
 
@@ -25,8 +26,14 @@ export default function FancyDatePickerModal({
   const [visible, setVisible] = useState(false);
   const [date, setDate] = useState(value || new Date());
 
+  useEffect(() => {
+    if (value) {
+      setDate(value);
+    }
+  }, [value]);
+
   return (
-    <View style={[containerStyle]}>
+    <View style={containerStyle}>
       <FancyDataPanel
         disabled={disabled}
         onPress={() => !readonly && setVisible(true)}
@@ -35,19 +42,25 @@ export default function FancyDatePickerModal({
       />
       {!disabled && visible && (
         <FancyModalDialog
-          containerStyle={{ gap: 20 }}
+          containerStyle={{ gap: 0 }}
+          buttonContainerStyle={{ marginTop: Platform.OS === 'ios' ? 0 : 8 }}
           modalProps={{ visible }}
-          onClose={() => setVisible(false)}
-          onConfirm={() => {
+          onButton1Press={() => setVisible(false)}
+          onButton2Press={() => {
             onChange?.(date);
             setVisible(false);
           }}
         >
-          <FancyDatePicker calendarProps={{ value: date, onChangeDate: date => setDate(date) }} />
+          <FancyDatePicker
+            calendarProps={{
+              containerStyle: { backgroundColor: 'transparent', borderWidth: 0 },
+              dayModeTopPadding: 10,
+              value: date,
+              onChangeSelectedDate: (d) => setDate(d),
+            }}
+          />
         </FancyModalDialog>
       )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({});

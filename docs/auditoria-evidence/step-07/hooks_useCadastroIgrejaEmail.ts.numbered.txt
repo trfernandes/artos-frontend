@@ -1,0 +1,243 @@
+1	import { useState, useEffect, useCallback, useRef } from 'react';
+2	import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+3	import Toast from 'react-native-toast-message';
+4	import { CadastroIgrejaRepository } from '../domain/services/CadastroIgrejaRepository';
+5	import {
+6	    CadastroIgrejaStorageDto,
+7	    StatusCadastroResponseDto,
+8	} from '../domain/dtos/Igreja/cadastro-igreja.dto';
+9	import { IgrejaCadastroSolicitacaoStatusEnum } from '../domain/enums/Igreja/cadastro-solicitacao-status.enum';
+10	
+11	const COOLDOWN_SEGUNDOS = 60;
+12	const POLLING_INTERVAL_MS = 15000; // 15 segundos
+13	const POLLING_MAX_DURATION_MS = 120000; // 2 minutos
+14	
+15	export type UseCadastroIgrejaEmailOptions = {
+16	  onConfirmado?: (authData?: StatusCadastroResponseDto) => void;
+17	  enablePolling?: boolean;
+18	};
+19	
+20	export function useCadastroIgrejaEmail({
+21	  onConfirmado,
+22	  enablePolling = false,
+23	}: UseCadastroIgrejaEmailOptions = {}) {
+24	  const queryClient = useQueryClient();
+25	
+26	  // Dados do cadastro carregados do storage
+27	  const [dadosCadastro, setDadosCadastro] = useState<CadastroIgrejaStorageDto | null>(null);
+28	  const [loadingDados, setLoadingDados] = useState(true);
+29	
+30	  // Cooldown para reenviar email
+31	  const [cooldownRestante, setCooldownRestante] = useState(0);
+32	  const cooldownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+33	
+34	  // Polling control
+35	  const pollingStartTimeRef = useRef<number | null>(null);
+36	  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+37	
+38	  // Flag para prevenir chamadas duplicadas de onConfirmado
+39	  const onConfirmadoCalledRef = useRef(false);
+40	
+41	  // Carrega dados do storage ao montar
+42	  useEffect(() => {
+43	    const carregarDados = async () => {
+44	      try {
+45	        const dados = await CadastroIgrejaRepository.obterDadosCadastro();
+46	        setDadosCadastro(dados);
+47	      } catch (error) {
+48	        console.log('Erro ao carregar dados do cadastro:', error);
+49	      } finally {
+50	        setLoadingDados(false);
+51	      }
+52	    };
+53	    carregarDados();
+54	  }, []);
+55	
+56	  // Query para status
+57	  const statusQuery = useQuery<StatusCadastroResponseDto | null>({
+58	    queryKey: ['cadastro-igreja-status', dadosCadastro?.cadastroId],
+59	    queryFn: async () => {
+60	      if (!dadosCadastro) return null;
+61	      return CadastroIgrejaRepository.obterStatus(
+62	        dadosCadastro.cadastroId,
+63	        dadosCadastro.cadastroSecret,
+64	      );
+65	    },
+66	    enabled: !!dadosCadastro,
+67	    staleTime: 10000,
+68	  });
+69	
+70	  // Verifica se foi confirmado
+71	  useEffect(() => {
+72	    const shouldTrigger =
+73	      statusQuery.data?.statusSolicitacao === IgrejaCadastroSolicitacaoStatusEnum.CONCLUIDO &&
+74	      !onConfirmadoCalledRef.current;
+75	
+76	    if (shouldTrigger) {
+77	      onConfirmadoCalledRef.current = true;
+78	      pararPolling();
+79	
+80	      // Pequeno delay para garantir que o componente está pronto
+81	      setTimeout(() => {
+82	        onConfirmado?.(statusQuery.data);
+83	      }, 50);
+84	    }
+85	  }, [statusQuery.data?.statusSolicitacao, onConfirmado]);
+86	
+87	  // Polling automático (opcional)
+88	  useEffect(() => {
+89	    if (!enablePolling || !dadosCadastro) return;
+90	
+91	    pollingStartTimeRef.current = Date.now();
+92	
+93	    pollingIntervalRef.current = setInterval(() => {
+94	      const elapsed = Date.now() - (pollingStartTimeRef.current || 0);
+95	
+96	      if (elapsed >= POLLING_MAX_DURATION_MS) {
+97	        pararPolling();
+98	        return;
+99	      }
+100	
+101	      statusQuery.refetch();
+102	    }, POLLING_INTERVAL_MS);
+103	
+104	    return () => pararPolling();
+105	  }, [enablePolling, dadosCadastro]);
+106	
+107	  const pararPolling = useCallback(() => {
+108	    if (pollingIntervalRef.current) {
+109	      clearInterval(pollingIntervalRef.current);
+110	      pollingIntervalRef.current = null;
+111	    }
+112	  }, []);
+113	
+114	  // Cooldown timer
+115	  useEffect(() => {
+116	    if (cooldownRestante <= 0) {
+117	      if (cooldownIntervalRef.current) {
+118	        clearInterval(cooldownIntervalRef.current);
+119	        cooldownIntervalRef.current = null;
+120	      }
+121	      return;
+122	    }
+123	
+124	    cooldownIntervalRef.current = setInterval(() => {
+125	      setCooldownRestante((prev) => Math.max(0, prev - 1));
+126	    }, 1000);
+127	
+128	    return () => {
+129	      if (cooldownIntervalRef.current) {
+130	        clearInterval(cooldownIntervalRef.current);
+131	      }
+132	    };
+133	  }, [cooldownRestante]);
+134	
+135	  // Mutation para reenviar email
+136	  const reenviarEmailMutation = useMutation({
+137	    mutationFn: async () => {
+138	      if (!dadosCadastro) throw new Error('Dados do cadastro não encontrados');
+139	      return CadastroIgrejaRepository.reenviarEmail(
+140	        dadosCadastro.cadastroId,
+141	        dadosCadastro.cadastroSecret,
+142	      );
+143	    },
+144	    onSuccess: () => {
+145	      Toast.show({
+146	        type: 'success',
+147	        text1: 'E-mail reenviado!',
+148	        text2: 'Verifique sua caixa de entrada.',
+149	      });
+150	      setCooldownRestante(COOLDOWN_SEGUNDOS);
+151	      queryClient.invalidateQueries({ queryKey: ['cadastro-igreja-status'] });
+152	    },
+153	    onError: (error: any) => {
+154	      const message = error?.response?.data?.message || 'Erro ao reenviar e-mail. Tente novamente.';
+155	      Toast.show({
+156	        type: 'error',
+157	        text1: 'Erro',
+158	        text2: message,
+159	      });
+160	    },
+161	  });
+162	
+163	  // Mutation para alterar email
+164	  const alterarEmailMutation = useMutation({
+165	    mutationFn: async (novoEmail: string) => {
+166	      if (!dadosCadastro) throw new Error('Dados do cadastro não encontrados');
+167	      return CadastroIgrejaRepository.alterarEmail(
+168	        dadosCadastro.cadastroId,
+169	        dadosCadastro.cadastroSecret,
+170	        { novoEmail },
+171	      );
+172	    },
+173	    onSuccess: async (_, novoEmail) => {
+174	      // Atualiza os dados no storage
+175	      if (dadosCadastro) {
+176	        const novosDados = { ...dadosCadastro, responsavelEmail: novoEmail };
+177	        await CadastroIgrejaRepository.salvarDadosCadastro(novosDados);
+178	        setDadosCadastro(novosDados);
+179	      }
+180	
+181	      Toast.show({
+182	        type: 'success',
+183	        text1: 'E-mail alterado!',
+184	        text2: 'Um novo link foi enviado para o novo endereço.',
+185	      });
+186	      setCooldownRestante(COOLDOWN_SEGUNDOS);
+187	      queryClient.invalidateQueries({ queryKey: ['cadastro-igreja-status'] });
+188	    },
+189	    onError: (error: any) => {
+190	      const message = error?.response?.data?.message || 'Erro ao alterar e-mail. Tente novamente.';
+191	      Toast.show({
+192	        type: 'error',
+193	        text1: 'Erro',
+194	        text2: message,
+195	      });
+196	    },
+197	  });
+198	
+199	  // Verificar confirmação manualmente
+200	  const verificarConfirmacao = useCallback(async () => {
+201	    const result = await statusQuery.refetch();
+202	
+203	    if (result.data?.statusSolicitacao === IgrejaCadastroSolicitacaoStatusEnum.CONCLUIDO) {
+204	      return result.data;
+205	    }
+206	
+207	    Toast.show({
+208	      type: 'info',
+209	      text1: 'Aguardando confirmação',
+210	      text2: 'O e-mail ainda não foi confirmado.',
+211	    });
+212	    return null;
+213	  }, [statusQuery]);
+214	
+215	  // Limpar dados do cadastro (após confirmação)
+216	  const limparDadosCadastro = useCallback(async () => {
+217	    await CadastroIgrejaRepository.limparDadosCadastro();
+218	    setDadosCadastro(null);
+219	  }, []);
+220	
+221	  return {
+222	    // Dados
+223	    dadosCadastro,
+224	    loadingDados,
+225	    status: statusQuery.data,
+226	    isLoadingStatus: statusQuery.isLoading,
+227	
+228	    // Ações
+229	    verificarConfirmacao,
+230	    reenviarEmail: reenviarEmailMutation.mutate,
+231	    alterarEmail: alterarEmailMutation.mutate,
+232	    limparDadosCadastro,
+233	
+234	    // Estados de loading
+235	    isReenviando: reenviarEmailMutation.isPending,
+236	    isAlterandoEmail: alterarEmailMutation.isPending,
+237	    isVerificando: statusQuery.isFetching,
+238	
+239	    // Cooldown
+240	    cooldownRestante,
+241	    cooldownAtivo: cooldownRestante > 0,
+242	  };
+243	}

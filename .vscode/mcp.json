@@ -1,0 +1,13 @@
+{
+  "servers": {
+    "Sentry": {
+      "url": "https://mcp.sentry.dev/mcp/artos-uw/artos-volunteers",
+      "type": "http"
+    },
+    "Expo": {
+      "command": "npx",
+      "args": ["-y", "@expo/mcp"],
+      "type": "stdio"
+    }
+  }
+}

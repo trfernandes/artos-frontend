@@ -1,0 +1,5 @@
+appId: com.church.artos
+---
+- openLink: diakonia:///inicio
+- waitForAnimationToEnd:
+    timeout: 4000

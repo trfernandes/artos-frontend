@@ -1,127 +1,183 @@
-import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
+import { View, StyleSheet, StyleProp, ViewStyle, ImageSourcePropType } from 'react-native';
+import { useMemo, useState } from 'react';
 import FancyScrollView from '../../FancyScrollView';
-import FancyVerticalImageCard from './FancyVerticalImageCard';
 import { CustomIconProps } from '../../FancyIcons';
-import FancyVerticalLetterCard from './FancyVerticalLetterCard';
 import FancyVerticalCheckboxCard from './FancyVerticalCheckboxCard';
+import FancyListEmpty, { FancyListEmptyProps } from '../../list/FancyListEmpty';
+import FancyVerticalImageCard from './FancyVerticalImageCard';
 
-interface DataType {
+export type TopElementType = 'image' | 'letter' | 'icon' | 'check';
+
+type BaseDataType = {
   title: string;
   subtitle?: string;
   selected?: boolean;
-  topElement:
-    | { type: 'image'; imageUrl?: string }
-    | { type: 'letter'; letter?: string }
-    | { type: 'icon'; icon?: CustomIconProps }
-    | { type: 'check'; checked: boolean; image: string };
+  key?: string | number;
   linkedData?: any;
-}
+};
 
-export interface FancyVerticalContainerCardProps {
-  data: DataType[];
-  itemProps?: {
-    additionalData?: React.ReactNode;
-    topLeftIcon?: { onPress?: (data: DataType) => void; customIcon?: CustomIconProps };
-    topRightIcon?: { onPress?: (data: DataType) => void; customIcon?: CustomIconProps };
-  };
-  widthFactor?: number;
-  itemHeight?: number;
+type TopElementValueMap = {
+  image: { source?: ImageSourcePropType; size?: number; highlighted?: boolean };
+  letter: { letter?: string };
+  icon: { icon?: CustomIconProps };
+  check: { checked: boolean; image: ImageSourcePropType | string };
+};
+
+export type DataType<T extends TopElementType = TopElementType> = BaseDataType &
+  TopElementValueMap[T];
+
+export interface FancyVerticalContainerCardProps<T extends TopElementType = TopElementType> {
+  topElementType: T;
+  data: DataType<T>[];
+
+  numColumns?: number;
+  columnSpacing?: number;
+  rowSpacing?: number;
+
+  itemHeight?: number | ((item: DataType<T>) => number);
+
   containerStyle?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
+
+  onChangeValue?: T extends 'check'
+    ? (item: DataType<'check'>, value: boolean, index: number) => void
+    : undefined;
+  listEmptyProps?: FancyListEmptyProps;
 }
 
-export default function FancyVerticalContainerCard({
+const DEFAULT_ITEM_HEIGHT = 160;
+const COMPACT_ITEM_HEIGHT = 140;
+
+export default function FancyVerticalContainerCard<T extends TopElementType>({
+  topElementType,
   data,
-  itemProps,
-  widthFactor = 3.2,
+  numColumns = 3,
+  columnSpacing = 5,
+  rowSpacing = 5,
   itemHeight,
   containerStyle,
   contentContainerStyle,
-}: FancyVerticalContainerCardProps) {
-  const quantLinhas = Math.ceil(data.length / 3);
-  const quantItensNecessarios = quantLinhas * 3;
+  onChangeValue,
+  listEmptyProps,
+}: FancyVerticalContainerCardProps<T>) {
+  const [containerWidth, setContainerWidth] = useState(0);
 
-  return (
+  const onLayout = (e: any) => {
+    const width = e.nativeEvent.layout.width;
+    if (width !== containerWidth) setContainerWidth(width);
+  };
+
+  // 🔥 Detectar paddingHorizontal do contentContainerStyle
+  const horizontalPadding = (() => {
+    const style = StyleSheet.flatten(contentContainerStyle) || {};
+    const padding = typeof style.paddingHorizontal === 'number' ? style.paddingHorizontal : 0;
+    return padding * 2;
+  })();
+
+  // 🔥 Calcular largura REAL disponível
+  const availableWidth = containerWidth - horizontalPadding - 1;
+
+  // 🔥 total dos "gaps" entre os cards
+  const totalGaps = columnSpacing * (numColumns - 1);
+
+  // 🔥 largura final do card
+  const computedItemWidth = useMemo(() => {
+    if (availableWidth <= 0) return 0;
+    return (availableWidth - totalGaps) / numColumns;
+  }, [availableWidth, numColumns, columnSpacing]);
+
+  const rows = Math.ceil((data?.length ?? 0) / numColumns);
+  const totalSlots = rows * numColumns;
+
+  const computeHeight = (card: any) => {
+    if (typeof itemHeight === 'function') return itemHeight(card);
+    if (typeof itemHeight === 'number') return itemHeight;
+    return card?.subtitle ? DEFAULT_ITEM_HEIGHT : COMPACT_ITEM_HEIGHT;
+  };
+
+  // console.log(
+  //   'FancyVerticalContainerCard Values:',
+  //   strfyObj({
+  //     numColumns,
+  //     columnSpacing,
+  //     containerWidth,
+  //     availableWidth,
+  //     totalGaps,
+  //     computedItemWidth,
+  //     computeHeight,
+  //     horizontalPadding,
+  //     rows,
+  //     totalSlots,
+  //   })
+  // );
+
+  const renderCard = (card: any, index: number) => {
+    const style: ViewStyle = {
+      width: computedItemWidth,
+      height: computeHeight(card),
+      borderWidth: 0,
+    };
+
+    if (!card) return <View key={`empty-${index}`} style={style} />;
+
+    if (topElementType === 'check') {
+      const typed = data as DataType<'check'>[];
+      const item = typed[index];
+
+      return (
+        <FancyVerticalCheckboxCard
+          key={card.key ?? card.title ?? index}
+          value={item.checked}
+          title={card.title}
+          subtitle={card.subtitle}
+          source={typeof item.image === 'string' ? { uri: item.image } : item.image}
+          containerStyle={style}
+          onChangeValue={(v) => (onChangeValue as any)?.(item, v, index)}
+        />
+      );
+    }
+
+    if (topElementType === 'image') {
+      const typed = data as DataType<'image'>[];
+      const item = typed[index];
+
+      return (
+        <FancyVerticalImageCard
+          key={card.key ?? card.title ?? index}
+          title={card.title}
+          source={item.source}
+          highlighted={item.highlighted}
+          subtitle={card.subtitle}
+          containerStyle={[style, {}]}
+        />
+      );
+    }
+  };
+
+  return data.length > 0 ? (
     <FancyScrollView
-      contentContainerStyle={[styles.contentContainer, contentContainerStyle]}
-      style={[{ borderWidth: 0 }, containerStyle]}
+      style={containerStyle}
+      onLayout={onLayout}
+      contentContainerStyle={[
+        styles.contentContainer,
+        {
+          columnGap: columnSpacing,
+          rowGap: rowSpacing,
+        },
+        contentContainerStyle,
+      ]}
     >
-      {Array.from({ length: quantItensNecessarios }, (_, index) => index).map(index => {
-        if (index >= data.length)
-          return <View key={index} style={{ height: 160, width: `${100 / widthFactor}%` }}></View>;
-        else {
-          if (data[index].topElement.type === 'image')
-            return (
-              <FancyVerticalImageCard
-                selected={data[index].selected}
-                key={index}
-                title={data[index].title}
-                subtitle={data[index].subtitle}
-                url={data[index].topElement.imageUrl}
-                additionalElement={itemProps?.additionalData}
-                containerStyle={{ height: itemHeight || 160, width: `${100 / widthFactor}%` }}
-                topRightIcon={
-                  itemProps?.topRightIcon && {
-                    customIcon: itemProps?.topRightIcon?.customIcon,
-                    onPress:
-                      itemProps?.topRightIcon?.onPress && (() => itemProps?.topRightIcon?.onPress?.(data[index])),
-                  }
-                }
-                topLeftIcon={
-                  itemProps?.topLeftIcon && {
-                    customIcon: itemProps?.topLeftIcon?.customIcon,
-                    onPress: itemProps?.topLeftIcon?.onPress && (() => itemProps?.topLeftIcon?.onPress?.(data[index])),
-                  }
-                }
-              />
-            );
-
-          if (data[index].topElement.type === 'letter')
-            return (
-              <FancyVerticalLetterCard
-                key={index}
-                title={data[index].title}
-                subtitle={data[index].subtitle}
-                char={data[index].topElement.letter}
-                containerStyle={{ height: itemHeight || 160, width: `${100 / widthFactor}%` }}
-                topRightIcon={
-                  itemProps?.topRightIcon && {
-                    customIcon: itemProps?.topRightIcon?.customIcon,
-                    onPress:
-                      itemProps?.topRightIcon?.onPress && (() => itemProps?.topRightIcon?.onPress?.(data[index])),
-                  }
-                }
-                topLeftIcon={
-                  itemProps?.topLeftIcon && {
-                    customIcon: itemProps?.topLeftIcon?.customIcon,
-                    onPress: itemProps?.topLeftIcon?.onPress && (() => itemProps?.topLeftIcon?.onPress?.(data[index])),
-                  }
-                }
-                additionalElement={itemProps?.additionalData}
-              />
-            );
-
-          if (data[index].topElement.type === 'check')
-            return (
-              <FancyVerticalCheckboxCard
-                value={data[index].topElement.checked}
-                title={data[index].title}
-                image={data[index].topElement.image}
-                containerStyle={{ height: itemHeight || 160, width: `${100 / widthFactor}%` }}
-              />
-            );
-        }
-      })}
+      {Array.from({ length: totalSlots }, (_, i) => renderCard(data[i], i))}
     </FancyScrollView>
+  ) : (
+    <FancyListEmpty {...listEmptyProps} />
   );
 }
 
 const styles = StyleSheet.create({
   contentContainer: {
-    gap: 5,
-    rowGap: 15,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    paddingBottom: 25,
   },
 });

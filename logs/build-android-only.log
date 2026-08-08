@@ -1,0 +1,35 @@
+[18/06/2026  7:37:51,97] Iniciando build Android sem submit
+? eas-cli@20.2.0 is now available.
+To upgrade, run:
+npm install -g eas-cli
+Proceeding with outdated version.
+System.Management.Automation.RemoteException
+Resolved "production" environment for the build. Learn more: https://docs.expo.dev/eas/environment-variables/#setting-the-environment-for-your-builds
+No environment variables with visibility "Plain text" and "Sensitive" found for the "production" environment on EAS.
+Environment variables loaded from the "production" build profile "env" configuration: EAS_GRADLE_CACHE, SENTRY_DISABLE_AUTO_UPLOAD, EXPO_PUBLIC_API_URL, EXPO_PUBLIC_SENTRY_DSN.
+
+- Incrementing versionCode from 13 to 14.
+v Incremented versionCode from 13 to 14.
+
+
+android.versionCode field in app config is ignored when version source is set to remote, but this value will still be in the manifest available via expo-constants. It's recommended to remove this value from app config.
+v Using remote Android credentials (Expo server)
+v Using Keystore from configuration: Build Credentials svxkmmrzkN (default)
+
+Compressing project files and uploading to EAS Build. Learn more: https://expo.fyi/eas-build-archive
+- Compressing project files
+- Uploading to EAS Build (0 / 44.4 MB)
+v Uploaded to EAS 3s
+- Computing project fingerprint
+?? Computing the project fingerprint is taking longer than expected...
+? To skip this step, set the environment variable: EAS_SKIP_AUTO_FINGERPRINT=1
+v Computed project fingerprint
+
+See logs: https://expo.dev/accounts/trfernandes/projects/artos_frontend/builds/3c2c70e5-9f62-4df2-b4ca-4d572f893b8e
+
+Waiting for build to complete. You can press Ctrl+C to exit.
+- Waiting for build to complete.
+v Build finished
+
+?? Android app:
+https://expo.dev/artifacts/eas/AB_bqk4nwPrpJW95c1l1t4zB63adOiLmXuXl5uULphs.aab

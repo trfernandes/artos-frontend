@@ -1,0 +1,45 @@
+# Flow: Tela de Ministerios acessivel com billing ativo (sem bloqueio)
+#
+# Uso:
+#   maestro test flows/billing-ministerios-acesso.yaml
+#
+# Pre-condicao: conta Ativa (isBlocked=false, isMinistryLimitReached=false)
+#
+# O que verifica:
+#   - Tela de ministerios carrega sem crash
+#   - Nenhum BillingNoticeBanner visivel (active = sem banner)
+#   - Nenhum modal de bloqueio aberto automaticamente
+#   - Tela normal e funcional
+
+appId: com.church.artos
+---
+- launchApp
+- runFlow: _login.yaml
+
+- openLink: diakonia:///inicio
+- extendedWaitUntil:
+    visible: 'Início'
+    timeout: 120000
+
+- openLink: diakonia:///admin/ministerios
+- waitForAnimationToEnd:
+    timeout: 15000
+
+# Header da tela carregou
+- assertVisible: 'Ministérios'
+
+# Nenhum banner de billing deve aparecer em conta ativa
+- assertNotVisible: 'Avaliação encerrada'
+- assertNotVisible: 'Pagamento em atraso'
+- assertNotVisible: 'Sua cobrança está pendente'
+- assertNotVisible: 'Capacidade excedida'
+- assertNotVisible: 'Assinatura cancelada'
+- assertNotVisible: 'Assinatura inativa'
+- assertNotVisible: 'Versão avaliativa'
+
+# Nenhum modal de planos abriu automaticamente
+- assertNotVisible: 'Escolher plano'
+- assertNotVisible: 'Opcoes de Planos'
+- assertNotVisible: 'Ver planos'
+
+- takeScreenshot: billing-ministerios-acesso

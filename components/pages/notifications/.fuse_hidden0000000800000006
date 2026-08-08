@@ -1,0 +1,152 @@
+import { Pressable, StyleSheet, View } from 'react-native';
+import FancyCardIcon from '../../cards/Horizontal/FancyCardIcon';
+import FancyText from '../../FancyText';
+import { formatInTimeZone } from 'date-fns-tz';
+import { DefaultIconsNames } from '../../../constants/icons';
+import { ResponseNotificacaoDto } from '../../../domain/dtos/Notificacao/notificacao.response';
+import { usePallete } from '../../../hooks/usePallete';
+
+// Tempo abreviado para caber na linha do titulo sem cortar
+function timeAgoShort(date: Date): string {
+  const now = new Date();
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  if (seconds < 60) return 'agora';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}m`;
+  return `${Math.floor(months / 12)}a`;
+}
+
+export default function EscalaLembreteNotificacaoCard({
+  data,
+  onPress,
+}: {
+  data: ResponseNotificacaoDto;
+  onPress?: (notification: ResponseNotificacaoDto) => void;
+}) {
+  const Pallete = usePallete();
+
+  const createdAt = data.criadaEm || data.createdAt;
+  const timeLabel = createdAt ? timeAgoShort(new Date(createdAt)) : '';
+
+  const payload = data.data ?? {};
+  const hasOccurrence = typeof payload.dataOcorrencia === 'string' && payload.dataOcorrencia.length > 0;
+
+  const occurrenceDate = hasOccurrence ? new Date(payload.dataOcorrencia) : null;
+  const isMidnight =
+    occurrenceDate
+      ? occurrenceDate.getUTCHours() === 0 && occurrenceDate.getUTCMinutes() === 0
+      : false;
+  const occurrenceLabel = hasOccurrence
+    ? formatInTimeZone(
+        payload.dataOcorrencia,
+        'America/Sao_Paulo',
+        isMidnight ? 'dd/MM' : "dd/MM 'as' HH:mm",
+      )
+    : null;
+
+  const title = data.titulo?.trim() ? data.titulo : 'Lembrete de Escala';
+  const eventoNome = payload.eventoNome ?? null;
+  const funcaoNome = payload.funcaoNome ?? null;
+
+  // Linha 3: funcao · data (compacto)
+  const detailParts = [funcaoNome, occurrenceLabel].filter(Boolean);
+  const detailLine = detailParts.length > 0 ? detailParts.join(' · ') : null;
+
+  // Fallback se nao tiver payload estruturado
+  const fallbackMsg = !eventoNome && !detailLine ? (data.mensagem ?? null) : null;
+
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.pressable, pressed && styles.pressed]}
+      onPress={() => onPress?.(data)}
+      disabled={!onPress}
+      accessibilityRole={onPress ? 'button' : undefined}
+    >
+      <FancyCardIcon
+        cardIcon={{ library: 'MaterialCommunityIcons', name: 'message-text-clock-outline', size: 14 }}
+        title={
+          // Linha 1: titulo + tempo abreviado
+          <View style={styles.titleRow}>
+            <FancyText size='small' type='semiBold' numberOfLines={1} style={[styles.titleText, { color: Pallete.fonts.dark }]}>
+              {title}
+            </FancyText>
+            <FancyText size='extraSmall' type='normal' style={[styles.timeText, { color: Pallete.fonts.inactive }]}>
+              {timeLabel}
+            </FancyText>
+          </View>
+        }
+        subtitle={
+          <View style={styles.metaBlock}>
+            {eventoNome ? (
+              // Linha 2: nome do evento
+              <FancyText type='medium' size='extraSmall' numberOfLines={1} style={[styles.eventLine, { color: Pallete.fonts.dark }]}>
+                {eventoNome}
+              </FancyText>
+            ) : null}
+            {detailLine ? (
+              // Linha 3: funcao · data
+              <FancyText type='normal' size='extraSmall' numberOfLines={1} style={[styles.detailLine, { color: Pallete.fonts.inactive }]}>
+                {detailLine}
+              </FancyText>
+            ) : null}
+            {fallbackMsg ? (
+              <FancyText type='normal' size='extraSmall' numberOfLines={2} style={[styles.detailLine, { color: Pallete.fonts.inactive }]}>
+                {fallbackMsg}
+              </FancyText>
+            ) : null}
+          </View>
+        }
+        actionButtons={[
+          {
+            icon: {
+              ...DefaultIconsNames['chevron-right'],
+              size: 18,
+              color: Pallete.fonts.inactive,
+              backgroundColor: 'transparent',
+            },
+            size: 'small',
+          },
+        ]}
+      />
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  pressable: {
+    borderRadius: 24,
+  },
+  pressed: {
+    opacity: 0.85,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
+  },
+  titleText: {
+    flex: 1,
+    opacity: 0.9,
+  },
+  timeText: {
+    flexShrink: 0,
+    opacity: 0.55,
+  },
+  metaBlock: {
+    gap: 2,
+  },
+  eventLine: {
+    lineHeight: 17,
+    opacity: 0.85,
+  },
+  detailLine: {
+    lineHeight: 16,
+    opacity: 0.65,
+  },
+});

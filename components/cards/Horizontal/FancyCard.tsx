@@ -6,7 +6,8 @@ import FancyCardIcon, { FancyCardIconProps } from './FancyCardIcon';
 import FancyCardImage, { FancyCardImageProps } from './FancyCardImage';
 import FancyCardLetter, { FancyCardLetterProps } from './FancyCardLetter';
 import FancyCardColor, { FancyCardColorProps } from './FancyCardColor';
-import FancyBaseCard from './FancyBaseCard';
+import FancyBaseCard, { FancyBaseCardProps } from './FancyBaseCard';
+import { ActionButtonProps } from './FancyCardActionButtons';
 
 export type CardType = 'card' | 'checkbox' | 'color' | 'icon' | 'image' | 'letter' | 'simple';
 
@@ -21,6 +22,29 @@ FancyCard.CheckBox = function (props: FancyCardCheckboxProps) {
 FancyCard.Color = function (props: FancyCardColorProps) {
   return <FancyCardColor {...props} />;
 };
+
+export type FancyCardImageBaseProps = {
+  actionButtons?: ActionButtonProps | ActionButtonProps[] | ReactNode;
+} & Pick<
+  FancyBaseCardProps,
+  | 'title'
+  | 'subtitle'
+  | 'additionalData1'
+  | 'additionalData2'
+  | 'content'
+  | 'containerStyle'
+  | 'contentContainerStyle'
+  | 'titleProps'
+  | 'subtitleProps'
+  | 'isCollapsable'
+  | 'centerContainerStyle'
+  | 'backgroundColor'
+  | 'onPress'
+  | 'onLongPress'
+  | 'delayLongPress'
+  | 'accessibilityRole'
+  | 'accessibilityLabel'
+>;
 
 export type ImageType = { type: 'image'; props: FancyCardImageProps };
 export type IconType = { type: 'icon'; props: FancyCardIconProps };

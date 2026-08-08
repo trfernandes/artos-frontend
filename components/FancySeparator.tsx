@@ -1,5 +1,5 @@
 import { View, StyleProp, ViewStyle, StyleSheet } from 'react-native';
-import { Pallete } from '../constants/colors';
+import { usePallete } from '../hooks/usePallete';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export type FancySeparatorProps = {
@@ -9,6 +9,7 @@ export type FancySeparatorProps = {
 };
 
 export default function FancySeparator(props: FancySeparatorProps) {
+  const Pallete = usePallete();
   // Use a cor padrão ou a cor fornecida
   const baseColor = props.color || Pallete.border;
 
@@ -22,7 +23,7 @@ export default function FancySeparator(props: FancySeparatorProps) {
         locations={[0, 0.2, 0.8, 1]}
         start={{ x: 0, y: 0.5 }}
         end={{ x: 1, y: 0.5 }}
-        style={{ height: props.height || 0.4, flex: 1 }}
+        style={{ height: props.height || 0.4, width: '100%' }}
       />
     </View>
   );
@@ -31,6 +32,8 @@ export default function FancySeparator(props: FancySeparatorProps) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    borderWidth:0
+    alignSelf: 'stretch',
+    width: '100%',
+    // borderWidth: 1,
   },
 });

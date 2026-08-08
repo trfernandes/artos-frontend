@@ -1,159 +1,204 @@
-import { StyleSheet, TouchableOpacity } from 'react-native';
-import { Pallete } from '../../../../constants/colors';
-import { useState } from 'react';
-import DefaultIcons from '../../../FancyIcons';
+import { LayoutAnimation, Pressable, StyleSheet, View } from 'react-native';
 import FancyText from '../../../FancyText';
-import { DefaultIconsNames } from '../../../../constants/icons';
-import EventoRepeticaoInputCustom from './EventoRepeticaoInputCustom';
-import FancySettingItem from '../../../FancySettingItem';
-import { Controller, useFormContext } from 'react-hook-form';
-import { EventoFormData } from '../../../../hooks/useEventos';
-import { RecorrenciaEnum } from '../../../../domain/models/Evento';
+import { useFormContext } from 'react-hook-form';
+import { generateRecorrenciaJoinableDescription } from '../../../../hooks/useEventosCrud';
+import FancyErrorText from '../../../forms/FancyErrorText';
+import { EventoFormData } from '../../../../domain/schemas/eventoSchema';
+import { RecorrenciaEnum } from '../../../../domain/enums/Evento/recorrencia.enum';
+import FancySegmentedControl from '../../../fields/FancySegmentedControl';
+import { FancyAlert } from '../../../modal/FancyAlert';
+import { usePallete } from '../../../../hooks/usePallete';
+import DefaultIcons from '../../../FancyIcons';
+import { ColorUtils } from '../../../../utils/color_utils';
 
 export type RecorrenciaValue = { type: 'Nunca' } | { type: 'Personalizado' };
 export type EventoRepeticaoInputProps = {
-  value?: RecorrenciaValue;
-  onChange?: (value: RecorrenciaValue) => void;
   disabled?: boolean;
+  setRepeticaoModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-export default function EventoRepeticaoInput({ value, onChange, disabled = false }: EventoRepeticaoInputProps) {
-  const [recorrenciaValue, setRecorrenciaValue] = useState<RecorrenciaValue>(value || { type: 'Nunca' });
-  const [modalVisible, setModalVisible] = useState(false);
+const RECORRENCIA_OPTIONS = [
+  { label: 'Nunca', value: 'NUNCA' as const },
+  { label: 'Personalizado', value: 'PERSONALIZADO' as const },
+];
 
-  // const generateDescription = (frequencia: Frequencia) => {
-  //   let result = '';
+export default function EventoRepeticaoInput({
+  disabled = false,
+  setRepeticaoModalVisible,
+}: EventoRepeticaoInputProps) {
+  const palette = usePallete();
+  const {
+    setValue,
+    getValues,
+    watch,
+    formState: { errors },
+  } = useFormContext<EventoFormData>();
 
-  //   switch (frequencia.type) {
-  //     case 'Semanal':
-  //       if (!frequencia.data?.diasSemana || frequencia.data.diasSemana.length === 0) {
-  //         result = 'Nenhum dia';
-  //       } else if (frequencia.data.diasSemana.length === 7) {
-  //         result = 'Todos os dias';
-  //       } else {
-  //         const dias = frequencia.data.diasSemana.map(item => DIAS_SEMANA[item]);
-  //         if (dias.length === 1) {
-  //           result = `Todos ${dias[0].artigo} ${dias[0].plural}`;
-  //         } else if (dias.length === 2) {
-  //           result = `Todos ${dias[0].artigo} ${dias[0].plural} e ${dias[1].plural}`;
-  //         } else {
-  //           result = `Todos ${dias[0].artigo} ${dias.slice(0, -1).join(', ')} e ${dias[dias.length - 1].plural}`;
-  //         }
-  //       }
-  //       break;
+  const recorrencia = watch('recorrencia');
+  const recorrenciaSemanaDias = watch('recorrenciaSemanaDias');
+  const recorrenciaSemanasMes = watch('recorrenciaSemanasMes');
 
-  //     case 'Mensal':
-  //       //A CADA MES
+  const isPersonalizado = recorrencia !== undefined && recorrencia !== RecorrenciaEnum.Nunca;
+  const isConfigurado =
+    (recorrenciaSemanaDias?.length ?? 0) > 0 || (recorrenciaSemanasMes?.length ?? 0) > 0;
 
-  //       result = `A cada (${frequencia.data?.aCadaMes ? frequencia.data?.aCadaMes : 0}) Mês(es)`;
-
-  //       result += '\n';
-
-  //       // SEMANAS DO MÊS
-  //       if (!frequencia.data?.semanasDoMes || frequencia.data?.semanasDoMes?.length === 0) {
-  //         result += 'Em nenhuma semana';
-  //       } else if (frequencia.data?.semanasDoMes?.length === 1) {
-  //         result += `Na ${frequencia.data?.semanasDoMes?.map(item => SEMANAS_MES[item].abreviado).join(', ')} semana do mês`;
-  //       } else if (frequencia.data?.semanasDoMes?.length === Object.keys(SEMANAS_MES).length) {
-  //         result += `Em todas as semanas do mês`;
-  //       } else {
-  //         result += `Nas ${frequencia.data?.semanasDoMes
-  //           ?.slice(0, -1)
-  //           .map(item => SEMANAS_MES[item].abreviado)
-  //           .join(', ')} e ${frequencia.data?.semanasDoMes?.slice(-1).map(item => SEMANAS_MES[item].abreviado)} semanas do mês`;
-  //       }
-
-  //       result += '\n';
-
-  //       // DIAS DA SEMANA
-  //       if (!frequencia.data?.diasSemana || frequencia.data.diasSemana.length === 0) {
-  //         result += 'Em nenhum dia da semana';
-  //       } else if (frequencia.data.diasSemana.length === 7) {
-  //         result += 'Em todos os dias';
-  //       } else {
-  //         const dias = frequencia.data.diasSemana.map(item => DIAS_SEMANA[item]);
-  //         if (dias.length === 1) {
-  //           result += `Em todos(as) ${dias[0].plural}`;
-  //         } else if (dias.length === 2) {
-  //           result += `Em todos(as) ${dias[0].plural} e ${dias[1].plural}`;
-  //         } else {
-  //           result += `Em todos(as) ${dias.slice(0, -1).join(', ')} e ${dias[dias.length - 1].plural}`;
-  //         }
-  //       }
-  //       break;
-
-  //     default:
-  //       break;
-  //   }
-
-  //   return result;
-  // };
-
-  const { control } = useFormContext<EventoFormData>();
+  const handleRecorrenciaChange = (v: 'NUNCA' | 'PERSONALIZADO') => {
+    if (v === 'NUNCA') {
+      if (isConfigurado) {
+        FancyAlert.alert('Limpar recorrência?', 'Os dias configurados serão removidos.', [
+          { text: 'Cancelar', style: 'destructive', onPress: () => {} },
+          {
+            text: 'Confirmar',
+            onPress: () => {
+              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+              setValue('recorrencia', RecorrenciaEnum.Nunca);
+              setValue('recorrenciaSemanaDias', []);
+              setValue('recorrenciaSemanasMes', []);
+              setValue('recorrenciaACadaMeses', undefined as any);
+            },
+          },
+        ]);
+      } else {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setValue('recorrencia', RecorrenciaEnum.Nunca);
+      }
+    } else {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setValue('recorrencia', RecorrenciaEnum.Semanal);
+      setRepeticaoModalVisible(true);
+    }
+  };
 
   return (
-    <Controller
-      control={control}
-      name="recorrencia"
-      render={({ field: { value, onChange: controllerOnChange } }) => (
-        <FancySettingItem
-          disabled={disabled}
-          icon={{ library: 'Feather', name: 'repeat', size: 14 }}
-          label={'Recorrência'}
-          value={value === RecorrenciaEnum.Nunca ? 'Nunca' : 'Personalizado'}
-          options={[
-            {
-              label: 'Nunca',
-              onPress: () => {
-                setRecorrenciaValue({ type: 'Nunca' });
-                onChange?.({ type: 'Nunca' });
+    <View style={{ gap: 10 }}>
+      <FancySegmentedControl
+        label='Recorrência'
+        options={RECORRENCIA_OPTIONS}
+        value={isPersonalizado ? 'PERSONALIZADO' : 'NUNCA'}
+        onChange={handleRecorrenciaChange}
+        disabled={disabled}
+      />
+
+      {isPersonalizado && (
+        <>
+          <Pressable
+            onPress={() => setRepeticaoModalVisible(true)}
+            style={({ pressed }) => [
+              styles.resumoCard,
+              {
+                backgroundColor: palette.backgroundColor2,
+                borderColor: ColorUtils.withAlpha(palette.primary, 0.16),
               },
-            },
-            {
-              label: 'Personalizado',
-              onPress: () => {
-                setRecorrenciaValue({ type: 'Personalizado' });
-                onChange?.({ type: 'Personalizado' });
-                controllerOnChange(RecorrenciaEnum.Semanal);
-                setModalVisible(true);
-              },
-            },
-          ]}
-        >
-          {recorrenciaValue.type === 'Personalizado' && (
-            <>
-              <TouchableOpacity style={styles.personalizadoContainer} onPress={() => setModalVisible(true)}>
-                <FancyText size={'extraSmall'} type="medium" style={{ lineHeight: 16, flex: 1, borderWidth: 0 }}>
-                  {/* {generateDescription(recorrenciaValue.data)} */}
+              pressed && { opacity: 0.78 },
+            ]}
+          >
+            <View style={[styles.resumoBorder, { backgroundColor: palette.primary }]} />
+            {isConfigurado ? (
+              <>
+                <FancyText
+                  size='small'
+                  type='medium'
+                  color={palette.fonts.dark}
+                  style={styles.resumoText}
+                >
+                  {getValues('recorrencia') !== undefined &&
+                    generateRecorrenciaJoinableDescription(
+                      getValues('recorrencia')!,
+                      getValues('recorrenciaSemanaDias')!,
+                      getValues('recorrenciaACadaMeses')!,
+                      getValues('recorrenciaSemanasMes')!,
+                    )}
                 </FancyText>
-                <DefaultIcons.Custom
-                  library={DefaultIconsNames['chevron-right'].library}
-                  name={DefaultIconsNames['chevron-right'].name}
-                  size={18}
-                  color={Pallete.icons.inactive}
-                />
-              </TouchableOpacity>
-              <EventoRepeticaoInputCustom
-                modalProps={{
-                  visible: modalVisible,
-                  onRequestClose: () => setModalVisible(false),
-                }}
-              />
-            </>
-          )}
-        </FancySettingItem>
+                <View style={styles.linkRow}>
+                  <FancyText size='small' type='semiBold' color={palette.primary}>
+                    Configurar
+                  </FancyText>
+                  <DefaultIcons.Custom
+                    library='Feather'
+                    name='chevron-right'
+                    size={14}
+                    color={palette.primary}
+                  />
+                </View>
+              </>
+            ) : (
+              <>
+                <FancyText
+                  size='small'
+                  type='normal'
+                  color={palette.fonts.inactive}
+                  style={styles.resumoText}
+                >
+                  Nenhum dia configurado
+                </FancyText>
+                <View style={styles.linkRow}>
+                  <FancyText size='small' type='semiBold' color={palette.primary}>
+                    Configurar
+                  </FancyText>
+                  <DefaultIcons.Custom
+                    library='Feather'
+                    name='chevron-right'
+                    size={14}
+                    color={palette.primary}
+                  />
+                </View>
+              </>
+            )}
+          </Pressable>
+        </>
       )}
-    />
+
+      {(errors.recorrencia ||
+        errors.recorrenciaACadaMeses ||
+        errors.recorrenciaSemanaDias ||
+        errors.recorrenciaSemanasMes) && (
+        <FancyErrorText
+          message={`${errors.recorrencia ? errors.recorrencia?.message + '\n' : ''} ${
+            errors.recorrenciaACadaMeses ? errors.recorrenciaACadaMeses?.message + '\n' : ''
+          } ${errors.recorrenciaSemanaDias ? errors.recorrenciaSemanaDias?.message + '\n' : ''} ${
+            errors.recorrenciaSemanasMes ? errors.recorrenciaSemanasMes?.message : ''
+          }`}
+        />
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  personalizadoContainer: {
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  infoRow: {
     flexDirection: 'row',
-    marginBottom: 10,
-    paddingLeft: 10,
-    gap: 15,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 6,
+    paddingHorizontal: 2,
+    gap: 12,
+  },
+  resumoText: {
+    flex: 1,
+    minWidth: 0,
+  },
+  linkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    flexShrink: 0,
+    marginLeft: 8,
+  },
+  resumoCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 8,
+    borderWidth: 1,
+    overflow: 'hidden',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 11,
+  },
+  resumoBorder: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 3,
   },
 });

@@ -1,58 +1,819 @@
-import FancyPageView from '../../../../../components/containers/FancyPageView';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, InteractionManager, StyleSheet, View } from 'react-native';
 import FancyCalendarVertical from '../../../../../components/calendar/FancyCalendarVertical';
-import FancyFab from '../../../../../components/buttons/FancyFab';
-import { DefaultIconsNames } from '../../../../../constants/icons';
-import { Pallete } from '../../../../../constants/colors';
-import { StyleSheet } from 'react-native';
-import { useState } from 'react';
-import DateUtils from '../../../../../utils/data_utils';
+import DateAvailabilityAdjustmentModal from '../../../../../components/pages/pessoal/indisponibilidade/DateAvailabilityAdjustmentModal';
+import { useIndisponibilidadesVoluntariosCrud } from '../../../../../hooks/useIndisponibilidadesVoluntariosCrud';
+import { useRegrasIndisponibilidadeVoluntariosCrud } from '../../../../../hooks/useRegrasIndisponibilidadeVoluntariosCrud';
+import { useAuth } from '../../../../../contexts/AuthContext';
+import { Conjunction, Operator, ValueType } from '../../../../../domain/utils/query_utils';
+import FancyError from '../../../../../components/error/FancyError';
 import Toast from 'react-native-toast-message';
+import { ThemePalette } from '../../../../../constants/colors';
+import FancyFab from '../../../../../components/buttons/FancyFab';
+import FancyButton from '../../../../../components/buttons/FancyButton';
+import AddPeriodoModal from '../../../../../components/pages/pessoal/indisponibilidade/AddPeriodModal';
+import AddRegraModal, {
+  AddRegraModalResult,
+} from '../../../../../components/pages/pessoal/indisponibilidade/AddRegraModal';
+import DateUtils, { DateUtilsApi } from '../../../../../utils/date_utils';
+import FancyLoading from '../../../../../components/FancyLoading';
+import { UpsertIndisponibilidadeVoluntarioItemDto } from '../../../../../domain/dtos/IndisponibilidadeVoluntario/upsert-indisponibilidade-voluntario-item.dto';
+import { usePallete } from '../../../../../hooks/usePallete';
+import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
+import { ColorUtils } from '../../../../../utils/color_utils';
+import { ResponseRegraIndisponibilidadeVoluntarioDto } from '../../../../../domain/dtos/RegraIndisponibilidadeVoluntario/regra-indisponibilidade-voluntario.response';
+import { FancyAlert } from '../../../../../components/modal/FancyAlert';
+import FancyTabs, { TabItem } from '../../../../../components/tabs/FancyTabs';
+import FancyScrollView from '../../../../../components/FancyScrollView';
+import FancyListItemCard from '../../../../../components/cards/FancyListItemCard';
+import FancyText from '../../../../../components/FancyText';
+import FancyListEmpty from '../../../../../components/list/FancyListEmpty';
+import { TutorialTarget } from '../../../../../components/tutorial/TutorialTarget';
+import { TutorialBanner } from '../../../../../components/tutorial/TutorialBanner';
+import { TutorialOverlay } from '../../../../../components/tutorial/TutorialOverlay';
+import { useScreenTutorial } from '../../../../../hooks/useScreenTutorial';
+import {
+  INDISPONIBILIDADES_TOUR_ID,
+  INDISPONIBILIDADES_TOUR_STEPS,
+  INDISPONIBILIDADES_TOUR_TITLE,
+} from '../../../../../components/tutorial/tours/indisponibilidadesTour';
+import { useJourney } from '../../../../../contexts/JourneyContext';
+import {
+  descreverRegra,
+  descreverDetalheRegra,
+  regraIcone,
+  regraChipLabel,
+  regraCor,
+  expandirRegrasParaCalendario,
+} from '../../../../../domain/utils/regra_indisponibilidade_utils';
+
+type ModalState = {
+  visible: boolean;
+  date?: Date;
+  status?: 'available' | 'unavailable';
+  motivo?: string | null;
+};
 
 export default function IndisponibilidadeIndexPage() {
-  const dataAtual = new Date();
-  const dataInicial = new Date(dataAtual.getFullYear() - 1, dataAtual.getMonth(), dataAtual.getDate());
-  const dataFinal = new Date(dataAtual.getFullYear() + 1, dataAtual.getMonth(), dataAtual.getDate());
-  const [markedDates, setMarkedDates] = useState<Date[]>([]);
-  const [mode, setMode] = useState<'view' | 'edit'>('view');
+  const { user, igrejaAtiva } = useAuth();
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+  const userId = user?.user?.id;
+  const igrejaId = igrejaAtiva?.id;
+
+  const [modalState, setModalState] = useState<ModalState>({
+    visible: false,
+    status: 'available',
+  });
+  const [showPeriodoModal, setShowPeriodoModal] = useState(false);
+  const [showRegraModal, setShowRegraModal] = useState(false);
+  const [pendingAddRegra, setPendingAddRegra] = useState<AddRegraModalResult | null>(null);
+  const [editingRegra, setEditingRegra] =
+    useState<ResponseRegraIndisponibilidadeVoluntarioDto | null>(null);
+  const [hasSettled, setHasSettled] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
+  const fabAnim = useRef(new Animated.Value(1)).current;
+
+  const journey = useJourney();
+  const isJourneyStep = journey.currentStep?.tourId === INDISPONIBILIDADES_TOUR_ID;
+
+  const tour = useScreenTutorial(
+    INDISPONIBILIDADES_TOUR_ID,
+    INDISPONIBILIDADES_TOUR_TITLE,
+    INDISPONIBILIDADES_TOUR_STEPS,
+    { onComplete: isJourneyStep ? journey.advance : undefined },
+  );
+
+  useEffect(() => {
+    fabAnim.setValue(0);
+    Animated.spring(fabAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      friction: 5,
+      tension: 90,
+    }).start();
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (tour.isActive && tour.currentStep?.tabIndex !== undefined) {
+      setActiveTab(tour.currentStep.tabIndex);
+    }
+  }, [tour.isActive, tour.currentStep]);
+
+  useEffect(() => {
+    if (isJourneyStep && !tour.isActive && tour.ready) {
+      tour.start();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isJourneyStep, tour.ready]);
+
+  const { queryStartDate, queryEndDate, calendarStartDate, calendarEndDate } = useMemo(() => {
+    const now = new Date();
+
+    const qStart = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+    const qEnd = new Date(now.getFullYear(), now.getMonth() + 2, now.getDate());
+
+    const cStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const cEnd = new Date(qEnd);
+
+    qStart.setHours(0, 0, 0, 0);
+    qEnd.setHours(0, 0, 0, 0);
+    cStart.setHours(0, 0, 0, 0);
+    cEnd.setHours(0, 0, 0, 0);
+
+    return {
+      queryStartDate: qStart,
+      queryEndDate: qEnd,
+      calendarStartDate: cStart,
+      calendarEndDate: cEnd,
+    };
+  }, []);
+
+  const initialParams = useMemo(() => {
+    if (!userId || !igrejaId) return undefined;
+    return {
+      igrejaId,
+      where: {
+        conditions: [
+          {
+            path: 'voluntario.id',
+            operator: Operator.EQUALS,
+            value: { type: ValueType.LITERAL, value: userId },
+          },
+        ],
+        conjunction: Conjunction.AND,
+      },
+    };
+  }, [userId, igrejaId]);
+
+  const regrasInitialParams = useMemo(() => {
+    if (!userId || !igrejaId) return undefined;
+    return {
+      igrejaId,
+      where: {
+        conditions: [
+          {
+            path: 'voluntario.id',
+            operator: Operator.EQUALS,
+            value: { type: ValueType.LITERAL, value: userId },
+          },
+        ],
+        conjunction: Conjunction.AND,
+      },
+    };
+  }, [userId, igrejaId]);
+
+  const {
+    update: updateData,
+    add: addData,
+    data,
+    removeWithIgreja,
+    isLoading: isLoadingData,
+    isLoadingMutation: isLoadingMutating,
+    isRefetching,
+    isError,
+    refetch,
+    upsertMany,
+  } = useIndisponibilidadesVoluntariosCrud({
+    initialParams,
+    autoFetch: Boolean(userId && igrejaId),
+    muteMessages: true,
+  });
+
+  const {
+    add: addRegra,
+    update: updateRegra,
+    data: regras,
+    isLoading: isLoadingRegras,
+    isRefetching: isRefetchingRegras,
+    isLoadingMutation: isLoadingMutationRegras,
+    removeWithIgreja: removeRegraComIgreja,
+  } = useRegrasIndisponibilidadeVoluntariosCrud({
+    initialParams: regrasInitialParams,
+    autoFetch: Boolean(userId && igrejaId),
+    muteMessages: false,
+  });
+
+  const loadingFlags =
+    isLoadingData || isLoadingMutating || isLoadingRegras || isLoadingMutationRegras;
+
+  useEffect(() => {
+    if (loadingFlags) {
+      setHasSettled(false);
+      return;
+    }
+
+    const task = InteractionManager.runAfterInteractions(() => {
+      setHasSettled(true);
+    });
+
+    return () => task.cancel();
+  }, [loadingFlags]);
+
+  const isBusy = loadingFlags || !hasSettled;
+
+  const [lazyToastOptions, setLazyToastOptions] = useState<{
+    message: string;
+    type: 'success' | 'error' | 'info';
+    show: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!isBusy && lazyToastOptions) {
+      Toast.show({
+        type: lazyToastOptions.type,
+        text1: lazyToastOptions.message,
+      });
+      setLazyToastOptions(null);
+    }
+  }, [isBusy, lazyToastOptions]);
+
+  const markedDatesIndividuais = useMemo(
+    () =>
+      data.map((d) => ({
+        date: DateUtilsApi.dateOnlyFromApi(d.data),
+        T: d.id,
+        color: palette.error,
+      })),
+    [data, palette.error],
+  );
+
+  const markedDatesRegras = useMemo(() => {
+    const individuaisKeys = new Set(
+      markedDatesIndividuais.map((m) => m.date.toISOString().slice(0, 10)),
+    );
+    const regrasKeys = expandirRegrasParaCalendario(
+      regras.filter((r) => r.tipo !== 'LIMITE_MENSAL'),
+      calendarStartDate,
+      calendarEndDate,
+    );
+    return Array.from(regrasKeys)
+      .filter((k) => !individuaisKeys.has(k))
+      .map((k) => ({
+        date: new Date(k + 'T00:00:00Z'),
+        T: k,
+        color: palette.secondary,
+      }));
+  }, [regras, markedDatesIndividuais, calendarStartDate, calendarEndDate, palette.error]);
+
+  const allMarkedDates = useMemo(
+    () => [...markedDatesIndividuais, ...markedDatesRegras],
+    [markedDatesIndividuais, markedDatesRegras],
+  );
+
+  const openDateModal = useCallback(
+    (date: Date) => {
+      const registro = data.find((d) => DateUtilsApi.compareDateOnlyFromApi(d.data, date));
+      setModalState({
+        visible: true,
+        date,
+        status: registro ? 'unavailable' : 'available',
+        motivo: registro?.motivo ?? null,
+      });
+    },
+    [data],
+  );
+
+  const handleConfirmAddPeriodo = async (inicio: Date, fim: Date, motivo: string) => {
+    if (!userId || !igrejaId) return;
+    setShowPeriodoModal(false);
+
+    try {
+      const datesBetweenPeriod = DateUtils.generateDatesBetween(inicio, fim);
+
+      const indisponibilidades: UpsertIndisponibilidadeVoluntarioItemDto[] = datesBetweenPeriod.map(
+        (d) => ({
+          data: DateUtilsApi.dateOnlyToApi(d),
+          motivo: motivo?.trim() || undefined,
+        }),
+      );
+
+      await upsertMany({
+        voluntarioId: userId,
+        igrejaId,
+        indisponibilidades,
+      });
+
+      setLazyToastOptions({
+        type: 'info',
+        message: 'Período registrado com sucesso',
+        show: true,
+      });
+    } catch (error) {
+      console.error('Erro ao registrar período:', error);
+      setLazyToastOptions({
+        type: 'error',
+        message: 'Erro ao registrar período',
+        show: true,
+      });
+    }
+  };
+
+  const criarRegra = async (result: AddRegraModalResult) => {
+    if (!userId || !igrejaId) return;
+
+    try {
+      await addRegra?.({
+        ...result,
+        voluntarioId: userId,
+        igrejaId,
+      });
+      setShowRegraModal(false);
+      setLazyToastOptions({ type: 'success', message: 'Regra criada com sucesso!', show: true });
+    } catch (error) {
+      // Fluxo direto (sem conflito de limite mensal): modal ainda aberto, erro
+      // exibido inline pelo próprio AddRegraModal. No fluxo de conflito o modal
+      // já foi fechado antes do FancyAlert; quem trata o erro ali é o onPress
+      // do "Confirmar" (toast via setLazyToastOptions).
+      console.error('Erro ao criar regra:', error);
+      throw error;
+    }
+  };
+
+  const handleConfirmAddRegra = async (result: AddRegraModalResult) => {
+    if (!userId || !igrejaId) return;
+
+    if (result.tipo === 'LIMITE_MENSAL' && result.dataInicio) {
+      const regraAberta = regras.find((r) => r.tipo === 'LIMITE_MENSAL' && !r.dataFim);
+      if (regraAberta?.dataInicio && result.dataInicio > regraAberta.dataInicio) {
+        const dataFechamento = new Date(result.dataInicio + 'T00:00:00Z');
+        dataFechamento.setUTCDate(dataFechamento.getUTCDate() - 1);
+        const fechamentoFmt = dataFechamento.toLocaleDateString('pt-BR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          timeZone: 'UTC',
+        });
+        // Fecha o bottom sheet antes do FancyAlert: dois <Modal> nativos empilhados
+        // deixam o segundo invisivel/intocavel no Android. Guarda o result p/
+        // reabrir preenchido se o usuario cancelar.
+        setPendingAddRegra(result);
+        setShowRegraModal(false);
+        FancyAlert.alert(
+          'Encerrar regra atual?',
+          `Você já tem uma regra de limite mensal em aberto. Ao criar esta nova regra, a atual será encerrada em ${fechamentoFmt}.`,
+          [
+            { text: 'Cancelar', style: 'cancel', onPress: () => setShowRegraModal(true) },
+            {
+              text: 'Confirmar',
+              onPress: async () => {
+                try {
+                  await criarRegra(result);
+                } catch (error) {
+                  console.error('Erro ao criar regra:', error);
+                  setLazyToastOptions({
+                    type: 'error',
+                    message: 'Erro ao criar regra',
+                    show: true,
+                  });
+                } finally {
+                  setPendingAddRegra(null);
+                }
+              },
+            },
+          ],
+        );
+        return;
+      }
+    }
+
+    await criarRegra(result);
+  };
+
+  const handleConfirmEditRegra = async (result: AddRegraModalResult) => {
+    if (!editingRegra || !userId || !igrejaId) return;
+    const id = editingRegra.id;
+    const { tipo, diasSemana, dataInicio, dataFim, recorrente, limiteMensal, motivo } = result;
+
+    try {
+      await updateRegra?.({
+        id,
+        data: { tipo, diasSemana, dataInicio, dataFim, recorrente, limiteMensal, motivo },
+      });
+      setEditingRegra(null);
+      setLazyToastOptions({
+        type: 'success',
+        message: 'Regra atualizada com sucesso!',
+        show: true,
+      });
+    } catch (error) {
+      // erro exibido inline no próprio modal; modal fica aberto p/ o usuário corrigir
+      console.error('Erro ao atualizar regra:', error);
+      throw error;
+    }
+  };
+
+  const handleRemoverRegra = useCallback(
+    (regra: ResponseRegraIndisponibilidadeVoluntarioDto) => {
+      FancyAlert.alert(`Remover regra`, `Deseja remover "${descreverRegra(regra)}"?`, [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Sim',
+          style: 'destructive',
+          onPress: async () => {
+            if (!igrejaId) return;
+            try {
+              await removeRegraComIgreja({ id: regra.id, igrejaId });
+            } catch {
+              setLazyToastOptions({
+                type: 'error',
+                message: 'Erro ao remover a regra.',
+                show: true,
+              });
+            }
+          },
+        },
+      ]);
+    },
+    [igrejaId, removeRegraComIgreja],
+  );
+
+  const closeModal = () => setModalState((prev) => ({ ...prev, visible: false }));
+
+  const handleConfirm = async (mode: 'mark' | 'unmark', date: Date, motivo?: string) => {
+    if (!userId || !igrejaId) return;
+    const registro = data.find((d) => DateUtilsApi.compareDateOnlyFromApi(d.data, date));
+    closeModal();
+
+    try {
+      if (mode === 'mark') {
+        if (registro?.id) {
+          await updateData?.({
+            id: registro.id,
+            data: {
+              data: DateUtilsApi.dateOnlyToApi(date),
+              motivo,
+            },
+          });
+          setLazyToastOptions({
+            type: 'success',
+            message: 'Motivo atualizado com sucesso!',
+            show: true,
+          });
+        } else {
+          await addData?.({
+            data: DateUtilsApi.dateOnlyToApi(date),
+            voluntarioId: userId,
+            igrejaId,
+            motivo,
+          });
+          setLazyToastOptions({
+            type: 'info',
+            message: 'Data marcada como indisponível!',
+            show: true,
+          });
+        }
+      } else if (registro?.id) {
+        await removeWithIgreja({ id: registro.id, igrejaId });
+        setLazyToastOptions({
+          type: 'info',
+          message: 'Data disponível novamente!',
+          show: true,
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar data:', error);
+      setLazyToastOptions({
+        type: 'error',
+        message: 'Erro ao atualizar data!',
+        show: true,
+      });
+    }
+  };
+
+  const tabItems: TabItem[] = useMemo(
+    () => [
+      {
+        title: 'Calendário',
+        icon: { library: 'MaterialCommunityIcons', name: 'calendar-month-outline', size: 18 },
+        content: (
+          <View style={{ flex: 1 }}>
+            <View style={styles.legend}>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendCircle, { backgroundColor: palette.error }]} />
+                <FancyText type='medium' size='extraSmall' color={palette.fonts.dark}>
+                  Dias específicos
+                </FancyText>
+              </View>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendCircle, { backgroundColor: palette.secondary }]} />
+                <FancyText type='medium' size='extraSmall' color={palette.fonts.dark}>
+                  Regras recorrentes
+                </FancyText>
+              </View>
+            </View>
+            <TutorialTarget
+              id='indisponibilidade-calendario'
+              registerTarget={tour.registerTarget}
+              unregisterTarget={tour.unregisterTarget}
+              style={{ flex: 1 }}
+            >
+              <FancyCalendarVertical<'id', string>
+                highlightCurrentMonth
+                disablePastDates
+                contentContainerStyle={{ paddingHorizontal: 15 }}
+                startDate={calendarStartDate}
+                endDate={calendarEndDate}
+                markedDates={allMarkedDates}
+                onSelectDate={({ date }) => openDateModal(date)}
+                listProps={{
+                  bottomSpace: 160,
+                  showFade: false,
+                  maintainVisibleContentPosition: false,
+                }}
+                daysProps={{ markerColor: palette.error }}
+              />
+            </TutorialTarget>
+          </View>
+        ),
+      },
+      {
+        title: 'Regras',
+        icon: { library: 'MaterialCommunityIcons', name: 'calendar-sync-outline', size: 18 },
+        content: (
+          <TutorialTarget
+            id='indisponibilidade-regras-lista'
+            registerTarget={tour.registerTarget}
+            unregisterTarget={tour.unregisterTarget}
+            style={{ flex: 1 }}
+          >
+            {regras.length ? (
+              <FancyScrollView
+                contentContainerStyle={{
+                  paddingHorizontal: 15,
+                  paddingTop: 8,
+                  paddingBottom: 84,
+                  gap: 10,
+                }}
+              >
+                {regras.map((regra) => {
+                  const corRegra = regraCor(regra, palette);
+                  return (
+                    <FancyListItemCard
+                      key={regra.id}
+                      onPress={() => setEditingRegra(regra)}
+                      title={descreverRegra(regra)}
+                      subtitle={
+                        <View style={{ gap: 4 }}>
+                          <View
+                            style={[
+                              styles.regraChip,
+                              {
+                                backgroundColor: ColorUtils.withAlpha(corRegra, 0.1),
+                                alignSelf: 'flex-start',
+                              },
+                            ]}
+                          >
+                            <FancyText size='extraSmall' type='semiBold' color={corRegra}>
+                              {regraChipLabel(regra)}
+                            </FancyText>
+                          </View>
+                          {descreverDetalheRegra(regra) ? (
+                            <FancyText
+                              size='extraSmall'
+                              type='medium'
+                              color={palette.fonts.inactive}
+                            >
+                              {descreverDetalheRegra(regra)}
+                            </FancyText>
+                          ) : null}
+                        </View>
+                      }
+                      leading={{
+                        type: 'icon',
+                        icon: {
+                          library: 'MaterialCommunityIcons',
+                          name: regraIcone(regra) as any,
+                          size: 20,
+                        },
+                        color: corRegra,
+                        backgroundColor: ColorUtils.withAlpha(corRegra, 0.1),
+                      }}
+                      trailing={
+                        <FancyButton
+                          type='light'
+                          mode='icon'
+                          size={{ w: 32, h: 32 }}
+                          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                          icon={{
+                            library: 'MaterialCommunityIcons',
+                            name: 'trash-can-outline',
+                            size: 17,
+                            color: palette.icons.light,
+                          }}
+                          onPress={() => handleRemoverRegra(regra)}
+                          accessibilityLabel='Remover regra'
+                          containerStyle={{
+                            backgroundColor: palette.error,
+                            borderRadius: 16,
+                            borderWidth: 0,
+                          }}
+                        />
+                      }
+                    />
+                  );
+                })}
+              </FancyScrollView>
+            ) : (
+              <FancyListEmpty
+                label='Nenhuma regra cadastrada'
+                helperText='Toque no botão + para criar sua primeira regra de indisponibilidade.'
+                icon={{
+                  library: 'MaterialCommunityIcons',
+                  name: 'calendar-remove-outline',
+                  size: 55,
+                }}
+                muted
+              />
+            )}
+          </TutorialTarget>
+        ),
+      },
+    ],
+    [
+      calendarStartDate,
+      calendarEndDate,
+      allMarkedDates,
+      palette,
+      regras,
+      openDateModal,
+      handleRemoverRegra,
+      styles,
+      tour.registerTarget,
+      tour.unregisterTarget,
+    ],
+  );
+
+  if (!userId || !igrejaId) {
+    return (
+      <View style={[styles.emptyContainer]}>
+        <FancyText>Não foi possível carregar suas indisponibilidades.</FancyText>
+      </View>
+    );
+  }
+
+  if (isError) {
+    return <FancyError.Default onUpdate={refetch} />;
+  }
 
   return (
-    <FancyPageView style={styles.container}>
-      <FancyCalendarVertical
-        startDate={dataInicial}
-        endDate={dataFinal}
-        markedDates={markedDates}
-        onSelectDate={date => {
-          if (mode === 'view') return;
+    <View style={{ flex: 1, backgroundColor: palette.backgroundColor }}>
+      {tour.showBanner && (
+        <View style={{ paddingHorizontal: 15, paddingVertical: 10 }}>
+          <TutorialBanner onStart={tour.start} onDismiss={tour.skip} />
+        </View>
+      )}
 
-          if (markedDates.some(d => DateUtils.compareOnlyDate(d, date))) {
-            setMarkedDates(markedDates.filter(d => !DateUtils.compareOnlyDate(d, date)));
-          } else {
-            setMarkedDates([...markedDates, date]);
-          }
-        }}
-        listProps={{ bottomSpace: 70 }}
-      />
-      <FancyFab
-        icon={mode === 'view' ? { ...DefaultIconsNames.edit, size: 26 } : { ...DefaultIconsNames.save, size: 24 }}
-        backgroundColor={mode === 'view' ? Pallete.terciary : Pallete.confirm}
-        onPress={() => {
-          setMode(value => {
-            const newValue = value === 'view' ? 'edit' : 'view';
+      <View style={{ flex: 1, opacity: isBusy ? 0 : 1 }}>
+        <FancyTabs
+          keepMounted
+          contentGutter={false}
+          items={tabItems}
+          initialIndex={activeTab}
+          onTabChange={setActiveTab}
+        />
 
-            Toast.show({
-              position: 'top',
-              text2: newValue === 'view' ? 'Alterações Salvas com Sucesso' : 'Modo de Edição ativado',
-              type: newValue === 'view' ? 'success' : 'info',
-            });
+        <Animated.View
+          pointerEvents='box-none'
+          style={[
+            StyleSheet.absoluteFillObject,
+            { opacity: fabAnim, transform: [{ scale: fabAnim }] },
+          ]}
+        >
+          {activeTab === 0 && (
+            <TutorialTarget
+              id='indisponibilidade-adicionar'
+              registerTarget={tour.registerTarget}
+              unregisterTarget={tour.unregisterTarget}
+              style={{ position: 'absolute', right: 15, bottom: 10, width: 50, height: 50 }}
+              pointerEvents='box-none'
+            >
+              <FancyFab
+                icon={{ library: 'MaterialCommunityIcons', name: 'calendar-plus', size: 26 }}
+                onPress={() => setShowPeriodoModal(true)}
+                bottom={0}
+                right={0}
+              />
+            </TutorialTarget>
+          )}
 
-            return newValue;
-          });
-        }}
-      />
-    </FancyPageView>
+          {activeTab === 1 && (
+            <TutorialTarget
+              id='indisponibilidade-regras-fab'
+              registerTarget={tour.registerTarget}
+              unregisterTarget={tour.unregisterTarget}
+              style={{ position: 'absolute', right: 15, bottom: 10, width: 50, height: 50 }}
+              pointerEvents='box-none'
+            >
+              <FancyFab
+                testID='fab-add-regra'
+                icon={{ library: 'MaterialCommunityIcons', name: 'plus', size: 26 }}
+                onPress={() => setShowRegraModal(true)}
+                bottom={0}
+                right={0}
+              />
+            </TutorialTarget>
+          )}
+        </Animated.View>
+      </View>
+
+      {isBusy && (
+        <View style={styles.loadingOverlay}>
+          <FancyLoading />
+        </View>
+      )}
+
+      {modalState.visible && (
+        <DateAvailabilityAdjustmentModal
+          data={{
+            date: modalState.date!,
+            status: modalState.status!,
+            motivo: modalState.motivo ?? undefined,
+          }}
+          modalProps={{ onButton1Press: closeModal }}
+          onConfirm={handleConfirm}
+        />
+      )}
+
+      {showPeriodoModal && (
+        <AddPeriodoModal
+          visible={showPeriodoModal}
+          modalProps={{ onButton1Press: () => setShowPeriodoModal(false) }}
+          onConfirm={handleConfirmAddPeriodo}
+        />
+      )}
+
+      {showRegraModal && (
+        <AddRegraModal
+          visible={showRegraModal}
+          onClose={() => {
+            setShowRegraModal(false);
+            setPendingAddRegra(null);
+          }}
+          onConfirm={handleConfirmAddRegra}
+          initialValues={pendingAddRegra ?? undefined}
+        />
+      )}
+
+      {editingRegra && (
+        <AddRegraModal
+          visible={!!editingRegra}
+          isEditing
+          initialValues={{
+            tipo: editingRegra.tipo,
+            diasSemana: editingRegra.diasSemana ?? undefined,
+            dataInicio: editingRegra.dataInicio ?? undefined,
+            dataFim: editingRegra.dataFim ?? undefined,
+            recorrente: editingRegra.recorrente ?? undefined,
+            limiteMensal: editingRegra.limiteMensal ?? undefined,
+            motivo: editingRegra.motivo ?? undefined,
+          }}
+          onClose={() => setEditingRegra(null)}
+          onConfirm={handleConfirmEditRegra}
+        />
+      )}
+
+      <TutorialOverlay tour={tour} />
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { paddingHorizontal: 18 },
-});
+function createStyles(palette: ThemePalette) {
+  return StyleSheet.create({
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: palette.overlays.strongBackdrop,
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 999,
+    },
+    legend: {
+      flexDirection: 'row',
+      paddingHorizontal: 15,
+      paddingTop: 8,
+      paddingBottom: 16,
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    legendItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    legendCircle: {
+      width: 14,
+      height: 14,
+      borderRadius: 7,
+    },
+    regraChip: {
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 8,
+    },
+  });
+}

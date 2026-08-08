@@ -1,0 +1,557 @@
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { useCooldown } from '../../hooks/useCooldown';
+import { Platform, StyleSheet, View, Modal } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import FancyText from '../../components/FancyText';
+import FancyButton from '../../components/buttons/FancyButton';
+import DefaultIcons from '../../components/FancyIcons';
+import FancyLoading from '../../components/FancyLoading';
+import { ThemePalette } from '../../constants/colors';
+import { useCadastroIgrejaEmail } from '../../hooks/useCadastroIgrejaEmail';
+import { ColorUtils } from '../../utils/color_utils';
+import FancyTextInput from '../../components/fields/FancyTextInput';
+import { useConnectivity } from '../../core/network/connectivity/ConnectivityProvider';
+import { ResponseLoginDto } from '../../domain/dtos/login/login.response';
+import { setPendingWelcomeAuth } from '../../core/auth/pendingWelcomeStore';
+import { usePallete } from '../../hooks/usePallete';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
+
+export default function IgrejaCadastroAguardandoEmailPage() {
+  // iOS: Apple Guideline 3.1.1 — bloqueia mesmo se a rota for alcançada por
+  // caminho não gateado (deep link, ou handleCadastroPendente em login.tsx).
+  // Ver docs/adr/0001-cadastro-igreja-fora-do-ios.md.
+  useEffect(() => {
+    if (Platform.OS === 'ios') {
+      router.replace('/(auth)/create-account');
+    }
+  }, []);
+
+  const Pallete = usePallete();
+  const styles = useThemedStyles(createStyles);
+  const insets = useSafeAreaInsets();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [novoEmail, setNovoEmail] = useState('');
+  const isProcessingLoginRef = useRef(false);
+
+  const { status: connectivityStatus } = useConnectivity();
+  const isServerUnavailable = connectivityStatus !== 'ok';
+
+  const realizarLoginAutomatico = useCallback(
+    async (authData: any) => {
+      // Evita execuções duplicadas usando ref que persiste entre renders
+      if (isProcessingLoginRef.current) {
+        return;
+      }
+
+      isProcessingLoginRef.current = true;
+
+      try {
+        // Verifica se o backend retornou dados de autenticação
+        // igrejas pode ser um array vazio para contas recém-criadas
+        if (authData?.access_token && authData?.user && authData?.igrejas !== undefined) {
+          const loginData: ResponseLoginDto = {
+            access_token: authData.access_token,
+            user: authData.user,
+            igrejas: authData.igrejas || [],
+          };
+
+          // Guarda os dados de auth para a welcome efetivar o login no CTA.
+          // O login NÃO é feito aqui: enquanto user permanece null, a welcome
+          // (rota pública de (auth)) consegue renderizar antes do dashboard.
+          setPendingWelcomeAuth(loginData);
+
+          // Limpa dados do cadastro
+          await limparDadosCadastro();
+
+          // Tela dedicada de boas-vindas pós-confirmação
+          router.replace('/(auth)/welcome');
+        } else {
+          // Se não houver dados de auth, vai para login
+          await limparDadosCadastro();
+          router.replace('/(auth)/login');
+        }
+      } catch (error) {
+        console.log('Erro ao realizar login automático:', error);
+        await limparDadosCadastro();
+        router.replace('/(auth)/login');
+      }
+    },
+    // limparDadosCadastro é declarado abaixo (vem do hook); referenciá-lo aqui
+    // causaria TDZ. É estável (useCallback []), então o closure basta.
+    [],
+  );
+
+  const {
+    dadosCadastro,
+    loadingDados,
+    status,
+    verificarConfirmacao,
+    reenviarEmail,
+    alterarEmail,
+    limparDadosCadastro,
+    isReenviando,
+    isAlterandoEmail,
+    isVerificando,
+  } = useCadastroIgrejaEmail({
+    onConfirmado: realizarLoginAutomatico,
+    enablePolling: true,
+  });
+
+  const handleVerificar = async () => {
+    const authData = await verificarConfirmacao();
+    if (authData) {
+      await realizarLoginAutomatico(authData);
+    }
+  };
+
+  // Cooldown local para UX
+  const {
+    seconds: cooldownRestante,
+    start: startCooldown,
+    isActive: cooldownAtivo,
+  } = useCooldown(60);
+  const [reenviadoMsg, setReenviadoMsg] = useState('');
+
+  const handleReenviar = () => {
+    if (isReenviando || cooldownAtivo) return;
+    reenviarEmail();
+    startCooldown();
+  };
+
+  // Feedback de sucesso após reenviar
+  // Exibe mensagem quando loading termina e cooldown inicia
+  useEffect(() => {
+    if (!isReenviando && cooldownAtivo && !reenviadoMsg) {
+      setReenviadoMsg('E-mail reenviado! Confira spam.');
+      setTimeout(() => setReenviadoMsg(''), 5000);
+    }
+  }, [isReenviando, cooldownAtivo]);
+
+  const handleAbrirModalAlterarEmail = () => {
+    setNovoEmail(dadosCadastro?.responsavelEmail || '');
+    setModalVisible(true);
+  };
+
+  const handleAlterarEmail = () => {
+    if (!novoEmail.trim()) return;
+    alterarEmail(novoEmail.trim(), {
+      onSuccess: () => {
+        setModalVisible(false);
+      },
+    });
+  };
+
+  const formatarTempoRelativo = (isoDate?: string) => {
+    if (!isoDate) return null;
+    const data = new Date(isoDate);
+    const agora = new Date();
+    const diffMs = agora.getTime() - data.getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+
+    if (diffMin < 1) return 'agora mesmo';
+    if (diffMin < 60) return `há ${diffMin} min`;
+    const diffHoras = Math.floor(diffMin / 60);
+    if (diffHoras < 24) return `há ${diffHoras}h`;
+    return `há ${Math.floor(diffHoras / 24)} dias`;
+  };
+
+  const formatarExpiracao = (isoDate?: string) => {
+    if (!isoDate) return null;
+    const data = new Date(isoDate);
+    return data.toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  // Se não há dados de cadastro, voltar para criar igreja (apenas após terminar o loading)
+  useEffect(() => {
+    if (!loadingDados && !dadosCadastro && !isProcessingLoginRef.current) {
+      router.replace('/(auth)/create-igreja-account');
+    }
+  }, [dadosCadastro, loadingDados]);
+
+  if (Platform.OS === 'ios') {
+    return null;
+  }
+
+  // Loading inicial - só mostra se estiver carregando os dados do storage
+  if (loadingDados) {
+    return (
+      <View style={[styles.root, styles.center, { backgroundColor: Pallete.backgroundColor }]}>
+        <FancyLoading />
+      </View>
+    );
+  }
+
+  if (!dadosCadastro) {
+    return null;
+  }
+
+  const isExpirado = status?.statusSolicitacao === 'EXPIRADO';
+
+  return (
+    <View style={[styles.root, { backgroundColor: Pallete.backgroundColor }]}>
+      <SafeAreaView style={styles.safe} edges={['left', 'right']}>
+        <View style={[styles.backButtonRow, { top: insets.top + 8 }]}>
+          <FancyButton
+            mode='icon'
+            type='text'
+            onPress={() => router.replace('/(auth)/login')}
+            icon={{ library: 'Feather', name: 'arrow-left', size: 18 }}
+            iconStyle={{ color: Pallete.icons.dark }}
+            containerStyle={{
+              backgroundColor: ColorUtils.withAlpha(Pallete.fonts.dark, 0.08),
+              borderRadius: 22,
+              width: 44,
+              height: 44,
+            }}
+          />
+        </View>
+
+        <View style={[styles.content, { paddingTop: insets.top + 24 }]}>
+          <View style={styles.centerGroup}>
+            <View style={styles.headerGroup}>
+              <FancyText size='large' type='bold' color={Pallete.fonts.dark}>
+                Confirme seu e-mail
+              </FancyText>
+              <FancyText size='small' color={Pallete.fonts.inactive}>
+                Enviamos um link de confirmação para ativar sua igreja
+              </FancyText>
+            </View>
+
+            {/* Ícone de email */}
+            <View style={styles.iconContainer}>
+              <DefaultIcons.Custom
+                library='MaterialCommunityIcons'
+                name='email-outline'
+                size={40}
+                color={Pallete.primary}
+              />
+            </View>
+
+            {/* Email */}
+            <View style={styles.emailSection}>
+              <FancyText
+                size='extraSmall'
+                color={Pallete.fonts.inactive}
+                style={{ textAlign: 'center', alignSelf: 'center' }}
+              >
+                E-mail do responsável
+              </FancyText>
+              <FancyText
+                size='medium'
+                type='semiBold'
+                style={{
+                  textAlign: 'center',
+                  alignSelf: 'center',
+                  flexShrink: 0,
+                  maxWidth: '100%',
+                }}
+                numberOfLines={1}
+                ellipsizeMode='middle'
+              >
+                {dadosCadastro.responsavelEmail}
+              </FancyText>
+            </View>
+
+            {/* Status */}
+            <View style={styles.statusSection}>
+              <View style={[styles.statusBadge, isExpirado && styles.statusBadgeExpirado]}>
+                <DefaultIcons.Custom
+                  library='MaterialCommunityIcons'
+                  name={isExpirado ? 'alert-circle' : 'clock-outline'}
+                  size={16}
+                  color={isExpirado ? Pallete.error : Pallete.warning}
+                />
+                <FancyText
+                  size='extraSmall'
+                  type='medium'
+                  color={isExpirado ? Pallete.error : Pallete.warning}
+                >
+                  {isExpirado ? 'Link expirado' : 'Aguardando confirmação'}
+                </FancyText>
+              </View>
+
+              {status?.emailEnviadoEm && (
+                <FancyText size='extraSmall' color={Pallete.fonts.inactive}>
+                  Enviado {formatarTempoRelativo(status.emailEnviadoEm)}
+                </FancyText>
+              )}
+
+              {status?.linkExpiraEm && !isExpirado && (
+                <FancyText size='extraSmall' color={Pallete.fonts.inactive}>
+                  Expira em: {formatarExpiracao(status.linkExpiraEm)}
+                </FancyText>
+              )}
+            </View>
+
+            {/* Dicas */}
+            <View style={styles.tipsSection}>
+              <View style={styles.tipRow}>
+                <DefaultIcons.Custom
+                  library='Feather'
+                  name='info'
+                  size={14}
+                  color={Pallete.fonts.inactive}
+                />
+                <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={{ flex: 1 }}>
+                  Verifique a caixa de spam/lixo eletrônico
+                </FancyText>
+              </View>
+              <View style={styles.tipRow}>
+                <DefaultIcons.Custom
+                  library='Feather'
+                  name='check-circle'
+                  size={14}
+                  color={Pallete.fonts.inactive}
+                />
+                <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={{ flex: 1 }}>
+                  Após confirmar, toque em "Já confirmei"
+                </FancyText>
+              </View>
+            </View>
+
+            {/* Botões de ação */}
+            <View style={styles.actionsContainer}>
+              {/* Botão primário - Já confirmei */}
+              <FancyButton
+                label={isVerificando ? 'Verificando...' : 'Já confirmei'}
+                type='contained'
+                disabled={isVerificando || isServerUnavailable}
+                icon={{ library: 'Feather', name: 'check', size: 18 }}
+                containerStyle={styles.primaryButton}
+                onPress={handleVerificar}
+              />
+
+              {/* Botão secundário - Reenviar */}
+              <FancyButton
+                label={cooldownAtivo ? `Reenviar em ${cooldownRestante}s` : 'Reenviar e-mail'}
+                type='outlined'
+                isLoading={isReenviando}
+                loadingText='Reenviando...'
+                spinnerSize='small'
+                icon={{ library: 'Feather', name: 'mail', size: 18, color: Pallete.primary }}
+                containerStyle={styles.secondaryButton}
+                disabled={isReenviando || cooldownAtivo || isServerUnavailable}
+                onPress={() => {
+                  if (isReenviando || cooldownAtivo || isServerUnavailable) return;
+                  handleReenviar();
+                }}
+              />
+              {reenviadoMsg && (
+                <FancyText
+                  size='extraSmall'
+                  color={Pallete.confirm}
+                  style={{ textAlign: 'center' }}
+                >
+                  {reenviadoMsg}
+                </FancyText>
+              )}
+
+              {/* Link - Alterar email */}
+              <FancyButton
+                label='Alterar e-mail'
+                type='text'
+                icon={{ library: 'Feather', name: 'edit-2', size: 16 }}
+                disabled={isServerUnavailable}
+                onPress={handleAbrirModalAlterarEmail}
+              />
+            </View>
+          </View>
+        </View>
+      </SafeAreaView>
+
+      {/* Modal para alterar email */}
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType='fade'
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <FancyText size='large' type='bold' style={styles.modalTitle}>
+              Alterar e-mail
+            </FancyText>
+
+            <FancyText size='small' color={Pallete.fonts.inactive} style={styles.modalSubtitle}>
+              Digite o novo e-mail para receber o link de confirmação
+            </FancyText>
+
+            <View style={styles.modalInputContainer}>
+              <View style={styles.modalInputWrapper}>
+                <FancyText size='small' color={Pallete.fonts.inactive} style={{ marginBottom: 4 }}>
+                  Novo e-mail
+                </FancyText>
+                <FancyTextInput
+                  value={novoEmail}
+                  label={undefined}
+                  placeholder='Novo e-mail'
+                  inputProps={{
+                    onChangeText: setNovoEmail,
+                    keyboardType: 'email-address',
+                    autoCapitalize: 'none',
+                    autoCorrect: false,
+                    style: styles.modalInput,
+                  }}
+                  containerStyle={{ width: '100%' }}
+                  inputContainerStyle={{ width: '100%' }}
+                />
+              </View>
+            </View>
+
+            <View style={styles.modalActions}>
+              <FancyButton
+                label='Cancelar'
+                type='outlined'
+                containerStyle={styles.modalButton}
+                onPress={() => setModalVisible(false)}
+              />
+              <FancyButton
+                label={isAlterandoEmail ? 'Salvando...' : 'Salvar e reenviar'}
+                type='contained'
+                disabled={isAlterandoEmail || !novoEmail.trim() || isServerUnavailable}
+                containerStyle={styles.modalButton}
+                onPress={handleAlterarEmail}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+}
+
+function createStyles(Pallete: ThemePalette) {
+  return StyleSheet.create({
+    root: {
+      flex: 1,
+    },
+    safe: {
+      flex: 1,
+    },
+    center: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    backButtonRow: {
+      position: 'absolute',
+      left: 24,
+      zIndex: 10,
+    },
+    content: {
+      flex: 1,
+      justifyContent: 'center',
+      paddingHorizontal: 24,
+      paddingBottom: 24,
+    },
+    centerGroup: {
+      gap: 14,
+      alignItems: 'center',
+    },
+    headerGroup: {
+      gap: 2,
+      alignSelf: 'stretch',
+    },
+    modalInputWrapper: {
+      width: '100%',
+    },
+    iconContainer: {
+      width: 72,
+      height: 72,
+      borderRadius: 36,
+      backgroundColor: ColorUtils.withAlpha(Pallete.primary, 0.08),
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    emailSection: {
+      alignItems: 'center',
+      gap: 4,
+      width: '100%',
+    },
+    statusSection: {
+      alignItems: 'center',
+      gap: 6,
+    },
+    statusBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      backgroundColor: ColorUtils.withAlpha(Pallete.warning, 0.094),
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 20,
+    },
+    statusBadgeExpirado: {
+      backgroundColor: ColorUtils.withAlpha(Pallete.error, 0.094),
+    },
+    tipsSection: {
+      width: '100%',
+      gap: 8,
+    },
+    tipRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 8,
+    },
+    divider: {
+      width: '100%',
+      height: 1,
+      backgroundColor: ColorUtils.withAlpha(Pallete.fonts.inactive, 0.13),
+    },
+    actionsContainer: {
+      gap: 10,
+      width: '100%',
+    },
+    primaryButton: {
+      width: '100%',
+    },
+    secondaryButton: {
+      width: '100%',
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: Pallete.overlays.backdrop,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    },
+    modalContent: {
+      width: '100%',
+      backgroundColor: Pallete.backgroundColor,
+      borderRadius: 16,
+      padding: 24,
+      gap: 16,
+    },
+    modalTitle: {
+      textAlign: 'center',
+    },
+    modalSubtitle: {
+      textAlign: 'center',
+    },
+    modalInputContainer: {
+      width: '100%',
+    },
+    modalInput: {
+      width: '100%',
+      height: 48,
+      borderWidth: 1,
+      borderColor: Pallete.borderCard,
+      borderRadius: 8,
+      paddingHorizontal: 16,
+      fontSize: 16,
+    },
+    modalActions: {
+      flexDirection: 'row',
+      gap: 12,
+      paddingTop: 8,
+    },
+    modalButton: {
+      flex: 1,
+    },
+  });
+}

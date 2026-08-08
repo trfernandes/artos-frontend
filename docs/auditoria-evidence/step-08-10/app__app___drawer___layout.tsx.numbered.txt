@@ -1,0 +1,23 @@
+1	import Drawer from 'expo-router/drawer';
+2	import { Redirect } from 'expo-router';
+3	import FancyDrawer from '../../../components/drawer/FancyDrawer';
+4	import { useAuth } from '../../../contexts/AuthContext';
+5	
+6	export default function _layout() {
+7	  const { igrejaAtiva, user, loading } = useAuth();
+8	
+9	  if (loading) return null;
+10	
+11	  if (user && (!user.igrejas || user.igrejas.length === 0)) {
+12	    return <Redirect href='/(app)/join-church' />;
+13	  }
+14	  
+15	  return (
+16	    <Drawer
+17	      drawerContent={(props) => <FancyDrawer {...props} key={igrejaAtiva?.id} />}
+18	      screenOptions={{
+19	        headerShown: false,
+20	      }}
+21	    />
+22	  );
+23	}

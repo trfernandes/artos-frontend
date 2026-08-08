@@ -79,7 +79,7 @@ export const DefaultIconsNames: Record<IconName, Icon> = {
     name: 'plus',
   },
   minus: {
-    library: 'FontAwesome',
+    library: 'Entypo',
     name: 'minus',
   },
   open: {
@@ -142,5 +142,5 @@ export const DefaultIconsNames: Record<IconName, Icon> = {
     library: 'Feather',
     name: 'refresh-ccw',
   },
-  menu: { library: 'Feather', name: 'menu' },
+  menu: { library: 'MaterialCommunityIcons', name: 'menu' },
 };

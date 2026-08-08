@@ -1,62 +1,63 @@
 import { View, Modal, StyleSheet, ModalProps, NativeSyntheticEvent } from 'react-native';
 import { MenuProvider } from 'react-native-popup-menu';
-import { Pallete } from '../../constants/colors';
-import FancyText from '../FancyText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { DefaultIconsNames } from '../../constants/icons';
-import FancyHeaderButton from '../header/FancyHeaderButton';
+import FancyPageHeader from '../header/FancyHeader';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useTopSafeInset } from '../../hooks/useTopSafeInset';
+import { usePallete } from '../../hooks/usePallete';
+import { DismissKeyboard } from '../DismissKeyboard';
 
-export type FancyFullModalProps = { modalProps?: ModalProps; children?: React.ReactNode };
+export type FancyFullModalProps = {
+  title?: string;
+  modalProps?: ModalProps;
+  children?: React.ReactNode;
+};
 
-export default function FancyFullModal({ modalProps, children }: FancyFullModalProps) {
+export default function FancyFullModal({ title, modalProps, children }: FancyFullModalProps) {
   const insets = useSafeAreaInsets();
+  const topInset = useTopSafeInset();
+  const palette = usePallete();
 
   return (
     <Modal visible={modalProps?.visible} {...modalProps}>
-      <MenuProvider skipInstanceCheck={true}>
-        <View
-          style={{
-            paddingTop: insets.top - 3,
-            paddingBottom: insets.bottom,
-            paddingLeft: insets.left,
-            paddingRight: insets.right,
-            flex: 1,
-          }}
-        >
-          <View style={styles.container}>
-            <View style={styles.inner}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <FancyHeaderButton
-                  icon={{ ...DefaultIconsNames['chevron-left'], size: 22 }}
-                  onPress={() => modalProps?.onRequestClose?.({} as unknown as NativeSyntheticEvent<any>)}
-                />
-                <FancyText
-                  type="semiBold"
-                  size={'medium'}
-                  style={{
-                    color: Pallete.fonts.dark,
-                    lineHeight: 16,
-                    marginTop: 1,
-                  }}
-                >
-                  Voltar
-                </FancyText>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <MenuProvider skipInstanceCheck={true}>
+          <DismissKeyboard>
+            <View
+              style={{
+                paddingTop: topInset,
+                paddingBottom: insets.bottom,
+                paddingLeft: insets.left,
+                paddingRight: insets.right,
+                backgroundColor: palette.backgroundColor,
+                flex: 1,
+              }}
+            >
+              <View style={styles.container}>
+                <View style={styles.inner}>
+                  <FancyPageHeader
+                    leftButton='back'
+                    applyTopSafeArea={false}
+                    options={{ title }}
+                    leftButtonOnPress={() =>
+                      modalProps?.onRequestClose?.({} as unknown as NativeSyntheticEvent<any>)
+                    }
+                  />
+                </View>
+                {children}
               </View>
             </View>
-            {children}
-          </View>
-        </View>
-      </MenuProvider>
+          </DismissKeyboard>
+        </MenuProvider>
+      </GestureHandlerRootView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, gap: 5 },
   inner: {
     width: '100%',
-    paddingHorizontal: 18,
-    paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,

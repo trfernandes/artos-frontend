@@ -1,0 +1,97 @@
+# Flow: Trial com 5 dias restantes (fase "warning") — sem bloqueio, painel correto
+#
+# Uso:
+#   1. Rodar SQL de setup no Neon (ver abaixo)
+#   2. maestro test flows/billing-estado-trial-warning.yaml
+#   3. Rodar SQL de revert IMEDIATAMENTE apos o teste
+#
+# ════════════════════════════════════════════════
+# SQL SETUP (rodar antes):
+#
+#   UPDATE subscriptions
+#   SET status = 'trial',
+#       "trialEndsAt" = NOW() + INTERVAL '5 days',
+#       "currentPeriodEnd" = NOW() + INTERVAL '5 days'
+#   WHERE "churchId" = (SELECT id FROM igrejas WHERE codigo = 'teste-church');
+#   UPDATE igrejas SET "subscriptionStatus" = 'trial' WHERE codigo = 'teste-church';
+#
+# SQL REVERT (rodar apos):
+#
+#   UPDATE subscriptions
+#   SET status = 'active',
+#       "trialEndsAt" = NULL,
+#       "currentPeriodEnd" = '2026-07-18'
+#   WHERE "churchId" = (SELECT id FROM igrejas WHERE codigo = 'teste-church');
+#   UPDATE igrejas SET "subscriptionStatus" = 'active' WHERE codigo = 'teste-church';
+# ════════════════════════════════════════════════
+#
+# O que verifica:
+#   resolveBillingTrialPhase: 5 dias = 'warning' (entre 2 e 7 dias)
+#   isSubscriptionWriteBlocked = false (trial ativo — sem bloqueio de escrita)
+#
+#   BillingStatusPanel (Configuracoes aba Assinatura):
+#     eyebrow="Versao avaliativa" (de resolveBillingNoticeContent para warning)
+#     title="Periodo avaliativo ativo" (hardcoded para trial nao-expirado)
+#     pill="Teste" (resolveStatusPillLabel para trial)
+#
+#   BillingNoticeBanner NAO aparece nas telas de lista para trial sem bloqueio:
+#     - voluntarios: (isBlocked || isVolunteerLimitReached) = false -> sem banner
+#     - ministerios: blockFab = false -> sem banner
+#     - escalas/agenda: isBlocked = false -> sem banner
+#
+#   NOTA: dashboard (inicio) nao tem BillingNoticeBanner em nenhum estado.
+
+appId: com.church.artos
+---
+- launchApp
+- runFlow: _login.yaml
+- openLink: diakonia:///inicio
+- extendedWaitUntil:
+    visible: 'Início'
+    timeout: 120000
+
+# ── Passo 1: BillingStatusPanel em Configuracoes ───────────────────────────
+- openLink: diakonia:///configuracoes
+- waitForAnimationToEnd:
+    timeout: 15000
+- runFlow:
+    when:
+      visible: 'Servidor indisponível'
+    file: _retry_servidor.yaml
+- extendedWaitUntil:
+    visible: 'Assinatura'
+    timeout: 15000
+- tapOn:
+    text: 'Assinatura'
+    index: 1
+- extendedWaitUntil:
+    visible: 'Versão avaliativa'
+    timeout: 30000
+# BillingStatusPanel para trial warning:
+#   eyebrow vem de resolveBillingNoticeContent(trial-warning).eyebrow = "Versao avaliativa"
+#   title e "Periodo avaliativo ativo" (hardcoded para trial nao expirado)
+- assertVisible: 'Versão avaliativa'
+- assertVisible: 'Período avaliativo ativo'
+- assertVisible: 'Teste'
+- assertNotVisible: 'Assinatura em dia'
+- assertNotVisible: 'Expirada'
+- takeScreenshot: billing-trial-warning-configuracoes
+
+# ── Passo 2: Voluntarios acessivel (sem banner, sem bloqueio) ───────────────
+- openLink: diakonia:///admin/voluntarios
+- waitForAnimationToEnd:
+    timeout: 15000
+# isBlocked=false, isVolunteerLimitReached=false -> banner nao aparece
+- assertNotVisible: 'Avaliação encerrada'
+- assertNotVisible: 'Pagamento em atraso'
+- assertNotVisible: 'Assinatura inativa'
+- takeScreenshot: billing-trial-warning-voluntarios
+
+# ── Passo 3: Ministerios acessivel (FAB habilitado, sem banner) ─────────────
+- openLink: diakonia:///admin/ministerios
+- waitForAnimationToEnd:
+    timeout: 15000
+# blockFab = isBlocked || isMinistryLimitReached = false -> sem banner
+- assertNotVisible: 'Avaliação encerrada'
+- assertNotVisible: 'Pagamento em atraso'
+- takeScreenshot: billing-trial-warning-ministerios

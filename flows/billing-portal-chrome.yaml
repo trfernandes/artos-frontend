@@ -1,0 +1,55 @@
+# Flow: Portal abre Chrome com diakonia.app.br/assinar
+#
+# Uso:
+#   maestro test flows/billing-portal-chrome.yaml
+#
+# Pre-condicao: conta Ativa, admin logado
+#
+# O que verifica:
+#   - "Gerenciar assinatura" visivel e tapeavel
+#   - Toque chama abrirPortalDeAssinatura() -> POST /billing/portal-token
+#   - Chrome abre com URL do portal (diakonia.app.br/assinar?token=...)
+#   - Screenshot comprova abertura do portal com dados corretos
+#
+# Nota: Maestro nao pode fazer assertions dentro do Chrome.
+# A evidencia e o screenshot — deve mostrar barra de endereco Chrome
+# com diakonia.app.br e os dados da conta (Ativa, Crescimento, R$119,90/mes).
+
+appId: com.church.artos
+---
+- launchApp
+- runFlow: _login.yaml
+
+- extendedWaitUntil:
+    visible: 'Início'
+    timeout: 45000
+
+- openLink: diakonia:///configuracoes
+- waitForAnimationToEnd:
+    timeout: 15000
+# Retry se API de billing falhou (banner "Servidor indisponivel" bloqueia o tab bar)
+- runFlow:
+    when:
+      visible: 'Servidor indisponível'
+    file: _retry_servidor.yaml
+# Aguarda tab bar aparecer (tabs so rendem apos dados da assinatura carregarem)
+- extendedWaitUntil:
+    visible: 'Assinatura'
+    timeout: 20000
+
+- tapOn:
+    text: 'Assinatura'
+    index: 1
+- waitForAnimationToEnd:
+    timeout: 15000
+
+- assertVisible: 'Gerenciar assinatura'
+- takeScreenshot: billing-portal-antes-do-tap
+
+# Abrir portal — Chrome assume o foco
+- tapOn: 'Gerenciar assinatura'
+- waitForAnimationToEnd:
+    timeout: 15000
+
+# Chrome aberto: evidencia visual do portal com dados corretos
+- takeScreenshot: billing-portal-chrome-aberto

@@ -1,0 +1,94 @@
+1	import FancyModalDialog, { FancyModalDialogProps } from '../../../modal/FancyModalDialog';
+2	import { VoluntarioHierarquiaEnumLabel, VoluntarioHierarquiaEnumList } from '../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
+3	import { useForm } from 'react-hook-form';
+4	import { zodResolver } from '@hookform/resolvers/zod';
+5	import ControlledSearchSelect from '../../../forms/ControlledSearchSelect';
+6	import ControlledBottomSheetSelect from '../../../forms/ControlledBottomSheetSelect';
+7	import { useScreenReadyLoading } from '../../../../hooks/useScreenReadyLoading';
+8	import { View } from 'react-native';
+9	import FancyText from '../../../FancyText';
+10	import { useMemo } from 'react';
+11	import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
+12	import { useVoluntariosCrud } from '../../../../hooks/useVoluntariosCrud';
+13	import { OrderDirection } from '../../../../domain/utils/query_utils';
+14	import { AddMinisterioVoluntarioFormData, AddMinisterioVoluntarioSchema } from '../../../../domain/schemas/ministerioAdminSchema';
+15	import { AppImages } from '../../../../assets/app_images';
+16	
+17	export default function VoluntarioAddFormModal({
+18	  ministerioId,
+19	  ...props
+20	}: {
+21	  ministerioId: string;
+22	  existingVoluntarios?: string[];
+23	} & FancyModalDialogProps<AddMinisterioVoluntarioFormData>) {
+24	  const form = useForm({
+25	    resolver: zodResolver(AddMinisterioVoluntarioSchema),
+26	  });
+27	
+28	  const voluntariosDoMinisterioCrud = useVoluntariosCrud({
+29	    autoFetch: true,
+30	    initialParams: { orderBy: [{ path: 'nome', direction: OrderDirection.ASC }] },
+31	  });
+32	
+33	  const dataReady = !voluntariosDoMinisterioCrud.isLoading && !voluntariosDoMinisterioCrud.isLoadingMutation;
+34	
+35	  const { onLayout } = useScreenReadyLoading({
+36	    dataReady,
+37	    resetKey: ministerioId,
+38	    waitTransition: true,
+39	  });
+40	
+41	  const ministerioVoluntariosDropDownList = useMemo<DropDownItemProps<string>[]>(() => {
+42	    const existingIds = props.existingVoluntarios || [];
+43	    const filteredList = voluntariosDoMinisterioCrud.data.filter((item) => !existingIds.includes(item.id));
+44	    return filteredList.map(
+45	      (item) =>
+46	        ({
+47	          title: item.nome,
+48	          value: item.id,
+49	          left: {
+50	            type: 'image',
+51	            source: item.fotoThumbUrl || item.fotoUrl ? { uri: item.fotoThumbUrl || item.fotoUrl || '' } : AppImages.emptyProfile,
+52	          },
+53	        } as DropDownItemProps<string>),
+54	    );
+55	  }, [props.existingVoluntarios, voluntariosDoMinisterioCrud.data]);
+56	
+57	  const hierarquiaWatch = form.watch('hierarquia');
+58	
+59	  if (voluntariosDoMinisterioCrud.isLoading || voluntariosDoMinisterioCrud.isLoadingMutation) {
+60	    return null;
+61	  }
+62	
+63	  return (
+64	    <View onLayout={onLayout}>
+65	      <FancyText>{VoluntarioHierarquiaEnumLabel[hierarquiaWatch]}</FancyText>
+66	      <FancyModalDialog
+67	        title={'Adicionar Voluntário'}
+68	        {...props}
+69	        centerContainerStyle={{ gap: 15 }}
+70	        onButton2Press={() =>
+71	          form.handleSubmit(
+72	            (data) => {
+73	              props.onButton2Press?.(data);
+74	            },
+75	            (errors) => console.log('VoluntarioAddFormModal form errors', errors),
+76	          )()
+77	        }
+78	      >
+79	        <ControlledSearchSelect
+80	          control={form.control}
+81	          name='voluntarioId'
+82	          label='Voluntário'
+83	          searchPlaceholder='Buscar voluntário...'
+84	          listItems={ministerioVoluntariosDropDownList}
+85	          onChange={(value) => {
+86	            const voluntarioNome = voluntariosDoMinisterioCrud.data.find((v) => v.id === value)?.nome || '';
+87	            form.setValue('voluntarioNome', voluntarioNome);
+88	          }}
+89	        />
+90	        <ControlledBottomSheetSelect control={form.control} name='hierarquia' label='Função' listItems={VoluntarioHierarquiaEnumList} />
+91	      </FancyModalDialog>
+92	    </View>
+93	  );
+94	}

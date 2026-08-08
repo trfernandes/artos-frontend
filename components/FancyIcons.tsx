@@ -25,7 +25,6 @@ export type IconLibrary =
   | 'Entypo'
   | 'Feather'
   | 'AntDesign'
-  | 'Foundation'
   | 'MaterialCommunityIcons'
   | 'Octicons'
   | 'Fontisto';
@@ -56,16 +55,16 @@ const libraries = {
 
 const DefaultIcons = {
   Edit: (size = 24, color = 'black', style?: StyleProp<TextStyle>) => (
-    <MaterialIcons name="edit" size={size} color={color} style={style} />
+    <MaterialIcons name='edit' size={size} color={color} style={style} />
   ),
   View: (size = 24, color = 'black', style?: StyleProp<TextStyle>) => (
-    <FontAwesome name="eye" size={size} color={color} style={style} />
+    <FontAwesome name='eye' size={size} color={color} style={style} />
   ),
   Delete: (size = 24, color = 'black', style?: StyleProp<TextStyle>) => (
-    <MaterialIcons name="delete" size={size} color={color} style={style} />
+    <MaterialIcons name='delete' size={size} color={color} style={style} />
   ),
   Add: (size = 24, color = 'black', style?: StyleProp<TextStyle>) => (
-    <Ionicons name="add-circle-outline" size={size} color={color} style={style} />
+    <Ionicons name='add-circle-outline' size={size} color={color} style={style} />
   ),
 
   // Componente customizável

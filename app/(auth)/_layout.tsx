@@ -1,11 +1,34 @@
+import { Platform } from 'react-native';
 import { Stack } from 'expo-router';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function AuthLayout() {
+  const { user, loading } = useAuth();
+
+  if (loading) return null;
+
+  // Quando usuário está logado, NÃO navegamos daqui (evita race condition
+  // com useProtectedRoute no root layout, que é a única fonte de verdade
+  // do redirect pós-login — incluindo checagem de convite pendente).
+  // Renderiza null para não exibir as telas de auth durante a transição.
+  if (user) return null;
+
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="forgot-password" />
-      <Stack.Screen name="create-account" />
+      <Stack.Screen name='login' />
+      <Stack.Screen name='forgot-password' />
+      <Stack.Screen name='create-account' />
+      <Stack.Screen name='admin-discovery' />
+      <Stack.Screen name='quiz-vendas' />
+      <Stack.Screen name='quiz-vendas-resultado' />
+      <Stack.Screen name='quiz-vendas-funcionalidades' />
+      {/* iOS: Apple Guideline 3.1.1 — cadastro de organização pagante não pode
+          acontecer dentro do app. Rotas nem existem no bundle iOS. Ver ADR. */}
+      {Platform.OS !== 'ios' && <Stack.Screen name='create-igreja-account' />}
+      {Platform.OS !== 'ios' && <Stack.Screen name='igreja-cadastro-aguardando-email' />}
+      <Stack.Screen name='create-voluntario-account' />
+      <Stack.Screen name='voluntario-aguardando-email' />
+      <Stack.Screen name='welcome' />
     </Stack>
   );
 }

@@ -1,0 +1,137 @@
+name: Frontend CI (gate leve)
+
+# Gate leve do app mobile (Expo): typecheck + formatação.
+# Sem testes — regra do projeto: não criar .spec.ts no frontend.
+# QA funcional/visual permanece MANUAL (ver TESTING-PLAYBOOK.md) antes do eas build/submit.
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  frontend-gate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Typecheck (tsc --noEmit)
+        run: npx tsc --noEmit
+
+      - name: Checar formatação (prettier)
+        run: npx prettier . --check
+
+  e2e-maestro:
+    # Smoke E2E em emulador Android efêmero — não bloqueia push normal,
+    # só roda sob demanda (workflow_dispatch) por ser lento (~15-20min).
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    timeout-minutes: 50
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Restaurar google-services.json (gitignored, guardado como secret)
+        run: echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > google-services.json
+
+      - name: Gerar projeto nativo Android (expo prebuild)
+        run: npx expo prebuild --platform android --no-install
+        env:
+          EXPO_PUBLIC_API_URL: https://diakonia-backend-staging.onrender.com
+
+      - name: Build APK debug
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Instalar Maestro CLI
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Acordar backend de staging (Render free tier dorme quando ocioso)
+        run: |
+          for i in $(seq 1 20); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" https://diakonia-backend-staging.onrender.com)
+            if [ "$code" != "000" ]; then
+              echo "Backend respondeu (HTTP $code) na tentativa $i"
+              exit 0
+            fi
+            echo "Tentativa $i: sem resposta, aguardando..."
+            sleep 5
+          done
+          echo "Backend não respondeu após 100s"
+          exit 1
+
+      - name: Subir Metro em background
+        # REACT_NATIVE_PACKAGER_HOSTNAME=localhost é obrigatório aqui — sem isso o
+        # manifest do Metro anuncia o IP interno do runner e o emulador (via adb
+        # reverse) não alcança, travando com "Unable to load script" (mesmo bug
+        # que ocorre em device físico sem essa env var).
+        env:
+          EXPO_PUBLIC_API_URL: https://diakonia-backend-staging.onrender.com
+        run: |
+          REACT_NATIVE_PACKAGER_HOSTNAME=localhost nohup npx expo start > metro.log 2>&1 &
+          npx wait-on http://localhost:8081/status --timeout 60000
+
+      # Metro só compila o bundle sob demanda: sem isso, o primeiro launchApp no
+      # emulador dispara a compilação e a tela de login demora demais pra renderizar,
+      # fazendo _login.yaml pular o passo de login (checagem pontual, não polling)
+      - name: Pré-compilar bundle JS Android
+        run:
+          curl -sf "http://localhost:8081/index.bundle?platform=android&dev=true" -o /dev/null
+          --max-time 300
+
+      # Sem KVM o emulador roda em emulação por software pura e nunca termina de bootar
+      - name: Habilitar KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Rodar smoke E2E no emulador
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: |
+            adb reverse tcp:8081 tcp:8081
+            adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+            maestro test flows/run-smoke.yaml -e APP_EMAIL=${{ secrets.MAESTRO_APP_EMAIL }} -e APP_PASSWORD=${{ secrets.MAESTRO_APP_PASSWORD }}
+
+      - name: Upload de screenshots/relatório em caso de falha
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-report
+          path: |
+            ~/.maestro/tests
+            *.png
+          retention-days: 7
