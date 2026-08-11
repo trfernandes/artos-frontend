@@ -29,10 +29,10 @@ export function SlowRequestBanner() {
         backgroundColor: palette.warning,
       }}
     >
-      <FancyText size='small' type='bold' color='white'>
+      <FancyText size='small' type='bold' color={palette.fonts.light}>
         Servidor iniciando...
       </FancyText>
-      <FancyText size='extraSmall' style={{ color: 'white', opacity: 0.9, marginTop: 2 }}>
+      <FancyText size='extraSmall' style={{ color: palette.fonts.light, opacity: 0.9, marginTop: 2 }}>
         Primeira consulta do dia pode levar alguns segundos.
       </FancyText>
     </View>
