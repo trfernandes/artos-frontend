@@ -239,7 +239,10 @@ export default function CreateVoluntarioAccountPage() {
           <FancyButton
             mode='icon'
             type='text'
-            onPress={() => router.back()}
+            onPress={() => {
+              if (router.canGoBack()) router.back();
+              else router.replace('/(auth)/login');
+            }}
             icon={{ library: 'Feather', name: 'arrow-left', size: 18 }}
             iconStyle={{ color: Pallete.icons.dark }}
             containerStyle={{
