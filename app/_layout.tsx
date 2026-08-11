@@ -1,7 +1,7 @@
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { Asset } from 'expo-asset';
-import { SplashScreen, Stack } from 'expo-router';
+import { SplashScreen, Stack, useNavigationContainerRef } from 'expo-router';
 import { setOptions as setSplashScreenOptions } from 'expo-splash-screen';
 import { AppState, Modal, Platform, StyleSheet, View } from 'react-native';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
@@ -25,6 +25,7 @@ import * as Sentry from '@sentry/react-native';
 import { ConnectivityProvider } from '../core/network/connectivity/ConnectivityProvider';
 import { createQueryClient } from '../core/react-query/queryClient';
 import { ConnectivityBanner } from '../components/FancyConnectivityBanner';
+import { SlowRequestBanner } from '../components/FancySlowRequestBanner';
 import FancyLoading from '../components/FancyLoading';
 import {
   initialWindowMetrics,
@@ -40,6 +41,10 @@ import AppSplashOverlay from '../components/AppSplashOverlay';
 
 const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
 
+const sentryNavigationIntegration = Sentry.reactNavigationIntegration({
+  enableTimeToInitialDisplay: true,
+});
+
 if (sentryDsn) {
   Sentry.init({
     dsn: sentryDsn,
@@ -47,7 +52,7 @@ if (sentryDsn) {
     enableLogs: __DEV__,
     replaysSessionSampleRate: __DEV__ ? 0 : 0.1,
     replaysOnErrorSampleRate: 1,
-    integrations: [Sentry.mobileReplayIntegration()],
+    integrations: [Sentry.mobileReplayIntegration(), sentryNavigationIntegration],
   });
 }
 
@@ -157,6 +162,11 @@ function RootLayoutNav({
   onNativeSplashHidden: () => void;
 }) {
   useProtectedRoute();
+
+  const navigationRef = useNavigationContainerRef();
+  useEffect(() => {
+    sentryNavigationIntegration.registerNavigationContainer(navigationRef);
+  }, [navigationRef]);
 
   const { user, loading, isSigningOut } = useAuth();
   const { isDark, palette } = useAppTheme();
@@ -299,8 +309,9 @@ function RootLayoutNav({
         <Toast config={toastConfig} position='bottom' visibilityTime={4000} />
         <FancyAlertConnector />
         <ConnectivityBanner />
+        <SlowRequestBanner />
         <Modal visible={isSigningOut} transparent animationType='fade'>
-          <View style={styles.signOutOverlay}>
+          <View style={[styles.signOutOverlay, { backgroundColor: palette.overlays.strongBackdrop }]}>
             <View
               style={[
                 styles.signOutSurface,
@@ -333,7 +344,6 @@ const styles = StyleSheet.create({
   },
   signOutOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.32)',
     alignItems: 'center',
     justifyContent: 'center',
   },
