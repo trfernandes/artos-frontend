@@ -184,38 +184,54 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
     [formTemplate, loadTemplateData, templatesList],
   );
 
-  const handleTemplateBaseChange = useCallback(
-    (newTemplateBaseId: string) => {
-      const previousTemplateBaseId = prevTemplateBaseIdRef.current || '';
-      const nextTemplateBaseId = newTemplateBaseId || '';
+  // ControlledSearchSelect dispara onChange enquanto o <Modal> do próprio
+  // picker ainda está fechando (FancySearchSelect.scheduleClose). Empilhar o
+  // <Modal> do FancyAlert em cima dele fazia o iOS ignorar a apresentação do
+  // alerta silenciosamente (nenhum crash, só nunca aparecia — por isso os
+  // botões "Sim"/"Não" nunca disparavam e as funções nunca carregavam).
+  // Guarda a mudança pendente e só abre o alerta no onClosed do picker,
+  // quando o Modal nativo já terminou de fechar de verdade.
+  const pendingTemplateChangeRef = useRef<string | null>(null);
 
-      if (previousTemplateBaseId === nextTemplateBaseId) {
-        return;
-      }
+  const handleTemplateBaseChange = useCallback((newTemplateBaseId: string) => {
+    const previousTemplateBaseId = prevTemplateBaseIdRef.current || '';
+    const nextTemplateBaseId = newTemplateBaseId || '';
 
-      FancyAlert.alert(
-        'Edição',
-        'A mudança de template base vai acarretar a perda dos dados inseridos, realmente deseja prosseguir?',
-        [
-          {
-            text: 'Não',
-            style: 'cancel',
-            onPress: () => {
-              formTemplate.setValue('templateBase.id', previousTemplateBaseId);
-            },
+    if (previousTemplateBaseId === nextTemplateBaseId) {
+      return;
+    }
+
+    pendingTemplateChangeRef.current = nextTemplateBaseId;
+  }, []);
+
+  const handleTemplateSelectClosed = useCallback(() => {
+    const nextTemplateBaseId = pendingTemplateChangeRef.current;
+    if (nextTemplateBaseId === null) return;
+    pendingTemplateChangeRef.current = null;
+
+    const previousTemplateBaseId = prevTemplateBaseIdRef.current || '';
+
+    FancyAlert.alert(
+      'Edição',
+      'A mudança de template base vai acarretar a perda dos dados inseridos, realmente deseja prosseguir?',
+      [
+        {
+          text: 'Não',
+          style: 'cancel',
+          onPress: () => {
+            formTemplate.setValue('templateBase.id', previousTemplateBaseId);
           },
-          {
-            text: 'Sim',
-            style: 'default',
-            onPress: () => {
-              applyTemplateSelection(nextTemplateBaseId);
-            },
+        },
+        {
+          text: 'Sim',
+          style: 'default',
+          onPress: () => {
+            applyTemplateSelection(nextTemplateBaseId);
           },
-        ],
-      );
-    },
-    [applyTemplateSelection, formTemplate],
-  );
+        },
+      ],
+    );
+  }, [applyTemplateSelection, formTemplate]);
 
   const templateBaseIdWatch = formTemplate.watch('templateBase.id');
   const templateTipoWatch = formTemplate.watch('tipo');
@@ -229,6 +245,38 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
       }
     },
     [formTemplate],
+  );
+
+  // Mesma corrida de <Modal> nativo do picker de template base — guarda o
+  // valor pendente e só abre o alerta quando o sheet terminou de fechar.
+  const pendingTipoChangeRef = useRef<EscalaTemplateTipoEnum | null>(null);
+
+  const handleTipoSelectClosed = useCallback(
+    (onChange: (value: EscalaTemplateTipoEnum) => void) => {
+      const newTipo = pendingTipoChangeRef.current;
+      if (newTipo === null) return;
+      pendingTipoChangeRef.current = null;
+
+      FancyAlert.alert(
+        'Alteração de tipo',
+        'Essa mudança vai resultar em excluir toda a equipe, deseja continuar?',
+        [
+          {
+            text: 'Não',
+            style: 'cancel',
+          },
+          {
+            text: 'Sim',
+            style: 'default',
+            onPress: () => {
+              onChange(newTipo);
+              handleChangeTipo(newTipo);
+            },
+          },
+        ],
+      );
+    },
+    [handleChangeTipo],
   );
 
   const isDataLoading =
@@ -275,6 +323,7 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
             onChange={(newTemplateBaseId) => {
               handleTemplateBaseChange(newTemplateBaseId as string);
             }}
+            onClosed={handleTemplateSelectClosed}
           />
           <FancyVerticalSpacer height={12} />
 
@@ -292,25 +341,9 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
                 value={value}
                 onChange={(newValue) => {
                   if (value === newValue && !value) return;
-                  FancyAlert.alert(
-                    'Alteração de tipo',
-                    'Essa mudança vai resultar em excluir toda a equipe, deseja continuar?',
-                    [
-                      {
-                        text: 'Não',
-                        style: 'cancel',
-                      },
-                      {
-                        text: 'Sim',
-                        style: 'default',
-                        onPress: () => {
-                          onChange(newValue);
-                          handleChangeTipo(newValue);
-                        },
-                      },
-                    ],
-                  );
+                  pendingTipoChangeRef.current = newValue;
                 }}
+                onClosed={() => handleTipoSelectClosed(onChange)}
               />
             )}
           />

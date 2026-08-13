@@ -75,6 +75,8 @@ export interface FancySearchSelectProps<T>
   multiSelect?: boolean;
   /** Override do label (cor/estilo) — para superfícies escuras/gradiente. */
   labelProps?: FancyTextProps;
+  /** Chamado quando o Modal nativo termina de fechar (isVisible vira false). */
+  onClosed?: () => void;
 }
 
 export interface FancySearchSelectRef {
@@ -101,6 +103,7 @@ function FancySearchSelectInner<ValueItem>(
     retryLabel = 'Tentar novamente',
     multiSelect = false,
     labelProps,
+    onClosed,
   }: FancySearchSelectProps<ValueItem>,
   ref: React.Ref<FancySearchSelectRef>,
 ) {
@@ -169,8 +172,9 @@ function FancySearchSelectInner<ValueItem>(
       dragY.setValue(0);
       setIsVisible(false);
       setSearch('');
+      onClosed?.();
     });
-  }, [backdropAnim, dragY, slideAnim]);
+  }, [backdropAnim, dragY, slideAnim, onClosed]);
 
   const scheduleClose = useCallback(() => {
     closeTask.current?.cancel();
