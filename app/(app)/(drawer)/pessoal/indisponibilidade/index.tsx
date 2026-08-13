@@ -250,7 +250,7 @@ export default function IndisponibilidadeIndexPage() {
     return Array.from(regrasKeys)
       .filter((k) => !individuaisKeys.has(k))
       .map((k) => ({
-        date: new Date(k + 'T00:00:00Z'),
+        date: DateUtilsApi.dateOnlyFromApi(k),
         T: k,
         color: palette.secondary,
       }));

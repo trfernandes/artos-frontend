@@ -25,6 +25,7 @@ import { useAuth } from '../../../../../contexts/AuthContext';
 import { useAppTheme } from '../../../../../hooks/useAppTheme';
 import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 import { ColorUtils } from '../../../../../utils/color_utils';
+import { DateUtilsApi } from '../../../../../utils/date_utils';
 import { TutorialTarget } from '../../../../../components/tutorial/TutorialTarget';
 import { TutorialBanner } from '../../../../../components/tutorial/TutorialBanner';
 import { TutorialOverlay } from '../../../../../components/tutorial/TutorialOverlay';
@@ -147,13 +148,13 @@ export default function MinisterioIndisponibilidadesIndex() {
     );
 
     const ministerioMarcados = Array.from(ministerioKeys).map((k) => ({
-      date: new Date(k + 'T00:00:00Z'),
+      date: DateUtilsApi.dateOnlyFromApi(k),
       color: palette.secondary,
     }));
     const pessoalMarcados = Array.from(pessoalKeys)
       .filter((k) => !ministerioKeys.has(k))
       .map((k) => ({
-        date: new Date(k + 'T00:00:00Z'),
+        date: DateUtilsApi.dateOnlyFromApi(k),
         color: palette.fonts.inactive,
       }));
 
