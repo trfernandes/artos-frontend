@@ -192,6 +192,7 @@ export default function CreateVoluntarioAccountPage() {
         codigoIgreja: conviteToken,
       };
 
+      let joinFailed = false;
       try {
         const result = await add(payload);
         const anyResult = result as any;
@@ -199,6 +200,7 @@ export default function CreateVoluntarioAccountPage() {
         if (anyResult?.igrejaJoinError) {
           // Corrida rara: token expirou/esgotou entre validar e submeter.
           // igrejaJoinError é um objeto { code, message } — renderizar só a string.
+          joinFailed = true;
           Toast.show({
             type: 'error',
             text1: 'Conta criada',
@@ -223,7 +225,10 @@ export default function CreateVoluntarioAccountPage() {
         return;
       }
 
-      if (temConvitePendente) {
+      // Só limpa o convite pendente se ele foi de fato honrado — se falhou
+      // (corrida validar→submeter), mantém pra login.tsx/useProtectedRoute
+      // tentarem de novo em vez de perder a trilha do usuário.
+      if (temConvitePendente && !joinFailed) {
         await AsyncStorage.multiRemove(['pendingInvite', 'pendingInviteToken']);
       }
       router.replace('/(auth)/login');
