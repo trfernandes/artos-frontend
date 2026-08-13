@@ -22,6 +22,7 @@ import { registerForPushNotificationsAsync } from '../services/notifications';
 import { NotificationsManager } from '../components/Notification_manager';
 import { AppReviewManager } from '../components/AppReviewManager';
 import * as Sentry from '@sentry/react-native';
+import * as Updates from 'expo-updates';
 import { ConnectivityProvider } from '../core/network/connectivity/ConnectivityProvider';
 import { createQueryClient } from '../core/react-query/queryClient';
 import { ConnectivityBanner } from '../components/FancyConnectivityBanner';
@@ -173,6 +174,25 @@ function RootLayoutNav({
   const statusBarStyle: 'light' | 'dark' = isDark ? 'light' : 'dark';
   const safeAreaBackgroundColor = palette.backgroundColor;
   const toastConfig = useMemo(() => createToastConfig(palette), [palette]);
+
+  // Auto-check nativo do expo-updates nunca disparou de forma confiável nesse
+  // app (relato de build TestFlight que nunca aplicou nenhum OTA sozinho).
+  // Check explicito no boot como rede de seguranca.
+  useEffect(() => {
+    if (__DEV__ || !Updates.isEnabled) return;
+
+    (async () => {
+      try {
+        const result = await Updates.checkForUpdateAsync();
+        if (result.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          await Updates.reloadAsync();
+        }
+      } catch (error) {
+        Sentry.captureException(error, { tags: { context: 'manual-update-check' } });
+      }
+    })();
+  }, []);
 
   const [fontsLoaded] = useFonts({
     MontserratBlack: require('../assets/fonts/montserrat/Montserrat-Black.ttf'),
