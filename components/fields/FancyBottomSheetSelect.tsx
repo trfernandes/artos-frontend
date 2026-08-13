@@ -55,6 +55,8 @@ export interface FancyBottomSheetSelectProps<T>
   onChange?: (value: T) => void;
   isLoading?: boolean;
   title?: string;
+  /** Chamado quando o Modal nativo termina de fechar (isVisible vira false). */
+  onClosed?: () => void;
 }
 
 export interface FancyBottomSheetSelectRef {
@@ -73,6 +75,7 @@ function FancyBottomSheetSelectInner<ValueItem>(
     onChange,
     containerStyle,
     title,
+    onClosed,
   }: FancyBottomSheetSelectProps<ValueItem>,
   ref: React.Ref<FancyBottomSheetSelectRef>,
 ) {
@@ -140,8 +143,9 @@ function FancyBottomSheetSelectInner<ValueItem>(
       dragY.setValue(0);
       setIsVisible(false);
       setTempValue(undefined);
+      onClosed?.();
     });
-  }, [backdropAnim, dragY, slideAnim]);
+  }, [backdropAnim, dragY, slideAnim, onClosed]);
 
   const scheduleClose = useCallback(() => {
     closeTask.current?.cancel();
