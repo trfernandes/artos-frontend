@@ -99,7 +99,7 @@ export default function FancyButton({
 
   const numberOfLines = providedNumberOfLines ?? 1;
   const adjustsFontSizeToFit = providedAdjustsFontSizeToFit ?? true;
-  const minimumFontScale = providedMinimumFontScale ?? 0.85;
+  const minimumFontScale = providedMinimumFontScale ?? 0.92;
 
   const dimensionStyle = mode === 'icon' ? { width: minWidth, height } : { minWidth, height };
   const accessibilityState = { disabled, ...props.accessibilityState };
