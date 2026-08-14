@@ -10,7 +10,7 @@ import {
 import FancyList from '../../../../list/FancyList';
 import { FancyCard } from '../../../../cards/Horizontal/FancyCard';
 import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import EventoFormModal from './EventoFormModal';
@@ -141,6 +141,8 @@ export default function AssistenteEventosStep() {
     data?: EscalaEventoFormData;
     index?: number;
   }>({ visible: false });
+  const hasOpenedEventoForm = useRef(false);
+  if (eventoFormProps.visible) hasOpenedEventoForm.current = true;
 
   const handleSaveTemplate = useCallback(
     (data: EscalaEventoTemplateFormData) => {
@@ -359,8 +361,9 @@ export default function AssistenteEventosStep() {
           }}
         />
       )}
-      {eventoFormProps.visible && (
+      {(eventoFormProps.visible || hasOpenedEventoForm.current) && (
         <EventoFormModal
+          visible={eventoFormProps.visible}
           data={eventoFormProps.data}
           modalProps={{
             onButton1Press: () =>

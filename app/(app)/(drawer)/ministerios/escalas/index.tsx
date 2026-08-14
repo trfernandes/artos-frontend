@@ -12,8 +12,10 @@ import { ThemePalette } from '../../../../../constants/colors';
 import FancyChips from '../../../../../components/FancyChips';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
-import { Modal, StyleSheet } from 'react-native';
+import { Modal, Pressable, StyleSheet } from 'react-native';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
+import FancyBottomSheetModal from '../../../../../components/modal/FancyBottomSheetModal';
+import DefaultIcons from '../../../../../components/FancyIcons';
 import {
   EscalaStatusEnum,
   EscalaStatusEnumLabel,
@@ -149,6 +151,7 @@ export default function MinisterioEscalasIndexPage() {
   const { isFocusLoading } = useFocusRefetch(refetchEscalas);
 
   const [isPullRefreshing, setIsPullRefreshing] = useState(false);
+  const [novaEscalaSheetVisible, setNovaEscalaSheetVisible] = useState(false);
   const handlePullRefresh = useCallback(async () => {
     setIsPullRefreshing(true);
     try {
@@ -220,23 +223,7 @@ export default function MinisterioEscalasIndexPage() {
             );
             return;
           }
-          FancyAlert.alert('Nova escala', 'Como deseja criar a escala?', [
-            {
-              text: 'Gerar automaticamente',
-              onPress: () =>
-                router.push({
-                  pathname: '/ministerios/escalas/assistant',
-                  params: { ministerioId },
-                }),
-            },
-            {
-              text: 'Criar manualmente',
-              style: 'default',
-              onPress: () =>
-                router.push({ pathname: '/ministerios/escalas/manual', params: { ministerioId } }),
-            },
-            { text: 'Cancelar', style: 'cancel' },
-          ]);
+          setNovaEscalaSheetVisible(true);
         },
       }}
       fabTutorialTarget={{
@@ -387,6 +374,75 @@ export default function MinisterioEscalasIndexPage() {
       />
 
       <TutorialOverlay tour={tour} />
+
+      <FancyBottomSheetModal
+        visible={novaEscalaSheetVisible}
+        onClose={() => setNovaEscalaSheetVisible(false)}
+        title='Nova escala'
+      >
+        <View style={styles.novaEscalaCards}>
+          {[
+            {
+              key: 'auto',
+              icon: 'zap' as const,
+              color: palette.secondary,
+              title: 'Gerar automaticamente',
+              description: 'Sistema sugere os voluntários pra você',
+              onPress: () =>
+                router.push({
+                  pathname: '/ministerios/escalas/assistant',
+                  params: { ministerioId },
+                }),
+            },
+            {
+              key: 'manual',
+              icon: 'edit-3' as const,
+              color: palette.warning,
+              title: 'Criar manualmente',
+              description: 'Você escolhe cada voluntário da equipe',
+              onPress: () =>
+                router.push({ pathname: '/ministerios/escalas/manual', params: { ministerioId } }),
+            },
+          ].map((option) => (
+            <Pressable
+              key={option.key}
+              style={({ pressed }) => [
+                styles.novaEscalaCard,
+                { borderColor: palette.border, backgroundColor: palette.backgroundColor2 },
+                pressed && { opacity: 0.7 },
+              ]}
+              onPress={() => {
+                setNovaEscalaSheetVisible(false);
+                requestAnimationFrame(option.onPress);
+              }}
+              accessibilityRole='button'
+              accessibilityLabel={option.title}
+            >
+              <View
+                style={[
+                  styles.novaEscalaIcon,
+                  { backgroundColor: ColorUtils.withAlpha(option.color, 0.14) },
+                ]}
+              >
+                <DefaultIcons.Custom
+                  library='Feather'
+                  name={option.icon}
+                  size={20}
+                  color={option.color}
+                />
+              </View>
+              <View style={styles.novaEscalaTexts}>
+                <FancyText type='bold' size='medium' color={palette.fonts.dark}>
+                  {option.title}
+                </FancyText>
+                <FancyText type='medium' size='small' color={palette.fonts.inactive}>
+                  {option.description}
+                </FancyText>
+              </View>
+            </Pressable>
+          ))}
+        </View>
+      </FancyBottomSheetModal>
     </FancyListPage>
   );
 }
@@ -396,5 +452,28 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  novaEscalaCards: {
+    gap: 12,
+    marginBottom: 8,
+  },
+  novaEscalaCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  novaEscalaIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  novaEscalaTexts: {
+    flex: 1,
+    gap: 2,
   },
 });
