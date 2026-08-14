@@ -143,7 +143,11 @@ function FancyBottomSheetSelectInner<ValueItem>(
       dragY.setValue(0);
       setIsVisible(false);
       setTempValue(undefined);
-      onClosed?.();
+      // iOS: onDismiss do <Modal> nativo dispara onClosed (evita race de
+      // apresentar outro Modal antes do dismiss real terminar no OS).
+      if (Platform.OS !== 'ios') {
+        onClosed?.();
+      }
     });
   }, [backdropAnim, dragY, slideAnim, onClosed]);
 
@@ -405,6 +409,7 @@ function FancyBottomSheetSelectInner<ValueItem>(
         animationType='none'
         statusBarTranslucent
         onRequestClose={handleClose}
+        onDismiss={Platform.OS === 'ios' ? onClosed : undefined}
       >
         {sheetContent}
       </Modal>
