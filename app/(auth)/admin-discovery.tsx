@@ -75,7 +75,7 @@ export default function AdminDiscoveryPage() {
           ]}
         >
           <View style={styles.headerGroup}>
-            <FancyText size={28} type='bold' color={Pallete.fonts.dark} style={styles.title}>
+            <FancyText size='display' type='bold' color={Pallete.fonts.dark} style={styles.title}>
               Como você vai entrar?
             </FancyText>
             <FancyText size='small' color={Pallete.fonts.inactive}>

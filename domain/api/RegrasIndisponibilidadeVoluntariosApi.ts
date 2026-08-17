@@ -21,6 +21,17 @@ class RegrasIndisponibilidadeVoluntariosApiClass extends BaseApi<
     return response.data.data;
   }
 
+  async update(
+    id: string,
+    payload: UpdateRegraIndisponibilidadeVoluntarioDto,
+    igrejaId?: string,
+  ): Promise<ResponseRegraIndisponibilidadeVoluntarioDto> {
+    const response = await apiClient.put(`/regras-indisponibilidade-voluntarios/${id}`, payload, {
+      params: igrejaId ? { igrejaId } : undefined,
+    });
+    return response.data.data;
+  }
+
   async delete(id: string, igrejaId?: string): Promise<void> {
     await apiClient.delete(`/regras-indisponibilidade-voluntarios/${id}`, {
       params: igrejaId ? { igrejaId } : undefined,

@@ -17,7 +17,9 @@ import {
   FancyAlertConnector,
   FancyAlertProvider,
 } from '../components/modal/FancyAlert';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { GlobalModalHost } from '../components/modal/GlobalModalHost';
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { refreshFontScale } from '../constants/font';
 import { registerForPushNotificationsAsync } from '../services/notifications';
 import { NotificationsManager } from '../components/Notification_manager';
 import { AppReviewManager } from '../components/AppReviewManager';
@@ -26,7 +28,6 @@ import * as Updates from 'expo-updates';
 import { ConnectivityProvider } from '../core/network/connectivity/ConnectivityProvider';
 import { createQueryClient } from '../core/react-query/queryClient';
 import { ConnectivityBanner } from '../components/FancyConnectivityBanner';
-import { SlowRequestBanner } from '../components/FancySlowRequestBanner';
 import FancyLoading from '../components/FancyLoading';
 import {
   initialWindowMetrics,
@@ -168,6 +169,30 @@ function RootLayoutNav({
   useEffect(() => {
     sentryNavigationIntegration.registerNavigationContainer(navigationRef);
   }, [navigationRef]);
+
+  // rele a escala de fonte do sistema e força re-render da árvore (RN não expõe
+  // evento de mudança — ver refreshFontScale em constants/font.ts). AppState cobre
+  // ida/volta de Ajustes; polling cobre o slider do Control Center (app fica em
+  // foreground o tempo todo, sem transição de AppState).
+  const [, forceFontScaleUpdate] = useReducer((tick: number) => tick + 1, 0);
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active' && refreshFontScale()) {
+        forceFontScaleUpdate();
+      }
+    });
+
+    const interval = setInterval(() => {
+      if (AppState.currentState === 'active' && refreshFontScale()) {
+        forceFontScaleUpdate();
+      }
+    }, 1000);
+
+    return () => {
+      subscription.remove();
+      clearInterval(interval);
+    };
+  }, []);
 
   const { user, loading, isSigningOut } = useAuth();
   const { isDark, palette } = useAppTheme();
@@ -329,7 +354,7 @@ function RootLayoutNav({
         <Toast config={toastConfig} position='bottom' visibilityTime={4000} />
         <FancyAlertConnector />
         <ConnectivityBanner />
-        <SlowRequestBanner />
+        <GlobalModalHost />
         <Modal visible={isSigningOut} transparent animationType='fade'>
           <View style={[styles.signOutOverlay, { backgroundColor: palette.overlays.strongBackdrop }]}>
             <View

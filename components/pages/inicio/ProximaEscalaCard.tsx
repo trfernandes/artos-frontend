@@ -130,7 +130,7 @@ export default function ProximaEscalaCard({ escala, onPress }: ProximaEscalaCard
               />
             ) : (
               <View style={styles.ministerioLogoCircle}>
-                <FancyText size={7} type='bold' color={palette.fonts.light}>
+                <FancyText size='extraSmall' type='bold' color={palette.fonts.light}>
                   {escala.ministerioNome.charAt(0).toUpperCase()}
                 </FancyText>
               </View>

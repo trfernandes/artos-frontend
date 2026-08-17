@@ -40,7 +40,7 @@ export default function VoluntariosDetailsPage() {
       where: {
         conditions: [
           {
-            path: 'id',
+            path: 'voluntario.id',
             operator: Operator.EQUALS,
             value: { type: ValueType.LITERAL, value: parametros.id },
           },
@@ -54,8 +54,9 @@ export default function VoluntariosDetailsPage() {
   const [isLoadingVoluntarios, setIsLoadingVoluntarios] = useState(false);
 
   const loadData = useCallback(() => {
+    if (!igrejaAtiva) return;
     setIsLoadingVoluntarios(true);
-    VoluntariosRepository.search(searchParams)
+    VoluntariosRepository.search(searchParams, igrejaAtiva.id)
       .then((data) => {
         if (__DEV__) {
           console.log('[Admin/Voluntarios] Data loaded:', data.length, 'voluntarios');
@@ -65,7 +66,7 @@ export default function VoluntariosDetailsPage() {
       .finally(() => {
         setIsLoadingVoluntarios(false);
       });
-  }, [searchParams]);
+  }, [searchParams, igrejaAtiva]);
 
   useEffect(() => {
     loadData();

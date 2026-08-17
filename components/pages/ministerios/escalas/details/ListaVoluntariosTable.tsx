@@ -175,11 +175,11 @@ export default function ListaVoluntariosTable({
                         : ''}
                   </FancyText>
                   {hasVoluntario ? (
-                    <FancyText type='semiBold' size={12}>
+                    <FancyText type='semiBold' size='small'>
                       {getFirstAndLastName(equipeItem.voluntario?.nome)}
                     </FancyText>
                   ) : (
-                    <FancyText type='semiBold' size={13} color={palette.fonts.inactive}>
+                    <FancyText type='semiBold' size='medium' color={palette.fonts.inactive}>
                       Sem Voluntário
                     </FancyText>
                   )}

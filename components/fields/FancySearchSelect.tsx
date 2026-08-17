@@ -3,6 +3,7 @@ import {
   useCallback,
   useRef,
   useEffect,
+  useId,
   forwardRef,
   useImperativeHandle,
   useMemo,
@@ -11,7 +12,6 @@ import {
   View,
   StyleSheet,
   Pressable,
-  Modal,
   StyleProp,
   ViewStyle,
   TextInputProps,
@@ -23,6 +23,7 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
+import { ModalStack } from '../modal/GlobalModalHost';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BlurView } from 'expo-blur';
 import FancyText, { FancyTextProps } from '../FancyText';
@@ -108,6 +109,7 @@ function FancySearchSelectInner<ValueItem>(
   ref: React.Ref<FancySearchSelectRef>,
 ) {
   const palette = usePallete();
+  const stackId = useId();
   const { isDark } = useAppTheme();
   const styles = useThemedStyles(createStyles);
   // Backdrop com mais opacidade no Android pois o blur lá é menos efetivo
@@ -172,11 +174,7 @@ function FancySearchSelectInner<ValueItem>(
       dragY.setValue(0);
       setIsVisible(false);
       setSearch('');
-      // iOS: onDismiss do <Modal> nativo dispara onClosed (evita race de
-      // apresentar outro Modal antes do dismiss real terminar no OS).
-      if (Platform.OS !== 'ios') {
-        onClosed?.();
-      }
+      onClosed?.();
     });
   }, [backdropAnim, dragY, slideAnim, onClosed]);
 
@@ -537,6 +535,21 @@ function FancySearchSelectInner<ValueItem>(
     ],
   );
 
+  useEffect(() => {
+    if (isVisible) {
+      ModalStack.push(stackId, sheetContent, handleClose);
+    } else {
+      ModalStack.pop(stackId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVisible]);
+
+  useEffect(() => {
+    if (isVisible) ModalStack.update(stackId, sheetContent, handleClose);
+  });
+
+  useEffect(() => () => ModalStack.pop(stackId), [stackId]);
+
   return (
     <View style={[styles.container, containerStyle]}>
       {label && (
@@ -582,17 +595,6 @@ function FancySearchSelectInner<ValueItem>(
           )}
         </View>
       </Pressable>
-
-      <Modal
-        visible={isVisible}
-        transparent
-        animationType='none'
-        statusBarTranslucent
-        onRequestClose={handleClose}
-        onDismiss={Platform.OS === 'ios' ? onClosed : undefined}
-      >
-        {sheetContent}
-      </Modal>
     </View>
   );
 }

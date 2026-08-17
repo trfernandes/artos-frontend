@@ -4,6 +4,7 @@ import FancyText from '../../FancyText';
 import DefaultIcons, { CustomIconProps } from '../../FancyIcons';
 import { ThemePalette } from '../../../constants/colors';
 import { useThemedStyles } from '../../../hooks/useThemedStyles';
+import { usePallete } from '../../../hooks/usePallete';
 import { ColorUtils } from '../../../utils/color_utils';
 
 type DashboardCardProps = {
@@ -30,6 +31,7 @@ export default function DashboardCard({
   accentColor,
 }: DashboardCardProps) {
   const styles = useThemedStyles(createStyles);
+  const palette = usePallete();
 
   const content =
     layout === 'horizontal' ? (
@@ -39,7 +41,7 @@ export default function DashboardCard({
             styles.squircle,
             {
               backgroundColor:
-                iconBackgroundColor || ColorUtils.withAlpha(accentColor ?? '#534ab7', 0.12),
+                iconBackgroundColor || ColorUtils.withAlpha(accentColor ?? palette.primary, 0.12),
             },
           ]}
         >
@@ -53,7 +55,7 @@ export default function DashboardCard({
 
         <View style={styles.rightContent}>
           <FancyText
-            size={20}
+            size='title'
             type='bold'
             numberOfLines={1}
             adjustsFontSizeToFit
@@ -84,7 +86,7 @@ export default function DashboardCard({
             styles.centerIcon,
             {
               backgroundColor:
-                iconBackgroundColor || ColorUtils.withAlpha(accentColor ?? '#534ab7', 0.15),
+                iconBackgroundColor || ColorUtils.withAlpha(accentColor ?? palette.primary, 0.15),
             },
           ]}
         >
@@ -97,7 +99,7 @@ export default function DashboardCard({
         </View>
         <View style={styles.centerContent}>
           <FancyText
-            size={16}
+            size='semiLarge'
             type='bold'
             numberOfLines={1}
             adjustsFontSizeToFit
@@ -106,7 +108,14 @@ export default function DashboardCard({
           >
             {value}
           </FancyText>
-          <FancyText size='extraSmall' type='semiBold' numberOfLines={2} style={styles.fitText}>
+          <FancyText
+            size='extraSmall'
+            type='semiBold'
+            numberOfLines={2}
+            adjustsFontSizeToFit
+            minimumFontScale={0.75}
+            style={styles.fitText}
+          >
             {title}
           </FancyText>
           {subtitle ? (

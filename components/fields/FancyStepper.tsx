@@ -67,7 +67,7 @@ export default function FancyStepper({ value, onChange, min = 1, max = 99, label
 
         {/* Valor central */}
         <Animated.View style={{ opacity, flex: 1, alignItems: 'center' }}>
-          <FancyText size={18} type='semiBold' color={palette.fonts.dark}>
+          <FancyText size='largePlus' type='semiBold' color={palette.fonts.dark}>
             {unitLabel}
           </FancyText>
         </Animated.View>

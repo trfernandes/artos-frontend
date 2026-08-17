@@ -160,7 +160,7 @@ function LeadingItem({ leading }: { leading: Leading }) {
       <View style={[styles.leading, styles.leadingSquircle, { backgroundColor: fallbackBg }]}>
         <FancyText
           type='bold'
-          size={17}
+          size='large'
           color={fallbackColor}
           numberOfLines={1}
           style={styles.dateDay}
@@ -169,7 +169,7 @@ function LeadingItem({ leading }: { leading: Leading }) {
         </FancyText>
         <FancyText
           type='medium'
-          size={9}
+          size='extraSmall'
           color={fallbackColor}
           numberOfLines={1}
           style={styles.dateMonth}

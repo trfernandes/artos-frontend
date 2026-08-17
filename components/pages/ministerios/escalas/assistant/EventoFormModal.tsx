@@ -16,7 +16,6 @@ import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { StyleSheet, View } from 'react-native';
 import ControlledSearchSelect from '../../../../forms/ControlledSearchSelect';
-import FancyVerticalSpacer from '../../../../FancyVerticalSpacer';
 import { EnumUtils } from '../../../../../utils/enum_utils';
 import FancyBottomSheetSelect from '../../../../fields/FancyBottomSheetSelect';
 import { FancyAlert } from '../../../../modal/FancyAlert';
@@ -207,20 +206,33 @@ export default function EventoFormModal({
     const previousTemplateBaseId = prevTemplateBaseIdRef.current || '';
     const nextTemplateBaseId = newTemplateBaseId || '';
 
+    console.log(
+      `[DEBUG-tplsw] handleTemplateBaseChange prev="${previousTemplateBaseId}" next="${nextTemplateBaseId}"`,
+    );
+
     if (previousTemplateBaseId === nextTemplateBaseId) {
+      console.log('[DEBUG-tplsw] guard bail: prev === next, nada agendado');
       return;
     }
 
     pendingTemplateChangeRef.current = nextTemplateBaseId;
+    console.log(`[DEBUG-tplsw] pendingTemplateChangeRef setado para "${nextTemplateBaseId}"`);
   }, []);
 
   const handleTemplateSelectClosed = useCallback(() => {
+    console.log(
+      `[DEBUG-tplsw] handleTemplateSelectClosed chamado, pending="${pendingTemplateChangeRef.current}"`,
+    );
     const nextTemplateBaseId = pendingTemplateChangeRef.current;
-    if (nextTemplateBaseId === null) return;
+    if (nextTemplateBaseId === null) {
+      console.log('[DEBUG-tplsw] pending null, saindo sem abrir alerta');
+      return;
+    }
     pendingTemplateChangeRef.current = null;
 
     const previousTemplateBaseId = prevTemplateBaseIdRef.current || '';
 
+    console.log('[DEBUG-tplsw] chamando FancyAlert.alert agora');
     FancyAlert.alert(
       'Edição',
       'A mudança de template base vai acarretar a perda dos dados inseridos, realmente deseja prosseguir?',
@@ -321,6 +333,7 @@ export default function EventoFormModal({
       visible={visible}
       onClose={() => modalProps?.onButton1Press?.()}
       title={data?.nome}
+      titleSize='largeMedium'
       footer={
         <View style={styles.buttonsContainer}>
           <FancyButton
@@ -337,10 +350,24 @@ export default function EventoFormModal({
         <FancyLoading />
       ) : (
         <>
-          <FancyText type='medium' size='small' color={Pallete.fonts.inactive}>
-            {format(data?.dataOcorrencia!, 'dd/MM/yyyy HH:ss')}
-          </FancyText>
-          <FancyVerticalSpacer height={12} />
+          {data?.dataOcorrencia && (
+            <View style={{ gap: 6 }}>
+              <FancyText size='extraSmall' type='semiBold' color={Pallete.fonts.inactive}>
+                Data
+              </FancyText>
+              <View
+                style={[
+                  styles.dataBox,
+                  { backgroundColor: Pallete.backgroundColor, borderColor: Pallete.border },
+                  Pallete.shadows[200],
+                ]}
+              >
+                <FancyText type='medium' size='small' color={Pallete.fonts.dark}>
+                  {format(data.dataOcorrencia, 'dd/MM/yyyy HH:mm')}
+                </FancyText>
+              </View>
+            </View>
+          )}
 
           <ControlledSearchSelect
             label='Template Base'
@@ -353,7 +380,6 @@ export default function EventoFormModal({
             }}
             onClosed={handleTemplateSelectClosed}
           />
-          <FancyVerticalSpacer height={12} />
 
           <Controller
             control={formTemplate.control}
@@ -375,8 +401,6 @@ export default function EventoFormModal({
               />
             )}
           />
-
-          <FancyVerticalSpacer height={16} />
 
           <FormProvider {...formTemplate}>
             {templateTipoWatch === EscalaTemplateTipoEnum.Funcoes ? (
@@ -403,4 +427,11 @@ export default function EventoFormModal({
 const styles = StyleSheet.create({
   buttonsContainer: { flexDirection: 'row', gap: 10 },
   button: { flex: 1, height: 44 },
+  dataBox: {
+    borderWidth: 0.6,
+    borderRadius: 12,
+    height: 44,
+    paddingHorizontal: 10,
+    justifyContent: 'center',
+  },
 });

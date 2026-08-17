@@ -155,7 +155,7 @@ export default function EventoAccordeon({
       <View style={[styles.dateBox, { backgroundColor: ui.dateBg }]}>
         <FancyText
           type='bold'
-          size={17}
+          size='large'
           color={eventColor}
           numberOfLines={1}
           style={styles.dateDay}
@@ -164,7 +164,7 @@ export default function EventoAccordeon({
         </FancyText>
         <FancyText
           type='medium'
-          size={9}
+          size='extraSmall'
           color={eventColor}
           numberOfLines={1}
           style={styles.dateMonth}

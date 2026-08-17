@@ -516,3 +516,104 @@ estados positivos/finalizados.
 - Zero hex hardcoded — cor via `usePallete()`/`ColorUtils.withAlpha`.
 - Sem `elevation`/sombra (não é card, é banner inline leve — sem `Pallete.shadows`).
 - `npx tsc --noEmit`: zero erros.
+
+---
+
+# Design System — EventoFormModal (escopo: assistente de escalas, bottom sheet "Editar Evento")
+
+> Escopo: `EventoFormModal.tsx` + dependências diretas (`FancyBottomSheetModal`,
+> `FancyContainerList`, `FancyCard.Simple`/`FancyBaseCard`, `EscalaFormFuncaoList`).
+> Revisão: 2026-08-15
+
+## Regras de Design Confirmadas
+
+### Hierarquia — título de sheet vs. header de seção vs. título de item
+
+- **[confirmed 2026-08-15]** Achado: título do sheet (`title={data?.nome}`), título do header de
+  seção (`FancyContainerList`, `size='medium' type='bold'`) e título de cada item de lista
+  (`FancyBaseCard`, `size='medium' type='bold'`) renderizam no mesmo tamanho/peso (13px bold via
+  `MEDIUM_SIZE_FONT`) — três níveis de hierarquia colapsam num só, sem diferenciação visual.
+- Regra: título de sheet sobe pra `size='largeMedium'` (15px), mantendo `type='bold'` —
+  diferencia do header de seção e do item de lista, que continuam em `medium` (13px). Sheet title
+  é o nível mais alto da tela (nome do evento), não deveria competir visualmente com sub-elementos.
+
+### Cores — ações de header de lista (add vs. destrutiva)
+
+- **[confirmed 2026-08-15]** Achado: botões `+` (adicionar) e limpar-tudo
+  (`list-clear`) no header de `FancyContainerList` renderizam ambos com `type='contained'`,
+  mesma cor azul (`palette.buttons.active`) — nenhuma distinção visual entre ação aditiva e ação
+  destrutiva/irreversível (limpar toda a lista de equipe).
+- Regra (reforça `CLAUDE.md` do frontend: "Ações destrutivas → `palette.error` sólido com
+  `palette.icons.light`"): botão de limpar-tudo em `FancyContainerList.buttons` usa
+  `color: palette.error` explícito, distinto do botão `+` que mantém `palette.buttons.active`.
+  `FancyContainerList` ganha suporte a `tone?: 'default' | 'destructive'` por botão (default mantém
+  comportamento atual, sem quebrar os outros usos do componente).
+
+### Densidade de item de lista — listas com 6+ itens
+
+- **[confirmed 2026-08-15]** Achado: `FancyBaseCard` (usado por `FancyCard.Simple` na seção
+  "Equipe") renderiza ~70px por item, 3 linhas empilhadas (título/subtítulo/dado adicional) —
+  confirmado que a lista "Equipe" tipicamente tem 6-15 itens, então o card atual força rolagem
+  pesada pro caso comum.
+  o card atual força rolagem pesada pro caso comum.
+- Regra: listas com contagem tipicamente ≥6 itens usam variante compacta de item (título +
+  subtítulo numa linha só, ícone de ação menor) — mesmo princípio já aplicado em
+  `indisponibilidades/index.tsx` (ver seção acima, "densidade de itens": `paddingVertical` 12→8,
+  remoção de padding morto). Aplicar override local via `containerStyle` no `FancyCard.Simple`
+  desta tela, sem mudar o default global de `FancyBaseCard` (79+ outros usos no app).
+
+### Rótulo obrigatório em campo de dado
+
+- **[confirmed 2026-08-15]** Achado: data do evento (`format(data.dataOcorrencia, ...)`) renderiza
+  solta, sem label, com `type='medium' size='small' color={fonts.inactive}` — diverge do padrão de
+  todo outro campo da tela (`ControlledSearchSelect`/`FancyBottomSheetSelect`), que usa label
+  `size='extraSmall' type='semiBold' color={fonts.inactive}` acima do valor.
+- Regra: todo campo de dado exibido numa tela de formulário leva label no padrão já usado pelos
+  outros campos da mesma tela — sem exceção pra "campo derivado"/"campo somente leitura".
+
+## Log de Telas Revisadas
+
+| Tela                                    | Data       | Findings                                                                                                        | Resultado                        |
+| ---------------------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| EventoFormModal (assistente de escalas) | 2026-08-15 | F1 (hierarquia sheet/seção/item colapsada), F2 (add/limpar-tudo mesma cor), F3 (densidade item p/ lista 6-15), F4 (data sem label) | Todos aprovados — implementação pendente |
+
+---
+
+# Design System — NotificationButton + FancyHeader (escopo: botão de notificações e header padrão)
+
+> Escopo: `components/header/NotificationButton.tsx`, `components/header/FancyHeader.tsx`.
+> Revisão: 2026-08-17
+
+## Regras Confirmadas
+
+- **[confirmed 2026-08-17]** Badge do sino de notificações é indicador binário (tem/não tem
+  não-lida), não contador — usa dot fixo `8×8px`, sem número dentro. Motivo: número de 2-3
+  dígitos não cabia sem distorcer o círculo em nenhum tamanho testado; usuário preferiu o padrão
+  dot (iOS/Gmail/WhatsApp) a ajustar o círculo pro número. Ver histórico abaixo — havia uma
+  primeira correção (diâmetro/fonte fixos, 19px/11px) que ficou obsoleta por esta.
+- **[confirmed 2026-08-17]** Posição do dot (`right: -2, top: 0` sobre ícone de 19px) — avaliado
+  e aprovado, não encosta na silhueta do sino no build atual.
+
+## Achados avaliados (sem ação)
+
+- Touch target do container do sino (`24×30`) abaixo do mínimo `≥44px` do checklist do
+  `CLAUDE.md` do frontend — **débito registrado, não corrigido nesta rodada** (fora do escopo
+  pedido pelo usuário).
+- Alinhamento vertical entre `HeaderMenuButton` (ícone+título) — mecanismo é
+  `flexDirection:'row'` + `alignItems:'center'`, estruturalmente correto; qualquer desvio visual
+  fica a nível de métrica de fonte (Montserrat), não bug de layout. Sem ação.
+- Tamanho do título do header (`largeMedium`/`medium`) vs. `DashboardSection` eyebrow
+  (`size='small'`) — proporção 15:12 é degrau de escala normal, hierarquia correta. Sem ação.
+
+## Débito de design
+
+- Touch target `24×30` do `NotificationButton` (e `HeaderMenuButton`/`HeaderBackButton`, mesmo
+  padrão) abaixo de 44px — decisão de aumentar afeta o header padrão do app inteiro, precisa
+  aprovação antes de mudar.
+
+## Log de Telas Revisadas
+
+| Tela | Data | Findings | Resultado |
+| --- | --- | --- | --- |
+| NotificationButton (badge) | 2026-08-17 | Número "13" estourava círculo em qualquer tamanho fixo testado | Trocado por dot 8px sem número |
+| NotificationButton + FancyHeader (avaliação livre) | 2026-08-17 | F1 (touch target <44px), F2 (posição do dot — rejeitado, não se aplica), F3 (alinhamento título — ok), F4 (tamanho do título — ok) | F1 registrado como débito; F2 rejeitado (R1); F3/F4 sem ação |

@@ -114,7 +114,7 @@ export default function EscalaHeader({
               size={12}
               color={palette.fonts.inactive}
             />
-            <FancyText size={11} type='semiBold' color={palette.fonts.inactive}>
+            <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
               {ORIGEM_LABEL[origem]}
             </FancyText>
           </View>
@@ -127,7 +127,7 @@ export default function EscalaHeader({
             size={12}
             color={palette.fonts.inactive}
           />
-          <FancyText size={11} type='semiBold' color={palette.fonts.inactive}>
+          <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
             {`${formatShortDate(periodStart)} – ${formatShortDate(periodEnd)}`}
           </FancyText>
         </View>

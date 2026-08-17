@@ -1,6 +1,8 @@
 import { Platform, StyleProp, StyleSheet, Text, TextProps, TextStyle } from 'react-native';
 import {
   BOLD_FONT,
+  DISPLAY_LARGE_SIZE_FONT,
+  DISPLAY_SIZE_FONT,
   EXTRA_LARGE_SIZE_FONT,
   EXTRA_SMALL_SIZE_FONT,
   ITALIC_BOLD_FONT,
@@ -8,12 +10,17 @@ import {
   ITALIC_MEDIUM_FONT,
   ITALIC_SEMI_BOLD_FONT,
   LARGE_MEDIUM_SIZE_FONT,
+  LARGE_PLUS_SIZE_FONT,
   LARGE_SIZE_FONT,
   MEDIUM_FONT,
+  MEDIUM_LARGE_SIZE_FONT,
   MEDIUM_SIZE_FONT,
   REGULAR_FONT,
   SEMI_BOLD_FONT,
+  SEMI_LARGE_SIZE_FONT,
   SMALL_SIZE_FONT,
+  TITLE_LARGE_SIZE_FONT,
+  TITLE_SIZE_FONT,
 } from '../constants/font';
 import React from 'react';
 import { usePallete } from '../hooks/usePallete';
@@ -29,7 +36,21 @@ export type FancyTextProps = {
     | 'semiBoldItalic'
     | 'bold'
     | 'boldItalic';
-  size?: 'extraSmall' | 'small' | 'medium' | 'large' | 'largeMedium' | 'extraLarge' | number;
+  size?:
+    | 'extraSmall'
+    | 'small'
+    | 'medium'
+    | 'mediumLarge'
+    | 'largeMedium'
+    | 'semiLarge'
+    | 'large'
+    | 'largePlus'
+    | 'title'
+    | 'titleLarge'
+    | 'extraLarge'
+    | 'display'
+    | 'displayLarge'
+    | number;
   color?: string;
   style?: StyleProp<TextStyle>;
 } & TextProps;
@@ -45,13 +66,27 @@ export default function FancyText(props: FancyTextProps) {
         ? SMALL_SIZE_FONT
         : size === 'medium'
           ? MEDIUM_SIZE_FONT
-          : size === 'large'
-            ? LARGE_SIZE_FONT
+          : size === 'mediumLarge'
+            ? MEDIUM_LARGE_SIZE_FONT
             : size === 'largeMedium'
               ? LARGE_MEDIUM_SIZE_FONT
-              : size === 'extraLarge'
-                ? EXTRA_LARGE_SIZE_FONT
-                : size;
+              : size === 'semiLarge'
+                ? SEMI_LARGE_SIZE_FONT
+                : size === 'large'
+                  ? LARGE_SIZE_FONT
+                  : size === 'largePlus'
+                    ? LARGE_PLUS_SIZE_FONT
+                    : size === 'title'
+                      ? TITLE_SIZE_FONT
+                      : size === 'titleLarge'
+                        ? TITLE_LARGE_SIZE_FONT
+                        : size === 'extraLarge'
+                          ? EXTRA_LARGE_SIZE_FONT
+                          : size === 'display'
+                            ? DISPLAY_SIZE_FONT
+                            : size === 'displayLarge'
+                              ? DISPLAY_LARGE_SIZE_FONT
+                              : size;
   const fontFamily =
     type === 'bold'
       ? BOLD_FONT
@@ -72,7 +107,6 @@ export default function FancyText(props: FancyTextProps) {
   return (
     <Text
       {...props}
-      allowFontScaling={false}
       style={[
         styles.text,
         { fontSize, fontFamily, color, lineHeight: Math.round(fontSize * 1.25) },
