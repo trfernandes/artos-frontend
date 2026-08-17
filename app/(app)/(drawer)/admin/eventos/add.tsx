@@ -14,6 +14,7 @@ import EventosDadosForm from '../../../../../components/pages/admin/eventos/Even
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import Toast from 'react-native-toast-message';
+import { usePallete } from '../../../../../hooks/usePallete';
 
 export function getDefaultEventoTimes() {
   const now = new Date();
@@ -36,12 +37,13 @@ export function getDefaultEventoTimes() {
 export default function EventosAddPage() {
   const { dataInicio, dataTermino } = getDefaultEventoTimes();
   const { igrejaAtiva } = useAuth();
+  const Pallete = usePallete();
 
   const form = useForm({
     resolver: zodResolver(eventoSchema),
     defaultValues: {
       recorrencia: RecorrenciaEnum.Nunca,
-      cor: '#FF8C00',
+      cor: Pallete.primary,
       dataInicio: dataInicio,
       dataTermino: dataTermino,
     },
@@ -59,6 +61,8 @@ export default function EventosAddPage() {
           cor: payload.cor,
           dataInicio: DateUtilsApi.dateTimeToApi(payload.dataInicio),
           dataTermino: payload.dataTermino && DateUtilsApi.dateTimeToApi(payload.dataTermino),
+          dataFimRecorrencia:
+            payload.dataFimRecorrencia && DateUtilsApi.dateTimeToApi(payload.dataFimRecorrencia),
           recorrencia: payload.recorrencia || RecorrenciaEnum.Nunca,
         };
         await add(newEvento);

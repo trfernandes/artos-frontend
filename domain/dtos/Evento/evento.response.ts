@@ -15,6 +15,7 @@ export type ResponseEventoDto = {
   descricao?: string;
   dataInicio: string;
   dataTermino?: string;
+  dataFimRecorrencia?: string;
   local?: string;
   cor: string;
   recorrencia: RecorrenciaEnum;
