@@ -286,7 +286,7 @@ export default function LoginIndexPage() {
                     autoCapitalize: 'none',
                     autoCorrect: false,
                     returnKeyType: 'next',
-                    textContentType: 'emailAddress',
+                    textContentType: 'username',
                     autoComplete: 'email',
                     importantForAutofill: 'yes',
                     blurOnSubmit: false,
