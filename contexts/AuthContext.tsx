@@ -51,7 +51,7 @@ interface AuthContextData {
   signOut: (reason?: SignOutReason) => Promise<void>;
   forgotPassword: (email: string) => Promise<boolean>;
   updateUser: (newUserData: Partial<ResponseLoginDto>) => Promise<void>;
-  refreshMe: () => Promise<void>;
+  refreshMe: () => Promise<ResponseLoginIgrejaDto[]>;
   changePassword: (senhaAtual: string, novaSenha: string) => Promise<boolean>;
   deleteAccount: (senha: string) => Promise<boolean>;
 }
@@ -306,6 +306,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         setUser(updatedUser);
         await persistUser(updatedUser);
+        const freshIgrejas = updatedUser.igrejas;
 
         // Atualizar igreja ativa se ainda existir na lista
         if (igrejaAtiva && updatedUser.igrejas?.length) {
@@ -322,7 +323,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setIgrejaAtivaState(updatedUser.igrejas[0]);
           await AsyncStorage.setItem(IGREJA_ATIVA_KEY, updatedUser.igrejas[0].id);
         }
+
+        return freshIgrejas;
       }
+
+      return user?.igrejas ?? [];
     } catch (error) {
       console.error('Erro ao atualizar sessão:', error);
       throw error;

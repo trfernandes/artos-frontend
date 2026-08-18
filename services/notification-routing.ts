@@ -376,7 +376,7 @@ const TYPES_REQUIRING_FRESH_USER_DATA = new Set<string>([
 export async function openNotification(
   rawPayload: NotificationPayload,
   source: 'push' | 'inbox' | 'unknown' = 'unknown',
-  refreshMe?: () => Promise<void>,
+  refreshMe?: () => Promise<unknown>,
 ) {
   const payload = coercePayload(rawPayload);
   const target = resolveNotificationTarget(rawPayload);
