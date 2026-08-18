@@ -138,54 +138,56 @@ export default function EventoRepeticaoInputCustom({ modalProps }: { modalProps?
         />
       }
     >
-      {/* Frequência */}
-      <Controller
-        control={recorrenciaForm.control}
-        name='recorrencia'
-        render={({ field: { value } }) => (
-          <FancySegmentedControl
-            label='Frequência'
-            options={FREQUENCIA_OPTIONS}
-            value={value}
-            onChange={(v) => {
-              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-              recorrenciaForm.setValue('recorrencia', v as RecorrenciaEnum);
-              recorrenciaForm.resetField('recorrenciaACadaMeses', {
-                defaultValue: v === RecorrenciaEnum.Mensal ? 1 : ('' as any),
-              });
-              recorrenciaForm.resetField('recorrenciaSemanaDias', { defaultValue: [] });
-              recorrenciaForm.resetField('recorrenciaSemanasMes', { defaultValue: [] });
-            }}
-          />
+      <FormProvider {...eventoForm}>
+        {/* Frequência */}
+        <Controller
+          control={recorrenciaForm.control}
+          name='recorrencia'
+          render={({ field: { value } }) => (
+            <FancySegmentedControl
+              label='Frequência'
+              options={FREQUENCIA_OPTIONS}
+              value={value}
+              onChange={(v) => {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                recorrenciaForm.setValue('recorrencia', v as RecorrenciaEnum);
+                recorrenciaForm.resetField('recorrenciaACadaMeses', {
+                  defaultValue: v === RecorrenciaEnum.Mensal ? 1 : ('' as any),
+                });
+                recorrenciaForm.resetField('recorrenciaSemanaDias', { defaultValue: [] });
+                recorrenciaForm.resetField('recorrenciaSemanasMes', { defaultValue: [] });
+              }}
+            />
+          )}
+        />
+
+        {/* Seções específicas por modo */}
+        <FormProvider {...recorrenciaForm}>
+          {recorrencia === RecorrenciaEnum.Semanal && <EventoRepeticaoInputCustomSemana />}
+          {recorrencia === RecorrenciaEnum.Mensal && <EventoRepeticaoInputCustomMensal />}
+        </FormProvider>
+
+        {/* Fim da recorrência */}
+        <EventoFimRecorrenciaInput />
+
+        {/* Resumo */}
+        {isFormValid && (
+          <View
+            style={[
+              styles.resumoCard,
+              {
+                backgroundColor: palette.backgroundColor2,
+                borderColor: ColorUtils.withAlpha(palette.primary, 0.16),
+              },
+            ]}
+          >
+            <View style={[styles.resumoBorder, { backgroundColor: palette.primary }]} />
+            <FancyText size='small' type='medium' color={palette.fonts.dark}>
+              {resumoText}
+            </FancyText>
+          </View>
         )}
-      />
-
-      {/* Seções específicas por modo */}
-      <FormProvider {...recorrenciaForm}>
-        {recorrencia === RecorrenciaEnum.Semanal && <EventoRepeticaoInputCustomSemana />}
-        {recorrencia === RecorrenciaEnum.Mensal && <EventoRepeticaoInputCustomMensal />}
       </FormProvider>
-
-      {/* Fim da recorrência */}
-      <EventoFimRecorrenciaInput />
-
-      {/* Resumo */}
-      {isFormValid && (
-        <View
-          style={[
-            styles.resumoCard,
-            {
-              backgroundColor: palette.backgroundColor2,
-              borderColor: ColorUtils.withAlpha(palette.primary, 0.16),
-            },
-          ]}
-        >
-          <View style={[styles.resumoBorder, { backgroundColor: palette.primary }]} />
-          <FancyText size='small' type='medium' color={palette.fonts.dark}>
-            {resumoText}
-          </FancyText>
-        </View>
-      )}
     </FancyBottomSheetModal>
   );
 }
