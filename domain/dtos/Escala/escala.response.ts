@@ -1,4 +1,5 @@
 import { EscalaStatusEnum } from '../../enums/Escala/escala-status.enum';
+import { EscalaOrigemEnum } from '../../enums/Escala/escala-origem.enum';
 import { ResponseMinisterioDto } from '../Ministerio/ministerio.response';
 import type { ResponseEscalaItemDto } from './escala-item.response';
 
@@ -27,6 +28,7 @@ export type ResponseEscalaDto = {
   dataTermino: string;
   nome: string;
   status: EscalaStatusEnum;
+  origem: EscalaOrigemEnum;
   parametrizacao?: string;
   itens: ResponseEscalaItemDto[];
 };

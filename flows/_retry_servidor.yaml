@@ -3,6 +3,6 @@
 # Nao requer variaveis — apenas toca "Atualizar" e aguarda.
 appId: com.church.artos
 ---
-- tapOn: "Atualizar"
+- tapOn: 'Atualizar'
 - waitForAnimationToEnd:
     timeout: 8000

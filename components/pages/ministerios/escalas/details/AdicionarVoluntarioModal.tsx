@@ -12,6 +12,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { IndisponibilidadesVoluntariosApi } from '../../../../../domain/api/IndisponibilidadesVoluntariosApi';
 import { Conjunction, Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import { MinisterioVoluntarioFuncoesApi } from '../../../../../domain/api/MinisterioVoluntarioFuncoesApi';
+import { MinisterioVoluntarioFuncaoStatusEnum } from '../../../../../domain/enums/MinisterioVoluntarioFuncao/ministerio-voluntario-funcao-status.enum';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
 import FancyErrorText from '../../../../forms/FancyErrorText';
 import FancyGroup from '../../../../list/FancyGroup';
@@ -153,6 +154,14 @@ export default function AdicionarVoluntarioModal({
                       operator: Operator.EQUALS,
                       value: { type: ValueType.LITERAL, value: funcaoId! },
                     },
+                    {
+                      path: 'status',
+                      operator: Operator.EQUALS,
+                      value: {
+                        type: ValueType.LITERAL,
+                        value: MinisterioVoluntarioFuncaoStatusEnum.Ativo,
+                      },
+                    },
                   ],
                   conjunction: Conjunction.AND,
                 },
@@ -270,7 +279,12 @@ export default function AdicionarVoluntarioModal({
           <View style={{ gap: 8 }}>
             <View style={styles.sectionEyebrow}>
               <View style={[styles.sectionEyebrowTick, { backgroundColor: palette.primary }]} />
-              <FancyText type='semiBold' size={10} color={palette.primary} style={styles.sectionEyebrowText}>
+              <FancyText
+                type='semiBold'
+                size='extraSmall'
+                color={palette.primary}
+                style={styles.sectionEyebrowText}
+              >
                 SELECIONAR VOLUNTÁRIO
               </FancyText>
             </View>

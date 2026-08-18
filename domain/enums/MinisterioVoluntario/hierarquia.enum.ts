@@ -1,4 +1,5 @@
 import { DropDownItemProps } from '../../../components/fields/FancyDropDownItem';
+import { ThemePalette } from '../../../constants/colors';
 
 export enum VoluntarioHierarquiaEnum {
   Voluntario = '0',
@@ -43,3 +44,13 @@ export const VoluntarioHierarquiaLideresEnumList: DropDownItemProps<VoluntarioHi
     value: VoluntarioHierarquiaEnum.Auxiliar,
   },
 ];
+
+export function getVoluntarioHierarquiaColorMap(
+  palette: Pick<ThemePalette, 'secondary' | 'warning' | 'terciary'>,
+): Record<VoluntarioHierarquiaEnum, string> {
+  return {
+    [VoluntarioHierarquiaEnum.Lider]: palette.secondary,
+    [VoluntarioHierarquiaEnum.Auxiliar]: palette.warning,
+    [VoluntarioHierarquiaEnum.Voluntario]: palette.terciary,
+  };
+}

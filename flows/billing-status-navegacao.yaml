@@ -14,7 +14,7 @@ appId: com.church.artos
 - launchApp
 - runFlow: _login.yaml
 
-- assertVisible: "Início"
+- assertVisible: 'Início'
 
 - openLink: diakonia:///configuracoes
 - waitForAnimationToEnd:
@@ -22,27 +22,27 @@ appId: com.church.artos
 
 # Visita 1: aba Assinatura (index 1 pois index 0 eh o card de status no topo)
 - tapOn:
-    text: "Assinatura"
+    text: 'Assinatura'
     index: 1
 - waitForAnimationToEnd:
     timeout: 15000
-- assertVisible: "Gerenciar assinatura"
+- assertVisible: 'Gerenciar assinatura'
 - takeScreenshot: billing-nav-visita-1
 
 # Navegar para outra aba
-- tapOn: "Dados"
+- tapOn: 'Dados'
 - waitForAnimationToEnd:
     timeout: 2000
 
 # Voltar para Assinatura (visita 2)
 - tapOn:
-    text: "Assinatura"
+    text: 'Assinatura'
     index: 1
 - waitForAnimationToEnd:
     timeout: 15000
 
 # [ADVERSARIAL] Status deve continuar correto - sem stale
-- assertVisible: "Gerenciar assinatura"
-- assertVisible: "Assinatura em dia"
+- assertVisible: 'Gerenciar assinatura'
+- assertVisible: 'Assinatura em dia'
 
 - takeScreenshot: billing-nav-visita-2

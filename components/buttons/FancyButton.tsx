@@ -2,6 +2,7 @@ import {
   AccessibilityRole,
   AccessibilityState,
   GestureResponderEvent,
+  Insets,
   StyleProp,
   StyleSheet,
   TextStyle,
@@ -32,6 +33,7 @@ export type FancyButtonProps = {
   iconStyle?: StyleProp<TextStyle>;
   textProps?: FancyTextProps;
   size?: FancyButtonSize;
+  hitSlop?: Insets;
   accessibilityLabel?: string;
   accessibilityHint?: string;
   accessibilityRole?: AccessibilityRole;
@@ -97,7 +99,7 @@ export default function FancyButton({
 
   const numberOfLines = providedNumberOfLines ?? 1;
   const adjustsFontSizeToFit = providedAdjustsFontSizeToFit ?? true;
-  const minimumFontScale = providedMinimumFontScale ?? 0.85;
+  const minimumFontScale = providedMinimumFontScale ?? 0.92;
 
   const dimensionStyle = mode === 'icon' ? { width: minWidth, height } : { minWidth, height };
   const accessibilityState = { disabled, ...props.accessibilityState };
@@ -113,7 +115,7 @@ export default function FancyButton({
   // Novo padrão: spinner SEMPRE à esquerda do texto quando loading
   return (
     <TouchableOpacity
-      hitSlop={{ bottom: 4, top: 4, left: 4, right: 4 }}
+      hitSlop={props.hitSlop ?? { bottom: 4, top: 4, left: 4, right: 4 }}
       disabled={isBtnDisabled}
       accessibilityLabel={props.accessibilityLabel}
       accessibilityHint={props.accessibilityHint}

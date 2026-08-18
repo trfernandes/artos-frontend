@@ -92,7 +92,7 @@ function createStyles(palette: ThemePalette) {
       paddingTop: 6,
       paddingBottom: 2,
     },
-    containerContent: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
+    containerContent: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' },
     cell: {
       width: '30%',
       margin: '1.5%',

@@ -120,7 +120,7 @@ function DayComponent({
       {showSelectedState ? (
         <View style={circleStyles}>
           <FancyText
-            size='medium'
+            size='extraSmall'
             type='bold'
             color={isDisabled ? palette.fonts.inactive : palette.fonts.light}
           >
@@ -131,7 +131,7 @@ function DayComponent({
           )}
         </View>
       ) : (
-        <FancyText size='small' type={textWeight} color={textColor}>
+        <FancyText size='extraSmall' type={textWeight} color={textColor}>
           {day}
         </FancyText>
       )}

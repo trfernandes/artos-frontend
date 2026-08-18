@@ -153,11 +153,26 @@ export default function EventoAccordeon({
   const renderHeader = () => (
     <View style={styles.headerRow}>
       <View style={[styles.dateBox, { backgroundColor: ui.dateBg }]}>
-        <FancyText type='bold' size={17} color={eventColor} numberOfLines={1} style={styles.dateDay}>
+        <FancyText
+          type='bold'
+          size='large'
+          color={eventColor}
+          numberOfLines={1}
+          style={styles.dateDay}
+        >
           {String(data.dataOcorrencia.getDate()).padStart(2, '0')}
         </FancyText>
-        <FancyText type='medium' size={9} color={eventColor} numberOfLines={1} style={styles.dateMonth}>
-          {data.dataOcorrencia.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase()}
+        <FancyText
+          type='medium'
+          size='extraSmall'
+          color={eventColor}
+          numberOfLines={1}
+          style={styles.dateMonth}
+        >
+          {data.dataOcorrencia
+            .toLocaleDateString('pt-BR', { month: 'short' })
+            .replace('.', '')
+            .toUpperCase()}
         </FancyText>
       </View>
 
@@ -172,10 +187,21 @@ export default function EventoAccordeon({
           >
             {eventName}
           </FancyText>
-          <FancyChips size='small' label={statusChip.label} color={statusChip.color} dot={statusChip.dot} />
+          <FancyChips
+            size='small'
+            label={statusChip.label}
+            color={statusChip.color}
+            dot={statusChip.dot}
+          />
         </View>
 
-        <FancyText size='extraSmall' type='medium' color={ui.metaColor} numberOfLines={1} style={styles.subtitle}>
+        <FancyText
+          size='extraSmall'
+          type='medium'
+          color={ui.metaColor}
+          numberOfLines={1}
+          style={styles.subtitle}
+        >
           {timeRangeText}
         </FancyText>
 
@@ -310,7 +336,12 @@ export default function EventoAccordeon({
       />
 
       <Modal visible={isOpeningEvento} transparent animationType='none'>
-        <View style={[styles.loadingOverlay, { backgroundColor: ColorUtils.withAlpha('#0F172A', isDark ? 0.44 : 0.18) }]}>
+        <View
+          style={[
+            styles.loadingOverlay,
+            { backgroundColor: ColorUtils.withAlpha('#0F172A', isDark ? 0.44 : 0.18) },
+          ]}
+        >
           <View
             style={[
               styles.loadingSurface,

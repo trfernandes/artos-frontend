@@ -115,7 +115,12 @@ export default function NovoConviteModal({
 
       {/* Toggle de entrada imediata - Redesenhado */}
       <View style={styles.entryTypeSection}>
-        <FancyText size='small' type='semiBold' color={palette.fonts.inactive} style={styles.sectionLabel}>
+        <FancyText
+          size='small'
+          type='semiBold'
+          color={palette.fonts.inactive}
+          style={styles.sectionLabel}
+        >
           Tipo de Entrada
         </FancyText>
 
@@ -194,7 +199,12 @@ export default function NovoConviteModal({
 
       {/* Número de usos */}
       <View style={styles.section}>
-        <FancyText size='small' type='semiBold' color={palette.fonts.inactive} style={styles.sectionLabel}>
+        <FancyText
+          size='small'
+          type='semiBold'
+          color={palette.fonts.inactive}
+          style={styles.sectionLabel}
+        >
           Número de Usos
         </FancyText>
         <View style={styles.chipsRow}>
@@ -214,7 +224,12 @@ export default function NovoConviteModal({
 
       {/* Validade */}
       <View style={styles.section}>
-        <FancyText size='small' type='semiBold' color={palette.fonts.inactive} style={styles.sectionLabel}>
+        <FancyText
+          size='small'
+          type='semiBold'
+          color={palette.fonts.inactive}
+          style={styles.sectionLabel}
+        >
           Validade
         </FancyText>
         <View style={styles.chipsRow}>

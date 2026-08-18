@@ -1,4 +1,5 @@
-import { router, useFocusEffect } from 'expo-router';
+import { router } from 'expo-router';
+import { useFocusRefetch } from '../../../../../hooks/useFocusRefetch';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { StyleSheet, View } from 'react-native';
 import FancyScreenErrorHandler from '../../../../../components/error/FancyScreenErrorHandler';
@@ -21,9 +22,13 @@ import FancyListItemCard from '../../../../../components/cards/FancyListItemCard
 import FancyListStats from '../../../../../components/list/FancyListStats';
 import FancyActionSheet from '../../../../../components/actions/FancyActionSheet';
 import { usePallete } from '../../../../../hooks/usePallete';
-import { ResponseVoluntarioDto } from '../../../../../domain/dtos/Voluntario/voluntario.response';
+import { ResponseVoluntarioIgrejaDto } from '../../../../../domain/dtos/Voluntario/response-voluntario-igreja.dto';
 import { useBillingWriteAccess } from '../../../../../hooks/useBillingWriteAccess';
 import BillingNoticeBanner from '../../../../../components/billing/BillingNoticeBanner';
+import {
+  ROLE_LABELS,
+  ROLE_COLOR_KEYS,
+} from '../../../../../components/pages/admin/voluntarios/DadosTab';
 
 type StatusFiltro = 'todos' | 'ativos' | 'inativos';
 
@@ -31,7 +36,9 @@ export default function VoluntariosIndexPage() {
   const palette = usePallete();
   const [searchText, setSearchText] = useState('');
   const [statusFiltro, setStatusFiltro] = useState<StatusFiltro>('todos');
-  const [actionsVoluntario, setActionsVoluntario] = useState<ResponseVoluntarioDto | null>(null);
+  const [actionsVoluntario, setActionsVoluntario] = useState<ResponseVoluntarioIgrejaDto | null>(
+    null,
+  );
   const { user } = useAuth();
   const { showLoading, hideLoading } = useLoading();
   const {
@@ -47,7 +54,6 @@ export default function VoluntariosIndexPage() {
     isLoading,
     error,
     refetch,
-    isRefetching,
     isError,
     isLoadingMutation,
     update: updateVoluntario,
@@ -56,11 +62,17 @@ export default function VoluntariosIndexPage() {
     autoFetch: true,
   });
 
-  useFocusEffect(
-    useCallback(() => {
-      refetch();
-    }, [refetch]),
-  );
+  const { isFocusLoading } = useFocusRefetch(refetch);
+
+  const [isPullRefreshing, setIsPullRefreshing] = useState(false);
+  const handlePullRefresh = useCallback(async () => {
+    setIsPullRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setIsPullRefreshing(false);
+    }
+  }, [refetch]);
 
   const handleChangeStatus = useCallback(
     (id: string, nome: string, newStatus: VoluntarioStatusEnum) => {
@@ -170,12 +182,13 @@ export default function VoluntariosIndexPage() {
     return <FancyScreenErrorHandler error={error!} onTryAgrainPress={refetch} />;
   }
 
-  if (isLoading || isRefetching) return <FancyLoading />;
+  if (isLoading) return <FancyLoading />;
 
   return (
     <FancyListPage
       showFab={false}
       showSearchBar
+      contentLoading={isFocusLoading}
       searchBarProps={{
         value: searchText,
         onSearch: (text) => {
@@ -211,7 +224,8 @@ export default function VoluntariosIndexPage() {
         </View>
       }
       listProps={{
-        onRefresh: refetch,
+        onRefresh: handlePullRefresh,
+        refreshing: isPullRefreshing,
         listEmptyProps:
           searchText.trim().length > 0 || statusFiltro !== 'todos'
             ? {
@@ -266,13 +280,21 @@ export default function VoluntariosIndexPage() {
                     ? { uri: item.fotoThumbUrl || item.fotoUrl || '' }
                     : AppImages.emptyProfile,
               }}
-              status={
-                <FancyChips
-                  label={VoluntarioStatusEnumLabel[item.status]}
-                  color={statusColor}
-                  size='small'
-                  dot
-                />
+              meta={
+                <View style={styles.metaChips}>
+                  <FancyChips
+                    label={ROLE_LABELS[item.role]}
+                    color={palette[ROLE_COLOR_KEYS[item.role]]}
+                    size='small'
+                    dot
+                  />
+                  <FancyChips
+                    label={VoluntarioStatusEnumLabel[item.status]}
+                    color={statusColor}
+                    size='small'
+                    dot
+                  />
+                </View>
               }
               trailing={{ type: 'menu', onPress: () => setActionsVoluntario(item) }}
               contentStyle={isLoadingMutation ? { opacity: 0.68 } : undefined}
@@ -337,4 +359,5 @@ const styles = StyleSheet.create({
   container: { gap: 20, borderWidth: 0, borderColor: 'magenta' },
   searchbar: { paddingHorizontal: 18 },
   list_content: { gap: 10 },
+  metaChips: { flexDirection: 'row', gap: 6, marginTop: 4 },
 });

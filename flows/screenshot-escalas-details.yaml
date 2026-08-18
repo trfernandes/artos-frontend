@@ -14,7 +14,7 @@ appId: com.church.artos
 
 # Abrir drawer
 - tapOn:
-    point: "2%,50%"
+    point: '2%,50%'
 - waitForAnimationToEnd
 
 # Expandir o ministério no drawer
@@ -22,7 +22,7 @@ appId: com.church.artos
 - waitForAnimationToEnd
 
 # Ir para Escalas
-- tapOn: "Escalas"
+- tapOn: 'Escalas'
 - waitForAnimationToEnd
 
 # Abrir a primeira escala da lista

@@ -14,9 +14,7 @@ type Leading =
   | { type: 'date'; day: string; month: string; color?: string; backgroundColor?: string };
 
 type Trailing =
-  | { type: 'chevron'; onPress?: () => void }
-  | { type: 'menu'; onPress: () => void }
-  | ReactNode;
+  { type: 'chevron'; onPress?: () => void } | { type: 'menu'; onPress: () => void } | ReactNode;
 
 type FancyListItemCardProps = {
   title: string | ReactNode;
@@ -162,7 +160,7 @@ function LeadingItem({ leading }: { leading: Leading }) {
       <View style={[styles.leading, styles.leadingSquircle, { backgroundColor: fallbackBg }]}>
         <FancyText
           type='bold'
-          size={17}
+          size='large'
           color={fallbackColor}
           numberOfLines={1}
           style={styles.dateDay}
@@ -171,7 +169,7 @@ function LeadingItem({ leading }: { leading: Leading }) {
         </FancyText>
         <FancyText
           type='medium'
-          size={9}
+          size='extraSmall'
           color={fallbackColor}
           numberOfLines={1}
           style={styles.dateMonth}

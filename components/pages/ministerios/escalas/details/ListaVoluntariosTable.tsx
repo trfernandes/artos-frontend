@@ -1,4 +1,4 @@
-import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { EscalaItemEquipeType } from '../../../../../app/(app)/(drawer)/ministerios/escalas/details';
 import FancyText from '../../../../FancyText';
 
@@ -15,6 +15,7 @@ import {
 import { EscalaTemplateExperienciaLabel } from '../../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
 import { AppImages } from '../../../../../assets/app_images';
 import FancyActionSheet from '../../../../actions/FancyActionSheet';
+import FancyListEmpty from '../../../../list/FancyListEmpty';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 import { useAppTheme } from '../../../../../hooks/useAppTheme';
@@ -23,74 +24,46 @@ import { getFirstAndLastName } from '../../../../../utils/text_utils';
 
 const ACTION_HIT_SLOP = { top: 16, bottom: 16, left: 16, right: 16 } as const;
 
-export const VoluntarioStatusChipParams = {
-  [EscalaItemStatusEnum.Pendente]: {
-    label: 'Pendente',
-    color: '#B45309',
-    background: '#FEF3C7',
-  },
-  [EscalaItemStatusEnum.Ausente]: {
-    label: 'Ausente',
-    color: '#B91C1C',
-    background: '#FEE2E2',
-  },
-  [EscalaItemStatusEnum.Confirmado]: {
-    label: 'Confirmado',
-    color: '#166534',
-    background: '#DCFCE7',
-  },
-  [EscalaItemStatusEnum.Substituido]: {
-    label: 'Substituído',
-    color: '#1D4ED8',
-    background: '#DBEAFE',
-  },
-  [EscalaItemStatusEnum.SubstituicaoSolicitada]: {
-    label: 'Aguard. aprovação',
-    color: '#B45309',
-    background: '#FEF3C7',
-  },
-} as const;
+export const VoluntarioStatusChipLabels: Record<EscalaItemStatusEnum, string> = {
+  [EscalaItemStatusEnum.Pendente]: 'Pendente',
+  [EscalaItemStatusEnum.Ausente]: 'Ausente',
+  [EscalaItemStatusEnum.Confirmado]: 'Confirmado',
+  [EscalaItemStatusEnum.Substituido]: 'Substituído',
+  [EscalaItemStatusEnum.SubstituicaoSolicitada]: 'Aguard. aprovação',
+};
 
-function getVoluntarioStatusChipParams(isDark: boolean) {
-  if (!isDark) return VoluntarioStatusChipParams;
-
+export function getVoluntarioStatusChipParams(
+  palette: ReturnType<typeof usePallete>,
+  isDark: boolean,
+) {
+  const alpha = isDark ? 0.2 : 0.14;
   return {
     [EscalaItemStatusEnum.Pendente]: {
-      ...VoluntarioStatusChipParams[EscalaItemStatusEnum.Pendente],
-      background: ColorUtils.withAlpha(
-        VoluntarioStatusChipParams[EscalaItemStatusEnum.Pendente].color,
-        0.22,
-      ),
+      label: VoluntarioStatusChipLabels[EscalaItemStatusEnum.Pendente],
+      color: palette.warning,
+      background: ColorUtils.withAlpha(palette.warning, isDark ? 0.22 : 0.18),
     },
     [EscalaItemStatusEnum.Ausente]: {
-      ...VoluntarioStatusChipParams[EscalaItemStatusEnum.Ausente],
-      background: ColorUtils.withAlpha(
-        VoluntarioStatusChipParams[EscalaItemStatusEnum.Ausente].color,
-        0.2,
-      ),
+      label: VoluntarioStatusChipLabels[EscalaItemStatusEnum.Ausente],
+      color: palette.error,
+      background: ColorUtils.withAlpha(palette.error, alpha),
     },
     [EscalaItemStatusEnum.Confirmado]: {
-      ...VoluntarioStatusChipParams[EscalaItemStatusEnum.Confirmado],
-      background: ColorUtils.withAlpha(
-        VoluntarioStatusChipParams[EscalaItemStatusEnum.Confirmado].color,
-        0.2,
-      ),
+      label: VoluntarioStatusChipLabels[EscalaItemStatusEnum.Confirmado],
+      color: palette.confirm,
+      background: ColorUtils.withAlpha(palette.confirm, alpha),
     },
     [EscalaItemStatusEnum.Substituido]: {
-      ...VoluntarioStatusChipParams[EscalaItemStatusEnum.Substituido],
-      background: ColorUtils.withAlpha(
-        VoluntarioStatusChipParams[EscalaItemStatusEnum.Substituido].color,
-        0.2,
-      ),
+      label: VoluntarioStatusChipLabels[EscalaItemStatusEnum.Substituido],
+      color: palette.secondary,
+      background: ColorUtils.withAlpha(palette.secondary, alpha),
     },
     [EscalaItemStatusEnum.SubstituicaoSolicitada]: {
-      ...VoluntarioStatusChipParams[EscalaItemStatusEnum.SubstituicaoSolicitada],
-      background: ColorUtils.withAlpha(
-        VoluntarioStatusChipParams[EscalaItemStatusEnum.SubstituicaoSolicitada].color,
-        0.2,
-      ),
+      label: VoluntarioStatusChipLabels[EscalaItemStatusEnum.SubstituicaoSolicitada],
+      color: palette.warning,
+      background: ColorUtils.withAlpha(palette.warning, isDark ? 0.22 : 0.18),
     },
-  } as const;
+  };
 }
 
 export default function ListaVoluntariosTable({
@@ -113,7 +86,7 @@ export default function ListaVoluntariosTable({
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
   const { isDark } = useAppTheme();
-  const voluntarioStatusChipParams = getVoluntarioStatusChipParams(isDark);
+  const voluntarioStatusChipParams = getVoluntarioStatusChipParams(palette, isDark);
   const { data: voluntariosData } = useVoluntariosCrud({ autoFetch: true });
   const voluntariosList = voluntariosData ?? [];
   const [voluntarioDetailsProps, setVoluntarioDetailsProps] = useState<{
@@ -149,7 +122,7 @@ export default function ListaVoluntariosTable({
               <View style={styles.row}>
                 {/* Avatar com dot de status */}
                 {hasVoluntario ? (
-                  <TouchableOpacity
+                  <Pressable
                     hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                     onPress={() =>
                       handleVoluntarioClick(
@@ -174,14 +147,14 @@ export default function ListaVoluntariosTable({
                         { backgroundColor: voluntarioStatusChipParams[equipeItem.status].color },
                       ]}
                     />
-                  </TouchableOpacity>
+                  </Pressable>
                 ) : (
                   <View style={styles.emptyAvatar}>
                     <DefaultIcons.Custom
                       library='MaterialIcons'
                       name='work-outline'
                       size={15}
-                      color='#94A3B8'
+                      color={palette.icons.inactive2}
                     />
                   </View>
                 )}
@@ -202,11 +175,11 @@ export default function ListaVoluntariosTable({
                         : ''}
                   </FancyText>
                   {hasVoluntario ? (
-                    <FancyText type='semiBold' size={12}>
+                    <FancyText type='semiBold' size='small'>
                       {getFirstAndLastName(equipeItem.voluntario?.nome)}
                     </FancyText>
                   ) : (
-                    <FancyText type='semiBold' size={13} color={palette.fonts.inactive}>
+                    <FancyText type='semiBold' size='medium' color={palette.fonts.inactive}>
                       Sem Voluntário
                     </FancyText>
                   )}
@@ -214,7 +187,7 @@ export default function ListaVoluntariosTable({
 
                 {/* Menu de ações */}
                 {isEditMode && (
-                  <TouchableOpacity
+                  <Pressable
                     hitSlop={ACTION_HIT_SLOP}
                     onPress={() => setMenuItem(equipeItem)}
                     style={styles.dotsButton}
@@ -225,7 +198,7 @@ export default function ListaVoluntariosTable({
                       size={14}
                       color={accentColor ?? palette.icons.inactive}
                     />
-                  </TouchableOpacity>
+                  </Pressable>
                 )}
               </View>
               {index < validEquipe.length - 1 && <View style={styles.rowDivider} />}
@@ -238,36 +211,46 @@ export default function ListaVoluntariosTable({
         visible={!!menuItem}
         onClose={() => setMenuItem(null)}
         title={menuItem?.voluntario?.nome ?? menuItem?.funcao?.nome ?? 'Opções'}
-        actions={menuItem ? (menuItem.voluntario?.nome ? [
-          {
-            label: 'Ver detalhes',
-            icon: { library: 'MaterialIcons' as const, name: 'person', size: 18 },
-            onPress: () => handleVoluntarioClick(menuItem.voluntario!.minVoluntarioId!, menuItem.voluntario!.voluntarioId!),
-          },
-          {
-            label: 'Substituir voluntário',
-            icon: { library: 'FontAwesome5' as const, name: 'exchange-alt', size: 15 },
-            onPress: () => onSubstituicaoButtonPressed?.(menuItem),
-          },
-          {
-            label: 'Remover da escala',
-            icon: { library: 'MaterialIcons' as const, name: 'person-remove', size: 18 },
-            onPress: () => onRemoverVoluntarioPressed?.(menuItem),
-            destructive: true,
-          },
-        ] : [
-          {
-            label: 'Adicionar voluntário',
-            icon: { library: 'MaterialIcons' as const, name: 'person-add', size: 18 },
-            onPress: () => onAdicionarVoluntarioButtonPressed?.(menuItem),
-          },
-          {
-            label: 'Excluir função',
-            icon: { library: 'MaterialIcons' as const, name: 'delete-outline', size: 18 },
-            onPress: () => onExcluirFuncaoPressed?.(menuItem.funcao?.id!),
-            destructive: true,
-          },
-        ]) : []}
+        actions={
+          menuItem
+            ? menuItem.voluntario?.nome
+              ? [
+                  {
+                    label: 'Ver detalhes',
+                    icon: { library: 'MaterialIcons' as const, name: 'person', size: 18 },
+                    onPress: () =>
+                      handleVoluntarioClick(
+                        menuItem.voluntario!.minVoluntarioId!,
+                        menuItem.voluntario!.voluntarioId!,
+                      ),
+                  },
+                  {
+                    label: 'Substituir voluntário',
+                    icon: { library: 'FontAwesome5' as const, name: 'exchange-alt', size: 15 },
+                    onPress: () => onSubstituicaoButtonPressed?.(menuItem),
+                  },
+                  {
+                    label: 'Remover da escala',
+                    icon: { library: 'MaterialIcons' as const, name: 'person-remove', size: 18 },
+                    onPress: () => onRemoverVoluntarioPressed?.(menuItem),
+                    destructive: true,
+                  },
+                ]
+              : [
+                  {
+                    label: 'Adicionar voluntário',
+                    icon: { library: 'MaterialIcons' as const, name: 'person-add', size: 18 },
+                    onPress: () => onAdicionarVoluntarioButtonPressed?.(menuItem),
+                  },
+                  {
+                    label: 'Excluir função',
+                    icon: { library: 'MaterialIcons' as const, name: 'delete-outline', size: 18 },
+                    onPress: () => onExcluirFuncaoPressed?.(menuItem.funcao?.id!),
+                    destructive: true,
+                  },
+                ]
+            : []
+        }
       />
 
       {voluntarioDetailsProps.isVisible &&

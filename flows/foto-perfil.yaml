@@ -24,37 +24,30 @@ appId: com.church.artos
 
 - runFlow: _login.yaml
 
-- assertVisible: "Início"
+# Timeout maior que o default (17s): emulador do CI é mais lento pra bundlar/navegar pós-login
+- extendedWaitUntil:
+    visible: 'Início'
+    timeout: 60000
 
-# Navega para Perfil pelo drawer
-- tapOn:
-    point: "2%,50%"
-- waitForAnimationToEnd
-
-- tapOn: "Inicio"
+# Navega direto pra tela de perfil (deep link) — o botão "Editar perfil"
+# fica na própria tela pessoal/perfil (DadosTab), não no dashboard Início
+- openLink: diakonia:///pessoal/perfil
 - waitForAnimationToEnd:
-    timeout: 3000
+    timeout: 5000
 
-# Procura o botão de editar perfil na tela Inicio (dashboard pessoal)
-- scrollUntilVisible:
-    element:
-      text: "Editar perfil"
-    direction: DOWN
-    timeout: 4000
-
-- tapOn: "Editar perfil"
+- tapOn: 'Editar perfil'
 - waitForAnimationToEnd:
     timeout: 3000
 
 # Tela de edição carregou
-- assertVisible: "Nome"
-- assertVisible: "Salvar"
+- assertVisible: 'Nome'
+- assertVisible: 'Salvar'
 
 # Toca em Salvar sem alterar nada
-- tapOn: "Salvar"
+- tapOn: 'Salvar'
 - waitForAnimationToEnd:
     timeout: 5000
 
 # Tela continua responsiva — não crashou
-- assertVisible: "Nome"
-- assertNotVisible: "Erro ao salvar"
+- assertVisible: 'Nome'
+- assertNotVisible: 'Erro ao salvar'

@@ -24,7 +24,12 @@ export default function DashboardKpiGrid({
           layout='center'
           title='Ministérios'
           value={totalMinisterios}
-          icon={{ library: 'MaterialCommunityIcons', name: 'account-group', size: 16, color: palette.primary }}
+          icon={{
+            library: 'MaterialCommunityIcons',
+            name: 'account-group',
+            size: 16,
+            color: palette.primary,
+          }}
           iconBackgroundColor={ColorUtils.withAlpha(palette.primary, 0.12)}
           accentColor={palette.primary}
         />
@@ -34,7 +39,12 @@ export default function DashboardKpiGrid({
           layout='center'
           title='Voluntários'
           value={totalVoluntarios}
-          icon={{ library: 'MaterialCommunityIcons', name: 'account-multiple', size: 16, color: palette.secondary }}
+          icon={{
+            library: 'MaterialCommunityIcons',
+            name: 'account-multiple',
+            size: 16,
+            color: palette.secondary,
+          }}
           iconBackgroundColor={ColorUtils.withAlpha(palette.secondary, 0.12)}
           accentColor={palette.secondary}
         />
@@ -44,7 +54,12 @@ export default function DashboardKpiGrid({
           layout='center'
           title='Eventos'
           value={totalEventosMes}
-          icon={{ library: 'MaterialCommunityIcons', name: 'calendar-month', size: 16, color: palette.terciary }}
+          icon={{
+            library: 'MaterialCommunityIcons',
+            name: 'calendar-month',
+            size: 16,
+            color: palette.terciary,
+          }}
           iconBackgroundColor={ColorUtils.withAlpha(palette.terciary, 0.12)}
           accentColor={palette.terciary}
         />

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Animated, Pressable, StyleSheet, View } from 'react-native';
 import { useForm, useWatch, useFormState } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,6 +6,8 @@ import z from 'zod';
 import FancyBottomSheetModal from '../../../modal/FancyBottomSheetModal';
 import ControlledTextArea from '../../../forms/ControlledTextArea';
 import FancyErrorText from '../../../forms/FancyErrorText';
+import FancyErrorBanner from '../../../forms/FancyErrorBanner';
+import { getApiErrorMessage } from '../../../../domain/api/api-error';
 import ControlledDateInput from '../../../forms/ControlledDateInput';
 import ControlledNumberInput from '../../../forms/ControlledNumberInput';
 import ControlledFancyToggle from '../../../forms/ControlledFancyToggle';
@@ -15,6 +17,7 @@ import FancySegmentedControl from '../../../fields/FancySegmentedControl';
 import { usePallete } from '../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../hooks/useThemedStyles';
 import { ThemePalette } from '../../../../constants/colors';
+import { ColorUtils } from '../../../../utils/color_utils';
 import { RegraIndisponibilidadeTipo } from '../../../../domain/dtos/RegraIndisponibilidadeVoluntario/regra-indisponibilidade-voluntario.response';
 
 const DIAS_NOMES = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -23,31 +26,54 @@ const TODOS_DIAS = [0, 1, 2, 3, 4, 5, 6];
 function AnimatedDiaChip({
   onPress,
   isSelected,
+  disabled,
   children,
   style,
 }: {
   onPress: () => void;
   isSelected: boolean;
+  disabled?: boolean;
   children: React.ReactNode;
   style: object;
 }) {
   const scale = useRef(new Animated.Value(1)).current;
-  const handlePressIn = () =>
-    Animated.spring(scale, { toValue: 0.92, useNativeDriver: true, tension: 300, friction: 20 }).start();
-  const handlePressOut = () =>
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, tension: 300, friction: 20 }).start();
+  const handlePressIn = () => {
+    if (disabled) return;
+    Animated.spring(scale, {
+      toValue: 0.92,
+      useNativeDriver: true,
+      tension: 300,
+      friction: 20,
+    }).start();
+  };
+  const handlePressOut = () => {
+    if (disabled) return;
+    Animated.spring(scale, {
+      toValue: 1,
+      useNativeDriver: true,
+      tension: 300,
+      friction: 20,
+    }).start();
+  };
   return (
     <Pressable
-      onPress={onPress}
+      onPress={disabled ? undefined : onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      accessibilityRole="checkbox"
-      accessibilityState={{ checked: isSelected }}
+      disabled={disabled}
+      accessibilityRole='checkbox'
+      accessibilityState={{ checked: isSelected, disabled }}
     >
-      <Animated.View style={[style, { transform: [{ scale }] }]}>{children}</Animated.View>
+      <Animated.View style={[style, disabled && chipStyles.disabled, { transform: [{ scale }] }]}>
+        {children}
+      </Animated.View>
     </Pressable>
   );
 }
+
+const chipStyles = StyleSheet.create({
+  disabled: { opacity: 0.5 },
+});
 
 const schema = z
   .object({
@@ -57,7 +83,7 @@ const schema = z
     dataFim: z.date().nullable().optional(),
     recorrente: z.boolean().optional(),
     limiteMensal: z.number().optional(),
-    motivo: z.string().min(1, 'Informe o motivo').max(255, 'Máximo de 255 caracteres'),
+    motivo: z.string().trim().min(1, 'Informe o motivo').max(255, 'Máximo de 255 caracteres'),
   })
   .superRefine((val, ctx) => {
     if (val.tipo === 'DIAS_SEMANA' && (!val.diasSemana || val.diasSemana.length === 0)) {
@@ -69,17 +95,42 @@ const schema = z
     }
     if (val.tipo === 'PERIODO') {
       if (!val.dataInicio) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['dataInicio'], message: 'Data inicial obrigatória' });
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['dataInicio'],
+          message: 'Data inicial obrigatória',
+        });
       }
       if (!val.dataFim) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['dataFim'], message: 'Data final obrigatória' });
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['dataFim'],
+          message: 'Data final obrigatória',
+        });
       }
       if (val.dataInicio && val.dataFim && !val.recorrente && val.dataFim < val.dataInicio) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['dataFim'], message: 'Data final deve ser ≥ data inicial' });
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['dataFim'],
+          message: 'Data final deve ser ≥ data inicial',
+        });
       }
     }
-    if (val.tipo === 'LIMITE_MENSAL' && (!val.limiteMensal || val.limiteMensal < 1)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['limiteMensal'], message: 'Informe o limite (mínimo 1)' });
+    if (val.tipo === 'LIMITE_MENSAL') {
+      if (!val.limiteMensal || val.limiteMensal < 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['limiteMensal'],
+          message: 'Informe o limite (mínimo 1)',
+        });
+      }
+      if (!val.dataInicio) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['dataInicio'],
+          message: 'Data de início obrigatória',
+        });
+      }
     }
   });
 
@@ -98,12 +149,20 @@ export type AddRegraModalResult = {
 export type AddRegraModalProps = {
   visible: boolean;
   onClose: () => void;
-  onConfirm: (result: AddRegraModalResult) => void;
+  onConfirm: (result: AddRegraModalResult) => Promise<void>;
   initialValues?: Partial<AddRegraModalResult>;
   isEditing?: boolean;
+  voluntarioNome?: string;
 };
 
-export default function AddRegraModal({ visible, onClose, onConfirm, initialValues, isEditing }: AddRegraModalProps) {
+export default function AddRegraModal({
+  visible,
+  onClose,
+  onConfirm,
+  initialValues,
+  isEditing,
+  voluntarioNome,
+}: AddRegraModalProps) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
 
@@ -112,7 +171,7 @@ export default function AddRegraModal({ visible, onClose, onConfirm, initialValu
     defaultValues: {
       tipo: 'DIAS_SEMANA',
       diasSemana: [],
-      dataInicio: null,
+      dataInicio: isEditing ? null : new Date(),
       dataFim: null,
       recorrente: false,
       limiteMensal: 2,
@@ -125,11 +184,23 @@ export default function AddRegraModal({ visible, onClose, onConfirm, initialValu
       reset({
         tipo: initialValues.tipo ?? 'DIAS_SEMANA',
         diasSemana: initialValues.diasSemana ?? [],
-        dataInicio: initialValues.dataInicio ? new Date(initialValues.dataInicio + 'T00:00:00Z') : null,
+        dataInicio: initialValues.dataInicio
+          ? new Date(initialValues.dataInicio + 'T00:00:00Z')
+          : null,
         dataFim: initialValues.dataFim ? new Date(initialValues.dataFim + 'T00:00:00Z') : null,
         recorrente: initialValues.recorrente ?? false,
         limiteMensal: initialValues.limiteMensal ?? 2,
         motivo: initialValues.motivo ?? '',
+      });
+    } else if (visible && !isEditing) {
+      reset({
+        tipo: 'DIAS_SEMANA',
+        diasSemana: [],
+        dataInicio: new Date(),
+        dataFim: null,
+        recorrente: false,
+        limiteMensal: 2,
+        motivo: '',
       });
     } else if (!visible) {
       reset({
@@ -142,7 +213,7 @@ export default function AddRegraModal({ visible, onClose, onConfirm, initialValu
         motivo: '',
       });
     }
-  }, [visible, initialValues, reset]);
+  }, [visible, initialValues, isEditing, reset]);
 
   const tipo = useWatch({ control, name: 'tipo' });
   const diasSemana = useWatch({ control, name: 'diasSemana' }) ?? [];
@@ -156,7 +227,11 @@ export default function AddRegraModal({ visible, onClose, onConfirm, initialValu
     }
   }, [dataInicio, dataFim, setValue]);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const toggleDia = (idx: number) => {
+    if (isSubmitting) return;
     const next = diasSemana.includes(idx)
       ? diasSemana.filter((d) => d !== idx)
       : [...diasSemana, idx];
@@ -164,15 +239,21 @@ export default function AddRegraModal({ visible, onClose, onConfirm, initialValu
   };
 
   const setAtalho = (dias: number[]) => {
+    if (isSubmitting) return;
     setValue('diasSemana', dias, { shouldValidate: true });
   };
 
+  useEffect(() => {
+    if (visible) setSubmitError(null);
+  }, [visible]);
+
   const handleClose = () => {
     reset();
+    setSubmitError(null);
     onClose();
   };
 
-  const onSubmit = (values: FormValues) => {
+  const onSubmit = async (values: FormValues) => {
     const result: AddRegraModalResult = { tipo: values.tipo as RegraIndisponibilidadeTipo };
     if (values.tipo === 'DIAS_SEMANA') {
       result.diasSemana = values.diasSemana;
@@ -184,10 +265,25 @@ export default function AddRegraModal({ visible, onClose, onConfirm, initialValu
       result.recorrente = values.recorrente;
     } else if (values.tipo === 'LIMITE_MENSAL') {
       result.limiteMensal = values.limiteMensal;
+      result.dataInicio = values.dataInicio
+        ? values.dataInicio.toISOString().slice(0, 10)
+        : undefined;
     }
     result.motivo = values.motivo.trim();
-    onConfirm(result);
-    reset();
+
+    setSubmitError(null);
+    setIsSubmitting(true);
+    try {
+      await onConfirm(result);
+      // onConfirm resolve com sucesso em 2 casos: (1) regra criada/atualizada —
+      // pai fecha o modal (visible=false), o efeito acima reseta o form; (2) tipo
+      // LIMITE_MENSAL em conflito — pai já fechou o modal antes de abrir o
+      // FancyAlert de confirmação, então este resolve também cai aqui sem erro.
+    } catch (error) {
+      setSubmitError(getApiErrorMessage(error, 'Não foi possível salvar a regra.'));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const TIPOS: { label: string; value: RegraIndisponibilidadeTipo }[] = [
@@ -201,41 +297,71 @@ export default function AddRegraModal({ visible, onClose, onConfirm, initialValu
       visible={visible}
       onClose={handleClose}
       title={isEditing ? 'Editar regra de indisponibilidade' : 'Nova regra de indisponibilidade'}
-      keyboardExtraOffset={0}
+      closeDisabled={isSubmitting}
       footer={
         <View style={styles.footerActions}>
           <FancyButton
-            label="Cancelar"
-            type="outlined"
+            label='Cancelar'
+            type='outlined'
             onPress={handleClose}
+            disabled={isSubmitting}
             containerStyle={styles.footerButton}
           />
           <FancyButton
             label={isEditing ? 'Atualizar' : 'Salvar'}
             onPress={handleSubmit(onSubmit)}
+            isLoading={isSubmitting}
             containerStyle={styles.footerButton}
           />
         </View>
       }
     >
       <View style={styles.content}>
+        {submitError && <FancyErrorBanner message={submitError} />}
+
         <FancySegmentedControl<RegraIndisponibilidadeTipo>
-          label="Tipo de regra"
+          label='Tipo de regra'
           options={TIPOS}
           value={tipo}
+          disabled={isSubmitting}
           onChange={(v) => setValue('tipo', v, { shouldValidate: false })}
         />
 
         {/* DIAS_SEMANA */}
         {tipo === 'DIAS_SEMANA' && (
           <View style={styles.secao}>
-            <FancyText size="small" type="semiBold" color={palette.fonts.inactive}>
+            <FancyText size='small' type='semiBold' color={palette.fonts.inactive}>
               Dias da semana
             </FancyText>
-            {errors.diasSemana && (
-              <FancyErrorText message={errors.diasSemana.message as string} />
-            )}
+            {errors.diasSemana && <FancyErrorText message={errors.diasSemana.message as string} />}
             <View style={styles.chipRow}>
+              {(() => {
+                const todosSelected = TODOS_DIAS.every((d) => diasSemana.includes(d));
+                return (
+                  <AnimatedDiaChip
+                    onPress={() => setAtalho(todosSelected ? [] : TODOS_DIAS)}
+                    isSelected={todosSelected}
+                    disabled={isSubmitting}
+                    style={[
+                      styles.chip,
+                      todosSelected
+                        ? { backgroundColor: palette.secondary, borderColor: palette.secondary }
+                        : {
+                            backgroundColor: ColorUtils.withAlpha(palette.secondary, 0.1),
+                            borderColor: ColorUtils.withAlpha(palette.secondary, 0.25),
+                          },
+                    ]}
+                  >
+                    <FancyText
+                      size='small'
+                      type='bold'
+                      color={todosSelected ? palette.fonts.light : palette.secondary}
+                    >
+                      Todos
+                    </FancyText>
+                  </AnimatedDiaChip>
+                );
+              })()}
               {DIAS_NOMES.map((nome, idx) => {
                 const sel = diasSemana.includes(idx);
                 return (
@@ -243,38 +369,27 @@ export default function AddRegraModal({ visible, onClose, onConfirm, initialValu
                     key={idx}
                     onPress={() => toggleDia(idx)}
                     isSelected={sel}
+                    disabled={isSubmitting}
                     style={[
                       styles.chip,
                       sel
                         ? { backgroundColor: palette.primary, borderColor: palette.primary }
-                        : { backgroundColor: `${palette.primary}15`, borderColor: `${palette.primary}30` },
+                        : {
+                            backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
+                            borderColor: ColorUtils.withAlpha(palette.primary, 0.19),
+                          },
                     ]}
                   >
-                    <FancyText size="small" type="bold" color={sel ? palette.fonts.light : palette.primary}>
+                    <FancyText
+                      size='small'
+                      type='bold'
+                      color={sel ? palette.fonts.light : palette.primary}
+                    >
                       {nome}
                     </FancyText>
                   </AnimatedDiaChip>
                 );
               })}
-              {(() => {
-                const todosSelected = TODOS_DIAS.every((d) => diasSemana.includes(d));
-                return (
-                  <AnimatedDiaChip
-                    onPress={() => setAtalho(todosSelected ? [] : TODOS_DIAS)}
-                    isSelected={todosSelected}
-                    style={[
-                      styles.chip,
-                      todosSelected
-                        ? { backgroundColor: palette.primary, borderColor: palette.primary }
-                        : { backgroundColor: `${palette.primary}15`, borderColor: `${palette.primary}30` },
-                    ]}
-                  >
-                    <FancyText size="small" type="bold" color={todosSelected ? palette.fonts.light : palette.primary}>
-                      Todos
-                    </FancyText>
-                  </AnimatedDiaChip>
-                );
-              })()}
             </View>
           </View>
         )}
@@ -282,14 +397,25 @@ export default function AddRegraModal({ visible, onClose, onConfirm, initialValu
         {/* PERIODO */}
         {tipo === 'PERIODO' && (
           <View style={styles.secao}>
-            <ControlledDateInput control={control} name="dataInicio" label="Data início" />
-            <ControlledDateInput control={control} name="dataFim" label="Data fim" />
+            <ControlledDateInput
+              control={control}
+              name='dataInicio'
+              label='Data início'
+              disabled={isSubmitting}
+            />
+            <ControlledDateInput
+              control={control}
+              name='dataFim'
+              label='Data fim'
+              disabled={isSubmitting}
+            />
             <ControlledFancyToggle
               control={control}
-              name="recorrente"
-              label="Repetir anualmente"
+              name='recorrente'
+              label='Repetir anualmente'
               option1={{ title: 'Não', value: false }}
               option2={{ title: 'Sim', value: true }}
+              disabled={isSubmitting}
             />
           </View>
         )}
@@ -299,18 +425,32 @@ export default function AddRegraModal({ visible, onClose, onConfirm, initialValu
           <View style={styles.secao}>
             <ControlledNumberInput
               control={control}
-              name="limiteMensal"
-              title="Escalas por mês"
+              name='limiteMensal'
+              title='Escalas por mês'
               min={1}
               max={31}
+              disabled={isSubmitting}
             />
-            <FancyText size="extraSmall" type="medium" color={palette.fonts.inactive}>
-              Você não será escalado mais que este número de vezes em um mesmo mês.
+            <ControlledDateInput
+              control={control}
+              name='dataInicio'
+              label='A partir de'
+              disabled={isSubmitting}
+            />
+            <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+              {voluntarioNome
+                ? `${voluntarioNome.split(' ')[0]} não poderá ser escalado mais que este número de vezes neste ministério em um mesmo mês, a partir da data escolhida.`
+                : 'Você não será escalado mais que este número de vezes em um mesmo mês, a partir da data escolhida.'}
             </FancyText>
           </View>
         )}
 
-        <ControlledTextArea control={control} name="motivo" label="Motivo" />
+        <ControlledTextArea
+          control={control}
+          name='motivo'
+          label='Motivo'
+          disabled={isSubmitting}
+        />
       </View>
     </FancyBottomSheetModal>
   );

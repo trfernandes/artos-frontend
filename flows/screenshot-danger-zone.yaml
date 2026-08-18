@@ -15,9 +15,9 @@ appId: com.church.artos
 
 # Abrir drawer e ir para Ministérios
 - tapOn:
-    point: "2%,50%"
+    point: '2%,50%'
 - waitForAnimationToEnd
-- tapOn: "Ministérios"
+- tapOn: 'Ministérios'
 - waitForAnimationToEnd
 
 # Selecionar o ministério pelo nome
@@ -25,7 +25,7 @@ appId: com.church.artos
 - waitForAnimationToEnd
 
 # Ir para aba Agenda
-- tapOn: "Agenda"
+- tapOn: 'Agenda'
 - waitForAnimationToEnd
 
 # Abrir a ocorrência
@@ -33,7 +33,7 @@ appId: com.church.artos
 - waitForAnimationToEnd
 
 # Garantir que chegou nos detalhes (a aba Dados está visível)
-- assertVisible: "Dados"
+- assertVisible: 'Dados'
 
 # Scroll até o fim para ver a zona de risco
 - scroll

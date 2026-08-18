@@ -376,7 +376,8 @@ const getMenuForMinisterio = (
           : isAdmin
             ? MinisterioTipoLabel[ministerioTipo]
             : ministerio.hierarquia
-              ? (VoluntarioHierarquiaEnumLabel[ministerio.hierarquia as VoluntarioHierarquiaEnum] ?? '')
+              ? (VoluntarioHierarquiaEnumLabel[ministerio.hierarquia as VoluntarioHierarquiaEnum] ??
+                '')
               : '',
       items,
     },

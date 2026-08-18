@@ -12,9 +12,9 @@ appId: com.church.artos
 
 # Ir para Admin via drawer
 - tapOn:
-    point: "2%,50%"
+    point: '2%,50%'
 - waitForAnimationToEnd
-- tapOn: "Admin"
+- tapOn: 'Admin'
 - waitForAnimationToEnd
 
 # Abrir o ministério
@@ -22,7 +22,7 @@ appId: com.church.artos
 - waitForAnimationToEnd
 
 # Ir para aba Liderança e Acessos
-- tapOn: "Liderança"
+- tapOn: 'Liderança'
 - waitForAnimationToEnd
 
 - takeScreenshot: screenshot-lideranca

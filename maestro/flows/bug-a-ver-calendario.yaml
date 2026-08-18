@@ -1,0 +1,13 @@
+appId: com.church.artos
+---
+- pressKey: back
+- openLink: diakonia:///inicio
+- waitForAnimationToEnd:
+    timeout: 3000
+- openLink: diakonia:///pessoal/indisponibilidade
+- waitForAnimationToEnd:
+    timeout: 4000
+- tapOn: 'Calendário'
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: bug-a-calendario-atual

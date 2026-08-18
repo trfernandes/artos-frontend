@@ -13,9 +13,11 @@ import { toZonedTime } from 'date-fns-tz';
 import { EventoFormData, eventoSchema } from '../../../../../domain/schemas/eventoSchema';
 import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
 import { DateUtilsApi } from '../../../../../utils/date_utils';
+import { usePallete } from '../../../../../hooks/usePallete';
 
 export default function EventosEditPage() {
   const params = useLocalSearchParams<{ id: string }>();
+  const Pallete = usePallete();
   const {
     data: eventosData,
     isLoading: isLoadingEvento,
@@ -45,7 +47,7 @@ export default function EventosEditPage() {
       eventoForm.setValue('id', eventosData[0]?.id);
       eventoForm.setValue('nome', eventosData[0]?.nome ?? '');
       eventoForm.setValue('local', eventosData[0]?.local ?? '');
-      eventoForm.setValue('cor', eventosData[0]?.cor ?? '#FF8C00');
+      eventoForm.setValue('cor', eventosData[0]?.cor ?? Pallete.primary);
       eventoForm.setValue(
         'dataInicio',
         toZonedTime(eventosData[0]?.dataInicio, 'America/Sao_Paulo'),
@@ -54,6 +56,12 @@ export default function EventosEditPage() {
         'dataTermino',
         eventosData[0]?.dataTermino
           ? toZonedTime(eventosData[0]?.dataTermino, 'America/Sao_Paulo')
+          : undefined,
+      );
+      eventoForm.setValue(
+        'dataFimRecorrencia',
+        eventosData[0]?.dataFimRecorrencia
+          ? toZonedTime(eventosData[0]?.dataFimRecorrencia, 'America/Sao_Paulo')
           : undefined,
       );
       eventoForm.setValue('descricao', eventosData[0]?.descricao ?? '');
@@ -90,6 +98,9 @@ export default function EventosEditPage() {
             dataInicio: DateUtilsApi.dateTimeToApi(payload.dataInicio),
             dataTermino: payload.dataTermino
               ? DateUtilsApi.dateTimeToApi(payload.dataTermino)
+              : undefined,
+            dataFimRecorrencia: payload.dataFimRecorrencia
+              ? DateUtilsApi.dateTimeToApi(payload.dataFimRecorrencia)
               : undefined,
           },
         });

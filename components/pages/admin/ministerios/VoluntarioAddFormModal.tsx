@@ -14,6 +14,8 @@ import {
   AddMinisterioVoluntarioSchema,
 } from '../../../../domain/schemas/ministerioAdminSchema';
 import { AppImages } from '../../../../assets/app_images';
+import FancyText from '../../../FancyText';
+import { usePallete } from '../../../../hooks/usePallete';
 
 export default function VoluntarioAddFormModal({
   ministerioId,
@@ -28,6 +30,7 @@ export default function VoluntarioAddFormModal({
   onClose: () => void;
   onSubmit: (data: AddMinisterioVoluntarioFormData) => void;
 }) {
+  const palette = usePallete();
   const form = useForm<AddMinisterioVoluntarioFormData>({
     resolver: zodResolver(AddMinisterioVoluntarioSchema),
     defaultValues: { hierarquia: VoluntarioHierarquiaEnum.Voluntario },
@@ -86,6 +89,9 @@ export default function VoluntarioAddFormModal({
       }
     >
       <View style={{ gap: 12 }}>
+        <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+          Mostrando voluntários que ainda não fazem parte deste ministério
+        </FancyText>
         <ControlledSearchSelect
           control={form.control}
           name='voluntarioId'

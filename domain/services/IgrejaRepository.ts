@@ -7,6 +7,7 @@ import { UpdateIgrejaDto } from '../dtos/Igreja/update-igreja.dto';
 import { VerificarCodigoIgrejaResponseDto } from '../dtos/Igreja/verificar-codigo-igreja.dto';
 import { JoinByCodigoDto } from '../dtos/Igreja/join-by-codigo.dto';
 import { AprovarMembroDto } from '../dtos/Igreja/aprovar-membro.dto';
+import { UpdateVoluntarioRoleDto } from '../dtos/Igreja/update-voluntario-role.dto';
 import { ResponseIgrejaAssinaturaDto } from '../dtos/Igreja/response-igreja-assinatura.dto';
 import { ResponseAceitarConviteDto } from '../dtos/Igreja/response-aceitar-convite.dto';
 import { ResponseConvitePreviewDto } from '../dtos/Igreja/response-convite-preview.dto';
@@ -21,7 +22,7 @@ import { ResponseIgrejaConfiguracoesDto } from '../dtos/Igreja/response-igreja-c
 import { UpdateIgrejaDadosDto } from '../dtos/Igreja/update-igreja-dados.dto';
 import { UpdateIgrejaModoEntradaDto } from '../dtos/Igreja/update-igreja-modo-entrada.dto';
 import { UpdateIgrejaNotificacoesDto } from '../dtos/Igreja/update-igreja-notificacoes.dto';
-import { ResponseVoluntarioDto } from '../dtos/Voluntario/voluntario.response';
+import { ResponseVoluntarioIgrejaDto } from '../dtos/Voluntario/response-voluntario-igreja.dto';
 import { DynamicQuery } from '../utils/query_utils';
 import { ResponseIgrejaVoluntarioDto } from '../dtos/Igreja/response-igreja-voluntario.dto';
 
@@ -116,7 +117,10 @@ class IgrejaRepositoryClass extends BaseRepository<
   /**
    * Listar voluntários da igreja com busca avançada (JWT)
    */
-  listarVoluntarios(igrejaId: string, query?: DynamicQuery): Promise<ResponseVoluntarioDto[]> {
+  listarVoluntarios(
+    igrejaId: string,
+    query?: DynamicQuery,
+  ): Promise<ResponseVoluntarioIgrejaDto[]> {
     return IgrejaApi.listarVoluntarios(igrejaId, query);
   }
 
@@ -125,6 +129,17 @@ class IgrejaRepositoryClass extends BaseRepository<
    */
   removerVoluntario(igrejaId: string, voluntarioId: string): Promise<void> {
     return IgrejaApi.removerVoluntario(igrejaId, voluntarioId);
+  }
+
+  /**
+   * Alterar a função (role) de um voluntário da igreja (JWT, ADMIN)
+   */
+  alterarRoleVoluntario(
+    igrejaId: string,
+    voluntarioId: string,
+    dto: UpdateVoluntarioRoleDto,
+  ): Promise<ResponseIgrejaVoluntarioDto> {
+    return IgrejaApi.alterarRoleVoluntario(igrejaId, voluntarioId, dto);
   }
 
   // ========== CONVITES (ADMIN) ==========

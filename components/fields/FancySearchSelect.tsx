@@ -3,6 +3,7 @@ import {
   useCallback,
   useRef,
   useEffect,
+  useId,
   forwardRef,
   useImperativeHandle,
   useMemo,
@@ -11,7 +12,6 @@ import {
   View,
   StyleSheet,
   Pressable,
-  Modal,
   StyleProp,
   ViewStyle,
   TextInputProps,
@@ -23,6 +23,7 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
+import { ModalStack } from '../modal/GlobalModalHost';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BlurView } from 'expo-blur';
 import FancyText, { FancyTextProps } from '../FancyText';
@@ -75,6 +76,8 @@ export interface FancySearchSelectProps<T>
   multiSelect?: boolean;
   /** Override do label (cor/estilo) — para superfícies escuras/gradiente. */
   labelProps?: FancyTextProps;
+  /** Chamado quando o Modal nativo termina de fechar (isVisible vira false). */
+  onClosed?: () => void;
 }
 
 export interface FancySearchSelectRef {
@@ -101,10 +104,12 @@ function FancySearchSelectInner<ValueItem>(
     retryLabel = 'Tentar novamente',
     multiSelect = false,
     labelProps,
+    onClosed,
   }: FancySearchSelectProps<ValueItem>,
   ref: React.Ref<FancySearchSelectRef>,
 ) {
   const palette = usePallete();
+  const stackId = useId();
   const { isDark } = useAppTheme();
   const styles = useThemedStyles(createStyles);
   // Backdrop com mais opacidade no Android pois o blur lá é menos efetivo
@@ -169,8 +174,9 @@ function FancySearchSelectInner<ValueItem>(
       dragY.setValue(0);
       setIsVisible(false);
       setSearch('');
+      onClosed?.();
     });
-  }, [backdropAnim, dragY, slideAnim]);
+  }, [backdropAnim, dragY, slideAnim, onClosed]);
 
   const scheduleClose = useCallback(() => {
     closeTask.current?.cancel();
@@ -491,7 +497,7 @@ function FancySearchSelectInner<ValueItem>(
                 }}
                 ItemSeparatorComponent={() => <FancySeparator style={{ marginTop: 8 }} />}
                 keyExtractor={(item: DropDownItemProps<ValueItem>, index: number) =>
-                  String(item.value ?? index)
+                  `${index}_${String(item.value ?? '')}`
                 }
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
@@ -528,6 +534,21 @@ function FancySearchSelectInner<ValueItem>(
       title,
     ],
   );
+
+  useEffect(() => {
+    if (isVisible) {
+      ModalStack.push(stackId, sheetContent, handleClose);
+    } else {
+      ModalStack.pop(stackId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVisible]);
+
+  useEffect(() => {
+    if (isVisible) ModalStack.update(stackId, sheetContent, handleClose);
+  });
+
+  useEffect(() => () => ModalStack.pop(stackId), [stackId]);
 
   return (
     <View style={[styles.container, containerStyle]}>
@@ -574,16 +595,6 @@ function FancySearchSelectInner<ValueItem>(
           )}
         </View>
       </Pressable>
-
-      <Modal
-        visible={isVisible}
-        transparent
-        animationType='none'
-        statusBarTranslucent
-        onRequestClose={handleClose}
-      >
-        {sheetContent}
-      </Modal>
     </View>
   );
 }

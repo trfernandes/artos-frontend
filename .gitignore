@@ -49,3 +49,20 @@ logs/
 # maestro
 flows/.env
 .aider*
+
+# debug artifacts (screenshots, uiautomator dumps, logcat, adb pull temporários)
+*.png
+!assets/**/*.png
+!docs/**/*.png
+ui*.xml
+uipoll*.xml
+window_dump*.txt
+logcat_*.txt
+.artifacts/
+burst*/
+timed*/
+.tmp-*
+CTempscreen1.png
+
+# misc
+docs/architecture-reviews/

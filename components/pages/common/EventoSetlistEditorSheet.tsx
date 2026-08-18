@@ -24,6 +24,8 @@ import {
 } from '../../../domain/dtos/Evento/evento-setlist-item.response';
 import { ResponseRepertorioMusicaDto } from '../../../domain/dtos/Repertorio/repertorio-musica.response';
 import { ResponseYoutubeSearchItemDto } from '../../../domain/dtos/Repertorio/youtube-search-item.response';
+import { useMusicasTocadasRelatorio } from '../../../hooks/useMusicasTocadasRelatorio';
+import { format, parseISO } from 'date-fns';
 
 type Props = {
   visible: boolean;
@@ -44,6 +46,9 @@ type Props = {
   item?: ResponseEventoSetlistItemDto | null;
   repertorio: ResponseRepertorioMusicaDto[];
   canEdit: boolean;
+  eventoId?: string;
+  dataOcorrenciaIso?: string;
+  ministerioId?: string;
 };
 
 const TONS = [
@@ -73,8 +78,26 @@ export default function EventoSetlistEditorSheet({
   item,
   repertorio,
   canEdit,
+  eventoId,
+  dataOcorrenciaIso,
+  ministerioId,
 }: Props) {
   const palette = usePallete();
+  const relatorioQuery = useMusicasTocadasRelatorio(
+    visible && ministerioId ? { ministerioId, eventoId, dataOcorrencia: dataOcorrenciaIso } : null,
+  );
+  const statsPorMusicaId = useMemo(() => {
+    const map = new Map<string, { totalExecucoes: number; ultimaExecucaoEm: string | null }>();
+    for (const musica of relatorioQuery.data?.musicas ?? []) {
+      if (musica.repertorioMusicaId) {
+        map.set(musica.repertorioMusicaId, {
+          totalExecucoes: musica.totalExecucoes,
+          ultimaExecucaoEm: musica.ultimaExecucaoEm,
+        });
+      }
+    }
+    return map;
+  }, [relatorioQuery.data]);
   const { showLoading, hideLoading } = useLoading();
   const [tipoOrigem, setTipoOrigem] = useState<EventoSetlistItemOrigemEnum>(
     EventoSetlistItemOrigemEnum.REPERTORIO,
@@ -108,12 +131,26 @@ export default function EventoSetlistEditorSheet({
 
   const repertorioOptions = useMemo(
     () =>
-      repertorio.map((musica) => ({
-        title: musica.nome,
-        subtitle: musica.interprete || musica.categoria?.nome || '',
-        value: musica.id,
-      })),
-    [repertorio],
+      repertorio.map((musica) => {
+        const stats = statsPorMusicaId.get(musica.id);
+        const statsLabel = !relatorioQuery.data
+          ? ''
+          : stats && stats.totalExecucoes > 0
+            ? `tocada ${stats.totalExecucoes}x${
+                stats.ultimaExecucaoEm
+                  ? ` · última vez ${format(parseISO(stats.ultimaExecucaoEm), 'dd/MM')}`
+                  : ''
+              }`
+            : 'nunca tocada';
+        return {
+          title: musica.nome,
+          subtitle: [musica.interprete || musica.categoria?.nome, statsLabel]
+            .filter(Boolean)
+            .join(' · '),
+          value: musica.id,
+        };
+      }),
+    [repertorio, statsPorMusicaId, relatorioQuery.data],
   );
 
   const toneOptions = useMemo(() => TONS.map((tone) => ({ title: tone, value: tone })), []);

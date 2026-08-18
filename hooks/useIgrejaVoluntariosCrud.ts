@@ -1,6 +1,6 @@
 import { ExternalUseCrudParams, useCrud } from './useCrud';
 import { IgrejaRepository } from '../domain/services/IgrejaRepository';
-import { ResponseVoluntarioDto } from '../domain/dtos/Voluntario/voluntario.response';
+import { ResponseVoluntarioIgrejaDto } from '../domain/dtos/Voluntario/response-voluntario-igreja.dto';
 import { useAuth } from '../contexts/AuthContext';
 
 export function useIgrejaVoluntariosCrud({
@@ -13,7 +13,7 @@ export function useIgrejaVoluntariosCrud({
     throw new Error('Nenhuma igreja ativa selecionada');
   }
 
-  return useCrud<ResponseVoluntarioDto, any, any, any>({
+  return useCrud<ResponseVoluntarioIgrejaDto, any, any, any>({
     queryKey: 'igreja-voluntarios',
     autoFetch,
     initialParams,

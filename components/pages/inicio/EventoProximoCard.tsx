@@ -35,10 +35,7 @@ export default function EventoProximoCard({
 
   if (variant === 'horizontal') {
     return (
-      <Pressable
-        onPress={onPress}
-        style={[styles.container, styles.horizontalContainer]}
-      >
+      <Pressable onPress={onPress} style={[styles.container, styles.horizontalContainer]}>
         {/* Inner view handles overflow:hidden so the accent strip respects border-radius
             without clipping the shadow on the outer Pressable (Android limitation) */}
         <View style={styles.horizontalInner}>
@@ -60,7 +57,12 @@ export default function EventoProximoCard({
               {evento.nome}
             </FancyText>
             {evento.local ? (
-              <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} numberOfLines={1}>
+              <FancyText
+                size='extraSmall'
+                type='medium'
+                color={palette.fonts.inactive}
+                numberOfLines={1}
+              >
                 {evento.local}
               </FancyText>
             ) : null}
@@ -90,27 +92,59 @@ export default function EventoProximoCard({
     <Pressable onPress={onPress} style={styles.container}>
       <View style={[styles.leftColorLine, { backgroundColor: accentColor }]} />
       <View style={styles.content}>
-        <FancyText size='small' type='semiBold' color={palette.fonts.dark} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.82}>
+        <FancyText
+          size='small'
+          type='semiBold'
+          color={palette.fonts.dark}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.82}
+        >
           {evento.nome}
         </FancyText>
         <View style={styles.infoRow}>
-          <DefaultIcons.Custom library='MaterialCommunityIcons' name='calendar' size={12} color={palette.primary} />
+          <DefaultIcons.Custom
+            library='MaterialCommunityIcons'
+            name='calendar'
+            size={12}
+            color={palette.primary}
+          />
           <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
             {dataFormatada} às {horaFormatada}
           </FancyText>
         </View>
         {ensaioInfo.shouldShow && (
           <View style={styles.infoRow}>
-            <DefaultIcons.Custom library='MaterialCommunityIcons' name='music-box-outline' size={12} color={palette.primary} />
-            <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} numberOfLines={1}>
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='music-box-outline'
+              size={12}
+              color={palette.primary}
+            />
+            <FancyText
+              size='extraSmall'
+              type='medium'
+              color={palette.fonts.inactive}
+              numberOfLines={1}
+            >
               {ensaioInfo.label}
             </FancyText>
           </View>
         )}
         {evento.local && (
           <View style={styles.infoRow}>
-            <DefaultIcons.Custom library='MaterialCommunityIcons' name='map-marker-outline' size={12} color={palette.primary} />
-            <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} numberOfLines={1}>
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='map-marker-outline'
+              size={12}
+              color={palette.primary}
+            />
+            <FancyText
+              size='extraSmall'
+              type='medium'
+              color={palette.fonts.inactive}
+              numberOfLines={1}
+            >
               {evento.local}
             </FancyText>
           </View>

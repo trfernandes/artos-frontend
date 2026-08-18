@@ -21,7 +21,7 @@ appId: com.church.artos
 - runFlow: _login.yaml
 
 - extendedWaitUntil:
-    visible: "Início"
+    visible: 'Início'
     timeout: 45000
 
 - openLink: diakonia:///configuracoes
@@ -30,24 +30,24 @@ appId: com.church.artos
 # Retry se API de billing falhou (banner "Servidor indisponivel" bloqueia o tab bar)
 - runFlow:
     when:
-      visible: "Servidor indisponível"
+      visible: 'Servidor indisponível'
     file: _retry_servidor.yaml
 # Aguarda tab bar aparecer (tabs so rendem apos dados da assinatura carregarem)
 - extendedWaitUntil:
-    visible: "Assinatura"
+    visible: 'Assinatura'
     timeout: 20000
 
 - tapOn:
-    text: "Assinatura"
+    text: 'Assinatura'
     index: 1
 - waitForAnimationToEnd:
     timeout: 15000
 
-- assertVisible: "Gerenciar assinatura"
+- assertVisible: 'Gerenciar assinatura'
 - takeScreenshot: billing-portal-antes-do-tap
 
 # Abrir portal — Chrome assume o foco
-- tapOn: "Gerenciar assinatura"
+- tapOn: 'Gerenciar assinatura'
 - waitForAnimationToEnd:
     timeout: 15000
 

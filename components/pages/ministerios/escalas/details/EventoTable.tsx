@@ -353,7 +353,7 @@ export default function EventoTable({
                     size={11}
                     color={eventMetaColor}
                   />
-                  <FancyText type='semiBold' size={10} color={eventMetaColor}>
+                  <FancyText type='semiBold' size='extraSmall' color={eventMetaColor}>
                     {format(data.dataOcorrencia, 'dd/MM/yyyy')}
                   </FancyText>
                 </View>
@@ -364,7 +364,7 @@ export default function EventoTable({
                     size={11}
                     color={eventMetaColor}
                   />
-                  <FancyText type='semiBold' size={10} color={eventMetaColor}>{`${format(
+                  <FancyText type='semiBold' size='extraSmall' color={eventMetaColor}>{`${format(
                     data.dataHoraInicioOcorrencia ?? data.evento.dataInicio!,
                     'HH:mm',
                   )} - ${format(
@@ -436,7 +436,7 @@ export default function EventoTable({
               <View style={styles.setlistOwnerTextBlock}>
                 <FancyText
                   type='medium'
-                  size={10}
+                  size='extraSmall'
                   color={palette.fonts.inactive}
                   style={styles.setlistOwnerMetaText}
                 >

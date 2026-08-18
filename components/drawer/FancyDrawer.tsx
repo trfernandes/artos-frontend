@@ -107,6 +107,15 @@ export default function FancyDrawer(props: FancyDrawerProps) {
 
           <FancyDrawerSeparator label={'Outros'} />
           <FancyDrawerItem
+            title='Ajuda'
+            logo={{
+              type: 'icon',
+              value: { name: 'help-circle-outline', library: 'MaterialCommunityIcons', size: 17 },
+            }}
+            onPress={{ type: 'GoToRoute', routeName: '/ajuda' }}
+            onNavigate={() => navigation.closeDrawer?.()}
+          />
+          <FancyDrawerItem
             title='Avaliar o App'
             logo={{
               type: 'icon',

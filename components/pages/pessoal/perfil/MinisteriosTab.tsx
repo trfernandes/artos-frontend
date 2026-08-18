@@ -19,7 +19,7 @@ export default function MinisteriosTab() {
           },
         ],
       },
-      relations: ['ministerio', 'voluntario'],
+      relations: ['ministerio', 'voluntario', 'funcoes', 'funcoes.funcao'],
     };
   }, [user?.user?.id]);
 

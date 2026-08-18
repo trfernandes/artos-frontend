@@ -272,7 +272,12 @@ export default function SubstituirVoluntarioModal({
             onPress={handleConfirm}
             isLoading={isSubmitting}
             loadingText='Substituindo...'
-            disabled={isSubmitting || isLoadingMinisterioVoluntarios || isLoadingMinisterioVoluntariosMutation || isLoadingSubstitutos}
+            disabled={
+              isSubmitting ||
+              isLoadingMinisterioVoluntarios ||
+              isLoadingMinisterioVoluntariosMutation ||
+              isLoadingSubstitutos
+            }
             containerStyle={styles.footerButton}
           />
         </View>
@@ -318,7 +323,12 @@ export default function SubstituirVoluntarioModal({
         <View style={{ gap: 8 }}>
           <View style={styles.sectionEyebrow}>
             <View style={[styles.sectionEyebrowTick, { backgroundColor: palette.primary }]} />
-            <FancyText type='semiBold' size={10} color={palette.primary} style={styles.sectionEyebrowText}>
+            <FancyText
+              type='semiBold'
+              size='extraSmall'
+              color={palette.primary}
+              style={styles.sectionEyebrowText}
+            >
               PARA
             </FancyText>
           </View>

@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -18,8 +19,13 @@ export default function AuthLayout() {
       <Stack.Screen name='forgot-password' />
       <Stack.Screen name='create-account' />
       <Stack.Screen name='admin-discovery' />
-      <Stack.Screen name='create-igreja-account' />
-      <Stack.Screen name='igreja-cadastro-aguardando-email' />
+      <Stack.Screen name='quiz-vendas' />
+      <Stack.Screen name='quiz-vendas-resultado' />
+      <Stack.Screen name='quiz-vendas-funcionalidades' />
+      {/* iOS: Apple Guideline 3.1.1 — cadastro de organização pagante não pode
+          acontecer dentro do app. Rotas nem existem no bundle iOS. Ver ADR. */}
+      {Platform.OS !== 'ios' && <Stack.Screen name='create-igreja-account' />}
+      {Platform.OS !== 'ios' && <Stack.Screen name='igreja-cadastro-aguardando-email' />}
       <Stack.Screen name='create-voluntario-account' />
       <Stack.Screen name='voluntario-aguardando-email' />
       <Stack.Screen name='welcome' />

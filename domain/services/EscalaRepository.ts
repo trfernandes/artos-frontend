@@ -13,6 +13,10 @@ class EscalaRepositoryClass extends BaseRepository<ResponseEscalaDto, CreateEsca
     return EscalasApi.generate(data);
   }
 
+  async createManual(data: CreateEscalaDto): Promise<ResponseEscalaDto> {
+    return EscalasApi.createManual(data);
+  }
+
   async regenerate(escalaId: string): Promise<ResponseEscalaDto> {
     return EscalasApi.regenerate(escalaId);
   }

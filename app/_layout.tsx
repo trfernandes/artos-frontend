@@ -1,20 +1,30 @@
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { Asset } from 'expo-asset';
-import { SplashScreen, Stack } from 'expo-router';
+import { SplashScreen, Stack, useNavigationContainerRef } from 'expo-router';
 import { setOptions as setSplashScreenOptions } from 'expo-splash-screen';
 import { AppState, Modal, Platform, StyleSheet, View } from 'react-native';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import { TutorialCatalogProvider } from '../contexts/TutorialCatalogContext';
+import { JourneyProvider, useJourney } from '../contexts/JourneyContext';
+import { LoadingProvider } from '../contexts/LoadingContext';
 import { useFonts } from 'expo-font';
 import { QueryClientProvider } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 import { createToastConfig } from '../utils/toast_config';
-import { FancyAlertConnector, FancyAlertProvider } from '../components/modal/FancyAlert';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  FancyAlert,
+  FancyAlertConnector,
+  FancyAlertProvider,
+} from '../components/modal/FancyAlert';
+import { GlobalModalHost } from '../components/modal/GlobalModalHost';
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { refreshFontScale } from '../constants/font';
 import { registerForPushNotificationsAsync } from '../services/notifications';
 import { NotificationsManager } from '../components/Notification_manager';
 import { AppReviewManager } from '../components/AppReviewManager';
 import * as Sentry from '@sentry/react-native';
+import * as Updates from 'expo-updates';
 import { ConnectivityProvider } from '../core/network/connectivity/ConnectivityProvider';
 import { createQueryClient } from '../core/react-query/queryClient';
 import { ConnectivityBanner } from '../components/FancyConnectivityBanner';
@@ -33,6 +43,10 @@ import AppSplashOverlay from '../components/AppSplashOverlay';
 
 const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
 
+const sentryNavigationIntegration = Sentry.reactNavigationIntegration({
+  enableTimeToInitialDisplay: true,
+});
+
 if (sentryDsn) {
   Sentry.init({
     dsn: sentryDsn,
@@ -40,7 +54,7 @@ if (sentryDsn) {
     enableLogs: __DEV__,
     replaysSessionSampleRate: __DEV__ ? 0 : 0.1,
     replaysOnErrorSampleRate: 1,
-    integrations: [Sentry.mobileReplayIntegration()],
+    integrations: [Sentry.mobileReplayIntegration(), sentryNavigationIntegration],
   });
 }
 
@@ -119,12 +133,18 @@ export default Sentry.wrap(function RootLayout() {
             <GlobalErrorBoundary>
               <QueryClientProvider client={queryClient}>
                 <AuthProvider>
-                  <ConnectivityProvider>
-                    <RootLayoutNav
-                      onReady={handleReady}
-                      onNativeSplashHidden={handleNativeSplashHidden}
-                    />
-                  </ConnectivityProvider>
+                  <TutorialCatalogProvider>
+                    <JourneyProvider>
+                      <ConnectivityProvider>
+                        <LoadingProvider>
+                          <RootLayoutNav
+                            onReady={handleReady}
+                            onNativeSplashHidden={handleNativeSplashHidden}
+                          />
+                        </LoadingProvider>
+                      </ConnectivityProvider>
+                    </JourneyProvider>
+                  </TutorialCatalogProvider>
                 </AuthProvider>
               </QueryClientProvider>
             </GlobalErrorBoundary>
@@ -145,11 +165,59 @@ function RootLayoutNav({
 }) {
   useProtectedRoute();
 
+  const navigationRef = useNavigationContainerRef();
+  useEffect(() => {
+    sentryNavigationIntegration.registerNavigationContainer(navigationRef);
+  }, [navigationRef]);
+
+  // rele a escala de fonte do sistema e força re-render da árvore (RN não expõe
+  // evento de mudança — ver refreshFontScale em constants/font.ts). AppState cobre
+  // ida/volta de Ajustes; polling cobre o slider do Control Center (app fica em
+  // foreground o tempo todo, sem transição de AppState).
+  const [, forceFontScaleUpdate] = useReducer((tick: number) => tick + 1, 0);
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active' && refreshFontScale()) {
+        forceFontScaleUpdate();
+      }
+    });
+
+    const interval = setInterval(() => {
+      if (AppState.currentState === 'active' && refreshFontScale()) {
+        forceFontScaleUpdate();
+      }
+    }, 1000);
+
+    return () => {
+      subscription.remove();
+      clearInterval(interval);
+    };
+  }, []);
+
   const { user, loading, isSigningOut } = useAuth();
   const { isDark, palette } = useAppTheme();
   const statusBarStyle: 'light' | 'dark' = isDark ? 'light' : 'dark';
   const safeAreaBackgroundColor = palette.backgroundColor;
   const toastConfig = useMemo(() => createToastConfig(palette), [palette]);
+
+  // Auto-check nativo do expo-updates nunca disparou de forma confiável nesse
+  // app (relato de build TestFlight que nunca aplicou nenhum OTA sozinho).
+  // Check explicito no boot como rede de seguranca.
+  useEffect(() => {
+    if (__DEV__ || !Updates.isEnabled) return;
+
+    (async () => {
+      try {
+        const result = await Updates.checkForUpdateAsync();
+        if (result.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          await Updates.reloadAsync();
+        }
+      } catch (error) {
+        Sentry.captureException(error, { tags: { context: 'manual-update-check' } });
+      }
+    })();
+  }, []);
 
   const [fontsLoaded] = useFonts({
     MontserratBlack: require('../assets/fonts/montserrat/Montserrat-Black.ttf'),
@@ -195,6 +263,21 @@ function RootLayoutNav({
       }
     }
   }, [fontsLoaded, loading]);
+
+  // retomar jornada guiada interrompida (app fechado / tela trocada no meio do tour)
+  const { pendingResume, resumeJourney, dismissResume } = useJourney();
+  useEffect(() => {
+    if (!user || !pendingResume) return;
+    FancyAlert.alert(
+      'Continuar tutorial?',
+      `Você estava no meio do tutorial "${pendingResume.title}". Quer continuar de onde parou?`,
+      [
+        { text: 'Agora não', style: 'cancel', onPress: dismissResume },
+        { text: 'Continuar', onPress: resumeJourney },
+      ],
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, pendingResume]);
 
   // registrar notificações quando logar
   useEffect(() => {
@@ -271,8 +354,9 @@ function RootLayoutNav({
         <Toast config={toastConfig} position='bottom' visibilityTime={4000} />
         <FancyAlertConnector />
         <ConnectivityBanner />
+        <GlobalModalHost />
         <Modal visible={isSigningOut} transparent animationType='fade'>
-          <View style={styles.signOutOverlay}>
+          <View style={[styles.signOutOverlay, { backgroundColor: palette.overlays.strongBackdrop }]}>
             <View
               style={[
                 styles.signOutSurface,
@@ -305,7 +389,6 @@ const styles = StyleSheet.create({
   },
   signOutOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.32)',
     alignItems: 'center',
     justifyContent: 'center',
   },

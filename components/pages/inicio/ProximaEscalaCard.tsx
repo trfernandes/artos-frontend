@@ -42,7 +42,9 @@ export default function ProximaEscalaCard({ escala, onPress }: ProximaEscalaCard
         <View style={styles.content}>
           {/* Chip de data + status dot */}
           <View style={styles.topRow}>
-            <View style={[styles.dateChip, { backgroundColor: ColorUtils.withAlpha(accentColor, 0.1) }]}>
+            <View
+              style={[styles.dateChip, { backgroundColor: ColorUtils.withAlpha(accentColor, 0.1) }]}
+            >
               <FancyText size='extraSmall' type='semiBold' color={accentColor}>
                 {dataFormatada}
               </FancyText>
@@ -68,7 +70,12 @@ export default function ProximaEscalaCard({ escala, onPress }: ProximaEscalaCard
           </FancyText>
 
           {/* Dia da semana + hora */}
-          <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} numberOfLines={1}>
+          <FancyText
+            size='extraSmall'
+            type='medium'
+            color={palette.fonts.inactive}
+            numberOfLines={1}
+          >
             {diaSemanaCapitalized} · {hora}
           </FancyText>
 
@@ -80,7 +87,13 @@ export default function ProximaEscalaCard({ escala, onPress }: ProximaEscalaCard
               size={12}
               color={palette.fonts.inactive2}
             />
-            <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} numberOfLines={1} style={{ flex: 1 }}>
+            <FancyText
+              size='extraSmall'
+              type='medium'
+              color={palette.fonts.inactive}
+              numberOfLines={1}
+              style={{ flex: 1 }}
+            >
               {escala.funcaoNome}
             </FancyText>
           </View>
@@ -117,7 +130,7 @@ export default function ProximaEscalaCard({ escala, onPress }: ProximaEscalaCard
               />
             ) : (
               <View style={styles.ministerioLogoCircle}>
-                <FancyText size={7} type='bold' color={palette.fonts.light}>
+                <FancyText size='extraSmall' type='bold' color={palette.fonts.light}>
                   {escala.ministerioNome.charAt(0).toUpperCase()}
                 </FancyText>
               </View>

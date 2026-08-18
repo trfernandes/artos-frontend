@@ -52,7 +52,7 @@ export default function MonthView({
               adjustsFontSizeToFit={true}
               numberOfLines={1}
               type={isSelected ? 'bold' : 'medium'}
-              size={12}
+              size='small'
               style={[
                 styles.text,
                 isAgendaPremium ? styles.textAgenda : null,

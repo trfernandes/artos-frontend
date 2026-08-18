@@ -1,4 +1,4 @@
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import {
   EscalaEventoFormData,
@@ -10,14 +10,17 @@ import {
 import FancyList from '../../../../list/FancyList';
 import { FancyCard } from '../../../../cards/Horizontal/FancyCard';
 import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import EventoFormModal from './EventoFormModal';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import FancyText from '../../../../FancyText';
 import FancyChips from '../../../../FancyChips';
+import FancyButton from '../../../../buttons/FancyButton';
 import FancyLoading from '../../../../FancyLoading';
+import Toast from 'react-native-toast-message';
+import * as Sentry from '@sentry/react-native';
 import { useAssistenteEscala } from '../../../../../contexts/pages/escalas/AssistantContext';
 import DefaultIcons from '../../../../FancyIcons';
 import { EscalaTemplateTipoEnum } from '../../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
@@ -112,7 +115,15 @@ export default function AssistenteEventosStep() {
         setShouldLoadEvents(false);
       } catch (error) {
         console.error('Erro ao buscar eventos:', error);
-        if (isMounted) eventosArray.replace([]);
+        Sentry.captureException(error);
+        if (isMounted) {
+          eventosArray.replace([]);
+          Toast.show({
+            type: 'error',
+            text1: 'Erro ao buscar eventos',
+            text2: 'Verifique sua conexão e tente novamente.',
+          });
+        }
       } finally {
         if (isMounted) setIsLoadingEventos(false);
       }
@@ -130,6 +141,8 @@ export default function AssistenteEventosStep() {
     data?: EscalaEventoFormData;
     index?: number;
   }>({ visible: false });
+  const hasOpenedEventoForm = useRef(false);
+  if (eventoFormProps.visible) hasOpenedEventoForm.current = true;
 
   const handleSaveTemplate = useCallback(
     (data: EscalaEventoTemplateFormData) => {
@@ -186,23 +199,16 @@ export default function AssistenteEventosStep() {
           <FancyText size={'extraSmall'} type='semiBold' style={{ flex: 1 }}>
             Selecione os eventos da escala:
           </FancyText>
-          <TouchableOpacity
-            style={{ flexDirection: 'row', gap: 4, alignItems: 'center' }}
+          <FancyButton
+            type='text'
+            label={!markAll ? 'Marcar todos' : 'Desmarcar todos'}
+            labelProps={{ size: 'extraSmall', type: 'semiBold' }}
+            icon={{ library: 'Octicons', name: markAll ? 'circle' : 'check-circle', size: 14 }}
             onPress={() => {
               form.setValue('markEventsAll', !markAll);
               executeMarkAll(!markAll);
             }}
-          >
-            <DefaultIcons.Custom
-              library='Octicons'
-              name={markAll ? 'circle' : 'check-circle'}
-              size={14}
-              color={palette.primary}
-            />
-            <FancyText size={'extraSmall'} type='semiBold' style={{ color: palette.primary }}>
-              {!markAll ? 'Marcar todos' : 'Desmarcar todos'}
-            </FancyText>
-          </TouchableOpacity>
+          />
         </View>
 
         {semTemplateCount > 0 && (
@@ -355,8 +361,9 @@ export default function AssistenteEventosStep() {
           }}
         />
       )}
-      {eventoFormProps.visible && (
+      {(eventoFormProps.visible || hasOpenedEventoForm.current) && (
         <EventoFormModal
+          visible={eventoFormProps.visible}
           data={eventoFormProps.data}
           modalProps={{
             onButton1Press: () =>

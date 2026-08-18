@@ -13,6 +13,7 @@ export type FancyNumberInputProps = {
   containerStyle?: StyleProp<ViewStyle>;
   min?: number;
   max?: number;
+  disabled?: boolean;
 };
 
 export default function FancyNumberInput({
@@ -22,6 +23,7 @@ export default function FancyNumberInput({
   containerStyle,
   min,
   max,
+  disabled,
 }: FancyNumberInputProps) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
@@ -49,17 +51,14 @@ export default function FancyNumberInput({
             style: { marginTop: 1 },
           }}
           size={{ h: 25, w: 25 }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          disabled={disabled}
           onPress={() => {
             onChange?.(value ? Math.max(min ?? 0, value - 1) : 0);
           }}
         />
         <View style={styles.valueWrap}>
-          <FancyText
-            size={'large'}
-            type='bold'
-            color={palette.fonts.dark}
-            style={styles.valueText}
-          >
+          <FancyText size={'large'} type='bold' color={palette.fonts.dark} style={styles.valueText}>
             {value ?? '0'}
           </FancyText>
         </View>
@@ -68,6 +67,8 @@ export default function FancyNumberInput({
           mode='icon'
           icon={{ ...DefaultIconsNames.add, color: palette.icons.light, size: 18 }}
           size={{ h: 25, w: 25 }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          disabled={disabled}
           onPress={() => {
             onChange?.(value ? Math.min(max ?? Infinity, value + 1) : 1);
           }}

@@ -5,7 +5,7 @@ import FancyScreenErrorHandler from '../../../../../components/error/FancyScreen
 
 import { useMinisteriosCrud } from '../../../../../hooks/useMinisteriosCrud';
 import { useCallback, useState } from 'react';
-import { useFocusEffect } from 'expo-router';
+import { useFocusRefetch } from '../../../../../hooks/useFocusRefetch';
 import { Operator, OrderDirection, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
@@ -61,11 +61,17 @@ export default function MinisteriosIndex() {
     },
   });
 
-  useFocusEffect(
-    useCallback(() => {
-      refetch();
-    }, [refetch]),
-  );
+  const { isFocusLoading } = useFocusRefetch(refetch);
+
+  const [isPullRefreshing, setIsPullRefreshing] = useState(false);
+  const handlePullRefresh = useCallback(async () => {
+    setIsPullRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setIsPullRefreshing(false);
+    }
+  }, [refetch]);
 
   const handleChangeStatus = useCallback(
     (ministerioId: string, ministerioNome: string, newStatus: MinisterioStatusEnum) => {
@@ -149,6 +155,7 @@ export default function MinisteriosIndex() {
   return (
     <FancyListPage
       showSearchBar
+      contentLoading={isFocusLoading}
       fabProps={{
         disabled: blockFab,
         onPress: () => {
@@ -209,7 +216,8 @@ export default function MinisteriosIndex() {
         },
       }}
       listProps={{
-        onRefresh: refetch,
+        onRefresh: handlePullRefresh,
+        refreshing: isPullRefreshing,
         listEmptyProps: {
           label: searchText ? 'Nenhum ministério encontrado' : 'Nenhum ministério cadastrado',
           icon: { library: 'MaterialCommunityIcons', name: 'home-group', size: 68 },

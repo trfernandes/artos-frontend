@@ -1,8 +1,9 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import FuncaoFormModal from '../../../../../components/pages/ministerios/funcoes/FuncaoFormModal';
 import FancyListPage from '../../../../../components/pages/base/FancyBaseListPage';
 import { useMinisterioFuncoesCrud } from '../../../../../hooks/useMinisterioFuncoesCrud';
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+import { useFocusRefetch } from '../../../../../hooks/useFocusRefetch';
 import {
   Condition,
   DynamicQuery,
@@ -27,10 +28,32 @@ import FancyActionSheet from '../../../../../components/actions/FancyActionSheet
 import { usePallete } from '../../../../../hooks/usePallete';
 import { ColorUtils } from '../../../../../utils/color_utils';
 import { useLoading } from '../../../../../contexts/LoadingContext';
+import { TutorialBanner } from '../../../../../components/tutorial/TutorialBanner';
+import { TutorialOverlay } from '../../../../../components/tutorial/TutorialOverlay';
+import { useScreenTutorial } from '../../../../../hooks/useScreenTutorial';
+import {
+  FUNCOES_TOUR_ID,
+  FUNCOES_TOUR_STEPS,
+  FUNCOES_TOUR_TITLE,
+} from '../../../../../components/tutorial/tours/funcoesTour';
+import { useJourney } from '../../../../../contexts/JourneyContext';
 
 export default function MinisterioFuncoesIndex() {
   const palette = usePallete();
   const { showLoading, hideLoading } = useLoading();
+
+  const journey = useJourney();
+  const isJourneyStep = journey.currentStep?.tourId === FUNCOES_TOUR_ID;
+  const tour = useScreenTutorial(FUNCOES_TOUR_ID, FUNCOES_TOUR_TITLE, FUNCOES_TOUR_STEPS, {
+    onComplete: isJourneyStep ? journey.advance : undefined,
+  });
+
+  useEffect(() => {
+    if (isJourneyStep && !tour.isActive && tour.ready) {
+      tour.start();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isJourneyStep, tour.ready]);
   const [funcaoFormModalParams, setFuncaoFormModalParams] = useState<
     | {
         mode?: 'add' | 'edit';
@@ -80,17 +103,22 @@ export default function MinisterioFuncoesIndex() {
     isLoading,
     isLoadingMutation,
     refetch,
-    isRefetching,
   } = useMinisterioFuncoesCrud({
     initialParams: searchParams,
     autoFetch: true,
   });
 
-  useFocusEffect(
-    useCallback(() => {
-      refetch();
-    }, [refetch]),
-  );
+  const { isFocusLoading } = useFocusRefetch(refetch);
+
+  const [isPullRefreshing, setIsPullRefreshing] = useState(false);
+  const handlePullRefresh = useCallback(async () => {
+    setIsPullRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setIsPullRefreshing(false);
+    }
+  }, [refetch]);
 
   const handleConfirm = useCallback(
     async ({
@@ -157,14 +185,23 @@ export default function MinisterioFuncoesIndex() {
         onPress: () =>
           setFuncaoFormModalParams({ mode: 'add', visible: true, editValues: undefined }),
       }}
+      fabTutorialTarget={{
+        id: 'funcoes-fab',
+        registerTarget: tour.registerTarget,
+        unregisterTarget: tour.unregisterTarget,
+      }}
       showSearchBar
+      contentLoading={isFocusLoading}
       searchBarProps={{
         value: searchText,
         onSearch: setSearchText,
       }}
+      topContent={
+        tour.showBanner ? <TutorialBanner onStart={tour.start} onDismiss={tour.skip} /> : undefined
+      }
       listProps={{
-        onRefresh: refetch,
-        refreshing: isRefetching,
+        onRefresh: handlePullRefresh,
+        refreshing: isPullRefreshing,
         listEmptyProps: {
           label: searchText ? 'Nenhuma função encontrada' : 'Nenhuma função cadastrada',
           icon: { library: 'MaterialCommunityIcons', name: 'account-cog-outline', size: 68 },
@@ -249,6 +286,8 @@ export default function MinisterioFuncoesIndex() {
           }
         }}
       />
+
+      <TutorialOverlay tour={tour} />
     </FancyListPage>
   );
 }

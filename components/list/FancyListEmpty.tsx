@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, StyleProp, View, ViewStyle } from 'react-native';
 import FancyText from '../FancyText';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import { usePallete } from '../../hooks/usePallete';
@@ -14,26 +14,39 @@ export type FancyListEmptyProps = {
   onActionPress?: () => void;
   actionIcon?: CustomIconProps;
   muted?: boolean;
+  variant?: 'default' | 'compact';
+  hideIcon?: boolean;
+  containerStyle?: StyleProp<ViewStyle>;
 };
 
 export default function FancyListEmpty(props: FancyListEmptyProps) {
   const Pallete = usePallete();
   const showAction = Boolean(props.actionLabel && props.onActionPress);
   const isMuted = props.muted ?? !showAction;
+  const isCompact = props.variant === 'compact';
 
   return (
-    <View style={[styles.container, isMuted && styles.containerMuted]}>
-      <DefaultIcons.Custom
-        library={props.icon?.library || 'FontAwesome6'}
-        name={props.icon?.name || 'robot'}
-        size={props.icon?.size || 55}
-        color={props.icon?.color || Pallete.fonts.inactive2}
-      />
+    <View
+      style={[
+        styles.container,
+        isCompact && styles.containerCompact,
+        isMuted && styles.containerMuted,
+        props.containerStyle,
+      ]}
+    >
+      {!props.hideIcon && (
+        <DefaultIcons.Custom
+          library={props.icon?.library || 'FontAwesome6'}
+          name={props.icon?.name || 'robot'}
+          size={props.icon?.size || (isCompact ? 20 : 55)}
+          color={props.icon?.color || Pallete.fonts.inactive2}
+        />
+      )}
       <FancyText
-        size={props.labelSize ?? 'large'}
-        type='bold'
+        size={props.labelSize ?? (isCompact ? 'small' : 'large')}
+        type={isCompact ? 'medium' : 'bold'}
         color={props.labelColor || Pallete.fonts.inactive2}
-        style={{ paddingHorizontal: 15, textAlign: 'center' }}
+        style={isCompact ? styles.labelCompact : { paddingHorizontal: 15, textAlign: 'center' }}
       >
         {props.label || 'Não há nada por aqui...'}
       </FancyText>
@@ -68,8 +81,20 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingHorizontal: 20,
   },
+  containerCompact: {
+    flex: 0,
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 0,
+    paddingVertical: 8,
+  },
   containerMuted: {
     opacity: 0.4,
+  },
+  labelCompact: {
+    textAlign: 'left',
   },
   helperText: {
     textAlign: 'center',

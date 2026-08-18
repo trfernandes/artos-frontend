@@ -15,7 +15,10 @@ appId: com.church.artos
 - runFlow: _login.yaml
 
 # Garantir que o home carregou antes do deep link (evita race condition de inicializacao)
-- assertVisible: "Início"
+# Timeout maior que o default (17s): emulador do CI é mais lento pra bundlar/navegar pós-login
+- extendedWaitUntil:
+    visible: 'Início'
+    timeout: 60000
 
 - openLink: diakonia:///configuracoes
 - waitForAnimationToEnd:
@@ -23,15 +26,15 @@ appId: com.church.artos
 
 # Aba "Assinatura" (index 1 pois index 0 eh o card de status no topo)
 - tapOn:
-    text: "Assinatura"
+    text: 'Assinatura'
     index: 1
 - waitForAnimationToEnd:
     timeout: 15000
 
 # Verificar card de status carregou (conta de staging esta ativa)
-- assertVisible: "Assinatura em dia"
+- assertVisible: 'Assinatura em dia'
 
 # Unico botao de billing - Apple 3.1.1
-- assertVisible: "Gerenciar assinatura"
+- assertVisible: 'Gerenciar assinatura'
 
 - takeScreenshot: billing-status

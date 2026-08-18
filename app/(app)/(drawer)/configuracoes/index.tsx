@@ -1488,7 +1488,7 @@ export default function ConfiguracoesPage() {
               <View style={[styles.sectionEyebrowTick, { backgroundColor: palette.primary }]} />
               <FancyText
                 type='semiBold'
-                size={10}
+                size='extraSmall'
                 color={palette.primary}
                 style={styles.sectionEyebrowText}
               >
@@ -1524,7 +1524,7 @@ export default function ConfiguracoesPage() {
                   <View style={[styles.sectionEyebrowTick, { backgroundColor: palette.primary }]} />
                   <FancyText
                     type='semiBold'
-                    size={10}
+                    size='extraSmall'
                     color={palette.primary}
                     style={styles.sectionEyebrowText}
                   >
@@ -1622,7 +1622,7 @@ export default function ConfiguracoesPage() {
               compact
               assinatura={assinatura}
               onPrimaryPress={handlePrimaryBillingAction}
-              primaryLabel="Gerenciar assinatura"
+              primaryLabel='Gerenciar assinatura'
             />
           ) : (
             <View style={styles.billingLoadingCard}>

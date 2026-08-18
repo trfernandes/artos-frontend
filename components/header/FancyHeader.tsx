@@ -7,6 +7,7 @@ import { DefaultIconsNames } from '../../constants/icons';
 import FancyHeaderButton from './FancyHeaderButton';
 import { useTopSafeInset } from '../../hooks/useTopSafeInset';
 import { usePallete } from '../../hooks/usePallete';
+import { LARGE_MEDIUM_SIZE_FONT, MEDIUM_SIZE_FONT } from '../../constants/font';
 
 const HEADER_CONTENT_HEIGHT = 40;
 const HEADER_HORIZONTAL_GUTTER = 15;
@@ -28,7 +29,9 @@ export default function FancyPageHeader({
   ...props
 }: FancyHeaderProps) {
   const nav = useNavigation<DrawerNavigationProp<Record<string, object>>>();
-  const topSafeInset = useTopSafeInset(Platform.OS === 'ios' ? IOS_TOP_INSET_REDUCTION : ANDROID_TOP_INSET_REDUCTION);
+  const topSafeInset = useTopSafeInset(
+    Platform.OS === 'ios' ? IOS_TOP_INSET_REDUCTION : ANDROID_TOP_INSET_REDUCTION,
+  );
   const palette = usePallete();
   const topInset = applyTopSafeArea ? topSafeInset : 0;
   const headerHeight = topInset + HEADER_CONTENT_HEIGHT;
@@ -114,7 +117,14 @@ const HeaderBackButton = (props: { title?: string; onPress: () => void; color: s
   <View
     style={[
       styles.buttonContainer,
-      { position: 'absolute', left: HEADER_HORIZONTAL_GUTTER, top: 0, bottom: 0, gap: 10, borderWidth: 0 },
+      {
+        position: 'absolute',
+        left: HEADER_HORIZONTAL_GUTTER,
+        top: 0,
+        bottom: 0,
+        gap: 10,
+        borderWidth: 0,
+      },
     ]}
   >
     <FancyHeaderButton
@@ -177,10 +187,9 @@ const styles = StyleSheet.create({
     marginRight: HEADER_HORIZONTAL_GUTTER,
   },
   headerTitle: {
-    alignItems: 'center',
-    justifyContent: 'center',
     flexShrink: 1,
-    lineHeight: 22,
-    borderWidth: 0,
+    lineHeight: Math.round(
+      (Platform.OS === 'ios' ? LARGE_MEDIUM_SIZE_FONT : MEDIUM_SIZE_FONT) * 1.3,
+    ),
   },
 });

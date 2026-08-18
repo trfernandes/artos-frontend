@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import FancyListPage from '../../../../../../components/pages/base/FancyBaseListPage';
 import FancyLoading from '../../../../../../components/FancyLoading';
 import FancyListItemCard from '../../../../../../components/cards/FancyListItemCard';
-import FancyBottomSheetSelect from '../../../../../../components/fields/FancyBottomSheetSelect';
+import FancyChips from '../../../../../../components/FancyChips';
 import FancyButton from '../../../../../../components/buttons/FancyButton';
 import FancyText from '../../../../../../components/FancyText';
 import RepertorioCategoriasManagerSheet from '../../../../../../components/pages/ministerios/louvor/repertorio/RepertorioCategoriasManagerSheet';
@@ -46,7 +46,7 @@ export default function MinisterioLouvorRepertorioIndexPage() {
   const { data: musicas = [], removerMusica, isLoading } = useRepertorioMusicas(ministerioId);
   const { showLoading, hideLoading } = useLoading();
   const [search, setSearch] = useState('');
-  const [categoriaId, setCategoriaId] = useState('');
+  const [categoriaIds, setCategoriaIds] = useState<string[]>([]);
   const [categoriasVisible, setCategoriasVisible] = useState(false);
   const [actionsMusica, setActionsMusica] = useState<ResponseRepertorioMusicaDto | null>(null);
 
@@ -65,27 +65,30 @@ export default function MinisterioLouvorRepertorioIndexPage() {
     );
   }, [igrejaAtiva?.role, ministerioAtual]);
 
-  const categoryOptions = useMemo(
-    () => [
-      { title: 'Todas', value: '' },
-      ...categorias
-        .filter((item) => item.ativo !== false)
-        .map((item) => ({ title: item.nome, value: item.id })),
-    ],
+  const categoriasAtivas = useMemo(
+    () => categorias.filter((item) => item.ativo !== false),
     [categorias],
   );
+
+  const toggleCategoriaId = (id: string) => {
+    setCategoriaIds((prev) =>
+      prev.includes(id) ? prev.filter((existing) => existing !== id) : [...prev, id],
+    );
+  };
 
   const filtered = useMemo(
     () =>
       musicas
         .filter((item) => item.ativo !== false)
-        .filter((item) => (!categoriaId ? true : item.categoriaId === categoriaId))
+        .filter((item) =>
+          categoriaIds.length === 0 ? true : categoriaIds.includes(item.categoriaId),
+        )
         .filter((item) => {
           const haystack =
             `${item.nome} ${item.interprete || ''} ${item.categoria?.nome || ''}`.toLowerCase();
           return haystack.includes(search.trim().toLowerCase());
         }),
-    [categoriaId, musicas, search],
+    [categoriaIds, musicas, search],
   );
 
   const openMusica = (id: string) => {
@@ -149,22 +152,51 @@ export default function MinisterioLouvorRepertorioIndexPage() {
           },
           ListHeaderComponent: (
             <View style={styles.filtersSection}>
-              <FancyBottomSheetSelect
-                containerStyle={styles.categorySelect}
-                title='Categoria'
-                value={categoriaId}
-                onChange={(value) => setCategoriaId(String(value || ''))}
-                listItems={categoryOptions}
-              />
-              {canManageRepertorio ? (
-                <FancyButton
-                  label='Gerenciar categorias'
-                  type='light'
-                  size={34}
-                  icon={{ library: 'MaterialCommunityIcons', name: 'shape-outline', size: 16 }}
-                  containerStyle={styles.categoriesButton}
-                  onPress={() => setCategoriasVisible(true)}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.categoryChipsRow}
+              >
+                <FancyChips
+                  label='Todas'
+                  size='medium'
+                  outlined={categoriaIds.length > 0}
+                  onPress={() => setCategoriaIds([])}
                 />
+                {categoriasAtivas.map((item) => (
+                  <FancyChips
+                    key={item.id}
+                    label={item.nome}
+                    size='medium'
+                    outlined={!categoriaIds.includes(item.id)}
+                    onPress={() => toggleCategoriaId(item.id)}
+                  />
+                ))}
+              </ScrollView>
+              {canManageRepertorio ? (
+                <View style={styles.actionButtonsRow}>
+                  <FancyButton
+                    label='Músicas tocadas'
+                    type='light'
+                    size={34}
+                    icon={{ library: 'MaterialCommunityIcons', name: 'chart-bar', size: 16 }}
+                    containerStyle={styles.categoriesButton}
+                    onPress={() =>
+                      router.push({
+                        pathname: '/ministerios/louvor/repertorio/musicas-tocadas',
+                        params: { ministerioId },
+                      })
+                    }
+                  />
+                  <FancyButton
+                    label='Gerenciar categorias'
+                    type='light'
+                    size={34}
+                    icon={{ library: 'MaterialCommunityIcons', name: 'shape-outline', size: 16 }}
+                    containerStyle={styles.categoriesButton}
+                    onPress={() => setCategoriasVisible(true)}
+                  />
+                </View>
               ) : null}
             </View>
           ),
@@ -305,8 +337,15 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingBottom: 0,
   },
-  categorySelect: {
-    width: '100%',
+  categoryChipsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingRight: 4,
+  },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   categoriesButton: {
     alignSelf: 'flex-start',

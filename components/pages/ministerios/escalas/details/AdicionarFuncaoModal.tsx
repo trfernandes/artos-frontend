@@ -10,6 +10,7 @@ import FancyGroup from '../../../../list/FancyGroup';
 import { useMinisterioFuncoesCrud } from '../../../../../hooks/useMinisterioFuncoesCrud';
 import { usePallete } from '../../../../../hooks/usePallete';
 import FancyListItemCard from '../../../../cards/FancyListItemCard';
+import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
 
 export interface AdicionarFuncaoModalProps {
   visible: boolean;
@@ -48,8 +49,8 @@ export default function AdicionarFuncaoModal({
         conditions: [
           {
             path: 'ministerio.id',
-            operator: 'EQUALS' as any,
-            value: { type: 'LITERAL' as any, value: ministerioId },
+            operator: Operator.EQUALS,
+            value: { type: ValueType.LITERAL, value: ministerioId },
           },
         ],
       },
@@ -125,28 +126,33 @@ export default function AdicionarFuncaoModal({
         <View style={{ gap: 8 }}>
           <View style={styles.sectionEyebrow}>
             <View style={[styles.sectionEyebrowTick, { backgroundColor: palette.primary }]} />
-            <FancyText type='semiBold' size={10} color={palette.primary} style={styles.sectionEyebrowText}>
+            <FancyText
+              type='semiBold'
+              size='extraSmall'
+              color={palette.primary}
+              style={styles.sectionEyebrowText}
+            >
               SELECIONAR FUNÇÃO
             </FancyText>
           </View>
-        <View style={{ gap: 5 }}>
-          <FancySearchSelect
-            label='Função'
-            placeholder='Buscar função...'
-            value={selectedFuncao}
-            onChange={(value) => {
-              setSelectedFuncao(Array.isArray(value) ? value[0] || null : value);
-              setErrors((prev) => {
-                const { funcao, ...rest } = prev;
-                return rest;
-              });
-            }}
-            listItems={funcoesSearchList}
-            isLoading={isLoadingFuncoes}
-            disabled={isSubmitting || isLoadingFuncoes}
-          />
-          {errors['funcao'] && <FancyErrorText message={errors['funcao']} />}
-        </View>
+          <View style={{ gap: 5 }}>
+            <FancySearchSelect
+              label='Função'
+              placeholder='Buscar função...'
+              value={selectedFuncao}
+              onChange={(value) => {
+                setSelectedFuncao(Array.isArray(value) ? value[0] || null : value);
+                setErrors((prev) => {
+                  const { funcao, ...rest } = prev;
+                  return rest;
+                });
+              }}
+              listItems={funcoesSearchList}
+              isLoading={isLoadingFuncoes}
+              disabled={isSubmitting || isLoadingFuncoes}
+            />
+            {errors['funcao'] && <FancyErrorText message={errors['funcao']} />}
+          </View>
         </View>
       </FancyGroup>
     </FancyBottomSheetModal>

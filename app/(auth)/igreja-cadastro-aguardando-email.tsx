@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useCooldown } from '../../hooks/useCooldown';
-import { StyleSheet, View, Modal } from 'react-native';
+import { Platform, StyleSheet, View, Modal } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import FancyText from '../../components/FancyText';
@@ -18,6 +18,15 @@ import { usePallete } from '../../hooks/usePallete';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 export default function IgrejaCadastroAguardandoEmailPage() {
+  // iOS: Apple Guideline 3.1.1 — bloqueia mesmo se a rota for alcançada por
+  // caminho não gateado (deep link, ou handleCadastroPendente em login.tsx).
+  // Ver docs/adr/0001-cadastro-igreja-fora-do-ios.md.
+  useEffect(() => {
+    if (Platform.OS === 'ios') {
+      router.replace('/(auth)/create-account');
+    }
+  }, []);
+
   const Pallete = usePallete();
   const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
@@ -164,6 +173,10 @@ export default function IgrejaCadastroAguardandoEmailPage() {
       router.replace('/(auth)/create-igreja-account');
     }
   }, [dadosCadastro, loadingDados]);
+
+  if (Platform.OS === 'ios') {
+    return null;
+  }
 
   // Loading inicial - só mostra se estiver carregando os dados do storage
   if (loadingDados) {

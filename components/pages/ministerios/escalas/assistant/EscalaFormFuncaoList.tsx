@@ -131,6 +131,7 @@ export const EscalaFormFuncaoList = React.memo(function EscalaFormFuncaoList({
     <>
       <FancyContainerList
         title={'Equipe'}
+        virtualized={false}
         contentContainerStyle={{ paddingTop: 5 }}
         data={sortedFuncoesFields}
         keyExtractor={({ funKey }) => funKey}
@@ -140,8 +141,9 @@ export const EscalaFormFuncaoList = React.memo(function EscalaFormFuncaoList({
           return (
             <FancyCard.Simple
               title={funcaoInfo?.nome}
-              subtitle={EscalaTemplateExperienciaLabel[item.experiencia]}
-              additionalData1={`Quantidade: ${item.quantidade}`}
+              subtitle={`${EscalaTemplateExperienciaLabel[item.experiencia]} · Qtd. ${item.quantidade}`}
+              containerStyle={{ paddingVertical: 6 }}
+              contentContainerStyle={{ paddingVertical: 0, gap: 4 }}
               actionButtons={[
                 {
                   size: 'small',
@@ -167,6 +169,7 @@ export const EscalaFormFuncaoList = React.memo(function EscalaFormFuncaoList({
           {
             icon: { ...DefaultIconsNames['list-clear'], size: 16, style: { paddingLeft: 2 } },
             onPress: handleResetFuncoes,
+            tone: 'destructive',
           },
         ]}
       />

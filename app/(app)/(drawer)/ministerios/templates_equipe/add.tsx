@@ -34,7 +34,13 @@ export default function MinisterioTemplatesAddPage() {
       async (data) => {
         showLoading('Salvando...');
         try {
-          await addTemplate({ ...data, ministerioId: data.ministerioId });
+          const { respSetListVoluntariosId, respSetListFuncoesId, ...rest } = data;
+          await addTemplate({
+            ...rest,
+            ministerioId: data.ministerioId,
+            respSetListVoluntarios: respSetListVoluntariosId,
+            respSetListFuncoes: respSetListFuncoesId,
+          });
           router.back();
         } catch (error) {
           const errorMessage = (error as AxiosError<any, any>).response?.data?.message;

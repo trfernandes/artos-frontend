@@ -29,41 +29,41 @@ appId: com.church.artos
 
 - runFlow: _login.yaml
 
-- assertVisible: "Início"
+- assertVisible: 'Início'
 
 # --- Agenda ---
 - tapOn:
-    point: "2%,50%"
+    point: '2%,50%'
 - waitForAnimationToEnd
 
-- tapOn: "Agenda"
+- tapOn: 'Agenda'
 - waitForAnimationToEnd:
     timeout: 4000
 
-- assertNotVisible: "Sem permissão"
-- assertNotVisible: "Acesso negado"
-- assertNotVisible: "Você não tem permissão"
+- assertNotVisible: 'Sem permissão'
+- assertNotVisible: 'Acesso negado'
+- assertNotVisible: 'Você não tem permissão'
 
 # --- Escalas ---
 - tapOn:
-    point: "2%,50%"
+    point: '2%,50%'
 - waitForAnimationToEnd
 
-- tapOn: "Escalas"
+- tapOn: 'Escalas'
 - waitForAnimationToEnd:
     timeout: 4000
 
-- assertNotVisible: "Sem permissão"
-- assertNotVisible: "Acesso negado"
+- assertNotVisible: 'Sem permissão'
+- assertNotVisible: 'Acesso negado'
 
 # --- Repertório ---
 - tapOn:
-    point: "2%,50%"
+    point: '2%,50%'
 - waitForAnimationToEnd
 
-- tapOn: "Repertório"
+- tapOn: 'Repertório'
 - waitForAnimationToEnd:
     timeout: 4000
 
-- assertNotVisible: "Sem permissão"
-- assertNotVisible: "Acesso negado"
+- assertNotVisible: 'Sem permissão'
+- assertNotVisible: 'Acesso negado'

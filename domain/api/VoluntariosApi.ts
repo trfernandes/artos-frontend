@@ -3,6 +3,9 @@ import { ResponseVoluntarioDto } from '../dtos/Voluntario/voluntario.response';
 import { UpdateVoluntarioDto } from '../dtos/Voluntario/voluntario.update';
 import { BaseApi } from './BaseApi';
 import apiClient from './api-client';
+import { DynamicQuery } from '../utils/query_utils';
+
+type ApiEnvelope<T> = { data: T };
 
 class VoluntariosApiClass extends BaseApi<
   ResponseVoluntarioDto,
@@ -22,6 +25,23 @@ class VoluntariosApiClass extends BaseApi<
       payload,
     );
     return response.data.data;
+  }
+
+  // Sobrescreve search para exigir igrejaId como query param — o controller
+  // (POST /voluntarios/search) escopa por igreja e rejeita a request com 400
+  // ("O ID deve ser um UUID válido.") quando igrejaId não vem na query.
+  override async search(query: DynamicQuery, igrejaId?: string): Promise<ResponseVoluntarioDto[]> {
+    try {
+      const response = await apiClient.post<ApiEnvelope<ResponseVoluntarioDto[]>>(
+        '/voluntarios/search',
+        query,
+        { params: igrejaId ? { igrejaId } : undefined },
+      );
+      return response.data.data;
+    } catch (error) {
+      this.logAxiosError('search', error, query);
+      throw error;
+    }
   }
 }
 

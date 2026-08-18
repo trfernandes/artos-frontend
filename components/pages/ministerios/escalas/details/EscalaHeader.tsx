@@ -2,19 +2,16 @@ import { StyleSheet, View } from 'react-native';
 import FancyText from '../../../../FancyText';
 import { ThemePalette } from '../../../../../constants/colors';
 import { EscalaStatusEnum } from '../../../../../domain/enums/Escala/escala-status.enum';
+import { EscalaOrigemEnum } from '../../../../../domain/enums/Escala/escala-origem.enum';
 import DefaultIcons from '../../../../FancyIcons';
-import EscalaStatusBadge from './EscalaStatusBadge';
+import { useEscalaStatusVisual } from './EscalaStatusBadge';
 import EscalaHealthIndicator from './EscalaHealthIndicator';
-import {
-  formatShortDate,
-  StatusDistribution,
-} from './escalaHeader.utils';
+import FancyChips from '../../../../FancyChips';
+import { formatShortDate, StatusDistribution } from './escalaHeader.utils';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 import { ColorUtils } from '../../../../../utils/color_utils';
 import FancyButton from '../../../../buttons/FancyButton';
-
-export type EscalaHeaderVariant = 'default' | 'compact' | 'leader';
 
 export type InlineAction = {
   key: string;
@@ -29,177 +26,151 @@ export type InlineAction = {
 export type EscalaHeaderProps = {
   title: string;
   status: EscalaStatusEnum;
+  origem?: EscalaOrigemEnum;
   periodStart: Date;
   periodEnd: Date;
   confirmedCount?: number;
   totalCount?: number;
   statusDistribution?: StatusDistribution;
-  variant?: EscalaHeaderVariant;
-  onPrimaryActionPress?: () => void;
-  primaryActionLabel?: string;
-  onOpenDetails?: () => void;
   actions?: InlineAction[];
 };
 
-/**
- * Mapeia a chave da ação para uma cor de fundo semântica do palette.
- * Ações sem mapeamento usam o fundo neutro padrão do app.
- */
-function useActionColors(key: string, palette: ThemePalette) {
-  const coloredKeys: Record<string, string> = {
+function useActionIconColor(key: string, palette: ThemePalette) {
+  const map: Record<string, string> = {
+    publish: palette.primary,
+    recalculate: palette.confirm,
+    insights: palette.secondary,
+    parametrizacao: palette.warning,
     delete: palette.error,
   };
-  const bg = coloredKeys[key];
-  return {
-    backgroundColor: bg ?? ColorUtils.withAlpha(palette.primary, 0.08),
-    iconColor: bg ? palette.icons.light : palette.primary,
-    isColored: Boolean(bg),
-  };
+  return map[key] ?? palette.fonts.dark;
 }
+
+const ORIGEM_LABEL: Record<EscalaOrigemEnum, string> = {
+  [EscalaOrigemEnum.Automatica]: 'Automática',
+  [EscalaOrigemEnum.Manual]: 'Manual',
+};
 
 export default function EscalaHeader({
   title,
   status,
+  origem,
   periodStart,
   periodEnd,
   confirmedCount,
   totalCount,
-  statusDistribution,
-  variant = 'default',
-  onPrimaryActionPress,
-  primaryActionLabel,
-  onOpenDetails,
   actions,
 }: EscalaHeaderProps) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
+  const statusVisual = useEscalaStatusVisual(status);
   const hasHealth = confirmedCount !== undefined && totalCount !== undefined;
-  const showCompact = variant === 'compact';
   const inlineActions = actions ?? [];
-  const hasInlineActions = inlineActions.length > 0;
   const primaryActions = inlineActions.filter((a) => a.variant === 'primary');
   const secondaryActions = inlineActions.filter((a) => a.variant !== 'primary');
+  const hasVisibleActions = primaryActions.length > 0 || secondaryActions.length > 0;
 
   return (
-    <View style={[styles.surfaceCard, hasInlineActions && styles.surfaceCardWithActions]}>
-      <View style={styles.eyebrowRow}>
-        <View style={styles.eyebrow}>
-          <View style={[styles.eyebrowTick, { backgroundColor: palette.primary }]} />
-          <FancyText type='semiBold' size={10} color={palette.primary} style={styles.eyebrowText}>
-            ESCALA
-          </FancyText>
-        </View>
-        {primaryActionLabel && onPrimaryActionPress ? (
-          <FancyButton
-            type='contained'
-            label={primaryActionLabel}
-            labelProps={{ size: 'extraSmall', type: 'semiBold' }}
-            onPress={onPrimaryActionPress}
-            containerStyle={styles.primaryPill}
+    <View style={[styles.surfaceCard, { borderTopColor: statusVisual.color }]}>
+      <View style={styles.headlineRow}>
+        <View
+          style={[
+            styles.leadingIcon,
+            { backgroundColor: ColorUtils.withAlpha(statusVisual.color, 0.12) },
+          ]}
+        >
+          <DefaultIcons.Custom
+            library='MaterialCommunityIcons'
+            name='calendar-range'
+            size={15}
+            color={statusVisual.color}
           />
-        ) : null}
-      </View>
-
-      <View style={styles.topRow}>
+        </View>
         <FancyText
           type='bold'
-          size='largeMedium'
+          size='medium'
           color={palette.fonts.dark}
           numberOfLines={1}
           style={styles.titleText}
         >
           {title}
         </FancyText>
-        <View style={styles.topActions}>
-          <EscalaStatusBadge status={status} />
-        </View>
+        <FancyChips
+          label={statusVisual.label}
+          color={statusVisual.color}
+          backgroundColor={statusVisual.backgroundColor}
+          dot
+          size='small'
+          style={styles.statusChip}
+        />
       </View>
 
-      <View style={styles.metaInlineRow}>
-        <View
-          style={[
-            styles.periodPill,
-            {
-              backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
-              borderColor: ColorUtils.withAlpha(palette.primary, 0.18),
-            },
-          ]}
-        >
+      <View style={styles.metaRow}>
+        {origem && (
+          <View style={styles.metaItem}>
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name={origem === EscalaOrigemEnum.Automatica ? 'lightning-bolt' : 'pencil-outline'}
+              size={12}
+              color={palette.fonts.inactive}
+            />
+            <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
+              {ORIGEM_LABEL[origem]}
+            </FancyText>
+          </View>
+        )}
+        {origem && <View style={styles.metaDot} />}
+        <View style={styles.metaItem}>
           <DefaultIcons.Custom
             library='MaterialCommunityIcons'
             name='calendar-range'
             size={12}
-            color={palette.primary}
+            color={palette.fonts.inactive}
           />
-          <FancyText size={11} type='semiBold' color={palette.primary}>
+          <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
             {`${formatShortDate(periodStart)} – ${formatShortDate(periodEnd)}`}
           </FancyText>
         </View>
         {hasHealth && (
-          <EscalaHealthIndicator
-            confirmedCount={confirmedCount}
-            totalCount={totalCount}
-            compact
-            displayMode='percent-only'
-          />
+          <View style={styles.metaHealth}>
+            <EscalaHealthIndicator
+              confirmedCount={confirmedCount}
+              totalCount={totalCount}
+              compact
+              displayMode='percent-only'
+            />
+          </View>
         )}
       </View>
 
-      {showCompact && onOpenDetails && (
-        <FancyButton
-          type='text'
-          label='Ver detalhes'
-          onPress={onOpenDetails}
-          containerStyle={styles.detailsLink}
-          labelStyle={{ color: palette.primary }}
-        />
-      )}
+      {hasVisibleActions && (
+        <View style={styles.actionsRow}>
+          {primaryActions.map((action) => (
+            <FancyButton
+              key={action.key}
+              type='contained'
+              label={action.label}
+              labelProps={{ size: 'small' }}
+              icon={{ ...action.icon, size: 16, color: palette.icons.light }}
+              iconPosition='left'
+              isLoading={action.isLoading}
+              disabled={action.disabled}
+              onPress={action.onPress}
+              accessibilityLabel={action.label}
+              containerStyle={styles.primaryPill}
+            />
+          ))}
 
-      {hasInlineActions && (
-        <>
-          <View style={styles.actionsRow}>
-            {/* Ações primárias: pill com label + ícone */}
-            {primaryActions.map((action) => (
-              <FancyButton
-                key={action.key}
-                type='contained'
-                label={action.label}
-                labelProps={{ size: 'extraSmall' }}
-                icon={{ ...action.icon, size: 14, color: palette.icons.light }}
-                iconPosition='left'
-                isLoading={action.isLoading}
-                disabled={action.disabled}
-                onPress={action.onPress}
-                accessibilityLabel={action.label}
-                containerStyle={styles.primaryPill}
-              />
-            ))}
-
-            {/* Ações secundárias: ícone com fundo semântico */}
+          {secondaryActions.length > 0 && (
             <View style={styles.actionsSecondaryGroup}>
-              <SecondaryActions actions={secondaryActions} palette={palette} />
+              {secondaryActions.map((action) => (
+                <SecondaryActionButton key={action.key} action={action} palette={palette} />
+              ))}
             </View>
-          </View>
-        </>
+          )}
+        </View>
       )}
     </View>
-  );
-}
-
-/** Sub-componente isolado para poder usar o hook useActionColors por ação */
-function SecondaryActions({
-  actions,
-  palette,
-}: {
-  actions: InlineAction[];
-  palette: ThemePalette;
-}) {
-  return (
-    <>
-      {actions.map((action) => (
-        <SecondaryActionButton key={action.key} action={action} palette={palette} />
-      ))}
-    </>
   );
 }
 
@@ -210,14 +181,15 @@ function SecondaryActionButton({
   action: InlineAction;
   palette: ThemePalette;
 }) {
-  const { backgroundColor, iconColor } = useActionColors(action.key, palette);
   const isDisabled = !!action.disabled || !!action.isLoading;
+  const actionColor = useActionIconColor(action.key, palette);
+  const iconColor = action.variant === 'danger' ? palette.error : actionColor;
 
   return (
     <FancyButton
       type='light'
       mode='icon'
-      size={{ w: 32, h: 32 }}
+      size={{ w: 34, h: 34 }}
       icon={{
         library: action.icon.library,
         name: action.icon.name,
@@ -229,8 +201,8 @@ function SecondaryActionButton({
       onPress={action.onPress}
       accessibilityLabel={action.label}
       containerStyle={{
-        backgroundColor: isDisabled ? ColorUtils.withAlpha(backgroundColor, 0.55) : backgroundColor,
-        borderRadius: 16,
+        backgroundColor: ColorUtils.withAlpha(iconColor, isDisabled ? 0.06 : 0.12),
+        borderRadius: 10,
         borderWidth: 0,
       }}
     />
@@ -248,89 +220,57 @@ function createStyles(palette: ThemePalette) {
       paddingTop: 12,
       paddingBottom: 12,
       borderTopWidth: 3,
-      borderTopColor: palette.primary,
       ...palette.shadows[200],
     },
-    surfaceCardWithActions: {
-      paddingBottom: 0,
-    },
-    eyebrowRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 8,
-      marginBottom: 4,
-    },
-    eyebrow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-    },
-    eyebrowTick: {
-      width: 3,
-      height: 11,
-      borderRadius: 2,
-    },
-    eyebrowText: {
-      letterSpacing: 0.8,
-    },
-    topRow: {
+    headlineRow: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: 10,
     },
     titleText: {
-      lineHeight: 20,
       flex: 1,
     },
-    topActions: {
-      flexDirection: 'row',
+    leadingIcon: {
+      width: 26,
+      height: 26,
+      borderRadius: 13,
+      justifyContent: 'center',
       alignItems: 'center',
+      alignSelf: 'center',
     },
-    metaInlineRow: {
+    statusChip: {
+      alignSelf: 'center',
+    },
+    metaRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
       flexWrap: 'wrap',
-      marginTop: 5,
-    },
-    periodPill: {
-      flexDirection: 'row',
-      alignItems: 'center',
       gap: 6,
-      paddingHorizontal: 10,
-      paddingVertical: 5,
-      borderRadius: 999,
-      borderWidth: 1,
-      alignSelf: 'flex-start',
+      marginTop: 6,
     },
-    metaInlineItem: {
+    metaItem: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 4,
     },
-    metaInlineIcon: {
-      width: 14,
-      height: 14,
-      alignItems: 'center',
-      justifyContent: 'center',
+    metaDot: {
+      width: 3,
+      height: 3,
+      borderRadius: 2,
+      backgroundColor: palette.fonts.inactive2,
     },
-    metaInlineValue: {
-      flexShrink: 1,
-    },
-    detailsLink: {
-      alignSelf: 'flex-start',
-      paddingHorizontal: 0,
-      height: 28,
+    metaHealth: {
+      marginLeft: 'auto',
     },
     actionsRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 6,
-      paddingTop: 8,
-      paddingBottom: 10,
+      gap: 8,
+      marginTop: 12,
+      paddingTop: 10,
+      borderTopWidth: 1,
+      borderTopColor: palette.backgroundColor2,
     },
     actionsSecondaryGroup: {
       flexDirection: 'row',
@@ -338,10 +278,10 @@ function createStyles(palette: ThemePalette) {
       gap: 6,
     },
     primaryPill: {
-      height: 30,
-      paddingHorizontal: 12,
+      height: 38,
+      paddingHorizontal: 16,
       borderRadius: 999,
-      minWidth: 100,
+      minWidth: 120,
     },
   });
 }

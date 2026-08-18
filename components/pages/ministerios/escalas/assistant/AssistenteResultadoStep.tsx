@@ -30,7 +30,12 @@ export default function AssistenteResultadoStep() {
     <View style={styles.container}>
       <View style={styles.contentWrapper}>
         <View style={styles.header}>
-          <View style={[styles.iconBadge, { backgroundColor: ColorUtils.withAlpha(palette.secondary, 0.14) }]}>
+          <View
+            style={[
+              styles.iconBadge,
+              { backgroundColor: ColorUtils.withAlpha(palette.secondary, 0.14) },
+            ]}
+          >
             <DefaultIcons.Custom
               library='MaterialCommunityIcons'
               name='clock-fast'
@@ -41,12 +46,20 @@ export default function AssistenteResultadoStep() {
           <FancyText size='large' type='bold' color={palette.fonts.dark} style={styles.title}>
             Geração iniciada!
           </FancyText>
-          <FancyText size='small' type='medium' color={palette.fonts.inactive} style={styles.subtitle}>
-            A escala está sendo processada em segundo plano. Você receberá uma notificação ao concluir.
+          <FancyText
+            size='small'
+            type='medium'
+            color={palette.fonts.inactive}
+            style={styles.subtitle}
+          >
+            A escala está sendo processada em segundo plano. Você receberá uma notificação ao
+            concluir.
           </FancyText>
         </View>
 
-        <View style={[styles.infoCard, { borderColor: ColorUtils.withAlpha(palette.secondary, 0.18) }]}>
+        <View
+          style={[styles.infoCard, { borderColor: ColorUtils.withAlpha(palette.secondary, 0.18) }]}
+        >
           <View style={styles.infoRow}>
             <DefaultIcons.Custom
               library='MaterialCommunityIcons'

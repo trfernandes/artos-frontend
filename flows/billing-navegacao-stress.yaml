@@ -21,42 +21,42 @@ appId: com.church.artos
 
 - openLink: diakonia:///inicio
 - extendedWaitUntil:
-    visible: "Início"
+    visible: 'Início'
     timeout: 120000
 
 # Volta 1: inicio → voluntarios → ministerios
 - openLink: diakonia:///inicio
 - waitForAnimationToEnd:
     timeout: 3000
-- assertVisible: "Início"
+- assertVisible: 'Início'
 
 - openLink: diakonia:///admin/voluntarios
 - waitForAnimationToEnd:
     timeout: 3000
-- assertVisible: "Voluntários"
+- assertVisible: 'Voluntários'
 
 - openLink: diakonia:///admin/ministerios
 - waitForAnimationToEnd:
     timeout: 3000
-- assertVisible: "Ministérios"
+- assertVisible: 'Ministérios'
 
 # Volta 2: configuracoes → assinatura → inicio
 - openLink: diakonia:///configuracoes
 - waitForAnimationToEnd:
     timeout: 3000
-- assertVisible: "Crescimento"
+- assertVisible: 'Crescimento'
 
 - tapOn:
-    text: "Assinatura"
+    text: 'Assinatura'
     index: 1
 - waitForAnimationToEnd:
     timeout: 3000
-- assertVisible: "Assinatura em dia"
+- assertVisible: 'Assinatura em dia'
 
 - openLink: diakonia:///inicio
 - waitForAnimationToEnd:
     timeout: 3000
-- assertVisible: "Início"
+- assertVisible: 'Início'
 
 # Volta 3: rapido — voluntarios → configuracoes
 - openLink: diakonia:///admin/voluntarios
@@ -68,15 +68,15 @@ appId: com.church.artos
     timeout: 3000
 
 - tapOn:
-    text: "Assinatura"
+    text: 'Assinatura'
     index: 1
 - waitForAnimationToEnd:
     timeout: 15000
 
 # Estado final deve estar correto apos toda a navegacao
-- assertVisible: "Assinatura em dia"
-- assertVisible: "Gerenciar assinatura"
-- assertNotVisible: "Cancelar assinatura"
-- assertNotVisible: "Ver planos"
+- assertVisible: 'Assinatura em dia'
+- assertVisible: 'Gerenciar assinatura'
+- assertNotVisible: 'Cancelar assinatura'
+- assertNotVisible: 'Ver planos'
 
 - takeScreenshot: billing-stress-final

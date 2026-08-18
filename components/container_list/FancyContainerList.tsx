@@ -16,7 +16,7 @@ export interface FancyContainerListProps<ItemT> extends Pick<
   'data' | 'renderItem' | 'containerStyle' | 'contentContainerStyle' | 'keyExtractor'
 > {
   title: string;
-  buttons?: { icon: CustomIconProps; onPress?: () => void }[];
+  buttons?: { icon: CustomIconProps; onPress?: () => void; tone?: 'default' | 'destructive' }[];
   containerStyle?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
   showDivider?: boolean;
@@ -67,7 +67,14 @@ export default function FancyContainerList<ItemT>({
                 type='contained'
                 icon={{ ...button.icon, color: palette.icons.light }}
                 onPress={button.onPress}
-                containerStyle={{ minHeight: 25, height: 25, minWidth: 25, width: 25 }}
+                containerStyle={{
+                  minHeight: 25,
+                  height: 25,
+                  minWidth: 25,
+                  width: 25,
+                  backgroundColor:
+                    button.tone === 'destructive' ? palette.error : palette.buttons.active,
+                }}
                 iconStyle={button.icon.style}
               />
             ))}
@@ -99,7 +106,6 @@ export default function FancyContainerList<ItemT>({
                   ) : null}
                 </React.Fragment>
               ))}
-              <View style={{ height: 40 }} />
             </View>
           </View>
         ) : (

@@ -19,24 +19,24 @@ appId: com.church.artos
     timeout: 15000
 
 # Aguardar header carregar (independente do conteudo do dashboard estar pronto)
-- assertVisible: "Início"
+- assertVisible: 'Início'
 
 # [COMPLIANCE 3.1.1] Nenhum modal de billing deve abrir automaticamente
-- assertNotVisible: "Opcoes de Planos"
-- assertNotVisible: "Escolher plano"
-- assertNotVisible: "Ver planos"
+- assertNotVisible: 'Opcoes de Planos'
+- assertNotVisible: 'Escolher plano'
+- assertNotVisible: 'Ver planos'
 
 # [COMPLIANCE 3.1.1] Dashboard nao pode ter CTA de compra dinamico (banner ou painel)
-- assertNotVisible: "Assinar agora"
-- assertNotVisible: "Retomar pagamento"
-- assertNotVisible: "Atualizar plano"
-- assertNotVisible: "Reativar assinatura"
+- assertNotVisible: 'Assinar agora'
+- assertNotVisible: 'Retomar pagamento'
+- assertNotVisible: 'Atualizar plano'
+- assertNotVisible: 'Reativar assinatura'
 
 # Se "Carregando..." nao estiver mais na tela, verifica que conteudo esta ok
 - runFlow:
     when:
-      notVisible: "Carregando..."
+      notVisible: 'Carregando...'
     commands:
-      - assertVisible: "Início"
+      - assertVisible: 'Início'
 
 - takeScreenshot: billing-dashboard-estado

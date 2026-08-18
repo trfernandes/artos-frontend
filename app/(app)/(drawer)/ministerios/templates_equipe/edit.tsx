@@ -33,7 +33,13 @@ export default function MinisterioTemplatesEditPage() {
           },
         ],
       },
-      relations: ['voluntarios.voluntario', 'voluntarios.funcao', 'funcoes.funcao'],
+      relations: [
+        'voluntarios.voluntario',
+        'voluntarios.funcao',
+        'funcoes.funcao',
+        'respSetListVoluntarios',
+        'respSetListFuncoes',
+      ],
     } as DynamicQuery;
   }, [templateId]);
 
@@ -85,10 +91,13 @@ export default function MinisterioTemplatesEditPage() {
 
         showLoading('Salvando...');
         try {
+          const { respSetListVoluntariosId, respSetListFuncoesId, ...rest } = data;
           await updateTemplate?.({
             id: data.id,
             data: {
-              ...data,
+              ...rest,
+              respSetListVoluntarios: respSetListVoluntariosId,
+              respSetListFuncoes: respSetListFuncoesId,
             },
           });
           router.back();

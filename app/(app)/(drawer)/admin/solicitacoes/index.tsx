@@ -16,6 +16,7 @@ import FancyPageView from '../../../../../components/containers/FancyPageView';
 import FancyTabs, { TabItem } from '../../../../../components/tabs/FancyTabs';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import FancyListEmpty from '../../../../../components/list/FancyListEmpty';
+import FancyModal from '../../../../../components/modal/FancyModal';
 
 // New Components
 import SummaryCards from '../../../../../components/pages/admin/solicitacoes/SummaryCards';
@@ -287,8 +288,6 @@ export default function SolicitacoesConvitesPage() {
               solicitacao={item}
               onAprovar={() => handleAprovar(item)}
               onRejeitar={() => handleRejeitar(item)}
-              isAprovando={aprovarMutation.isPending}
-              isRejeitando={rejeitarMutation.isPending}
               formatDateTime={formatDateTime}
             />
           ))}
@@ -433,6 +432,20 @@ export default function SolicitacoesConvitesPage() {
         onCopiarToken={() => conviteGerado && handleCopiarToken(conviteGerado.token)}
         onCopiarLink={() => conviteGerado && handleCopiarLink(conviteGerado.inviteLink)}
       />
+
+      {/* Modal: Loading bloqueante ao aprovar/rejeitar solicitação */}
+      <FancyModal
+        modalProps={{ visible: aprovarMutation.isPending || rejeitarMutation.isPending }}
+        closeOnBackdropPress={false}
+        center={
+          <View style={styles.loadingModalContent}>
+            <FancyLoading
+              label={aprovarMutation.isPending ? 'Aprovando...' : 'Rejeitando...'}
+              containerStyle={styles.loadingModalIndicator}
+            />
+          </View>
+        }
+      />
     </FancyPageView>
   );
 }
@@ -477,5 +490,12 @@ const styles = StyleSheet.create({
   emptyText: {
     textAlign: 'center',
     maxWidth: 280,
+  },
+  loadingModalContent: {
+    width: '100%',
+    paddingVertical: 24,
+  },
+  loadingModalIndicator: {
+    flex: 0,
   },
 });

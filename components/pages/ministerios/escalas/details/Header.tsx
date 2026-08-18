@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import { ResponseEscalaDto } from '../../../../../domain/dtos/Escala/escala.response';
 import { EscalaStatusEnum } from '../../../../../domain/enums/Escala/escala-status.enum';
+import { EscalaOrigemEnum } from '../../../../../domain/enums/Escala/escala-origem.enum';
 import { EscalaItemStatusEnum } from '../../../../../domain/enums/Escala/escala-item-status.enum';
 import EscalaHeader, { InlineAction } from './EscalaHeader';
 import { useMemo } from 'react';
@@ -32,13 +33,7 @@ export default function Header({
 }) {
   if (!escala) return null;
 
-  const {
-    confirmedCount,
-    totalCount,
-    statusDistribution,
-    periodStart,
-    periodEnd,
-  } = useMemo(() => {
+  const { confirmedCount, totalCount, statusDistribution, periodStart, periodEnd } = useMemo(() => {
     const items = escala?.itens ?? [];
 
     const assignedItems = items.filter((item) => Boolean(item.voluntarioId));
@@ -95,7 +90,7 @@ export default function Header({
     ? [
         {
           key: 'parametrizacao',
-          icon: { library: 'MaterialIcons' as const, name: 'tune' },
+          icon: { library: 'MaterialCommunityIcons' as const, name: 'tune' },
           label: 'Ver parâmetros',
           variant: 'neutral' as const,
           disabled: isScreenBlocked,
@@ -104,38 +99,47 @@ export default function Header({
       ]
     : [];
 
+  const isManual = escala.origem === EscalaOrigemEnum.Manual;
+
+  const primaryStatusAction: InlineAction | undefined = !isManual
+    ? {
+        key: 'recalculate',
+        icon: {
+          library: 'MaterialCommunityIcons' as const,
+          name: 'calculator-variant-outline',
+        },
+        label: isRegenerating ? 'Recalculando...' : 'Recalcular',
+        variant: 'primary' as const,
+        isLoading: isRegenerating,
+        disabled: isScreenBlocked || escala.status !== EscalaStatusEnum.Gerada,
+        onPress: onGeneratePress,
+      }
+    : undefined;
+
+  const statusActions: InlineAction[] =
+    escala.status === EscalaStatusEnum.Gerada
+      ? [
+          ...(primaryStatusAction ? [primaryStatusAction] : []),
+          {
+            key: 'publish',
+            icon: { library: 'MaterialCommunityIcons' as const, name: 'rocket-launch-outline' },
+            label: 'Publicar escala',
+            variant: primaryStatusAction ? ('neutral' as const) : ('primary' as const),
+            isLoading: isPublishing,
+            disabled: isScreenBlocked,
+            onPress: onPublishPress,
+          },
+        ]
+      : [];
+
   const actions: InlineAction[] = canEdit
     ? [
-        ...(escala.status === EscalaStatusEnum.Gerada
-          ? [
-              {
-                key: 'recalculate',
-                icon: {
-                  library: 'MaterialCommunityIcons' as const,
-                  name: 'calculator-variant-outline',
-                },
-                label: isRegenerating ? 'Recalculando...' : 'Recalcular',
-                variant: 'primary' as const,
-                isLoading: isRegenerating,
-                disabled: isScreenBlocked || escala.status !== EscalaStatusEnum.Gerada,
-                onPress: onGeneratePress,
-              },
-              {
-                key: 'publish',
-                icon: { library: 'MaterialIcons' as const, name: 'rocket-launch' },
-                label: 'Publicar escala',
-                variant: 'neutral' as const,
-                isLoading: isPublishing,
-                disabled: isScreenBlocked,
-                onPress: onPublishPress,
-              },
-            ]
-          : []),
+        ...statusActions,
         ...insightAction,
         ...parametrizacaoAction,
         {
           key: 'delete',
-          icon: { library: 'MaterialIcons' as const, name: 'delete-outline' },
+          icon: { library: 'MaterialCommunityIcons' as const, name: 'delete-outline' },
           label: 'Excluir escala',
           variant: 'danger' as const,
           disabled: isScreenBlocked,
@@ -149,12 +153,12 @@ export default function Header({
       <EscalaHeader
         title={escala.nome}
         status={escala.status}
+        origem={escala.origem}
         periodStart={periodStart}
         periodEnd={periodEnd}
         confirmedCount={confirmedCount}
         totalCount={totalCount}
         statusDistribution={statusDistribution}
-        variant='default'
         actions={actions.length ? actions : undefined}
       />
     </View>

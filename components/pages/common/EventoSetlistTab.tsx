@@ -502,6 +502,27 @@ export default function EventoSetlistTab({
       {canAddMusic && (
         <View style={styles.listHeader}>
           <FancyButton
+            label='Músicas tocadas'
+            type='outlined'
+            size={34}
+            icon={{
+              library: 'MaterialCommunityIcons',
+              name: 'chart-bar',
+              size: 15,
+            }}
+            containerStyle={styles.addMusicButton}
+            onPress={() =>
+              router.push({
+                pathname: '/ministerios/louvor/repertorio/musicas-tocadas',
+                params: {
+                  ministerioId,
+                  eventoId,
+                  dataOcorrencia: dataOcorrenciaIso,
+                },
+              })
+            }
+          />
+          <FancyButton
             label='Nova música'
             type='contained'
             size={34}
@@ -607,6 +628,9 @@ export default function EventoSetlistTab({
         item={selectedItem}
         repertorio={repertorio}
         canEdit={isEditable}
+        eventoId={eventoId}
+        dataOcorrenciaIso={dataOcorrenciaIso}
+        ministerioId={ministerioId}
         onClose={() => setEditorVisible(false)}
         onSave={async (payload) => {
           try {
@@ -747,31 +771,47 @@ export default function EventoSetlistTab({
         visible={!!actionsItem}
         onClose={closeItemActions}
         title='Opções'
-        actions={actionsItem ? [
-          {
-            label: 'Editar',
-            icon: { library: 'MaterialCommunityIcons' as const, name: 'pencil-outline', size: 18 },
-            onPress: () => openItemEditor(actionsItem),
-          },
-          {
-            label: 'Mover para cima',
-            icon: { library: 'MaterialCommunityIcons' as const, name: 'arrow-up', size: 18 },
-            onPress: () => void moveItemBySheet('up'),
-            disabled: selectedItemIndex <= 0,
-          },
-          {
-            label: 'Mover para baixo',
-            icon: { library: 'MaterialCommunityIcons' as const, name: 'arrow-down', size: 18 },
-            onPress: () => void moveItemBySheet('down'),
-            disabled: selectedItemIndex < 0 || selectedItemIndex >= orderedItems.length - 1,
-          },
-          {
-            label: 'Excluir',
-            icon: { library: 'MaterialCommunityIcons' as const, name: 'trash-can-outline', size: 18 },
-            onPress: () => confirmDeleteItem(actionsItem),
-            destructive: true,
-          },
-        ] : []}
+        actions={
+          actionsItem
+            ? [
+                {
+                  label: 'Editar',
+                  icon: {
+                    library: 'MaterialCommunityIcons' as const,
+                    name: 'pencil-outline',
+                    size: 18,
+                  },
+                  onPress: () => openItemEditor(actionsItem),
+                },
+                {
+                  label: 'Mover para cima',
+                  icon: { library: 'MaterialCommunityIcons' as const, name: 'arrow-up', size: 18 },
+                  onPress: () => void moveItemBySheet('up'),
+                  disabled: selectedItemIndex <= 0,
+                },
+                {
+                  label: 'Mover para baixo',
+                  icon: {
+                    library: 'MaterialCommunityIcons' as const,
+                    name: 'arrow-down',
+                    size: 18,
+                  },
+                  onPress: () => void moveItemBySheet('down'),
+                  disabled: selectedItemIndex < 0 || selectedItemIndex >= orderedItems.length - 1,
+                },
+                {
+                  label: 'Excluir',
+                  icon: {
+                    library: 'MaterialCommunityIcons' as const,
+                    name: 'trash-can-outline',
+                    size: 18,
+                  },
+                  onPress: () => confirmDeleteItem(actionsItem),
+                  destructive: true,
+                },
+              ]
+            : []
+        }
       />
     </>
   );
@@ -910,6 +950,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
+    gap: 8,
   },
   addMusicButton: {
     minWidth: 0,

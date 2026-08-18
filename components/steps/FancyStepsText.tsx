@@ -31,7 +31,7 @@ export default function FancyStepsText({
       <FancyText
         numberOfLines={2}
         maxFontSizeMultiplier={1}
-        size={10}
+        size='extraSmall'
         type='semiBold'
         color={textColor}
         style={{
