@@ -174,14 +174,29 @@ export default function MinisterioLouvorRepertorioIndexPage() {
                 ))}
               </ScrollView>
               {canManageRepertorio ? (
-                <FancyButton
-                  label='Gerenciar categorias'
-                  type='light'
-                  size={34}
-                  icon={{ library: 'MaterialCommunityIcons', name: 'shape-outline', size: 16 }}
-                  containerStyle={styles.categoriesButton}
-                  onPress={() => setCategoriasVisible(true)}
-                />
+                <View style={styles.actionButtonsRow}>
+                  <FancyButton
+                    label='Músicas tocadas'
+                    type='light'
+                    size={34}
+                    icon={{ library: 'MaterialCommunityIcons', name: 'chart-bar', size: 16 }}
+                    containerStyle={styles.categoriesButton}
+                    onPress={() =>
+                      router.push({
+                        pathname: '/ministerios/louvor/repertorio/musicas-tocadas',
+                        params: { ministerioId },
+                      })
+                    }
+                  />
+                  <FancyButton
+                    label='Gerenciar categorias'
+                    type='light'
+                    size={34}
+                    icon={{ library: 'MaterialCommunityIcons', name: 'shape-outline', size: 16 }}
+                    containerStyle={styles.categoriesButton}
+                    onPress={() => setCategoriasVisible(true)}
+                  />
+                </View>
               ) : null}
             </View>
           ),
@@ -326,6 +341,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     paddingRight: 4,
+  },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   categoriesButton: {
     alignSelf: 'flex-start',

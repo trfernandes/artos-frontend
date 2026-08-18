@@ -33,6 +33,10 @@ import { UpsertEventoSetlistItemEstruturaDto } from '../dtos/Evento/evento-setli
 import { ResponseEventoSetlistObservacoesDto } from '../dtos/Evento/evento-setlist-observacoes.response';
 import { UpsertEventoSetlistObservacoesDto } from '../dtos/Evento/evento-setlist-observacoes.update';
 import { ResponseEquipeOcorrenciaDto } from '../dtos/Evento/evento-equipe.response';
+import {
+  GetMusicasTocadasRelatorioParams,
+  ResponseMusicasTocadasRelatorioDto,
+} from '../dtos/Evento/musicas-tocadas-relatorio.dto';
 
 type ApiEnvelope<T> = {
   data: T;
@@ -356,6 +360,17 @@ class IgrejaEventosApiClass {
     const response = await apiClient.patch<ApiEnvelope<ResponseEventoSetlistItemDto[]>>(
       `/${this.resourceName}/${igrejaId}/eventos/${eventoId}/setlist-reorder`,
       dto,
+    );
+    return response.data.data;
+  }
+
+  async obterRelatorioMusicasTocadas(
+    igrejaId: string,
+    params: GetMusicasTocadasRelatorioParams,
+  ): Promise<ResponseMusicasTocadasRelatorioDto> {
+    const response = await apiClient.post<ApiEnvelope<ResponseMusicasTocadasRelatorioDto>>(
+      `/${this.resourceName}/${igrejaId}/eventos/musicas-tocadas-relatorio`,
+      params,
     );
     return response.data.data;
   }

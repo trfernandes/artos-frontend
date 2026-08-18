@@ -34,6 +34,14 @@ export default function MinisterioLouvorRepertorioLayout() {
           header: (props) => <FancyPageHeader leftButton='back' {...props} />,
         }}
       />
+      <Stack.Screen
+        name='musicas-tocadas'
+        options={{
+          title: 'Músicas tocadas',
+          headerShown: true,
+          header: (props) => <FancyPageHeader leftButton='back' {...props} />,
+        }}
+      />
     </Stack>
   );
 }

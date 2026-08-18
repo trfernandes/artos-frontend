@@ -33,6 +33,10 @@ import { ResponseEventoSetlistObservacoesDto } from '../dtos/Evento/evento-setli
 import { UpsertEventoSetlistObservacoesDto } from '../dtos/Evento/evento-setlist-observacoes.update';
 import { ResponseEventoSetlistItemEstruturaDto } from '../dtos/Evento/evento-setlist-item-estrutura.response';
 import { UpsertEventoSetlistItemEstruturaDto } from '../dtos/Evento/evento-setlist-item-estrutura.update';
+import {
+  GetMusicasTocadasRelatorioParams,
+  ResponseMusicasTocadasRelatorioDto,
+} from '../dtos/Evento/musicas-tocadas-relatorio.dto';
 
 export interface EventosIntervaloParams {
   dataInicio: Date | string;
@@ -280,6 +284,13 @@ class IgrejaEventosRepositoryClass {
     dto: ReorderEventoSetlistDto,
   ): Promise<ResponseEventoSetlistItemDto[]> {
     return IgrejaEventosApi.reordenarSetlist(igrejaId, eventoId, dto);
+  }
+
+  obterRelatorioMusicasTocadas(
+    igrejaId: string,
+    params: GetMusicasTocadasRelatorioParams,
+  ): Promise<ResponseMusicasTocadasRelatorioDto> {
+    return IgrejaEventosApi.obterRelatorioMusicasTocadas(igrejaId, params);
   }
 }
 
