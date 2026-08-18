@@ -187,3 +187,17 @@ style={{ elevation: 2, shadowOpacity: 0.2 }}
 - [ ] Hierarquia de botões correta (contained > outlined > text)?
 - [ ] Bottom sheets com loading usam spinner centralizado (não row no topo)?
 - [ ] `npx tsc --noEmit` passou sem erros?
+
+## Agent skills
+
+### Issue tracker
+
+Issues vivem como GitHub Issues em `trfernandes/artos-frontend`, geridas via `gh` CLI. Ver `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Vocabulário padrão de labels (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). Ver `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Layout de contexto único (`CONTEXT.md` + `docs/adr/` na raiz). Ver `docs/agents/domain.md`.
