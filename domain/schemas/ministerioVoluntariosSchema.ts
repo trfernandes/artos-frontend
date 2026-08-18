@@ -1,11 +1,13 @@
 import z from 'zod';
 import { EscalaTemplateExperienciaEnum } from '../enums/EscalaTemplate/escala-template-experiencia.enum';
 import { MinisterioVoluntarioStatusEnum } from '../enums/MinisterioVoluntario/ministerio-voluntario-status.enum';
+import { MinisterioVoluntarioFuncaoStatusEnum } from '../enums/MinisterioVoluntarioFuncao/ministerio-voluntario-funcao-status.enum';
 
 export const minVoluntarioFuncaoSchema = z.object({
   id: z.string('Campo obrigatório'),
   nome: z.string().optional(),
   experiencia: z.enum(EscalaTemplateExperienciaEnum, 'Campo obrigatório'),
+  status: z.enum(MinisterioVoluntarioFuncaoStatusEnum).optional(),
 });
 
 export const minVoluntarioSchema = z.object({

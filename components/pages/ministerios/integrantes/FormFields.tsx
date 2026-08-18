@@ -30,6 +30,7 @@ import {
   MinisterioVoluntarioStatusEnumMap,
   MinisterioVoluntarioStatusEnum,
 } from '../../../../domain/enums/MinisterioVoluntario/ministerio-voluntario-status.enum';
+import { MinisterioVoluntarioFuncaoStatusEnum } from '../../../../domain/enums/MinisterioVoluntarioFuncao/ministerio-voluntario-funcao-status.enum';
 import { AppImages } from '../../../../assets/app_images';
 import { usePallete } from '../../../../hooks/usePallete';
 import { ColorUtils } from '../../../../utils/color_utils';
@@ -114,6 +115,16 @@ export default function IntegranteFormFields({
     if (index !== -1) remove(index);
   };
 
+  const handleToggleStatus = (item: MinVoluntarioFuncaoFormData) => {
+    const index = fieldsFuncao.findIndex((f) => f.id === item.id);
+    if (index === -1) return;
+    const newStatus =
+      item.status === MinisterioVoluntarioFuncaoStatusEnum.Inativo
+        ? MinisterioVoluntarioFuncaoStatusEnum.Ativo
+        : MinisterioVoluntarioFuncaoStatusEnum.Inativo;
+    update(index, { ...item, status: newStatus });
+  };
+
   const handleClearForm = () => {
     formModal.reset({ id: undefined, experiencia: undefined, nome: '' });
   };
@@ -135,15 +146,24 @@ export default function IntegranteFormFields({
   const showVoluntario = section !== 'funcoes';
   const showFuncoes = section !== 'voluntario';
 
-  const funcaoListItem = (item: MinVoluntarioFuncaoFormData) => (
-    <FancyListItemCard
-      key={item.id}
-      title={item.nome}
-      subtitle={EscalaTemplateExperienciaLabel[item.experiencia!]}
-      leading={{ icon: { library: 'FontAwesome6', name: 'person-rays', size: 18 }, type: 'icon' }}
-      trailing={{ type: 'menu', onPress: () => setActionsFuncao(item) }}
-    />
-  );
+  const funcaoListItem = (item: MinVoluntarioFuncaoFormData) => {
+    const isInativa = item.status === MinisterioVoluntarioFuncaoStatusEnum.Inativo;
+    return (
+      <FancyListItemCard
+        key={item.id}
+        title={item.nome}
+        subtitle={EscalaTemplateExperienciaLabel[item.experiencia!]}
+        leading={{ icon: { library: 'FontAwesome6', name: 'person-rays', size: 18 }, type: 'icon' }}
+        status={
+          isInativa ? (
+            <FancyChips size='small' label='Inativa' color={palette.fonts.inactive} outlined />
+          ) : undefined
+        }
+        contentStyle={isInativa ? styles.funcaoInativa : undefined}
+        trailing={{ type: 'menu', onPress: () => setActionsFuncao(item) }}
+      />
+    );
+  };
 
   const funcaoCardItem = (item: MinVoluntarioFuncaoFormData) => (
     <FancyCard.Image
@@ -266,6 +286,23 @@ export default function IntegranteFormFields({
                 },
               },
               {
+                label:
+                  actionsFuncao?.status === MinisterioVoluntarioFuncaoStatusEnum.Inativo
+                    ? 'Ativar'
+                    : 'Inativar',
+                icon: {
+                  library: 'FontAwesome6',
+                  name:
+                    actionsFuncao?.status === MinisterioVoluntarioFuncaoStatusEnum.Inativo
+                      ? 'thumbs-up'
+                      : 'thumbs-down',
+                  size: 16,
+                },
+                onPress: () => {
+                  if (actionsFuncao) handleToggleStatus(actionsFuncao);
+                },
+              },
+              {
                 label: 'Excluir',
                 destructive: true,
                 icon: { ...DefaultIconsNames.delete, size: 18 },
@@ -373,6 +410,9 @@ const styles = StyleSheet.create({
   },
   funcoesListContent: {
     gap: 8,
+  },
+  funcaoInativa: {
+    opacity: 0.55,
   },
   funcoesContent: {
     paddingTop: 6,

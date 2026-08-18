@@ -145,7 +145,7 @@ export default function MinisterioIntegrantesEditPage() {
         await updateFuncoes(params.ministerioVoluntarioId, {
           funcoes: data.funcoes?.map((f) => ({
             funcaoId: f.id,
-            status: MinisterioVoluntarioFuncaoStatusEnum.Ativo,
+            status: f.status || MinisterioVoluntarioFuncaoStatusEnum.Ativo,
             experiencia: f.experiencia || EscalaTemplateExperienciaEnum.Iniciante,
           })) as UpdateFuncaoDataDto[],
         });

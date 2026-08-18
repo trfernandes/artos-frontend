@@ -12,6 +12,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { IndisponibilidadesVoluntariosApi } from '../../../../../domain/api/IndisponibilidadesVoluntariosApi';
 import { Conjunction, Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import { MinisterioVoluntarioFuncoesApi } from '../../../../../domain/api/MinisterioVoluntarioFuncoesApi';
+import { MinisterioVoluntarioFuncaoStatusEnum } from '../../../../../domain/enums/MinisterioVoluntarioFuncao/ministerio-voluntario-funcao-status.enum';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
 import FancyErrorText from '../../../../forms/FancyErrorText';
 import FancyGroup from '../../../../list/FancyGroup';
@@ -152,6 +153,14 @@ export default function AdicionarVoluntarioModal({
                       path: 'funcao.id',
                       operator: Operator.EQUALS,
                       value: { type: ValueType.LITERAL, value: funcaoId! },
+                    },
+                    {
+                      path: 'status',
+                      operator: Operator.EQUALS,
+                      value: {
+                        type: ValueType.LITERAL,
+                        value: MinisterioVoluntarioFuncaoStatusEnum.Ativo,
+                      },
                     },
                   ],
                   conjunction: Conjunction.AND,
