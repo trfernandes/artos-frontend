@@ -279,13 +279,18 @@ export default function IntegranteFormFields({
       ) : (
         <>
           {showVoluntario && (
-            <ControlledSearchSelect
-              control={control}
-              name='voluntarioId'
-              label='Voluntário'
-              listItems={voluntariosDropDownList}
-              searchPlaceholder='Buscar voluntário...'
-            />
+            <View style={styles.voluntarioSection}>
+              <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                Mostrando voluntários que ainda não fazem parte deste ministério
+              </FancyText>
+              <ControlledSearchSelect
+                control={control}
+                name='voluntarioId'
+                label='Voluntário'
+                listItems={voluntariosDropDownList}
+                searchPlaceholder='Buscar voluntário...'
+              />
+            </View>
           )}
 
           {showFuncoes && (
@@ -332,6 +337,9 @@ const styles = StyleSheet.create({
   },
   rootFlex: {
     flex: 1,
+  },
+  voluntarioSection: {
+    gap: 6,
   },
   heroSection: {
     alignItems: 'center',
