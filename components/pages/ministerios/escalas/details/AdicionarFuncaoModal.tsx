@@ -10,6 +10,7 @@ import FancyGroup from '../../../../list/FancyGroup';
 import { useMinisterioFuncoesCrud } from '../../../../../hooks/useMinisterioFuncoesCrud';
 import { usePallete } from '../../../../../hooks/usePallete';
 import FancyListItemCard from '../../../../cards/FancyListItemCard';
+import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
 
 export interface AdicionarFuncaoModalProps {
   visible: boolean;
@@ -48,8 +49,8 @@ export default function AdicionarFuncaoModal({
         conditions: [
           {
             path: 'ministerio.id',
-            operator: 'EQUALS' as any,
-            value: { type: 'LITERAL' as any, value: ministerioId },
+            operator: Operator.EQUALS,
+            value: { type: ValueType.LITERAL, value: ministerioId },
           },
         ],
       },
