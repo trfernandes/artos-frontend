@@ -83,7 +83,7 @@ export default function TemplateForm({
 
   const respSetListFuncoesDropDownList = useMemo(() => {
     const filteredFuncoes = funcoesDropDownList.filter((f) =>
-      funcoesWatch?.some((fw: any) => fw.funcaoId === f.value),
+      funcoesWatch?.some((fw: any) => fw.funcaoIds?.includes(f.value)),
     );
     return [{ title: 'Nenhum', value: undefined }, ...filteredFuncoes];
   }, [funcoesDropDownList, funcoesWatch]);

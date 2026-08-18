@@ -7,7 +7,8 @@ import FancyButton from '../../../../buttons/FancyButton';
 import FancyChips from '../../../../FancyChips';
 import FancyText from '../../../../FancyText';
 import { usePallete } from '../../../../../hooks/usePallete';
-import ControlledSearchSelect from '../../../../forms/ControlledSearchSelect';
+import FancySearchSelect from '../../../../fields/FancySearchSelect';
+import FancyErrorText from '../../../../forms/FancyErrorText';
 import ControlledBottomSheetSelect from '../../../../forms/ControlledBottomSheetSelect';
 import { EnumUtils } from '../../../../../utils/enum_utils';
 import {
@@ -26,6 +27,9 @@ export interface EventoFormFuncaoModalProps {
   mode: 'add' | 'edit';
   data?: EscalaEventoTemplateFuncaoFormData;
   funcoesSelectionList: DropDownItemProps<string>[];
+  // Demais vagas já configuradas nesse evento — usado só pra bloquear combinação duplicada.
+  funcoesExistentes?: EscalaEventoTemplateFuncaoFormData[];
+  editingIndex?: number;
   isSaving?: boolean;
   onClose: () => void;
   onSubmit: (data: EscalaEventoTemplateFuncaoFormData) => void;
@@ -36,6 +40,8 @@ export default function EventoFormFuncaoModal({
   mode,
   data,
   funcoesSelectionList,
+  funcoesExistentes = [],
+  editingIndex,
   isSaving,
   onClose,
   onSubmit,
@@ -53,7 +59,20 @@ export default function EventoFormFuncaoModal({
 
   const handleConfirm = () => {
     form.handleSubmit(
-      (values) => onSubmit(values),
+      (values) => {
+        // A mesma função pode se repetir em vagas diferentes — só a combinação exata não pode.
+        const combo = [...values.funcaoIds].sort().join('|');
+        const duplicateIndex = funcoesExistentes.findIndex(
+          (item) => [...item.funcaoIds].sort().join('|') === combo,
+        );
+
+        if (duplicateIndex !== -1 && duplicateIndex !== editingIndex) {
+          form.setError('funcaoIds', { message: 'Essa combinação de funções já foi adicionada.' });
+          return;
+        }
+
+        onSubmit(values);
+      },
       (errors) => console.log('Erro no formulário de adição de equipe', strfyObj(errors)),
     )();
   };
@@ -74,13 +93,23 @@ export default function EventoFormFuncaoModal({
       }
     >
       <View style={{ gap: 12 }}>
-        <ControlledSearchSelect
+        <Controller
           control={form.control}
-          name='funcaoId'
-          listItems={funcoesSelectionList}
-          label='Função'
-          disabled={mode === 'edit'}
-          searchPlaceholder='Buscar função...'
+          name='funcaoIds'
+          render={({ field: { value, onChange }, fieldState: { error } }) => (
+            <View style={{ gap: 5 }}>
+              <FancySearchSelect<string>
+                label='Funções aceitas'
+                placeholder='Selecione uma ou mais funções...'
+                listItems={funcoesSelectionList}
+                value={value ?? []}
+                onChange={(selected) => onChange(selected)}
+                multiSelect
+                searchPlaceholder='Buscar função...'
+              />
+              {error && <FancyErrorText message={error.message!} />}
+            </View>
+          )}
         />
         <ControlledBottomSheetSelect
           control={form.control}

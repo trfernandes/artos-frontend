@@ -3,7 +3,7 @@ import { EscalaTemplateTipoEnum } from '../enums/EscalaTemplate/escala-template-
 import { EscalaTemplateExperienciaEnum } from '../enums/EscalaTemplate/escala-template-experiencia.enum';
 
 export const EscalaEventoTemplateFuncaoSchema = z.object({
-  funcaoId: z.uuidv4('Campo obrigatório'),
+  funcaoIds: z.array(z.uuidv4('Campo obrigatório')).min(1, 'Selecione ao menos uma função'),
   quantidade: z.coerce
     .number<number>('Campo obrigatório')
     .min(1, 'Valor mínimo permitido é 1')

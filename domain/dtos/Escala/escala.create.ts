@@ -2,7 +2,7 @@ import { EscalaTemplateExperienciaEnum } from '../../enums/EscalaTemplate/escala
 import { EscalaTemplateTipoEnum } from '../../enums/EscalaTemplate/escala-template-tipo.enum';
 
 export type CreateEscalaTemplateFuncaoDto = {
-  id: string;
+  funcaoIds: string[];
   quantidade: number;
   experienciaMinima: EscalaTemplateExperienciaEnum;
 };

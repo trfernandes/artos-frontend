@@ -23,13 +23,13 @@ interface EscalaFormFuncaoListProps {
 export const EscalaFormFuncaoList = React.memo(function EscalaFormFuncaoList({
   ministerioId,
   funcoesList,
-  funcoesDropDownList,
 }: EscalaFormFuncaoListProps) {
   const Pallete = usePallete();
   const [equipeFormModalProps, setEquipeFormModalProps] = useState<{
     visible: boolean;
     mode: 'add' | 'edit';
     data?: EscalaEventoTemplateFuncaoFormData;
+    index?: number;
   } | null>();
 
   const formTemplate = useFormContext<EscalaEventoTemplateFormData>();
@@ -40,18 +40,17 @@ export const EscalaFormFuncaoList = React.memo(function EscalaFormFuncaoList({
     keyName: 'funKey',
   });
 
+  // A mesma função pode ser alternativa em mais de uma vaga — não excluir funções já usadas.
   const funcoesSelectionList = useMemo<DropDownItemProps<string>[]>(() => {
     if (!funcoesList?.length) return [];
 
-    const usados = new Set(funcoesArray.fields.map((f) => f.funcaoId));
-
     return funcoesList
-      .filter((f) => f.id && !usados.has(f.id))
+      .filter((f) => f.id)
       .map((ff) => ({
         title: ff.nome,
         value: ff.id!,
       }));
-  }, [funcoesList, funcoesArray.fields]);
+  }, [funcoesList]);
 
   const handleAddFuncao = useCallback(
     (data: EscalaEventoTemplateFuncaoFormData) => {
@@ -61,11 +60,8 @@ export const EscalaFormFuncaoList = React.memo(function EscalaFormFuncaoList({
   );
 
   const handleEditFuncao = useCallback(
-    (item: EscalaEventoTemplateFuncaoFormData) => {
-      const funcaoIndex = funcoesArray.fields.findIndex((f) => f.funcaoId === item.funcaoId);
-      if (funcaoIndex >= 0) {
-        funcoesArray.update(funcaoIndex, item);
-      }
+    (data: EscalaEventoTemplateFuncaoFormData, index: number) => {
+      funcoesArray.update(index, data);
     },
     [funcoesArray],
   );
@@ -113,19 +109,20 @@ export const EscalaFormFuncaoList = React.memo(function EscalaFormFuncaoList({
     [funcoesList],
   );
 
+  const nomesDaVaga = useCallback(
+    (funcaoIds: string[]) => funcaoIds.map((id) => funcoesNomeMap.get(id) ?? '').join(' ou '),
+    [funcoesNomeMap],
+  );
+
   const sortedFuncoesFields = useMemo(() => {
     if (!funcoesArray.fields.length) return [];
 
     return [...funcoesArray.fields].sort((a, b) =>
-      (funcoesNomeMap.get(a.funcaoId) ?? '').localeCompare(
-        funcoesNomeMap.get(b.funcaoId) ?? '',
-        'pt-BR',
-        {
-          sensitivity: 'base',
-        },
-      ),
+      nomesDaVaga(a.funcaoIds).localeCompare(nomesDaVaga(b.funcaoIds), 'pt-BR', {
+        sensitivity: 'base',
+      }),
     );
-  }, [funcoesArray.fields, funcoesNomeMap]);
+  }, [funcoesArray.fields, nomesDaVaga]);
 
   return (
     <>
@@ -136,11 +133,9 @@ export const EscalaFormFuncaoList = React.memo(function EscalaFormFuncaoList({
         data={sortedFuncoesFields}
         keyExtractor={({ funKey }) => funKey}
         renderItem={({ item }) => {
-          const funcaoInfo = funcoesList.find((f) => f.id === item.funcaoId);
-
           return (
             <FancyCard.Simple
-              title={funcaoInfo?.nome}
+              title={nomesDaVaga(item.funcaoIds)}
               subtitle={`${EscalaTemplateExperienciaLabel[item.experiencia]} · Qtd. ${item.quantidade}`}
               containerStyle={{ paddingVertical: 6 }}
               contentContainerStyle={{ paddingVertical: 0, gap: 4 }}
@@ -149,7 +144,8 @@ export const EscalaFormFuncaoList = React.memo(function EscalaFormFuncaoList({
                   size: 'small',
                   icon: { ...DefaultIconsNames.edit, size: 15 },
                   onPress: () => {
-                    setEquipeFormModalProps({ mode: 'edit', visible: true, data: item });
+                    const index = funcoesArray.fields.findIndex((f) => f.funKey === item.funKey);
+                    setEquipeFormModalProps({ mode: 'edit', visible: true, data: item, index });
                   },
                 },
                 {
@@ -176,14 +172,17 @@ export const EscalaFormFuncaoList = React.memo(function EscalaFormFuncaoList({
       <EventoFormFuncaoModal
         visible={!!equipeFormModalProps?.visible}
         mode={equipeFormModalProps?.mode ?? 'add'}
-        funcoesSelectionList={
-          equipeFormModalProps?.mode === 'edit' ? funcoesDropDownList : funcoesSelectionList
-        }
+        funcoesSelectionList={funcoesSelectionList}
         data={equipeFormModalProps?.data}
+        funcoesExistentes={funcoesArray.fields}
+        editingIndex={equipeFormModalProps?.index}
         onClose={() => setEquipeFormModalProps(null)}
         onSubmit={(data) => {
-          if (equipeFormModalProps?.mode === 'edit') handleEditFuncao(data);
-          else handleAddFuncao(data);
+          if (equipeFormModalProps?.mode === 'edit' && equipeFormModalProps.index != null) {
+            handleEditFuncao(data, equipeFormModalProps.index);
+          } else {
+            handleAddFuncao(data);
+          }
           setEquipeFormModalProps(null);
         }}
       />

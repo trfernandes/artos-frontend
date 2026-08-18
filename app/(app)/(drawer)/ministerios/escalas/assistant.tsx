@@ -95,7 +95,7 @@ const mapEscalaFormToDto = (
             funcoes:
               evento.template.tipo === EscalaTemplateTipoEnum.Funcoes
                 ? evento.template.funcoes?.map((funcao) => ({
-                    id: funcao.funcaoId!,
+                    funcaoIds: funcao.funcaoIds!,
                     quantidade: funcao.quantidade,
                     experienciaMinima: funcao.experiencia,
                   }))

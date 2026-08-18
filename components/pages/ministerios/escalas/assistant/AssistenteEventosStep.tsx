@@ -100,7 +100,7 @@ export default function AssistenteEventosStep() {
                 funcoes: ocorrencia.templatePadrao?.funcoes?.map(
                   (f) =>
                     ({
-                      funcaoId: f.funcao?.id,
+                      funcaoIds: f.opcoes?.map((o) => o.funcaoId) ?? [],
                       experiencia: f.experiencia,
                       quantidade: f.quantidade,
                     }) as EscalaEventoTemplateFuncaoFormData,

@@ -198,8 +198,10 @@ function EventItem({
               </FancyText>
               {evento.template.funcoes.map((f: any, idx: number) => {
                 const funcaoNome =
-                  funcoesList.find((fl) => String(fl.id) === String(f.funcaoId))?.nome ||
-                  'Função desconhecida';
+                  (f.funcaoIds as string[])
+                    .map((id) => funcoesList.find((fl) => String(fl.id) === String(id))?.nome)
+                    .filter(Boolean)
+                    .join(' ou ') || 'Função desconhecida';
                 const expLabel =
                   EscalaTemplateExperienciaLabel[
                     f.experiencia as keyof typeof EscalaTemplateExperienciaLabel

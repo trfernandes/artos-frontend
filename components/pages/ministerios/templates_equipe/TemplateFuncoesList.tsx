@@ -83,19 +83,24 @@ export default function TemplateFuncoesList({
         return;
       }
       formAdd.handleSubmit((data) => {
-        // o backend exige funcaoId único por template (@ArrayUnique) — uma função não pode
-        // aparecer duas vezes, senão o save inteiro falha na validação e dá rollback
-        const duplicateIndex = funcoesWatch.findIndex((item) => item.funcaoId === data.funcaoId);
+        // o backend exige combinação de funcaoIds única por vaga (@ArrayUnique) — a mesma
+        // função pode se repetir em vagas diferentes, só a combinação exata não pode repetir
+        const combo = [...data.funcaoIds].sort().join('|');
+        const duplicateIndex = funcoesWatch.findIndex(
+          (item) => [...item.funcaoIds].sort().join('|') === combo,
+        );
 
         if (mode === 'add') {
           if (duplicateIndex !== -1) {
-            formAdd.setError('funcaoId', { message: 'Função já adicionada.' });
+            formAdd.setError('funcaoIds', {
+              message: 'Essa combinação de funções já foi adicionada.',
+            });
             return;
           }
 
           addFuncao({
             id: data.id,
-            funcaoId: data.funcaoId,
+            funcaoIds: data.funcaoIds,
             experiencia: data.experiencia,
             quantidade: data.quantidade,
           });
@@ -103,9 +108,11 @@ export default function TemplateFuncoesList({
           if (editingIndex == null) {
             return;
           }
-          // impede colisão com OUTRA linha ao trocar a função durante a edição
+          // impede colisão com OUTRA linha ao trocar as funções durante a edição
           if (duplicateIndex !== -1 && duplicateIndex !== editingIndex) {
-            formAdd.setError('funcaoId', { message: 'Função já adicionada.' });
+            formAdd.setError('funcaoIds', {
+              message: 'Essa combinação de funções já foi adicionada.',
+            });
             return;
           }
 
@@ -186,8 +193,13 @@ export default function TemplateFuncoesList({
       {funcoesWatch.length > 0 ? (
         <View style={styles.listContent}>
           {funcoesWatch.map((item, index) => {
-            const matchedOption = funcoesDataList.find((funcao) => funcao.id === item.funcaoId);
-            const funcaoNome = matchedOption?.nome || item.funcao?.nome || 'Função não encontrada';
+            const nomes = item.funcaoIds.map(
+              (id) =>
+                funcoesDataList.find((funcao) => funcao.id === id)?.nome ||
+                item.funcoesAceitas?.find((fa) => fa.id === id)?.nome ||
+                'Função não encontrada',
+            );
+            const funcaoNome = nomes.join(' ou ');
             const experienciaLabel = EscalaTemplateExperienciaLabel[item.experiencia];
             return (
               <FancyListItemCard

@@ -65,7 +65,11 @@ export default function MinisterioTemplatesEditPage() {
         nome: template.nome,
         funcoes: template.funcoes
           ? template.funcoes.map((f) => ({
-              funcaoId: f.funcao?.id,
+              funcaoIds: f.opcoes?.map((o) => o.funcaoId) ?? [],
+              funcoesAceitas: f.opcoes?.map((o) => ({
+                id: o.funcaoId,
+                nome: o.funcao?.nome ?? '',
+              })),
               experiencia: f.experiencia,
               quantidade: f.quantidade,
             }))

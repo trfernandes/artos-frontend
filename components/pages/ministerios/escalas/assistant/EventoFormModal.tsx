@@ -131,7 +131,7 @@ export default function EventoFormModal({
       (f) => f.funcaoId || f.minVolId,
     );
     const funcoesMudou = formTemplate.formState.dirtyFields.funcoes?.filter(
-      (f) => f.funcaoId || f.experiencia || f.quantidade,
+      (f) => (f.funcaoIds && f.funcaoIds.length > 0) || f.experiencia || f.quantidade,
     );
 
     if (fixosMudou || funcoesMudou) {
@@ -147,9 +147,9 @@ export default function EventoFormModal({
         if (!template.funcoes) return;
 
         const funcoes: EscalaEventoTemplateFuncaoFormData[] = template.funcoes
-          .filter((f) => f.funcao?.id)
+          .filter((f) => f.opcoes?.length)
           .map((f) => ({
-            funcaoId: f.funcao!.id!,
+            funcaoIds: f.opcoes!.map((o) => o.funcaoId),
             experiencia: f.experiencia,
             quantidade: f.quantidade,
           }));

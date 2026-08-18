@@ -31,8 +31,10 @@ export const escalaTemplateVoluntarioSchema = z.object({
 
 export const escalaTemplateFuncaoSchema = z.object({
   id: uuidField.optional(),
-  funcaoId: z.uuid({ error: 'Campo obrigatório' }),
-  funcao: z.object({ nome: z.string() }).optional(),
+  funcaoIds: z
+    .array(z.uuid({ error: 'Campo obrigatório' }))
+    .min(1, { message: 'Selecione ao menos uma função' }),
+  funcoesAceitas: z.array(z.object({ id: z.string(), nome: z.string() })).optional(),
   experiencia: z.enum(EscalaTemplateExperienciaEnum),
   quantidade: z.coerce
     .number<number>('Campo obrigatório')
