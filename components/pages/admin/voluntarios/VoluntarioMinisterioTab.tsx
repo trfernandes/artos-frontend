@@ -15,6 +15,7 @@ import {
   MinisterioVoluntarioStatusEnum,
   MinisterioVoluntarioStatusEnumLabel,
 } from '../../../../domain/enums/MinisterioVoluntario/ministerio-voluntario-status.enum';
+import { MinisterioVoluntarioFuncaoStatusEnum } from '../../../../domain/enums/MinisterioVoluntarioFuncao/ministerio-voluntario-funcao-status.enum';
 import FancyText from '../../../FancyText';
 import { usePallete } from '../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../hooks/useThemedStyles';
@@ -267,7 +268,11 @@ function MinisterioViewCard({ item }: { item: ResponseMinisterioVoluntarioDto })
   const tipo = getMinisterioTipoLabel(item);
   const subtitle = [funcao, tipo].filter(Boolean).join(' · ');
   const descricao = item.ministerio?.descricao?.trim();
-  const funcoesCount = item.funcoes?.length ?? 0;
+  const funcoesLabel = (item.funcoes ?? [])
+    .filter((f) => f.status === MinisterioVoluntarioFuncaoStatusEnum.Ativo)
+    .map((f) => f.funcao?.nome?.trim())
+    .filter((nome): nome is string => Boolean(nome))
+    .join(', ');
 
   return (
     <View style={styles.card}>
@@ -326,7 +331,7 @@ function MinisterioViewCard({ item }: { item: ResponseMinisterioVoluntarioDto })
         />
       </View>
 
-      {(descricao || item.isDelegado || funcoesCount > 0) && (
+      {(descricao || item.isDelegado) && (
         <View style={styles.cardFooter}>
           {descricao ? (
             <FancyText
@@ -342,15 +347,6 @@ function MinisterioViewCard({ item }: { item: ResponseMinisterioVoluntarioDto })
           )}
 
           <View style={styles.footerBadges}>
-            {funcoesCount > 0 && (
-              <FancyChips
-                label={`${funcoesCount} função${funcoesCount === 1 ? '' : 'ões'}`}
-                color={palette.primary}
-                size='small'
-                outlined
-                style={styles.footerChip}
-              />
-            )}
             {item.isDelegado && (
               <FancyChips
                 label='Delegado'
@@ -362,6 +358,18 @@ function MinisterioViewCard({ item }: { item: ResponseMinisterioVoluntarioDto })
             )}
           </View>
         </View>
+      )}
+
+      {funcoesLabel && (
+        <FancyText
+          size='extraSmall'
+          type='medium'
+          color={palette.fonts.inactive}
+          numberOfLines={2}
+          style={styles.funcoesText}
+        >
+          Funções: {funcoesLabel}
+        </FancyText>
       )}
     </View>
   );
@@ -528,6 +536,9 @@ function createViewCardStyles(palette: ThemePalette) {
     footerChip: {
       paddingVertical: 2,
       paddingHorizontal: 7,
+    },
+    funcoesText: {
+      flexShrink: 1,
     },
   });
 }
