@@ -15,7 +15,10 @@ import {
 import FancyLoading from '../../../../../components/FancyLoading';
 import Toast from 'react-native-toast-message';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
-import { VoluntarioHierarquiaEnumLabel } from '../../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
+import {
+  VoluntarioHierarquiaEnumLabel,
+  getVoluntarioHierarquiaColorMap,
+} from '../../../../../domain/enums/MinisterioVoluntario/hierarquia.enum';
 import {
   getMinisterioStatusColorMap,
   MinisterioVoluntarioStatusEnum,
@@ -55,6 +58,7 @@ export default function MinisterioIntegrantesIndex() {
   const [actionsIntegrante, setActionsIntegrante] =
     useState<ResponseMinisterioVoluntarioDto | null>(null);
   const ministerioStatusColorMap = useMemo(() => getMinisterioStatusColorMap(palette), [palette]);
+  const hierarquiaColorMap = useMemo(() => getVoluntarioHierarquiaColorMap(palette), [palette]);
 
   const journey = useJourney();
   const isJourneyStep = journey.currentStep?.tourId === INTEGRANTES_TOUR_ID;
@@ -272,8 +276,6 @@ export default function MinisterioIntegrantesIndex() {
               .map((f) => f.funcao?.nome?.trim())
               .filter((nome): nome is string => Boolean(nome))
               .join(', ');
-            const metaParts = [VoluntarioHierarquiaEnumLabel[item.hierarquia!]];
-            if (funcoesLabel) metaParts.push(funcoesLabel);
 
             return (
               <FancyListItemCard
@@ -289,14 +291,25 @@ export default function MinisterioIntegrantesIndex() {
                       : AppImages.emptyProfile,
                 }}
                 meta={
-                  <FancyText
-                    size='extraSmall'
-                    type='medium'
-                    color={palette.fonts.inactive}
-                    numberOfLines={2}
-                  >
-                    {metaParts.join('  ·  ')}
-                  </FancyText>
+                  <View style={styles.metaChips}>
+                    <FancyChips
+                      label={VoluntarioHierarquiaEnumLabel[item.hierarquia!]}
+                      color={hierarquiaColorMap[item.hierarquia!]}
+                      size='small'
+                      dot
+                    />
+                    {funcoesLabel && (
+                      <FancyText
+                        size='extraSmall'
+                        type='medium'
+                        color={palette.fonts.inactive}
+                        numberOfLines={2}
+                        style={styles.funcoesLabel}
+                      >
+                        {funcoesLabel}
+                      </FancyText>
+                    )}
+                  </View>
                 }
                 status={
                   <FancyChips
@@ -363,4 +376,6 @@ const styles = StyleSheet.create({
   filtroContainer: {
     paddingHorizontal: 15,
   },
+  metaChips: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
+  funcoesLabel: { flex: 1, minWidth: 0 },
 });
