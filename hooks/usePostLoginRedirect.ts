@@ -10,7 +10,7 @@ import { IgrejaRepository } from '../domain/services/IgrejaRepository';
 // está em (app) sem nenhuma igreja vinculada.
 
 export function usePostLoginRedirect() {
-  const { user, loading } = useAuth();
+  const { user, loading, refreshMe } = useAuth();
   const segments = useSegments();
   const isRedirectingRef = useRef(false);
   const lastRedirectRef = useRef<string | null>(null);
@@ -57,6 +57,21 @@ export function usePostLoginRedirect() {
       isRedirectingRef.current = true;
 
       void (async () => {
+        // user.igrejas pode estar vazio de forma transitória (ex.: refreshMe
+        // rodou entre uma aprovação de vínculo e a próxima sincronização).
+        // Confirma com o backend antes de mandar pro fluxo "sem igreja".
+        let igrejasAtuais = user.igrejas ?? [];
+        try {
+          igrejasAtuais = await refreshMe();
+        } catch {
+          // Falha ao confirmar: segue com o dado local (já sabido vazio).
+        }
+
+        if (igrejasAtuais.length > 0) {
+          isRedirectingRef.current = false;
+          return;
+        }
+
         let temPendente = false;
         try {
           const solicitacoes = await IgrejaRepository.listarMinhasSolicitacoes();
