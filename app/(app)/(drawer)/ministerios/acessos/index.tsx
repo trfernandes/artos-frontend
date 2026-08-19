@@ -9,7 +9,6 @@ import FancySectionHeader from '../../../../../components/cards/Horizontal/Fancy
 import { FancyCard } from '../../../../../components/cards/Horizontal/FancyCard';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import AuxiliarAcessosEditorSheet from '../../../../../components/pages/ministerios/acessos/AuxiliarAcessosEditorSheet';
-import MinisterioFotoEditorSheet from '../../../../../components/pages/ministerios/acessos/MinisterioFotoEditorSheet';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { useMinisterioAcessos } from '../../../../../hooks/useMinisterioAcessos';
 import { AppImages } from '../../../../../assets/app_images';
@@ -18,10 +17,6 @@ import { ResponseLoginMinisterioDto } from '../../../../../domain/dtos/login/log
 import { RecursoPermissaoEnumLabel } from '../../../../../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
 import { ResponseMinisterioAcessoMemberDto } from '../../../../../domain/dtos/MinisterioAcesso/ministerio-acesso.response';
 import VoluntarioSummarySheet from '../../../../../components/pages/common/VoluntarioSummarySheet';
-import FancyImage from '../../../../../components/images/FancyImage';
-import { MinisteriosRepository } from '../../../../../domain/services/MinisteriosRepository';
-import { getApiErrorMessage } from '../../../../../domain/api/api-error';
-import Toast from 'react-native-toast-message';
 
 const summarizePermissions = (member: ResponseMinisterioAcessoMemberDto) => {
   const labels = (member.permissoes ?? []).map((item) => RecursoPermissaoEnumLabel[item.recurso]);
@@ -31,7 +26,7 @@ const summarizePermissions = (member: ResponseMinisterioAcessoMemberDto) => {
 export default function MinisterioAcessosIndexPage() {
   const palette = usePallete();
   const params = useLocalSearchParams<{ ministerioId: string }>();
-  const { igrejaAtiva, user, updateUser } = useAuth();
+  const { igrejaAtiva } = useAuth();
   const ministerio = useMemo(
     () =>
       igrejaAtiva?.ministerios?.find((item) => item.id === params.ministerioId) as
@@ -63,50 +58,6 @@ export default function MinisterioAcessosIndexPage() {
   const [selectedAuxiliar, setSelectedAuxiliar] =
     useState<ResponseMinisterioAcessoMemberDto | null>(null);
   const [selectedVoluntario, setSelectedVoluntario] = useState<any | null>(null);
-  const [fotoEditorVisible, setFotoEditorVisible] = useState(false);
-  const [isSavingFoto, setIsSavingFoto] = useState(false);
-
-  const handleSaveFoto = async ({
-    logoUrl,
-    logoThumbUrl,
-  }: {
-    logoUrl: string;
-    logoThumbUrl: string;
-  }) => {
-    if (!igrejaAtiva || !ministerio) return;
-    setIsSavingFoto(true);
-    try {
-      await MinisteriosRepository.update(ministerio.id, {
-        igrejaId: igrejaAtiva.id,
-        logoUrl,
-        logoThumbUrl,
-      });
-
-      const novoMinisterio = { ...ministerio, logoUrl, logoThumbUrl };
-      const novaIgreja = {
-        ...igrejaAtiva,
-        ministerios: [
-          ...igrejaAtiva.ministerios.filter((m) => m.id !== ministerio.id),
-          novoMinisterio,
-        ],
-      };
-      const novasIgrejas = (user?.igrejas || []).map((ig) =>
-        ig.id === igrejaAtiva.id ? novaIgreja : ig,
-      );
-      updateUser({ ...user, igrejas: novasIgrejas });
-
-      Toast.show({ type: 'success', text1: 'Foto do ministério atualizada!' });
-      setFotoEditorVisible(false);
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Erro ao atualizar foto',
-        text2: getApiErrorMessage(error, 'Não foi possível salvar a foto do ministério.'),
-      });
-    } finally {
-      setIsSavingFoto(false);
-    }
-  };
 
   if (!canManage) {
     router.back();
@@ -126,38 +77,13 @@ export default function MinisterioAcessosIndexPage() {
           </FancyText>
         </View>
 
-        <View
-          style={[
-            styles.contextCard,
-            styles.contextCardRow,
-            { backgroundColor: palette.backgroundColor2 },
-          ]}
-        >
-          <FancyImage
-            source={
-              ministerio?.logoThumbUrl || ministerio?.logoUrl
-                ? { uri: ministerio.logoThumbUrl || ministerio.logoUrl! }
-                : AppImages.emptyProfile
-            }
-            size={48}
-          />
-          <View style={styles.contextCardInfo}>
-            <FancyText type='semiBold' size='extraSmall' color={palette.fonts.inactive}>
-              Ministério
-            </FancyText>
-            <FancyText type='bold' size='medium'>
-              {data?.ministerioNome ?? ministerio?.nome}
-            </FancyText>
-          </View>
-          <FancyButton
-            label='Editar foto'
-            type='outlined'
-            size={32}
-            icon={{ library: 'Feather', name: 'camera', size: 14 }}
-            iconPosition='left'
-            labelProps={{ size: 11 }}
-            onPress={() => setFotoEditorVisible(true)}
-          />
+        <View style={[styles.contextCard, { backgroundColor: palette.backgroundColor2 }]}>
+          <FancyText type='semiBold' size='extraSmall' color={palette.fonts.inactive}>
+            Ministério
+          </FancyText>
+          <FancyText type='bold' size='medium'>
+            {data?.ministerioNome ?? ministerio?.nome}
+          </FancyText>
         </View>
 
         <View style={styles.section}>
@@ -333,15 +259,6 @@ export default function MinisterioAcessosIndexPage() {
         onClose={() => setSelectedVoluntario(null)}
         data={selectedVoluntario}
       />
-
-      <MinisterioFotoEditorSheet
-        visible={fotoEditorVisible}
-        logoUrl={ministerio?.logoUrl}
-        logoThumbUrl={ministerio?.logoThumbUrl}
-        isSaving={isSavingFoto}
-        onClose={() => setFotoEditorVisible(false)}
-        onSave={handleSaveFoto}
-      />
       {isLoadingMutation && <FancyLoading />}
     </FancyPageView>
   );
@@ -364,15 +281,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     gap: 4,
-  },
-  contextCardRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  contextCardInfo: {
-    flex: 1,
-    gap: 2,
   },
   section: {
     gap: 12,

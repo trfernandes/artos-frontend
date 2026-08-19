@@ -13,7 +13,7 @@ export default function MinisterioConfiguracoesLayout() {
       <Stack.Screen
         name='index'
         options={{
-          title: 'Configurações do Louvor',
+          title: 'Configurações do Ministério',
           headerRight: () => <MainHeaderButtons />,
           headerShown: true,
           header: (props) => <FancyPageHeader leftButton='menu' {...props} />,
