@@ -1,4 +1,4 @@
-import { ResponseRepertorioCategoriaDto } from './repertorio-categoria.response';
+import { ResponseRepertorioEtiquetaDto } from './repertorio-etiqueta.response';
 import { ResponseRepertorioMusicaSecaoDto } from './repertorio-musica-secao.response';
 import { ResponseRepertorioMusicaArranjoDto } from './repertorio-musica-arranjo.response';
 
@@ -8,8 +8,7 @@ export type ResponseRepertorioMusicaDto = {
   updatedAt: string;
   igrejaId: string;
   ministerioId: string;
-  categoriaId: string;
-  categoria?: ResponseRepertorioCategoriaDto;
+  etiquetas: ResponseRepertorioEtiquetaDto[];
   nome: string;
   interprete?: string | null;
   versaoUrl?: string | null;

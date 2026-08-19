@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigation } from 'expo-router';
@@ -12,6 +12,8 @@ import FancyPageView from '../../../../containers/FancyPageView';
 import FancyTabs, { TabItem } from '../../../../tabs/FancyTabs';
 import ControlledTextInput from '../../../../forms/ControlledTextInput';
 import ControlledBottomSheetSelect from '../../../../forms/ControlledBottomSheetSelect';
+import FancySearchSelect from '../../../../fields/FancySearchSelect';
+import FancyErrorText from '../../../../forms/FancyErrorText';
 import FancyLoading from '../../../../FancyLoading';
 import {
   RepertorioMusicaSchema,
@@ -19,7 +21,7 @@ import {
 } from '../../../../../domain/schemas/repertorioMusicaSchema';
 import FancyScrollView from '../../../../FancyScrollView';
 import SongTextEditorField from '../../../../song/SongTextEditorField';
-import RepertorioCategoriasManagerSheet from './RepertorioCategoriasManagerSheet';
+import RepertorioEtiquetasManagerSheet from './RepertorioEtiquetasManagerSheet';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { MinisterioTipoEnum } from '../../../../../domain/enums/Ministerio/ministerio-tipo.enum';
@@ -28,7 +30,7 @@ import {
   RecursoPermissaoEnum,
   TipoPermissaoEnum,
 } from '../../../../../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
-import { useRepertorioCategorias, useRepertorioMusicas } from '../../../../../hooks/useRepertorio';
+import { useRepertorioEtiquetas, useRepertorioMusicas } from '../../../../../hooks/useRepertorio';
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import { RepertorioRepository } from '../../../../../domain/services/RepertorioRepository';
 import Toast from 'react-native-toast-message';
@@ -83,10 +85,10 @@ export default function RepertorioEditorScreen({
   const ministerioAtual = igrejaAtiva?.ministerios?.find(
     (ministerio) => ministerio.id === ministerioId,
   );
-  const { data: categorias = [] } = useRepertorioCategorias(ministerioId);
+  const { data: etiquetas = [] } = useRepertorioEtiquetas(ministerioId);
   const { criarMusica, atualizarMusica, isMutatingMusica } = useRepertorioMusicas(ministerioId);
   const { showLoading, hideLoading } = useLoading();
-  const [categoriasVisible, setCategoriasVisible] = useState(false);
+  const [etiquetasVisible, setEtiquetasVisible] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
 
   const canManageRepertorio = useMemo(() => {
@@ -123,7 +125,7 @@ export default function RepertorioEditorScreen({
       nome: '',
       interprete: '',
       versaoUrl: '',
-      categoriaId: '',
+      etiquetaIds: [],
       tomOriginal: '',
       bpmOriginal: 0,
       letraMarkdown: '',
@@ -146,7 +148,7 @@ export default function RepertorioEditorScreen({
       nome: musica.nome || '',
       interprete: musica.interprete || '',
       versaoUrl: musica.versaoUrl || '',
-      categoriaId: musica.categoriaId || '',
+      etiquetaIds: (musica.etiquetas ?? []).map((etiqueta) => etiqueta.id),
       tomOriginal: musica.tomOriginal || '',
       bpmOriginal: musica.bpmOriginal ?? 0,
       letraMarkdown: musica.letraMarkdown || '',
@@ -155,12 +157,12 @@ export default function RepertorioEditorScreen({
     });
   }, [musica, reset]);
 
-  const categoryOptions = useMemo(
+  const etiquetaOptions = useMemo(
     () =>
-      categorias
+      etiquetas
         .filter((item) => item.ativo !== false)
-        .map((categoria) => ({ title: categoria.nome, value: categoria.id })),
-    [categorias],
+        .map((etiqueta) => ({ title: etiqueta.nome, value: etiqueta.id })),
+    [etiquetas],
   );
   const toneOptions = useMemo(() => TONS.map((tone) => ({ title: tone, value: tone })), []);
   const youtubeInitialQuery = useMemo(
@@ -191,7 +193,7 @@ export default function RepertorioEditorScreen({
     try {
       const payload = {
         ministerioId,
-        categoriaId: values.categoriaId,
+        etiquetaIds: values.etiquetaIds,
         nome: values.nome.trim(),
         interprete: values.interprete?.trim() || undefined,
         versaoUrl: values.versaoUrl?.trim() || undefined,
@@ -396,7 +398,7 @@ export default function RepertorioEditorScreen({
                 <View style={styles.fieldHeaderRow}>
                   <View style={styles.fieldHeaderInfo}>
                     <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
-                      Categoria
+                      Etiquetas
                     </FancyText>
                   </View>
                   {canEditRepertorio ? (
@@ -408,7 +410,7 @@ export default function RepertorioEditorScreen({
                       iconPosition='left'
                       labelProps={{ size: 10 }}
                       containerStyle={{ gap: 4, borderWidth: 1 }}
-                      onPress={() => setCategoriasVisible(true)}
+                      onPress={() => setEtiquetasVisible(true)}
                     />
                   ) : null}
                 </View>
@@ -418,14 +420,25 @@ export default function RepertorioEditorScreen({
                   color={palette.fonts.inactive2}
                   style={styles.fieldHelperText}
                 >
-                  Organize esta música no repertório.
+                  Organize esta música no repertório. Pode ter mais de uma etiqueta.
                 </FancyText>
-                <ControlledBottomSheetSelect
+                <Controller
                   control={control}
-                  name='categoriaId'
-                  title='Categoria'
-                  listItems={categoryOptions}
-                  disabled={!canEditRepertorio}
+                  name='etiquetaIds'
+                  render={({ field: { value, onChange }, fieldState: { error } }) => (
+                    <View style={{ gap: 5 }}>
+                      <FancySearchSelect<string>
+                        placeholder='Selecione uma ou mais etiquetas...'
+                        listItems={etiquetaOptions}
+                        value={value ?? []}
+                        onChange={(selected) => onChange(selected)}
+                        multiSelect
+                        searchPlaceholder='Buscar etiqueta...'
+                        disabled={!canEditRepertorio}
+                      />
+                      {error && <FancyErrorText message={error.message!} />}
+                    </View>
+                  )}
                 />
               </View>
 
@@ -584,9 +597,9 @@ export default function RepertorioEditorScreen({
         />
       ) : null}
       {canEditRepertorio ? (
-        <RepertorioCategoriasManagerSheet
-          visible={categoriasVisible}
-          onClose={() => setCategoriasVisible(false)}
+        <RepertorioEtiquetasManagerSheet
+          visible={etiquetasVisible}
+          onClose={() => setEtiquetasVisible(false)}
           ministerioId={ministerioId}
         />
       ) : null}

@@ -8,7 +8,7 @@ import FancyListItemCard from '../../../../../../components/cards/FancyListItemC
 import FancyChips from '../../../../../../components/FancyChips';
 import FancyButton from '../../../../../../components/buttons/FancyButton';
 import FancyText from '../../../../../../components/FancyText';
-import RepertorioCategoriasManagerSheet from '../../../../../../components/pages/ministerios/louvor/repertorio/RepertorioCategoriasManagerSheet';
+import RepertorioEtiquetasManagerSheet from '../../../../../../components/pages/ministerios/louvor/repertorio/RepertorioEtiquetasManagerSheet';
 import { useAuth } from '../../../../../../contexts/AuthContext';
 import { IgrejaVoluntarioRoleEnum } from '../../../../../../domain/enums/Igreja/voluntario-role.enum';
 import { MinisterioTipoEnum } from '../../../../../../domain/enums/Ministerio/ministerio-tipo.enum';
@@ -18,7 +18,7 @@ import {
   TipoPermissaoEnum,
 } from '../../../../../../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
 import {
-  useRepertorioCategorias,
+  useRepertorioEtiquetas,
   useRepertorioMusicas,
 } from '../../../../../../hooks/useRepertorio';
 import { usePallete } from '../../../../../../hooks/usePallete';
@@ -42,12 +42,12 @@ export default function MinisterioLouvorRepertorioIndexPage() {
   const ministerioAtual = igrejaAtiva?.ministerios?.find(
     (ministerio) => ministerio.id === ministerioId,
   );
-  const { data: categorias = [] } = useRepertorioCategorias(ministerioId);
+  const { data: etiquetas = [] } = useRepertorioEtiquetas(ministerioId);
   const { data: musicas = [], removerMusica, isLoading } = useRepertorioMusicas(ministerioId);
   const { showLoading, hideLoading } = useLoading();
   const [search, setSearch] = useState('');
-  const [categoriaIds, setCategoriaIds] = useState<string[]>([]);
-  const [categoriasVisible, setCategoriasVisible] = useState(false);
+  const [etiquetaIds, setEtiquetaIds] = useState<string[]>([]);
+  const [etiquetasVisible, setEtiquetasVisible] = useState(false);
   const [actionsMusica, setActionsMusica] = useState<ResponseRepertorioMusicaDto | null>(null);
 
   const canManageRepertorio = useMemo(() => {
@@ -65,13 +65,13 @@ export default function MinisterioLouvorRepertorioIndexPage() {
     );
   }, [igrejaAtiva?.role, ministerioAtual]);
 
-  const categoriasAtivas = useMemo(
-    () => categorias.filter((item) => item.ativo !== false),
-    [categorias],
+  const etiquetasAtivas = useMemo(
+    () => etiquetas.filter((item) => item.ativo !== false),
+    [etiquetas],
   );
 
-  const toggleCategoriaId = (id: string) => {
-    setCategoriaIds((prev) =>
+  const toggleEtiquetaId = (id: string) => {
+    setEtiquetaIds((prev) =>
       prev.includes(id) ? prev.filter((existing) => existing !== id) : [...prev, id],
     );
   };
@@ -81,14 +81,16 @@ export default function MinisterioLouvorRepertorioIndexPage() {
       musicas
         .filter((item) => item.ativo !== false)
         .filter((item) =>
-          categoriaIds.length === 0 ? true : categoriaIds.includes(item.categoriaId),
+          etiquetaIds.length === 0
+            ? true
+            : item.etiquetas?.some((etiqueta) => etiquetaIds.includes(etiqueta.id)),
         )
         .filter((item) => {
-          const haystack =
-            `${item.nome} ${item.interprete || ''} ${item.categoria?.nome || ''}`.toLowerCase();
+          const nomesEtiquetas = (item.etiquetas ?? []).map((etiqueta) => etiqueta.nome).join(' ');
+          const haystack = `${item.nome} ${item.interprete || ''} ${nomesEtiquetas}`.toLowerCase();
           return haystack.includes(search.trim().toLowerCase());
         }),
-    [categoriaIds, musicas, search],
+    [etiquetaIds, musicas, search],
   );
 
   const openMusica = (id: string) => {
@@ -160,16 +162,16 @@ export default function MinisterioLouvorRepertorioIndexPage() {
                 <FancyChips
                   label='Todas'
                   size='medium'
-                  outlined={categoriaIds.length > 0}
-                  onPress={() => setCategoriaIds([])}
+                  outlined={etiquetaIds.length > 0}
+                  onPress={() => setEtiquetaIds([])}
                 />
-                {categoriasAtivas.map((item) => (
+                {etiquetasAtivas.map((item) => (
                   <FancyChips
                     key={item.id}
                     label={item.nome}
                     size='medium'
-                    outlined={!categoriaIds.includes(item.id)}
-                    onPress={() => toggleCategoriaId(item.id)}
+                    outlined={!etiquetaIds.includes(item.id)}
+                    onPress={() => toggleEtiquetaId(item.id)}
                   />
                 ))}
               </ScrollView>
@@ -189,12 +191,12 @@ export default function MinisterioLouvorRepertorioIndexPage() {
                     }
                   />
                   <FancyButton
-                    label='Gerenciar categorias'
+                    label='Gerenciar etiquetas'
                     type='light'
                     size={34}
                     icon={{ library: 'MaterialCommunityIcons', name: 'shape-outline', size: 16 }}
                     containerStyle={styles.categoriesButton}
-                    onPress={() => setCategoriasVisible(true)}
+                    onPress={() => setEtiquetasVisible(true)}
                   />
                 </View>
               ) : null}
@@ -202,7 +204,9 @@ export default function MinisterioLouvorRepertorioIndexPage() {
           ),
           data: filtered,
           renderItem: ({ item }) => {
-            const hasBadges = Boolean(item.categoria?.nome || item.tomOriginal || item.bpmOriginal);
+            const hasBadges = Boolean(
+              item.etiquetas?.length || item.tomOriginal || item.bpmOriginal,
+            );
             return (
               <FancyListItemCard
                 onPress={() => openMusica(item.id)}
@@ -217,13 +221,14 @@ export default function MinisterioLouvorRepertorioIndexPage() {
                 meta={
                   hasBadges ? (
                     <View style={styles.musicBadgesRow}>
-                      {item.categoria?.nome ? (
+                      {(item.etiquetas ?? []).map((etiqueta) => (
                         <MusicBadge
-                          label={item.categoria.nome}
-                          color={palette.primary}
+                          key={etiqueta.id}
+                          label={etiqueta.nome}
+                          color={etiqueta.cor}
                           icon='shape-outline'
                         />
-                      ) : null}
+                      ))}
                       {item.tomOriginal ? (
                         <MusicBadge
                           label={`TOM ${item.tomOriginal}`}
@@ -264,9 +269,9 @@ export default function MinisterioLouvorRepertorioIndexPage() {
         }
       />
       {canManageRepertorio ? (
-        <RepertorioCategoriasManagerSheet
-          visible={categoriasVisible}
-          onClose={() => setCategoriasVisible(false)}
+        <RepertorioEtiquetasManagerSheet
+          visible={etiquetasVisible}
+          onClose={() => setEtiquetasVisible(false)}
           ministerioId={ministerioId}
         />
       ) : null}

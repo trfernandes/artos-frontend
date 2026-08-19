@@ -2,12 +2,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { RepertorioRepository } from '../domain/services/RepertorioRepository';
 import { DynamicQuery } from '../domain/utils/query_utils';
-import { CreateRepertorioCategoriaDto } from '../domain/dtos/Repertorio/repertorio-categoria.create';
-import { UpdateRepertorioCategoriaDto } from '../domain/dtos/Repertorio/repertorio-categoria.update';
+import { CreateRepertorioEtiquetaDto } from '../domain/dtos/Repertorio/repertorio-etiqueta.create';
+import { UpdateRepertorioEtiquetaDto } from '../domain/dtos/Repertorio/repertorio-etiqueta.update';
 import { CreateRepertorioMusicaDto } from '../domain/dtos/Repertorio/repertorio-musica.create';
 import { UpdateRepertorioMusicaDto } from '../domain/dtos/Repertorio/repertorio-musica.update';
 
-export function useRepertorioCategorias(ministerioId?: string, query?: DynamicQuery) {
+export function useRepertorioEtiquetas(ministerioId?: string, query?: DynamicQuery) {
   const { igrejaAtiva } = useAuth();
   const queryClient = useQueryClient();
 
@@ -15,41 +15,41 @@ export function useRepertorioCategorias(ministerioId?: string, query?: DynamicQu
     throw new Error('Nenhuma igreja ativa selecionada');
   }
 
-  const queryKey = ['repertorio-categorias', igrejaAtiva.id, ministerioId, query];
+  const queryKey = ['repertorio-etiquetas', igrejaAtiva.id, ministerioId, query];
   const queryResult = useQuery({
     queryKey,
     enabled: !!ministerioId,
-    queryFn: () => RepertorioRepository.searchCategorias(igrejaAtiva.id, ministerioId!, query),
+    queryFn: () => RepertorioRepository.searchEtiquetas(igrejaAtiva.id, ministerioId!, query),
   });
 
   const invalidate = async () => {
     await queryClient.invalidateQueries({
-      queryKey: ['repertorio-categorias', igrejaAtiva.id, ministerioId],
+      queryKey: ['repertorio-etiquetas', igrejaAtiva.id, ministerioId],
     });
   };
 
   const createMutation = useMutation({
-    mutationFn: (dto: CreateRepertorioCategoriaDto) =>
-      RepertorioRepository.createCategoria(igrejaAtiva.id, ministerioId!, dto),
+    mutationFn: (dto: CreateRepertorioEtiquetaDto) =>
+      RepertorioRepository.createEtiqueta(igrejaAtiva.id, ministerioId!, dto),
     onSuccess: invalidate,
   });
   const updateMutation = useMutation({
-    mutationFn: ({ id, dto }: { id: string; dto: UpdateRepertorioCategoriaDto }) =>
-      RepertorioRepository.updateCategoria(igrejaAtiva.id, ministerioId!, id, dto),
+    mutationFn: ({ id, dto }: { id: string; dto: UpdateRepertorioEtiquetaDto }) =>
+      RepertorioRepository.updateEtiqueta(igrejaAtiva.id, ministerioId!, id, dto),
     onSuccess: invalidate,
   });
   const deleteMutation = useMutation({
     mutationFn: (id: string) =>
-      RepertorioRepository.removeCategoria(igrejaAtiva.id, ministerioId!, id),
+      RepertorioRepository.removeEtiqueta(igrejaAtiva.id, ministerioId!, id),
     onSuccess: invalidate,
   });
 
   return {
     ...queryResult,
-    criarCategoria: createMutation.mutateAsync,
-    atualizarCategoria: updateMutation.mutateAsync,
-    removerCategoria: deleteMutation.mutateAsync,
-    isMutatingCategoria:
+    criarEtiqueta: createMutation.mutateAsync,
+    atualizarEtiqueta: updateMutation.mutateAsync,
+    removerEtiqueta: deleteMutation.mutateAsync,
+    isMutatingEtiqueta:
       createMutation.isPending || updateMutation.isPending || deleteMutation.isPending,
   };
 }

@@ -4,7 +4,7 @@ export type GetMusicasTocadasRelatorioParams = {
   ministerioId: string;
   dataInicio?: string;
   dataFim?: string;
-  categoriaId?: string;
+  etiquetaIds?: string[];
   eventoId?: string;
   dataOcorrencia?: string;
 };
@@ -20,8 +20,8 @@ export type ResponseMusicaTocadaDto = {
   repertorioMusicaId: string | null;
   nome: string;
   interprete: string | null;
-  categoriaId: string | null;
-  categoriaNome: string | null;
+  etiquetaIds: string[];
+  etiquetaNomes: string[];
   totalExecucoes: number;
   ultimaExecucaoEm: string | null;
   execucoes: ResponseMusicaTocadaExecucaoDto[];

@@ -1,5 +1,5 @@
 export type UpdateRepertorioMusicaDto = Partial<{
-  categoriaId: string;
+  etiquetaIds: string[];
   nome: string;
   interprete: string;
   versaoUrl: string;

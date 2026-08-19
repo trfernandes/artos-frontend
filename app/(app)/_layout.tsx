@@ -18,7 +18,7 @@ export default function RootLayout() {
 
   if (!user) {
     // Durante o logout, user/igrejaAtiva já zeraram mas a navegação ainda
-    // não saiu — não renderiza o Stack (evita hooks tipo useRepertorioCategorias
+    // não saiu — não renderiza o Stack (evita hooks tipo useRepertorioEtiquetas
     // lançarem "Nenhuma igreja ativa selecionada" nesse intervalo).
     if (isSigningOut) return null;
     return <Redirect href='/(auth)/login' />;

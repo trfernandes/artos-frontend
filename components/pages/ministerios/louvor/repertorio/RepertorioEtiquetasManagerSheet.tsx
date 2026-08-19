@@ -7,13 +7,31 @@ import FancyText from '../../../../FancyText';
 import FancyContainer from '../../../../FancyContainer';
 import FancyBaseCard from '../../../../cards/Horizontal/FancyBaseCard';
 import { FancyActionButtons } from '../../../../cards/Horizontal/FancyCardActionButtons';
-import DefaultIcons from '../../../../FancyIcons';
-import { useRepertorioCategorias } from '../../../../../hooks/useRepertorio';
+import FancyColorPicker from '../../../../FancyColorPicker';
+import { useRepertorioEtiquetas } from '../../../../../hooks/useRepertorio';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import Toast from 'react-native-toast-message';
 import { getApiErrorMessage } from '../../../../../domain/api/api-error';
 import { usePallete } from '../../../../../hooks/usePallete';
 import FancyListEmpty from '../../../../list/FancyListEmpty';
+
+const CORES_PADRAO = [
+  '#FF8C00',
+  '#FFA726',
+  '#E57373',
+  '#EF5350',
+  '#81C784',
+  '#66BB6A',
+  '#64B5F6',
+  '#42A5F5',
+  '#F48FB1',
+  '#BA68C8',
+  '#9575CD',
+  '#7E57C2',
+  '#6B7280',
+  '#3B82F6',
+  '#10B981',
+];
 
 type Props = {
   visible: boolean;
@@ -21,45 +39,44 @@ type Props = {
   ministerioId?: string;
 };
 
-export default function RepertorioCategoriasManagerSheet({
-  visible,
-  onClose,
-  ministerioId,
-}: Props) {
+export default function RepertorioEtiquetasManagerSheet({ visible, onClose, ministerioId }: Props) {
   const palette = usePallete();
   const {
     data = [],
-    criarCategoria,
-    atualizarCategoria,
-    removerCategoria,
-    isMutatingCategoria,
-  } = useRepertorioCategorias(ministerioId);
+    criarEtiqueta,
+    atualizarEtiqueta,
+    removerEtiqueta,
+    isMutatingEtiqueta,
+  } = useRepertorioEtiquetas(ministerioId);
   const [nome, setNome] = useState('');
+  const [cor, setCor] = useState(CORES_PADRAO[0]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
+  const [editingCor, setEditingCor] = useState(CORES_PADRAO[0]);
 
-  const categoriasAtivas = useMemo(() => data.filter((item) => item.ativo !== false), [data]);
-  const canCreateCategoria = nome.trim().length > 0;
+  const etiquetasAtivas = useMemo(() => data.filter((item) => item.ativo !== false), [data]);
+  const canCreateEtiqueta = nome.trim().length > 0;
 
   useEffect(() => {
     if (!editingId) return;
-    const selected = categoriasAtivas.find((item) => item.id === editingId);
+    const selected = etiquetasAtivas.find((item) => item.id === editingId);
     if (!selected) {
       setEditingId(null);
       setEditingName('');
     }
-  }, [categoriasAtivas, editingId]);
+  }, [etiquetasAtivas, editingId]);
 
   const handleCreate = async () => {
     if (!nome.trim()) return;
     try {
-      await criarCategoria({ nome: nome.trim() });
+      await criarEtiqueta({ nome: nome.trim(), cor });
       setNome('');
+      setCor(CORES_PADRAO[0]);
     } catch (error) {
       Toast.show({
         type: 'error',
-        text1: 'Erro ao criar categoria',
-        text2: getApiErrorMessage(error, 'Não foi possível salvar a categoria.'),
+        text1: 'Erro ao criar etiqueta',
+        text2: getApiErrorMessage(error, 'Não foi possível salvar a etiqueta.'),
       });
     }
   };
@@ -67,23 +84,26 @@ export default function RepertorioCategoriasManagerSheet({
   const handleRename = async () => {
     if (!editingId || !editingName.trim()) return;
     try {
-      await atualizarCategoria({ id: editingId, dto: { nome: editingName.trim() } });
+      await atualizarEtiqueta({
+        id: editingId,
+        dto: { nome: editingName.trim(), cor: editingCor },
+      });
       setEditingId(null);
       setEditingName('');
     } catch (error) {
       Toast.show({
         type: 'error',
-        text1: 'Erro ao atualizar categoria',
-        text2: getApiErrorMessage(error, 'Não foi possível atualizar a categoria.'),
+        text1: 'Erro ao atualizar etiqueta',
+        text2: getApiErrorMessage(error, 'Não foi possível atualizar a etiqueta.'),
       });
     }
   };
 
   return (
-    <FancyBottomSheetModal visible={visible} onClose={onClose} title='Categorias do repertório'>
+    <FancyBottomSheetModal visible={visible} onClose={onClose} title='Etiquetas do repertório'>
       <View style={styles.sheetContent}>
         <FancyContainer
-          title='Nova categoria'
+          title='Nova etiqueta'
           icon={{
             library: 'MaterialCommunityIcons',
             name: 'tag-plus-outline',
@@ -94,7 +114,7 @@ export default function RepertorioCategoriasManagerSheet({
         >
           <View style={styles.composerBody}>
             <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
-              Crie grupos para organizar as músicas.
+              Crie etiquetas coloridas para organizar as músicas.
             </FancyText>
             <View style={styles.composerInputRow}>
               <FancyTextInput
@@ -118,13 +138,20 @@ export default function RepertorioCategoriasManagerSheet({
                   size: 24,
                   color: palette.fonts.light,
                 }}
-                isLoading={isMutatingCategoria}
+                isLoading={isMutatingEtiqueta}
                 onPress={() => void handleCreate()}
-                disabled={!canCreateCategoria}
-                accessibilityLabel='Adicionar categoria'
+                disabled={!canCreateEtiqueta}
+                accessibilityLabel='Adicionar etiqueta'
                 containerStyle={styles.composerAddButton}
               />
             </View>
+            <FancyColorPicker
+              value={cor}
+              colors={CORES_PADRAO}
+              circleSize={26}
+              horizontal
+              onSelectColor={setCor}
+            />
           </View>
         </FancyContainer>
 
@@ -132,7 +159,7 @@ export default function RepertorioCategoriasManagerSheet({
           title={
             <View style={styles.listHeader}>
               <FancyText size='medium' type='bold' style={styles.listHeaderTitle}>
-                Categorias cadastradas
+                Etiquetas cadastradas
               </FancyText>
               <FancyText
                 size='extraSmall'
@@ -140,21 +167,21 @@ export default function RepertorioCategoriasManagerSheet({
                 color={palette.fonts.inactive}
                 style={styles.listCount}
               >
-                {`${categoriasAtivas.length} ${categoriasAtivas.length === 1 ? 'item' : 'itens'}`}
+                {`${etiquetasAtivas.length} ${etiquetasAtivas.length === 1 ? 'item' : 'itens'}`}
               </FancyText>
             </View>
           }
         >
           <View style={styles.listBody}>
-            {categoriasAtivas.length === 0 ? (
+            {etiquetasAtivas.length === 0 ? (
               <FancyListEmpty
-                label='Nenhuma categoria cadastrada.'
-                helperText='Adicione a primeira categoria para começar a organizar o repertório.'
+                label='Nenhuma etiqueta cadastrada.'
+                helperText='Adicione a primeira etiqueta para começar a organizar o repertório.'
                 icon={{ library: 'MaterialCommunityIcons', name: 'shape-outline', size: 54 }}
               />
             ) : (
               <View style={styles.cardsList}>
-                {categoriasAtivas.map((item) => {
+                {etiquetasAtivas.map((item) => {
                   const isEditing = editingId === item.id;
 
                   return (
@@ -164,26 +191,24 @@ export default function RepertorioCategoriasManagerSheet({
                       contentContainerStyle={styles.categoryCardContent}
                       title={
                         isEditing ? (
-                          <View style={styles.editingInputWrap}>
+                          <View style={styles.editingBody}>
                             <FancyTextInput
                               label='Editar nome'
                               value={editingName}
                               containerStyle={styles.editingInput}
                               inputProps={{ onChangeText: setEditingName }}
                             />
+                            <FancyColorPicker
+                              value={editingCor}
+                              colors={CORES_PADRAO}
+                              circleSize={22}
+                              horizontal
+                              onSelectColor={setEditingCor}
+                            />
                           </View>
                         ) : (
                           <View style={styles.categoryTitleRow}>
-                            <View
-                              style={[styles.categoryIcon, { backgroundColor: palette.primary }]}
-                            >
-                              <DefaultIcons.Custom
-                                library='MaterialCommunityIcons'
-                                name='shape-outline'
-                                size={14}
-                                color={palette.fonts.light}
-                              />
-                            </View>
+                            <View style={[styles.categoryIcon, { backgroundColor: item.cor }]} />
                             <FancyText
                               size='small'
                               type='semiBold'
@@ -214,9 +239,9 @@ export default function RepertorioCategoriasManagerSheet({
                               mode='icon'
                               size={32}
                               icon={{ library: 'Feather', name: 'check', size: 16 }}
-                              isLoading={isMutatingCategoria}
+                              isLoading={isMutatingEtiqueta}
                               onPress={() => void handleRename()}
-                              accessibilityLabel='Salvar categoria'
+                              accessibilityLabel='Salvar etiqueta'
                             />
                           </View>
                         ) : (
@@ -229,6 +254,7 @@ export default function RepertorioCategoriasManagerSheet({
                                 onPress: () => {
                                   setEditingId(item.id);
                                   setEditingName(item.nome);
+                                  setEditingCor(item.cor);
                                 },
                               },
                               {
@@ -239,7 +265,7 @@ export default function RepertorioCategoriasManagerSheet({
                                   size: 15,
                                   backgroundColor: palette.error,
                                 },
-                                onPress: () => void removerCategoria(item.id),
+                                onPress: () => void removerEtiqueta(item.id),
                               },
                             ]}
                           />
@@ -324,11 +350,9 @@ const styles = StyleSheet.create({
     opacity: 0.82,
   },
   categoryIcon: {
-    width: 26,
-    height: 26,
+    width: 18,
+    height: 18,
     borderRadius: 999,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   cardActions: {
     flexDirection: 'row',
@@ -338,8 +362,9 @@ const styles = StyleSheet.create({
   categoryActionButtons: {
     marginRight: 0,
   },
-  editingInputWrap: {
+  editingBody: {
     flex: 1,
+    gap: 6,
   },
   editingInput: {
     width: '100%',

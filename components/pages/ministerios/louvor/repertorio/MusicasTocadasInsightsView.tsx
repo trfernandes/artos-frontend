@@ -21,7 +21,7 @@ import DashboardCard from '../../../inicio/DashboardCard';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { ColorUtils } from '../../../../../utils/color_utils';
 import { useMusicasTocadasRelatorio } from '../../../../../hooks/useMusicasTocadasRelatorio';
-import { useRepertorioCategorias } from '../../../../../hooks/useRepertorio';
+import { useRepertorioEtiquetas } from '../../../../../hooks/useRepertorio';
 import { ResponseMusicaTocadaDto } from '../../../../../domain/dtos/Evento/musicas-tocadas-relatorio.dto';
 
 const MAX_RANKING_ROWS = 12;
@@ -64,16 +64,22 @@ export default function MusicasTocadasInsightsView({
   const [preset, setPreset] = useState<PeriodoPreset>('90d');
   const [customRange, setCustomRange] = useState<{ dataInicio: Date; dataFim: Date } | null>(null);
   const [customVisible, setCustomVisible] = useState(false);
-  const [categoriaId, setCategoriaId] = useState<string | null>(null);
+  const [etiquetaIds, setEtiquetaIds] = useState<string[]>([]);
   const [ordenacao, setOrdenacao] = useState<Ordenacao>('mais');
   const [showAll, setShowAll] = useState(false);
   const [selectedMusica, setSelectedMusica] = useState<ResponseMusicaTocadaDto | null>(null);
 
-  const { data: categorias = [] } = useRepertorioCategorias(ministerioId);
-  const categoriasAtivas = useMemo(
-    () => categorias.filter((item) => item.ativo !== false),
-    [categorias],
+  const { data: etiquetas = [] } = useRepertorioEtiquetas(ministerioId);
+  const etiquetasAtivas = useMemo(
+    () => etiquetas.filter((item) => item.ativo !== false),
+    [etiquetas],
   );
+
+  const toggleEtiquetaId = (id: string) => {
+    setEtiquetaIds((prev) =>
+      prev.includes(id) ? prev.filter((existing) => existing !== id) : [...prev, id],
+    );
+  };
 
   const { control, handleSubmit, reset } = useForm({
     resolver: zodResolver(customPeriodoSchema),
@@ -93,7 +99,7 @@ export default function MusicasTocadasInsightsView({
 
   const relatorioQuery = useMusicasTocadasRelatorio({
     ministerioId,
-    categoriaId: categoriaId ?? undefined,
+    etiquetaIds: etiquetaIds.length > 0 ? etiquetaIds : undefined,
     dataInicio: periodo?.dataInicio.toISOString(),
     dataFim: periodo?.dataFim.toISOString(),
     eventoId,
@@ -179,21 +185,21 @@ export default function MusicasTocadasInsightsView({
           />
         </View>
 
-        {categoriasAtivas.length > 0 && (
+        {etiquetasAtivas.length > 0 && (
           <View style={styles.filterRow}>
             <FancyChips
-              label='Todas categorias'
+              label='Todas etiquetas'
               size='medium'
-              outlined={!!categoriaId}
-              onPress={() => setCategoriaId(null)}
+              outlined={etiquetaIds.length > 0}
+              onPress={() => setEtiquetaIds([])}
             />
-            {categoriasAtivas.map((item) => (
+            {etiquetasAtivas.map((item) => (
               <FancyChips
                 key={item.id}
                 label={item.nome}
                 size='medium'
-                outlined={categoriaId !== item.id}
-                onPress={() => setCategoriaId(categoriaId === item.id ? null : item.id)}
+                outlined={!etiquetaIds.includes(item.id)}
+                onPress={() => toggleEtiquetaId(item.id)}
               />
             ))}
           </View>
@@ -273,7 +279,7 @@ export default function MusicasTocadasInsightsView({
             {rankingVisivel.length === 0 ? (
               <FancyListEmpty
                 label='Nenhuma música no período'
-                helperText='Ajuste o período ou a categoria selecionada.'
+                helperText='Ajuste o período ou a etiqueta selecionada.'
                 icon={{ library: 'MaterialCommunityIcons', name: 'music-off', size: 56 }}
               />
             ) : (
@@ -296,7 +302,9 @@ export default function MusicasTocadasInsightsView({
                       ),
                     }}
                     title={musica.nome}
-                    subtitle={musica.interprete || musica.categoriaNome || 'Sem intérprete'}
+                    subtitle={
+                      musica.interprete || musica.etiquetaNomes?.join(', ') || 'Sem intérprete'
+                    }
                     meta={
                       <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
                         {musica.totalExecucoes === 0

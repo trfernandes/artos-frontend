@@ -2,7 +2,7 @@ import z from 'zod';
 
 export const RepertorioMusicaSchema = z.object({
   nome: z.string('Campo obrigatório').trim().min(1, 'Campo obrigatório'),
-  categoriaId: z.string('Campo obrigatório').min(1, 'Campo obrigatório'),
+  etiquetaIds: z.array(z.string()),
   interprete: z.string().optional(),
   versaoUrl: z.string().optional(),
   tomOriginal: z.string().optional(),

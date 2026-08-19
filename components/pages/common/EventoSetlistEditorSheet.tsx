@@ -144,7 +144,10 @@ export default function EventoSetlistEditorSheet({
             : 'nunca tocada';
         return {
           title: musica.nome,
-          subtitle: [musica.interprete || musica.categoria?.nome, statsLabel]
+          subtitle: [
+            musica.interprete || musica.etiquetas?.map((etiqueta) => etiqueta.nome).join(', '),
+            statsLabel,
+          ]
             .filter(Boolean)
             .join(' · '),
           value: musica.id,
