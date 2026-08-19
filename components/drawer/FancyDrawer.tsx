@@ -1,17 +1,34 @@
 import { DrawerContentComponentProps } from '@react-navigation/drawer';
 import { StyleSheet, View, ActivityIndicator, Linking, Platform } from 'react-native';
 import { useMemo, useCallback } from 'react';
+import Constants from 'expo-constants';
 import Toast from 'react-native-toast-message';
 import FancyDrawerHeader from './FancyDrawerHeader';
 import FancyDrawerItem from './FancyDrawerItem';
 import FancyDrawerSeparator from './FancyDrawerSeparator';
 import FancyScrollView from '../FancyScrollView';
+import FancyText from '../FancyText';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMinisteriosDrawer } from '../../hooks/useMinisteriosDrawer';
 import { getMenuForIgreja } from './MenuData';
 import { ThemePalette } from '../../constants/colors';
 import { usePallete } from '../../hooks/usePallete';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
+
+// Android não distingue "versão" de "build" como o iOS (buildNumber) — o
+// versionCode É o build, então Constants.nativeBuildVersion (nativo) ou o
+// expoConfig.android.versionCode (fallback em Expo Go/dev) já cobrem os dois.
+function getAppVersionLabel() {
+  const version = Constants.nativeAppVersion || Constants.expoConfig?.version || '?';
+  const build =
+    Constants.nativeBuildVersion ||
+    (Platform.OS === 'android'
+      ? Constants.expoConfig?.android?.versionCode
+      : Constants.expoConfig?.ios?.buildNumber) ||
+    '?';
+
+  return `Versão ${version} (build ${build})`;
+}
 
 export type FancyDrawerProps = {} & DrawerContentComponentProps;
 
@@ -45,6 +62,7 @@ export default function FancyDrawer(props: FancyDrawerProps) {
   }, [signOut]);
 
   const menuSections = useMemo(() => getMenuForIgreja(igrejaAtiva), [igrejaAtiva]);
+  const appVersionLabel = useMemo(() => getAppVersionLabel(), []);
 
   const sections = useMemo(() => {
     return menuSections.map((section, sectionIndex) => (
@@ -139,6 +157,12 @@ export default function FancyDrawer(props: FancyDrawerProps) {
             onPress={{ type: 'RunMethod', method: handleSignOut }}
             onNavigate={() => navigation.closeDrawer?.()}
           />
+
+          <View style={styles.versionContainer}>
+            <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+              {appVersionLabel}
+            </FancyText>
+          </View>
         </FancyScrollView>
       </View>
     </View>
@@ -152,6 +176,11 @@ function createStyles(palette: ThemePalette) {
       backgroundColor: palette.backgroundColor,
       paddingHorizontal: 3,
       borderRadius: 15,
+    },
+    versionContainer: {
+      alignItems: 'center',
+      paddingTop: 14,
+      paddingBottom: 6,
     },
   });
 }
