@@ -2,6 +2,7 @@ import { DrawerContentComponentProps } from '@react-navigation/drawer';
 import { StyleSheet, View, ActivityIndicator, Linking, Platform } from 'react-native';
 import { useMemo, useCallback } from 'react';
 import Constants from 'expo-constants';
+import * as Application from 'expo-application';
 import * as Updates from 'expo-updates';
 import Toast from 'react-native-toast-message';
 import FancyDrawerHeader from './FancyDrawerHeader';
@@ -16,13 +17,13 @@ import { ThemePalette } from '../../constants/colors';
 import { usePallete } from '../../hooks/usePallete';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
 
-// Android não distingue "versão" de "build" como o iOS (buildNumber) — o
-// versionCode É o build, então Constants.nativeBuildVersion (nativo) ou o
-// expoConfig.android.versionCode (fallback em Expo Go/dev) já cobrem os dois.
+// Constants.nativeBuildVersion não é confiável com appVersionSource "remote"
+// (fica preso no valor estático do app.json) — Application.nativeBuildVersion
+// lê o valor real do binário.
 function getAppVersionLabel() {
-  const version = Constants.nativeAppVersion || Constants.expoConfig?.version || '?';
+  const version = Application.nativeApplicationVersion || Constants.expoConfig?.version || '?';
   const build =
-    Constants.nativeBuildVersion ||
+    Application.nativeBuildVersion ||
     (Platform.OS === 'android'
       ? Constants.expoConfig?.android?.versionCode
       : Constants.expoConfig?.ios?.buildNumber) ||
