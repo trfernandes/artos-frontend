@@ -2,7 +2,7 @@
   "expo": {
     "name": "Diakonia",
     "slug": "artos_frontend",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "scheme": "diakonia",
     "platforms": ["ios", "android"],
     "orientation": "portrait",
@@ -102,7 +102,10 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/8de609c4-80b9-4a57-9d70-b8c16383e892"
+      "url": "https://u.expo.dev/8de609c4-80b9-4a57-9d70-b8c16383e892",
+      "requestHeaders": {
+        "expo-channel-name": "production"
+      }
     }
   }
 }

@@ -588,12 +588,12 @@ export default function MinhasEscalasIndexPage() {
             )}
           />
         )}
-        {substituicaoPageParams?.visible && (
+        {substituicaoPageParams?.dadosEscala && (
           <SubstituicaoModalPage
-            dadosEscala={substituicaoPageParams.dadosEscala!}
-            onButton1Press={() => setSubstituicaoPageParams({ visible: false })}
-            onButton2Press={(data) =>
-              data &&
+            visible={!!substituicaoPageParams.visible}
+            dadosEscala={substituicaoPageParams.dadosEscala}
+            onClose={() => setSubstituicaoPageParams({ visible: false })}
+            onConfirm={(data) =>
               handleConfirmSubstituicao(
                 data.escalaItemId,
                 data.solicitanteId,
@@ -607,6 +607,7 @@ export default function MinhasEscalasIndexPage() {
           <EventoDetails
             eventoId={eventoPageParams.data!.eventoId}
             data={eventoPageParams.data!.data}
+            modalProps={{ visible: true }}
             onButton1Press={() => setEventoPageParams({ visible: false })}
             onButton2Press={() => setEventoPageParams({ visible: false })}
           />

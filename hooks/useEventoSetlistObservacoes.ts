@@ -11,13 +11,9 @@ export function useEventoSetlistObservacoes(
   const { igrejaAtiva } = useAuth();
   const queryClient = useQueryClient();
 
-  if (!igrejaAtiva) {
-    throw new Error('Nenhuma igreja ativa selecionada');
-  }
-
   const queryKey = [
     'evento-setlist-observacoes',
-    igrejaAtiva.id,
+    igrejaAtiva?.id,
     eventoId,
     ministerioId,
     dataOcorrencia,
@@ -25,10 +21,10 @@ export function useEventoSetlistObservacoes(
 
   const query = useQuery({
     queryKey,
-    enabled: !!eventoId && !!ministerioId && !!dataOcorrencia,
+    enabled: !!igrejaAtiva && !!eventoId && !!ministerioId && !!dataOcorrencia,
     queryFn: () =>
       IgrejaEventosRepository.obterObservacoesSetlist(
-        igrejaAtiva.id,
+        igrejaAtiva!.id,
         eventoId!,
         ministerioId!,
         dataOcorrencia!,
@@ -41,7 +37,7 @@ export function useEventoSetlistObservacoes(
 
   const mutation = useMutation({
     mutationFn: (dto: UpsertEventoSetlistObservacoesDto) =>
-      IgrejaEventosRepository.salvarObservacoesSetlist(igrejaAtiva.id, eventoId!, dto),
+      IgrejaEventosRepository.salvarObservacoesSetlist(igrejaAtiva!.id, eventoId!, dto),
     onSuccess: invalidate,
   });
 

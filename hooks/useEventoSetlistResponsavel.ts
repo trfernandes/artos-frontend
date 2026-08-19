@@ -10,10 +10,6 @@ export function useEventoSetlistResponsavel() {
   const { igrejaAtiva } = useAuth();
   const queryClient = useQueryClient();
 
-  if (!igrejaAtiva) {
-    throw new Error('Nenhuma igreja ativa selecionada');
-  }
-
   const mutation = useMutation({
     mutationFn: ({
       eventoId,
@@ -21,7 +17,7 @@ export function useEventoSetlistResponsavel() {
     }: {
       eventoId: string;
       data: UpdateEventoSetlistResponsavelDto;
-    }) => IgrejaEventosRepository.atualizarResponsavelSetlist(igrejaAtiva.id, eventoId, data),
+    }) => IgrejaEventosRepository.atualizarResponsavelSetlist(igrejaAtiva!.id, eventoId, data),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['eventos'] });
     },
@@ -34,7 +30,7 @@ export function useEventoSetlistResponsavel() {
     }: {
       eventoId: string;
       params: RemoveEventoSetlistResponsavelDto;
-    }) => IgrejaEventosRepository.removerResponsavelSetlist(igrejaAtiva.id, eventoId, params),
+    }) => IgrejaEventosRepository.removerResponsavelSetlist(igrejaAtiva!.id, eventoId, params),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['eventos'] });
     },

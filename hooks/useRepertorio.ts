@@ -11,36 +11,32 @@ export function useRepertorioEtiquetas(ministerioId?: string, query?: DynamicQue
   const { igrejaAtiva } = useAuth();
   const queryClient = useQueryClient();
 
-  if (!igrejaAtiva) {
-    throw new Error('Nenhuma igreja ativa selecionada');
-  }
-
-  const queryKey = ['repertorio-etiquetas', igrejaAtiva.id, ministerioId, query];
+  const queryKey = ['repertorio-etiquetas', igrejaAtiva?.id, ministerioId, query];
   const queryResult = useQuery({
     queryKey,
-    enabled: !!ministerioId,
-    queryFn: () => RepertorioRepository.searchEtiquetas(igrejaAtiva.id, ministerioId!, query),
+    enabled: !!igrejaAtiva && !!ministerioId,
+    queryFn: () => RepertorioRepository.searchEtiquetas(igrejaAtiva!.id, ministerioId!, query),
   });
 
   const invalidate = async () => {
     await queryClient.invalidateQueries({
-      queryKey: ['repertorio-etiquetas', igrejaAtiva.id, ministerioId],
+      queryKey: ['repertorio-etiquetas', igrejaAtiva?.id, ministerioId],
     });
   };
 
   const createMutation = useMutation({
     mutationFn: (dto: CreateRepertorioEtiquetaDto) =>
-      RepertorioRepository.createEtiqueta(igrejaAtiva.id, ministerioId!, dto),
+      RepertorioRepository.createEtiqueta(igrejaAtiva!.id, ministerioId!, dto),
     onSuccess: invalidate,
   });
   const updateMutation = useMutation({
     mutationFn: ({ id, dto }: { id: string; dto: UpdateRepertorioEtiquetaDto }) =>
-      RepertorioRepository.updateEtiqueta(igrejaAtiva.id, ministerioId!, id, dto),
+      RepertorioRepository.updateEtiqueta(igrejaAtiva!.id, ministerioId!, id, dto),
     onSuccess: invalidate,
   });
   const deleteMutation = useMutation({
     mutationFn: (id: string) =>
-      RepertorioRepository.removeEtiqueta(igrejaAtiva.id, ministerioId!, id),
+      RepertorioRepository.removeEtiqueta(igrejaAtiva!.id, ministerioId!, id),
     onSuccess: invalidate,
   });
 
@@ -58,36 +54,32 @@ export function useRepertorioMusicas(ministerioId?: string, query?: DynamicQuery
   const { igrejaAtiva } = useAuth();
   const queryClient = useQueryClient();
 
-  if (!igrejaAtiva) {
-    throw new Error('Nenhuma igreja ativa selecionada');
-  }
-
-  const queryKey = ['repertorio-musicas', igrejaAtiva.id, ministerioId, query];
+  const queryKey = ['repertorio-musicas', igrejaAtiva?.id, ministerioId, query];
   const queryResult = useQuery({
     queryKey,
-    enabled: !!ministerioId,
-    queryFn: () => RepertorioRepository.searchMusicas(igrejaAtiva.id, ministerioId!, query),
+    enabled: !!igrejaAtiva && !!ministerioId,
+    queryFn: () => RepertorioRepository.searchMusicas(igrejaAtiva!.id, ministerioId!, query),
   });
 
   const invalidate = async () => {
     await queryClient.invalidateQueries({
-      queryKey: ['repertorio-musicas', igrejaAtiva.id, ministerioId],
+      queryKey: ['repertorio-musicas', igrejaAtiva?.id, ministerioId],
     });
   };
 
   const createMutation = useMutation({
     mutationFn: (dto: CreateRepertorioMusicaDto) =>
-      RepertorioRepository.createMusica(igrejaAtiva.id, ministerioId!, dto),
+      RepertorioRepository.createMusica(igrejaAtiva!.id, ministerioId!, dto),
     onSuccess: invalidate,
   });
   const updateMutation = useMutation({
     mutationFn: ({ id, dto }: { id: string; dto: UpdateRepertorioMusicaDto }) =>
-      RepertorioRepository.updateMusica(igrejaAtiva.id, ministerioId!, id, dto),
+      RepertorioRepository.updateMusica(igrejaAtiva!.id, ministerioId!, id, dto),
     onSuccess: invalidate,
   });
   const deleteMutation = useMutation({
     mutationFn: (id: string) =>
-      RepertorioRepository.removeMusica(igrejaAtiva.id, ministerioId!, id),
+      RepertorioRepository.removeMusica(igrejaAtiva!.id, ministerioId!, id),
     onSuccess: invalidate,
   });
 
@@ -104,16 +96,12 @@ export function useRepertorioMusicas(ministerioId?: string, query?: DynamicQuery
 export function useYoutubeVersionSearch(query?: string, enabled = true, limit = 6) {
   const { igrejaAtiva } = useAuth();
 
-  if (!igrejaAtiva) {
-    throw new Error('Nenhuma igreja ativa selecionada');
-  }
-
   const normalizedQuery = query?.trim() ?? '';
 
   return useQuery({
-    queryKey: ['youtube-version-search', igrejaAtiva.id, normalizedQuery, limit],
-    enabled: enabled && normalizedQuery.length >= 2,
+    queryKey: ['youtube-version-search', igrejaAtiva?.id, normalizedQuery, limit],
+    enabled: !!igrejaAtiva && enabled && normalizedQuery.length >= 2,
     queryFn: () =>
-      RepertorioRepository.searchYoutubeVersions(igrejaAtiva.id, normalizedQuery, limit),
+      RepertorioRepository.searchYoutubeVersions(igrejaAtiva!.id, normalizedQuery, limit),
   });
 }

@@ -9,19 +9,16 @@ export function useIgrejaVoluntariosCrud({
 }: ExternalUseCrudParams = {}) {
   const { igrejaAtiva } = useAuth();
 
-  if (!igrejaAtiva) {
-    throw new Error('Nenhuma igreja ativa selecionada');
-  }
-
   return useCrud<ResponseVoluntarioIgrejaDto, any, any, any>({
     queryKey: 'igreja-voluntarios',
     autoFetch,
     initialParams,
-    fetchAll: () => IgrejaRepository.listarVoluntarios(igrejaAtiva.id),
-    search: (query) => IgrejaRepository.listarVoluntarios(igrejaAtiva.id, query),
+    enabled: !!igrejaAtiva,
+    fetchAll: () => IgrejaRepository.listarVoluntarios(igrejaAtiva!.id),
+    search: (query) => IgrejaRepository.listarVoluntarios(igrejaAtiva!.id, query),
     fetchOne: undefined,
     remove: (voluntarioId: string) =>
-      IgrejaRepository.removerVoluntario(igrejaAtiva.id, voluntarioId),
+      IgrejaRepository.removerVoluntario(igrejaAtiva!.id, voluntarioId),
     messages: {
       successDelete: 'Voluntário excluído com sucesso!',
       errorDelete: 'Erro ao excluir voluntário.',

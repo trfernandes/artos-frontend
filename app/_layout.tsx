@@ -28,6 +28,7 @@ import * as Updates from 'expo-updates';
 import { ConnectivityProvider } from '../core/network/connectivity/ConnectivityProvider';
 import { createQueryClient } from '../core/react-query/queryClient';
 import { ConnectivityBanner } from '../components/FancyConnectivityBanner';
+import { SlowRequestBanner } from '../components/FancySlowRequestBanner';
 import FancyLoading from '../components/FancyLoading';
 import {
   initialWindowMetrics,
@@ -355,8 +356,11 @@ function RootLayoutNav({
         <FancyAlertConnector />
         <ConnectivityBanner />
         <GlobalModalHost />
+        <SlowRequestBanner />
         <Modal visible={isSigningOut} transparent animationType='fade'>
-          <View style={[styles.signOutOverlay, { backgroundColor: palette.overlays.strongBackdrop }]}>
+          <View
+            style={[styles.signOutOverlay, { backgroundColor: palette.overlays.strongBackdrop }]}
+          >
             <View
               style={[
                 styles.signOutSurface,

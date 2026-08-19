@@ -20,13 +20,9 @@ export function useEventoOcorrenciaDados() {
   const { igrejaAtiva } = useAuth();
   const queryClient = useQueryClient();
 
-  if (!igrejaAtiva) {
-    throw new Error('Nenhuma igreja ativa selecionada');
-  }
-
   const mutation = useMutation({
     mutationFn: ({ eventoId, data }: SaveEventoOcorrenciaDadosParams) =>
-      IgrejaEventosRepository.atualizarDadosOcorrencia(igrejaAtiva.id, eventoId, data),
+      IgrejaEventosRepository.atualizarDadosOcorrencia(igrejaAtiva!.id, eventoId, data),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['eventos'] });
     },
@@ -34,7 +30,7 @@ export function useEventoOcorrenciaDados() {
 
   const removeMutation = useMutation({
     mutationFn: ({ eventoId, params }: RemoveEventoOcorrenciaDadosParams) =>
-      IgrejaEventosRepository.removerDadosOcorrencia(igrejaAtiva.id, eventoId, params),
+      IgrejaEventosRepository.removerDadosOcorrencia(igrejaAtiva!.id, eventoId, params),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['eventos'] });
     },

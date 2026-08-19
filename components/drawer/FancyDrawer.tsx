@@ -1,17 +1,46 @@
 import { DrawerContentComponentProps } from '@react-navigation/drawer';
 import { StyleSheet, View, ActivityIndicator, Linking, Platform } from 'react-native';
 import { useMemo, useCallback } from 'react';
+import Constants from 'expo-constants';
+import * as Application from 'expo-application';
+import * as Updates from 'expo-updates';
 import Toast from 'react-native-toast-message';
 import FancyDrawerHeader from './FancyDrawerHeader';
 import FancyDrawerItem from './FancyDrawerItem';
 import FancyDrawerSeparator from './FancyDrawerSeparator';
 import FancyScrollView from '../FancyScrollView';
+import FancyText from '../FancyText';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMinisteriosDrawer } from '../../hooks/useMinisteriosDrawer';
 import { getMenuForIgreja } from './MenuData';
 import { ThemePalette } from '../../constants/colors';
 import { usePallete } from '../../hooks/usePallete';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
+
+// Constants.nativeBuildVersion não é confiável com appVersionSource "remote"
+// (fica preso no valor estático do app.json) — Application.nativeBuildVersion
+// lê o valor real do binário.
+function getAppVersionLabel() {
+  const version = Application.nativeApplicationVersion || Constants.expoConfig?.version || '?';
+  const build =
+    Application.nativeBuildVersion ||
+    (Platform.OS === 'android'
+      ? Constants.expoConfig?.android?.versionCode
+      : Constants.expoConfig?.ios?.buildNumber) ||
+    '?';
+
+  return `Versão ${version} (build ${build})`;
+}
+
+// Só exibe pra quem não está na build de produção (dev/preview/Expo Go) —
+// o updateId muda a cada `eas update` publicado, útil pra confirmar que o
+// OTA aplicou, mas é técnico demais pro usuário final ver sempre.
+function getUpdateLabel() {
+  if (Updates.channel === 'production') return null;
+
+  const shortId = Updates.updateId ? Updates.updateId.slice(0, 8) : 'embutida';
+  return `Atualização: ${shortId}`;
+}
 
 export type FancyDrawerProps = {} & DrawerContentComponentProps;
 
@@ -45,6 +74,8 @@ export default function FancyDrawer(props: FancyDrawerProps) {
   }, [signOut]);
 
   const menuSections = useMemo(() => getMenuForIgreja(igrejaAtiva), [igrejaAtiva]);
+  const appVersionLabel = useMemo(() => getAppVersionLabel(), []);
+  const updateLabel = useMemo(() => getUpdateLabel(), []);
 
   const sections = useMemo(() => {
     return menuSections.map((section, sectionIndex) => (
@@ -139,6 +170,17 @@ export default function FancyDrawer(props: FancyDrawerProps) {
             onPress={{ type: 'RunMethod', method: handleSignOut }}
             onNavigate={() => navigation.closeDrawer?.()}
           />
+
+          <View style={styles.versionContainer}>
+            <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+              {appVersionLabel}
+            </FancyText>
+            {updateLabel && (
+              <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                {updateLabel}
+              </FancyText>
+            )}
+          </View>
         </FancyScrollView>
       </View>
     </View>
@@ -152,6 +194,12 @@ function createStyles(palette: ThemePalette) {
       backgroundColor: palette.backgroundColor,
       paddingHorizontal: 3,
       borderRadius: 15,
+    },
+    versionContainer: {
+      alignItems: 'center',
+      gap: 2,
+      paddingTop: 14,
+      paddingBottom: 6,
     },
   });
 }

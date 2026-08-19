@@ -134,7 +134,7 @@ export default function EventoAccordeon({
           pathname: '/pessoal/escalas/evento',
           params: {
             evento: JSON.stringify(data.evento),
-            dataOcorrencia: data.dataOcorrencia.toISOString(),
+            dataOcorrencia: data.itens[0]?.dataOcorrencia ?? data.dataOcorrencia.toISOString(),
             horarioEnsaio: data.horarioEnsaio ?? '',
             ministerioNome: data.ministerio?.nome ?? '',
             ministerioId: data.ministerio?.id ?? '',

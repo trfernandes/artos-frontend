@@ -25,6 +25,7 @@ export function useRegrasIndisponibilidadeVoluntariosCrud({
     autoFetch,
     initialParams,
     muteMessages,
+    enabled: !!igrejaId,
     fetchAll: () => RegrasIndisponibilidadeVoluntariosRepository.getAll(),
     search: (query) =>
       RegrasIndisponibilidadeVoluntariosRepository.search(

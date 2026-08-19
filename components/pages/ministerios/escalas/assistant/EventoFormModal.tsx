@@ -206,33 +206,20 @@ export default function EventoFormModal({
     const previousTemplateBaseId = prevTemplateBaseIdRef.current || '';
     const nextTemplateBaseId = newTemplateBaseId || '';
 
-    console.log(
-      `[DEBUG-tplsw] handleTemplateBaseChange prev="${previousTemplateBaseId}" next="${nextTemplateBaseId}"`,
-    );
-
     if (previousTemplateBaseId === nextTemplateBaseId) {
-      console.log('[DEBUG-tplsw] guard bail: prev === next, nada agendado');
       return;
     }
 
     pendingTemplateChangeRef.current = nextTemplateBaseId;
-    console.log(`[DEBUG-tplsw] pendingTemplateChangeRef setado para "${nextTemplateBaseId}"`);
   }, []);
 
   const handleTemplateSelectClosed = useCallback(() => {
-    console.log(
-      `[DEBUG-tplsw] handleTemplateSelectClosed chamado, pending="${pendingTemplateChangeRef.current}"`,
-    );
     const nextTemplateBaseId = pendingTemplateChangeRef.current;
-    if (nextTemplateBaseId === null) {
-      console.log('[DEBUG-tplsw] pending null, saindo sem abrir alerta');
-      return;
-    }
+    if (nextTemplateBaseId === null) return;
     pendingTemplateChangeRef.current = null;
 
     const previousTemplateBaseId = prevTemplateBaseIdRef.current || '';
 
-    console.log('[DEBUG-tplsw] chamando FancyAlert.alert agora');
     FancyAlert.alert(
       'Edição',
       'A mudança de template base vai acarretar a perda dos dados inseridos, realmente deseja prosseguir?',

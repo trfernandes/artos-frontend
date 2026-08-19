@@ -23,6 +23,7 @@ export interface ExternalUseCrudParams {
   initialParams?: DynamicQuery | string | null;
   messages?: CrudFormMessages;
   muteMessages?: boolean;
+  enabled?: boolean;
 }
 
 export interface UseCrudOptions<
@@ -72,6 +73,7 @@ export function useCrud<
   messages,
   autoFetch = false,
   initialParams,
+  enabled = true,
   toCreateDto,
   toUpdateDto,
 }: UseCrudOptions<TResponse, TForm, TCreate, TUpdate> & ExternalUseCrudParams) {
@@ -165,7 +167,7 @@ export function useCrud<
       if (searchParams && search) return await search(searchParams);
       return await fetchAll();
     },
-    enabled: hasBootstrappedInitialParams && (autoFetch || searchParams !== null),
+    enabled: enabled && hasBootstrappedInitialParams && (autoFetch || searchParams !== null),
   });
 
   const hasReceivedData = dataQuery.data !== undefined;

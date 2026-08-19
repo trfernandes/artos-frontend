@@ -5,16 +5,12 @@ import { IgrejaEventosRepository } from '../domain/services/IgrejaEventosReposit
 export function useEventoEquipe(eventoId?: string, dataOcorrencia?: string, ministerioId?: string) {
   const { igrejaAtiva } = useAuth();
 
-  if (!igrejaAtiva) {
-    throw new Error('Nenhuma igreja ativa selecionada');
-  }
-
   return useQuery({
-    queryKey: ['evento-equipe', igrejaAtiva.id, eventoId, ministerioId, dataOcorrencia],
-    enabled: !!eventoId && !!ministerioId && !!dataOcorrencia,
+    queryKey: ['evento-equipe', igrejaAtiva?.id, eventoId, ministerioId, dataOcorrencia],
+    enabled: !!igrejaAtiva && !!eventoId && !!ministerioId && !!dataOcorrencia,
     queryFn: () =>
       IgrejaEventosRepository.listarEquipe(
-        igrejaAtiva.id,
+        igrejaAtiva!.id,
         eventoId!,
         ministerioId!,
         dataOcorrencia!,

@@ -20,13 +20,9 @@ export function useEventoTemplatePadrao() {
   const { igrejaAtiva } = useAuth();
   const queryClient = useQueryClient();
 
-  if (!igrejaAtiva) {
-    throw new Error('Nenhuma igreja ativa selecionada');
-  }
-
   const mutation = useMutation({
     mutationFn: ({ eventoId, data }: SaveEventoTemplatePadraoParams) =>
-      IgrejaEventosRepository.atualizarTemplatePadrao(igrejaAtiva.id, eventoId, data),
+      IgrejaEventosRepository.atualizarTemplatePadrao(igrejaAtiva!.id, eventoId, data),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['eventos'] });
     },
@@ -34,7 +30,7 @@ export function useEventoTemplatePadrao() {
 
   const removeMutation = useMutation({
     mutationFn: ({ eventoId, params }: RemoveEventoTemplatePadraoParams) =>
-      IgrejaEventosRepository.removerTemplatePadrao(igrejaAtiva.id, eventoId, params),
+      IgrejaEventosRepository.removerTemplatePadrao(igrejaAtiva!.id, eventoId, params),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['eventos'] });
     },
