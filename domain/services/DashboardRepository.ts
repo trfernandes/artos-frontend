@@ -26,6 +26,7 @@ import {
   ValueType,
 } from '../utils/query_utils';
 import { getOccurrenceDateTimeIso } from '../../utils/evento-datetime';
+import { getAppDateOnlyKey } from '../../utils/date_utils';
 
 export interface GetDashboardParams {
   igrejaId: string;
@@ -65,13 +66,9 @@ function isLeaderRole(role?: string): boolean {
   return role === IgrejaVoluntarioRoleEnum.LIDER;
 }
 
-function toIsoSafe(dateValue: string): string {
-  const date = new Date(dateValue);
-  return Number.isNaN(date.getTime()) ? dateValue : date.toISOString();
-}
-
 function toOccurrenceKey(eventoId?: string, dataOcorrencia?: string): string {
-  return `${eventoId || 'sem-evento'}::${toIsoSafe(dataOcorrencia || '')}`;
+  const dayKey = getAppDateOnlyKey(dataOcorrencia) ?? dataOcorrencia ?? '';
+  return `${eventoId || 'sem-evento'}::${dayKey}`;
 }
 
 function toDateOrNull(value?: string): Date | null {
