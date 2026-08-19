@@ -2,6 +2,8 @@
 
 Consolidado 2026-08-17 (base: handoff 2026-08-12, arquivado em `docs/plans/archive/`). Fonte: `docs/plans/archive/2026-08-08-*.md` + `docs/plans/archive/2026-08-09-versao-unificada.md` + `docs/adr/0001-0004.md`. Domínio completo em `CONTEXT.md` (raiz do repo).
 
+Revisado em grilling 2026-08-19 (furos + decisões abaixo, ver seção "Revisão 2026-08-19" ao final).
+
 **Princípio geral**: em toda fase com tela nova/alterada, design de tela primeiro, implementação depois. Não começar código de UI antes do design estar fechado (mesmo padrão já seguido em Substituição/Troca e Sobrecarga, ver seções "Design" abaixo — aplicar também nas fases que ainda não têm design fechado: Checklist, Painel Admin, Analytics).
 
 Projeto: Diakonia. Frontend `artos_frontend/` (Expo/React Native). Backend `backend/` (NestJS). Repos git separados.
@@ -10,12 +12,14 @@ Projeto: Diakonia. Frontend `artos_frontend/` (Expo/React Native). Backend `back
 
 ## Ordem de implementação recomendada (ver plano unificado completo)
 
-1. **Fase 1 — Checklist Configuração Escala** (backend). Menor risco, extrai regra de elegibilidade compartilhada (`EscalaElegibilidadeService`, ainda não existe — decisão implícita do plano unificado).
+1. **Fase 1 — Checklist Configuração Escala** (backend). ✅ Backend implementado (`EscalaElegibilidadeService`, `EscalaChecklistService`, `EscalaPreCheckagemService` — ver seção 1). Falta design + frontend, ver seção 4.
 2. **Fase 2 — Substituição + Troca** (backend). Reusa `EscalaElegibilidadeService` da Fase 1.
 3. **Fase 3 — Sobrecarga de Voluntário / "Saúde"** (backend). Depois da Fase 2 pra não conflitar no mesmo enum de notificação e no gatilho de `EscalaItemEntity`.
 4. **Fase 4 — Frontend mobile**, consolidado, só depois das 3 fases de backend fechadas.
 5. **Fase 5 — Painel Admin da Plataforma**. Sem overlap, pode rodar em paralelo/qualquer momento. Único ponto de atenção: mexe em `auth/` (checagem de Igreja suspensa).
 6. **Fase 6 — Analytics**. Depois de todas as outras (última prioridade). Design de telas das fases 1-5 continua/fecha antes da implementação de analytics começar — instalar analytics faz mais sentido com as telas novas já definidas, evita re-instrumentar depois.
+
+**Decisão do grilling 2026-08-19**: design de tela do Checklist (Fase 1) e do Painel Admin (Fase 5) roda **agora**, antes de seguir pra Fase 2 backend — ambas ainda não tinham sessão de design (diferente de Substituição/Troca e Sobrecarga, que já têm), furo achado na revisão do plano.
 
 Pontos de junção reais entre os planos (por isso a ordem, não "qualquer ordem"):
 - `PossuiFuncaoRule` + `DisponibilidadeRule` (`backend/src/escalas/services/generator/rules/`) usadas por 3 features: gerador (já existe), pré-checagem Checklist, candidatos-elegíveis Substituição.
@@ -26,6 +30,8 @@ Pontos de junção reais entre os planos (por isso a ordem, não "qualquer ordem
 
 ## 1. Checklist de Configuração de Escala
 
+**Status (2026-08-19): backend implementado e mergeado na branch de trabalho.** Falta design + frontend (ver seção 4).
+
 ADR: `docs/adr/0003-checklist-nao-bloqueia-geracao.md` — **avisa, não bloqueia**. Vaga sem candidato elegível já é comportamento intencional do gerador hoje (permite atribuição manual pelo líder depois).
 
 ### Estado atual observado
@@ -34,12 +40,12 @@ ADR: `docs/adr/0003-checklist-nao-bloqueia-geracao.md` — **avisa, não bloquei
 - `voluntarioId: null` silencioso quando não há candidato elegível (`escala-generator.ts:199-214`, comentário confirma intencional).
 - Nenhum onboarding/checklist/wizard existe hoje.
 
-### Backend
-- `GET /ministerios/:id/checklist-escala` — `temFuncoes`, `temVoluntariosVinculados`, `temVoluntariosComFuncao`. Calculado ao vivo, sem persistir.
-- `GET /igrejas/:id/checklist-escala` — agrega todos os Ministérios + `temEventos`. Gate: só `FULL_PERMISSION_SET` (Admin), reusar `MinisterioAcessosService`.
-- `POST /escalas/pre-checagem` — recebe formato parecido `CreateEscalaDto`, reusa `EscalaContext.loadContext()` + regras de elegibilidade (só a fase de elegibilidade, não gera de fato). Retorna por Evento/Função: `{ funcaoId, funcaoNome, eventoId, data, candidatosElegiveis }`.
-- Catálogo de Funções sugeridas: constante fixa (vocal, guitarra, baixo, bateria, teclado, mídia, infantil, recepção etc, baseado em `ministerio-funcoes.seeder.ts` de dev) — decidir backend vs frontend na hora.
-- **Extrair `EscalaElegibilidadeService`** nesta fase (decisão do plano unificado, não estava nos originais) — vai ser reusado pela Fase 2.
+### Backend (implementado 2026-08-19)
+- `GET /ministerios/:id/checklist-escala` — `temFuncoes`, `temVoluntariosVinculados`, `temVoluntariosComFuncao`. Calculado ao vivo, sem persistir. Gate: quem tem permissão `Escalas:Gerar` no ministério.
+- `GET /igrejas/:id/checklist-escala` — agrega todos os Ministérios + `temEventos`. Gate: só Admin da igreja.
+- `POST /escalas/pre-checagem` — recebe formato parecido `CreateEscalaDto` (`PreCheckagemEscalaDto`, sem `nome`/`criadoPor`), reusa `EscalaContext.loadContext()` + `EscalaElegibilidadeService`. Retorna por Evento/Função: `{ eventoId, data, funcaoId, funcaoNome, candidatosElegiveis }` (contagem, não lista de nomes).
+- `EscalaElegibilidadeService` extraído (`src/escalas/services/escala-elegibilidade.service.ts`) — só `PossuiFuncaoRule` + `DisponibilidadeRule`, reusado pela Fase 2.
+- Catálogo de Funções sugeridas: **não implementado** — ainda em aberto onde vive, ver abaixo.
 
 ### Frontend
 - Tela "Configurar Escala" com checklist visual, cada passo linkando pro cadastro correspondente. Visão por Ministério (Líder) e agregada (Admin).
@@ -47,9 +53,7 @@ ADR: `docs/adr/0003-checklist-nao-bloqueia-geracao.md` — **avisa, não bloquei
 - Modal de pré-checagem antes de "Gerar Escala": lista Funções sem candidato, opção "Gerar mesmo assim".
 
 ### Em aberto
-- Se Líder pode cadastrar Evento (RBAC não confirmado) — afeta onde aparece o passo "Evento".
-- Nome exato dos endpoints.
-- Onde vive o catálogo de Funções sugeridas.
+- Onde vive o catálogo de Funções sugeridas (backend constante vs frontend constante) — decidir na sessão de design agendada agora (ver "Revisão 2026-08-19").
 
 ---
 
@@ -85,6 +89,8 @@ Agenda do voluntário (`app/(app)/(drawer)/pessoal/escalas/index.tsx` + `EventoA
 - Nome exato de endpoint/enum novos.
 - Score de Solicitude sem janela de tempo (all-time) — pode favorecer voluntário mais antigo, revisar.
 
+**Decisão do grilling 2026-08-19**: candidato elegível que nunca foi chamado como substituto (taxa 0/0, indefinida) entra no **topo da lista**, junto de quem tem 100% de aceite — não penaliza quem nunca teve chance, alinhado com o motivo já registrado no `CONTEXT.md` pra usar taxa (não contagem bruta) e evitar viés contra voluntário novo.
+
 ---
 
 ## 3. Sobrecarga de Voluntário ("Saúde")
@@ -111,9 +117,39 @@ ADR: `docs/adr/0001-sobrecarga-dois-limiares-independentes.md` — **dois limiar
 - Campo em `VoluntarioEntity` vs entidade separada (recomendação: separada).
 - Tratamento visual do alerta no client (ícone, cor, tela destino).
 
+**Decisões do grilling 2026-08-19**:
+- Janela "últimos 3 meses": reusa a mesma convenção já usada em `EscalaContext` (`subMonths(new Date(), 3)`, date-fns) — não redefinir como "3 meses calendário", evita duas definições de "recente" coexistindo no sistema.
+- Alerta repetido (voluntário oscilando perto do limiar): **sem cooldown/debounce** por enquanto — cenário raro na prática, não vale a complexidade extra de rastrear "quando foi o último alerta".
+
 ---
 
-## 4. Painel Admin da Plataforma
+## 4. Frontend Mobile consolidado
+
+**Adicionado em grilling 2026-08-19** — furo achado na revisão do plano: o documento tinha seções detalhadas pras Fases 1, 2, 3, Painel Admin e Analytics, mas a Fase 4 (frontend mobile consolidado) só aparecia na lista de ordem, sem seção própria. Consolida aqui as notas de frontend que já estavam espalhadas nas seções 1-3.
+
+Só começa depois das 3 fases de backend (1, 2, 3) fechadas — telas consomem os três de uma vez, evita retrabalho de integração.
+
+### Checklist de Configuração de Escala (Fase 1)
+- Tela "Configurar Escala" com checklist visual, cada passo linkando pro cadastro correspondente. Visão por Ministério (Líder) e agregada (Admin).
+- Cadastro de Função: autocomplete/chips com sugestões + campo livre.
+- Modal de pré-checagem antes de "Gerar Escala": lista Funções sem candidato, opção "Gerar mesmo assim".
+- Design roda **antes** desta fase (decisão 2026-08-19, ver ordem de implementação) — via `trfernandes-atelier`, estendendo o design system já existente (não é produto novo).
+
+### Substituição + Troca (Fase 2)
+- Já tem design fechado (atelier 2026-08-08) — ver seção 2 "Design".
+- Card único de Troca estendendo `SubstituicaoCardBase.tsx`; toggle "Quero substituir de volta" no modal de criação; cor/ícone novo em `getStatusVisual()`.
+- Achado pendente ainda sem decisão visual: origem de Substituição/Troca na Agenda do voluntário (`FuncaoRow` em `FuncoesTable.tsx`) — perguntar em sessão de design antes de implementar.
+
+### Sobrecarga de Voluntário (Fase 3)
+- Já tem design fechado (atelier 2026-08-08) — ver seção 3 "Design".
+- Card no `DashboardKpiGrid.tsx` (Líder/Admin); aviso discreto na tela Pessoal (só o próprio voluntário sobrecarregado, sem botão de ação).
+
+### Em aberto
+- Onde vive o catálogo de Funções sugeridas do Checklist (backend vs frontend) — decidir na sessão de design desta fase.
+
+---
+
+## 5. Painel Admin da Plataforma
 
 ADR: `docs/adr/0004-admin-plataforma-usuario-separado.md` — **entidade nova separada** (`AdminPlataformaEntity`), não reusar `VoluntarioEntity` com flag. Motivo: todo código multi-tenant assume "toda query filtra por igrejaId" (`backend/CLAUDE.md:113-116`); forçar encaixe espalharia exceção por todo canto.
 
@@ -128,18 +164,25 @@ ADR: `docs/adr/0004-admin-plataforma-usuario-separado.md` — **entidade nova se
 - `GET /admin-plataforma/igrejas` — lista todas com status, subscription, limites.
 - `GET /admin-plataforma/metricas` — `mrr` (anual /12), `totalIgrejas`, `totalIgrejasAtivas`, `trialsExpirando` (7 dias).
 - `GET /admin-plataforma/igrejas/:id` — detalhe read-only pra suporte/debug.
-- `POST /admin-plataforma/igrejas/:id/suspender` / `/reativar` — seta `status`. **Precisa adicionar checagem de status na auth de voluntário** (não existe hoje) — investigar onde contexto de Igreja é resolvido por request em `auth/` na hora de implementar. Corpo exige `motivo` obrigatório (log de auditoria).
+- `POST /admin-plataforma/igrejas/:id/suspender` / `/reativar` — seta `status`. Corpo exige `motivo` obrigatório (log de auditoria).
 - Nova entidade `AdminPlataformaLogEntity`: quem, igreja alvo, ação, motivo, criadoEm. Gravado na mesma transação da ação.
+- **Login com 2FA obrigatório** (decisão 2026-08-19, ver abaixo) — TOTP, biblioteca tipo `otplib`.
 
-### Frontend — painel web separado
-- Projeto novo fora de `artos_frontend` (que é só mobile). Stack não decidida (provável Next.js/React).
-- Telas: login; lista Igrejas (filtro status/assinatura); detalhe read-only; dashboard métricas; ação suspender/reativar com motivo obrigatório.
+### Frontend — vive no site público, não em projeto novo (decisão 2026-08-19)
+- **Repositório**: `trfernandes/diakonia-public-site` (site estático de `diakonia.app.br`, HTML/CSS/JS puro sem build, deploy Cloudflare Pages). Já existe um `/painel/` nesse site, mas é o Painel do Administrador da IGREJA (faturas/assinatura, escopado a 1 igreja) — **não é o mesmo painel**, e não pode ocupar a mesma rota.
+- **Rota**: `/admin` — Next.js dentro do mesmo repositório, publicado como sub-rota com export estático (`next export`), convivendo com o resto do site (vanilla, sem build).
+- Telas: login (com 2FA); lista Igrejas (filtro status/assinatura); detalhe read-only; dashboard métricas; ação suspender/reativar com motivo obrigatório.
 
 ### Em aberto
-- Onde exatamente plugar checagem de `status !== SUSPENSA` em `auth/` (investigar na hora).
-- Stack do painel web.
+- Onde exatamente plugar checagem de `status !== SUSPENSA` em `auth/` (investigar na hora) — resolvido *quando* checar (ver decisão de Suspensão abaixo), falta só o *onde* no código.
 - Nome exato módulo/entidades.
+- Detalhe de build: como o export estático do Next.js (`/admin`) se integra ao pipeline de deploy do resto do site (que não tem build) no Cloudflare Pages.
 - **Ponto de atenção cross-cutting**: se alguma fase 1-4 mexer em `auth/` no meio do caminho, revisar conflito com essa checagem antes de mergear.
+
+**Decisões do grilling 2026-08-19**:
+- **Suspensão não revoga sessão ativa na hora** — só bloqueia login/token novo dali pra frente. JWT de voluntário expira em até 1 dia (`expiresIn: '1d'`, `auth.module.ts`); suspensão é ferramenta de moderação, não resposta a incidente de segurança (alinhado com ADR 0004), 1 dia de tolerância é aceitável e evita checagem de status em todo request autenticado do sistema.
+- **2FA obrigatório** pro Admin de Plataforma via **TOTP** (app autenticador) — dado o nível de privilégio (acesso a todas as igrejas, ação de suspender), vale o custo de implementar já na primeira versão. Rate-limit de tentativas de login não é suficiente sozinho.
+- **Stack: Next.js**, **hosting: Cloudflare Pages** dentro do repositório `diakonia-public-site` (não Render, não projeto novo separado) — usuário pediu explicitamente pra painel ficar "junto do site diakonia.app.br".
 
 ---
 
@@ -159,6 +202,21 @@ Instalar analytics no Diakonia. Prioridade mais baixa — entra por último, dep
 
 ## Riscos/decisões pendentes gerais (do plano unificado)
 
-- `EscalaElegibilidadeService` é decisão de refactor implícita, não estava em nenhum plano original — confirmar nome/local ao implementar Fase 1.
+- `EscalaElegibilidadeService` é decisão de refactor implícita, não estava em nenhum plano original — confirmar nome/local ao implementar Fase 1. ✅ Feito 2026-08-19, ver seção 1.
 - Migrations em sequência: cada fase (1-3) deve ter migration própria, testada em staging (`next`) antes da próxima começar, pra isolar rollback.
 - Se extração do `EscalaElegibilidadeService` mudar decisão de ADR existente, atualizar o ADR correspondente.
+
+---
+
+## Revisão 2026-08-19 (grilling — furos do plano)
+
+Pedido do usuário: revisar o plano atrás de furos, com suspeita confirmada de que UI/design não tinha sido planejada. Achados e decisões, todos já refletidos nas seções acima — resumo aqui pra rastreabilidade:
+
+1. **UI não planejada** (confirmado): Checklist (Fase 1) e Painel Admin (Fase 5) não tinham sessão de design, diferente de Substituição/Troca e Sobrecarga. → Design de ambos roda agora, antes da Fase 2 backend.
+2. **Doc sem seção própria pra Frontend Mobile** (Fase 4 só aparecia na lista de ordem). → Seção 4 adicionada, consolidando notas que estavam espalhadas nas seções 1-3.
+3. **Score de Solicitude com denominador zero** (candidato nunca chamado) não tinha regra de desempate. → Entra no topo, junto de 100%.
+4. **Janela "3 meses" da Sobrecarga** sem definição exata (calendário vs rolling), risco dado histórico de bug de timezone no projeto. → Reusa `subMonths(now, 3)` já usado em `EscalaContext`.
+5. **Alerta de Sobrecarga sem cooldown** — risco de spam em caso de voluntário oscilando no limiar. → Sem cooldown por enquanto, cenário raro.
+6. **Suspensão de igreja sem definição de revogação de sessão ativa**. → Não revoga na hora, só bloqueia login novo.
+7. **Painel Admin sem menção de 2FA/rate-limit**, apesar de ser conta de altíssimo privilégio. → 2FA obrigatório via TOTP.
+8. **Painel Admin sem repositório/stack/hosting reais definidos** — durante a rodada, descoberto que já existe `trfernandes/diakonia-public-site` (site estático de `diakonia.app.br`) com um `/painel/` que é de outro conceito (Painel do Administrador da Igreja, faturas). → Painel Admin da Plataforma vive nesse mesmo repositório, rota `/admin`, Next.js com export estático convivendo com o resto do site vanilla, hosting Cloudflare Pages (não Render).
