@@ -24,6 +24,7 @@ export function useEscalaSubstituicoesCrud({
     autoFetch,
     initialParams,
     muteMessages,
+    enabled: !!igrejaId,
     fetchAll: () => EscalaSubstituicoesRepository.getAll(),
     search: (query) =>
       EscalaSubstituicoesRepository.search(igrejaId ? { ...query, igrejaId } : query),

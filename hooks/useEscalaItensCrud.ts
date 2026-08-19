@@ -17,19 +17,16 @@ export function useEscalaItensCrud({
 } = {}) {
   const { igrejaAtiva } = useAuth();
 
-  if (!igrejaAtiva) {
-    throw new Error('Nenhuma igreja ativa selecionada');
-  }
-
   const crud = useCrud<ResponseEscalaItemDto, any, CreateEscalaItemDto, UpdateEscalaItemDto>({
     queryKey: 'escalas-itens',
     autoFetch,
     initialParams,
     muteMessages,
     messages,
+    enabled: !!igrejaAtiva,
     fetchAll: () => EscalaItensRepository.getAll(),
     search: (query) =>
-      EscalaItensRepository.search({ ...query, igrejaId: igrejaAtiva.id }, includeFotos),
+      EscalaItensRepository.search({ ...query, igrejaId: igrejaAtiva!.id }, includeFotos),
     fetchOne: async (id) => {
       const result = await EscalaItensRepository.search({
         where: {
@@ -45,10 +42,10 @@ export function useEscalaItensCrud({
       });
       return result[0];
     },
-    add: (data) => EscalaItensRepository.add({ ...data, igrejaId: igrejaAtiva.id } as any),
+    add: (data) => EscalaItensRepository.add({ ...data, igrejaId: igrejaAtiva!.id } as any),
     update: (id, data) =>
-      EscalaItensRepository.update(id, { ...data, igrejaId: igrejaAtiva.id } as any),
-    remove: (id) => EscalaItensRepository.removeWithIgrejaId(id, igrejaAtiva.id),
+      EscalaItensRepository.update(id, { ...data, igrejaId: igrejaAtiva!.id } as any),
+    remove: (id) => EscalaItensRepository.removeWithIgrejaId(id, igrejaAtiva!.id),
   });
 
   return {

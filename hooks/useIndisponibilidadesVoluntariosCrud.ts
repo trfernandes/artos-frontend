@@ -27,6 +27,7 @@ export function useIndisponibilidadesVoluntariosCrud({
     autoFetch,
     initialParams,
     muteMessages,
+    enabled: !!igrejaId,
     fetchAll: () => IndisponibilidadesVoluntariosRepository.getAll(),
     search: (query) =>
       IndisponibilidadesVoluntariosRepository.search(igrejaId ? { ...query, igrejaId } : query),
