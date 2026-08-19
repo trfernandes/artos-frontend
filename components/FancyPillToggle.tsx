@@ -45,7 +45,9 @@ export default function FancyPillToggle({ value, onPress, disabled, style }: Fan
       accessibilityRole='switch'
       accessibilityState={{ checked: value, disabled }}
     >
-      <Animated.View style={[StyleSheet.absoluteFill, styles.trackFill, { backgroundColor: trackColor }]} />
+      <Animated.View
+        style={[StyleSheet.absoluteFill, styles.trackFill, { backgroundColor: trackColor }]}
+      />
 
       {/* Thumb */}
       <Animated.View

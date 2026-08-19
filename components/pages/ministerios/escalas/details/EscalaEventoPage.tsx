@@ -20,6 +20,7 @@ import FancyBottomSheetSelect, {
 } from '../../../../fields/FancyBottomSheetSelect';
 import DefaultIcons from '../../../../FancyIcons';
 import FancyActionSheet, { FancyActionSheetItem } from '../../../../actions/FancyActionSheet';
+import FancyListEmpty from '../../../../list/FancyListEmpty';
 import { FancyAlert } from '../../../../modal/FancyAlert';
 import ScaleFillIndicator from '../../../../indicators/ScaleFillIndicator';
 import ListaVoluntariosTable from './ListaVoluntariosTable';
@@ -54,6 +55,7 @@ export interface EscalaEventoPageProps {
   onDeleteEvento?: (eventoId: string, dataOcorrencia: string) => Promise<boolean>;
   onAdicionarFuncao?: (data: AdicionarFuncaoConfirmDialog) => Promise<boolean>;
   onExcluirFuncao?: (funcaoId: string, eventoId: string, dataOcorrencia: string) => Promise<void>;
+  onAdicionarEvento?: () => void;
   canEditSetlistOwner?: boolean;
   isUpdatingSetlistOwner?: boolean;
   onUpdateResponsavelSetlist?: (data: {
@@ -75,6 +77,7 @@ export default function EscalaEventoPage({
   onDeleteEvento,
   onAdicionarFuncao,
   onExcluirFuncao,
+  onAdicionarEvento,
   canEditSetlistOwner,
   isUpdatingSetlistOwner,
   onUpdateResponsavelSetlist,
@@ -241,9 +244,14 @@ export default function EscalaEventoPage({
     });
   }
 
-  const renderSectionEyebrow = (label: string) => (
+  const renderSectionEyebrow = (label: string, iconName: string) => (
     <View style={styles.sectionEyebrow}>
-      <View style={[styles.sectionEyebrowTick, { backgroundColor: accentLabelColor }]} />
+      <DefaultIcons.Custom
+        library='MaterialIcons'
+        name={iconName}
+        size={12}
+        color={accentLabelColor}
+      />
       <FancyText
         type='semiBold'
         size={10}
@@ -259,303 +267,315 @@ export default function EscalaEventoPage({
     <View style={styles.pageContainer}>
       {/* ── Card unificado (full-height, equipe scroll interno) ─────────────── */}
       <View
-          style={[
-            styles.unifiedCard,
-            {
-              borderColor: ColorUtils.withAlpha(borderColor, 0.28),
-              backgroundColor: palette.backgroundColor,
-              borderLeftColor: borderColor,
-            },
-          ]}
-        >
-          {/* ── Seção Evento ──────────────────────────────────────────────────── */}
-          <View style={styles.eventSection}>
-            {/* Linha 1: label "Evento" + ações */}
-            <View style={styles.eventHeaderTopRow}>
-              <View style={styles.eventLabelGroup}>{renderSectionEyebrow('Evento')}</View>
+        style={[
+          styles.unifiedCard,
+          {
+            borderColor: palette.borderCard,
+            borderTopColor: borderColor,
+            backgroundColor: palette.backgroundColor,
+          },
+        ]}
+      >
+        {/* ── Seção Evento ──────────────────────────────────────────────────── */}
+        <View style={styles.eventSection}>
+          {/* Linha 1: label "Evento" + ações */}
+          <View style={styles.eventHeaderTopRow}>
+            <View style={styles.eventLabelGroup}>{renderSectionEyebrow('Evento', 'event')}</View>
 
-              <View style={styles.eventHeaderActions}>
-                <FancyButton
-                  type='text'
-                  mode='icon'
-                  size={{ w: 30, h: 30 }}
-                  icon={{
-                    library: 'Entypo',
-                    name: 'dots-three-vertical',
-                    size: 14,
-                    color: ColorUtils.withAlpha(palette.fonts.dark, 0.55),
-                  }}
-                  containerStyle={[
-                    styles.headerActionChip,
-                    { backgroundColor: ColorUtils.withAlpha(palette.fonts.dark, 0.06) },
-                  ]}
-                  onPress={() => setEventoMenuOpen(true)}
-                  accessibilityLabel='Mais ações do evento'
-                />
-              </View>
+            <View style={styles.eventHeaderActions}>
+              <FancyButton
+                type='text'
+                mode='icon'
+                size={{ w: 30, h: 30 }}
+                icon={{
+                  library: 'Entypo',
+                  name: 'dots-three-vertical',
+                  size: 14,
+                  color: ColorUtils.withAlpha(palette.fonts.dark, 0.55),
+                }}
+                containerStyle={[
+                  styles.headerActionChip,
+                  { backgroundColor: ColorUtils.withAlpha(palette.fonts.dark, 0.06) },
+                ]}
+                onPress={() => setEventoMenuOpen(true)}
+                accessibilityLabel='Mais ações do evento'
+              />
             </View>
+          </View>
 
-            {/* Linha 2: nome do evento */}
-            <FancyText
-              type='bold'
-              size={14}
-              color={eventTitleColor}
-              numberOfLines={2}
-              style={styles.eventName}
-            >
-              {data.evento.nome}
-            </FancyText>
+          {/* Linha 2: nome do evento */}
+          <FancyText
+            type='bold'
+            size={14}
+            color={eventTitleColor}
+            numberOfLines={2}
+            style={styles.eventName}
+          >
+            {data.evento.nome}
+          </FancyText>
 
-            {/* Meta: data/hora + local */}
-            <View style={styles.eventMetaRow}>
-              <View style={styles.metaDateTimeRow}>
+          {/* Meta: data/hora + local */}
+          <View style={styles.eventMetaRow}>
+            <View style={styles.metaDateTimeRow}>
+              <View style={styles.metaGroup}>
+                <DefaultIcons.Custom
+                  library='MaterialIcons'
+                  name='event'
+                  size={13}
+                  color={ColorUtils.withAlpha(borderColor, 0.9)}
+                />
+                <FancyText type='semiBold' size={12} color={eventMetaColor}>
+                  {format(data.dataOcorrencia, 'dd/MM/yyyy')}
+                </FancyText>
+              </View>
+
+              {data.evento.dataInicio && data.evento.dataTermino && (
                 <View style={styles.metaGroup}>
                   <DefaultIcons.Custom
                     library='MaterialIcons'
-                    name='event'
+                    name='access-time'
                     size={13}
                     color={ColorUtils.withAlpha(borderColor, 0.9)}
                   />
                   <FancyText type='semiBold' size={12} color={eventMetaColor}>
-                    {format(data.dataOcorrencia, 'dd/MM/yyyy')}
+                    {`${format(data.evento.dataInicio, 'HH:mm')} – ${format(
+                      data.evento.dataTermino,
+                      'HH:mm',
+                    )}`}
                   </FancyText>
-                </View>
-
-                {data.evento.dataInicio && data.evento.dataTermino && (
-                  <View style={styles.metaGroup}>
-                    <DefaultIcons.Custom
-                      library='MaterialIcons'
-                      name='access-time'
-                      size={13}
-                      color={ColorUtils.withAlpha(borderColor, 0.9)}
-                    />
-                    <FancyText type='semiBold' size={12} color={eventMetaColor}>
-                      {`${format(data.evento.dataInicio, 'HH:mm')} – ${format(
-                        data.evento.dataTermino,
-                        'HH:mm',
-                      )}`}
-                    </FancyText>
-                  </View>
-                )}
-
-                {eventTotal > 0 && (
-                  <View style={styles.metaConfirmIndicator}>
-                    <ScaleFillIndicator
-                      filledCount={eventConfirmed}
-                      totalCount={eventTotal}
-                      label=''
-                      showContainer={false}
-                      size='compact'
-                      donutSize={18}
-                      donutStrokeWidth={2.6}
-                      textSize={12}
-                      progressColor={eventProgressColor}
-                    />
-                  </View>
-                )}
-              </View>
-
-              {data.evento.local ? (
-                <View style={styles.metaGroup}>
-                  <DefaultIcons.Custom
-                    library='MaterialIcons'
-                    name='place'
-                    size={13}
-                    color={ColorUtils.withAlpha(borderColor, 0.9)}
-                  />
-                  <FancyText
-                    type='medium'
-                    size={12}
-                    color={palette.fonts.inactive}
-                    numberOfLines={1}
-                    style={styles.localText}
-                  >
-                    {data.evento.local}
-                  </FancyText>
-                </View>
-              ) : null}
-            </View>
-
-          </View>
-
-          {/* ── Divisor → Setlist ─────────────────────────────────────────────── */}
-          <View style={styles.sectionDivider}>{renderSectionEyebrow('Setlist')}</View>
-
-          {/* ── Seção Setlist ─────────────────────────────────────────────────── */}
-          <View style={styles.setlistSection}>
-            <View style={styles.setlistOwnerPersonRow}>
-              {hasResponsavelSetlist ? (
-                <FancyImage
-                  source={
-                    responsavelSetlistFoto ? { uri: responsavelSetlistFoto } : AppImages.emptyProfile
-                  }
-                  size={36}
-                  style={styles.setlistOwnerAvatar}
-                />
-              ) : (
-                <View style={styles.setlistOwnerAvatarPlaceholder}>
-                  <DefaultIcons.Custom
-                    library='MaterialCommunityIcons'
-                    name='account-outline'
-                    size={16}
-                    color={palette.fonts.inactive}
-                  />
                 </View>
               )}
 
-              <View style={styles.setlistOwnerTextBlock}>
-                <FancyText type='medium' size={10} color={palette.fonts.inactive}>
-                  Responsável atual
-                </FancyText>
+              {eventTotal > 0 && (
+                <View style={styles.metaConfirmIndicator}>
+                  <ScaleFillIndicator
+                    filledCount={eventConfirmed}
+                    totalCount={eventTotal}
+                    label=''
+                    showContainer={false}
+                    size='compact'
+                    donutSize={18}
+                    donutStrokeWidth={2.6}
+                    textSize={12}
+                    progressColor={eventProgressColor}
+                  />
+                </View>
+              )}
+            </View>
+
+            {data.evento.local ? (
+              <View style={styles.metaGroup}>
+                <DefaultIcons.Custom
+                  library='MaterialIcons'
+                  name='place'
+                  size={13}
+                  color={ColorUtils.withAlpha(borderColor, 0.9)}
+                />
                 <FancyText
-                  type='bold'
-                  size='extraSmall'
-                  color={hasResponsavelSetlist ? palette.fonts.dark : palette.fonts.inactive2}
+                  type='medium'
+                  size={12}
+                  color={palette.fonts.inactive}
+                  numberOfLines={1}
+                  style={styles.localText}
                 >
-                  {responsavelSetlistNome}
+                  {data.evento.local}
                 </FancyText>
               </View>
+            ) : null}
+          </View>
+        </View>
 
-              {canEditSetlistOwnerHere && (
-                <View style={styles.setlistOwnerActions}>
+        {/* ── Divisor → Setlist ─────────────────────────────────────────────── */}
+        <View style={styles.sectionDivider}>{renderSectionEyebrow('Setlist', 'music-note')}</View>
+
+        {/* ── Seção Setlist ─────────────────────────────────────────────────── */}
+        <View style={styles.setlistSection}>
+          <View style={styles.setlistOwnerPersonRow}>
+            {hasResponsavelSetlist ? (
+              <FancyImage
+                source={
+                  responsavelSetlistFoto ? { uri: responsavelSetlistFoto } : AppImages.emptyProfile
+                }
+                size={36}
+                style={styles.setlistOwnerAvatar}
+              />
+            ) : (
+              <View style={styles.setlistOwnerAvatarPlaceholder}>
+                <DefaultIcons.Custom
+                  library='MaterialCommunityIcons'
+                  name='account-outline'
+                  size={16}
+                  color={palette.fonts.inactive}
+                />
+              </View>
+            )}
+
+            <View style={styles.setlistOwnerTextBlock}>
+              <FancyText type='medium' size={10} color={palette.fonts.inactive}>
+                Responsável atual
+              </FancyText>
+              <FancyText
+                type='bold'
+                size='extraSmall'
+                color={hasResponsavelSetlist ? palette.fonts.dark : palette.fonts.inactive2}
+              >
+                {responsavelSetlistNome}
+              </FancyText>
+            </View>
+
+            {canEditSetlistOwnerHere && (
+              <View style={styles.setlistOwnerActions}>
+                <FancyButton
+                  type='text'
+                  label={responsavelSetlistValue ? 'Trocar' : 'Definir'}
+                  labelProps={{ size: 'extraSmall', type: 'semiBold' }}
+                  labelStyle={{ color: accentLabelColor }}
+                  icon={{
+                    library: 'MaterialCommunityIcons',
+                    name: responsavelSetlistValue ? 'swap-horizontal' : 'account-plus-outline',
+                    size: 14,
+                    color: accentLabelColor,
+                  }}
+                  iconPosition='left'
+                  containerStyle={[
+                    styles.addFuncaoButton,
+                    { backgroundColor: ColorUtils.withAlpha(borderColor, 0.1) },
+                  ]}
+                  accessibilityLabel={
+                    responsavelSetlistValue
+                      ? 'Trocar responsável do setlist'
+                      : 'Selecionar responsável do setlist'
+                  }
+                  disabled={isUpdatingSetlistOwner}
+                  onPress={() => responsavelSelectRef.current?.open()}
+                />
+
+                {hasResponsavelSetlist && (
                   <FancyButton
-                    type='text'
-                    label={responsavelSetlistValue ? 'Trocar' : 'Definir'}
-                    labelProps={{ size: 'extraSmall', type: 'semiBold' }}
-                    labelStyle={{ color: accentLabelColor }}
+                    type='light'
+                    mode='icon'
+                    size={{ w: 26, h: 26 }}
                     icon={{
                       library: 'MaterialCommunityIcons',
-                      name: responsavelSetlistValue ? 'swap-horizontal' : 'account-plus-outline',
+                      name: 'account-minus-outline',
                       size: 14,
-                      color: accentLabelColor,
+                      color: ColorUtils.withAlpha(palette.error, 0.75),
                     }}
-                    iconPosition='left'
                     containerStyle={[
-                      styles.addFuncaoButton,
-                      { backgroundColor: ColorUtils.withAlpha(borderColor, 0.1) },
+                      styles.setlistOwnerButton,
+                      {
+                        backgroundColor: ColorUtils.withAlpha(palette.error, 0.1),
+                        borderWidth: 1,
+                        borderColor: ColorUtils.withAlpha(palette.error, 0.18),
+                      },
                     ]}
-                    accessibilityLabel={
-                      responsavelSetlistValue
-                        ? 'Trocar responsável do setlist'
-                        : 'Selecionar responsável do setlist'
-                    }
+                    accessibilityLabel='Limpar responsável do setlist'
                     disabled={isUpdatingSetlistOwner}
-                    onPress={() => responsavelSelectRef.current?.open()}
+                    onPress={handleClearResponsavelSetlist}
                   />
-
-                  {hasResponsavelSetlist && (
-                    <FancyButton
-                      type='light'
-                      mode='icon'
-                      size={{ w: 26, h: 26 }}
-                      icon={{
-                        library: 'MaterialCommunityIcons',
-                        name: 'account-minus-outline',
-                        size: 14,
-                        color: ColorUtils.withAlpha(palette.error, 0.75),
-                      }}
-                      containerStyle={[
-                        styles.setlistOwnerButton,
-                        {
-                          backgroundColor: ColorUtils.withAlpha(palette.error, 0.10),
-                          borderWidth: 1,
-                          borderColor: ColorUtils.withAlpha(palette.error, 0.18),
-                        },
-                      ]}
-                      accessibilityLabel='Limpar responsável do setlist'
-                      disabled={isUpdatingSetlistOwner}
-                      onPress={handleClearResponsavelSetlist}
-                    />
-                  )}
-                </View>
-              )}
-            </View>
-          </View>
-
-          {/* ── Divisor → Equipe ──────────────────────────────────────────────── */}
-          <View style={styles.sectionDivider}>
-            {renderSectionEyebrow('Equipe')}
-            {isEditMode && (
-              <FancyButton
-                type='text'
-                label='Nova Função'
-                labelProps={{ size: 'extraSmall', type: 'semiBold' }}
-                labelStyle={{ color: accentLabelColor }}
-                icon={{ library: 'MaterialIcons', name: 'add', size: 14, color: accentLabelColor }}
-                iconPosition='left'
-                containerStyle={[
-                  styles.addFuncaoButton,
-                  { backgroundColor: ColorUtils.withAlpha(borderColor, 0.1) },
-                ]}
-                onPress={() => setAdicionarFuncaoModalOpen(true)}
-                accessibilityLabel='Adicionar nova função'
-              />
+                )}
+              </View>
             )}
           </View>
+        </View>
 
-          {/* ── Seção Equipe ──────────────────────────────────────────────────── */}
-          <View style={styles.equipeSection}>
-            <FancyScrollView contentContainerStyle={styles.equipeScrollContent}>
-            <ListaVoluntariosTable
-              data={data.equipe}
-              viewMode={viewMode}
-              accentColor={borderColor}
-              onSubstituicaoButtonPressed={(item) =>
-                setSubstituicaoModalProps({ isOpen: true, data: item })
-              }
-              onAdicionarVoluntarioButtonPressed={(item) =>
-                setAdicionarModalProps({ isOpen: true, data: item })
-              }
-              onRemoverVoluntarioPressed={(equipeItem) => {
-                FancyAlert.alert(
-                  'Remover voluntário',
-                  'Deseja remover o voluntário desta função? A função permanecerá vaga na escala.',
-                  [
-                    { text: 'Cancelar', style: 'cancel' },
-                    {
-                      text: 'Remover',
-                      style: 'destructive',
-                      onPress: async () => {
-                        try {
-                          showLoading('Removendo voluntário...');
-                          await onRemoveVoluntario?.(equipeItem.idEscalaItem);
-                        } finally {
-                          hideLoading();
-                        }
-                      },
-                    },
-                  ],
-                );
-              }}
-              onExcluirFuncaoPressed={(funcaoId) => {
-                FancyAlert.alert(
-                  'Excluir Função',
-                  'Deseja realmente excluir esta função do evento?',
-                  [
-                    { text: 'Cancelar', style: 'cancel' },
-                    {
-                      text: 'Excluir',
-                      style: 'destructive',
-                      onPress: async () => {
-                        try {
-                          showLoading('Excluindo função...');
-                          await onExcluirFuncao?.(funcaoId, data.evento.id, data.dataOcorrencia);
-                        } finally {
-                          hideLoading();
-                        }
-                      },
-                    },
-                  ],
-                );
-              }}
+        {/* ── Divisor → Equipe ──────────────────────────────────────────────── */}
+        <View style={styles.sectionDivider}>
+          {renderSectionEyebrow('Equipe', 'people')}
+          {isEditMode && (
+            <FancyButton
+              type='text'
+              label='Nova Função'
+              labelProps={{ size: 'extraSmall', type: 'semiBold' }}
+              labelStyle={{ color: accentLabelColor }}
+              icon={{ library: 'MaterialIcons', name: 'add', size: 14, color: accentLabelColor }}
+              iconPosition='left'
+              containerStyle={[
+                styles.addFuncaoButton,
+                { backgroundColor: ColorUtils.withAlpha(borderColor, 0.1) },
+              ]}
+              onPress={() => setAdicionarFuncaoModalOpen(true)}
+              accessibilityLabel='Adicionar nova função'
             />
-            </FancyScrollView>
-          </View>
+          )}
+        </View>
 
-          {/* ── Rodapé: navegação entre eventos (‹ 3 / 13 ›) ──────────────────── */}
-          {showNav && (
-            <View style={styles.pagerFooter}>
-              {/* Voltar — outlined (par de navegação: só o avanço é preenchido) */}
+        {/* ── Seção Equipe ──────────────────────────────────────────────────── */}
+        <View style={styles.equipeSection}>
+          {data.equipe.filter((item) => !!item.funcao?.id).length === 0 ? (
+            <FancyListEmpty
+              icon={{ library: 'MaterialIcons', name: 'groups', size: 48 }}
+              label='Nenhuma função criada'
+              helperText={
+                isEditMode
+                  ? 'Toque em + Nova Função para adicionar'
+                  : 'As funções aparecem aqui quando forem definidas.'
+              }
+              muted
+            />
+          ) : (
+            <FancyScrollView contentContainerStyle={styles.equipeScrollContent}>
+              <ListaVoluntariosTable
+                data={data.equipe}
+                viewMode={viewMode}
+                accentColor={borderColor}
+                onSubstituicaoButtonPressed={(item) =>
+                  setSubstituicaoModalProps({ isOpen: true, data: item })
+                }
+                onAdicionarVoluntarioButtonPressed={(item) =>
+                  setAdicionarModalProps({ isOpen: true, data: item })
+                }
+                onRemoverVoluntarioPressed={(equipeItem) => {
+                  FancyAlert.alert(
+                    'Remover voluntário',
+                    'Deseja remover o voluntário desta função? A função permanecerá vaga na escala.',
+                    [
+                      { text: 'Cancelar', style: 'cancel' },
+                      {
+                        text: 'Remover',
+                        style: 'destructive',
+                        onPress: async () => {
+                          try {
+                            showLoading('Removendo voluntário...');
+                            await onRemoveVoluntario?.(equipeItem.idEscalaItem);
+                          } finally {
+                            hideLoading();
+                          }
+                        },
+                      },
+                    ],
+                  );
+                }}
+                onExcluirFuncaoPressed={(funcaoId) => {
+                  FancyAlert.alert(
+                    'Excluir Função',
+                    'Deseja realmente excluir esta função do evento?',
+                    [
+                      { text: 'Cancelar', style: 'cancel' },
+                      {
+                        text: 'Excluir',
+                        style: 'destructive',
+                        onPress: async () => {
+                          try {
+                            showLoading('Excluindo função...');
+                            await onExcluirFuncao?.(funcaoId, data.evento.id, data.dataOcorrencia);
+                          } finally {
+                            hideLoading();
+                          }
+                        },
+                      },
+                    ],
+                  );
+                }}
+              />
+            </FancyScrollView>
+          )}
+        </View>
+
+        {/* ── Rodapé: navegação entre eventos (‹ 3 / 13 ›) + adicionar ──────── */}
+        {(showNav || onAdicionarEvento) && (
+          <View style={styles.pagerFooter}>
+            {showNav && (
               <FancyButton
                 type='outlined'
                 mode='icon'
@@ -574,9 +594,11 @@ export default function EscalaEventoPage({
                 onPress={pagerProps!.onPrev}
                 accessibilityLabel='Evento anterior'
               />
+            )}
 
-              <View style={styles.pagerDots}>
-                {(() => {
+            <View style={[styles.pagerDots, !showNav && styles.pagerDotsHidden]}>
+              {showNav &&
+                (() => {
                   const total = pagerProps!.total;
                   const current = pagerProps!.currentIndex;
                   const MAX = 13;
@@ -608,46 +630,74 @@ export default function EscalaEventoPage({
                     );
                   });
                 })()}
-              </View>
-
-              {/* Avançar — preenchido (ação de avanço do par) */}
-              <FancyButton
-                type='light'
-                mode='icon'
-                size={{ w: 30, h: 30 }}
-                disabled={isLast}
-                icon={{
-                  library: 'MaterialIcons',
-                  name: 'chevron-right',
-                  size: 20,
-                  color: isLast ? ColorUtils.withAlpha(borderColor, 0.3) : borderColor,
-                }}
-                containerStyle={[
-                  styles.pagerNavButton,
-                  {
-                    backgroundColor: ColorUtils.withAlpha(borderColor, isLast ? 0.06 : 0.14),
-                    borderColor: 'transparent',
-                  },
-                ]}
-                onPress={pagerProps!.onNext}
-                accessibilityLabel='Próximo evento'
-              />
             </View>
-          )}
 
-          {/* Hidden select trigger */}
-          <View style={styles.hiddenSelectWrapper}>
-            <FancyBottomSheetSelect
-              ref={responsavelSelectRef}
-              listItems={responsavelSetlistOptions}
-              value={responsavelSetlistValue}
-              onChange={(val) => handleSelectResponsavelSetlist(String(val || ''))}
-              title='Responsável pelo setlist'
-              placeholder='Selecione um voluntário'
-              disabled={isUpdatingSetlistOwner}
-              containerStyle={styles.hiddenSelect}
-            />
+            <View style={styles.pagerNavRight}>
+              {showNav && (
+                <FancyButton
+                  type='light'
+                  mode='icon'
+                  size={{ w: 30, h: 30 }}
+                  disabled={isLast}
+                  icon={{
+                    library: 'MaterialIcons',
+                    name: 'chevron-right',
+                    size: 20,
+                    color: isLast ? ColorUtils.withAlpha(borderColor, 0.3) : borderColor,
+                  }}
+                  containerStyle={[
+                    styles.pagerNavButton,
+                    {
+                      backgroundColor: ColorUtils.withAlpha(borderColor, isLast ? 0.06 : 0.14),
+                      borderColor: 'transparent',
+                    },
+                  ]}
+                  onPress={pagerProps!.onNext}
+                  accessibilityLabel='Próximo evento'
+                />
+              )}
+
+              {onAdicionarEvento && (
+                <FancyButton
+                  type='contained'
+                  label='Novo evento'
+                  labelProps={{ size: 'extraSmall', type: 'semiBold' }}
+                  icon={{
+                    library: 'MaterialIcons',
+                    name: 'playlist-add',
+                    size: 16,
+                  }}
+                  iconPosition='left'
+                  containerStyle={[
+                    styles.pagerNavButton,
+                    {
+                      backgroundColor: borderColor,
+                      borderColor: 'transparent',
+                      height: 30,
+                      paddingHorizontal: 10,
+                    },
+                  ]}
+                  onPress={onAdicionarEvento}
+                  accessibilityLabel='Adicionar evento'
+                />
+              )}
+            </View>
           </View>
+        )}
+
+        {/* Hidden select trigger */}
+        <View style={styles.hiddenSelectWrapper}>
+          <FancyBottomSheetSelect
+            ref={responsavelSelectRef}
+            listItems={responsavelSetlistOptions}
+            value={responsavelSetlistValue}
+            onChange={(val) => handleSelectResponsavelSetlist(String(val || ''))}
+            title='Responsável pelo setlist'
+            placeholder='Selecione um voluntário'
+            disabled={isUpdatingSetlistOwner}
+            containerStyle={styles.hiddenSelect}
+          />
+        </View>
       </View>
 
       {/* ── Modals ──────────────────────────────────────────────────────────── */}
@@ -814,11 +864,6 @@ function createStyles(palette: ThemePalette) {
       alignItems: 'center',
       gap: 6,
     },
-    sectionEyebrowTick: {
-      width: 3,
-      height: 11,
-      borderRadius: 2,
-    },
     sectionEyebrowText: {
       letterSpacing: 0.8,
     },
@@ -867,7 +912,7 @@ function createStyles(palette: ThemePalette) {
       marginBottom: 10,
       borderRadius: 12,
       borderWidth: 1,
-      borderLeftWidth: 4,
+      borderTopWidth: 3,
       backgroundColor: palette.backgroundColor,
       overflow: 'hidden',
       flex: 1,
@@ -943,12 +988,20 @@ function createStyles(palette: ThemePalette) {
     pagerNavButton: {
       borderRadius: 999,
     },
+    pagerNavRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
     pagerDots: {
       flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
       gap: 5,
+    },
+    pagerDotsHidden: {
+      flex: 0,
       marginHorizontal: 12,
     },
     pagerDot: {

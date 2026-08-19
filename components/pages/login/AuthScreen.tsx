@@ -34,8 +34,7 @@ const OPEN_BOTTOM_GAP = 8;
 type WidthOptions = { default?: DimensionValue; keyboard?: DimensionValue };
 type RenderContent = React.ReactNode | ((params: { keyboardVisible: boolean }) => React.ReactNode);
 type StyleWithKeyboard =
-  | StyleProp<ViewStyle>
-  | ((params: { keyboardVisible: boolean }) => StyleProp<ViewStyle>);
+  StyleProp<ViewStyle> | ((params: { keyboardVisible: boolean }) => StyleProp<ViewStyle>);
 
 type AuthScreenProps = {
   children: RenderContent;

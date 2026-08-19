@@ -747,31 +747,47 @@ export default function EventoSetlistTab({
         visible={!!actionsItem}
         onClose={closeItemActions}
         title='Opções'
-        actions={actionsItem ? [
-          {
-            label: 'Editar',
-            icon: { library: 'MaterialCommunityIcons' as const, name: 'pencil-outline', size: 18 },
-            onPress: () => openItemEditor(actionsItem),
-          },
-          {
-            label: 'Mover para cima',
-            icon: { library: 'MaterialCommunityIcons' as const, name: 'arrow-up', size: 18 },
-            onPress: () => void moveItemBySheet('up'),
-            disabled: selectedItemIndex <= 0,
-          },
-          {
-            label: 'Mover para baixo',
-            icon: { library: 'MaterialCommunityIcons' as const, name: 'arrow-down', size: 18 },
-            onPress: () => void moveItemBySheet('down'),
-            disabled: selectedItemIndex < 0 || selectedItemIndex >= orderedItems.length - 1,
-          },
-          {
-            label: 'Excluir',
-            icon: { library: 'MaterialCommunityIcons' as const, name: 'trash-can-outline', size: 18 },
-            onPress: () => confirmDeleteItem(actionsItem),
-            destructive: true,
-          },
-        ] : []}
+        actions={
+          actionsItem
+            ? [
+                {
+                  label: 'Editar',
+                  icon: {
+                    library: 'MaterialCommunityIcons' as const,
+                    name: 'pencil-outline',
+                    size: 18,
+                  },
+                  onPress: () => openItemEditor(actionsItem),
+                },
+                {
+                  label: 'Mover para cima',
+                  icon: { library: 'MaterialCommunityIcons' as const, name: 'arrow-up', size: 18 },
+                  onPress: () => void moveItemBySheet('up'),
+                  disabled: selectedItemIndex <= 0,
+                },
+                {
+                  label: 'Mover para baixo',
+                  icon: {
+                    library: 'MaterialCommunityIcons' as const,
+                    name: 'arrow-down',
+                    size: 18,
+                  },
+                  onPress: () => void moveItemBySheet('down'),
+                  disabled: selectedItemIndex < 0 || selectedItemIndex >= orderedItems.length - 1,
+                },
+                {
+                  label: 'Excluir',
+                  icon: {
+                    library: 'MaterialCommunityIcons' as const,
+                    name: 'trash-can-outline',
+                    size: 18,
+                  },
+                  onPress: () => confirmDeleteItem(actionsItem),
+                  destructive: true,
+                },
+              ]
+            : []
+        }
       />
     </>
   );

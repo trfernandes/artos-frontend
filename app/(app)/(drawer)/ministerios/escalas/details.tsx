@@ -17,11 +17,17 @@ import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import { useEscalasCrud } from '../../../../../hooks/useEscalaCrud';
 import { EscalaItemStatusEnum } from '../../../../../domain/enums/Escala/escala-item-status.enum';
 import { EscalaStatusEnum } from '../../../../../domain/enums/Escala/escala-status.enum';
+import { EscalaOrigemEnum } from '../../../../../domain/enums/Escala/escala-origem.enum';
 import FancyScreenErrorHandler from '../../../../../components/error/FancyScreenErrorHandler';
+import FancyListEmpty from '../../../../../components/list/FancyListEmpty';
 import { EscalaRepository } from '../../../../../domain/services/EscalaRepository';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import Toast from 'react-native-toast-message';
 import EscalaParametrizacaoModal from '../../../../../components/pages/ministerios/escalas/details/EscalaParametrizacaoModal';
+import AdicionarItemManualModal, {
+  AdicionarItemManualConfirmDialog,
+} from '../../../../../components/pages/ministerios/escalas/details/AdicionarItemManualModal';
+import { DateUtilsApi } from '../../../../../utils/date_utils';
 import { EscalaTemplateExperienciaEnum } from '../../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
 import { EscalaParametrizacaoType } from '../../../../../domain/dtos/Escala/escala.response';
 import { useEventoSetlistResponsavel } from '../../../../../hooks/useEventoSetlistResponsavel';
@@ -89,6 +95,7 @@ export default function MinisterioEscalasDetailsPage() {
   const { igrejaAtiva } = useAuth();
   const [isPublishing, setIsPublishing] = useState(false);
   const [isParametrizacaoOpen, setIsParametrizacaoOpen] = useState(false);
+  const [isAdicionarItemManualOpen, setIsAdicionarItemManualOpen] = useState(false);
   const [auditoria, setAuditoria] = useState<any>(null);
   const [isAuditoriaOpen, setIsAuditoriaOpen] = useState(false);
   const palette = usePallete();
@@ -153,7 +160,9 @@ export default function MinisterioEscalasDetailsPage() {
   // Polling enquanto status = Gerando
   useEffect(() => {
     if (escalaData?.[0]?.status !== EscalaStatusEnum.Gerando) return;
-    const interval = setInterval(() => { refetchEscala(); }, 4000);
+    const interval = setInterval(() => {
+      refetchEscala();
+    }, 4000);
     return () => clearInterval(interval);
   }, [escalaData?.[0]?.status]);
 
@@ -165,7 +174,9 @@ export default function MinisterioEscalasDetailsPage() {
     prevStatusRef.current = escala.status;
     if (prev === EscalaStatusEnum.Gerando && escala.status === EscalaStatusEnum.Gerada) {
       Toast.show({ type: 'success', text1: 'Escala gerada com sucesso!' });
-      EscalaRepository.getAuditoria(escalaId).then(setAuditoria).catch(() => {});
+      EscalaRepository.getAuditoria(escalaId)
+        .then(setAuditoria)
+        .catch(() => {});
     }
   }, [escalaData?.[0]?.status]);
 
@@ -501,6 +512,33 @@ export default function MinisterioEscalasDetailsPage() {
     [addEscalaItem, escalaId, refetchEscala],
   );
 
+  const handleAdicionarItemManual = useCallback(
+    async (data: AdicionarItemManualConfirmDialog): Promise<void> => {
+      try {
+        await addEscalaItem?.({
+          escalaId: escalaId,
+          eventoId: data.eventoId,
+          dataOcorrencia: data.dataOcorrencia,
+          funcaoId: data.funcaoId,
+          voluntarioId: data.voluntarioId,
+        });
+        await refetchEscala();
+        setIsAdicionarItemManualOpen(false);
+        Toast.show({
+          type: 'success',
+          text1: 'Item adicionado à escala.',
+        });
+      } catch (error) {
+        Toast.show({
+          type: 'error',
+          text1: 'Não foi possível adicionar o item.',
+          text2: getApiErrorMessage(error, 'Tente novamente em instantes.'),
+        });
+      }
+    },
+    [addEscalaItem, escalaId, refetchEscala],
+  );
+
   const handleExcluirFuncao = useCallback(
     async (funcaoId: string, eventoId: string, dataOcorrencia: string): Promise<void> => {
       try {
@@ -658,7 +696,12 @@ export default function MinisterioEscalasDetailsPage() {
         )}
 
         {isErro && (
-          <View style={[styles.statusBanner, { backgroundColor: ColorUtils.withAlpha(palette.error, 0.08) }]}>
+          <View
+            style={[
+              styles.statusBanner,
+              { backgroundColor: ColorUtils.withAlpha(palette.error, 0.08) },
+            ]}
+          >
             <DefaultIcons.Custom
               library='MaterialCommunityIcons'
               name='alert-circle-outline'
@@ -680,7 +723,17 @@ export default function MinisterioEscalasDetailsPage() {
         )}
 
         {auditoria && !isGerando && (
-          <View style={[styles.statusBanner, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.06), flexDirection: 'column', alignItems: 'flex-start', gap: 6 }]}>
+          <View
+            style={[
+              styles.statusBanner,
+              {
+                backgroundColor: ColorUtils.withAlpha(palette.primary, 0.06),
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                gap: 6,
+              },
+            ]}
+          >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <DefaultIcons.Custom
                 library='MaterialCommunityIcons'
@@ -710,7 +763,30 @@ export default function MinisterioEscalasDetailsPage() {
           </View>
         )}
 
-        {!isGerando && (
+        {!isGerando && eventosData.length === 0 && (
+          <FancyListEmpty
+            label='Nenhum evento adicionado'
+            helperText='A escala ainda não possui eventos.'
+            icon={{ library: 'MaterialCommunityIcons', name: 'calendar-text-outline', size: 68 }}
+            actionLabel={
+              escalaData[0].origem === EscalaOrigemEnum.Manual &&
+              (!viewMode || viewMode === 'edit') &&
+              !isBlockingScreen
+                ? 'Adicionar evento'
+                : undefined
+            }
+            actionIcon={{ library: 'MaterialIcons', name: 'playlist-add', size: 20 }}
+            onActionPress={
+              escalaData[0].origem === EscalaOrigemEnum.Manual &&
+              (!viewMode || viewMode === 'edit') &&
+              !isBlockingScreen
+                ? () => setIsAdicionarItemManualOpen(true)
+                : undefined
+            }
+          />
+        )}
+
+        {!isGerando && eventosData.length > 0 && (
           <EscalaHorizontalPager
             eventosData={eventosData}
             viewMode={viewMode}
@@ -725,13 +801,31 @@ export default function MinisterioEscalasDetailsPage() {
             onDeleteEvento={handleDeleteEvento}
             onAdicionarFuncao={handleAdicionarFuncao}
             onExcluirFuncao={handleExcluirFuncao}
+            onAdicionarEvento={
+              escalaData[0].origem === EscalaOrigemEnum.Manual &&
+              (!viewMode || viewMode === 'edit') &&
+              !isBlockingScreen
+                ? () => setIsAdicionarItemManualOpen(true)
+                : undefined
+            }
           />
         )}
       </FancyPageView>
 
       {isBlockingScreen && (
-        <View style={styles.blockingOverlay} pointerEvents='auto'>
-          <View style={styles.blockingOverlayContent}>
+        <View
+          style={[
+            styles.blockingOverlay,
+            { backgroundColor: ColorUtils.withAlpha(palette.fonts.dark, 0.12) },
+          ]}
+          pointerEvents='auto'
+        >
+          <View
+            style={[
+              styles.blockingOverlayContent,
+              { backgroundColor: ColorUtils.withAlpha(palette.backgroundColor, 0.96) },
+            ]}
+          >
             <FancyLoading label={blockingLabel} containerStyle={{ flex: 0 }} />
           </View>
         </View>
@@ -742,6 +836,18 @@ export default function MinisterioEscalasDetailsPage() {
         escalaId={escalaId}
         onClose={() => setIsParametrizacaoOpen(false)}
       />
+
+      {escalaData?.[0] && (
+        <AdicionarItemManualModal
+          visible={isAdicionarItemManualOpen}
+          onClose={() => setIsAdicionarItemManualOpen(false)}
+          ministerioId={ministerioId}
+          dataInicio={DateUtilsApi.dateOnlyFromApi(escalaData[0].dataInicio)}
+          dataTermino={DateUtilsApi.dateOnlyFromApi(escalaData[0].dataTermino)}
+          itensAtuais={escalaData[0].itens}
+          onConfirm={handleAdicionarItemManual}
+        />
+      )}
     </View>
   );
 }
@@ -762,7 +868,6 @@ const styles = StyleSheet.create({
   },
   blockingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.12)',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 50,
@@ -772,6 +877,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 16,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.96)',
   },
 });

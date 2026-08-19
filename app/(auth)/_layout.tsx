@@ -19,6 +19,9 @@ export default function AuthLayout() {
       <Stack.Screen name='forgot-password' />
       <Stack.Screen name='create-account' />
       <Stack.Screen name='admin-discovery' />
+      <Stack.Screen name='quiz-vendas' />
+      <Stack.Screen name='quiz-vendas-resultado' />
+      <Stack.Screen name='quiz-vendas-funcionalidades' />
       {/* iOS: Apple Guideline 3.1.1 — cadastro de organização pagante não pode
           acontecer dentro do app. Rotas nem existem no bundle iOS. Ver ADR. */}
       {Platform.OS !== 'ios' && <Stack.Screen name='create-igreja-account' />}

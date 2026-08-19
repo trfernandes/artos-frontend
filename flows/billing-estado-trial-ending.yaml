@@ -48,7 +48,7 @@ appId: com.church.artos
 - runFlow: _login.yaml
 - openLink: diakonia:///inicio
 - extendedWaitUntil:
-    visible: "Início"
+    visible: 'Início'
     timeout: 120000
 
 # ── Passo 1: BillingStatusPanel em Configuracoes ───────────────────────────
@@ -57,38 +57,38 @@ appId: com.church.artos
     timeout: 15000
 - runFlow:
     when:
-      visible: "Servidor indisponível"
+      visible: 'Servidor indisponível'
     file: _retry_servidor.yaml
 - extendedWaitUntil:
-    visible: "Assinatura"
+    visible: 'Assinatura'
     timeout: 15000
 - tapOn:
-    text: "Assinatura"
+    text: 'Assinatura'
     index: 1
 - extendedWaitUntil:
-    visible: "Versão avaliativa"
+    visible: 'Versão avaliativa'
     timeout: 30000
 # Mesmo layout que trial-warning: titulo fixo para trial nao expirado
-- assertVisible: "Versão avaliativa"
-- assertVisible: "Período avaliativo ativo"
-- assertVisible: "Teste"
-- assertNotVisible: "Assinatura em dia"
-- assertNotVisible: "Expirada"
-- assertNotVisible: "Ativa"
+- assertVisible: 'Versão avaliativa'
+- assertVisible: 'Período avaliativo ativo'
+- assertVisible: 'Teste'
+- assertNotVisible: 'Assinatura em dia'
+- assertNotVisible: 'Expirada'
+- assertNotVisible: 'Ativa'
 - takeScreenshot: billing-trial-ending-configuracoes
 
 # ── Passo 2: Voluntarios — sem banner (trial nao bloqueia sem limite) ─────────
 - openLink: diakonia:///admin/voluntarios
 - waitForAnimationToEnd:
     timeout: 15000
-- assertNotVisible: "Avaliação encerrada"
-- assertNotVisible: "Pagamento em atraso"
+- assertNotVisible: 'Avaliação encerrada'
+- assertNotVisible: 'Pagamento em atraso'
 - takeScreenshot: billing-trial-ending-voluntarios
 
 # ── Passo 3: Ministerios — sem banner, FAB habilitado ──────────────────────
 - openLink: diakonia:///admin/ministerios
 - waitForAnimationToEnd:
     timeout: 15000
-- assertNotVisible: "Avaliação encerrada"
-- assertNotVisible: "Pagamento em atraso"
+- assertNotVisible: 'Avaliação encerrada'
+- assertNotVisible: 'Pagamento em atraso'
 - takeScreenshot: billing-trial-ending-ministerios

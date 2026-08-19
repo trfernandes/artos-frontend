@@ -47,7 +47,7 @@ appId: com.church.artos
 - runFlow: _login.yaml
 - openLink: diakonia:///inicio
 - extendedWaitUntil:
-    visible: "Início"
+    visible: 'Início'
     timeout: 120000
 
 # ── Passo 1: BillingStatusPanel em Configuracoes ───────────────────────────
@@ -56,25 +56,25 @@ appId: com.church.artos
     timeout: 15000
 - runFlow:
     when:
-      visible: "Servidor indisponível"
+      visible: 'Servidor indisponível'
     file: _retry_servidor.yaml
 - extendedWaitUntil:
-    visible: "Assinatura"
+    visible: 'Assinatura'
     timeout: 15000
 - tapOn:
-    text: "Assinatura"
+    text: 'Assinatura'
     index: 1
 - extendedWaitUntil:
-    visible: "Versão avaliativa"
+    visible: 'Versão avaliativa'
     timeout: 30000
 # BillingStatusPanel para trial warning:
 #   eyebrow vem de resolveBillingNoticeContent(trial-warning).eyebrow = "Versao avaliativa"
 #   title e "Periodo avaliativo ativo" (hardcoded para trial nao expirado)
-- assertVisible: "Versão avaliativa"
-- assertVisible: "Período avaliativo ativo"
-- assertVisible: "Teste"
-- assertNotVisible: "Assinatura em dia"
-- assertNotVisible: "Expirada"
+- assertVisible: 'Versão avaliativa'
+- assertVisible: 'Período avaliativo ativo'
+- assertVisible: 'Teste'
+- assertNotVisible: 'Assinatura em dia'
+- assertNotVisible: 'Expirada'
 - takeScreenshot: billing-trial-warning-configuracoes
 
 # ── Passo 2: Voluntarios acessivel (sem banner, sem bloqueio) ───────────────
@@ -82,9 +82,9 @@ appId: com.church.artos
 - waitForAnimationToEnd:
     timeout: 15000
 # isBlocked=false, isVolunteerLimitReached=false -> banner nao aparece
-- assertNotVisible: "Avaliação encerrada"
-- assertNotVisible: "Pagamento em atraso"
-- assertNotVisible: "Assinatura inativa"
+- assertNotVisible: 'Avaliação encerrada'
+- assertNotVisible: 'Pagamento em atraso'
+- assertNotVisible: 'Assinatura inativa'
 - takeScreenshot: billing-trial-warning-voluntarios
 
 # ── Passo 3: Ministerios acessivel (FAB habilitado, sem banner) ─────────────
@@ -92,6 +92,6 @@ appId: com.church.artos
 - waitForAnimationToEnd:
     timeout: 15000
 # blockFab = isBlocked || isMinistryLimitReached = false -> sem banner
-- assertNotVisible: "Avaliação encerrada"
-- assertNotVisible: "Pagamento em atraso"
+- assertNotVisible: 'Avaliação encerrada'
+- assertNotVisible: 'Pagamento em atraso'
 - takeScreenshot: billing-trial-warning-ministerios

@@ -18,7 +18,7 @@ appId: com.church.artos
 
 - openLink: diakonia:///inicio
 - extendedWaitUntil:
-    visible: "Início"
+    visible: 'Início'
     timeout: 120000
 
 - openLink: diakonia:///admin/ministerios
@@ -26,20 +26,20 @@ appId: com.church.artos
     timeout: 15000
 
 # Header da tela carregou
-- assertVisible: "Ministérios"
+- assertVisible: 'Ministérios'
 
 # Nenhum banner de billing deve aparecer em conta ativa
-- assertNotVisible: "Avaliação encerrada"
-- assertNotVisible: "Pagamento em atraso"
-- assertNotVisible: "Sua cobrança está pendente"
-- assertNotVisible: "Capacidade excedida"
-- assertNotVisible: "Assinatura cancelada"
-- assertNotVisible: "Assinatura inativa"
-- assertNotVisible: "Versão avaliativa"
+- assertNotVisible: 'Avaliação encerrada'
+- assertNotVisible: 'Pagamento em atraso'
+- assertNotVisible: 'Sua cobrança está pendente'
+- assertNotVisible: 'Capacidade excedida'
+- assertNotVisible: 'Assinatura cancelada'
+- assertNotVisible: 'Assinatura inativa'
+- assertNotVisible: 'Versão avaliativa'
 
 # Nenhum modal de planos abriu automaticamente
-- assertNotVisible: "Escolher plano"
-- assertNotVisible: "Opcoes de Planos"
-- assertNotVisible: "Ver planos"
+- assertNotVisible: 'Escolher plano'
+- assertNotVisible: 'Opcoes de Planos'
+- assertNotVisible: 'Ver planos'
 
 - takeScreenshot: billing-ministerios-acesso

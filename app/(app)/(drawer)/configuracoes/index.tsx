@@ -1622,7 +1622,7 @@ export default function ConfiguracoesPage() {
               compact
               assinatura={assinatura}
               onPrimaryPress={handlePrimaryBillingAction}
-              primaryLabel="Gerenciar assinatura"
+              primaryLabel='Gerenciar assinatura'
             />
           ) : (
             <View style={styles.billingLoadingCard}>

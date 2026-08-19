@@ -1,0 +1,18 @@
+appId: com.church.artos
+---
+# Indisponibilidades da equipe (visão admin/líder) — distinto de /pessoal/indisponibilidade.
+- openLink: diakonia:///inicio
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    point: '6%,4%'
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn:
+    text: 'Audiovisual'
+- waitForAnimationToEnd:
+    timeout: 1500
+- tapOn:
+    text: 'Indisponibilidades'
+- waitForAnimationToEnd:
+    timeout: 4000

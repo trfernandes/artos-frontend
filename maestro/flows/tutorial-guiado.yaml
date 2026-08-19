@@ -1,0 +1,74 @@
+appId: com.church.artos
+---
+# ═══════════════════════════════════════════════════════════════════
+# Teste: Tutorial guiado — jornada voluntário (indisponibilidades)
+#
+# O que valida:
+#   1. TutorialBanner aparece na tela de indisponibilidades
+#   2. Tap em "Iniciar tutorial" ativa o TutorialOverlay
+#   3. Usuário avança pelos 5 passos (Próximo × 4, Concluir × 1)
+#   4. Banner some após conclusão (tour marcado como visto)
+#
+# Pré-condição: usuário logado como voluntário com tutorial não visto.
+# Se o device já tiver o tour concluído, o banner não aparece.
+# Usar conta de teste limpa ou limpar AsyncStorage antes do flow.
+# ═══════════════════════════════════════════════════════════════════
+
+# ── 1. Navegar para indisponibilidades ───────────────────────────────────
+- openLink: diakonia:///pessoal/indisponibilidade
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# ── 2. Verificar que o banner de tutorial está visível ───────────────────
+- assertVisible:
+    text: 'Quer conhecer essa tela?'
+
+# ── 3. Iniciar tutorial ──────────────────────────────────────────────────
+- tapOn:
+    text: 'Iniciar tutorial'
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# ── 4. Passo 1 — "Para que serve essa tela" ──────────────────────────────
+- assertVisible:
+    text: 'Para que serve essa tela'
+- tapOn:
+    text: 'Próximo'
+- waitForAnimationToEnd:
+    timeout: 1000
+
+# ── 5. Passo 2 — "Marcar e desmarcar uma data" ───────────────────────────
+- assertVisible:
+    text: 'Marcar e desmarcar uma data'
+- tapOn:
+    text: 'Próximo'
+- waitForAnimationToEnd:
+    timeout: 1000
+
+# ── 6. Passo 3 — "Adicionar período" ────────────────────────────────────
+- assertVisible:
+    text: 'Adicionar período'
+- tapOn:
+    text: 'Próximo'
+- waitForAnimationToEnd:
+    timeout: 1000
+
+# ── 7. Passo 4 — "Regras recorrentes" (muda para aba Regras) ─────────────
+- assertVisible:
+    text: 'Regras recorrentes'
+- tapOn:
+    text: 'Próximo'
+- waitForAnimationToEnd:
+    timeout: 1500
+
+# ── 8. Passo 5 (último) — "Criar uma regra" ─────────────────────────────
+- assertVisible:
+    text: 'Criar uma regra'
+- tapOn:
+    text: 'Concluir'
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# ── 9. Verificar que o banner sumiu (tour marcado como visto) ────────────
+- assertNotVisible:
+    text: 'Quer conhecer essa tela?'

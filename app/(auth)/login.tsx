@@ -286,7 +286,7 @@ export default function LoginIndexPage() {
                     autoCapitalize: 'none',
                     autoCorrect: false,
                     returnKeyType: 'next',
-                    textContentType: 'emailAddress',
+                    textContentType: 'username',
                     autoComplete: 'email',
                     importantForAutofill: 'yes',
                     blurOnSubmit: false,
@@ -353,7 +353,7 @@ export default function LoginIndexPage() {
                     <FancyButton
                       type='text'
                       label='Começar'
-                      onPress={() => router.push('/(auth)/create-account')}
+                      onPress={() => router.push('/(auth)/admin-discovery')}
                       labelStyle={{ color: Pallete.fonts.link }}
                       containerStyle={styles.linkButton}
                       disabled={loading}

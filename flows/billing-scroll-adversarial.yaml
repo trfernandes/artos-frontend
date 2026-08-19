@@ -20,7 +20,7 @@ appId: com.church.artos
 
 - openLink: diakonia:///inicio
 - extendedWaitUntil:
-    visible: "Início"
+    visible: 'Início'
     timeout: 120000
 
 - openLink: diakonia:///configuracoes
@@ -28,13 +28,13 @@ appId: com.church.artos
     timeout: 15000
 
 - tapOn:
-    text: "Assinatura"
+    text: 'Assinatura'
     index: 1
 - waitForAnimationToEnd:
     timeout: 15000
 
 # Estado inicial: unico CTA visivel
-- assertVisible: "Gerenciar assinatura"
+- assertVisible: 'Gerenciar assinatura'
 - takeScreenshot: billing-scroll-topo
 
 # Scroll 1 — inicio do conteudo abaixo do fold
@@ -43,12 +43,12 @@ appId: com.church.artos
     duration: 700
 - waitForAnimationToEnd:
     timeout: 1000
-- assertNotVisible: "Cancelar assinatura"
-- assertNotVisible: "Ver planos"
-- assertNotVisible: "Trocar plano"
-- assertNotVisible: "Assinar agora"
-- assertNotVisible: "Escolher plano"
-- assertNotVisible: "Atualizar plano"
+- assertNotVisible: 'Cancelar assinatura'
+- assertNotVisible: 'Ver planos'
+- assertNotVisible: 'Trocar plano'
+- assertNotVisible: 'Assinar agora'
+- assertNotVisible: 'Escolher plano'
+- assertNotVisible: 'Atualizar plano'
 - takeScreenshot: billing-scroll-meio
 
 # Scroll 2 — final da tela
@@ -57,12 +57,12 @@ appId: com.church.artos
     duration: 700
 - waitForAnimationToEnd:
     timeout: 1000
-- assertNotVisible: "Cancelar assinatura"
-- assertNotVisible: "Ver planos"
-- assertNotVisible: "Trocar plano"
-- assertNotVisible: "Assinar agora"
-- assertNotVisible: "Escolher plano"
-- assertNotVisible: "Atualizar plano"
+- assertNotVisible: 'Cancelar assinatura'
+- assertNotVisible: 'Ver planos'
+- assertNotVisible: 'Trocar plano'
+- assertNotVisible: 'Assinar agora'
+- assertNotVisible: 'Escolher plano'
+- assertNotVisible: 'Atualizar plano'
 
 # Scroll 3 — garantia de fim de pagina
 - swipe:
@@ -70,7 +70,7 @@ appId: com.church.artos
     duration: 700
 - waitForAnimationToEnd:
     timeout: 1000
-- assertNotVisible: "Cancelar assinatura"
-- assertNotVisible: "Ver planos"
-- assertNotVisible: "Trocar plano"
+- assertNotVisible: 'Cancelar assinatura'
+- assertNotVisible: 'Ver planos'
+- assertNotVisible: 'Trocar plano'
 - takeScreenshot: billing-scroll-fundo

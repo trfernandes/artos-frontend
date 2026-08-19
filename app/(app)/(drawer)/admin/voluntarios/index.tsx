@@ -1,4 +1,5 @@
-import { router, useFocusEffect } from 'expo-router';
+import { router } from 'expo-router';
+import { useFocusRefetch } from '../../../../../hooks/useFocusRefetch';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { StyleSheet, View } from 'react-native';
 import FancyScreenErrorHandler from '../../../../../components/error/FancyScreenErrorHandler';
@@ -47,7 +48,6 @@ export default function VoluntariosIndexPage() {
     isLoading,
     error,
     refetch,
-    isRefetching,
     isError,
     isLoadingMutation,
     update: updateVoluntario,
@@ -56,11 +56,17 @@ export default function VoluntariosIndexPage() {
     autoFetch: true,
   });
 
-  useFocusEffect(
-    useCallback(() => {
-      refetch();
-    }, [refetch]),
-  );
+  const { isFocusLoading } = useFocusRefetch(refetch);
+
+  const [isPullRefreshing, setIsPullRefreshing] = useState(false);
+  const handlePullRefresh = useCallback(async () => {
+    setIsPullRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setIsPullRefreshing(false);
+    }
+  }, [refetch]);
 
   const handleChangeStatus = useCallback(
     (id: string, nome: string, newStatus: VoluntarioStatusEnum) => {
@@ -170,12 +176,13 @@ export default function VoluntariosIndexPage() {
     return <FancyScreenErrorHandler error={error!} onTryAgrainPress={refetch} />;
   }
 
-  if (isLoading || isRefetching) return <FancyLoading />;
+  if (isLoading) return <FancyLoading />;
 
   return (
     <FancyListPage
       showFab={false}
       showSearchBar
+      contentLoading={isFocusLoading}
       searchBarProps={{
         value: searchText,
         onSearch: (text) => {
@@ -211,7 +218,8 @@ export default function VoluntariosIndexPage() {
         </View>
       }
       listProps={{
-        onRefresh: refetch,
+        onRefresh: handlePullRefresh,
+        refreshing: isPullRefreshing,
         listEmptyProps:
           searchText.trim().length > 0 || statusFiltro !== 'todos'
             ? {

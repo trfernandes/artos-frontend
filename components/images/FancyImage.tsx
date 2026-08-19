@@ -1,9 +1,9 @@
 import { StyleSheet, ImageSourcePropType, ImageStyle, StyleProp, View } from 'react-native';
-import { Pallete } from '../../constants/colors';
 import { Image } from 'expo-image';
 import { ImageUtils } from '../../utils/image_utils';
 import { AppImages } from '../../assets/app_images';
 import DefaultIcons from '../FancyIcons';
+import { usePallete } from '../../hooks/usePallete';
 
 export default function FancyImage({
   source,
@@ -16,6 +16,7 @@ export default function FancyImage({
   size?: number;
   style?: StyleProp<ImageStyle>;
 }) {
+  const palette = usePallete();
   const resolvedSource = ImageUtils.normalizeImageSource(source) ?? source;
   const isEmptyProfilePlaceholder =
     source === AppImages.emptyProfile || resolvedSource === AppImages.emptyProfile;
@@ -37,12 +38,12 @@ export default function FancyImage({
           overflow: 'hidden',
           justifyContent: 'center',
           alignItems: 'center',
-          ...Pallete.shadows[200],
+          ...palette.shadows[200],
         },
         isEmptyProfilePlaceholder && {
-          backgroundColor: '#E2E8F0',
+          backgroundColor: palette.backgroundColor2,
           borderWidth: Math.max(1, Math.round(size * 0.03)),
-          borderColor: '#CBD5E1',
+          borderColor: palette.border,
         },
         style as any,
         disabled && isEmptyProfilePlaceholder && styles.placeholderDisabled,
@@ -64,7 +65,7 @@ export default function FancyImage({
         library='MaterialIcons'
         name='person'
         size={Math.max(18, Math.round(size * 0.52))}
-        color='#94A3B8'
+        color={palette.icons.inactive}
         style={{
           position: 'absolute',
           opacity: isEmptyProfilePlaceholder ? 1 : 0,

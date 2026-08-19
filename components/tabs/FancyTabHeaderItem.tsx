@@ -16,7 +16,6 @@ export type FancyTabHeaderItemProps = {
   compact?: boolean;
 } & TabItem;
 
-
 export default function FancyTabHeaderItem({
   status = 'active',
   onMeasuredLayout,

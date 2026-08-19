@@ -28,6 +28,14 @@ export default function MinisterioEscalasLayout() {
         }}
       />
       <Stack.Screen
+        name='manual'
+        options={{
+          headerShown: true,
+          header: (props) => <FancyPageHeader leftButton='back' {...props} />,
+          title: 'Nova Escala Manual',
+        }}
+      />
+      <Stack.Screen
         name='details'
         options={{
           headerShadowVisible: false,

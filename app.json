@@ -2,8 +2,9 @@
   "expo": {
     "name": "Diakonia",
     "slug": "artos_frontend",
-    "version": "1.0.0",
+    "version": "1.1.1",
     "scheme": "diakonia",
+    "platforms": ["ios", "android"],
     "orientation": "portrait",
     "icon": "./assets/images/icon-ios.png",
     "userInterfaceStyle": "automatic",
@@ -50,9 +51,6 @@
         }
       ]
     },
-    "web": {
-      "favicon": "./assets/images/favicon.png"
-    },
     "plugins": [
       "expo-router",
       "expo-font",
@@ -87,7 +85,7 @@
         "@sentry/react-native/expo",
         {
           "url": "https://sentry.io/",
-          "project": "artos-volunteers",
+          "project": "artos-front",
           "organization": "artos-uw"
         }
       ],
@@ -104,7 +102,10 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/8de609c4-80b9-4a57-9d70-b8c16383e892"
+      "url": "https://u.expo.dev/8de609c4-80b9-4a57-9d70-b8c16383e892",
+      "requestHeaders": {
+        "expo-channel-name": "production"
+      }
     }
   }
 }

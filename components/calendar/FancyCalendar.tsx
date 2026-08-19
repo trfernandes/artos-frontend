@@ -97,8 +97,7 @@ export default function FancyCalendar({
   }, [minimumDate]);
 
   const minDate = useMemo(() => {
-    if (!normalizedMinimum) return today;
-    return normalizedMinimum < today ? today : normalizedMinimum;
+    return normalizedMinimum ?? today;
   }, [normalizedMinimum, today]);
 
   const maxDate = useMemo(() => {
@@ -351,7 +350,7 @@ function createStyles(palette: ThemePalette) {
       width: '100%',
     },
     contentContainerFixed: {
-      minHeight: 250,
+      height: 250,
       width: '100%',
       paddingTop: 6,
     },

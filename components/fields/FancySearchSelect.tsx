@@ -75,6 +75,8 @@ export interface FancySearchSelectProps<T>
   multiSelect?: boolean;
   /** Override do label (cor/estilo) — para superfícies escuras/gradiente. */
   labelProps?: FancyTextProps;
+  /** Chamado quando o Modal nativo termina de fechar (isVisible vira false). */
+  onClosed?: () => void;
 }
 
 export interface FancySearchSelectRef {
@@ -101,6 +103,7 @@ function FancySearchSelectInner<ValueItem>(
     retryLabel = 'Tentar novamente',
     multiSelect = false,
     labelProps,
+    onClosed,
   }: FancySearchSelectProps<ValueItem>,
   ref: React.Ref<FancySearchSelectRef>,
 ) {
@@ -169,8 +172,13 @@ function FancySearchSelectInner<ValueItem>(
       dragY.setValue(0);
       setIsVisible(false);
       setSearch('');
+      // iOS: onDismiss do <Modal> nativo dispara onClosed (evita race de
+      // apresentar outro Modal antes do dismiss real terminar no OS).
+      if (Platform.OS !== 'ios') {
+        onClosed?.();
+      }
     });
-  }, [backdropAnim, dragY, slideAnim]);
+  }, [backdropAnim, dragY, slideAnim, onClosed]);
 
   const scheduleClose = useCallback(() => {
     closeTask.current?.cancel();
@@ -491,7 +499,7 @@ function FancySearchSelectInner<ValueItem>(
                 }}
                 ItemSeparatorComponent={() => <FancySeparator style={{ marginTop: 8 }} />}
                 keyExtractor={(item: DropDownItemProps<ValueItem>, index: number) =>
-                  String(item.value ?? index)
+                  `${index}_${String(item.value ?? '')}`
                 }
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
@@ -581,6 +589,7 @@ function FancySearchSelectInner<ValueItem>(
         animationType='none'
         statusBarTranslucent
         onRequestClose={handleClose}
+        onDismiss={Platform.OS === 'ios' ? onClosed : undefined}
       >
         {sheetContent}
       </Modal>

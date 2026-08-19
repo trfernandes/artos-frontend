@@ -20,7 +20,10 @@ appId: com.church.artos
 - launchApp
 - runFlow: _login.yaml
 
-- assertVisible: "Início"
+# Timeout maior que o default (17s): emulador do CI é mais lento pra bundlar/navegar pós-login
+- extendedWaitUntil:
+    visible: 'Início'
+    timeout: 60000
 
 - openLink: diakonia:///configuracoes
 - waitForAnimationToEnd:
@@ -28,17 +31,17 @@ appId: com.church.artos
 
 # Aba "Assinatura" (index 1 pois index 0 eh o card de status no topo)
 - tapOn:
-    text: "Assinatura"
+    text: 'Assinatura'
     index: 1
 - waitForAnimationToEnd:
     timeout: 15000
 
 # Unico CTA de billing visivel (compliance 3.1.1)
-- assertVisible: "Gerenciar assinatura"
+- assertVisible: 'Gerenciar assinatura'
 - takeScreenshot: billing-gerenciar-antes
 
 # Tocar abre browser externo — app nao deve crashar
-- tapOn: "Gerenciar assinatura"
+- tapOn: 'Gerenciar assinatura'
 - waitForAnimationToEnd:
     timeout: 2000
 

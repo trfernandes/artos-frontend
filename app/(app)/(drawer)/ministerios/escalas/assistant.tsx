@@ -1,8 +1,8 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
 import FancySteps from '../../../../../components/steps/FancySteps';
 import { FancyStepsConfig } from '../../../../../components/steps/FancyStepsConfig';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -39,6 +39,16 @@ import { EscalaTemplateTipoEnum } from '../../../../../domain/enums/EscalaTempla
 import { DateUtilsApi } from '../../../../../utils/date_utils';
 import { useEscalaNomeValidator } from '../../../../../hooks/useEscalaNomeValidator';
 import { getApiErrorMessage } from '../../../../../domain/api/api-error';
+import { TutorialTarget } from '../../../../../components/tutorial/TutorialTarget';
+import { TutorialBanner } from '../../../../../components/tutorial/TutorialBanner';
+import { TutorialOverlay } from '../../../../../components/tutorial/TutorialOverlay';
+import { useScreenTutorial } from '../../../../../hooks/useScreenTutorial';
+import {
+  ESCALA_ASSISTENTE_TOUR_ID,
+  ESCALA_ASSISTENTE_TOUR_STEPS,
+  ESCALA_ASSISTENTE_TOUR_TITLE,
+} from '../../../../../components/tutorial/tours/escalaAssistenteTour';
+import { useJourney } from '../../../../../contexts/JourneyContext';
 
 const DUPLICATE_NAME_MESSAGE = 'Já existe uma escala com esse nome neste ministério.';
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -60,9 +70,7 @@ const mapEscalaFormToDto = (
       ?.filter((evento) => evento.selected)
       .map((evento) => {
         let equipe:
-          | CreateEscalaEventoEquipePorTemplateDto
-          | CreateEscalaEventoEquipePersonalizadaDto
-          | null;
+          CreateEscalaEventoEquipePorTemplateDto | CreateEscalaEventoEquipePersonalizadaDto | null;
 
         if (evento.template.templateBase) {
           const templateId =
@@ -144,6 +152,40 @@ function AssistenteWrapper() {
   const { showLoading, hideLoading } = useLoading();
 
   const { generate: generateEscala, isGenerating: isGeneratingEscala } = useEscalasCrud();
+
+  const journey = useJourney();
+  const isJourneyStep = journey.currentStep?.tourId === ESCALA_ASSISTENTE_TOUR_ID;
+  const tour = useScreenTutorial(
+    ESCALA_ASSISTENTE_TOUR_ID,
+    ESCALA_ASSISTENTE_TOUR_TITLE,
+    ESCALA_ASSISTENTE_TOUR_STEPS,
+    { onComplete: isJourneyStep ? journey.advance : undefined },
+  );
+
+  useEffect(() => {
+    if (isJourneyStep && !tour.isActive && tour.ready) {
+      tour.start();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isJourneyStep, tour.ready]);
+
+  // FancySteps desmonta o passo anterior ao trocar de índice (diferente do FancyTabs,
+  // que mantém tudo montado) — por isso o tour precisa levar o wizard até o passo certo
+  // antes de medir o alvo, e devolver o wizard ao início quando o tour terminar, já que
+  // o usuário ainda não preencheu os campos obrigatórios do passo "Dados".
+  useEffect(() => {
+    if (tour.isActive && tour.currentStep?.wizardIndex !== undefined) {
+      setIndex(tour.currentStep.wizardIndex);
+    }
+  }, [tour.isActive, tour.currentStep, setIndex]);
+
+  const wasTourActiveRef = useRef(false);
+  useEffect(() => {
+    if (wasTourActiveRef.current && !tour.isActive) {
+      setIndex(0);
+    }
+    wasTourActiveRef.current = tour.isActive;
+  }, [tour.isActive, setIndex]);
 
   const dataAtual = new Date();
 
@@ -467,7 +509,16 @@ function AssistenteWrapper() {
       },
       {
         title: 'Eventos',
-        content: <AssistenteEventosStep />,
+        content: (
+          <TutorialTarget
+            id='assistente-eventos-lista'
+            registerTarget={tour.registerTarget}
+            unregisterTarget={tour.unregisterTarget}
+            style={{ flex: 1 }}
+          >
+            <AssistenteEventosStep />
+          </TutorialTarget>
+        ),
         actions: [
           {
             label: 'Anterior',
@@ -512,7 +563,16 @@ function AssistenteWrapper() {
       },
       {
         title: 'Equipe',
-        content: <AssistenteParticipantesStep />,
+        content: (
+          <TutorialTarget
+            id='assistente-participantes-lista'
+            registerTarget={tour.registerTarget}
+            unregisterTarget={tour.unregisterTarget}
+            style={{ flex: 1 }}
+          >
+            <AssistenteParticipantesStep />
+          </TutorialTarget>
+        ),
         actions: [
           {
             label: 'Anterior',
@@ -623,6 +683,11 @@ function AssistenteWrapper() {
     <FancyPageView
       style={[styles.container, { pointerEvents: isGeneratingEscala ? 'none' : 'auto' }]}
     >
+      {index === 0 && tour.showBanner && (
+        <View style={styles.bannerWrapper}>
+          <TutorialBanner onStart={tour.start} onDismiss={tour.skip} />
+        </View>
+      )}
       <FormProvider {...form}>
         <FancySteps
           config={stepsConfig}
@@ -634,6 +699,8 @@ function AssistenteWrapper() {
           navigationContainerStyle={{ paddingHorizontal: 15 }}
         />
       </FormProvider>
+
+      <TutorialOverlay tour={tour} />
     </FancyPageView>
   );
 }
@@ -649,5 +716,6 @@ export default function MinisterioEscalasAssistenteIndex() {
 }
 
 const styles = StyleSheet.create({
-  container: { paddingVertical: 10, paddingHorizontal: 5 },
+  container: { paddingVertical: 10 },
+  bannerWrapper: { paddingHorizontal: 15, marginBottom: 8 },
 });

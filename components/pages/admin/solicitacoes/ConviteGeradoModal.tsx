@@ -92,7 +92,10 @@ export default function ConviteGeradoModal({
         />
 
         <FancyListItemCard
-          leading={{ type: 'icon', icon: { library: 'MaterialCommunityIcons', name: 'link-variant' } }}
+          leading={{
+            type: 'icon',
+            icon: { library: 'MaterialCommunityIcons', name: 'link-variant' },
+          }}
           title={convite.inviteLink}
           titleProps={{ numberOfLines: 1 }}
           subtitle='Link de convite'

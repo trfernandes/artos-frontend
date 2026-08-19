@@ -72,9 +72,8 @@ export default function VoluntarioTab({ ministerioId }: VoluntarioTabProps) {
 
   const [addFormParams, setAddFormParams] = useState<{ visible: boolean }>({ visible: false });
   const [selectedVoluntario, setSelectedVoluntario] = useState<any | null>(null);
-  const [actionsVoluntario, setActionsVoluntario] = useState<ResponseMinisterioVoluntarioDto | null>(
-    null,
-  );
+  const [actionsVoluntario, setActionsVoluntario] =
+    useState<ResponseMinisterioVoluntarioDto | null>(null);
 
   const { showLoading, hideLoading } = useLoading();
 

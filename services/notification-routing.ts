@@ -287,6 +287,8 @@ function resolveByTipo(payload: Record<string, any>): NotificationNavigationTarg
 
     case NotificacaoTipoEnum.IgrejaVinculoAprovado:
     case NotificacaoTipoEnum.IgrejaVinculoNegado:
+      return { pathname: '/(app)/(drawer)/inicio' };
+
     case NotificacaoTipoEnum.IgrejaConviteExpirado:
     case 'GENERIC':
     default:
@@ -366,13 +368,24 @@ export function resolveNotificationTarget(
   return resolveByTipo(payload);
 }
 
-export function openNotification(
+const TYPES_REQUIRING_FRESH_USER_DATA = new Set<string>([
+  NotificacaoTipoEnum.IgrejaVinculoAprovado,
+  NotificacaoTipoEnum.IgrejaVinculoNegado,
+]);
+
+export async function openNotification(
   rawPayload: NotificationPayload,
   source: 'push' | 'inbox' | 'unknown' = 'unknown',
+  refreshMe?: () => Promise<unknown>,
 ) {
   const payload = coercePayload(rawPayload);
   const target = resolveNotificationTarget(rawPayload);
   if (!target) return false;
+
+  const tipo = payload ? getNotificationType(payload) : undefined;
+  if (tipo && TYPES_REQUIRING_FRESH_USER_DATA.has(tipo) && refreshMe) {
+    await refreshMe().catch(() => {});
+  }
 
   if (target.params && Object.keys(target.params).length > 0) {
     router.push({

@@ -19,10 +19,6 @@ export function useMinisteriosCrud({
 }: ExternalUseCrudParams = {}) {
   const { igrejaAtiva } = useAuth();
 
-  if (!igrejaAtiva) {
-    throw new Error('Nenhuma igreja ativa selecionada');
-  }
-
   return useCrud<
     ResponseMinisterioDto,
     AddMinisterioFormData,
@@ -32,10 +28,11 @@ export function useMinisteriosCrud({
     queryKey: 'ministerios',
     autoFetch,
     initialParams,
-    fetchAll: () => IgrejaMinisteriosRepository.listarMinisterios(igrejaAtiva.id),
-    search: (query) => IgrejaMinisteriosRepository.listarMinisterios(igrejaAtiva.id, query),
+    enabled: !!igrejaAtiva,
+    fetchAll: () => IgrejaMinisteriosRepository.listarMinisterios(igrejaAtiva!.id),
+    search: (query) => IgrejaMinisteriosRepository.listarMinisterios(igrejaAtiva!.id, query),
     fetchOne: async (id) => {
-      const result = await IgrejaMinisteriosRepository.listarMinisterios(igrejaAtiva.id, {
+      const result = await IgrejaMinisteriosRepository.listarMinisterios(igrejaAtiva!.id, {
         where: {
           conditions: [
             {
@@ -50,8 +47,8 @@ export function useMinisteriosCrud({
       return result[0];
     },
     add: (data) => MinisteriosRepository.add(data),
-    update: (id, data) => MinisteriosRepository.update(id, { ...data, igrejaId: igrejaAtiva.id }),
-    remove: (id) => MinisteriosRepository.remove(id, igrejaAtiva.id),
+    update: (id, data) => MinisteriosRepository.update(id, { ...data, igrejaId: igrejaAtiva!.id }),
+    remove: (id) => MinisteriosRepository.remove(id, igrejaAtiva!.id),
     resolver: zodResolver(AddMinisterioSchema),
     muteMessages,
     messages: {

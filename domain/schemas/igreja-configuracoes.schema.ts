@@ -52,7 +52,10 @@ export const faturamentoSchema = z.object({
     .string()
     .min(1, 'Campo obrigatório')
     .regex(/^\d{10,11}$/, 'Telefone inválido')
-    .refine((value) => !hasFakeSubscriberNumber(value), 'Informe um telefone real (não use sequências ou números repetidos)'),
+    .refine(
+      (value) => !hasFakeSubscriberNumber(value),
+      'Informe um telefone real (não use sequências ou números repetidos)',
+    ),
   emailCobranca: z
     .string()
     .refine((value) => value === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value), 'Email inválido'),

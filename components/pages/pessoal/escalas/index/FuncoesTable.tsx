@@ -8,7 +8,8 @@ import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 import { ThemePalette } from '../../../../../constants/colors';
 import { ResponseEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.response';
 import { EscalaItemStatusEnum } from '../../../../../domain/enums/Escala/escala-item-status.enum';
-import { VoluntarioStatusChipParams } from '../../../ministerios/escalas/details/ListaVoluntariosTable';
+import { getVoluntarioStatusChipParams } from '../../../ministerios/escalas/details/ListaVoluntariosTable';
+import { useAppTheme } from '../../../../../hooks/useAppTheme';
 import { ColorUtils } from '../../../../../utils/color_utils';
 
 type FuncoesTableProps = {
@@ -41,8 +42,9 @@ function FuncaoRow({
 }) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
+  const { isDark } = useAppTheme();
   const { isPendente, isSubstituicaoPendente, canSubstitute } = getActionState(item);
-  const statusUi = VoluntarioStatusChipParams[item.status];
+  const statusUi = getVoluntarioStatusChipParams(palette, isDark)[item.status];
 
   return (
     <View style={[styles.row, !isLast ? styles.rowDivider : null]}>

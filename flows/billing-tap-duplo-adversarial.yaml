@@ -19,7 +19,7 @@ appId: com.church.artos
 
 - openLink: diakonia:///inicio
 - extendedWaitUntil:
-    visible: "Início"
+    visible: 'Início'
     timeout: 120000
 
 - openLink: diakonia:///configuracoes
@@ -27,16 +27,16 @@ appId: com.church.artos
     timeout: 15000
 
 - tapOn:
-    text: "Assinatura"
+    text: 'Assinatura'
     index: 1
 - waitForAnimationToEnd:
     timeout: 15000
 
-- assertVisible: "Gerenciar assinatura"
+- assertVisible: 'Gerenciar assinatura'
 - takeScreenshot: billing-tap-antes
 
 # Tap unico — Chrome abre (comportamento correto)
-- tapOn: "Gerenciar assinatura"
+- tapOn: 'Gerenciar assinatura'
 - waitForAnimationToEnd:
     timeout: 3000
 

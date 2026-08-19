@@ -25,8 +25,7 @@ export type CreateEscalaEventoEquipePorTemplateDto = {
 };
 
 export type CreateEscalaEventoEquipeDto =
-  | CreateEscalaEventoEquipePorTemplateDto
-  | CreateEscalaEventoEquipePersonalizadaDto;
+  CreateEscalaEventoEquipePorTemplateDto | CreateEscalaEventoEquipePersonalizadaDto;
 
 export type CreateEscalaEventoDto = {
   id: string;

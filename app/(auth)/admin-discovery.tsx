@@ -1,4 +1,4 @@
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import FancyButton from '../../components/buttons/FancyButton';
@@ -7,30 +7,47 @@ import DefaultIcons from '../../components/FancyIcons';
 import { usePallete } from '../../hooks/usePallete';
 import { ColorUtils } from '../../utils/color_utils';
 
-const BENEFITS = [
+type AccentKey = 'primary' | 'secondary';
+
+const ROLES: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  cta: string;
+  icon: string;
+  accent: AccentKey;
+  route: string;
+  iosHidden: boolean;
+}[] = [
   {
-    title: 'Escalas mais previsíveis',
-    description: 'Centralize ministérios, funções e convites sem depender de planilha.',
-    icon: 'calendar-check-outline',
+    eyebrow: 'Para quem serve',
+    title: 'Sou voluntário',
+    description: 'Já recebi convite ou código da minha igreja. Quero entrar na equipe.',
+    cta: 'Entrar com código ou convite',
+    icon: 'account-group-outline',
     accent: 'primary',
+    route: '/(auth)/create-voluntario-account',
+    iosHidden: false,
   },
   {
-    title: 'Equipe alinhada',
-    description: 'Voluntários entram com código ou convite e recebem o contexto certo.',
-    icon: 'account-multiple-check-outline',
+    // iOS: Apple Guideline 3.1.1 — cadastro de organização pagante não
+    // pode acontecer dentro do app.
+    eyebrow: 'Para quem lidera',
+    title: 'Sou responsável pela igreja',
+    description: 'Quero organizar voluntários, ministérios e escalas no app.',
+    cta: 'Conhecer e criar minha igreja',
+    icon: 'crown-outline',
     accent: 'secondary',
+    route: '/(auth)/create-igreja-account',
+    iosHidden: true,
   },
-  {
-    title: 'Louvor e repertório no mesmo fluxo',
-    description: 'Setlist, repertório e operação do evento ficam no mesmo lugar.',
-    icon: 'music-clef-treble',
-    accent: 'terciary',
-  },
-] as const;
+];
 
 export default function AdminDiscoveryPage() {
   const Pallete = usePallete();
   const insets = useSafeAreaInsets();
+
+  const visibleRoles = ROLES.filter((r) => !r.iosHidden || Platform.OS !== 'ios');
 
   return (
     <View style={[styles.root, { backgroundColor: Pallete.backgroundColor }]}>
@@ -44,91 +61,112 @@ export default function AdminDiscoveryPage() {
             iconStyle={{ color: Pallete.icons.dark }}
             containerStyle={{
               backgroundColor: ColorUtils.withAlpha(Pallete.fonts.dark, 0.08),
-              borderRadius: 20,
-              width: 40,
-              height: 40,
+              borderRadius: 22,
+              width: 44,
+              height: 44,
             }}
           />
         </View>
 
-        <View style={[styles.content, { paddingTop: insets.top + 24 }]}>
-          <View style={styles.centerGroup}>
-            <View style={styles.headerGroup}>
-              <FancyText size='large' type='bold' color={Pallete.fonts.dark}>
-                Organize a igreja sem ruído
-              </FancyText>
-              <FancyText size='small' color={Pallete.fonts.inactive} style={styles.subtitle}>
-                Antes de cobrar, o app te deixa montar a base e sentir o fluxo funcionando.
-              </FancyText>
-            </View>
+        <View
+          style={[
+            styles.content,
+            { paddingTop: insets.top + 68, paddingBottom: Math.max(insets.bottom, 16) + 16 },
+          ]}
+        >
+          <View style={styles.headerGroup}>
+            <FancyText size={28} type='bold' color={Pallete.fonts.dark} style={styles.title}>
+              Como você vai entrar?
+            </FancyText>
+            <FancyText size='small' color={Pallete.fonts.inactive}>
+              Você pode mudar isso depois.
+            </FancyText>
+          </View>
 
-            <View style={styles.benefitsList}>
-              {BENEFITS.map((item) => {
-                const accent = Pallete[item.accent];
-                return (
+          <View style={styles.cardsList}>
+            {visibleRoles.map((role) => {
+              const accent = Pallete[role.accent];
+              return (
+                <Pressable
+                  key={role.title}
+                  style={({ pressed }) => [
+                    styles.card,
+                    Pallete.shadows[200],
+                    {
+                      backgroundColor: ColorUtils.blendOver(
+                        accent,
+                        pressed ? 0.14 : 0.09,
+                        Pallete.backgroundColor,
+                      ),
+                      borderColor: ColorUtils.withAlpha(accent, pressed ? 0.5 : 0.32),
+                    },
+                  ]}
+                  onPress={() => router.push(role.route as never)}
+                >
                   <View
-                    key={item.title}
                     style={[
-                      styles.benefitRow,
-                      Pallete.shadows[200],
-                      {
-                        backgroundColor: ColorUtils.blendOver(
-                          accent,
-                          0.07,
-                          Pallete.backgroundColor,
-                        ),
-                        borderColor: ColorUtils.withAlpha(accent, 0.25),
-                      },
+                      styles.cardIconZone,
+                      { backgroundColor: ColorUtils.withAlpha(accent, 0.1) },
                     ]}
                   >
-                    <View
-                      style={[
-                        styles.iconWrap,
-                        { backgroundColor: ColorUtils.withAlpha(accent, 0.12) },
-                      ]}
+                    <DefaultIcons.Custom
+                      library='MaterialCommunityIcons'
+                      name={role.icon}
+                      size={36}
+                      color={ColorUtils.withAlpha(accent, 0.72)}
+                    />
+                  </View>
+
+                  <View style={styles.cardContent}>
+                    <FancyText
+                      size='extraSmall'
+                      type='bold'
+                      color={ColorUtils.withAlpha(accent, 0.65)}
+                      style={styles.cardEyebrow}
                     >
+                      {role.eyebrow.toUpperCase()}
+                    </FancyText>
+
+                    <FancyText
+                      size='large'
+                      type='bold'
+                      color={Pallete.fonts.dark}
+                      style={styles.cardTitle}
+                    >
+                      {role.title}
+                    </FancyText>
+
+                    <FancyText size='small' color={Pallete.fonts.inactive} style={styles.cardDesc}>
+                      {role.description}
+                    </FancyText>
+
+                    <View style={styles.cardCta}>
+                      <FancyText size='small' type='semiBold' color={accent}>
+                        {role.cta}
+                      </FancyText>
                       <DefaultIcons.Custom
                         library='MaterialCommunityIcons'
-                        name={item.icon}
-                        size={20}
+                        name='arrow-right'
+                        size={14}
                         color={accent}
                       />
                     </View>
-                    <View style={styles.benefitText}>
-                      <FancyText size='small' type='semiBold' color={Pallete.fonts.dark}>
-                        {item.title}
-                      </FancyText>
-                      <FancyText
-                        size='extraSmall'
-                        color={Pallete.fonts.inactive}
-                        style={styles.benefitDescription}
-                      >
-                        {item.description}
-                      </FancyText>
-                    </View>
                   </View>
-                );
-              })}
-            </View>
+                </Pressable>
+              );
+            })}
+          </View>
 
-            <View style={styles.footer}>
-              {/* iOS: Apple Guideline 3.1.1 — cadastro de organização pagante não
-                  pode acontecer dentro do app. Ver ADR sobre isolamento por plataforma. */}
-              {Platform.OS !== 'ios' && (
-                <FancyButton
-                  label='Cadastrar minha igreja'
-                  onPress={() => router.push('/(auth)/create-igreja-account')}
-                  icon={{ library: 'MaterialCommunityIcons', name: 'arrow-right', size: 16 }}
-                  iconPosition='right'
-                />
-              )}
-              <FancyButton
-                type='text'
-                label='Já tenho conta'
-                onPress={() => router.push('/(auth)/login')}
-                labelStyle={{ color: Pallete.fonts.link }}
-              />
-            </View>
+          <View style={styles.footer}>
+            <FancyButton
+              type='text'
+              label='Já tenho conta'
+              onPress={() => router.push('/(auth)/login')}
+              labelStyle={{ color: Pallete.fonts.link }}
+            />
+            <FancyText size='extraSmall' color={Pallete.fonts.inactive} style={styles.helpText}>
+              {'Não sabe qual escolher? Peça o convite ao seu líder — ele chega por e-mail.'}
+            </FancyText>
           </View>
         </View>
       </SafeAreaView>
@@ -150,45 +188,61 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingBottom: 24,
-  },
-  centerGroup: {
-    gap: 22,
+    paddingHorizontal: 20,
   },
   headerGroup: {
-    gap: 2,
+    gap: 4,
+    marginBottom: 20,
   },
-  subtitle: {
-    opacity: 0.85,
+  title: {
+    letterSpacing: -0.5,
+    lineHeight: 34,
   },
-  benefitsList: {
+  cardsList: {
+    flex: 1,
     gap: 12,
+    justifyContent: 'center',
+    marginBottom: 16,
   },
-  benefitRow: {
+  card: {
+    borderRadius: 20,
     borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 18,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 14,
+    overflow: 'hidden',
   },
-  iconWrap: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
+  cardIconZone: {
+    height: 70,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  benefitText: {
-    flex: 1,
-    gap: 4,
+  cardContent: {
+    paddingHorizontal: 18,
+    paddingTop: 10,
+    paddingBottom: 12,
+    gap: 2,
   },
-  benefitDescription: {
-    opacity: 0.85,
+  cardEyebrow: {
+    letterSpacing: 2,
+    marginBottom: 1,
+  },
+  cardTitle: {
+    lineHeight: 20,
+  },
+  cardDesc: {
+    lineHeight: 17,
+  },
+  cardCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 6,
   },
   footer: {
     gap: 10,
+    marginTop: 'auto',
+  },
+  helpText: {
+    textAlign: 'center',
+    lineHeight: 18,
+    paddingHorizontal: 12,
   },
 });

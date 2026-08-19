@@ -1,3 +1,15 @@
 export const AppImages = {
   emptyProfile: require('../assets/images/empty_profile_image.png'),
+  quizPergunta1: require('../assets/images/quiz-pergunta-1.jpeg'),
+  quizPergunta2: require('../assets/images/quiz-pergunta-2.jpeg'),
+  quizPergunta3: require('../assets/images/quiz-pergunta-3.jpeg'),
+  quizPergunta4: require('../assets/images/quiz-pergunta-4.jpeg'),
+  quizPergunta5: require('../assets/images/quiz-pergunta-5.jpeg'),
+  quizPergunta6: require('../assets/images/quiz-pergunta-6.jpeg'),
+  quizResultadoNoLimite: require('../assets/images/quiz-resultado-no-limite.jpeg'),
+  quizResultadoSoFaltaOrganizar: require('../assets/images/quiz-resultado-so-falta-organizar.jpeg'),
+  quizResultadoSobrecarregado: require('../assets/images/quiz-resultado-sobrecarregado.jpeg'),
+  quizCapaSoFaltaOrganizar: require('../assets/images/quiz-capa-so-falta-organizar.png'),
+  quizCapaNoLimite: require('../assets/images/quiz-capa-no-limite.png'),
+  quizCapaSobrecarregado: require('../assets/images/quiz-capa-sobrecarregado.png'),
 } as const;

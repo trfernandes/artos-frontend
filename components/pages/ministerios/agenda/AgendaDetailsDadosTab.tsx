@@ -551,8 +551,7 @@ export default function AgendaDetailsDadosTab(props: {
   const dadosDirty =
     serializeDadosOcorrencia(dadosOcorrencia) !== serializeDadosOcorrencia(resolvedDadosOcorrencia);
   const hasUnsavedChanges =
-    canManageOccurrence &&
-    (templateDirty || ensaioDirty || responsavelSetlistDirty || dadosDirty);
+    canManageOccurrence && (templateDirty || ensaioDirty || responsavelSetlistDirty || dadosDirty);
   const pendingChangesCount =
     Number(templateDirty) +
     Number(ensaioDirty) +
@@ -1056,7 +1055,8 @@ export default function AgendaDetailsDadosTab(props: {
 
       const propagableLabels: string[] = [];
       if (templateDirty) propagableLabels.push('template da equipe');
-      if (isLouvorMinisterio && responsavelSetlistDirty) propagableLabels.push('responsável do setlist');
+      if (isLouvorMinisterio && responsavelSetlistDirty)
+        propagableLabels.push('responsável do setlist');
       if (ensaioDirty) propagableLabels.push('horário de ensaio');
 
       if (propagableLabels.length > 0) {
@@ -1389,7 +1389,6 @@ export default function AgendaDetailsDadosTab(props: {
                 />
               </View>
 
-
               {canManageOccurrence ? (
                 <View style={[styles.footer, { borderTopColor: palette.borderCard }]}>
                   {hasUnsavedChanges ? (
@@ -1477,7 +1476,8 @@ export default function AgendaDetailsDadosTab(props: {
                 </FancyText>
               </View>
               <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
-                Cancele esta ocorrência caso ela não aconteça. Ela continuará visível na agenda marcada como cancelada e pode ser restaurada a qualquer momento.
+                Cancele esta ocorrência caso ela não aconteça. Ela continuará visível na agenda
+                marcada como cancelada e pode ser restaurada a qualquer momento.
               </FancyText>
               <FancyButton
                 label='Cancelar esta ocorrência'

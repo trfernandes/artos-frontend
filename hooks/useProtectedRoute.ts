@@ -16,6 +16,7 @@ const PUBLIC_ROUTE_PREFIXES = [
   '/voluntario-aguardando-email',
   '/welcome',
   '/invite/',
+  '/quiz-vendas',
 ];
 
 const PENDING_INVITE_KEY = 'pendingInvite';
@@ -62,9 +63,10 @@ export function useProtectedRoute() {
       postLoginHandledRef.current = false;
     }
 
-    // 2) não logado tentando rota privada → manda pro login
+    // 2) não logado tentando rota privada → manda pro login (quem já autenticou antes)
+    // ou pro quiz de vendas (primeiro contato — expõe a dor antes do cadastro).
     if (!user && !onPublic) {
-      const target = hasAuthenticatedBefore ? '/login' : '/create-account';
+      const target = hasAuthenticatedBefore ? '/login' : '/quiz-vendas';
       if (pathname !== target) router.replace(target);
       return;
     }

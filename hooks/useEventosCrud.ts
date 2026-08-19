@@ -314,14 +314,11 @@ export function useEventosCrud({
 }: ExternalUseCrudParams = {}) {
   const { igrejaAtiva } = useAuth();
 
-  if (!igrejaAtiva) {
-    throw new Error('Nenhuma igreja ativa selecionada');
-  }
-
   const crud = useCrud<ResponseEventoDto, EventoFormData, CreateEventoDto, UpdateEventoDto>({
     queryKey: 'eventos',
     autoFetch,
     initialParams,
+    enabled: !!igrejaAtiva,
     messages: messages || {
       successCreate: 'Evento criado com sucesso.',
       successUpdate: 'Evento atualizado com sucesso.',
@@ -330,10 +327,10 @@ export function useEventosCrud({
       errorUpdate: 'Erro ao atualizar o evento.',
       errorDelete: 'Erro ao remover o evento.',
     },
-    fetchAll: () => IgrejaEventosRepository.listarEventos(igrejaAtiva.id),
-    search: (query) => IgrejaEventosRepository.listarEventos(igrejaAtiva.id, query),
+    fetchAll: () => IgrejaEventosRepository.listarEventos(igrejaAtiva!.id),
+    search: (query) => IgrejaEventosRepository.listarEventos(igrejaAtiva!.id, query),
     fetchOne: async (id) => {
-      const result = await IgrejaEventosRepository.listarEventos(igrejaAtiva.id, {
+      const result = await IgrejaEventosRepository.listarEventos(igrejaAtiva!.id, {
         where: {
           conditions: [
             {
@@ -349,11 +346,11 @@ export function useEventosCrud({
       });
       return result[0];
     },
-    add: (data) => EventosRepository.add({ ...data, igrejaId: igrejaAtiva.id }),
+    add: (data) => EventosRepository.add({ ...data, igrejaId: igrejaAtiva!.id }),
     update: (id, data) => {
-      return EventosRepository.update(id, { ...data, igrejaId: igrejaAtiva.id });
+      return EventosRepository.update(id, { ...data, igrejaId: igrejaAtiva!.id });
     },
-    remove: (id) => EventosRepository.remove(id, igrejaAtiva.id),
+    remove: (id) => EventosRepository.remove(id, igrejaAtiva!.id),
     resolver: zodResolver(eventoSchema),
   });
 
@@ -363,12 +360,12 @@ export function useEventosCrud({
     async (params: EventosIntervaloParams) => {
       setIsLoadingIntervalo(true);
       try {
-        return await IgrejaEventosRepository.buscarPorIntervalo(igrejaAtiva.id, params);
+        return await IgrejaEventosRepository.buscarPorIntervalo(igrejaAtiva!.id, params);
       } finally {
         setIsLoadingIntervalo(false);
       }
     },
-    [igrejaAtiva.id],
+    [igrejaAtiva?.id],
   );
 
   return {

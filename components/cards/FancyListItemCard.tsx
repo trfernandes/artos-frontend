@@ -14,9 +14,7 @@ type Leading =
   | { type: 'date'; day: string; month: string; color?: string; backgroundColor?: string };
 
 type Trailing =
-  | { type: 'chevron'; onPress?: () => void }
-  | { type: 'menu'; onPress: () => void }
-  | ReactNode;
+  { type: 'chevron'; onPress?: () => void } | { type: 'menu'; onPress: () => void } | ReactNode;
 
 type FancyListItemCardProps = {
   title: string | ReactNode;

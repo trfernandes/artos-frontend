@@ -42,7 +42,7 @@ appId: com.church.artos
 - runFlow: _login.yaml
 - openLink: diakonia:///inicio
 - extendedWaitUntil:
-    visible: "Início"
+    visible: 'Início'
     timeout: 120000
 
 # ── Pre-aquecimento: carrega billing hook em Configuracoes ──────────────────
@@ -53,34 +53,34 @@ appId: com.church.artos
     timeout: 15000
 - runFlow:
     when:
-      visible: "Servidor indisponível"
+      visible: 'Servidor indisponível'
     file: _retry_servidor.yaml
 - extendedWaitUntil:
-    visible: "Assinatura"
+    visible: 'Assinatura'
     timeout: 15000
 - tapOn:
-    text: "Assinatura"
+    text: 'Assinatura'
     index: 1
 - waitForAnimationToEnd:
     timeout: 15000
-- assertVisible: "Avaliação encerrada"
+- assertVisible: 'Avaliação encerrada'
 - takeScreenshot: billing-escalas-ministerio-billing-preaquecido
 
 # ── Passo 1: Escalas de ministerio bloqueadas ───────────────────────────────
-- openLink: "diakonia:///ministerios/escalas?ministerioId=5e50655b-9cbd-45f3-b5f8-711004009e3f"
+- openLink: 'diakonia:///ministerios/escalas?ministerioId=5e50655b-9cbd-45f3-b5f8-711004009e3f'
 - extendedWaitUntil:
-    visible: "Avaliação encerrada"
+    visible: 'Avaliação encerrada'
     timeout: 20000
-- assertVisible: "Avaliação encerrada"
-- assertVisible: "Seu período avaliativo terminou"
-- assertNotVisible: "Assinatura em dia"
+- assertVisible: 'Avaliação encerrada'
+- assertVisible: 'Seu período avaliativo terminou'
+- assertNotVisible: 'Assinatura em dia'
 - takeScreenshot: billing-escalas-ministerio-bloqueadas
 
 # ── Passo 2: Agenda de ministerio bloqueada ─────────────────────────────────
-- openLink: "diakonia:///ministerios/agenda?ministerioId=5e50655b-9cbd-45f3-b5f8-711004009e3f"
+- openLink: 'diakonia:///ministerios/agenda?ministerioId=5e50655b-9cbd-45f3-b5f8-711004009e3f'
 - extendedWaitUntil:
-    visible: "Avaliação encerrada"
+    visible: 'Avaliação encerrada'
     timeout: 20000
-- assertVisible: "Avaliação encerrada"
-- assertVisible: "Seu período avaliativo terminou"
+- assertVisible: 'Avaliação encerrada'
+- assertVisible: 'Seu período avaliativo terminou'
 - takeScreenshot: billing-agenda-ministerio-bloqueada

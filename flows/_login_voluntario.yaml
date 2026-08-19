@@ -7,39 +7,39 @@ appId: com.church.artos
     timeout: 90000
 - runFlow:
     when:
-      visible: "http://10.0.2.2:8081"
+      visible: 'http://10.0.2.2:8081'
     file: _connect_metro.yaml
 - runFlow:
     when:
-      visible: "Continue"
+      visible: 'Continue'
     file: _dismiss_expo_dev_menu.yaml
 - runFlow:
     when:
-      visible: "Go home"
+      visible: 'Go home'
     file: _close_expo_full_menu.yaml
 - runFlow:
     when:
-      visible: "Já tenho conta"
+      visible: 'Já tenho conta'
     file: _go_to_login.yaml
 - runFlow:
     when:
-      visible: "Entre na sua conta"
+      visible: 'Entre na sua conta'
     file: _do_login_voluntario.yaml
 - waitForAnimationToEnd:
     timeout: 20000
 - runFlow:
     when:
-      visible: "Continue"
+      visible: 'Continue'
     file: _dismiss_expo_dev_menu.yaml
 - runFlow:
     when:
-      visible: "Go home"
+      visible: 'Go home'
     file: _close_expo_full_menu.yaml
 - runFlow:
     when:
-      visible: "Já tenho conta"
+      visible: 'Já tenho conta'
     file: _go_to_login.yaml
 - runFlow:
     when:
-      visible: "Entre na sua conta"
+      visible: 'Entre na sua conta'
     file: _do_login_voluntario.yaml

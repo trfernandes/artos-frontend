@@ -175,11 +175,7 @@ export default function JoinChurchRequestsPage() {
                   size={11}
                   color={config.accentColor}
                 />
-                <FancyText
-                  size='extraSmall'
-                  type='semiBold'
-                  style={{ color: config.accentColor }}
-                >
+                <FancyText size='extraSmall' type='semiBold' style={{ color: config.accentColor }}>
                   {config.label}
                 </FancyText>
               </View>

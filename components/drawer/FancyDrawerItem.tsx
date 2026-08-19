@@ -1,8 +1,7 @@
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import FancyDrawerItemHeader from './FancyDrawerItemHeader';
 import { useState } from 'react';
 import { DrawerItemData } from './MenuData';
-import { router } from 'expo-router';
 
 export default function FancyDrawerItem({
   isDefaultCollapsed,
@@ -10,19 +9,6 @@ export default function FancyDrawerItem({
   ...props
 }: DrawerItemData & { isDefaultCollapsed?: boolean; onNavigate?: () => void; isChild?: boolean }) {
   const [isCollapsed, setCollapsed] = useState<boolean>(isDefaultCollapsed ?? true);
-
-  const handleOnItemPress = (item: DrawerItemData) => {
-    if (item.onPress) {
-      if (item.onPress.type === 'GoToRoute' && item.onPress.routeName) {
-        // Sempre usa push - o Drawer do Expo Router gerencia a pilha automaticamente
-        router.push(item.onPress.routeName as any);
-      } else if (item.onPress.type === 'RunMethod' && item.onPress.method) {
-        item.onPress.method();
-      }
-    }
-
-    props.onNavigate?.();
-  };
 
   const isExpandable = Boolean(props.items && props.items.length > 0);
 
@@ -39,9 +25,7 @@ export default function FancyDrawerItem({
       {props.items && props.items.length > 0 && !isCollapsed && (
         <View style={styles.childrenContainer}>
           {props.items?.map((item, index) => (
-            <TouchableOpacity key={index} onPress={() => handleOnItemPress(item)}>
-              <FancyDrawerItem {...item} isChild onNavigate={props.onNavigate} />
-            </TouchableOpacity>
+            <FancyDrawerItem key={index} {...item} isChild onNavigate={props.onNavigate} />
           ))}
         </View>
       )}

@@ -2,7 +2,6 @@ import { ClickOutsideProvider } from 'react-native-click-outside';
 import { MenuProvider } from 'react-native-popup-menu';
 import { Redirect, Stack, router, useNavigationContainerRef } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
-import { LoadingProvider } from '../../contexts/LoadingContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import FancyPageHeader from '../../components/header/FancyHeader';
 import { usePostLoginRedirect } from '../../hooks/usePostLoginRedirect';
@@ -47,74 +46,72 @@ export default function RootLayout() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <MenuProvider>
           <ClickOutsideProvider>
-            <LoadingProvider>
-              <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name='(drawer)' options={{ headerShown: false }} />
-                <Stack.Screen
-                  name='notifications'
-                  options={{
-                    headerShown: true,
-                    header: (headerParams) => (
-                      <FancyPageHeader
-                        leftButton={'back'}
-                        {...headerParams}
-                        options={{
-                          title: 'Notificações',
-                          headerRight: (options) => headerParams.options.headerRight?.(options),
-                        }}
-                      />
-                    ),
-                  }}
-                />
-                <Stack.Screen
-                  name='notification-detail'
-                  options={{
-                    headerShown: true,
-                    header: (headerParams) => (
-                      <FancyPageHeader
-                        leftButton={'back'}
-                        {...headerParams}
-                        options={{
-                          title: 'Detalhe da notificação',
-                        }}
-                      />
-                    ),
-                  }}
-                />
-                <Stack.Screen
-                  name='join-church/index'
-                  options={{
-                    headerShown: true,
-                    header: (headerParams) => (
-                      <FancyPageHeader
-                        leftButton={'back'}
-                        leftButtonOnPress={handleJoinChurchBackPress}
-                        {...headerParams}
-                        options={{
-                          title: 'Adicionar igreja',
-                        }}
-                      />
-                    ),
-                  }}
-                />
-                <Stack.Screen
-                  name='join-church/requests'
-                  options={{
-                    headerShown: true,
-                    header: (headerParams) => (
-                      <FancyPageHeader
-                        leftButton={'back'}
-                        leftButtonOnPress={handleJoinChurchBackPress}
-                        {...headerParams}
-                        options={{
-                          title: 'Minhas solicitações',
-                        }}
-                      />
-                    ),
-                  }}
-                />
-              </Stack>
-            </LoadingProvider>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name='(drawer)' options={{ headerShown: false }} />
+              <Stack.Screen
+                name='notifications'
+                options={{
+                  headerShown: true,
+                  header: (headerParams) => (
+                    <FancyPageHeader
+                      leftButton={'back'}
+                      {...headerParams}
+                      options={{
+                        title: 'Notificações',
+                        headerRight: (options) => headerParams.options.headerRight?.(options),
+                      }}
+                    />
+                  ),
+                }}
+              />
+              <Stack.Screen
+                name='notification-detail'
+                options={{
+                  headerShown: true,
+                  header: (headerParams) => (
+                    <FancyPageHeader
+                      leftButton={'back'}
+                      {...headerParams}
+                      options={{
+                        title: 'Detalhe da notificação',
+                      }}
+                    />
+                  ),
+                }}
+              />
+              <Stack.Screen
+                name='join-church/index'
+                options={{
+                  headerShown: true,
+                  header: (headerParams) => (
+                    <FancyPageHeader
+                      leftButton={'back'}
+                      leftButtonOnPress={handleJoinChurchBackPress}
+                      {...headerParams}
+                      options={{
+                        title: 'Adicionar igreja',
+                      }}
+                    />
+                  ),
+                }}
+              />
+              <Stack.Screen
+                name='join-church/requests'
+                options={{
+                  headerShown: true,
+                  header: (headerParams) => (
+                    <FancyPageHeader
+                      leftButton={'back'}
+                      leftButtonOnPress={handleJoinChurchBackPress}
+                      {...headerParams}
+                      options={{
+                        title: 'Minhas solicitações',
+                      }}
+                    />
+                  ),
+                }}
+              />
+            </Stack>
           </ClickOutsideProvider>
         </MenuProvider>
       </GestureHandlerRootView>

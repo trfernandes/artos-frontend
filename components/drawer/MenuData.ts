@@ -66,6 +66,14 @@ const BASE_MENU: DrawerItemData[] = [
     },
     onPress: { type: 'GoToRoute', routeName: '/pessoal/escalas' },
   },
+  {
+    title: 'Ajuda',
+    logo: {
+      type: 'icon',
+      value: { name: 'help-circle-outline', library: 'MaterialCommunityIcons', size: 17 },
+    },
+    onPress: { type: 'GoToRoute', routeName: '/ajuda' },
+  },
 ];
 
 // Menu da Igreja - somente ADMIN (owner)
@@ -376,7 +384,8 @@ const getMenuForMinisterio = (
           : isAdmin
             ? MinisterioTipoLabel[ministerioTipo]
             : ministerio.hierarquia
-              ? (VoluntarioHierarquiaEnumLabel[ministerio.hierarquia as VoluntarioHierarquiaEnum] ?? '')
+              ? (VoluntarioHierarquiaEnumLabel[ministerio.hierarquia as VoluntarioHierarquiaEnum] ??
+                '')
               : '',
       items,
     },

@@ -18,7 +18,6 @@
       "autoIncrement": true,
       "env": {
         "EAS_GRADLE_CACHE": "1",
-        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
         "EXPO_PUBLIC_API_URL": "https://artos-backend-nwg5.onrender.com",
         "EXPO_PUBLIC_SENTRY_DSN": "https://b65799084d172913463973ef37b937b0@o4510567624409088.ingest.us.sentry.io/4510567678279680"
       },

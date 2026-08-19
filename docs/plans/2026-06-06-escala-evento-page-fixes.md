@@ -1,19 +1,26 @@
 # EscalaEventoPage — Fix Delete + Modais → BottomSheet
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan
+> task-by-task.
 
-**Goal:** Corrigir o botão excluir evento (sem feedback ao usuário) e converter os modais de "adicionar função" e "substituição" para bottom sheets.
+**Goal:** Corrigir o botão excluir evento (sem feedback ao usuário) e converter os modais de
+"adicionar função" e "substituição" para bottom sheets.
 
-**Architecture:** Todas as mudanças são em `EscalaEventoPage.tsx` e seus dois filhos de modal. Nenhuma mudança no backend necessária — a rota `DELETE /escalas/:escalaId/itens` já existe e aceita `igrejaId` via query param.
+**Architecture:** Todas as mudanças são em `EscalaEventoPage.tsx` e seus dois filhos de modal.
+Nenhuma mudança no backend necessária — a rota `DELETE /escalas/:escalaId/itens` já existe e aceita
+`igrejaId` via query param.
 
-**Tech Stack:** React Native, Expo Router, FancyBottomSheetModal, FancyButton, react-hook-form não usado aqui (estado local simples).
+**Tech Stack:** React Native, Expo Router, FancyBottomSheetModal, FancyButton, react-hook-form não
+usado aqui (estado local simples).
 
 ---
 
 ### Task 1: Fix do delete silencioso
 
 **Files:**
-- Modify: `app/(app)/(drawer)/ministerios/escalas/details.tsx` (função `handleDeleteEvento`, bloco catch)
+
+- Modify: `app/(app)/(drawer)/ministerios/escalas/details.tsx` (função `handleDeleteEvento`, bloco
+  catch)
 
 **Step 1: Adicionar toast de erro no catch**
 
@@ -35,7 +42,7 @@ const handleDeleteEvento = useCallback(
       });
       return true;
     } catch {
-      return false;  // ← AQUI: silencia o erro, usuário não vê nada
+      return false; // ← AQUI: silencia o erro, usuário não vê nada
     }
   },
   [escalaId, refetchEscala, igrejaAtiva?.id],
@@ -57,6 +64,7 @@ Substituir o catch por:
 **Step 2: Verificar que `npx tsc --noEmit` passa**
 
 **Step 3: Commit**
+
 ```
 fix: add error toast on delete evento failure in EscalaEventoPage
 ```
@@ -66,10 +74,13 @@ fix: add error toast on delete evento failure in EscalaEventoPage
 ### Task 2: Converter AdicionarFuncaoModal → FancyBottomSheetModal
 
 **Files:**
+
 - Modify: `components/pages/ministerios/escalas/details/AdicionarFuncaoModal.tsx`
 - Modify: `components/pages/ministerios/escalas/details/EscalaEventoPage.tsx` (uso do componente)
 
-**Contexto:** Atualmente é um `FancyModalDialog` (modal centralizado). A API do `FancyBottomSheetModal`:
+**Contexto:** Atualmente é um `FancyModalDialog` (modal centralizado). A API do
+`FancyBottomSheetModal`:
+
 ```tsx
 <FancyBottomSheetModal
   visible={boolean}
@@ -210,9 +221,16 @@ export default function AdicionarFuncaoModal({
             gap: 6,
           }}
         >
-          <FancyText type='semiBold' size='small'>{eventoNome}</FancyText>
+          <FancyText type='semiBold' size='small'>
+            {eventoNome}
+          </FancyText>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <DefaultIcons.Custom library='MaterialIcons' name='event' size={12} color={palette.primary} />
+            <DefaultIcons.Custom
+              library='MaterialIcons'
+              name='event'
+              size={12}
+              color={palette.primary}
+            />
             <FancyText size='extraSmall' type='medium'>
               {`${format(dataOcorrencia, 'dd/MM/yyyy')} - ${format(dataInicio, 'HH:mm')} à ${format(dataTermino, 'HH:mm')}`}
             </FancyText>
@@ -227,7 +245,10 @@ export default function AdicionarFuncaoModal({
               value={selectedFuncao}
               onChange={(value) => {
                 setSelectedFuncao(Array.isArray(value) ? value[0] || null : value);
-                setErrors((prev) => { const { funcao, ...rest } = prev; return rest; });
+                setErrors((prev) => {
+                  const { funcao, ...rest } = prev;
+                  return rest;
+                });
               }}
               listItems={funcoesSearchList}
               isLoading={isLoadingFuncoes}
@@ -253,27 +274,30 @@ const styles = StyleSheet.create({
 Localizar o bloco `{adicionarFuncaoModalOpen && ...}` (~linha 685-700) e substituir:
 
 ```tsx
-{adicionarFuncaoModalOpen && (
-  <AdicionarFuncaoModal
-    visible={adicionarFuncaoModalOpen}
-    onClose={() => setAdicionarFuncaoModalOpen(false)}
-    ministerioId={ministerioId}
-    eventoNome={data.evento.nome}
-    eventoId={data.evento.id}
-    dataOcorrencia={DateUtilsApi.dateTimeFromApi(data.dataOcorrencia)}
-    dataInicio={data.evento.dataInicio!}
-    dataTermino={data.evento.dataTermino!}
-    onConfirm={async (funcaoData) => {
-      const ok = await onAdicionarFuncao?.(funcaoData);
-      if (ok) setAdicionarFuncaoModalOpen(false);
-    }}
-  />
-)}
+{
+  adicionarFuncaoModalOpen && (
+    <AdicionarFuncaoModal
+      visible={adicionarFuncaoModalOpen}
+      onClose={() => setAdicionarFuncaoModalOpen(false)}
+      ministerioId={ministerioId}
+      eventoNome={data.evento.nome}
+      eventoId={data.evento.id}
+      dataOcorrencia={DateUtilsApi.dateTimeFromApi(data.dataOcorrencia)}
+      dataInicio={data.evento.dataInicio!}
+      dataTermino={data.evento.dataTermino!}
+      onConfirm={async (funcaoData) => {
+        const ok = await onAdicionarFuncao?.(funcaoData);
+        if (ok) setAdicionarFuncaoModalOpen(false);
+      }}
+    />
+  );
+}
 ```
 
 **Step 3: Verificar `npx tsc --noEmit`**
 
 **Step 4: Commit**
+
 ```
 refactor: convert AdicionarFuncaoModal to FancyBottomSheetModal
 ```
@@ -283,12 +307,14 @@ refactor: convert AdicionarFuncaoModal to FancyBottomSheetModal
 ### Task 3: Converter SubstituirVoluntarioModal → FancyBottomSheetModal
 
 **Files:**
+
 - Modify: `components/pages/ministerios/escalas/details/SubstituirVoluntarioModal.tsx`
 - Modify: `components/pages/ministerios/escalas/details/EscalaEventoPage.tsx` (uso do componente)
 
 **Step 1: Reescrever `SubstituirVoluntarioModal.tsx`**
 
-Mesma estratégia: remover `FancyModalDialog` e `FancyModalDialogProps`, adicionar props `visible/onClose/onConfirm`, wrapper `FancyBottomSheetModal` com `footer`:
+Mesma estratégia: remover `FancyModalDialog` e `FancyModalDialogProps`, adicionar props
+`visible/onClose/onConfirm`, wrapper `FancyBottomSheetModal` com `footer`:
 
 ```tsx
 export interface SubstituirVoluntarioModalProps {
@@ -307,6 +333,7 @@ export interface SubstituirVoluntarioModalProps {
 O `handleConfirm` interno mantém o `FancyAlert` de confirmação antes de chamar `onConfirm`.
 
 O footer fica:
+
 ```tsx
 footer={
   <View style={styles.footer}>
@@ -321,31 +348,34 @@ footer={
 Bloco `{substituicaoModalProps.isOpen && ...}` (~linha 643-662):
 
 ```tsx
-{substituicaoModalProps.isOpen && (
-  <SubstituirVoluntarioModal
-    visible={substituicaoModalProps.isOpen}
-    onClose={() => setSubstituicaoModalProps({ isOpen: false })}
-    data={{
-      ...substituicaoModalProps.data!,
-      evento: {
-        dataInicio: data.evento.dataInicio!,
-        dataTermino: data.evento.dataTermino!,
-        dataOcorrencia: DateUtilsApi.dateTimeFromApi(data.dataOcorrencia),
-      },
-      ministerioId,
-    }}
-    currentEquipe={data.equipe}
-    onConfirm={async (subData) => {
-      const ok = await onChangeVoluntario?.(subData);
-      if (ok) setSubstituicaoModalProps({ isOpen: false });
-    }}
-  />
-)}
+{
+  substituicaoModalProps.isOpen && (
+    <SubstituirVoluntarioModal
+      visible={substituicaoModalProps.isOpen}
+      onClose={() => setSubstituicaoModalProps({ isOpen: false })}
+      data={{
+        ...substituicaoModalProps.data!,
+        evento: {
+          dataInicio: data.evento.dataInicio!,
+          dataTermino: data.evento.dataTermino!,
+          dataOcorrencia: DateUtilsApi.dateTimeFromApi(data.dataOcorrencia),
+        },
+        ministerioId,
+      }}
+      currentEquipe={data.equipe}
+      onConfirm={async (subData) => {
+        const ok = await onChangeVoluntario?.(subData);
+        if (ok) setSubstituicaoModalProps({ isOpen: false });
+      }}
+    />
+  );
+}
 ```
 
 **Step 3: Verificar `npx tsc --noEmit`**
 
 **Step 4: Commit**
+
 ```
 refactor: convert SubstituirVoluntarioModal to FancyBottomSheetModal
 ```
