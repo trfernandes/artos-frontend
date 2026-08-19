@@ -2,6 +2,7 @@ import { DrawerContentComponentProps } from '@react-navigation/drawer';
 import { StyleSheet, View, ActivityIndicator, Linking, Platform } from 'react-native';
 import { useMemo, useCallback } from 'react';
 import Constants from 'expo-constants';
+import * as Updates from 'expo-updates';
 import Toast from 'react-native-toast-message';
 import FancyDrawerHeader from './FancyDrawerHeader';
 import FancyDrawerItem from './FancyDrawerItem';
@@ -28,6 +29,16 @@ function getAppVersionLabel() {
     '?';
 
   return `Versão ${version} (build ${build})`;
+}
+
+// Só exibe pra quem não está na build de produção (dev/preview/Expo Go) —
+// o updateId muda a cada `eas update` publicado, útil pra confirmar que o
+// OTA aplicou, mas é técnico demais pro usuário final ver sempre.
+function getUpdateLabel() {
+  if (Updates.channel === 'production') return null;
+
+  const shortId = Updates.updateId ? Updates.updateId.slice(0, 8) : 'embutida';
+  return `Atualização: ${shortId}`;
 }
 
 export type FancyDrawerProps = {} & DrawerContentComponentProps;
@@ -63,6 +74,7 @@ export default function FancyDrawer(props: FancyDrawerProps) {
 
   const menuSections = useMemo(() => getMenuForIgreja(igrejaAtiva), [igrejaAtiva]);
   const appVersionLabel = useMemo(() => getAppVersionLabel(), []);
+  const updateLabel = useMemo(() => getUpdateLabel(), []);
 
   const sections = useMemo(() => {
     return menuSections.map((section, sectionIndex) => (
@@ -162,6 +174,11 @@ export default function FancyDrawer(props: FancyDrawerProps) {
             <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
               {appVersionLabel}
             </FancyText>
+            {updateLabel && (
+              <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                {updateLabel}
+              </FancyText>
+            )}
           </View>
         </FancyScrollView>
       </View>
@@ -179,6 +196,7 @@ function createStyles(palette: ThemePalette) {
     },
     versionContainer: {
       alignItems: 'center',
+      gap: 2,
       paddingTop: 14,
       paddingBottom: 6,
     },
