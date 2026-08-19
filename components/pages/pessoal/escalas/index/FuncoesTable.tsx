@@ -11,7 +11,6 @@ import { EscalaItemStatusEnum } from '../../../../../domain/enums/Escala/escala-
 import { getVoluntarioStatusChipParams } from '../../../ministerios/escalas/details/ListaVoluntariosTable';
 import { useAppTheme } from '../../../../../hooks/useAppTheme';
 import { ColorUtils } from '../../../../../utils/color_utils';
-import Toast from 'react-native-toast-message';
 
 type FuncoesTableProps = {
   data: ResponseEscalaItemDto[];
@@ -90,14 +89,7 @@ function FuncaoRow({
             containerStyle={canSubstitute ? { borderColor: palette.warning } : undefined}
             iconStyle={canSubstitute ? { color: palette.warning } : undefined}
             disabled={!canSubstitute}
-            onPress={() => {
-              Toast.show({
-                type: 'info',
-                text1: `status=${item.status} canSubstitute=${canSubstitute}`,
-                text2: item.funcao?.nome,
-              });
-              onSubButtonPress?.(item);
-            }}
+            onPress={() => onSubButtonPress?.(item)}
             size={28}
           />
         </View>
