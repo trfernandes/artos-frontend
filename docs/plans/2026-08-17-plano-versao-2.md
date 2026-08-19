@@ -17,14 +17,16 @@ Projeto: Diakonia. Frontend `artos_frontend/` (Expo/React Native). Backend `back
 
 1. **Fase 1 — Checklist Configuração Escala** (backend). ✅ Backend implementado (`EscalaElegibilidadeService`,
    `EscalaChecklistService`, `EscalaPreCheckagemService` — ver seção 1). Falta design + frontend, ver seção 4.
-2. **Fase 2 — Substituição + Troca** (backend). Reusa `EscalaElegibilidadeService` da Fase 1.
-3. **Fase 3 — Sobrecarga de Voluntário / "Saúde"** (backend). Depois da Fase 2 pra não conflitar no mesmo enum de notificação e no
+2. **Dupla Função + Pessoa Avulsa** (adicionado 2026-08-19, ver seção 1.5) — logo após a Fase 1, antes da Fase 2, pra não compor
+   conflito de merge em `EscalaItemEntity` com as fases seguintes.
+3. **Fase 2 — Substituição + Troca** (backend). Reusa `EscalaElegibilidadeService` da Fase 1.
+4. **Fase 3 — Sobrecarga de Voluntário / "Saúde"** (backend). Depois da Fase 2 pra não conflitar no mesmo enum de notificação e no
    gatilho de `EscalaItemEntity`. Inclui também o **Score de Serviço** (adicionado em grilling 2026-08-19, sem número de fase próprio —
    ver seção 3).
-4. **Fase 4 — Frontend mobile**, consolidado, só depois das 3 fases de backend fechadas.
-5. **Fase 5 — Painel Admin da Plataforma**. Sem overlap, pode rodar em paralelo/qualquer momento. Único ponto de atenção: mexe em
+5. **Fase 4 — Frontend mobile**, consolidado, só depois das 3 fases de backend fechadas.
+6. **Fase 5 — Painel Admin da Plataforma**. Sem overlap, pode rodar em paralelo/qualquer momento. Único ponto de atenção: mexe em
    `auth/` (checagem de Igreja suspensa).
-6. **Fase 6 — Analytics**. Depois de todas as outras (última prioridade). Design de telas das fases 1-5 continua/fecha antes da
+7. **Fase 6 — Analytics**. Depois de todas as outras (última prioridade). Design de telas das fases 1-5 continua/fecha antes da
    implementação de analytics começar — instalar analytics faz mais sentido com as telas novas já definidas, evita re-instrumentar
    depois.
 
@@ -81,6 +83,41 @@ intencional do gerador hoje (permite atribuição manual pelo líder depois).
 
 - Onde vive o catálogo de Funções sugeridas (backend constante vs frontend constante) — decidir na sessão de design agendada agora (ver
   "Revisão 2026-08-19").
+
+---
+
+## 1.5. Dupla Função + Pessoa Avulsa (adicionado 2026-08-19)
+
+Duas melhorias pequenas na atribuição manual de escala, especificadas fora deste grilling (usuário já trouxe decisões prontas,
+conferidas contra o código). **Sequenciamento: implementar logo após a Fase 1, antes da Fase 2** — ambas mexem em
+`EscalaItemEntity`/`escala-itens.service.ts`, mesmo ponto de conflito já mapeado entre Fase 2 (Substituição/Troca) e Fase 3
+(Sobrecarga); fazendo antes, as fases seguintes já nascem em cima da lógica atualizada em vez de reconciliar depois.
+
+### Feature 1: liberar dupla função
+
+- `escala-itens.service.ts:90-101` (`update`): query de conflito hoje ignora função — bloqueia qualquer repetição do mesmo voluntário
+  no evento/data, mesmo em função diferente. Adicionar função na comparação: bloqueia só duplicata na MESMA função, libera funções
+  diferentes (ex: alguém que canta E toca teclado no mesmo culto).
+- Frontend: `AdicionarVoluntarioModal.tsx:73-80` e `SubstituirVoluntarioModal.tsx:83-93` (`alreadyAssignedIds`) fazem o mesmo filtro
+  cru no dropdown, ignorando função — ajustar pra só excluir da lista se for a mesma função.
+
+### Feature 2: pessoa avulsa (não cadastrada)
+
+- Nova coluna nullable `nomeAvulso` (texto) em `EscalaItemEntity`, sem entidade própria — não persiste/reaproveita entre escalas (não
+  tem autocomplete/histórico, líder retype o nome toda vez).
+- `voluntario` (relação) fica `null` quando é avulso; sem checagem de conflito pra avulso (líder decide sozinho, sem regra automática).
+- Sem notificação push pro avulso (não tem conta no app) — status ainda existe (`Pendente`/`Confirmado`), só que o líder marca
+  manualmente.
+- Fora do fluxo de geração automática de escala — só atribuição manual.
+- UI: toggle "Pessoa não cadastrada" nos dois modais (`AdicionarVoluntarioModal`, `SubstituirVoluntarioModal`), que troca o
+  `FancySearchSelect` por um `TextInput` de nome quando ligado.
+- Onde o nome do voluntário aparece hoje (cards, lista de equipe, notificação de líder) precisa de fallback pra `nomeAvulso` quando
+  `voluntario` for `null`.
+
+### Design
+
+Mudanças pequenas em componentes/modais que já existem (toggle + ajuste de filtro), não telas novas — não precisa de sessão de design
+própria, segue os padrões visuais já estabelecidos nesses modais.
 
 ---
 
