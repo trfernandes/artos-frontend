@@ -591,6 +591,7 @@ export default function MinhasEscalasIndexPage() {
         {substituicaoPageParams?.visible && (
           <SubstituicaoModalPage
             dadosEscala={substituicaoPageParams.dadosEscala!}
+            modalProps={{ visible: true }}
             onButton1Press={() => setSubstituicaoPageParams({ visible: false })}
             onButton2Press={(data) =>
               data &&
@@ -607,6 +608,7 @@ export default function MinhasEscalasIndexPage() {
           <EventoDetails
             eventoId={eventoPageParams.data!.eventoId}
             data={eventoPageParams.data!.data}
+            modalProps={{ visible: true }}
             onButton1Press={() => setEventoPageParams({ visible: false })}
             onButton2Press={() => setEventoPageParams({ visible: false })}
           />
