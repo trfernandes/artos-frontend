@@ -26,6 +26,7 @@ export default function MinisterioAgendaDetailsPage() {
     eventoId?: string;
     dataOcorrencia: string;
     ministerioId: string;
+    initialTab?: string;
   }>();
   const navigation = useNavigation<any>();
   const { igrejaAtiva } = useAuth();
@@ -220,6 +221,12 @@ export default function MinisterioAgendaDetailsPage() {
     params.ministerioId,
   ]);
 
+  const initialTabIndex = useMemo(() => {
+    if (params.initialTab !== 'setlist') return 0;
+    const index = tab_items.findIndex((tab) => tab.title === 'SetList');
+    return index >= 0 ? index : 0;
+  }, [params.initialTab, tab_items]);
+
   const isLoadingData = isLoading || isLoadingOcorrencia || !eventoId || !data[0];
 
   useEffect(() => {
@@ -235,7 +242,7 @@ export default function MinisterioAgendaDetailsPage() {
 
   return (
     <FancyPageView style={styles.container}>
-      <FancyTabs items={tab_items} keepMounted={true} />
+      <FancyTabs items={tab_items} keepMounted={true} initialIndex={initialTabIndex} />
     </FancyPageView>
   );
 }

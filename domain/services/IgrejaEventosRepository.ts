@@ -37,6 +37,10 @@ import {
   GetMusicasTocadasRelatorioParams,
   ResponseMusicasTocadasRelatorioDto,
 } from '../dtos/Evento/musicas-tocadas-relatorio.dto';
+import {
+  GetSetlistsResumoParams,
+  ResponseSetlistResumoDto,
+} from '../dtos/Evento/setlists-resumo.dto';
 
 export interface EventosIntervaloParams {
   dataInicio: Date | string;
@@ -291,6 +295,14 @@ class IgrejaEventosRepositoryClass {
     params: GetMusicasTocadasRelatorioParams,
   ): Promise<ResponseMusicasTocadasRelatorioDto> {
     return IgrejaEventosApi.obterRelatorioMusicasTocadas(igrejaId, params);
+  }
+
+  obterSetlistsResumo(
+    igrejaId: string,
+    ministerioId: string,
+    params?: GetSetlistsResumoParams,
+  ): Promise<ResponseSetlistResumoDto[]> {
+    return IgrejaEventosApi.obterSetlistsResumo(igrejaId, ministerioId, params);
   }
 }
 

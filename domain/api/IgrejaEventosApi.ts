@@ -37,6 +37,10 @@ import {
   GetMusicasTocadasRelatorioParams,
   ResponseMusicasTocadasRelatorioDto,
 } from '../dtos/Evento/musicas-tocadas-relatorio.dto';
+import {
+  GetSetlistsResumoParams,
+  ResponseSetlistResumoDto,
+} from '../dtos/Evento/setlists-resumo.dto';
 
 type ApiEnvelope<T> = {
   data: T;
@@ -371,6 +375,18 @@ class IgrejaEventosApiClass {
     const response = await apiClient.post<ApiEnvelope<ResponseMusicasTocadasRelatorioDto>>(
       `/${this.resourceName}/${igrejaId}/eventos/musicas-tocadas-relatorio`,
       params,
+    );
+    return response.data.data;
+  }
+
+  async obterSetlistsResumo(
+    igrejaId: string,
+    ministerioId: string,
+    params?: GetSetlistsResumoParams,
+  ): Promise<ResponseSetlistResumoDto[]> {
+    const response = await apiClient.get<ApiEnvelope<ResponseSetlistResumoDto[]>>(
+      `/${this.resourceName}/${igrejaId}/ministerios/${ministerioId}/setlists-resumo`,
+      { params },
     );
     return response.data.data;
   }
