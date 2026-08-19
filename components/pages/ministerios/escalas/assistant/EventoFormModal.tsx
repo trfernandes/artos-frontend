@@ -131,7 +131,7 @@ export default function EventoFormModal({
       (f) => f.funcaoId || f.minVolId,
     );
     const funcoesMudou = formTemplate.formState.dirtyFields.funcoes?.filter(
-      (f) => (f.funcaoIds && f.funcaoIds.length > 0) || f.experiencia || f.quantidade,
+      (f) => f.funcaoIds || f.experiencia || f.quantidade,
     );
 
     if (fixosMudou || funcoesMudou) {

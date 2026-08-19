@@ -198,7 +198,7 @@ function EventItem({
               </FancyText>
               {evento.template.funcoes.map((f: any, idx: number) => {
                 const funcaoNome =
-                  (f.funcaoIds as string[])
+                  ((f.funcaoIds as string[]) || [])
                     .map((id) => funcoesList.find((fl) => String(fl.id) === String(id))?.nome)
                     .filter(Boolean)
                     .join(' ou ') || 'Função desconhecida';
