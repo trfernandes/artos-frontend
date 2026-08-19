@@ -588,13 +588,12 @@ export default function MinhasEscalasIndexPage() {
             )}
           />
         )}
-        {substituicaoPageParams?.visible && (
+        {substituicaoPageParams?.dadosEscala && (
           <SubstituicaoModalPage
-            dadosEscala={substituicaoPageParams.dadosEscala!}
-            modalProps={{ visible: true }}
-            onButton1Press={() => setSubstituicaoPageParams({ visible: false })}
-            onButton2Press={(data) =>
-              data &&
+            visible={!!substituicaoPageParams.visible}
+            dadosEscala={substituicaoPageParams.dadosEscala}
+            onClose={() => setSubstituicaoPageParams({ visible: false })}
+            onConfirm={(data) =>
               handleConfirmSubstituicao(
                 data.escalaItemId,
                 data.solicitanteId,

@@ -1,7 +1,7 @@
 import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
-import FancyModalDialog, { FancyModalDialogProps } from '../../../../modal/FancyModalDialog';
+import FancyBottomSheetModal from '../../../../modal/FancyBottomSheetModal';
 import { useCallback, useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
 import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
 import { format } from 'date-fns';
@@ -17,8 +17,8 @@ import Toast from 'react-native-toast-message';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 import { ThemePalette } from '../../../../../constants/colors';
-import { StyleSheet } from 'react-native';
 import FancyText from '../../../../FancyText';
+import FancyButton from '../../../../buttons/FancyButton';
 
 const schema = z.object({
   eventoId: z.string(),
@@ -30,10 +30,19 @@ const schema = z.object({
 
 export type FormData = z.infer<typeof schema>;
 
+export type SubstituicaoModalPageProps = {
+  visible: boolean;
+  onClose: () => void;
+  onConfirm: (data: FormData) => void | Promise<void>;
+  dadosEscala: ResponseEscalaItemDto;
+};
+
 export default function SubstituicaoModalPage({
+  visible,
+  onClose,
+  onConfirm,
   dadosEscala,
-  ...props
-}: { dadosEscala: ResponseEscalaItemDto } & FancyModalDialogProps<FormData>) {
+}: SubstituicaoModalPageProps) {
   const { user } = useAuth();
 
   const initialParams: DynamicQuery = {
@@ -86,7 +95,6 @@ export default function SubstituicaoModalPage({
       .sort((a, b) => a.title.localeCompare(b.title, 'pt-BR', { sensitivity: 'base' }));
   }, [possiveisSubstitutos]);
 
-  const [substitutoSelecionado, setSubstitutoSelecionado] = useState<string | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm({
@@ -106,7 +114,7 @@ export default function SubstituicaoModalPage({
         if (isSubmitting) return;
         try {
           setIsSubmitting(true);
-          await Promise.resolve(props.onButton2Press?.(values));
+          await onConfirm(values);
         } finally {
           setIsSubmitting(false);
         }
@@ -122,31 +130,38 @@ export default function SubstituicaoModalPage({
         });
       },
     )();
-  }, [form.handleSubmit, isSubmitting, props.onButton2Press]);
+  }, [form.handleSubmit, isSubmitting, onConfirm]);
 
   const isBusy = isLoading || isSubmitting;
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
 
   return (
-    <FancyModalDialog<FormData>
-      {...props}
+    <FancyBottomSheetModal
+      visible={visible}
+      onClose={onClose}
       title='Solicitar substituição'
-      titleAlign='left'
-      centerContainerStyle={styles.content}
-      buttonContainerStyle={styles.buttons}
-      closeOnBackdropPress={!isBusy}
-      button1={{
-        disabled: isBusy || undefined,
-        textProps: { adjustsFontSizeToFit: false },
-      }}
-      button2={{
-        disabled: isBusy || undefined,
-        isLoading: isSubmitting,
-        loadingText: 'Enviando...',
-        textProps: { adjustsFontSizeToFit: false },
-      }}
-      onButton2Press={() => void handleConfirm()}
+      closeDisabled={isBusy}
+      footer={
+        <View style={styles.buttons}>
+          <FancyButton
+            label='Voltar'
+            type='outlined'
+            onPress={onClose}
+            disabled={isBusy}
+            containerStyle={styles.btnFlex}
+          />
+          <FancyButton
+            label='Enviar solicitação'
+            type='contained'
+            onPress={() => void handleConfirm()}
+            disabled={isBusy}
+            isLoading={isSubmitting}
+            loadingText='Enviando...'
+            containerStyle={styles.btnFlex}
+          />
+        </View>
+      }
     >
       <View style={styles.infoCard}>
         <View style={styles.infoRow}>
@@ -187,7 +202,6 @@ export default function SubstituicaoModalPage({
         name='substitutoId'
         label={'Quem será seu substituto?'}
         listItems={possiveisSubstitutosList}
-        onChange={(value) => setSubstitutoSelecionado(Array.isArray(value) ? value[0] : value)}
         disabled={isBusy}
         isLoading={isLoading}
         searchPlaceholder='Buscar substituto...'
@@ -199,15 +213,12 @@ export default function SubstituicaoModalPage({
         disabled={isBusy}
         inputProps={{ style: styles.reasonInput }}
       />
-    </FancyModalDialog>
+    </FancyBottomSheetModal>
   );
 }
 
 function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
-    content: {
-      gap: 12,
-    },
     infoCard: {
       backgroundColor: palette.backgroundColor,
       borderRadius: 14,
@@ -229,7 +240,11 @@ function createStyles(palette: ThemePalette) {
       textAlignVertical: 'top',
     },
     buttons: {
-      gap: 9,
+      flexDirection: 'row',
+      gap: 10,
+    },
+    btnFlex: {
+      flex: 1,
     },
   });
 }
