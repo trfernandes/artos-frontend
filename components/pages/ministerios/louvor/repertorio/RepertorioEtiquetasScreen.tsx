@@ -8,6 +8,7 @@ import { useRepertorioEtiquetas } from '../../../../../hooks/useRepertorio';
 import { getApiErrorMessage } from '../../../../../domain/api/api-error';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { useAppTheme } from '../../../../../hooks/useAppTheme';
+import { useLoading } from '../../../../../contexts/LoadingContext';
 import { ResponseRepertorioEtiquetaDto } from '../../../../../domain/dtos/Repertorio/repertorio-etiqueta.response';
 import { ColorUtils } from '../../../../../utils/color_utils';
 import Toast from 'react-native-toast-message';
@@ -21,6 +22,7 @@ export default function RepertorioEtiquetasScreen({ ministerioId }: Props) {
   const { isDark } = useAppTheme();
   const cardBaseColor = isDark ? palette.backgroundColor2 : palette.backgroundColor;
   const { data = [], removerEtiqueta } = useRepertorioEtiquetas(ministerioId);
+  const { showLoading, hideLoading } = useLoading();
   const [formVisible, setFormVisible] = useState(false);
   const [editingEtiqueta, setEditingEtiqueta] = useState<ResponseRepertorioEtiquetaDto | null>(
     null,
@@ -39,20 +41,29 @@ export default function RepertorioEtiquetasScreen({ ministerioId }: Props) {
   };
 
   const handleRemover = (item: ResponseRepertorioEtiquetaDto) => {
-    FancyAlert.alert('Excluir etiqueta', `Tem certeza que deseja excluir "${item.nome}"?`, [
+    const totalMusicas = item.totalMusicas ?? 0;
+    const mensagem =
+      totalMusicas > 1
+        ? `"${item.nome}" está vinculada a ${totalMusicas} músicas. Elas continuarão no repertório, mas perderão essa etiqueta. Deseja excluir mesmo assim?`
+        : `Tem certeza que deseja excluir "${item.nome}"?`;
+    FancyAlert.alert('Excluir etiqueta', mensagem, [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Excluir',
         style: 'destructive',
         onPress: async () => {
+          showLoading('Excluindo...');
           try {
             await removerEtiqueta(item.id);
+            Toast.show({ type: 'success', text1: 'Etiqueta excluída com sucesso!' });
           } catch (error) {
             Toast.show({
               type: 'error',
               text1: 'Erro ao excluir etiqueta',
               text2: getApiErrorMessage(error, 'Não foi possível excluir a etiqueta.'),
             });
+          } finally {
+            hideLoading();
           }
         },
       },
@@ -73,8 +84,7 @@ export default function RepertorioEtiquetasScreen({ ministerioId }: Props) {
           },
           renderItem: ({ item }) => {
             const totalMusicas = item.totalMusicas ?? 0;
-            const subtitleLabel =
-              totalMusicas === 1 ? '1 música' : `${totalMusicas} músicas`;
+            const subtitleLabel = totalMusicas === 1 ? '1 música' : `${totalMusicas} músicas`;
             return (
               <FancyListItemCard
                 onPress={() => openEdit(item)}
@@ -90,7 +100,7 @@ export default function RepertorioEtiquetasScreen({ ministerioId }: Props) {
                 contentStyle={{ gap: 0 }}
                 leading={{
                   type: 'icon',
-                  icon: { library: 'MaterialCommunityIcons', name: 'tag-outline', size: 16 },
+                  icon: { library: 'MaterialCommunityIcons', name: 'tag-outline', size: 20 },
                   color: item.cor,
                   backgroundColor: ColorUtils.blendOver(item.cor, 0.22, cardBaseColor),
                   size: 36,
@@ -103,8 +113,8 @@ export default function RepertorioEtiquetasScreen({ ministerioId }: Props) {
                           library: 'MaterialCommunityIcons',
                           name: 'trash-can-outline',
                           size: 19,
-                          backgroundColor: 'transparent',
-                          color: palette.fonts.inactive,
+                          backgroundColor: palette.error,
+                          color: palette.icons.light,
                         },
                         onPress: () => handleRemover(item),
                       },

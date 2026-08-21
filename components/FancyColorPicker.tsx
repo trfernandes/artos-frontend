@@ -102,12 +102,7 @@ export default function FancyColorPicker({
   const enlargedMultiplier = 1.1;
 
   const renderCircles = () => {
-    const orderedColors =
-      disabled && currentColor
-        ? [currentColor, ...colors.filter((colorItem) => colorItem !== currentColor)]
-        : colors;
-
-    return orderedColors.map((color) => {
+    return colors.map((color) => {
       const isSelected = color === currentColor;
       const displaySize = isSelected ? circleSize * enlargedMultiplier : circleSize;
       const displayColor = disabled && !isSelected ? palette.disabled2 : color;

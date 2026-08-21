@@ -442,7 +442,7 @@ export default function RepertorioEditorScreen({
                                 size={12}
                                 color={palette.fonts.light}
                               />
-                              <FancyText type='bold' size={10} color={palette.fonts.light}>
+                              <FancyText type='bold' size={12} color={palette.fonts.light}>
                                 {etiqueta.nome}
                               </FancyText>
                             </Pressable>
@@ -476,7 +476,7 @@ export default function RepertorioEditorScreen({
                                 },
                               ]}
                             >
-                              <FancyText type='bold' size={10} color={etiqueta.cor}>
+                              <FancyText type='bold' size={12} color={etiqueta.cor}>
                                 {etiqueta.nome}
                               </FancyText>
                             </Pressable>

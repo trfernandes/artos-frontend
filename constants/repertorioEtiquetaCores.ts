@@ -1,17 +1,20 @@
 export const CORES_PADRAO_ETIQUETA = [
-  '#FF8C00',
-  '#FFA726',
-  '#E57373',
-  '#EF5350',
-  '#81C784',
-  '#66BB6A',
-  '#64B5F6',
-  '#42A5F5',
-  '#F48FB1',
-  '#BA68C8',
-  '#9575CD',
-  '#7E57C2',
-  '#6B7280',
-  '#3B82F6',
-  '#10B981',
+  '#B35656', // red
+  '#B37B56', // orange
+  '#B39156', // amber
+  '#B39C56', // yellow
+  '#8FB356', // lime
+  '#56B391', // green
+  '#56B375', // emerald
+  '#56B361', // teal
+  '#56A5B3', // cyan
+  '#5696B3', // sky
+  '#567AB3', // blue
+  '#5658B3', // indigo
+  '#7256B3', // violet
+  '#8856B3', // purple
+  '#A056B3', // fuchsia
+  '#B35685', // pink
+  '#B35666', // rose
+  '#64748B', // slate
 ];

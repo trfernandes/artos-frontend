@@ -17,6 +17,7 @@ export type FancySearchBarProps = {
   value?: string; // 🔥 novo
   onSearch?: (text: string) => void;
   onOptionsButtonPress?: () => void;
+  optionsButtonIcon?: { name: string; size?: number };
   containerStyle?: StyleProp<ViewStyle>;
   placeholder?: string;
 };
@@ -125,8 +126,8 @@ export default function FancySearchBar(props: FancySearchBarProps) {
           size={44}
           icon={{
             library: 'MaterialCommunityIcons',
-            name: 'tune-variant',
-            size: 18,
+            name: props.optionsButtonIcon?.name ?? 'tune-variant',
+            size: props.optionsButtonIcon?.size ?? 18,
             color: Pallete.primary,
           }}
           containerStyle={[

@@ -35,7 +35,7 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
     <LoadingContext.Provider value={contextValue}>
       {children}
 
-      <Modal visible={visible} transparent animationType='fade' statusBarTranslucent>
+      <Modal visible={visible} transparent animationType='none' statusBarTranslucent>
         <View style={styles.overlay}>
           <View style={[styles.box, { backgroundColor: palette.backgroundColor }]}>
             <ActivityIndicator size='large' color={palette.primary} />

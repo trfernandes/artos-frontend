@@ -1,16 +1,13 @@
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import FancyScrollView from '../../../../../../components/FancyScrollView';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import FancyListPage from '../../../../../../components/pages/base/FancyBaseListPage';
 import FancyLoading from '../../../../../../components/FancyLoading';
 import FancyListItemCard from '../../../../../../components/cards/FancyListItemCard';
 import FancyText from '../../../../../../components/FancyText';
-import FancyHeaderButton from '../../../../../../components/header/FancyHeaderButton';
 import NotificationButton from '../../../../../../components/header/NotificationButton';
 import FancyTabs, { TabItem } from '../../../../../../components/tabs/FancyTabs';
-import MusicasTocadasInsightsView from '../../../../../../components/pages/ministerios/louvor/repertorio/MusicasTocadasInsightsView';
 import RepertorioEtiquetasScreen from '../../../../../../components/pages/ministerios/louvor/repertorio/RepertorioEtiquetasScreen';
 import { useAuth } from '../../../../../../contexts/AuthContext';
 import { IgrejaVoluntarioRoleEnum } from '../../../../../../domain/enums/Igreja/voluntario-role.enum';
@@ -38,8 +35,6 @@ import { formatDataInclusaoRelativa } from '../../../../../../utils/date_utils';
 
 type OrdenacaoRepertorio = 'nome' | 'dataInclusao';
 
-const HEADER_ICON_SIZE = 19;
-
 export default function MinisterioLouvorRepertorioIndexPage() {
   const params = useLocalSearchParams<{ ministerioId?: string; etiquetaId?: string }>();
   const palette = usePallete();
@@ -61,7 +56,6 @@ export default function MinisterioLouvorRepertorioIndexPage() {
   const [actionsMusica, setActionsMusica] = useState<ResponseRepertorioMusicaDto | null>(null);
   const [ordenacao, setOrdenacao] = useState<OrdenacaoRepertorio>('nome');
   const [ordenacaoVisible, setOrdenacaoVisible] = useState(false);
-  const [activeTabIndex, setActiveTabIndex] = useState(0);
 
   const canManageRepertorio = useMemo(() => {
     if (igrejaAtiva?.role === IgrejaVoluntarioRoleEnum.ADMIN) return true;
@@ -164,6 +158,8 @@ export default function MinisterioLouvorRepertorioIndexPage() {
       searchBarProps={{
         value: search,
         onSearch: setSearch,
+        onOptionsButtonPress: () => setOrdenacaoVisible(true),
+        optionsButtonIcon: { name: 'sort' },
       }}
       listProps={{
         listEmptyProps: {
@@ -172,26 +168,27 @@ export default function MinisterioLouvorRepertorioIndexPage() {
         },
         ListHeaderComponent: (
           <View style={styles.filtersSection}>
-            <FancyScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              bottomFade={{ active: false }}
-              topFade={{ active: false }}
-              contentContainerStyle={styles.categoryChipsRow}
-            >
+            <FancyText type='medium' size={11} color={palette.fonts.inactive}>
+              Filtrar por etiqueta
+            </FancyText>
+            <View style={styles.categoryChipsRow}>
               <Pressable
                 onPress={() => setEtiquetaIds([])}
                 style={[
                   styles.etiquetaChip,
                   {
-                    backgroundColor:
-                      etiquetaIds.length === 0
-                        ? palette.primary
-                        : ColorUtils.darkenColor(palette.primary, 0.35),
+                    backgroundColor: ColorUtils.withAlpha(
+                      palette.primary,
+                      etiquetaIds.length === 0 ? 0.18 : 0.1,
+                    ),
+                    borderColor: ColorUtils.withAlpha(
+                      palette.primary,
+                      etiquetaIds.length === 0 ? 0.5 : 0.22,
+                    ),
                   },
                 ]}
               >
-                <FancyText type='bold' size={10} color={palette.fonts.light} numberOfLines={1}>
+                <FancyText type='bold' size={12} color={palette.primary} numberOfLines={1}>
                   Todas
                 </FancyText>
               </Pressable>
@@ -204,9 +201,8 @@ export default function MinisterioLouvorRepertorioIndexPage() {
                     style={[
                       styles.etiquetaChip,
                       {
-                        backgroundColor: selected
-                          ? item.cor
-                          : ColorUtils.darkenColor(item.cor, 0.35),
+                        backgroundColor: ColorUtils.withAlpha(item.cor, selected ? 0.18 : 0.1),
+                        borderColor: ColorUtils.withAlpha(item.cor, selected ? 0.5 : 0.22),
                       },
                     ]}
                   >
@@ -215,21 +211,22 @@ export default function MinisterioLouvorRepertorioIndexPage() {
                         library='MaterialCommunityIcons'
                         name='check'
                         size={12}
-                        color={palette.fonts.light}
+                        color={item.cor}
                       />
                     ) : null}
-                    <FancyText type='bold' size={10} color={palette.fonts.light} numberOfLines={1}>
+                    <FancyText type='bold' size={12} color={item.cor} numberOfLines={1}>
                       {item.nome}
                     </FancyText>
                   </Pressable>
                 );
               })}
-            </FancyScrollView>
+            </View>
           </View>
         ),
         data: filtered,
         renderItem: ({ item }) => {
-          const hasBadges = Boolean(item.etiquetas?.length || item.tomOriginal || item.bpmOriginal);
+          const etiquetasMusicaAtivas = (item.etiquetas ?? []).filter((etiqueta) => etiqueta.ativo !== false);
+          const hasBadges = Boolean(etiquetasMusicaAtivas.length || item.tomOriginal || item.bpmOriginal);
           const dataInclusao = formatDataInclusaoRelativa(item.createdAt);
           return (
             <FancyListItemCard
@@ -247,12 +244,11 @@ export default function MinisterioLouvorRepertorioIndexPage() {
                   <View>
                     {hasBadges ? (
                       <View style={styles.musicBadgesRow}>
-                        {(item.etiquetas ?? []).map((etiqueta) => (
+                        {etiquetasMusicaAtivas.map((etiqueta) => (
                           <MusicBadge
                             key={etiqueta.id}
                             label={etiqueta.nome}
                             color={etiqueta.cor}
-                            icon='shape-outline'
                           />
                         ))}
                         {item.tomOriginal ? (
@@ -312,10 +308,6 @@ export default function MinisterioLouvorRepertorioIndexPage() {
     ? [
         { title: 'Repertório', content: repertorioContent },
         {
-          title: 'Insights',
-          content: <MusicasTocadasInsightsView ministerioId={ministerioId} />,
-        },
-        {
           title: 'Etiquetas',
           content: <RepertorioEtiquetasScreen ministerioId={ministerioId} />,
         },
@@ -328,19 +320,17 @@ export default function MinisterioLouvorRepertorioIndexPage() {
         options={{
           headerRight: () => (
             <View style={styles.headerButtonsRow}>
-              {activeTabIndex === 0 ? (
-                <FancyHeaderButton
-                  icon={{ library: 'MaterialCommunityIcons', name: 'sort', size: HEADER_ICON_SIZE }}
-                  onPress={() => setOrdenacaoVisible(true)}
-                />
-              ) : null}
               <NotificationButton />
             </View>
           ),
         }}
       />
       {canManageRepertorio ? (
-        <FancyTabs items={tabs} contentGutter={false} onTabChange={setActiveTabIndex} />
+        <FancyTabs
+          items={tabs}
+          contentGutter={false}
+          contentContainerStyle={styles.tabsContent}
+        />
       ) : (
         repertorioContent
       )}
@@ -404,7 +394,7 @@ function MusicBadge({
 }: {
   label: string;
   color: string;
-  icon: keyof typeof MaterialCommunityIcons.glyphMap;
+  icon?: keyof typeof MaterialCommunityIcons.glyphMap;
 }) {
   return (
     <View
@@ -416,7 +406,9 @@ function MusicBadge({
         },
       ]}
     >
-      <MaterialCommunityIcons name={icon} size={11} color={color} style={styles.musicBadgeIcon} />
+      {icon ? (
+        <MaterialCommunityIcons name={icon} size={11} color={color} style={styles.musicBadgeIcon} />
+      ) : null}
       <FancyText
         type='bold'
         size='extraSmall'
@@ -431,12 +423,17 @@ function MusicBadge({
 }
 
 const styles = StyleSheet.create({
+  tabsContent: {
+    paddingTop: 4,
+  },
   filtersSection: {
     gap: 10,
-    paddingBottom: 0,
+    paddingTop: 5,
+    paddingBottom: 16,
   },
   categoryChipsRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     gap: 8,
   },
@@ -447,6 +444,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     paddingHorizontal: 13,
     borderRadius: 999,
+    borderWidth: 1,
   },
   headerButtonsRow: {
     flexDirection: 'row',

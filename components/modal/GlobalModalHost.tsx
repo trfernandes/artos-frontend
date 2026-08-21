@@ -9,11 +9,8 @@
 // apresentação nativa concorrente. Cada componente (FancyAlert,
 // FancyBottomSheetModal, FancyModal, FancySearchSelect) empilha/desempilha
 // seu conteúdo aqui em vez de renderizar seu próprio <Modal>.
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
-import Toast from 'react-native-toast-message';
-import { usePallete } from '../../hooks/usePallete';
-import { createToastConfig } from '../../utils/toast_config';
 
 type StackEntry = {
   id: string;
@@ -36,7 +33,9 @@ export const ModalStack = {
   update(id: string, node: React.ReactNode, onRequestClose?: () => void) {
     if (!entries.some((entry) => entry.id === id)) return;
     entries = entries.map((entry) =>
-      entry.id === id ? { ...entry, node, onRequestClose: onRequestClose ?? entry.onRequestClose } : entry,
+      entry.id === id
+        ? { ...entry, node, onRequestClose: onRequestClose ?? entry.onRequestClose }
+        : entry,
     );
     notify();
   },
@@ -49,8 +48,6 @@ export const ModalStack = {
 
 export function GlobalModalHost() {
   const [stack, setStack] = useState<StackEntry[]>(entries);
-  const palette = usePallete();
-  const toastConfig = useMemo(() => createToastConfig(palette), [palette]);
 
   useEffect(() => {
     listeners.push(setStack);
@@ -59,11 +56,11 @@ export function GlobalModalHost() {
     };
   }, []);
 
-  const visible = stack.length > 0;
+  const hasEntries = stack.length > 0;
 
   return (
     <Modal
-      visible={visible}
+      visible={hasEntries}
       transparent
       animationType='fade'
       statusBarTranslucent
@@ -82,7 +79,6 @@ export function GlobalModalHost() {
             {entry.node}
           </View>
         ))}
-        {visible && <Toast config={toastConfig} position='bottom' visibilityTime={4000} />}
       </View>
     </Modal>
   );
