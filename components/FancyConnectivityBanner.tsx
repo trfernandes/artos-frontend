@@ -8,7 +8,7 @@ import { usePallete } from '../hooks/usePallete';
 
 export function ConnectivityBanner() {
   const palette = usePallete();
-  const { status, recheck } = useConnectivity();
+  const { status, recheck, isRechecking } = useConnectivity();
   const insets = useSafeAreaInsets();
   const bottomOffset = Math.max(insets.bottom, 12);
 
@@ -61,6 +61,9 @@ export function ConnectivityBanner() {
         onPress={recheck}
         labelProps={{ size: 'extraSmall' }}
         label='Atualizar'
+        isLoading={isRechecking}
+        loadingText='Verificando...'
+        loadingColor='white'
         icon={{ ...DefaultIconsNames.refresh, color: 'white', size: 12 }}
       />
     </View>

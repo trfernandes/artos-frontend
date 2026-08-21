@@ -13,6 +13,7 @@ import FancyChips from '../../../../FancyChips';
 import FancyListEmpty from '../../../../list/FancyListEmpty';
 import FancyListItemCard from '../../../../cards/FancyListItemCard';
 import FancyToggle from '../../../../fields/FancyToggle';
+import FancySearchSelect from '../../../../fields/FancySearchSelect';
 import FancyButton from '../../../../buttons/FancyButton';
 import FancyBottomSheetModal from '../../../../modal/FancyBottomSheetModal';
 import ControlledDateInput from '../../../../forms/ControlledDateInput';
@@ -26,7 +27,7 @@ import { ResponseMusicaTocadaDto } from '../../../../../domain/dtos/Evento/music
 
 const MAX_RANKING_ROWS = 12;
 
-type PeriodoPreset = '30d' | '90d' | 'ano' | 'sempre' | 'custom';
+type Intencao = 'recentes' | 'esquecidas' | 'sempre' | 'custom';
 type Ordenacao = 'mais' | 'menos';
 
 type Props = {
@@ -61,7 +62,7 @@ export default function MusicasTocadasInsightsView({
   dataOcorrencia,
 }: Props) {
   const palette = usePallete();
-  const [preset, setPreset] = useState<PeriodoPreset>('90d');
+  const [intencao, setIntencao] = useState<Intencao>('recentes');
   const [customRange, setCustomRange] = useState<{ dataInicio: Date; dataFim: Date } | null>(null);
   const [customVisible, setCustomVisible] = useState(false);
   const [etiquetaIds, setEtiquetaIds] = useState<string[]>([]);
@@ -75,12 +76,6 @@ export default function MusicasTocadasInsightsView({
     [etiquetas],
   );
 
-  const toggleEtiquetaId = (id: string) => {
-    setEtiquetaIds((prev) =>
-      prev.includes(id) ? prev.filter((existing) => existing !== id) : [...prev, id],
-    );
-  };
-
   const { control, handleSubmit, reset } = useForm({
     resolver: zodResolver(customPeriodoSchema),
     defaultValues: { dataInicio: new Date() as Date | null, dataFim: new Date() as Date | null },
@@ -88,14 +83,17 @@ export default function MusicasTocadasInsightsView({
 
   const periodo = useMemo(() => {
     const now = new Date();
-    if (preset === '30d')
-      return { dataInicio: startOfDay(subDays(now, 29)), dataFim: endOfDay(now) };
-    if (preset === '90d')
+    if (intencao === 'recentes')
       return { dataInicio: startOfDay(subDays(now, 89)), dataFim: endOfDay(now) };
-    if (preset === 'ano') return { dataInicio: startOfYear(now), dataFim: endOfDay(now) };
-    if (preset === 'sempre') return null;
-    return customRange;
-  }, [preset, customRange]);
+    if (intencao === 'custom') return customRange;
+    return null; // 'esquecidas' e 'sempre' olham pro histórico completo
+  }, [intencao, customRange]);
+
+  const selecionarIntencao = (next: Intencao) => {
+    setIntencao(next);
+    if (next === 'esquecidas') setOrdenacao('menos');
+    else if (next !== 'custom') setOrdenacao('mais');
+  };
 
   const relatorioQuery = useMusicasTocadasRelatorio({
     ministerioId,
@@ -127,7 +125,7 @@ export default function MusicasTocadasInsightsView({
 
   const confirmarPeriodoCustomizado = handleSubmit((values) => {
     setCustomRange({ dataInicio: values.dataInicio as Date, dataFim: values.dataFim as Date });
-    setPreset('custom');
+    setIntencao('custom');
     setCustomVisible(false);
   });
 
@@ -148,67 +146,61 @@ export default function MusicasTocadasInsightsView({
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.filterRow}>
+        <View style={styles.intencaoRow}>
           <FancyChips
-            label='Últimos 30 dias'
-            size='medium'
-            outlined={preset !== '30d'}
-            onPress={() => setPreset('30d')}
+            label='O que tocamos recentemente'
+            icon={{ library: 'MaterialCommunityIcons', name: 'clock-outline' }}
+            outlined={intencao !== 'recentes'}
+            onPress={() => selecionarIntencao('recentes')}
           />
           <FancyChips
-            label='Últimos 90 dias'
-            size='medium'
-            outlined={preset !== '90d'}
-            onPress={() => setPreset('90d')}
+            label='O que nunca tocamos'
+            icon={{ library: 'MaterialCommunityIcons', name: 'music-off' }}
+            outlined={intencao !== 'esquecidas'}
+            onPress={() => selecionarIntencao('esquecidas')}
           />
           <FancyChips
-            label='Ano atual'
-            size='medium'
-            outlined={preset !== 'ano'}
-            onPress={() => setPreset('ano')}
-          />
-          <FancyChips
-            label='Desde sempre'
-            size='medium'
-            outlined={preset !== 'sempre'}
-            onPress={() => setPreset('sempre')}
+            label='Desde o início'
+            icon={{ library: 'MaterialCommunityIcons', name: 'history' }}
+            outlined={intencao !== 'sempre'}
+            onPress={() => selecionarIntencao('sempre')}
           />
           <FancyChips
             label={
-              preset === 'custom' && customRange
+              intencao === 'custom' && customRange
                 ? `${format(customRange.dataInicio, 'dd/MM/yy')} - ${format(customRange.dataFim, 'dd/MM/yy')}`
-                : 'Customizado'
+                : 'Período específico'
             }
-            size='medium'
-            outlined={preset !== 'custom'}
+            icon={{ library: 'MaterialCommunityIcons', name: 'calendar-range-outline' }}
+            outlined={intencao !== 'custom'}
             onPress={abrirPeriodoCustomizado}
           />
         </View>
 
         {etiquetasAtivas.length > 0 && (
-          <View style={styles.filterRow}>
-            <FancyChips
-              label='Todas etiquetas'
-              size='medium'
-              outlined={etiquetaIds.length > 0}
-              onPress={() => setEtiquetaIds([])}
-            />
-            {etiquetasAtivas.map((item) => (
-              <FancyChips
-                key={item.id}
-                label={item.nome}
-                size='medium'
-                outlined={!etiquetaIds.includes(item.id)}
-                onPress={() => toggleEtiquetaId(item.id)}
-              />
-            ))}
-          </View>
+          <FancySearchSelect
+            containerStyle={styles.etiquetaSelect}
+            multiSelect
+            placeholder='Todas etiquetas'
+            title='Filtrar por etiqueta'
+            searchPlaceholder='Buscar etiqueta...'
+            value={etiquetaIds}
+            onChange={(value) => setEtiquetaIds(value as string[])}
+            listItems={etiquetasAtivas.map((item) => ({ title: item.nome, value: item.id }))}
+          />
         )}
 
         {isLoading ? (
           <View style={styles.loadingWrap}>
             <ActivityIndicator size='large' color={palette.primary} />
           </View>
+        ) : musicasOrdenadas.length === 0 ? (
+          <FancyListEmpty
+            variant='compact'
+            label='Nenhuma música encontrada'
+            helperText='Ajuste o repertório ou a etiqueta selecionada.'
+            icon={{ library: 'MaterialCommunityIcons', name: 'music-off', size: 20 }}
+          />
         ) : (
           <>
             <View style={styles.kpiGrid}>
@@ -258,7 +250,9 @@ export default function MusicasTocadasInsightsView({
                       size: 20,
                     }}
                     layout='horizontal'
-                    accentColor={palette.warning}
+                    accentColor={
+                      (kpis?.percentualNuncaTocado ?? 0) > 50 ? palette.warning : palette.secondary
+                    }
                   />
                 </View>
               </View>
@@ -276,47 +270,39 @@ export default function MusicasTocadasInsightsView({
               />
             </View>
 
-            {rankingVisivel.length === 0 ? (
-              <FancyListEmpty
-                label='Nenhuma música no período'
-                helperText='Ajuste o período ou a etiqueta selecionada.'
-                icon={{ library: 'MaterialCommunityIcons', name: 'music-off', size: 56 }}
-              />
-            ) : (
-              <View style={styles.rankingList}>
-                {rankingVisivel.map((musica) => (
-                  <FancyListItemCard
-                    key={musica.id}
-                    onPress={() => setSelectedMusica(musica)}
-                    leading={{
-                      type: 'icon',
-                      icon: {
-                        library: 'MaterialCommunityIcons',
-                        name: 'music-note-outline',
-                        size: 20,
-                      },
-                      color: musica.totalExecucoes === 0 ? palette.fonts.inactive : palette.primary,
-                      backgroundColor: ColorUtils.withAlpha(
-                        musica.totalExecucoes === 0 ? palette.fonts.inactive : palette.primary,
-                        0.12,
-                      ),
-                    }}
-                    title={musica.nome}
-                    subtitle={
-                      musica.interprete || musica.etiquetaNomes?.join(', ') || 'Sem intérprete'
-                    }
-                    meta={
-                      <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
-                        {musica.totalExecucoes === 0
-                          ? 'Nunca tocada'
-                          : `${musica.totalExecucoes}x · última vez ${format(parseISO(musica.ultimaExecucaoEm!), 'dd/MM')}`}
-                      </FancyText>
-                    }
-                    trailing={{ type: 'chevron', onPress: () => setSelectedMusica(musica) }}
-                  />
-                ))}
-              </View>
-            )}
+            <View style={styles.rankingList}>
+              {rankingVisivel.map((musica) => (
+                <FancyListItemCard
+                  key={musica.id}
+                  onPress={() => setSelectedMusica(musica)}
+                  leading={{
+                    type: 'icon',
+                    icon: {
+                      library: 'MaterialCommunityIcons',
+                      name: 'music-note-outline',
+                      size: 20,
+                    },
+                    color: musica.totalExecucoes === 0 ? palette.fonts.inactive : palette.primary,
+                    backgroundColor: ColorUtils.withAlpha(
+                      musica.totalExecucoes === 0 ? palette.fonts.inactive : palette.primary,
+                      0.12,
+                    ),
+                  }}
+                  title={musica.nome}
+                  subtitle={
+                    musica.interprete || musica.etiquetaNomes?.join(', ') || 'Sem intérprete'
+                  }
+                  meta={
+                    <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
+                      {musica.totalExecucoes === 0
+                        ? 'Nunca tocada'
+                        : `${musica.totalExecucoes}x · última vez ${format(parseISO(musica.ultimaExecucaoEm!), 'dd/MM')}`}
+                    </FancyText>
+                  }
+                  trailing={{ type: 'chevron', onPress: () => setSelectedMusica(musica) }}
+                />
+              ))}
+            </View>
 
             {musicasOrdenadas.length > MAX_RANKING_ROWS && (
               <FancyButton
@@ -397,7 +383,8 @@ export default function MusicasTocadasInsightsView({
 
 const styles = StyleSheet.create({
   scrollContent: { gap: 14, paddingTop: 2, paddingBottom: 24 },
-  filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  intencaoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  etiquetaSelect: { flex: 1 },
   loadingWrap: { alignItems: 'center', paddingVertical: 32 },
   kpiGrid: { gap: 8 },
   kpiRow: { flexDirection: 'row', gap: 8 },

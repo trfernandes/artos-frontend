@@ -144,7 +144,7 @@ const getMinisterioBasicItems = (ministerio: ResponseLoginMinisterioDto): Drawer
       },
     });
     items.push({
-      title: 'Meus SetLists',
+      title: 'SetLists',
       logo: {
         type: 'icon',
         value: {
@@ -385,7 +385,7 @@ const getMenuForMinisterio = (
         },
       });
       filteredItems.push({
-        title: 'Meus SetLists',
+        title: 'SetLists',
         logo: {
           type: 'icon',
           value: {

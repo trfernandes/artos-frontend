@@ -143,7 +143,7 @@ export default function FancyColorPicker({
                 <DefaultIcons.Custom
                   library='FontAwesome'
                   name='check'
-                  size={25}
+                  size={Math.round(circleSize * (25 / 35))}
                   color={palette.fonts.light}
                 />
               )}

@@ -7,4 +7,5 @@ export type ResponseRepertorioEtiquetaDto = {
   nome: string;
   cor: string;
   ativo: boolean;
+  totalMusicas?: number;
 };

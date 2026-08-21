@@ -617,3 +617,79 @@ estados positivos/finalizados.
 | --- | --- | --- | --- |
 | NotificationButton (badge) | 2026-08-17 | Número "13" estourava círculo em qualquer tamanho fixo testado | Trocado por dot 8px sem número |
 | NotificationButton + FancyHeader (avaliação livre) | 2026-08-17 | F1 (touch target <44px), F2 (posição do dot — rejeitado, não se aplica), F3 (alinhamento título — ok), F4 (tamanho do título — ok) | F1 registrado como débito; F2 rejeitado (R1); F3/F4 sem ação |
+
+---
+
+# Design System — Etiquetas do repertório (escopo: migração sheet → tela dedicada)
+
+> Escopo original: `components/pages/ministerios/louvor/repertorio/RepertorioEtiquetasManagerSheet.tsx`
+> (bottom sheet). Revisão 2026-08-20 (mesma data, sessão seguinte): usuário pediu tela dedicada em
+> vez de sheet — as regras confirmadas abaixo (composer, edição, grid, cor) seguem válidas e migram
+> pra `app/(app)/(drawer)/ministerios/louvor/repertorio/etiquetas.tsx` (nova rota). Implementação
+> ainda não feita — concept fechado nesta sessão, aguardando aprovação.
+
+## Conceito (nova rota, 2026-08-20, revisado — form volta a ser bottom sheet)
+
+- **Paradigma**: Lista + detalhe (paradigma #1) — tela dedicada só pra lista; "detalhe"
+  (criar/editar) é um **bottom sheet pequeno**, não navegação nem composer inline. Usuário
+  rejeitou a variante "composer fixo no topo da tela": pediu explicitamente formulário em sheet.
+  Objeto do domínio (`RepertorioEtiqueta: nome, cor`) continua simples demais pra virar tela
+  própria — mas o "detalhe" cabe melhor como sheet leve (padrão já usado no resto do app pra
+  formulário curto) do que como área fixa competindo com a lista na mesma tela.
+- **Estrutura OOUX**: `RepertorioEtiqueta` → vira item de lista na tela dedicada. Criar (botão "+"
+  no header) e editar (tap no item) abrem o **mesmo** bottom sheet pequeno (só nome+cor+ação),
+  populado quando é edição. Sheet nunca carrega a lista inteira — só o formulário.
+- **Elemento-assinatura**: barra lateral colorida no card da lista — a cor da etiqueta é dado real
+  (identifica a etiqueta nas músicas do repertório), não decoração; substitui o dot de 10px
+  anterior, que subordinava a cor a um detalhe pequeno demais pro papel que ela cumpre no domínio.
+- **Gate de Jakob**: passou — separar "lista em tela cheia" de "formulário em sheet minimalista"
+  (em vez do sheet único fazendo as duas coisas, ou de um composer permanente competindo espaço
+  com a lista) não é o primeiro default de CRUD genérico. Barra lateral como dado reforça.
+
+## Estrutura da tela (rota dedicada + sheet de formulário)
+
+- Tela: header padrão do app (`FancyHeader`, back button) — título "Etiquetas do repertório".
+  Ação "Nova etiqueta" via `FancyFab` (padrão do projeto pra ação primária de criação em tela de
+  lista) — abre sheet em modo criar.
+- Corpo da tela: só a lista (`FancyList`, `FancyListEmpty` se vazia), cards com barra lateral
+  colorida. Tap no card abre o mesmo sheet em modo editar, populado com nome+cor do item.
+- Sheet (`FancyBottomSheetModal`, reaproveita estrutura do `RepertorioEtiquetasManagerSheet`
+  atual, mas só a seção de formulário — sem a lista dentro do sheet): campo nome, color picker,
+  botão salvar/adicionar. Fecha sheet ao salvar; lista atrás atualiza, nunca muda de forma.
+
+## Regras de Design Confirmadas (herdadas da sessão de correção visual, mesma data)
+
+## Regras de Design Confirmadas
+
+- **[confirmed 2026-08-20]** Ação principal da tela (criar etiqueta) precisa ter peso visual
+  maior que a lista abaixo dela — nunca dois `FancyContainer` genéricos empilhados com o mesmo
+  tratamento de header quando um representa a ação primária e o outro é consulta/gestão
+  secundária. Composer usa fundo distinto (`palette.backgroundColor2`) e borda tintada
+  (`ColorUtils.withAlpha(palette.primary, 0.24)`) pra se destacar estruturalmente da lista.
+- **[confirmed 2026-08-20]** Editar item de lista curta (3-8 itens, sem scroll pesado) nunca
+  muta o layout do próprio card da lista pra input+colorpicker+botões — perde o contexto visual
+  do item (dot/nome) que o usuário estava editando e causa layout jump (`minHeight` fixo vira
+  variável). Edição reaproveita a mesma UI do composer (nome + colorpicker + botão), preenchida
+  com os dados do item, mantendo dot+nome do item visíveis como referência fixa.
+- **[confirmed 2026-08-20]** Grid de espaçamento da tela usa unidade base 8 — valores fora
+  disso (`3`, `5`, `7`, `13` encontrados no código anterior) são ruído, não decisão. Qualquer
+  novo espaçamento nesta tela deve ser múltiplo de 4 ou 8.
+- **[confirmed 2026-08-20]** Texto secundário (nome de item, labels inativos) usa token de cor
+  direto (`palette.fonts.inactive` ou equivalente) — nunca `opacity` ad-hoc sobre
+  `palette.fonts.dark`/`light` pra simular hierarquia (quebra em dark mode).
+- **[confirmed 2026-08-20]** `FancyColorPicker circleSize` nesta tela é único (26px) em todo
+  contexto (composer e edição) — não varia sem motivo documentado.
+- **[confirmed 2026-08-20]** Cor da etiqueta ganha mais presença visual que um dot de 18px —
+  usada como barra lateral colorida no card da lista, reforçando "cor como dado" (a cor
+  identifica a etiqueta nas músicas do repertório).
+
+## Débito de design
+
+- Nenhum registrado nesta rodada — riqueza gráfica endereçada via barra lateral colorida
+  (F6), dentro do escopo de correção visual (não introduz gráfico/ilustração nova).
+
+## Log de Telas Revisadas
+
+| Tela | Data | Findings | Resultado |
+| --- | --- | --- | --- |
+| RepertorioEtiquetasManagerSheet | 2026-08-20 | F1 (hierarquia composer/lista igual), F2 (edição inline muta layout do card), F3 (grid quebrado: 3/5/7/13), F4 (opacity ad-hoc em vez de token), F5 (circleSize 26≠22 sem motivo), F6 (zero riqueza gráfica, dot isolado) | Todos aprovados — implementação em andamento |

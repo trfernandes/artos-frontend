@@ -9,7 +9,7 @@ import { ColorUtils } from '../../utils/color_utils';
 
 type Leading =
   | { type: 'image'; source?: ImageProps['source']; size?: number }
-  | { type: 'icon'; icon: CustomIconProps; color?: string; backgroundColor?: string }
+  | { type: 'icon'; icon: CustomIconProps; color?: string; backgroundColor?: string; size?: number }
   | { type: 'letter'; letter: string; color?: string; backgroundColor?: string }
   | { type: 'date'; day: string; month: string; color?: string; backgroundColor?: string };
 
@@ -180,8 +180,18 @@ function LeadingItem({ leading }: { leading: Leading }) {
     );
   }
 
+  const containerSize = leading.size;
   return (
-    <View style={[styles.leading, styles.leadingSquircle, { backgroundColor: fallbackBg }]}>
+    <View
+      style={[
+        styles.leading,
+        styles.leadingSquircle,
+        { backgroundColor: fallbackBg },
+        containerSize
+          ? { width: containerSize, height: containerSize, borderRadius: containerSize / 3 }
+          : null,
+      ]}
+    >
       <DefaultIcons.Custom
         {...leading.icon}
         size={leading.icon.size ?? 20}

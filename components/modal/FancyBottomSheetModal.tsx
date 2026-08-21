@@ -233,7 +233,6 @@ export default function FancyBottomSheetModal({
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps='handled'
               keyboardDismissMode='interactive'
-              automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
             >
               {children}
             </ScrollView>

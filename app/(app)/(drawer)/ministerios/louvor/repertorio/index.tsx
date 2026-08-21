@@ -1,14 +1,17 @@
 import { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { Pressable, StyleSheet, View } from 'react-native';
+import FancyScrollView from '../../../../../../components/FancyScrollView';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import FancyListPage from '../../../../../../components/pages/base/FancyBaseListPage';
 import FancyLoading from '../../../../../../components/FancyLoading';
 import FancyListItemCard from '../../../../../../components/cards/FancyListItemCard';
-import FancyChips from '../../../../../../components/FancyChips';
-import FancyButton from '../../../../../../components/buttons/FancyButton';
 import FancyText from '../../../../../../components/FancyText';
-import RepertorioEtiquetasManagerSheet from '../../../../../../components/pages/ministerios/louvor/repertorio/RepertorioEtiquetasManagerSheet';
+import FancyHeaderButton from '../../../../../../components/header/FancyHeaderButton';
+import NotificationButton from '../../../../../../components/header/NotificationButton';
+import FancyTabs, { TabItem } from '../../../../../../components/tabs/FancyTabs';
+import MusicasTocadasInsightsView from '../../../../../../components/pages/ministerios/louvor/repertorio/MusicasTocadasInsightsView';
+import RepertorioEtiquetasScreen from '../../../../../../components/pages/ministerios/louvor/repertorio/RepertorioEtiquetasScreen';
 import { useAuth } from '../../../../../../contexts/AuthContext';
 import { IgrejaVoluntarioRoleEnum } from '../../../../../../domain/enums/Igreja/voluntario-role.enum';
 import { MinisterioTipoEnum } from '../../../../../../domain/enums/Ministerio/ministerio-tipo.enum';
@@ -23,6 +26,7 @@ import {
 } from '../../../../../../hooks/useRepertorio';
 import { usePallete } from '../../../../../../hooks/usePallete';
 import { DefaultIconsNames } from '../../../../../../constants/icons';
+import DefaultIcons from '../../../../../../components/FancyIcons';
 import { ColorUtils } from '../../../../../../utils/color_utils';
 import FancyActionSheet from '../../../../../../components/actions/FancyActionSheet';
 import { ResponseRepertorioMusicaDto } from '../../../../../../domain/dtos/Repertorio/repertorio-musica.response';
@@ -30,9 +34,14 @@ import { useLoading } from '../../../../../../contexts/LoadingContext';
 import { getApiErrorMessage } from '../../../../../../domain/api/api-error';
 import { FancyAlert } from '../../../../../../components/modal/FancyAlert';
 import Toast from 'react-native-toast-message';
+import { formatDataInclusaoRelativa } from '../../../../../../utils/date_utils';
+
+type OrdenacaoRepertorio = 'nome' | 'dataInclusao';
+
+const HEADER_ICON_SIZE = 19;
 
 export default function MinisterioLouvorRepertorioIndexPage() {
-  const params = useLocalSearchParams<{ ministerioId?: string }>();
+  const params = useLocalSearchParams<{ ministerioId?: string; etiquetaId?: string }>();
   const palette = usePallete();
   const { igrejaAtiva } = useAuth();
   const ministerioId =
@@ -46,9 +55,13 @@ export default function MinisterioLouvorRepertorioIndexPage() {
   const { data: musicas = [], removerMusica, isLoading } = useRepertorioMusicas(ministerioId);
   const { showLoading, hideLoading } = useLoading();
   const [search, setSearch] = useState('');
-  const [etiquetaIds, setEtiquetaIds] = useState<string[]>([]);
-  const [etiquetasVisible, setEtiquetasVisible] = useState(false);
+  const [etiquetaIds, setEtiquetaIds] = useState<string[]>(
+    params.etiquetaId ? [params.etiquetaId] : [],
+  );
   const [actionsMusica, setActionsMusica] = useState<ResponseRepertorioMusicaDto | null>(null);
+  const [ordenacao, setOrdenacao] = useState<OrdenacaoRepertorio>('nome');
+  const [ordenacaoVisible, setOrdenacaoVisible] = useState(false);
+  const [activeTabIndex, setActiveTabIndex] = useState(0);
 
   const canManageRepertorio = useMemo(() => {
     if (igrejaAtiva?.role === IgrejaVoluntarioRoleEnum.ADMIN) return true;
@@ -89,8 +102,13 @@ export default function MinisterioLouvorRepertorioIndexPage() {
           const nomesEtiquetas = (item.etiquetas ?? []).map((etiqueta) => etiqueta.nome).join(' ');
           const haystack = `${item.nome} ${item.interprete || ''} ${nomesEtiquetas}`.toLowerCase();
           return haystack.includes(search.trim().toLowerCase());
-        }),
-    [etiquetaIds, musicas, search],
+        })
+        .sort((a, b) =>
+          ordenacao === 'dataInclusao'
+            ? new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            : a.nome.localeCompare(b.nome, 'pt-BR'),
+        ),
+    [etiquetaIds, musicas, ordenacao, search],
   );
 
   const openMusica = (id: string) => {
@@ -137,144 +155,219 @@ export default function MinisterioLouvorRepertorioIndexPage() {
   };
 
   if (isLoading) return <FancyLoading label='Carregando...' />;
+  if (!ministerioId) return null;
+
+  const repertorioContent = (
+    <FancyListPage
+      showFab={canManageRepertorio}
+      showSearchBar
+      searchBarProps={{
+        value: search,
+        onSearch: setSearch,
+      }}
+      listProps={{
+        listEmptyProps: {
+          label: 'Nenhuma música no repertório',
+          icon: { library: 'MaterialIcons', name: 'queue-music', size: 68 },
+        },
+        ListHeaderComponent: (
+          <View style={styles.filtersSection}>
+            <FancyScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              bottomFade={{ active: false }}
+              topFade={{ active: false }}
+              contentContainerStyle={styles.categoryChipsRow}
+            >
+              <Pressable
+                onPress={() => setEtiquetaIds([])}
+                style={[
+                  styles.etiquetaChip,
+                  {
+                    backgroundColor:
+                      etiquetaIds.length === 0
+                        ? palette.primary
+                        : ColorUtils.darkenColor(palette.primary, 0.35),
+                  },
+                ]}
+              >
+                <FancyText type='bold' size={10} color={palette.fonts.light} numberOfLines={1}>
+                  Todas
+                </FancyText>
+              </Pressable>
+              {etiquetasAtivas.map((item) => {
+                const selected = etiquetaIds.includes(item.id);
+                return (
+                  <Pressable
+                    key={item.id}
+                    onPress={() => toggleEtiquetaId(item.id)}
+                    style={[
+                      styles.etiquetaChip,
+                      {
+                        backgroundColor: selected
+                          ? item.cor
+                          : ColorUtils.darkenColor(item.cor, 0.35),
+                      },
+                    ]}
+                  >
+                    {selected ? (
+                      <DefaultIcons.Custom
+                        library='MaterialCommunityIcons'
+                        name='check'
+                        size={12}
+                        color={palette.fonts.light}
+                      />
+                    ) : null}
+                    <FancyText type='bold' size={10} color={palette.fonts.light} numberOfLines={1}>
+                      {item.nome}
+                    </FancyText>
+                  </Pressable>
+                );
+              })}
+            </FancyScrollView>
+          </View>
+        ),
+        data: filtered,
+        renderItem: ({ item }) => {
+          const hasBadges = Boolean(item.etiquetas?.length || item.tomOriginal || item.bpmOriginal);
+          const dataInclusao = formatDataInclusaoRelativa(item.createdAt);
+          return (
+            <FancyListItemCard
+              onPress={() => openMusica(item.id)}
+              leading={{
+                type: 'icon',
+                icon: { library: 'MaterialIcons', name: 'queue-music', size: 20 },
+                color: palette.primary,
+                backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12),
+              }}
+              title={item.nome}
+              subtitle={item.interprete || 'Sem intérprete'}
+              meta={
+                hasBadges || dataInclusao ? (
+                  <View>
+                    {hasBadges ? (
+                      <View style={styles.musicBadgesRow}>
+                        {(item.etiquetas ?? []).map((etiqueta) => (
+                          <MusicBadge
+                            key={etiqueta.id}
+                            label={etiqueta.nome}
+                            color={etiqueta.cor}
+                            icon='shape-outline'
+                          />
+                        ))}
+                        {item.tomOriginal ? (
+                          <MusicBadge
+                            label={`TOM ${item.tomOriginal}`}
+                            color={palette.secondary}
+                            icon='music-clef-treble'
+                          />
+                        ) : null}
+                        {item.bpmOriginal ? (
+                          <MusicBadge
+                            label={`BPM ${item.bpmOriginal}`}
+                            color={palette.terciary}
+                            icon='metronome'
+                          />
+                        ) : null}
+                      </View>
+                    ) : null}
+                    {dataInclusao ? (
+                      <FancyText
+                        type='medium'
+                        size='extraSmall'
+                        color={palette.fonts.inactive}
+                        style={styles.dataInclusaoText}
+                      >
+                        {dataInclusao}
+                      </FancyText>
+                    ) : null}
+                  </View>
+                ) : undefined
+              }
+              trailing={
+                canManageRepertorio
+                  ? { type: 'menu', onPress: () => setActionsMusica(item) }
+                  : { type: 'chevron', onPress: () => openMusica(item.id) }
+              }
+            />
+          );
+        },
+      }}
+      fabProps={
+        canManageRepertorio
+          ? {
+              onPress: () => {
+                router.push({
+                  pathname: '/ministerios/louvor/repertorio/add',
+                  params: { ministerioId },
+                });
+              },
+            }
+          : undefined
+      }
+    />
+  );
+
+  const tabs: TabItem[] = canManageRepertorio
+    ? [
+        { title: 'Repertório', content: repertorioContent },
+        {
+          title: 'Insights',
+          content: <MusicasTocadasInsightsView ministerioId={ministerioId} />,
+        },
+        {
+          title: 'Etiquetas',
+          content: <RepertorioEtiquetasScreen ministerioId={ministerioId} />,
+        },
+      ]
+    : [];
 
   return (
     <>
-      <FancyListPage
-        showFab={canManageRepertorio}
-        showSearchBar
-        searchBarProps={{
-          value: search,
-          onSearch: setSearch,
-        }}
-        listProps={{
-          listEmptyProps: {
-            label: 'Nenhuma música no repertório',
-            icon: { library: 'MaterialIcons', name: 'queue-music', size: 68 },
-          },
-          ListHeaderComponent: (
-            <View style={styles.filtersSection}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.categoryChipsRow}
-              >
-                <FancyChips
-                  label='Todas'
-                  size='medium'
-                  outlined={etiquetaIds.length > 0}
-                  onPress={() => setEtiquetaIds([])}
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <View style={styles.headerButtonsRow}>
+              {activeTabIndex === 0 ? (
+                <FancyHeaderButton
+                  icon={{ library: 'MaterialCommunityIcons', name: 'sort', size: HEADER_ICON_SIZE }}
+                  onPress={() => setOrdenacaoVisible(true)}
                 />
-                {etiquetasAtivas.map((item) => (
-                  <FancyChips
-                    key={item.id}
-                    label={item.nome}
-                    size='medium'
-                    outlined={!etiquetaIds.includes(item.id)}
-                    onPress={() => toggleEtiquetaId(item.id)}
-                  />
-                ))}
-              </ScrollView>
-              {canManageRepertorio ? (
-                <View style={styles.actionButtonsRow}>
-                  <FancyButton
-                    label='Músicas tocadas'
-                    type='light'
-                    size={34}
-                    icon={{ library: 'MaterialCommunityIcons', name: 'chart-bar', size: 16 }}
-                    containerStyle={styles.categoriesButton}
-                    onPress={() =>
-                      router.push({
-                        pathname: '/ministerios/louvor/repertorio/musicas-tocadas',
-                        params: { ministerioId },
-                      })
-                    }
-                  />
-                  <FancyButton
-                    label='Gerenciar etiquetas'
-                    type='light'
-                    size={34}
-                    icon={{ library: 'MaterialCommunityIcons', name: 'shape-outline', size: 16 }}
-                    containerStyle={styles.categoriesButton}
-                    onPress={() => setEtiquetasVisible(true)}
-                  />
-                </View>
               ) : null}
+              <NotificationButton />
             </View>
           ),
-          data: filtered,
-          renderItem: ({ item }) => {
-            const hasBadges = Boolean(
-              item.etiquetas?.length || item.tomOriginal || item.bpmOriginal,
-            );
-            return (
-              <FancyListItemCard
-                onPress={() => openMusica(item.id)}
-                leading={{
-                  type: 'icon',
-                  icon: { library: 'MaterialIcons', name: 'queue-music', size: 20 },
-                  color: palette.primary,
-                  backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12),
-                }}
-                title={item.nome}
-                subtitle={item.interprete || 'Sem intérprete'}
-                meta={
-                  hasBadges ? (
-                    <View style={styles.musicBadgesRow}>
-                      {(item.etiquetas ?? []).map((etiqueta) => (
-                        <MusicBadge
-                          key={etiqueta.id}
-                          label={etiqueta.nome}
-                          color={etiqueta.cor}
-                          icon='shape-outline'
-                        />
-                      ))}
-                      {item.tomOriginal ? (
-                        <MusicBadge
-                          label={`TOM ${item.tomOriginal}`}
-                          color={palette.secondary}
-                          icon='music-clef-treble'
-                        />
-                      ) : null}
-                      {item.bpmOriginal ? (
-                        <MusicBadge
-                          label={`BPM ${item.bpmOriginal}`}
-                          color={palette.terciary}
-                          icon='metronome'
-                        />
-                      ) : null}
-                    </View>
-                  ) : undefined
-                }
-                trailing={
-                  canManageRepertorio
-                    ? { type: 'menu', onPress: () => setActionsMusica(item) }
-                    : { type: 'chevron', onPress: () => openMusica(item.id) }
-                }
-              />
-            );
-          },
         }}
-        fabProps={
-          canManageRepertorio
-            ? {
-                onPress: () => {
-                  router.push({
-                    pathname: '/ministerios/louvor/repertorio/add',
-                    params: { ministerioId },
-                  });
-                },
-              }
-            : undefined
-        }
       />
       {canManageRepertorio ? (
-        <RepertorioEtiquetasManagerSheet
-          visible={etiquetasVisible}
-          onClose={() => setEtiquetasVisible(false)}
-          ministerioId={ministerioId}
-        />
-      ) : null}
+        <FancyTabs items={tabs} contentGutter={false} onTabChange={setActiveTabIndex} />
+      ) : (
+        repertorioContent
+      )}
+      <FancyActionSheet
+        visible={ordenacaoVisible}
+        onClose={() => setOrdenacaoVisible(false)}
+        actions={[
+          {
+            label: 'Nome (A-Z)',
+            icon: {
+              library: 'MaterialCommunityIcons',
+              name: 'sort-alphabetical-ascending',
+              size: 18,
+            },
+            onPress: () => setOrdenacao('nome'),
+          },
+          {
+            label: 'Data de inclusão',
+            icon: {
+              library: 'MaterialCommunityIcons',
+              name: 'sort-clock-descending-outline',
+              size: 18,
+            },
+            onPress: () => setOrdenacao('dataInclusao'),
+          },
+        ]}
+      />
       <FancyActionSheet
         visible={!!actionsMusica}
         onClose={() => setActionsMusica(null)}
@@ -344,16 +437,20 @@ const styles = StyleSheet.create({
   },
   categoryChipsRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
-    paddingRight: 4,
   },
-  actionButtonsRow: {
+  etiquetaChip: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 5,
+    paddingHorizontal: 13,
+    borderRadius: 999,
   },
-  categoriesButton: {
-    alignSelf: 'flex-start',
+  headerButtonsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   musicBadgesRow: {
     flexDirection: 'row',
@@ -381,5 +478,8 @@ const styles = StyleSheet.create({
     lineHeight: 12,
     letterSpacing: 0.3,
     includeFontPadding: false,
+  },
+  dataInclusaoText: {
+    marginTop: 4,
   },
 });

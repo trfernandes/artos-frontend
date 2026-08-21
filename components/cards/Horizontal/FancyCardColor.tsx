@@ -18,6 +18,11 @@ export type FancyCardColorProps = {
   | 'contentContainerStyle'
   | 'isCollapsable'
   | 'backgroundColor'
+  | 'onPress'
+  | 'onLongPress'
+  | 'delayLongPress'
+  | 'accessibilityRole'
+  | 'accessibilityLabel'
 >;
 
 export default function FancyCardColor(props: FancyCardColorProps) {

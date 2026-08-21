@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, View } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigation } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { FancyAlert } from '../../../../modal/FancyAlert';
 import FancyBpmField from '../../../../fields/FancyBpmField';
 import FancyButton from '../../../../buttons/FancyButton';
@@ -12,8 +13,6 @@ import FancyPageView from '../../../../containers/FancyPageView';
 import FancyTabs, { TabItem } from '../../../../tabs/FancyTabs';
 import ControlledTextInput from '../../../../forms/ControlledTextInput';
 import ControlledBottomSheetSelect from '../../../../forms/ControlledBottomSheetSelect';
-import FancySearchSelect from '../../../../fields/FancySearchSelect';
-import FancyErrorText from '../../../../forms/FancyErrorText';
 import FancyLoading from '../../../../FancyLoading';
 import {
   RepertorioMusicaSchema,
@@ -21,7 +20,6 @@ import {
 } from '../../../../../domain/schemas/repertorioMusicaSchema';
 import FancyScrollView from '../../../../FancyScrollView';
 import SongTextEditorField from '../../../../song/SongTextEditorField';
-import RepertorioEtiquetasManagerSheet from './RepertorioEtiquetasManagerSheet';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { MinisterioTipoEnum } from '../../../../../domain/enums/Ministerio/ministerio-tipo.enum';
@@ -31,6 +29,7 @@ import {
   TipoPermissaoEnum,
 } from '../../../../../domain/enums/MinisterioVoluntarioPermissao/ministerio-voluntario-permissao.enum';
 import { useRepertorioEtiquetas, useRepertorioMusicas } from '../../../../../hooks/useRepertorio';
+import { ResponseRepertorioEtiquetaDto } from '../../../../../domain/dtos/Repertorio/repertorio-etiqueta.response';
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import { RepertorioRepository } from '../../../../../domain/services/RepertorioRepository';
 import Toast from 'react-native-toast-message';
@@ -88,7 +87,6 @@ export default function RepertorioEditorScreen({
   const { data: etiquetas = [] } = useRepertorioEtiquetas(ministerioId);
   const { criarMusica, atualizarMusica, isMutatingMusica } = useRepertorioMusicas(ministerioId);
   const { showLoading, hideLoading } = useLoading();
-  const [etiquetasVisible, setEtiquetasVisible] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
 
   const canManageRepertorio = useMemo(() => {
@@ -157,13 +155,6 @@ export default function RepertorioEditorScreen({
     });
   }, [musica, reset]);
 
-  const etiquetaOptions = useMemo(
-    () =>
-      etiquetas
-        .filter((item) => item.ativo !== false)
-        .map((etiqueta) => ({ title: etiqueta.nome, value: etiqueta.id })),
-    [etiquetas],
-  );
   const toneOptions = useMemo(() => TONS.map((tone) => ({ title: tone, value: tone })), []);
   const youtubeInitialQuery = useMemo(
     () =>
@@ -401,44 +392,99 @@ export default function RepertorioEditorScreen({
                       Etiquetas
                     </FancyText>
                   </View>
-                  {canEditRepertorio ? (
-                    <FancyButton
-                      label='Gerenciar'
-                      type='outlined'
-                      size={24}
-                      icon={{ library: 'MaterialCommunityIcons', name: 'tune-variant', size: 12 }}
-                      iconPosition='left'
-                      labelProps={{ size: 10 }}
-                      containerStyle={{ gap: 4, borderWidth: 1 }}
-                      onPress={() => setEtiquetasVisible(true)}
-                    />
-                  ) : null}
                 </View>
-                <FancyText
-                  size='extraSmall'
-                  type='medium'
-                  color={palette.fonts.inactive2}
-                  style={styles.fieldHelperText}
-                >
-                  Organize esta música no repertório. Pode ter mais de uma etiqueta.
-                </FancyText>
                 <Controller
                   control={control}
                   name='etiquetaIds'
-                  render={({ field: { value, onChange }, fieldState: { error } }) => (
-                    <View style={{ gap: 5 }}>
-                      <FancySearchSelect<string>
-                        placeholder='Selecione uma ou mais etiquetas...'
-                        listItems={etiquetaOptions}
-                        value={value ?? []}
-                        onChange={(selected) => onChange(selected)}
-                        multiSelect
-                        searchPlaceholder='Buscar etiqueta...'
-                        disabled={!canEditRepertorio}
-                      />
-                      {error && <FancyErrorText message={error.message!} />}
-                    </View>
-                  )}
+                  render={({ field: { value, onChange } }) => {
+                    const selectedIds = value ?? [];
+                    const etiquetasAtivas = etiquetas.filter((etiqueta) => etiqueta.ativo !== false);
+                    const selecionadas = selectedIds
+                      .map((id) => etiquetasAtivas.find((etiqueta) => etiqueta.id === id))
+                      .filter(
+                        (etiqueta): etiqueta is ResponseRepertorioEtiquetaDto => etiqueta !== undefined,
+                      );
+                    const naoSelecionadas = etiquetasAtivas
+                      .filter((etiqueta) => !selectedIds.includes(etiqueta.id))
+                      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
+                    const selecionar = (etiquetaId: string) => onChange([etiquetaId, ...selectedIds]);
+                    const remover = (etiquetaId: string) =>
+                      onChange(selectedIds.filter((id) => id !== etiquetaId));
+
+                    if (etiquetasAtivas.length === 0) {
+                      return (
+                        <FancyListEmpty
+                          variant='compact'
+                          icon={{ library: 'MaterialCommunityIcons', name: 'tag-off-outline' }}
+                          label='Nenhuma etiqueta cadastrada'
+                          helperText='Crie etiquetas na tela de Etiquetas do repertório'
+                        />
+                      );
+                    }
+
+                    return (
+                      <View style={styles.selectedEtiquetasRow}>
+                        {selecionadas.map((etiqueta) => (
+                          <Animated.View
+                            key={etiqueta.id}
+                            layout={LinearTransition}
+                            entering={FadeIn}
+                            exiting={FadeOut}
+                          >
+                            <Pressable
+                              disabled={!canEditRepertorio}
+                              onPress={() => remover(etiqueta.id)}
+                              style={[styles.etiquetaChip, { backgroundColor: etiqueta.cor }]}
+                            >
+                              <MaterialCommunityIcons
+                                name='close'
+                                size={12}
+                                color={palette.fonts.light}
+                              />
+                              <FancyText type='bold' size={10} color={palette.fonts.light}>
+                                {etiqueta.nome}
+                              </FancyText>
+                            </Pressable>
+                          </Animated.View>
+                        ))}
+
+                        {selecionadas.length > 0 && naoSelecionadas.length > 0 && (
+                          <View
+                            style={[
+                              styles.etiquetasDivider,
+                              { backgroundColor: palette.icons.inactive },
+                            ]}
+                          />
+                        )}
+
+                        {naoSelecionadas.map((etiqueta) => (
+                          <Animated.View
+                            key={etiqueta.id}
+                            layout={LinearTransition}
+                            entering={FadeIn}
+                            exiting={FadeOut}
+                          >
+                            <Pressable
+                              disabled={!canEditRepertorio}
+                              onPress={() => selecionar(etiqueta.id)}
+                              style={[
+                                styles.etiquetaChip,
+                                {
+                                  backgroundColor: ColorUtils.withAlpha(etiqueta.cor, 0.12),
+                                  borderColor: etiqueta.cor,
+                                },
+                              ]}
+                            >
+                              <FancyText type='bold' size={10} color={etiqueta.cor}>
+                                {etiqueta.nome}
+                              </FancyText>
+                            </Pressable>
+                          </Animated.View>
+                        ))}
+                      </View>
+                    );
+                  }}
                 />
               </View>
 
@@ -449,30 +495,36 @@ export default function RepertorioEditorScreen({
                 disabled={!canEditRepertorio}
                 rightContainer={
                   <View style={styles.versaoUrlIcons}>
-                    <TouchableOpacity
+                    <FancyButton
+                      type='text'
+                      mode='icon'
+                      size={32}
+                      disabled={!canEditRepertorio}
                       onPress={canEditRepertorio ? () => setYoutubeSearchVisible(true) : undefined}
-                      style={styles.versaoUrlIconButton}
-                    >
-                      <MaterialCommunityIcons
-                        name='youtube'
-                        size={20}
-                        color={canEditRepertorio ? palette.primary : palette.icons.inactive2}
-                      />
-                    </TouchableOpacity>
-                    <TouchableOpacity
+                      icon={{
+                        library: 'MaterialCommunityIcons',
+                        name: 'youtube',
+                        size: 20,
+                        color: canEditRepertorio ? palette.primary : palette.icons.inactive2,
+                      }}
+                    />
+                    <FancyButton
+                      type='text'
+                      mode='icon'
+                      size={32}
+                      disabled={!versaoUrlNormalizada}
                       onPress={
                         versaoUrlNormalizada
                           ? () => Linking.openURL(versaoUrlNormalizada)
                           : undefined
                       }
-                      style={styles.versaoUrlIconButton}
-                    >
-                      <MaterialCommunityIcons
-                        name='web'
-                        size={15}
-                        color={versaoUrlNormalizada ? palette.primary : palette.icons.inactive2}
-                      />
-                    </TouchableOpacity>
+                      icon={{
+                        library: 'MaterialCommunityIcons',
+                        name: 'web',
+                        size: 15,
+                        color: versaoUrlNormalizada ? palette.primary : palette.icons.inactive2,
+                      }}
+                    />
                   </View>
                 }
               />
@@ -596,13 +648,6 @@ export default function RepertorioEditorScreen({
           onPress={handleSubmit(onSubmit)}
         />
       ) : null}
-      {canEditRepertorio ? (
-        <RepertorioEtiquetasManagerSheet
-          visible={etiquetasVisible}
-          onClose={() => setEtiquetasVisible(false)}
-          ministerioId={ministerioId}
-        />
-      ) : null}
       <YoutubeVersionSearchSheet
         visible={youtubeSearchVisible}
         onClose={() => setYoutubeSearchVisible(false)}
@@ -615,6 +660,28 @@ export default function RepertorioEditorScreen({
 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingBottom: 16, gap: 12 },
+  selectedEtiquetasRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 4,
+  },
+  etiquetasDivider: {
+    width: 1.5,
+    height: 14,
+    borderRadius: 1,
+    alignSelf: 'center',
+  },
+  etiquetaChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
   formSection: { gap: 14, paddingTop: 8, paddingBottom: 32 },
   markdownTabContent: { flexGrow: 1, paddingTop: 8, paddingBottom: 20 },
   readOnlyTextContent: {

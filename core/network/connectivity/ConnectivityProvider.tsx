@@ -17,11 +17,15 @@ export type ConnectivityStatus = 'ok' | 'offline' | 'serverDown';
 // enquanto a rede ainda está reconectando.
 const OFFLINE_DEBOUNCE_MS = 1200;
 const FOREGROUND_HEALTHCHECK_DELAY_MS = 1500;
+// Render staging pode levar mais de 8s pra sair do cold start; recheck manual
+// (botão "Atualizar" do banner) espera mais pra resolver num clique só.
+const MANUAL_RECHECK_TIMEOUT_MS = 25000;
 
 type ConnectivityContextValue = {
   status: ConnectivityStatus;
   isOffline: boolean;
   isServerDown: boolean;
+  isRechecking: boolean;
   recheck: () => Promise<void>;
 };
 
@@ -30,20 +34,24 @@ const ConnectivityContext = createContext<ConnectivityContextValue | null>(null)
 export function ConnectivityProvider({ children }: { children: React.ReactNode }) {
   const [isOffline, setIsOffline] = useState(false);
   const [isServerDown, setIsServerDown] = useState(false);
+  const [isRechecking, setIsRechecking] = useState(false);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const appStateRef = useRef(AppState.currentState);
   const offlineDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const foregroundDelayRef = useRef<NodeJS.Timeout | null>(null);
 
-  const runHealthCheck = useCallback(async () => {
-    if (isOffline) {
-      setIsServerDown(false);
-      return;
-    }
-    const ok = await pingHealth(8000);
-    setIsServerDown(!ok);
-  }, [isOffline]);
+  const runHealthCheck = useCallback(
+    async (timeoutMs = 8000) => {
+      if (isOffline) {
+        setIsServerDown(false);
+        return;
+      }
+      const ok = await pingHealth(timeoutMs);
+      setIsServerDown(!ok);
+    },
+    [isOffline],
+  );
 
   const startPolling = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -127,11 +135,17 @@ export function ConnectivityProvider({ children }: { children: React.ReactNode }
       status,
       isOffline,
       isServerDown,
+      isRechecking,
       recheck: async () => {
-        await runHealthCheck();
+        setIsRechecking(true);
+        try {
+          await runHealthCheck(MANUAL_RECHECK_TIMEOUT_MS);
+        } finally {
+          setIsRechecking(false);
+        }
       },
     };
-  }, [status, isOffline, isServerDown, runHealthCheck]);
+  }, [status, isOffline, isServerDown, isRechecking, runHealthCheck]);
 
   return <ConnectivityContext.Provider value={value}>{children}</ConnectivityContext.Provider>;
 }
