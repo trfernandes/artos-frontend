@@ -710,6 +710,81 @@ lista compacto, a tela própria é o detalhe pra onde a navegação leva. O elem
 que muda de sentença, chip com dado real, esmaecido mas tocável) continua idêntico — só migrou de
 container (card expansível → tela).
 
+## Direção visual (trfernandes-atelier-explore Ramo A — aprovado 2026-08-21)
+
+### Cor — Variante F ("cada passo com sua cor")
+
+Cada passo do checklist recebe uma cor de "competência" própria, emprestada do sistema de cores
+de seção do repertório (`utils/secaoCores.ts`) — nenhuma dessas cores passa por `usePallete()`,
+foi um achado explícito pedido pelo usuário depois de reprovar as 3 primeiras variantes (cinza
+demais, verde feio). Ao resolver, cada passo converge pra esmeralda (`statusThemes.ts`,
+tema `APPROVED`/`ATIVO`), também fora do `usePallete()`.
+
+| Papel | Claro | Escuro | Origem |
+| --- | --- | --- | --- |
+| Passo "Funções cadastradas" | `#0EA5A5` | `#2DD4D4` | `secaoCores.ts` (seção Instrumental) |
+| Passo "Voluntários vinculados" | `#6D5EF3` | `#8C7EF7` | `secaoCores.ts` (seção Ponte) |
+| Passo "Função atribuída" | `#E67E22` | `#F0954A` | `secaoCores.ts` (seção Solo) |
+| Resolvido / conquista | borda `#059669` · destaque `#10B981` | borda `#10B981` · destaque `#34D399` | `statusThemes.ts` (APPROVED/ATIVO) |
+| CTA ("Continuar configuração") | `palette.primary` (`#3B82F6`) | idem | `usePallete()` — **não muda por feature**, regra já documentada acima |
+| Texto/legenda/esmaecido | `palette.fonts.dark` / `.inactive` / `.inactive2` | idem | `usePallete()` |
+
+Correção registrada durante a camada de componentes: o CTA tinha sido desenhado em teal por
+engano — corrigido pra `palette.primary` porque a regra "botão principal = CTA sólido" não varia
+por feature (só ícone/chip/indicador tem liberdade de cor própria).
+
+### Tipografia — "Hero de impacto"
+
+Nenhuma fonte nova (app inteiro usa Montserrat). Escala de 3 níveis, toda reaproveitada de
+`constants/font.ts` / `FancyText`:
+
+| Elemento | Token | px | Peso |
+| --- | --- | --- | --- |
+| Frase de status (elemento-assinatura, hero da tela própria) | `size='titleLarge'` | 22 | bold |
+| Título do passo | `size='mediumLarge'` | 14 | semiBold |
+| Legenda do passo / subtítulo do hero | `size='extraSmall'`/`'small'` | 11-12 | medium |
+| Título do teaser (card na listagem) | `size='small'` | 12 | bold |
+| Chip resolvido | preset `medium` de `FancyChips` | ~12 | bold |
+
+`titleLarge` não tinha uso em produção antes desta tela — precedente parcial em `DashboardCard`
+(`size='title'`, 20px, pra número de destaque); aqui sobe um nível porque a frase É o motivo da
+tela existir, não um dado secundário dentro de um card.
+
+### Componentes
+
+- **Teaser do Checklist** (novo, na listagem de escalas): reaproveita a linguagem visual de
+  `FancyListItemCard` (raio 18, `shadows[200]`, borda 0.5 @ 45% alpha) — ícone 34px + frase de
+  status (12px bold) + legenda (11px) + chevron. Sem os 3 passos aqui; toque navega pra tela
+  própria do Checklist.
+- **Step Row** (elemento-assinatura sistematizado, dentro da tela própria do Checklist): ícone
+  24-38px na cor do passo (16% alpha, 10% quando esmaecido, esmeralda quando resolvido) + label
+  14px semiBold + legenda 11px + chip esmeralda com dado real (resolvido) ou seta `›` (não
+  resolvido, sempre tocável mesmo esmaecido). Linha inteira tocável, sem `FancyButton` dentro.
+- **Modal de pré-checagem**: `FancyBottomSheetModal` — **revisão da decisão original do conceito**
+  (que previa `FancyModalDialog`, diálogo centralizado). Apareceu como bottom sheet por engano
+  num mockup da camada de cor; o usuário revisou e preferiu manter bottom sheet depois de ver as
+  duas opções lado a lado na camada de componentes. Botões empilhados (não lado a lado): "Gerar
+  mesmo assim" (contained, `primary`) em cima, "Revisar checklist" (outlined) embaixo — segue a
+  hierarquia já documentada (1 contained por contexto).
+
+### Motivo gráfico — "Selo de Etapa"
+
+Cada competência de configuração (função / vínculo / atribuição) ganha um selo colorido próprio
+(ícone dentro de um quadrado arredondado com fundo tintado) que muda de cor pra esmeralda só
+quando a etapa é conquistada — não é decoração, é o mecanismo central de leitura do checklist.
+Aplicado em 3 lugares estruturalmente diferentes: (1) ícone do teaser compacto na listagem, (2)
+ícone de cada `Step Row` na tela própria, (3) cor do chip de dado real quando resolvido. Deriva
+do sistema de cores por seção que já existe no repertório musical do app (`secaoCores.ts`) —
+mesma lógica de "cada categoria tem sua identidade visual", aplicada agora a etapas de
+configuração em vez de seções de música.
+
+### Estrutura de telas (revisão 2026-08-21, ver acima)
+
+Teaser compacto na listagem de escalas → navega pra tela própria "Checklist" (não expande
+in-place) → tela mostra os 3 `Step Row` completos → modal `FancyBottomSheetModal` intercepta o
+botão "Gerar" do Assistente (`assistant.tsx`), nunca bloqueia (ADR 0003).
+
 ## Próximo passo
 
-Cor/tipografia/componentes reais — `trfernandes-atelier-explore` Ramo A.
+Ramo A concluído (cor + tipografia + componentes aprovados) — implementar no código real
+(`trfernandes-atelier-implement`).
