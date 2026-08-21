@@ -617,3 +617,99 @@ estados positivos/finalizados.
 | --- | --- | --- | --- |
 | NotificationButton (badge) | 2026-08-17 | Número "13" estourava círculo em qualquer tamanho fixo testado | Trocado por dot 8px sem número |
 | NotificationButton + FancyHeader (avaliação livre) | 2026-08-17 | F1 (touch target <44px), F2 (posição do dot — rejeitado, não se aplica), F3 (alinhamento título — ok), F4 (tamanho do título — ok) | F1 registrado como débito; F2 rejeitado (R1); F3/F4 sem ação |
+
+---
+
+# Design System — Checklist de Configuração de Escala (escopo: tela/banner nova)
+
+> Escopo: banner + expansão na listagem de escalas do ministério (Fase 1 do roadmap Versão 2).
+> Revisão: 2026-08-19 — fluxo `trfernandes-atelier` completo (advise + grilling + concept).
+
+## Entendimento (advise + grilling, fechado com o usuário)
+
+- Banner aparece na listagem de escalas do ministério, **só quando o checklist está incompleto**
+  — pensado pro primeiro acesso (líder novo que já quer sair gerando escala sem ter configurado
+  nada). Também um item de menu na mesma tela, acessível a qualquer momento.
+- Admin usa a mesma visão do líder, ministério por ministério — sem tela agregada por igreja
+  nesta fase (`GET /igrejas/:id/checklist-escala` fica sem consumo no app por ora).
+- Pré-checagem intercepta automaticamente o botão "Gerar" no último passo do Assistente já
+  existente (`assistant.tsx`) — nunca bloqueia (ADR 0003), só avisa com opção "Gerar mesmo
+  assim".
+- Tela de uso raro (configuração, não daily driver).
+
+## Conceito
+
+- **Paradigma**: nenhum dos 12 paradigmas-padrão isolado — é essencialmente uma variação de
+  "Master-detail com preview inline" (item 7), mas com o preview substituindo o resultado
+  esperado ("check") por um **resultado real** (contagem) quando resolvido. Casa com a dimensão
+  dominante (estado de configuração, não dado temporal/espacial/conversa) e a restrição mobile
+  (baixa densidade, uma ação óbvia por vez, thumb zone).
+- **Estrutura OOUX**:
+  - `Passo do Checklist` (função/vínculo/função-do-voluntário) → não vira tela própria, nem
+    lista genérica com checkbox — vira **linha de estado** dentro de um card expansível na
+    listagem de escalas (ver Direção abaixo).
+  - `Checklist` (agregador dos 3 passos, por ministério) → não é tela própria nesta fase — é o
+    card/banner citado acima, aberto por toque ou pelo item de menu.
+  - `Pré-checagem` (por vaga/evento) → modal (`FancyModalDialog`), intercepta o botão "Gerar".
+  - `Função` (cadastro) → sem tela nova; reaproveita o cadastro de função já existente
+    (`ministerio-funcoes`), só ganha sugestões (catálogo) — decisão de onde vive o catálogo
+    ainda em aberto, não bloqueia o conceito de tela.
+- **Elemento-assinatura**: **"a frase que muda de sentença"** — no topo do card, uma única linha
+  de status narra o que falta em linguagem de domínio ("Falta cadastrar função" → "Falta
+  vincular voluntários" → "Falta atribuir função aos voluntários" → "Ministério pronto pra
+  escalar"), recalculada ao vivo conforme o líder resolve cada passo. Nunca frasa como
+  bloqueio/impedimento (ADR 0003: avisa, não bloqueia) — sempre framing de "falta X", nunca "não
+  pode Y".
+  - Item resolvido **não vira checkmark** — vira um chip com o dado real que foi criado (ex:
+    "4 funções", "9 voluntários"), reforçando "você construiu algo" em vez de "você marcou uma
+    tarefa".
+  - Item ainda não alcançável na ordem lógica (ex: atribuir função sem ter voluntário vinculado
+    ainda) fica visualmente esmaecido, mas **continua tocável** — nunca trava navegação
+    (consistente com "nunca bloqueia").
+  - Cada linha é tocável por inteiro (sem `FancyButton` dentro da linha) — toque no corpo da
+    linha navega pro cadastro correspondente.
+- **Gate da Lei de Jakob**: passou. Trocando cor/logo por um concorrente do mesmo segmento, a
+  estrutura ainda seria reconhecível — nenhum outro app de escala voluntária usa "frase de status
+  que narra o próximo passo em linguagem de domínio" + "chip de contagem real em vez de check" no
+  lugar do checklist genérico de onboarding.
+
+### Direções descartadas (subagentes paralelos, técnicas de divergência)
+
+| Direção | Técnica | Por que descartada (parcial) |
+| --- | --- | --- |
+| "GO/NO-GO de palco" (veredito bloqueante, itens com severidade) | Analogia forçada (backstage de show) | Framing "escala não pode ser gerada" contradiz ADR 0003 (nunca bloqueia) — mantida só a ideia de frase de status dinâmica, reescrita sem linguagem de bloqueio |
+| Cadeado que trava item 3 até 1+2 resolverem | Estratégia oblíqua (sem botão) | Lock literal implica bloqueio de navegação, que o produto não tem hoje — mantida só a ideia de linha inteira tocável (sem botão) e esmaecimento visual sem travar toque |
+| Trilha horizontal fixa de 3 estações | SCAMPER Eliminate | Estrutura de trilha não cabia bem no espaço de uma listagem de escalas (empurraria conteúdo real da tela) — mantida a ideia central (chip com contagem real em vez de check) |
+
+### Revisão 2026-08-21 — Checklist vira tela própria
+
+Durante a camada de cor (`trfernandes-atelier-explore` Ramo A), o usuário revisou um ponto do
+entendimento acima: o card/banner na listagem de escalas **continua existindo** como ponto de
+entrada (sugestão no primeiro acesso + item de menu), mas agora é só um **teaser compacto**
+(frase de status + indicador de toque) — ele não expande mais os 3 passos in-place. Tocar no
+teaser (ou no item de menu) **navega pra uma tela própria do Checklist**, que mostra os mesmos 3
+passos (mesmo conteúdo, mesmo elemento-assinatura "frase que muda de sentença" + chip com dado
+real), só que em tela cheia. Essa tela não tem entrada própria fora desses dois pontos — não vira
+destino de menu lateral nem tab, é alcançável só a partir da listagem de escalas do ministério.
+
+Cogitou-se também mostrar um card equivalente em Início (dashboard) — descartado pelo usuário
+("esqueci desse detalhe, esquece essa ideia"), fora de escopo desta fase.
+
+Isso muda a estrutura OOUX (linha 647-656 acima):
+- `Passo do Checklist` → continua **linha de estado**, mas agora dentro da tela própria, não do
+  card da listagem.
+- `Checklist` (agregador dos 3 passos) → **é tela própria** nesta fase (correção do texto
+  original acima, que dizia o contrário) — reaproveita a mesma linguagem visual e cores já
+  aprovadas (Variante F, ver seção Cor abaixo).
+- O card da listagem passa a ser só o `Teaser do Checklist` — objeto novo, compacto: mesma frase
+  de status como título, sem os 3 passos, com indicador de navegação (chevron).
+
+Paradigma ajustado: deixa de ser puramente "Master-detail com preview inline" (item 7) e passa a
+ser um híbrido com "Lista + detalhe" (item 1) — o teaser na listagem funciona como o item de
+lista compacto, a tela própria é o detalhe pra onde a navegação leva. O elemento-assinatura (frase
+que muda de sentença, chip com dado real, esmaecido mas tocável) continua idêntico — só migrou de
+container (card expansível → tela).
+
+## Próximo passo
+
+Cor/tipografia/componentes reais — `trfernandes-atelier-explore` Ramo A.
