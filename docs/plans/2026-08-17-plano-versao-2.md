@@ -105,27 +105,27 @@ depois).
   `temVoluntariosComFuncao`. Calculado ao vivo, sem persistir. Gate: quem tem permissão
   `Escalas:Gerar` no ministério.
 - `GET /igrejas/:id/checklist-escala` — agrega todos os Ministérios + `temEventos`. Gate: só Admin
-  da igreja.
+  da igreja. **Decisão 2026-08-22: não vai ser consumido no app** — Checklist é feature só de Líder
+  de Ministério, sem visão agregada de Admin (endpoint fica implementado mas sem consumidor).
 - `POST /escalas/pre-checagem` — recebe formato parecido `CreateEscalaDto` (`PreCheckagemEscalaDto`,
   sem `nome`/`criadoPor`), reusa `EscalaContext.loadContext()` + `EscalaElegibilidadeService`.
   Retorna por Evento/Função: `{ eventoId, data, funcaoId, funcaoNome, candidatosElegiveis }`
   (contagem, não lista de nomes).
 - `EscalaElegibilidadeService` extraído (`src/escalas/services/escala-elegibilidade.service.ts`) —
   só `PossuiFuncaoRule` + `DisponibilidadeRule`, reusado pela Fase 2.
-- Catálogo de Funções sugeridas: **não implementado** — ainda em aberto onde vive, ver abaixo.
+- Catálogo de Funções sugeridas: **não implementado**, mas **decidido criar** (2026-08-22) — lista
+  de nomes comuns (vocal, guitarra, bateria, teclado...) oferecida como sugestão/autocomplete, sem
+  impedir texto livre. Onde vive (constante backend vs frontend) segue em aberto.
 
 ### Frontend
 
-- Tela "Configurar Escala" com checklist visual, cada passo linkando pro cadastro correspondente.
-  Visão por Ministério (Líder) e agregada (Admin).
-- Cadastro de Função: autocomplete/chips com sugestões + campo livre.
-- Modal de pré-checagem antes de "Gerar Escala": lista Funções sem candidato, opção "Gerar mesmo
-  assim".
+Estrutura final definida em design (ver seção 4 e `docs/design-system.md`): teaser compacto na
+listagem de escalas → tela própria "Checklist" (só Líder de Ministério, sem visão agregada de Admin)
+→ modal de pré-checagem em bottom sheet no botão "Gerar" do Assistente.
 
 ### Em aberto
 
-- Onde vive o catálogo de Funções sugeridas (backend constante vs frontend constante) — decidir na
-  sessão de design agendada agora (ver "Revisão 2026-08-19").
+- Onde vive o catálogo de Funções sugeridas (backend constante vs frontend constante).
 
 ---
 
@@ -242,73 +242,143 @@ bruta) e evitar viés contra voluntário novo.
 
 ## 3. Sobrecarga de Voluntário ("Saúde")
 
-ADR: `docs/adr/0001-sobrecarga-dois-limiares-independentes.md` — **dois limiares independentes por
-OR**, não score ponderado (peso arbitrário difícil de justificar/explicar pro usuário). Trade-off
-aceito: falso-negativo possível (ex: 2 ministérios + 11 escalas, ambos abaixo do limiar individual).
+**Revisão completa em grilling 2026-08-22** — sessão dedicada a explorar o módulo com lente de
+cuidado pastoral/psicológico (pedido do usuário: "o app oferece alerta e insights necessários pra um
+cuidado pelos líderes? o próprio voluntário consegue perceber isso? tá claro o processo de
+cálculo?"). Boa parte do desenho original (ADR 0001, atelier 2026-08-08) foi revisada — ver
+`docs/adr/0001-sobrecarga-dois-limiares-independentes.md` (revisão completa) e `CONTEXT.md` (seções
+"Sobrecarga de Voluntário" e "Feedback pós-Escala").
 
-### Backend
+ADR: **dois eixos independentes por OR**, agora **ponderados** (não mais contagem simples nem score
+único). O eixo de "ministérios" deixou de contar vínculo puro — cada ministério pesa proporcional a
+quanto ele realmente demanda da pessoa, evitando tratar um ministério fraco igual a um pesado. Isso
+também absorveu o falso-negativo que o ADR original aceitava (2 ministérios pesados sem cruzar o
+limiar de 3 já cruzam pelo peso) — o terceiro sinal combinado que chegou a ser cogitado foi
+descartado por redundância.
+
+### Backend — eixos de Sobrecarga
 
 - Novo service `voluntario-sobrecarga.service.ts` (módulo `voluntarios-sobrecarga/` ou dentro de
   `voluntarios/`).
-- `verificarSobrecarga(voluntarioId, igrejaId)`: conta `MinisterioVoluntarioEntity` ativo (limiar
-  **3**) OU conta `EscalaItemEntity` últimos 3 meses (limiar **12**). Retorna
-  `{ sobrecarregado, porMinisterios, porEscalas }`.
-- Persistência de estado pra saber cruzamento (false→true): campo `sobrecarregadoDesde: Date | null`
-  — preferir entidade separada `VoluntarioSobrecargaEstadoEntity` (não sujar `VoluntarioEntity`,
-  alinhado ao padrão de entidades ricas do projeto).
-- Trigger: criar/ativar `MinisterioVoluntarioEntity` → checa limiar ministérios. Criar
-  `EscalaItemEntity`/publicar escala → checa limiar escalas.
-- Cruzou pra sobrecarregado=true → dispara alerta + persiste. Caiu abaixo → zera estado, sem
-  notificação de "resolvido" (fora de escopo).
-- Notificações: reusar `TipoNotificacaoEnum.ComunicadoLider` e `SistemaAlertaAdmin` (já reservados,
-  não usados). Payload Líder: genérico, sem nomear outros ministérios
-  (`sinalizaOutrosMinisterios: boolean`). Payload Admin: completo. Líder só recebe se sobrecarga
-  envolve vínculo ativo no ministério dele; Admin sempre.
-- `GET /voluntarios/me/sobrecarga` — estado + contadores pro indicador pessoal.
-- Testes: cruzamento por ministério, por escala, não-duplicação, recruzamento pós-queda, escopo
-  payload líder vs admin.
+- **Peso de Ministério** = (escalas desse ministério pra essa pessoa, últimos 3 meses) ÷ (média de
+  escalas por ministério na igreja inteira, mesmo período).
+  `verificarSobrecarga(voluntarioId, igrejaId)`: soma dos pesos de ministério ≥ **3** OU
+  `EscalaItemEntity` últimos 3 meses ≥ **12**. Retorna os dois eixos com seus valores brutos (não só
+  um booleano) — necessário pro drill-down.
+- **Tendência**: cada eixo compara o trimestre atual com o trimestre imediatamente anterior — exige
+  guardar (ou recalcular sob demanda) os valores do trimestre anterior, não só o atual.
+- Persistência de estado (cruzamento false→true e histórico de tendência): entidade separada
+  `VoluntarioSobrecargaEstadoEntity` (não sujar `VoluntarioEntity`, alinhado ao padrão de entidades
+  ricas do projeto).
+- Trigger: criar/ativar `MinisterioVoluntarioEntity` → recalcula peso. Criar
+  `EscalaItemEntity`/publicar escala → recalcula os dois eixos.
+- Janela "últimos 3 meses": reusa a convenção já usada em `EscalaContext`
+  (`subMonths(new Date(), 3)`, date-fns).
 
-### Design (definido em atelier 2026-08-08)
+### Backend — sinais adicionais (independentes, alertam sem depender dos eixos acima)
 
-- Líder/Admin: novo card em `components/pages/inicio/DashboardKpiGrid.tsx` (mesmo padrão dos cards
-  existentes), sempre visível, sem tela dedicada nova.
-- Voluntário: aviso discreto na tela Pessoal/Perfil, só renderiza se o próprio estiver
-  sobrecarregado, sem botão de ação (confirmado em grilling).
-- Referência visual:
+- **Queda de comparecimento**: `Ausente`/total de `EscalaItemEntity` ≥ ~20% no período — limiar
+  fixo, igual pra todo mundo.
+- **Aumento de indisponibilidade**: indisponibilidade declarada no trimestre atual ≥ 2x a média
+  pessoal dos últimos 6 meses (linha de base por pessoa, não limiar global).
+- **Humor pós-escala**: 2 respostas consecutivas baixas (1-2 de 5) no questionário de humor — ver
+  "Feedback pós-Escala" abaixo.
+
+### Backend — estado de acompanhamento (unifica alerta automático + pedido do voluntário)
+
+- Cada situação sinalizada (por qualquer eixo/sinal acima, ou por pedido do voluntário) vira um
+  registro de "situação em acompanhamento" — substitui a decisão anterior de "sem cooldown/debounce"
+  por um modelo mais rico: Líder marca "já tratei", sistema para de notificar repetidamente, mas
+  **reabre sozinho se a situação piorar** depois (não é silenciamento permanente).
+- `POST /voluntarios/me/sobrecarga/pedir-conversa` — voluntário sinaliza "quero conversar sobre
+  minha carga de serviço", cria uma situação em acompanhamento pro Líder do(s) ministério(s)
+  relevante(s).
+- Notificações: reusar `TipoNotificacaoEnum.ComunicadoLider` e `SistemaAlertaAdmin` (já reservados).
+  Líder só recebe alerta de sobrecarga por dispersão de ministérios se envolve vínculo ativo no
+  ministério dele; Admin sempre recebe visão completa.
+
+### Backend — simetria de dados
+
+- `GET /voluntarios/me/sobrecarga` — decisão revisada: retorna os **mesmos dados completos** que o
+  Líder vê sobre a pessoa (valores dos dois eixos, sinais adicionais, drill-down), não mais um
+  indicador genérico. Simetria total entre o que o Líder vê e o que o voluntário vê sobre si mesmo.
+- Testes: cálculo de peso por ministério, cruzamento por eixo, tendência trimestral, os 3 sinais
+  adicionais isoladamente, ciclo de vida do estado de acompanhamento (tratado → reaberto por piora),
+  escopo payload líder vs admin, simetria líder/voluntário.
+
+### Design (revisado em grilling 2026-08-22, ver `docs/design-system.md`)
+
+- Líder/Admin: card em `components/pages/inicio/DashboardKpiGrid.tsx`, agora com tendência (ex:
+  "peso subiu de 1.8 pra 3.2"), sempre visível.
+- Drill-down do motivo (qual eixo/sinal, com os números) vive no perfil do voluntário em
+  Integrantes, não num modal separado do dashboard — um lugar só pra tudo sobre a saúde daquela
+  pessoa.
+- Tela "Como funciona a Saúde do Voluntariado" — referência sempre acessível (a partir do card do
+  dashboard e de Integrantes) explicando os 5 sinais em linguagem simples, complementando o
+  drill-down por pessoa.
+- Insights em Integrantes: visão agregada no topo da lista (contadores separados por tipo de sinal,
+  nunca um número único misturado) + visão individual no perfil (seção "Saúde": eixos + tendência +
+  3 sinais + estado de acompanhamento — **separada** da seção "Scores": Solicitude + Serviço, pra
+  não misturar tom de cuidado com tom de avaliação).
+- Voluntário: tela Pessoal mostra os mesmos dados do Líder (simetria) + botão "quero conversar sobre
+  minha carga de serviço" (baixa fricção, sem formulário).
+- Referência visual original:
   [Burnout Dashboard Concept](https://dribbble.com/shots/18581534-Burnout-Dashboard-Concept)
-  (Nickelfox).
+  (Nickelfox) — ainda vale pro card do dashboard, mas a tela "Como funciona" e os insights de
+  Integrantes são estrutura nova, sem referência externa usada.
 
 ### Em aberto
 
-- Nome exato módulo/service.
-- Campo em `VoluntarioEntity` vs entidade separada (recomendação: separada).
-- Tratamento visual do alerta no client (ícone, cor, tela destino).
+- Nome exato módulo/service/entidade.
+- Tratamento visual exato do alerta no client (ícone, cor) — fica pra sessão de
+  `trfernandes-atelier-explore` desta feature.
+- Fórmula exata de "média de escalas por ministério na igreja" (janela de recalculo, tratamento de
+  igreja muito nova com poucos dados históricos) — decidir na implementação.
 
-**Decisões do grilling 2026-08-19**:
+### Feedback pós-Escala (recriado em grilling 2026-08-22 — ideia do usuário, não estava documentada)
 
-- Janela "últimos 3 meses": reusa a mesma convenção já usada em `EscalaContext`
-  (`subMonths(new Date(), 3)`, date-fns) — não redefinir como "3 meses calendário", evita duas
-  definições de "recente" coexistindo no sistema.
-- Alerta repetido (voluntário oscilando perto do limiar): **sem cooldown/debounce** por enquanto —
-  cenário raro na prática, não vale a complexidade extra de rastrear "quando foi o último alerta".
+Questionário leve pro voluntário depois que a data de ocorrência de uma Escala passa. Não
+encontramos registro anterior dessa ideia em nenhum plano/ADR das duas branches — foi descrita do
+zero nesta sessão e grillada como feature nova.
 
-### Score de Serviço (adicionado em grilling 2026-08-19)
+**Trigger**: dois canais, não excludentes — notificação push no dia seguinte ao evento, e também
+aparece na próxima abertura do app depois da data. Sempre opcional/pulável (ADR 0003).
 
-Métrica composta de confiabilidade do voluntário, entregue **junto com esta fase** (sem número de
-fase próprio) — compartilha superfície de UI com a Sobrecarga (dashboard do líder) e reusa o Score
-de Solicitude da Fase 2.
+**Fluxo único, duas seções**:
+
+1. **Humor** — escala de 1-5 (rosto/número) + campo de texto opcional. **Identificado**: Líder vê a
+   resposta de cada ocorrência (não só uma média) — é ferramenta de cuidado direto, não pesquisa
+   anônima. Alimenta o sinal de humor descrito acima (2 respostas baixas seguidas alertam).
+2. **Feedback do serviço** — nota geral (1-5) + campo livre ("como foi pra você hoje?", dicas sobre
+   a condução do ministério). **Anônimo pro Líder** (sistema guarda o vínculo internamente, pra
+   moderação de abuso, mas a UI não expõe quem escreveu). Visível pro Líder do ministério e pro
+   Admin da igreja.
+
+Pedido de feedback acontece em **toda ocorrência de Escala**, sem limite de frequência — decisão
+consciente (throttling adicionaria complexidade sem necessidade real, já que é opcional).
+
+**Backend**: nova entidade (ex: `EscalaFeedbackEntity`), 1:1 com `EscalaItemEntity`, campos
+separados pra humor (identificado) e serviço (anônimo na leitura, rastreado na escrita).
+
+**Em aberto**: nome exato de entidade/módulo; se feedback de serviço aparece agregado por Evento
+(visão "como foi o culto de hoje" pro Líder) ou só como lista de comentários avulsos — decidir na
+sessão de design.
+
+### Score de Serviço (adicionado em grilling 2026-08-19, revisado 2026-08-22)
+
+Métrica composta de confiabilidade do voluntário, entregue **junto com esta fase** — vive na seção
+"Scores" do perfil em Integrantes (separada da seção "Saúde", ver Design acima).
 
 **Propósito**: métrica informativa pro Líder/Admin, com uso futuro em premiações/reconhecimento
-(gamificação básica entra já nesta fase — ver "Premiação" abaixo; qualquer coisa além de emblema
-individual fica pra depois).
+(gamificação básica entra já nesta fase — ver "Premiação" abaixo).
 
-**Fatores v1** (fechados, com transparência de cálculo — o Líder precisa ver os 3 fatores separados,
-não só um número final, pra entender como o score foi composto):
+**Fatores v1** (com transparência de cálculo — o Líder vê os 3 fatores separados, não só um número
+final):
 
 1. **Solicitude** — taxa de aceite quando chamado pra substituir (mesmo cálculo do Score de
-   Solicitude da Fase 2). Internamente reusado aqui; **não é exposto como métrica própria pro
-   usuário** — só existe pra ranquear candidatos a substituto (Fase 2) e como componente deste
-   score.
+   Solicitude da Fase 2). **Revisão 2026-08-22: agora também exposto ao Líder como métrica própria**
+   (decisão original dizia "não exposto"; Líder passa a ver o Score de Solicitude de cada voluntário
+   diretamente, além do uso interno pra ranquear candidatos na Fase 2).
 2. **Comparecimento** — taxa `Confirmado` vs `Ausente` no histórico de `EscalaItemEntity`.
 3. **Indisponibilidade** — frequência de indisponibilidades declaradas no período (menos
    indisponibilidade = melhor).
@@ -317,33 +387,38 @@ não só um número final, pra entender como o score foi composto):
 setado em lugar nenhum do código** — falta a funcionalidade do Líder marcar falta/presença
 manualmente. Regras:
 
-- Só pode marcar depois que a data do evento já passou (não faz sentido marcar presença de evento
-  futuro).
-- Marcar `Ausente` **não notifica o voluntário** — fica só registrado internamente, alimenta o
-  score.
+- Só pode marcar depois que a data do evento já passou.
+- Marcar `Ausente` **não notifica o voluntário** — fica só registrado internamente, alimenta o score
+  (e, separadamente, o sinal de "queda de comparecimento" da Sobrecarga).
 
-**Escopo**: geral (por igreja, cross-ministério) **e** por ministério — os dois níveis, não um ou
-outro.
+**Escopo**: geral (por igreja, cross-ministério) **e** por ministério — os dois níveis.
 
 **Visibilidade**:
 
-- Líder e Admin veem o score de qualquer voluntário do escopo deles (geral pro Admin, do próprio
-  ministério pro Líder).
+- Líder e Admin veem o score de qualquer voluntário do escopo deles.
 - O próprio voluntário vê **só o seu**, nunca o de outros voluntários.
 
 **Premiação**: emblemas/títulos individuais (ex: "O Pontual"), conquistados por cruzar limiares em
-cada fator — **sem ranking comparativo** entre voluntários (ninguém vê a posição de outro, só os
-próprios emblemas). Alinhado com a visibilidade acima.
+cada fator — **sem ranking comparativo** entre voluntários.
 
 ### Em aberto (Score de Serviço)
 
 - Nome exato de módulo/service/entidade.
 - Limiares exatos pra cada emblema (ex: quantos % de comparecimento pra ganhar "O Pontual") —
   decidir na sessão de design.
-- Lista completa de emblemas/nomes — só "O Pontual" foi citado como exemplo, resto fica pra sessão
-  de design.
-- Se falta/presença marcada gera algum tipo de trigger pro Score de Sobrecarga (ex: muitas faltas
-  também deveriam sinalizar "saúde" do voluntário?) — não discutido, revisar ao implementar.
+- Lista completa de emblemas/nomes — só "O Pontual" foi citado como exemplo.
+
+### Quiz de vendas — novo slide (adicionado 2026-08-22)
+
+Módulo de Saúde do Voluntariado vira **6º slide** no carrossel de `quiz-vendas-funcionalidades.tsx`
+(hoje tem 5, ver `docs/design-system.md`) — adicionado, não substitui nenhum existente, por ser o
+único diferencial de cuidado emocional/pastoral do carrossel (os outros 5 são todos logística de
+escala).
+
+- Categoria: **CUIDADO COM O VOLUNTARIADO**.
+- Título: **"Você percebe quando alguém está no limite"**.
+- Subtítulo: _"Diakonia avisa o líder quando um voluntário está servindo demais ou dando sinais de
+  cansaço — antes que ele desista."_
 
 ---
 
@@ -386,11 +461,22 @@ descrição original desta seção):
 - Achado pendente ainda sem decisão visual: origem de Substituição/Troca na Agenda do voluntário
   (`FuncaoRow` em `FuncoesTable.tsx`) — perguntar em sessão de design antes de implementar.
 
-### Sobrecarga de Voluntário (Fase 3)
+### Sobrecarga de Voluntário / Saúde do Voluntariado (Fase 3)
 
-- Já tem design fechado (atelier 2026-08-08) — ver seção 3 "Design".
-- Card no `DashboardKpiGrid.tsx` (Líder/Admin); aviso discreto na tela Pessoal (só o próprio
-  voluntário sobrecarregado, sem botão de ação).
+**Revisão completa em grilling 2026-08-22** — ver seção 3 "Design" (substitui a descrição original
+desta subseção, que ainda refletia só o design de 2026-08-08):
+
+- Card no `DashboardKpiGrid.tsx` (Líder/Admin), agora com tendência trimestral.
+- Drill-down do motivo e insights de saúde vivem no perfil do voluntário em Integrantes (seção
+  "Saúde", separada de "Scores"), não em modal separado do dashboard.
+- Nova tela "Como funciona a Saúde do Voluntariado", sempre acessível.
+- Nova visão agregada no topo de Integrantes (contadores por tipo de sinal).
+- Tela Pessoal do voluntário: mesmos dados do líder (simetria) + botão "quero conversar sobre minha
+  carga de serviço".
+- Novo fluxo de **Feedback pós-Escala** (humor identificado + feedback de serviço anônimo), tela
+  própria de baixa fricção, exibida após cada ocorrência de escala.
+- Novo 6º slide no quiz de vendas (`quiz-vendas-funcionalidades.tsx`) — ver seção 3 "Quiz de
+  vendas".
 
 ### Em aberto
 
