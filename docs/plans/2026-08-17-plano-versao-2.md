@@ -102,18 +102,14 @@ intencional do gerador hoje (permite atribuição manual pelo líder depois).
 - `EscalaElegibilidadeService` extraído (`src/escalas/services/escala-elegibilidade.service.ts`) — só `PossuiFuncaoRule` +
   `DisponibilidadeRule`, reusado pela Fase 2.
 - Catálogo de Funções sugeridas: **não implementado**, mas **decidido criar** (2026-08-22) — lista de nomes comuns (vocal, guitarra,
-  bateria, teclado...) oferecida como sugestão/autocomplete, sem impedir texto livre. Onde vive (constante backend vs frontend) segue
-  em aberto.
+  bateria, teclado...) oferecida como sugestão/autocomplete, sem impedir texto livre. **Decisão 2026-08-23: vive no frontend**, como
+  array constante do app — é só lista estática de sugestão, não precisa de endpoint nem de gestão via admin.
 
 ### Frontend
 
 Estrutura final definida em design (ver seção 4 e `docs/design-system.md`): teaser compacto na listagem de escalas → tela própria
 "Checklist" (só Líder de Ministério, sem visão agregada de Admin) → modal de pré-checagem em bottom sheet no botão "Gerar" do
 Assistente.
-
-### Em aberto
-
-- Onde vive o catálogo de Funções sugeridas (backend constante vs frontend constante).
 
 ---
 
@@ -195,18 +191,23 @@ na criação, sem consultar o substituto).
   `ControlledSearchSelect` com itens do substituto.
 - Status novo precisa cor/ícone em `getStatusVisual()` (`SubstituicaoCardBase.tsx`).
 
-### Achado pendente (não implementado, decisão visual em aberto)
+### Achado pendente (decidido em grilling 2026-08-23, falta só a implementação)
 
 Agenda do voluntário (`app/(app)/(drawer)/pessoal/escalas/index.tsx` + `EventoAccordeon.tsx` + `FuncoesTable.tsx`) não mostra origem de
-Substituição/Troca depois de aprovada — dado (`substituicaoId`) já existe na API, não é exibido. Ponto certo: `FuncaoRow` em
-`FuncoesTable.tsx` (linhas ~60-67), 2ª linha discreta tipo "Substituindo João"/"Troca com João". **Decisão visual não fechada —
-perguntar em sessão de design antes de implementar.**
+Substituição/Troca depois de aprovada — dado (`substituicaoId`) já existe na API, não é exibido. **Decisão: mostrar** — 2ª linha
+discreta em `FuncaoRow` (`FuncoesTable.tsx`, linhas ~60-67), tipo "Substituindo João"/"Troca com João". Baixo custo (dado já existe),
+dá contexto de por que a escala mudou.
 
 ### Em aberto
 
-- Se solicitante é notificado do resultado (provavelmente sim, não confirmado).
 - Nome exato de endpoint/enum novos.
-- Score de Solicitude sem janela de tempo (all-time) — pode favorecer voluntário mais antigo, revisar.
+
+**Decisões do grilling 2026-08-23**:
+
+- **Solicitante é notificado do resultado** (aprovado/recusado) — consistente com o resto do fluxo, que já notifica substituto na
+  criação e Líder no aceite.
+- **Score de Solicitude mantém all-time** (não muda pra janela móvel) — mais simples de implementar e explicar, e o risco de favorecer
+  histórico antigo é menor que a complexidade de gerenciar recorte de data numa métrica que já usa taxa (não contagem) pra evitar viés.
 
 **Decisão do grilling 2026-08-19**: candidato elegível que nunca foi chamado como substituto (taxa 0/0, indefinida) entra no **topo da
 lista**, junto de quem tem 100% de aceite — não penaliza quem nunca teve chance, alinhado com o motivo já registrado no `CONTEXT.md`
@@ -432,10 +433,6 @@ só o design de 2026-08-08):
   cada ocorrência de escala.
 - Novo 6º slide no quiz de vendas (`quiz-vendas-funcionalidades.tsx`) — ver seção 3 "Quiz de vendas".
 
-### Em aberto
-
-- Onde vive o catálogo de Funções sugeridas do Checklist (backend vs frontend) — decidir na sessão de design desta fase.
-
 ---
 
 ## 5. Painel Admin da Plataforma
@@ -529,9 +526,11 @@ recomendação original (que sugeria liberar eventos já na Fase 6 e tratar só 
 risco no meio tempo a ganhar velocidade de instrumentação. Auditoria de telas sensíveis vira pré-requisito da Fase 6, não uma
 sub-tarefa dentro dela.
 
+**Decisão do grilling 2026-08-23: escopo só mobile** (`artos_frontend`) — Painel Admin tem um único usuário (o dono), instrumentar não
+traz aprendizado de produto real e mantém a Fase 6 mais enxuta, alinhado com a cautela já decidida de auditar antes de ligar.
+
 ### Em aberto
 
-- Escopo: só mobile (`artos_frontend`), ou cobre painel admin web (Fase 5) também.
 - Quais eventos rastrear — depende das telas novas das fases 1-5 estarem com design fechado primeiro, pra instrumentar direto no lugar
   certo sem retrabalho.
 - Onde plugar (provider no root do app vs por tela) — investigar na hora.
