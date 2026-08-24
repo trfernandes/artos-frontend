@@ -571,6 +571,7 @@ export default function EventoSetlistTab({
   return (
     <>
       <View style={styles.container}>
+        {renderHeader()}
         <DraggableFlatList
           data={orderedItems}
           onDragEnd={({ data: nextItems }) => {
@@ -586,7 +587,6 @@ export default function EventoSetlistTab({
             orderedItems.length === 0 && styles.listContentEmpty,
           ]}
           showsVerticalScrollIndicator={false}
-          ListHeaderComponent={renderHeader}
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <FancyListEmpty
@@ -836,6 +836,7 @@ const styles = StyleSheet.create({
   headerContainer: {
     paddingTop: 8,
     paddingBottom: 4,
+    marginBottom: 12,
     gap: 12,
   },
   ownerCard: {
