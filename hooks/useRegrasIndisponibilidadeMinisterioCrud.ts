@@ -28,7 +28,12 @@ export function useRegrasIndisponibilidadeMinisterioCrud(
 
   const criarMutation = useMutation({
     mutationFn: (dto: CreateRegraIndisponibilidadeVoluntarioDto) =>
-      RegrasIndisponibilidadeMinisterioRepository.criar(igrejaId!, ministerioId!, voluntarioId!, dto),
+      RegrasIndisponibilidadeMinisterioRepository.criar(
+        igrejaId!,
+        ministerioId!,
+        voluntarioId!,
+        dto,
+      ),
     onSuccess: invalidate,
   });
 

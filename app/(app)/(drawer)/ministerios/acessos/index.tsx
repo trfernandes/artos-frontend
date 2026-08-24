@@ -30,8 +30,7 @@ export default function MinisterioAcessosIndexPage() {
   const ministerio = useMemo(
     () =>
       igrejaAtiva?.ministerios?.find((item) => item.id === params.ministerioId) as
-        | ResponseLoginMinisterioDto
-        | undefined,
+        ResponseLoginMinisterioDto | undefined,
     [igrejaAtiva?.ministerios, params.ministerioId],
   );
 

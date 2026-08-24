@@ -1,13 +1,19 @@
 # Convite Redesign — Fluxo Unificado + Fix Flash
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan
+> task-by-task.
 
-**Goal:** Mostrar a tela de convite sempre (logado ou não), com botões dinâmicos por estado; substituir o redirect pós-login por um bottom sheet de confirmação dentro do app.
+**Goal:** Mostrar a tela de convite sempre (logado ou não), com botões dinâmicos por estado;
+substituir o redirect pós-login por um bottom sheet de confirmação dentro do app.
 
 **Architecture:**
-- `invite/[token].tsx` busca preview sem autenticação (endpoint já é público). Botões variam por `user` state reativo — sem re-fetch.
-- `usePostLoginRedirect` passa a chamar um callback `onPendingInvite(token)` em vez de navegar para a rota pública — elimina o flash.
-- `(app)/_layout.tsx` gerencia um `pendingInviteToken` local e renderiza `PendingInviteBottomSheet` quando preenchido.
+
+- `invite/[token].tsx` busca preview sem autenticação (endpoint já é público). Botões variam por
+  `user` state reativo — sem re-fetch.
+- `usePostLoginRedirect` passa a chamar um callback `onPendingInvite(token)` em vez de navegar para
+  a rota pública — elimina o flash.
+- `(app)/_layout.tsx` gerencia um `pendingInviteToken` local e renderiza `PendingInviteBottomSheet`
+  quando preenchido.
 
 **Tech Stack:** React Native / Expo Router, AsyncStorage, FancyBottomSheetModal, IgrejaRepository
 
@@ -16,11 +22,13 @@
 ### Task 1: Corrigir `invite/[token].tsx` — desacoplar preview de auth
 
 **Files:**
+
 - Modify: `artos_frontend/app/(public)/invite/[token].tsx`
 
 **Step 1: Remover `user` do useEffect de preview**
 
-Substituir a dependência `[urlToken, user]` por `[urlToken]`. Remover o bloco `if (!user) { ... router.replace('/(auth)/login') }` do interior do useEffect.
+Substituir a dependência `[urlToken, user]` por `[urlToken]`. Remover o bloco
+`if (!user) { ... router.replace('/(auth)/login') }` do interior do useEffect.
 
 ```tsx
 useEffect(() => {
@@ -49,6 +57,7 @@ useEffect(() => {
 **Step 2: Atualizar botões do branch `jaMembro`**
 
 Quando `preview.jaMembro`:
+
 - Se `user` → "Ir para o app" + "Fechar" (comportamento atual, mantém `/(app)`)
 - Se `!user` → "Fazer login" (contained) + "Fechar" (outlined)
 
@@ -82,6 +91,7 @@ const handleLoginForInvite = async () => {
 **Step 4: Atualizar branch `solicitacaoPendente` — adicionar fallback sem user**
 
 Quando `preview.solicitacaoPendente` e `!user`:
+
 - Mostrar o card normal com "Fazer login" (igual ao jaMembro sem user)
 
 **Step 5: Atualizar o branch principal (convite válido) — botões dinâmicos**
@@ -107,9 +117,11 @@ Quando `preview.solicitacaoPendente` e `!user`:
 ```
 
 **Step 6: Rodar tsc**
+
 ```
 cd artos_frontend && npx tsc --noEmit
 ```
+
 Esperado: 0 erros.
 
 ---
@@ -117,6 +129,7 @@ Esperado: 0 erros.
 ### Task 2: Criar `PendingInviteBottomSheet`
 
 **Files:**
+
 - Create: `artos_frontend/components/pages/invite/PendingInviteBottomSheet.tsx`
 
 **Step 1: Criar o componente**
@@ -173,11 +186,19 @@ export default function PendingInviteBottomSheet({ token, onDismiss }: Props) {
     try {
       const result = await IgrejaRepository.aceitarConvite(token);
       if (result.result === 'MEMBER_CREATED') {
-        Toast.show({ type: 'success', text1: 'Bem-vindo!', text2: 'Você agora faz parte da igreja.' });
+        Toast.show({
+          type: 'success',
+          text1: 'Bem-vindo!',
+          text2: 'Você agora faz parte da igreja.',
+        });
         await refreshMe();
         router.replace('/(app)');
       } else if (result.result === 'REQUEST_CREATED') {
-        Toast.show({ type: 'info', text1: 'Solicitação enviada', text2: 'Aguarde a aprovação da liderança.' });
+        Toast.show({
+          type: 'info',
+          text1: 'Solicitação enviada',
+          text2: 'Aguarde a aprovação da liderança.',
+        });
         router.replace('/(app)/join-church/requests');
       }
       onDismiss();
@@ -211,20 +232,41 @@ export default function PendingInviteBottomSheet({ token, onDismiss }: Props) {
       return (
         <View style={styles.center}>
           <View style={styles.statusRow}>
-            <DefaultIcons.Custom library='MaterialIcons' name='check-circle' size={16} color={Pallete.confirm} />
-            <FancyText type='semiBold' size='small' style={styles.confirmText}>Você já é membro</FancyText>
+            <DefaultIcons.Custom
+              library='MaterialIcons'
+              name='check-circle'
+              size={16}
+              color={Pallete.confirm}
+            />
+            <FancyText type='semiBold' size='small' style={styles.confirmText}>
+              Você já é membro
+            </FancyText>
           </View>
           <FancyVerticalSpacer height={16} />
-          <FancyButton label='Ir para o app' onPress={() => { onDismiss(); router.replace('/(app)'); }} />
+          <FancyButton
+            label='Ir para o app'
+            onPress={() => {
+              onDismiss();
+              router.replace('/(app)');
+            }}
+          />
         </View>
       );
     }
     if (preview.solicitacaoPendente) {
       return (
         <View style={styles.center}>
-          <FancyText size='small' style={styles.mutedText}>Você já possui uma solicitação pendente para esta igreja.</FancyText>
+          <FancyText size='small' style={styles.mutedText}>
+            Você já possui uma solicitação pendente para esta igreja.
+          </FancyText>
           <FancyVerticalSpacer height={16} />
-          <FancyButton label='Ver solicitações' onPress={() => { onDismiss(); router.replace('/(app)/join-church/requests'); }} />
+          <FancyButton
+            label='Ver solicitações'
+            onPress={() => {
+              onDismiss();
+              router.replace('/(app)/join-church/requests');
+            }}
+          />
           <FancyVerticalSpacer height={8} />
           <FancyButton label='Fechar' type='outlined' onPress={onDismiss} />
         </View>
@@ -232,11 +274,19 @@ export default function PendingInviteBottomSheet({ token, onDismiss }: Props) {
     }
     return (
       <View style={styles.center}>
-        <FancyText size='small' style={styles.mutedText}>Você recebeu um convite para:</FancyText>
+        <FancyText size='small' style={styles.mutedText}>
+          Você recebeu um convite para:
+        </FancyText>
         <FancyVerticalSpacer height={4} />
-        <FancyText type='semiBold' size='large'>{preview.igreja.nome}</FancyText>
+        <FancyText type='semiBold' size='large'>
+          {preview.igreja.nome}
+        </FancyText>
         <FancyVerticalSpacer height={16} />
-        <FancyButton label={accepting ? 'Aceitando...' : 'Aceitar convite'} onPress={handleAccept} disabled={accepting} />
+        <FancyButton
+          label={accepting ? 'Aceitando...' : 'Aceitar convite'}
+          onPress={handleAccept}
+          disabled={accepting}
+        />
         <FancyVerticalSpacer height={8} />
         <FancyButton label='Dispensar' type='outlined' onPress={onDismiss} disabled={accepting} />
       </View>
@@ -262,9 +312,11 @@ function createStyles(palette: ThemePalette) {
 ```
 
 **Step 2: Rodar tsc**
+
 ```
 cd artos_frontend && npx tsc --noEmit
 ```
+
 Esperado: 0 erros.
 
 ---
@@ -272,6 +324,7 @@ Esperado: 0 erros.
 ### Task 3: Atualizar `usePostLoginRedirect` — callback em vez de navigate
 
 **Files:**
+
 - Modify: `artos_frontend/hooks/usePostLoginRedirect.ts`
 
 **Step 1: Aceitar callback `onPendingInvite`**
@@ -287,7 +340,7 @@ export function usePostLoginRedirect({ onPendingInvite }: Options = {}) {
   // Substituir dentro de checkAndRedirect:
   // ANTES:
   // replaceOnce(`/(public)/invite/${pendingToken}`, () => { Toast.show(...) });
-  
+
   // DEPOIS:
   if (onPendingInvite) {
     await AsyncStorage.removeItem(PENDING_INVITE_TOKEN_KEY);
@@ -305,9 +358,11 @@ export function usePostLoginRedirect({ onPendingInvite }: Options = {}) {
 ```
 
 **Step 2: Rodar tsc**
+
 ```
 cd artos_frontend && npx tsc --noEmit
 ```
+
 Esperado: 0 erros.
 
 ---
@@ -315,6 +370,7 @@ Esperado: 0 erros.
 ### Task 4: Wiring em `(app)/_layout.tsx`
 
 **Files:**
+
 - Modify: `artos_frontend/app/(app)/_layout.tsx`
 
 **Step 1: Adicionar state + bottom sheet**
@@ -331,22 +387,26 @@ usePostLoginRedirect({ onPendingInvite: setPendingInviteToken });
 <PendingInviteBottomSheet
   token={pendingInviteToken}
   onDismiss={() => setPendingInviteToken(null)}
-/>
+/>;
 ```
 
 **Step 2: Rodar tsc**
+
 ```
 cd artos_frontend && npx tsc --noEmit
 ```
+
 Esperado: 0 erros.
 
 ---
 
 ### Verificação end-to-end
 
-1. **Deslogado + link de convite:** Abre a tela, mostra card da igreja, botão "Fazer login para aceitar"
+1. **Deslogado + link de convite:** Abre a tela, mostra card da igreja, botão "Fazer login para
+   aceitar"
 2. **Clica "Fazer login":** Salva token, vai para login
-3. **Loga:** `usePostLoginRedirect` lê o token, chama `onPendingInvite`, bottom sheet aparece com o convite
+3. **Loga:** `usePostLoginRedirect` lê o token, chama `onPendingInvite`, bottom sheet aparece com o
+   convite
 4. **Aceita:** Toast + vai para `/(app)` ou fila — sem flash
 5. **Dispensar:** Bottom sheet fecha, fica no app normalmente
 6. **Logado + link de convite:** Abre tela direto com botões "Aceitar convite" / "Cancelar"

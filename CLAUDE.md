@@ -130,8 +130,10 @@ style={{ elevation: 2, shadowOpacity: 0.2 }}
 - Zero erros TypeScript após cada mudança — `npx tsc --noEmit` é obrigatório
 - Nunca usar `as any` exceto em catch blocks de API (padrão existente aceitável)
 - Não usar width percentages aninhados; preferir flex para centralização
-- Ao propor redesign: apresentar 2-3 direções curtas em texto ANTES de codificar, e esperar OK explícito antes de editar
-- Bater com padrão de componente já existente no repo (ex: FancyDaySelector) em vez de inventar estilo novo
+- Ao propor redesign: apresentar 2-3 direções curtas em texto ANTES de codificar, e esperar OK
+  explícito antes de editar
+- Bater com padrão de componente já existente no repo (ex: FancyDaySelector) em vez de inventar
+  estilo novo
 - Nunca adicionar scrim/overlay escuro ou animação fade-only sem pedido explícito
 - Após implementar: self-review — o resultado bate com o spec? (grid está em 2 colunas? badge
   aparece?)
@@ -182,8 +184,10 @@ style={{ elevation: 2, shadowOpacity: 0.2 }}
 
 ## Verificação de device/emulador
 
-- Verificação visual usa device físico via ADB-over-WiFi (`run-diakonia.ps1`) ou tunnel fora de casa, com Expo dev client + hot reload. Nunca full release rebuild, nunca emulador headless.
-- Nunca dirigir o dev launcher com loop de screenshot+tap por coordenada — pedir pro usuário tocar, ou usar deep link + screencap pra inspeção.
+- Verificação visual usa device físico via ADB-over-WiFi (`run-diakonia.ps1`) ou tunnel fora de
+  casa, com Expo dev client + hot reload. Nunca full release rebuild, nunca emulador headless.
+- Nunca dirigir o dev launcher com loop de screenshot+tap por coordenada — pedir pro usuário tocar,
+  ou usar deep link + screencap pra inspeção.
 - Reportar caminho absoluto do screenshot/arquivo — usuário não localiza sozinho.
 
 ## Checklist antes de finalizar tela

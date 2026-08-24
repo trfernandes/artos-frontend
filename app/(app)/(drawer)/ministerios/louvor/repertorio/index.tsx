@@ -225,8 +225,12 @@ export default function MinisterioLouvorRepertorioIndexPage() {
         ),
         data: filtered,
         renderItem: ({ item }) => {
-          const etiquetasMusicaAtivas = (item.etiquetas ?? []).filter((etiqueta) => etiqueta.ativo !== false);
-          const hasBadges = Boolean(etiquetasMusicaAtivas.length || item.tomOriginal || item.bpmOriginal);
+          const etiquetasMusicaAtivas = (item.etiquetas ?? []).filter(
+            (etiqueta) => etiqueta.ativo !== false,
+          );
+          const hasBadges = Boolean(
+            etiquetasMusicaAtivas.length || item.tomOriginal || item.bpmOriginal,
+          );
           const dataInclusao = formatDataInclusaoRelativa(item.createdAt);
           return (
             <FancyListItemCard
@@ -326,11 +330,7 @@ export default function MinisterioLouvorRepertorioIndexPage() {
         }}
       />
       {canManageRepertorio ? (
-        <FancyTabs
-          items={tabs}
-          contentGutter={false}
-          contentContainerStyle={styles.tabsContent}
-        />
+        <FancyTabs items={tabs} contentGutter={false} contentContainerStyle={styles.tabsContent} />
       ) : (
         repertorioContent
       )}

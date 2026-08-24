@@ -1,6 +1,7 @@
 # 🤖 Agentes Especializados do Artos
 
-Seu projeto possui **3 agentes Claude** que automatizam tarefas repetitivas de design, exploração e qualidade.
+Seu projeto possui **3 agentes Claude** que automatizam tarefas repetitivas de design, exploração e
+qualidade.
 
 Ao invés de você iterar manualmente, o agente faz o trabalho enquanto você toma um café. ☕
 
@@ -8,11 +9,11 @@ Ao invés de você iterar manualmente, o agente faz o trabalho enquanto você to
 
 ## 📊 Visão Geral Rápida
 
-| Agente | O que faz | Quando usar | Tempo |
-|--------|-----------|------------|-------|
-| **📱 Refinamento Visual** | Itera um componente UI até ficar pixel-perfect | Componente pronto mas com pequenos ajustes | 3-15 min |
-| **🎨 Design Paralelo** | Explora 5 variantes de design simultaneamente | Em dúvida sobre layout/direção visual | 20-30 min |
-| **⏰ Audit Timezone** | Encontra e corrige bugs de data/hora | Antes de deploy ou após bugs de timezone | 15-30 min |
+| Agente                    | O que faz                                      | Quando usar                                | Tempo     |
+| ------------------------- | ---------------------------------------------- | ------------------------------------------ | --------- |
+| **📱 Refinamento Visual** | Itera um componente UI até ficar pixel-perfect | Componente pronto mas com pequenos ajustes | 3-15 min  |
+| **🎨 Design Paralelo**    | Explora 5 variantes de design simultaneamente  | Em dúvida sobre layout/direção visual      | 20-30 min |
+| **⏰ Audit Timezone**     | Encontra e corrige bugs de data/hora           | Antes de deploy ou após bugs de timezone   | 15-30 min |
 
 ---
 
@@ -40,6 +41,7 @@ Agenda mostra data errada ao meio-noite  → Audit Timezone
 ## 🚀 Como Usar
 
 ### Opção 1: Refinamento Visual
+
 ```bash
 /refinamento-autonomo [componente] [caminho-da-spec-image]
 
@@ -48,6 +50,7 @@ Exemplo:
 ```
 
 ### Opção 2: Design Paralelo
+
 ```bash
 /paralelo-design [tela-ou-componente]
 
@@ -56,6 +59,7 @@ Exemplo:
 ```
 
 ### Opção 3: Audit Timezone
+
 ```bash
 /audit-timezone
 
@@ -69,21 +73,25 @@ Exemplo:
 Cada agente tem um guia detalhado com exemplos, pré-requisitos e troubleshooting:
 
 ### 📱 [Refinamento Visual Autônomo](docs/agentes/1-refinamento-visual-guia.md)
+
 **Para**: Designers e devs de UI que querem iterar rápido.
 
 **Aprender**: Como usar o agente para ajustar espaçamentos, cores, tamanhos até ficar perfeito.
 
 ### 🎨 [Design Paralelo](docs/agentes/2-design-paralelo-guia.md)
+
 **Para**: Product managers e designers que exploram múltiplas direções.
 
 **Aprender**: Como gerar 5 variantes de layout simultaneamente e comparar resultados.
 
 ### ⏰ [Audit Timezone](docs/agentes/3-audit-timezone-guia.md)
+
 **Para**: Devs e QA que trabalham com datas e horários.
 
 **Aprender**: Como auditar toda lógica de timezone e garantir testes robustos.
 
 ### 🔧 [Troubleshooting](docs/agentes/TROUBLESHOOTING.md)
+
 **Para**: Quando algo der errado.
 
 **Encontre**: Soluções rápidas para ADB, Expo, Git e TypeScript.
@@ -93,15 +101,18 @@ Cada agente tem um guia detalhado com exemplos, pré-requisitos e troubleshootin
 ## ✅ Pré-requisitos Globais
 
 ### Para Refinamento Visual
+
 - [ ] Telefone Android ou emulador
 - [ ] USB Debugging ativado
 - [ ] Expo rodando: `npx expo start`
 
 ### Para Design Paralelo
+
 - [ ] Git configurado
 - [ ] Pasta do projeto limpa (sem mudanças não committadas)
 
 ### Para Audit Timezone
+
 - [ ] Jest ou Vitest instalado
 - [ ] npm test funcionando
 
@@ -110,6 +121,7 @@ Cada agente tem um guia detalhado com exemplos, pré-requisitos e troubleshootin
 ## 💡 Exemplos Reais
 
 ### Cenário 1: Designer quer refinar card
+
 ```
 Designer: "O card de notificação tá quase perfeito, mas o spacing está 2px fora"
 
@@ -119,6 +131,7 @@ Resultado: 3 minutos depois, card perfeito com 2 commits automáticos
 ```
 
 ### Cenário 2: Precisa explorar layouts
+
 ```
 PM: "Qual layout é melhor para listar voluntários? Grid? Lista? Cards?"
 
@@ -128,6 +141,7 @@ Resultado: 25 minutos depois, 5 variantes implementadas com screenshots + análi
 ```
 
 ### Cenário 3: Bug de timezone em produção
+
 ```
 QA: "Horário de ensaio tá errado quando muda timezone"
 
@@ -140,11 +154,11 @@ Resultado: 20 minutos depois, 3 bugs encontrados e corrigidos com testes robusto
 
 ## 📊 Estatísticas de Economia
 
-| Tarefa | Tempo Manual | Com Agente | Economia |
-|--------|--------------|-----------|----------|
-| Refinar componente com 7 iterações | 30 min | 8 min | 22 min (73%) |
-| Explorar 5 variantes de design | 3-4 horas | 30 min | 3,5 horas (87%) |
-| Auditar timezone com testes | 2 horas | 25 min | 1h 35min (79%) |
+| Tarefa                             | Tempo Manual | Com Agente | Economia        |
+| ---------------------------------- | ------------ | ---------- | --------------- |
+| Refinar componente com 7 iterações | 30 min       | 8 min      | 22 min (73%)    |
+| Explorar 5 variantes de design     | 3-4 horas    | 30 min     | 3,5 horas (87%) |
+| Auditar timezone com testes        | 2 horas      | 25 min     | 1h 35min (79%)  |
 
 ---
 
@@ -168,28 +182,26 @@ Cada skill tem seu próprio `SKILL.md` com instruções detalhadas.
 
 ## 🎓 Aprendizado Rápido
 
-**5 minutos**: Leia este arquivo.
-**15 minutos**: Leia o guia do agente que você vai usar.
+**5 minutos**: Leia este arquivo. **15 minutos**: Leia o guia do agente que você vai usar.
 **Primeiro uso**: Comande o agente e observe. Tudo é reversível via git.
 
 ---
 
 ## ❓ Perguntas Frequentes
 
-**P: Os agentes podem quebrar meu código?**
-A: Não. Cada mudança tem um commit automático. Você pode reverter com `git revert`.
+**P: Os agentes podem quebrar meu código?** A: Não. Cada mudança tem um commit automático. Você pode
+reverter com `git revert`.
 
-**P: Posso usar em iOS?**
-A: Sim (refinamento visual), mas Android é mais rápido. Design paralelo e audit timezone funcionam em qualquer plataforma.
+**P: Posso usar em iOS?** A: Sim (refinamento visual), mas Android é mais rápido. Design paralelo e
+audit timezone funcionam em qualquer plataforma.
 
-**P: E se algo der errado?**
-A: Veja [TROUBLESHOOTING.md](docs/agentes/TROUBLESHOOTING.md). Cobre 90% dos problemas.
+**P: E se algo der errado?** A: Veja [TROUBLESHOOTING.md](docs/agentes/TROUBLESHOOTING.md). Cobre
+90% dos problemas.
 
-**P: Quanto custa?**
-A: Zero. Os agentes rodamlocalmente usando seu arquivo `SKILL.md`.
+**P: Quanto custa?** A: Zero. Os agentes rodamlocalmente usando seu arquivo `SKILL.md`.
 
-**P: Posso usar os agentes simultaneamente?**
-A: Sim, mas recomenda-se um por vez para evitar conflitos de git.
+**P: Posso usar os agentes simultaneamente?** A: Sim, mas recomenda-se um por vez para evitar
+conflitos de git.
 
 ---
 
@@ -208,7 +220,8 @@ A: Sim, mas recomenda-se um por vez para evitar conflitos de git.
 
 - Problemas técnicos? → Ver [TROUBLESHOOTING.md](docs/agentes/TROUBLESHOOTING.md)
 - Dúvidas sobre um agente? → Leia o guia correspondente
-- Ideia de novo agente? → Adicione em [FUTURE.md](./FUTURE.md) (não existe ainda, criar se necessário)
+- Ideia de novo agente? → Adicione em [FUTURE.md](./FUTURE.md) (não existe ainda, criar se
+  necessário)
 
 ---
 
