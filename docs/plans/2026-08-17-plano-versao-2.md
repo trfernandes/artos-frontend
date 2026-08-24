@@ -421,6 +421,17 @@ manualmente. Regras:
 - Marcar `Ausente` **não notifica o voluntário** — fica só registrado internamente, alimenta o score
   (e, separadamente, o sinal de "queda de comparecimento" da Sobrecarga).
 
+**Check-in de chegada (adicionado em grilling 2026-08-24)**: o voluntário se autoregistra — botão
+"Cheguei" na tela da escala do dia, disponível numa janela de tempo (30min antes até 30min depois do
+horário marcado do `EscalaItemEntity`). Complementa a marcação manual do Líder (que continua
+marcando `Ausente` pra quem nem apareceu) — o check-in resolve especificamente **a que horas** a
+pessoa chegou, alimentando o emblema "O Pontual" (ver abaixo) com dado real em vez de só confirmação
+binária.
+
+- **Janela de tolerância pra "pontual"**: 15 minutos por padrão, mas **configurável por Líder de
+  Ministério** (por ministério, não global pra igreja) — reflete que ministérios diferentes têm
+  cultura de pontualidade diferente.
+
 **Escopo**: geral (por igreja, cross-ministério) **e** por ministério — os dois níveis.
 
 **Visibilidade**:
@@ -428,15 +439,21 @@ manualmente. Regras:
 - Líder e Admin veem o score de qualquer voluntário do escopo deles.
 - O próprio voluntário vê **só o seu**, nunca o de outros voluntários.
 
-**Premiação**: emblemas/títulos individuais (ex: "O Pontual"), conquistados por cruzar limiares em
-cada fator — **sem ranking comparativo** entre voluntários.
+**Premiação**: 3 emblemas, um por fator, **sem ranking comparativo** entre voluntários (decisão
+2026-08-24 — lista fechada, não mais "só exemplo"):
+
+1. **"O Pontual"** — taxa de check-in dentro da janela de tolerância ≥ 95% (fator Comparecimento,
+   agora com dado real de horário).
+2. **"Sempre Presente"** — zero indisponibilidades declaradas no período (fator Indisponibilidade).
+3. **"Voluntário Solícito"** — Score de Solicitude ≥ 90% (fator Solicitude).
 
 ### Em aberto (Score de Serviço)
 
 - Nome exato de módulo/service/entidade.
-- Limiares exatos pra cada emblema (ex: quantos % de comparecimento pra ganhar "O Pontual") —
-  decidir na sessão de design.
-- Lista completa de emblemas/nomes — só "O Pontual" foi citado como exemplo.
+- Nome exato do campo/entidade de check-in (ex: `checkInAt` em `EscalaItemEntity`, ou entidade
+  própria) — decidir na implementação.
+- Sessão de design visual (`trfernandes-atelier-explore`) ainda não rodou pros 3 emblemas —
+  ícone/cor de cada um em aberto.
 
 ### Quiz de vendas — novo slide (adicionado 2026-08-22)
 

@@ -51,6 +51,17 @@ contra voluntário novo.
 Decisão 2026-08-22: deixa de ser cálculo puramente interno — Líder passa a ver o Score de Solicitude
 de cada Voluntário do seu Ministério (antes só existia pra ordenar candidatos, sem exposição).
 
+**Score de Serviço**: Métrica composta de confiabilidade (Solicitude + Comparecimento +
+Indisponibilidade), vive na seção "Scores" do perfil em Integrantes. 3 emblemas, um por fator, sem
+ranking comparativo: "O Pontual", "Sempre Presente", "Voluntário Solícito".
+
+**Check-in de chegada**: Voluntário se autoregistra ("Cheguei") na tela da escala do dia, numa
+janela de 30min antes a 30min depois do horário marcado — alimenta o fator Comparecimento do Score
+de Serviço com hora real, não só confirmação binária. Janela de tolerância pra contar como pontual é
+15 minutos por padrão, configurável por Líder de Ministério (não é ajuste global da Igreja).
+_Avoid_: confundir com a marcação manual de `Ausente` pelo Líder — são complementares (Líder marca
+quem faltou; check-in registra a hora de quem compareceu).
+
 ## Checklist de Configuração de Escala (feature de onboarding)
 
 Orientação guiada dos dados que precisam existir antes de gerar Escala pela primeira vez. Hoje esse
