@@ -1,10 +1,12 @@
 # Four Bug Fixes Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan
+> task-by-task.
 
 **Goal:** Corrigir 4 bugs de UX e permissões no app Artos.
 
-**Architecture:** Todos os bugs estão no frontend (artos_frontend/). Dois são correções de uma linha, um é adição de componente novo, um é mudança de configuração global.
+**Architecture:** Todos os bugs estão no frontend (artos_frontend/). Dois são correções de uma
+linha, um é adição de componente novo, um é mudança de configuração global.
 
 **Tech Stack:** React Native / Expo Router, @tanstack/react-query, react-hook-form, TypeScript.
 
@@ -12,20 +14,27 @@
 
 ## Bug 1 — Telas recarregando ao voltar pro app
 
-**Root cause:** `queryClient.ts:26` tem `refetchOnWindowFocus: true`. No React Native, isso dispara um refetch em todos os queries ativos toda vez que o app retorna do background (AppState: inactive/background → active). As telas já têm `useFocusEffect` + refetch manual para lidar com navegação interna — o `refetchOnWindowFocus` causa refetch duplo.
+**Root cause:** `queryClient.ts:26` tem `refetchOnWindowFocus: true`. No React Native, isso dispara
+um refetch em todos os queries ativos toda vez que o app retorna do background (AppState:
+inactive/background → active). As telas já têm `useFocusEffect` + refetch manual para lidar com
+navegação interna — o `refetchOnWindowFocus` causa refetch duplo.
 
 ### Task 1: Desabilitar refetchOnWindowFocus
 
 **Files:**
+
 - Modify: `artos_frontend/core/react-query/queryClient.ts:26`
 
 **Step 1: Aplicar fix**
 
 Em `queryClient.ts`, mudar linha 26 de:
+
 ```typescript
 refetchOnWindowFocus: true,
 ```
+
 para:
+
 ```typescript
 refetchOnWindowFocus: false,
 ```
@@ -35,6 +44,7 @@ refetchOnWindowFocus: false,
 ```
 cd artos_frontend && npx tsc --noEmit
 ```
+
 Expected: sem erros
 
 **Step 3: Commit**
@@ -49,6 +59,7 @@ git commit -m "fix: disable refetchOnWindowFocus to prevent double-refresh on ap
 ## Bug 3 — Menu mostra tipo do ministério em vez de "Líder"
 
 **Root cause:** `MenuData.ts:373-374` tem:
+
 ```typescript
 subtitle: isAdmin
   ? MinisterioTipoLabel[ministerioTipo]
@@ -56,18 +67,25 @@ subtitle: isAdmin
     ? VoluntarioHierarquiaEnumLabel[ministerio.hierarquia]
     : '',
 ```
-Quando o usuário é `ADMIN` e também é `Líder` do ministério, a branch `isAdmin` sempre mostra o tipo do ministério (ex: "Louvor"), nunca "Líder".
 
-Há também um enum mismatch: a API retorna `hierarquia` como número (`1`), mas `VoluntarioHierarquiaEnum.Lider === '1'` (string). A comparação `===` falha. O `VoluntarioHierarquiaEnumLabel` usa o enum como chave, então `VoluntarioHierarquiaEnumLabel[1]` retorna `undefined`.
+Quando o usuário é `ADMIN` e também é `Líder` do ministério, a branch `isAdmin` sempre mostra o tipo
+do ministério (ex: "Louvor"), nunca "Líder".
+
+Há também um enum mismatch: a API retorna `hierarquia` como número (`1`), mas
+`VoluntarioHierarquiaEnum.Lider === '1'` (string). A comparação `===` falha. O
+`VoluntarioHierarquiaEnumLabel` usa o enum como chave, então `VoluntarioHierarquiaEnumLabel[1]`
+retorna `undefined`.
 
 ### Task 2: Corrigir subtitle do menu para admin+líder
 
 **Files:**
+
 - Modify: `artos_frontend/components/drawer/MenuData.ts` (~linha 373)
 
 **Step 1: Aplicar fix**
 
 Substituir o bloco de `subtitle` (~linha 373) por:
+
 ```typescript
 subtitle:
   String(ministerio.hierarquia) === VoluntarioHierarquiaEnum.Lider
@@ -79,15 +97,18 @@ subtitle:
         : '',
 ```
 
-A lógica: se o usuário é Líder deste ministério (independentemente de ser admin), mostra "Líder". Se é admin mas não é Líder, mostra o tipo. Caso contrário, mostra hierarquia normal.
+A lógica: se o usuário é Líder deste ministério (independentemente de ser admin), mostra "Líder". Se
+é admin mas não é Líder, mostra o tipo. Caso contrário, mostra hierarquia normal.
 
-Também precisará adicionar import de `VoluntarioHierarquiaEnum` se ainda não importado no arquivo. Verificar no início do arquivo.
+Também precisará adicionar import de `VoluntarioHierarquiaEnum` se ainda não importado no arquivo.
+Verificar no início do arquivo.
 
 **Step 2: Verificar TypeScript**
 
 ```
 cd artos_frontend && npx tsc --noEmit
 ```
+
 Expected: sem erros
 
 **Step 3: Commit**
@@ -102,16 +123,21 @@ git commit -m "fix: show 'Líder' in drawer menu when admin is also a ministry l
 ## Bug 4 — Admin+líder perde permissões de líder
 
 **Root cause:** `ministerio_permissoes.ts:26` faz:
+
 ```typescript
 if (ministerio.hierarquia === VoluntarioHierarquiaEnum.Lider) return true;
 ```
-A API retorna `hierarquia: 1` (número), mas `VoluntarioHierarquiaEnum.Lider === '1'` (string). A comparação falha, então o Líder não recebe bypass e cai no check de permissões detalhadas (onde provavelmente não tem `AlterarOcorrencia`, etc.).
+
+A API retorna `hierarquia: 1` (número), mas `VoluntarioHierarquiaEnum.Lider === '1'` (string). A
+comparação falha, então o Líder não recebe bypass e cai no check de permissões detalhadas (onde
+provavelmente não tem `AlterarOcorrencia`, etc.).
 
 A mesma comparação ocorre na linha 49 em `canManageEventoOcorrencia`.
 
 ### Task 3: Corrigir comparação de hierarquia
 
 **Files:**
+
 - Modify: `artos_frontend/utils/ministerio_permissoes.ts:26` e `:49`
 
 **Step 1: Corrigir linha 26**
@@ -141,6 +167,7 @@ return (
 ```
 cd artos_frontend && npx tsc --noEmit
 ```
+
 Expected: sem erros
 
 **Step 4: Commit**
@@ -154,11 +181,15 @@ git commit -m "fix: normalize hierarquia to string before enum comparison to fix
 
 ## Bug 2 — Adicionar líder abre como modal em vez de bottomsheet
 
-**Root cause:** `AddLiderancaFormModal.tsx` usa `FancyModalDialog` (modal dialog, não bottomsheet). `AuxiliarMinisterioFormSheet.tsx` usa `FancyBottomSheetModal` — o padrão correto para o app. Ambas as instâncias de `AddLiderancaFormModal` em `LiderancaEAcessosTab.tsx` (uma no contexto de criação de ministério, outra no de edição) precisam ser substituídas.
+**Root cause:** `AddLiderancaFormModal.tsx` usa `FancyModalDialog` (modal dialog, não bottomsheet).
+`AuxiliarMinisterioFormSheet.tsx` usa `FancyBottomSheetModal` — o padrão correto para o app. Ambas
+as instâncias de `AddLiderancaFormModal` em `LiderancaEAcessosTab.tsx` (uma no contexto de criação
+de ministério, outra no de edição) precisam ser substituídas.
 
 ### Task 4: Criar AddLiderancaFormSheet
 
 **Files:**
+
 - Create: `artos_frontend/components/pages/admin/ministerios/AddLiderancaFormSheet.tsx`
 
 **Step 1: Criar o componente**
@@ -271,6 +302,7 @@ const styles = StyleSheet.create({
 ### Task 5: Substituir AddLiderancaFormModal no LiderancaEAcessosTab
 
 **Files:**
+
 - Modify: `artos_frontend/components/pages/admin/ministerios/LiderancaEAcessosTab.tsx`
 
 Há **duas** instâncias a substituir.
@@ -289,18 +321,20 @@ import AddLiderancaFormSheet from './AddLiderancaFormSheet';
 
 ```tsx
 // Remover:
-{leaderModalVisible && (
-  <AddLiderancaFormModal
-    volunteers={eligibleLeaderVolunteers}
-    onButton1Press={() => setLeaderModalVisible(false)}
-    onButton2Press={(data) => {
-      if (data) {
-        lideresFieldArray.append({ ...data, hierarquia: VoluntarioHierarquiaEnum.Lider });
-      }
-      setLeaderModalVisible(false);
-    }}
-  />
-)}
+{
+  leaderModalVisible && (
+    <AddLiderancaFormModal
+      volunteers={eligibleLeaderVolunteers}
+      onButton1Press={() => setLeaderModalVisible(false)}
+      onButton2Press={(data) => {
+        if (data) {
+          lideresFieldArray.append({ ...data, hierarquia: VoluntarioHierarquiaEnum.Lider });
+        }
+        setLeaderModalVisible(false);
+      }}
+    />
+  );
+}
 
 // Adicionar (sempre montado, controlado por visible):
 <AddLiderancaFormSheet
@@ -310,25 +344,27 @@ import AddLiderancaFormSheet from './AddLiderancaFormSheet';
   onSave={(data) => {
     lideresFieldArray.append({ ...data, hierarquia: VoluntarioHierarquiaEnum.Lider });
   }}
-/>
+/>;
 ```
 
 **Step 3: Substituir segunda instância (~linha 805)**
 
 ```tsx
 // Remover:
-{leaderModalVisible && (
-  <AddLiderancaFormModal
-    volunteers={eligibleLeaderVolunteers}
-    onButton1Press={() => setLeaderModalVisible(false)}
-    onButton2Press={async (data) => {
-      setLeaderModalVisible(false);
-      if (data) {
-        await handleAddLeader(data);
-      }
-    }}
-  />
-)}
+{
+  leaderModalVisible && (
+    <AddLiderancaFormModal
+      volunteers={eligibleLeaderVolunteers}
+      onButton1Press={() => setLeaderModalVisible(false)}
+      onButton2Press={async (data) => {
+        setLeaderModalVisible(false);
+        if (data) {
+          await handleAddLeader(data);
+        }
+      }}
+    />
+  );
+}
 
 // Adicionar:
 <AddLiderancaFormSheet
@@ -336,7 +372,7 @@ import AddLiderancaFormSheet from './AddLiderancaFormSheet';
   volunteers={eligibleLeaderVolunteers}
   onClose={() => setLeaderModalVisible(false)}
   onSave={handleAddLeader}
-/>
+/>;
 ```
 
 **Step 4: Verificar TypeScript**
@@ -344,6 +380,7 @@ import AddLiderancaFormSheet from './AddLiderancaFormSheet';
 ```
 cd artos_frontend && npx tsc --noEmit
 ```
+
 Expected: sem erros
 
 **Step 5: Commit**

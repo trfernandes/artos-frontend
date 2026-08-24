@@ -27,7 +27,10 @@ export const ROLE_ICONS: Record<IgrejaVoluntarioRoleEnum, string> = {
   [IgrejaVoluntarioRoleEnum.VOLUNTARIO]: 'account-outline',
 };
 
-export const ROLE_COLOR_KEYS: Record<IgrejaVoluntarioRoleEnum, 'warning' | 'secondary' | 'terciary'> = {
+export const ROLE_COLOR_KEYS: Record<
+  IgrejaVoluntarioRoleEnum,
+  'warning' | 'secondary' | 'terciary'
+> = {
   [IgrejaVoluntarioRoleEnum.ADMIN]: 'warning',
   [IgrejaVoluntarioRoleEnum.LIDER]: 'secondary',
   [IgrejaVoluntarioRoleEnum.VOLUNTARIO]: 'terciary',
@@ -60,7 +63,9 @@ function RoleCardSelector(props: {
                 styles.card,
                 {
                   borderColor: active ? accent : Pallete.borderCard,
-                  backgroundColor: active ? ColorUtils.withAlpha(accent, 0.1) : Pallete.backgroundColor,
+                  backgroundColor: active
+                    ? ColorUtils.withAlpha(accent, 0.1)
+                    : Pallete.backgroundColor,
                 },
               ]}
             >

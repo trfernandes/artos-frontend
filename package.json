@@ -85,6 +85,7 @@
     "@types/react": "~19.1.10",
     "dotenv-cli": "^11.0.0",
     "expo": "54.0.30",
+    "prettier": "3.9.6",
     "typescript": "5.9.3"
   },
   "expo": {

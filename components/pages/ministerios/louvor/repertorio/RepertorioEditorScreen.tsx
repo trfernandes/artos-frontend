@@ -398,17 +398,21 @@ export default function RepertorioEditorScreen({
                   name='etiquetaIds'
                   render={({ field: { value, onChange } }) => {
                     const selectedIds = value ?? [];
-                    const etiquetasAtivas = etiquetas.filter((etiqueta) => etiqueta.ativo !== false);
+                    const etiquetasAtivas = etiquetas.filter(
+                      (etiqueta) => etiqueta.ativo !== false,
+                    );
                     const selecionadas = selectedIds
                       .map((id) => etiquetasAtivas.find((etiqueta) => etiqueta.id === id))
                       .filter(
-                        (etiqueta): etiqueta is ResponseRepertorioEtiquetaDto => etiqueta !== undefined,
+                        (etiqueta): etiqueta is ResponseRepertorioEtiquetaDto =>
+                          etiqueta !== undefined,
                       );
                     const naoSelecionadas = etiquetasAtivas
                       .filter((etiqueta) => !selectedIds.includes(etiqueta.id))
                       .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
 
-                    const selecionar = (etiquetaId: string) => onChange([etiquetaId, ...selectedIds]);
+                    const selecionar = (etiquetaId: string) =>
+                      onChange([etiquetaId, ...selectedIds]);
                     const remover = (etiquetaId: string) =>
                       onChange(selectedIds.filter((id) => id !== etiquetaId));
 
