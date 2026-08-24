@@ -203,12 +203,18 @@ function AssistenteWrapper() {
   form.register('dataInicio', {
     onChange: () => {
       setShouldLoadEvents(true);
+      if (form.formState.errors.dataTermino) {
+        form.trigger(['dataInicio', 'dataTermino']);
+      }
     },
   });
 
   form.register('dataTermino', {
     onChange: () => {
       setShouldLoadEvents(true);
+      if (form.formState.errors.dataTermino) {
+        form.trigger(['dataInicio', 'dataTermino']);
+      }
     },
   });
 
