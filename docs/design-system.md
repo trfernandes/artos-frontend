@@ -789,3 +789,124 @@ do Assistente (`assistant.tsx`), nunca bloqueia (ADR 0003).
 
 Ramo A concluído (cor + tipografia + componentes aprovados) — implementar no código real
 (`trfernandes-atelier-implement`).
+
+---
+
+# Design System — Saúde do Voluntariado (escopo: Sobrecarga/Saúde do Voluntariado)
+
+> Escopo: card "Meu Ritmo de Serviço" no Dashboard (Início), aba "Saúde" no perfil do voluntário
+> (Integrantes → Detalhes), aba espelho "Minha Saúde" na tela Pessoal, indicador individual e pill
+> agregado em Integrantes, tela "Como funciona" (substituída por card colapsável). Estrutura
+> funcional já fechada via grilling anterior (ver CONTEXT.md e
+> `docs/plans/2026-08-17-plano-versao-2.md` seção 3, branch `1.2`) — esta sessão fechou o conceito
+> visual/estrutural formal. Revisão: 2026-08-24 —`trfernandes-atelier-concept`, refinado em 3
+> rodadas de `/grill-me` pós-wireframe.
+
+## Conceito
+
+- **Paradigma**: Voluntário como canal primário — inversão do dashboard-de-vigilância padrão. Em
+  vez do Líder monitorar o voluntário de fora, os mesmos dados de saúde chegam primeiro (ou junto)
+  pro próprio voluntário, na primeira pessoa; o Líder vê uma derivação dessa mesma visão, nunca uma
+  visão exclusiva/superior. Resolve a tensão "cuidado vs. vigilância" na própria estrutura de
+  dados, não só no tom.
+- **Estrutura OOUX**:
+  - Card de saúde (Líder/Admin, Dashboard) → card compacto dentro de uma `DashboardSection` própria
+    ("Meu Ritmo de Serviço"), mini-gráfico de linha dupla normalizada (Escalas + Sinais ativos) com
+    legenda, toque abre o drill-down.
+  - Aba "Saúde" (perfil do voluntário, Integrantes) → nova aba em pílula ao lado de "Dados" e
+    "Scores" (mesmo componente de abas já existente no app, cor ativa trocada pra `secondary`),
+    contendo: card colapsável "como funciona" → card único "Nível de sobrecarga" (toggle
+    Escalas/Horas, substitui os antigos 2 blocos separados) → linha do tempo vertical (histórico de
+    eventos) → bloco de Acompanhamento (4 estados).
+  - Aba "Minha Saúde" (tela Pessoal) → espelho exato da aba Saúde do Líder (mesmo componente,
+    mesmos gráficos, mesma linha do tempo vertical), sem o card colapsável (já visto), com o CTA
+    "quero conversar sobre minha carga" no fim.
+  - Indicador individual (Integrantes, listagem) → ponto binário no avatar (não anel
+    multi-informação — deliberadamente mais simples que o selo de severidade do Painel Admin da
+    Plataforma, outro produto/contexto).
+  - Insight agregado (Integrantes, topo da lista) → 1 pill a mais ("ATENÇÃO: N") dentro da mesma
+    fileira de stats que já existe (Total/Ativos/Inativos), sem criar linha nova na tela.
+  - Tela "Como funciona" dedicada → **eliminada**; vira card colapsável no topo da aba Saúde.
+- **Elemento-assinatura**: **"Recibo de Cuidado"** — quando o Líder marca "já tratei" no bloco de
+  Acompanhamento, o próprio Voluntário recebe uma confirmação visível de que foi visto ("seu líder
+  viu isso e está com você") — não uma notificação genérica de sistema, uma marca de presença
+  humana. Regra estrutural inversa que reforça o mesmo princípio: qualquer sinal automático só
+  aparece pro Líder depois que o Voluntário já teria tido chance de vê-lo primeiro (canal primário
+  = voluntário). Aplicado em 3 lugares estruturalmente diferentes: botão "já tratei" (Líder), bloco
+  de recibo (Voluntário), histórico de recibos na linha do tempo (Voluntário).
+- **Gate Jakob**: passou — trocando logo/cor por um concorrente genérico de gestão de voluntários,
+  a linha do tempo vertical narrada, o recibo de cuidado, o gráfico honesto sem eixo duplo e a
+  simetria estrutural Líder/Voluntário (mesma aba, não visão reduzida) ainda seriam reconhecíveis
+  como uma estrutura específica de acompanhamento pastoral — nenhum é o default de dashboard de RH
+  (card+KPI+alerta pro gestor, sem narrativa nem simetria).
+
+## Refinamentos pós-concept (3 rodadas de `/grill-me`, mesma sessão)
+
+1. **Wireframe precisa de contexto real** — 1ª e 2ª rodadas: wireframe cinza abstrato e depois
+   blocos sem a tela ao redor não permitiam julgar o resultado. Fix: todo wireframe subsequente
+   mostra os blocos novos dentro da tela real do app (Início, Integrantes, perfil, Pessoal), com o
+   que já existe hoje marcado (cinza tracejado/esmaecido) e o novo destacado.
+2. **Visual precisa ser próximo do real, não wireframe cinza** — 3ª rodada trocou JetBrains
+   Mono/IBM Plex Sans/tokens cinza por Montserrat + cores reais de `constants/colors.ts` +
+   formato real dos componentes (`DashboardCard`, `FancyListStats`, abas em pílula tipo
+   `FancyTabHeaderItem`).
+3. **Estados possíveis** — usuário pediu ver todos os cenários reais do domínio (não só o caso
+   "carga subindo"): eixos ativados, os 3 sinais adicionais, tendência de melhora, múltiplos sinais
+   simultâneos, e os 3 estados de acompanhamento — todos usando o mesmo card, variando só cor de
+   detalhe (confirm=bom, warning=atenção) e conteúdo.
+4. **`/grill-me` de 7 pontos** (rodada dedicada, ver histórico de conversa):
+   - Card do dashboard trocou seta+frase por gráfico real (mini-gráfico de linha dupla normalizada,
+     forma não valor exato).
+   - Aba Saúde ganhou gráficos reais de volume (escalas/horas) e nível de sobrecarga, com toggle de
+     período — depois consolidados num só gráfico (ver item 5 abaixo).
+   - Indicador individual de Integrantes definido como ponto binário no avatar (não anel
+     proporcional, não cor por estado — mais simples, decidido explicitamente contra as duas
+     alternativas mais ricas).
+   - Card "como funciona" virou colapsável no topo da aba, substituindo a tela cheia dedicada.
+   - Card de "acompanhamento" e "linha do tempo" viraram uma linha do tempo vertical com 9 tipos de
+     evento nomeados (eixo ativado/normalizado, sinal disparado/normalizado, ação do
+     voluntário/líder, reabertura) e 4 estados de Acompanhamento nomeados (sem sinal / aguardando /
+     tratado / reaberto).
+   - Tela Pessoal do Voluntário passou a espelhar exatamente os mesmos componentes do Líder (era um
+     card próprio, diferente e confuso).
+5. **Correção dataviz — eixo duplo em "Volume de serviço"**: usuário pediu unificar os 2 gráficos
+   de volume (Escalas + Horas) num só; como as duas métricas têm escalas numéricas muito diferentes
+   (~0-15 vs. ~0-40), um gráfico com 2 barras no mesmo eixo mentiria — resolvido com barra
+   empilhada por escala (altura total = horas, cada segmento = 1 escala, contagem anotada). Essa
+   versão foi substituída no refinamento seguinte (item 6) por um toggle, mas o princípio "nunca
+   eixo duplo" (`dataviz` skill) se manteve nas duas soluções.
+6. **"Sinais ativos" era confuso + pedido de toggle Escalas/Horas em "Nível de sobrecarga"**:
+   "Volume de serviço" e "Nível de sobrecarga" (que usava a métrica abstrata "sinais ativos", 0–5)
+   foram unificados numa seção só, com toggle **Escalas / Horas** (bar chart simples, cada visão
+   com a própria escala) — visão Escalas mantém a linha tracejada de referência ("ritmo de atenção
+   ~4/mês", equivalente ao limiar real do eixo de Escalas: 12 em 3 meses). O conceito de "sinais
+   ativos" (composto dos 2 eixos + 3 sinais) deixou de existir como gráfico — passou a viver só em
+   linguagem simples na linha do tempo e no indicador do avatar, renomeado para **"sinais de
+   cuidado"**.
+7. **Card do Dashboard revertido**: no meio do refinamento anterior a legenda do mini-gráfico do
+   Dashboard foi trocada de "Escalas + Sinais ativos" pra "Escalas + Horas" — usuário pediu reverter
+   explicitamente ("não era pra ter mexido no primeiro card"); card do Dashboard voltou a mostrar
+   Escalas + Sinais ativos, como no wireframe original aprovado. Regra prática: mudança de
+   vocabulário aprovada numa seção não se propaga automaticamente pra outra sem pedido explícito.
+8. **Verificação de fato (não decisão)**: confirmado em
+   `docs/plans/2026-08-17-plano-versao-2.md:251-252` que o sinal "Aumento de indisponibilidade" já
+   é relativo à média pessoal do próprio voluntário (≥2x a média dos últimos 6 meses), não um
+   limiar global — não precisou de nova decisão de design, só checagem do que já estava fechado.
+
+### Direções descartadas (concept)
+
+| Direção                                                                    | Motivo                                                                                                        |
+| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Wireframe abstrato sem tela ao redor (v1 do concept)                       | Usuário não conseguia julgar o resultado sem ver o contexto real da tela — refeito mostrando app real ao redor |
+| Gesto de hold customizado (divergência SCAMPER)                           | Risco real de descoberta sem affordance visual (regra `platform-mobile.md`), sem ganho proporcional — descartado na síntese do concept |
+| Métrica "nível de sobrecarga" como composto abstrato 0–5 ("sinais ativos") | Usuário achou o termo confuso; substituído por toggle concreto Escalas/Horas + linha do tempo em linguagem simples |
+| Gráfico único com 2 barras (Escalas+Horas) no mesmo eixo                   | Escalas muito diferentes (contagem vs. duração) mentiriam num eixo compartilhado — nunca eixo duplo (`dataviz`) |
+| Anel proporcional (X de 5) ou cor-por-estado no avatar de Integrantes      | Rejeitados em favor do ponto binário — mais simples de ler numa lista densa, deliberadamente distinto do selo multi-ícone do Painel Admin da Plataforma |
+
+## Próximo passo
+
+Conceito fechado e aprovado pelo usuário — bora pra cor/tipografia/componentes
+(`trfernandes-atelier-explore`, Ramo A), usando só os tokens reais já usados nos mockups desta
+sessão (`usePallete()`/`constants/colors.ts` — `secondary` como identidade da seção Saúde,
+`primary`/`secondary`/`terciary` como ordem categórica dos gráficos, `warning`/`confirm` reservados
+pra estado).
