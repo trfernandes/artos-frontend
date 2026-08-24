@@ -107,6 +107,23 @@ entrada de log de auditoria (quem, quando, motivo).
 Inadimplência não passa por aqui — é fluxo separado do provider de pagamento, não ação manual do
 Admin de Plataforma. _Avoid_: tratar Suspensão como forma de pausar ou cancelar cobrança
 
+**Ações de assinatura** (adicionado em grilling 2026-08-23): Admin de Plataforma ganha 5 ações sobre
+a assinatura de qualquer Igreja, na tela Detalhe da Igreja — Mudar plano (sincroniza de verdade com
+o Asaas), Aplicar desconto (percentual por N ciclos), Isenção, Cancelar, Pausar. Todas geram entrada
+no log de auditoria (motivo opcional, diferente da obrigatoriedade de Suspensão).
+
+**Isenção**: Generaliza o `EXEMPT_CHURCH_ID` hardcoded que já existe hoje (variável de ambiente, uma
+única Igreja, sempre plano Crescimento, sempre permanente). Vira ação de UI — Admin de Plataforma
+escolhe qual plano conceder, com prazo de validade opcional (permanente se não definido).
+
+**Pausa de Assinatura**: Estado intermediário entre Ativa e Cancelada — assinatura para de cobrar e
+acesso fica bloqueado (mesmo tratamento de Suspensa) por um período, sem encerrar de vez. Adicionado
+após pesquisa de mercado (ver `docs/research/2026-08-23-retencao-saas-assinatura.md`) — tática de
+retenção com melhor evidência encontrada. Oferecida tanto como ação manual do Admin de Plataforma
+quanto como opção dentro do formulário de suporte, quando a Igreja pede cancelamento/downgrade.
+_Avoid_: confundir com Suspensão — Pausa é ação de retenção oferecida à própria Igreja, Suspensão é
+moderação unilateral do Admin de Plataforma
+
 ## Sobrecarga de Voluntário (feature de cuidado pastoral)
 
 Estado do Voluntário quando cruza QUALQUER UM de dois eixos independentes (OR): dispersão entre
