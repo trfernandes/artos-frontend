@@ -8,13 +8,16 @@ import { ResponseVoluntarioDto } from '../domain/dtos/Voluntario/voluntario.resp
 export function useVoluntariosCrud({
   autoFetch = false,
   initialParams = {},
-}: ExternalUseCrudParams = {}) {
+  igrejaId,
+}: ExternalUseCrudParams & { igrejaId?: string } = {}) {
   return useCrud<ResponseVoluntarioDto, any, CreateVoluntarioDto, UpdateVoluntarioDto>({
     queryKey: 'voluntarios',
     autoFetch,
     initialParams,
     fetchAll: () => VoluntariosRepository.getAll(),
-    search: (query) => VoluntariosRepository.search(query),
+    // POST /voluntarios/search exige igrejaId como query param (escopo por igreja) —
+    // sem ele o backend rejeita com 400 e a busca volta vazia.
+    search: (query) => VoluntariosRepository.search(query, igrejaId),
     fetchOne: async (id) => {
       const result = await VoluntariosRepository.search({
         where: {
