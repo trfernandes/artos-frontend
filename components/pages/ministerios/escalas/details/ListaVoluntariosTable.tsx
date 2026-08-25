@@ -116,6 +116,8 @@ export default function ListaVoluntariosTable({
             (v) => v.id === equipeItem.voluntario?.voluntarioId,
           );
           const hasVoluntario = !!equipeItem.voluntario?.nome;
+          const isAvulso = !hasVoluntario && !!equipeItem.nomeAvulso;
+          const isPreenchido = hasVoluntario || isAvulso;
 
           return (
             <View key={index}>
@@ -148,6 +150,21 @@ export default function ListaVoluntariosTable({
                       ]}
                     />
                   </Pressable>
+                ) : isAvulso ? (
+                  <View style={[styles.avatarWrapper, styles.emptyAvatar]}>
+                    <DefaultIcons.Custom
+                      library='MaterialIcons'
+                      name='person-outline'
+                      size={16}
+                      color={palette.icons.inactive}
+                    />
+                    <View
+                      style={[
+                        styles.statusDot,
+                        { backgroundColor: voluntarioStatusChipParams[equipeItem.status].color },
+                      ]}
+                    />
+                  </View>
                 ) : (
                   <View style={styles.emptyAvatar}>
                     <DefaultIcons.Custom
@@ -170,13 +187,19 @@ export default function ListaVoluntariosTable({
                     {equipeItem.funcao?.nome}
                     {hasVoluntario && equipeItem.funcao?.experiencia
                       ? ` · ${EscalaTemplateExperienciaLabel[equipeItem.funcao.experiencia]}`
-                      : !hasVoluntario && equipeItem.funcao?.expMinima
+                      : !isPreenchido && equipeItem.funcao?.expMinima
                         ? ` · mín: ${EscalaTemplateExperienciaLabel[equipeItem.funcao.expMinima]}`
-                        : ''}
+                        : isAvulso
+                          ? ' · pessoa avulsa'
+                          : ''}
                   </FancyText>
                   {hasVoluntario ? (
                     <FancyText type='semiBold' size='small'>
                       {getFirstAndLastName(equipeItem.voluntario?.nome)}
+                    </FancyText>
+                  ) : isAvulso ? (
+                    <FancyText type='semiBold' size='small' numberOfLines={1}>
+                      {equipeItem.nomeAvulso}
                     </FancyText>
                   ) : (
                     <FancyText type='semiBold' size='medium' color={palette.fonts.inactive}>
@@ -210,7 +233,9 @@ export default function ListaVoluntariosTable({
       <FancyActionSheet
         visible={!!menuItem}
         onClose={() => setMenuItem(null)}
-        title={menuItem?.voluntario?.nome ?? menuItem?.funcao?.nome ?? 'Opções'}
+        title={
+          menuItem?.voluntario?.nome ?? menuItem?.nomeAvulso ?? menuItem?.funcao?.nome ?? 'Opções'
+        }
         actions={
           menuItem
             ? menuItem.voluntario?.nome
@@ -236,19 +261,33 @@ export default function ListaVoluntariosTable({
                     destructive: true,
                   },
                 ]
-              : [
-                  {
-                    label: 'Adicionar voluntário',
-                    icon: { library: 'MaterialIcons' as const, name: 'person-add', size: 18 },
-                    onPress: () => onAdicionarVoluntarioButtonPressed?.(menuItem),
-                  },
-                  {
-                    label: 'Excluir função',
-                    icon: { library: 'MaterialIcons' as const, name: 'delete-outline', size: 18 },
-                    onPress: () => onExcluirFuncaoPressed?.(menuItem.funcao?.id!),
-                    destructive: true,
-                  },
-                ]
+              : menuItem.nomeAvulso
+                ? [
+                    {
+                      label: 'Substituir',
+                      icon: { library: 'FontAwesome5' as const, name: 'exchange-alt', size: 15 },
+                      onPress: () => onSubstituicaoButtonPressed?.(menuItem),
+                    },
+                    {
+                      label: 'Remover da escala',
+                      icon: { library: 'MaterialIcons' as const, name: 'person-remove', size: 18 },
+                      onPress: () => onRemoverVoluntarioPressed?.(menuItem),
+                      destructive: true,
+                    },
+                  ]
+                : [
+                    {
+                      label: 'Adicionar voluntário',
+                      icon: { library: 'MaterialIcons' as const, name: 'person-add', size: 18 },
+                      onPress: () => onAdicionarVoluntarioButtonPressed?.(menuItem),
+                    },
+                    {
+                      label: 'Excluir função',
+                      icon: { library: 'MaterialIcons' as const, name: 'delete-outline', size: 18 },
+                      onPress: () => onExcluirFuncaoPressed?.(menuItem.funcao?.id!),
+                      destructive: true,
+                    },
+                  ]
             : []
         }
       />

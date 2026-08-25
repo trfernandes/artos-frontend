@@ -72,6 +72,9 @@ export type EscalaItemEventoDataType = {
 export type EscalaItemEquipeType = {
   idEscalaItem: string;
   voluntario?: EscalaItemEventoDataType['voluntario'];
+  // Pessoa avulsa (não cadastrada): nome livre digitado pelo líder — presente só quando
+  // `voluntario` é null por escolha do líder, não persiste/reaproveita entre escalas.
+  nomeAvulso?: string | null;
   funcao?: {
     id: string;
     nome: string;
@@ -282,13 +285,16 @@ export default function MinisterioEscalasDetailsPage() {
 
       grupo.equipe.push({
         idEscalaItem: item?.id!,
-        voluntario: {
-          minVoluntarioId: item.voluntario?.id!,
-          voluntarioId: item.voluntario?.voluntario?.id!,
-          nome: item.voluntario?.voluntario?.nome!,
-          fotoUrl: item.voluntario?.voluntario?.fotoUrl,
-          fotoThumbUrl: item.voluntario?.voluntario?.fotoThumbUrl,
-        },
+        voluntario: item.voluntario
+          ? {
+              minVoluntarioId: item.voluntario?.id!,
+              voluntarioId: item.voluntario?.voluntario?.id!,
+              nome: item.voluntario?.voluntario?.nome!,
+              fotoUrl: item.voluntario?.voluntario?.fotoUrl,
+              fotoThumbUrl: item.voluntario?.voluntario?.fotoThumbUrl,
+            }
+          : undefined,
+        nomeAvulso: item.nomeAvulso ?? null,
         funcao: {
           id: item.funcao?.id!,
           nome: item.funcao?.nome!,
@@ -337,10 +343,16 @@ export default function MinisterioEscalasDetailsPage() {
       try {
         await updateEscalaItem?.({
           id: data.idEscalaItem,
-          data: {
-            voluntarioId: data.idSubstituto,
-            status: EscalaItemStatusEnum.Pendente,
-          },
+          data: data.nomeAvulso
+            ? ({
+                voluntarioId: null,
+                nomeAvulso: data.nomeAvulso,
+                status: EscalaItemStatusEnum.Pendente,
+              } as any)
+            : {
+                voluntarioId: data.idSubstituto,
+                status: EscalaItemStatusEnum.Pendente,
+              },
         });
         await refetchEscala();
         Toast.show({
@@ -362,14 +374,20 @@ export default function MinisterioEscalasDetailsPage() {
   );
 
   const handleAdicionarVoluntario = useCallback(
-    async (data: { idEscalaItem: string; idVoluntario: string }): Promise<boolean> => {
+    async (data: {
+      idEscalaItem: string;
+      idVoluntario?: string;
+      nomeAvulso?: string;
+    }): Promise<boolean> => {
       try {
         await updateEscalaItem?.({
           id: data.idEscalaItem,
-          data: {
-            voluntarioId: data.idVoluntario,
-            status: EscalaItemStatusEnum.Pendente,
-          },
+          data: data.nomeAvulso
+            ? ({ nomeAvulso: data.nomeAvulso, status: EscalaItemStatusEnum.Pendente } as any)
+            : {
+                voluntarioId: data.idVoluntario,
+                status: EscalaItemStatusEnum.Pendente,
+              },
         });
         await refetchEscala();
         Toast.show({
@@ -396,6 +414,7 @@ export default function MinisterioEscalasDetailsPage() {
           id: idEscalaItem,
           data: {
             voluntarioId: null as any,
+            nomeAvulso: null,
             status: EscalaItemStatusEnum.Pendente,
           } as any,
         });

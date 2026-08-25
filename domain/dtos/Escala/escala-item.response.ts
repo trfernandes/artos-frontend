@@ -22,6 +22,7 @@ export type ResponseEscalaItemDto = {
   voluntario?: ResponseMinisterioVoluntarioDto;
   funcaoId?: string;
   funcao?: ResponseMinisterioFuncaoDto;
+  nomeAvulso?: string | null;
   status: EscalaItemStatusEnum;
   substituicaoId?: string;
   substituicao?: ResponseEscalaSubstituicaoDto;

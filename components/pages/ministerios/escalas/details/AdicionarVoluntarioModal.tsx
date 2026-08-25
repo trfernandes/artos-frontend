@@ -6,6 +6,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import FancyText from '../../../../FancyText';
 import FancySearchSelect from '../../../../fields/FancySearchSelect';
 import FancyCheckbox from '../../../../FancyCheckbox';
+import FancyTextInput from '../../../../fields/FancyTextInput';
 import { format } from 'date-fns';
 import { useVoluntariosDoMinisterioCrud } from '../../../../../hooks/useVoluntariosDoMinisterioCrud';
 import { useEffect, useState, useMemo } from 'react';
@@ -36,7 +37,8 @@ export interface AdicionarVoluntarioModalProps {
 
 export interface AdicionarVoluntarioConfirmDialog {
   idEscalaItem: string;
-  idVoluntario: string;
+  idVoluntario?: string;
+  nomeAvulso?: string;
 }
 
 export default function AdicionarVoluntarioModal({
@@ -70,15 +72,21 @@ export default function AdicionarVoluntarioModal({
   );
   const funcaoId = useMemo(() => data.funcao?.id, [data.funcao?.id]);
 
-  // IDs de ministerioVoluntario já escalados neste evento (evita duplo escalonamento)
+  // IDs de ministerioVoluntario já escalados NESTA MESMA função neste evento (evita
+  // duplo escalonamento na mesma função — funções diferentes permitem dupla escalação).
   const alreadyAssignedIds = useMemo(() => {
     if (!currentEquipe) return new Set<string>();
     return new Set(
       currentEquipe
-        .filter((e) => !!e.voluntario?.minVoluntarioId)
+        .filter(
+          (e) =>
+            e.idEscalaItem !== data.idEscalaItem &&
+            !!e.voluntario?.minVoluntarioId &&
+            e.funcao?.id === funcaoId,
+        )
         .map((e) => e.voluntario!.minVoluntarioId),
     );
-  }, [currentEquipe]);
+  }, [currentEquipe, funcaoId, data.idEscalaItem]);
 
   useEffect(() => {
     const filteredDropDown = dropDownList.filter(
@@ -213,10 +221,21 @@ export default function AdicionarVoluntarioModal({
   ]);
 
   const [selectedVoluntario, setSelectedVoluntario] = useState<string | null>(null);
+  const [pessoaNaoCadastrada, setPessoaNaoCadastrada] = useState(false);
+  const [nomeAvulso, setNomeAvulso] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = (): boolean => {
+    if (pessoaNaoCadastrada) {
+      if (nomeAvulso.trim()) {
+        setErrors({});
+        return true;
+      }
+      setErrors({ nomeAvulso: 'Campo Obrigatório' });
+      return false;
+    }
+
     if (selectedVoluntario) {
       setErrors({});
       return true;
@@ -230,10 +249,11 @@ export default function AdicionarVoluntarioModal({
     if (handleSubmit()) {
       try {
         setIsSubmitting(true);
-        await props.onButton2Press?.({
-          idEscalaItem: data.idEscalaItem,
-          idVoluntario: selectedVoluntario!,
-        });
+        await props.onButton2Press?.(
+          pessoaNaoCadastrada
+            ? { idEscalaItem: data.idEscalaItem, nomeAvulso: nomeAvulso.trim() }
+            : { idEscalaItem: data.idEscalaItem, idVoluntario: selectedVoluntario! },
+        );
       } finally {
         setIsSubmitting(false);
       }
@@ -292,52 +312,96 @@ export default function AdicionarVoluntarioModal({
             <View style={{ gap: 12 }}>
               <View style={{ gap: 8 }}>
                 <FancyCheckbox
-                  value={disponiveisNaData}
-                  onChangeValue={setDisponiveisNaData}
-                  label='Disponíveis na data'
+                  value={pessoaNaoCadastrada}
+                  onChangeValue={(v) => {
+                    setPessoaNaoCadastrada(v);
+                    setErrors({});
+                  }}
+                  label='Pessoa não cadastrada'
                   disabled={isSubmitting}
                 />
-                <FancyCheckbox
-                  value={temMesmaFuncao}
-                  onChangeValue={setTemMesmaFuncao}
-                  label='Tem a mesma função'
-                  disabled={isSubmitting}
-                />
+                {!pessoaNaoCadastrada && (
+                  <>
+                    <FancyCheckbox
+                      value={disponiveisNaData}
+                      onChangeValue={setDisponiveisNaData}
+                      label='Disponíveis na data'
+                      disabled={isSubmitting}
+                    />
+                    <FancyCheckbox
+                      value={temMesmaFuncao}
+                      onChangeValue={setTemMesmaFuncao}
+                      label='Tem a mesma função'
+                      disabled={isSubmitting}
+                    />
+                  </>
+                )}
               </View>
 
-              {isLoadingVoluntarios && (
-                <View
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 }}
-                >
-                  <ActivityIndicator size='small' color={palette.primary} />
+              {pessoaNaoCadastrada ? (
+                <View style={{ flexDirection: 'column', gap: 5 }}>
+                  <FancyTextInput
+                    label='Nome'
+                    placeholder='Nome da pessoa'
+                    value={nomeAvulso}
+                    errorMessage={errors['nomeAvulso']}
+                    inputProps={{
+                      onChangeText: (t) => {
+                        setNomeAvulso(t);
+                        setErrors((prev) => {
+                          const { nomeAvulso: _nomeAvulso, ...rest } = prev;
+                          return rest;
+                        });
+                      },
+                    }}
+                    disabled={isSubmitting}
+                  />
                   <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                    Filtrando voluntários...
+                    Sem conta no app — não recebe notificação, o líder marca presença manualmente.
                   </FancyText>
                 </View>
-              )}
+              ) : (
+                <>
+                  {isLoadingVoluntarios && (
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 8,
+                        paddingVertical: 4,
+                      }}
+                    >
+                      <ActivityIndicator size='small' color={palette.primary} />
+                      <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                        Filtrando voluntários...
+                      </FancyText>
+                    </View>
+                  )}
 
-              <View style={{ flexDirection: 'column', gap: 5 }}>
-                <FancySearchSelect
-                  label='Voluntário'
-                  placeholder='Buscar voluntário...'
-                  value={selectedVoluntario}
-                  onChange={(value) => {
-                    setSelectedVoluntario(Array.isArray(value) ? value[0] || null : value);
-                    setErrors((prev) => {
-                      const { voluntario, ...rest } = prev;
-                      return rest;
-                    });
-                  }}
-                  listItems={voluntariosDropDownList}
-                  disabled={
-                    isSubmitting ||
-                    isLoadingMinisterioVoluntarios ||
-                    isLoadingMinisterioVoluntariosMutation ||
-                    isLoadingVoluntarios
-                  }
-                />
-                {errors && <FancyErrorText message={errors['voluntario']} />}
-              </View>
+                  <View style={{ flexDirection: 'column', gap: 5 }}>
+                    <FancySearchSelect
+                      label='Voluntário'
+                      placeholder='Buscar voluntário...'
+                      value={selectedVoluntario}
+                      onChange={(value) => {
+                        setSelectedVoluntario(Array.isArray(value) ? value[0] || null : value);
+                        setErrors((prev) => {
+                          const { voluntario, ...rest } = prev;
+                          return rest;
+                        });
+                      }}
+                      listItems={voluntariosDropDownList}
+                      disabled={
+                        isSubmitting ||
+                        isLoadingMinisterioVoluntarios ||
+                        isLoadingMinisterioVoluntariosMutation ||
+                        isLoadingVoluntarios
+                      }
+                    />
+                    {errors && <FancyErrorText message={errors['voluntario']} />}
+                  </View>
+                </>
+              )}
             </View>
           </View>
         </FancyGroup>
