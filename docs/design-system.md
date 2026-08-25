@@ -981,7 +981,72 @@ cuidado) em 3 densidades de informação diferentes.
 | Timeline vertical                                 | Trilha + pontos + frase                    | Sequência de eventos datados — forma de linha do tempo, não lista genérica     |
 | Ponto binário no avatar                           | Dot simples                                | Presença/ausência é dado categórico, não vale a pena gráfico de forma mais rica pra isso |
 
+## Audit Log
+
+### Audit — 2026-08-25
+
+#### Critérios de originalidade
+
+- [1] Troca de logo: ✅ — a trilha de pontos, a linha do tempo vertical e o Recibo de Cuidado
+  carregam a estrutura de cuidado pastoral independente de qualquer cor/logo de marca.
+- [2] Industry scan: ✅ — nenhum concorrente de gestão de voluntários usa "voluntário como canal
+  primário" (mesmos dados chegam pro voluntário antes/junto do líder) nem confirmação sentida
+  ("recibo de cuidado") no lugar de alerta de risco pro gestor.
+- [3] Tells de IA: ❌ encontrado e corrigido nesta rodada — avatar usava
+  `linear-gradient(secondary, primary)` como placeholder de foto, fora dos 4 contextos de gradiente
+  permitidos pelo `CLAUDE.md` (auth/drawer-header/dashboard/quiz-vendas). Trocado por fundo neutro
+  sólido (`app-bg3` + borda). Pesos de fonte: só 3 distintos (500/600/700) — dentro do limite de 4.
+- [4] Especificidade do domínio: ✅ — estrutura (eixos de sobrecarga, sinais de cuidado, recibo,
+  toggle Escalas/Horas com o threshold real de 12 escalas/3 meses) não serviria pra outro domínio
+  sem alteração de dados exibidos.
+- [5] Decisão vs default: ✅ — cor principal (`secondary`), tipografia (Montserrat/escala
+  documentada) e densidade (1 card por bloco, scroll em vez de acordeão denso) são decisões
+  registradas com motivo em "Direção visual" acima, não primeiro valor.
+- [6] Riqueza gráfica: ✅ — 3 gráficos com forma escolhida pelo tipo de dado (barra pra
+  contagem/duração discreta, linha normalizada pro mini-preview, linha tracejada de threshold real)
+  + motivo gráfico próprio ("Trilha do Cuidado") aplicado em 3 lugares estruturalmente diferentes.
+
+#### Contraste
+
+- Branco sobre `secondary` (tab ativa, botão primary): 5.87:1 — ✅ AA.
+- `secondary` sobre branco (labels, título de card, botão outline): 5.87:1 — ✅ AA.
+- `font-dark` (#3E3E3E) sobre branco: 10.70:1 — ✅ AAA.
+- **`warning` puro (#F5A623) sobre fundo claro (branco/`app-bg2`), usado como cor de UI
+  (badge/dot/linha de threshold): 1.82–2.03:1 — ❌ falha o piso de 3:1 pra componente de UI.**
+  Encontrado em 3 lugares que sobreviveram à correção inicial da camada de cor: `.badge` (aba com
+  notificação), `.avatar .dot` (indicador individual de Integrantes — o componente central desta
+  entrega), e a linha tracejada de threshold do gráfico. Corrigido nesta auditoria: todos os 3 agora
+  usam `--warning-text` (`#8a5a00` no claro, 5.31:1 — ✅; `warning` puro no escuro, 8.59:1 — ✅).
+- `primary` (#3B82F6) como marca gráfica (barra do gráfico "Nível de sobrecarga"): 3.68:1 sobre
+  branco — ✅ acima do piso de 3:1 pra elemento gráfico não-textual.
+- `terciary` (#F67E3B) como marca gráfica (linha "Sinais ativos" no mini-preview do dashboard):
+  2.64:1 sobre branco — ⚠️ abaixo do piso de 3:1, mas mitigado pela legenda com **texto visível**
+  (não só cor), que é a exceção documentada no `dataviz` (skill): "uma WARN de contraste obriga
+  label visível ou tabela — não é dispensável". Já implementado desde a criação do mini-preview.
+  Validado via `validate_palette.js` (`primary,secondary,terciary` — CVD ΔE 12.0/19.2, ambos acima
+  do piso).
+- `confirm` (#228B22) em chip/estado "tratado"/"calm": mesmo padrão já confirmado em uso no resto do
+  app (ex: `EscalaHeader`), sem uso novo fora do já auditado anteriormente.
+
+#### Consistência interna
+
+- Zero hex hardcoded fora de definição de token — checado via grep no artifact final; único hex
+  "solto" restante é o fallback JS (`|| '#3B82F6'` etc.), padrão aceitável de fallback, não
+  hardcode real.
+- Componentes replicam o formato real do app: `DashboardCard` (squircle + valor + label),
+  `FancyListStats` (pill com borda/sombra), `FancyTabHeaderItem` (pílula ativa sólida) — confirmado
+  contra os arquivos reais lidos nesta sessão, não suposição.
+- Raio de borda (16px cards, 999px pílulas) e sombra (`--shadow`, equivalente a `shadows[200]`)
+  batem com o padrão já confirmado no app (`DashboardCard.tsx`, `FancyListStats.tsx`).
+- Tipografia (3 pesos, Montserrat) consistente com a escala fixa do app — nenhuma fonte nova.
+
+#### Débito de design
+
+- Nenhum — os 2 achados reais (contraste do indicador binário/threshold, gradiente de avatar) foram
+  corrigidos nesta própria rodada de auditoria, não ficaram como débito.
+
 ## Próximo passo
 
-Ramo A concluído (cor + tipografia + componentes aprovados, achado de contraste corrigido) — rodar
-`trfernandes-atelier-audit` antes de prosseguir.
+Ramo A concluído e auditado — implemento no código real (`trfernandes-atelier-implement`)? Por ora
+segue pausado, aguardando a Landing de vendas (`diakonia-public-site`) fechar seu próprio ciclo de
+design antes de qualquer implementação (decisão do usuário: "implementar só no final").
