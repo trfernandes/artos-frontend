@@ -7,6 +7,7 @@ import { usePallete } from '../../../hooks/usePallete';
 import { ColorUtils } from '../../../utils/color_utils';
 import { EventoSetlistItemOrigemEnum } from '../../../domain/dtos/Evento/evento-setlist-item.response';
 import { FancyCard } from '../../cards/Horizontal/FancyCard';
+import MusicListenButton from '../../song/MusicListenButton';
 
 export type SetListItemProps = {
   order: number;
@@ -17,6 +18,7 @@ export type SetListItemProps = {
   totalSecoes?: number | null;
   tom?: string | null;
   bpm?: number | null;
+  versaoUrl?: string | null;
   hasEstruturaOverride?: boolean;
   onPress: () => void;
   onEdit?: () => void;
@@ -37,6 +39,7 @@ function SetListItem({
   totalSecoes,
   tom,
   bpm,
+  versaoUrl,
   onPress,
   onActionsPress,
   onLongPress,
@@ -68,6 +71,7 @@ function SetListItem({
               <MusicBadge label={`TOM ${tom}`} color={tomColor} icon='music-clef-treble' />
             ) : null}
             {bpm ? <MusicBadge label={`BPM ${bpm}`} color={bpmColor} icon='metronome' /> : null}
+            <MusicListenButton url={versaoUrl} title={name} />
           </View>
         ),
         titleProps: {

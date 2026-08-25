@@ -9,6 +9,7 @@ import FancyText from '../../../../../../components/FancyText';
 import NotificationButton from '../../../../../../components/header/NotificationButton';
 import FancyTabs, { TabItem } from '../../../../../../components/tabs/FancyTabs';
 import RepertorioEtiquetasScreen from '../../../../../../components/pages/ministerios/louvor/repertorio/RepertorioEtiquetasScreen';
+import MusicListenButton from '../../../../../../components/song/MusicListenButton';
 import { useAuth } from '../../../../../../contexts/AuthContext';
 import { IgrejaVoluntarioRoleEnum } from '../../../../../../domain/enums/Igreja/voluntario-role.enum';
 import { MinisterioTipoEnum } from '../../../../../../domain/enums/Ministerio/ministerio-tipo.enum';
@@ -228,9 +229,6 @@ export default function MinisterioLouvorRepertorioIndexPage() {
           const etiquetasMusicaAtivas = (item.etiquetas ?? []).filter(
             (etiqueta) => etiqueta.ativo !== false,
           );
-          const hasBadges = Boolean(
-            etiquetasMusicaAtivas.length || item.tomOriginal || item.bpmOriginal,
-          );
           const dataInclusao = formatDataInclusaoRelativa(item.createdAt);
           return (
             <FancyListItemCard
@@ -244,45 +242,38 @@ export default function MinisterioLouvorRepertorioIndexPage() {
               title={item.nome}
               subtitle={item.interprete || 'Sem intérprete'}
               meta={
-                hasBadges || dataInclusao ? (
-                  <View>
-                    {hasBadges ? (
-                      <View style={styles.musicBadgesRow}>
-                        {etiquetasMusicaAtivas.map((etiqueta) => (
-                          <MusicBadge
-                            key={etiqueta.id}
-                            label={etiqueta.nome}
-                            color={etiqueta.cor}
-                          />
-                        ))}
-                        {item.tomOriginal ? (
-                          <MusicBadge
-                            label={`TOM ${item.tomOriginal}`}
-                            color={palette.secondary}
-                            icon='music-clef-treble'
-                          />
-                        ) : null}
-                        {item.bpmOriginal ? (
-                          <MusicBadge
-                            label={`BPM ${item.bpmOriginal}`}
-                            color={palette.terciary}
-                            icon='metronome'
-                          />
-                        ) : null}
-                      </View>
+                <View>
+                  <View style={styles.musicBadgesRow}>
+                    {etiquetasMusicaAtivas.map((etiqueta) => (
+                      <MusicBadge key={etiqueta.id} label={etiqueta.nome} color={etiqueta.cor} />
+                    ))}
+                    {item.tomOriginal ? (
+                      <MusicBadge
+                        label={`TOM ${item.tomOriginal}`}
+                        color={palette.secondary}
+                        icon='music-clef-treble'
+                      />
                     ) : null}
-                    {dataInclusao ? (
-                      <FancyText
-                        type='medium'
-                        size='extraSmall'
-                        color={palette.fonts.inactive}
-                        style={styles.dataInclusaoText}
-                      >
-                        {dataInclusao}
-                      </FancyText>
+                    {item.bpmOriginal ? (
+                      <MusicBadge
+                        label={`BPM ${item.bpmOriginal}`}
+                        color={palette.terciary}
+                        icon='metronome'
+                      />
                     ) : null}
+                    <MusicListenButton url={item.versaoUrl} title={item.nome} />
                   </View>
-                ) : undefined
+                  {dataInclusao ? (
+                    <FancyText
+                      type='medium'
+                      size='extraSmall'
+                      color={palette.fonts.inactive}
+                      style={styles.dataInclusaoText}
+                    >
+                      {dataInclusao}
+                    </FancyText>
+                  ) : null}
+                </View>
               }
               trailing={
                 canManageRepertorio

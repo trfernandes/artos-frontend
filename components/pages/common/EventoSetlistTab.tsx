@@ -557,6 +557,7 @@ export default function EventoSetlistTab({
         totalSecoes={item.totalSecoes}
         tom={item.tom}
         bpm={item.bpm}
+        versaoUrl={item.versaoUrl}
         onPress={() => openItemDetails(item)}
         onActionsPress={isEditable ? () => openItemActions(item) : undefined}
         onLongPress={isEditable ? drag : undefined}
