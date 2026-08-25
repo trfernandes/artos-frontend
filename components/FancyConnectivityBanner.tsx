@@ -14,11 +14,20 @@ export function ConnectivityBanner() {
 
   if (status === 'ok') return null;
 
-  const title = status === 'offline' ? 'Sem internet' : 'Servidor indisponível';
+  const title =
+    status === 'offline'
+      ? 'Sem internet'
+      : status === 'connecting'
+        ? 'Conectando...'
+        : 'Servidor indisponível';
   const subtitle =
     status === 'offline'
       ? 'Verifique sua conexão para continuar.'
-      : 'Tente novamente em instantes.';
+      : status === 'connecting'
+        ? 'Estabelecendo conexão com o servidor.'
+        : 'Tente novamente em instantes.';
+  // 'connecting' é neutro (ainda não é erro confirmado) — cor informativa, não vermelha.
+  const backgroundColor = status === 'connecting' ? palette.secondary : palette.error;
 
   return (
     <View
@@ -31,7 +40,7 @@ export function ConnectivityBanner() {
         paddingBottom: 10,
         paddingTop: 10,
         paddingHorizontal: 16,
-        backgroundColor: palette.error,
+        backgroundColor,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
