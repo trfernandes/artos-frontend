@@ -57,7 +57,7 @@ export default function EditProfilePage() {
       where: {
         conditions: [
           {
-            path: 'id',
+            path: 'voluntario.id',
             operator: Operator.EQUALS,
             value: { value: user?.user?.id!, type: ValueType.LITERAL },
           },

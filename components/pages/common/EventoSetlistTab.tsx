@@ -502,27 +502,6 @@ export default function EventoSetlistTab({
       {canAddMusic && (
         <View style={styles.listHeader}>
           <FancyButton
-            label='Músicas tocadas'
-            type='outlined'
-            size={34}
-            icon={{
-              library: 'MaterialCommunityIcons',
-              name: 'chart-bar',
-              size: 15,
-            }}
-            containerStyle={styles.addMusicButton}
-            onPress={() =>
-              router.push({
-                pathname: '/ministerios/louvor/repertorio/musicas-tocadas',
-                params: {
-                  ministerioId,
-                  eventoId,
-                  dataOcorrencia: dataOcorrenciaIso,
-                },
-              })
-            }
-          />
-          <FancyButton
             label='Nova música'
             type='contained'
             size={34}
