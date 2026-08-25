@@ -187,8 +187,10 @@ export default function EventoSetlistTab({
     });
   };
 
+  const observacoesDraftVazia = !observacoesDraft.trim();
+
   const handleSalvarObservacoes = async () => {
-    if (!ministerioId) return;
+    if (!ministerioId || observacoesDraftVazia) return;
 
     try {
       await salvarObservacoes({
@@ -387,7 +389,7 @@ export default function EventoSetlistTab({
               color={responsavelAtualNome ? palette.fonts.dark : palette.fonts.inactive}
               style={styles.ownerTitle}
             >
-              {isCurrentUserResponsavel ? 'Você' : responsavelAtualNome || 'Nenhum responsável'}
+              {responsavelAtualNome || 'Nenhum responsável'}
             </FancyText>
           </View>
         </View>
@@ -670,7 +672,7 @@ export default function EventoSetlistTab({
             icon={{ ...DefaultIconsNames.save, size: 16 }}
             isLoading={isSavingObservacoes}
             loadingText='Salvando...'
-            disabled={isSavingObservacoes}
+            disabled={isSavingObservacoes || observacoesDraftVazia}
             onPress={() => void handleSalvarObservacoes()}
           />
         }
@@ -686,6 +688,7 @@ export default function EventoSetlistTab({
               value={observacoesDraft}
               readonly={isSavingObservacoes}
               disabled={isSavingObservacoes}
+              errorMessage={observacoesDraftVazia ? 'Orientações não podem ficar em branco' : undefined}
               inputProps={{
                 onChangeText: isSavingObservacoes ? undefined : setObservacoesDraft,
                 multiline: true,

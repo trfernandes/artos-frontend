@@ -415,6 +415,7 @@ function FancyBottomSheetSelectInner<ValueItem>(
         transparent
         animationType='none'
         statusBarTranslucent
+        navigationBarTranslucent
         onRequestClose={handleClose}
         onDismiss={Platform.OS === 'ios' ? onClosed : undefined}
       >
