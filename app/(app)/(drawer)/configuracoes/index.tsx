@@ -9,7 +9,7 @@ import FancyScrollView from '../../../../components/FancyScrollView';
 import { DefaultIconsNames } from '../../../../constants/icons';
 import { useMemo, useState, useEffect, ReactNode } from 'react';
 import { useCallback } from 'react';
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIgrejaConfiguracoes } from '../../../../hooks/useIgrejaConfiguracoes';
 import { useAuth } from '../../../../contexts/AuthContext';
@@ -1239,6 +1239,16 @@ export default function ConfiguracoesPage() {
                       </FancyText>
                     </View>
                   }
+                />
+
+                <FancyListItemCard
+                  leading={{
+                    icon: { library: 'MaterialCommunityIcons', name: 'history' },
+                    type: 'icon',
+                  }}
+                  title='Log de auditoria'
+                  subtitle='Histórico de edições sensíveis feitas na igreja'
+                  onPress={() => router.push('/configuracoes/audit-log')}
                 />
               </SectionCard>
               <SectionCard

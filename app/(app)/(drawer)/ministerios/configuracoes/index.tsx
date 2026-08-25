@@ -7,6 +7,8 @@ import Toast from 'react-native-toast-message';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
 import FancyText from '../../../../../components/FancyText';
 import FancyButton from '../../../../../components/buttons/FancyButton';
+import FancyListItemCard from '../../../../../components/cards/FancyListItemCard';
+import FancyVerticalSpacer from '../../../../../components/FancyVerticalSpacer';
 import { ControlledImagePicker } from '../../../../../components/forms/ControlledImagePicker';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { usePallete } from '../../../../../hooks/usePallete';
@@ -109,6 +111,20 @@ export default function MinisterioConfiguracoesIndex() {
             setValue={setValue}
           />
         </View>
+
+        <FancyVerticalSpacer />
+
+        <FancyListItemCard
+          leading={{ icon: { library: 'MaterialCommunityIcons', name: 'history' }, type: 'icon' }}
+          title='Log de auditoria'
+          subtitle='Histórico de edições sensíveis feitas neste ministério'
+          onPress={() =>
+            router.push({
+              pathname: '/configuracoes/audit-log',
+              params: { ministerioId: ministerio?.id },
+            })
+          }
+        />
       </View>
 
       <FancyButton
