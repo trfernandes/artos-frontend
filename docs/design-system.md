@@ -903,10 +903,85 @@ Ramo A concluído (cor + tipografia + componentes aprovados) — implementar no 
 | Gráfico único com 2 barras (Escalas+Horas) no mesmo eixo                   | Escalas muito diferentes (contagem vs. duração) mentiriam num eixo compartilhado — nunca eixo duplo (`dataviz`) |
 | Anel proporcional (X de 5) ou cor-por-estado no avatar de Integrantes      | Rejeitados em favor do ponto binário — mais simples de ler numa lista densa, deliberadamente distinto do selo multi-ícone do Painel Admin da Plataforma |
 
+## Direção visual (`trfernandes-atelier-explore` Ramo A — aprovada 2026-08-24)
+
+> Fidelidade escolhida: **Artifact único** (protótipo HTML), não rota real no projeto — os mockups
+> já usavam tokens/fontes/formato de componente reais desde a 3ª rodada de refinamento do concept,
+> então as 3 camadas foram formalizadas em cima do artifact existente
+> (`https://claude.ai/code/artifact/55167dea-7650-4513-9905-99d1272ef318`), sem recomeçar do zero.
+
+### Cor
+
+| Papel                                     | Token                          | Hex (light)          | Hex (dark)      |
+| ------------------------------------------ | ------------------------------ | --------------------- | ---------------- |
+| Identidade da seção Saúde (borda/tab ativa) | `palette.secondary`            | `#8E44AD`             | `#8E44AD`        |
+| Gráfico — série "Escalas"                 | `palette.primary`              | `#3B82F6`              | `#3B82F6`         |
+| Gráfico — série "Horas"                   | `palette.secondary`            | `#8E44AD`              | `#8E44AD`         |
+| Estado "atenção" (badge, label, threshold) | novo — `warning-text`         | `#8a5a00` (escurecido) | `#F5A623` (puro) |
+| Estado "bom/tratado"                       | `palette.confirm`              | `#228B22`              | `#228B22`         |
+
+- `primary`/`secondary` como ordem categórica fixa dos gráficos (nunca cycled) — validado via
+  `validate_palette.js`: CVD ΔE 12.0 (deutan)/19.2 (normal) entre o par, ambos acima do piso de
+  8/15.
+- `warning`/`confirm` são cores de **estado**, nunca identidade de série — reforça a regra do
+  `dataviz` (status colors reservadas).
+- **Achado corrigido nesta rodada**: o ponto de notificação da aba (`badge`) e os labels de atenção
+  (`acomp-state.wait`/`.reopen`, threshold do gráfico) usavam `warning` puro ou um hex hardcoded
+  (`#8a5a00`) sem variante dark. `warning` puro (`#F5A623`) contra o fundo claro
+  (`app-bg2`/`#F2F2F7`) mede **1.82:1**, abaixo do piso de 3:1 pra componente de UI. Fix: token novo
+  `--warning-text`, tema-aware — `#8a5a00` no claro (5.31:1 contra `#F2F2F7`) e `warning` puro no
+  escuro (8.59:1 contra `#1A1A1A` — o próprio `#8a5a00` falha no escuro, 2.94:1). Aplicado nos 3
+  lugares que usavam o hex solto.
+
+### Tipografia
+
+Nenhuma fonte nova — Montserrat via `FancyText`, já fixo no app inteiro.
+
+| Elemento                                  | Tamanho/peso aproximado (`FancyText` size/type) |
+| ------------------------------------------ | ------------------------------------------------ |
+| Título de card (ex: "Louvor", nome do bloco) | ~12.5px / bold                                  |
+| Corpo / frase de leitura direta            | ~11px / medium-semiBold                          |
+| Label micro (uppercase, pin/tag)           | ~8.5-9.5px / bold                                |
+| Valor direto no gráfico (barra/linha)      | ~8px / bold                                      |
+| CTA / botão                                | ~11.5px / bold                                   |
+
+### Componentes
+
+- **"Recibo de Cuidado"** (elemento-assinatura, sistematizado): bloco de Acompanhamento (4 estados
+  — calm/wait/done/reopen, cada um com cor de fundo tintada + label de estado) + botão "já tratei"
+  como par inseparável — nunca um sem o outro.
+- **Card de Saúde** (`health-card`): borda `secondary` 1.5px + fundo tintado `secondary` 6-8% —
+  container-base reutilizado por todo bloco novo desta feature (gráfico, timeline, colapsável,
+  acompanhamento), nunca um card genérico do app.
+- **Timeline vertical**: trilha lateral + pontos (calm=`confirm`, ativo=`secondary`,
+  ação=`secondary` preenchido) + data + frase — substitui o card de frases horizontal descartado.
+- **Card colapsável "como funciona"**: ícone circular "?" + título + chevron + corpo expansível —
+  substitui a tela cheia dedicada.
+- **Toggle Escalas/Horas**: par de pills, ativa em `secondary` sólido — reaproveita o mesmo formato
+  de pílula das abas (`FancyTabHeaderItem`), não um segmented control novo.
+- **Ponto binário no avatar** (Integrantes): dot 8-10px, cor `warning-text`, anel na cor do fundo —
+  presença/ausência, sem informação de tipo/quantidade.
+
+### Motivo gráfico — "Trilha do Cuidado"
+
+Derivado da linha do tempo vertical (trilha + pontos), o motivo se repete em 3 lugares
+estruturalmente diferentes: (1) a trilha de tendência dentro do card de sobrecarga (2 pontos,
+trimestre anterior/agora), (2) a linha do tempo vertical completa (N pontos, histórico de eventos),
+(3) o ponto binário isolado no avatar de Integrantes (1 ponto, sem trilha — a forma reduzida ao
+mínimo). Não é decorativo — é o mesmo vocabulário visual (ponto = evento/estado num percurso de
+cuidado) em 3 densidades de informação diferentes.
+
+### Inventário de gráficos e ilustrações
+
+| Gráfico/ilustração                              | Forma escolhida                          | Justificativa                                                                 |
+| ------------------------------------------------- | ------------------------------------------ | -------------------------------------------------------------------------------- |
+| Mini-preview do Dashboard (Escalas + Sinais ativos) | Linha dupla normalizada + legenda         | 2 séries de unidades diferentes; normalização mostra forma da tendência sem eixo duplo enganoso |
+| "Nível de sobrecarga" (Escalas/Horas)             | Barra (com toggle de métrica)              | Contagem/duração discretas por mês — barra é a forma correta pra magnitude discreta, nunca linha |
+| Linha de referência "ritmo de atenção"             | Linha tracejada + label                    | Threshold real do domínio (12 escalas/3 meses) precisa ser lido junto ao dado, não só documentado à parte |
+| Timeline vertical                                 | Trilha + pontos + frase                    | Sequência de eventos datados — forma de linha do tempo, não lista genérica     |
+| Ponto binário no avatar                           | Dot simples                                | Presença/ausência é dado categórico, não vale a pena gráfico de forma mais rica pra isso |
+
 ## Próximo passo
 
-Conceito fechado e aprovado pelo usuário — bora pra cor/tipografia/componentes
-(`trfernandes-atelier-explore`, Ramo A), usando só os tokens reais já usados nos mockups desta
-sessão (`usePallete()`/`constants/colors.ts` — `secondary` como identidade da seção Saúde,
-`primary`/`secondary`/`terciary` como ordem categórica dos gráficos, `warning`/`confirm` reservados
-pra estado).
+Ramo A concluído (cor + tipografia + componentes aprovados, achado de contraste corrigido) — rodar
+`trfernandes-atelier-audit` antes de prosseguir.
