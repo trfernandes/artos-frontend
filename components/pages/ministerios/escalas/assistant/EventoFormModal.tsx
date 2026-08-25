@@ -62,7 +62,7 @@ export default function EventoFormModal({
           },
         ],
       },
-      relations: ['voluntarios.voluntario', 'voluntarios.funcao', 'funcoes.funcao'],
+      relations: ['voluntarios.voluntario', 'voluntarios.funcao', 'funcoes.opcoes.funcao'],
       orderBy: [{ path: 'nome', direction: OrderDirection.ASC }],
     }),
     [ministerioId],

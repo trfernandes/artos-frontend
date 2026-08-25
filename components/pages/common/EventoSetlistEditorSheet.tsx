@@ -7,6 +7,7 @@ import Toast from 'react-native-toast-message';
 import FancyBottomSheetModal from '../../modal/FancyBottomSheetModal';
 import FancyButton from '../../buttons/FancyButton';
 import FancyBottomSheetSelect from '../../fields/FancyBottomSheetSelect';
+import RepertorioMusicaPickerSheet from './RepertorioMusicaPickerSheet';
 import FancyBpmField from '../../fields/FancyBpmField';
 import FancyTextInput from '../../fields/FancyTextInput';
 import SongTextEditorField from '../../song/SongTextEditorField';
@@ -25,7 +26,6 @@ import {
 import { ResponseRepertorioMusicaDto } from '../../../domain/dtos/Repertorio/repertorio-musica.response';
 import { ResponseYoutubeSearchItemDto } from '../../../domain/dtos/Repertorio/youtube-search-item.response';
 import { useMusicasTocadasRelatorio } from '../../../hooks/useMusicasTocadasRelatorio';
-import { format, parseISO } from 'date-fns';
 
 type Props = {
   visible: boolean;
@@ -129,31 +129,10 @@ export default function EventoSetlistEditorSheet({
     setNomeError(false);
   }, [item, visible]);
 
-  const repertorioOptions = useMemo(
-    () =>
-      repertorio.map((musica) => {
-        const stats = statsPorMusicaId.get(musica.id);
-        const statsLabel = !relatorioQuery.data
-          ? ''
-          : stats && stats.totalExecucoes > 0
-            ? `tocada ${stats.totalExecucoes}x${
-                stats.ultimaExecucaoEm
-                  ? ` · última vez ${format(parseISO(stats.ultimaExecucaoEm), 'dd/MM')}`
-                  : ''
-              }`
-            : 'nunca tocada';
-        return {
-          title: musica.nome,
-          subtitle: [
-            musica.interprete || musica.etiquetas?.map((etiqueta) => etiqueta.nome).join(', '),
-            statsLabel,
-          ]
-            .filter(Boolean)
-            .join(' · '),
-          value: musica.id,
-        };
-      }),
-    [repertorio, statsPorMusicaId, relatorioQuery.data],
+  const [repertorioPickerVisible, setRepertorioPickerVisible] = useState(false);
+  const selectedRepertorioMusica = useMemo(
+    () => repertorio.find((musica) => musica.id === repertorioMusicaId),
+    [repertorio, repertorioMusicaId],
   );
 
   const toneOptions = useMemo(() => TONS.map((tone) => ({ title: tone, value: tone })), []);
@@ -264,16 +243,56 @@ export default function EventoSetlistEditorSheet({
           />
 
           {tipoOrigem === EventoSetlistItemOrigemEnum.REPERTORIO ? (
-            <>
-              <FancyBottomSheetSelect
-                label='Música do repertório'
-                title='Selecionar música do repertório'
-                value={repertorioMusicaId}
-                onChange={(value) => hydrateFromRepertorio(String(value))}
-                listItems={repertorioOptions}
+            <View style={styles.repertorioPickerField}>
+              <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
+                Música do repertório
+              </FancyText>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.repertorioPickerTrigger,
+                  { borderColor: palette.border, backgroundColor: palette.backgroundColor },
+                  (!isEditingEnabled || !!item?.id) && { backgroundColor: palette.disabled },
+                  pressed &&
+                    isEditingEnabled &&
+                    !item?.id && { borderColor: palette.primary },
+                ]}
                 disabled={!isEditingEnabled || !!item?.id}
+                onPress={() => setRepertorioPickerVisible(true)}
+              >
+                <FancyText
+                  style={styles.repertorioPickerTriggerText}
+                  color={
+                    !isEditingEnabled
+                      ? palette.fonts.inactive
+                      : selectedRepertorioMusica
+                        ? palette.fonts.dark
+                        : palette.fonts.inactive
+                  }
+                  numberOfLines={1}
+                >
+                  {selectedRepertorioMusica ? selectedRepertorioMusica.nome : 'Selecione...'}
+                </FancyText>
+                <MaterialCommunityIcons
+                  name='chevron-down'
+                  size={22}
+                  color={
+                    !isEditingEnabled || !!item?.id
+                      ? palette.icons.inactive2
+                      : palette.icons.inactive
+                  }
+                />
+              </Pressable>
+
+              <RepertorioMusicaPickerSheet
+                visible={repertorioPickerVisible}
+                onClose={() => setRepertorioPickerVisible(false)}
+                repertorio={repertorio}
+                value={repertorioMusicaId}
+                onSelect={hydrateFromRepertorio}
+                statsPorMusicaId={statsPorMusicaId}
+                hasStats={!!relatorioQuery.data}
               />
-            </>
+            </View>
           ) : null}
         </View>
       ) : null}
@@ -512,6 +531,22 @@ const styles = StyleSheet.create({
   },
   originHelperText: {
     lineHeight: 18,
+  },
+  repertorioPickerField: {
+    gap: 6,
+  },
+  repertorioPickerTrigger: {
+    borderWidth: 0.6,
+    borderRadius: 12,
+    height: 44,
+    paddingHorizontal: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  repertorioPickerTriggerText: {
+    flex: 1,
   },
   inlineRow: {
     flexDirection: 'row',

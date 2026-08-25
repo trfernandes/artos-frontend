@@ -17,6 +17,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import ControlledSearchSelect from '../../../../forms/ControlledSearchSelect';
+import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
 
 export interface AdicionarItemManualModalProps {
   visible: boolean;
@@ -85,8 +86,8 @@ export default function AdicionarItemManualModal({
         conditions: [
           {
             path: 'ministerio.id',
-            operator: 'EQUALS' as any,
-            value: { type: 'LITERAL' as any, value: ministerioId },
+            operator: Operator.EQUALS,
+            value: { type: ValueType.LITERAL, value: ministerioId },
           },
         ],
       },

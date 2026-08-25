@@ -35,7 +35,6 @@ function SetListItem({
   order,
   name,
   artist,
-  tipoOrigem,
   totalSecoes,
   tom,
   bpm,
@@ -47,13 +46,11 @@ function SetListItem({
   isActive = false,
 }: SetListItemProps) {
   const palette = usePallete();
-  const isAuto = tipoOrigem === EventoSetlistItemOrigemEnum.REPERTORIO;
   const orderLabel = String(order).padStart(2, '0');
   const musicMetaParts = [tom ? `Tom ${tom}` : null, bpm ? `BPM ${bpm}` : null].filter(
     Boolean,
   ) as string[];
   const musicMetaLabel = musicMetaParts.join(', ');
-  const typeColor = isAuto ? palette.confirm : palette.primary;
   const tomColor = palette.secondary;
   const bpmColor = palette.terciary;
 
@@ -66,7 +63,6 @@ function SetListItem({
         subtitle: artist || undefined,
         additionalData1: (
           <View style={styles.metaRow}>
-            <MusicBadge label={isAuto ? 'AUTO' : 'MANUAL'} color={typeColor} dot />
             {tom ? (
               <MusicBadge label={`TOM ${tom}`} color={tomColor} icon='music-clef-treble' />
             ) : null}

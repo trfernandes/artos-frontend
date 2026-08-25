@@ -64,6 +64,7 @@ export function GlobalModalHost() {
       transparent
       animationType='fade'
       statusBarTranslucent
+      navigationBarTranslucent
       onRequestClose={() => {
         const top = stack[stack.length - 1];
         top?.onRequestClose?.();

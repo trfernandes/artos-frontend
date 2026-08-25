@@ -187,8 +187,10 @@ export default function EventoSetlistTab({
     });
   };
 
+  const observacoesDraftVazia = !observacoesDraft.trim();
+
   const handleSalvarObservacoes = async () => {
-    if (!ministerioId) return;
+    if (!ministerioId || observacoesDraftVazia) return;
 
     try {
       await salvarObservacoes({
@@ -387,7 +389,7 @@ export default function EventoSetlistTab({
               color={responsavelAtualNome ? palette.fonts.dark : palette.fonts.inactive}
               style={styles.ownerTitle}
             >
-              {isCurrentUserResponsavel ? 'Você' : responsavelAtualNome || 'Nenhum responsável'}
+              {responsavelAtualNome || 'Nenhum responsável'}
             </FancyText>
           </View>
         </View>
@@ -501,27 +503,6 @@ export default function EventoSetlistTab({
 
       {canAddMusic && (
         <View style={styles.listHeader}>
-          <FancyButton
-            label='Músicas tocadas'
-            type='outlined'
-            size={34}
-            icon={{
-              library: 'MaterialCommunityIcons',
-              name: 'chart-bar',
-              size: 15,
-            }}
-            containerStyle={styles.addMusicButton}
-            onPress={() =>
-              router.push({
-                pathname: '/ministerios/louvor/repertorio/musicas-tocadas',
-                params: {
-                  ministerioId,
-                  eventoId,
-                  dataOcorrencia: dataOcorrenciaIso,
-                },
-              })
-            }
-          />
           <FancyButton
             label='Nova música'
             type='contained'
@@ -692,7 +673,7 @@ export default function EventoSetlistTab({
             icon={{ ...DefaultIconsNames.save, size: 16 }}
             isLoading={isSavingObservacoes}
             loadingText='Salvando...'
-            disabled={isSavingObservacoes}
+            disabled={isSavingObservacoes || observacoesDraftVazia}
             onPress={() => void handleSalvarObservacoes()}
           />
         }
@@ -708,6 +689,7 @@ export default function EventoSetlistTab({
               value={observacoesDraft}
               readonly={isSavingObservacoes}
               disabled={isSavingObservacoes}
+              errorMessage={observacoesDraftVazia ? 'Orientações não podem ficar em branco' : undefined}
               inputProps={{
                 onChangeText: isSavingObservacoes ? undefined : setObservacoesDraft,
                 multiline: true,

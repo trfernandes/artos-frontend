@@ -36,7 +36,7 @@ export default function MinisterioTemplatesEditPage() {
       relations: [
         'voluntarios.voluntario',
         'voluntarios.funcao',
-        'funcoes.funcao',
+        'funcoes.opcoes.funcao',
         'respSetListVoluntarios',
         'respSetListFuncoes',
       ],

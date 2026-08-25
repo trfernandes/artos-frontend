@@ -239,14 +239,21 @@ function FancyBottomSheetSelectInner<ValueItem>(
               }
             />
           )}
-          <FancyText
-            style={[
-              styles.itemText,
-              isSelected && { color: palette.primary, fontFamily: BOLD_FONT },
-            ]}
-          >
-            {item.title}
-          </FancyText>
+          <View style={styles.itemTextContainer}>
+            <FancyText
+              style={[
+                styles.itemText,
+                isSelected && { color: palette.primary, fontFamily: BOLD_FONT },
+              ]}
+            >
+              {item.title}
+            </FancyText>
+            {item.subtitle && (
+              <FancyText type='mediumItalic' size='extraSmall' color={palette.fonts.inactive}>
+                {item.subtitle}
+              </FancyText>
+            )}
+          </View>
           {isSelected && (
             <View style={styles.checkContainer}>
               <DefaultIcons.Custom
@@ -408,6 +415,7 @@ function FancyBottomSheetSelectInner<ValueItem>(
         transparent
         animationType='none'
         statusBarTranslucent
+        navigationBarTranslucent
         onRequestClose={handleClose}
         onDismiss={Platform.OS === 'ios' ? onClosed : undefined}
       >
@@ -537,6 +545,10 @@ function createStyles(palette: ThemePalette) {
       paddingHorizontal: 16,
       gap: 12,
       borderRadius: 12,
+    },
+    itemTextContainer: {
+      flex: 1,
+      gap: 2,
     },
     itemText: {
       fontFamily: MEDIUM_FONT,
