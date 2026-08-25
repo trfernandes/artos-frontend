@@ -127,6 +127,27 @@ volta a ultrapassar) — não é notificação única na vida do Voluntário.
 - Voluntário vê o próprio indicador de Sobrecarga na tela pessoal, com texto orientativo (sem botão
   de ação — não existe fluxo de sair de Ministério pelo próprio Voluntário hoje).
 
+## Log de Auditoria (rastreabilidade)
+
+**Log de Auditoria**: Registro persistido (`AuditLogEntity`) de edição sensível em Escalas,
+Ministérios, Configurações de Igreja, e Vínculos (Voluntário-Ministério). Cada entrada tem autor,
+ação (Criação/Edição/Exclusão), entidade afetada, descrição pronta pra exibir, e snapshot opcional
+de antes/depois. _Avoid_: confundir com o array `auditoria` em memória do
+`GeradorDeEscalas.executar()` (avaliação de regras por candidato durante geração — não persiste, não
+é sobre ações administrativas).
+
+Visibilidade: Admin da Igreja vê todos os logs (cross-Ministério); Líder vê só os do próprio
+Ministério. Decisão 2026-08-25 (grilling).
+
+## Evento.tipo (Culto / Reunião / Ensaio)
+
+**Tipo de Evento**: Classificação de um Evento em `Culto`, `Reunião`, ou `Ensaio`. Só Evento do tipo
+Culto participa da geração automática de Escala, tem Escala/equipe (mesmo atribuição manual), e tem
+Setlist. Reunião e Ensaio não têm nenhum dos três — mesmo Ensaio existindo pra "ensaiar repertório",
+decisão explícita do usuário (2026-08-25, confirmada 2x em grilling) foi não ligar Setlist a Ensaio
+neste momento. _Avoid_: assumir que Ensaio precisa de Setlist só porque é a razão intuitiva de
+existir do conceito — decisão registrada é o contrário.
+
 ## Tutorial interativo (tours)
 
 - **Tour**: sequência curta de passos guiados sobre uma única tela do app, disparada manualmente
