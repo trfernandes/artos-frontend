@@ -2,6 +2,7 @@ import { RecorrenciaDiaSemanaEnum } from '../../enums/Evento/recorrencia-dia-sem
 import { RecorrenciaSemanaMesEnum } from '../../enums/Evento/recorrencia-semana-mes.enum';
 import { RecorrenciaEnum } from '../../enums/Evento/recorrencia.enum';
 import { TemplatePadraoOrigemEnum } from '../../enums/Evento/template-padrao-origem.enum';
+import { EventoTipoEnum } from '../../enums/Evento/evento-tipo.enum';
 import { ResponseEscalaTemplateDto } from '../EscalaTemplate/escala-template.response';
 import { ResponseIgrejaDto } from '../Igreja/response-igreja.dto';
 
@@ -18,6 +19,7 @@ export type ResponseEventoDto = {
   dataFimRecorrencia?: string;
   local?: string;
   cor: string;
+  tipo: EventoTipoEnum;
   recorrencia: RecorrenciaEnum;
   recorrenciaSemanaDias?: RecorrenciaDiaSemanaEnum[];
   recorrenciaACadaMeses?: number;

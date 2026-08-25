@@ -1,6 +1,7 @@
 import { RecorrenciaDiaSemanaEnum } from '../../enums/Evento/recorrencia-dia-semana.enum';
 import { RecorrenciaSemanaMesEnum } from '../../enums/Evento/recorrencia-semana-mes.enum';
 import { RecorrenciaEnum } from '../../enums/Evento/recorrencia.enum';
+import { EventoTipoEnum } from '../../enums/Evento/evento-tipo.enum';
 
 export type CreateEventoDto = {
   igrejaId: string;
@@ -11,6 +12,7 @@ export type CreateEventoDto = {
   dataFimRecorrencia?: string;
   local?: string;
   cor: string;
+  tipo?: EventoTipoEnum;
   recorrencia: RecorrenciaEnum;
   recorrenciaSemanaDias?: RecorrenciaDiaSemanaEnum[];
   recorrenciaACadaMeses?: number;

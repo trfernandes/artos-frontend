@@ -65,6 +65,7 @@ export default function EventosEditPage() {
           : undefined,
       );
       eventoForm.setValue('descricao', eventosData[0]?.descricao ?? '');
+      eventoForm.setValue('tipo', eventosData[0]?.tipo);
       eventoForm.setValue('recorrencia', eventosData[0]?.recorrencia);
       eventoForm.setValue(
         'recorrenciaSemanaDias',

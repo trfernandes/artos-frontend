@@ -2,6 +2,7 @@ import z from 'zod';
 import { RecorrenciaDiaSemanaEnum } from '../enums/Evento/recorrencia-dia-semana.enum';
 import { RecorrenciaSemanaMesEnum } from '../enums/Evento/recorrencia-semana-mes.enum';
 import { RecorrenciaEnum } from '../enums/Evento/recorrencia.enum';
+import { EventoTipoEnum } from '../enums/Evento/evento-tipo.enum';
 import { isBefore } from 'date-fns';
 
 export const eventoSchema = z
@@ -22,6 +23,7 @@ export const eventoSchema = z
     dataFimRecorrencia: z.date().optional(),
     local: z.string().max(255, 'O local pode ter no máximo 255 caracteres').optional(),
     cor: z.string().regex(/^#([0-9A-Fa-f]{3}){1,2}$/, 'Cor inválida'),
+    tipo: z.enum(EventoTipoEnum).optional(),
     recorrencia: z.enum(RecorrenciaEnum).optional(),
     recorrenciaSemanaDias: z.array(z.enum(RecorrenciaDiaSemanaEnum)).optional(),
     recorrenciaACadaMeses: z

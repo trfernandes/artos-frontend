@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
 import { eventoSchema } from '../../../../../domain/schemas/eventoSchema';
 import { RecorrenciaEnum } from '../../../../../domain/enums/Evento/recorrencia.enum';
+import { EventoTipoEnum } from '../../../../../domain/enums/Evento/evento-tipo.enum';
 import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
 import { DateUtilsApi } from '../../../../../utils/date_utils';
 import { CreateEventoDto } from '../../../../../domain/dtos/Evento/evento.create';
@@ -42,6 +43,7 @@ export default function EventosAddPage() {
   const form = useForm({
     resolver: zodResolver(eventoSchema),
     defaultValues: {
+      tipo: EventoTipoEnum.Culto,
       recorrencia: RecorrenciaEnum.Nunca,
       cor: Pallete.primary,
       dataInicio: dataInicio,
@@ -64,6 +66,7 @@ export default function EventosAddPage() {
           dataFimRecorrencia:
             payload.dataFimRecorrencia && DateUtilsApi.dateTimeToApi(payload.dataFimRecorrencia),
           recorrencia: payload.recorrencia || RecorrenciaEnum.Nunca,
+          tipo: payload.tipo || EventoTipoEnum.Culto,
         };
         await add(newEvento);
         router.back();

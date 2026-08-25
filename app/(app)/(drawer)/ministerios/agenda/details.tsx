@@ -16,6 +16,7 @@ import { ResponseEventoOcorrenciaDto } from '../../../../../domain/dtos/Evento/e
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { isLouvorMinisterioTipo } from '../../../../../utils/evento-ensaio';
+import { EventoTipoEnum } from '../../../../../domain/enums/Evento/evento-tipo.enum';
 import { canManageEventoOcorrencia } from '../../../../../utils/ministerio_permissoes';
 
 type ExitChoice = 'cancel' | 'discard' | 'save';
@@ -158,6 +159,9 @@ export default function MinisterioAgendaDetailsPage() {
     return unsubscribe;
   }, [hasUnsavedChanges, navigation, promptExitConfirmation]);
 
+  // Reunião/Ensaio não têm Escala/equipe nem Setlist — só Evento do tipo Culto tem.
+  const isEventoCulto = data[0]?.tipo === undefined || data[0]?.tipo === EventoTipoEnum.Culto;
+
   const tab_items: TabItem[] = useMemo(() => {
     const tabs: TabItem[] = [
       {
@@ -178,7 +182,10 @@ export default function MinisterioAgendaDetailsPage() {
           />
         ),
       },
-      {
+    ];
+
+    if (isEventoCulto) {
+      tabs.push({
         title: 'Equipe',
         icon: { ...DefaultIconsNames.group, size: 20 },
         content: (
@@ -189,10 +196,10 @@ export default function MinisterioAgendaDetailsPage() {
             modo={canManageAgenda ? 'lider' : 'voluntario'}
           />
         ),
-      },
-    ];
+      });
+    }
 
-    if (isLouvorMinisterio) {
+    if (isLouvorMinisterio && isEventoCulto) {
       tabs.push({
         title: 'SetList',
         icon: { library: 'MaterialCommunityIcons', name: 'playlist-music-outline', size: 18 },
@@ -215,6 +222,7 @@ export default function MinisterioAgendaDetailsPage() {
     carregarOcorrenciaAtual,
     data,
     eventoId,
+    isEventoCulto,
     isLouvorMinisterio,
     ocorrenciaAtual,
     params.dataOcorrencia,
