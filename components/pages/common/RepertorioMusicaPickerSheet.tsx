@@ -7,6 +7,7 @@ import FancyBottomSheetModal from '../../modal/FancyBottomSheetModal';
 import FancyText from '../../FancyText';
 import FancySeparator from '../../FancySeparator';
 import DefaultIcons from '../../FancyIcons';
+import MusicListenButton from '../../song/MusicListenButton';
 import { usePallete } from '../../../hooks/usePallete';
 import { ColorUtils } from '../../../utils/color_utils';
 import { ResponseRepertorioMusicaDto } from '../../../domain/dtos/Repertorio/repertorio-musica.response';
@@ -137,6 +138,10 @@ export default function RepertorioMusicaPickerSheet({
                       {ultimaExecucaoLabel ? ` · ${ultimaExecucaoLabel}` : ''}
                     </FancyText>
                   )}
+
+                  <View style={styles.listenRow}>
+                    <MusicListenButton url={musica.versaoUrl} title={musica.nome} />
+                  </View>
                 </View>
 
                 {isSelected && (
@@ -212,5 +217,9 @@ const styles = StyleSheet.create({
   },
   frequenciaText: {
     marginTop: 1,
+  },
+  listenRow: {
+    flexDirection: 'row',
+    marginTop: 3,
   },
 });
