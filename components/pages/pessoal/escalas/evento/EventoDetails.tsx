@@ -6,7 +6,14 @@ import FancyPageView from '../../../../containers/FancyPageView';
 import { useMemo } from 'react';
 import { usePallete } from '../../../../../hooks/usePallete';
 import EventoInfoCard from '../../../common/EventoInfoCard';
+import EventoSetlistTab from '../../../common/EventoSetlistTab';
 import { ResponseEventoDto } from '../../../../../domain/dtos/Evento/evento.response';
+import { useAuth } from '../../../../../contexts/AuthContext';
+import {
+  canManageEventoOcorrencia,
+  getMinisterioLoginAccess,
+} from '../../../../../utils/ministerio_permissoes';
+import { MinisterioTipoEnum } from '../../../../../domain/enums/Ministerio/ministerio-tipo.enum';
 
 export default function EventoDetails(props: {
   evento: ResponseEventoDto;
@@ -18,8 +25,20 @@ export default function EventoDetails(props: {
   responsavelSetlistNome?: string;
 }) {
   const Pallete = usePallete();
+  const { igrejaAtiva, user } = useAuth();
 
   const TABS_DATA: TabItem[] = useMemo(() => {
+    const ministerio = getMinisterioLoginAccess(igrejaAtiva, props.ministerioId);
+    const isMinisterioLouvor = ministerio?.tipo === MinisterioTipoEnum.Louvor;
+    const setlistMode: 'lider' | 'responsavel' | 'leitura' = canManageEventoOcorrencia(
+      igrejaAtiva,
+      props.ministerioId,
+    )
+      ? 'lider'
+      : props.responsavelSetlistVoluntarioId && props.responsavelSetlistVoluntarioId === user?.user.id
+        ? 'responsavel'
+        : 'leitura';
+
     const tabs: TabItem[] = [
       {
         title: 'Dados',
@@ -51,14 +70,34 @@ export default function EventoDetails(props: {
       },
     ];
 
+    if (isMinisterioLouvor) {
+      tabs.push({
+        title: 'Setlist',
+        icon: { library: 'MaterialCommunityIcons', name: 'playlist-music', size: 20, style: { marginTop: 0 } },
+        content: (
+          <EventoSetlistTab
+            eventoId={props.evento.id!}
+            dataOcorrencia={props.dataOcorrencia}
+            ministerioId={props.ministerioId}
+            mode={setlistMode}
+            responsavelSetlistNome={props.responsavelSetlistNome}
+            detailsRoutePath='/pessoal/escalas/setlist/[itemId]'
+          />
+        ),
+      });
+    }
+
     return tabs;
   }, [
+    igrejaAtiva,
+    user,
     props.dataOcorrencia,
     props.evento,
     props.horarioEnsaio,
     props.ministerioId,
     props.ministerioNome,
     props.responsavelSetlistNome,
+    props.responsavelSetlistVoluntarioId,
   ]);
 
   return (
