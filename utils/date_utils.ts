@@ -1,5 +1,6 @@
 import {
   differenceInCalendarDays,
+  endOfDay,
   format,
   isSameDay,
   isValid,
@@ -110,6 +111,10 @@ const DateUtils = {
   localDayToUtcDate(date: Date): Date {
     const localDay = this.normalizeLocalDay(date);
     return fromZonedTime(localDay, APP_TZ); // TZ -> UTC
+  },
+  localDayEndToUtcDate(date: Date): Date {
+    const localDay = this.normalizeLocalDay(date);
+    return fromZonedTime(endOfDay(localDay), APP_TZ); // fim do dia local -> UTC
   },
   dayKey(date: Date): string {
     return formatInTimeZone(date, APP_TZ, 'yyyy-MM-dd');
