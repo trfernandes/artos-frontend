@@ -6,7 +6,7 @@ import {
   EscalaEventoTemplateFuncaoFormData,
   EscalaEventoTemplateSchema,
 } from '../../../../../domain/schemas/escalaSchema';
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -288,7 +288,11 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
   return (
     <FancyModalDialog
       {...modalProps}
-      title={`${data?.nome} - ${format(data?.dataOcorrencia!, 'dd/MM/yyyy HH:ss')}`}
+      title={
+        data?.dataOcorrencia && isValid(data.dataOcorrencia)
+          ? `${data?.nome} - ${format(data.dataOcorrencia, 'dd/MM/yyyy HH:mm')}`
+          : (data?.nome ?? '')
+      }
       titleAlign='left'
       onButton2Press={(_) => {
         formTemplate.handleSubmit(
