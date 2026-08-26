@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import FancyText from '../FancyText';
 import { usePallete } from '../../hooks/usePallete';
 import { ColorUtils } from '../../utils/color_utils';
-import { detectMusicLinkService } from '../../utils/musicLinkUtils';
+import { detectMusicLinkService, isOpenableMusicUrl, toOpenableMusicUrl } from '../../utils/musicLinkUtils';
 
 type Props = {
   url?: string | null;
@@ -15,7 +15,7 @@ export default function MusicListenButton({ url, showLabel = false }: Props) {
   const palette = usePallete();
 
   const trimmedUrl = url?.trim() || '';
-  const hasUrl = trimmedUrl.length > 0;
+  const hasUrl = trimmedUrl.length > 0 && isOpenableMusicUrl(trimmedUrl);
   const service = hasUrl ? detectMusicLinkService(trimmedUrl) : null;
 
   const icon: keyof typeof MaterialCommunityIcons.glyphMap = !hasUrl
@@ -36,7 +36,7 @@ export default function MusicListenButton({ url, showLabel = false }: Props) {
 
   const handlePress = () => {
     if (!hasUrl) return;
-    void Linking.openURL(trimmedUrl);
+    void Linking.openURL(toOpenableMusicUrl(trimmedUrl));
   };
 
   return (

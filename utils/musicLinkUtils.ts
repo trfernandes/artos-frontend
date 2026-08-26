@@ -13,12 +13,29 @@ function safeHostname(url: string): string | null {
   }
 }
 
+function isHostOrSubdomain(host: string, domain: string): boolean {
+  return host === domain || host.endsWith(`.${domain}`);
+}
+
 export function detectMusicLinkService(url: string): MusicLinkService {
   const host = safeHostname(url);
   if (!host) return 'generic';
-  if (host.includes('youtube.com') || host.includes('youtu.be')) return 'youtube';
-  if (host.includes('spotify.com')) return 'spotify';
+  if (isHostOrSubdomain(host, 'youtube.com') || isHostOrSubdomain(host, 'youtu.be')) return 'youtube';
+  if (isHostOrSubdomain(host, 'spotify.com')) return 'spotify';
   return 'generic';
+}
+
+export function isOpenableMusicUrl(url: string): boolean {
+  try {
+    const protocol = new URL(normalizeUrl(url)).protocol;
+    return protocol === 'https:' || protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
+export function toOpenableMusicUrl(url: string): string {
+  return normalizeUrl(url);
 }
 
 export function extractYoutubeVideoId(url: string): string | null {

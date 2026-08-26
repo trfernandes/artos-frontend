@@ -7,7 +7,7 @@ import { usePallete } from '../../../hooks/usePallete';
 import { ColorUtils } from '../../../utils/color_utils';
 import { ResponseRepertorioEtiquetaDto } from '../../../domain/dtos/Repertorio/repertorio-etiqueta.response';
 import { FancyCard } from '../../cards/Horizontal/FancyCard';
-import { detectMusicLinkService } from '../../../utils/musicLinkUtils';
+import { detectMusicLinkService, isOpenableMusicUrl, toOpenableMusicUrl } from '../../../utils/musicLinkUtils';
 
 export type SetListItemProps = {
   order: number;
@@ -56,7 +56,7 @@ function SetListItem({
   const bpmColor = palette.terciary;
 
   const trimmedUrl = versaoUrl?.trim() || '';
-  const hasUrl = trimmedUrl.length > 0;
+  const hasUrl = trimmedUrl.length > 0 && isOpenableMusicUrl(trimmedUrl);
   const listenService = hasUrl ? detectMusicLinkService(trimmedUrl) : null;
   const listenIconName = listenService === 'spotify' ? 'spotify' : listenService === 'youtube' ? 'youtube' : 'play-circle-outline';
   const listenColor = hasUrl ? palette.primary : palette.fonts.inactive2;
@@ -68,7 +68,7 @@ function SetListItem({
       color: listenColor,
       backgroundColor: ColorUtils.withAlpha(listenColor, 0.08),
     },
-    onPress: hasUrl ? () => Linking.openURL(trimmedUrl) : undefined,
+    onPress: hasUrl ? () => Linking.openURL(toOpenableMusicUrl(trimmedUrl)) : undefined,
     size: 'medium' as const,
   };
 
