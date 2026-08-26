@@ -39,6 +39,7 @@ export default function MinisterioAgendaDetailsPage() {
     discardUnsavedChanges: () => undefined,
   });
   const isHandlingExitRef = useRef(false);
+  const ocorrenciaRequestIdRef = useRef(0);
 
   const { data, isLoading, buscarPorIntervalo } = useEventosCrud({
     autoFetch: true,
@@ -64,12 +65,15 @@ export default function MinisterioAgendaDetailsPage() {
       return;
     }
 
+    const requestId = ++ocorrenciaRequestIdRef.current;
     setIsLoadingOcorrencia(true);
     try {
       const ocorrencias = await buscarPorIntervalo({
         dataInicio: params.dataOcorrencia,
         dataTermino: params.dataOcorrencia,
       });
+
+      if (requestId !== ocorrenciaRequestIdRef.current) return;
 
       const timestampSelecionado = new Date(params.dataOcorrencia).getTime();
       const selecionada =
@@ -83,9 +87,9 @@ export default function MinisterioAgendaDetailsPage() {
 
       setOcorrenciaAtual(selecionada);
     } catch {
-      setOcorrenciaAtual(null);
+      if (requestId === ocorrenciaRequestIdRef.current) setOcorrenciaAtual(null);
     } finally {
-      setIsLoadingOcorrencia(false);
+      if (requestId === ocorrenciaRequestIdRef.current) setIsLoadingOcorrencia(false);
     }
   }, [buscarPorIntervalo, eventoId, params.dataOcorrencia]);
 
