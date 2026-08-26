@@ -20,7 +20,8 @@ function isHostOrSubdomain(host: string, domain: string): boolean {
 export function detectMusicLinkService(url: string): MusicLinkService {
   const host = safeHostname(url);
   if (!host) return 'generic';
-  if (isHostOrSubdomain(host, 'youtube.com') || isHostOrSubdomain(host, 'youtu.be')) return 'youtube';
+  if (isHostOrSubdomain(host, 'youtube.com') || isHostOrSubdomain(host, 'youtu.be'))
+    return 'youtube';
   if (isHostOrSubdomain(host, 'spotify.com')) return 'spotify';
   return 'generic';
 }

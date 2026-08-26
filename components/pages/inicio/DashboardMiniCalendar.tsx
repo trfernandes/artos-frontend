@@ -118,7 +118,10 @@ export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendar
           </View>
 
           {escalasDaDataSelecionada.length > 0 ? (
-            <FancyScrollView style={styles.modalList} contentContainerStyle={styles.modalListContent}>
+            <FancyScrollView
+              style={styles.modalList}
+              contentContainerStyle={styles.modalListContent}
+            >
               {escalasDaDataSelecionada.map((escala, index) => (
                 <View key={`${escala.id}-${escala.eventoData}-${index}`} style={styles.eventCard}>
                   <View style={styles.eventCardHeader}>

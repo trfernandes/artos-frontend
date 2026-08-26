@@ -257,11 +257,7 @@ export default function ListaVoluntariosTable({
 
           return (
             <View key={index}>
-              {rowOnPress ? (
-                <Pressable onPress={rowOnPress}>{rowContent}</Pressable>
-              ) : (
-                rowContent
-              )}
+              {rowOnPress ? <Pressable onPress={rowOnPress}>{rowContent}</Pressable> : rowContent}
               {index < validEquipe.length - 1 && <View style={styles.rowDivider} />}
             </View>
           );

@@ -193,9 +193,21 @@ export default function MinisterioAgendaDetailsPage() {
     }
 
     return tabs;
-  }, [canManageAgenda, carregarOcorrenciaAtual, data, eventoId, isEventoCulto, params.dataOcorrencia, params.ministerioId]);
+  }, [
+    canManageAgenda,
+    carregarOcorrenciaAtual,
+    data,
+    eventoId,
+    isEventoCulto,
+    ocorrenciaAtual,
+    params.dataOcorrencia,
+    params.ministerioId,
+  ]);
 
   const isLoadingData = isLoading || isLoadingOcorrencia || !eventoId || !data[0];
+  const hasLoadedOnceRef = useRef(false);
+  if (!isLoadingData) hasLoadedOnceRef.current = true;
+  const isInitialLoad = !hasLoadedOnceRef.current && isLoadingData;
 
   useEffect(() => {
     if (isLoadingData) {
@@ -206,7 +218,7 @@ export default function MinisterioAgendaDetailsPage() {
     return () => hideLoading();
   }, [isLoadingData, showLoading, hideLoading]);
 
-  if (isLoadingData) return null;
+  if (isInitialLoad) return null;
 
   return (
     <FancyPageView style={styles.container}>

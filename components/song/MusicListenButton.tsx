@@ -4,7 +4,11 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import FancyText from '../FancyText';
 import { usePallete } from '../../hooks/usePallete';
 import { ColorUtils } from '../../utils/color_utils';
-import { detectMusicLinkService, isOpenableMusicUrl, toOpenableMusicUrl } from '../../utils/musicLinkUtils';
+import {
+  detectMusicLinkService,
+  isOpenableMusicUrl,
+  toOpenableMusicUrl,
+} from '../../utils/musicLinkUtils';
 
 type Props = {
   url?: string | null;
@@ -26,11 +30,8 @@ export default function MusicListenButton({ url, showLabel = false }: Props) {
         ? 'spotify'
         : 'play-circle-outline';
 
-  const color = service === 'youtube'
-    ? palette.primary
-    : hasUrl
-      ? palette.secondary
-      : palette.icons.inactive2;
+  const color =
+    service === 'youtube' ? palette.primary : hasUrl ? palette.secondary : palette.icons.inactive2;
 
   const accessibilityLabel = hasUrl ? 'Abrir música' : 'Sem link cadastrado para esta música';
 

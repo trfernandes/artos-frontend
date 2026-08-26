@@ -40,6 +40,7 @@ import { ColorUtils } from '../../../../../utils/color_utils';
 import YoutubeVersionSearchSheet from '../../../common/YoutubeVersionSearchSheet';
 import { ResponseYoutubeSearchItemDto } from '../../../../../domain/dtos/Repertorio/youtube-search-item.response';
 import FancyListEmpty from '../../../../list/FancyListEmpty';
+import { formatDataInclusaoRelativa } from '../../../../../utils/date_utils';
 
 const TONS = [
   'C',
@@ -224,10 +225,12 @@ export default function RepertorioEditorScreen({
   const renderSongTextReadOnly = (title: 'Letra' | 'Cifra', value: string) => {
     const hasContent = value.trim().length > 0;
     const isCifra = title === 'Cifra';
+    const dataInclusao = musica ? formatDataInclusaoRelativa(musica.createdAt) : null;
     const metaItems = [
       interprete.trim() || 'Sem intérprete',
       bpmOriginal > 0 ? `${bpmOriginal} BPM` : null,
       tomOriginal ? `Tom ${tomOriginal}` : null,
+      dataInclusao,
     ].filter(Boolean);
 
     return (

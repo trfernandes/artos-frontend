@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Linking, Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import Toast from 'react-native-toast-message';
@@ -26,6 +26,7 @@ import {
 import { ResponseRepertorioMusicaDto } from '../../../domain/dtos/Repertorio/repertorio-musica.response';
 import { ResponseYoutubeSearchItemDto } from '../../../domain/dtos/Repertorio/youtube-search-item.response';
 import { useMusicasTocadasRelatorio } from '../../../hooks/useMusicasTocadasRelatorio';
+import { useRepertorioEtiquetas } from '../../../hooks/useRepertorio';
 
 type Props = {
   visible: boolean;
@@ -86,6 +87,7 @@ export default function EventoSetlistEditorSheet({
   const relatorioQuery = useMusicasTocadasRelatorio(
     visible && ministerioId ? { ministerioId, eventoId, dataOcorrencia: dataOcorrenciaIso } : null,
   );
+  const { data: etiquetas = [] } = useRepertorioEtiquetas(ministerioId);
   const statsPorMusicaId = useMemo(() => {
     const map = new Map<string, { totalExecucoes: number; ultimaExecucaoEm: string | null }>();
     for (const musica of relatorioQuery.data?.musicas ?? []) {
@@ -252,9 +254,7 @@ export default function EventoSetlistEditorSheet({
                   styles.repertorioPickerTrigger,
                   { borderColor: palette.border, backgroundColor: palette.backgroundColor },
                   (!isEditingEnabled || !!item?.id) && { backgroundColor: palette.disabled },
-                  pressed &&
-                    isEditingEnabled &&
-                    !item?.id && { borderColor: palette.primary },
+                  pressed && isEditingEnabled && !item?.id && { borderColor: palette.primary },
                 ]}
                 disabled={!isEditingEnabled || !!item?.id}
                 onPress={() => setRepertorioPickerVisible(true)}
@@ -287,6 +287,7 @@ export default function EventoSetlistEditorSheet({
                 visible={repertorioPickerVisible}
                 onClose={() => setRepertorioPickerVisible(false)}
                 repertorio={repertorio}
+                etiquetas={etiquetas}
                 value={repertorioMusicaId}
                 onSelect={hydrateFromRepertorio}
                 statsPorMusicaId={statsPorMusicaId}
@@ -333,27 +334,33 @@ export default function EventoSetlistEditorSheet({
         rightContainer={
           <View style={styles.versaoUrlIcons}>
             {canEdit ? (
-              <TouchableOpacity
+              <FancyButton
+                type='text'
+                mode='icon'
+                size={32}
+                disabled={!isEditingEnabled}
                 onPress={isEditingEnabled ? () => setYoutubeSearchVisible(true) : undefined}
-                style={styles.versaoUrlIconButton}
-              >
-                <MaterialCommunityIcons
-                  name='youtube'
-                  size={20}
-                  color={isEditingEnabled ? palette.primary : palette.icons.inactive2}
-                />
-              </TouchableOpacity>
-            ) : null}
-            <TouchableOpacity
-              onPress={versaoUrl ? () => void Linking.openURL(versaoUrl) : undefined}
-              style={styles.versaoUrlIconButton}
-            >
-              <MaterialCommunityIcons
-                name='web'
-                size={15}
-                color={versaoUrl ? palette.primary : palette.icons.inactive2}
+                icon={{
+                  library: 'MaterialCommunityIcons',
+                  name: 'youtube',
+                  size: 20,
+                  color: isEditingEnabled ? palette.primary : palette.icons.inactive2,
+                }}
               />
-            </TouchableOpacity>
+            ) : null}
+            <FancyButton
+              type='text'
+              mode='icon'
+              size={32}
+              disabled={!versaoUrl}
+              onPress={versaoUrl ? () => void Linking.openURL(versaoUrl) : undefined}
+              icon={{
+                library: 'MaterialCommunityIcons',
+                name: 'web',
+                size: 15,
+                color: versaoUrl ? palette.primary : palette.icons.inactive2,
+              }}
+            />
           </View>
         }
       />

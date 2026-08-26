@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { format, parseISO } from 'date-fns';
@@ -11,11 +11,13 @@ import MusicListenButton from '../../song/MusicListenButton';
 import { usePallete } from '../../../hooks/usePallete';
 import { ColorUtils } from '../../../utils/color_utils';
 import { ResponseRepertorioMusicaDto } from '../../../domain/dtos/Repertorio/repertorio-musica.response';
+import { ResponseRepertorioEtiquetaDto } from '../../../domain/dtos/Repertorio/repertorio-etiqueta.response';
 
 type Props = {
   visible: boolean;
   onClose: () => void;
   repertorio: ResponseRepertorioMusicaDto[];
+  etiquetas: ResponseRepertorioEtiquetaDto[];
   value?: string;
   onSelect: (musicaId: string) => void;
   statsPorMusicaId: Map<string, { totalExecucoes: number; ultimaExecucaoEm: string | null }>;
@@ -33,16 +35,59 @@ export default function RepertorioMusicaPickerSheet({
   visible,
   onClose,
   repertorio,
+  etiquetas,
   value,
   onSelect,
   statsPorMusicaId,
   hasStats,
 }: Props) {
   const palette = usePallete();
+  const [etiquetaIdsFiltro, setEtiquetaIdsFiltro] = useState<string[]>([]);
+
+  const etiquetasAtivas = useMemo(
+    () => etiquetas.filter((etiqueta) => etiqueta.ativo !== false),
+    [etiquetas],
+  );
+
+  const etiquetasSelecionadas = useMemo(
+    () => etiquetasAtivas.filter((etiqueta) => etiquetaIdsFiltro.includes(etiqueta.id)),
+    [etiquetasAtivas, etiquetaIdsFiltro],
+  );
+
+  const etiquetasNaoSelecionadas = useMemo(
+    () => etiquetasAtivas.filter((etiqueta) => !etiquetaIdsFiltro.includes(etiqueta.id)),
+    [etiquetasAtivas, etiquetaIdsFiltro],
+  );
+
+  const contagemPorEtiquetaId = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const musica of repertorio) {
+      for (const etiqueta of musica.etiquetas ?? []) {
+        map.set(etiqueta.id, (map.get(etiqueta.id) ?? 0) + 1);
+      }
+    }
+    return map;
+  }, [repertorio]);
+
+  const toggleEtiquetaFiltro = (id: string) => {
+    setEtiquetaIdsFiltro((prev) =>
+      prev.includes(id) ? prev.filter((existing) => existing !== id) : [...prev, id],
+    );
+  };
+
+  const repertorioFiltrado = useMemo(
+    () =>
+      etiquetaIdsFiltro.length === 0
+        ? repertorio
+        : repertorio.filter((musica) =>
+            musica.etiquetas?.some((etiqueta) => etiquetaIdsFiltro.includes(etiqueta.id)),
+          ),
+    [repertorio, etiquetaIdsFiltro],
+  );
 
   const items = useMemo(
     () =>
-      repertorio.map((musica) => {
+      repertorioFiltrado.map((musica) => {
         const stats = statsPorMusicaId.get(musica.id);
         return {
           musica,
@@ -53,7 +98,7 @@ export default function RepertorioMusicaPickerSheet({
             : null,
         };
       }),
-    [repertorio, statsPorMusicaId, hasStats],
+    [repertorioFiltrado, statsPorMusicaId, hasStats],
   );
 
   return (
@@ -62,6 +107,33 @@ export default function RepertorioMusicaPickerSheet({
       onClose={onClose}
       title='Selecionar música do repertório'
     >
+      {etiquetasAtivas.length > 0 ? (
+        <View style={styles.filtroRow}>
+          {etiquetasSelecionadas.map((etiqueta) => (
+            <EtiquetaFiltroChip
+              key={etiqueta.id}
+              etiqueta={etiqueta}
+              selected
+              total={contagemPorEtiquetaId.get(etiqueta.id) ?? 0}
+              onPress={() => toggleEtiquetaFiltro(etiqueta.id)}
+            />
+          ))}
+
+          {etiquetasSelecionadas.length > 0 && etiquetasNaoSelecionadas.length > 0 && (
+            <View style={[styles.filtroDivider, { backgroundColor: palette.icons.inactive }]} />
+          )}
+
+          {etiquetasNaoSelecionadas.map((etiqueta) => (
+            <EtiquetaFiltroChip
+              key={etiqueta.id}
+              etiqueta={etiqueta}
+              selected={false}
+              total={contagemPorEtiquetaId.get(etiqueta.id) ?? 0}
+              onPress={() => toggleEtiquetaFiltro(etiqueta.id)}
+            />
+          ))}
+        </View>
+      ) : null}
       <View style={styles.list}>
         {items.map(({ musica, etiquetasAtivas, frequencia, ultimaExecucaoLabel }, index) => {
           const isSelected = musica.id === value;
@@ -162,7 +234,66 @@ export default function RepertorioMusicaPickerSheet({
   );
 }
 
+function EtiquetaFiltroChip({
+  etiqueta,
+  selected,
+  total,
+  onPress,
+}: {
+  etiqueta: ResponseRepertorioEtiquetaDto;
+  selected: boolean;
+  total: number;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[
+        styles.filtroChip,
+        {
+          backgroundColor: ColorUtils.withAlpha(etiqueta.cor, selected ? 0.18 : 0.1),
+          borderColor: ColorUtils.withAlpha(etiqueta.cor, selected ? 0.5 : 0.22),
+        },
+      ]}
+    >
+      {selected ? (
+        <DefaultIcons.Custom
+          library='MaterialCommunityIcons'
+          name='check'
+          size={12}
+          color={etiqueta.cor}
+        />
+      ) : null}
+      <FancyText type='bold' size={12} color={etiqueta.cor} numberOfLines={1}>
+        {etiqueta.nome} ({total})
+      </FancyText>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
+  filtroRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 8,
+    paddingBottom: 12,
+  },
+  filtroDivider: {
+    width: 1.5,
+    height: 14,
+    borderRadius: 1,
+    alignSelf: 'center',
+  },
+  filtroChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 5,
+    paddingHorizontal: 13,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
   list: {
     gap: 0,
   },

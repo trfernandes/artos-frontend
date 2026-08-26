@@ -32,7 +32,6 @@ import { useLoading } from '../../../../../../contexts/LoadingContext';
 import { getApiErrorMessage } from '../../../../../../domain/api/api-error';
 import { FancyAlert } from '../../../../../../components/modal/FancyAlert';
 import Toast from 'react-native-toast-message';
-import { formatDataInclusaoRelativa } from '../../../../../../utils/date_utils';
 
 type OrdenacaoRepertorio = 'nome' | 'dataInclusao';
 
@@ -77,6 +76,17 @@ export default function MinisterioLouvorRepertorioIndexPage() {
     () => etiquetas.filter((item) => item.ativo !== false),
     [etiquetas],
   );
+
+  const contagemPorEtiquetaId = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const musica of musicas) {
+      if (musica.ativo === false) continue;
+      for (const etiqueta of musica.etiquetas ?? []) {
+        map.set(etiqueta.id, (map.get(etiqueta.id) ?? 0) + 1);
+      }
+    }
+    return map;
+  }, [musicas]);
 
   const toggleEtiquetaId = (id: string) => {
     setEtiquetaIds((prev) =>
@@ -195,6 +205,7 @@ export default function MinisterioLouvorRepertorioIndexPage() {
               </Pressable>
               {etiquetasAtivas.map((item) => {
                 const selected = etiquetaIds.includes(item.id);
+                const total = contagemPorEtiquetaId.get(item.id) ?? 0;
                 return (
                   <Pressable
                     key={item.id}
@@ -216,7 +227,7 @@ export default function MinisterioLouvorRepertorioIndexPage() {
                       />
                     ) : null}
                     <FancyText type='bold' size={12} color={item.cor} numberOfLines={1}>
-                      {item.nome}
+                      {item.nome} ({total})
                     </FancyText>
                   </Pressable>
                 );
@@ -229,7 +240,6 @@ export default function MinisterioLouvorRepertorioIndexPage() {
           const etiquetasMusicaAtivas = (item.etiquetas ?? []).filter(
             (etiqueta) => etiqueta.ativo !== false,
           );
-          const dataInclusao = formatDataInclusaoRelativa(item.createdAt);
           return (
             <FancyListItemCard
               onPress={() => openMusica(item.id)}
@@ -242,35 +252,31 @@ export default function MinisterioLouvorRepertorioIndexPage() {
               title={item.nome}
               subtitle={item.interprete || 'Sem intérprete'}
               meta={
-                <View>
-                  <View style={styles.musicBadgesRow}>
-                    {etiquetasMusicaAtivas.map((etiqueta) => (
-                      <MusicBadge key={etiqueta.id} label={etiqueta.nome} color={etiqueta.cor} />
-                    ))}
-                    {item.tomOriginal ? (
-                      <MusicBadge
-                        label={`TOM ${item.tomOriginal}`}
-                        color={palette.secondary}
-                        icon='music-clef-treble'
-                      />
-                    ) : null}
-                    {item.bpmOriginal ? (
-                      <MusicBadge
-                        label={`BPM ${item.bpmOriginal}`}
-                        color={palette.terciary}
-                        icon='metronome'
-                      />
-                    ) : null}
-                  </View>
-                  {dataInclusao ? (
-                    <FancyText
-                      type='medium'
-                      size='extraSmall'
-                      color={palette.fonts.inactive}
-                      style={styles.dataInclusaoText}
-                    >
-                      {dataInclusao}
-                    </FancyText>
+                <View style={styles.musicMetaStack}>
+                  {item.tomOriginal || item.bpmOriginal ? (
+                    <View style={styles.musicBadgesRow}>
+                      {item.tomOriginal ? (
+                        <MusicBadge
+                          label={`TOM ${item.tomOriginal}`}
+                          color={palette.secondary}
+                          icon='music-clef-treble'
+                        />
+                      ) : null}
+                      {item.bpmOriginal ? (
+                        <MusicBadge
+                          label={`BPM ${item.bpmOriginal}`}
+                          color={palette.terciary}
+                          icon='metronome'
+                        />
+                      ) : null}
+                    </View>
+                  ) : null}
+                  {etiquetasMusicaAtivas.length > 0 ? (
+                    <View style={styles.musicBadgesRow}>
+                      {etiquetasMusicaAtivas.map((etiqueta) => (
+                        <MusicBadge key={etiqueta.id} label={etiqueta.nome} color={etiqueta.cor} />
+                      ))}
+                    </View>
                   ) : null}
                 </View>
               }
@@ -468,6 +474,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexShrink: 0,
   },
+  musicMetaStack: {
+    gap: 6,
+  },
   musicBadgesRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -494,8 +503,5 @@ const styles = StyleSheet.create({
     lineHeight: 12,
     letterSpacing: 0.3,
     includeFontPadding: false,
-  },
-  dataInclusaoText: {
-    marginTop: 4,
   },
 });

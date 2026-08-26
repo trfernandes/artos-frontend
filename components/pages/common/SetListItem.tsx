@@ -7,7 +7,11 @@ import { usePallete } from '../../../hooks/usePallete';
 import { ColorUtils } from '../../../utils/color_utils';
 import { ResponseRepertorioEtiquetaDto } from '../../../domain/dtos/Repertorio/repertorio-etiqueta.response';
 import { FancyCard } from '../../cards/Horizontal/FancyCard';
-import { detectMusicLinkService, isOpenableMusicUrl, toOpenableMusicUrl } from '../../../utils/musicLinkUtils';
+import {
+  detectMusicLinkService,
+  isOpenableMusicUrl,
+  toOpenableMusicUrl,
+} from '../../../utils/musicLinkUtils';
 
 export type SetListItemProps = {
   order: number;
@@ -58,7 +62,12 @@ function SetListItem({
   const trimmedUrl = versaoUrl?.trim() || '';
   const hasUrl = trimmedUrl.length > 0 && isOpenableMusicUrl(trimmedUrl);
   const listenService = hasUrl ? detectMusicLinkService(trimmedUrl) : null;
-  const listenIconName = listenService === 'spotify' ? 'spotify' : listenService === 'youtube' ? 'youtube' : 'play-circle-outline';
+  const listenIconName =
+    listenService === 'spotify'
+      ? 'spotify'
+      : listenService === 'youtube'
+        ? 'youtube'
+        : 'play-circle-outline';
   const listenColor = hasUrl ? palette.primary : palette.fonts.inactive2;
   const listenAction = {
     icon: {

@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import FancyTabs, { TabItem } from '../../../../tabs/FancyTabs';
 import EscalaEventoEquipeTab from './EscalaEventoEquipeTab';
@@ -29,13 +29,14 @@ export default function EventoDetails(props: {
 
   const TABS_DATA: TabItem[] = useMemo(() => {
     const ministerio = getMinisterioLoginAccess(igrejaAtiva, props.ministerioId);
-    const isMinisterioLouvor = ministerio?.tipo === MinisterioTipoEnum.Louvor;
+    const isMinisterioLouvor = Number(ministerio?.tipo) === Number(MinisterioTipoEnum.Louvor);
     const setlistMode: 'lider' | 'responsavel' | 'leitura' = canManageEventoOcorrencia(
       igrejaAtiva,
       props.ministerioId,
     )
       ? 'lider'
-      : props.responsavelSetlistVoluntarioId && props.responsavelSetlistVoluntarioId === user?.user.id
+      : props.responsavelSetlistVoluntarioId &&
+          props.responsavelSetlistVoluntarioId === user?.user.id
         ? 'responsavel'
         : 'leitura';
 
@@ -73,16 +74,23 @@ export default function EventoDetails(props: {
     if (isMinisterioLouvor) {
       tabs.push({
         title: 'Setlist',
-        icon: { library: 'MaterialCommunityIcons', name: 'playlist-music', size: 20, style: { marginTop: 0 } },
+        icon: {
+          library: 'MaterialCommunityIcons',
+          name: 'playlist-music',
+          size: 20,
+          style: { marginTop: 0 },
+        },
         content: (
-          <EventoSetlistTab
-            eventoId={props.evento.id!}
-            dataOcorrencia={props.dataOcorrencia}
-            ministerioId={props.ministerioId}
-            mode={setlistMode}
-            responsavelSetlistNome={props.responsavelSetlistNome}
-            detailsRoutePath='/pessoal/escalas/setlist/[itemId]'
-          />
+          <View style={styles.setlistTabGutterOffset}>
+            <EventoSetlistTab
+              eventoId={props.evento.id!}
+              dataOcorrencia={props.dataOcorrencia}
+              ministerioId={props.ministerioId}
+              mode={setlistMode}
+              responsavelSetlistNome={props.responsavelSetlistNome}
+              detailsRoutePath='/pessoal/escalas/setlist/[itemId]'
+            />
+          </View>
         ),
       });
     }
@@ -109,4 +117,5 @@ export default function EventoDetails(props: {
 
 const styles = StyleSheet.create({
   container: { gap: 6, paddingBottom: 20, borderWidth: 0, borderColor: 'forestgreen' },
+  setlistTabGutterOffset: { flex: 1, marginHorizontal: -15 },
 });

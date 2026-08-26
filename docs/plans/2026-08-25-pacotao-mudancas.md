@@ -1,10 +1,10 @@
 # Pacotão de mudanças — Rastreabilidade, Banner de conectividade, Evento.tipo
 
-Consolidado 2026-08-25, a partir de grilling de um lote de 10 itens vindos de notas de app
-("Novas mudanças — DIAKONIA"). Fora do escopo de `docs/plans/2026-08-17-plano-versao-2.md` (que é a
-epic Checklist/Substituição/Sobrecarga/Painel Admin/Site institucional, branch `1.2`) — estes são
-itens cross-cutting, planejados e lançados junto com o resto do trabalho já feito nesta sessão
-(Dupla Função + Pessoa Avulsa, commit `093cec5`/`b2126c5`).
+Consolidado 2026-08-25, a partir de grilling de um lote de 10 itens vindos de notas de app ("Novas
+mudanças — DIAKONIA"). Fora do escopo de `docs/plans/2026-08-17-plano-versao-2.md` (que é a epic
+Checklist/Substituição/Sobrecarga/Painel Admin/Site institucional, branch `1.2`) — estes são itens
+cross-cutting, planejados e lançados junto com o resto do trabalho já feito nesta sessão (Dupla
+Função + Pessoa Avulsa, commit `093cec5`/`b2126c5`).
 
 Projeto: Diakonia. Frontend `artos-frontend/` (Expo/React Native). Backend `artos-backend/`
 (NestJS). Repos git separados.
@@ -17,15 +17,15 @@ junto.
 
 ## Resultado do grilling — mapa completo do lote de 10 itens
 
-| # | Item | Decisão |
-|---|---|---|
-| 1 | Rastreabilidade | Qualquer edição sensível de escalas/ministérios/config/vínculos. Admin vê tudo, Líder vê do próprio ministério. **Neste pacote** (seção 1). |
-| 2 | Tocar música (YouTube/Spotify) no picker | Já implementado em sessão anterior (`MusicListenButton`/`YoutubePlayerSheet`, commit `8822363`/`ef24b27`). **Fechado, sem trabalho.** |
-| 3 | Banner "servidor off" (falso positivo) | Fix de 3 partes: failure threshold + startup probe + estado neutro intermediário. **Neste pacote** (seção 2). |
-| 4 | Layout de música no picker (etiquetas/frequência) | **Descartado** — não entra neste pacote nem depois, a pedido do usuário. |
-| 5 | Tela de Perfil (redesign) | **Spin-off** — sessão própria de design (`trfernandes-atelier-brief`/`concept`/`explore`) depois deste pacote. Usuário não sabe exatamente o que está errado, só que "está errado" — precisa de sessão de design dedicada, não cabe em grilling de bug list. |
-| 6 | Chip "Auto" em Setlist | **Descartado** — não entra neste pacote nem depois, a pedido do usuário. |
-| 7 | Ministério "reuniões" / Louvor "ensaios extras" → `Evento.tipo` | Novo campo `tipo` (Culto/Reunião/Ensaio). Reunião e Ensaio: sem geração automática de escala, sem Escala/equipe, sem Setlist. **Neste pacote** (seção 3). |
+| #   | Item                                                            | Decisão                                                                                                                                                                                                                                                      |
+| --- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Rastreabilidade                                                 | Qualquer edição sensível de escalas/ministérios/config/vínculos. Admin vê tudo, Líder vê do próprio ministério. **Neste pacote** (seção 1).                                                                                                                  |
+| 2   | Tocar música (YouTube/Spotify) no picker                        | Já implementado em sessão anterior (`MusicListenButton`/`YoutubePlayerSheet`, commit `8822363`/`ef24b27`). **Fechado, sem trabalho.**                                                                                                                        |
+| 3   | Banner "servidor off" (falso positivo)                          | Fix de 3 partes: failure threshold + startup probe + estado neutro intermediário. **Neste pacote** (seção 2).                                                                                                                                                |
+| 4   | Layout de música no picker (etiquetas/frequência)               | **Descartado** — não entra neste pacote nem depois, a pedido do usuário.                                                                                                                                                                                     |
+| 5   | Tela de Perfil (redesign)                                       | **Spin-off** — sessão própria de design (`trfernandes-atelier-brief`/`concept`/`explore`) depois deste pacote. Usuário não sabe exatamente o que está errado, só que "está errado" — precisa de sessão de design dedicada, não cabe em grilling de bug list. |
+| 6   | Chip "Auto" em Setlist                                          | **Descartado** — não entra neste pacote nem depois, a pedido do usuário.                                                                                                                                                                                     |
+| 7   | Ministério "reuniões" / Louvor "ensaios extras" → `Evento.tipo` | Novo campo `tipo` (Culto/Reunião/Ensaio). Reunião e Ensaio: sem geração automática de escala, sem Escala/equipe, sem Setlist. **Neste pacote** (seção 3).                                                                                                    |
 
 ---
 
@@ -33,9 +33,9 @@ junto.
 
 ### Estado atual observado
 
-Não existe nenhuma persistência de auditoria hoje. `CONTEXT.md` (seção Painel Admin) menciona
-"Toda Suspensão gera entrada de log de auditoria" mas é intenção declarada sem implementação — não
-há entidade, service, nem controller. O único "auditoria" que existe no código é o array em memória
+Não existe nenhuma persistência de auditoria hoje. `CONTEXT.md` (seção Painel Admin) menciona "Toda
+Suspensão gera entrada de log de auditoria" mas é intenção declarada sem implementação — não há
+entidade, service, nem controller. O único "auditoria" que existe no código é o array em memória
 retornado por `GeradorDeEscalas.executar()` (avaliação de regras por candidato durante geração
 automática) — não persiste, não é sobre ações administrativas, e não tem relação com este item.
 
@@ -120,13 +120,13 @@ export class AuditLogEntity extends BaseEntity {
 
 `AuditLogAcaoEnum`: `CRIACAO | EDICAO | EXCLUSAO`.
 
-**`AuditLogService.registrar(params)`**: método único de escrita, fire-and-forget na prática (chamado
-de dentro de outros services após a operação principal confirmar). Não deve fazer a operação
-principal falhar se o log falhar — logar erro e seguir (é rastreabilidade auxiliar, não é
+**`AuditLogService.registrar(params)`**: método único de escrita, fire-and-forget na prática
+(chamado de dentro de outros services após a operação principal confirmar). Não deve fazer a
+operação principal falhar se o log falhar — logar erro e seguir (é rastreabilidade auxiliar, não é
 requisito de consistência transacional forte).
 
-**Pontos de instrumentação (Fase 1 deste pacote — expandir depois conforme necessidade, não é
-lista fechada pra sempre)**:
+**Pontos de instrumentação (Fase 1 deste pacote — expandir depois conforme necessidade, não é lista
+fechada pra sempre)**:
 
 - `escala-itens.service.ts`: `update()` (atribuição manual, dupla função, pessoa avulsa) e remoção —
   já é o service mexido nesta sessão pra Dupla Função/Pessoa Avulsa.
@@ -183,8 +183,8 @@ Pesquisa (Kubernetes `startupProbe`/`livenessProbe`, `failureThreshold`, UX de e
 Slack) embasou a recomendação. As 3 mudanças em `ConnectivityProvider.tsx`:
 
 1. **Startup probe**: primeira checagem após mount usa um timeout maior e próprio (ex: 20000ms,
-   alinhado ao tempo real de cold start do Render), separado do timeout de steady-state polling
-   (que continua 8000ms — não faz sentido esperar 20s numa checagem periódica normal).
+   alinhado ao tempo real de cold start do Render), separado do timeout de steady-state polling (que
+   continua 8000ms — não faz sentido esperar 20s numa checagem periódica normal).
 2. **Failure threshold**: só marca `isServerDown = true` depois de N falhas consecutivas (ex: 2),
    não na primeira. Reseta o contador em qualquer sucesso.
 3. **Estado neutro intermediário**: novo status `'connecting'` no lugar de pular direto de `'ok'`
@@ -220,23 +220,24 @@ condicional será usado aqui, só que a condição passa a ser `evento.tipo`.
 
 Novo enum `EventoTipoEnum`: `Culto | Reuniao | Ensaio`. Comportamento por tipo:
 
-| | Culto | Reunião | Ensaio |
-|---|---|---|---|
-| Entra na geração automática de Escala | Sim | Não | Não |
-| Tem Escala/equipe (qualquer, manual inclusive) | Sim | Não | Não |
-| Tem Setlist | Sim | Não | Não |
+|                                                | Culto | Reunião | Ensaio |
+| ---------------------------------------------- | ----- | ------- | ------ |
+| Entra na geração automática de Escala          | Sim   | Não     | Não    |
+| Tem Escala/equipe (qualquer, manual inclusive) | Sim   | Não     | Não    |
+| Tem Setlist                                    | Sim   | Não     | Não    |
 
-Reunião e Ensaio ficam idênticos em comportamento (nenhum dos dois tem Escala nem Setlist) — mesmo
-o usuário tendo confirmado explicitamente que Ensaio não precisa de Setlist apesar de "ensaiar
-repertório" ser a razão de existir do conceito (perguntado 2x em grilling, resposta mantida:
-"Ensaio não tem Setlist mesmo").
+Reunião e Ensaio ficam idênticos em comportamento (nenhum dos dois tem Escala nem Setlist) — mesmo o
+usuário tendo confirmado explicitamente que Ensaio não precisa de Setlist apesar de "ensaiar
+repertório" ser a razão de existir do conceito (perguntado 2x em grilling, resposta mantida: "Ensaio
+não tem Setlist mesmo").
 
 ### Backend
 
 - Migration: `ALTER TABLE eventos ADD COLUMN tipo` enum `Culto/Reuniao/Ensaio`, default `Culto`
   (não-nullable — todo Evento existente vira Culto, comportamento idêntico ao atual, sem quebra).
 - `EventoTipoEnum` em `src/eventos/enums/evento-tipo.enum.ts`.
-- `EventoEntity`: novo `@Column({ type: 'enum', enum: EventoTipoEnum, default: EventoTipoEnum.Culto }) tipo: EventoTipoEnum;`.
+- `EventoEntity`: novo
+  `@Column({ type: 'enum', enum: EventoTipoEnum, default: EventoTipoEnum.Culto }) tipo: EventoTipoEnum;`.
 - DTOs (`create-evento.dto.ts`/`update-evento.dto.ts`/`response-evento.dto.ts` — nomes exatos a
   confirmar ao abrir o arquivo): adicionar `tipo` com `@IsEnum(EventoTipoEnum)`.
 - Gate de geração: `escala-context.ts` `loadContext()` (ou o ponto de entrada em
