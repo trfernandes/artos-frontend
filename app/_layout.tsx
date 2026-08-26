@@ -204,7 +204,7 @@ function RootLayoutNav({
   // app (relato de build TestFlight que nunca aplicou nenhum OTA sozinho).
   // Check explicito no boot como rede de seguranca.
   useEffect(() => {
-    if (__DEV__ || !Updates.isEnabled) return;
+    if (__DEV__ || !Updates.isEnabled || !Updates.channel) return;
 
     (async () => {
       try {

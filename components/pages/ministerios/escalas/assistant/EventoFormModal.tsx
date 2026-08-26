@@ -10,7 +10,7 @@ import {
   EscalaEventoTemplateFuncaoFormData,
   EscalaEventoTemplateSchema,
 } from '../../../../../domain/schemas/escalaSchema';
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -337,7 +337,7 @@ export default function EventoFormModal({
         <FancyLoading />
       ) : (
         <>
-          {data?.dataOcorrencia && (
+          {data?.dataOcorrencia && isValid(data.dataOcorrencia) && (
             <View style={{ gap: 6 }}>
               <FancyText size='extraSmall' type='semiBold' color={Pallete.fonts.inactive}>
                 Data

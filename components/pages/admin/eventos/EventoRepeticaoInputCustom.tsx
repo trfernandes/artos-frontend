@@ -196,6 +196,8 @@ function EventoFimRecorrenciaInput() {
   const palette = usePallete();
   const eventoForm = useFormContext<EventoFormData>();
 
+  if (!eventoForm) return null;
+
   const dataInicio = eventoForm.watch('dataInicio');
   const dataFimRecorrencia = eventoForm.watch('dataFimRecorrencia');
   const hasFim = !!dataFimRecorrencia;
