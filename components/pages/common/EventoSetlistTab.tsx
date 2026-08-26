@@ -190,7 +190,7 @@ export default function EventoSetlistTab({
   const observacoesDraftVazia = !observacoesDraft.trim();
 
   const handleSalvarObservacoes = async () => {
-    if (!ministerioId || observacoesDraftVazia) return;
+    if (!ministerioId) return;
 
     try {
       await salvarObservacoes({
@@ -526,7 +526,6 @@ export default function EventoSetlistTab({
         name={item.nome}
         artist={item.interprete}
         etiquetas={etiquetas}
-        tipoOrigem={item.tipoOrigem}
         totalSecoes={item.totalSecoes}
         tom={item.tom}
         bpm={item.bpm}
@@ -668,7 +667,7 @@ export default function EventoSetlistTab({
             icon={{ ...DefaultIconsNames.save, size: 16 }}
             isLoading={isSavingObservacoes}
             loadingText='Salvando...'
-            disabled={isSavingObservacoes || observacoesDraftVazia}
+            disabled={isSavingObservacoes}
             onPress={() => void handleSalvarObservacoes()}
           />
         }

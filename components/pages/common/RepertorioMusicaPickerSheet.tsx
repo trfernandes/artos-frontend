@@ -138,7 +138,7 @@ export default function RepertorioMusicaPickerSheet({
                   )}
 
                   <View style={styles.listenRow}>
-                    <MusicListenButton url={musica.versaoUrl} title={musica.nome} showLabel />
+                    <MusicListenButton url={musica.versaoUrl} showLabel />
                   </View>
                 </View>
 

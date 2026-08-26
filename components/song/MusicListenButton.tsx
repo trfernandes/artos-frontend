@@ -8,7 +8,6 @@ import { detectMusicLinkService } from '../../utils/musicLinkUtils';
 
 type Props = {
   url?: string | null;
-  title?: string;
   showLabel?: boolean;
 };
 

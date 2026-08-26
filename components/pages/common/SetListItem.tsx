@@ -5,7 +5,6 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import FancyText from '../../FancyText';
 import { usePallete } from '../../../hooks/usePallete';
 import { ColorUtils } from '../../../utils/color_utils';
-import { EventoSetlistItemOrigemEnum } from '../../../domain/dtos/Evento/evento-setlist-item.response';
 import { ResponseRepertorioEtiquetaDto } from '../../../domain/dtos/Repertorio/repertorio-etiqueta.response';
 import { FancyCard } from '../../cards/Horizontal/FancyCard';
 import { detectMusicLinkService } from '../../../utils/musicLinkUtils';
@@ -16,7 +15,6 @@ export type SetListItemProps = {
   name: string;
   artist?: string | null;
   etiquetas?: ResponseRepertorioEtiquetaDto[];
-  tipoOrigem: EventoSetlistItemOrigemEnum;
   totalSecoes?: number | null;
   tom?: string | null;
   bpm?: number | null;
@@ -58,17 +56,19 @@ function SetListItem({
   const bpmColor = palette.terciary;
 
   const trimmedUrl = versaoUrl?.trim() || '';
-  const isYoutube = trimmedUrl.length > 0 && detectMusicLinkService(trimmedUrl) === 'youtube';
-  const listenColor = isYoutube ? palette.primary : palette.fonts.inactive2;
+  const hasUrl = trimmedUrl.length > 0;
+  const listenService = hasUrl ? detectMusicLinkService(trimmedUrl) : null;
+  const listenIconName = listenService === 'spotify' ? 'spotify' : listenService === 'youtube' ? 'youtube' : 'play-circle-outline';
+  const listenColor = hasUrl ? palette.primary : palette.fonts.inactive2;
   const listenAction = {
     icon: {
       library: 'MaterialCommunityIcons' as const,
-      name: 'youtube',
+      name: listenIconName,
       size: 20,
       color: listenColor,
       backgroundColor: ColorUtils.withAlpha(listenColor, 0.08),
     },
-    onPress: isYoutube ? () => Linking.openURL(trimmedUrl) : undefined,
+    onPress: hasUrl ? () => Linking.openURL(trimmedUrl) : undefined,
     size: 'medium' as const,
   };
 

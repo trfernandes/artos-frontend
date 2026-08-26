@@ -276,7 +276,7 @@ export default function MinisterioLouvorRepertorioIndexPage() {
               }
               trailing={
                 <View style={styles.trailingActions}>
-                  <MusicListenButton url={item.versaoUrl} title={item.nome} />
+                  <MusicListenButton url={item.versaoUrl} />
                   <Pressable
                     onPress={
                       canManageRepertorio ? () => setActionsMusica(item) : () => openMusica(item.id)
