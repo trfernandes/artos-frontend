@@ -6,6 +6,7 @@ import Toast from 'react-native-toast-message';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import FancyBottomSheetModal from '../../modal/FancyBottomSheetModal';
+import FancyVerticalSpacer from '../../FancyVerticalSpacer';
 import FancySeparator from '../../FancySeparator';
 import FancyButton from '../../buttons/FancyButton';
 import FancyBottomSheetSelect from '../../fields/FancyBottomSheetSelect';
@@ -363,7 +364,10 @@ export default function EventoSetlistTab({
             <FancyText
               size='extraSmall'
               type='semiBold'
-              style={[styles.ownerEyebrow, { color: ColorUtils.withAlpha(palette.secondary, 0.88) }]}
+              style={[
+                styles.ownerEyebrow,
+                { color: ColorUtils.withAlpha(palette.secondary, 0.88) },
+              ]}
             >
               Responsável
             </FancyText>
@@ -375,9 +379,7 @@ export default function EventoSetlistTab({
               color={responsavelAtualNome ? palette.fonts.dark : palette.fonts.inactive}
               style={styles.ownerTitle}
             >
-              {isCurrentUserResponsavel
-                ? 'Você'
-                : responsavelAtualNome || 'Nenhum responsável'}
+              {isCurrentUserResponsavel ? 'Você' : responsavelAtualNome || 'Nenhum responsável'}
             </FancyText>
           </View>
         </View>
@@ -545,6 +547,7 @@ export default function EventoSetlistTab({
     <>
       <View style={styles.container}>
         {renderHeader()}
+        <FancyVerticalSpacer height={12} />
         <DraggableFlatList
           data={orderedItems}
           onDragEnd={({ data: nextItems }) => {
@@ -824,7 +827,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingTop: 8,
     paddingBottom: 4,
-    marginBottom: 12,
     gap: 12,
   },
   ownerCard: {

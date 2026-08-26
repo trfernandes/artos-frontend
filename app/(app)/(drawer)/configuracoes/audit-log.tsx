@@ -10,6 +10,7 @@ import { ColorUtils } from '../../../../utils/color_utils';
 import { formatDataInclusaoRelativa } from '../../../../utils/date_utils';
 import { AuditLogAcaoEnum } from '../../../../domain/enums/AuditLog/audit-log-acao.enum';
 import { IconLibrary } from '../../../../components/FancyIcons';
+import FancyVerticalSpacer from '../../../../components/FancyVerticalSpacer';
 
 const ACAO_ICON: Record<AuditLogAcaoEnum, { library: IconLibrary; name: string }> = {
   [AuditLogAcaoEnum.Criacao]: { library: 'MaterialCommunityIcons', name: 'plus-circle-outline' },
@@ -32,6 +33,7 @@ export default function AuditLogScreen() {
 
   return (
     <FancyPageView style={styles.page}>
+      <FancyVerticalSpacer height={16} />
       <FancyList
         containerStyle={styles.listContainer}
         data={data ?? []}
@@ -67,6 +69,5 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     flex: 1,
-    marginTop: 16,
   },
 });
