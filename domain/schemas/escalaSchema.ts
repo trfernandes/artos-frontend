@@ -16,17 +16,44 @@ export const EscalaEventoTemplateFixoSchema = z.object({
   funcaoId: z.uuidv4('Campo Obrigatório'),
 });
 
-export const EscalaEventoTemplateSchema = z.object({
-  templateBase: z
-    .object({
-      id: z.uuidv4(),
-      nome: z.string('Campo Obrigatório'),
-    })
-    .or(z.object({})),
-  tipo: z.enum(EscalaTemplateTipoEnum),
-  funcoes: z.array(EscalaEventoTemplateFuncaoSchema).optional(),
-  fixos: z.array(EscalaEventoTemplateFixoSchema).optional(),
-});
+export const EscalaEventoTemplateSchema = z
+  .object({
+    templateBase: z
+      .object({
+        id: z.uuidv4(),
+        nome: z.string('Campo Obrigatório'),
+      })
+      .or(z.object({})),
+    tipo: z.enum(EscalaTemplateTipoEnum),
+    funcoes: z.array(EscalaEventoTemplateFuncaoSchema).optional(),
+    fixos: z.array(EscalaEventoTemplateFixoSchema).optional(),
+  })
+  .superRefine((data, ctx) => {
+    const hasTemplateBaseId = 'id' in data.templateBase && !!data.templateBase.id;
+    const isPersonalizado = !hasTemplateBaseId;
+
+    if (isPersonalizado) {
+      if (data.tipo === EscalaTemplateTipoEnum.Funcoes) {
+        if (!data.funcoes || data.funcoes.length === 0) {
+          ctx.addIssue({
+            path: ['funcoes'],
+            code: 'custom',
+            message: 'Adicione pelo menos uma função ao evento',
+          });
+        }
+      }
+
+      if (data.tipo === EscalaTemplateTipoEnum.Fixo) {
+        if (!data.fixos || data.fixos.length === 0) {
+          ctx.addIssue({
+            path: ['fixos'],
+            code: 'custom',
+            message: 'Adicione pelo menos um voluntário ao evento',
+          });
+        }
+      }
+    }
+  });
 
 export const EscalaEventosSchema = z
   .object({

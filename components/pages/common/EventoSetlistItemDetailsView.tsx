@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Pressable } from 'react-native';
 import { useNavigation } from 'expo-router';
 
 import FancyBottomSheetModal from '../../modal/FancyBottomSheetModal';
@@ -50,6 +50,7 @@ export default function EventoSetlistItemDetailsView({
   const secaoVisualMap = useSecaoVisualMap();
   const [editorVisible, setEditorVisible] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [viewingRowIndex, setViewingRowIndex] = useState<number | null>(null);
   const [secaoSelecionada, setSecaoSelecionada] = useState<string>(CUSTOM_SECTION_VALUE);
   const [rotuloCustomizado, setRotuloCustomizado] = useState('');
   const [tipo, setTipo] = useState<RepertorioMusicaSecaoTipoEnum>(
@@ -431,8 +432,9 @@ export default function EventoSetlistItemDetailsView({
         const repeticoes = row.repeticoes || 1;
 
         return (
-          <View
+          <Pressable
             key={row.key}
+            onPress={() => setViewingRowIndex(index)}
             style={[
               styles.sectionCard,
               {
@@ -530,7 +532,7 @@ export default function EventoSetlistItemDetailsView({
                 </View>
               ) : null}
             </View>
-          </View>
+          </Pressable>
         );
       })}
 
@@ -681,6 +683,43 @@ export default function EventoSetlistItemDetailsView({
           />
         </View>
       </FancyBottomSheetModal>
+
+      {viewingRowIndex !== null && draftRows[viewingRowIndex] ? (() => {
+        const row = draftRows[viewingRowIndex];
+        const secaoBase = row.secaoRepertorioId
+          ? secoesRepertorio.find((secao) => secao.id === row.secaoRepertorioId)
+          : null;
+        const tipoSecao = (row.tipo ||
+          secaoBase?.tipo ||
+          RepertorioMusicaSecaoTipoEnum.PERSONALIZADO) as RepertorioMusicaSecaoTipoEnum;
+        const visual = secaoVisualMap[tipoSecao];
+        const letraCompleta = row.letraOverride || secaoBase?.letra || 'Sem letra cadastrada.';
+
+        return (
+          <FancyBottomSheetModal
+            visible={viewingRowIndex !== null}
+            onClose={() => setViewingRowIndex(null)}
+            title={secaoBase?.rotulo || row.rotuloCustomizado || visual.label}
+            footer={<FancyButton label='Fechar' onPress={() => setViewingRowIndex(null)} />}
+          >
+            <FancyScrollView
+              contentContainerStyle={{
+                paddingHorizontal: 0,
+                paddingBottom: 16,
+              }}
+            >
+              <FancyText
+                type='normal'
+                size='small'
+                color={palette.fonts.dark}
+                style={{ lineHeight: 20 }}
+              >
+                {letraCompleta}
+              </FancyText>
+            </FancyScrollView>
+          </FancyBottomSheetModal>
+        );
+      })() : null}
     </>
   );
 }

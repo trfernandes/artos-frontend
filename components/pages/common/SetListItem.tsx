@@ -1,19 +1,21 @@
 import { memo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Linking, StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import FancyText from '../../FancyText';
 import { usePallete } from '../../../hooks/usePallete';
 import { ColorUtils } from '../../../utils/color_utils';
 import { EventoSetlistItemOrigemEnum } from '../../../domain/dtos/Evento/evento-setlist-item.response';
+import { ResponseRepertorioEtiquetaDto } from '../../../domain/dtos/Repertorio/repertorio-etiqueta.response';
 import { FancyCard } from '../../cards/Horizontal/FancyCard';
-import MusicListenButton from '../../song/MusicListenButton';
+import { detectMusicLinkService } from '../../../utils/musicLinkUtils';
 
 export type SetListItemProps = {
   order: number;
   total: number;
   name: string;
   artist?: string | null;
+  etiquetas?: ResponseRepertorioEtiquetaDto[];
   tipoOrigem: EventoSetlistItemOrigemEnum;
   totalSecoes?: number | null;
   tom?: string | null;
@@ -35,6 +37,7 @@ function SetListItem({
   order,
   name,
   artist,
+  etiquetas,
   totalSecoes,
   tom,
   bpm,
@@ -54,22 +57,44 @@ function SetListItem({
   const tomColor = palette.secondary;
   const bpmColor = palette.terciary;
 
+  const trimmedUrl = versaoUrl?.trim() || '';
+  const isYoutube = trimmedUrl.length > 0 && detectMusicLinkService(trimmedUrl) === 'youtube';
+  const listenColor = isYoutube ? palette.primary : palette.fonts.inactive2;
+  const listenAction = {
+    icon: {
+      library: 'MaterialCommunityIcons' as const,
+      name: 'youtube',
+      size: 20,
+      color: listenColor,
+      backgroundColor: ColorUtils.withAlpha(listenColor, 0.08),
+    },
+    onPress: isYoutube ? () => Linking.openURL(trimmedUrl) : undefined,
+    size: 'medium' as const,
+  };
+
   return (
     <FancyCard.Image
       type='letter'
       props={{
         letter: orderLabel,
         title: name,
-        subtitle: artist || undefined,
+        subtitle: artist || 'Sem intérprete',
         additionalData1: (
           <View style={styles.metaRow}>
             {tom ? (
               <MusicBadge label={`TOM ${tom}`} color={tomColor} icon='music-clef-treble' />
             ) : null}
             {bpm ? <MusicBadge label={`BPM ${bpm}`} color={bpmColor} icon='metronome' /> : null}
-            <MusicListenButton url={versaoUrl} title={name} />
           </View>
         ),
+        content:
+          etiquetas && etiquetas.length > 0 ? (
+            <View style={styles.etiquetasRow}>
+              {etiquetas.map((etiqueta) => (
+                <MusicBadge key={etiqueta.id} label={etiqueta.nome} color={etiqueta.cor} />
+              ))}
+            </View>
+          ) : undefined,
         titleProps: {
           type: 'semiBold' as const,
           size: 'small' as const,
@@ -79,7 +104,7 @@ function SetListItem({
         },
         subtitleProps: {
           type: 'medium' as const,
-          size: 'extraSmall' as const,
+          size: 'small' as const,
           numberOfLines: 1,
           color: palette.fonts.inactive,
           style: styles.subtitle,
@@ -92,32 +117,35 @@ function SetListItem({
         delayLongPress: 300,
         accessibilityRole: 'button',
         accessibilityLabel: `Música ${order}, ${name}${musicMetaLabel ? `, ${musicMetaLabel}` : ''}. Toque para ${isEditable ? 'editar' : 'visualizar'}.`,
-        actionButtons: isEditable
-          ? [
-              {
-                icon: {
-                  library: 'MaterialCommunityIcons',
-                  name: 'dots-vertical',
-                  size: 20,
-                  color: palette.fonts.inactive,
-                  backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.08),
+        actionButtons: [
+          ...(listenAction ? [listenAction] : []),
+          ...(isEditable
+            ? [
+                {
+                  icon: {
+                    library: 'MaterialCommunityIcons' as const,
+                    name: 'dots-vertical',
+                    size: 20,
+                    color: palette.fonts.inactive,
+                    backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.08),
+                  },
+                  onPress: onActionsPress,
+                  size: 'medium' as const,
                 },
-                onPress: onActionsPress,
-                size: 'medium',
-              },
-            ]
-          : [
-              {
-                icon: {
-                  library: 'MaterialCommunityIcons',
-                  name: 'chevron-right',
-                  size: 20,
-                  backgroundColor: palette.primary,
+              ]
+            : [
+                {
+                  icon: {
+                    library: 'MaterialCommunityIcons' as const,
+                    name: 'chevron-right',
+                    size: 20,
+                    backgroundColor: palette.primary,
+                  },
+                  onPress,
+                  size: 'medium' as const,
                 },
-                onPress,
-                size: 'medium',
-              },
-            ],
+              ]),
+        ],
       }}
     />
   );
@@ -191,6 +219,15 @@ const styles = StyleSheet.create({
     minWidth: 0,
     marginTop: 2,
   },
+  etiquetasRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 5,
+    minWidth: 0,
+    marginTop: 2,
+    maxHeight: 49,
+    overflow: 'hidden',
+  },
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -201,7 +238,6 @@ const styles = StyleSheet.create({
     borderWidth: 0.6,
     gap: 4,
     flexShrink: 0,
-    maxWidth: '100%',
   },
   badgeDot: {
     width: 6,

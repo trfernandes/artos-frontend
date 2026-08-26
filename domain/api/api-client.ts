@@ -2,8 +2,12 @@ import axios from 'axios';
 import { triggerUnauthorized } from '../../core/network/authBridge';
 import { getAuthToken } from '../../core/storage/authTokenStorage';
 
-const DEFAULT_API_URL = 'https://artos-backend-nwg5.onrender.com';
-const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL || DEFAULT_API_URL;
+const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL;
+if (!apiBaseUrl) {
+  throw new Error(
+    'EXPO_PUBLIC_API_URL não definida no bundle. Build sem essa env var embutida — nunca falar com backend por fallback silencioso.',
+  );
+}
 
 const apiClient = axios.create({
   baseURL: apiBaseUrl,

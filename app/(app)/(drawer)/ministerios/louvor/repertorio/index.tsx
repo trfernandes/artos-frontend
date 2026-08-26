@@ -261,7 +261,6 @@ export default function MinisterioLouvorRepertorioIndexPage() {
                         icon='metronome'
                       />
                     ) : null}
-                    <MusicListenButton url={item.versaoUrl} title={item.nome} />
                   </View>
                   {dataInclusao ? (
                     <FancyText
@@ -276,9 +275,25 @@ export default function MinisterioLouvorRepertorioIndexPage() {
                 </View>
               }
               trailing={
-                canManageRepertorio
-                  ? { type: 'menu', onPress: () => setActionsMusica(item) }
-                  : { type: 'chevron', onPress: () => openMusica(item.id) }
+                <View style={styles.trailingActions}>
+                  <MusicListenButton url={item.versaoUrl} title={item.nome} />
+                  <Pressable
+                    onPress={
+                      canManageRepertorio ? () => setActionsMusica(item) : () => openMusica(item.id)
+                    }
+                    hitSlop={8}
+                    style={styles.trailingButton}
+                    accessibilityRole='button'
+                    accessibilityLabel={canManageRepertorio ? 'Abrir opções' : 'Abrir detalhes'}
+                  >
+                    <DefaultIcons.Custom
+                      library='MaterialCommunityIcons'
+                      name={canManageRepertorio ? 'dots-vertical' : 'chevron-right'}
+                      size={canManageRepertorio ? 20 : 22}
+                      color={palette.fonts.inactive}
+                    />
+                  </Pressable>
+                </View>
               }
             />
           );
@@ -440,6 +455,18 @@ const styles = StyleSheet.create({
   headerButtonsRow: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  trailingActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  trailingButton: {
+    width: 30,
+    height: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
   musicBadgesRow: {
     flexDirection: 'row',

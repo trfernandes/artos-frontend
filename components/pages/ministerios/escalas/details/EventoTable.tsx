@@ -42,6 +42,7 @@ export interface EventoTableProps {
   onDeleteEvento?: (eventoId: string, dataOcorrencia: string) => Promise<boolean>;
   onAdicionarFuncao?: (data: AdicionarFuncaoConfirmDialog) => Promise<boolean>;
   onExcluirFuncao?: (funcaoId: string, eventoId: string, dataOcorrencia: string) => Promise<void>;
+  onExcluirFuncaoAvulsa?: (idEscalaItem: string) => Promise<void>;
   canEditSetlistOwner?: boolean;
   isUpdatingSetlistOwner?: boolean;
   onUpdateResponsavelSetlist?: (data: {
@@ -62,6 +63,7 @@ export default function EventoTable({
   onDeleteEvento,
   onAdicionarFuncao,
   onExcluirFuncao,
+  onExcluirFuncaoAvulsa,
   canEditSetlistOwner,
   isUpdatingSetlistOwner,
   onUpdateResponsavelSetlist,
@@ -554,7 +556,7 @@ export default function EventoTable({
               ],
             );
           }}
-          onExcluirFuncaoPressed={(funcaoId) => {
+          onExcluirFuncaoPressed={(item) => {
             FancyAlert.alert('Excluir Função', 'Deseja realmente excluir esta função do evento?', [
               { text: 'Cancelar', style: 'cancel' },
               {
@@ -563,7 +565,11 @@ export default function EventoTable({
                 onPress: async () => {
                   try {
                     setLoadingAction({ visible: true, label: 'Excluindo função...' });
-                    await onExcluirFuncao?.(funcaoId, data.evento.id, data.dataOcorrencia);
+                    if (item.funcao?.id) {
+                      await onExcluirFuncao?.(item.funcao.id, data.evento.id, data.dataOcorrencia);
+                    } else {
+                      await onExcluirFuncaoAvulsa?.(item.idEscalaItem);
+                    }
                   } finally {
                     setLoadingAction({ visible: false, label: '' });
                   }

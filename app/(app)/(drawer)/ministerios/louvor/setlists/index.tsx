@@ -18,12 +18,11 @@ export default function MinisterioLouvorSetlistsIndexPage() {
 
   const abrirSetlist = (item: ResponseSetlistResumoDto) => {
     router.push({
-      pathname: '/ministerios/agenda/details',
+      pathname: '/ministerios/louvor/setlist/details',
       params: {
         eventoId: item.eventoId,
         dataOcorrencia: item.dataOcorrencia,
         ministerioId,
-        initialTab: 'setlist',
       },
     });
   };

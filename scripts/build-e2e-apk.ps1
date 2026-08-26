@@ -35,7 +35,7 @@ if (-not $SkipBuild) {
 
   # Desabilita upload Sentry — sem auth token localmente, a task falharia
   $env:SENTRY_DISABLE_AUTO_UPLOAD = "true"
-  $env:EXPO_PUBLIC_API_URL = "https://artos-backend-nwg5.onrender.com"
+  $env:EXPO_PUBLIC_API_URL = "https://diakonia-backend-staging.onrender.com"
   $env:NODE_ENV = "production"
 
   # Limpa diretório de kotlin-classes que o Windows pode deixar bloqueado

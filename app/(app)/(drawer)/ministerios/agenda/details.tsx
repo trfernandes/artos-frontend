@@ -7,7 +7,6 @@ import AgendaDetailsDadosTab, {
   AgendaDetailsDadosTabActions,
 } from '../../../../../components/pages/ministerios/agenda/AgendaDetailsDadosTab';
 import AgendaDetailsEscalaTab from '../../../../../components/pages/ministerios/agenda/AgendaDetailsEscalaTab';
-import EventoSetlistTab from '../../../../../components/pages/common/EventoSetlistTab';
 import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
 import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -15,7 +14,6 @@ import { useLoading } from '../../../../../contexts/LoadingContext';
 import { ResponseEventoOcorrenciaDto } from '../../../../../domain/dtos/Evento/evento-ocorrencia.response.dto';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import { useAuth } from '../../../../../contexts/AuthContext';
-import { isLouvorMinisterioTipo } from '../../../../../utils/evento-ensaio';
 import { EventoTipoEnum } from '../../../../../domain/enums/Evento/evento-tipo.enum';
 import { canManageEventoOcorrencia } from '../../../../../utils/ministerio_permissoes';
 
@@ -27,21 +25,12 @@ export default function MinisterioAgendaDetailsPage() {
     eventoId?: string;
     dataOcorrencia: string;
     ministerioId: string;
-    initialTab?: string;
   }>();
   const navigation = useNavigation<any>();
   const { igrejaAtiva } = useAuth();
   const { showLoading, hideLoading } = useLoading();
   const eventoId = params.eventoId || params.id || '';
   const canManageAgenda = canManageEventoOcorrencia(igrejaAtiva, params.ministerioId);
-  const isLouvorMinisterio = useMemo(
-    () =>
-      igrejaAtiva?.ministerios?.some(
-        (ministerio) =>
-          ministerio.id === params.ministerioId && isLouvorMinisterioTipo(ministerio.tipo),
-      ) ?? false,
-    [igrejaAtiva?.ministerios, params.ministerioId],
-  );
   const [ocorrenciaAtual, setOcorrenciaAtual] = useState<ResponseEventoOcorrenciaDto | null>(null);
   const [isLoadingOcorrencia, setIsLoadingOcorrencia] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -199,41 +188,8 @@ export default function MinisterioAgendaDetailsPage() {
       });
     }
 
-    if (isLouvorMinisterio && isEventoCulto) {
-      tabs.push({
-        title: 'SetList',
-        icon: { library: 'MaterialCommunityIcons', name: 'playlist-music-outline', size: 18 },
-        content: (
-          <EventoSetlistTab
-            eventoId={eventoId}
-            dataOcorrencia={new Date(params.dataOcorrencia)}
-            ministerioId={params.ministerioId}
-            mode={canManageAgenda ? 'lider' : 'leitura'}
-            responsavelSetlistNome={ocorrenciaAtual?.responsavelSetlistVoluntario?.nome ?? null}
-            detailsRoutePath='/ministerios/agenda/setlist/[itemId]'
-          />
-        ),
-      });
-    }
-
     return tabs;
-  }, [
-    canManageAgenda,
-    carregarOcorrenciaAtual,
-    data,
-    eventoId,
-    isEventoCulto,
-    isLouvorMinisterio,
-    ocorrenciaAtual,
-    params.dataOcorrencia,
-    params.ministerioId,
-  ]);
-
-  const initialTabIndex = useMemo(() => {
-    if (params.initialTab !== 'setlist') return 0;
-    const index = tab_items.findIndex((tab) => tab.title === 'SetList');
-    return index >= 0 ? index : 0;
-  }, [params.initialTab, tab_items]);
+  }, [canManageAgenda, carregarOcorrenciaAtual, data, eventoId, isEventoCulto, params.dataOcorrencia, params.ministerioId]);
 
   const isLoadingData = isLoading || isLoadingOcorrencia || !eventoId || !data[0];
 
@@ -250,7 +206,7 @@ export default function MinisterioAgendaDetailsPage() {
 
   return (
     <FancyPageView style={styles.container}>
-      <FancyTabs items={tab_items} keepMounted={true} initialIndex={initialTabIndex} />
+      <FancyTabs items={tab_items} keepMounted={true} />
     </FancyPageView>
   );
 }

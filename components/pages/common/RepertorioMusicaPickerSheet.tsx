@@ -117,16 +117,14 @@ export default function RepertorioMusicaPickerSheet({
                     ) : null}
                   </View>
 
-                  {musica.interprete ? (
-                    <FancyText
-                      type='mediumItalic'
-                      size='extraSmall'
-                      color={palette.fonts.inactive}
-                      numberOfLines={1}
-                    >
-                      {musica.interprete}
-                    </FancyText>
-                  ) : null}
+                  <FancyText
+                    type='mediumItalic'
+                    size='extraSmall'
+                    color={palette.fonts.inactive}
+                    numberOfLines={1}
+                  >
+                    {musica.interprete || 'Sem intérprete'}
+                  </FancyText>
 
                   {frequencia && (
                     <FancyText
@@ -140,7 +138,7 @@ export default function RepertorioMusicaPickerSheet({
                   )}
 
                   <View style={styles.listenRow}>
-                    <MusicListenButton url={musica.versaoUrl} title={musica.nome} />
+                    <MusicListenButton url={musica.versaoUrl} title={musica.nome} showLabel />
                   </View>
                 </View>
 

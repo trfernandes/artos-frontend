@@ -55,6 +55,7 @@ export interface EscalaEventoPageProps {
   onDeleteEvento?: (eventoId: string, dataOcorrencia: string) => Promise<boolean>;
   onAdicionarFuncao?: (data: AdicionarFuncaoConfirmDialog) => Promise<boolean>;
   onExcluirFuncao?: (funcaoId: string, eventoId: string, dataOcorrencia: string) => Promise<void>;
+  onExcluirFuncaoAvulsa?: (idEscalaItem: string) => Promise<void>;
   onAdicionarEvento?: () => void;
   canEditSetlistOwner?: boolean;
   isUpdatingSetlistOwner?: boolean;
@@ -77,6 +78,7 @@ export default function EscalaEventoPage({
   onDeleteEvento,
   onAdicionarFuncao,
   onExcluirFuncao,
+  onExcluirFuncaoAvulsa,
   onAdicionarEvento,
   canEditSetlistOwner,
   isUpdatingSetlistOwner,
@@ -502,7 +504,8 @@ export default function EscalaEventoPage({
 
         {/* ── Seção Equipe ──────────────────────────────────────────────────── */}
         <View style={styles.equipeSection}>
-          {data.equipe.filter((item) => !!item.funcao?.id).length === 0 ? (
+          {data.equipe.filter((item) => !!item.funcao?.id || !!item.nomeFuncaoAvulsa).length ===
+          0 ? (
             <FancyListEmpty
               icon={{ library: 'MaterialIcons', name: 'groups', size: 48 }}
               label='Nenhuma função criada'
@@ -546,7 +549,7 @@ export default function EscalaEventoPage({
                     ],
                   );
                 }}
-                onExcluirFuncaoPressed={(funcaoId) => {
+                onExcluirFuncaoPressed={(item) => {
                   FancyAlert.alert(
                     'Excluir Função',
                     'Deseja realmente excluir esta função do evento?',
@@ -558,7 +561,15 @@ export default function EscalaEventoPage({
                         onPress: async () => {
                           try {
                             showLoading('Excluindo função...');
-                            await onExcluirFuncao?.(funcaoId, data.evento.id, data.dataOcorrencia);
+                            if (item.funcao?.id) {
+                              await onExcluirFuncao?.(
+                                item.funcao.id,
+                                data.evento.id,
+                                data.dataOcorrencia,
+                              );
+                            } else {
+                              await onExcluirFuncaoAvulsa?.(item.idEscalaItem);
+                            }
                           } finally {
                             hideLoading();
                           }

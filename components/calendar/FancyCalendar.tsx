@@ -137,7 +137,7 @@ export default function FancyCalendar({
     if (fallback < minDate) return new Date(minDate);
     if (fallback > maxDate) return new Date(maxDate);
     return fallback;
-  }, [minDate, maxDate]);
+  }, [selectedDate, minDate, maxDate]);
 
   const [currentDate, setCurrentDate] = useState<Date>(initialCurrentDate);
 

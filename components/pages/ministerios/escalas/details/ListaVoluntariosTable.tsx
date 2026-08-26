@@ -79,7 +79,7 @@ export default function ListaVoluntariosTable({
   onSubstituicaoButtonPressed?: (data: EscalaItemEquipeType) => void;
   onAdicionarVoluntarioButtonPressed?: (data: EscalaItemEquipeType) => void;
   onRemoverVoluntarioPressed?: (data: EscalaItemEquipeType) => void;
-  onExcluirFuncaoPressed?: (funcaoId: string) => void;
+  onExcluirFuncaoPressed?: (item: EscalaItemEquipeType) => void;
   viewMode?: 'view' | 'edit';
   accentColor?: string;
 }) {
@@ -106,7 +106,7 @@ export default function ListaVoluntariosTable({
 
   const isEditMode = !viewMode || viewMode === 'edit';
 
-  const validEquipe = data?.filter((item) => !!item.funcao?.id) ?? [];
+  const validEquipe = data?.filter((item) => !!item.funcao?.id || !!item.nomeFuncaoAvulsa) ?? [];
 
   return (
     <>
@@ -118,98 +118,126 @@ export default function ListaVoluntariosTable({
           const hasVoluntario = !!equipeItem.voluntario?.nome;
           const isAvulso = !hasVoluntario && !!equipeItem.nomeAvulso;
           const isPreenchido = hasVoluntario || isAvulso;
+          const isFuncaoAvulsa = !equipeItem.funcao?.id && !!equipeItem.nomeFuncaoAvulsa;
 
-          return (
-            <View key={index}>
-              <View style={styles.row}>
-                {/* Avatar com dot de status */}
-                {hasVoluntario ? (
-                  <Pressable
-                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                    onPress={() =>
-                      handleVoluntarioClick(
-                        equipeItem.voluntario?.minVoluntarioId!,
-                        equipeItem.voluntario?.voluntarioId!,
-                      )
+          const isVago = !isPreenchido;
+          const rowPressesToAdd = isVago && isEditMode;
+          const rowPressesToProfile = hasVoluntario;
+          const rowOnPress = rowPressesToProfile
+            ? () =>
+                handleVoluntarioClick(
+                  equipeItem.voluntario?.minVoluntarioId!,
+                  equipeItem.voluntario?.voluntarioId!,
+                )
+            : rowPressesToAdd
+              ? () => onAdicionarVoluntarioButtonPressed?.(equipeItem)
+              : undefined;
+
+          const rowContent = (
+            <View style={styles.row}>
+              {/* Avatar com dot de status */}
+              {hasVoluntario ? (
+                <View style={styles.avatarWrapper}>
+                  <FancyAvatarImage
+                    source={
+                      voluntarioData?.fotoThumbUrl || voluntarioData?.fotoUrl
+                        ? { uri: voluntarioData?.fotoThumbUrl || voluntarioData?.fotoUrl || '' }
+                        : AppImages.emptyProfile
                     }
-                    style={styles.avatarWrapper}
+                    size={36}
+                    style={styles.avatar}
+                  />
+                  <View
+                    style={[
+                      styles.statusDot,
+                      { backgroundColor: voluntarioStatusChipParams[equipeItem.status].color },
+                    ]}
+                  />
+                </View>
+              ) : isAvulso ? (
+                <View style={[styles.avatarWrapper, styles.emptyAvatar]}>
+                  <DefaultIcons.Custom
+                    library='MaterialIcons'
+                    name='person-outline'
+                    size={16}
+                    color={palette.icons.inactive}
+                  />
+                  <View
+                    style={[
+                      styles.statusDot,
+                      { backgroundColor: voluntarioStatusChipParams[equipeItem.status].color },
+                    ]}
+                  />
+                </View>
+              ) : (
+                <View style={styles.emptyAvatar}>
+                  <DefaultIcons.Custom
+                    library='MaterialIcons'
+                    name='work-outline'
+                    size={15}
+                    color={palette.icons.inactive2}
+                  />
+                </View>
+              )}
+
+              {/* Info: Função + Nome */}
+              <View style={styles.infoColumn}>
+                <FancyText
+                  type='medium'
+                  size='extraSmall'
+                  color={palette.fonts.inactive}
+                  numberOfLines={1}
+                >
+                  {equipeItem.funcao?.nome ?? equipeItem.nomeFuncaoAvulsa}
+                  {hasVoluntario && equipeItem.funcao?.experiencia
+                    ? ` · ${EscalaTemplateExperienciaLabel[equipeItem.funcao.experiencia]}`
+                    : !isPreenchido && equipeItem.funcao?.expMinima
+                      ? ` · mín: ${EscalaTemplateExperienciaLabel[equipeItem.funcao.expMinima]}`
+                      : isFuncaoAvulsa
+                        ? ' · função sem cadastro'
+                        : isAvulso
+                          ? ' · pessoa sem cadastro'
+                          : ''}
+                </FancyText>
+                {hasVoluntario ? (
+                  <FancyText type='semiBold' size='small'>
+                    {getFirstAndLastName(equipeItem.voluntario?.nome)}
+                  </FancyText>
+                ) : isAvulso ? (
+                  <FancyText type='semiBold' size='small' numberOfLines={1}>
+                    {equipeItem.nomeAvulso}
+                  </FancyText>
+                ) : (
+                  <FancyText type='semiBold' size='medium' color={palette.fonts.inactive}>
+                    Sem Voluntário
+                  </FancyText>
+                )}
+              </View>
+
+              {/* Ações */}
+              {rowPressesToAdd ? (
+                <View style={styles.vagoActions}>
+                  <Pressable
+                    hitSlop={ACTION_HIT_SLOP}
+                    onPress={() => onExcluirFuncaoPressed?.(equipeItem)}
+                    style={styles.deleteButton}
                   >
-                    <FancyAvatarImage
-                      source={
-                        voluntarioData?.fotoThumbUrl || voluntarioData?.fotoUrl
-                          ? { uri: voluntarioData?.fotoThumbUrl || voluntarioData?.fotoUrl || '' }
-                          : AppImages.emptyProfile
-                      }
-                      size={36}
-                      style={styles.avatar}
-                    />
-                    <View
-                      style={[
-                        styles.statusDot,
-                        { backgroundColor: voluntarioStatusChipParams[equipeItem.status].color },
-                      ]}
+                    <DefaultIcons.Custom
+                      library='MaterialIcons'
+                      name='delete-outline'
+                      size={18}
+                      color={palette.error}
                     />
                   </Pressable>
-                ) : isAvulso ? (
-                  <View style={[styles.avatarWrapper, styles.emptyAvatar]}>
-                    <DefaultIcons.Custom
-                      library='MaterialIcons'
-                      name='person-outline'
-                      size={16}
-                      color={palette.icons.inactive}
-                    />
-                    <View
-                      style={[
-                        styles.statusDot,
-                        { backgroundColor: voluntarioStatusChipParams[equipeItem.status].color },
-                      ]}
-                    />
-                  </View>
-                ) : (
-                  <View style={styles.emptyAvatar}>
-                    <DefaultIcons.Custom
-                      library='MaterialIcons'
-                      name='work-outline'
-                      size={15}
-                      color={palette.icons.inactive2}
-                    />
-                  </View>
-                )}
-
-                {/* Info: Função + Nome */}
-                <View style={styles.infoColumn}>
-                  <FancyText
-                    type='medium'
-                    size='extraSmall'
-                    color={palette.fonts.inactive}
-                    numberOfLines={1}
-                  >
-                    {equipeItem.funcao?.nome}
-                    {hasVoluntario && equipeItem.funcao?.experiencia
-                      ? ` · ${EscalaTemplateExperienciaLabel[equipeItem.funcao.experiencia]}`
-                      : !isPreenchido && equipeItem.funcao?.expMinima
-                        ? ` · mín: ${EscalaTemplateExperienciaLabel[equipeItem.funcao.expMinima]}`
-                        : isAvulso
-                          ? ' · pessoa avulsa'
-                          : ''}
-                  </FancyText>
-                  {hasVoluntario ? (
-                    <FancyText type='semiBold' size='small'>
-                      {getFirstAndLastName(equipeItem.voluntario?.nome)}
-                    </FancyText>
-                  ) : isAvulso ? (
-                    <FancyText type='semiBold' size='small' numberOfLines={1}>
-                      {equipeItem.nomeAvulso}
-                    </FancyText>
-                  ) : (
-                    <FancyText type='semiBold' size='medium' color={palette.fonts.inactive}>
-                      Sem Voluntário
-                    </FancyText>
-                  )}
+                  <DefaultIcons.Custom
+                    library='MaterialIcons'
+                    name='chevron-right'
+                    size={20}
+                    color={palette.icons.inactive2}
+                  />
                 </View>
-
-                {/* Menu de ações */}
-                {isEditMode && (
+              ) : (
+                isEditMode && (
                   <Pressable
                     hitSlop={ACTION_HIT_SLOP}
                     onPress={() => setMenuItem(equipeItem)}
@@ -222,8 +250,18 @@ export default function ListaVoluntariosTable({
                       color={accentColor ?? palette.icons.inactive}
                     />
                   </Pressable>
-                )}
-              </View>
+                )
+              )}
+            </View>
+          );
+
+          return (
+            <View key={index}>
+              {rowOnPress ? (
+                <Pressable onPress={rowOnPress}>{rowContent}</Pressable>
+              ) : (
+                rowContent
+              )}
               {index < validEquipe.length - 1 && <View style={styles.rowDivider} />}
             </View>
           );
@@ -234,21 +272,16 @@ export default function ListaVoluntariosTable({
         visible={!!menuItem}
         onClose={() => setMenuItem(null)}
         title={
-          menuItem?.voluntario?.nome ?? menuItem?.nomeAvulso ?? menuItem?.funcao?.nome ?? 'Opções'
+          menuItem?.voluntario?.nome ??
+          menuItem?.nomeAvulso ??
+          menuItem?.funcao?.nome ??
+          menuItem?.nomeFuncaoAvulsa ??
+          'Opções'
         }
         actions={
           menuItem
             ? menuItem.voluntario?.nome
               ? [
-                  {
-                    label: 'Ver detalhes',
-                    icon: { library: 'MaterialIcons' as const, name: 'person', size: 18 },
-                    onPress: () =>
-                      handleVoluntarioClick(
-                        menuItem.voluntario!.minVoluntarioId!,
-                        menuItem.voluntario!.voluntarioId!,
-                      ),
-                  },
                   {
                     label: 'Substituir voluntário',
                     icon: { library: 'FontAwesome5' as const, name: 'exchange-alt', size: 15 },
@@ -284,7 +317,7 @@ export default function ListaVoluntariosTable({
                     {
                       label: 'Excluir função',
                       icon: { library: 'MaterialIcons' as const, name: 'delete-outline', size: 18 },
-                      onPress: () => onExcluirFuncaoPressed?.(menuItem.funcao?.id!),
+                      onPress: () => onExcluirFuncaoPressed?.(menuItem),
                       destructive: true,
                     },
                   ]
@@ -360,6 +393,19 @@ function createStyles(palette: ThemePalette) {
       justifyContent: 'center',
     },
     dotsButton: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      justifyContent: 'center',
+      alignItems: 'center',
+      alignSelf: 'center',
+    },
+    vagoActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    deleteButton: {
       width: 30,
       height: 30,
       borderRadius: 15,

@@ -203,7 +203,7 @@ function AssistenteWrapper() {
   form.register('dataInicio', {
     onChange: () => {
       setShouldLoadEvents(true);
-      if (form.formState.errors.dataTermino) {
+      if (form.formState.errors.dataInicio) {
         form.trigger(['dataInicio', 'dataTermino']);
       }
     },

@@ -27,6 +27,7 @@ import EscalaParametrizacaoModal from '../../../../../components/pages/ministeri
 import AdicionarItemManualModal, {
   AdicionarItemManualConfirmDialog,
 } from '../../../../../components/pages/ministerios/escalas/details/AdicionarItemManualModal';
+import { AdicionarFuncaoConfirmDialog } from '../../../../../components/pages/ministerios/escalas/details/AdicionarFuncaoModal';
 import { DateUtilsApi } from '../../../../../utils/date_utils';
 import { EscalaTemplateExperienciaEnum } from '../../../../../domain/enums/EscalaTemplate/escala-template-experiencia.enum';
 import { EscalaParametrizacaoType } from '../../../../../domain/dtos/Escala/escala.response';
@@ -36,6 +37,7 @@ import { getApiErrorMessage } from '../../../../../domain/api/api-error';
 import { canManageEventoOcorrencia } from '../../../../../utils/ministerio_permissoes';
 import { combineOccurrenceWithEventTime } from '../../../../../utils/evento-datetime';
 import { useLoading } from '../../../../../contexts/LoadingContext';
+import { UpdateEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.update';
 
 export type EscalaItemDataType = {
   dataOcorrencia: string;
@@ -75,6 +77,9 @@ export type EscalaItemEquipeType = {
   // Pessoa avulsa (não cadastrada): nome livre digitado pelo líder — presente só quando
   // `voluntario` é null por escolha do líder, não persiste/reaproveita entre escalas.
   nomeAvulso?: string | null;
+  // Função avulsa (não cadastrada): mesmo padrão de nomeAvulso, aplicado à função —
+  // presente só quando `funcao` é null por escolha do líder.
+  nomeFuncaoAvulsa?: string | null;
   funcao?: {
     id: string;
     nome: string;
@@ -281,7 +286,7 @@ export default function MinisterioEscalasDetailsPage() {
 
       const expMinima = expMinimaLookup.get(`${item.evento?.id}-${item.funcao?.id}`);
 
-      if (!item.funcao?.id) continue;
+      if (!item.funcao?.id && !item.nomeFuncaoAvulsa) continue;
 
       grupo.equipe.push({
         idEscalaItem: item?.id!,
@@ -295,12 +300,15 @@ export default function MinisterioEscalasDetailsPage() {
             }
           : undefined,
         nomeAvulso: item.nomeAvulso ?? null,
-        funcao: {
-          id: item.funcao?.id!,
-          nome: item.funcao?.nome!,
-          experiencia: expDoVoluntario,
-          expMinima,
-        },
+        nomeFuncaoAvulsa: item.nomeFuncaoAvulsa ?? null,
+        funcao: item.funcao?.id
+          ? {
+              id: item.funcao.id,
+              nome: item.funcao.nome!,
+              experiencia: expDoVoluntario,
+              expMinima,
+            }
+          : undefined,
         status: item.status,
       });
     }
@@ -348,7 +356,7 @@ export default function MinisterioEscalasDetailsPage() {
                 voluntarioId: null,
                 nomeAvulso: data.nomeAvulso,
                 status: EscalaItemStatusEnum.Pendente,
-              } as any)
+              } satisfies UpdateEscalaItemDto)
             : {
                 voluntarioId: data.idSubstituto,
                 status: EscalaItemStatusEnum.Pendente,
@@ -383,7 +391,10 @@ export default function MinisterioEscalasDetailsPage() {
         await updateEscalaItem?.({
           id: data.idEscalaItem,
           data: data.nomeAvulso
-            ? ({ nomeAvulso: data.nomeAvulso, status: EscalaItemStatusEnum.Pendente } as any)
+            ? ({
+                nomeAvulso: data.nomeAvulso,
+                status: EscalaItemStatusEnum.Pendente,
+              } satisfies UpdateEscalaItemDto)
             : {
                 voluntarioId: data.idVoluntario,
                 status: EscalaItemStatusEnum.Pendente,
@@ -502,17 +513,14 @@ export default function MinisterioEscalasDetailsPage() {
   );
 
   const handleAdicionarFuncao = useCallback(
-    async (data: {
-      funcaoId: string;
-      eventoId: string;
-      dataOcorrencia: string;
-    }): Promise<boolean> => {
+    async (data: AdicionarFuncaoConfirmDialog): Promise<boolean> => {
       try {
         await addEscalaItem?.({
           escalaId: escalaId,
           eventoId: data.eventoId,
           dataOcorrencia: data.dataOcorrencia,
           funcaoId: data.funcaoId,
+          nomeFuncaoAvulsa: data.nomeFuncaoAvulsa,
         });
         await refetchEscala();
         Toast.show({
@@ -587,6 +595,26 @@ export default function MinisterioEscalasDetailsPage() {
       }
     },
     [escalaData, removeEscalaItem, refetchEscala],
+  );
+
+  const handleExcluirFuncaoAvulsa = useCallback(
+    async (idEscalaItem: string): Promise<void> => {
+      try {
+        await removeEscalaItem?.(idEscalaItem);
+        await refetchEscala();
+        Toast.show({
+          type: 'success',
+          text1: 'Função removida da escala.',
+        });
+      } catch (error) {
+        console.error('Erro ao excluir função avulsa:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Não foi possível excluir a função.',
+        });
+      }
+    },
+    [removeEscalaItem, refetchEscala],
   );
 
   const handlePublishPress = useCallback(() => {
@@ -820,6 +848,7 @@ export default function MinisterioEscalasDetailsPage() {
             onDeleteEvento={handleDeleteEvento}
             onAdicionarFuncao={handleAdicionarFuncao}
             onExcluirFuncao={handleExcluirFuncao}
+            onExcluirFuncaoAvulsa={handleExcluirFuncaoAvulsa}
             onAdicionarEvento={
               escalaData[0].origem === EscalaOrigemEnum.Manual &&
               (!viewMode || viewMode === 'edit') &&

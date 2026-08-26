@@ -9,4 +9,5 @@ export type CreateEscalaItemDto = {
   status?: EscalaItemStatusEnum;
   substituicaoId?: string;
   nomeAvulso?: string | null;
+  nomeFuncaoAvulsa?: string | null;
 };
