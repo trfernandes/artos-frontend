@@ -173,7 +173,7 @@ function FullCard({
       <View style={fullStyles.header}>
         <MinisterioLogo url={ministerio.ministerioLogoUrl} size={40} palette={palette} />
         <View style={fullStyles.headerText}>
-          <FancyText size='largeMedium' type='bold' color={palette.fonts.dark} numberOfLines={1}>
+          <FancyText size='medium' type='bold' color={palette.fonts.dark} numberOfLines={1}>
             {ministerio.ministerioNome}
           </FancyText>
         </View>

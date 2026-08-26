@@ -13,6 +13,14 @@ class RegrasIndisponibilidadeVoluntariosRepositoryClass extends BaseRepository<
     super(RegrasIndisponibilidadeVoluntariosApi);
   }
 
+  update(
+    id: string,
+    payload: UpdateRegraIndisponibilidadeVoluntarioDto,
+    igrejaId?: string,
+  ): Promise<ResponseRegraIndisponibilidadeVoluntarioDto> {
+    return RegrasIndisponibilidadeVoluntariosApi.update(id, payload, igrejaId);
+  }
+
   remove(id: string, igrejaId?: string): Promise<void> {
     return RegrasIndisponibilidadeVoluntariosApi.delete(id, igrejaId);
   }

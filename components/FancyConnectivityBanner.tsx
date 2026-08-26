@@ -8,17 +8,26 @@ import { usePallete } from '../hooks/usePallete';
 
 export function ConnectivityBanner() {
   const palette = usePallete();
-  const { status, recheck } = useConnectivity();
+  const { status, recheck, isRechecking } = useConnectivity();
   const insets = useSafeAreaInsets();
   const bottomOffset = Math.max(insets.bottom, 12);
 
   if (status === 'ok') return null;
 
-  const title = status === 'offline' ? 'Sem internet' : 'Servidor indisponível';
+  const title =
+    status === 'offline'
+      ? 'Sem internet'
+      : status === 'connecting'
+        ? 'Conectando...'
+        : 'Servidor indisponível';
   const subtitle =
     status === 'offline'
       ? 'Verifique sua conexão para continuar.'
-      : 'Tente novamente em instantes.';
+      : status === 'connecting'
+        ? 'Estabelecendo conexão com o servidor.'
+        : 'Tente novamente em instantes.';
+  // 'connecting' é neutro (ainda não é erro confirmado) — cor informativa, não vermelha.
+  const backgroundColor = status === 'connecting' ? palette.secondary : palette.error;
 
   return (
     <View
@@ -31,7 +40,7 @@ export function ConnectivityBanner() {
         paddingBottom: 10,
         paddingTop: 10,
         paddingHorizontal: 16,
-        backgroundColor: palette.error,
+        backgroundColor,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -61,6 +70,9 @@ export function ConnectivityBanner() {
         onPress={recheck}
         labelProps={{ size: 'extraSmall' }}
         label='Atualizar'
+        isLoading={isRechecking}
+        loadingText='Verificando...'
+        loadingColor='white'
         icon={{ ...DefaultIconsNames.refresh, color: 'white', size: 12 }}
       />
     </View>

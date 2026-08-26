@@ -22,7 +22,7 @@ import { useLoading } from '../../../../../contexts/LoadingContext';
 import { useKeyboardState } from 'react-native-keyboard-controller';
 
 export default function EditProfilePage() {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, igrejaAtiva } = useAuth();
   const { showLoading, hideLoading } = useLoading();
   const keyboardVisible = useKeyboardState((s) => s.isVisible);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,11 +52,12 @@ export default function EditProfilePage() {
     isLoading,
   } = useVoluntariosCrud({
     autoFetch: true,
+    igrejaId: igrejaAtiva?.id,
     initialParams: {
       where: {
         conditions: [
           {
-            path: 'id',
+            path: 'voluntario.id',
             operator: Operator.EQUALS,
             value: { value: user?.user?.id!, type: ValueType.LITERAL },
           },

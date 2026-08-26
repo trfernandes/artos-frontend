@@ -66,14 +66,6 @@ const BASE_MENU: DrawerItemData[] = [
     },
     onPress: { type: 'GoToRoute', routeName: '/pessoal/escalas' },
   },
-  {
-    title: 'Ajuda',
-    logo: {
-      type: 'icon',
-      value: { name: 'help-circle-outline', library: 'MaterialCommunityIcons', size: 17 },
-    },
-    onPress: { type: 'GoToRoute', routeName: '/ajuda' },
-  },
 ];
 
 // Menu da Igreja - somente ADMIN (owner)
@@ -149,6 +141,21 @@ const getMinisterioBasicItems = (ministerio: ResponseLoginMinisterioDto): Drawer
       onPress: {
         type: 'GoToRoute',
         routeName: `/ministerios/louvor/repertorio${routeParams}`,
+      },
+    });
+    items.push({
+      title: 'SetLists',
+      logo: {
+        type: 'icon',
+        value: {
+          name: 'playlist-music-outline',
+          library: 'MaterialCommunityIcons',
+          size: 17,
+        },
+      },
+      onPress: {
+        type: 'GoToRoute',
+        routeName: `/ministerios/louvor/setlists${routeParams}`,
       },
     });
   }
@@ -232,7 +239,21 @@ const getMinisterioFullItems = (ministerio: ResponseLoginMinisterioDto): DrawerI
     },
   };
 
-  return sortDrawerItemsByTitle([...baseItems, ...commonItems, templatesItem]);
+  // Só o líder vê isso — admin já edita a foto (e o resto) pela tela cheia
+  // em admin/ministerios; ver `getMenuForMinisterio`, que filtra esse item pro admin.
+  const configuracoesItem = {
+    title: 'Configurações',
+    logo: {
+      type: 'icon' as const,
+      value: { name: 'cog', library: 'MaterialCommunityIcons' as const, size: 17 },
+    },
+    onPress: {
+      type: 'GoToRoute' as const,
+      routeName: `/ministerios/configuracoes${routeParams}`,
+    },
+  };
+
+  return sortDrawerItemsByTitle([...baseItems, ...commonItems, templatesItem, configuracoesItem]);
 };
 
 // Monta o menu de um ministério baseado na hierarquia do usuário
@@ -252,6 +273,12 @@ const getMenuForMinisterio = (
   let items = showFullMenu
     ? getMinisterioFullItems(ministerio)
     : getMinisterioBasicItems(ministerio);
+
+  // "Configurações" (edição de foto) é só do líder — admin já tem isso na tela
+  // cheia de admin/ministerios.
+  if (isAdmin) {
+    items = items.filter((item) => item.title !== 'Configurações');
+  }
 
   if (isAuxiliar && !isAdmin) {
     const routeParams = `?ministerioId=${ministerio.id}`;
@@ -355,6 +382,21 @@ const getMenuForMinisterio = (
         onPress: {
           type: 'GoToRoute',
           routeName: `/ministerios/louvor/repertorio${routeParams}`,
+        },
+      });
+      filteredItems.push({
+        title: 'SetLists',
+        logo: {
+          type: 'icon',
+          value: {
+            name: 'playlist-music-outline',
+            library: 'MaterialCommunityIcons',
+            size: 17,
+          },
+        },
+        onPress: {
+          type: 'GoToRoute',
+          routeName: `/ministerios/louvor/setlists${routeParams}`,
         },
       });
     }

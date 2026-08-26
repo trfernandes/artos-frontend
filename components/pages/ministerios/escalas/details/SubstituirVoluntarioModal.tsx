@@ -5,6 +5,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import FancyText from '../../../../FancyText';
 import FancySearchSelect from '../../../../fields/FancySearchSelect';
 import FancyCheckbox from '../../../../FancyCheckbox';
+import FancyTextInput from '../../../../fields/FancyTextInput';
 import { format } from 'date-fns';
 import { useVoluntariosDoMinisterioCrud } from '../../../../../hooks/useVoluntariosDoMinisterioCrud';
 import { useEffect, useState, useMemo } from 'react';
@@ -40,7 +41,8 @@ export interface SubstituirVoluntarioModalProps {
 export interface SubstituicaoConfirmDialog {
   idEscalaItem: string;
   idVoluntario: string;
-  idSubstituto: string;
+  idSubstituto?: string;
+  nomeAvulso?: string;
 }
 
 export default function SubstituirVoluntarioModal({
@@ -80,17 +82,20 @@ export default function SubstituirVoluntarioModal({
     [data.voluntario?.minVoluntarioId],
   );
 
+  // Escopado pela mesma função do slot (funções diferentes permitem dupla escalação).
   const alreadyAssignedIds = useMemo(() => {
     if (!currentEquipe) return new Set<string>();
     return new Set(
       currentEquipe
         .filter(
           (e) =>
-            !!e.voluntario?.minVoluntarioId && e.voluntario.minVoluntarioId !== currentVoluntarioId,
+            !!e.voluntario?.minVoluntarioId &&
+            e.voluntario.minVoluntarioId !== currentVoluntarioId &&
+            e.funcao?.id === funcaoId,
         )
         .map((e) => e.voluntario!.minVoluntarioId),
     );
-  }, [currentEquipe, currentVoluntarioId]);
+  }, [currentEquipe, currentVoluntarioId, funcaoId]);
 
   useEffect(() => {
     const dropDownListWithoutCurrentVoluntario = dropDownList.filter(
@@ -221,11 +226,18 @@ export default function SubstituirVoluntarioModal({
   ]);
 
   const [selectedSubstituto, setSelectedSubstituto] = useState<string | null>(null);
+  const [pessoaNaoCadastrada, setPessoaNaoCadastrada] = useState(false);
+  const [nomeAvulso, setNomeAvulso] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleConfirm = () => {
-    if (!selectedSubstituto) {
+    if (pessoaNaoCadastrada) {
+      if (!nomeAvulso.trim()) {
+        setErrors({ nomeAvulso: 'Campo Obrigatório' });
+        return;
+      }
+    } else if (!selectedSubstituto) {
       setErrors({ substituto: 'Campo Obrigatório' });
       return;
     }
@@ -241,7 +253,9 @@ export default function SubstituirVoluntarioModal({
             await onConfirm({
               idEscalaItem: data.idEscalaItem,
               idVoluntario: data.voluntario?.minVoluntarioId ?? '',
-              idSubstituto: selectedSubstituto,
+              ...(pessoaNaoCadastrada
+                ? { nomeAvulso: nomeAvulso.trim() }
+                : { idSubstituto: selectedSubstituto! }),
             });
           } finally {
             setIsSubmitting(false);
@@ -314,7 +328,7 @@ export default function SubstituirVoluntarioModal({
                 ? { uri: data.voluntario?.fotoThumbUrl || data.voluntario?.fotoUrl || '' }
                 : AppImages.emptyProfile,
           }}
-          title={data?.voluntario?.nome ?? ''}
+          title={data?.voluntario?.nome ?? data?.nomeAvulso ?? ''}
           subtitle={data?.funcao?.nome}
           status={<FancyChips label='Atual' color={palette.warning} outlined />}
         />
@@ -325,7 +339,7 @@ export default function SubstituirVoluntarioModal({
             <View style={[styles.sectionEyebrowTick, { backgroundColor: palette.primary }]} />
             <FancyText
               type='semiBold'
-              size={10}
+              size='extraSmall'
               color={palette.primary}
               style={styles.sectionEyebrowText}
             >
@@ -336,52 +350,96 @@ export default function SubstituirVoluntarioModal({
           <View style={{ gap: 12 }}>
             <View style={{ gap: 8 }}>
               <FancyCheckbox
-                value={disponiveisNaData}
-                onChangeValue={setDisponiveisNaData}
-                label='Disponíveis na data'
+                value={pessoaNaoCadastrada}
+                onChangeValue={(v) => {
+                  setPessoaNaoCadastrada(v);
+                  setErrors({});
+                }}
+                label='Pessoa não cadastrada'
                 disabled={isSubmitting}
               />
-              <FancyCheckbox
-                value={temMesmaFuncao}
-                onChangeValue={setTemMesmaFuncao}
-                label='Tem a mesma função'
-                disabled={isSubmitting}
-              />
+              {!pessoaNaoCadastrada && (
+                <>
+                  <FancyCheckbox
+                    value={disponiveisNaData}
+                    onChangeValue={setDisponiveisNaData}
+                    label='Disponíveis na data'
+                    disabled={isSubmitting}
+                  />
+                  <FancyCheckbox
+                    value={temMesmaFuncao}
+                    onChangeValue={setTemMesmaFuncao}
+                    label='Tem a mesma função'
+                    disabled={isSubmitting}
+                  />
+                </>
+              )}
             </View>
 
-            {isLoadingSubstitutos && (
-              <View
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 }}
-              >
-                <ActivityIndicator size='small' color={palette.primary} />
+            {pessoaNaoCadastrada ? (
+              <View style={{ flexDirection: 'column', gap: 5 }}>
+                <FancyTextInput
+                  label='Nome'
+                  placeholder='Nome da pessoa'
+                  value={nomeAvulso}
+                  errorMessage={errors['nomeAvulso']}
+                  inputProps={{
+                    onChangeText: (t) => {
+                      setNomeAvulso(t);
+                      setErrors((prev) => {
+                        const { nomeAvulso: _nomeAvulso, ...rest } = prev;
+                        return rest;
+                      });
+                    },
+                  }}
+                  disabled={isSubmitting}
+                />
                 <FancyText size='extraSmall' color={palette.fonts.inactive}>
-                  Filtrando voluntários...
+                  Sem conta no app — não recebe notificação, o líder marca presença manualmente.
                 </FancyText>
               </View>
-            )}
+            ) : (
+              <>
+                {isLoadingSubstitutos && (
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 8,
+                      paddingVertical: 4,
+                    }}
+                  >
+                    <ActivityIndicator size='small' color={palette.primary} />
+                    <FancyText size='extraSmall' color={palette.fonts.inactive}>
+                      Filtrando voluntários...
+                    </FancyText>
+                  </View>
+                )}
 
-            <View style={{ flexDirection: 'column', gap: 5 }}>
-              <FancySearchSelect
-                label='Substituto'
-                placeholder='Buscar voluntário...'
-                value={selectedSubstituto}
-                onChange={(value) => {
-                  setSelectedSubstituto(Array.isArray(value) ? (value[0] ?? null) : value);
-                  setErrors((prev) => {
-                    const { substituto: _substituto, ...rest } = prev;
-                    return rest;
-                  });
-                }}
-                listItems={voluntariosDropDownList}
-                isLoading={isLoadingSubstitutos}
-                disabled={
-                  isSubmitting ||
-                  isLoadingMinisterioVoluntarios ||
-                  isLoadingMinisterioVoluntariosMutation
-                }
-              />
-              {errors['substituto'] && <FancyErrorText message={errors['substituto']} />}
-            </View>
+                <View style={{ flexDirection: 'column', gap: 5 }}>
+                  <FancySearchSelect
+                    label='Substituto'
+                    placeholder='Buscar voluntário...'
+                    value={selectedSubstituto}
+                    onChange={(value) => {
+                      setSelectedSubstituto(Array.isArray(value) ? (value[0] ?? null) : value);
+                      setErrors((prev) => {
+                        const { substituto: _substituto, ...rest } = prev;
+                        return rest;
+                      });
+                    }}
+                    listItems={voluntariosDropDownList}
+                    isLoading={isLoadingSubstitutos}
+                    disabled={
+                      isSubmitting ||
+                      isLoadingMinisterioVoluntarios ||
+                      isLoadingMinisterioVoluntariosMutation
+                    }
+                  />
+                  {errors['substituto'] && <FancyErrorText message={errors['substituto']} />}
+                </View>
+              </>
+            )}
           </View>
         </View>
       </FancyGroup>

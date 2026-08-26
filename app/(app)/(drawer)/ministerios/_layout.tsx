@@ -27,6 +27,7 @@ export default function MinisteriosLayout() {
       <Stack.Screen name='escalas' />
       <Stack.Screen name='integrantes' />
       <Stack.Screen name='louvor/repertorio' />
+      <Stack.Screen name='louvor/setlists' />
       <Stack.Screen name='solicitacoes' />
       <Stack.Screen name='templates_equipe' />
     </Stack>

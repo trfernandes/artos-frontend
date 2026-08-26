@@ -9,13 +9,14 @@ import React, {
   ReactNode,
   isValidElement,
 } from 'react';
-import { Modal, View, StyleSheet, Animated, Dimensions, Platform } from 'react-native';
+import { View, StyleSheet, Animated, Dimensions, Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
 import FancyButton from '../buttons/FancyButton';
 import FancyText from '../FancyText';
 import { usePallete } from '../../hooks/usePallete';
 import { ColorUtils } from '../../utils/color_utils';
 import { useAppTheme } from '../../hooks/useAppTheme';
+import { ModalStack } from './GlobalModalHost';
 
 type Button = {
   text: string;
@@ -39,6 +40,7 @@ const ANIMATION = {
   closeDuration: 50,
 };
 const SHEET_TRANSLATE_Y = 32;
+const MODAL_STACK_ID = 'fancy-alert';
 
 export function FancyAlertProvider({ children }: { children: ReactNode }) {
   const palette = usePallete();
@@ -97,113 +99,107 @@ export function FancyAlertProvider({ children }: { children: ReactNode }) {
         }),
       ]).start(() => {
         setVisible(false);
-        // iOS: dispara onPress no onDismiss real do <Modal> nativo, não aqui
-        // (Android não tem onDismiss no Modal, então dispara direto).
-        if (Platform.OS !== 'ios') {
-          const pending = pendingBtnRef.current;
-          pendingBtnRef.current = undefined;
-          pending?.onPress?.();
-        }
+        const pending = pendingBtnRef.current;
+        pendingBtnRef.current = undefined;
+        pending?.onPress?.();
       });
     },
     [backdropAnim, slideAnim],
   );
 
-  const handleDismiss = useCallback(() => {
-    const pending = pendingBtnRef.current;
-    pendingBtnRef.current = undefined;
-    pending?.onPress?.();
-  }, []);
-
   const shouldStackButtons = buttons.length > 2;
 
-  return (
-    <AlertCtx.Provider value={{ show }}>
-      {children}
-
-      <Modal
-        visible={visible}
-        transparent
-        animationType='none'
-        statusBarTranslucent
-        onRequestClose={() => close()}
-        onDismiss={Platform.OS === 'ios' ? handleDismiss : undefined}
+  const content = (
+    <View style={styles.modalContainer}>
+      <Animated.View
+        style={[styles.backdrop, { opacity: backdropAnim, backgroundColor: reliableBackdropColor }]}
       >
-        <View style={styles.modalContainer}>
-          <Animated.View
-            style={[styles.backdrop, { opacity: backdropAnim, backgroundColor: reliableBackdropColor }]}
-          >
-            <BlurView
-              intensity={Platform.OS === 'ios' ? 28 : 60}
-              tint={isDark ? 'dark' : 'default'}
-              experimentalBlurMethod={Platform.OS === 'android' ? 'dimezisBlurView' : 'none'}
-              style={StyleSheet.absoluteFillObject}
-            />
-          </Animated.View>
+        <BlurView
+          intensity={Platform.OS === 'ios' ? 28 : 60}
+          tint={isDark ? 'dark' : 'default'}
+          experimentalBlurMethod={Platform.OS === 'android' ? 'dimezisBlurView' : 'none'}
+          style={StyleSheet.absoluteFillObject}
+        />
+      </Animated.View>
 
-          <Animated.View
-            style={[
-              styles.sheetContainer,
-              { backgroundColor: palette.backgroundColor },
-              palette.shadows[300],
-              { transform: [{ translateY: slideAnim }] },
-            ]}
-          >
-            <View style={styles.handleContainer}>
-              <View style={[styles.handle, { backgroundColor: palette.border }]} />
-            </View>
-
-            <View style={styles.content}>
-              {title ? (
-                isValidElement(title) ? (
-                  title
-                ) : (
-                  <FancyText type='bold' size='large' style={styles.title}>
-                    {title}
-                  </FancyText>
-                )
-              ) : null}
-              {message ? (
-                isValidElement(message) ? (
-                  message
-                ) : (
-                  <FancyText type='medium' size='medium' style={styles.message}>
-                    {message}
-                  </FancyText>
-                )
-              ) : null}
-
-              <View style={[styles.row, shouldStackButtons && styles.rowStacked]}>
-                {buttons.map((btn, i) => (
-                  <FancyButton
-                    key={i}
-                    label={btn.text}
-                    onPress={() => close(btn)}
-                    textProps={{
-                      adjustsFontSizeToFit: !shouldStackButtons,
-                      numberOfLines: shouldStackButtons ? 2 : 1,
-                    }}
-                    containerStyle={[
-                      styles.button,
-                      shouldStackButtons && styles.buttonStacked,
-                      btn.style === 'destructive' ? { backgroundColor: palette.error } : {},
-                    ]}
-                    type={
-                      btn.style === 'cancel'
-                        ? 'text'
-                        : btn.style === 'default'
-                          ? 'outlined'
-                          : 'contained'
-                    }
-                  />
-                ))}
-              </View>
-            </View>
-          </Animated.View>
+      <Animated.View
+        style={[
+          styles.sheetContainer,
+          { backgroundColor: palette.backgroundColor },
+          palette.shadows[300],
+          { transform: [{ translateY: slideAnim }] },
+        ]}
+      >
+        <View style={styles.handleContainer}>
+          <View style={[styles.handle, { backgroundColor: palette.border }]} />
         </View>
-      </Modal>
-    </AlertCtx.Provider>
+
+        <View style={styles.content}>
+          {title ? (
+            isValidElement(title) ? (
+              title
+            ) : (
+              <FancyText type='bold' size='large' style={styles.title}>
+                {title}
+              </FancyText>
+            )
+          ) : null}
+          {message ? (
+            isValidElement(message) ? (
+              message
+            ) : (
+              <FancyText type='medium' size='medium' style={styles.message}>
+                {message}
+              </FancyText>
+            )
+          ) : null}
+
+          <View style={[styles.row, shouldStackButtons && styles.rowStacked]}>
+            {buttons.map((btn, i) => (
+              <FancyButton
+                key={i}
+                label={btn.text}
+                onPress={() => close(btn)}
+                textProps={{
+                  adjustsFontSizeToFit: !shouldStackButtons,
+                  numberOfLines: shouldStackButtons ? 2 : 1,
+                }}
+                containerStyle={[
+                  styles.button,
+                  shouldStackButtons && styles.buttonStacked,
+                  btn.style === 'destructive' ? { backgroundColor: palette.error } : {},
+                ]}
+                type={
+                  btn.style === 'cancel'
+                    ? 'text'
+                    : btn.style === 'default'
+                      ? 'outlined'
+                      : 'contained'
+                }
+              />
+            ))}
+          </View>
+        </View>
+      </Animated.View>
+    </View>
   );
+
+  useEffect(() => {
+    if (visible) {
+      ModalStack.push(MODAL_STACK_ID, content, () => close());
+    } else {
+      ModalStack.pop(MODAL_STACK_ID);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
+
+  useEffect(() => {
+    if (visible) ModalStack.update(MODAL_STACK_ID, content);
+  });
+
+  useEffect(() => () => ModalStack.pop(MODAL_STACK_ID), []);
+
+  return <AlertCtx.Provider value={{ show }}>{children}</AlertCtx.Provider>;
 }
 
 // 🔗 hook opcional (não é usado na API estática, mas fica disponível se quiser)

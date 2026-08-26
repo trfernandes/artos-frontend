@@ -83,17 +83,17 @@ export default function TemplateForm({
 
   const respSetListFuncoesDropDownList = useMemo(() => {
     const filteredFuncoes = funcoesDropDownList.filter((f) =>
-      funcoesWatch?.some((fw: any) => fw.funcaoId === f.value),
+      funcoesWatch?.some((fw: any) => fw.funcaoIds?.includes(f.value)),
     );
     return [{ title: 'Nenhum', value: undefined }, ...filteredFuncoes];
-  }, [funcoesDropDownList]);
+  }, [funcoesDropDownList, funcoesWatch]);
 
   const respSetListVoluntariosDropDownList = useMemo(() => {
     const filteredVoluntarios = ministerioVoluntariosDropDownList.filter((v) =>
       voluntariosWatch?.some((vw: any) => vw.voluntarioId === v.value),
     );
     return [{ title: 'Nenhum', value: undefined }, ...filteredVoluntarios];
-  }, [ministerioVoluntariosDropDownList]);
+  }, [ministerioVoluntariosDropDownList, voluntariosWatch]);
 
   const isFormDisabled = isLoading || isFuncoesLoading;
 

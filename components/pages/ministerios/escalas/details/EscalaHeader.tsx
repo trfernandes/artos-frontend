@@ -73,9 +73,22 @@ export default function EscalaHeader({
   return (
     <View style={[styles.surfaceCard, { borderTopColor: statusVisual.color }]}>
       <View style={styles.headlineRow}>
+        <View
+          style={[
+            styles.leadingIcon,
+            { backgroundColor: ColorUtils.withAlpha(statusVisual.color, 0.12) },
+          ]}
+        >
+          <DefaultIcons.Custom
+            library='MaterialCommunityIcons'
+            name='calendar-range'
+            size={15}
+            color={statusVisual.color}
+          />
+        </View>
         <FancyText
           type='bold'
-          size='largeMedium'
+          size='medium'
           color={palette.fonts.dark}
           numberOfLines={1}
           style={styles.titleText}
@@ -88,6 +101,7 @@ export default function EscalaHeader({
           backgroundColor={statusVisual.backgroundColor}
           dot
           size='small'
+          style={styles.statusChip}
         />
       </View>
 
@@ -100,7 +114,7 @@ export default function EscalaHeader({
               size={12}
               color={palette.fonts.inactive}
             />
-            <FancyText size={11} type='semiBold' color={palette.fonts.inactive}>
+            <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
               {ORIGEM_LABEL[origem]}
             </FancyText>
           </View>
@@ -113,7 +127,7 @@ export default function EscalaHeader({
             size={12}
             color={palette.fonts.inactive}
           />
-          <FancyText size={11} type='semiBold' color={palette.fonts.inactive}>
+          <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
             {`${formatShortDate(periodStart)} – ${formatShortDate(periodEnd)}`}
           </FancyText>
         </View>
@@ -215,8 +229,18 @@ function createStyles(palette: ThemePalette) {
       gap: 10,
     },
     titleText: {
-      lineHeight: 20,
       flex: 1,
+    },
+    leadingIcon: {
+      width: 26,
+      height: 26,
+      borderRadius: 13,
+      justifyContent: 'center',
+      alignItems: 'center',
+      alignSelf: 'center',
+    },
+    statusChip: {
+      alignSelf: 'center',
     },
     metaRow: {
       flexDirection: 'row',

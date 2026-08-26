@@ -120,7 +120,7 @@ export default function QuizVendasResultadoPage() {
       <View style={styles.body}>
         <View style={styles.diagnosticoContainer}>
           <FancyText
-            size={22}
+            size='titleLarge'
             type='bold'
             color={Pallete.terciary}
             style={styles.diagnosticoStatus}

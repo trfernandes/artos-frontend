@@ -33,7 +33,13 @@ export default function MinisterioTemplatesEditPage() {
           },
         ],
       },
-      relations: ['voluntarios.voluntario', 'voluntarios.funcao', 'funcoes.funcao'],
+      relations: [
+        'voluntarios.voluntario',
+        'voluntarios.funcao',
+        'funcoes.opcoes.funcao',
+        'respSetListVoluntarios',
+        'respSetListFuncoes',
+      ],
     } as DynamicQuery;
   }, [templateId]);
 
@@ -59,7 +65,11 @@ export default function MinisterioTemplatesEditPage() {
         nome: template.nome,
         funcoes: template.funcoes
           ? template.funcoes.map((f) => ({
-              funcaoId: f.funcao?.id,
+              funcaoIds: f.opcoes?.map((o) => o.funcaoId) ?? [],
+              funcoesAceitas: f.opcoes?.map((o) => ({
+                id: o.funcaoId,
+                nome: o.funcao?.nome ?? '',
+              })),
               experiencia: f.experiencia,
               quantidade: f.quantidade,
             }))
@@ -85,10 +95,13 @@ export default function MinisterioTemplatesEditPage() {
 
         showLoading('Salvando...');
         try {
+          const { respSetListVoluntariosId, respSetListFuncoesId, ...rest } = data;
           await updateTemplate?.({
             id: data.id,
             data: {
-              ...data,
+              ...rest,
+              respSetListVoluntarios: respSetListVoluntariosId,
+              respSetListFuncoes: respSetListFuncoesId,
             },
           });
           router.back();

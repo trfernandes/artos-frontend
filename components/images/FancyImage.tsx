@@ -38,7 +38,7 @@ export default function FancyImage({
           overflow: 'hidden',
           justifyContent: 'center',
           alignItems: 'center',
-          ...palette.shadows[200],
+          ...(isEmptyProfilePlaceholder ? {} : palette.shadows[200]),
         },
         isEmptyProfilePlaceholder && {
           backgroundColor: palette.backgroundColor2,

@@ -1,4 +1,12 @@
-import { format, isSameDay, isValid, parseISO, startOfDay } from 'date-fns';
+import {
+  differenceInCalendarDays,
+  endOfDay,
+  format,
+  isSameDay,
+  isValid,
+  parseISO,
+  startOfDay,
+} from 'date-fns';
 import { formatInTimeZone, fromZonedTime, toZonedTime } from 'date-fns-tz';
 import { ptBR } from 'date-fns/locale';
 
@@ -103,6 +111,10 @@ const DateUtils = {
   localDayToUtcDate(date: Date): Date {
     const localDay = this.normalizeLocalDay(date);
     return fromZonedTime(localDay, APP_TZ); // TZ -> UTC
+  },
+  localDayEndToUtcDate(date: Date): Date {
+    const localDay = this.normalizeLocalDay(date);
+    return fromZonedTime(endOfDay(localDay), APP_TZ); // fim do dia local -> UTC
   },
   dayKey(date: Date): string {
     return formatInTimeZone(date, APP_TZ, 'yyyy-MM-dd');
@@ -253,6 +265,29 @@ export function formatAppDateTime(
   const parsed = parseDateTimeSafe(value);
   if (!parsed) return undefined;
   return formatInTimeZone(parsed, APP_TZ, pattern, { locale: ptBR, ...options });
+}
+
+export function formatDataInclusaoRelativa(value: DateLike): string | undefined {
+  const parsed = parseDateTimeSafe(value);
+  if (!parsed) return undefined;
+
+  const hoje = DateUtils.normalizeLocalDay(new Date());
+  const data = DateUtils.normalizeLocalDay(parsed);
+  const dias = differenceInCalendarDays(hoje, data);
+
+  if (dias <= 0) return 'Hoje';
+  if (dias === 1) return 'Ontem';
+  if (dias < 7) return `Há ${dias} dias`;
+  if (dias < 30) {
+    const semanas = Math.floor(dias / 7);
+    return `Há ${semanas} semana${semanas === 1 ? '' : 's'}`;
+  }
+  if (dias < 90) {
+    const meses = Math.floor(dias / 30);
+    return `Há ${meses} mês${meses === 1 ? '' : 'es'}`;
+  }
+
+  return DateUtils.formatStableDateBR(parsed);
 }
 
 export function combineAppDateWithTime(

@@ -1,7 +1,7 @@
 {
   "servers": {
     "Sentry": {
-      "url": "https://mcp.sentry.dev/mcp/artos-uw/artos-volunteers",
+      "url": "https://mcp.sentry.dev/mcp/artos-uw/artos-front",
       "type": "http"
     },
     "Expo": {

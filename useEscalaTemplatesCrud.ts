@@ -42,7 +42,7 @@ export function useEscalaTemplatesCrud({
           'voluntarios.voluntario',
           'voluntarios.funcao',
           'funcoes',
-          'funcoes.funcao',
+          'funcoes.opcoes.funcao',
         ],
         limit: 1,
       });

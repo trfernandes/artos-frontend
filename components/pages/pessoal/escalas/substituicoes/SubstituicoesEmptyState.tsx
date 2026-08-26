@@ -29,7 +29,7 @@ export default function SubstituicoesEmptyState({ tab }: { tab: TabValue }) {
   return (
     <View style={styles.container}>
       <View style={[styles.iconCircle, { backgroundColor: palette.backgroundColor2 }]}>
-        <FancyText size={40}>{emoji}</FancyText>
+        <FancyText size='displayLarge'>{emoji}</FancyText>
       </View>
       <FancyText type='bold' size='medium' style={styles.title}>
         {title}

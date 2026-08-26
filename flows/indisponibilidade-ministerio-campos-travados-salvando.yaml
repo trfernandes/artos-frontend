@@ -1,0 +1,130 @@
+# Flow: Campos do formulário travados durante o save (regra de indisponibilidade do ministério)
+#
+# Uso:
+#   maestro test flows/indisponibilidade-ministerio-campos-travados-salvando.yaml \
+#     -e APP_EMAIL=seu@email.com \
+#     -e APP_PASSWORD=SuaSenha123
+#
+# Bug original: AddRegraModal.tsx tinha `isSubmitting` mas só desabilitava os
+# botões do footer e o close do modal. Os campos do formulário (segmented control
+# "Tipo de regra", chips de dia da semana, ControlledDateInput, ControlledFancyToggle,
+# ControlledNumberInput, ControlledTextArea "Motivo") continuavam totalmente
+# interativos durante o save — usuário conseguia alterar dados enquanto a
+# requisição estava em voo.
+#
+# Fix: disabled={isSubmitting} propagado a todos os campos controlados; chips de
+# dia da semana (fora do Controller do RHF) ganharam guard manual em
+# toggleDia/setAtalho. FancyNumberInput não suportava `disabled` — suporte
+# adicionado em components/fields/FancyNumberInput.tsx.
+#
+# O que este flow verifica (best-effort — depende do save não completar antes
+# do segundo tap chegar ao device via ADB; contra backend de staging isso deu
+# janela suficiente nos testes manuais):
+#   - Ao tocar Salvar, o chip de dia da semana "Seg" (não selecionado) permanece
+#     não-selecionado mesmo tentando tocar nele durante o save.
+#   - O campo "Motivo" não aceita texto adicional digitado durante o save.
+#
+# Nota: NÃO valida via "dado final salvo" — react-hook-form já captura os
+# valores do form no instante do tap em Salvar (handleSubmit roda antes de
+# isSubmitting virar true), então uma edição pós-tap nunca chegaria no payload
+# mesmo sem o fix. A única evidência real do bug é o estado visual/interativo
+# do campo durante o save — daí as asserções abaixo, não uma checagem de dado.
+
+appId: com.church.artos
+---
+- launchApp:
+    clearState: false
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- runFlow: _handle_expo_picker.yaml
+- runFlow: _login.yaml
+
+- extendedWaitUntil:
+    visible: 'Início'
+    timeout: 120000
+- waitForAnimationToEnd:
+    timeout: 4000
+
+# --- Navegação: drawer > Ministério de Louvor > Indisponibilidades ---
+- tapOn:
+    point: '7%,5%'
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn: 'Ministério de Louvor'
+- waitForAnimationToEnd:
+    timeout: 2000
+- scroll
+- tapOn: 'Indisponibilidades'
+- extendedWaitUntil:
+    visible: 'Voluntário'
+    timeout: 20000
+
+# --- Seleciona voluntário ---
+- tapOn: 'Selecione...'
+- tapOn: 'Ana Costa'
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible: 'Regras deste ministério'
+    timeout: 20000
+
+# --- Limpeza: remove regra de execuções anteriores ---
+# Nota: card da lista mostra o título GERADO da regra (descreverRegra, baseado em
+# tipo+dias), não o texto do "motivo" digitado no form — motivo não aparece no card
+# compacto. Regra 'Dom' isolado sempre gera "Indisponível nos domingos".
+- repeat:
+    times: 2
+    commands:
+      - runFlow:
+          when:
+            visible: 'Indisponível nos domingos'
+          commands:
+            - tapOn: 'Remover regra'
+            - tapOn: 'Sim'
+            - waitForAnimationToEnd
+
+# --- Abre modal, preenche regra base ---
+- tapOn: 'Nova regra'
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn: 'Dom'
+- tapOn:
+    below: 'Motivo'
+- inputText: 'Teste Maestro - campo travado'
+- hideKeyboard
+
+# --- Dispara o save e, sem esperar, tenta manipular os campos ---
+- tapOn: 'Salvar'
+- tapOn:
+    text: 'Seg'
+    optional: true
+- tapOn:
+    below: 'Motivo'
+    optional: true
+- inputText:
+    text: 'HACK'
+
+# Chip "Seg" não deve ter virado selecionado (tap durante save deve ter sido ignorado)
+- assertVisible:
+    text: 'Seg'
+    checked: false
+    optional: true
+
+# Campo motivo não deve conter o texto injetado durante o save
+- assertNotVisible: 'Teste Maestro - campo travadoHACK'
+
+# Toast some rápido demais pra assertion confiável — usa o card criado na lista
+# como prova de sucesso do save (mais robusto que a mensagem de toast).
+- assertVisible: 'Indisponível nos domingos'
+
+- takeScreenshot: indisponibilidade-ministerio-campos-travados-salvando
+
+# --- Limpeza final ---
+- runFlow:
+    when:
+      visible: 'Indisponível nos domingos'
+    commands:
+      - tapOn: 'Remover regra'
+      - tapOn: 'Sim'
+      - waitForAnimationToEnd

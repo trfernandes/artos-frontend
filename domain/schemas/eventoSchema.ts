@@ -2,6 +2,7 @@ import z from 'zod';
 import { RecorrenciaDiaSemanaEnum } from '../enums/Evento/recorrencia-dia-semana.enum';
 import { RecorrenciaSemanaMesEnum } from '../enums/Evento/recorrencia-semana-mes.enum';
 import { RecorrenciaEnum } from '../enums/Evento/recorrencia.enum';
+import { EventoTipoEnum } from '../enums/Evento/evento-tipo.enum';
 import { isBefore } from 'date-fns';
 
 export const eventoSchema = z
@@ -19,8 +20,10 @@ export const eventoSchema = z
         'A data de início deve ser posterior a 01/01/1900',
       ),
     dataTermino: z.date().optional(),
+    dataFimRecorrencia: z.date().optional(),
     local: z.string().max(255, 'O local pode ter no máximo 255 caracteres').optional(),
     cor: z.string().regex(/^#([0-9A-Fa-f]{3}){1,2}$/, 'Cor inválida'),
+    tipo: z.enum(EventoTipoEnum).optional(),
     recorrencia: z.enum(RecorrenciaEnum).optional(),
     recorrenciaSemanaDias: z.array(z.enum(RecorrenciaDiaSemanaEnum)).optional(),
     recorrenciaACadaMeses: z
@@ -44,6 +47,15 @@ export const eventoSchema = z
         code: 'custom',
         path: ['dataTermino'],
         message: 'A data de término deve ser posterior à data de início',
+      });
+    }
+
+    // Fim de recorrência > data início
+    if (data.dataFimRecorrencia && isBefore(data.dataFimRecorrencia, data.dataInicio)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['dataFimRecorrencia'],
+        message: 'O fim da recorrência deve ser posterior à data de início',
       });
     }
 

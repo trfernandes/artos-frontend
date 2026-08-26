@@ -129,7 +129,14 @@ export default function FancyCalendar({
       return normalized;
     }
 
-    return new Date(minDate);
+    // Sem valor: parte de hoje-30 anos (útil pra ranges amplos tipo data de
+    // nascimento) em vez do minimumDate, clampado ao range válido.
+    const fallback = new Date();
+    fallback.setHours(0, 0, 0, 0);
+    fallback.setFullYear(fallback.getFullYear() - 30);
+    if (fallback < minDate) return new Date(minDate);
+    if (fallback > maxDate) return new Date(maxDate);
+    return fallback;
   }, [selectedDate, minDate, maxDate]);
 
   const [currentDate, setCurrentDate] = useState<Date>(initialCurrentDate);

@@ -149,5 +149,24 @@ export const EditMinisterioSchema = z.object({
   }),
 });
 
+export const MinisterioFotoSchema = z.object({
+  logoUrl: z
+    .string()
+    .min(1)
+    .refine((v) => v.startsWith('http://') || v.startsWith('https://') || v.startsWith('file://'), {
+      message: 'URL de foto inválida',
+    })
+    .nullish(),
+  logoThumbUrl: z.string().nullish(),
+  logoUpload: z
+    .object({
+      uri: z.string().min(1),
+      name: z.string().min(1),
+      type: z.string().min(1),
+    })
+    .nullish(),
+});
+
 export type AddMinisterioFormData = z.infer<typeof AddMinisterioSchema>;
 export type EditMinisterioFormData = z.infer<typeof EditMinisterioSchema>;
+export type MinisterioFotoFormData = z.infer<typeof MinisterioFotoSchema>;

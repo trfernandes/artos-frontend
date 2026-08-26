@@ -134,6 +134,7 @@ export const EscalaFormFixoList = React.memo(function EscalaFormFixoList({
     <>
       <FancyContainerList
         title={'Equipe'}
+        virtualized={false}
         contentContainerStyle={{ paddingTop: 5 }}
         data={sortedFixosFields}
         keyExtractor={({ fixKey }) => fixKey}
@@ -174,6 +175,7 @@ export const EscalaFormFixoList = React.memo(function EscalaFormFixoList({
           {
             icon: { ...DefaultIconsNames['list-clear'], size: 16, style: { paddingLeft: 2 } },
             onPress: handleReset,
+            tone: 'destructive',
           },
         ]}
       />

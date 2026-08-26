@@ -150,12 +150,23 @@ export default function EventoAccordeon({
     });
   };
 
+  const navigateToSetlist = () => {
+    router.push({
+      pathname: '/ministerios/louvor/setlist/details',
+      params: {
+        eventoId: data.eventoId,
+        dataOcorrencia: data.itens[0]?.dataOcorrencia ?? data.dataOcorrencia.toISOString(),
+        ministerioId: data.ministerio?.id ?? '',
+      },
+    });
+  };
+
   const renderHeader = () => (
     <View style={styles.headerRow}>
       <View style={[styles.dateBox, { backgroundColor: ui.dateBg }]}>
         <FancyText
           type='bold'
-          size={17}
+          size='large'
           color={eventColor}
           numberOfLines={1}
           style={styles.dateDay}
@@ -164,7 +175,7 @@ export default function EventoAccordeon({
         </FancyText>
         <FancyText
           type='medium'
-          size={9}
+          size='extraSmall'
           color={eventColor}
           numberOfLines={1}
           style={styles.dateMonth}
@@ -326,14 +337,25 @@ export default function EventoAccordeon({
         onSubButtonPress={onSubButtonPress}
       />
 
-      <FancyButton
-        type='outlined'
-        label='Ver evento'
-        icon={{ library: 'MaterialCommunityIcons', name: 'chevron-right', size: 16 }}
-        iconPosition='right'
-        onPress={navigateToEvento}
-        containerStyle={styles.verEventoButton}
-      />
+      <View style={styles.actionsRow}>
+        <FancyButton
+          type='outlined'
+          label='Ver evento'
+          icon={{ library: 'MaterialCommunityIcons', name: 'chevron-right', size: 16 }}
+          iconPosition='right'
+          onPress={navigateToEvento}
+          containerStyle={styles.actionButton}
+        />
+        {isLouvor ? (
+          <FancyButton
+            label='Ver SetList'
+            icon={{ library: 'MaterialCommunityIcons', name: 'playlist-music-outline', size: 16 }}
+            iconPosition='right'
+            onPress={navigateToSetlist}
+            containerStyle={styles.actionButton}
+          />
+        ) : null}
+      </View>
 
       <Modal visible={isOpeningEvento} transparent animationType='none'>
         <View
@@ -463,9 +485,13 @@ const styles = StyleSheet.create({
     height: 11,
     borderRadius: 2,
   },
-  verEventoButton: {
-    alignSelf: 'stretch',
+  actionsRow: {
+    flexDirection: 'row',
+    gap: 8,
     marginTop: 10,
+  },
+  actionButton: {
+    flex: 1,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,

@@ -1,7 +1,7 @@
+import { useEffect, useId } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
-  Modal,
   ModalProps,
   Platform,
   Pressable,
@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler';
 import { usePallete } from '../../hooks/usePallete';
+import { ModalStack } from './GlobalModalHost';
 
 export type FancyModalProps = {
   modalProps?: ModalProps;
@@ -35,6 +36,8 @@ export default function FancyModal({
   ...props
 }: FancyModalProps) {
   const palette = usePallete();
+  const stackId = useId();
+  const visible = modalProps?.visible ?? false;
 
   const modalContent = (
     <View
@@ -60,42 +63,57 @@ export default function FancyModal({
     </View>
   );
 
-  return (
-    <Modal animationType='fade' presentationStyle='overFullScreen' transparent {...modalProps}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <View
-          style={[
-            styles.centeredView,
-            { backgroundColor: palette.overlays.backdrop },
-            modalProps?.style,
-          ]}
-        >
-          <Pressable
-            style={StyleSheet.absoluteFill}
-            onPress={() => {
-              if (dismissKeyboardOnBackdropPress) {
-                Keyboard.dismiss();
-              }
+  const content = (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View
+        style={[
+          styles.centeredView,
+          { backgroundColor: palette.overlays.backdrop },
+          modalProps?.style,
+        ]}
+      >
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={() => {
+            if (dismissKeyboardOnBackdropPress) {
+              Keyboard.dismiss();
+            }
 
-              if (closeOnBackdropPress) {
-                modalProps?.onRequestClose?.({} as any);
-              }
-            }}
-          />
-          {avoidKeyboard ? (
-            <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-              style={styles.keyboardAvoidingView}
-            >
-              {modalContent}
-            </KeyboardAvoidingView>
-          ) : (
-            modalContent
-          )}
-        </View>
-      </GestureHandlerRootView>
-    </Modal>
+            if (closeOnBackdropPress) {
+              modalProps?.onRequestClose?.({} as any);
+            }
+          }}
+        />
+        {avoidKeyboard ? (
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.keyboardAvoidingView}
+          >
+            {modalContent}
+          </KeyboardAvoidingView>
+        ) : (
+          modalContent
+        )}
+      </View>
+    </GestureHandlerRootView>
   );
+
+  useEffect(() => {
+    if (visible) {
+      ModalStack.push(stackId, content, () => modalProps?.onRequestClose?.({} as any));
+    } else {
+      ModalStack.pop(stackId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
+
+  useEffect(() => {
+    if (visible) ModalStack.update(stackId, content, () => modalProps?.onRequestClose?.({} as any));
+  });
+
+  useEffect(() => () => ModalStack.pop(stackId), [stackId]);
+
+  return null;
 }
 
 const styles = StyleSheet.create({

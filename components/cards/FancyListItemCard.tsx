@@ -9,7 +9,7 @@ import { ColorUtils } from '../../utils/color_utils';
 
 type Leading =
   | { type: 'image'; source?: ImageProps['source']; size?: number }
-  | { type: 'icon'; icon: CustomIconProps; color?: string; backgroundColor?: string }
+  | { type: 'icon'; icon: CustomIconProps; color?: string; backgroundColor?: string; size?: number }
   | { type: 'letter'; letter: string; color?: string; backgroundColor?: string }
   | { type: 'date'; day: string; month: string; color?: string; backgroundColor?: string };
 
@@ -160,7 +160,7 @@ function LeadingItem({ leading }: { leading: Leading }) {
       <View style={[styles.leading, styles.leadingSquircle, { backgroundColor: fallbackBg }]}>
         <FancyText
           type='bold'
-          size={17}
+          size='large'
           color={fallbackColor}
           numberOfLines={1}
           style={styles.dateDay}
@@ -169,7 +169,7 @@ function LeadingItem({ leading }: { leading: Leading }) {
         </FancyText>
         <FancyText
           type='medium'
-          size={9}
+          size='extraSmall'
           color={fallbackColor}
           numberOfLines={1}
           style={styles.dateMonth}
@@ -180,8 +180,18 @@ function LeadingItem({ leading }: { leading: Leading }) {
     );
   }
 
+  const containerSize = leading.size;
   return (
-    <View style={[styles.leading, styles.leadingSquircle, { backgroundColor: fallbackBg }]}>
+    <View
+      style={[
+        styles.leading,
+        styles.leadingSquircle,
+        { backgroundColor: fallbackBg },
+        containerSize
+          ? { width: containerSize, height: containerSize, borderRadius: containerSize / 3 }
+          : null,
+      ]}
+    >
       <DefaultIcons.Custom
         {...leading.icon}
         size={leading.icon.size ?? 20}

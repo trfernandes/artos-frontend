@@ -1,8 +1,9 @@
-import { useFormContext } from 'react-hook-form';
+import { Controller, useFormContext } from 'react-hook-form';
 import { StyleSheet, View } from 'react-native';
 import { EscalaTemplateFuncaoFormData } from '../../../../domain/schemas/escalaTemplateSchema';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
-import ControlledSearchSelect from '../../../forms/ControlledSearchSelect';
+import FancySearchSelect from '../../../fields/FancySearchSelect';
+import FancyErrorText from '../../../forms/FancyErrorText';
 import ControlledBottomSheetSelect from '../../../forms/ControlledBottomSheetSelect';
 import FancyBottomSheetModal from '../../../modal/FancyBottomSheetModal';
 import FancyButton from '../../../buttons/FancyButton';
@@ -67,13 +68,23 @@ export default function TemplateFuncoesForm({
       }
     >
       <View style={{ gap: 15 }}>
-        <ControlledSearchSelect
+        <Controller
           control={control}
-          name='funcaoId'
-          label='Função'
-          listItems={sortedFuncoesList}
-          disabled={mode === 'edit'}
-          searchPlaceholder='Buscar função...'
+          name='funcaoIds'
+          render={({ field: { value, onChange }, fieldState: { error } }) => (
+            <View style={{ gap: 5 }}>
+              <FancySearchSelect<string>
+                label='Funções aceitas'
+                placeholder='Selecione uma ou mais funções...'
+                listItems={sortedFuncoesList}
+                value={value ?? []}
+                onChange={(selected) => onChange(selected)}
+                multiSelect
+                searchPlaceholder='Buscar função...'
+              />
+              {error && <FancyErrorText message={error.message!} />}
+            </View>
+          )}
         />
         <ControlledBottomSheetSelect
           control={control}

@@ -111,7 +111,6 @@ export default function FancyTextInput({ disabled = false, ...props }: FancyText
           <TextInput
             onPress={props.onPress}
             ref={props.inputRef}
-            allowFontScaling={false}
             readOnly={disabled || props.readonly}
             value={props.value}
             placeholder={resolvedPlaceholder}

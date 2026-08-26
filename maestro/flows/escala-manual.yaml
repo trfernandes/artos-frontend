@@ -15,19 +15,16 @@ appId: com.church.artos
 - waitForAnimationToEnd:
     timeout: 5000
 
-- swipe:
-    direction: RIGHT
-    duration: 600
+- tapOn:
+    point: '7%, 5%'
 - waitForAnimationToEnd:
     timeout: 2000
 
-- tapOn:
-    text: 'Ministério de Louvor'
-- waitForAnimationToEnd:
-    timeout: 1500
-
+# Grupos "Kids" e "Ministério de Louvor" já vêm expandidos por padrão, ambos
+# com item "Escalas" — index 1 é o do Ministério de Louvor (2º grupo)
 - tapOn:
     text: 'Escalas'
+    index: 1
 - waitForAnimationToEnd:
     timeout: 4000
 
@@ -36,7 +33,7 @@ appId: com.church.artos
     text: 'Escalas'
 
 - tapOn:
-    point: '95%, 90%'
+    point: '90%, 87%'
 - waitForAnimationToEnd:
     timeout: 2000
 

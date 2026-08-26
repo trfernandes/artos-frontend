@@ -4,8 +4,10 @@ export type CreateEscalaItemDto = {
   escalaId: string;
   eventoId: string;
   dataOcorrencia: string;
-  voluntarioId?: string;
+  voluntarioId?: string | null;
   funcaoId?: string;
   status?: EscalaItemStatusEnum;
   substituicaoId?: string;
+  nomeAvulso?: string | null;
+  nomeFuncaoAvulsa?: string | null;
 };

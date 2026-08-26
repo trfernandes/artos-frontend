@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Linking, Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import Toast from 'react-native-toast-message';
@@ -7,6 +7,7 @@ import Toast from 'react-native-toast-message';
 import FancyBottomSheetModal from '../../modal/FancyBottomSheetModal';
 import FancyButton from '../../buttons/FancyButton';
 import FancyBottomSheetSelect from '../../fields/FancyBottomSheetSelect';
+import RepertorioMusicaPickerSheet from './RepertorioMusicaPickerSheet';
 import FancyBpmField from '../../fields/FancyBpmField';
 import FancyTextInput from '../../fields/FancyTextInput';
 import SongTextEditorField from '../../song/SongTextEditorField';
@@ -24,6 +25,8 @@ import {
 } from '../../../domain/dtos/Evento/evento-setlist-item.response';
 import { ResponseRepertorioMusicaDto } from '../../../domain/dtos/Repertorio/repertorio-musica.response';
 import { ResponseYoutubeSearchItemDto } from '../../../domain/dtos/Repertorio/youtube-search-item.response';
+import { useMusicasTocadasRelatorio } from '../../../hooks/useMusicasTocadasRelatorio';
+import { useRepertorioEtiquetas } from '../../../hooks/useRepertorio';
 
 type Props = {
   visible: boolean;
@@ -44,6 +47,9 @@ type Props = {
   item?: ResponseEventoSetlistItemDto | null;
   repertorio: ResponseRepertorioMusicaDto[];
   canEdit: boolean;
+  eventoId?: string;
+  dataOcorrenciaIso?: string;
+  ministerioId?: string;
 };
 
 const TONS = [
@@ -73,8 +79,27 @@ export default function EventoSetlistEditorSheet({
   item,
   repertorio,
   canEdit,
+  eventoId,
+  dataOcorrenciaIso,
+  ministerioId,
 }: Props) {
   const palette = usePallete();
+  const relatorioQuery = useMusicasTocadasRelatorio(
+    visible && ministerioId ? { ministerioId, eventoId, dataOcorrencia: dataOcorrenciaIso } : null,
+  );
+  const { data: etiquetas = [] } = useRepertorioEtiquetas(ministerioId);
+  const statsPorMusicaId = useMemo(() => {
+    const map = new Map<string, { totalExecucoes: number; ultimaExecucaoEm: string | null }>();
+    for (const musica of relatorioQuery.data?.musicas ?? []) {
+      if (musica.repertorioMusicaId) {
+        map.set(musica.repertorioMusicaId, {
+          totalExecucoes: musica.totalExecucoes,
+          ultimaExecucaoEm: musica.ultimaExecucaoEm,
+        });
+      }
+    }
+    return map;
+  }, [relatorioQuery.data]);
   const { showLoading, hideLoading } = useLoading();
   const [tipoOrigem, setTipoOrigem] = useState<EventoSetlistItemOrigemEnum>(
     EventoSetlistItemOrigemEnum.REPERTORIO,
@@ -106,14 +131,10 @@ export default function EventoSetlistEditorSheet({
     setNomeError(false);
   }, [item, visible]);
 
-  const repertorioOptions = useMemo(
-    () =>
-      repertorio.map((musica) => ({
-        title: musica.nome,
-        subtitle: musica.interprete || musica.categoria?.nome || '',
-        value: musica.id,
-      })),
-    [repertorio],
+  const [repertorioPickerVisible, setRepertorioPickerVisible] = useState(false);
+  const selectedRepertorioMusica = useMemo(
+    () => repertorio.find((musica) => musica.id === repertorioMusicaId),
+    [repertorio, repertorioMusicaId],
   );
 
   const toneOptions = useMemo(() => TONS.map((tone) => ({ title: tone, value: tone })), []);
@@ -224,16 +245,55 @@ export default function EventoSetlistEditorSheet({
           />
 
           {tipoOrigem === EventoSetlistItemOrigemEnum.REPERTORIO ? (
-            <>
-              <FancyBottomSheetSelect
-                label='Música do repertório'
-                title='Selecionar música do repertório'
-                value={repertorioMusicaId}
-                onChange={(value) => hydrateFromRepertorio(String(value))}
-                listItems={repertorioOptions}
+            <View style={styles.repertorioPickerField}>
+              <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
+                Música do repertório
+              </FancyText>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.repertorioPickerTrigger,
+                  { borderColor: palette.border, backgroundColor: palette.backgroundColor },
+                  (!isEditingEnabled || !!item?.id) && { backgroundColor: palette.disabled },
+                  pressed && isEditingEnabled && !item?.id && { borderColor: palette.primary },
+                ]}
                 disabled={!isEditingEnabled || !!item?.id}
+                onPress={() => setRepertorioPickerVisible(true)}
+              >
+                <FancyText
+                  style={styles.repertorioPickerTriggerText}
+                  color={
+                    !isEditingEnabled
+                      ? palette.fonts.inactive
+                      : selectedRepertorioMusica
+                        ? palette.fonts.dark
+                        : palette.fonts.inactive
+                  }
+                  numberOfLines={1}
+                >
+                  {selectedRepertorioMusica ? selectedRepertorioMusica.nome : 'Selecione...'}
+                </FancyText>
+                <MaterialCommunityIcons
+                  name='chevron-down'
+                  size={22}
+                  color={
+                    !isEditingEnabled || !!item?.id
+                      ? palette.icons.inactive2
+                      : palette.icons.inactive
+                  }
+                />
+              </Pressable>
+
+              <RepertorioMusicaPickerSheet
+                visible={repertorioPickerVisible}
+                onClose={() => setRepertorioPickerVisible(false)}
+                repertorio={repertorio}
+                etiquetas={etiquetas}
+                value={repertorioMusicaId}
+                onSelect={hydrateFromRepertorio}
+                statsPorMusicaId={statsPorMusicaId}
+                hasStats={!!relatorioQuery.data}
               />
-            </>
+            </View>
           ) : null}
         </View>
       ) : null}
@@ -274,27 +334,33 @@ export default function EventoSetlistEditorSheet({
         rightContainer={
           <View style={styles.versaoUrlIcons}>
             {canEdit ? (
-              <TouchableOpacity
+              <FancyButton
+                type='text'
+                mode='icon'
+                size={32}
+                disabled={!isEditingEnabled}
                 onPress={isEditingEnabled ? () => setYoutubeSearchVisible(true) : undefined}
-                style={styles.versaoUrlIconButton}
-              >
-                <MaterialCommunityIcons
-                  name='youtube'
-                  size={20}
-                  color={isEditingEnabled ? palette.primary : palette.icons.inactive2}
-                />
-              </TouchableOpacity>
-            ) : null}
-            <TouchableOpacity
-              onPress={versaoUrl ? () => void Linking.openURL(versaoUrl) : undefined}
-              style={styles.versaoUrlIconButton}
-            >
-              <MaterialCommunityIcons
-                name='web'
-                size={15}
-                color={versaoUrl ? palette.primary : palette.icons.inactive2}
+                icon={{
+                  library: 'MaterialCommunityIcons',
+                  name: 'youtube',
+                  size: 20,
+                  color: isEditingEnabled ? palette.primary : palette.icons.inactive2,
+                }}
               />
-            </TouchableOpacity>
+            ) : null}
+            <FancyButton
+              type='text'
+              mode='icon'
+              size={32}
+              disabled={!versaoUrl}
+              onPress={versaoUrl ? () => void Linking.openURL(versaoUrl) : undefined}
+              icon={{
+                library: 'MaterialCommunityIcons',
+                name: 'web',
+                size: 15,
+                color: versaoUrl ? palette.primary : palette.icons.inactive2,
+              }}
+            />
           </View>
         }
       />
@@ -472,6 +538,22 @@ const styles = StyleSheet.create({
   },
   originHelperText: {
     lineHeight: 18,
+  },
+  repertorioPickerField: {
+    gap: 6,
+  },
+  repertorioPickerTrigger: {
+    borderWidth: 0.6,
+    borderRadius: 12,
+    height: 44,
+    paddingHorizontal: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  repertorioPickerTriggerText: {
+    flex: 1,
   },
   inlineRow: {
     flexDirection: 'row',

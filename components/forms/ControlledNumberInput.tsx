@@ -23,7 +23,13 @@ export default function ControlledNumberInput<FormData extends FieldValues>({
       render={({ field: { onChange, onBlur, value, disabled }, fieldState: { error } }) => {
         return (
           <View style={{ gap: 5 }}>
-            <FancyNumberInput value={value} onChange={onChange} title={rest.title} {...rest} />
+            <FancyNumberInput
+              value={value}
+              onChange={onChange}
+              title={rest.title}
+              {...rest}
+              disabled={disabled || rest.disabled}
+            />
             {error && <FancyErrorText message={error.message!} />}
           </View>
         );

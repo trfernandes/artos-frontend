@@ -63,3 +63,6 @@ burst*/
 timed*/
 .tmp-*
 CTempscreen1.png
+
+# misc
+docs/architecture-reviews/

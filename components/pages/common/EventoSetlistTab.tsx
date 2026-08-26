@@ -6,10 +6,10 @@ import Toast from 'react-native-toast-message';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import FancyBottomSheetModal from '../../modal/FancyBottomSheetModal';
+import FancyVerticalSpacer from '../../FancyVerticalSpacer';
 import FancySeparator from '../../FancySeparator';
 import FancyButton from '../../buttons/FancyButton';
 import FancyBottomSheetSelect from '../../fields/FancyBottomSheetSelect';
-import FancyChips from '../../FancyChips';
 import DefaultIcons from '../../FancyIcons';
 import FancyListEmpty from '../../list/FancyListEmpty';
 import FancyLoading from '../../FancyLoading';
@@ -24,7 +24,7 @@ import {
   ResponseEventoSetlistItemDto,
 } from '../../../domain/dtos/Evento/evento-setlist-item.response';
 import { useAuth } from '../../../contexts/AuthContext';
-import { usePallete } from '../../../hooks/usePallete';
+import { useAppTheme } from '../../../hooks/useAppTheme';
 import { useEventoSetlist } from '../../../hooks/useEventoSetlist';
 import { useEventoEquipe } from '../../../hooks/useEventoEquipe';
 import { useEventoSetlistObservacoes } from '../../../hooks/useEventoSetlistObservacoes';
@@ -50,8 +50,7 @@ export default function EventoSetlistTab({
   responsavelSetlistNome,
   detailsRoutePath = '/ministerios/agenda/setlist/[itemId]',
 }: Props) {
-  const palette = usePallete();
-  const isDark = palette.backgroundColor === '#121212';
+  const { palette, isDark } = useAppTheme();
   const { user } = useAuth();
   const dataOcorrenciaIso = dataOcorrencia.toISOString();
   const isEditable = mode !== 'leitura';
@@ -84,6 +83,7 @@ export default function EventoSetlistTab({
   const [selectedItem, setSelectedItem] = useState<ResponseEventoSetlistItemDto | null>(null);
   const [observacoesVisible, setObservacoesVisible] = useState(false);
   const [observacoesDraft, setObservacoesDraft] = useState('');
+  const [observacoesTouched, setObservacoesTouched] = useState(false);
   const [responsavelVisible, setResponsavelVisible] = useState(false);
   const [responsavelSelecionadoId, setResponsavelSelecionadoId] = useState('');
   const [isSalvandoResponsavel, setIsSalvandoResponsavel] = useState(false);
@@ -159,6 +159,7 @@ export default function EventoSetlistTab({
 
   const openObservacoes = () => {
     setObservacoesDraft(observacoesData?.observacoes || '');
+    setObservacoesTouched(false);
     setObservacoesVisible(true);
   };
 
@@ -186,6 +187,8 @@ export default function EventoSetlistTab({
       },
     });
   };
+
+  const observacoesDraftVazia = !observacoesDraft.trim();
 
   const handleSalvarObservacoes = async () => {
     if (!ministerioId) return;
@@ -345,7 +348,7 @@ export default function EventoSetlistTab({
               {
                 backgroundColor: isDark
                   ? ColorUtils.withAlpha(palette.secondary, 0.16)
-                  : ColorUtils.withAlpha('#FFFFFF', 0.92),
+                  : ColorUtils.withAlpha(palette.backgroundColor, 0.92),
                 borderColor: ColorUtils.withAlpha(palette.secondary, isDark ? 0.28 : 0.14),
               },
             ]}
@@ -358,28 +361,17 @@ export default function EventoSetlistTab({
             />
           </View>
           <View style={styles.ownerTextBlock}>
-            {/* Eyebrow: rótulo fixo da seção + chip "Você" */}
-            <View style={styles.ownerEyebrowRow}>
-              <FancyText
-                size='extraSmall'
-                type='semiBold'
-                style={[
-                  styles.ownerEyebrow,
-                  { color: ColorUtils.withAlpha(palette.secondary, 0.88) },
-                ]}
-              >
-                Responsável
-              </FancyText>
-              {isCurrentUserResponsavel ? (
-                <FancyChips
-                  label='Você'
-                  size='small'
-                  color={palette.secondary}
-                  backgroundColor={ColorUtils.withAlpha(palette.secondary, 0.12)}
-                />
-              ) : null}
-            </View>
-            {/* Título: nome do responsável ou estado vazio */}
+            <FancyText
+              size='extraSmall'
+              type='semiBold'
+              style={[
+                styles.ownerEyebrow,
+                { color: ColorUtils.withAlpha(palette.secondary, 0.88) },
+              ]}
+            >
+              Responsável
+            </FancyText>
+            {/* Título: "Você" quando o responsável é o usuário logado, senão nome ou estado vazio */}
             <FancyText
               size='small'
               type='semiBold'
@@ -401,14 +393,14 @@ export default function EventoSetlistTab({
             style={[
               styles.ownerActionButton,
               {
-                backgroundColor: ColorUtils.withAlpha('#FFFFFF', 0.94),
+                backgroundColor: ColorUtils.withAlpha(palette.backgroundColor, 0.94),
                 borderColor: ColorUtils.withAlpha(palette.secondary, isDark ? 0.28 : 0.14),
               },
               isDark && { backgroundColor: ColorUtils.withAlpha(palette.secondary, 0.16) },
             ]}
           >
             <MaterialCommunityIcons
-              name={responsavelAtualNome ? 'account-switch-outline' : 'account-plus-outline'}
+              name={responsavelAtualNome ? 'swap-horizontal' : 'account-plus-outline'}
               size={15}
               color={palette.secondary}
             />
@@ -437,7 +429,7 @@ export default function EventoSetlistTab({
                 {
                   backgroundColor: isDark
                     ? ColorUtils.withAlpha(palette.primary, 0.16)
-                    : ColorUtils.withAlpha('#FFFFFF', 0.92),
+                    : ColorUtils.withAlpha(palette.backgroundColor, 0.92),
                   borderColor: ColorUtils.withAlpha(palette.primary, isDark ? 0.28 : 0.14),
                 },
               ]}
@@ -485,7 +477,7 @@ export default function EventoSetlistTab({
               style={[
                 styles.observacoesActionButton,
                 {
-                  backgroundColor: ColorUtils.withAlpha('#FFFFFF', 0.94),
+                  backgroundColor: ColorUtils.withAlpha(palette.backgroundColor, 0.94),
                   borderColor: ColorUtils.withAlpha(palette.primary, isDark ? 0.28 : 0.14),
                 },
                 isDark && { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.16) },
@@ -526,16 +518,20 @@ export default function EventoSetlistTab({
     getIndex,
   }: RenderItemParams<ResponseEventoSetlistItemDto>) => {
     const index = (getIndex?.() ?? 0) + 1;
+    const etiquetas = item.repertorioMusicaId
+      ? repertorio.find((musica) => musica.id === item.repertorioMusicaId)?.etiquetas
+      : undefined;
     return (
       <SetListItem
         order={index}
         total={orderedItems.length}
         name={item.nome}
         artist={item.interprete}
-        tipoOrigem={item.tipoOrigem}
+        etiquetas={etiquetas}
         totalSecoes={item.totalSecoes}
         tom={item.tom}
         bpm={item.bpm}
+        versaoUrl={item.versaoUrl}
         onPress={() => openItemDetails(item)}
         onActionsPress={isEditable ? () => openItemActions(item) : undefined}
         onLongPress={isEditable ? drag : undefined}
@@ -550,6 +546,8 @@ export default function EventoSetlistTab({
   return (
     <>
       <View style={styles.container}>
+        {renderHeader()}
+        <FancyVerticalSpacer height={12} />
         <DraggableFlatList
           data={orderedItems}
           onDragEnd={({ data: nextItems }) => {
@@ -565,7 +563,6 @@ export default function EventoSetlistTab({
             orderedItems.length === 0 && styles.listContentEmpty,
           ]}
           showsVerticalScrollIndicator={false}
-          ListHeaderComponent={renderHeader}
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <FancyListEmpty
@@ -586,7 +583,10 @@ export default function EventoSetlistTab({
           }
         />
         {isMutatingSetlist || deletingItemId ? (
-          <View style={styles.blockingOverlay} pointerEvents='auto'>
+          <View
+            style={[styles.blockingOverlay, { backgroundColor: palette.overlays.backdrop }]}
+            pointerEvents='auto'
+          >
             <View
               style={[
                 styles.blockingOverlayContent,
@@ -607,6 +607,9 @@ export default function EventoSetlistTab({
         item={selectedItem}
         repertorio={repertorio}
         canEdit={isEditable}
+        eventoId={eventoId}
+        dataOcorrenciaIso={dataOcorrenciaIso}
+        ministerioId={ministerioId}
         onClose={() => setEditorVisible(false)}
         onSave={async (payload) => {
           try {
@@ -683,8 +686,18 @@ export default function EventoSetlistTab({
               value={observacoesDraft}
               readonly={isSavingObservacoes}
               disabled={isSavingObservacoes}
+              errorMessage={
+                observacoesTouched && observacoesDraftVazia
+                  ? 'Orientações não podem ficar em branco'
+                  : undefined
+              }
               inputProps={{
-                onChangeText: isSavingObservacoes ? undefined : setObservacoesDraft,
+                onChangeText: isSavingObservacoes
+                  ? undefined
+                  : (text: string) => {
+                      setObservacoesTouched(true);
+                      setObservacoesDraft(text);
+                    },
                 multiline: true,
                 style: { minHeight: 140, textAlignVertical: 'top' },
                 editable: !isSavingObservacoes,
@@ -803,6 +816,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     flexGrow: 1,
+    paddingHorizontal: 15,
     paddingBottom: 28,
     gap: 12,
   },
@@ -810,6 +824,7 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   headerContainer: {
+    paddingHorizontal: 15,
     paddingTop: 8,
     paddingBottom: 4,
     gap: 12,
@@ -926,6 +941,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
+    gap: 8,
   },
   addMusicButton: {
     minWidth: 0,
@@ -951,7 +967,6 @@ const styles = StyleSheet.create({
   },
   blockingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.16)',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 50,

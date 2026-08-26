@@ -15,7 +15,7 @@ export class BaseApi<TResponse, TCreate = unknown, TUpdate = unknown> {
     this.resourceName = resourceName;
   }
 
-  private logAxiosError(context: string, error: unknown, params?: any) {
+  protected logAxiosError(context: string, error: unknown, params?: any) {
     if (!axios.isAxiosError(error)) {
       console.error(`[BaseApi] Erro inesperado em ${context}:`, error);
       return;

@@ -3,7 +3,7 @@ import { EscalaTemplateTipoEnum } from '../enums/EscalaTemplate/escala-template-
 import { EscalaTemplateExperienciaEnum } from '../enums/EscalaTemplate/escala-template-experiencia.enum';
 
 export const EscalaEventoTemplateFuncaoSchema = z.object({
-  funcaoId: z.uuidv4('Campo obrigatório'),
+  funcaoIds: z.array(z.uuidv4('Campo obrigatório')).min(1, 'Selecione ao menos uma função'),
   quantidade: z.coerce
     .number<number>('Campo obrigatório')
     .min(1, 'Valor mínimo permitido é 1')
@@ -16,17 +16,44 @@ export const EscalaEventoTemplateFixoSchema = z.object({
   funcaoId: z.uuidv4('Campo Obrigatório'),
 });
 
-export const EscalaEventoTemplateSchema = z.object({
-  templateBase: z
-    .object({
-      id: z.uuidv4(),
-      nome: z.string('Campo Obrigatório'),
-    })
-    .or(z.object({})),
-  tipo: z.enum(EscalaTemplateTipoEnum),
-  funcoes: z.array(EscalaEventoTemplateFuncaoSchema).optional(),
-  fixos: z.array(EscalaEventoTemplateFixoSchema).optional(),
-});
+export const EscalaEventoTemplateSchema = z
+  .object({
+    templateBase: z
+      .object({
+        id: z.uuidv4(),
+        nome: z.string('Campo Obrigatório'),
+      })
+      .or(z.object({})),
+    tipo: z.enum(EscalaTemplateTipoEnum),
+    funcoes: z.array(EscalaEventoTemplateFuncaoSchema).optional(),
+    fixos: z.array(EscalaEventoTemplateFixoSchema).optional(),
+  })
+  .superRefine((data, ctx) => {
+    const hasTemplateBaseId = 'id' in data.templateBase && !!data.templateBase.id;
+    const isPersonalizado = !hasTemplateBaseId;
+
+    if (isPersonalizado) {
+      if (data.tipo === EscalaTemplateTipoEnum.Funcoes) {
+        if (!data.funcoes || data.funcoes.length === 0) {
+          ctx.addIssue({
+            path: ['funcoes'],
+            code: 'custom',
+            message: 'Adicione pelo menos uma função ao evento',
+          });
+        }
+      }
+
+      if (data.tipo === EscalaTemplateTipoEnum.Fixo) {
+        if (!data.fixos || data.fixos.length === 0) {
+          ctx.addIssue({
+            path: ['fixos'],
+            code: 'custom',
+            message: 'Adicione pelo menos um voluntário ao evento',
+          });
+        }
+      }
+    }
+  });
 
 export const EscalaEventosSchema = z
   .object({
@@ -94,11 +121,11 @@ export const EscalaSchema = z
     markParticipantsAll: z.boolean().default(true),
   })
   .superRefine((data, ctx) => {
-    if (data.dataTermino <= data.dataInicio) {
+    if (data.dataTermino < data.dataInicio) {
       ctx.addIssue({
         code: 'custom',
         path: ['dataTermino'],
-        message: 'A data de término deve ser posterior à data de início',
+        message: 'A data de término não pode ser anterior à data de início',
       });
     }
   });

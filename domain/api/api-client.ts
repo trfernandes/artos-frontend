@@ -1,10 +1,13 @@
 import axios from 'axios';
 import { triggerUnauthorized } from '../../core/network/authBridge';
 import { getAuthToken } from '../../core/storage/authTokenStorage';
-import { beginRequest } from '../../core/network/slowRequestBridge';
 
-const DEFAULT_API_URL = 'https://artos-backend-nwg5.onrender.com';
-const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL || DEFAULT_API_URL;
+const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL;
+if (!apiBaseUrl) {
+  throw new Error(
+    'EXPO_PUBLIC_API_URL não definida no bundle. Build sem essa env var embutida — nunca falar com backend por fallback silencioso.',
+  );
+}
 
 const apiClient = axios.create({
   baseURL: apiBaseUrl,
@@ -14,17 +17,12 @@ const apiClient = axios.create({
   },
 });
 
-// Rastreia requests em andamento pra avisar o usuário quando o backend/banco
-// está "acordando" de cold start (ex.: Neon free tier suspende após ociosidade)
-const requestEndHandlers = new WeakMap<object, () => void>();
-
 // Interceptor para anexar o token JWT automaticamente
 apiClient.interceptors.request.use(async (config) => {
   const token = await getAuthToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  requestEndHandlers.set(config, beginRequest());
   return config;
 });
 
@@ -43,13 +41,8 @@ export function isAuthEndpoint(url: string): boolean {
 let isHandling401 = false;
 
 apiClient.interceptors.response.use(
-  (res) => {
-    requestEndHandlers.get(res.config)?.();
-    return res;
-  },
+  (res) => res,
   async (error) => {
-    requestEndHandlers.get(error?.config)?.();
-
     const status = error?.response?.status;
     const requestUrl = error?.config?.url || '';
 

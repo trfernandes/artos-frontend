@@ -130,7 +130,12 @@ export default function ProximaEscalaCard({ escala, onPress }: ProximaEscalaCard
               />
             ) : (
               <View style={styles.ministerioLogoCircle}>
-                <FancyText size={7} type='bold' color={palette.fonts.light}>
+                <FancyText
+                  size='extraSmall'
+                  type='bold'
+                  color={palette.fonts.light}
+                  style={styles.ministerioLogoLetter}
+                >
                   {escala.ministerioNome.charAt(0).toUpperCase()}
                 </FancyText>
               </View>
@@ -203,17 +208,22 @@ function createStyles(palette: ThemePalette) {
       marginVertical: 2,
     },
     ministerioLogo: {
-      width: 14,
-      height: 14,
-      borderRadius: 7,
+      width: 18,
+      height: 18,
+      borderRadius: 9,
     },
     ministerioLogoCircle: {
-      width: 14,
-      height: 14,
-      borderRadius: 7,
+      width: 18,
+      height: 18,
+      borderRadius: 9,
       backgroundColor: palette.primary,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    ministerioLogoLetter: {
+      lineHeight: 13,
+      includeFontPadding: false,
+      textAlign: 'center',
     },
   });
 }

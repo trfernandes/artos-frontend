@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import FancyTabs, { TabItem } from '../../../../tabs/FancyTabs';
 import EscalaEventoEquipeTab from './EscalaEventoEquipeTab';
@@ -6,10 +6,14 @@ import FancyPageView from '../../../../containers/FancyPageView';
 import { useMemo } from 'react';
 import { usePallete } from '../../../../../hooks/usePallete';
 import EventoInfoCard from '../../../common/EventoInfoCard';
-import { ResponseEventoDto } from '../../../../../domain/dtos/Evento/evento.response';
 import EventoSetlistTab from '../../../common/EventoSetlistTab';
+import { ResponseEventoDto } from '../../../../../domain/dtos/Evento/evento.response';
 import { useAuth } from '../../../../../contexts/AuthContext';
-import { isLouvorMinisterioTipo } from '../../../../../utils/evento-ensaio';
+import {
+  canManageEventoOcorrencia,
+  getMinisterioLoginAccess,
+} from '../../../../../utils/ministerio_permissoes';
+import { MinisterioTipoEnum } from '../../../../../domain/enums/Ministerio/ministerio-tipo.enum';
 
 export default function EventoDetails(props: {
   evento: ResponseEventoDto;
@@ -22,20 +26,20 @@ export default function EventoDetails(props: {
 }) {
   const Pallete = usePallete();
   const { igrejaAtiva, user } = useAuth();
-  const isLouvorMinisterio = useMemo(
-    () =>
-      igrejaAtiva?.ministerios?.some(
-        (ministerio) =>
-          ministerio.id === props.ministerioId && isLouvorMinisterioTipo(ministerio.tipo),
-      ) ?? false,
-    [igrejaAtiva?.ministerios, props.ministerioId],
-  );
-  const isSetlistResponsavel =
-    isLouvorMinisterio &&
-    !!props.responsavelSetlistVoluntarioId &&
-    props.responsavelSetlistVoluntarioId === user?.user?.id;
 
   const TABS_DATA: TabItem[] = useMemo(() => {
+    const ministerio = getMinisterioLoginAccess(igrejaAtiva, props.ministerioId);
+    const isMinisterioLouvor = Number(ministerio?.tipo) === Number(MinisterioTipoEnum.Louvor);
+    const setlistMode: 'lider' | 'responsavel' | 'leitura' = canManageEventoOcorrencia(
+      igrejaAtiva,
+      props.ministerioId,
+    )
+      ? 'lider'
+      : props.responsavelSetlistVoluntarioId &&
+          props.responsavelSetlistVoluntarioId === user?.user.id
+        ? 'responsavel'
+        : 'leitura';
+
     const tabs: TabItem[] = [
       {
         title: 'Dados',
@@ -67,33 +71,41 @@ export default function EventoDetails(props: {
       },
     ];
 
-    if (isLouvorMinisterio) {
+    if (isMinisterioLouvor) {
       tabs.push({
-        title: 'SetList',
-        icon: { library: 'MaterialCommunityIcons', name: 'playlist-music-outline', size: 18 },
+        title: 'Setlist',
+        icon: {
+          library: 'MaterialCommunityIcons',
+          name: 'playlist-music',
+          size: 20,
+          style: { marginTop: 0 },
+        },
         content: (
-          <EventoSetlistTab
-            eventoId={props.evento.id!}
-            dataOcorrencia={props.dataOcorrencia}
-            ministerioId={props.ministerioId}
-            mode={isSetlistResponsavel ? 'responsavel' : 'leitura'}
-            responsavelSetlistNome={props.responsavelSetlistNome ?? null}
-            detailsRoutePath='/pessoal/escalas/setlist/[itemId]'
-          />
+          <View style={styles.setlistTabGutterOffset}>
+            <EventoSetlistTab
+              eventoId={props.evento.id!}
+              dataOcorrencia={props.dataOcorrencia}
+              ministerioId={props.ministerioId}
+              mode={setlistMode}
+              responsavelSetlistNome={props.responsavelSetlistNome}
+              detailsRoutePath='/pessoal/escalas/setlist/[itemId]'
+            />
+          </View>
         ),
       });
     }
 
     return tabs;
   }, [
-    isLouvorMinisterio,
-    isSetlistResponsavel,
+    igrejaAtiva,
+    user,
     props.dataOcorrencia,
     props.evento,
     props.horarioEnsaio,
     props.ministerioId,
     props.ministerioNome,
     props.responsavelSetlistNome,
+    props.responsavelSetlistVoluntarioId,
   ]);
 
   return (
@@ -105,4 +117,5 @@ export default function EventoDetails(props: {
 
 const styles = StyleSheet.create({
   container: { gap: 6, paddingBottom: 20, borderWidth: 0, borderColor: 'forestgreen' },
+  setlistTabGutterOffset: { flex: 1, marginHorizontal: -15 },
 });

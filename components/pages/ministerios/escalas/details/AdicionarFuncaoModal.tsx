@@ -2,6 +2,8 @@ import FancyBottomSheetModal from '../../../../modal/FancyBottomSheetModal';
 import { StyleSheet, View } from 'react-native';
 import FancyText from '../../../../FancyText';
 import FancySearchSelect from '../../../../fields/FancySearchSelect';
+import FancySegmentedControl from '../../../../fields/FancySegmentedControl';
+import FancyTextInput from '../../../../fields/FancyTextInput';
 import FancyButton from '../../../../buttons/FancyButton';
 import { format } from 'date-fns';
 import { useState } from 'react';
@@ -10,6 +12,7 @@ import FancyGroup from '../../../../list/FancyGroup';
 import { useMinisterioFuncoesCrud } from '../../../../../hooks/useMinisterioFuncoesCrud';
 import { usePallete } from '../../../../../hooks/usePallete';
 import FancyListItemCard from '../../../../cards/FancyListItemCard';
+import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
 
 export interface AdicionarFuncaoModalProps {
   visible: boolean;
@@ -24,7 +27,8 @@ export interface AdicionarFuncaoModalProps {
 }
 
 export interface AdicionarFuncaoConfirmDialog {
-  funcaoId: string;
+  funcaoId?: string;
+  nomeFuncaoAvulsa?: string;
   eventoId: string;
   dataOcorrencia: string;
 }
@@ -48,8 +52,8 @@ export default function AdicionarFuncaoModal({
         conditions: [
           {
             path: 'ministerio.id',
-            operator: 'EQUALS' as any,
-            value: { type: 'LITERAL' as any, value: ministerioId },
+            operator: Operator.EQUALS,
+            value: { type: ValueType.LITERAL, value: ministerioId },
           },
         ],
       },
@@ -61,12 +65,19 @@ export default function AdicionarFuncaoModal({
     value: f.id!,
   }));
 
+  const [funcaoNaoCadastrada, setFuncaoNaoCadastrada] = useState(false);
   const [selectedFuncao, setSelectedFuncao] = useState<string | null>(null);
+  const [nomeFuncaoAvulsa, setNomeFuncaoAvulsa] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleConfirm = async () => {
-    if (!selectedFuncao) {
+    if (funcaoNaoCadastrada) {
+      if (!nomeFuncaoAvulsa.trim()) {
+        setErrors({ nomeFuncaoAvulsa: 'Campo Obrigatório' });
+        return;
+      }
+    } else if (!selectedFuncao) {
       setErrors({ funcao: 'Campo Obrigatório' });
       return;
     }
@@ -75,7 +86,9 @@ export default function AdicionarFuncaoModal({
     try {
       setIsSubmitting(true);
       await onConfirm({
-        funcaoId: selectedFuncao,
+        ...(funcaoNaoCadastrada
+          ? { nomeFuncaoAvulsa: nomeFuncaoAvulsa.trim() }
+          : { funcaoId: selectedFuncao! }),
         eventoId: eventoId,
         dataOcorrencia: format(dataOcorrencia, 'yyyy-MM-dd'),
       });
@@ -127,30 +140,66 @@ export default function AdicionarFuncaoModal({
             <View style={[styles.sectionEyebrowTick, { backgroundColor: palette.primary }]} />
             <FancyText
               type='semiBold'
-              size={10}
+              size='extraSmall'
               color={palette.primary}
               style={styles.sectionEyebrowText}
             >
               SELECIONAR FUNÇÃO
             </FancyText>
           </View>
-          <View style={{ gap: 5 }}>
-            <FancySearchSelect
-              label='Função'
-              placeholder='Buscar função...'
-              value={selectedFuncao}
-              onChange={(value) => {
-                setSelectedFuncao(Array.isArray(value) ? value[0] || null : value);
-                setErrors((prev) => {
-                  const { funcao, ...rest } = prev;
-                  return rest;
-                });
+          <View style={{ gap: 14 }}>
+            <FancySegmentedControl
+              options={[
+                { label: 'CADASTRADA', value: 'cadastrada' },
+                { label: 'SEM CADASTRO', value: 'avulsa' },
+              ]}
+              value={funcaoNaoCadastrada ? 'avulsa' : 'cadastrada'}
+              onChange={(v) => {
+                setFuncaoNaoCadastrada(v === 'avulsa');
+                setErrors({});
               }}
-              listItems={funcoesSearchList}
-              isLoading={isLoadingFuncoes}
-              disabled={isSubmitting || isLoadingFuncoes}
+              disabled={isSubmitting}
             />
-            {errors['funcao'] && <FancyErrorText message={errors['funcao']} />}
+
+            {funcaoNaoCadastrada ? (
+              <View style={{ flexDirection: 'column', gap: 5 }}>
+                <FancyTextInput
+                  label='Nome'
+                  placeholder='Nome da função'
+                  value={nomeFuncaoAvulsa}
+                  errorMessage={errors['nomeFuncaoAvulsa']}
+                  inputProps={{
+                    onChangeText: (t) => {
+                      setNomeFuncaoAvulsa(t);
+                      setErrors((prev) => {
+                        const { nomeFuncaoAvulsa: _nomeFuncaoAvulsa, ...rest } = prev;
+                        return rest;
+                      });
+                    },
+                  }}
+                  disabled={isSubmitting}
+                />
+              </View>
+            ) : (
+              <View style={{ gap: 5 }}>
+                <FancySearchSelect
+                  label='Função'
+                  placeholder='Buscar função...'
+                  value={selectedFuncao}
+                  onChange={(value) => {
+                    setSelectedFuncao(Array.isArray(value) ? value[0] || null : value);
+                    setErrors((prev) => {
+                      const { funcao, ...rest } = prev;
+                      return rest;
+                    });
+                  }}
+                  listItems={funcoesSearchList}
+                  isLoading={isLoadingFuncoes}
+                  disabled={isSubmitting || isLoadingFuncoes}
+                />
+                {errors['funcao'] && <FancyErrorText message={errors['funcao']} />}
+              </View>
+            )}
           </View>
         </View>
       </FancyGroup>

@@ -1,4 +1,8 @@
-import FancyModalDialog, { FancyModalDialogProps } from '../../../../modal/FancyModalDialog';
+import { FancyModalDialogProps } from '../../../../modal/FancyModalDialog';
+import FancyBottomSheetModal from '../../../../modal/FancyBottomSheetModal';
+import FancyButton from '../../../../buttons/FancyButton';
+import FancyText from '../../../../FancyText';
+import { usePallete } from '../../../../../hooks/usePallete';
 import {
   EscalaEventoFormData,
   EscalaEventoTemplateFixoFormData,
@@ -10,9 +14,8 @@ import { format, isValid } from 'date-fns';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import ControlledSearchSelect from '../../../../forms/ControlledSearchSelect';
-import FancyVerticalSpacer from '../../../../FancyVerticalSpacer';
 import { EnumUtils } from '../../../../../utils/enum_utils';
 import FancyBottomSheetSelect from '../../../../fields/FancyBottomSheetSelect';
 import { FancyAlert } from '../../../../modal/FancyAlert';
@@ -37,11 +40,17 @@ import { ResponseEscalaTemplateDto } from '../../../../../domain/dtos/EscalaTemp
 
 interface EventoFormModalProps {
   ministerioId: string;
+  visible: boolean;
   modalProps?: FancyModalDialogProps<EscalaEventoTemplateFormData>;
   data?: EscalaEventoFormData;
 }
 
-export default function EventoFormModal({ modalProps, data, ministerioId }: EventoFormModalProps) {
+export default function EventoFormModal({
+  modalProps,
+  data,
+  ministerioId,
+  visible,
+}: EventoFormModalProps) {
   const templatesParams = useMemo<DynamicQuery>(
     () => ({
       where: {
@@ -53,7 +62,7 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
           },
         ],
       },
-      relations: ['voluntarios.voluntario', 'voluntarios.funcao', 'funcoes.funcao'],
+      relations: ['voluntarios.voluntario', 'voluntarios.funcao', 'funcoes.opcoes.funcao'],
       orderBy: [{ path: 'nome', direction: OrderDirection.ASC }],
     }),
     [ministerioId],
@@ -122,7 +131,7 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
       (f) => f.funcaoId || f.minVolId,
     );
     const funcoesMudou = formTemplate.formState.dirtyFields.funcoes?.filter(
-      (f) => f.funcaoId || f.experiencia || f.quantidade,
+      (f) => f.funcaoIds || f.experiencia || f.quantidade,
     );
 
     if (fixosMudou || funcoesMudou) {
@@ -138,9 +147,9 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
         if (!template.funcoes) return;
 
         const funcoes: EscalaEventoTemplateFuncaoFormData[] = template.funcoes
-          .filter((f) => f.funcao?.id)
+          .filter((f) => f.opcoes?.length)
           .map((f) => ({
-            funcaoId: f.funcao!.id!,
+            funcaoIds: f.opcoes!.map((o) => o.funcaoId),
             experiencia: f.experiencia,
             quantidade: f.quantidade,
           }));
@@ -285,39 +294,68 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
     isLoadingMinisterioVoluntariosMutation ||
     isLoadingTemplates;
 
-  return (
-    <FancyModalDialog
-      {...modalProps}
-      title={
-        data?.dataOcorrencia && isValid(data.dataOcorrencia)
-          ? `${data?.nome} - ${format(data.dataOcorrencia, 'dd/MM/yyyy HH:mm')}`
-          : (data?.nome ?? '')
-      }
-      titleAlign='left'
-      onButton2Press={(_) => {
-        formTemplate.handleSubmit(
-          (data) => {
-            modalProps?.onButton2Press?.(data);
-          },
-          (errors) => {
-            const erro = errors.funcoes || errors.fixos;
+  const Pallete = usePallete();
 
-            if (erro) {
-              FancyAlert.alert('Erro', erro?.message, [
-                {
-                  text: 'Ok',
-                },
-              ]);
-            }
-          },
-        )();
-      }}
-      centerContainerStyle={styles.container}
+  const handleSubmitForm = useCallback(() => {
+    formTemplate.handleSubmit(
+      (formData) => {
+        modalProps?.onButton2Press?.(formData);
+      },
+      (errors) => {
+        const erro = errors.funcoes || errors.fixos;
+
+        if (erro) {
+          FancyAlert.alert('Erro', erro?.message, [
+            {
+              text: 'Ok',
+            },
+          ]);
+        }
+      },
+    )();
+  }, [formTemplate, modalProps]);
+
+  return (
+    <FancyBottomSheetModal
+      visible={visible}
+      onClose={() => modalProps?.onButton1Press?.()}
+      title={data?.nome}
+      titleSize='largeMedium'
+      footer={
+        <View style={styles.buttonsContainer}>
+          <FancyButton
+            label='Cancelar'
+            type='outlined'
+            onPress={() => modalProps?.onButton1Press?.()}
+            containerStyle={styles.button}
+          />
+          <FancyButton label='Salvar' onPress={handleSubmitForm} containerStyle={styles.button} />
+        </View>
+      }
     >
       {isDataLoading ? (
         <FancyLoading />
       ) : (
         <>
+          {data?.dataOcorrencia && isValid(data.dataOcorrencia) && (
+            <View style={{ gap: 6 }}>
+              <FancyText size='extraSmall' type='semiBold' color={Pallete.fonts.inactive}>
+                Data
+              </FancyText>
+              <View
+                style={[
+                  styles.dataBox,
+                  { backgroundColor: Pallete.backgroundColor, borderColor: Pallete.border },
+                  Pallete.shadows[200],
+                ]}
+              >
+                <FancyText type='medium' size='small' color={Pallete.fonts.dark}>
+                  {format(data.dataOcorrencia, 'dd/MM/yyyy HH:mm')}
+                </FancyText>
+              </View>
+            </View>
+          )}
+
           <ControlledSearchSelect
             label='Template Base'
             control={formTemplate.control}
@@ -329,7 +367,6 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
             }}
             onClosed={handleTemplateSelectClosed}
           />
-          <FancyVerticalSpacer height={12} />
 
           <Controller
             control={formTemplate.control}
@@ -352,8 +389,6 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
             )}
           />
 
-          <FancyVerticalSpacer height={16} />
-
           <FormProvider {...formTemplate}>
             {templateTipoWatch === EscalaTemplateTipoEnum.Funcoes ? (
               <EscalaFormFuncaoList
@@ -372,12 +407,18 @@ export default function EventoFormModal({ modalProps, data, ministerioId }: Even
           </FormProvider>
         </>
       )}
-    </FancyModalDialog>
+    </FancyBottomSheetModal>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    height: 500,
+  buttonsContainer: { flexDirection: 'row', gap: 10 },
+  button: { flex: 1, height: 44 },
+  dataBox: {
+    borderWidth: 0.6,
+    borderRadius: 12,
+    height: 44,
+    paddingHorizontal: 10,
+    justifyContent: 'center',
   },
 });

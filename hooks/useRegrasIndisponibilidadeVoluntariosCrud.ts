@@ -32,7 +32,7 @@ export function useRegrasIndisponibilidadeVoluntariosCrud({
         igrejaId ? { ...query, igrejaId } : query,
       ),
     add: (data) => RegrasIndisponibilidadeVoluntariosRepository.add(data),
-    update: (id, data) => RegrasIndisponibilidadeVoluntariosRepository.update(id, data),
+    update: (id, data) => RegrasIndisponibilidadeVoluntariosRepository.update(id, data, igrejaId),
     remove: (id) => RegrasIndisponibilidadeVoluntariosRepository.remove(id),
     messages: {
       successDelete: 'Regra removida com sucesso.',

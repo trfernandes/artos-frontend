@@ -273,7 +273,11 @@ export default function NotificationDetailPage() {
                     />
                   </View>
                   <View style={styles.rowText}>
-                    <FancyText type='medium' size={10} style={{ color: palette.fonts.inactive }}>
+                    <FancyText
+                      type='medium'
+                      size='extraSmall'
+                      style={{ color: palette.fonts.inactive }}
+                    >
                       {row.label}
                     </FancyText>
                     <FancyText

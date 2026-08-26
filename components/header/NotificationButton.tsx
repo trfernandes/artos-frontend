@@ -5,10 +5,9 @@ import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ThemePalette } from '../../constants/colors';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
-import FancyText from '../FancyText';
 import { onNotificationEvent } from '../../core/events/notification-events';
-
 const NOTIFICATION_ICON_SIZE = 19;
+const BADGE_DIAMETER = 8;
 
 export default function NotificationButton() {
   const styles = useThemedStyles(createStyles);
@@ -59,11 +58,7 @@ export default function NotificationButton() {
 
       {showBadge && (
         // badge posicionado relativo ao container (que envolve o botão de 24×30)
-        <View style={styles.badgeWrapper} pointerEvents='none'>
-          <FancyText size={9} type='bold' style={styles.badgeLabel}>
-            {badgeLabel}
-          </FancyText>
-        </View>
+        <View style={styles.badgeWrapper} pointerEvents='none' />
       )}
     </View>
   );
@@ -86,25 +81,15 @@ function createStyles(palette: ThemePalette) {
       backgroundColor: 'transparent',
       borderWidth: 0,
     },
-    badgeLabel: {
-      color: palette.fonts.light,
-      lineHeight: 11,
-      textAlign: 'center',
-      minWidth: 10,
-      paddingHorizontal: 0,
-      includeFontPadding: false,
-    },
     badgeWrapper: {
+      // sobrepõe o canto superior-direito do sino (ícone 19px centralizado no
+      // container 24×30) em vez de flutuar acima dele
       position: 'absolute',
-      alignItems: 'center',
-      justifyContent: 'center',
-      right: -2,
-      top: 1,
-      minWidth: 14,
-      height: 14,
-      paddingHorizontal: 3,
+      right: 2,
+      top: 4,
+      width: BADGE_DIAMETER,
+      height: BADGE_DIAMETER,
       borderRadius: 999,
-      borderWidth: 0,
       backgroundColor: palette.error,
       zIndex: 1,
     },

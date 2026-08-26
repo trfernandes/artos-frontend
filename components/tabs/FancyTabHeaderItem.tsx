@@ -6,6 +6,7 @@ import { ThemePalette } from '../../constants/colors';
 import { usePallete } from '../../hooks/usePallete';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { ColorUtils } from '../../utils/color_utils';
+import { EXTRA_SMALL_SIZE_FONT } from '../../constants/font';
 
 export type FancyTabHeaderItemProps = {
   status: 'active' | 'inactive';
@@ -60,7 +61,7 @@ export default function FancyTabHeaderItem({
 
         <FancyText
           type='semiBold'
-          size={10}
+          size='extraSmall'
           numberOfLines={1}
           style={[
             styles.title,
@@ -87,7 +88,8 @@ export default function FancyTabHeaderItem({
           >
             <FancyText
               type='bold'
-              size={9}
+              size='extraSmall'
+              maxFontSizeMultiplier={1.2}
               numberOfLines={1}
               style={[
                 styles.badgeText,
@@ -106,6 +108,9 @@ export default function FancyTabHeaderItem({
 }
 
 function createStyles(palette: ThemePalette) {
+  // diâmetro segue o token de fonte (reativo — ver refreshFontScale em constants/font.ts)
+  const badgeDiameter = Math.round(EXTRA_SMALL_SIZE_FONT * 1.7);
+
   return StyleSheet.create({
     container: {
       borderRadius: 999,
@@ -161,16 +166,16 @@ function createStyles(palette: ThemePalette) {
       paddingTop: 0,
     },
     badge: {
-      minWidth: 17,
-      height: 17,
+      minWidth: badgeDiameter,
+      height: badgeDiameter,
       borderRadius: 999,
-      paddingHorizontal: 3,
+      paddingHorizontal: 4,
       alignItems: 'center',
       justifyContent: 'center',
       marginLeft: 1,
     },
     badgeText: {
-      lineHeight: 11,
+      lineHeight: Math.round(EXTRA_SMALL_SIZE_FONT * 1.2),
       includeFontPadding: false,
       textAlign: 'center',
     },

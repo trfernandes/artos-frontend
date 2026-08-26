@@ -95,7 +95,7 @@ const mapEscalaFormToDto = (
             funcoes:
               evento.template.tipo === EscalaTemplateTipoEnum.Funcoes
                 ? evento.template.funcoes?.map((funcao) => ({
-                    id: funcao.funcaoId!,
+                    funcaoIds: funcao.funcaoIds!,
                     quantidade: funcao.quantidade,
                     experienciaMinima: funcao.experiencia,
                   }))
@@ -203,12 +203,18 @@ function AssistenteWrapper() {
   form.register('dataInicio', {
     onChange: () => {
       setShouldLoadEvents(true);
+      if (form.formState.errors.dataInicio) {
+        form.trigger(['dataInicio', 'dataTermino']);
+      }
     },
   });
 
   form.register('dataTermino', {
     onChange: () => {
       setShouldLoadEvents(true);
+      if (form.formState.errors.dataTermino) {
+        form.trigger(['dataInicio', 'dataTermino']);
+      }
     },
   });
 

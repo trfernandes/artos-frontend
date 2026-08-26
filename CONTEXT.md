@@ -3,92 +3,150 @@
 Glossário de termos do domínio usados no código deste projeto. Sem detalhes de implementação — só o
 significado dos termos, para todo mundo (humano ou agente) falar a mesma língua.
 
-Contexto único do produto: gestão de igreja (ministérios, escalas, voluntários). Backend em `backend/` (repo git próprio), frontend em `artos_frontend/`.
+Contexto único do produto: gestão de igreja (ministérios, escalas, voluntários). Backend em
+`backend/` (repo git próprio), frontend em `artos_frontend/`.
 
 ## Language
 
-**Igreja**:
-Tenant do sistema. Todo Ministério, Voluntário-vínculo e Escala pertence a uma Igreja.
+**Igreja**: Tenant do sistema. Todo Ministério, Voluntário-vínculo e Escala pertence a uma Igreja.
 
-**Voluntário**:
-Conta/usuário do sistema (`VoluntarioEntity`). Existe independente de qualquer Ministério.
+**Voluntário**: Conta/usuário do sistema (`VoluntarioEntity`). Existe independente de qualquer
+Ministério.
 
-**Ministério**:
-Área de serviço dentro de uma Igreja (ex: louvor, mídia, infantil). `MinisterioEntity`.
+**Ministério**: Área de serviço dentro de uma Igreja (ex: louvor, mídia, infantil).
+`MinisterioEntity`.
 
-**Vínculo** (Voluntário-Ministério):
-Relação entre um Voluntário e um Ministério (`MinisterioVoluntarioEntity`), com hierarquia própria (Voluntario/Líder/Auxiliar) e status (Ativo/Inativo). Um Voluntário pode ter no máximo um Vínculo por Ministério, mas Vínculos com vários Ministérios diferentes ao mesmo tempo.
-_Avoid_: "participação", "associação"
+**Vínculo** (Voluntário-Ministério): Relação entre um Voluntário e um Ministério
+(`MinisterioVoluntarioEntity`), com hierarquia própria (Voluntario/Líder/Auxiliar) e status
+(Ativo/Inativo). Um Voluntário pode ter no máximo um Vínculo por Ministério, mas Vínculos com vários
+Ministérios diferentes ao mesmo tempo. _Avoid_: "participação", "associação"
 
-**Líder**:
-Hierarquia de Vínculo com escopo restrito ao próprio Ministério — não enxerga outros Ministérios da Igreja.
-_Avoid_: confundir com role ADMIN de Igreja (esse sim tem visão de todos os Ministérios)
+**Líder**: Hierarquia de Vínculo com escopo restrito ao próprio Ministério — não enxerga outros
+Ministérios da Igreja. _Avoid_: confundir com role ADMIN de Igreja (esse sim tem visão de todos os
+Ministérios)
 
-**Escala**:
-Agendamento de Voluntários pra um período (`EscalaEntity`), com itens individuais (`EscalaItemEntity`) ligando Vínculo + Evento + data/hora.
+**Escala**: Agendamento de Voluntários pra um período (`EscalaEntity`), com itens individuais
+(`EscalaItemEntity`) ligando Vínculo + Evento + data/hora.
 
-**Substituição**:
-Pedido de um Voluntário (solicitante) pra que outro Voluntário (substituto) assuma um Item de Escala que ele não pode cumprir. Unilateral — substituto não devolve nada. `EscalaSubstituicaoEntity`.
-_Avoid_: "troca" pra se referir a substituição simples (nomenclatura antiga do código, `EscalaTroca*`, confunde os dois conceitos)
+**Substituição**: Pedido de um Voluntário (solicitante) pra que outro Voluntário (substituto) assuma
+um Item de Escala que ele não pode cumprir. Unilateral — substituto não devolve nada.
+`EscalaSubstituicaoEntity`. _Avoid_: "troca" pra se referir a substituição simples (nomenclatura
+antiga do código, `EscalaTroca*`, confunde os dois conceitos)
 
-**Troca**:
-Duas Substituições recíprocas linkadas entre si (A substitui B num Item, B substitui A em outro Item). Não é entidade própria — é duas `EscalaSubstituicaoEntity` com vínculo entre elas. Tudo ou nada: se um lado é recusado, o outro é cancelado automaticamente.
+**Troca**: Duas Substituições recíprocas linkadas entre si (A substitui B num Item, B substitui A em
+outro Item). Não é entidade própria — é duas `EscalaSubstituicaoEntity` com vínculo entre elas. Tudo
+ou nada: se um lado é recusado, o outro é cancelado automaticamente.
 
-**Candidato elegível a Substituição**:
-Voluntário com Vínculo ativo na mesma Função do Item de Escala e sem Indisponibilidade na data — mesmas regras já usadas no gerador automático de escala (`PossuiFuncaoRule` + `DisponibilidadeRule`).
+**Candidato elegível a Substituição**: Voluntário com Vínculo ativo na mesma Função do Item de
+Escala e sem Indisponibilidade na data — mesmas regras já usadas no gerador automático de escala
+(`PossuiFuncaoRule` + `DisponibilidadeRule`).
 
-**Score de Solicitude**:
-Taxa de aceite (não contagem bruta) — `Aprovada` / total de vezes escolhido como substituto (`Pendente`+`Aprovada`+`Recusada`), all-time. Usado só pra ordenar a lista de candidatos sugeridos — não é limiar nem gera alerta.
+**Score de Solicitude**: Taxa de aceite (não contagem bruta) — `Aprovada` / total de vezes escolhido
+como substituto (`Pendente`+`Aprovada`+`Recusada`), all-time. Usado só pra ordenar a lista de
+candidatos sugeridos — não é limiar nem gera alerta.
 
-Decisão 2026-08-17: taxa, não contagem, pra não favorecer voluntário antigo sobre novato com mesmo comportamento de aceite. Denominador conta só quem foi de fato solicitado como substituto (não quem apenas apareceu como Candidato elegível e nunca foi chamado). Empate na taxa desempata por volume total de pedidos recebidos (desc) — sem mínimo artificial de amostra, pra não reintroduzir viés contra voluntário novo.
+Decisão 2026-08-17: taxa, não contagem, pra não favorecer voluntário antigo sobre novato com mesmo
+comportamento de aceite. Denominador conta só quem foi de fato solicitado como substituto (não quem
+apenas apareceu como Candidato elegível e nunca foi chamado). Empate na taxa desempata por volume
+total de pedidos recebidos (desc) — sem mínimo artificial de amostra, pra não reintroduzir viés
+contra voluntário novo.
 
 ## Checklist de Configuração de Escala (feature de onboarding)
 
-Orientação guiada dos dados que precisam existir antes de gerar Escala pela primeira vez. Hoje esse setup não tem nenhuma orientação — igreja descobre o que falta só na tentativa e erro (vaga fica nula silenciosamente).
+Orientação guiada dos dados que precisam existir antes de gerar Escala pela primeira vez. Hoje esse
+setup não tem nenhuma orientação — igreja descobre o que falta só na tentativa e erro (vaga fica
+nula silenciosamente).
 
-_Achado 2026-08-08_: já existe Tutorial guiado (spotlight/tooltip, jornada `lider-primeiros-passos` — Integrantes → Funções → Templates → Escalas → Assistente) em produção. Ele resolve "pra onde ir", não "o que preencher"/"o que falta". Checklist continua sendo a peça que falta — sem ele, líder é guiado até a tela certa e ainda assim não sabe se os dados que colocou bastam pra gerar escala completa. Implementar Checklist é prioridade, não feature nova a mais.
+_Achado 2026-08-08_: já existe Tutorial guiado (spotlight/tooltip, jornada `lider-primeiros-passos`
+— Integrantes → Funções → Templates → Escalas → Assistente) em produção. Ele resolve "pra onde ir",
+não "o que preencher"/"o que falta". Checklist continua sendo a peça que falta — sem ele, líder é
+guiado até a tela certa e ainda assim não sabe se os dados que colocou bastam pra gerar escala
+completa. Implementar Checklist é prioridade, não feature nova a mais.
 
-**Passo do Checklist**:
-Um item verificável: Ministério existe, Função existe, Voluntário vinculado ao Ministério, Voluntário tem Função atribuída, Evento existe (nível Igreja). Cada passo tem estado feito/pendente, calculado ao vivo (não é um flag salvo).
+**Passo do Checklist**: Um item verificável: Ministério existe, Função existe, Voluntário vinculado
+ao Ministério, Voluntário tem Função atribuída, Evento existe (nível Igreja). Cada passo tem estado
+feito/pendente, calculado ao vivo (não é um flag salvo).
 
-Cadastro de Evento é exclusivo de Admin de Igreja (decisão 2026-08-17, RBAC já existente) — Líder vendo o Checklist não cadastra Evento direto, só enxerga o passo pendente e precisa pedir pro Admin. Demais passos (Função, Vínculo, Voluntário+Função) o Líder resolve sozinho, escopado ao próprio Ministério.
+Cadastro de Evento é exclusivo de Admin de Igreja (decisão 2026-08-17, RBAC já existente) — Líder
+vendo o Checklist não cadastra Evento direto, só enxerga o passo pendente e precisa pedir pro Admin.
+Demais passos (Função, Vínculo, Voluntário+Função) o Líder resolve sozinho, escopado ao próprio
+Ministério.
 
-**Pré-checagem de geração**:
-Validação disparada ANTES de confirmar "gerar escala", mostrando por Função/Evento se há Candidato elegível — mesmas regras do gerador (`PossuiFuncaoRule`+`DisponibilidadeRule`). Não bloqueia — só avisa; voluntário permanece livre pra gerar mesmo incompleto (vaga vazia continua sendo comportamento válido, não erro).
-_Avoid_: "validação" sozinho — é aviso, não bloqueio
+**Pré-checagem de geração**: Validação disparada ANTES de confirmar "gerar escala", mostrando por
+Função/Evento se há Candidato elegível — mesmas regras do gerador
+(`PossuiFuncaoRule`+`DisponibilidadeRule`). Não bloqueia — só avisa; voluntário permanece livre pra
+gerar mesmo incompleto (vaga vazia continua sendo comportamento válido, não erro). _Avoid_:
+"validação" sozinho — é aviso, não bloqueio
 
 ## Painel Admin da Plataforma (ferramenta interna, fora do produto das igrejas)
 
-Painel web separado do app, pro dono da plataforma controlar dados cross-igreja. Não confundir com Admin de Igreja (`IgrejaVoluntarioRoleEnum.ADMIN`) — esse é escopado a UMA igreja; o Admin de Plataforma enxerga TODAS.
-_Avoid_: "superadmin" pra descrever Admin de Igreja — são conceitos de nível diferente
+Painel web separado do app, pro dono da plataforma controlar dados cross-igreja. Não confundir com
+Admin de Igreja (`IgrejaVoluntarioRoleEnum.ADMIN`) — esse é escopado a UMA igreja; o Admin de
+Plataforma enxerga TODAS. _Avoid_: "superadmin" pra descrever Admin de Igreja — são conceitos de
+nível diferente
 
-**Admin de Plataforma**:
-Usuário interno, entidade própria (não é `VoluntarioEntity`, sem vínculo a Igreja nenhuma). Único usuário por enquanto (o dev/dono).
+**Admin de Plataforma**: Usuário interno, entidade própria (não é `VoluntarioEntity`, sem vínculo a
+Igreja nenhuma). Único usuário por enquanto (o dev/dono).
 
-**Suspensão de Igreja**:
-Ação do Admin de Plataforma que bloqueia login de todos os vínculos daquela Igreja. Usa `IgrejaStatusEnum.SUSPENSA` — valor já existe no enum hoje, mas não é setado nem checado em lugar nenhum (achado da exploração: dead code). Reativar destrava na hora. Toda Suspensão gera entrada de log de auditoria (quem, quando, motivo).
+**Suspensão de Igreja**: Ação do Admin de Plataforma que bloqueia login de todos os vínculos daquela
+Igreja. Usa `IgrejaStatusEnum.SUSPENSA` — valor já existe no enum hoje, mas não é setado nem checado
+em lugar nenhum (achado da exploração: dead code). Reativar destrava na hora. Toda Suspensão gera
+entrada de log de auditoria (quem, quando, motivo).
 
-É ferramenta de moderação (abuso, violação de termos, investigação) — não de billing. Decisão 2026-08-17: `SubscriptionEntity` continua cobrando normal durante Suspensão, independente do motivo. Inadimplência não passa por aqui — é fluxo separado do provider de pagamento, não ação manual do Admin de Plataforma.
-_Avoid_: tratar Suspensão como forma de pausar ou cancelar cobrança
+É ferramenta de moderação (abuso, violação de termos, investigação) — não de billing. Decisão
+2026-08-17: `SubscriptionEntity` continua cobrando normal durante Suspensão, independente do motivo.
+Inadimplência não passa por aqui — é fluxo separado do provider de pagamento, não ação manual do
+Admin de Plataforma. _Avoid_: tratar Suspensão como forma de pausar ou cancelar cobrança
 
 ## Sobrecarga de Voluntário (feature de cuidado pastoral)
 
-Estado do Voluntário quando cruza QUALQUER UM de dois Limiares independentes (OR, não soma ponderada): volume de Ministérios ou frequência de Escalas. Cada Limiar é simples (contagem, não peso por hierarquia).
-_Avoid_: "carga pastoral", "fadiga voluntária" — termos mais abstratos, não usar no código/UI
+Estado do Voluntário quando cruza QUALQUER UM de dois Limiares independentes (OR, não soma
+ponderada): volume de Ministérios ou frequência de Escalas. Cada Limiar é simples (contagem, não
+peso por hierarquia). _Avoid_: "carga pastoral", "fadiga voluntária" — termos mais abstratos, não
+usar no código/UI
 
-**Limiar de Sobrecarga**:
-Dois Limiares independentes, fixos no sistema (não configuráveis por Igreja):
+**Limiar de Sobrecarga**: Dois Limiares independentes, fixos no sistema (não configuráveis por
+Igreja):
+
 - **Limiar de Ministérios**: 3+ Vínculos ativos simultâneos.
 - **Limiar de Escalas**: 12+ itens de Escala nos últimos 3 meses (janela móvel).
 
-Escopado por Igreja — conta só Vínculos/Escalas dentro da mesma Igreja, não soma entre Igrejas diferentes onde o mesmo Voluntário possa servir. Decisão 2026-08-17: caso raro na prática (servir em 2+ Igrejas ao mesmo tempo), e cruzar Igreja violaria isolamento multi-tenant — uma Igreja não deve saber que o Voluntário também serve em outra.
+Escopado por Igreja — conta só Vínculos/Escalas dentro da mesma Igreja, não soma entre Igrejas
+diferentes onde o mesmo Voluntário possa servir. Decisão 2026-08-17: caso raro na prática (servir em
+2+ Igrejas ao mesmo tempo), e cruzar Igreja violaria isolamento multi-tenant — uma Igreja não deve
+saber que o Voluntário também serve em outra.
 
-**Alerta de Sobrecarga**:
-Notificação disparada no momento em que um Voluntário cruza o Limiar (entra no 3º Vínculo ativo). Dispara de novo a cada vez que o Voluntário recruza o Limiar (sai e volta a ultrapassar) — não é notificação única na vida do Voluntário.
+**Alerta de Sobrecarga**: Notificação disparada no momento em que um Voluntário cruza o Limiar
+(entra no 3º Vínculo ativo). Dispara de novo a cada vez que o Voluntário recruza o Limiar (sai e
+volta a ultrapassar) — não é notificação única na vida do Voluntário.
 
-- Líder recebe alerta só dos Voluntários do próprio Ministério, com sinal genérico ("também serve em outro(s) Ministério(s)") — sem revelar quais, por não ter escopo de visão cross-Ministério hoje.
-- Admin de Igreja recebe alerta agregado, com visão completa (já tem `FULL_PERMISSION_SET` cross-Ministério).
-- Voluntário vê o próprio indicador de Sobrecarga na tela pessoal, com texto orientativo (sem botão de ação — não existe fluxo de sair de Ministério pelo próprio Voluntário hoje).
+- Líder recebe alerta só dos Voluntários do próprio Ministério, com sinal genérico ("também serve em
+  outro(s) Ministério(s)") — sem revelar quais, por não ter escopo de visão cross-Ministério hoje.
+- Admin de Igreja recebe alerta agregado, com visão completa (já tem `FULL_PERMISSION_SET`
+  cross-Ministério).
+- Voluntário vê o próprio indicador de Sobrecarga na tela pessoal, com texto orientativo (sem botão
+  de ação — não existe fluxo de sair de Ministério pelo próprio Voluntário hoje).
+
+## Log de Auditoria (rastreabilidade)
+
+**Log de Auditoria**: Registro persistido (`AuditLogEntity`) de edição sensível em Escalas,
+Ministérios, Configurações de Igreja, e Vínculos (Voluntário-Ministério). Cada entrada tem autor,
+ação (Criação/Edição/Exclusão), entidade afetada, descrição pronta pra exibir, e snapshot opcional
+de antes/depois. _Avoid_: confundir com o array `auditoria` em memória do
+`GeradorDeEscalas.executar()` (avaliação de regras por candidato durante geração — não persiste, não
+é sobre ações administrativas).
+
+Visibilidade: Admin da Igreja vê todos os logs (cross-Ministério); Líder vê só os do próprio
+Ministério. Decisão 2026-08-25 (grilling).
+
+## Evento.tipo (Culto / Reunião / Ensaio)
+
+**Tipo de Evento**: Classificação de um Evento em `Culto`, `Reunião`, ou `Ensaio`. Só Evento do tipo
+Culto participa da geração automática de Escala, tem Escala/equipe (mesmo atribuição manual), e tem
+Setlist. Reunião e Ensaio não têm nenhum dos três — mesmo Ensaio existindo pra "ensaiar repertório",
+decisão explícita do usuário (2026-08-25, confirmada 2x em grilling) foi não ligar Setlist a Ensaio
+neste momento. _Avoid_: assumir que Ensaio precisa de Setlist só porque é a razão intuitiva de
+existir do conceito — decisão registrada é o contrário.
 
 ## Tutorial interativo (tours)
 

@@ -2,14 +2,22 @@ import { EscalaTemplateExperienciaEnum } from '../../enums/EscalaTemplate/escala
 import { ResponseMinisterioFuncaoDto } from '../MinisterioFuncao/ministerio-funcao.response';
 import type { ResponseEscalaTemplateDto } from './escala-template.response';
 
+export type ResponseEscalaTemplateFuncaoOpcaoDto = {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  templateFuncaoId: string;
+  funcaoId: string;
+  funcao?: ResponseMinisterioFuncaoDto;
+};
+
 export type ResponseEscalaTemplateFuncaoDto = {
   id: string;
   createdAt: string;
   updatedAt: string;
   templateId: string;
   template?: ResponseEscalaTemplateDto;
-  funcaoId: string;
-  funcao?: ResponseMinisterioFuncaoDto;
+  opcoes: ResponseEscalaTemplateFuncaoOpcaoDto[];
   quantidade: number;
   experiencia: EscalaTemplateExperienciaEnum;
 };

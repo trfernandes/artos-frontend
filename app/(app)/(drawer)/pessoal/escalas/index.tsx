@@ -422,7 +422,7 @@ export default function MinhasEscalasIndexPage() {
                 id: escalaItensId,
                 data: { status: EscalaItemStatusEnum.Confirmado },
               });
-              Toast.show({ type: 'success', text1: '✅ Presença confirmada!' });
+              Toast.show({ type: 'success', text1: 'Presença confirmada!' });
               await loadMonthEscalas();
             } catch {
               Toast.show({ type: 'error', text1: 'Erro ao confirmar presença.' });
@@ -451,7 +451,7 @@ export default function MinhasEscalasIndexPage() {
 
         Toast.show({
           type: 'success',
-          text1: '✅ Solicitação enviada!',
+          text1: 'Solicitação enviada!',
           text2: 'O substituto foi notificado.',
         });
         setSubstituicaoPageParams({ visible: false });

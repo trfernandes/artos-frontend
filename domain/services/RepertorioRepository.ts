@@ -1,6 +1,6 @@
 import { RepertorioApi } from '../api/RepertorioApi';
-import { CreateRepertorioCategoriaDto } from '../dtos/Repertorio/repertorio-categoria.create';
-import { UpdateRepertorioCategoriaDto } from '../dtos/Repertorio/repertorio-categoria.update';
+import { CreateRepertorioEtiquetaDto } from '../dtos/Repertorio/repertorio-etiqueta.create';
+import { UpdateRepertorioEtiquetaDto } from '../dtos/Repertorio/repertorio-etiqueta.update';
 import { CreateRepertorioMusicaDto } from '../dtos/Repertorio/repertorio-musica.create';
 import { UpdateRepertorioMusicaDto } from '../dtos/Repertorio/repertorio-musica.update';
 import { DynamicQuery } from '../utils/query_utils';
@@ -9,25 +9,25 @@ import { UpdateRepertorioMusicaSecaoDto } from '../dtos/Repertorio/repertorio-mu
 import { UpsertRepertorioMusicaArranjoDto } from '../dtos/Repertorio/repertorio-musica-arranjo.update';
 
 class RepertorioRepositoryClass {
-  searchCategorias(igrejaId: string, ministerioId: string, query?: DynamicQuery) {
-    return RepertorioApi.searchCategorias(igrejaId, ministerioId, query);
+  searchEtiquetas(igrejaId: string, ministerioId: string, query?: DynamicQuery) {
+    return RepertorioApi.searchEtiquetas(igrejaId, ministerioId, query);
   }
 
-  createCategoria(igrejaId: string, ministerioId: string, dto: CreateRepertorioCategoriaDto) {
-    return RepertorioApi.createCategoria(igrejaId, ministerioId, dto);
+  createEtiqueta(igrejaId: string, ministerioId: string, dto: CreateRepertorioEtiquetaDto) {
+    return RepertorioApi.createEtiqueta(igrejaId, ministerioId, dto);
   }
 
-  updateCategoria(
+  updateEtiqueta(
     igrejaId: string,
     ministerioId: string,
     id: string,
-    dto: UpdateRepertorioCategoriaDto,
+    dto: UpdateRepertorioEtiquetaDto,
   ) {
-    return RepertorioApi.updateCategoria(igrejaId, ministerioId, id, dto);
+    return RepertorioApi.updateEtiqueta(igrejaId, ministerioId, id, dto);
   }
 
-  removeCategoria(igrejaId: string, ministerioId: string, id: string) {
-    return RepertorioApi.removeCategoria(igrejaId, ministerioId, id);
+  removeEtiqueta(igrejaId: string, ministerioId: string, id: string) {
+    return RepertorioApi.removeEtiqueta(igrejaId, ministerioId, id);
   }
 
   searchYoutubeVersions(igrejaId: string, query: string, limit = 6) {

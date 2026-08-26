@@ -15,8 +15,6 @@ type SolicitacaoCardProps = {
   solicitacao: ResponseIgrejaSolicitacaoDto;
   onAprovar: () => void;
   onRejeitar: () => void;
-  isAprovando?: boolean;
-  isRejeitando?: boolean;
   formatDateTime: (date: string) => string;
 };
 
@@ -24,8 +22,6 @@ export default function SolicitacaoCard({
   solicitacao,
   onAprovar,
   onRejeitar,
-  isAprovando = false,
-  isRejeitando = false,
   formatDateTime,
 }: SolicitacaoCardProps) {
   const palette = usePallete();
@@ -37,7 +33,6 @@ export default function SolicitacaoCard({
   const respondedDateFormatted = solicitacao.respondedAt
     ? formatDateTime(solicitacao.respondedAt)
     : null;
-  const isLoading = isAprovando || isRejeitando;
 
   return (
     <View
@@ -137,8 +132,6 @@ export default function SolicitacaoCard({
                   color: palette.fonts.light,
                 }}
                 onPress={onAprovar}
-                isLoading={isAprovando}
-                disabled={isLoading}
                 containerStyle={[
                   styles.actionBtn,
                   { backgroundColor: palette.confirm, borderColor: palette.confirm },
@@ -154,8 +147,6 @@ export default function SolicitacaoCard({
                   color: palette.fonts.light,
                 }}
                 onPress={onRejeitar}
-                isLoading={isRejeitando}
-                disabled={isLoading}
                 containerStyle={[
                   styles.actionBtn,
                   { backgroundColor: palette.error, borderColor: palette.error },

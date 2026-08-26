@@ -1,4 +1,4 @@
-import { View, StyleSheet, ModalProps, LayoutAnimation } from 'react-native';
+import { View, StyleSheet, ModalProps, LayoutAnimation, Pressable } from 'react-native';
 import EventoRepeticaoInputCustomSemana from './EventoRepeticaoInputCustomSemana';
 import FancyBottomSheetModal from '../../../modal/FancyBottomSheetModal';
 import FancyButton from '../../../buttons/FancyButton';
@@ -7,6 +7,7 @@ import EventoRepeticaoInputCustomMensal from './EventoRepeticaoInputCustomMensal
 import { strfyObj } from '../../../../utils/text_utils';
 import z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { addMonths, format } from 'date-fns';
 import { RecorrenciaDiaSemanaEnum } from '../../../../domain/enums/Evento/recorrencia-dia-semana.enum';
 import { RecorrenciaSemanaMesEnum } from '../../../../domain/enums/Evento/recorrencia-semana-mes.enum';
 import { RecorrenciaEnum } from '../../../../domain/enums/Evento/recorrencia.enum';
@@ -16,6 +17,8 @@ import { generateRecorrenciaJoinableDescription } from '../../../../hooks/useEve
 import FancyText from '../../../FancyText';
 import { usePallete } from '../../../../hooks/usePallete';
 import { ColorUtils } from '../../../../utils/color_utils';
+import DefaultIcons from '../../../FancyIcons';
+import ModernDatePickerField from '../../../datepicker/ModernDatePickerField';
 
 export const schema = z
   .object({
@@ -135,52 +138,169 @@ export default function EventoRepeticaoInputCustom({ modalProps }: { modalProps?
         />
       }
     >
-      {/* Frequência */}
-      <Controller
-        control={recorrenciaForm.control}
-        name='recorrencia'
-        render={({ field: { value } }) => (
-          <FancySegmentedControl
-            label='Frequência'
-            options={FREQUENCIA_OPTIONS}
-            value={value}
-            onChange={(v) => {
-              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-              recorrenciaForm.setValue('recorrencia', v as RecorrenciaEnum);
-              recorrenciaForm.resetField('recorrenciaACadaMeses', {
-                defaultValue: v === RecorrenciaEnum.Mensal ? 1 : ('' as any),
+      <FormProvider {...eventoForm}>
+        {/* Frequência */}
+        <Controller
+          control={recorrenciaForm.control}
+          name='recorrencia'
+          render={({ field: { value } }) => (
+            <FancySegmentedControl
+              label='Frequência'
+              options={FREQUENCIA_OPTIONS}
+              value={value}
+              onChange={(v) => {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                recorrenciaForm.setValue('recorrencia', v as RecorrenciaEnum);
+                recorrenciaForm.resetField('recorrenciaACadaMeses', {
+                  defaultValue: v === RecorrenciaEnum.Mensal ? 1 : ('' as any),
+                });
+                recorrenciaForm.resetField('recorrenciaSemanaDias', { defaultValue: [] });
+                recorrenciaForm.resetField('recorrenciaSemanasMes', { defaultValue: [] });
+              }}
+            />
+          )}
+        />
+
+        {/* Seções específicas por modo */}
+        <FormProvider {...recorrenciaForm}>
+          {recorrencia === RecorrenciaEnum.Semanal && <EventoRepeticaoInputCustomSemana />}
+          {recorrencia === RecorrenciaEnum.Mensal && <EventoRepeticaoInputCustomMensal />}
+        </FormProvider>
+
+        {/* Fim da recorrência */}
+        <EventoFimRecorrenciaInput />
+
+        {/* Resumo */}
+        {isFormValid && (
+          <View
+            style={[
+              styles.resumoCard,
+              {
+                backgroundColor: palette.backgroundColor2,
+                borderColor: ColorUtils.withAlpha(palette.primary, 0.16),
+              },
+            ]}
+          >
+            <View style={[styles.resumoBorder, { backgroundColor: palette.primary }]} />
+            <FancyText size='small' type='medium' color={palette.fonts.dark}>
+              {resumoText}
+            </FancyText>
+          </View>
+        )}
+      </FormProvider>
+    </FancyBottomSheetModal>
+  );
+}
+
+function EventoFimRecorrenciaInput() {
+  const palette = usePallete();
+  const eventoForm = useFormContext<EventoFormData>();
+
+  if (!eventoForm) return null;
+
+  const dataInicio = eventoForm.watch('dataInicio');
+  const dataFimRecorrencia = eventoForm.watch('dataFimRecorrencia');
+  const hasFim = !!dataFimRecorrencia;
+
+  const chipStyle = {
+    backgroundColor: palette.backgroundColor4,
+    borderColor: ColorUtils.withAlpha(palette.primary, 0.22),
+  };
+
+  const handleAdd = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    eventoForm.setValue('dataFimRecorrencia', addMonths(dataInicio ?? new Date(), 1), {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
+
+  const handleRemove = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    eventoForm.setValue('dataFimRecorrencia', undefined, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
+
+  return (
+    <View style={{ gap: 8 }}>
+      <View style={styles.fimHeaderRow}>
+        <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
+          Fim da recorrência
+        </FancyText>
+
+        {!hasFim && (
+          <Pressable
+            onPress={handleAdd}
+            style={({ pressed }) => [styles.fimActionButton, pressed && { opacity: 0.6 }]}
+            accessibilityRole='button'
+            accessibilityLabel='Definir fim da recorrência'
+          >
+            <View style={styles.fimActionRow}>
+              <FancyText size='small' type='semiBold' color={palette.primary}>
+                Definir data
+              </FancyText>
+              <DefaultIcons.Custom
+                library='Feather'
+                name='chevron-right'
+                size={14}
+                color={palette.primary}
+              />
+            </View>
+          </Pressable>
+        )}
+      </View>
+
+      {hasFim ? (
+        <View style={styles.fimDateRow}>
+          <ModernDatePickerField
+            value={dataFimRecorrencia as Date}
+            panelProps={{ buttonStyle: chipStyle }}
+            sheetProps={{ quickActions: ['today', 'tomorrow'] }}
+            onChange={(date) => {
+              const day = format(date, 'dd');
+              const month = format(date, 'MM');
+              const year = format(date, 'yyyy');
+              const newDate = new Date(Number(year), Number(month) - 1, Number(day), 23, 59);
+              eventoForm.setValue('dataFimRecorrencia', newDate, {
+                shouldDirty: true,
+                shouldValidate: true,
               });
-              recorrenciaForm.resetField('recorrenciaSemanaDias', { defaultValue: [] });
-              recorrenciaForm.resetField('recorrenciaSemanasMes', { defaultValue: [] });
             }}
           />
-        )}
-      />
-
-      {/* Seções específicas por modo */}
-      <FormProvider {...recorrenciaForm}>
-        {recorrencia === RecorrenciaEnum.Semanal && <EventoRepeticaoInputCustomSemana />}
-        {recorrencia === RecorrenciaEnum.Mensal && <EventoRepeticaoInputCustomMensal />}
-      </FormProvider>
-
-      {/* Resumo */}
-      {isFormValid && (
-        <View
-          style={[
-            styles.resumoCard,
-            {
-              backgroundColor: palette.backgroundColor2,
-              borderColor: ColorUtils.withAlpha(palette.primary, 0.16),
-            },
-          ]}
-        >
-          <View style={[styles.resumoBorder, { backgroundColor: palette.primary }]} />
-          <FancyText size='small' type='medium' color={palette.fonts.dark}>
-            {resumoText}
+          <Pressable
+            onPress={handleRemove}
+            accessibilityRole='button'
+            accessibilityLabel='Remover fim da recorrência'
+            style={({ pressed }) => [
+              styles.fimRemoveButton,
+              {
+                backgroundColor: pressed
+                  ? ColorUtils.withAlpha(palette.error, 0.08)
+                  : palette.backgroundColor2,
+                borderColor: pressed
+                  ? ColorUtils.withAlpha(palette.error, 0.25)
+                  : palette.borderCard,
+              },
+            ]}
+          >
+            <DefaultIcons.Custom
+              library='Feather'
+              name='trash-2'
+              size={16}
+              color={palette.fonts.inactive}
+            />
+          </Pressable>
+        </View>
+      ) : (
+        <View style={[styles.semDataChip, { backgroundColor: palette.backgroundColor2 }]}>
+          <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
+            Recorrência sem data limite
           </FancyText>
         </View>
       )}
-    </FancyBottomSheetModal>
+    </View>
   );
 }
 
@@ -200,5 +320,40 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 3,
+  },
+  fimHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  fimActionButton: {
+    paddingVertical: 2,
+  },
+  fimActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  fimDateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  fimRemoveButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  semDataChip: {
+    borderRadius: 100,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
   },
 });

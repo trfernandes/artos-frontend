@@ -11,6 +11,7 @@ export type ResponseRegraIndisponibilidadeVoluntarioDto = {
   motivo: string | null;
   voluntarioId: string;
   igrejaId: string;
+  ministerioId: string | null;
   createdAt: string;
   updatedAt: string;
 };

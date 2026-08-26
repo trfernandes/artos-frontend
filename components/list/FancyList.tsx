@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { LegendList, LegendListProps } from '@legendapp/list';
-import { useState, useRef } from 'react';
+import { isValidElement, useState, useRef, createElement } from 'react';
 import {
   LayoutChangeEvent,
   NativeScrollEvent,
@@ -57,6 +57,11 @@ export default function FancyList<ItemT>({ showFade = true, ...props }: FancyLis
   };
 
   const hasData = props.data && props.data.length > 0;
+  const headerElement = props.ListHeaderComponent
+    ? isValidElement(props.ListHeaderComponent)
+      ? props.ListHeaderComponent
+      : createElement(props.ListHeaderComponent as React.ComponentType<any>)
+    : null;
   const topFadeColors = [
     ColorUtils.withAlpha(palette.backgroundColor, 1),
     ColorUtils.withAlpha(palette.backgroundColor, 0),
@@ -77,6 +82,8 @@ export default function FancyList<ItemT>({ showFade = true, ...props }: FancyLis
             recycleItems={props.recycleItems ?? true}
             maintainVisibleContentPosition={props.maintainVisibleContentPosition ?? true}
             initialScrollIndex={props.initialScrollIndex}
+            ListHeaderComponent={props.ListHeaderComponent}
+            ListHeaderComponentStyle={props.ListHeaderComponentStyle}
             ListFooterComponent={
               props.ListFooterComponent || <View style={{ height: props.bottomSpace || 10 }} />
             }
@@ -117,7 +124,12 @@ export default function FancyList<ItemT>({ showFade = true, ...props }: FancyLis
           )}
         </>
       ) : (
-        <FancyListEmpty {...props.listEmptyProps} />
+        <View style={[styles.emptyStateWrapper, props.contentContainerStyle]}>
+          {headerElement}
+          <View style={styles.emptyStateContent}>
+            <FancyListEmpty {...props.listEmptyProps} />
+          </View>
+        </View>
       )}
     </View>
   );
@@ -139,4 +151,6 @@ const styles = StyleSheet.create({
     // borderWidth: 1,
   },
   list_content: { gap: 10 },
+  emptyStateWrapper: { flex: 1 },
+  emptyStateContent: { flex: 1 },
 });

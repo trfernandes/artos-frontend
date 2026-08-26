@@ -1,7 +1,6 @@
-import { useRef, useEffect, useCallback, useMemo, useState } from 'react';
+import { useRef, useEffect, useCallback, useMemo, useState, useId } from 'react';
 import {
   View,
-  Modal,
   StyleSheet,
   Animated,
   Dimensions,
@@ -19,6 +18,7 @@ import DefaultIcons from '../FancyIcons';
 import { ColorUtils } from '../../utils/color_utils';
 import { usePallete } from '../../hooks/usePallete';
 import { useKeyboardMetrics } from '../../hooks/useKeyboardMetrics';
+import { ModalStack } from './GlobalModalHost';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const ANIMATION_DURATION = 180;
@@ -28,6 +28,7 @@ type Props = {
   visible: boolean;
   onClose: () => void;
   title?: string;
+  titleSize?: 'medium' | 'largeMedium';
   children: React.ReactNode;
   footer?: React.ReactNode;
   avoidKeyboard?: boolean;
@@ -39,6 +40,7 @@ export default function FancyBottomSheetModal({
   visible,
   onClose,
   title,
+  titleSize = 'medium',
   children,
   footer,
   avoidKeyboard = true,
@@ -46,6 +48,7 @@ export default function FancyBottomSheetModal({
   closeDisabled = false,
 }: Props) {
   const palette = usePallete();
+  const stackId = useId();
   const isDark = palette.backgroundColor === '#121212';
   // Backdrop com mais opacidade no Android pois o blur lá é menos efetivo
   const reliableBackdropColor = isDark
@@ -175,6 +178,7 @@ export default function FancyBottomSheetModal({
           <Animated.View
             style={[
               styles.sheet,
+              palette.shadows[300],
               {
                 maxHeight: sheetMaxHeight,
                 marginBottom: keyboardOffset,
@@ -213,7 +217,7 @@ export default function FancyBottomSheetModal({
               </TouchableOpacity>
               <FancyText
                 type='bold'
-                size='medium'
+                size={titleSize}
                 color={palette.fonts.dark}
                 style={styles.headerTitle}
               >
@@ -229,7 +233,6 @@ export default function FancyBottomSheetModal({
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps='handled'
               keyboardDismissMode='interactive'
-              automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
             >
               {children}
             </ScrollView>
@@ -257,20 +260,26 @@ export default function FancyBottomSheetModal({
       sheetMaxHeight,
       sheetTranslateY,
       title,
+      titleSize,
     ],
   );
 
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType='none'
-      onRequestClose={handleClose}
-      statusBarTranslucent
-    >
-      {hasMounted ? sheetContent : null}
-    </Modal>
-  );
+  useEffect(() => {
+    if (visible && hasMounted) {
+      ModalStack.push(stackId, sheetContent, handleClose);
+    } else {
+      ModalStack.pop(stackId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, hasMounted]);
+
+  useEffect(() => {
+    if (visible && hasMounted) ModalStack.update(stackId, sheetContent, handleClose);
+  });
+
+  useEffect(() => () => ModalStack.pop(stackId), [stackId]);
+
+  return null;
 }
 
 const styles = StyleSheet.create({
@@ -292,11 +301,6 @@ const styles = StyleSheet.create({
     zIndex: 1,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 16,
   },
   handleContainer: {
     alignItems: 'center',

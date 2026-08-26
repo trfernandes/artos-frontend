@@ -1,11 +1,12 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import FancyCalendar, { MarkedDate } from '../../calendar/FancyCalendar';
+import FancyScrollView from '../../FancyScrollView';
 import { DashboardEscalaItemDto } from '../../../domain/dtos/Dashboard/dashboard.response';
 import { ThemePalette } from '../../../constants/colors';
 import { format, isSameDay, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import FancyModalDialog from '../../modal/FancyModalDialog';
+import FancyBottomSheetModal from '../../modal/FancyBottomSheetModal';
 import FancyText from '../../FancyText';
 import FancyChips from '../../FancyChips';
 import DefaultIcons from '../../FancyIcons';
@@ -82,18 +83,12 @@ export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendar
         dayModeTopPadding={10}
       />
 
-      {isDetailsModalVisible && (
-        <FancyModalDialog
-          title='Detalhes do dia'
-          modalProps={{ visible: isDetailsModalVisible }}
-          onButton1Press={() => setIsDetailsModalVisible(false)}
-          button1={{ visible: false }}
-          button2={{ visible: false }}
-          buttonContainerComponenet={<></>}
-          showCloseButton
-          containerStyle={styles.modalContainer}
-          centerContainerStyle={styles.modalContent}
-        >
+      <FancyBottomSheetModal
+        visible={isDetailsModalVisible}
+        onClose={() => setIsDetailsModalVisible(false)}
+        title='Detalhes do dia'
+      >
+        <View style={styles.sheetContent}>
           <View style={styles.summaryCard}>
             <View style={styles.summaryDateBadge}>
               <FancyText size='extraSmall' type='semiBold' color={palette.primary}>
@@ -123,7 +118,10 @@ export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendar
           </View>
 
           {escalasDaDataSelecionada.length > 0 ? (
-            <ScrollView style={styles.modalList} contentContainerStyle={styles.modalListContent}>
+            <FancyScrollView
+              style={styles.modalList}
+              contentContainerStyle={styles.modalListContent}
+            >
               {escalasDaDataSelecionada.map((escala, index) => (
                 <View key={`${escala.id}-${escala.eventoData}-${index}`} style={styles.eventCard}>
                   <View style={styles.eventCardHeader}>
@@ -204,7 +202,7 @@ export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendar
                   ) : null}
                 </View>
               ))}
-            </ScrollView>
+            </FancyScrollView>
           ) : (
             <View style={styles.emptyCard}>
               <DefaultIcons.Custom
@@ -218,8 +216,8 @@ export default function DashboardMiniCalendar({ escalas }: DashboardMiniCalendar
               </FancyText>
             </View>
           )}
-        </FancyModalDialog>
-      )}
+        </View>
+      </FancyBottomSheetModal>
     </>
   );
 }
@@ -238,12 +236,8 @@ function createStyles(palette: ThemePalette) {
       borderColor: ColorUtils.withAlpha(palette.borderCard, 0.45),
       ...palette.shadows[200],
     },
-    modalContainer: {
+    sheetContent: {
       gap: 12,
-    },
-    modalContent: {
-      gap: 10,
-      maxHeight: 400,
     },
     summaryCard: {
       borderRadius: 12,

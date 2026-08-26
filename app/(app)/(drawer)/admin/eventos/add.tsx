@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
 import { eventoSchema } from '../../../../../domain/schemas/eventoSchema';
 import { RecorrenciaEnum } from '../../../../../domain/enums/Evento/recorrencia.enum';
+import { EventoTipoEnum } from '../../../../../domain/enums/Evento/evento-tipo.enum';
 import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
 import { DateUtilsApi } from '../../../../../utils/date_utils';
 import { CreateEventoDto } from '../../../../../domain/dtos/Evento/evento.create';
@@ -14,6 +15,7 @@ import EventosDadosForm from '../../../../../components/pages/admin/eventos/Even
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import Toast from 'react-native-toast-message';
+import { usePallete } from '../../../../../hooks/usePallete';
 
 export function getDefaultEventoTimes() {
   const now = new Date();
@@ -36,12 +38,14 @@ export function getDefaultEventoTimes() {
 export default function EventosAddPage() {
   const { dataInicio, dataTermino } = getDefaultEventoTimes();
   const { igrejaAtiva } = useAuth();
+  const Pallete = usePallete();
 
   const form = useForm({
     resolver: zodResolver(eventoSchema),
     defaultValues: {
+      tipo: EventoTipoEnum.Culto,
       recorrencia: RecorrenciaEnum.Nunca,
-      cor: '#FF8C00',
+      cor: Pallete.primary,
       dataInicio: dataInicio,
       dataTermino: dataTermino,
     },
@@ -59,7 +63,10 @@ export default function EventosAddPage() {
           cor: payload.cor,
           dataInicio: DateUtilsApi.dateTimeToApi(payload.dataInicio),
           dataTermino: payload.dataTermino && DateUtilsApi.dateTimeToApi(payload.dataTermino),
+          dataFimRecorrencia:
+            payload.dataFimRecorrencia && DateUtilsApi.dateTimeToApi(payload.dataFimRecorrencia),
           recorrencia: payload.recorrencia || RecorrenciaEnum.Nunca,
+          tipo: payload.tipo || EventoTipoEnum.Culto,
         };
         await add(newEvento);
         router.back();

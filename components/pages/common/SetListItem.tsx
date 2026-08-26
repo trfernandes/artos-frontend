@@ -1,22 +1,28 @@
 import { memo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Linking, StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import FancyText from '../../FancyText';
 import { usePallete } from '../../../hooks/usePallete';
 import { ColorUtils } from '../../../utils/color_utils';
-import { EventoSetlistItemOrigemEnum } from '../../../domain/dtos/Evento/evento-setlist-item.response';
+import { ResponseRepertorioEtiquetaDto } from '../../../domain/dtos/Repertorio/repertorio-etiqueta.response';
 import { FancyCard } from '../../cards/Horizontal/FancyCard';
+import {
+  detectMusicLinkService,
+  isOpenableMusicUrl,
+  toOpenableMusicUrl,
+} from '../../../utils/musicLinkUtils';
 
 export type SetListItemProps = {
   order: number;
   total: number;
   name: string;
   artist?: string | null;
-  tipoOrigem: EventoSetlistItemOrigemEnum;
+  etiquetas?: ResponseRepertorioEtiquetaDto[];
   totalSecoes?: number | null;
   tom?: string | null;
   bpm?: number | null;
+  versaoUrl?: string | null;
   hasEstruturaOverride?: boolean;
   onPress: () => void;
   onEdit?: () => void;
@@ -33,10 +39,11 @@ function SetListItem({
   order,
   name,
   artist,
-  tipoOrigem,
+  etiquetas,
   totalSecoes,
   tom,
   bpm,
+  versaoUrl,
   onPress,
   onActionsPress,
   onLongPress,
@@ -44,15 +51,35 @@ function SetListItem({
   isActive = false,
 }: SetListItemProps) {
   const palette = usePallete();
-  const isAuto = tipoOrigem === EventoSetlistItemOrigemEnum.REPERTORIO;
   const orderLabel = String(order).padStart(2, '0');
   const musicMetaParts = [tom ? `Tom ${tom}` : null, bpm ? `BPM ${bpm}` : null].filter(
     Boolean,
   ) as string[];
   const musicMetaLabel = musicMetaParts.join(', ');
-  const typeColor = isAuto ? palette.confirm : palette.primary;
   const tomColor = palette.secondary;
   const bpmColor = palette.terciary;
+
+  const trimmedUrl = versaoUrl?.trim() || '';
+  const hasUrl = trimmedUrl.length > 0 && isOpenableMusicUrl(trimmedUrl);
+  const listenService = hasUrl ? detectMusicLinkService(trimmedUrl) : null;
+  const listenIconName =
+    listenService === 'spotify'
+      ? 'spotify'
+      : listenService === 'youtube'
+        ? 'youtube'
+        : 'play-circle-outline';
+  const listenColor = hasUrl ? palette.primary : palette.fonts.inactive2;
+  const listenAction = {
+    icon: {
+      library: 'MaterialCommunityIcons' as const,
+      name: listenIconName,
+      size: 20,
+      color: listenColor,
+      backgroundColor: ColorUtils.withAlpha(listenColor, 0.08),
+    },
+    onPress: hasUrl ? () => Linking.openURL(toOpenableMusicUrl(trimmedUrl)) : undefined,
+    size: 'medium' as const,
+  };
 
   return (
     <FancyCard.Image
@@ -60,16 +87,23 @@ function SetListItem({
       props={{
         letter: orderLabel,
         title: name,
-        subtitle: artist || undefined,
+        subtitle: artist || 'Sem intérprete',
         additionalData1: (
           <View style={styles.metaRow}>
-            <MusicBadge label={isAuto ? 'AUTO' : 'MANUAL'} color={typeColor} dot />
             {tom ? (
               <MusicBadge label={`TOM ${tom}`} color={tomColor} icon='music-clef-treble' />
             ) : null}
             {bpm ? <MusicBadge label={`BPM ${bpm}`} color={bpmColor} icon='metronome' /> : null}
           </View>
         ),
+        content:
+          etiquetas && etiquetas.length > 0 ? (
+            <View style={styles.etiquetasRow}>
+              {etiquetas.map((etiqueta) => (
+                <MusicBadge key={etiqueta.id} label={etiqueta.nome} color={etiqueta.cor} />
+              ))}
+            </View>
+          ) : undefined,
         titleProps: {
           type: 'semiBold' as const,
           size: 'small' as const,
@@ -79,7 +113,7 @@ function SetListItem({
         },
         subtitleProps: {
           type: 'medium' as const,
-          size: 'extraSmall' as const,
+          size: 'small' as const,
           numberOfLines: 1,
           color: palette.fonts.inactive,
           style: styles.subtitle,
@@ -92,32 +126,35 @@ function SetListItem({
         delayLongPress: 300,
         accessibilityRole: 'button',
         accessibilityLabel: `Música ${order}, ${name}${musicMetaLabel ? `, ${musicMetaLabel}` : ''}. Toque para ${isEditable ? 'editar' : 'visualizar'}.`,
-        actionButtons: isEditable
-          ? [
-              {
-                icon: {
-                  library: 'MaterialCommunityIcons',
-                  name: 'dots-vertical',
-                  size: 20,
-                  color: palette.fonts.inactive,
-                  backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.08),
+        actionButtons: [
+          ...(listenAction ? [listenAction] : []),
+          ...(isEditable
+            ? [
+                {
+                  icon: {
+                    library: 'MaterialCommunityIcons' as const,
+                    name: 'dots-vertical',
+                    size: 20,
+                    color: palette.fonts.inactive,
+                    backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.08),
+                  },
+                  onPress: onActionsPress,
+                  size: 'medium' as const,
                 },
-                onPress: onActionsPress,
-                size: 'medium',
-              },
-            ]
-          : [
-              {
-                icon: {
-                  library: 'MaterialCommunityIcons',
-                  name: 'chevron-right',
-                  size: 20,
-                  backgroundColor: palette.primary,
+              ]
+            : [
+                {
+                  icon: {
+                    library: 'MaterialCommunityIcons' as const,
+                    name: 'chevron-right',
+                    size: 20,
+                    backgroundColor: palette.primary,
+                  },
+                  onPress,
+                  size: 'medium' as const,
                 },
-                onPress,
-                size: 'medium',
-              },
-            ],
+              ]),
+        ],
       }}
     />
   );
@@ -191,6 +228,15 @@ const styles = StyleSheet.create({
     minWidth: 0,
     marginTop: 2,
   },
+  etiquetasRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 5,
+    minWidth: 0,
+    marginTop: 2,
+    maxHeight: 49,
+    overflow: 'hidden',
+  },
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -201,7 +247,6 @@ const styles = StyleSheet.create({
     borderWidth: 0.6,
     gap: 4,
     flexShrink: 0,
-    maxWidth: '100%',
   },
   badgeDot: {
     width: 6,

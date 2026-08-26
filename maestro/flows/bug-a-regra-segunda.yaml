@@ -1,0 +1,27 @@
+appId: com.church.artos
+---
+- pressKey: back
+- openLink: diakonia:///inicio
+- waitForAnimationToEnd:
+    timeout: 3000
+- openLink: diakonia:///pessoal/indisponibilidade
+- waitForAnimationToEnd:
+    timeout: 4000
+- tapOn: 'Regras'
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn:
+    id: 'fab-add-regra'
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn: 'Seg'
+- tapOn: 'Motivo'
+- inputText: 'teste bug segunda'
+- pressKey: back
+- tapOn: 'Salvar'
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: 'Calendário'
+- waitForAnimationToEnd:
+    timeout: 2000
+- takeScreenshot: bug-a-calendario-apos-regra-segunda

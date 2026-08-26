@@ -1,0 +1,98 @@
+# Flow: Regra de indisponibilidade duplicada (ministério) — erro de submit visível inline
+#
+# Uso:
+#   maestro test flows/indisponibilidade-ministerio-erro-inline.yaml \
+#     -e APP_EMAIL=seu@email.com \
+#     -e APP_PASSWORD=SuaSenha123
+#
+# Bug original: erro de conflito de regra (backend 400) era engolido em criar()
+# (app/(app)/(drawer)/ministerios/indisponibilidades/index.tsx) e só virava um Toast,
+# que ficava escondido atrás do FancyBottomSheetModal (Modal nativo sempre por cima
+# de overlays renderizados na árvore JS). O AddRegraModal já tinha UI de erro inline
+# pronta (submitError + FancyErrorBanner) mas nunca era alimentada.
+#
+# Fix: criar() parou de engolir o erro (removeu try/catch), deixando propagar até o
+# catch do onSubmit do AddRegraModal.tsx, que seta submitError.
+#
+# O que este flow verifica:
+#   - Criar a mesma regra semanal duas vezes para o mesmo voluntário deve, na segunda
+#     tentativa, exibir o erro DENTRO do modal (FancyErrorBanner), não escondido atrás
+#     dele — e o modal deve permanecer aberto (não fecha sozinho num erro).
+
+appId: com.church.artos
+---
+- launchApp:
+    clearState: false
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- runFlow: _handle_expo_picker.yaml
+- runFlow: _login.yaml
+
+- extendedWaitUntil:
+    visible: 'Início'
+    timeout: 120000
+- waitForAnimationToEnd:
+    timeout: 4000
+
+# --- Navegação: drawer > Ministério de Louvor > Indisponibilidades ---
+- tapOn:
+    point: '7%,5%'
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn: 'Ministério de Louvor'
+- waitForAnimationToEnd:
+    timeout: 2000
+- scroll
+- tapOn: 'Indisponibilidades'
+- extendedWaitUntil:
+    visible: 'Regras deste ministério'
+    timeout: 20000
+
+# --- Seleciona voluntário ---
+- tapOn: 'Voluntário'
+- tapOn: 'Ana Costa'
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# --- Limpeza: remove regra "Teste Maestro - conflito" de execuções anteriores ---
+- repeat:
+    times: 2
+    commands:
+      - runFlow:
+          when:
+            visible: 'Teste Maestro - conflito'
+          commands:
+            - tapOn: 'Remover regra'
+            - tapOn: 'Sim'
+            - waitForAnimationToEnd
+
+# --- Regra 1: cria normalmente ---
+- tapOn: 'Nova regra'
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn: 'Dom'
+- tapOn:
+    below: 'Motivo'
+- inputText: 'Teste Maestro - conflito'
+- hideKeyboard
+- tapOn: 'Salvar'
+- assertVisible: 'Regra criada com sucesso!'
+
+# --- Regra 2: mesma regra (mesmo dia) — backend deve rejeitar por conflito ---
+- tapOn: 'Nova regra'
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn: 'Dom'
+- tapOn:
+    below: 'Motivo'
+- inputText: 'Teste Maestro - conflito'
+- hideKeyboard
+- tapOn: 'Salvar'
+
+# Bug original: nada disso aparecia visível (toast escondido atrás do modal)
+# Backend rejeita com 400 (regras-indisponibilidade-voluntarios.service.ts:201)
+- assertVisible: 'Nova regra de indisponibilidade'
+- assertVisible: 'Já existe uma regra idêntica para esses dias da semana.'
+
+- takeScreenshot: indisponibilidade-ministerio-erro-inline

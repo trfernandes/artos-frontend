@@ -55,6 +55,7 @@ export interface EscalaEventoPageProps {
   onDeleteEvento?: (eventoId: string, dataOcorrencia: string) => Promise<boolean>;
   onAdicionarFuncao?: (data: AdicionarFuncaoConfirmDialog) => Promise<boolean>;
   onExcluirFuncao?: (funcaoId: string, eventoId: string, dataOcorrencia: string) => Promise<void>;
+  onExcluirFuncaoAvulsa?: (idEscalaItem: string) => Promise<void>;
   onAdicionarEvento?: () => void;
   canEditSetlistOwner?: boolean;
   isUpdatingSetlistOwner?: boolean;
@@ -77,6 +78,7 @@ export default function EscalaEventoPage({
   onDeleteEvento,
   onAdicionarFuncao,
   onExcluirFuncao,
+  onExcluirFuncaoAvulsa,
   onAdicionarEvento,
   canEditSetlistOwner,
   isUpdatingSetlistOwner,
@@ -254,7 +256,7 @@ export default function EscalaEventoPage({
       />
       <FancyText
         type='semiBold'
-        size={10}
+        size='extraSmall'
         color={accentLabelColor}
         style={styles.sectionEyebrowText}
       >
@@ -306,7 +308,7 @@ export default function EscalaEventoPage({
           {/* Linha 2: nome do evento */}
           <FancyText
             type='bold'
-            size={14}
+            size='mediumLarge'
             color={eventTitleColor}
             numberOfLines={2}
             style={styles.eventName}
@@ -324,7 +326,7 @@ export default function EscalaEventoPage({
                   size={13}
                   color={ColorUtils.withAlpha(borderColor, 0.9)}
                 />
-                <FancyText type='semiBold' size={12} color={eventMetaColor}>
+                <FancyText type='semiBold' size='small' color={eventMetaColor}>
                   {format(data.dataOcorrencia, 'dd/MM/yyyy')}
                 </FancyText>
               </View>
@@ -337,7 +339,7 @@ export default function EscalaEventoPage({
                     size={13}
                     color={ColorUtils.withAlpha(borderColor, 0.9)}
                   />
-                  <FancyText type='semiBold' size={12} color={eventMetaColor}>
+                  <FancyText type='semiBold' size='small' color={eventMetaColor}>
                     {`${format(data.evento.dataInicio, 'HH:mm')} – ${format(
                       data.evento.dataTermino,
                       'HH:mm',
@@ -373,7 +375,7 @@ export default function EscalaEventoPage({
                 />
                 <FancyText
                   type='medium'
-                  size={12}
+                  size='small'
                   color={palette.fonts.inactive}
                   numberOfLines={1}
                   style={styles.localText}
@@ -411,7 +413,7 @@ export default function EscalaEventoPage({
             )}
 
             <View style={styles.setlistOwnerTextBlock}>
-              <FancyText type='medium' size={10} color={palette.fonts.inactive}>
+              <FancyText type='medium' size='extraSmall' color={palette.fonts.inactive}>
                 Responsável atual
               </FancyText>
               <FancyText
@@ -502,7 +504,8 @@ export default function EscalaEventoPage({
 
         {/* ── Seção Equipe ──────────────────────────────────────────────────── */}
         <View style={styles.equipeSection}>
-          {data.equipe.filter((item) => !!item.funcao?.id).length === 0 ? (
+          {data.equipe.filter((item) => !!item.funcao?.id || !!item.nomeFuncaoAvulsa).length ===
+          0 ? (
             <FancyListEmpty
               icon={{ library: 'MaterialIcons', name: 'groups', size: 48 }}
               label='Nenhuma função criada'
@@ -546,7 +549,7 @@ export default function EscalaEventoPage({
                     ],
                   );
                 }}
-                onExcluirFuncaoPressed={(funcaoId) => {
+                onExcluirFuncaoPressed={(item) => {
                   FancyAlert.alert(
                     'Excluir Função',
                     'Deseja realmente excluir esta função do evento?',
@@ -558,7 +561,15 @@ export default function EscalaEventoPage({
                         onPress: async () => {
                           try {
                             showLoading('Excluindo função...');
-                            await onExcluirFuncao?.(funcaoId, data.evento.id, data.dataOcorrencia);
+                            if (item.funcao?.id) {
+                              await onExcluirFuncao?.(
+                                item.funcao.id,
+                                data.evento.id,
+                                data.dataOcorrencia,
+                              );
+                            } else {
+                              await onExcluirFuncaoAvulsa?.(item.idEscalaItem);
+                            }
                           } finally {
                             hideLoading();
                           }
@@ -776,7 +787,7 @@ export default function EscalaEventoPage({
           <View style={styles.detailsRow}>
             <View style={[styles.detailsAccent, { backgroundColor: borderColor }]} />
             <View style={styles.detailsContent}>
-              <FancyText type='medium' size={10} color={palette.fonts.inactive}>
+              <FancyText type='medium' size='extraSmall' color={palette.fonts.inactive}>
                 Data
               </FancyText>
               <FancyText type='semiBold' size='small' color={palette.fonts.dark}>
@@ -789,7 +800,7 @@ export default function EscalaEventoPage({
             <View style={styles.detailsRow}>
               <View style={[styles.detailsAccent, { backgroundColor: borderColor }]} />
               <View style={styles.detailsContent}>
-                <FancyText type='medium' size={10} color={palette.fonts.inactive}>
+                <FancyText type='medium' size='extraSmall' color={palette.fonts.inactive}>
                   Horário
                 </FancyText>
                 <FancyText type='semiBold' size='small' color={palette.fonts.dark}>
@@ -803,7 +814,7 @@ export default function EscalaEventoPage({
             <View style={styles.detailsRow}>
               <View style={[styles.detailsAccent, { backgroundColor: borderColor }]} />
               <View style={styles.detailsContent}>
-                <FancyText type='medium' size={10} color={palette.fonts.inactive}>
+                <FancyText type='medium' size='extraSmall' color={palette.fonts.inactive}>
                   Local
                 </FancyText>
                 <FancyText type='semiBold' size='small' color={palette.fonts.dark}>
@@ -817,7 +828,7 @@ export default function EscalaEventoPage({
             <View style={styles.detailsRow}>
               <View style={[styles.detailsAccent, { backgroundColor: borderColor }]} />
               <View style={styles.detailsContent}>
-                <FancyText type='medium' size={10} color={palette.fonts.inactive}>
+                <FancyText type='medium' size='extraSmall' color={palette.fonts.inactive}>
                   Equipe
                 </FancyText>
                 <FancyText type='semiBold' size='small' color={palette.fonts.dark}>

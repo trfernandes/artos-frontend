@@ -1,6 +1,6 @@
 export type CreateRepertorioMusicaDto = {
   ministerioId: string;
-  categoriaId: string;
+  etiquetaIds?: string[];
   nome: string;
   interprete?: string;
   versaoUrl?: string;

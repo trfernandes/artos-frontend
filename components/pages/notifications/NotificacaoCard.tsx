@@ -285,7 +285,7 @@ export default function NotificacaoCard({
           <View style={styles.mainBlock}>
             <View style={styles.titleRow}>
               <FancyText
-                size={11.5}
+                size='small'
                 type='bold'
                 numberOfLines={1}
                 style={[styles.titleText, { color: accentColor }]}
@@ -295,7 +295,7 @@ export default function NotificacaoCard({
               {timeLabelLong ? (
                 <>
                   <FancyText
-                    size={10}
+                    size='extraSmall'
                     type='medium'
                     style={[styles.timeSeparator, { color: Pallete.fonts.inactive }]}
                     accessibilityElementsHidden
@@ -303,7 +303,7 @@ export default function NotificacaoCard({
                     •
                   </FancyText>
                   <FancyText
-                    size={10}
+                    size='extraSmall'
                     type='medium'
                     numberOfLines={1}
                     style={[styles.timeText, { color: Pallete.fonts.inactive }]}

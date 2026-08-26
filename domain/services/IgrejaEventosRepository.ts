@@ -1,5 +1,5 @@
-import { endOfDay, format } from 'date-fns';
 import { IgrejaEventosApi } from '../api/IgrejaEventosApi';
+import DateUtils from '../../utils/date_utils';
 import { ResponseEventoOcorrenciaDto } from '../dtos/Evento/evento-ocorrencia.response.dto';
 import { ResponseEventoDto } from '../dtos/Evento/evento.response';
 import {
@@ -33,6 +33,14 @@ import { ResponseEventoSetlistObservacoesDto } from '../dtos/Evento/evento-setli
 import { UpsertEventoSetlistObservacoesDto } from '../dtos/Evento/evento-setlist-observacoes.update';
 import { ResponseEventoSetlistItemEstruturaDto } from '../dtos/Evento/evento-setlist-item-estrutura.response';
 import { UpsertEventoSetlistItemEstruturaDto } from '../dtos/Evento/evento-setlist-item-estrutura.update';
+import {
+  GetMusicasTocadasRelatorioParams,
+  ResponseMusicasTocadasRelatorioDto,
+} from '../dtos/Evento/musicas-tocadas-relatorio.dto';
+import {
+  GetSetlistsResumoParams,
+  ResponseSetlistResumoDto,
+} from '../dtos/Evento/setlists-resumo.dto';
 
 export interface EventosIntervaloParams {
   dataInicio: Date | string;
@@ -56,8 +64,8 @@ class IgrejaEventosRepositoryClass {
     params: EventosIntervaloParams,
   ): Promise<ResponseEventoOcorrenciaDto[]> {
     const response = await IgrejaEventosApi.buscarPorIntervalo(igrejaId, {
-      dataInicio: format(params.dataInicio, "yyyy-MM-dd'T'HH:mm:ss"),
-      dataTermino: format(endOfDay(params.dataTermino), "yyyy-MM-dd'T'HH:mm:ss"),
+      dataInicio: DateUtils.localDayToUtcDate(new Date(params.dataInicio)).toISOString(),
+      dataTermino: DateUtils.localDayEndToUtcDate(new Date(params.dataTermino)).toISOString(),
     });
     return response;
   }
@@ -280,6 +288,21 @@ class IgrejaEventosRepositoryClass {
     dto: ReorderEventoSetlistDto,
   ): Promise<ResponseEventoSetlistItemDto[]> {
     return IgrejaEventosApi.reordenarSetlist(igrejaId, eventoId, dto);
+  }
+
+  obterRelatorioMusicasTocadas(
+    igrejaId: string,
+    params: GetMusicasTocadasRelatorioParams,
+  ): Promise<ResponseMusicasTocadasRelatorioDto> {
+    return IgrejaEventosApi.obterRelatorioMusicasTocadas(igrejaId, params);
+  }
+
+  obterSetlistsResumo(
+    igrejaId: string,
+    ministerioId: string,
+    params?: GetSetlistsResumoParams,
+  ): Promise<ResponseSetlistResumoDto[]> {
+    return IgrejaEventosApi.obterSetlistsResumo(igrejaId, ministerioId, params);
   }
 }
 
