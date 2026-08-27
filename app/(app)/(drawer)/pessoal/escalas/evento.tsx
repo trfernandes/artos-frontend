@@ -10,6 +10,7 @@ export default function EscalaEventoPage() {
     ministerioId,
     responsavelSetlistVoluntarioId,
     responsavelSetlistNome,
+    initialTab,
   } = useLocalSearchParams<{
     evento: string;
     dataOcorrencia: string;
@@ -18,6 +19,7 @@ export default function EscalaEventoPage() {
     ministerioId?: string;
     responsavelSetlistVoluntarioId?: string;
     responsavelSetlistNome?: string;
+    initialTab?: 'dados' | 'equipe' | 'setlist';
   }>();
 
   return (
@@ -29,6 +31,7 @@ export default function EscalaEventoPage() {
       ministerioId={ministerioId || undefined}
       responsavelSetlistVoluntarioId={responsavelSetlistVoluntarioId || undefined}
       responsavelSetlistNome={responsavelSetlistNome || undefined}
+      initialTab={initialTab || undefined}
     />
   );
 }

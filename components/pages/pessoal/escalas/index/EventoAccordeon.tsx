@@ -151,13 +151,28 @@ export default function EventoAccordeon({
   };
 
   const navigateToSetlist = () => {
-    router.push({
-      pathname: '/ministerios/louvor/setlist/details',
-      params: {
-        eventoId: data.eventoId,
-        dataOcorrencia: data.itens[0]?.dataOcorrencia ?? data.dataOcorrencia.toISOString(),
-        ministerioId: data.ministerio?.id ?? '',
-      },
+    setIsOpeningEvento(true);
+
+    requestAnimationFrame(() => {
+      try {
+        router.push({
+          pathname: '/pessoal/escalas/evento',
+          params: {
+            evento: JSON.stringify(data.evento),
+            dataOcorrencia: data.itens[0]?.dataOcorrencia ?? data.dataOcorrencia.toISOString(),
+            horarioEnsaio: data.horarioEnsaio ?? '',
+            ministerioNome: data.ministerio?.nome ?? '',
+            ministerioId: data.ministerio?.id ?? '',
+            responsavelSetlistVoluntarioId: data.responsavelSetlistVoluntarioId ?? '',
+            responsavelSetlistNome: data.responsavelSetlistVoluntario?.nome ?? '',
+            initialTab: 'setlist',
+          },
+        });
+      } finally {
+        setTimeout(() => {
+          setIsOpeningEvento(false);
+        }, 450);
+      }
     });
   };
 

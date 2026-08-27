@@ -23,6 +23,7 @@ export default function EventoDetails(props: {
   ministerioId?: string;
   responsavelSetlistVoluntarioId?: string;
   responsavelSetlistNome?: string;
+  initialTab?: 'dados' | 'equipe' | 'setlist';
 }) {
   const Pallete = usePallete();
   const { igrejaAtiva, user } = useAuth();
@@ -108,9 +109,15 @@ export default function EventoDetails(props: {
     props.responsavelSetlistVoluntarioId,
   ]);
 
+  const initialIndex = useMemo(() => {
+    if (!props.initialTab) return 0;
+    const index = TABS_DATA.findIndex((tab) => tab.title.toLowerCase() === props.initialTab);
+    return index >= 0 ? index : 0;
+  }, [TABS_DATA, props.initialTab]);
+
   return (
     <FancyPageView style={styles.container}>
-      <FancyTabs items={TABS_DATA} />
+      <FancyTabs items={TABS_DATA} initialIndex={initialIndex} />
     </FancyPageView>
   );
 }
