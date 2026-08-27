@@ -597,20 +597,6 @@ export default function AgendaDetailsDadosTab(props: {
     props.ocorrencia?.nome,
   ]);
 
-  const resolvedTemplateName = useMemo(() => {
-    const resolvedTemplate =
-      props.ocorrencia?.templatePadrao?.nome ??
-      props.evento.templatePadrao?.nome ??
-      templates.find((template) => template.id === resolvedTemplateId)?.nome;
-
-    return resolvedTemplate ?? 'Nenhum template definido';
-  }, [
-    props.evento.templatePadrao?.nome,
-    props.ocorrencia?.templatePadrao?.nome,
-    resolvedTemplateId,
-    templates,
-  ]);
-
   const [templateId, setTemplateId] = useState<string>(resolvedTemplateId);
   const [ensaioTime, setEnsaioTime] = useState<HourMinute | undefined>(resolvedEnsaio);
   const [responsavelSetlistId, setResponsavelSetlistId] = useState<string>(
@@ -626,6 +612,29 @@ export default function AgendaDetailsDadosTab(props: {
   const [isNomeSheetVisible, setIsNomeSheetVisible] = useState(false);
   const [isLocalSheetVisible, setIsLocalSheetVisible] = useState(false);
   const [isDescricaoSheetVisible, setIsDescricaoSheetVisible] = useState(false);
+
+  const resolvedTemplateName = useMemo(() => {
+    if (!templateId) return 'Nenhum template definido';
+
+    const templateSelecionado = templates.find((template) => template.id === templateId)?.nome;
+    if (templateSelecionado) return templateSelecionado;
+
+    if (templateId === resolvedTemplateId) {
+      return (
+        props.ocorrencia?.templatePadrao?.nome ??
+        props.evento.templatePadrao?.nome ??
+        'Nenhum template definido'
+      );
+    }
+
+    return 'Nenhum template definido';
+  }, [
+    templateId,
+    templates,
+    resolvedTemplateId,
+    props.evento.templatePadrao?.nome,
+    props.ocorrencia?.templatePadrao?.nome,
+  ]);
 
   const templateSheetRef = useRef<FancyBottomSheetSelectRef>(null);
   const previousResolvedTemplateIdRef = useRef(resolvedTemplateId);
@@ -887,6 +896,7 @@ export default function AgendaDetailsDadosTab(props: {
       if (!eventoId) return false;
 
       const payload = {
+        ministerioId: props.ministerioId,
         dataOcorrencia: props.dataOcorrenciaIso,
         escopo,
         templatePadraoId: templateId || null,
@@ -906,6 +916,7 @@ export default function AgendaDetailsDadosTab(props: {
           await removerTemplatePadrao({
             eventoId,
             params: {
+              ministerioId: props.ministerioId,
               escopo: TemplatePadraoEscopoEnum.OCORRENCIA,
               dataOcorrencia: props.dataOcorrenciaIso,
             },
@@ -925,6 +936,7 @@ export default function AgendaDetailsDadosTab(props: {
     [
       props.dataOcorrenciaIso,
       props.evento.id,
+      props.ministerioId,
       props.ocorrencia?.eventoId,
       removerTemplatePadrao,
       salvarTemplatePadrao,

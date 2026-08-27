@@ -4,6 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { format, parseISO } from 'date-fns';
 
 import FancyBottomSheetModal from '../../modal/FancyBottomSheetModal';
+import FancySearchBar from '../../FancySearchBar';
 import FancyText from '../../FancyText';
 import FancySeparator from '../../FancySeparator';
 import DefaultIcons from '../../FancyIcons';
@@ -43,6 +44,7 @@ export default function RepertorioMusicaPickerSheet({
 }: Props) {
   const palette = usePallete();
   const [etiquetaIdsFiltro, setEtiquetaIdsFiltro] = useState<string[]>([]);
+  const [busca, setBusca] = useState('');
 
   const etiquetasAtivas = useMemo(
     () => etiquetas.filter((etiqueta) => etiqueta.ativo !== false),
@@ -75,15 +77,22 @@ export default function RepertorioMusicaPickerSheet({
     );
   };
 
-  const repertorioFiltrado = useMemo(
-    () =>
-      etiquetaIdsFiltro.length === 0
-        ? repertorio
-        : repertorio.filter((musica) =>
-            musica.etiquetas?.some((etiqueta) => etiquetaIdsFiltro.includes(etiqueta.id)),
-          ),
-    [repertorio, etiquetaIdsFiltro],
-  );
+  const repertorioFiltrado = useMemo(() => {
+    const buscaNormalizada = busca.trim().toLowerCase();
+
+    return repertorio.filter((musica) => {
+      const bateEtiqueta =
+        etiquetaIdsFiltro.length === 0 ||
+        musica.etiquetas?.some((etiqueta) => etiquetaIdsFiltro.includes(etiqueta.id));
+
+      const bateBusca =
+        !buscaNormalizada ||
+        musica.nome.toLowerCase().includes(buscaNormalizada) ||
+        (musica.interprete ?? '').toLowerCase().includes(buscaNormalizada);
+
+      return bateEtiqueta && bateBusca;
+    });
+  }, [repertorio, etiquetaIdsFiltro, busca]);
 
   const items = useMemo(
     () =>
@@ -107,6 +116,12 @@ export default function RepertorioMusicaPickerSheet({
       onClose={onClose}
       title='Selecionar música do repertório'
     >
+      <FancySearchBar
+        value={busca}
+        onSearch={setBusca}
+        placeholder='Buscar por nome ou intérprete...'
+        containerStyle={styles.searchBar}
+      />
       {etiquetasAtivas.length > 0 ? (
         <View style={styles.filtroRow}>
           {etiquetasSelecionadas.map((etiqueta) => (
@@ -134,102 +149,108 @@ export default function RepertorioMusicaPickerSheet({
           ))}
         </View>
       ) : null}
-      <View style={styles.list}>
-        {items.map(({ musica, etiquetasAtivas, frequencia, ultimaExecucaoLabel }, index) => {
-          const isSelected = musica.id === value;
-          return (
-            <View key={musica.id}>
-              <Pressable
-                style={({ pressed }) => [
-                  styles.item,
-                  isSelected && { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.1) },
-                  pressed && !isSelected && { backgroundColor: palette.backgroundColor4 },
-                ]}
-                onPress={() => {
-                  onSelect(musica.id);
-                  onClose();
-                }}
-              >
-                <View style={styles.itemText}>
-                  <View style={styles.titleRow}>
-                    <FancyText
-                      type='bold'
-                      numberOfLines={1}
-                      style={styles.title}
-                      color={isSelected ? palette.primary : palette.fonts.dark}
-                    >
-                      {musica.nome}
-                    </FancyText>
+      {items.length === 0 ? (
+        <View style={styles.emptyState}>
+          <FancyText color={palette.fonts.inactive}>Nenhuma música encontrada</FancyText>
+        </View>
+      ) : (
+        <View style={styles.list}>
+          {items.map(({ musica, etiquetasAtivas, frequencia, ultimaExecucaoLabel }, index) => {
+            const isSelected = musica.id === value;
+            return (
+              <View key={musica.id}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.item,
+                    isSelected && { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.1) },
+                    pressed && !isSelected && { backgroundColor: palette.backgroundColor4 },
+                  ]}
+                  onPress={() => {
+                    onSelect(musica.id);
+                    onClose();
+                  }}
+                >
+                  <View style={styles.itemText}>
+                    <View style={styles.titleRow}>
+                      <FancyText
+                        type='bold'
+                        numberOfLines={1}
+                        style={styles.title}
+                        color={isSelected ? palette.primary : palette.fonts.dark}
+                      >
+                        {musica.nome}
+                      </FancyText>
 
-                    {etiquetasAtivas.length > 0 ? (
-                      <View style={styles.badgesRow}>
-                        {etiquetasAtivas.map((etiqueta) => (
-                          <View
-                            key={etiqueta.id}
-                            style={[
-                              styles.badge,
-                              {
-                                backgroundColor: ColorUtils.withAlpha(etiqueta.cor, 0.1),
-                                borderColor: ColorUtils.withAlpha(etiqueta.cor, 0.22),
-                              },
-                            ]}
-                          >
-                            <FancyText
-                              type='bold'
-                              size='extraSmall'
-                              numberOfLines={1}
-                              color={etiqueta.cor}
-                              style={styles.badgeText}
+                      {etiquetasAtivas.length > 0 ? (
+                        <View style={styles.badgesRow}>
+                          {etiquetasAtivas.map((etiqueta) => (
+                            <View
+                              key={etiqueta.id}
+                              style={[
+                                styles.badge,
+                                {
+                                  backgroundColor: ColorUtils.withAlpha(etiqueta.cor, 0.1),
+                                  borderColor: ColorUtils.withAlpha(etiqueta.cor, 0.22),
+                                },
+                              ]}
                             >
-                              {etiqueta.nome}
-                            </FancyText>
-                          </View>
-                        ))}
-                      </View>
-                    ) : null}
-                  </View>
+                              <FancyText
+                                type='bold'
+                                size='extraSmall'
+                                numberOfLines={1}
+                                color={etiqueta.cor}
+                                style={styles.badgeText}
+                              >
+                                {etiqueta.nome}
+                              </FancyText>
+                            </View>
+                          ))}
+                        </View>
+                      ) : null}
+                    </View>
 
-                  <FancyText
-                    type='mediumItalic'
-                    size='extraSmall'
-                    color={palette.fonts.inactive}
-                    numberOfLines={1}
-                  >
-                    {musica.interprete || 'Sem intérprete'}
-                  </FancyText>
-
-                  {frequencia && (
                     <FancyText
+                      type='mediumItalic'
                       size='extraSmall'
                       color={palette.fonts.inactive}
-                      style={styles.frequenciaText}
+                      numberOfLines={1}
                     >
-                      {frequencia}
-                      {ultimaExecucaoLabel ? ` · ${ultimaExecucaoLabel}` : ''}
+                      {musica.interprete || 'Sem intérprete'}
                     </FancyText>
-                  )}
 
-                  <View style={styles.listenRow}>
-                    <MusicListenButton url={musica.versaoUrl} showLabel />
+                    {frequencia && (
+                      <FancyText
+                        size='extraSmall'
+                        color={palette.fonts.inactive}
+                        style={styles.frequenciaText}
+                      >
+                        {frequencia}
+                        {ultimaExecucaoLabel ? ` · ${ultimaExecucaoLabel}` : ''}
+                      </FancyText>
+                    )}
+
+                    <View style={styles.listenRow}>
+                      <MusicListenButton url={musica.versaoUrl} showLabel />
+                    </View>
                   </View>
-                </View>
 
-                {isSelected && (
-                  <DefaultIcons.Custom
-                    library='MaterialCommunityIcons'
-                    name='check'
-                    size={20}
-                    color={palette.primary}
-                  />
+                  {isSelected && (
+                    <DefaultIcons.Custom
+                      library='MaterialCommunityIcons'
+                      name='check'
+                      size={20}
+                      color={palette.primary}
+                    />
+                  )}
+                </Pressable>
+                {index < items.length - 1 && (
+                  <FancySeparator style={{ marginTop: 8, marginBottom: 8 }} />
                 )}
-              </Pressable>
-              {index < items.length - 1 && (
-                <FancySeparator style={{ marginTop: 8, marginBottom: 8 }} />
-              )}
-            </View>
-          );
-        })}
-      </View>
+              </View>
+            );
+          })}
+        </View>
+      )}
     </FancyBottomSheetModal>
   );
 }
@@ -272,6 +293,13 @@ function EtiquetaFiltroChip({
 }
 
 const styles = StyleSheet.create({
+  searchBar: {
+    marginBottom: 12,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
   filtroRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',

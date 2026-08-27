@@ -143,21 +143,6 @@ const getMinisterioBasicItems = (ministerio: ResponseLoginMinisterioDto): Drawer
         routeName: `/ministerios/louvor/repertorio${routeParams}`,
       },
     });
-    items.push({
-      title: 'SetLists',
-      logo: {
-        type: 'icon',
-        value: {
-          name: 'playlist-music-outline',
-          library: 'MaterialCommunityIcons',
-          size: 17,
-        },
-      },
-      onPress: {
-        type: 'GoToRoute',
-        routeName: `/ministerios/louvor/setlists${routeParams}`,
-      },
-    });
   }
 
   return sortDrawerItemsByTitle(items);
@@ -382,21 +367,6 @@ const getMenuForMinisterio = (
         onPress: {
           type: 'GoToRoute',
           routeName: `/ministerios/louvor/repertorio${routeParams}`,
-        },
-      });
-      filteredItems.push({
-        title: 'SetLists',
-        logo: {
-          type: 'icon',
-          value: {
-            name: 'playlist-music-outline',
-            library: 'MaterialCommunityIcons',
-            size: 17,
-          },
-        },
-        onPress: {
-          type: 'GoToRoute',
-          routeName: `/ministerios/louvor/setlists${routeParams}`,
         },
       });
     }

@@ -76,6 +76,7 @@ export default function MinisterioAgendaDetailsPage() {
       const ocorrencias = await buscarPorIntervalo({
         dataInicio: params.dataOcorrencia,
         dataTermino: params.dataOcorrencia,
+        ministerioId: params.ministerioId,
       });
 
       if (requestId !== ocorrenciaRequestIdRef.current) return;
@@ -96,7 +97,7 @@ export default function MinisterioAgendaDetailsPage() {
     } finally {
       if (requestId === ocorrenciaRequestIdRef.current) setIsLoadingOcorrencia(false);
     }
-  }, [buscarPorIntervalo, eventoId, params.dataOcorrencia]);
+  }, [buscarPorIntervalo, eventoId, params.dataOcorrencia, params.ministerioId]);
 
   useEffect(() => {
     void carregarOcorrenciaAtual();

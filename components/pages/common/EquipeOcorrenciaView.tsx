@@ -39,6 +39,7 @@ type Props = {
 };
 
 const LIST_GAP = 10;
+const CARD_GRID_GAP = 6;
 
 export default function EquipeOcorrenciaView({
   eventoId,
@@ -315,7 +316,7 @@ export default function EquipeOcorrenciaView({
         numColumns={2}
         columnWrapperStyle={styles.columnWrapper}
         contentContainerStyle={styles.listContent}
-        ItemSeparatorComponent={() => <View style={{ height: LIST_GAP }} />}
+        ItemSeparatorComponent={() => <View style={{ height: CARD_GRID_GAP }} />}
         listEmptyProps={{
           label: 'Nenhum integrante escalado ainda.',
           icon: { library: 'MaterialCommunityIcons', name: 'account-search-outline', size: 56 },
@@ -420,7 +421,7 @@ function EquipeFiltroChip({
         },
       ]}
     >
-      <FancyText size='extraSmall' type='semiBold' color={color}>
+      <FancyText size='extraSmall' type='semiBold' color={color} numberOfLines={1}>
         {label}
       </FancyText>
       <FancyText size='extraSmall' type='bold' color={color}>
@@ -440,7 +441,10 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   filterChip: {
+    flexGrow: 1,
+    flexBasis: 'auto',
     flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
     gap: 5,
     paddingHorizontal: 12,
@@ -457,7 +461,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
   },
   columnWrapper: {
-    gap: LIST_GAP,
+    gap: CARD_GRID_GAP,
   },
   sheetForm: {
     gap: 14,

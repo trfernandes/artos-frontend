@@ -542,18 +542,23 @@ export default function MinisterioEscalasDetailsPage() {
   const handleAdicionarItemManual = useCallback(
     async (data: AdicionarItemManualConfirmDialog): Promise<void> => {
       try {
-        await addEscalaItem?.({
-          escalaId: escalaId,
-          eventoId: data.eventoId,
-          dataOcorrencia: data.dataOcorrencia,
-          funcaoId: data.funcaoId,
-          voluntarioId: data.voluntarioId,
-        });
+        for (const atribuicao of data.atribuicoes) {
+          await addEscalaItem?.({
+            escalaId: escalaId,
+            eventoId: data.eventoId,
+            dataOcorrencia: data.dataOcorrencia,
+            funcaoId: atribuicao.funcaoId,
+            voluntarioId: atribuicao.voluntarioId,
+          });
+        }
         await refetchEscala();
         setIsAdicionarItemManualOpen(false);
         Toast.show({
           type: 'success',
-          text1: 'Item adicionado à escala.',
+          text1:
+            data.atribuicoes.length > 1
+              ? 'Itens adicionados à escala.'
+              : 'Item adicionado à escala.',
         });
       } catch (error) {
         Toast.show({

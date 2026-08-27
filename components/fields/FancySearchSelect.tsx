@@ -35,7 +35,7 @@ import {
   MEDIUM_FONT,
   SMALL_SIZE_FONT,
 } from '../../constants/font';
-import DefaultIcons from '../FancyIcons';
+import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import { DropDownItemProps } from './FancyDropDownItem';
 import { FancyTextInputProps } from './FancyTextInput';
 import { ColorUtils } from '../../utils/color_utils';
@@ -78,6 +78,14 @@ export interface FancySearchSelectProps<T>
   labelProps?: FancyTextProps;
   /** Chamado quando o Modal nativo termina de fechar (isVisible vira false). */
   onClosed?: () => void;
+  /** Ícone do campo fechado — substitui a lupa padrão (ex: calendário). */
+  icon?: Pick<CustomIconProps, 'library' | 'name'>;
+  /** Ponto colorido antes do texto do campo fechado (ex: cor do evento selecionado). */
+  leadingColor?: string;
+  /** Iniciais exibidas num avatar circular (usa `leadingColor` como fundo) em vez do ponto. */
+  leadingAvatarText?: string;
+  /** Segunda linha de texto no campo fechado, abaixo do valor selecionado. */
+  selectedSubtitle?: string;
 }
 
 export interface FancySearchSelectRef {
@@ -105,6 +113,10 @@ function FancySearchSelectInner<ValueItem>(
     multiSelect = false,
     labelProps,
     onClosed,
+    icon,
+    leadingColor,
+    leadingAvatarText,
+    selectedSubtitle,
   }: FancySearchSelectProps<ValueItem>,
   ref: React.Ref<FancySearchSelectRef>,
 ) {
@@ -571,24 +583,43 @@ function FancySearchSelectInner<ValueItem>(
         onPress={() => !innerDisabled && handleOpen()}
         disabled={innerDisabled}
       >
-        <FancyText
-          style={selectedItem || selectedCount > 0 ? styles.selectedText : styles.placeholder}
-          color={disabled ? palette.fonts.inactive : palette.fonts.dark}
-          numberOfLines={1}
-        >
-          {multiSelect
-            ? selectedCount > 0
-              ? `${selectedCount} ${selectedCount === 1 ? 'item selecionado' : 'itens selecionados'}`
-              : placeholder
-            : (selectedItem?.title ?? placeholder)}
-        </FancyText>
+        {(selectedItem || selectedCount > 0) && leadingAvatarText ? (
+          <View style={[styles.leadingAvatar, { backgroundColor: leadingColor ?? palette.primary }]}>
+            <FancyText type='bold' size='extraSmall' color={palette.fonts.light}>
+              {leadingAvatarText}
+            </FancyText>
+          </View>
+        ) : (
+          leadingColor &&
+          (selectedItem || selectedCount > 0) && (
+            <View style={[styles.leadingDot, { backgroundColor: leadingColor }]} />
+          )
+        )}
+        <View style={styles.textStack}>
+          <FancyText
+            style={selectedItem || selectedCount > 0 ? styles.selectedText : styles.placeholder}
+            color={disabled ? palette.fonts.inactive : palette.fonts.dark}
+            numberOfLines={1}
+          >
+            {multiSelect
+              ? selectedCount > 0
+                ? `${selectedCount} ${selectedCount === 1 ? 'item selecionado' : 'itens selecionados'}`
+                : placeholder
+              : (selectedItem?.title ?? placeholder)}
+          </FancyText>
+          {selectedSubtitle && (selectedItem || selectedCount > 0) && (
+            <FancyText size='extraSmall' color={palette.fonts.inactive} numberOfLines={1}>
+              {selectedSubtitle}
+            </FancyText>
+          )}
+        </View>
         <View style={styles.iconContainer}>
           {isLoading ? (
             <ActivityIndicator size='small' color={palette.primary} />
           ) : (
             <DefaultIcons.Custom
-              library='Feather'
-              name='search'
+              library={icon?.library ?? 'Feather'}
+              name={icon?.name ?? 'search'}
               size={16}
               color={innerDisabled ? palette.fonts.inactive2 : palette.icons.inactive}
             />
@@ -613,12 +644,29 @@ function createStyles(palette: ThemePalette) {
       borderWidth: 0.6,
       borderColor: palette.border,
       borderRadius: 12,
-      height: 44,
+      minHeight: 44,
       paddingHorizontal: 10,
+      paddingVertical: 8,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       ...palette.shadows[200],
+    },
+    textStack: {
+      flex: 1,
+      gap: 1,
+    },
+    leadingDot: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+    },
+    leadingAvatar: {
+      width: 26,
+      height: 26,
+      borderRadius: 13,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     inputDisabled: {
       backgroundColor: palette.disabled,

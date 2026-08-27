@@ -115,13 +115,15 @@ function EquipeMemberCard({
           disabled={!canAssign && !canOpenProfile}
           style={[
             styles.card,
-            { backgroundColor: palette.backgroundColor, borderColor: palette.borderCard },
+            { backgroundColor: palette.backgroundColor, ...palette.shadows[100] },
             isOpenSlot && {
+              borderWidth: 1,
               borderStyle: 'dashed',
               borderColor: ColorUtils.withAlpha(palette.team[1], 0.35),
               backgroundColor: ColorUtils.withAlpha(palette.team[1], 0.08),
             },
             isCurrentUser && {
+              borderWidth: 1,
               borderColor: ColorUtils.withAlpha(palette.team[0], 0.35),
               backgroundColor: ColorUtils.withAlpha(palette.team[0], 0.08),
             },
@@ -308,7 +310,6 @@ const styles = StyleSheet.create({
   },
   card: {
     borderRadius: 16,
-    borderWidth: 1,
     paddingVertical: 16,
     paddingHorizontal: 10,
     alignItems: 'center',

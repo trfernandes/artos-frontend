@@ -46,6 +46,7 @@ export interface EventosIntervaloParams {
   dataInicio: Date | string;
   dataTermino: Date | string;
   igrejaId?: string;
+  ministerioId?: string;
 }
 
 class IgrejaEventosRepositoryClass {
@@ -66,6 +67,7 @@ class IgrejaEventosRepositoryClass {
     const response = await IgrejaEventosApi.buscarPorIntervalo(igrejaId, {
       dataInicio: DateUtils.localDayToUtcDate(new Date(params.dataInicio)).toISOString(),
       dataTermino: DateUtils.localDayEndToUtcDate(new Date(params.dataTermino)).toISOString(),
+      ministerioId: params.ministerioId,
     });
     return response;
   }
