@@ -18,6 +18,7 @@ import { usePallete } from '../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../hooks/useThemedStyles';
 import { ThemePalette } from '../../../../constants/colors';
 import { ColorUtils } from '../../../../utils/color_utils';
+import { DateUtilsApi } from '../../../../utils/date_utils';
 import { RegraIndisponibilidadeTipo } from '../../../../domain/dtos/RegraIndisponibilidadeVoluntario/regra-indisponibilidade-voluntario.response';
 
 const DIAS_NOMES = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -185,9 +186,9 @@ export default function AddRegraModal({
         tipo: initialValues.tipo ?? 'DIAS_SEMANA',
         diasSemana: initialValues.diasSemana ?? [],
         dataInicio: initialValues.dataInicio
-          ? new Date(initialValues.dataInicio + 'T00:00:00Z')
+          ? DateUtilsApi.dateOnlyFromApi(initialValues.dataInicio)
           : null,
-        dataFim: initialValues.dataFim ? new Date(initialValues.dataFim + 'T00:00:00Z') : null,
+        dataFim: initialValues.dataFim ? DateUtilsApi.dateOnlyFromApi(initialValues.dataFim) : null,
         recorrente: initialValues.recorrente ?? false,
         limiteMensal: initialValues.limiteMensal ?? 2,
         motivo: initialValues.motivo ?? '',
@@ -259,14 +260,14 @@ export default function AddRegraModal({
       result.diasSemana = values.diasSemana;
     } else if (values.tipo === 'PERIODO') {
       result.dataInicio = values.dataInicio
-        ? values.dataInicio.toISOString().slice(0, 10)
+        ? DateUtilsApi.dateOnlyToApi(values.dataInicio)
         : undefined;
-      result.dataFim = values.dataFim ? values.dataFim.toISOString().slice(0, 10) : undefined;
+      result.dataFim = values.dataFim ? DateUtilsApi.dateOnlyToApi(values.dataFim) : undefined;
       result.recorrente = values.recorrente;
     } else if (values.tipo === 'LIMITE_MENSAL') {
       result.limiteMensal = values.limiteMensal;
       result.dataInicio = values.dataInicio
-        ? values.dataInicio.toISOString().slice(0, 10)
+        ? DateUtilsApi.dateOnlyToApi(values.dataInicio)
         : undefined;
     }
     result.motivo = values.motivo.trim();
