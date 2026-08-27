@@ -1,14 +1,13 @@
 import React, { memo, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Image } from 'expo-image';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import FancyChips from '../../FancyChips';
 import FancyText from '../../FancyText';
+import FancyButton from '../../buttons/FancyButton';
 import FancyBottomSheetModal from '../../modal/FancyBottomSheetModal';
-import FancyBaseCard from '../../cards/Horizontal/FancyBaseCard';
-import { FancyActionButtons } from '../../cards/Horizontal/FancyCardActionButtons';
 import { AppImages } from '../../../assets/app_images';
 import { ResponseEquipeOcorrenciaIntegranteDto } from '../../../domain/dtos/Evento/evento-equipe.response';
 import {
@@ -25,161 +24,85 @@ type Props = {
   integrante: Integrante;
   isCurrentUser: boolean;
   isLeaderMode: boolean;
+  dimmed: boolean;
   index: number;
   onSubstituir: (escalaItemId: string) => void;
   onRemover?: (escalaItemId: string) => void;
 };
 
-type StatusBadgeMeta = {
-  label: string;
-  shortLabel: string;
-  icon: keyof typeof MaterialCommunityIcons.glyphMap;
+type StatusMeta = {
   color: string;
+  icon: keyof typeof MaterialCommunityIcons.glyphMap;
 };
 
-const AVATAR_SIZE = 40;
-const STATUS_DOT_SIZE = 18;
+const AVATAR_SIZE = 52;
+const STATUS_DOT_SIZE = 16;
 
-const ROLE_CHIP_COLORS = [
-  '#6366F1',
-  '#8B5CF6',
-  '#EC4899',
-  '#14B8A6',
-  '#F97316',
-  '#84CC16',
-  '#0EA5E9',
-  '#A855F7',
-];
-
-function getRoleChipColor(roleName: string): string {
-  return ROLE_CHIP_COLORS[
-    roleName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % ROLE_CHIP_COLORS.length
-  ];
+function getPersonColor(palette: ReturnType<typeof usePallete>, seed: string): string {
+  const options = palette.team;
+  return options[seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % options.length];
 }
 
 function EquipeMemberCard({
   integrante,
   isCurrentUser,
   isLeaderMode,
+  dimmed,
   index,
   onSubstituir,
   onRemover,
 }: Props) {
   const palette = usePallete();
-  const isDark = palette.backgroundColor === '#121212';
   const [profileVisible, setProfileVisible] = useState(false);
 
   const voluntario = integrante.voluntario;
   const isOpenSlot = !voluntario;
   const imageUri = voluntario?.fotoThumbUrl ?? voluntario?.fotoUrl ?? '';
   const displayName = voluntario?.nome ? getFirstAndLastName(voluntario.nome) : 'Vaga aberta';
-  const displayRole = integrante.nomeFuncao.replace(/-/g, '\u2011');
+  const displayRole = integrante.nomeFuncao;
   const statusEnum = integrante.status as EscalaItemStatusEnum;
+  const statusLabel = EscalaItemStatusEnumLabel[statusEnum] ?? 'Pendente';
 
-  const statusBadge = useMemo<StatusBadgeMeta | null>(() => {
+  const statusMeta = useMemo<StatusMeta | null>(() => {
     switch (statusEnum) {
       case EscalaItemStatusEnum.Confirmado:
-        return null;
+        return { color: palette.confirm, icon: 'check' };
       case EscalaItemStatusEnum.Pendente:
-        return {
-          label: 'convite pendente',
-          shortLabel: 'Pendente',
-          icon: 'clock-outline',
-          color: palette.warning,
-        };
+        return { color: palette.warning, icon: 'clock-outline' };
       case EscalaItemStatusEnum.Ausente:
-        return {
-          label: 'convite recusado',
-          shortLabel: 'Ausente',
-          icon: 'close-circle-outline',
-          color: palette.error,
-        };
+        return { color: palette.error, icon: 'close' };
       case EscalaItemStatusEnum.Substituido:
-        return {
-          label: 'substituído',
-          shortLabel: 'Substituído',
-          icon: 'swap-horizontal',
-          color: palette.error,
-        };
+        return { color: palette.error, icon: 'swap-horizontal' };
       case EscalaItemStatusEnum.SubstituicaoSolicitada:
-        return {
-          label: 'substituição solicitada',
-          shortLabel: 'Troca pedida',
-          icon: 'clock-alert-outline',
-          color: palette.warning,
-        };
+        return { color: palette.warning, icon: 'clock-alert-outline' };
       default:
         return null;
     }
   }, [palette.confirm, palette.error, palette.warning, statusEnum]);
 
-  const roleChipColor = useMemo(
-    () => getRoleChipColor(integrante.nomeFuncao),
-    [integrante.nomeFuncao],
+  const roleSubtitle = displayRole;
+
+  const personColor = useMemo(
+    () => getPersonColor(palette, voluntario?.id || integrante.escalaItemId),
+    [palette, voluntario?.id, integrante.escalaItemId],
   );
-  const roleChipBg = ColorUtils.withAlpha(roleChipColor, isDark ? 0.2 : 0.12);
-  const roleChipBorder = ColorUtils.withAlpha(roleChipColor, isDark ? 0.38 : 0.2);
-  const roleTextColor = isDark
-    ? ColorUtils.lightenColor(roleChipColor, 0.18)
-    : ColorUtils.darkenColor(roleChipColor, 0.05);
 
-  const a11yLabel = [
-    displayName,
-    integrante.nomeFuncao,
-    isCurrentUser ? 'você' : undefined,
-    !isOpenSlot && statusBadge ? statusBadge.label : undefined,
-    isLeaderMode ? (isOpenSlot ? 'atribuir voluntário' : 'substituir voluntário') : undefined,
-  ]
-    .filter(Boolean)
-    .join(', ');
+  const initials = useMemo(() => {
+    if (!voluntario?.nome) return '';
+    const parts = voluntario.nome.trim().split(/\s+/);
+    return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase();
+  }, [voluntario?.nome]);
 
-  const statusLabel = EscalaItemStatusEnumLabel[statusEnum] ?? 'Pendente';
-  const actionIcon = voluntario ? 'swap-horizontal' : 'account-plus-outline';
-  const actionLabel = voluntario ? 'Substituir voluntário' : 'Atribuir voluntário';
-  const actionButtons = [
-    ...(isLeaderMode
-      ? [
-          {
-            icon: {
-              library: 'MaterialCommunityIcons' as const,
-              name: actionIcon,
-              size: 17,
-            },
-            size: 'small' as const,
-            onPress: () => onSubstituir(integrante.escalaItemId),
-          },
-          ...(voluntario && onRemover
-            ? [
-                {
-                  icon: {
-                    library: 'MaterialCommunityIcons' as const,
-                    name: 'trash-can-outline' as const,
-                    size: 16,
-                    backgroundColor: palette.error,
-                  },
-                  size: 'small' as const,
-                  onPress: () => onRemover(integrante.escalaItemId),
-                },
-              ]
-            : []),
-        ]
-      : []),
-    ...(voluntario
-      ? [
-          {
-            icon: {
-              library: 'MaterialCommunityIcons' as const,
-              name: 'chevron-right' as const,
-              size: 18,
-              backgroundColor: palette.backgroundColor3,
-              color: palette.icons.inactive,
-            },
-            size: 'small' as const,
-            onPress: () => setProfileVisible(true),
-          },
-        ]
-      : []),
-  ];
+  const canAssign = isLeaderMode && isOpenSlot;
+  const canOpenProfile = !isOpenSlot;
+
+  const handlePress = () => {
+    if (canAssign) {
+      onSubstituir(integrante.escalaItemId);
+    } else if (canOpenProfile) {
+      setProfileVisible(true);
+    }
+  };
 
   return (
     <>
@@ -187,86 +110,117 @@ function EquipeMemberCard({
         entering={FadeInDown.delay(Math.min(index * 18, 180)).duration(240)}
         style={styles.cardWrap}
       >
-        <FancyBaseCard
-          title={displayName}
-          subtitle={isOpenSlot ? 'Aguardando escala' : undefined}
-          titleProps={{
-            style: { color: isCurrentUser ? palette.primary : palette.fonts.dark, opacity: 1 },
-          }}
-          containerStyle={[
-            styles.cardContainer,
-            isCurrentUser && {
-              borderWidth: 1,
-              borderColor: ColorUtils.withAlpha(palette.primary, isDark ? 0.46 : 0.26),
+        <Pressable
+          onPress={handlePress}
+          disabled={!canAssign && !canOpenProfile}
+          style={[
+            styles.card,
+            { backgroundColor: palette.backgroundColor, borderColor: palette.borderCard },
+            isOpenSlot && {
+              borderStyle: 'dashed',
+              borderColor: ColorUtils.withAlpha(palette.team[1], 0.35),
+              backgroundColor: ColorUtils.withAlpha(palette.team[1], 0.08),
             },
+            isCurrentUser && {
+              borderColor: ColorUtils.withAlpha(palette.team[0], 0.35),
+              backgroundColor: ColorUtils.withAlpha(palette.team[0], 0.08),
+            },
+            dimmed && styles.cardDimmed,
           ]}
-          contentContainerStyle={styles.cardContent}
-          centerContainerStyle={styles.cardCenter}
-          leftItem={
-            <AvatarWithStatus
-              imageUri={imageUri}
-              isOpenSlot={isOpenSlot}
-              statusBadge={statusBadge}
-              palette={palette}
-              isDark={isDark}
-            />
-          }
-          rightItem={
-            actionButtons.length > 0 ? <FancyActionButtons actions={actionButtons} /> : undefined
-          }
-          onPress={!isOpenSlot ? () => setProfileVisible(true) : undefined}
-          additionalData1={
-            <View style={styles.metaRow}>
-              <FancyChips
-                size='small'
-                label={displayRole}
-                color={roleTextColor}
-                backgroundColor={roleChipBg}
-                style={[styles.roleChip, { borderColor: roleChipBorder }]}
-                labelProps={{
-                  numberOfLines: 1,
-                  ellipsizeMode: 'tail',
-                  style: styles.roleChipText,
-                }}
+        >
+          <View style={styles.avatarWrap}>
+            {isOpenSlot ? (
+              <View
+                style={[
+                  styles.avatar,
+                  { backgroundColor: ColorUtils.withAlpha(palette.team[1], 0.14) },
+                ]}
+              >
+                <MaterialCommunityIcons name='plus' size={24} color={palette.team[1]} />
+              </View>
+            ) : imageUri ? (
+              <Image
+                source={{ uri: imageUri }}
+                style={[styles.avatar, { backgroundColor: palette.backgroundColor3 }]}
+                cachePolicy='memory-disk'
+                transition={120}
               />
-              {isCurrentUser ? (
-                <View
-                  style={[
-                    styles.currentUserBadge,
-                    {
-                      backgroundColor: ColorUtils.withAlpha(palette.primary, isDark ? 0.14 : 0.08),
-                      borderColor: ColorUtils.withAlpha(palette.primary, isDark ? 0.26 : 0.16),
-                    },
-                  ]}
-                >
-                  <FancyText
-                    type='bold'
-                    numberOfLines={1}
-                    style={[styles.currentUserText, { color: palette.primary }]}
-                  >
-                    Você
-                  </FancyText>
-                </View>
-              ) : null}
-            </View>
-          }
-        />
-        {isLeaderMode ? (
-          <View
-            style={styles.accessibilityLabel}
-            accessible
-            accessibilityLabel={a11yLabel}
-            accessibilityHint={actionLabel}
-          >
-            <FancyText>{''}</FancyText>
+            ) : (
+              <View style={[styles.avatar, { backgroundColor: personColor }]}>
+                <FancyText type='bold' size='medium' color={palette.fonts.light}>
+                  {initials}
+                </FancyText>
+              </View>
+            )}
+
+            {!isOpenSlot && statusMeta ? (
+              <View
+                style={[
+                  styles.statusDot,
+                  { borderColor: palette.backgroundColor },
+                  { backgroundColor: statusMeta.color },
+                ]}
+              >
+                <MaterialCommunityIcons name={statusMeta.icon} size={9} color={palette.fonts.light} />
+              </View>
+            ) : null}
           </View>
-        ) : null}
+
+          <View style={styles.nameRow}>
+            <FancyText
+              type='bold'
+              size='small'
+              numberOfLines={1}
+              style={styles.nameText}
+              color={isCurrentUser ? palette.team[0] : palette.fonts.dark}
+            >
+              {isCurrentUser ? 'Você' : displayName}
+            </FancyText>
+          </View>
+
+          <FancyText
+            size='extraSmall'
+            type='medium'
+            numberOfLines={2}
+            color={isOpenSlot ? palette.team[1] : palette.fonts.inactive}
+            style={styles.roleText}
+          >
+            {roleSubtitle}
+          </FancyText>
+        </Pressable>
       </Animated.View>
 
       <FancyBottomSheetModal
         visible={profileVisible}
         onClose={() => setProfileVisible(false)}
         title='Perfil do voluntário'
+        footer={
+          isLeaderMode ? (
+            <View style={styles.profileFooterButtons}>
+              <FancyButton
+                label='Substituir'
+                type='outlined'
+                containerStyle={styles.profileFooterButton}
+                onPress={() => {
+                  setProfileVisible(false);
+                  onSubstituir(integrante.escalaItemId);
+                }}
+              />
+              {onRemover ? (
+                <FancyButton
+                  label='Remover'
+                  type='outlined'
+                  containerStyle={[styles.profileFooterButton, { borderColor: palette.error }]}
+                  labelProps={{ color: palette.error }}
+                  onPress={() => {
+                    setProfileVisible(false);
+                    onRemover(integrante.escalaItemId);
+                  }}
+                />
+              ) : null}
+            </View>
+          ) : undefined
+        }
       >
         <View style={styles.profileSheet}>
           <View style={styles.profileHeader}>
@@ -285,18 +239,14 @@ function EquipeMemberCard({
                   <FancyChips
                     label='Você'
                     size='small'
-                    color={palette.primary}
-                    backgroundColor={ColorUtils.withAlpha(palette.primary, isDark ? 0.14 : 0.08)}
+                    color={palette.team[0]}
+                    backgroundColor={ColorUtils.withAlpha(palette.team[0], 0.08)}
                   />
                 ) : null}
               </View>
-              <FancyChips
-                label={displayRole}
-                size='small'
-                color={roleTextColor}
-                backgroundColor={roleChipBg}
-                style={[styles.profileRoleChip, { borderColor: roleChipBorder }]}
-              />
+              <FancyText size='small' type='medium' color={palette.fonts.inactive}>
+                {displayRole}
+              </FancyText>
             </View>
           </View>
 
@@ -323,58 +273,6 @@ function EquipeMemberCard({
         </View>
       </FancyBottomSheetModal>
     </>
-  );
-}
-
-function AvatarWithStatus({
-  imageUri,
-  isOpenSlot,
-  statusBadge,
-  palette,
-  isDark,
-}: {
-  imageUri: string;
-  isOpenSlot: boolean;
-  statusBadge: StatusBadgeMeta | null;
-  palette: ReturnType<typeof usePallete>;
-  isDark: boolean;
-}) {
-  return (
-    <View style={styles.avatarWrap}>
-      {isOpenSlot ? (
-        <View
-          style={[
-            styles.avatarFallback,
-            {
-              backgroundColor: ColorUtils.withAlpha(palette.primary, isDark ? 0.28 : 0.16),
-            },
-          ]}
-        >
-          <MaterialCommunityIcons name='account-plus-outline' size={20} color={palette.primary} />
-        </View>
-      ) : (
-        <Image
-          source={imageUri ? { uri: imageUri } : AppImages.emptyProfile}
-          style={styles.avatarImage}
-          cachePolicy='memory-disk'
-          transition={120}
-        />
-      )}
-
-      {!isOpenSlot && statusBadge ? (
-        <View
-          style={[
-            styles.statusDot,
-            {
-              backgroundColor: statusBadge.color,
-              borderColor: palette.backgroundColor2,
-            },
-          ]}
-        >
-          <MaterialCommunityIcons name={statusBadge.icon} size={10} color={palette.fonts.light} />
-        </View>
-      ) : null}
-    </View>
   );
 }
 
@@ -406,33 +304,27 @@ function ProfileInfoRow({
 
 const styles = StyleSheet.create({
   cardWrap: {
-    width: '100%',
+    flex: 1,
   },
-  cardContainer: {
+  card: {
     borderRadius: 16,
-    paddingVertical: 12,
-    marginBottom: 2,
+    borderWidth: 1,
+    paddingVertical: 16,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    gap: 6,
+    overflow: 'hidden',
   },
-  cardContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 4,
-  },
-  cardCenter: {
-    gap: 2,
-    justifyContent: 'center',
-    paddingRight: 8,
+  cardDimmed: {
+    opacity: 0.32,
   },
   avatarWrap: {
     width: AVATAR_SIZE,
     height: AVATAR_SIZE,
-    marginRight: 5,
     position: 'relative',
+    marginBottom: 2,
   },
-  avatarImage: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: AVATAR_SIZE / 2,
-  },
-  avatarFallback: {
+  avatar: {
     width: AVATAR_SIZE,
     height: AVATAR_SIZE,
     borderRadius: AVATAR_SIZE / 2,
@@ -441,8 +333,8 @@ const styles = StyleSheet.create({
   },
   statusDot: {
     position: 'absolute',
-    right: -3,
-    bottom: -3,
+    right: -2,
+    bottom: -2,
     width: STATUS_DOT_SIZE,
     height: STATUS_DOT_SIZE,
     borderRadius: STATUS_DOT_SIZE / 2,
@@ -450,40 +342,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  currentUserBadge: {
-    alignSelf: 'flex-start',
-    borderRadius: 999,
-    borderWidth: 1,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  currentUserText: {
-    fontSize: 9.5,
-    lineHeight: 11,
-    includeFontPadding: false,
-    textTransform: 'uppercase',
-  },
-  metaRow: {
+  nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    minWidth: 0,
-    marginTop: 3,
-    alignSelf: 'stretch',
-  },
-  roleChip: {
-    flexShrink: 1,
+    justifyContent: 'center',
+    gap: 5,
     maxWidth: '100%',
   },
-  roleChipText: {
-    fontSize: 12.5,
-    lineHeight: 14,
-    includeFontPadding: false,
+  nameText: {
+    flexShrink: 1,
   },
-  accessibilityLabel: {
-    width: 0,
-    height: 0,
-    opacity: 0,
+  roleText: {
+    textAlign: 'center',
+  },
+  profileFooterButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  profileFooterButton: {
+    flex: 1,
   },
   profileSheet: {
     gap: 18,
@@ -501,7 +378,7 @@ const styles = StyleSheet.create({
   },
   profileIdentity: {
     flex: 1,
-    gap: 8,
+    gap: 4,
     minWidth: 0,
   },
   profileNameRow: {
@@ -509,9 +386,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     minWidth: 0,
-  },
-  profileRoleChip: {
-    alignSelf: 'flex-start',
   },
   profileInfoList: {
     gap: 12,
@@ -541,5 +415,6 @@ export default memo(
     prev.integrante.voluntario?.fotoThumbUrl === next.integrante.voluntario?.fotoThumbUrl &&
     prev.isCurrentUser === next.isCurrentUser &&
     prev.isLeaderMode === next.isLeaderMode &&
+    prev.dimmed === next.dimmed &&
     prev.onRemover === next.onRemover,
 );

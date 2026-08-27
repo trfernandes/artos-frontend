@@ -4,7 +4,9 @@ import Toast from 'react-native-toast-message';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import FancyContainer from '../../../FancyContainer';
-import FancyBottomSheetSelect from '../../../fields/FancyBottomSheetSelect';
+import FancyBottomSheetSelect, {
+  FancyBottomSheetSelectRef,
+} from '../../../fields/FancyBottomSheetSelect';
 import FancyBottomSheetModal from '../../../modal/FancyBottomSheetModal';
 import FancyButton from '../../../buttons/FancyButton';
 import FancyChips from '../../../FancyChips';
@@ -12,10 +14,10 @@ import FancyLoading from '../../../FancyLoading';
 import FancyText from '../../../FancyText';
 import FancyTextInput from '../../../fields/FancyTextInput';
 import DefaultIcons from '../../../FancyIcons';
-import EventoInfoCard from '../../common/EventoInfoCard';
 import ModernTimePickerSheet from '../../../time_picker/ModernTimePickerSheet';
-import ModernDatePickerField from '../../../datepicker/ModernDatePickerField';
 import ModernTimePickerField from '../../../time_picker/ModernTimePickerField';
+import FancyCalendar from '../../../calendar/FancyCalendar';
+import FancyTextArea from '../../../fields/FancyTextArea';
 import { FancyAlert } from '../../../modal/FancyAlert';
 import { useEscalaTemplatesCrud } from '../../../../useEscalaTemplatesCrud';
 import {
@@ -70,9 +72,11 @@ type HourMinute = { hour: number; minute: number };
 type ScopePromptResult = TemplatePadraoEscopoEnum | 'cancel';
 
 type DadosOcorrenciaDraft = {
+  nome: string;
   dataInicio: Date;
   dataTermino: Date | null;
   local: string;
+  descricao: string;
 };
 
 export type AgendaDetailsDadosTabActions = {
@@ -139,67 +143,65 @@ function formatOccurrenceDateLabel(date: Date): string {
 }
 
 function serializeDadosOcorrencia(value: DadosOcorrenciaDraft): string {
-  return `${value.dataInicio.getTime()}|${value.dataTermino ? value.dataTermino.getTime() : ''}|${value.local}`;
+  return `${value.nome}|${value.dataInicio.getTime()}|${value.dataTermino ? value.dataTermino.getTime() : ''}|${value.local}|${value.descricao}`;
 }
 
 function OccurrenceFieldSection({
   label,
+  description,
   origin,
   dirty,
   editor,
+  hideLabel = false,
 }: {
   label: string;
+  description?: string;
   origin?: string | null;
   dirty: boolean;
   editor: ReactNode;
+  hideLabel?: boolean;
 }) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
 
   return (
     <View style={styles.sectionBlock}>
-      <View style={styles.sectionHeader}>
-        <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
-          {label}
-        </FancyText>
-        {dirty ? (
-          <FancyChips
-            label='Alterado'
-            size='small'
-            color={palette.primary}
-            style={styles.dirtyChip}
-            labelProps={{ size: 'extraSmall' }}
-          />
-        ) : null}
-      </View>
+      {hideLabel ? null : (
+        <View style={styles.sectionHeaderColumn}>
+          {label ? (
+            <View style={styles.sectionHeader}>
+              <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
+                {label}
+              </FancyText>
+              {dirty ? (
+                <FancyChips
+                  label='Alterado'
+                  size='small'
+                  color={palette.primary}
+                  style={styles.dirtyChip}
+                  labelProps={{ size: 'extraSmall' }}
+                />
+              ) : null}
+            </View>
+          ) : null}
+          {description ? (
+            <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+              {description}
+            </FancyText>
+          ) : null}
+        </View>
+      )}
 
-      <View style={styles.sectionEditorField}>{editor}</View>
+      <View style={hideLabel ? undefined : styles.sectionEditorField}>{editor}</View>
 
       {origin ? (
-        <View
-          style={[
-            styles.originBadge,
-            { backgroundColor: ColorUtils.withAlpha(palette.borderCard, 0.18) },
-          ]}
-        >
-          <View
-            style={[
-              styles.originBadgeIcon,
-              { backgroundColor: ColorUtils.withAlpha(palette.borderCard, 0.22) },
-            ]}
-          >
-            <DefaultIcons.Custom
-              {...DefaultIconsNames.info}
-              size={11}
-              color={palette.fonts.inactive}
-            />
-          </View>
-          <FancyText
-            size='extraSmall'
-            type='medium'
-            color={palette.fonts.dark}
-            style={styles.originBadgeText}
-          >
+        <View style={styles.originTag}>
+          <DefaultIcons.Custom
+            {...DefaultIconsNames.info}
+            size={11}
+            color={palette.fonts.inactive}
+          />
+          <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
             {origin}
           </FancyText>
         </View>
@@ -208,26 +210,59 @@ function OccurrenceFieldSection({
   );
 }
 
-function OcorrenciaDadosEditorSheet({
-  visible,
-  value,
-  hasTermino,
-  showRestoreDefault,
-  onClose,
-  onConfirm,
-  onRestoreDefault,
+function CardHeader({
+  icon,
+  title,
+  subtitle,
 }: {
-  visible: boolean;
-  value: DadosOcorrenciaDraft;
-  hasTermino: boolean;
-  showRestoreDefault: boolean;
-  onClose: () => void;
-  onConfirm: (value: DadosOcorrenciaDraft) => void;
-  onRestoreDefault: () => void;
+  icon: { library: 'Ionicons' | 'MaterialCommunityIcons' | 'MaterialIcons'; name: string };
+  title: string;
+  subtitle: string;
 }) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
-  const [draft, setDraft] = useState<DadosOcorrenciaDraft>(value);
+
+  return (
+    <View style={styles.cardHeaderRow}>
+      <View
+        style={[
+          styles.cardHeaderIconWrap,
+          { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14) },
+        ]}
+      >
+        <DefaultIcons.Custom {...icon} size={16} color={palette.primary} />
+      </View>
+      <View style={styles.cardHeaderTexts}>
+        <FancyText size='medium' type='bold' color={palette.fonts.dark}>
+          {title}
+        </FancyText>
+        <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+          {subtitle}
+        </FancyText>
+      </View>
+    </View>
+  );
+}
+
+function TextFieldEditorSheet({
+  visible,
+  title,
+  value,
+  placeholder,
+  multiline,
+  onClose,
+  onConfirm,
+}: {
+  visible: boolean;
+  title: string;
+  value: string;
+  placeholder: string;
+  multiline?: boolean;
+  onClose: () => void;
+  onConfirm: (value: string) => void;
+}) {
+  const styles = useThemedStyles(createStyles);
+  const [draft, setDraft] = useState(value);
 
   useEffect(() => {
     if (visible) setDraft(value);
@@ -250,73 +285,154 @@ function OcorrenciaDadosEditorSheet({
   );
 
   return (
+    <FancyBottomSheetModal visible={visible} onClose={onClose} title={title} footer={footer}>
+      <View style={styles.editorContainer}>
+        {multiline ? (
+          <FancyTextArea
+            value={draft}
+            placeholder={placeholder}
+            inputProps={{ onChangeText: setDraft }}
+          />
+        ) : (
+          <FancyTextInput
+            value={draft}
+            placeholder={placeholder}
+            inputProps={{ onChangeText: setDraft }}
+          />
+        )}
+      </View>
+    </FancyBottomSheetModal>
+  );
+}
+
+function OcorrenciaDadosEditorSheet({
+  visible,
+  value,
+  showRestoreDefault,
+  onClose,
+  onConfirm,
+  onRestoreDefault,
+}: {
+  visible: boolean;
+  value: DadosOcorrenciaDraft;
+  showRestoreDefault: boolean;
+  onClose: () => void;
+  onConfirm: (value: DadosOcorrenciaDraft) => void;
+  onRestoreDefault: () => void;
+}) {
+  const palette = usePallete();
+  const styles = useThemedStyles(createStyles);
+  const [draft, setDraft] = useState<DadosOcorrenciaDraft>(value);
+  const hasTermino = draft.dataTermino !== null;
+
+  useEffect(() => {
+    if (visible) setDraft(value);
+  }, [visible, value]);
+
+  const footer = (
+    <View style={styles.editorFooterButtons}>
+      <FancyButton
+        label='Cancelar'
+        type='outlined'
+        onPress={onClose}
+        containerStyle={styles.editorFooterButton}
+      />
+      <FancyButton
+        label='Confirmar'
+        onPress={() => onConfirm(draft)}
+        containerStyle={styles.editorFooterButton}
+      />
+    </View>
+  );
+
+  const toggleTermino = () => {
+    setDraft((prev) => {
+      if (prev.dataTermino) return { ...prev, dataTermino: null };
+      const defaultEnd = new Date(prev.dataInicio);
+      defaultEnd.setHours(defaultEnd.getHours() + 1);
+      return { ...prev, dataTermino: defaultEnd };
+    });
+  };
+
+  return (
     <FancyBottomSheetModal
       visible={visible}
       onClose={onClose}
-      title='Data, horário e local'
+      title='Data e horário'
       footer={footer}
     >
       <View style={styles.editorContainer}>
-        <View style={styles.editorField}>
-          <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
-            Data
-          </FancyText>
-          <ModernDatePickerField
-            value={draft.dataInicio}
-            onChange={(date) =>
-              setDraft((prev) => ({
-                ...prev,
-                dataInicio: withTimeFromDate(date, prev.dataInicio),
-                dataTermino: prev.dataTermino ? withTimeFromDate(date, prev.dataTermino) : null,
-              }))
-            }
-          />
-        </View>
+        <FancyCalendar
+          containerStyle={[styles.calendar, { backgroundColor: 'transparent', borderWidth: 0 }]}
+          dayModeTopPadding={10}
+          value={draft.dataInicio}
+          onChangeSelectedDate={(date) =>
+            setDraft((prev) => ({
+              ...prev,
+              dataInicio: withTimeFromDate(new Date(date), prev.dataInicio),
+              dataTermino: prev.dataTermino
+                ? withTimeFromDate(new Date(date), prev.dataTermino)
+                : null,
+            }))
+          }
+        />
 
-        <View style={styles.editorField}>
-          <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
-            Horário de início
-          </FancyText>
-          <ModernTimePickerField
-            value={{ hour: draft.dataInicio.getHours(), minute: draft.dataInicio.getMinutes() }}
-            onChange={(time) =>
-              setDraft((prev) => ({ ...prev, dataInicio: withHourMinute(prev.dataInicio, time) }))
-            }
-          />
-        </View>
-
-        {hasTermino && draft.dataTermino ? (
-          <View style={styles.editorField}>
+        <View style={styles.timeChipsRow}>
+          <View style={styles.timeChip}>
             <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
-              Horário de término
+              Início
             </FancyText>
             <ModernTimePickerField
-              value={{
-                hour: draft.dataTermino.getHours(),
-                minute: draft.dataTermino.getMinutes(),
-              }}
+              value={{ hour: draft.dataInicio.getHours(), minute: draft.dataInicio.getMinutes() }}
               onChange={(time) =>
                 setDraft((prev) => ({
                   ...prev,
-                  dataTermino: prev.dataTermino ? withHourMinute(prev.dataTermino, time) : null,
+                  dataInicio: withHourMinute(prev.dataInicio, time),
                 }))
               }
             />
           </View>
-        ) : null}
 
-        <View style={styles.editorField}>
-          <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
-            Local
-          </FancyText>
-          <FancyTextInput
-            value={draft.local}
-            placeholder='Local da ocorrência'
-            inputProps={{
-              onChangeText: (text) => setDraft((prev) => ({ ...prev, local: text })),
-            }}
-          />
+          <View style={styles.timeChip}>
+            <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
+              Término
+            </FancyText>
+            {hasTermino && draft.dataTermino ? (
+              <ModernTimePickerField
+                value={{
+                  hour: draft.dataTermino.getHours(),
+                  minute: draft.dataTermino.getMinutes(),
+                }}
+                onChange={(time) =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    dataTermino: prev.dataTermino ? withHourMinute(prev.dataTermino, time) : null,
+                  }))
+                }
+              />
+            ) : (
+              <Pressable onPress={toggleTermino} style={styles.timeChipEmpty}>
+                <FancyText size='small' type='semiBold' color={palette.primary}>
+                  Definir
+                </FancyText>
+              </Pressable>
+            )}
+          </View>
         </View>
+
+        {hasTermino && draft.dataTermino ? (
+          <Pressable onPress={toggleTermino} style={styles.removeTerminoButton}>
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='trash-can-outline'
+              size={14}
+              color={palette.error}
+            />
+            <FancyText size='extraSmall' type='semiBold' color={palette.error}>
+              Remover horário de término
+            </FancyText>
+          </Pressable>
+        ) : null}
 
         {showRestoreDefault ? (
           <Pressable onPress={onRestoreDefault} style={styles.restoreDefaultButton}>
@@ -467,13 +583,18 @@ export default function AgendaDetailsDadosTab(props: {
       ? new Date(props.ocorrencia.dataTermino)
       : null;
     const local = props.ocorrencia?.local ?? props.evento.local ?? '';
-    return { dataInicio, dataTermino, local };
+    const nome = props.ocorrencia?.nome ?? '';
+    const descricao = props.ocorrencia?.descricao ?? props.evento.descricao ?? '';
+    return { nome, dataInicio, dataTermino, local, descricao };
   }, [
     props.dataOcorrenciaDate,
+    props.evento.descricao,
     props.evento.local,
     props.ocorrencia?.dataInicio,
     props.ocorrencia?.dataTermino,
+    props.ocorrencia?.descricao,
     props.ocorrencia?.local,
+    props.ocorrencia?.nome,
   ]);
 
   const resolvedTemplateName = useMemo(() => {
@@ -498,9 +619,15 @@ export default function AgendaDetailsDadosTab(props: {
   const [dadosOcorrencia, setDadosOcorrencia] =
     useState<DadosOcorrenciaDraft>(resolvedDadosOcorrencia);
   const [isSavingAll, setIsSavingAll] = useState(false);
+  const [isSavingQuandoOnde, setIsSavingQuandoOnde] = useState(false);
+  const [isSavingEquipe, setIsSavingEquipe] = useState(false);
   const [isTimePickerVisible, setIsTimePickerVisible] = useState(false);
   const [isDadosSheetVisible, setIsDadosSheetVisible] = useState(false);
+  const [isNomeSheetVisible, setIsNomeSheetVisible] = useState(false);
+  const [isLocalSheetVisible, setIsLocalSheetVisible] = useState(false);
+  const [isDescricaoSheetVisible, setIsDescricaoSheetVisible] = useState(false);
 
+  const templateSheetRef = useRef<FancyBottomSheetSelectRef>(null);
   const previousResolvedTemplateIdRef = useRef(resolvedTemplateId);
   const previousResolvedEnsaioRef = useRef(serializeHourMinute(resolvedEnsaio));
   const previousResolvedResponsavelRef = useRef(resolvedResponsavelSetlistId);
@@ -559,6 +686,8 @@ export default function AgendaDetailsDadosTab(props: {
     Number(dadosDirty);
   const isMutating =
     isSavingAll ||
+    isSavingQuandoOnde ||
+    isSavingEquipe ||
     isSavingTemplatePadrao ||
     isSavingEnsaio ||
     isSavingResponsavelSetlist ||
@@ -630,8 +759,6 @@ export default function AgendaDetailsDadosTab(props: {
     if (!origem) return null;
     return TemplatePadraoOrigemLabel[origem as keyof typeof TemplatePadraoOrigemLabel] || null;
   }, [props.ocorrencia?.dadosOcorrenciaOrigem]);
-
-  const hasTermino = dadosOcorrencia.dataTermino !== null;
 
   const dadosDisplayLabel = useMemo(() => {
     const dateLabel = formatOccurrenceDateLabel(dadosOcorrencia.dataInicio);
@@ -901,11 +1028,13 @@ export default function AgendaDetailsDadosTab(props: {
           data: {
             dataReferencia: props.dataOcorrenciaIso,
             escopo,
+            nome: dadosOcorrencia.nome || undefined,
             dataInicio: dadosOcorrencia.dataInicio.toISOString(),
             dataTermino: dadosOcorrencia.dataTermino
               ? dadosOcorrencia.dataTermino.toISOString()
               : undefined,
             local: dadosOcorrencia.local || undefined,
+            descricao: dadosOcorrencia.descricao || undefined,
           },
         });
 
@@ -1137,6 +1266,110 @@ export default function AgendaDetailsDadosTab(props: {
     templateDirty,
   ]);
 
+  const saveGrupoQuandoOnde = useCallback(async (): Promise<boolean> => {
+    if (!dadosDirty && !ensaioDirty) return true;
+
+    setIsSavingQuandoOnde(true);
+    try {
+      let ensaioScope: TemplatePadraoEscopoEnum | null = null;
+      if (ensaioDirty) {
+        const scope = await promptConsolidatedScope(['horário de ensaio']);
+        if (scope === 'cancel') return false;
+        ensaioScope = scope;
+      }
+
+      showLoading('Salvando...');
+      try {
+        let savedAnything = false;
+
+        if (dadosDirty) {
+          const ok = await saveDadosByScope(TemplatePadraoEscopoEnum.OCORRENCIA);
+          if (!ok) return false;
+          savedAnything = true;
+        }
+
+        if (ensaioScope) {
+          const ok = await saveEnsaioByScope(ensaioScope);
+          if (!ok) return false;
+          savedAnything = true;
+        }
+
+        if (savedAnything) {
+          await props.onTemplateSaved?.();
+          Toast.show({ type: 'success', text1: 'Ocorrência atualizada' });
+        }
+
+        return true;
+      } finally {
+        hideLoading();
+      }
+    } finally {
+      setIsSavingQuandoOnde(false);
+    }
+  }, [
+    dadosDirty,
+    ensaioDirty,
+    hideLoading,
+    promptConsolidatedScope,
+    props,
+    saveDadosByScope,
+    saveEnsaioByScope,
+    showLoading,
+  ]);
+
+  const saveGrupoEquipe = useCallback(async (): Promise<boolean> => {
+    const responsavelDirty = isLouvorMinisterio && responsavelSetlistDirty;
+    if (!templateDirty && !responsavelDirty) return true;
+
+    setIsSavingEquipe(true);
+    try {
+      const labels: string[] = [];
+      if (templateDirty) labels.push('template da equipe');
+      if (responsavelDirty) labels.push('responsável do setlist');
+
+      const scope = await promptConsolidatedScope(labels);
+      if (scope === 'cancel') return false;
+
+      showLoading('Salvando...');
+      try {
+        let savedAnything = false;
+
+        if (templateDirty) {
+          const ok = await saveTemplateByScope(scope);
+          if (!ok) return false;
+          savedAnything = true;
+        }
+
+        if (responsavelDirty) {
+          const ok = await saveResponsavelSetlistByScope(scope);
+          if (!ok) return false;
+          savedAnything = true;
+        }
+
+        if (savedAnything) {
+          await props.onTemplateSaved?.();
+          Toast.show({ type: 'success', text1: 'Ocorrência atualizada' });
+        }
+
+        return true;
+      } finally {
+        hideLoading();
+      }
+    } finally {
+      setIsSavingEquipe(false);
+    }
+  }, [
+    hideLoading,
+    isLouvorMinisterio,
+    promptConsolidatedScope,
+    props,
+    responsavelSetlistDirty,
+    saveResponsavelSetlistByScope,
+    saveTemplateByScope,
+    showLoading,
+    templateDirty,
+  ]);
+
   useEffect(() => {
     props.onRegisterActions?.({
       saveAllChanges,
@@ -1153,25 +1386,89 @@ export default function AgendaDetailsDadosTab(props: {
       showsVerticalScrollIndicator={false}
       nestedScrollEnabled
     >
-      <EventoInfoCard
-        dataOcorrencia={props.dataOcorrenciaDate}
-        eventoCor={props.evento.cor || palette.primary}
-        eventoNome={props.evento.nome}
-        descricao={props.evento.descricao}
-        local={props.evento.local}
-      />
-
       {(canManageOccurrence || isLouvorMinisterio) && (
         <FancyContainer
           containerStyle={styles.occurrenceContainer}
           headerContainerStyle={styles.occurrenceHeader}
-          title='Ocorrência do Evento'
+          title={
+            <CardHeader
+              icon={{ library: 'Ionicons', name: 'location-outline' }}
+              title='Quando e onde'
+              subtitle='Nome, data, horário, local, ensaio'
+            />
+          }
           children={
             <>
               <View style={styles.sectionsContent}>
                 <OccurrenceFieldSection
-                  label='Data, horário e local'
-                  origin={origemDadosLabel}
+                  label='Nome'
+                  hideLabel
+                  dirty={dadosOcorrencia.nome !== resolvedDadosOcorrencia.nome}
+                  editor={
+                    <View style={styles.editorGroup}>
+                      {canManageOccurrence ? (
+                        <Pressable
+                          disabled={isMutating}
+                          onPress={() => setIsNomeSheetVisible(true)}
+                          style={[
+                            styles.timePickerTrigger,
+                            {
+                              backgroundColor: palette.backgroundColor4,
+                              borderColor:
+                                dadosOcorrencia.nome !== resolvedDadosOcorrencia.nome
+                                  ? palette.primary
+                                  : palette.borderCard,
+                            },
+                            isMutating && styles.timePickerTriggerDisabled,
+                          ]}
+                        >
+                          <View
+                            style={[
+                              styles.timePickerIconWrap,
+                              { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14) },
+                            ]}
+                          >
+                            <DefaultIcons.Custom
+                              {...DefaultIconsNames.edit}
+                              size={16}
+                              color={palette.primary}
+                            />
+                          </View>
+
+                          <View style={styles.timePickerContent}>
+                            <FancyText
+                              size='extraSmall'
+                              type='semiBold'
+                              color={palette.fonts.inactive}
+                            >
+                              Nome
+                            </FancyText>
+
+                            <FancyText size='medium' type='bold' color={palette.fonts.dark}>
+                              {dadosOcorrencia.nome || props.evento.nome}
+                            </FancyText>
+                          </View>
+
+                          <View style={styles.timePickerChevronWrap}>
+                            <DefaultIcons.Custom
+                              {...DefaultIconsNames['chevron-right']}
+                              size={16}
+                              color={palette.fonts.inactive}
+                            />
+                          </View>
+                        </Pressable>
+                      ) : (
+                        <FancyText type='medium' size='small' color={palette.fonts.dark}>
+                          {dadosOcorrencia.nome || props.evento.nome}
+                        </FancyText>
+                      )}
+                    </View>
+                  }
+                />
+
+                <OccurrenceFieldSection
+                  label='Data e horário'
+                  hideLabel
                   dirty={dadosDirty}
                   editor={
                     <View style={styles.editorGroup}>
@@ -1191,13 +1488,13 @@ export default function AgendaDetailsDadosTab(props: {
                           <View
                             style={[
                               styles.timePickerIconWrap,
-                              { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14) },
+                              { backgroundColor: ColorUtils.withAlpha(palette.confirm, 0.14) },
                             ]}
                           >
                             <DefaultIcons.Custom
                               {...DefaultIconsNames['calendar-day']}
                               size={18}
-                              color={palette.primary}
+                              color={palette.confirm}
                             />
                           </View>
 
@@ -1216,16 +1513,22 @@ export default function AgendaDetailsDadosTab(props: {
                               {dadosDisplayLabel}
                             </FancyText>
 
-                            <FancyText
-                              size='extraSmall'
-                              type='medium'
-                              color={palette.fonts.inactive}
-                              style={styles.timePickerHint}
-                            >
-                              {dadosOcorrencia.local
-                                ? `${dadosOcorrencia.local} · toque para editar`
-                                : 'Toque para editar'}
-                            </FancyText>
+                            {origemDadosLabel ? (
+                              <View style={styles.originTagInBox}>
+                                <DefaultIcons.Custom
+                                  {...DefaultIconsNames.info}
+                                  size={10}
+                                  color={palette.fonts.inactive}
+                                />
+                                <FancyText
+                                  size='extraSmall'
+                                  type='medium'
+                                  color={palette.fonts.inactive}
+                                >
+                                  {origemDadosLabel}
+                                </FancyText>
+                              </View>
+                            ) : null}
                           </View>
 
                           <View style={styles.timePickerChevronWrap}>
@@ -1247,61 +1550,148 @@ export default function AgendaDetailsDadosTab(props: {
                 />
 
                 <OccurrenceFieldSection
-                  label='Template da equipe'
-                  origin={origemTemplateLabel}
-                  dirty={templateDirty}
+                  label='Local'
+                  hideLabel
+                  dirty={dadosOcorrencia.local !== resolvedDadosOcorrencia.local}
                   editor={
                     <View style={styles.editorGroup}>
                       {canManageOccurrence ? (
-                        <FancyBottomSheetSelect
-                          containerStyle={styles.editorControl}
-                          listItems={templatesList}
-                          value={templateId}
-                          onChange={setTemplateId}
-                          placeholder='Selecione um template'
-                          title='Template da equipe'
+                        <Pressable
                           disabled={isMutating}
-                        />
+                          onPress={() => setIsLocalSheetVisible(true)}
+                          style={[
+                            styles.timePickerTrigger,
+                            {
+                              backgroundColor: palette.backgroundColor4,
+                              borderColor:
+                                dadosOcorrencia.local !== resolvedDadosOcorrencia.local
+                                  ? palette.primary
+                                  : palette.borderCard,
+                            },
+                            isMutating && styles.timePickerTriggerDisabled,
+                          ]}
+                        >
+                          <View
+                            style={[
+                              styles.timePickerIconWrap,
+                              { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14) },
+                            ]}
+                          >
+                            <DefaultIcons.Custom
+                              library='Ionicons'
+                              name='location-outline'
+                              size={16}
+                              color={palette.primary}
+                            />
+                          </View>
+
+                          <View style={styles.timePickerContent}>
+                            <FancyText
+                              size='extraSmall'
+                              type='semiBold'
+                              color={palette.fonts.inactive}
+                            >
+                              Local
+                            </FancyText>
+
+                            <FancyText size='medium' type='bold' color={palette.fonts.dark}>
+                              {dadosOcorrencia.local || 'Não definido'}
+                            </FancyText>
+                          </View>
+
+                          <View style={styles.timePickerChevronWrap}>
+                            <DefaultIcons.Custom
+                              {...DefaultIconsNames['chevron-right']}
+                              size={16}
+                              color={palette.fonts.inactive}
+                            />
+                          </View>
+                        </Pressable>
                       ) : (
                         <FancyText type='medium' size='small' color={palette.fonts.dark}>
-                          {resolvedTemplateName}
+                          {dadosOcorrencia.local || 'Não definido'}
                         </FancyText>
                       )}
                     </View>
                   }
                 />
 
-                {isLouvorMinisterio ? (
-                  <OccurrenceFieldSection
-                    label='Responsável pelo setlist'
-                    origin={origemResponsavelSetlistLabel}
-                    dirty={responsavelSetlistDirty}
-                    editor={
-                      <View style={styles.editorGroup}>
-                        {canManageOccurrence ? (
-                          <FancyBottomSheetSelect
-                            containerStyle={styles.editorControl}
-                            listItems={voluntariosEscaladosOptions}
-                            value={responsavelSetlistId}
-                            onChange={(value) => setResponsavelSetlistId(String(value || ''))}
-                            placeholder='Selecione um voluntário'
-                            title='Responsável pelo setlist'
-                            disabled={isMutating}
-                          />
-                        ) : (
-                          <FancyText type='medium' size='small' color={palette.fonts.dark}>
-                            {resolvedResponsavelSetlistName}
-                          </FancyText>
-                        )}
-                      </View>
-                    }
-                  />
-                ) : null}
+                <OccurrenceFieldSection
+                  label='Descrição'
+                  hideLabel
+                  dirty={dadosOcorrencia.descricao !== resolvedDadosOcorrencia.descricao}
+                  editor={
+                    <View style={styles.editorGroup}>
+                      {canManageOccurrence ? (
+                        <Pressable
+                          disabled={isMutating}
+                          onPress={() => setIsDescricaoSheetVisible(true)}
+                          style={[
+                            styles.timePickerTrigger,
+                            {
+                              backgroundColor: palette.backgroundColor4,
+                              borderColor:
+                                dadosOcorrencia.descricao !== resolvedDadosOcorrencia.descricao
+                                  ? palette.primary
+                                  : palette.borderCard,
+                            },
+                            isMutating && styles.timePickerTriggerDisabled,
+                          ]}
+                        >
+                          <View
+                            style={[
+                              styles.timePickerIconWrap,
+                              { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14) },
+                            ]}
+                          >
+                            <DefaultIcons.Custom
+                              library='Ionicons'
+                              name='document-text-outline'
+                              size={16}
+                              color={palette.primary}
+                            />
+                          </View>
+
+                          <View style={styles.timePickerContent}>
+                            <FancyText
+                              size='extraSmall'
+                              type='semiBold'
+                              color={palette.fonts.inactive}
+                            >
+                              Descrição
+                            </FancyText>
+
+                            <FancyText
+                              size='small'
+                              type='medium'
+                              color={palette.fonts.dark}
+                              numberOfLines={2}
+                            >
+                              {dadosOcorrencia.descricao || 'Sem descrição'}
+                            </FancyText>
+                          </View>
+
+                          <View style={styles.timePickerChevronWrap}>
+                            <DefaultIcons.Custom
+                              {...DefaultIconsNames['chevron-right']}
+                              size={16}
+                              color={palette.fonts.inactive}
+                            />
+                          </View>
+                        </Pressable>
+                      ) : (
+                        <FancyText type='medium' size='small' color={palette.fonts.dark}>
+                          {dadosOcorrencia.descricao || 'Sem descrição'}
+                        </FancyText>
+                      )}
+                    </View>
+                  }
+                />
 
                 <OccurrenceFieldSection
                   label='Horário de ensaio'
-                  origin={origemEnsaioLabel}
                   dirty={ensaioDirty}
+                  hideLabel
                   editor={
                     <View style={styles.editorGroup}>
                       {canManageOccurrence ? (
@@ -1321,13 +1711,13 @@ export default function AgendaDetailsDadosTab(props: {
                             <View
                               style={[
                                 styles.timePickerIconWrap,
-                                { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14) },
+                                { backgroundColor: ColorUtils.withAlpha(palette.confirm, 0.14) },
                               ]}
                             >
                               <DefaultIcons.Custom
                                 {...DefaultIconsNames.time}
                                 size={18}
-                                color={palette.primary}
+                                color={palette.confirm}
                               />
                             </View>
 
@@ -1338,7 +1728,7 @@ export default function AgendaDetailsDadosTab(props: {
                                   type='semiBold'
                                   color={palette.fonts.inactive}
                                 >
-                                  Horário selecionado
+                                  Horário de ensaio
                                 </FancyText>
                               </View>
 
@@ -1356,6 +1746,23 @@ export default function AgendaDetailsDadosTab(props: {
                               >
                                 Mínimo de 30 min antes da ocorrência.
                               </FancyText>
+
+                              {origemEnsaioLabel ? (
+                                <View style={styles.originTagInBox}>
+                                  <DefaultIcons.Custom
+                                    {...DefaultIconsNames.info}
+                                    size={10}
+                                    color={palette.fonts.inactive}
+                                  />
+                                  <FancyText
+                                    size='extraSmall'
+                                    type='medium'
+                                    color={palette.fonts.inactive}
+                                  >
+                                    {origemEnsaioLabel}
+                                  </FancyText>
+                                </View>
+                              ) : null}
                             </View>
 
                             <View style={styles.timePickerChevronWrap}>
@@ -1391,14 +1798,16 @@ export default function AgendaDetailsDadosTab(props: {
 
               {canManageOccurrence ? (
                 <View style={[styles.footer, { borderTopColor: palette.borderCard }]}>
-                  {hasUnsavedChanges ? (
+                  {dadosDirty || ensaioDirty ? (
                     <FancyText
                       size='extraSmall'
                       type='medium'
                       color={palette.fonts.inactive}
                       style={styles.footerStatus}
                     >
-                      {`${pendingChangesCount} alteraç${pendingChangesCount > 1 ? 'ões' : 'ão'} pendente${pendingChangesCount > 1 ? 's' : ''}`}
+                      {`${Number(dadosDirty) + Number(ensaioDirty)} alteraç${
+                        Number(dadosDirty) + Number(ensaioDirty) > 1 ? 'ões' : 'ão'
+                      } pendente${Number(dadosDirty) + Number(ensaioDirty) > 1 ? 's' : ''}`}
                     </FancyText>
                   ) : null}
                   <FancyButton
@@ -1406,11 +1815,196 @@ export default function AgendaDetailsDadosTab(props: {
                     type='contained'
                     icon={{ ...DefaultIconsNames.save, size: 14 }}
                     containerStyle={styles.saveAllButton}
-                    disabled={!hasUnsavedChanges || isMutating}
+                    disabled={(!dadosDirty && !ensaioDirty) || isMutating}
                     isLoading={isMutating}
                     loadingText='Salvando...'
                     onPress={() => {
-                      void saveAllChanges();
+                      void saveGrupoQuandoOnde();
+                    }}
+                  />
+                </View>
+              ) : null}
+            </>
+          }
+        />
+      )}
+
+      {(canManageOccurrence || isLouvorMinisterio) && (
+        <FancyContainer
+          containerStyle={styles.occurrenceContainer}
+          headerContainerStyle={styles.occurrenceHeader}
+          title={
+            <CardHeader
+              icon={{ library: 'Ionicons', name: 'people-outline' }}
+              title='Formação da Equipe'
+              subtitle='Define funções e escala padrão usadas para montar a equipe desta ocorrência.'
+            />
+          }
+          children={
+            <>
+              <View style={styles.sectionsContent}>
+                <OccurrenceFieldSection
+                  label=''
+                  hideLabel
+                  dirty={templateDirty}
+                  editor={
+                    <View style={styles.editorGroup}>
+                      {canManageOccurrence ? (
+                        <>
+                          <Pressable
+                            disabled={isMutating}
+                            onPress={() => templateSheetRef.current?.open()}
+                            style={[
+                              styles.timePickerTrigger,
+                              {
+                                backgroundColor: palette.backgroundColor4,
+                                borderColor: templateDirty ? palette.primary : palette.borderCard,
+                              },
+                              isMutating && styles.timePickerTriggerDisabled,
+                            ]}
+                          >
+                            <View
+                              style={[
+                                styles.timePickerIconWrap,
+                                { backgroundColor: ColorUtils.withAlpha(palette.confirm, 0.14) },
+                              ]}
+                            >
+                              <DefaultIcons.Custom
+                                library='MaterialCommunityIcons'
+                                name='account-group-outline'
+                                size={18}
+                                color={palette.confirm}
+                              />
+                            </View>
+
+                            <View style={styles.timePickerContent}>
+                              <View style={styles.timePickerTitleRow}>
+                                <FancyText
+                                  size='extraSmall'
+                                  type='semiBold'
+                                  color={palette.fonts.inactive}
+                                >
+                                  Template
+                                </FancyText>
+                              </View>
+
+                              <FancyText size='medium' type='bold' color={palette.fonts.dark}>
+                                {resolvedTemplateName || 'Selecionar template'}
+                              </FancyText>
+
+                              {origemTemplateLabel ? (
+                                <View style={styles.originTagInBox}>
+                                  <DefaultIcons.Custom
+                                    {...DefaultIconsNames.info}
+                                    size={10}
+                                    color={palette.fonts.inactive}
+                                  />
+                                  <FancyText
+                                    size='extraSmall'
+                                    type='medium'
+                                    color={palette.fonts.inactive}
+                                  >
+                                    {origemTemplateLabel}
+                                  </FancyText>
+                                </View>
+                              ) : null}
+                            </View>
+
+                            <View style={styles.timePickerChevronWrap}>
+                              <DefaultIcons.Custom
+                                {...DefaultIconsNames['chevron-down']}
+                                size={16}
+                                color={palette.fonts.inactive}
+                              />
+                            </View>
+                          </Pressable>
+
+                          <View style={styles.hiddenFieldSheetHost}>
+                            <FancyBottomSheetSelect
+                              ref={templateSheetRef}
+                              listItems={templatesList}
+                              value={templateId}
+                              onChange={setTemplateId}
+                              placeholder='Selecione um template'
+                              title='Template'
+                              disabled={isMutating}
+                            />
+                          </View>
+                        </>
+                      ) : (
+                        <FancyText type='medium' size='small' color={palette.fonts.dark}>
+                          {resolvedTemplateName}
+                        </FancyText>
+                      )}
+                    </View>
+                  }
+                />
+
+                {isLouvorMinisterio ? (
+                  <OccurrenceFieldSection
+                    label='Responsável pelo setlist'
+                    origin={origemResponsavelSetlistLabel}
+                    dirty={responsavelSetlistDirty}
+                    editor={
+                      <View style={styles.editorGroup}>
+                        {canManageOccurrence ? (
+                          <FancyBottomSheetSelect
+                            containerStyle={styles.editorControl}
+                            listItems={voluntariosEscaladosOptions}
+                            value={responsavelSetlistId}
+                            onChange={(value) => setResponsavelSetlistId(String(value || ''))}
+                            placeholder='Selecione um voluntário'
+                            title='Responsável pelo setlist'
+                            disabled={isMutating}
+                          />
+                        ) : (
+                          <FancyText type='medium' size='small' color={palette.fonts.dark}>
+                            {resolvedResponsavelSetlistName}
+                          </FancyText>
+                        )}
+                      </View>
+                    }
+                  />
+                ) : null}
+              </View>
+
+              {canManageOccurrence ? (
+                <View style={[styles.footer, { borderTopColor: palette.borderCard }]}>
+                  {templateDirty || (isLouvorMinisterio && responsavelSetlistDirty) ? (
+                    <FancyText
+                      size='extraSmall'
+                      type='medium'
+                      color={palette.fonts.inactive}
+                      style={styles.footerStatus}
+                    >
+                      {`${Number(templateDirty) + Number(isLouvorMinisterio && responsavelSetlistDirty)} alteraç${
+                        Number(templateDirty) +
+                          Number(isLouvorMinisterio && responsavelSetlistDirty) >
+                        1
+                          ? 'ões'
+                          : 'ão'
+                      } pendente${
+                        Number(templateDirty) +
+                          Number(isLouvorMinisterio && responsavelSetlistDirty) >
+                        1
+                          ? 's'
+                          : ''
+                      }`}
+                    </FancyText>
+                  ) : null}
+                  <FancyButton
+                    label='Salvar'
+                    type='outlined'
+                    icon={{ ...DefaultIconsNames.save, size: 14 }}
+                    containerStyle={styles.saveAllButton}
+                    disabled={
+                      (!templateDirty && !(isLouvorMinisterio && responsavelSetlistDirty)) ||
+                      isMutating
+                    }
+                    isLoading={isMutating}
+                    loadingText='Salvando...'
+                    onPress={() => {
+                      void saveGrupoEquipe();
                     }}
                   />
                 </View>
@@ -1496,7 +2090,6 @@ export default function AgendaDetailsDadosTab(props: {
       <OcorrenciaDadosEditorSheet
         visible={isDadosSheetVisible}
         value={dadosOcorrencia}
-        hasTermino={hasTermino}
         showRestoreDefault={showRestoreDefault}
         onClose={() => setIsDadosSheetVisible(false)}
         onConfirm={(value) => {
@@ -1504,6 +2097,43 @@ export default function AgendaDetailsDadosTab(props: {
           setIsDadosSheetVisible(false);
         }}
         onRestoreDefault={handleRestaurarPadrao}
+      />
+
+      <TextFieldEditorSheet
+        visible={isNomeSheetVisible}
+        title='Nome'
+        placeholder='Nome'
+        value={dadosOcorrencia.nome}
+        onClose={() => setIsNomeSheetVisible(false)}
+        onConfirm={(value) => {
+          setDadosOcorrencia((prev) => ({ ...prev, nome: value }));
+          setIsNomeSheetVisible(false);
+        }}
+      />
+
+      <TextFieldEditorSheet
+        visible={isLocalSheetVisible}
+        title='Local'
+        placeholder='Local da ocorrência'
+        value={dadosOcorrencia.local}
+        onClose={() => setIsLocalSheetVisible(false)}
+        onConfirm={(value) => {
+          setDadosOcorrencia((prev) => ({ ...prev, local: value }));
+          setIsLocalSheetVisible(false);
+        }}
+      />
+
+      <TextFieldEditorSheet
+        visible={isDescricaoSheetVisible}
+        title='Descrição'
+        placeholder='Descrição da ocorrência'
+        multiline
+        value={dadosOcorrencia.descricao}
+        onClose={() => setIsDescricaoSheetVisible(false)}
+        onConfirm={(value) => {
+          setDadosOcorrencia((prev) => ({ ...prev, descricao: value }));
+          setIsDescricaoSheetVisible(false);
+        }}
       />
     </ScrollView>
   );
@@ -1514,23 +2144,46 @@ function createStyles(palette: ThemePalette) {
     container: {
       flex: 1,
     },
+    cardHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 13,
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
+    },
+    cardHeaderIconWrap: {
+      width: 32,
+      height: 32,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    cardHeaderTexts: {
+      flex: 1,
+      gap: 2,
+    },
     containerContent: {
       gap: 15,
       paddingBottom: 24,
     },
     occurrenceContainer: {
       paddingBottom: 18,
+      overflow: 'hidden',
     },
     occurrenceHeader: {
       paddingBottom: 8,
     },
     sectionsContent: {
       paddingHorizontal: 15,
-      paddingTop: 4,
+      paddingTop: 16,
     },
     sectionBlock: {
       width: '100%',
-      marginBottom: 24,
+      marginBottom: 14,
+    },
+    sectionHeaderColumn: {
+      gap: 4,
     },
     sectionHeader: {
       flexDirection: 'row',
@@ -1539,7 +2192,7 @@ function createStyles(palette: ThemePalette) {
       gap: 10,
     },
     sectionEditorField: {
-      marginTop: 12,
+      marginTop: 8,
     },
     editorGroup: {
       width: '100%',
@@ -1547,34 +2200,27 @@ function createStyles(palette: ThemePalette) {
     editorControl: {
       width: '100%',
     },
+    hiddenFieldSheetHost: {
+      height: 0,
+      overflow: 'hidden',
+    },
     dirtyChip: {
       paddingVertical: 1,
       paddingHorizontal: 8,
       borderWidth: 1,
       minHeight: 0,
     },
-    originBadge: {
-      marginTop: 10,
+    originTag: {
+      marginTop: 4,
       flexDirection: 'row',
       alignItems: 'center',
-      alignSelf: 'flex-start',
-      gap: 8,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      borderRadius: 10,
-      backgroundColor: 'rgba(62, 62, 62, 0.05)',
+      gap: 4,
     },
-    originBadgeIcon: {
-      width: 16,
-      height: 16,
-      borderRadius: 999,
+    originTagInBox: {
+      marginTop: 6,
+      flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: 'rgba(62, 62, 62, 0.06)',
-    },
-    originBadgeText: {
-      lineHeight: 15,
-      opacity: 0.78,
+      gap: 4,
     },
     dangerZoneCard: {
       borderWidth: 1,
@@ -1641,7 +2287,7 @@ function createStyles(palette: ThemePalette) {
       borderRadius: 12,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: '#E8F0FF',
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14),
     },
     timePickerContent: {
       flex: 1,
@@ -1680,6 +2326,37 @@ function createStyles(palette: ThemePalette) {
       alignItems: 'center',
       justifyContent: 'center',
       paddingVertical: 10,
+    },
+    calendar: {
+      marginHorizontal: 0,
+    },
+    timeChipsRow: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    timeChip: {
+      flex: 1,
+      gap: 8,
+    },
+    timeChipEmpty: {
+      height: 33,
+      borderRadius: 100,
+      borderWidth: 1,
+      borderColor: ColorUtils.withAlpha(palette.primary, 0.35),
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    removeTerminoButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      alignSelf: 'center',
+      gap: 6,
+      paddingHorizontal: 12,
+      height: 30,
+      borderRadius: 100,
+      backgroundColor: ColorUtils.withAlpha(palette.error, 0.08),
     },
   });
 }

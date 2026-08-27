@@ -61,6 +61,8 @@ export type ThemePalette = {
     'avaliacao' | 'starter' | 'essencial' | 'crescimento',
     { accent: string; text: string }
   >;
+  // Paleta multitom pra identidade visual por pessoa (avatares da equipe).
+  team: [string, string, string, string];
 };
 
 export const LightPalette: ThemePalette = {
@@ -91,8 +93,8 @@ export const LightPalette: ThemePalette = {
     inactive: '#8E8E93',
     inactive2: '#C7C7CC',
   },
-  border: '#BFBFBF',
-  borderCard: '#C9C9C9',
+  border: '#CBE0FE',
+  borderCard: '#A9CCFC',
   backgroundColor: '#FFFFFF',
   backgroundColor2: '#F2F2F7',
   backgroundColor3: '#F6F6F6',
@@ -135,6 +137,7 @@ export const LightPalette: ThemePalette = {
     essencial: { accent: '#27A744', text: '#1E7E34' },
     crescimento: { accent: '#FF7A30', text: '#C2410C' },
   },
+  team: ['#5B6CF5', '#00B8A9', '#F5A623', '#EC6B8E'],
 };
 
 export const DarkPalette: ThemePalette = {
@@ -165,8 +168,8 @@ export const DarkPalette: ThemePalette = {
     inactive: '#A9A9B2',
     inactive2: '#73737A',
   },
-  border: '#3A3A3A',
-  borderCard: '#2C2C2C',
+  border: '#1E3A5F',
+  borderCard: '#274972',
   backgroundColor: '#121212',
   backgroundColor2: '#1A1A1A',
   backgroundColor3: '#202020',
@@ -209,6 +212,7 @@ export const DarkPalette: ThemePalette = {
     essencial: { accent: '#27A744', text: '#34D399' },
     crescimento: { accent: '#FF7A30', text: '#FF7A30' },
   },
+  team: ['#7C8AFA', '#2DD4C4', '#F6B93B', '#F28AAA'],
 };
 
 export function getPaletteForMode(mode: ThemeMode): ThemePalette {

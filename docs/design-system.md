@@ -691,3 +691,37 @@ estados positivos/finalizados.
 | Tela                            | Data       | Findings                                                                                                                                                                                                                  | Resultado                                    |
 | ------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
 | RepertorioEtiquetasManagerSheet | 2026-08-20 | F1 (hierarquia composer/lista igual), F2 (edição inline muta layout do card), F3 (grid quebrado: 3/5/7/13), F4 (opacity ad-hoc em vez de token), F5 (circleSize 26≠22 sem motivo), F6 (zero riqueza gráfica, dot isolado) | Todos aprovados — implementação em andamento |
+
+---
+
+# Design System — AgendaDetailsDadosTab (escopo: card "Dados" da ocorrência)
+
+> Escopo: `components/pages/ministerios/agenda/AgendaDetailsDadosTab.tsx`. Revisão: 2026-08-26
+
+## Regras de Design Confirmadas
+
+- **[confirmed 2026-08-26]** Chip de origem (`Padrão do evento`/`Aplicado nesta série`/`Ajuste desta
+  ocorrência`) nunca vira `View` própria full-width abaixo do editor — isola visualmente como bloco
+  de rodapé separado. Vira tag inline colada ao lado do valor exibido pelo campo (mesma linha do
+  valor, não linha própria).
+- **[confirmed 2026-08-26]** Campos com trigger próprio mostrando o valor (Nome, Data e horário,
+  Local, Descrição, Horário de ensaio, Template) nunca duplicam o rótulo — usar `hideLabel` em
+  `OccurrenceFieldSection`, título aparece uma única vez (dentro do próprio trigger).
+- **[confirmed 2026-08-26]** Campo de seleção com poucos valores que abre bottom sheet (Template)
+  segue o mesmo padrão visual de campo-texto-com-sheet (Nome/Local/Descrição): pressable-row
+  mostrando o valor resolvido, tap abre sheet — nunca `FancyBottomSheetSelect` inline dentro do card
+  quando o campo já participa desse padrão de trigger+sheet.
+- **[confirmed 2026-08-26]** Cor de ícone-wrap por campo segue categoria semântica (reforça "Cores
+  semânticas em ações" do `CLAUDE.md` do frontend), nunca cor arbitrária por campo:
+  - Informativo (Nome, Local, Descrição) → `palette.secondary` tint (`withAlpha` 0.14).
+  - Ajuste/config (Data e horário, Horário de ensaio, Template) → `palette.warning` tint
+    (`withAlpha` 0.14).
+- **[confirmed 2026-08-26]** Header de card (`CardHeader`/`cardHeaderRow`) ganha fundo próprio
+  (`palette.backgroundColor2` light / `backgroundColor3` dark), retangular reto (sem radius próprio,
+  fora do escopo desta correção), diferenciando visualmente do corpo do card.
+
+## Log de Telas Revisadas
+
+| Tela                    | Data       | Findings                                                                                                                                            | Resultado          |
+| ------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| AgendaDetailsDadosTab   | 2026-08-26 | F1 (chip origem isolado em bloco próprio), F2 (Horário de ensaio com label duplicada), F3 (Template com dropdown inline em vez de trigger+sheet), F4 (ícones todos primary, sem categoria), F5 (header sem fundo próprio) | Todos aprovados e implementados — tsc limpo |

@@ -3,6 +3,7 @@ import FancyText from './FancyText';
 import { ThemePalette } from '../constants/colors';
 import { usePallete } from '../hooks/usePallete';
 import { useThemedStyles } from '../hooks/useThemedStyles';
+import { ColorUtils } from '../utils/color_utils';
 
 export type FancyDataPanelProps = {
   containerStyle?: StyleProp<ViewStyle>;
@@ -56,7 +57,7 @@ function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
     container: {},
     panelContainer: {
-      backgroundColor: palette.backgroundColor2,
+      backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
       minHeight: 33,
       minWidth: 77,
       justifyContent: 'center',
@@ -64,7 +65,7 @@ function createStyles(palette: ThemePalette) {
       borderRadius: 100,
       paddingHorizontal: 11,
       borderWidth: 1,
-      borderColor: palette.borderCard,
+      borderColor: ColorUtils.withAlpha(palette.primary, 0.35),
     },
     text: {
       flexShrink: 1,

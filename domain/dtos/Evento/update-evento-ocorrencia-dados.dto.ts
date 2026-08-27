@@ -4,9 +4,11 @@ import { TemplatePadraoOrigemEnum } from '../../enums/Evento/template-padrao-ori
 export type UpdateEventoOcorrenciaDadosDto = {
   dataReferencia: string;
   escopo: TemplatePadraoEscopoEnum;
+  nome?: string;
   dataInicio?: string;
   dataTermino?: string;
   local?: string;
+  descricao?: string;
 };
 
 export type RemoveEventoOcorrenciaDadosDto = {
@@ -18,9 +20,11 @@ export type ResponseEventoOcorrenciaDadosDto = {
   eventoId: string;
   dataReferencia: string;
   escopo: TemplatePadraoEscopoEnum;
+  nome: string;
   dataInicio: string;
   dataTermino: string | null;
   local: string | null;
+  descricao: string | null;
   dadosOcorrenciaOrigem: TemplatePadraoOrigemEnum;
 };
 
