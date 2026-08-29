@@ -1,72 +1,87 @@
-# Issue tracker: GitHub
+# Issue tracker: Notion
 
-Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all operations.
+Issues, bugs e melhorias deste projeto vivem como linhas na database Notion **Diakonia**,
+compartilhada entre `artos-frontend`, `artos-backend` e `diakonia-public-site` (mesmo produto,
+tracker único). Use as ferramentas MCP do Notion para todas as operações — nunca GitHub Issues,
+nunca arquivos locais.
 
-## Conventions
+- **Database**: [Diakonia](https://app.notion.com/p/8017cfcb9ca34c1ea28f8c6462c536d5) (dentro da
+  página `DIAKONIA`)
+- **Data source ID**: `50b40c4b-23c5-4910-8c50-a024e95d881a` (use como
+  `collection://50b40c4b-23c5-4910-8c50-a024e95d881a` em `notion-query-data-sources`)
 
-- **Create an issue**: `gh issue create --title "..." --body "..."`. Use a heredoc for multi-line
-  bodies.
-- **Read an issue**: `gh issue view <number> --comments`, filtering comments by `jq` and also
-  fetching labels.
-- **List issues**:
-  `gh issue list --state open --json number,title,body,labels,comments --jq '[.[] | {number, title, body, labels: [.labels[].name], comments: [.comments[].body]}]'`
-  with appropriate `--label` and `--state` filters.
-- **Comment on an issue**: `gh issue comment <number> --body "..."`
-- **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`
-- **Close**: `gh issue close <number> --comment "..."`
+## Schema
 
-Infer the repo from `git remote -v` — `gh` does this automatically when run inside a clone.
+| Propriedade     | Tipo        | Valores                                                                          |
+| ---------------- | ----------- | --------------------------------------------------------------------------------- |
+| `Nome`            | title       | —                                                                                 |
+| `Tipo`            | select      | `Bug`, `Funcionalidade`, `Melhoria`                                              |
+| `Prioridade`      | select      | `Alta`, `Média`, `Baixa`                                                         |
+| `Status`          | select      | `Novo`, `Em andamento`, `Resolvido`                                              |
+| `Triagem`         | select      | `A Triar`, `Aguardando Informação`, `Pronta para Agente`, `Pronta para Humano`, `Não Será Feito` — ver `docs/agents/triage-labels.md` |
+| `Plataforma`      | select      | `Android`, `iOS`, `Web`, `Backend`, `Site`                                       |
+| `Reportado por`   | text        | —                                                                                 |
+| `Descrição`       | text        | O que aconteceu, print ou relato                                                 |
+| `Notas`           | text        | —                                                                                 |
+| `Data`            | date        | —                                                                                 |
+| `Anexos`          | file        | —                                                                                 |
 
-## Pull requests as a triage surface
+**Neste repositório (`artos-frontend`)**: ao criar um item, defina `Plataforma` como `Android`,
+`iOS` ou `Web`, conforme a plataforma afetada (não use `Backend` nem `Site` aqui — essas são de
+`artos-backend` e `diakonia-public-site`, que compartilham a mesma database).
 
-**PRs as a request surface: no.** _(Set to `yes` if this repo treats external PRs as feature
-requests; `/triage` reads this flag.)_
+## Convenções
 
-When set to `yes`, PRs run through the same labels and states as issues, using the `gh pr`
-equivalents:
+- **Criar um item**: `notion-create-pages` com `parent.data_source_id` igual ao data source acima
+  e `properties` preenchendo pelo menos `Nome`, `Tipo`, `Prioridade`, `Status: Novo`,
+  `Triagem: A Triar`, `Plataforma` e `Reportado por`. Coloque o relato detalhado em `Descrição`
+  e/ou no corpo da página (conteúdo Markdown).
+- **Ler um item**: `notion-fetch` com a URL ou o ID da página do item.
+- **Listar itens**: `notion-query-data-sources` em modo SQL contra
+  `collection://50b40c4b-23c5-4910-8c50-a024e95d881a`, filtrando por `Plataforma` (para escopar
+  ao repo), `Status`, `Triagem` etc. Exemplo:
+  ```sql
+  SELECT * FROM "collection://50b40c4b-23c5-4910-8c50-a024e95d881a"
+  WHERE "Plataforma" IN ('Android', 'iOS', 'Web') AND "Status" != 'Resolvido'
+  ```
+- **Atualizar um item** (status, triagem, prioridade, etc.): `notion-update-page` com o `page_id`
+  e as `properties` alteradas.
+- **Comentar em um item**: `notion-create-comment` com o `page_id` (ou `discussion_id` para
+  responder numa thread existente).
+- **Buscar itens por texto livre**: `notion-search` com `data_source_url` apontando pro data
+  source acima, quando uma busca semântica for mais útil que uma query SQL exata.
 
-- **Read a PR**: `gh pr view <number> --comments` and `gh pr diff <number>` for the diff.
-- **List external PRs for triage**:
-  `gh pr list --state open --json number,title,body,labels,author,authorAssociation,comments` then
-  keep only `authorAssociation` of `CONTRIBUTOR`, `FIRST_TIME_CONTRIBUTOR`, or `NONE` (drop
-  `OWNER`/`MEMBER`/`COLLABORATOR`).
-- **Comment / label / close**: `gh pr comment`, `gh pr edit --add-label`/`--remove-label`,
-  `gh pr close`.
+## PRs como superfície de triagem
 
-GitHub shares one number space across issues and PRs, so a bare `#42` may be either — resolve with
-`gh pr view 42` and fall back to `gh issue view 42`.
+**Não.** PRs no GitHub não alimentam nem são lidos por este tracker. Toda a triagem acontece na
+database Notion.
 
-## When a skill says "publish to the issue tracker"
+## Quando uma skill disser "publish to the issue tracker"
 
-Create a GitHub issue.
+Criar um item na database Diakonia (`notion-create-pages`), com `Plataforma` apropriada a este
+repo.
 
-## When a skill says "fetch the relevant ticket"
+## Quando uma skill disser "fetch the relevant ticket"
 
-Run `gh issue view <number> --comments`.
+Rodar `notion-fetch` na URL/ID da página do item.
 
-## Wayfinding operations
+## Wayfinding (mapa e tickets filhos)
 
-Used by `/wayfinder`. The **map** is a single issue with **child** issues as tickets.
+A database Diakonia não tem uma relação nativa de pai/filho, então `/wayfinder` usa hierarquia de
+páginas do Notion em vez de uma propriedade de relação:
 
-- **Map**: a single issue labelled `wayfinder:map`, holding the Notes / Decisions-so-far / Fog body.
-  `gh issue create --label wayfinder:map`.
-- **Child ticket**: an issue linked to the map as a GitHub sub-issue (`gh api` on the sub-issues
-  endpoint). Where sub-issues aren't enabled, add the child to a task list in the map body and put
-  `Part of #<map>` at the top of the child body. Labels: `wayfinder:<type>`
-  (`research`/`prototype`/`grilling`/`task`). Once claimed, the ticket is assigned to the driving
-  dev.
-- **Blocking**: GitHub's **native issue dependencies** — the canonical, UI-visible representation.
-  Add an edge with
-  `gh api --method POST repos/<owner>/<repo>/issues/<child>/dependencies/blocked_by -F issue_id=<blocker-db-id>`,
-  where `<blocker-db-id>` is the blocker's numeric **database id**
-  (`gh api repos/<owner>/<repo>/issues/<n> --jq .id`, _not_ the `#number` or `node_id`). GitHub
-  reports `issue_dependencies_summary.blocked_by` (open blockers only — the live gate). Where
-  dependencies aren't available, fall back to a `Blocked by: #<n>, #<n>` line at the top of the
-  child body. A ticket is unblocked when every blocker is closed.
-- **Frontier query**: list the map's open children (`gh issue list --state open`, scoped to the
-  map's sub-issues / task list), drop any with an open blocker
-  (`issue_dependencies_summary.blocked_by > 0`, or an open issue in the `Blocked by` line) or an
-  assignee; first in map order wins.
-- **Claim**: `gh issue edit <n> --add-assignee @me` — the session's first write.
-- **Resolve**: `gh issue comment <n> --body "<answer>"`, then `gh issue close <n>`, then append a
-  context pointer (gist + link) to the map's Decisions-so-far.
+- **Mapa**: uma página comum do Notion (não uma linha da database), criada com `notion-create-pages`
+  fora da database, contendo o corpo Notes / Decisions-so-far / Fog.
+- **Ticket filho**: uma linha da database Diakonia criada como página-filha do mapa
+  (`notion-create-pages` com `parent` = ID da página do mapa). Já que a database em si não aceita
+  páginas-filhas soltas, prefira registrar `Part of: <link do mapa>` no campo `Notas` do ticket
+  como o vínculo canônico.
+- **Bloqueio**: sem suporte nativo — registrar `Bloqueado por: <link>` em `Notas` do ticket
+  bloqueado. Um ticket é considerado desbloqueado quando todos os links em `Notas` apontam para
+  itens com `Status: Resolvido`.
+- **Fronteira (frontier)**: listar os tickets filhos do mapa via `notion-query-data-sources`
+  filtrando por `Status != 'Resolvido'`, descartar os que tenham um bloqueio aberto em `Notas`;
+  o primeiro na ordem de criação vence.
+- **Claim**: `notion-update-page` no ticket, adicionando "Claimed by: <dev>" em `Notas`.
+- **Resolver**: `notion-create-comment` com a resposta, depois `notion-update-page` setando
+  `Status: Resolvido`, depois um ponteiro de contexto anexado às Decisions-so-far do mapa.
