@@ -204,13 +204,14 @@ style={{ elevation: 2, shadowOpacity: 0.2 }}
 
 ### Issue tracker
 
-Issues vivem como GitHub Issues em `trfernandes/artos-frontend`, geridas via `gh` CLI. Ver
-`docs/agents/issue-tracker.md`.
+Issues vivem na database Notion **Diakonia** (compartilhada com `artos-backend` e
+`diakonia-public-site`). Ver `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
-Vocabulário padrão de labels (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`,
-`wontfix`). Ver `docs/agents/triage-labels.md`.
+Vocabulário padrão dos 5 papéis canônicos, mapeado pra propriedade `Triagem` do Notion (`A Triar`,
+`Aguardando Informação`, `Pronta para Agente`, `Pronta para Humano`, `Não Será Feito`). Ver
+`docs/agents/triage-labels.md`.
 
 ### Domain docs
 
