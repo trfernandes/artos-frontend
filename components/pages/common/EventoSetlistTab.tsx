@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import Toast from 'react-native-toast-message';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import FancyBottomSheetModal from '../../modal/FancyBottomSheetModal';
+import { FancyAlert } from '../../modal/FancyAlert';
 import FancySeparator from '../../FancySeparator';
 import FancyButton from '../../buttons/FancyButton';
 import FancyBottomSheetSelect from '../../fields/FancyBottomSheetSelect';
@@ -314,7 +315,7 @@ export default function EventoSetlistTab({
   };
 
   const confirmDeleteItem = (item: ResponseEventoSetlistItemDto) => {
-    Alert.alert('Excluir música?', 'Essa ação não pode ser desfeita.', [
+    FancyAlert.alert('Excluir música?', 'Essa ação não pode ser desfeita.', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Excluir',
@@ -609,40 +610,26 @@ export default function EventoSetlistTab({
         ministerioId={ministerioId}
         onClose={() => setEditorVisible(false)}
         onSave={async (payload) => {
+          const dto = {
+            ministerioId: ministerioId || '',
+            dataOcorrencia: dataOcorrenciaIso,
+            tipoOrigem: payload.tipoOrigem,
+            repertorioMusicaId: payload.repertorioMusicaId,
+            nome: payload.nome,
+            interprete: payload.interprete,
+            versaoUrl: payload.versaoUrl,
+            tom: payload.tom,
+            bpm: payload.bpm,
+            letraMarkdown: payload.letraMarkdown,
+            cifraMarkdown: payload.cifraMarkdown,
+            observacoes: payload.observacoes,
+          };
+
           try {
             if (payload.itemId) {
-              await atualizarSetlistItem({
-                itemId: payload.itemId,
-                dto: {
-                  ministerioId: ministerioId || '',
-                  dataOcorrencia: dataOcorrenciaIso,
-                  tipoOrigem: payload.tipoOrigem,
-                  repertorioMusicaId: payload.repertorioMusicaId,
-                  nome: payload.nome,
-                  interprete: payload.interprete,
-                  versaoUrl: payload.versaoUrl,
-                  tom: payload.tom,
-                  bpm: payload.bpm,
-                  letraMarkdown: payload.letraMarkdown,
-                  cifraMarkdown: payload.cifraMarkdown,
-                  observacoes: payload.observacoes,
-                },
-              });
+              await atualizarSetlistItem({ itemId: payload.itemId, dto });
             } else {
-              await criarSetlistItem({
-                ministerioId: ministerioId || '',
-                dataOcorrencia: dataOcorrenciaIso,
-                tipoOrigem: payload.tipoOrigem,
-                repertorioMusicaId: payload.repertorioMusicaId,
-                nome: payload.nome,
-                interprete: payload.interprete,
-                versaoUrl: payload.versaoUrl,
-                tom: payload.tom,
-                bpm: payload.bpm,
-                letraMarkdown: payload.letraMarkdown,
-                cifraMarkdown: payload.cifraMarkdown,
-                observacoes: payload.observacoes,
-              });
+              await criarSetlistItem(dto);
             }
           } catch (error) {
             Toast.show({
