@@ -216,3 +216,9 @@ Vocabulário padrão dos 5 papéis canônicos, mapeado pra propriedade `Triagem`
 ### Domain docs
 
 Layout de contexto único (`CONTEXT.md` + `docs/adr/` na raiz). Ver `docs/agents/domain.md`.
+
+### Grilling / perguntas de esclarecimento
+
+Ao rodar uma sessão de grilling (skill `grilling`) ou qualquer rodada de perguntas de
+esclarecimento ao usuário, sempre usar a ferramenta `AskUserQuestion` (uma pergunta por vez, com
+opções e recomendação marcada) em vez de listar as perguntas em texto corrido.
