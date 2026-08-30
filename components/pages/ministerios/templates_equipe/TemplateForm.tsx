@@ -20,10 +20,12 @@ import {
   EscalaTemplateTipoEnumMap,
 } from '../../../../domain/enums/EscalaTemplate/escala-template-tipo.enum';
 import { MinisterioFuncaoStatusEnum } from '../../../../domain/enums/MinisterioFuncao/ministerio-funcao-status.enum';
+import { MinisterioTipoEnum } from '../../../../domain/enums/Ministerio/ministerio-tipo.enum';
 
 export interface TemplateFormProps {
   mode: 'add' | 'edit';
   ministerioId?: string;
+  ministerioTipo?: MinisterioTipoEnum;
   onSave?: () => void;
   isLoading?: boolean;
 }
@@ -31,6 +33,7 @@ export interface TemplateFormProps {
 export default function TemplateForm({
   mode = 'add',
   ministerioId,
+  ministerioTipo,
   onSave,
   isLoading = false,
 }: TemplateFormProps) {
@@ -119,13 +122,15 @@ export default function TemplateForm({
         <FormProvider {...form}>
           {EscalaTemplateTipoEnumMap[tipoWatch] === EscalaTemplateTipoEnum.Funcoes && (
             <>
-              <ControlledBottomSheetSelect
-                control={form.control}
-                name={'respSetListFuncoesId'}
-                label='Responsável pelo setlist'
-                listItems={respSetListFuncoesDropDownList}
-                disabled={isFormDisabled}
-              />
+              {ministerioTipo === MinisterioTipoEnum.Louvor && (
+                <ControlledBottomSheetSelect
+                  control={form.control}
+                  name={'respSetListFuncoesId'}
+                  label='Responsável pelo setlist'
+                  listItems={respSetListFuncoesDropDownList}
+                  disabled={isFormDisabled}
+                />
+              )}
               <TemplateFuncoesList
                 funcoesList={funcoesDropDownList}
                 disabled={isFormDisabled}
@@ -136,13 +141,15 @@ export default function TemplateForm({
           )}
           {EscalaTemplateTipoEnumMap[tipoWatch] === EscalaTemplateTipoEnum.Fixo && (
             <>
-              <ControlledBottomSheetSelect
-                control={form.control}
-                name={'respSetListVoluntariosId'}
-                label='Responsável pelo setlist'
-                disabled={isFormDisabled}
-                listItems={respSetListVoluntariosDropDownList}
-              />
+              {ministerioTipo === MinisterioTipoEnum.Louvor && (
+                <ControlledBottomSheetSelect
+                  control={form.control}
+                  name={'respSetListVoluntariosId'}
+                  label='Responsável pelo setlist'
+                  disabled={isFormDisabled}
+                  listItems={respSetListVoluntariosDropDownList}
+                />
+              )}
               <TemplateFixoEquipeList
                 disabled={isFormDisabled}
                 voluntariosList={ministerioVoluntariosList}
