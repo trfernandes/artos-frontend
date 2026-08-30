@@ -353,6 +353,10 @@ export default function AgendaDetailsDadosTab(props: {
       ) ?? false,
     [igrejaAtiva?.ministerios, props.ministerioId],
   );
+  // Mesmo dado por trás dos dois rótulos — Ministério de Louvor vê "Ensaio", os demais veem
+  // "Chegada" (ver CONTEXT.md "Horário de Ensaio/Chegada").
+  const ensaioChegadaLabel = isLouvorMinisterio ? 'ensaio' : 'chegada';
+  const EnsaioChegadaLabel = isLouvorMinisterio ? 'Ensaio' : 'Chegada';
   const { data: templates, isLoading: isLoadingTemplates } = useEscalaTemplatesCrud({
     autoFetch: false,
     initialParams: {
@@ -594,13 +598,13 @@ export default function AgendaDetailsDadosTab(props: {
       if (!isValid && showToast) {
         FancyAlert.alert(
           'Horário inválido',
-          `O ensaio precisa começar ao menos 30 min antes da ocorrência às ${occurrenceTimeLabel}.`,
+          `O ${ensaioChegadaLabel} precisa começar ao menos 30 min antes da ocorrência às ${occurrenceTimeLabel}.`,
         );
       }
 
       return isValid;
     },
-    [occurrenceTimeLabel, props.dataOcorrenciaDate],
+    [ensaioChegadaLabel, occurrenceTimeLabel, props.dataOcorrenciaDate],
   );
 
   const origemEnsaioLabel = useMemo(() => {
@@ -815,6 +819,7 @@ export default function AgendaDetailsDadosTab(props: {
         const response = await salvarEnsaio({
           eventoId,
           data: {
+            ministerioId: props.ministerioId,
             dataOcorrencia: props.dataOcorrenciaIso,
             escopo,
             horarioEnsaio: formatHourMinuteToTime(ensaioTime),
@@ -829,6 +834,7 @@ export default function AgendaDetailsDadosTab(props: {
           await removerEnsaio({
             eventoId,
             params: {
+              ministerioId: props.ministerioId,
               escopo: TemplatePadraoEscopoEnum.OCORRENCIA,
               dataOcorrencia: props.dataOcorrenciaIso,
             },
@@ -839,16 +845,18 @@ export default function AgendaDetailsDadosTab(props: {
       } catch (error) {
         Toast.show({
           type: 'error',
-          text1: 'Erro ao salvar horário de ensaio',
-          text2: getApiErrorMessage(error, 'Não foi possível salvar o horário de ensaio.'),
+          text1: `Erro ao salvar horário de ${ensaioChegadaLabel}`,
+          text2: getApiErrorMessage(error, `Não foi possível salvar o horário de ${ensaioChegadaLabel}.`),
         });
         return false;
       }
     },
     [
+      ensaioChegadaLabel,
       ensaioTime,
       props.dataOcorrenciaIso,
       props.evento.id,
+      props.ministerioId,
       props.ocorrencia?.eventoId,
       removerEnsaio,
       salvarEnsaio,
@@ -1057,7 +1065,7 @@ export default function AgendaDetailsDadosTab(props: {
       if (templateDirty) propagableLabels.push('template da equipe');
       if (isLouvorMinisterio && responsavelSetlistDirty)
         propagableLabels.push('responsável do setlist');
-      if (ensaioDirty) propagableLabels.push('horário de ensaio');
+      if (ensaioDirty) propagableLabels.push(`horário de ${ensaioChegadaLabel}`);
 
       if (propagableLabels.length > 0) {
         const scope = await promptConsolidatedScope(propagableLabels);
@@ -1122,6 +1130,7 @@ export default function AgendaDetailsDadosTab(props: {
   }, [
     canManageOccurrence,
     dadosDirty,
+    ensaioChegadaLabel,
     ensaioDirty,
     hideLoading,
     isLouvorMinisterio,
@@ -1299,7 +1308,7 @@ export default function AgendaDetailsDadosTab(props: {
                 ) : null}
 
                 <OccurrenceFieldSection
-                  label='Horário de ensaio'
+                  label={`Horário de ${EnsaioChegadaLabel}`}
                   origin={origemEnsaioLabel}
                   dirty={ensaioDirty}
                   editor={
@@ -1376,7 +1385,7 @@ export default function AgendaDetailsDadosTab(props: {
                               setEnsaioTime(time);
                               setIsTimePickerVisible(false);
                             }}
-                            title='Horário de ensaio'
+                            title={`Horário de ${EnsaioChegadaLabel}`}
                           />
                         </>
                       ) : (
