@@ -216,3 +216,9 @@ Vocabulário padrão dos 5 papéis canônicos, mapeado pra propriedade `Triagem`
 ### Domain docs
 
 Layout de contexto único (`CONTEXT.md` + `docs/adr/` na raiz). Ver `docs/agents/domain.md`.
+
+### Processo de desenvolvimento
+
+Todo item do tracker passa por 7 etapas obrigatórias (ler → grillar → implementar → testar →
+corrigir → review → atualizar Notion), sem caminho leve. Fonte única do processo é o repo
+`artos-backend`, em `docs/agents/processo-dev.md`.
