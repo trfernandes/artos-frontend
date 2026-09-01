@@ -36,7 +36,7 @@ import { useEventoOcorrenciaCancelamento } from '../../../../hooks/useEventoOcor
 import { useEventoSetlistResponsavel } from '../../../../hooks/useEventoSetlistResponsavel';
 import { TemplatePadraoOrigemEnum } from '../../../../domain/enums/Evento/template-padrao-origem.enum';
 import { TemplatePadraoEscopoEnum } from '../../../../domain/enums/Evento/template-padrao-escopo.enum';
-import { MinisterioTipoEnum } from '../../../../domain/enums/Ministerio/ministerio-tipo.enum';
+import { ministerioEhLouvor } from '../../../../utils/ministerio_permissoes';
 import { getApiErrorMessage } from '../../../../domain/api/api-error';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useLoading } from '../../../../contexts/LoadingContext';
@@ -349,7 +349,7 @@ export default function AgendaDetailsDadosTab(props: {
     () =>
       igrejaAtiva?.ministerios?.some(
         (ministerio) =>
-          ministerio.id === props.ministerioId && ministerio.tipo === MinisterioTipoEnum.Louvor,
+          ministerio.id === props.ministerioId && ministerioEhLouvor(ministerio),
       ) ?? false,
     [igrejaAtiva?.ministerios, props.ministerioId],
   );

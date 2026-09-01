@@ -10,6 +10,7 @@ import React, {
   isValidElement,
 } from 'react';
 import { View, StyleSheet, Animated, Dimensions, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import FancyButton from '../buttons/FancyButton';
 import FancyText from '../FancyText';
@@ -45,6 +46,7 @@ const MODAL_STACK_ID = 'fancy-alert';
 export function FancyAlertProvider({ children }: { children: ReactNode }) {
   const palette = usePallete();
   const { isDark } = useAppTheme();
+  const insets = useSafeAreaInsets();
   const [visible, setVisible] = useState(false);
   const [title, setTitle] = useState<string | React.ReactNode>();
   const [message, setMessage] = useState<string | React.ReactNode>('');
@@ -115,8 +117,8 @@ export function FancyAlertProvider({ children }: { children: ReactNode }) {
         style={[styles.backdrop, { opacity: backdropAnim, backgroundColor: reliableBackdropColor }]}
       >
         <BlurView
-          intensity={Platform.OS === 'ios' ? 28 : 60}
-          tint={isDark ? 'dark' : 'default'}
+          intensity={Platform.OS === 'ios' ? 28 : 25}
+          tint='dark'
           experimentalBlurMethod={Platform.OS === 'android' ? 'dimezisBlurView' : 'none'}
           style={StyleSheet.absoluteFillObject}
         />
@@ -134,7 +136,7 @@ export function FancyAlertProvider({ children }: { children: ReactNode }) {
           <View style={[styles.handle, { backgroundColor: palette.border }]} />
         </View>
 
-        <View style={styles.content}>
+        <View style={[styles.content, { paddingBottom: insets.bottom + 20 }]}>
           {title ? (
             isValidElement(title) ? (
               title
@@ -247,7 +249,6 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 22,
-    paddingBottom: 32,
   },
   title: { marginBottom: 10 },
   message: { marginBottom: 20, lineHeight: 20 },

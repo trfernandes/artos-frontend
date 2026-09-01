@@ -7,6 +7,7 @@ import AgendaDetailsDadosTab, {
   AgendaDetailsDadosTabActions,
 } from '../../../../../components/pages/ministerios/agenda/AgendaDetailsDadosTab';
 import AgendaDetailsEscalaTab from '../../../../../components/pages/ministerios/agenda/AgendaDetailsEscalaTab';
+import EventoSetlistTab from '../../../../../components/pages/common/EventoSetlistTab';
 import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
 import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -15,7 +16,11 @@ import { ResponseEventoOcorrenciaDto } from '../../../../../domain/dtos/Evento/e
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { EventoTipoEnum } from '../../../../../domain/enums/Evento/evento-tipo.enum';
-import { canManageEventoOcorrencia } from '../../../../../utils/ministerio_permissoes';
+import {
+  canManageEventoOcorrencia,
+  getMinisterioLoginAccess,
+  ministerioEhLouvor,
+} from '../../../../../utils/ministerio_permissoes';
 
 type ExitChoice = 'cancel' | 'discard' | 'save';
 
@@ -27,7 +32,7 @@ export default function MinisterioAgendaDetailsPage() {
     ministerioId: string;
   }>();
   const navigation = useNavigation<any>();
-  const { igrejaAtiva } = useAuth();
+  const { igrejaAtiva, user } = useAuth();
   const { showLoading, hideLoading } = useLoading();
   const eventoId = params.eventoId || params.id || '';
   const canManageAgenda = canManageEventoOcorrencia(igrejaAtiva, params.ministerioId);
@@ -151,6 +156,18 @@ export default function MinisterioAgendaDetailsPage() {
   // Reunião/Ensaio não têm Escala/equipe nem Setlist — só Evento do tipo Culto tem.
   const isEventoCulto = data[0]?.tipo === undefined || data[0]?.tipo === EventoTipoEnum.Culto;
 
+  const isMinisterioLouvor = ministerioEhLouvor(
+    getMinisterioLoginAccess(igrejaAtiva, params.ministerioId),
+  );
+
+  const responsavelSetlistVoluntarioId = ocorrenciaAtual?.responsavelSetlistVoluntarioId;
+  const responsavelSetlistNome = ocorrenciaAtual?.responsavelSetlistVoluntario?.nome ?? undefined;
+  const setlistMode: 'lider' | 'responsavel' | 'leitura' = canManageAgenda
+    ? 'lider'
+    : responsavelSetlistVoluntarioId && responsavelSetlistVoluntarioId === user?.user.id
+      ? 'responsavel'
+      : 'leitura';
+
   const tab_items: TabItem[] = useMemo(() => {
     const tabs: TabItem[] = [
       {
@@ -188,8 +205,36 @@ export default function MinisterioAgendaDetailsPage() {
       });
     }
 
+    if (isMinisterioLouvor) {
+      tabs.push({
+        title: 'Setlist',
+        icon: { library: 'MaterialCommunityIcons', name: 'playlist-music', size: 20, style: { marginTop: 0 } },
+        content: (
+          <EventoSetlistTab
+            eventoId={eventoId}
+            dataOcorrencia={new Date(params.dataOcorrencia)}
+            ministerioId={params.ministerioId}
+            mode={setlistMode}
+            responsavelSetlistNome={responsavelSetlistNome}
+            detailsRoutePath='/ministerios/agenda/setlist/[itemId]'
+          />
+        ),
+      });
+    }
+
     return tabs;
-  }, [canManageAgenda, carregarOcorrenciaAtual, data, eventoId, isEventoCulto, params.dataOcorrencia, params.ministerioId]);
+  }, [
+    canManageAgenda,
+    carregarOcorrenciaAtual,
+    data,
+    eventoId,
+    isEventoCulto,
+    isMinisterioLouvor,
+    params.dataOcorrencia,
+    params.ministerioId,
+    responsavelSetlistNome,
+    setlistMode,
+  ]);
 
   const isLoadingData = isLoading || isLoadingOcorrencia || !eventoId || !data[0];
 

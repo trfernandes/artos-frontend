@@ -12,8 +12,8 @@ import { useAuth } from '../../../../../contexts/AuthContext';
 import {
   canManageEventoOcorrencia,
   getMinisterioLoginAccess,
+  ministerioEhLouvor,
 } from '../../../../../utils/ministerio_permissoes';
-import { MinisterioTipoEnum } from '../../../../../domain/enums/Ministerio/ministerio-tipo.enum';
 
 export default function EventoDetails(props: {
   evento: ResponseEventoDto;
@@ -29,7 +29,7 @@ export default function EventoDetails(props: {
 
   const TABS_DATA: TabItem[] = useMemo(() => {
     const ministerio = getMinisterioLoginAccess(igrejaAtiva, props.ministerioId);
-    const isMinisterioLouvor = ministerio?.tipo === MinisterioTipoEnum.Louvor;
+    const isMinisterioLouvor = ministerioEhLouvor(ministerio);
     const setlistMode: 'lider' | 'responsavel' | 'leitura' = canManageEventoOcorrencia(
       igrejaAtiva,
       props.ministerioId,

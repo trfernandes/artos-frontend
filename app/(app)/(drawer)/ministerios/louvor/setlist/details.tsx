@@ -94,5 +94,5 @@ export default function MinisterioLouvorSetlistDetailsPage() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingBottom: 10 },
+  container: { flex: 1, paddingHorizontal: 15, paddingBottom: 10 },
 });

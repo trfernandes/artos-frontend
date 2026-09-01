@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import Toast from 'react-native-toast-message';
@@ -16,6 +16,8 @@ import FancyText from '../../FancyText';
 import FancyTextInput from '../../fields/FancyTextInput';
 import EventoSetlistEditorSheet from './EventoSetlistEditorSheet';
 import FancyActionSheet from '../../actions/FancyActionSheet';
+import { FancyAlert } from '../../modal/FancyAlert';
+import { ModalStack } from '../../modal/GlobalModalHost';
 import SetListItem from './SetListItem';
 import { getApiErrorMessage } from '../../../domain/api/api-error';
 import {
@@ -30,7 +32,10 @@ import { useEventoSetlistObservacoes } from '../../../hooks/useEventoSetlistObse
 import { useEventoSetlistResponsavel } from '../../../hooks/useEventoSetlistResponsavel';
 import { useRepertorioMusicas } from '../../../hooks/useRepertorio';
 import { ColorUtils } from '../../../utils/color_utils';
+import { SETLIST_CLEAR_ENABLED } from '../../../utils/featureFlags';
 import { DefaultIconsNames } from '../../../constants/icons';
+
+const BUSY_MODAL_ID = 'evento-setlist-busy';
 
 type Props = {
   eventoId: string;
@@ -63,7 +68,9 @@ export default function EventoSetlistTab({
     atualizarSetlistItem,
     removerSetlistItem,
     reordenarSetlist,
-    isMutatingSetlist,
+    limparSetlist,
+    isReorderingSetlist,
+    isClearingSetlist,
   } = useEventoSetlist(eventoId, dataOcorrenciaIso, ministerioId);
   const { data: repertorioData = [] } = useRepertorioMusicas(ministerioId);
   const {
@@ -100,6 +107,47 @@ export default function EventoSetlistTab({
   useEffect(() => {
     setOrderedItems(items);
   }, [items]);
+
+  const isBusy = isReorderingSetlist || isClearingSetlist || !!deletingItemId;
+
+  useEffect(() => {
+    if (!isBusy) {
+      ModalStack.pop(BUSY_MODAL_ID);
+      return;
+    }
+
+    ModalStack.push(
+      BUSY_MODAL_ID,
+      <View
+        style={[styles.blockingOverlay, { backgroundColor: palette.overlays.backdrop }]}
+        pointerEvents='auto'
+      >
+        <View
+          style={[
+            styles.blockingOverlayContent,
+            {
+              backgroundColor: palette.backgroundColor4,
+              borderColor: palette.borderCard,
+              ...palette.shadows[200],
+            },
+          ]}
+        >
+          <FancyLoading
+            label={
+              deletingItemId
+                ? 'Removendo música...'
+                : isClearingSetlist
+                  ? 'Limpando setlist...'
+                  : 'Atualizando setlist...'
+            }
+            containerStyle={{ flex: 0, backgroundColor: 'transparent', paddingHorizontal: 0 }}
+          />
+        </View>
+      </View>,
+    );
+
+    return () => ModalStack.pop(BUSY_MODAL_ID);
+  }, [isBusy, deletingItemId, isClearingSetlist, palette]);
 
   const integrantesEquipeOptions = useMemo(() => {
     const seen = new Set<string>();
@@ -143,6 +191,11 @@ export default function EventoSetlistTab({
   const responsavelAtualNome =
     equipeData?.responsavelSetlistVoluntario?.nome || responsavelSetlistNome || null;
   const isCurrentUserResponsavel = !!responsavelAtualId && responsavelAtualId === user?.user?.id;
+  // Sem responsável definido: líder só pode incluir um responsável; nova música e
+  // orientações ficam desabilitados até existir responsável.
+  const hasResponsavel = !!responsavelAtualNome;
+  const canEditOrientacoes = isEditable && hasResponsavel;
+  const canAddMusicNow = canAddMusic && hasResponsavel;
   const responsavelDescricao = responsavelAtualNome
     ? isCurrentUserResponsavel
       ? 'Você define a seleção musical desta ocorrência.'
@@ -212,7 +265,7 @@ export default function EventoSetlistTab({
     }
   };
 
-  const handleSalvarResponsavel = async () => {
+  const handleSalvarResponsavel = async (limparSetlistApos = false) => {
     if (!ministerioId || !responsavelSelecionadoId) return;
 
     setIsSalvandoResponsavel(true);
@@ -226,12 +279,28 @@ export default function EventoSetlistTab({
           escopo: 'OCORRENCIA' as any,
         },
       });
+      let limpezaFalhou = false;
+      if (limparSetlistApos) {
+        try {
+          await limparSetlist();
+        } catch (limpezaError) {
+          limpezaFalhou = true;
+          Toast.show({
+            type: 'error',
+            text1: 'Responsável salvo, mas o setlist não foi limpo',
+            text2: getApiErrorMessage(limpezaError, 'Não foi possível limpar o setlist.'),
+          });
+        }
+      }
       await refetchEquipe();
       setResponsavelVisible(false);
-      Toast.show({
-        type: 'success',
-        text1: 'Responsável do SetList atualizado',
-      });
+      if (!limpezaFalhou) {
+        Toast.show({
+          type: 'success',
+          text1: 'Responsável do SetList atualizado',
+          text2: limparSetlistApos ? 'Setlist limpo.' : undefined,
+        });
+      }
     } catch (error) {
       Toast.show({
         type: 'error',
@@ -241,6 +310,64 @@ export default function EventoSetlistTab({
     } finally {
       setIsSalvandoResponsavel(false);
     }
+  };
+
+  // Troca de responsável com setlist já montado: perguntar se limpa tudo junto.
+  const requestSalvarResponsavel = () => {
+    const trocandoResponsavel =
+      !!responsavelAtualId && responsavelSelecionadoId !== responsavelAtualId;
+    if (SETLIST_CLEAR_ENABLED && trocandoResponsavel && items.length > 0) {
+      FancyAlert.alert(
+        'Trocar responsável',
+        'Deseja limpar o setlist inteiro ao trocar o responsável?',
+        [
+          {
+            text: 'Trocar e limpar',
+            style: 'destructive',
+            onPress: () => void handleSalvarResponsavel(true),
+          },
+          {
+            text: 'Só trocar',
+            style: 'default',
+            onPress: () => void handleSalvarResponsavel(false),
+          },
+          { text: 'Cancelar', style: 'cancel' },
+        ],
+      );
+      return;
+    }
+    void handleSalvarResponsavel(false);
+  };
+
+  const handleLimparSetlist = async () => {
+    try {
+      await limparSetlist();
+      Toast.show({
+        type: 'success',
+        text1: 'Setlist limpo',
+      });
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Erro ao limpar setlist',
+        text2: getApiErrorMessage(error, 'Não foi possível limpar o setlist.'),
+      });
+    }
+  };
+
+  const confirmLimparSetlist = () => {
+    FancyAlert.alert(
+      'Limpar setlist inteiro?',
+      'Todas as músicas serão removidas. Essa ação não pode ser desfeita.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Limpar',
+          style: 'destructive',
+          onPress: () => void handleLimparSetlist(),
+        },
+      ],
+    );
   };
 
   const handleDragEnd = async (nextItems: ResponseEventoSetlistItemDto[]) => {
@@ -314,7 +441,7 @@ export default function EventoSetlistTab({
   };
 
   const confirmDeleteItem = (item: ResponseEventoSetlistItemDto) => {
-    Alert.alert('Excluir música?', 'Essa ação não pode ser desfeita.', [
+    FancyAlert.alert('Excluir música?', 'Essa ação não pode ser desfeita.', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Excluir',
@@ -363,7 +490,10 @@ export default function EventoSetlistTab({
             <FancyText
               size='extraSmall'
               type='semiBold'
-              style={[styles.ownerEyebrow, { color: ColorUtils.withAlpha(palette.secondary, 0.88) }]}
+              style={[
+                styles.ownerEyebrow,
+                { color: ColorUtils.withAlpha(palette.secondary, 0.88) },
+              ]}
             >
               Responsável
             </FancyText>
@@ -375,9 +505,7 @@ export default function EventoSetlistTab({
               color={responsavelAtualNome ? palette.fonts.dark : palette.fonts.inactive}
               style={styles.ownerTitle}
             >
-              {isCurrentUserResponsavel
-                ? 'Você'
-                : responsavelAtualNome || 'Nenhum responsável'}
+              {isCurrentUserResponsavel ? 'Você' : responsavelAtualNome || 'Nenhum responsável'}
             </FancyText>
           </View>
         </View>
@@ -406,10 +534,10 @@ export default function EventoSetlistTab({
         ) : null}
       </View>
 
-      {(observacoesData?.observacoes || isEditable) && (
+      {(observacoesData?.observacoes || canEditOrientacoes) && (
         <Pressable
-          onPress={isEditable ? openObservacoes : undefined}
-          disabled={!isEditable}
+          onPress={canEditOrientacoes ? openObservacoes : undefined}
+          disabled={!canEditOrientacoes}
           style={[
             styles.observacoesCard,
             {
@@ -434,7 +562,7 @@ export default function EventoSetlistTab({
             >
               <DefaultIcons.Custom
                 library='MaterialCommunityIcons'
-                name={isEditable ? 'text-box-outline' : 'information-outline'}
+                name={canEditOrientacoes ? 'text-box-outline' : 'information-outline'}
                 size={14}
                 color={palette.primary}
               />
@@ -466,7 +594,7 @@ export default function EventoSetlistTab({
             </View>
           </View>
 
-          {isEditable ? (
+          {canEditOrientacoes ? (
             <Pressable
               onPress={openObservacoes}
               accessibilityRole='button'
@@ -489,7 +617,7 @@ export default function EventoSetlistTab({
 
       {orderedItems.length > 0 && <FancySeparator style={styles.sectionDivider} />}
 
-      {canAddMusic && (
+      {canAddMusicNow && (
         <View style={styles.listHeader}>
           <FancyButton
             label='Nova música'
@@ -504,6 +632,26 @@ export default function EventoSetlistTab({
             containerStyle={styles.addMusicButton}
             onPress={() => openItemEditor(null)}
           />
+          {SETLIST_CLEAR_ENABLED && orderedItems.length > 0 && (
+            <Pressable
+              onPress={confirmLimparSetlist}
+              accessibilityRole='button'
+              accessibilityLabel='Limpar setlist inteiro'
+              hitSlop={8}
+              style={[
+                styles.clearSetlistButton,
+                {
+                  backgroundColor: ColorUtils.withAlpha(palette.error, 0.1),
+                  borderColor: ColorUtils.withAlpha(palette.error, 0.24),
+                },
+              ]}
+            >
+              <MaterialCommunityIcons name='trash-can-outline' size={14} color={palette.error} />
+              <FancyText size='extraSmall' type='semiBold' color={palette.error}>
+                Limpar tudo
+              </FancyText>
+            </Pressable>
+          )}
         </View>
       )}
     </View>
@@ -565,7 +713,7 @@ export default function EventoSetlistTab({
               <FancyListEmpty
                 label='Nenhuma música adicionada'
                 helperText={
-                  canAddMusic
+                  canAddMusicNow
                     ? 'Adicione as músicas desta ocorrência para definir a sequência e acompanhar a duração total.'
                     : 'Quando o responsável montar o SetList, as músicas aparecerão aqui para consulta.'
                 }
@@ -579,30 +727,13 @@ export default function EventoSetlistTab({
             </View>
           }
         />
-        {isMutatingSetlist || deletingItemId ? (
-          <View
-            style={[styles.blockingOverlay, { backgroundColor: palette.overlays.backdrop }]}
-            pointerEvents='auto'
-          >
-            <View
-              style={[
-                styles.blockingOverlayContent,
-                { backgroundColor: palette.backgroundColor4, borderColor: palette.borderCard },
-              ]}
-            >
-              <FancyLoading
-                label={deletingItemId ? 'Removendo música...' : 'Atualizando setlist...'}
-                containerStyle={{ flex: 0 }}
-              />
-            </View>
-          </View>
-        ) : null}
       </View>
 
       <EventoSetlistEditorSheet
         visible={editorVisible}
         item={selectedItem}
         repertorio={repertorio}
+        nomesSetlist={items}
         canEdit={isEditable}
         eventoId={eventoId}
         dataOcorrenciaIso={dataOcorrenciaIso}
@@ -725,7 +856,7 @@ export default function EventoSetlistTab({
             isLoading={isSalvandoResponsavel}
             loadingText='Salvando...'
             disabled={!responsavelSelecionadoId || isSalvandoResponsavel}
-            onPress={() => void handleSalvarResponsavel()}
+            onPress={requestSalvarResponsavel}
           />
         }
       >
@@ -813,7 +944,6 @@ const styles = StyleSheet.create({
   },
   listContent: {
     flexGrow: 1,
-    paddingHorizontal: 15,
     paddingBottom: 28,
     gap: 12,
   },
@@ -821,7 +951,6 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   headerContainer: {
-    paddingHorizontal: 15,
     paddingTop: 8,
     paddingBottom: 4,
     marginBottom: 12,
@@ -938,7 +1067,7 @@ const styles = StyleSheet.create({
   listHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-start',
     gap: 8,
   },
   addMusicButton: {
@@ -946,6 +1075,15 @@ const styles = StyleSheet.create({
     height: 32,
     paddingHorizontal: 12,
     borderRadius: 50,
+  },
+  clearSetlistButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    height: 32,
+    paddingHorizontal: 12,
+    borderRadius: 50,
+    borderWidth: 0.6,
   },
   emptyState: {
     flexGrow: 1,
@@ -967,10 +1105,12 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 32,
     zIndex: 50,
   },
   blockingOverlayContent: {
     minWidth: 190,
+    maxWidth: 280,
     borderWidth: 1,
     borderRadius: 16,
     paddingHorizontal: 18,
