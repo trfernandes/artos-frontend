@@ -18,7 +18,9 @@
     "format:check": "prettier . --check",
     "submit:ios": "eas build --platform ios --auto-submit --non-interactive",
     "submit:android": "eas build --platform android --auto-submit --non-interactive",
-    "submit:all": "eas build --platform all --auto-submit --non-interactive"
+    "submit:all": "eas build --platform all --auto-submit --non-interactive",
+    "update:prod": "dotenv -e .env.production -- eas update --channel production",
+    "update:staging": "dotenv -e .env.staging -- eas update --channel staging"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
