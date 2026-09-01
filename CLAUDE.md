@@ -222,3 +222,8 @@ Layout de contexto único (`CONTEXT.md` + `docs/adr/` na raiz). Ver `docs/agents
 Todo item do tracker passa por 7 etapas obrigatórias (ler → grillar → implementar → testar →
 corrigir → review → atualizar Notion), sem caminho leve. Fonte única do processo é o repo
 `artos-backend`, em `docs/agents/processo-dev.md`.
+
+**Atenção**: `eas.json` tem perfil por ambiente — `development`/`staging`/`e2e` apontam pro backend
+de staging, só `production` aponta pro backend de produção. **Nunca** rodar `eas build --profile
+production` ou `eas submit` fora do fluxo de release (código já revisado e em `master`). Ver seção
+"Branches e deploy" do `processo-dev.md` (mesmo repo `artos-backend`) antes de qualquer build/submit.
