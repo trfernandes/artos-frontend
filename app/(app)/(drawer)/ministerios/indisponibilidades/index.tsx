@@ -582,8 +582,8 @@ export default function MinisterioIndisponibilidadesIndex() {
 function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
     container: { paddingBottom: 10, flex: 1 },
-    headerContent: { paddingHorizontal: 20 },
-    scrollContent: { paddingBottom: 100, paddingHorizontal: 20 },
+    headerContent: { paddingHorizontal: 15 },
+    scrollContent: { paddingBottom: 100, paddingHorizontal: 15 },
     emptyContainer: {
       flex: 1,
       justifyContent: 'center',
