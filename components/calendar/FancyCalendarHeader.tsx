@@ -245,7 +245,7 @@ function createStyles(palette: ThemePalette) {
       alignItems: 'center',
     },
     navButtonAgenda: {
-      width: 30,
+      width: 40,
       height: 30,
       borderRadius: 15,
       backgroundColor: 'transparent',

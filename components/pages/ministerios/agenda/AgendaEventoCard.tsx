@@ -40,7 +40,8 @@ export default function AgendaEventoCard({
 
   const countdownLabel = useMemo(() => {
     const diffDays = differenceInCalendarDays(startOfDay(ocorrenciaDate), startOfDay(new Date()));
-    if (diffDays <= 0) return 'Hoje';
+    if (diffDays < 0) return 'Realizado';
+    if (diffDays === 0) return 'Hoje';
     if (diffDays === 1) return 'Amanhã';
     return `Em ${diffDays}d`;
   }, [ocorrenciaDate]);
@@ -80,7 +81,9 @@ export default function AgendaEventoCard({
         <FancyChips
           size='small'
           label={isCancelled ? 'Cancelado' : countdownLabel}
-          color={isCancelled ? palette.fonts.inactive : eventColor}
+          color={
+            isCancelled || countdownLabel === 'Realizado' ? palette.fonts.inactive : eventColor
+          }
           dot={!isCancelled && countdownLabel === 'Hoje'}
         />
       }

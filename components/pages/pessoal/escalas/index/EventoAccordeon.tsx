@@ -79,7 +79,8 @@ export default function EventoAccordeon({
       startOfDay(new Date()),
     );
 
-    if (diffDays <= 0) return 'Hoje';
+    if (diffDays < 0) return 'Realizado';
+    if (diffDays === 0) return 'Hoje';
     if (diffDays === 1) return 'Amanhã';
     return `Em ${diffDays}d`;
   }, [data.dataOcorrencia]);
@@ -94,7 +95,11 @@ export default function EventoAccordeon({
 
   const statusChip = hasSubstituicaoPendente
     ? { label: 'Pendente', color: palette.warning, dot: false }
-    : { label: countdownLabel, color: eventColor, dot: countdownLabel === 'Hoje' };
+    : {
+        label: countdownLabel,
+        color: countdownLabel === 'Realizado' ? palette.fonts.inactive : eventColor,
+        dot: countdownLabel === 'Hoje',
+      };
 
   const metaPrimaryText = useMemo(() => {
     const totalFuncoes = data.itens.length;
