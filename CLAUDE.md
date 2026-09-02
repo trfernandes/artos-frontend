@@ -6,6 +6,28 @@ Ver [../CLAUDE.md](../CLAUDE.md) pra paths, comandos, git, scope discipline.
 
 Cada frente de trabalho = 1 tarefa na base Notion **"Tarefas Diakonia"** (`collection://50b40c4b-23c5-4910-8c50-a024e95d881a`). O estado de cada frente (branch, onde parei, próximo passo, falta testar) vive numa seção `## Estado do trabalho` no corpo dessa tarefa — não em arquivo solto nem só no chat. Status `Em andamento` = existe branch dedicada + seção preenchida. Uma branch por frente; feature nunca compartilha branch com hotfix; hotfix sai de `master`. Fluxo completo de interrupção por hotfix: `../CLAUDE.md` (local, só no PC).
 
+### Duas worktrees fixas
+
+`eas update` / `eas build` / `eas submit` publicam o **estado do disco** daquela pasta, não uma branch — working tree sujo vaza WIP no bundle. `git status` limpo é pré-requisito de todo OTA/build.
+
+| Pasta | Papel | Fica em |
+|---|---|---|
+| `D:\artos\artos_frontend` | **release**: hotfix, `update:prod`, `build`, `submit`, merge de feature pra `master` | `master` ou `hotfix/*` |
+| `D:\artos\artos_frontend_dev` | **dev**: toda feature/melhoria paralela | sempre `feat/*`, **nunca `master`** |
+
+Pasta dev é permanente e reutilizada entre features (`node_modules` fica; `npm install` só quando lockfile muda). Uma branch só existe em checkout num worktree por vez — git bloqueia o 2º. Antes de mergear uma feature na release, a dev precisa sair da branch (`git switch --detach origin/master`), senão `git branch -d` falha.
+
+`.git` (histórico/refs/remotes) é compartilhado — commit numa pasta aparece na outra na hora. Merge pra `master` leva só commits alcançáveis pela branch; WIP não-commitado da outra pasta nunca vaza.
+
+### Scripts (`scripts/`)
+
+- `session-start.ps1` — reporta estado das 2 worktrees (branch, tree sujo, branch "gone"). Rodar todo início de sessão.
+- `feature-start.ps1 -Slug <nome>` — na pasta dev: `fetch` + `git switch -c feat/<nome> origin/master`, com guards.
+- `feature-merge.ps1 -Slug <nome> [-Next <prox>]` — na pasta release: `checkout master` + `pull` + `merge --no-ff` + `push` + apaga branch local/remota. Aborta se a branch está em checkout na dev.
+- `pre-ota-check.ps1` — na pasta release: bloqueia OTA/build se não estiver em `master`/`hotfix/*` ou se o tree estiver sujo.
+
+Furos comuns: rodar comando na pasta errada (confirmar `pwd` + branch antes); dois Metros num device (parar um antes); `npm install` esquecido na dev após feature que mexeu em deps.
+
 ## Expo Router — estrutura de rotas
 
 ```
