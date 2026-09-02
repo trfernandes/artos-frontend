@@ -2,7 +2,7 @@ import { useLocalSearchParams, useNavigation } from 'expo-router';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
 import FancyTabs, { TabItem } from '../../../../../components/tabs/FancyTabs';
 import { DefaultIconsNames } from '../../../../../constants/icons';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { isBefore, startOfDay } from 'date-fns';
 import AgendaDetailsDadosTab, {
   AgendaDetailsDadosTabActions,
@@ -224,14 +224,18 @@ export default function MinisterioAgendaDetailsPage() {
             size: 20,
           },
           content: (
-            <EventoSetlistTab
-              eventoId={eventoId}
-              dataOcorrencia={new Date(params.dataOcorrencia)}
-              ministerioId={params.ministerioId}
-              mode={setlistMode}
-              responsavelSetlistNome={ocorrenciaAtual?.responsavelSetlistVoluntario?.nome ?? null}
-              detailsRoutePath='/ministerios/agenda/setlist/[itemId]'
-            />
+            <View style={styles.setlistTabGutter}>
+              <EventoSetlistTab
+                eventoId={eventoId}
+                dataOcorrencia={new Date(params.dataOcorrencia)}
+                ministerioId={params.ministerioId}
+                mode={setlistMode}
+                responsavelSetlistNome={
+                  ocorrenciaAtual?.responsavelSetlistVoluntario?.nome ?? null
+                }
+                detailsRoutePath='/ministerios/agenda/setlist/[itemId]'
+              />
+            </View>
           ),
         });
       }
@@ -247,14 +251,16 @@ export default function MinisterioAgendaDetailsPage() {
           style: { marginTop: 0 },
         },
         content: (
-          <EventoSetlistTab
-            eventoId={eventoId}
-            dataOcorrencia={new Date(params.dataOcorrencia)}
-            ministerioId={params.ministerioId}
-            mode={setlistMode}
-            responsavelSetlistNome={responsavelSetlistNome}
-            detailsRoutePath='/ministerios/agenda/setlist/[itemId]'
-          />
+          <View style={styles.setlistTabGutter}>
+            <EventoSetlistTab
+              eventoId={eventoId}
+              dataOcorrencia={new Date(params.dataOcorrencia)}
+              ministerioId={params.ministerioId}
+              mode={setlistMode}
+              responsavelSetlistNome={responsavelSetlistNome}
+              detailsRoutePath='/ministerios/agenda/setlist/[itemId]'
+            />
+          </View>
         ),
       });
     }
@@ -299,4 +305,5 @@ export default function MinisterioAgendaDetailsPage() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingBottom: 10 },
+  setlistTabGutter: { flex: 1, paddingHorizontal: 15 },
 });
