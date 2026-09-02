@@ -2,6 +2,10 @@
 
 Ver [../CLAUDE.md](../CLAUDE.md) pra paths, comandos, git, scope discipline.
 
+## Estado do trabalho e fluxo de branches
+
+Cada frente de trabalho = 1 tarefa na base Notion **"Tarefas Diakonia"** (`collection://50b40c4b-23c5-4910-8c50-a024e95d881a`). O estado de cada frente (branch, onde parei, próximo passo, falta testar) vive numa seção `## Estado do trabalho` no corpo dessa tarefa — não em arquivo solto nem só no chat. Status `Em andamento` = existe branch dedicada + seção preenchida. Uma branch por frente; feature nunca compartilha branch com hotfix; hotfix sai de `master`. Fluxo completo de interrupção por hotfix: `../CLAUDE.md` (local, só no PC).
+
 ## Expo Router — estrutura de rotas
 
 ```
@@ -204,14 +208,38 @@ style={{ elevation: 2, shadowOpacity: 0.2 }}
 
 ### Issue tracker
 
-Issues vivem como GitHub Issues em `trfernandes/artos-frontend`, geridas via `gh` CLI. Ver
-`docs/agents/issue-tracker.md`.
+Issues vivem na database Notion **Diakonia** (compartilhada com `artos-backend` e
+`diakonia-public-site`). Ver `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
-Vocabulário padrão de labels (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`,
-`wontfix`). Ver `docs/agents/triage-labels.md`.
+Vocabulário padrão dos 5 papéis canônicos, mapeado pra propriedade `Triagem` do Notion (`A Triar`,
+`Aguardando Informação`, `Pronta para Agente`, `Pronta para Humano`, `Não Será Feito`). Ver
+`docs/agents/triage-labels.md`.
 
 ### Domain docs
 
 Layout de contexto único (`CONTEXT.md` + `docs/adr/` na raiz). Ver `docs/agents/domain.md`.
+
+### Processo de desenvolvimento
+
+Todo item do tracker passa por 7 etapas obrigatórias (ler → grillar → implementar → testar →
+corrigir → review → atualizar Notion), sem caminho leve. Fonte única do processo é o repo
+`artos-backend`, em `docs/agents/processo-dev.md`.
+
+### Auto-auditoria pós-trabalho autônomo
+
+Depois de uma frente de trabalho longa sem supervisão (sessão em background, Agent/fork, ou
+qualquer trecho onde rodei vários passos sem check-in), antes de dar como pronto: auditar o
+próprio trabalho e listar gaps que não resolvi (edge case não coberto, suposição não validada,
+TODO deixado, teste que só cobre o caminho feliz etc.) — não só reportar o que funcionou. Cada
+gap vira um item na database Tarefas Diakonia (`Tipo: Melhoria` ou `Bug` conforme o caso,
+`Status: Novo`, `Triagem: A Triar`, `Plataforma` conforme este repo), não fica só na resposta do
+chat (perde na compactação). Depois, gap por gap, via `AskUserQuestion` (uma pergunta por vez),
+decidir junto com o usuário se vira issue de verdade, é ignorado, ou é falso positivo — só então
+corrigir.
+
+**Atenção**: `eas.json` tem perfil por ambiente — `development`/`staging`/`e2e` apontam pro backend
+de staging, só `production` aponta pro backend de produção. **Nunca** rodar `eas build --profile
+production` ou `eas submit` fora do fluxo de release (código já revisado e em `master`). Ver seção
+"Branches e deploy" do `processo-dev.md` (mesmo repo `artos-backend`) antes de qualquer build/submit.

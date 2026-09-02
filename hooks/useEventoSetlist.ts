@@ -58,6 +58,16 @@ export function useEventoSetlist(
       IgrejaEventosRepository.reordenarSetlist(igrejaAtiva!.id, eventoId!, dto),
     onSuccess: invalidate,
   });
+  const clearMutation = useMutation({
+    mutationFn: () =>
+      IgrejaEventosRepository.limparSetlist(
+        igrejaAtiva!.id,
+        eventoId!,
+        ministerioId!,
+        dataOcorrencia!,
+      ),
+    onSuccess: invalidate,
+  });
 
   return {
     ...query,
@@ -65,10 +75,14 @@ export function useEventoSetlist(
     atualizarSetlistItem: updateMutation.mutateAsync,
     removerSetlistItem: deleteMutation.mutateAsync,
     reordenarSetlist: reorderMutation.mutateAsync,
+    limparSetlist: clearMutation.mutateAsync,
     isMutatingSetlist:
       createMutation.isPending ||
       updateMutation.isPending ||
       deleteMutation.isPending ||
-      reorderMutation.isPending,
+      reorderMutation.isPending ||
+      clearMutation.isPending,
+    isReorderingSetlist: reorderMutation.isPending,
+    isClearingSetlist: clearMutation.isPending,
   };
 }

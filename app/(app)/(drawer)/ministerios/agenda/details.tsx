@@ -7,6 +7,7 @@ import AgendaDetailsDadosTab, {
   AgendaDetailsDadosTabActions,
 } from '../../../../../components/pages/ministerios/agenda/AgendaDetailsDadosTab';
 import AgendaDetailsEscalaTab from '../../../../../components/pages/ministerios/agenda/AgendaDetailsEscalaTab';
+import EventoSetlistTab from '../../../../../components/pages/common/EventoSetlistTab';
 import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
 import { Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -18,9 +19,8 @@ import { EventoTipoEnum } from '../../../../../domain/enums/Evento/evento-tipo.e
 import {
   canManageEventoOcorrencia,
   getMinisterioLoginAccess,
+  ministerioEhLouvor,
 } from '../../../../../utils/ministerio_permissoes';
-import { MinisterioTipoEnum } from '../../../../../domain/enums/Ministerio/ministerio-tipo.enum';
-import EventoSetlistTab from '../../../../../components/pages/common/EventoSetlistTab';
 
 type ExitChoice = 'cancel' | 'discard' | 'save';
 
@@ -160,14 +160,15 @@ export default function MinisterioAgendaDetailsPage() {
 
   // Reunião/Ensaio não têm Escala/equipe nem Setlist — só Evento do tipo Culto tem.
   const isEventoCulto = data[0]?.tipo === undefined || data[0]?.tipo === EventoTipoEnum.Culto;
-  const isMinisterioLouvor = useMemo(() => {
-    const ministerio = getMinisterioLoginAccess(igrejaAtiva, params.ministerioId);
-    return Number(ministerio?.tipo) === Number(MinisterioTipoEnum.Louvor);
-  }, [igrejaAtiva, params.ministerioId]);
+  const isMinisterioLouvor = ministerioEhLouvor(
+    getMinisterioLoginAccess(igrejaAtiva, params.ministerioId),
+  );
+
+  const responsavelSetlistVoluntarioId = ocorrenciaAtual?.responsavelSetlistVoluntarioId;
+  const responsavelSetlistNome = ocorrenciaAtual?.responsavelSetlistVoluntario?.nome ?? undefined;
   const setlistMode: 'lider' | 'responsavel' | 'leitura' = canManageAgenda
     ? 'lider'
-    : ocorrenciaAtual?.responsavelSetlistVoluntarioId &&
-        ocorrenciaAtual.responsavelSetlistVoluntarioId === user?.user.id
+    : responsavelSetlistVoluntarioId && responsavelSetlistVoluntarioId === user?.user.id
       ? 'responsavel'
       : 'leitura';
 
@@ -229,6 +230,28 @@ export default function MinisterioAgendaDetailsPage() {
       }
     }
 
+    if (isMinisterioLouvor) {
+      tabs.push({
+        title: 'Setlist',
+        icon: {
+          library: 'MaterialCommunityIcons',
+          name: 'playlist-music',
+          size: 20,
+          style: { marginTop: 0 },
+        },
+        content: (
+          <EventoSetlistTab
+            eventoId={eventoId}
+            dataOcorrencia={new Date(params.dataOcorrencia)}
+            ministerioId={params.ministerioId}
+            mode={setlistMode}
+            responsavelSetlistNome={responsavelSetlistNome}
+            detailsRoutePath='/ministerios/agenda/setlist/[itemId]'
+          />
+        ),
+      });
+    }
+
     return tabs;
   }, [
     canManageAgenda,
@@ -240,6 +263,7 @@ export default function MinisterioAgendaDetailsPage() {
     ocorrenciaAtual,
     params.dataOcorrencia,
     params.ministerioId,
+    responsavelSetlistNome,
     setlistMode,
   ]);
 

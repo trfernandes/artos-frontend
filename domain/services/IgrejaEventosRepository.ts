@@ -284,6 +284,15 @@ class IgrejaEventosRepositoryClass {
     );
   }
 
+  limparSetlist(
+    igrejaId: string,
+    eventoId: string,
+    ministerioId: string,
+    dataOcorrencia: string,
+  ): Promise<void> {
+    return IgrejaEventosApi.limparSetlist(igrejaId, eventoId, ministerioId, dataOcorrencia);
+  }
+
   reordenarSetlist(
     igrejaId: string,
     eventoId: string,

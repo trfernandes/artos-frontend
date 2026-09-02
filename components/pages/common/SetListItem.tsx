@@ -56,8 +56,8 @@ function SetListItem({
     Boolean,
   ) as string[];
   const musicMetaLabel = musicMetaParts.join(', ');
-  const tomColor = palette.secondary;
-  const bpmColor = palette.terciary;
+  const tomLabel = tom?.trim() || '';
+  const musicMetaText = [tomLabel || null, bpm ? `${bpm} BPM` : null].filter(Boolean).join(' · ');
 
   const trimmedUrl = versaoUrl?.trim() || '';
   const hasUrl = trimmedUrl.length > 0 && isOpenableMusicUrl(trimmedUrl);
@@ -88,14 +88,17 @@ function SetListItem({
         letter: orderLabel,
         title: name,
         subtitle: artist || 'Sem intérprete',
-        additionalData1: (
-          <View style={styles.metaRow}>
-            {tom ? (
-              <MusicBadge label={`TOM ${tom}`} color={tomColor} icon='music-clef-treble' />
-            ) : null}
-            {bpm ? <MusicBadge label={`BPM ${bpm}`} color={bpmColor} icon='metronome' /> : null}
-          </View>
-        ),
+        additionalData1: musicMetaText ? (
+          <FancyText
+            type='bold'
+            size='extraSmall'
+            numberOfLines={1}
+            color={palette.fonts.dark}
+            style={styles.metaText}
+          >
+            {musicMetaText}
+          </FancyText>
+        ) : undefined,
         content:
           etiquetas && etiquetas.length > 0 ? (
             <View style={styles.etiquetasRow}>
@@ -220,12 +223,11 @@ const styles = StyleSheet.create({
   subtitle: {
     includeFontPadding: false,
   },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 5,
-    minWidth: 0,
+  metaText: {
+    fontSize: 11,
+    lineHeight: 14,
+    letterSpacing: 0.2,
+    includeFontPadding: false,
     marginTop: 2,
   },
   etiquetasRow: {

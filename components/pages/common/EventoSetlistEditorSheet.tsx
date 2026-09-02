@@ -46,6 +46,7 @@ type Props = {
   }) => Promise<void>;
   item?: ResponseEventoSetlistItemDto | null;
   repertorio: ResponseRepertorioMusicaDto[];
+  nomesSetlist?: { id: string; nome: string }[];
   canEdit: boolean;
   eventoId?: string;
   dataOcorrenciaIso?: string;
@@ -78,6 +79,7 @@ export default function EventoSetlistEditorSheet({
   onSave,
   item,
   repertorio,
+  nomesSetlist = [],
   canEdit,
   eventoId,
   dataOcorrenciaIso,
@@ -114,7 +116,7 @@ export default function EventoSetlistEditorSheet({
   const [cifraMarkdown, setCifraMarkdown] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [nomeError, setNomeError] = useState(false);
+  const [nomeError, setNomeError] = useState<string | null>(null);
   const [youtubeSearchVisible, setYoutubeSearchVisible] = useState(false);
 
   useEffect(() => {
@@ -128,7 +130,7 @@ export default function EventoSetlistEditorSheet({
     setLetraMarkdown(item?.letraMarkdown ?? '');
     setCifraMarkdown(item?.cifraMarkdown ?? '');
     setObservacoes(item?.observacoes ?? '');
-    setNomeError(false);
+    setNomeError(null);
   }, [item, visible]);
 
   const [repertorioPickerVisible, setRepertorioPickerVisible] = useState(false);
@@ -167,8 +169,9 @@ export default function EventoSetlistEditorSheet({
       : 'Cria uma canção livre para esta ocorrência, ideal quando a música ainda não existe no repertório.';
 
   const handleSave = async () => {
-    if (!nome.trim()) {
-      setNomeError(true);
+    const nomeTrimmed = nome.trim();
+    if (!nomeTrimmed) {
+      setNomeError('Informe o nome da música');
       Toast.show({
         type: 'error',
         text1: 'Nome obrigatório',
@@ -176,7 +179,21 @@ export default function EventoSetlistEditorSheet({
       });
       return;
     }
-    setNomeError(false);
+
+    const nomeNorm = nomeTrimmed.toLocaleLowerCase();
+    const nomeDuplicado = nomesSetlist.some(
+      (musica) => musica.id !== item?.id && musica.nome.trim().toLocaleLowerCase() === nomeNorm,
+    );
+    if (nomeDuplicado) {
+      setNomeError('Já existe uma música com esse título no setlist');
+      Toast.show({
+        type: 'error',
+        text1: 'Música duplicada',
+        text2: 'Já existe uma música com esse título neste setlist.',
+      });
+      return;
+    }
+    setNomeError(null);
 
     setIsSaving(true);
     showLoading('Salvando...');
@@ -302,12 +319,12 @@ export default function EventoSetlistEditorSheet({
         label='Nome *'
         value={nome}
         readonly={!isEditingEnabled}
-        errorMessage={nomeError ? 'Informe o nome da música' : undefined}
+        errorMessage={nomeError ?? undefined}
         inputProps={{
           onChangeText: isEditingEnabled
             ? (text) => {
                 setNome(text);
-                if (text.trim()) setNomeError(false);
+                if (nomeError) setNomeError(null);
               }
             : undefined,
           editable: isEditingEnabled,

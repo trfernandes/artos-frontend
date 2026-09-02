@@ -1,17 +1,29 @@
 # Triage Labels
 
-The skills speak in terms of five canonical triage roles. This file maps those roles to the actual
-label strings used in this repo's issue tracker.
+As skills falam em termos dos cinco papéis canônicos de triagem. Este arquivo mapeia esses papéis
+para os valores reais usados no tracker deste repo (a propriedade `Triagem` da database Notion
+**Diakonia** — ver `docs/agents/issue-tracker.md`).
 
-| Label in mattpocock/skills | Label in our tracker | Meaning                                  |
-| -------------------------- | -------------------- | ---------------------------------------- |
-| `needs-triage`             | `needs-triage`       | Maintainer needs to evaluate this issue  |
-| `needs-info`               | `needs-info`         | Waiting on reporter for more information |
-| `ready-for-agent`          | `ready-for-agent`    | Fully specified, ready for an AFK agent  |
-| `ready-for-human`          | `ready-for-human`    | Requires human implementation            |
-| `wontfix`                  | `wontfix`            | Will not be actioned                     |
+| Papel em mattpocock/skills | Valor de `Triagem` no Notion | Significado                              |
+| --------------------------- | ----------------------------- | ----------------------------------------- |
+| `needs-triage`               | `A Triar`                     | Precisa ser avaliado                      |
+| `needs-info`                 | `Aguardando Informação`       | Esperando mais informação de quem reportou |
+| `ready-for-agent`            | `Pronta para Agente`          | Totalmente especificado, pronto pra um agente AFK |
+| `ready-for-human`            | `Pronta para Humano`          | Requer implementação humana               |
+| `wontfix`                    | `Não Será Feito`              | Não será feito                            |
 
-When a skill mentions a role (e.g. "apply the AFK-ready triage label"), use the corresponding label
-string from this table.
+Quando uma skill mencionar um papel (ex: "aplicar o label de pronto-pra-agente"), use o valor
+correspondente de `Triagem` acima, definido via `notion-update-page`.
 
-Edit the right-hand column to match whatever vocabulary you actually use.
+## Categoria (bug vs. enhancement)
+
+Este tracker não tem uma propriedade própria de categoria. Derive-a do campo `Tipo` já existente
+na database:
+
+| `Tipo` (Notion) | Categoria (mattpocock/skills) |
+| ---------------- | ------------------------------- |
+| `Bug`             | `bug`                           |
+| `Funcionalidade`  | `enhancement`                   |
+| `Melhoria`        | `enhancement`                   |
+
+Ou seja: `Tipo = Bug` → `bug`; qualquer outro valor de `Tipo` → `enhancement`.

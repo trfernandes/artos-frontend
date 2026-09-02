@@ -3,6 +3,7 @@ import {
   ResponseLoginMinisterioDto,
 } from '../domain/dtos/login/login.response';
 import { IgrejaVoluntarioRoleEnum } from '../domain/enums/Igreja/voluntario-role.enum';
+import { MinisterioTipoEnum } from '../domain/enums/Ministerio/ministerio-tipo.enum';
 import { VoluntarioHierarquiaEnum } from '../domain/enums/MinisterioVoluntario/hierarquia.enum';
 import {
   RecursoPermissaoEnum,
@@ -15,6 +16,13 @@ export function getMinisterioLoginAccess(
 ): ResponseLoginMinisterioDto | undefined {
   if (!igrejaAtiva || !ministerioId) return undefined;
   return igrejaAtiva.ministerios?.find((ministerio) => ministerio.id === ministerioId);
+}
+
+// `tipo` chega numérico (2) do login em alguns fluxos e string ('2') em outros — normaliza antes de comparar.
+export function ministerioEhLouvor(
+  ministerio: ResponseLoginMinisterioDto | null | undefined,
+): boolean {
+  return String(ministerio?.tipo ?? '') === String(MinisterioTipoEnum.Louvor);
 }
 
 export function hasMinisterioPermission(

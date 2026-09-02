@@ -230,11 +230,22 @@ class IgrejaEventosApiClass {
     ministerioId: string,
     dataOcorrencia: string,
   ): Promise<ResponseEventoSetlistItemDto[]> {
-    const response = await apiClient.get<ApiEnvelope<ResponseEventoSetlistItemDto[]>>(
-      `/${this.resourceName}/${igrejaId}/eventos/${eventoId}/setlist`,
-      { params: { ministerioId, dataOcorrencia } },
-    );
-    return response.data.data;
+    const response = await apiClient.get<
+      ApiEnvelope<
+        | ResponseEventoSetlistItemDto[]
+        | {
+            publicado: boolean;
+            publicadoEm: string | null;
+            itens: ResponseEventoSetlistItemDto[];
+          }
+      >
+    >(`/${this.resourceName}/${igrejaId}/eventos/${eventoId}/setlist`, {
+      params: { ministerioId, dataOcorrencia },
+    });
+    // Backend antigo (produção) devolve o array cru; backend com rascunho/publicado
+    // devolve { publicado, publicadoEm, itens }. Tolera os dois até o release coordenado.
+    const payload = response.data.data;
+    return Array.isArray(payload) ? payload : (payload?.itens ?? []);
   }
 
   async listarEquipe(
@@ -354,6 +365,17 @@ class IgrejaEventosApiClass {
         params: { ministerioId, dataOcorrencia },
       },
     );
+  }
+
+  async limparSetlist(
+    igrejaId: string,
+    eventoId: string,
+    ministerioId: string,
+    dataOcorrencia: string,
+  ): Promise<void> {
+    await apiClient.delete(`/${this.resourceName}/${igrejaId}/eventos/${eventoId}/setlist`, {
+      params: { ministerioId, dataOcorrencia },
+    });
   }
 
   async reordenarSetlist(
