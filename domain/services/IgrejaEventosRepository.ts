@@ -1,4 +1,4 @@
-import { IgrejaEventosApi } from '../api/IgrejaEventosApi';
+import { IgrejaEventosApi, ResponseEventoSetlistDto } from '../api/IgrejaEventosApi';
 import DateUtils from '../../utils/date_utils';
 import { ResponseEventoOcorrenciaDto } from '../dtos/Evento/evento-ocorrencia.response.dto';
 import { ResponseEventoDto } from '../dtos/Evento/evento.response';
@@ -175,8 +175,17 @@ class IgrejaEventosRepositoryClass {
     eventoId: string,
     ministerioId: string,
     dataOcorrencia: string,
-  ): Promise<ResponseEventoSetlistItemDto[]> {
+  ): Promise<ResponseEventoSetlistDto> {
     return IgrejaEventosApi.listarSetlist(igrejaId, eventoId, ministerioId, dataOcorrencia);
+  }
+
+  publicarSetlist(
+    igrejaId: string,
+    eventoId: string,
+    ministerioId: string,
+    dataOcorrencia: string,
+  ): Promise<ResponseEventoSetlistDto> {
+    return IgrejaEventosApi.publicarSetlist(igrejaId, eventoId, ministerioId, dataOcorrencia);
   }
 
   listarEquipe(

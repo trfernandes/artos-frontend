@@ -65,13 +65,16 @@ export default function EventoSetlistTab({
   const {
     data,
     isLoading,
+    publicado,
     criarSetlistItem,
     atualizarSetlistItem,
     removerSetlistItem,
     reordenarSetlist,
     limparSetlist,
+    publicarSetlist,
     isReorderingSetlist,
     isClearingSetlist,
+    isPublishingSetlist,
   } = useEventoSetlist(eventoId, dataOcorrenciaIso, ministerioId);
   const { data: repertorioData = [] } = useRepertorioMusicas(ministerioId);
   const {
@@ -371,6 +374,32 @@ export default function EventoSetlistTab({
     );
   };
 
+  const handlePublicarSetlist = async () => {
+    try {
+      await publicarSetlist();
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Erro ao publicar setlist',
+        text2: getApiErrorMessage(error, 'Não foi possível publicar o setlist.'),
+      });
+    }
+  };
+
+  const confirmPublicarSetlist = () => {
+    FancyAlert.alert(
+      'Publicar setlist?',
+      'Todos os voluntários da equipe vão poder ver o setlist e as orientações gerais.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Publicar',
+          onPress: () => void handlePublicarSetlist(),
+        },
+      ],
+    );
+  };
+
   const handleDragEnd = async (nextItems: ResponseEventoSetlistItemDto[]) => {
     if (!ministerioId) return;
 
@@ -457,6 +486,7 @@ export default function EventoSetlistTab({
 
   const renderHeader = () => (
     <View style={styles.headerContainer}>
+      <View style={styles.dualCardsRow}>
       <View
         style={[
           styles.ownerCard,
@@ -469,48 +499,30 @@ export default function EventoSetlistTab({
         ]}
       >
         <View style={styles.ownerLeading}>
-          <View
-            style={[
-              styles.ownerIconWrap,
-              {
-                backgroundColor: isDark
-                  ? ColorUtils.withAlpha(palette.secondary, 0.16)
-                  : ColorUtils.withAlpha(palette.backgroundColor, 0.92),
-                borderColor: ColorUtils.withAlpha(palette.secondary, isDark ? 0.28 : 0.14),
-              },
-            ]}
+          <DefaultIcons.Custom
+            library='MaterialCommunityIcons'
+            name={responsavelAtualNome ? 'music-clef-treble' : 'account-question-outline'}
+            size={14}
+            color={palette.secondary}
+          />
+          <FancyText
+            size='extraSmall'
+            type='semiBold'
+            style={[styles.ownerEyebrow, { color: ColorUtils.withAlpha(palette.secondary, 0.88) }]}
           >
-            <DefaultIcons.Custom
-              library='MaterialCommunityIcons'
-              name={responsavelAtualNome ? 'music-clef-treble' : 'account-question-outline'}
-              size={14}
-              color={palette.secondary}
-            />
-          </View>
-          <View style={styles.ownerTextBlock}>
-            <FancyText
-              size='extraSmall'
-              type='semiBold'
-              style={[
-                styles.ownerEyebrow,
-                { color: ColorUtils.withAlpha(palette.secondary, 0.88) },
-              ]}
-            >
-              Responsável
-            </FancyText>
-            {/* Título: "Você" quando o responsável é o usuário logado, senão nome ou estado vazio */}
-            <FancyText
-              size='small'
-              type='semiBold'
-              numberOfLines={1}
-              color={responsavelAtualNome ? palette.fonts.dark : palette.fonts.inactive}
-              style={styles.ownerTitle}
-            >
-              {isCurrentUserResponsavel ? 'Você' : responsavelAtualNome || 'Nenhum responsável'}
-            </FancyText>
-          </View>
+            Responsável
+          </FancyText>
         </View>
-
+        {/* Título: "Você" quando o responsável é o usuário logado, senão nome ou estado vazio */}
+        <FancyText
+          size='small'
+          type='semiBold'
+          numberOfLines={1}
+          color={responsavelAtualNome ? palette.fonts.dark : palette.fonts.inactive}
+          style={styles.ownerTitle}
+        >
+          {isCurrentUserResponsavel ? 'Você' : responsavelAtualNome || 'Nenhum responsável'}
+        </FancyText>
         {canManageResponsavel ? (
           <Pressable
             onPress={openResponsavel}
@@ -518,21 +530,90 @@ export default function EventoSetlistTab({
             accessibilityLabel='Definir responsável do SetList'
             hitSlop={8}
             style={[
-              styles.ownerActionButton,
+              styles.publishButton,
               {
-                backgroundColor: ColorUtils.withAlpha(palette.backgroundColor, 0.94),
-                borderColor: ColorUtils.withAlpha(palette.secondary, isDark ? 0.28 : 0.14),
+                backgroundColor: ColorUtils.withAlpha(palette.secondary, 0.12),
+                borderColor: ColorUtils.withAlpha(palette.secondary, 0.32),
               },
-              isDark && { backgroundColor: ColorUtils.withAlpha(palette.secondary, 0.16) },
             ]}
           >
             <MaterialCommunityIcons
               name={responsavelAtualNome ? 'swap-horizontal' : 'account-plus-outline'}
-              size={15}
+              size={13}
               color={palette.secondary}
             />
+            <FancyText size='extraSmall' type='semiBold' color={palette.secondary}>
+              {responsavelAtualNome ? 'Trocar' : 'Definir'}
+            </FancyText>
           </Pressable>
         ) : null}
+      </View>
+
+      {isEditable && (
+        <View
+          style={[
+            styles.statusCard,
+            {
+              backgroundColor: isDark
+                ? palette.backgroundColor4
+                : ColorUtils.lightenColor(publicado ? palette.confirm : palette.warning, 0.94),
+              borderColor: ColorUtils.withAlpha(
+                publicado ? palette.confirm : palette.warning,
+                isDark ? 0.32 : 0.18,
+              ),
+            },
+          ]}
+        >
+          <View style={styles.statusHeaderRow}>
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name={publicado ? 'check-decagram-outline' : 'file-clock-outline'}
+              size={14}
+              color={publicado ? palette.confirm : palette.warning}
+            />
+            <FancyText
+              size='extraSmall'
+              type='semiBold'
+              style={[
+                styles.ownerEyebrow,
+                { color: ColorUtils.withAlpha(publicado ? palette.confirm : palette.warning, 0.88) },
+              ]}
+            >
+              Status
+            </FancyText>
+          </View>
+          <FancyText
+            size='small'
+            type='semiBold'
+            color={publicado ? palette.confirm : palette.warning}
+            style={styles.ownerTitle}
+          >
+            {publicado ? 'Publicado' : 'Rascunho'}
+          </FancyText>
+          {!publicado && canAddMusic ? (
+            <Pressable
+              onPress={confirmPublicarSetlist}
+              disabled={isPublishingSetlist}
+              accessibilityRole='button'
+              accessibilityLabel='Publicar setlist'
+              hitSlop={8}
+              style={[
+                styles.publishButton,
+                {
+                  backgroundColor: ColorUtils.withAlpha(palette.warning, 0.12),
+                  borderColor: ColorUtils.withAlpha(palette.warning, 0.32),
+                  opacity: isPublishingSetlist ? 0.6 : 1,
+                },
+              ]}
+            >
+              <MaterialCommunityIcons name='rocket-launch-outline' size={13} color={palette.warning} />
+              <FancyText size='extraSmall' type='semiBold' color={palette.warning}>
+                Publicar
+              </FancyText>
+            </Pressable>
+          ) : null}
+        </View>
+      )}
       </View>
 
       {(observacoesData?.observacoes || canEditOrientacoes) && (
@@ -946,6 +1027,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     flexGrow: 1,
+    paddingHorizontal: 15,
     paddingBottom: 28,
     gap: 12,
   },
@@ -953,38 +1035,51 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   headerContainer: {
+    paddingHorizontal: 15,
     paddingTop: 8,
     paddingBottom: 4,
     gap: 12,
   },
+  dualCardsRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
   ownerCard: {
+    flex: 1,
     borderWidth: 0.6,
     borderRadius: 12,
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     paddingVertical: 10,
+    gap: 6,
+  },
+  statusCard: {
+    flex: 1,
+    borderWidth: 0.6,
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    gap: 6,
+  },
+  statusHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 10,
+    gap: 6,
+  },
+  publishButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    alignSelf: 'flex-start',
+    height: 26,
+    paddingHorizontal: 10,
+    borderRadius: 50,
+    borderWidth: 0.6,
   },
   ownerLeading: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    minWidth: 0,
-  },
-  ownerIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ownerTextBlock: {
-    flex: 1,
-    gap: 2,
+    gap: 6,
     minWidth: 0,
   },
   ownerEyebrowRow: {
@@ -1005,15 +1100,6 @@ const styles = StyleSheet.create({
   },
   ownerSubtitle: {
     // tamanho definido via prop size no FancyText
-  },
-  ownerActionButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
   },
   observacoesCard: {
     borderWidth: 0.6,

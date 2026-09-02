@@ -27,6 +27,10 @@ export function useEventoSetlist(
       ),
   });
 
+  const itens = query.data?.itens ?? [];
+  const publicado = query.data?.publicado ?? false;
+  const publicadoEm = query.data?.publicadoEm ?? null;
+
   const invalidate = async () => {
     await queryClient.invalidateQueries({ queryKey });
     await queryClient.invalidateQueries({ queryKey: ['eventos'] });
@@ -68,21 +72,38 @@ export function useEventoSetlist(
       ),
     onSuccess: invalidate,
   });
+  const publishMutation = useMutation({
+    mutationFn: () =>
+      IgrejaEventosRepository.publicarSetlist(
+        igrejaAtiva!.id,
+        eventoId!,
+        ministerioId!,
+        dataOcorrencia!,
+      ),
+    onSuccess: invalidate,
+  });
 
   return {
     ...query,
+    data: itens,
+    itens,
+    publicado,
+    publicadoEm,
     criarSetlistItem: createMutation.mutateAsync,
     atualizarSetlistItem: updateMutation.mutateAsync,
     removerSetlistItem: deleteMutation.mutateAsync,
     reordenarSetlist: reorderMutation.mutateAsync,
     limparSetlist: clearMutation.mutateAsync,
+    publicarSetlist: publishMutation.mutateAsync,
     isMutatingSetlist:
       createMutation.isPending ||
       updateMutation.isPending ||
       deleteMutation.isPending ||
       reorderMutation.isPending ||
-      clearMutation.isPending,
+      clearMutation.isPending ||
+      publishMutation.isPending,
     isReorderingSetlist: reorderMutation.isPending,
     isClearingSetlist: clearMutation.isPending,
+    isPublishingSetlist: publishMutation.isPending,
   };
 }
