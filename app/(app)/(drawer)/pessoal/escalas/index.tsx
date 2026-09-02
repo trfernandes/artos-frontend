@@ -5,6 +5,7 @@ import axios from 'axios';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import FancyCalendar, { MarkedDate } from '../../../../../components/calendar/FancyCalendar';
+import ModernDatePickerSheet from '../../../../../components/datepicker/ModernDatePickerSheet';
 import FancyList from '../../../../../components/list/FancyList';
 import { endOfMonth, isBefore, startOfDay, startOfMonth } from 'date-fns';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
@@ -183,6 +184,7 @@ export default function MinhasEscalasIndexPage() {
     initialMonthFromParams ?? initialDateFromParams ?? new Date(),
   );
   const [eventosOfSelectedDate, setEventosOfSelectedDate] = useState<EscalaDoDiaAgrupada[]>([]);
+  const [datePickerVisible, setDatePickerVisible] = useState(false);
 
   useEffect(() => {
     const nextDate = initialDateFromParams ?? initialMonthFromParams;
@@ -549,6 +551,7 @@ export default function MinhasEscalasIndexPage() {
           value={selectedDate}
           minimumDate={CALENDAR_PAST_FLOOR}
           markedDates={markedDates}
+          onDateJumpPress={() => setDatePickerVisible(true)}
           onChangeSelectedDate={setSelectedDate}
           onChangeMonthVisualization={(data) => {
             setShowingMonth(data);
@@ -556,6 +559,19 @@ export default function MinhasEscalasIndexPage() {
           }}
         />
       </TutorialTarget>
+      <ModernDatePickerSheet
+        visible={datePickerVisible}
+        value={selectedDate}
+        minimumDate={CALENDAR_PAST_FLOOR}
+        quickActions={['today']}
+        title='Ir para data'
+        onClose={() => setDatePickerVisible(false)}
+        onConfirm={(date) => {
+          setDatePickerVisible(false);
+          setShowingMonth(date);
+          setSelectedDate(date);
+        }}
+      />
       <FancySeparator style={styles.calendarSeparator} />
       <TutorialTarget
         id='escalas-lista-dia'

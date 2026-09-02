@@ -47,6 +47,8 @@ export type FancyCalendarProps = {
   markedDatesType?: DayViewProps['markedDatesType'];
   dayModeTopPadding?: number;
   visualStyle?: CalendarVisualStyle;
+  /** Habilita o botão "ir para data" dentro da pílula de navegação do header. */
+  onDateJumpPress?: () => void;
 };
 
 export default function FancyCalendar({
@@ -65,6 +67,7 @@ export default function FancyCalendar({
   markedDatesType = 'bottomPoint',
   dayModeTopPadding = 16,
   visualStyle = 'default',
+  onDateJumpPress,
 }: FancyCalendarProps) {
   const styles = useThemedStyles(createStyles);
   const dayViewMaximum = dayViewProps?.maximumDate;
@@ -251,6 +254,7 @@ export default function FancyCalendar({
           }}
           onNextMonth={() => changeMonth(+1)}
           onPreviousMonth={() => changeMonth(-1)}
+          onOpenDatePicker={onDateJumpPress}
           calendarProps={{ minimumDate: minDate, maximumDate: maxDate }}
           visualStyle={visualStyle}
         />

@@ -17,6 +17,8 @@ export type FancyCalendarHeaderProps = {
   onPreviousMonth: () => void;
   onNextMonth: () => void;
   onGoToToday: () => void;
+  /** Quando definido, mostra o botão "ir para data" à esquerda das setas. */
+  onOpenDatePicker?: () => void;
   calendarProps?: FancyCalendarProps;
   visualStyle?: CalendarVisualStyle;
 };
@@ -121,6 +123,22 @@ export default function FancyCalendarHeader({
       <View
         style={[styles.buttonsContainer, isAgendaPremium ? styles.buttonsContainerAgenda : null]}
       >
+        {props.onOpenDatePicker && (
+          <Pressable
+            onPress={props.onOpenDatePicker}
+            accessibilityRole='button'
+            accessibilityLabel='Ir para data'
+            hitSlop={isAgendaPremium ? { top: 8, bottom: 8, left: 8, right: 3 } : undefined}
+            style={[styles.navButton, isAgendaPremium ? styles.navButtonAgenda : null]}
+          >
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='calendar-search'
+              size={isAgendaPremium ? 19 : 18}
+              color={palette.primary}
+            />
+          </Pressable>
+        )}
         <Pressable
           disabled={!prevEnabled}
           onPress={props.onPreviousMonth}
