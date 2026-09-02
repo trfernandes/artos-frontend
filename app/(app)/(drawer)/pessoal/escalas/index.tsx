@@ -6,7 +6,7 @@ import FancyPageView from '../../../../../components/containers/FancyPageView';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import FancyCalendar, { MarkedDate } from '../../../../../components/calendar/FancyCalendar';
 import FancyList from '../../../../../components/list/FancyList';
-import { endOfMonth, isBefore, startOfMonth } from 'date-fns';
+import { endOfMonth, isBefore, startOfDay, startOfMonth } from 'date-fns';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 
 import SubstituicaoModalPage from '../../../../../components/pages/pessoal/escalas/index/SubstituicaoModalPage';
@@ -44,6 +44,11 @@ import {
 } from '../../../../../components/tutorial/tours/escalasVoluntarioTour';
 import { useJourney } from '../../../../../contexts/JourneyContext';
 import { usePallete } from '../../../../../hooks/usePallete';
+
+// Piso do calendário. Sem isso o FancyCalendar trava em "hoje" e a seta de
+// voltar mês fica desabilitada — aqui a tela é de consulta e precisa navegar
+// pro passado sem limite prático.
+const CALENDAR_PAST_FLOOR = new Date(2000, 0, 1);
 
 export type EscalaDoDiaAgrupada = {
   eventoId: string;
@@ -542,15 +547,12 @@ export default function MinhasEscalasIndexPage() {
           containerStyle={styles.calendarContainer}
           visualStyle='agendaPremium'
           value={selectedDate}
+          minimumDate={CALENDAR_PAST_FLOOR}
           markedDates={markedDates}
           onChangeSelectedDate={setSelectedDate}
           onChangeMonthVisualization={(data) => {
             setShowingMonth(data);
-            if (isBefore(data, new Date())) {
-              setSelectedDate(new Date());
-            } else {
-              setSelectedDate(data);
-            }
+            setSelectedDate(startOfMonth(data));
           }}
         />
       </TutorialTarget>
@@ -577,6 +579,7 @@ export default function MinhasEscalasIndexPage() {
               <EventoAccordeon
                 data={item}
                 key={index}
+                readOnly={isBefore(startOfDay(item.dataOcorrencia), startOfDay(new Date()))}
                 onConfirmButtonPress={(dadosEscala) => handleConfirmEvento(dadosEscala.id!)}
                 onSubButtonPress={(dadosEscala) =>
                   setSubstituicaoPageParams({

@@ -24,12 +24,15 @@ type EventoAccordeonProps = {
   data: EscalaDoDiaAgrupada;
   onConfirmButtonPress: (dadosEscala: ResponseEscalaItemDto) => void;
   onSubButtonPress: (dadosEscala: ResponseEscalaItemDto) => void;
+  /** Escala passada: esconde ações de confirmar/pedir substituição. */
+  readOnly?: boolean;
 };
 
 export default function EventoAccordeon({
   data,
   onConfirmButtonPress,
   onSubButtonPress,
+  readOnly = false,
 }: EventoAccordeonProps) {
   const palette = usePallete();
   const [isOpeningEvento, setIsOpeningEvento] = useState(false);
@@ -348,6 +351,7 @@ export default function EventoAccordeon({
       <FuncoesTable
         data={data.itens}
         eventColor={eventColor}
+        readOnly={readOnly}
         onConfirmButtonPress={onConfirmButtonPress}
         onSubButtonPress={onSubButtonPress}
       />

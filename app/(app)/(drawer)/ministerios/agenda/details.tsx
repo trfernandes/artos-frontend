@@ -3,6 +3,7 @@ import FancyPageView from '../../../../../components/containers/FancyPageView';
 import FancyTabs, { TabItem } from '../../../../../components/tabs/FancyTabs';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import { StyleSheet } from 'react-native';
+import { isBefore, startOfDay } from 'date-fns';
 import AgendaDetailsDadosTab, {
   AgendaDetailsDadosTabActions,
 } from '../../../../../components/pages/ministerios/agenda/AgendaDetailsDadosTab';
@@ -166,11 +167,17 @@ export default function MinisterioAgendaDetailsPage() {
 
   const responsavelSetlistVoluntarioId = ocorrenciaAtual?.responsavelSetlistVoluntarioId;
   const responsavelSetlistNome = ocorrenciaAtual?.responsavelSetlistVoluntario?.nome ?? undefined;
-  const setlistMode: 'lider' | 'responsavel' | 'leitura' = canManageAgenda
-    ? 'lider'
-    : responsavelSetlistVoluntarioId && responsavelSetlistVoluntarioId === user?.user.id
-      ? 'responsavel'
-      : 'leitura';
+  const isOcorrenciaPassada = isBefore(
+    startOfDay(new Date(params.dataOcorrencia)),
+    startOfDay(new Date()),
+  );
+  const setlistMode: 'lider' | 'responsavel' | 'leitura' = isOcorrenciaPassada
+    ? 'leitura'
+    : canManageAgenda
+      ? 'lider'
+      : responsavelSetlistVoluntarioId && responsavelSetlistVoluntarioId === user?.user.id
+        ? 'responsavel'
+        : 'leitura';
 
   const tab_items: TabItem[] = useMemo(() => {
     const tabs: TabItem[] = [
@@ -203,7 +210,7 @@ export default function MinisterioAgendaDetailsPage() {
             eventoId={eventoId}
             dataOcorrencia={new Date(params.dataOcorrencia)}
             ministerioId={params.ministerioId}
-            modo={canManageAgenda ? 'lider' : 'voluntario'}
+            modo={canManageAgenda && !isOcorrenciaPassada ? 'lider' : 'voluntario'}
           />
         ),
       });

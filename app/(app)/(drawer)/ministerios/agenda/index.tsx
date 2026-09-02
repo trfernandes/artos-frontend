@@ -5,6 +5,10 @@ import FancyList from '../../../../../components/list/FancyList';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
 import { lastDayOfMonth, startOfMonth } from 'date-fns';
+
+// Piso do calendário — sem isso o FancyCalendar trava em "hoje" e a agenda não
+// deixa consultar meses passados.
+const CALENDAR_PAST_FLOOR = new Date(2000, 0, 1);
 import FancyLoading from '../../../../../components/FancyLoading';
 import DateUtils, { DateUtilsApi } from '../../../../../utils/date_utils';
 import FancySeparator from '../../../../../components/FancySeparator';
@@ -85,6 +89,7 @@ export default function MinisterioAgendaIndexPage() {
       <FancyCalendar
         containerStyle={styles.calendarContainer}
         visualStyle='agendaPremium'
+        minimumDate={CALENDAR_PAST_FLOOR}
         onChangeMonthVisualization={(date) => {
           setCurrenMonth(date);
           setCurrentDate(startOfMonth(date));
