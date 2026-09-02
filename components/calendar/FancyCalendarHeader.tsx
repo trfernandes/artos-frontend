@@ -134,7 +134,7 @@ export default function FancyCalendarHeader({
             <DefaultIcons.Custom
               library='MaterialCommunityIcons'
               name='calendar-search'
-              size={isAgendaPremium ? 19 : 18}
+              size={isAgendaPremium ? 17 : 18}
               color={palette.primary}
             />
           </Pressable>
@@ -154,7 +154,7 @@ export default function FancyCalendarHeader({
           <DefaultIcons.Custom
             library='Entypo'
             name='chevron-left'
-            size={isAgendaPremium ? 22 : 20}
+            size={20}
             color={prevEnabled ? palette.primary : palette.icons.inactive2}
           />
         </Pressable>
@@ -173,7 +173,7 @@ export default function FancyCalendarHeader({
           <DefaultIcons.Custom
             library='Entypo'
             name='chevron-right'
-            size={isAgendaPremium ? 22 : 20}
+            size={20}
             color={nextEnabled ? palette.primary : palette.icons.inactive2}
           />
         </Pressable>
@@ -191,8 +191,8 @@ function createStyles(palette: ThemePalette) {
       minHeight: 34,
     },
     containerAgendaPremium: {
-      minHeight: 46,
-      alignItems: 'flex-end',
+      minHeight: 40,
+      alignItems: 'center',
       paddingHorizontal: 2,
     },
     actualDateContainer: {
@@ -230,7 +230,7 @@ function createStyles(palette: ThemePalette) {
     buttonsContainer: { flexDirection: 'row', gap: 8, flexShrink: 0 },
     buttonsContainerAgenda: {
       gap: 0,
-      padding: 3,
+      padding: 2,
       borderRadius: 999,
       backgroundColor: ColorUtils.withAlpha(palette.primary, 0.065),
       borderWidth: 1,
@@ -245,9 +245,9 @@ function createStyles(palette: ThemePalette) {
       alignItems: 'center',
     },
     navButtonAgenda: {
-      width: 34,
-      height: 34,
-      borderRadius: 17,
+      width: 30,
+      height: 30,
+      borderRadius: 15,
       backgroundColor: 'transparent',
     },
     navButtonDisabled: {
