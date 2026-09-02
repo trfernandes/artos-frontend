@@ -8,6 +8,9 @@ type ApiEnvelope<T> = { data: T };
 export type ListarRegrasMinisterioResponse = {
   pessoais: ResponseRegraIndisponibilidadeVoluntarioDto[];
   ministerio: ResponseRegraIndisponibilidadeVoluntarioDto[];
+  // Datas avulsas da tabela antiga, adaptadas como período de 1 dia. Só pra
+  // marcar no calendário — não são regras que o voluntário criou.
+  datasAvulsas: ResponseRegraIndisponibilidadeVoluntarioDto[];
 };
 
 class RegrasIndisponibilidadeMinisterioApiClass {

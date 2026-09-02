@@ -87,6 +87,7 @@ export default function MinisterioIndisponibilidadesIndex() {
 
   const {
     pessoais,
+    datasAvulsas,
     ministerio: regrasMinisterio,
     isLoading: isLoadingRegras,
     isRefetching: isRefetchingRegras,
@@ -127,11 +128,12 @@ export default function MinisterioIndisponibilidadesIndex() {
     INDISPONIBILIDADES_LIDER_TOUR_STEPS,
   );
 
-  const { startDate, endDate } = useMemo(() => {
+  const { startDate, endDate, hoje } = useMemo(() => {
     const now = new Date();
     return {
       startDate: new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()),
       endDate: new Date(now.getFullYear(), now.getMonth() + 6, now.getDate()),
+      hoje: now,
     };
   }, []);
 
@@ -142,7 +144,7 @@ export default function MinisterioIndisponibilidadesIndex() {
       endDate,
     );
     const pessoalKeys = expandirRegrasParaCalendario(
-      pessoais.filter((r) => r.tipo !== 'LIMITE_MENSAL'),
+      [...pessoais, ...datasAvulsas].filter((r) => r.tipo !== 'LIMITE_MENSAL'),
       startDate,
       endDate,
     );
@@ -159,7 +161,15 @@ export default function MinisterioIndisponibilidadesIndex() {
       }));
 
     return [...pessoalMarcados, ...ministerioMarcados];
-  }, [pessoais, regrasMinisterio, startDate, endDate, palette.secondary, palette.fonts.inactive]);
+  }, [
+    pessoais,
+    datasAvulsas,
+    regrasMinisterio,
+    startDate,
+    endDate,
+    palette.secondary,
+    palette.fonts.inactive,
+  ]);
 
   const criar = useCallback(
     async (result: AddRegraModalResult) => {
@@ -304,6 +314,7 @@ export default function MinisterioIndisponibilidadesIndex() {
                 containerStyle={styles.calendarContainer}
                 minimumDate={startDate}
                 maximumDate={endDate}
+                initialDate={hoje}
                 markedDates={markedDates}
                 markedDatesType='SurroundCircle'
               />

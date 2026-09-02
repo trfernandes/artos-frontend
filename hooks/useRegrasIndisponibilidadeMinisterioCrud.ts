@@ -63,6 +63,7 @@ export function useRegrasIndisponibilidadeMinisterioCrud(
   return {
     pessoais: queryResult.data?.pessoais ?? [],
     ministerio: queryResult.data?.ministerio ?? [],
+    datasAvulsas: queryResult.data?.datasAvulsas ?? [],
     isLoading: queryResult.isLoading,
     isRefetching: queryResult.isRefetching,
     isError: queryResult.isError,
