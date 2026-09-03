@@ -14,7 +14,6 @@ export type ResponseEscalaSubstituicaoDto = {
   substituto?: ResponseMinisterioVoluntarioDto;
   dataSolicitacao: string;
   dataResposta?: string;
-  dataConfirmacao?: string;
   status: EscalaSubstituicaoStatusEnum;
   motivo: string;
   motivoCancelamento?: string | null;

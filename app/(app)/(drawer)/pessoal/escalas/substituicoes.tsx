@@ -90,7 +90,6 @@ export default function SubstituicoesScreen() {
     data: dataAsSubstituto,
     isLoading: isLoadingSubstituto,
     update,
-    isLoadingMutation,
     refetch: refetchSubstituto,
     isRefetching: isRefetchingSubstituto,
   } = useEscalaSubstituicoesCrud({ autoFetch: true, initialParams: queryAsSubstituto });
@@ -173,7 +172,9 @@ export default function SubstituicoesScreen() {
   const handleCancelarComMotivo = (id: string, motivo: string) =>
     handleRespond(id, EscalaSubstituicaoStatusEnum.Cancelada, motivo);
 
-  const isLoading = isLoadingSubstituto || isLoadingSolicitante || isLoadingMutation;
+  // Mutação (aprovar/recusar/cancelar) usa feedback local por card (isActing) — não trocar
+  // a lista inteira por spinner, que dava a sensação de "travado".
+  const isLoading = isLoadingSubstituto || isLoadingSolicitante;
 
   return (
     <FancyPageView style={styles.page}>

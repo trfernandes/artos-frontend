@@ -69,8 +69,10 @@ export default function MinisterioSubstituicoesScreen() {
     [ministerioId],
   );
 
-  const { data, isLoading, update, isLoadingMutation, refetch, isRefetching } =
-    useEscalaSubstituicoesCrud({ autoFetch: true, initialParams: query });
+  const { data, isLoading, update, refetch, isRefetching } = useEscalaSubstituicoesCrud({
+    autoFetch: true,
+    initialParams: query,
+  });
 
   const filtered = useMemo(() => {
     const list = data ?? [];
@@ -150,7 +152,7 @@ export default function MinisterioSubstituicoesScreen() {
         onChange={setTab}
       />
 
-      {isLoading || isLoadingMutation ? (
+      {isLoading ? (
         <FancyLoading />
       ) : (
         <FancyList
