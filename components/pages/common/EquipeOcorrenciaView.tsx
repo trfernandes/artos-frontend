@@ -134,6 +134,14 @@ export default function EquipeOcorrenciaView({
     }
   };
 
+  const integrantesVisiveis = useMemo(
+    () =>
+      filtro === 'todos'
+        ? integrantesExibidos
+        : integrantesExibidos.filter((integrante) => matchesFiltro(integrante, filtro)),
+    [integrantesExibidos, filtro],
+  );
+
   const substituicaoOptions = useMemo(() => {
     const integranteAtual = data?.grupos
       .flatMap((grupo) => grupo.integrantes)
@@ -310,7 +318,7 @@ export default function EquipeOcorrenciaView({
 
       <FancyList<Integrante>
         containerStyle={styles.listContainer}
-        data={integrantesExibidos}
+        data={integrantesVisiveis}
         keyExtractor={(item) => item.escalaItemId}
         key='team-grid'
         numColumns={2}
@@ -318,7 +326,10 @@ export default function EquipeOcorrenciaView({
         contentContainerStyle={styles.listContent}
         ItemSeparatorComponent={() => <View style={{ height: CARD_GRID_GAP }} />}
         listEmptyProps={{
-          label: 'Nenhum integrante escalado ainda.',
+          label:
+            filtro === 'todos'
+              ? 'Nenhum integrante escalado ainda.'
+              : 'Nenhum integrante neste filtro.',
           icon: { library: 'MaterialCommunityIcons', name: 'account-search-outline', size: 56 },
         }}
         renderItem={({ item, index }) => {
@@ -328,7 +339,7 @@ export default function EquipeOcorrenciaView({
               integrante={item}
               isCurrentUser={isCurrentUser}
               isLeaderMode={isLeaderMode}
-              dimmed={!matchesFiltro(item, filtro)}
+              dimmed={false}
               index={index}
               onSubstituir={openSubstituicaoSheet}
               onRemover={isLeaderMode ? handleRemoverVoluntario : undefined}
@@ -436,7 +447,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: LIST_GAP,
-    paddingHorizontal: 15,
     paddingTop: 8,
     paddingBottom: 4,
   },
@@ -458,7 +468,6 @@ const styles = StyleSheet.create({
   listContent: {
     paddingTop: 8,
     paddingBottom: 24,
-    paddingHorizontal: 15,
   },
   columnWrapper: {
     gap: CARD_GRID_GAP,

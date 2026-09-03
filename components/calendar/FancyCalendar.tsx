@@ -35,11 +35,20 @@ export type FancyCalendarProps = {
   onChangeMonthVisualization?: (date: Date) => void;
   border?: boolean;
   value?: Date;
+  /**
+   * Mês exibido ao montar quando não há data selecionada. Só afeta a visão
+   * inicial — não seleciona nem marca a data. Sem isso, o fallback é
+   * "hoje menos 30 anos" (útil pra picker de nascimento), que num calendário
+   * voltado pra frente cai no minimumDate e abre no mês errado.
+   */
+  initialDate?: Date;
   dayViewProps?: Partial<DayViewProps>;
   selectDateOnPress?: boolean;
   markedDatesType?: DayViewProps['markedDatesType'];
   dayModeTopPadding?: number;
   visualStyle?: CalendarVisualStyle;
+  /** Habilita o botão "ir para data" dentro da pílula de navegação do header. */
+  onDateJumpPress?: () => void;
 };
 
 export default function FancyCalendar({
@@ -52,11 +61,13 @@ export default function FancyCalendar({
   onChangeMonthVisualization,
   minimumDate,
   maximumDate,
+  initialDate,
   dayViewProps,
   selectDateOnPress = true,
   markedDatesType = 'bottomPoint',
   dayModeTopPadding = 16,
   visualStyle = 'default',
+  onDateJumpPress,
 }: FancyCalendarProps) {
   const styles = useThemedStyles(createStyles);
   const dayViewMaximum = dayViewProps?.maximumDate;
@@ -129,15 +140,16 @@ export default function FancyCalendar({
       return normalized;
     }
 
-    // Sem valor: parte de hoje-30 anos (útil pra ranges amplos tipo data de
-    // nascimento) em vez do minimumDate, clampado ao range válido.
-    const fallback = new Date();
+    // Sem valor selecionado: se o caller informou initialDate, parte dele
+    // (clampado ao range). Senão, cai no fallback histórico de hoje-30 anos
+    // (útil pra ranges amplos tipo data de nascimento).
+    const fallback = new Date(initialDate ?? new Date());
     fallback.setHours(0, 0, 0, 0);
-    fallback.setFullYear(fallback.getFullYear() - 30);
+    if (!initialDate) fallback.setFullYear(fallback.getFullYear() - 30);
     if (fallback < minDate) return new Date(minDate);
     if (fallback > maxDate) return new Date(maxDate);
     return fallback;
-  }, [selectedDate, minDate, maxDate]);
+  }, [selectedDate, minDate, maxDate, initialDate]);
 
   const [currentDate, setCurrentDate] = useState<Date>(initialCurrentDate);
 
@@ -242,6 +254,7 @@ export default function FancyCalendar({
           }}
           onNextMonth={() => changeMonth(+1)}
           onPreviousMonth={() => changeMonth(-1)}
+          onOpenDatePicker={onDateJumpPress}
           calendarProps={{ minimumDate: minDate, maximumDate: maxDate }}
           visualStyle={visualStyle}
         />

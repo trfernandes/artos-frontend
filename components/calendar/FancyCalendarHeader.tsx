@@ -17,6 +17,8 @@ export type FancyCalendarHeaderProps = {
   onPreviousMonth: () => void;
   onNextMonth: () => void;
   onGoToToday: () => void;
+  /** Quando definido, mostra o botão "ir para data" à esquerda das setas. */
+  onOpenDatePicker?: () => void;
   calendarProps?: FancyCalendarProps;
   visualStyle?: CalendarVisualStyle;
 };
@@ -121,6 +123,22 @@ export default function FancyCalendarHeader({
       <View
         style={[styles.buttonsContainer, isAgendaPremium ? styles.buttonsContainerAgenda : null]}
       >
+        {props.onOpenDatePicker && (
+          <Pressable
+            onPress={props.onOpenDatePicker}
+            accessibilityRole='button'
+            accessibilityLabel='Ir para data'
+            hitSlop={isAgendaPremium ? { top: 8, bottom: 8, left: 8, right: 3 } : undefined}
+            style={[styles.navButton, isAgendaPremium ? styles.navButtonAgenda : null]}
+          >
+            <DefaultIcons.Custom
+              library='MaterialCommunityIcons'
+              name='calendar-search'
+              size={isAgendaPremium ? 17 : 18}
+              color={palette.primary}
+            />
+          </Pressable>
+        )}
         <Pressable
           disabled={!prevEnabled}
           onPress={props.onPreviousMonth}
@@ -136,7 +154,7 @@ export default function FancyCalendarHeader({
           <DefaultIcons.Custom
             library='Entypo'
             name='chevron-left'
-            size={isAgendaPremium ? 22 : 20}
+            size={20}
             color={prevEnabled ? palette.primary : palette.icons.inactive2}
           />
         </Pressable>
@@ -155,7 +173,7 @@ export default function FancyCalendarHeader({
           <DefaultIcons.Custom
             library='Entypo'
             name='chevron-right'
-            size={isAgendaPremium ? 22 : 20}
+            size={20}
             color={nextEnabled ? palette.primary : palette.icons.inactive2}
           />
         </Pressable>
@@ -173,8 +191,8 @@ function createStyles(palette: ThemePalette) {
       minHeight: 34,
     },
     containerAgendaPremium: {
-      minHeight: 46,
-      alignItems: 'flex-end',
+      minHeight: 40,
+      alignItems: 'center',
       paddingHorizontal: 2,
     },
     actualDateContainer: {
@@ -212,7 +230,7 @@ function createStyles(palette: ThemePalette) {
     buttonsContainer: { flexDirection: 'row', gap: 8, flexShrink: 0 },
     buttonsContainerAgenda: {
       gap: 0,
-      padding: 3,
+      padding: 2,
       borderRadius: 999,
       backgroundColor: ColorUtils.withAlpha(palette.primary, 0.065),
       borderWidth: 1,
@@ -227,9 +245,9 @@ function createStyles(palette: ThemePalette) {
       alignItems: 'center',
     },
     navButtonAgenda: {
-      width: 34,
-      height: 34,
-      borderRadius: 17,
+      width: 40,
+      height: 30,
+      borderRadius: 15,
       backgroundColor: 'transparent',
     },
     navButtonDisabled: {

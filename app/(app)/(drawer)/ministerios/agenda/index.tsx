@@ -1,10 +1,15 @@
 import { StyleSheet } from 'react-native';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
 import FancyCalendar from '../../../../../components/calendar/FancyCalendar';
+import ModernDatePickerSheet from '../../../../../components/datepicker/ModernDatePickerSheet';
 import FancyList from '../../../../../components/list/FancyList';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useEventosCrud } from '../../../../../hooks/useEventosCrud';
 import { lastDayOfMonth, startOfMonth } from 'date-fns';
+
+// Piso do calendário — sem isso o FancyCalendar trava em "hoje" e a agenda não
+// deixa consultar meses passados.
+const CALENDAR_PAST_FLOOR = new Date(2000, 0, 1);
 import FancyLoading from '../../../../../components/FancyLoading';
 import DateUtils, { DateUtilsApi } from '../../../../../utils/date_utils';
 import FancySeparator from '../../../../../components/FancySeparator';
@@ -37,6 +42,7 @@ export default function MinisterioAgendaIndexPage() {
   const [currentMonth, setCurrenMonth] = useState(new Date());
   const [eventos, setEventos] = useState<ResponseEventoOcorrenciaDto[]>();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [datePickerVisible, setDatePickerVisible] = useState(false);
 
   const { buscarPorIntervalo, isLoading } = useEventosCrud({ autoFetch: false });
 
@@ -85,6 +91,8 @@ export default function MinisterioAgendaIndexPage() {
       <FancyCalendar
         containerStyle={styles.calendarContainer}
         visualStyle='agendaPremium'
+        minimumDate={CALENDAR_PAST_FLOOR}
+        onDateJumpPress={() => setDatePickerVisible(true)}
         onChangeMonthVisualization={(date) => {
           setCurrenMonth(date);
           setCurrentDate(startOfMonth(date));
@@ -96,6 +104,19 @@ export default function MinisterioAgendaIndexPage() {
           color: e.cancelada ? ColorUtils.withAlpha(e.cor, 0.3) : e.cor,
         }))}
         value={currentDate}
+      />
+      <ModernDatePickerSheet
+        visible={datePickerVisible}
+        value={currentDate}
+        minimumDate={CALENDAR_PAST_FLOOR}
+        quickActions={['today']}
+        title='Ir para data'
+        onClose={() => setDatePickerVisible(false)}
+        onConfirm={(date) => {
+          setDatePickerVisible(false);
+          setCurrenMonth(date);
+          setCurrentDate(date);
+        }}
       />
       <FancySeparator style={styles.calendarSeparator} />
       <FancyList

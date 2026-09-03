@@ -24,12 +24,15 @@ type EventoAccordeonProps = {
   data: EscalaDoDiaAgrupada;
   onConfirmButtonPress: (dadosEscala: ResponseEscalaItemDto) => void;
   onSubButtonPress: (dadosEscala: ResponseEscalaItemDto) => void;
+  /** Escala passada: esconde ações de confirmar/pedir substituição. */
+  readOnly?: boolean;
 };
 
 export default function EventoAccordeon({
   data,
   onConfirmButtonPress,
   onSubButtonPress,
+  readOnly = false,
 }: EventoAccordeonProps) {
   const palette = usePallete();
   const [isOpeningEvento, setIsOpeningEvento] = useState(false);
@@ -76,7 +79,8 @@ export default function EventoAccordeon({
       startOfDay(new Date()),
     );
 
-    if (diffDays <= 0) return 'Hoje';
+    if (diffDays < 0) return 'Realizado';
+    if (diffDays === 0) return 'Hoje';
     if (diffDays === 1) return 'Amanhã';
     return `Em ${diffDays}d`;
   }, [data.dataOcorrencia]);
@@ -91,7 +95,11 @@ export default function EventoAccordeon({
 
   const statusChip = hasSubstituicaoPendente
     ? { label: 'Pendente', color: palette.warning, dot: false }
-    : { label: countdownLabel, color: eventColor, dot: countdownLabel === 'Hoje' };
+    : {
+        label: countdownLabel,
+        color: countdownLabel === 'Realizado' ? palette.fonts.inactive : eventColor,
+        dot: countdownLabel === 'Hoje',
+      };
 
   const metaPrimaryText = useMemo(() => {
     const totalFuncoes = data.itens.length;
@@ -348,6 +356,7 @@ export default function EventoAccordeon({
       <FuncoesTable
         data={data.itens}
         eventColor={eventColor}
+        readOnly={readOnly}
         onConfirmButtonPress={onConfirmButtonPress}
         onSubButtonPress={onSubButtonPress}
       />

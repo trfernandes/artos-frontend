@@ -15,6 +15,7 @@ import { ColorUtils } from '../../../../../utils/color_utils';
 type FuncoesTableProps = {
   data: ResponseEscalaItemDto[];
   eventColor: string;
+  readOnly?: boolean;
   onConfirmButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void;
   onSubButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void;
 };
@@ -31,12 +32,14 @@ function FuncaoRow({
   item,
   isLast,
   eventColor,
+  readOnly,
   onConfirmButtonPress,
   onSubButtonPress,
 }: {
   item: ResponseEscalaItemDto;
   isLast: boolean;
   eventColor: string;
+  readOnly?: boolean;
   onConfirmButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void;
   onSubButtonPress?: (dadosEscala: ResponseEscalaItemDto) => void;
 }) {
@@ -66,7 +69,7 @@ function FuncaoRow({
         </View>
       </View>
 
-      {!isSubstituicaoPendente && (
+      {!isSubstituicaoPendente && !readOnly && (
         <View style={styles.actionsRow}>
           {isPendente && (
             <FancyButton
@@ -101,6 +104,7 @@ function FuncaoRow({
 export default function FuncoesTable({
   data,
   eventColor,
+  readOnly,
   onConfirmButtonPress,
   onSubButtonPress,
 }: FuncoesTableProps) {
@@ -114,6 +118,7 @@ export default function FuncoesTable({
           item={item}
           isLast={index === data.length - 1}
           eventColor={eventColor}
+          readOnly={readOnly}
           onConfirmButtonPress={onConfirmButtonPress}
           onSubButtonPress={onSubButtonPress}
         />

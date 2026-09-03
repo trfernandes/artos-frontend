@@ -1,4 +1,5 @@
 import { StyleSheet, View } from 'react-native';
+import { isBefore, startOfDay } from 'date-fns';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import FancyTabs, { TabItem } from '../../../../tabs/FancyTabs';
 import EscalaEventoEquipeTab from './EscalaEventoEquipeTab';
@@ -31,15 +32,15 @@ export default function EventoDetails(props: {
   const TABS_DATA: TabItem[] = useMemo(() => {
     const ministerio = getMinisterioLoginAccess(igrejaAtiva, props.ministerioId);
     const isMinisterioLouvor = ministerioEhLouvor(ministerio);
-    const setlistMode: 'lider' | 'responsavel' | 'leitura' = canManageEventoOcorrencia(
-      igrejaAtiva,
-      props.ministerioId,
-    )
-      ? 'lider'
-      : props.responsavelSetlistVoluntarioId &&
-          props.responsavelSetlistVoluntarioId === user?.user.id
-        ? 'responsavel'
-        : 'leitura';
+    const isPast = isBefore(startOfDay(props.dataOcorrencia), startOfDay(new Date()));
+    const setlistMode: 'lider' | 'responsavel' | 'leitura' = isPast
+      ? 'leitura'
+      : canManageEventoOcorrencia(igrejaAtiva, props.ministerioId)
+        ? 'lider'
+        : props.responsavelSetlistVoluntarioId &&
+            props.responsavelSetlistVoluntarioId === user?.user.id
+          ? 'responsavel'
+          : 'leitura';
 
     const tabs: TabItem[] = [
       {
