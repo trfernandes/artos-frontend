@@ -118,6 +118,9 @@ style={{ elevation: 2, shadowOpacity: 0.2 }}
 - Nunca `elevation` diretamente — sempre `Pallete.shadows[100|200|300]`
 - Nunca gradiente fora dos 3 tokens permitidos (ver acima)
 - Nunca `marginTop`/`marginBottom` ad-hoc entre seções em FancyPageView — usar `FancyVerticalSpacer`
+- Nunca fundo cinza em card/item (`backgroundColor2`/`backgroundColor3`, ou `FancyCard` sem prop
+  `backgroundColor`, que cai no cinza padrão) — usar tint de cor (`ColorUtils.lightenColor(palette.primary|secondary, ~0.96)`
+  claro / `backgroundColor4` escuro) ou `backgroundColor` neutro puro
 
 ### Decisões rápidas
 

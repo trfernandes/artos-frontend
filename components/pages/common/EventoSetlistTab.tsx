@@ -7,7 +7,6 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import FancyBottomSheetModal from '../../modal/FancyBottomSheetModal';
 import FancyVerticalSpacer from '../../FancyVerticalSpacer';
-import FancySeparator from '../../FancySeparator';
 import FancyButton from '../../buttons/FancyButton';
 import FancyBottomSheetSelect from '../../fields/FancyBottomSheetSelect';
 import DefaultIcons from '../../FancyIcons';
@@ -20,11 +19,14 @@ import FancyActionSheet from '../../actions/FancyActionSheet';
 import { FancyAlert } from '../../modal/FancyAlert';
 import { ModalStack } from '../../modal/GlobalModalHost';
 import SetListItem from './SetListItem';
+import FancyChips from '../../FancyChips';
+import FancyImage from '../../images/FancyImage';
 import { getApiErrorMessage } from '../../../domain/api/api-error';
 import {
   EventoSetlistItemOrigemEnum,
   ResponseEventoSetlistItemDto,
 } from '../../../domain/dtos/Evento/evento-setlist-item.response';
+import { EscalaItemStatusEnumLabel } from '../../../domain/enums/Escala/escala-item-status.enum';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useAppTheme } from '../../../hooks/useAppTheme';
 import { useEventoSetlist } from '../../../hooks/useEventoSetlist';
@@ -34,6 +36,7 @@ import { useEventoSetlistResponsavel } from '../../../hooks/useEventoSetlistResp
 import { useRepertorioMusicas } from '../../../hooks/useRepertorio';
 import { ColorUtils } from '../../../utils/color_utils';
 import { SETLIST_CLEAR_ENABLED } from '../../../utils/featureFlags';
+import DateUtils from '../../../utils/date_utils';
 import { DefaultIconsNames } from '../../../constants/icons';
 
 const BUSY_MODAL_ID = 'evento-setlist-busy';
@@ -55,17 +58,21 @@ export default function EventoSetlistTab({
   responsavelSetlistNome,
   detailsRoutePath = '/ministerios/agenda/setlist/[itemId]',
 }: Props) {
-  const { palette, isDark } = useAppTheme();
+  const { palette } = useAppTheme();
   const { user } = useAuth();
   const dataOcorrenciaIso = dataOcorrencia.toISOString();
-  const isEditable = mode !== 'leitura';
-  const canManageResponsavel = mode === 'lider';
-  const canAddMusic = mode === 'lider' || mode === 'responsavel';
+  const SPIKE_FORCE_LEITURA = false; // TEMP screenshot spike, remover
+  const isEditable = SPIKE_FORCE_LEITURA ? false : mode !== 'leitura';
+  const canManageResponsavel = SPIKE_FORCE_LEITURA ? false : mode === 'lider';
+  const canAddMusic = SPIKE_FORCE_LEITURA ? false : mode === 'lider' || mode === 'responsavel';
+  const [orientacoesExpanded, setOrientacoesExpanded] = useState(false);
+  const [reorderMode, setReorderMode] = useState(false);
 
   const {
     data,
     isLoading,
     publicado,
+    publicadoEm,
     criarSetlistItem,
     atualizarSetlistItem,
     removerSetlistItem,
@@ -100,6 +107,7 @@ export default function EventoSetlistTab({
   const [orderedItems, setOrderedItems] = useState<ResponseEventoSetlistItemDto[]>([]);
   const [actionsItem, setActionsItem] = useState<ResponseEventoSetlistItemDto | null>(null);
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
+  const [itemHeights, setItemHeights] = useState<Record<string, number>>({});
 
   const repertorio = useMemo(
     () => (repertorioData ?? []).filter((item) => item.ativo !== false),
@@ -107,6 +115,9 @@ export default function EventoSetlistTab({
   );
 
   const items = useMemo(() => (data ?? []).slice().sort((a, b) => a.ordem - b.ordem), [data]);
+
+  const statusCaption =
+    publicado && publicadoEm ? DateUtils.timeAgoText(new Date(publicadoEm)) : null;
 
   useEffect(() => {
     setOrderedItems(items);
@@ -194,7 +205,25 @@ export default function EventoSetlistTab({
     '';
   const responsavelAtualNome =
     equipeData?.responsavelSetlistVoluntario?.nome || responsavelSetlistNome || null;
+  const responsavelAtualFoto =
+    equipeData?.responsavelSetlistVoluntario?.fotoThumbUrl ||
+    equipeData?.responsavelSetlistVoluntario?.fotoUrl ||
+    null;
   const isCurrentUserResponsavel = !!responsavelAtualId && responsavelAtualId === user?.user?.id;
+  const responsavelStatusRaw = useMemo(() => {
+    if (!responsavelAtualId) return null;
+    return (
+      equipeData?.grupos
+        .flatMap((grupo) => grupo.integrantes)
+        .find((integrante) => integrante.voluntarioId === responsavelAtualId)?.status || null
+    );
+  }, [equipeData?.grupos, responsavelAtualId]);
+  const responsavelStatusVisible =
+    responsavelStatusRaw === '1' || responsavelStatusRaw === '2' || responsavelStatusRaw === '3';
+  const responsavelStatusLabel = responsavelStatusVisible
+    ? EscalaItemStatusEnumLabel[responsavelStatusRaw as keyof typeof EscalaItemStatusEnumLabel]
+    : null;
+  const responsavelStatusColor = responsavelStatusRaw === '1' ? palette.confirm : palette.error;
   // Sem responsável definido: líder só pode incluir um responsável; nova música e
   // orientações ficam desabilitados até existir responsável.
   const hasResponsavel = !!responsavelAtualNome;
@@ -484,260 +513,229 @@ export default function EventoSetlistTab({
     ]);
   };
 
+  const showObservacoesRow = !!(observacoesData?.observacoes || canEditOrientacoes);
+
   const renderHeader = () => (
     <View style={styles.headerContainer}>
-      <View style={styles.dualCardsRow}>
       <View
-        style={[
-          styles.ownerCard,
-          {
-            backgroundColor: isDark
-              ? palette.backgroundColor4
-              : ColorUtils.lightenColor(palette.secondary, 0.955),
-            borderColor: ColorUtils.withAlpha(palette.secondary, isDark ? 0.32 : 0.16),
-          },
-        ]}
+        style={{
+          backgroundColor: palette.backgroundColor4,
+          borderColor: palette.borderCard,
+          borderWidth: StyleSheet.hairlineWidth,
+          borderRadius: 20,
+          paddingHorizontal: 12,
+        }}
       >
-        <View style={styles.ownerLeading}>
-          <DefaultIcons.Custom
-            library='MaterialCommunityIcons'
-            name={responsavelAtualNome ? 'music-clef-treble' : 'account-question-outline'}
-            size={14}
-            color={palette.secondary}
-          />
-          <FancyText
-            size='extraSmall'
-            type='semiBold'
-            style={[styles.ownerEyebrow, { color: ColorUtils.withAlpha(palette.secondary, 0.88) }]}
-          >
-            Responsável
-          </FancyText>
-        </View>
-        {/* Título: "Você" quando o responsável é o usuário logado, senão nome ou estado vazio */}
-        <FancyText
-          size='small'
-          type='semiBold'
-          numberOfLines={1}
-          color={responsavelAtualNome ? palette.fonts.dark : palette.fonts.inactive}
-          style={styles.ownerTitle}
-        >
-          {isCurrentUserResponsavel ? 'Você' : responsavelAtualNome || 'Nenhum responsável'}
-        </FancyText>
-        {canManageResponsavel ? (
-          <Pressable
-            onPress={openResponsavel}
-            accessibilityRole='button'
-            accessibilityLabel='Definir responsável do SetList'
-            hitSlop={8}
-            style={[
-              styles.publishButton,
-              {
-                backgroundColor: ColorUtils.withAlpha(palette.secondary, 0.12),
-                borderColor: ColorUtils.withAlpha(palette.secondary, 0.32),
-              },
-            ]}
-          >
-            <MaterialCommunityIcons
-              name={responsavelAtualNome ? 'swap-horizontal' : 'account-plus-outline'}
-              size={13}
-              color={palette.secondary}
-            />
-            <FancyText size='extraSmall' type='semiBold' color={palette.secondary}>
-              {responsavelAtualNome ? 'Trocar' : 'Definir'}
-            </FancyText>
-          </Pressable>
-        ) : null}
-      </View>
-
-      {isEditable && (
-        <View
-          style={[
-            styles.statusCard,
-            {
-              backgroundColor: isDark
-                ? palette.backgroundColor4
-                : ColorUtils.lightenColor(publicado ? palette.confirm : palette.warning, 0.94),
-              borderColor: ColorUtils.withAlpha(
-                publicado ? palette.confirm : palette.warning,
-                isDark ? 0.32 : 0.18,
-              ),
-            },
-          ]}
-        >
-          <View style={styles.statusHeaderRow}>
-            <DefaultIcons.Custom
-              library='MaterialCommunityIcons'
-              name={publicado ? 'check-decagram-outline' : 'file-clock-outline'}
-              size={14}
-              color={publicado ? palette.confirm : palette.warning}
-            />
-            <FancyText
-              size='extraSmall'
-              type='semiBold'
+        <View style={[styles.infoRow, { paddingVertical: 10 }]}>
+          {responsavelAtualNome && responsavelAtualFoto ? (
+            <FancyImage source={{ uri: responsavelAtualFoto }} size={32} />
+          ) : (
+            <View
               style={[
-                styles.ownerEyebrow,
-                { color: ColorUtils.withAlpha(publicado ? palette.confirm : palette.warning, 0.88) },
+                styles.infoTrailingCircle,
+                {
+                  backgroundColor: ColorUtils.withAlpha(palette.primary, 0.1),
+                },
               ]}
+              accessibilityLabel='Responsável do SetList'
             >
-              Status
-            </FancyText>
-          </View>
+              <MaterialCommunityIcons
+                name={responsavelAtualNome ? 'account-music-outline' : 'account-question-outline'}
+                size={17}
+                color={responsavelAtualNome ? palette.primary : palette.icons.inactive}
+              />
+            </View>
+          )}
           <FancyText
             size='small'
             type='semiBold'
-            color={publicado ? palette.confirm : palette.warning}
-            style={styles.ownerTitle}
+            numberOfLines={1}
+            color={responsavelAtualNome ? palette.fonts.dark : palette.fonts.inactive}
+            style={{ flex: 1 }}
           >
-            {publicado ? 'Publicado' : 'Rascunho'}
+            {isCurrentUserResponsavel ? 'Você' : responsavelAtualNome || 'Sem responsável definido'}
           </FancyText>
-          {!publicado && canAddMusic ? (
-            <Pressable
-              onPress={confirmPublicarSetlist}
-              disabled={isPublishingSetlist}
-              accessibilityRole='button'
-              accessibilityLabel='Publicar setlist'
-              hitSlop={8}
-              style={[
-                styles.publishButton,
-                {
-                  backgroundColor: ColorUtils.withAlpha(palette.warning, 0.12),
-                  borderColor: ColorUtils.withAlpha(palette.warning, 0.32),
-                  opacity: isPublishingSetlist ? 0.6 : 1,
-                },
-              ]}
-            >
-              <MaterialCommunityIcons name='rocket-launch-outline' size={13} color={palette.warning} />
-              <FancyText size='extraSmall' type='semiBold' color={palette.warning}>
-                Publicar
-              </FancyText>
-            </Pressable>
-          ) : null}
-        </View>
-      )}
-      </View>
-
-      {(observacoesData?.observacoes || canEditOrientacoes) && (
-        <Pressable
-          onPress={canEditOrientacoes ? openObservacoes : undefined}
-          disabled={!canEditOrientacoes}
-          style={[
-            styles.observacoesCard,
-            {
-              backgroundColor: isDark
-                ? palette.backgroundColor4
-                : ColorUtils.lightenColor(palette.primary, 0.94),
-              borderColor: ColorUtils.withAlpha(palette.primary, isDark ? 0.32 : 0.18),
-            },
-          ]}
-        >
-          <View style={styles.observacoesLeading}>
+          {responsavelStatusLabel ? (
             <View
               style={[
-                styles.observacoesIconWrap,
+                styles.statusBadge,
                 {
-                  backgroundColor: isDark
-                    ? ColorUtils.withAlpha(palette.primary, 0.16)
-                    : ColorUtils.withAlpha(palette.backgroundColor, 0.92),
-                  borderColor: ColorUtils.withAlpha(palette.primary, isDark ? 0.28 : 0.14),
+                  backgroundColor: ColorUtils.withAlpha(responsavelStatusColor, 0.1),
+                  borderColor: ColorUtils.withAlpha(responsavelStatusColor, 0.28),
                 },
               ]}
             >
-              <DefaultIcons.Custom
-                library='MaterialCommunityIcons'
-                name={canEditOrientacoes ? 'text-box-outline' : 'information-outline'}
-                size={14}
+              <FancyText size='extraSmall' type='bold' color={responsavelStatusColor}>
+                {responsavelStatusLabel}
+              </FancyText>
+            </View>
+          ) : null}
+          {canManageResponsavel ? (
+            <Pressable
+              onPress={openResponsavel}
+              accessibilityRole='button'
+              accessibilityLabel='Definir responsável do SetList'
+              hitSlop={8}
+              style={[styles.infoTrailingCircle, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.1) }]}
+            >
+              <MaterialCommunityIcons
+                name={responsavelAtualNome ? 'swap-horizontal' : 'account-plus-outline'}
+                size={17}
                 color={palette.primary}
               />
-            </View>
-            <View style={styles.observacoesInfo}>
-              {/* Eyebrow: rótulo fixo */}
-              <FancyText
-                size='extraSmall'
-                type='semiBold'
-                style={[
-                  styles.ownerEyebrow,
-                  { color: ColorUtils.withAlpha(palette.primary, 0.86) },
-                ]}
-              >
-                Orientações gerais
-              </FancyText>
-              {/* Título: preview do conteúdo ou estado vazio */}
-              <FancyText
-                size='small'
-                type='semiBold'
-                numberOfLines={2}
-                color={
-                  observacoesData?.observacoes?.trim() ? palette.fonts.dark : palette.fonts.inactive
-                }
-                style={styles.observacoesTitle}
-              >
-                {observacoesData?.observacoes?.trim() || 'Nenhuma orientação'}
-              </FancyText>
-            </View>
-          </View>
-
-          {canEditOrientacoes ? (
-            <Pressable
-              onPress={openObservacoes}
-              accessibilityRole='button'
-              accessibilityLabel='Editar orientações do SetList'
-              hitSlop={8}
-              style={[
-                styles.observacoesActionButton,
-                {
-                  backgroundColor: ColorUtils.withAlpha(palette.backgroundColor, 0.94),
-                  borderColor: ColorUtils.withAlpha(palette.primary, isDark ? 0.28 : 0.14),
-                },
-                isDark && { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.16) },
-              ]}
-            >
-              <MaterialCommunityIcons name='pencil-outline' size={15} color={palette.primary} />
             </Pressable>
           ) : null}
-        </Pressable>
-      )}
-
-      {orderedItems.length > 0 && <FancySeparator style={styles.sectionDivider} />}
-
-      {canAddMusicNow && (
-        <View style={styles.listHeader}>
-          <FancyButton
-            label='Nova música'
-            type='contained'
-            size={34}
-            icon={{
-              library: 'MaterialCommunityIcons',
-              name: 'music-note-plus',
-              size: 15,
-              color: palette.fonts.light,
-            }}
-            containerStyle={styles.addMusicButton}
-            onPress={() => openItemEditor(null)}
-          />
-          {SETLIST_CLEAR_ENABLED && orderedItems.length > 0 && (
-            <Pressable
-              onPress={confirmLimparSetlist}
-              accessibilityRole='button'
-              accessibilityLabel='Limpar setlist inteiro'
-              hitSlop={8}
-              style={[
-                styles.clearSetlistButton,
-                {
-                  backgroundColor: ColorUtils.withAlpha(palette.error, 0.1),
-                  borderColor: ColorUtils.withAlpha(palette.error, 0.24),
-                },
-              ]}
-            >
-              <MaterialCommunityIcons name='trash-can-outline' size={14} color={palette.error} />
-              <FancyText size='extraSmall' type='semiBold' color={palette.error}>
-                Limpar tudo
-              </FancyText>
-            </Pressable>
-          )}
         </View>
-      )}
+
+        {showObservacoesRow && (
+          <>
+            <View style={[styles.infoRowDivider, { backgroundColor: palette.border }]} />
+            <View style={[styles.infoRow, { paddingVertical: 10, alignItems: 'flex-start' }]}>
+              <Pressable
+                style={styles.infoTextCol}
+                onPress={() => setOrientacoesExpanded((prev) => !prev)}
+              >
+                <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive} style={styles.infoLabel}>
+                  Orientações gerais
+                </FancyText>
+                <FancyText
+                  size='small'
+                  type='medium'
+                  numberOfLines={orientacoesExpanded ? undefined : 3}
+                  color={observacoesData?.observacoes?.trim() ? palette.fonts.dark : palette.fonts.inactive}
+                  style={styles.infoValue}
+                >
+                  {observacoesData?.observacoes?.trim() || 'Nenhuma orientação'}
+                </FancyText>
+                {(observacoesData?.observacoes?.trim()?.length ?? 0) > 110 ? (
+                  <FancyText size='extraSmall' type='semiBold' color={palette.fonts.link}>
+                    {orientacoesExpanded ? 'ver menos' : 'ver mais'}
+                  </FancyText>
+                ) : null}
+              </Pressable>
+              {canEditOrientacoes ? (
+                <Pressable
+                  onPress={openObservacoes}
+                  accessibilityRole='button'
+                  accessibilityLabel='Editar orientações gerais'
+                  hitSlop={8}
+                  style={[styles.infoTrailingCircle, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.1) }]}
+                >
+                  <MaterialCommunityIcons name='pencil-outline' size={17} color={palette.primary} />
+                </Pressable>
+              ) : null}
+            </View>
+          </>
+        )}
+
+        {isEditable && (
+          <>
+            <View style={[styles.infoRowDivider, { backgroundColor: palette.border }]} />
+            <View style={[styles.infoRow, { paddingVertical: 10 }]}>
+              <View style={[styles.infoTrailingCircle, { backgroundColor: palette.warning }]}>
+                <DefaultIcons.Custom
+                  library='MaterialCommunityIcons'
+                  name={publicado ? 'check-decagram-outline' : 'timer-sand'}
+                  size={16}
+                  color={palette.fonts.light}
+                />
+              </View>
+              <View style={styles.infoTextCol}>
+                <FancyText size='extraSmall' type='semiBold' color={palette.warning} style={styles.infoLabel}>
+                  Status
+                </FancyText>
+                <FancyText size='small' type='medium' color={palette.fonts.dark} style={styles.infoValue}>
+                  {publicado ? 'Publicado' : 'Rascunho'}
+                </FancyText>
+                {statusCaption ? (
+                  <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} numberOfLines={1}>
+                    {statusCaption}
+                  </FancyText>
+                ) : null}
+              </View>
+              {!publicado && canAddMusic ? (
+                <Pressable
+                  onPress={confirmPublicarSetlist}
+                  disabled={isPublishingSetlist}
+                  accessibilityRole='button'
+                  accessibilityLabel='Publicar setlist'
+                  hitSlop={8}
+                  style={[
+                    styles.publishPill,
+                    { backgroundColor: palette.warning, opacity: isPublishingSetlist ? 0.6 : 1 },
+                  ]}
+                >
+                  <FancyText size='extraSmall' type='semiBold' color={palette.fonts.light}>
+                    Publicar
+                  </FancyText>
+                </Pressable>
+              ) : null}
+            </View>
+          </>
+        )}
+      </View>
     </View>
   );
+
+  const renderListActions = () =>
+    canAddMusicNow ? (
+      <View style={styles.listHeader}>
+        <FancyButton
+          label='Nova música'
+          type='contained'
+          size={34}
+          icon={{
+            library: 'MaterialCommunityIcons',
+            name: 'music-note-plus',
+            size: 15,
+            color: palette.fonts.light,
+          }}
+          containerStyle={styles.addMusicButton}
+          onPress={() => openItemEditor(null)}
+        />
+        <View style={styles.listHeaderSpacer} />
+        {orderedItems.length > 1 && (
+          <Pressable
+            onPress={() => setReorderMode((prev) => !prev)}
+            accessibilityRole='button'
+            accessibilityLabel={reorderMode ? 'Concluir reordenação' : 'Reordenar músicas'}
+            hitSlop={8}
+            style={[
+              styles.iconOnlyButton,
+              reorderMode
+                ? { backgroundColor: palette.primary, borderColor: palette.primary }
+                : {
+                    backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
+                    borderColor: ColorUtils.withAlpha(palette.primary, 0.24),
+                  },
+            ]}
+          >
+            <MaterialCommunityIcons
+              name={reorderMode ? 'check' : 'swap-vertical'}
+              size={16}
+              color={reorderMode ? palette.fonts.light : palette.primary}
+            />
+          </Pressable>
+        )}
+        {SETLIST_CLEAR_ENABLED && orderedItems.length > 0 && (
+          <Pressable
+            onPress={confirmLimparSetlist}
+            accessibilityRole='button'
+            accessibilityLabel='Limpar setlist inteiro'
+            hitSlop={8}
+            style={[
+              styles.iconOnlyButton,
+              {
+                backgroundColor: ColorUtils.withAlpha(palette.error, 0.1),
+                borderColor: ColorUtils.withAlpha(palette.error, 0.24),
+              },
+            ]}
+          >
+            <MaterialCommunityIcons name='trash-can-outline' size={16} color={palette.error} />
+          </Pressable>
+        )}
+      </View>
+    ) : null;
 
   const renderItem = ({
     item,
@@ -745,26 +743,32 @@ export default function EventoSetlistTab({
     isActive,
     getIndex,
   }: RenderItemParams<ResponseEventoSetlistItemDto>) => {
-    const index = (getIndex?.() ?? 0) + 1;
-    const etiquetas = item.repertorioMusicaId
-      ? repertorio.find((musica) => musica.id === item.repertorioMusicaId)?.etiquetas
-      : undefined;
+    const rawIndex = getIndex?.() ?? 0;
+    const index = rawIndex + 1;
+    const nextItem = orderedItems[rawIndex + 1];
     return (
       <SetListItem
         order={index}
         total={orderedItems.length}
         name={item.nome}
         artist={item.interprete}
-        etiquetas={etiquetas}
         totalSecoes={item.totalSecoes}
         tom={item.tom}
         bpm={item.bpm}
         versaoUrl={item.versaoUrl}
+        observacoes={item.observacoes}
         onPress={() => openItemDetails(item)}
         onActionsPress={isEditable ? () => openItemActions(item) : undefined}
-        onLongPress={isEditable ? drag : undefined}
+        onLongPress={isEditable && reorderMode ? drag : undefined}
         isEditable={isEditable}
         isActive={isActive}
+        isLast={rawIndex === orderedItems.length - 1}
+        reorderMode={reorderMode}
+        cardHeight={itemHeights[item.id]}
+        nextCardHeight={nextItem ? itemHeights[nextItem.id] : undefined}
+        onMeasureHeight={(height) =>
+          setItemHeights((prev) => (prev[item.id] === height ? prev : { ...prev, [item.id]: height }))
+        }
       />
     );
   };
@@ -775,41 +779,62 @@ export default function EventoSetlistTab({
     <>
       <View style={styles.container}>
         {renderHeader()}
-        <FancyVerticalSpacer height={12} />
-        <DraggableFlatList
-          data={orderedItems}
-          onDragEnd={({ data: nextItems }) => {
-            void handleDragEnd(nextItems);
-          }}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-          activationDistance={16}
-          dragItemOverflow={false}
-          containerStyle={styles.list}
-          contentContainerStyle={[
-            styles.listContent,
-            orderedItems.length === 0 && styles.listContentEmpty,
+        <FancyVerticalSpacer height={16} />
+        <View
+          style={[
+            styles.railContainer,
+            orderedItems.length > 0 && {
+              borderColor: palette.borderCard,
+              backgroundColor: palette.backgroundColor4,
+            },
           ]}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <FancyListEmpty
-                label='Nenhuma música adicionada'
-                helperText={
-                  canAddMusicNow
-                    ? 'Adicione as músicas desta ocorrência para definir a sequência e acompanhar a duração total.'
-                    : 'Quando o responsável montar o SetList, as músicas aparecerão aqui para consulta.'
-                }
-                icon={{
-                  library: 'MaterialCommunityIcons',
-                  name: 'playlist-music-outline',
-                  size: 56,
-                }}
-                muted={false}
-              />
-            </View>
-          }
-        />
+        >
+          {renderListActions()}
+          <DraggableFlatList
+            data={orderedItems}
+            onDragEnd={({ data: nextItems }) => {
+              void handleDragEnd(nextItems);
+            }}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id}
+            activationDistance={reorderMode ? 0 : 16}
+            dragItemOverflow={false}
+            containerStyle={styles.list}
+            contentContainerStyle={[
+              styles.listContent,
+              orderedItems.length === 0 && styles.listContentEmpty,
+            ]}
+            showsVerticalScrollIndicator={false}
+            ListHeaderComponent={
+              orderedItems.length > 0 ? (
+                <View style={styles.listSectionHeader}>
+                  <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive}>
+                    Repertório · {orderedItems.length}{' '}
+                    {orderedItems.length === 1 ? 'música' : 'músicas'}
+                  </FancyText>
+                </View>
+              ) : null
+            }
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <FancyListEmpty
+                  label='Nenhuma música adicionada'
+                  helperText={
+                    canAddMusicNow
+                      ? 'Adicione as músicas desta ocorrência para definir a sequência e acompanhar a duração total.'
+                      : 'Quando o responsável montar o SetList, as músicas aparecerão aqui para consulta.'
+                  }
+                  icon={{
+                    library: 'MaterialCommunityIcons',
+                    name: 'playlist-music-outline',
+                    size: 56,
+                  }}
+                  muted={false}
+                />
+              </View>
+            }
+          />
+        </View>
       </View>
 
       <EventoSetlistEditorSheet
@@ -1027,9 +1052,8 @@ const styles = StyleSheet.create({
   },
   listContent: {
     flexGrow: 1,
-    paddingHorizontal: 15,
-    paddingBottom: 28,
-    gap: 12,
+    paddingBottom: 18,
+    gap: 2,
   },
   listContentEmpty: {
     paddingBottom: 10,
@@ -1040,137 +1064,114 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
     gap: 12,
   },
-  dualCardsRow: {
+  infoCard: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 8,
-  },
-  ownerCard: {
-    flex: 1,
-    borderWidth: 0.6,
-    borderRadius: 12,
-    paddingHorizontal: 10,
+    alignItems: 'center',
+    gap: 10,
+    borderRadius: 16,
+    paddingHorizontal: 12,
     paddingVertical: 10,
-    gap: 6,
   },
-  statusCard: {
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 8,
+  },
+  infoIconSquare: {
+    width: 38,
+    height: 38,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  infoIconPlain: {
+    width: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  infoRowDivider: {
+    height: StyleSheet.hairlineWidth,
+  },
+  infoTextCol: {
     flex: 1,
-    borderWidth: 0.6,
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-    gap: 6,
-  },
-  statusHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  publishButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    alignSelf: 'flex-start',
-    height: 26,
-    paddingHorizontal: 10,
-    borderRadius: 50,
-    borderWidth: 0.6,
-  },
-  ownerLeading: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
     minWidth: 0,
+    gap: 1,
   },
-  ownerEyebrowRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  ownerEyebrow: {
+  infoLabel: {
     fontSize: 11,
     lineHeight: 13,
     letterSpacing: 0.16,
     includeFontPadding: false,
   },
-  ownerTitle: {
-    fontSize: 12.5,
-    lineHeight: 15,
+  infoValue: {
+    fontSize: 11,
+    lineHeight: 13,
     includeFontPadding: false,
   },
-  ownerSubtitle: {
-    // tamanho definido via prop size no FancyText
-  },
-  observacoesCard: {
-    borderWidth: 0.6,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 10,
-  },
-  observacoesLeading: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingRight: 8,
-  },
-  observacoesIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  observacoesInfo: {
-    flex: 1,
-    gap: 1,
-    minWidth: 0,
-  },
-  observacoesTitle: {
-    flexShrink: 1,
-    fontSize: 12.5,
-    lineHeight: 15,
-    includeFontPadding: false,
-  },
-  observacoesSubtitle: {
-    flexShrink: 1,
-  },
-  observacoesActionButton: {
+  infoTrailingCircle: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  sectionDivider: {
-    marginVertical: 6,
+  publishPill: {
+    alignSelf: 'center',
+    height: 32,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ownerNameGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minWidth: 0,
+    flexShrink: 1,
+  },
+  listSectionHeader: {
+    marginBottom: 4,
   },
   listHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
     gap: 8,
+    marginBottom: 16,
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    height: 22,
+    borderRadius: 999,
+    borderWidth: 0.6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  listHeaderSpacer: {
+    flex: 1,
+  },
+  iconOnlyButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 0.6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  railContainer: {
+    flex: 1,
+    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginHorizontal: 15,
+    padding: 10,
   },
   addMusicButton: {
     minWidth: 0,
     height: 32,
     paddingHorizontal: 12,
     borderRadius: 50,
-  },
-  clearSetlistButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    height: 32,
-    paddingHorizontal: 12,
-    borderRadius: 50,
-    borderWidth: 0.6,
   },
   emptyState: {
     flexGrow: 1,

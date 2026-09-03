@@ -4,6 +4,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { CreateEventoSetlistItemDto } from '../domain/dtos/Evento/evento-setlist-item.create';
 import { UpdateEventoSetlistItemDto } from '../domain/dtos/Evento/evento-setlist-item.update';
 import { ReorderEventoSetlistDto } from '../domain/dtos/Evento/reorder-evento-setlist.dto';
+import { ResponseEventoSetlistItemDto } from '../domain/dtos/Evento/evento-setlist-item.response';
+
+const EMPTY_ITENS: ResponseEventoSetlistItemDto[] = [];
 
 export function useEventoSetlist(
   eventoId?: string,
@@ -27,7 +30,7 @@ export function useEventoSetlist(
       ),
   });
 
-  const itens = query.data?.itens ?? [];
+  const itens = query.data?.itens ?? EMPTY_ITENS;
   const publicado = query.data?.publicado ?? false;
   const publicadoEm = query.data?.publicadoEm ?? null;
 
