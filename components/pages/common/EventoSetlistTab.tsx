@@ -741,9 +741,10 @@ export default function EventoSetlistTab({
           onPress={() => openItemEditor(null)}
         />
         <View style={styles.listHeaderSpacer} />
-        {orderedItems.length > 1 && !reorderMode && (
+        {!reorderMode && (
           <Pressable
             onPress={() => setReorderMode(true)}
+            disabled={orderedItems.length <= 1}
             accessibilityRole='button'
             accessibilityLabel='Reordenar músicas'
             hitSlop={8}
@@ -752,6 +753,7 @@ export default function EventoSetlistTab({
               {
                 backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
                 borderColor: ColorUtils.withAlpha(palette.primary, 0.24),
+                opacity: orderedItems.length <= 1 ? 0.4 : 1,
               },
             ]}
           >
@@ -794,9 +796,10 @@ export default function EventoSetlistTab({
             </Pressable>
           </View>
         )}
-        {SETLIST_CLEAR_ENABLED && orderedItems.length > 0 && (
+        {SETLIST_CLEAR_ENABLED && (
           <Pressable
             onPress={confirmLimparSetlist}
+            disabled={orderedItems.length === 0}
             accessibilityRole='button'
             accessibilityLabel='Limpar setlist inteiro'
             hitSlop={8}
@@ -805,6 +808,7 @@ export default function EventoSetlistTab({
               {
                 backgroundColor: ColorUtils.withAlpha(palette.error, 0.1),
                 borderColor: ColorUtils.withAlpha(palette.error, 0.24),
+                opacity: orderedItems.length === 0 ? 0.4 : 1,
               },
             ]}
           >
