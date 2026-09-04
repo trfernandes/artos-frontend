@@ -884,6 +884,7 @@ export default function EventoSetlistTab({
               <FancyButton
                 label='Cancelar'
                 type='contained'
+                icon={{ library: 'MaterialCommunityIcons', name: 'close', size: 16 }}
                 containerStyle={[styles.reorderFooterBtn, { backgroundColor: palette.error }]}
                 onPress={cancelReorder}
                 disabled={isReorderingSetlist}
@@ -891,6 +892,7 @@ export default function EventoSetlistTab({
               <FancyButton
                 label='Confirmar'
                 type='contained'
+                icon={{ library: 'MaterialCommunityIcons', name: 'check', size: 16 }}
                 containerStyle={styles.reorderFooterBtn}
                 isLoading={isReorderingSetlist}
                 onPress={() => void confirmReorder()}
