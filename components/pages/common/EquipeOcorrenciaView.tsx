@@ -272,7 +272,7 @@ export default function EquipeOcorrenciaView({
 
 function GerenciarEscalaLink({ disabled, onPress }: { disabled: boolean; onPress: () => void }) {
   const { palette, isDark } = useAppTheme();
-  const cardBg = isDark ? palette.backgroundColor2 : palette.backgroundColor3;
+  const cardBg = isDark ? palette.backgroundColor4 : ColorUtils.lightenColor(palette.primary, 0.96);
 
   return (
     <Pressable
