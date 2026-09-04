@@ -9,6 +9,7 @@ import FancyListEmpty from '../../list/FancyListEmpty';
 import FancyLoading from '../../FancyLoading';
 import FancyText from '../../FancyText';
 import FancySegmentedControl from '../../fields/FancySegmentedControl';
+import FancyVerticalSpacer from '../../FancyVerticalSpacer';
 import {
   ChamadaGridItem,
   ChamadaGridRow,
@@ -16,12 +17,12 @@ import {
   chunkPairs,
   PessoaChamadaRow,
   PessoaFuncaoStatus,
-  SecaoChamadaHeader,
   VagaChamadaRow,
 } from './EquipeChamadaRow';
 import { EscalaItemStatusEnum } from '../../../domain/enums/Escala/escala-item-status.enum';
 import { useAuth } from '../../../contexts/AuthContext';
 import { usePallete } from '../../../hooks/usePallete';
+import { useAppTheme } from '../../../hooks/useAppTheme';
 import { useEventoEquipe } from '../../../hooks/useEventoEquipe';
 import { ColorUtils } from '../../../utils/color_utils';
 import { EscalaItensRepository } from '../../../domain/services/EscalaItensRepository';
@@ -50,7 +51,7 @@ export default function EquipeOcorrenciaView({
   modo,
 }: Props) {
   const palette = usePallete();
-  const { user } = useAuth();
+  const { user, igrejaAtiva } = useAuth();
 
   const isLeaderMode = modo === 'lider';
   const dataOcorrenciaIso = dataOcorrencia.toISOString();
@@ -73,8 +74,8 @@ export default function EquipeOcorrenciaView({
   // líder, que é o único contexto onde o link "Gerenciar escala" aparece.
   const primeiroEscalaItemId = integrantesFlat[0]?.escalaItemId;
   const { data: escalaId } = useQuery({
-    queryKey: ['escala-item-escala-id', primeiroEscalaItemId],
-    enabled: isLeaderMode && !!primeiroEscalaItemId,
+    queryKey: ['escala-item-escala-id', igrejaAtiva?.id, primeiroEscalaItemId],
+    enabled: isLeaderMode && !!primeiroEscalaItemId && !!igrejaAtiva?.id,
     queryFn: async () => {
       const [item] = await EscalaItensRepository.search({
         where: {
@@ -87,6 +88,7 @@ export default function EquipeOcorrenciaView({
           ],
         },
         relations: [],
+        igrejaId: igrejaAtiva?.id,
       });
       return item?.escalaId ?? null;
     },
@@ -173,37 +175,23 @@ export default function EquipeOcorrenciaView({
       : [];
     const vagasVisiveis = mostrarVagas ? vagas : [];
 
-    const naoConfirmadosSecao: ChamadaGridItem[] = [...naoConfirmadosVisiveis, ...vagasVisiveis];
-    const resultado: ChamadaRow[] = [];
+    // Lista única, sem agrupador por status — o dot de cada função já indica o
+    // status individual. Ordenada por nome (pessoa) ou nome da função (vaga).
+    const itens: ChamadaGridItem[] = [
+      ...confirmadosVisiveis,
+      ...naoConfirmadosVisiveis,
+      ...vagasVisiveis,
+    ].sort((a, b) => {
+      const labelA = a.kind === 'pessoa' ? a.nome : a.nomeFuncao;
+      const labelB = b.kind === 'pessoa' ? b.nome : b.nomeFuncao;
+      return labelA.localeCompare(labelB, 'pt-BR', { sensitivity: 'base' });
+    });
 
-    if (confirmadosVisiveis.length > 0) {
-      resultado.push({
-        kind: 'secao',
-        key: 'secao-confirmados',
-        label: 'Confirmados',
-        count: confirmadosVisiveis.length,
-        tone: 'ok',
-      });
-      chunkPairs(confirmadosVisiveis).forEach((par, index) =>
-        resultado.push({ kind: 'grid-pair', key: `confirmados-${index}`, items: par }),
-      );
-    }
-
-    if (naoConfirmadosSecao.length > 0) {
-      resultado.push({
-        kind: 'secao',
-        key: 'secao-nao-confirmados',
-        label: 'Não confirmados',
-        count: naoConfirmadosSecao.length,
-        tone: 'wait',
-      });
-      chunkPairs(naoConfirmadosSecao).forEach((par, index) =>
-        resultado.push({ kind: 'grid-pair', key: `nao-confirmados-${index}`, items: par }),
-      );
-    }
-
-    return resultado;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return chunkPairs(itens).map((par, index) => ({
+      kind: 'grid-pair',
+      key: `grid-${index}`,
+      items: par,
+    }));
   }, [pessoas, vagas, filtro]);
 
   if (isLoading) {
@@ -256,7 +244,10 @@ export default function EquipeOcorrenciaView({
       </View>
 
       {isLeaderMode ? (
-        <GerenciarEscalaLink disabled={!escalaId} onPress={handleGerenciarEscala} />
+        <>
+          <FancyVerticalSpacer height={6} />
+          <GerenciarEscalaLink disabled={!escalaId} onPress={handleGerenciarEscala} />
+        </>
       ) : null}
 
       <FancyList<ChamadaRow>
@@ -271,18 +262,17 @@ export default function EquipeOcorrenciaView({
               : 'Nenhum integrante neste filtro.',
           icon: { library: 'MaterialCommunityIcons', name: 'account-search-outline', size: 56 },
         }}
-        renderItem={({ item }) => {
-          const { key, ...rest } = item;
-          if (rest.kind === 'secao') return <SecaoChamadaHeader key={key} {...rest} />;
-          return <ChamadaGridRow key={key} {...rest} />;
-        }}
+        renderItem={({ item }) => (
+          <ChamadaGridRow key={item.key} kind={item.kind} items={item.items} />
+        )}
       />
     </>
   );
 }
 
 function GerenciarEscalaLink({ disabled, onPress }: { disabled: boolean; onPress: () => void }) {
-  const palette = usePallete();
+  const { palette, isDark } = useAppTheme();
+  const cardBg = isDark ? palette.backgroundColor2 : palette.backgroundColor3;
 
   return (
     <Pressable
@@ -290,7 +280,7 @@ function GerenciarEscalaLink({ disabled, onPress }: { disabled: boolean; onPress
       disabled={disabled}
       style={[
         styles.manageCard,
-        { backgroundColor: palette.backgroundColor, ...palette.shadows[100] },
+        { backgroundColor: cardBg },
         disabled && styles.manageCardDisabled,
       ]}
     >
@@ -333,10 +323,10 @@ const styles = StyleSheet.create({
   manageCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
     borderRadius: 14,
-    padding: 12,
-    marginBottom: 4,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
   },
   manageCardDisabled: {
     opacity: 0.5,
@@ -356,7 +346,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    paddingTop: 4,
+    paddingTop: 16,
     paddingBottom: 24,
   },
 });

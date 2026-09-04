@@ -130,14 +130,14 @@ export default function FancySegmentedControl<T extends string>({
       )}
 
       {isScrollable ? (
-        <View
-          style={[
-            styles.scrollTrack,
-            {
-              backgroundColor: palette.backgroundColor2,
-            },
-          ]}
-        >
+        <View style={styles.scrollTrack}>
+          {/* Fundo isolado das opções: View com backgroundColor+borderRadius junto de um
+              filho com elevation clipa a sombra do filho perto dos cantos no Android. */}
+          <View
+            style={[styles.trackBackground, { backgroundColor: palette.backgroundColor2 }]}
+            pointerEvents='none'
+          />
+
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -170,16 +170,14 @@ export default function FancySegmentedControl<T extends string>({
           </ScrollView>
         </View>
       ) : (
-        <View
-          onLayout={handleLayout}
-          style={[
-            styles.track,
-            {
-              backgroundColor: palette.backgroundColor2,
-              height,
-            },
-          ]}
-        >
+        <View onLayout={handleLayout} style={[styles.track, { height }]}>
+          {/* Fundo isolado da pill: View com backgroundColor+borderRadius junto de um
+              filho com elevation clipa a sombra do filho perto dos cantos no Android. */}
+          <View
+            style={[styles.trackBackground, { backgroundColor: palette.backgroundColor2 }]}
+            pointerEvents='none'
+          />
+
           {/* Sliding pill */}
           {pillWidth > 0 && (
             <Animated.View
@@ -233,10 +231,13 @@ const pillShadow = Platform.select({
 
 const styles = StyleSheet.create({
   track: {
-    borderRadius: BORDER_RADIUS_TRACK,
     padding: TRACK_PADDING,
     flexDirection: 'row',
     position: 'relative',
+  },
+  trackBackground: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: BORDER_RADIUS_TRACK,
   },
   pill: {
     position: 'absolute',
@@ -254,7 +255,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   scrollTrack: {
-    borderRadius: BORDER_RADIUS_TRACK,
+    position: 'relative',
     paddingHorizontal: TRACK_PADDING,
   },
   scrollContent: {

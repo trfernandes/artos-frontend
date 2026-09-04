@@ -10,6 +10,7 @@ export default function _layout() {
   return (
     <Drawer
       drawerContent={(props) => <FancyDrawer {...props} key={igrejaAtiva?.id} />}
+      backBehavior='history'
       screenOptions={{
         headerShown: false,
       }}

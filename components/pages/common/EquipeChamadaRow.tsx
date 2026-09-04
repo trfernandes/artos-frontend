@@ -41,15 +41,7 @@ export type GridPairRow = {
   items: ChamadaGridItem[];
 };
 
-export type SecaoChamadaRow = {
-  kind: 'secao';
-  key: string;
-  label: string;
-  count: number;
-  tone: 'ok' | 'wait';
-};
-
-export type ChamadaRow = GridPairRow | SecaoChamadaRow;
+export type ChamadaRow = GridPairRow;
 
 /** Agrupa itens em pares pra grid 2 colunas, preservando ordem. */
 export function chunkPairs<T>(items: T[]): T[][] {
@@ -58,10 +50,6 @@ export function chunkPairs<T>(items: T[]): T[][] {
     pairs.push(items.slice(i, i + 2));
   }
   return pairs;
-}
-
-function getPersonColor(team: string[], seed: string): string {
-  return team[seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % team.length];
 }
 
 /** Cor semântica de um status individual. */
@@ -77,42 +65,6 @@ function statusColor(palette: ReturnType<typeof usePallete>, status: EscalaItemS
   return palette.warning;
 }
 
-/** Cor do anel do avatar: reflete o pior status entre as funções da pessoa. */
-function ringColor(palette: ReturnType<typeof usePallete>, funcoes: PessoaFuncaoStatus[]) {
-  const temProblema = funcoes.some(
-    (f) =>
-      f.status === EscalaItemStatusEnum.Ausente ||
-      f.status === EscalaItemStatusEnum.Substituido ||
-      f.status === EscalaItemStatusEnum.SubstituicaoSolicitada,
-  );
-  if (temProblema) return palette.error;
-  const todasConfirmadas = funcoes.every((f) => f.status === EscalaItemStatusEnum.Confirmado);
-  return todasConfirmadas ? palette.confirm : palette.warning;
-}
-
-export function SecaoChamadaHeader({ label, count, tone }: SecaoChamadaRow) {
-  const palette = usePallete();
-  const color = tone === 'ok' ? palette.confirm : palette.warning;
-
-  return (
-    <View style={styles.secaoHeader}>
-      <FancyText
-        size='extraSmall'
-        type='bold'
-        color={palette.fonts.inactive}
-        style={styles.secaoLabel}
-      >
-        {label.toUpperCase()}
-      </FancyText>
-      <View style={[styles.secaoCount, { backgroundColor: ColorUtils.withAlpha(color, 0.14) }]}>
-        <FancyText size='extraSmall' type='bold' color={color}>
-          {count}
-        </FancyText>
-      </View>
-    </View>
-  );
-}
-
 function PessoaBadge({ nome, fotoUrl, isCurrentUser, funcoes }: PessoaChamadaRow) {
   const { palette, isDark } = useAppTheme();
   const cardBg = isDark ? palette.backgroundColor2 : palette.backgroundColor;
@@ -121,9 +73,6 @@ function PessoaBadge({ nome, fotoUrl, isCurrentUser, funcoes }: PessoaChamadaRow
     const parts = nome.trim().split(/\s+/);
     return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase();
   }, [nome]);
-
-  const personColor = useMemo(() => getPersonColor(palette.team, nome), [palette.team, nome]);
-  const ring = ringColor(palette, funcoes);
 
   return (
     <View
@@ -140,7 +89,7 @@ function PessoaBadge({ nome, fotoUrl, isCurrentUser, funcoes }: PessoaChamadaRow
         },
       ]}
     >
-      <View style={[styles.ring, { borderColor: ring }]}>
+      <View style={[styles.ring, { borderColor: ColorUtils.withAlpha(palette.border, 0.6) }]}>
         {fotoUrl ? (
           <Image
             source={{ uri: fotoUrl }}
@@ -149,38 +98,48 @@ function PessoaBadge({ nome, fotoUrl, isCurrentUser, funcoes }: PessoaChamadaRow
             transition={120}
           />
         ) : (
-          <View style={[styles.avatarLetter, { backgroundColor: personColor }]}>
-            <FancyText type='bold' size='medium' color={palette.fonts.light}>
+          <View
+            style={[
+              styles.avatarLetter,
+              { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.14) },
+            ]}
+          >
+            <FancyText type='bold' size='medium' color={palette.primary}>
               {initials}
             </FancyText>
           </View>
         )}
       </View>
 
-      <FancyText
-        type='bold'
-        size='small'
-        numberOfLines={1}
-        color={palette.fonts.dark}
-        style={styles.badgeName}
-      >
-        {nome}
-      </FancyText>
-      <View style={styles.funcaoList}>
-        {funcoes.map((f) => {
-          const color = statusColor(palette, f.status);
-          return (
-            <View
-              key={f.key}
-              style={[styles.funcaoPill, { backgroundColor: ColorUtils.withAlpha(color, 0.12) }]}
-            >
-              <View style={[styles.funcaoDot, { backgroundColor: color }]} />
-              <FancyText type='semiBold' size='extraSmall' numberOfLines={1} color={color}>
-                {f.nomeFuncao}
-              </FancyText>
-            </View>
-          );
-        })}
+      <View style={styles.badgeTextWrap}>
+        <FancyText
+          type='bold'
+          size='small'
+          numberOfLines={1}
+          color={palette.fonts.dark}
+          style={styles.badgeName}
+        >
+          {nome}
+        </FancyText>
+        <View style={styles.funcaoList}>
+          {funcoes.map((f) => {
+            const color = statusColor(palette, f.status);
+            return (
+              <View key={f.key} style={styles.funcaoRow}>
+                <View style={[styles.funcaoDot, { backgroundColor: color }]} />
+                <FancyText
+                  type='medium'
+                  size='extraSmall'
+                  numberOfLines={1}
+                  color={palette.fonts.inactive}
+                  style={styles.funcaoText}
+                >
+                  {f.nomeFuncao}
+                </FancyText>
+              </View>
+            );
+          })}
+        </View>
       </View>
     </View>
   );
@@ -197,12 +156,18 @@ function VagaBadge({ nomeFuncao }: VagaChamadaRow) {
         styles.vagaBadge,
         {
           backgroundColor: cardBg,
-          borderColor: ColorUtils.withAlpha(palette.team[1], 0.4),
+          borderColor: ColorUtils.withAlpha(palette.border, 0.6),
         },
         { ...palette.shadows[200] },
       ]}
     >
-      <View style={[styles.ring, styles.ringDashed, { borderColor: palette.team[1] }]}>
+      <View
+        style={[
+          styles.ring,
+          styles.ringDashed,
+          { borderColor: ColorUtils.withAlpha(palette.border, 0.6) },
+        ]}
+      >
         <View
           style={[
             styles.avatarLetter,
@@ -213,24 +178,26 @@ function VagaBadge({ nomeFuncao }: VagaChamadaRow) {
         </View>
       </View>
 
-      <FancyText
-        type='bold'
-        size='small'
-        numberOfLines={1}
-        color={palette.team[1]}
-        style={styles.badgeName}
-      >
-        Vaga aberta
-      </FancyText>
-      <FancyText
-        type='medium'
-        size='extraSmall'
-        numberOfLines={1}
-        color={ColorUtils.withAlpha(palette.team[1], 0.8)}
-        style={styles.badgeFuncao}
-      >
-        {nomeFuncao}
-      </FancyText>
+      <View style={styles.badgeTextWrap}>
+        <FancyText
+          type='bold'
+          size='small'
+          numberOfLines={1}
+          color={palette.team[1]}
+          style={styles.badgeName}
+        >
+          Vaga aberta
+        </FancyText>
+        <FancyText
+          type='medium'
+          size='extraSmall'
+          numberOfLines={1}
+          color={palette.fonts.inactive}
+          style={styles.badgeFuncao}
+        >
+          {nomeFuncao}
+        </FancyText>
+      </View>
     </View>
   );
 }
@@ -259,24 +226,6 @@ export function ChamadaGridRowView({ items }: GridPairRow) {
 export const ChamadaGridRow = memo(ChamadaGridRowView);
 
 const styles = StyleSheet.create({
-  secaoHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingTop: 8,
-    paddingBottom: 0,
-  },
-  secaoLabel: {
-    flex: 1,
-    letterSpacing: 0.6,
-  },
-  secaoCount: {
-    minWidth: 22,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 100,
-    alignItems: 'center',
-  },
   gridRow: {
     flexDirection: 'row',
     gap: 10,
@@ -285,12 +234,13 @@ const styles = StyleSheet.create({
     flexBasis: '48%',
     flexGrow: 0,
     flexShrink: 0,
+    flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 18,
     borderWidth: 0.5,
     paddingVertical: 10,
     paddingHorizontal: 10,
-    gap: 4,
+    gap: 10,
   },
   vagaBadge: {
     borderWidth: 1,
@@ -319,23 +269,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  badgeName: {
-    textAlign: 'center',
-  },
-  badgeFuncao: {
-    textAlign: 'center',
-  },
-  funcaoList: {
-    alignItems: 'center',
+  badgeTextWrap: {
+    flex: 1,
     gap: 4,
   },
-  funcaoPill: {
+  badgeName: {},
+  badgeFuncao: {},
+  funcaoList: {
+    alignItems: 'flex-start',
+    gap: 0,
+  },
+  funcaoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 100,
+    gap: 6,
+  },
+  funcaoText: {
+    flexShrink: 1,
   },
   funcaoDot: {
     width: 6,

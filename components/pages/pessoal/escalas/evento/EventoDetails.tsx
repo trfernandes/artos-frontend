@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 import { isBefore, startOfDay } from 'date-fns';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import FancyTabs, { TabItem } from '../../../../tabs/FancyTabs';
-import EscalaEventoEquipeTab from './EscalaEventoEquipeTab';
+import EquipeOcorrenciaView from '../../../common/EquipeOcorrenciaView';
 import FancyPageView from '../../../../containers/FancyPageView';
 import { useMemo } from 'react';
 import { usePallete } from '../../../../../hooks/usePallete';
@@ -33,14 +33,16 @@ export default function EventoDetails(props: {
     const ministerio = getMinisterioLoginAccess(igrejaAtiva, props.ministerioId);
     const isMinisterioLouvor = ministerioEhLouvor(ministerio);
     const isPast = isBefore(startOfDay(props.dataOcorrencia), startOfDay(new Date()));
+    const canManageAgenda = canManageEventoOcorrencia(igrejaAtiva, props.ministerioId);
     const setlistMode: 'lider' | 'responsavel' | 'leitura' = isPast
       ? 'leitura'
-      : canManageEventoOcorrencia(igrejaAtiva, props.ministerioId)
+      : canManageAgenda
         ? 'lider'
         : props.responsavelSetlistVoluntarioId &&
             props.responsavelSetlistVoluntarioId === user?.user.id
           ? 'responsavel'
           : 'leitura';
+    const equipeModo: 'lider' | 'voluntario' = canManageAgenda && !isPast ? 'lider' : 'voluntario';
 
     const tabs: TabItem[] = [
       {
@@ -62,12 +64,13 @@ export default function EventoDetails(props: {
         title: 'Equipe',
         icon: { ...DefaultIconsNames.group, size: 20, style: { marginTop: 0 } },
         content: (
-          <EscalaEventoEquipeTab
+          <EquipeOcorrenciaView
             eventoId={props.evento.id!}
             dataOcorrencia={props.dataOcorrencia}
             ministerioId={props.ministerioId}
-            responsavelSetlistVoluntarioId={props.responsavelSetlistVoluntarioId}
-            responsavelSetlistNome={props.responsavelSetlistNome}
+            responsavelSetlistVoluntarioIdFallback={props.responsavelSetlistVoluntarioId}
+            responsavelSetlistVoluntarioNomeFallback={props.responsavelSetlistNome}
+            modo={equipeModo}
           />
         ),
       },
