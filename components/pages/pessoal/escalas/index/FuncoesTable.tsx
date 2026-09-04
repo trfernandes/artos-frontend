@@ -69,6 +69,10 @@ function FuncaoRow({
         </View>
       </View>
 
+      {isSubstituicaoPendente && !readOnly && (
+        <FancyChips size='small' label='Substituição solicitada' color={palette.warning} />
+      )}
+
       {!isSubstituicaoPendente && !readOnly && (
         <View style={styles.actionsRow}>
           {isPendente && (
