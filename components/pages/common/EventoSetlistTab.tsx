@@ -81,6 +81,7 @@ export default function EventoSetlistTab({
     isReorderingSetlist,
     isClearingSetlist,
     isPublishingSetlist,
+    isFetching: isFetchingSetlist,
   } = useEventoSetlist(eventoId, dataOcorrenciaIso, ministerioId);
   const { data: repertorioData = [] } = useRepertorioMusicas(ministerioId);
   const {
@@ -123,6 +124,13 @@ export default function EventoSetlistTab({
   useEffect(() => {
     setOrderedItems(items);
   }, [items]);
+
+  // Troca de ocorrência/evento não remonta este componente (sem `key` no pai) — sem isso,
+  // reorderMode/orderedItems de uma ocorrência sobrevivem pra próxima e um "Salvar" nessa
+  // janela envia ids de itens que não existem na ocorrência nova.
+  useEffect(() => {
+    setReorderMode(false);
+  }, [eventoId, ministerioId, dataOcorrenciaIso]);
 
   const isBusy = isReorderingSetlist || isClearingSetlist || !!deletingItemId;
 
@@ -433,11 +441,15 @@ export default function EventoSetlistTab({
   const persistReorder = async (nextItems: ResponseEventoSetlistItemDto[]) => {
     if (!ministerioId) return;
 
+    const itemIds = nextItems.map((item) => item.id);
+    // eslint-disable-next-line no-console
+    console.log('[DEBUG-reorder]', { dataOcorrenciaIso, itemIds });
+
     try {
       await reordenarSetlist({
         ministerioId,
         dataOcorrencia: dataOcorrenciaIso,
-        itemIds: nextItems.map((item) => item.id),
+        itemIds,
       });
     } catch (error) {
       setOrderedItems(items);
@@ -456,6 +468,7 @@ export default function EventoSetlistTab({
   };
 
   const confirmReorder = async () => {
+    if (isFetchingSetlist) return;
     await persistReorder(orderedItems);
     setReorderMode(false);
   };
@@ -498,7 +511,7 @@ export default function EventoSetlistTab({
   }, [actionsItem, orderedItems]);
 
   const moveItemBySheet = async (direction: 'up' | 'down') => {
-    if (!actionsItem) return;
+    if (!actionsItem || isFetchingSetlist) return;
 
     const currentIndex = orderedItems.findIndex((entry) => entry.id === actionsItem.id);
     if (currentIndex < 0) return;
