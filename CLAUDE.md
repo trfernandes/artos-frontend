@@ -2,6 +2,10 @@
 
 Ver [../CLAUDE.md](../CLAUDE.md) pra paths, comandos, git, scope discipline.
 
+## Estilo de resposta
+
+Toda explicação ou pergunta ao usuário deve explicar conceitos, jargões técnicos, siglas e nomes de serviços que ele pode não conhecer — não assumir familiaridade. Em perguntas via `AskUserQuestion`, especialmente decisões complexas, dar contexto e exemplo concreto em cada opção, não só o rótulo curto.
+
 ## Estado do trabalho e fluxo de branches
 
 Cada frente de trabalho = 1 tarefa na base Notion **"Tarefas Diakonia"** (`collection://50b40c4b-23c5-4910-8c50-a024e95d881a`). O estado de cada frente (branch, onde parei, próximo passo, falta testar) vive numa seção `## Estado do trabalho` no corpo dessa tarefa — não em arquivo solto nem só no chat. Status `Em andamento` = existe branch dedicada + seção preenchida. Uma branch por frente; feature nunca compartilha branch com hotfix; hotfix sai de `master`. Fluxo completo de interrupção por hotfix: `../CLAUDE.md` (local, só no PC).
