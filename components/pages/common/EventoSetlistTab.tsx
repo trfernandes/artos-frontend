@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import Toast from 'react-native-toast-message';
@@ -576,7 +576,10 @@ export default function EventoSetlistTab({
               accessibilityRole='button'
               accessibilityLabel='Definir responsável do SetList'
               hitSlop={8}
-              style={[styles.infoTrailingCircle, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.1) }]}
+              style={[
+                styles.infoTrailingCircle,
+                { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.1) },
+              ]}
             >
               <MaterialCommunityIcons
                 name={responsavelAtualNome ? 'swap-horizontal' : 'account-plus-outline'}
@@ -595,14 +598,23 @@ export default function EventoSetlistTab({
                 style={styles.infoTextCol}
                 onPress={() => setOrientacoesExpanded((prev) => !prev)}
               >
-                <FancyText size='extraSmall' type='semiBold' color={palette.fonts.inactive} style={styles.infoLabel}>
+                <FancyText
+                  size='extraSmall'
+                  type='semiBold'
+                  color={palette.fonts.inactive}
+                  style={styles.infoLabel}
+                >
                   Orientações gerais
                 </FancyText>
                 <FancyText
                   size='small'
                   type='medium'
                   numberOfLines={orientacoesExpanded ? undefined : 3}
-                  color={observacoesData?.observacoes?.trim() ? palette.fonts.dark : palette.fonts.inactive}
+                  color={
+                    observacoesData?.observacoes?.trim()
+                      ? palette.fonts.dark
+                      : palette.fonts.inactive
+                  }
                   style={styles.infoValue}
                 >
                   {observacoesData?.observacoes?.trim() || 'Nenhuma orientação'}
@@ -619,7 +631,10 @@ export default function EventoSetlistTab({
                   accessibilityRole='button'
                   accessibilityLabel='Editar orientações gerais'
                   hitSlop={8}
-                  style={[styles.infoTrailingCircle, { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.1) }]}
+                  style={[
+                    styles.infoTrailingCircle,
+                    { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.1) },
+                  ]}
                 >
                   <MaterialCommunityIcons name='pencil-outline' size={17} color={palette.primary} />
                 </Pressable>
@@ -641,14 +656,29 @@ export default function EventoSetlistTab({
                 />
               </View>
               <View style={styles.infoTextCol}>
-                <FancyText size='extraSmall' type='semiBold' color={palette.warning} style={styles.infoLabel}>
+                <FancyText
+                  size='extraSmall'
+                  type='semiBold'
+                  color={palette.warning}
+                  style={styles.infoLabel}
+                >
                   Status
                 </FancyText>
-                <FancyText size='small' type='medium' color={palette.fonts.dark} style={styles.infoValue}>
+                <FancyText
+                  size='small'
+                  type='medium'
+                  color={palette.fonts.dark}
+                  style={styles.infoValue}
+                >
                   {publicado ? 'Publicado' : 'Rascunho'}
                 </FancyText>
                 {statusCaption ? (
-                  <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive} numberOfLines={1}>
+                  <FancyText
+                    size='extraSmall'
+                    type='medium'
+                    color={palette.fonts.inactive}
+                    numberOfLines={1}
+                  >
                     {statusCaption}
                   </FancyText>
                 ) : null}
@@ -665,9 +695,13 @@ export default function EventoSetlistTab({
                     { backgroundColor: palette.warning, opacity: isPublishingSetlist ? 0.6 : 1 },
                   ]}
                 >
-                  <FancyText size='extraSmall' type='semiBold' color={palette.fonts.light}>
-                    Publicar
-                  </FancyText>
+                  {isPublishingSetlist ? (
+                    <ActivityIndicator size='small' color={palette.fonts.light} />
+                  ) : (
+                    <FancyText size='extraSmall' type='semiBold' color={palette.fonts.light}>
+                      Publicar
+                    </FancyText>
+                  )}
                 </Pressable>
               ) : null}
             </View>
@@ -767,7 +801,9 @@ export default function EventoSetlistTab({
         cardHeight={itemHeights[item.id]}
         nextCardHeight={nextItem ? itemHeights[nextItem.id] : undefined}
         onMeasureHeight={(height) =>
-          setItemHeights((prev) => (prev[item.id] === height ? prev : { ...prev, [item.id]: height }))
+          setItemHeights((prev) =>
+            prev[item.id] === height ? prev : { ...prev, [item.id]: height },
+          )
         }
       />
     );
