@@ -61,10 +61,9 @@ export default function EventoSetlistTab({
   const { palette } = useAppTheme();
   const { user } = useAuth();
   const dataOcorrenciaIso = dataOcorrencia.toISOString();
-  const SPIKE_FORCE_LEITURA = false; // TEMP screenshot spike, remover
-  const isEditable = SPIKE_FORCE_LEITURA ? false : mode !== 'leitura';
-  const canManageResponsavel = SPIKE_FORCE_LEITURA ? false : mode === 'lider';
-  const canAddMusic = SPIKE_FORCE_LEITURA ? false : mode === 'lider' || mode === 'responsavel';
+  const isEditable = mode !== 'leitura';
+  const canManageResponsavel = mode === 'lider';
+  const canAddMusic = mode === 'lider' || mode === 'responsavel';
   const [orientacoesExpanded, setOrientacoesExpanded] = useState(false);
   const [reorderMode, setReorderMode] = useState(false);
 
