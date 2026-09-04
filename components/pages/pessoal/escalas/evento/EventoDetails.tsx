@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { isBefore, startOfDay } from 'date-fns';
 import { DefaultIconsNames } from '../../../../../constants/icons';
 import FancyTabs, { TabItem } from '../../../../tabs/FancyTabs';
@@ -83,16 +83,14 @@ export default function EventoDetails(props: {
           style: { marginTop: 0 },
         },
         content: (
-          <View style={styles.setlistTabGutterOffset}>
-            <EventoSetlistTab
-              eventoId={props.evento.id!}
-              dataOcorrencia={props.dataOcorrencia}
-              ministerioId={props.ministerioId}
-              mode={setlistMode}
-              responsavelSetlistNome={props.responsavelSetlistNome}
-              detailsRoutePath='/pessoal/escalas/setlist/[itemId]'
-            />
-          </View>
+          <EventoSetlistTab
+            eventoId={props.evento.id!}
+            dataOcorrencia={props.dataOcorrencia}
+            ministerioId={props.ministerioId}
+            mode={setlistMode}
+            responsavelSetlistNome={props.responsavelSetlistNome}
+            detailsRoutePath='/pessoal/escalas/setlist/[itemId]'
+          />
         ),
       });
     }
@@ -125,5 +123,4 @@ export default function EventoDetails(props: {
 
 const styles = StyleSheet.create({
   container: { gap: 6, paddingBottom: 20, borderWidth: 0, borderColor: 'forestgreen' },
-  setlistTabGutterOffset: { flex: 1, marginHorizontal: -15 },
 });

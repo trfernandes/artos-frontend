@@ -953,7 +953,7 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   headerContainer: {
-    paddingTop: 8,
+    paddingTop: 4,
     paddingBottom: 4,
     gap: 12,
   },

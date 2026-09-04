@@ -160,6 +160,11 @@ style={{ elevation: 2, shadowOpacity: 0.2 }}
   explícito antes de editar
 - Bater com padrão de componente já existente no repo (ex: FancyDaySelector) em vez de inventar
   estilo novo
+- Antes de criar filtro/tab/contador/chip novo: procurar se já existe componente reutilizável
+  (`FancySegmentedControl`, `FancyListStats`, `FancyChips`, `FancyTabsHeader` etc.) e estender esse
+  componente (prop nova, variante) em vez de duplicar a UI numa tela específica. Telas parecidas
+  (ex: filtro de Voluntários vs filtro de Equipe) devem usar o mesmo componente — divergência aqui
+  confunde o usuário mais do que inconsistência de código.
 - Nunca adicionar scrim/overlay escuro ou animação fade-only sem pedido explícito
 - Após implementar: self-review — o resultado bate com o spec? (grid está em 2 colunas? badge
   aparece?)
