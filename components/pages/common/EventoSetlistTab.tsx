@@ -727,39 +727,43 @@ export default function EventoSetlistTab({
   const renderListActions = () =>
     canAddMusicNow ? (
       <View style={styles.listHeader}>
-        <FancyButton
-          label='Nova música'
-          type='contained'
-          size={34}
-          icon={{
-            library: 'MaterialCommunityIcons',
-            name: 'music-note-plus',
-            size: 15,
-            color: palette.fonts.light,
-          }}
-          containerStyle={styles.addMusicButton}
-          onPress={() => openItemEditor(null)}
-        />
-        <View style={styles.listHeaderSpacer} />
-        {!reorderMode && (
-          <Pressable
-            onPress={() => setReorderMode(true)}
-            disabled={orderedItems.length <= 1}
-            accessibilityRole='button'
-            accessibilityLabel='Reordenar músicas'
-            hitSlop={8}
-            style={[
-              styles.iconOnlyButton,
-              {
-                backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
-                borderColor: ColorUtils.withAlpha(palette.primary, 0.24),
-                opacity: orderedItems.length <= 1 ? 0.4 : 1,
-              },
-            ]}
-          >
-            <MaterialCommunityIcons name='swap-vertical' size={16} color={palette.primary} />
-          </Pressable>
+        {reorderMode ? (
+          <FancyText size='small' type='semiBold' color={palette.primary}>
+            Modo ordenação
+          </FancyText>
+        ) : (
+          <FancyButton
+            label='Nova música'
+            type='contained'
+            size={34}
+            icon={{
+              library: 'MaterialCommunityIcons',
+              name: 'music-note-plus',
+              size: 15,
+              color: palette.fonts.light,
+            }}
+            containerStyle={styles.addMusicButton}
+            onPress={() => openItemEditor(null)}
+          />
         )}
+        <View style={styles.listHeaderSpacer} />
+        <Pressable
+          onPress={() => setReorderMode(true)}
+          disabled={reorderMode || orderedItems.length <= 1}
+          accessibilityRole='button'
+          accessibilityLabel='Reordenar músicas'
+          hitSlop={8}
+          style={[
+            styles.iconOnlyButton,
+            {
+              backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
+              borderColor: ColorUtils.withAlpha(palette.primary, 0.24),
+              opacity: reorderMode || orderedItems.length <= 1 ? 0.4 : 1,
+            },
+          ]}
+        >
+          <MaterialCommunityIcons name='swap-vertical' size={16} color={palette.primary} />
+        </Pressable>
         {SETLIST_CLEAR_ENABLED && (
           <Pressable
             onPress={confirmLimparSetlist}
