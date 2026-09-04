@@ -28,12 +28,12 @@ export default function DashboardEscalasSection({ data }: DashboardEscalasSectio
     const seen = new Set<string>();
 
     return escalas.filter((escala) => {
+      // Dedupe por evento/data/ministério — escalado em mais de uma função no mesmo
+      // evento não deve gerar cards repetidos em Início.
       const signature = [
         escala.eventoData,
         escala.eventoNome?.trim().toLowerCase(),
-        escala.funcaoNome?.trim().toLowerCase(),
         escala.ministerioNome?.trim().toLowerCase(),
-        escala.isConfirmado ? '1' : '0',
       ].join('|');
 
       if (seen.has(signature)) return false;
