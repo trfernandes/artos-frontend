@@ -1,4 +1,4 @@
-import { StyleSheet, StyleProp, View, ViewStyle } from 'react-native';
+import { StyleSheet, StyleProp, TextStyle, View, ViewStyle } from 'react-native';
 import FancyText from '../FancyText';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import { usePallete } from '../../hooks/usePallete';
@@ -17,6 +17,7 @@ export type FancyListEmptyProps = {
   variant?: 'default' | 'compact';
   hideIcon?: boolean;
   containerStyle?: StyleProp<ViewStyle>;
+  helperTextStyle?: StyleProp<TextStyle>;
 };
 
 export default function FancyListEmpty(props: FancyListEmptyProps) {
@@ -51,7 +52,11 @@ export default function FancyListEmpty(props: FancyListEmptyProps) {
         {props.label || 'Não há nada por aqui...'}
       </FancyText>
       {props.helperText && (
-        <FancyText size='small' color={Pallete.fonts.inactive} style={styles.helperText}>
+        <FancyText
+          size='small'
+          color={Pallete.fonts.inactive}
+          style={[styles.helperText, props.helperTextStyle]}
+        >
           {props.helperText}
         </FancyText>
       )}

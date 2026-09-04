@@ -4,6 +4,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { CreateEventoSetlistItemDto } from '../domain/dtos/Evento/evento-setlist-item.create';
 import { UpdateEventoSetlistItemDto } from '../domain/dtos/Evento/evento-setlist-item.update';
 import { ReorderEventoSetlistDto } from '../domain/dtos/Evento/reorder-evento-setlist.dto';
+import { ResponseEventoSetlistItemDto } from '../domain/dtos/Evento/evento-setlist-item.response';
+
+const EMPTY_ITENS: ResponseEventoSetlistItemDto[] = [];
 
 export function useEventoSetlist(
   eventoId?: string,
@@ -26,6 +29,10 @@ export function useEventoSetlist(
         dataOcorrencia!,
       ),
   });
+
+  const itens = query.data?.itens ?? EMPTY_ITENS;
+  const publicado = query.data?.publicado ?? false;
+  const publicadoEm = query.data?.publicadoEm ?? null;
 
   const invalidate = async () => {
     await queryClient.invalidateQueries({ queryKey });
@@ -68,21 +75,38 @@ export function useEventoSetlist(
       ),
     onSuccess: invalidate,
   });
+  const publishMutation = useMutation({
+    mutationFn: () =>
+      IgrejaEventosRepository.publicarSetlist(
+        igrejaAtiva!.id,
+        eventoId!,
+        ministerioId!,
+        dataOcorrencia!,
+      ),
+    onSuccess: invalidate,
+  });
 
   return {
     ...query,
+    data: itens,
+    itens,
+    publicado,
+    publicadoEm,
     criarSetlistItem: createMutation.mutateAsync,
     atualizarSetlistItem: updateMutation.mutateAsync,
     removerSetlistItem: deleteMutation.mutateAsync,
     reordenarSetlist: reorderMutation.mutateAsync,
     limparSetlist: clearMutation.mutateAsync,
+    publicarSetlist: publishMutation.mutateAsync,
     isMutatingSetlist:
       createMutation.isPending ||
       updateMutation.isPending ||
       deleteMutation.isPending ||
       reorderMutation.isPending ||
-      clearMutation.isPending,
+      clearMutation.isPending ||
+      publishMutation.isPending,
     isReorderingSetlist: reorderMutation.isPending,
     isClearingSetlist: clearMutation.isPending,
+    isPublishingSetlist: publishMutation.isPending,
   };
 }

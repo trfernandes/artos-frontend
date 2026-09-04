@@ -2,6 +2,10 @@
 
 Ver [../CLAUDE.md](../CLAUDE.md) pra paths, comandos, git, scope discipline.
 
+## Estilo de resposta
+
+Toda explicação ou pergunta ao usuário deve explicar conceitos, jargões técnicos, siglas e nomes de serviços que ele pode não conhecer — não assumir familiaridade. Em perguntas via `AskUserQuestion`, especialmente decisões complexas, dar contexto e exemplo concreto em cada opção, não só o rótulo curto.
+
 ## Estado do trabalho e fluxo de branches
 
 Cada frente de trabalho = 1 tarefa na base Notion **"Tarefas Diakonia"** (`collection://50b40c4b-23c5-4910-8c50-a024e95d881a`). O estado de cada frente (branch, onde parei, próximo passo, falta testar) vive numa seção `## Estado do trabalho` no corpo dessa tarefa — não em arquivo solto nem só no chat. Status `Em andamento` = existe branch dedicada + seção preenchida. Uma branch por frente; feature nunca compartilha branch com hotfix; hotfix sai de `master`. Fluxo completo de interrupção por hotfix: `../CLAUDE.md` (local, só no PC).
@@ -140,6 +144,9 @@ style={{ elevation: 2, shadowOpacity: 0.2 }}
 - Nunca `elevation` diretamente — sempre `Pallete.shadows[100|200|300]`
 - Nunca gradiente fora dos 3 tokens permitidos (ver acima)
 - Nunca `marginTop`/`marginBottom` ad-hoc entre seções em FancyPageView — usar `FancyVerticalSpacer`
+- Nunca fundo cinza em card/item (`backgroundColor2`/`backgroundColor3`, ou `FancyCard` sem prop
+  `backgroundColor`, que cai no cinza padrão) — usar tint de cor (`ColorUtils.lightenColor(palette.primary|secondary, ~0.96)`
+  claro / `backgroundColor4` escuro) ou `backgroundColor` neutro puro
 
 ### Decisões rápidas
 
