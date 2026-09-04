@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import Toast from 'react-native-toast-message';
@@ -102,6 +102,8 @@ export default function EventoSetlistTab({
   const [observacoesDraft, setObservacoesDraft] = useState('');
   const [observacoesTouched, setObservacoesTouched] = useState(false);
   const [responsavelVisible, setResponsavelVisible] = useState(false);
+  const [letraCifraItem, setLetraCifraItem] = useState<ResponseEventoSetlistItemDto | null>(null);
+  const [letraCifraTab, setLetraCifraTab] = useState<'letra' | 'cifra'>('letra');
   const [responsavelSelecionadoId, setResponsavelSelecionadoId] = useState('');
   const [isSalvandoResponsavel, setIsSalvandoResponsavel] = useState(false);
   const [orderedItems, setOrderedItems] = useState<ResponseEventoSetlistItemDto[]>([]);
@@ -543,11 +545,14 @@ export default function EventoSetlistTab({
       >
         <View style={[styles.infoRow, { paddingVertical: 10 }]}>
           {responsavelAtualNome && responsavelAtualFoto ? (
-            <FancyImage source={{ uri: responsavelAtualFoto }} size={32} />
+            <FancyImage
+              source={{ uri: responsavelAtualFoto }}
+              size={styles.infoAvatarCircle.width}
+            />
           ) : (
             <View
               style={[
-                styles.infoTrailingCircle,
+                styles.infoAvatarCircle,
                 {
                   backgroundColor: ColorUtils.withAlpha(palette.primary, 0.1),
                 },
@@ -561,15 +566,27 @@ export default function EventoSetlistTab({
               />
             </View>
           )}
-          <FancyText
-            size='small'
-            type='semiBold'
-            numberOfLines={1}
-            color={responsavelAtualNome ? palette.fonts.dark : palette.fonts.inactive}
-            style={{ flex: 1 }}
-          >
-            {isCurrentUserResponsavel ? 'Você' : responsavelAtualNome || 'Sem responsável definido'}
-          </FancyText>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <FancyText
+              size='extraSmall'
+              type='semiBold'
+              color={palette.fonts.dark}
+              numberOfLines={1}
+              style={{ opacity: 0.8 }}
+            >
+              Responsável
+            </FancyText>
+            <FancyText
+              size='small'
+              type='semiBold'
+              numberOfLines={1}
+              color={responsavelAtualNome ? palette.fonts.dark : palette.fonts.inactive}
+            >
+              {isCurrentUserResponsavel
+                ? 'Você'
+                : responsavelAtualNome || 'Sem responsável definido'}
+            </FancyText>
+          </View>
           {responsavelStatusLabel ? (
             <View
               style={[
@@ -613,14 +630,21 @@ export default function EventoSetlistTab({
                 style={styles.infoTextCol}
                 onPress={() => setOrientacoesExpanded((prev) => !prev)}
               >
-                <FancyText
-                  size='extraSmall'
-                  type='semiBold'
-                  color={palette.fonts.inactive}
-                  style={styles.infoLabel}
-                >
-                  Orientações gerais
-                </FancyText>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <MaterialCommunityIcons
+                    name='information-outline'
+                    size={13}
+                    color={palette.fonts.inactive}
+                  />
+                  <FancyText
+                    size='extraSmall'
+                    type='semiBold'
+                    color={palette.fonts.inactive}
+                    style={styles.infoLabel}
+                  >
+                    Orientações gerais
+                  </FancyText>
+                </View>
                 <FancyText
                   size='small'
                   type='medium'
@@ -811,9 +835,15 @@ export default function EventoSetlistTab({
         bpm={item.bpm}
         versaoUrl={item.versaoUrl}
         observacoes={item.observacoes}
+        letraMarkdown={item.letraMarkdown}
+        cifraMarkdown={item.cifraMarkdown}
         onPress={() => openItemDetails(item)}
         onActionsPress={isEditable ? () => openItemActions(item) : undefined}
         onLongPress={isEditable && reorderMode ? drag : undefined}
+        onLetraCifraPress={() => {
+          setLetraCifraTab(item.letraMarkdown?.trim() ? 'letra' : 'cifra');
+          setLetraCifraItem(item);
+        }}
         isEditable={isEditable}
         isActive={isActive}
         isLast={rawIndex === orderedItems.length - 1}
@@ -839,10 +869,7 @@ export default function EventoSetlistTab({
         <View
           style={[
             styles.railContainer,
-            orderedItems.length > 0 && {
-              borderColor: palette.borderCard,
-              backgroundColor: palette.backgroundColor4,
-            },
+            { borderColor: palette.borderCard, backgroundColor: palette.backgroundColor4 },
           ]}
         >
           {renderListActions()}
@@ -879,6 +906,7 @@ export default function EventoSetlistTab({
                       ? 'Adicione as músicas desta ocorrência para definir a sequência e acompanhar a duração total.'
                       : 'Quando o responsável montar o SetList, as músicas aparecerão aqui para consulta.'
                   }
+                  helperTextStyle={{ lineHeight: 16 }}
                   icon={{
                     library: 'MaterialCommunityIcons',
                     name: 'playlist-music-outline',
@@ -1067,6 +1095,65 @@ export default function EventoSetlistTab({
         </View>
       </FancyBottomSheetModal>
 
+      <FancyBottomSheetModal
+        visible={!!letraCifraItem}
+        onClose={() => setLetraCifraItem(null)}
+        title={letraCifraItem?.nome || 'Letra e cifra'}
+      >
+        <View style={styles.sheetContentWrapper}>
+          <View style={styles.sheetContent}>
+            <View style={styles.letraCifraToggle}>
+              <Pressable
+                onPress={() => setLetraCifraTab('letra')}
+                style={[
+                  styles.letraCifraToggleButton,
+                  letraCifraTab === 'letra' && {
+                    backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12),
+                  },
+                ]}
+              >
+                <FancyText
+                  size='small'
+                  type='semiBold'
+                  color={letraCifraTab === 'letra' ? palette.primary : palette.fonts.inactive}
+                >
+                  Letra
+                </FancyText>
+              </Pressable>
+              <Pressable
+                onPress={() => setLetraCifraTab('cifra')}
+                style={[
+                  styles.letraCifraToggleButton,
+                  letraCifraTab === 'cifra' && {
+                    backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12),
+                  },
+                ]}
+              >
+                <FancyText
+                  size='small'
+                  type='semiBold'
+                  color={letraCifraTab === 'cifra' ? palette.primary : palette.fonts.inactive}
+                >
+                  Cifra
+                </FancyText>
+              </Pressable>
+            </View>
+            <ScrollView style={styles.letraCifraScroll} nestedScrollEnabled>
+              <FancyText
+                size='small'
+                color={palette.fonts.dark}
+                style={letraCifraTab === 'cifra' ? styles.cifraMonoText : styles.letraText}
+              >
+                {(letraCifraTab === 'letra'
+                  ? letraCifraItem?.letraMarkdown
+                  : letraCifraItem?.cifraMarkdown
+                )?.trim() || `Sem ${letraCifraTab === 'letra' ? 'letra' : 'cifra'} cadastrada.`}
+              </FancyText>
+            </ScrollView>
+          </View>
+        </View>
+      </FancyBottomSheetModal>
+
       <FancyActionSheet
         visible={!!actionsItem}
         onClose={closeItemActions}
@@ -1128,7 +1215,7 @@ const styles = StyleSheet.create({
   listContent: {
     flexGrow: 1,
     paddingBottom: 18,
-    gap: 2,
+    gap: 12,
   },
   listContentEmpty: {
     paddingBottom: 10,
@@ -1191,6 +1278,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  infoAvatarCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   publishPill: {
     alignSelf: 'center',
     height: 32,
@@ -1207,7 +1301,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   listSectionHeader: {
-    marginBottom: 4,
+    marginBottom: -5,
   },
   listHeader: {
     flexDirection: 'row',
@@ -1276,6 +1370,26 @@ const styles = StyleSheet.create({
   sheetBlockingOverlay: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 10,
+  },
+  letraCifraToggle: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  letraCifraToggleButton: {
+    flex: 1,
+    borderRadius: 12,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  letraCifraScroll: {
+    height: 420,
+  },
+  letraText: {
+    lineHeight: 20,
+  },
+  cifraMonoText: {
+    fontFamily: 'monospace',
+    lineHeight: 22,
   },
   blockingOverlay: {
     ...StyleSheet.absoluteFillObject,

@@ -179,7 +179,7 @@ export default function EventoSetlistItemDetailsView({
         type='normal'
         size='small'
         color={text?.trim() ? palette.fonts.dark : palette.fonts.inactive}
-        style={styles.textCardBody}
+        style={[styles.textCardBody, title === 'Cifra' && styles.cifraMonoText]}
       >
         {text?.trim() || `Sem ${title.toLowerCase()} cadastrada.`}
       </FancyText>
@@ -229,7 +229,7 @@ export default function EventoSetlistItemDetailsView({
             type='normal'
             size='small'
             color={text?.trim() ? palette.fonts.dark : palette.fonts.inactive}
-            style={styles.letraText}
+            style={[styles.letraText, type === 'cifra' && styles.cifraMonoText]}
           >
             {text?.trim() || `Sem ${type} cadastrada nesta seção.`}
           </FancyText>
@@ -825,6 +825,10 @@ const styles = StyleSheet.create({
   },
   letraText: {
     lineHeight: 20,
+  },
+  cifraMonoText: {
+    fontFamily: 'monospace',
+    lineHeight: 22,
   },
   textCard: {
     borderWidth: 1,

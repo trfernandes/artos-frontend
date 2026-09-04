@@ -13,7 +13,7 @@ import {
   toOpenableMusicUrl,
 } from '../../../utils/musicLinkUtils';
 
-const LIST_GAP = 2;
+const LIST_GAP = 12;
 
 export type SetListItemProps = {
   order: number;
@@ -25,6 +25,8 @@ export type SetListItemProps = {
   bpm?: number | null;
   versaoUrl?: string | null;
   observacoes?: string | null;
+  letraMarkdown?: string | null;
+  cifraMarkdown?: string | null;
   hasEstruturaOverride?: boolean;
   onPress: () => void;
   onEdit?: () => void;
@@ -33,6 +35,7 @@ export type SetListItemProps = {
   onMoveDown?: () => void;
   onActionsPress?: () => void;
   onLongPress?: () => void;
+  onLetraCifraPress?: () => void;
   isEditable: boolean;
   isActive?: boolean;
   isLast?: boolean;
@@ -50,9 +53,12 @@ function SetListItem({
   bpm,
   versaoUrl,
   observacoes,
+  letraMarkdown,
+  cifraMarkdown,
   onPress,
   onActionsPress,
   onLongPress,
+  onLetraCifraPress,
   isEditable,
   isActive = false,
   isLast = false,
@@ -85,6 +91,9 @@ function SetListItem({
 
   const trimmedNota = observacoes?.trim() || '';
   const hasNota = trimmedNota.length > 0;
+
+  const hasLetraCifra = !!(letraMarkdown?.trim() || cifraMarkdown?.trim());
+  const letraCifraColor = hasLetraCifra ? palette.primary : palette.fonts.inactive2;
 
   const surfaceBackground = isDark ? palette.backgroundColor3 : palette.backgroundColor;
 
@@ -136,14 +145,7 @@ function SetListItem({
           disabled={reorderMode}
           accessibilityRole='button'
           accessibilityLabel={`Música ${order}, ${name}${musicMetaLabel ? `, ${musicMetaLabel}` : ''}. Toque para ${isEditable ? 'editar' : 'visualizar'}.`}
-          style={[
-            styles.card,
-            !isLast && {
-              borderBottomWidth: StyleSheet.hairlineWidth,
-              borderBottomColor: palette.border,
-            },
-            isActive && { backgroundColor: surfaceBackground },
-          ]}
+          style={[styles.card, isActive && { backgroundColor: surfaceBackground }]}
         >
           <View style={styles.cardTop}>
             <View style={styles.cardCenter}>
@@ -191,6 +193,23 @@ function SetListItem({
                 ]}
               >
                 <MaterialCommunityIcons name={listenIconName} size={18} color={listenColor} />
+              </Pressable>
+              <Pressable
+                onPress={hasLetraCifra ? onLetraCifraPress : undefined}
+                disabled={!hasLetraCifra}
+                hitSlop={8}
+                accessibilityRole='button'
+                accessibilityLabel='Ver letra e cifra'
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: ColorUtils.withAlpha(letraCifraColor, 0.08) },
+                ]}
+              >
+                <MaterialCommunityIcons
+                  name='file-music-outline'
+                  size={16}
+                  color={letraCifraColor}
+                />
               </Pressable>
               {reorderMode ? (
                 <Pressable
@@ -256,31 +275,28 @@ function SetListItem({
               }
             >
               <MaterialCommunityIcons
-                name='note-text-outline'
+                name='information-outline'
                 size={13}
                 color={palette.fonts.inactive}
+                style={styles.noteToggleIcon}
               />
-              <FancyText type='semiBold' size='extraSmall' color={palette.fonts.inactive}>
-                {notaExpandida ? 'ocultar orientação' : 'orientação desta música'}
+              <FancyText
+                type='semiBold'
+                size='extraSmall'
+                color={palette.fonts.inactive}
+                numberOfLines={notaExpandida ? undefined : 1}
+                ellipsizeMode='tail'
+                style={{ flex: 1, minWidth: 0 }}
+              >
+                {trimmedNota}
               </FancyText>
               <MaterialCommunityIcons
                 name={notaExpandida ? 'chevron-up' : 'chevron-down'}
                 size={14}
                 color={palette.fonts.inactive}
+                style={styles.noteToggleIcon}
               />
             </Pressable>
-          ) : null}
-          {hasNota && notaExpandida ? (
-            <View style={[styles.noteBox, { borderColor: palette.border }]}>
-              <FancyText
-                type='medium'
-                size='small'
-                color={palette.fonts.dark}
-                style={styles.noteText}
-              >
-                {trimmedNota}
-              </FancyText>
-            </View>
           ) : null}
         </Pressable>
       </Animated.View>
@@ -361,16 +377,13 @@ const styles = StyleSheet.create({
   },
   noteToggle: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 4,
-    alignSelf: 'flex-start',
   },
-  noteBox: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    paddingTop: 8,
-  },
-  noteText: {
-    lineHeight: 18,
+  noteToggleIcon: {
+    height: 14,
+    lineHeight: 14,
+    textAlignVertical: 'center',
   },
 });
 
