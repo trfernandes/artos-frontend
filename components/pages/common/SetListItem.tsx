@@ -1,5 +1,5 @@
-import { memo, useState } from 'react';
-import { Linking, LayoutChangeEvent, Pressable, StyleSheet, View } from 'react-native';
+import { memo, useEffect, useRef, useState } from 'react';
+import { Animated, Linking, LayoutChangeEvent, Pressable, StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -88,6 +88,15 @@ function SetListItem({
 
   const surfaceBackground = isDark ? palette.backgroundColor3 : palette.backgroundColor;
 
+  const activeOpacity = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    Animated.timing(activeOpacity, {
+      toValue: isActive ? 0.84 : 1,
+      duration: 150,
+      useNativeDriver: true,
+    }).start();
+  }, [isActive, activeOpacity]);
+
   const handleCardLayout = onMeasureHeight
     ? (e: LayoutChangeEvent) => onMeasureHeight(e.nativeEvent.layout.height)
     : undefined;
@@ -118,161 +127,163 @@ function SetListItem({
         </View>
       </View>
 
-      <Pressable
-        onPress={reorderMode ? undefined : onPress}
-        onLongPress={isEditable && reorderMode ? onLongPress : undefined}
-        onLayout={handleCardLayout}
-        delayLongPress={300}
-        disabled={reorderMode}
-        accessibilityRole='button'
-        accessibilityLabel={`Música ${order}, ${name}${musicMetaLabel ? `, ${musicMetaLabel}` : ''}. Toque para ${isEditable ? 'editar' : 'visualizar'}.`}
-        style={[
-          styles.card,
-          !isLast && {
-            borderBottomWidth: StyleSheet.hairlineWidth,
-            borderBottomColor: palette.border,
-          },
-          isActive && { backgroundColor: surfaceBackground, opacity: 0.84 },
-        ]}
-      >
-        <View style={styles.cardTop}>
-          <View style={styles.cardCenter}>
-            <FancyText
-              type='semiBold'
-              size='small'
-              numberOfLines={2}
-              color={palette.fonts.dark}
-              style={styles.title}
-            >
-              {name}
-            </FancyText>
-            <FancyText
-              type='medium'
-              size='small'
-              numberOfLines={1}
-              color={palette.fonts.inactive}
-              style={styles.subtitle}
-            >
-              {artist || 'Sem intérprete'}
-            </FancyText>
-            {musicMetaText ? (
+      <Animated.View style={{ flex: 1, opacity: activeOpacity }}>
+        <Pressable
+          onPress={reorderMode ? undefined : onPress}
+          onLongPress={isEditable && reorderMode ? onLongPress : undefined}
+          onLayout={handleCardLayout}
+          delayLongPress={300}
+          disabled={reorderMode}
+          accessibilityRole='button'
+          accessibilityLabel={`Música ${order}, ${name}${musicMetaLabel ? `, ${musicMetaLabel}` : ''}. Toque para ${isEditable ? 'editar' : 'visualizar'}.`}
+          style={[
+            styles.card,
+            !isLast && {
+              borderBottomWidth: StyleSheet.hairlineWidth,
+              borderBottomColor: palette.border,
+            },
+            isActive && { backgroundColor: surfaceBackground },
+          ]}
+        >
+          <View style={styles.cardTop}>
+            <View style={styles.cardCenter}>
               <FancyText
-                type='bold'
-                size='extraSmall'
-                numberOfLines={1}
+                type='semiBold'
+                size='small'
+                numberOfLines={2}
                 color={palette.fonts.dark}
-                style={styles.metaText}
+                style={styles.title}
               >
-                {musicMetaText}
+                {name}
               </FancyText>
-            ) : null}
+              <FancyText
+                type='medium'
+                size='small'
+                numberOfLines={1}
+                color={palette.fonts.inactive}
+                style={styles.subtitle}
+              >
+                {artist || 'Sem intérprete'}
+              </FancyText>
+              {musicMetaText ? (
+                <FancyText
+                  type='bold'
+                  size='extraSmall'
+                  numberOfLines={1}
+                  color={palette.fonts.dark}
+                  style={styles.metaText}
+                >
+                  {musicMetaText}
+                </FancyText>
+              ) : null}
+            </View>
+
+            <View style={styles.actionsCol}>
+              <Pressable
+                onPress={hasUrl ? () => Linking.openURL(toOpenableMusicUrl(trimmedUrl)) : undefined}
+                disabled={!hasUrl}
+                hitSlop={8}
+                accessibilityRole='button'
+                accessibilityLabel='Ouvir música'
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: ColorUtils.withAlpha(listenColor, 0.08) },
+                ]}
+              >
+                <MaterialCommunityIcons name={listenIconName} size={18} color={listenColor} />
+              </Pressable>
+              {reorderMode ? (
+                <Pressable
+                  onLongPress={onLongPress}
+                  delayLongPress={150}
+                  hitSlop={8}
+                  accessibilityRole='button'
+                  accessibilityLabel='Arrastar para reordenar'
+                  style={[
+                    styles.actionButton,
+                    { backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.08) },
+                  ]}
+                >
+                  <MaterialCommunityIcons
+                    name='drag-horizontal-variant'
+                    size={18}
+                    color={palette.fonts.inactive}
+                  />
+                </Pressable>
+              ) : isEditable ? (
+                <Pressable
+                  onPress={onActionsPress}
+                  hitSlop={8}
+                  accessibilityRole='button'
+                  accessibilityLabel='Opções da música'
+                  style={[
+                    styles.actionButton,
+                    { backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.08) },
+                  ]}
+                >
+                  <MaterialCommunityIcons
+                    name='dots-vertical'
+                    size={18}
+                    color={palette.fonts.inactive}
+                  />
+                </Pressable>
+              ) : (
+                <Pressable
+                  onPress={onPress}
+                  hitSlop={8}
+                  accessibilityRole='button'
+                  accessibilityLabel='Ver detalhes da música'
+                  style={[styles.actionButton, { backgroundColor: palette.primary }]}
+                >
+                  <MaterialCommunityIcons
+                    name='chevron-right'
+                    size={18}
+                    color={palette.fonts.light}
+                  />
+                </Pressable>
+              )}
+            </View>
           </View>
 
-          <View style={styles.actionsCol}>
+          {hasNota ? (
             <Pressable
-              onPress={hasUrl ? () => Linking.openURL(toOpenableMusicUrl(trimmedUrl)) : undefined}
-              disabled={!hasUrl}
-              hitSlop={8}
+              onPress={() => setNotaExpandida((prev) => !prev)}
+              hitSlop={4}
+              style={styles.noteToggle}
               accessibilityRole='button'
-              accessibilityLabel='Ouvir música'
-              style={[
-                styles.actionButton,
-                { backgroundColor: ColorUtils.withAlpha(listenColor, 0.08) },
-              ]}
+              accessibilityLabel={
+                notaExpandida ? 'Ocultar orientação da música' : 'Ver orientação da música'
+              }
             >
-              <MaterialCommunityIcons name={listenIconName} size={18} color={listenColor} />
+              <MaterialCommunityIcons
+                name='note-text-outline'
+                size={13}
+                color={palette.fonts.inactive}
+              />
+              <FancyText type='semiBold' size='extraSmall' color={palette.fonts.inactive}>
+                {notaExpandida ? 'ocultar orientação' : 'orientação desta música'}
+              </FancyText>
+              <MaterialCommunityIcons
+                name={notaExpandida ? 'chevron-up' : 'chevron-down'}
+                size={14}
+                color={palette.fonts.inactive}
+              />
             </Pressable>
-            {reorderMode ? (
-              <Pressable
-                onLongPress={onLongPress}
-                delayLongPress={150}
-                hitSlop={8}
-                accessibilityRole='button'
-                accessibilityLabel='Arrastar para reordenar'
-                style={[
-                  styles.actionButton,
-                  { backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.08) },
-                ]}
+          ) : null}
+          {hasNota && notaExpandida ? (
+            <View style={[styles.noteBox, { borderColor: palette.border }]}>
+              <FancyText
+                type='medium'
+                size='small'
+                color={palette.fonts.dark}
+                style={styles.noteText}
               >
-                <MaterialCommunityIcons
-                  name='drag-horizontal-variant'
-                  size={18}
-                  color={palette.fonts.inactive}
-                />
-              </Pressable>
-            ) : isEditable ? (
-              <Pressable
-                onPress={onActionsPress}
-                hitSlop={8}
-                accessibilityRole='button'
-                accessibilityLabel='Opções da música'
-                style={[
-                  styles.actionButton,
-                  { backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.08) },
-                ]}
-              >
-                <MaterialCommunityIcons
-                  name='dots-vertical'
-                  size={18}
-                  color={palette.fonts.inactive}
-                />
-              </Pressable>
-            ) : (
-              <Pressable
-                onPress={onPress}
-                hitSlop={8}
-                accessibilityRole='button'
-                accessibilityLabel='Ver detalhes da música'
-                style={[styles.actionButton, { backgroundColor: palette.primary }]}
-              >
-                <MaterialCommunityIcons
-                  name='chevron-right'
-                  size={18}
-                  color={palette.fonts.light}
-                />
-              </Pressable>
-            )}
-          </View>
-        </View>
-
-        {hasNota ? (
-          <Pressable
-            onPress={() => setNotaExpandida((prev) => !prev)}
-            hitSlop={4}
-            style={styles.noteToggle}
-            accessibilityRole='button'
-            accessibilityLabel={
-              notaExpandida ? 'Ocultar orientação da música' : 'Ver orientação da música'
-            }
-          >
-            <MaterialCommunityIcons
-              name='note-text-outline'
-              size={13}
-              color={palette.fonts.inactive}
-            />
-            <FancyText type='semiBold' size='extraSmall' color={palette.fonts.inactive}>
-              {notaExpandida ? 'ocultar orientação' : 'orientação desta música'}
-            </FancyText>
-            <MaterialCommunityIcons
-              name={notaExpandida ? 'chevron-up' : 'chevron-down'}
-              size={14}
-              color={palette.fonts.inactive}
-            />
-          </Pressable>
-        ) : null}
-        {hasNota && notaExpandida ? (
-          <View style={[styles.noteBox, { borderColor: palette.border }]}>
-            <FancyText
-              type='medium'
-              size='small'
-              color={palette.fonts.dark}
-              style={styles.noteText}
-            >
-              {trimmedNota}
-            </FancyText>
-          </View>
-        ) : null}
-      </Pressable>
+                {trimmedNota}
+              </FancyText>
+            </View>
+          ) : null}
+        </Pressable>
+      </Animated.View>
     </View>
   );
 }
