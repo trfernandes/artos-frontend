@@ -464,8 +464,7 @@ export default function AgendaDetailsDadosTab(props: {
   const isLouvorMinisterio = useMemo(
     () =>
       igrejaAtiva?.ministerios?.some(
-        (ministerio) =>
-          ministerio.id === props.ministerioId && ministerioEhLouvor(ministerio),
+        (ministerio) => ministerio.id === props.ministerioId && ministerioEhLouvor(ministerio),
       ) ?? false,
     [igrejaAtiva?.ministerios, props.ministerioId],
   );
@@ -790,20 +789,23 @@ export default function AgendaDetailsDadosTab(props: {
     props.ocorrencia?.dadosOcorrenciaOrigem === TemplatePadraoOrigemEnum.OCORRENCIA;
 
   const resolvedResponsavelSetlistName = useMemo(() => {
-    if (props.ocorrencia?.responsavelSetlistVoluntario?.nome) {
-      return props.ocorrencia.responsavelSetlistVoluntario.nome;
+    const relacao = props.ocorrencia?.responsavelSetlistVoluntario;
+    // Só confia no objeto da relação quando ele bate com o id autoritativo — o
+    // backend pode devolver o responsável do template mesmo com o id sobrescrito
+    // na ocorrência, o que mostrava o nome errado.
+    if (
+      relacao?.nome &&
+      (!resolvedResponsavelSetlistId || relacao.id === resolvedResponsavelSetlistId)
+    ) {
+      return relacao.nome;
     }
 
     const selectedOption = escalaItens.find(
       (item) => item.voluntario?.voluntario?.id === resolvedResponsavelSetlistId,
     );
 
-    return selectedOption?.voluntario?.voluntario?.nome ?? 'Não definido';
-  }, [
-    escalaItens,
-    props.ocorrencia?.responsavelSetlistVoluntario?.nome,
-    resolvedResponsavelSetlistId,
-  ]);
+    return selectedOption?.voluntario?.voluntario?.nome ?? relacao?.nome ?? 'Não definido';
+  }, [escalaItens, props.ocorrencia?.responsavelSetlistVoluntario, resolvedResponsavelSetlistId]);
 
   const voluntariosEscaladosOptions = useMemo<DropDownItemProps<string>[]>(() => {
     const unique = escalaItens

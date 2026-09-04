@@ -19,7 +19,6 @@ import { useLoading } from '../../../../../contexts/LoadingContext';
 import FancySegmentedControl from '../../../../../components/fields/FancySegmentedControl';
 import FancyChips from '../../../../../components/FancyChips';
 import FancyListItemCard from '../../../../../components/cards/FancyListItemCard';
-import FancyListStats from '../../../../../components/list/FancyListStats';
 import FancyActionSheet from '../../../../../components/actions/FancyActionSheet';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { ResponseVoluntarioIgrejaDto } from '../../../../../domain/dtos/Voluntario/response-voluntario-igreja.dto';
@@ -202,20 +201,13 @@ export default function VoluntariosIndexPage() {
               <BillingNoticeBanner assinatura={assinatura} onPress={abrirPortalDeAssinatura} />
             </View>
           )}
-          <FancyListStats
-            items={[
-              { label: 'Total', value: stats.total },
-              { label: 'Ativos', value: stats.ativos, color: palette.primary },
-              { label: 'Inativos', value: stats.inativos, color: palette.error },
-            ]}
-          />
           <View style={styles.filtroContainer}>
             <FancySegmentedControl<StatusFiltro>
               size='sm'
               options={[
-                { label: 'Todos', value: 'todos' },
-                { label: 'Ativos', value: 'ativos' },
-                { label: 'Inativos', value: 'inativos' },
+                { label: 'Todos', value: 'todos', count: stats.total },
+                { label: 'Ativos', value: 'ativos', count: stats.ativos },
+                { label: 'Inativos', value: 'inativos', count: stats.inativos },
               ]}
               value={statusFiltro}
               onChange={setStatusFiltro}

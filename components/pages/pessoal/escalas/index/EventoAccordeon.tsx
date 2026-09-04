@@ -104,10 +104,11 @@ export default function EventoAccordeon({
   const metaPrimaryText = useMemo(() => {
     const totalFuncoes = data.itens.length;
     let suffix = '';
-    if (totalFuncoes > 1) {
-      suffix = `${totalFuncoes} funções`;
-    } else if (totalFuncoes === 1 && data.itens[0]?.funcao?.nome) {
-      suffix = data.itens[0].funcao.nome;
+    if (totalFuncoes >= 1) {
+      suffix = data.itens
+        .map((item) => item.funcao?.nome)
+        .filter((nome): nome is string => !!nome)
+        .join(', ');
     }
 
     if (ministryName && suffix) return `${ministryName} · ${suffix}`;

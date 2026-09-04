@@ -1,28 +1,32 @@
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { useQueryClient } from '@tanstack/react-query';
-import Toast from 'react-native-toast-message';
+import { useQuery } from '@tanstack/react-query';
+import { router } from 'expo-router';
 
-import FancyBottomSheetModal from '../../modal/FancyBottomSheetModal';
-import FancyBottomSheetSelect from '../../fields/FancyBottomSheetSelect';
-import FancyButton from '../../buttons/FancyButton';
+import DefaultIcons from '../../FancyIcons';
 import FancyList from '../../list/FancyList';
 import FancyListEmpty from '../../list/FancyListEmpty';
 import FancyLoading from '../../FancyLoading';
 import FancyText from '../../FancyText';
-import FancyTextInput from '../../fields/FancyTextInput';
-import { FancyAlert } from '../../modal/FancyAlert';
-import EquipeMemberCard from './EquipeMemberCard';
-import { AppImages } from '../../../assets/app_images';
-import { getApiErrorMessage } from '../../../domain/api/api-error';
+import FancySegmentedControl from '../../fields/FancySegmentedControl';
+import FancyVerticalSpacer from '../../FancyVerticalSpacer';
+import {
+  ChamadaGridItem,
+  ChamadaGridRow,
+  ChamadaRow,
+  chunkPairs,
+  PessoaChamadaRow,
+  PessoaFuncaoStatus,
+  VagaChamadaRow,
+} from './EquipeChamadaRow';
 import { EscalaItemStatusEnum } from '../../../domain/enums/Escala/escala-item-status.enum';
-import { MinisterioVoluntarioStatusEnum } from '../../../domain/enums/MinisterioVoluntario/ministerio-voluntario-status.enum';
 import { useAuth } from '../../../contexts/AuthContext';
 import { usePallete } from '../../../hooks/usePallete';
-import { useEscalaItensCrud } from '../../../hooks/useEscalaItensCrud';
+import { useAppTheme } from '../../../hooks/useAppTheme';
 import { useEventoEquipe } from '../../../hooks/useEventoEquipe';
-import { useVoluntariosDoMinisterioCrud } from '../../../hooks/useVoluntariosDoMinisterioCrud';
 import { ColorUtils } from '../../../utils/color_utils';
+import { EscalaItensRepository } from '../../../domain/services/EscalaItensRepository';
+import { Operator, ValueType } from '../../../domain/utils/query_utils';
 import { ResponseEquipeOcorrenciaIntegranteDto } from '../../../domain/dtos/Evento/evento-equipe.response';
 
 type Integrante = ResponseEquipeOcorrenciaIntegranteDto & { nomeFuncao: string };
@@ -39,44 +43,20 @@ type Props = {
 };
 
 const LIST_GAP = 10;
-const CARD_GRID_GAP = 6;
 
 export default function EquipeOcorrenciaView({
   eventoId,
   dataOcorrencia,
   ministerioId,
   modo,
-  responsavelSetlistVoluntarioIdFallback,
-  responsavelSetlistVoluntarioNomeFallback,
 }: Props) {
   const palette = usePallete();
-  const queryClient = useQueryClient();
   const { user, igrejaAtiva } = useAuth();
 
   const isLeaderMode = modo === 'lider';
   const dataOcorrenciaIso = dataOcorrencia.toISOString();
 
-  const { data, isLoading, refetch } = useEventoEquipe(eventoId, dataOcorrenciaIso, ministerioId);
-  const { ministerioVoluntariosList, isLoadingMinisterioVoluntarios } =
-    useVoluntariosDoMinisterioCrud(ministerioId, MinisterioVoluntarioStatusEnum.Ativo);
-  const { update } = useEscalaItensCrud();
-
-  const [substituicaoVisible, setSubstituicaoVisible] = useState(false);
-  const [escalaItemSelecionadoId, setEscalaItemSelecionadoId] = useState<string | null>(null);
-  const [novoMinisterioVoluntarioId, setNovoMinisterioVoluntarioId] = useState('');
-  const [motivoSubstituicao, setMotivoSubstituicao] = useState('');
-  const [isSalvandoSubstituicao, setIsSalvandoSubstituicao] = useState(false);
-  const [isRemovendoVoluntario, setIsRemovendoVoluntario] = useState(false);
-
-  const voluntariosEscaladosIds = useMemo(
-    () =>
-      new Set(
-        data?.grupos
-          .flatMap((grupo) => grupo.integrantes.map((integrante) => integrante.voluntarioId))
-          .filter(Boolean) ?? [],
-      ),
-    [data?.grupos],
-  );
+  const { data, isLoading } = useEventoEquipe(eventoId, dataOcorrenciaIso, ministerioId);
 
   const integrantesFlat = useMemo<Integrante[]>(
     () =>
@@ -89,188 +69,132 @@ export default function EquipeOcorrenciaView({
     [data?.grupos],
   );
 
-  const integrantesExibidos = useMemo<Integrante[]>(() => {
-    // Ordena por nome do voluntário (locale pt-BR); vagas abertas ficam no final
-    return [...integrantesFlat].sort((a, b) => {
-      const nomeA = a.voluntario?.nome ?? '';
-      const nomeB = b.voluntario?.nome ?? '';
-      if (!nomeA && !nomeB) return 0;
-      if (!nomeA) return 1;
-      if (!nomeB) return -1;
-      return nomeA.localeCompare(nomeB, 'pt-BR', { sensitivity: 'base' });
+  // Resolve o id da escala (registro que agrupa os itens) a partir de um item já
+  // carregado — a listagem de equipe não traz esse id diretamente. Só busca em modo
+  // líder, que é o único contexto onde o link "Gerenciar escala" aparece.
+  const primeiroEscalaItemId = integrantesFlat[0]?.escalaItemId;
+  const { data: escalaId } = useQuery({
+    queryKey: ['escala-item-escala-id', igrejaAtiva?.id, primeiroEscalaItemId],
+    enabled: isLeaderMode && !!primeiroEscalaItemId && !!igrejaAtiva?.id,
+    queryFn: async () => {
+      const [item] = await EscalaItensRepository.search({
+        where: {
+          conditions: [
+            {
+              path: 'id',
+              operator: Operator.EQUALS,
+              value: { type: ValueType.LITERAL, value: primeiroEscalaItemId },
+            },
+          ],
+        },
+        relations: [],
+        igrejaId: igrejaAtiva?.id,
+      });
+      return item?.escalaId ?? null;
+    },
+  });
+
+  const handleGerenciarEscala = () => {
+    if (!escalaId || !ministerioId) return;
+    router.push({
+      pathname: '/(app)/(drawer)/ministerios/escalas/details',
+      params: { escalaId, ministerioId, viewMode: 'edit' },
     });
-  }, [integrantesFlat]);
+  };
 
   const [filtro, setFiltro] = useState<EquipeFiltro>('todos');
 
-  const statusCounts = useMemo(() => {
-    let confirmados = 0;
-    let pendentes = 0;
-    let vagas = 0;
+  // Cada pessoa aparece uma única vez, mesmo escalada em várias funções — cada função
+  // vira um chip de status dentro do card dela. Vagas (sem voluntário) não têm pessoa
+  // pra agrupar e continuam uma linha por vaga.
+  const { pessoas, vagas } = useMemo(() => {
+    const porPessoa = new Map<string, PessoaChamadaRow & { todasConfirmadas: boolean }>();
+    const vagasList: VagaChamadaRow[] = [];
+
     integrantesFlat.forEach((integrante) => {
-      if (!integrante.voluntario) {
-        vagas += 1;
+      const status = integrante.status as EscalaItemStatusEnum;
+      const voluntario = integrante.voluntario;
+
+      if (!voluntario) {
+        vagasList.push({
+          kind: 'vaga',
+          key: integrante.escalaItemId,
+          nomeFuncao: integrante.nomeFuncao,
+        });
         return;
       }
-      if (integrante.status === EscalaItemStatusEnum.Confirmado) {
-        confirmados += 1;
-      } else {
-        pendentes += 1;
+
+      const funcao: PessoaFuncaoStatus = {
+        key: integrante.escalaItemId,
+        nomeFuncao: integrante.nomeFuncao,
+        status,
+      };
+
+      const pessoaId = integrante.voluntarioId || voluntario.id;
+      const existente = porPessoa.get(pessoaId);
+      if (existente) {
+        existente.funcoes.push(funcao);
+        existente.todasConfirmadas =
+          existente.todasConfirmadas && status === EscalaItemStatusEnum.Confirmado;
+        return;
       }
-    });
-    return { confirmados, pendentes, vagas };
-  }, [integrantesFlat]);
 
-  const matchesFiltro = (integrante: Integrante, f: EquipeFiltro) => {
-    switch (f) {
-      case 'confirmados':
-        return !!integrante.voluntario && integrante.status === EscalaItemStatusEnum.Confirmado;
-      case 'pendentes':
-        return !!integrante.voluntario && integrante.status !== EscalaItemStatusEnum.Confirmado;
-      case 'vagas':
-        return !integrante.voluntario;
-      default:
-        return true;
-    }
-  };
-
-  const integrantesVisiveis = useMemo(
-    () =>
-      filtro === 'todos'
-        ? integrantesExibidos
-        : integrantesExibidos.filter((integrante) => matchesFiltro(integrante, filtro)),
-    [integrantesExibidos, filtro],
-  );
-
-  const substituicaoOptions = useMemo(() => {
-    const integranteAtual = data?.grupos
-      .flatMap((grupo) => grupo.integrantes)
-      .find((integrante) => integrante.escalaItemId === escalaItemSelecionadoId);
-
-    const funcaoAtualId = integranteAtual?.funcaoId ?? null;
-
-    return ministerioVoluntariosList
-      .filter((mv) => {
-        const voluntarioId = mv.voluntarioId;
-        if (!voluntarioId || voluntarioId === integranteAtual?.voluntarioId) return false;
-        if (voluntariosEscaladosIds.has(voluntarioId)) return false;
-        if (!funcaoAtualId) return true;
-        const funcoes = mv.funcoes ?? [];
-        return funcoes.length === 0 || funcoes.some((f) => f.funcaoId === funcaoAtualId);
-      })
-      .map((mv) => ({
-        title: mv.voluntario?.nome || 'Voluntário',
-        value: mv.id,
-        left: {
-          type: 'image' as const,
-          source:
-            mv.voluntario?.fotoThumbUrl || mv.voluntario?.fotoUrl
-              ? { uri: mv.voluntario?.fotoThumbUrl || mv.voluntario?.fotoUrl || '' }
-              : AppImages.emptyProfile,
-        },
-      }));
-  }, [data?.grupos, escalaItemSelecionadoId, voluntariosEscaladosIds, ministerioVoluntariosList]);
-
-  const openSubstituicaoSheet = (escalaItemId: string) => {
-    setEscalaItemSelecionadoId(escalaItemId);
-    setNovoMinisterioVoluntarioId('');
-    setMotivoSubstituicao('');
-    setSubstituicaoVisible(true);
-  };
-
-  const invalidateEquipe = async () => {
-    if (!igrejaAtiva?.id) return;
-    await queryClient.invalidateQueries({
-      queryKey: ['evento-equipe', igrejaAtiva.id, eventoId, ministerioId, dataOcorrenciaIso],
-    });
-    await queryClient.invalidateQueries({ queryKey: ['eventos'] });
-    await queryClient.invalidateQueries({
-      queryKey: ['evento-setlist', igrejaAtiva.id, ministerioId, eventoId, dataOcorrenciaIso],
-    });
-    await refetch();
-  };
-
-  const handleSubstituir = async () => {
-    if (isSalvandoSubstituicao || !escalaItemSelecionadoId || !novoMinisterioVoluntarioId) return;
-
-    try {
-      setIsSalvandoSubstituicao(true);
-      await update?.({
-        id: escalaItemSelecionadoId,
-        // EscalaItem.voluntarioId aponta para ministerio_voluntarios.id no backend.
-        data: { voluntarioId: novoMinisterioVoluntarioId },
+      const isCurrentUser = voluntario.id === user?.user?.id;
+      porPessoa.set(pessoaId, {
+        kind: 'pessoa',
+        key: pessoaId,
+        nome: isCurrentUser ? 'Você' : voluntario.nome,
+        fotoUrl: voluntario.fotoThumbUrl || voluntario.fotoUrl,
+        isCurrentUser,
+        funcoes: [funcao],
+        todasConfirmadas: status === EscalaItemStatusEnum.Confirmado,
       });
-      await invalidateEquipe();
-      setSubstituicaoVisible(false);
-      requestAnimationFrame(() => {
-        Toast.show({
-          type: 'success',
-          text1: 'Voluntário substituído',
-          text2: motivoSubstituicao ? `Motivo registrado: ${motivoSubstituicao}` : undefined,
-        });
-      });
-    } catch (error) {
-      setSubstituicaoVisible(false);
-      requestAnimationFrame(() => {
-        Toast.show({
-          type: 'error',
-          text1: 'Erro ao substituir voluntário',
-          text2: getApiErrorMessage(error, 'Não foi possível atualizar a escala desta ocorrência.'),
-        });
-      });
-    } finally {
-      setIsSalvandoSubstituicao(false);
-    }
-  };
+    });
 
-  const handleRemoverVoluntario = (escalaItemId: string) => {
-    if (isRemovendoVoluntario) return;
-
-    const integrante = integrantesFlat.find((item) => item.escalaItemId === escalaItemId);
-    const nome = integrante?.voluntario?.nome || 'este voluntário';
-
-    FancyAlert.alert(
-      'Remover voluntário da escala',
-      `A vaga de ${nome} ficará pendente nesta ocorrência.`,
-      [
-        { text: 'Cancelar', style: 'default' },
-        {
-          text: 'Remover',
-          style: 'destructive',
-          onPress: () => {
-            void (async () => {
-              try {
-                setIsRemovendoVoluntario(true);
-                await update?.({
-                  id: escalaItemId,
-                  data: {
-                    voluntarioId: null as any,
-                    status: EscalaItemStatusEnum.Pendente,
-                  },
-                });
-                await invalidateEquipe();
-                Toast.show({
-                  type: 'success',
-                  text1: 'Voluntário removido',
-                  text2: 'A vaga voltou para pendente na equipe.',
-                });
-              } catch (error) {
-                Toast.show({
-                  type: 'error',
-                  text1: 'Erro ao remover voluntário',
-                  text2: getApiErrorMessage(error, 'Não foi possível liberar esta vaga da escala.'),
-                });
-              } finally {
-                setIsRemovendoVoluntario(false);
-              }
-            })();
-          },
-        },
-      ],
+    const pessoasList = Array.from(porPessoa.values()).sort((a, b) =>
+      a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }),
     );
-  };
 
-  if (isLoading || (isLeaderMode && isLoadingMinisterioVoluntarios)) {
+    return { pessoas: pessoasList, vagas: vagasList };
+  }, [integrantesFlat, user?.user?.id]);
+
+  const statusCounts = useMemo(() => {
+    const confirmados = pessoas.filter((p) => p.todasConfirmadas).length;
+    const pendentes = pessoas.length - confirmados;
+    return { confirmados, pendentes, vagas: vagas.length };
+  }, [pessoas, vagas]);
+
+  const rows = useMemo<ChamadaRow[]>(() => {
+    const mostrarConfirmados = filtro === 'todos' || filtro === 'confirmados';
+    const mostrarNaoConfirmados = filtro === 'todos' || filtro === 'pendentes';
+    const mostrarVagas = filtro === 'todos' || filtro === 'pendentes' || filtro === 'vagas';
+
+    const confirmadosVisiveis = mostrarConfirmados ? pessoas.filter((p) => p.todasConfirmadas) : [];
+    const naoConfirmadosVisiveis = mostrarNaoConfirmados
+      ? pessoas.filter((p) => !p.todasConfirmadas)
+      : [];
+    const vagasVisiveis = mostrarVagas ? vagas : [];
+
+    // Lista única, sem agrupador por status — o dot de cada função já indica o
+    // status individual. Ordenada por nome (pessoa) ou nome da função (vaga).
+    const itens: ChamadaGridItem[] = [
+      ...confirmadosVisiveis,
+      ...naoConfirmadosVisiveis,
+      ...vagasVisiveis,
+    ].sort((a, b) => {
+      const labelA = a.kind === 'pessoa' ? a.nome : a.nomeFuncao;
+      const labelB = b.kind === 'pessoa' ? b.nome : b.nomeFuncao;
+      return labelA.localeCompare(labelB, 'pt-BR', { sensitivity: 'base' });
+    });
+
+    return chunkPairs(itens).map((par, index) => ({
+      kind: 'grid-pair',
+      key: `grid-${index}`,
+      items: par,
+    }));
+  }, [pessoas, vagas, filtro]);
+
+  if (isLoading) {
     return <FancyLoading />;
   }
 
@@ -286,45 +210,51 @@ export default function EquipeOcorrenciaView({
   return (
     <>
       <View style={styles.filtersWrap}>
-        <EquipeFiltroChip
-          label='Todos'
-          count={integrantesFlat.length}
-          color={palette.primary}
-          active={filtro === 'todos'}
-          onPress={() => setFiltro('todos')}
-        />
-        <EquipeFiltroChip
-          label='Confirmados'
-          count={statusCounts.confirmados}
-          color={palette.confirm}
-          active={filtro === 'confirmados'}
-          onPress={() => setFiltro((f) => (f === 'confirmados' ? 'todos' : 'confirmados'))}
-        />
-        <EquipeFiltroChip
-          label='Pendentes'
-          count={statusCounts.pendentes}
-          color={palette.warning}
-          active={filtro === 'pendentes'}
-          onPress={() => setFiltro((f) => (f === 'pendentes' ? 'todos' : 'pendentes'))}
-        />
-        <EquipeFiltroChip
-          label='Vagas'
-          count={statusCounts.vagas}
-          color={palette.error}
-          active={filtro === 'vagas'}
-          onPress={() => setFiltro((f) => (f === 'vagas' ? 'todos' : 'vagas'))}
+        <FancySegmentedControl<EquipeFiltro>
+          size='sm'
+          options={[
+            {
+              label: 'Todos',
+              value: 'todos',
+              count: pessoas.length + vagas.length,
+              accentColor: palette.primary,
+            },
+            {
+              label: 'Confirmados',
+              value: 'confirmados',
+              count: statusCounts.confirmados,
+              accentColor: palette.confirm,
+            },
+            {
+              label: 'Pendentes',
+              value: 'pendentes',
+              count: statusCounts.pendentes,
+              accentColor: palette.warning,
+            },
+            {
+              label: 'Vagas',
+              value: 'vagas',
+              count: statusCounts.vagas,
+              accentColor: palette.error,
+            },
+          ]}
+          value={filtro}
+          onChange={setFiltro}
         />
       </View>
 
-      <FancyList<Integrante>
+      {isLeaderMode ? (
+        <>
+          <FancyVerticalSpacer height={6} />
+          <GerenciarEscalaLink disabled={!escalaId} onPress={handleGerenciarEscala} />
+        </>
+      ) : null}
+
+      <FancyList<ChamadaRow>
         containerStyle={styles.listContainer}
-        data={integrantesVisiveis}
-        keyExtractor={(item) => item.escalaItemId}
-        key='team-grid'
-        numColumns={2}
-        columnWrapperStyle={styles.columnWrapper}
+        data={rows}
+        keyExtractor={(item) => item.key}
         contentContainerStyle={styles.listContent}
-        ItemSeparatorComponent={() => <View style={{ height: CARD_GRID_GAP }} />}
         listEmptyProps={{
           label:
             filtro === 'todos'
@@ -332,158 +262,91 @@ export default function EquipeOcorrenciaView({
               : 'Nenhum integrante neste filtro.',
           icon: { library: 'MaterialCommunityIcons', name: 'account-search-outline', size: 56 },
         }}
-        renderItem={({ item, index }) => {
-          const isCurrentUser = item.voluntario?.id === user?.user?.id;
-          return (
-            <EquipeMemberCard
-              integrante={item}
-              isCurrentUser={isCurrentUser}
-              isLeaderMode={isLeaderMode}
-              dimmed={false}
-              index={index}
-              onSubstituir={openSubstituicaoSheet}
-              onRemover={isLeaderMode ? handleRemoverVoluntario : undefined}
-            />
-          );
-        }}
+        renderItem={({ item }) => (
+          <ChamadaGridRow key={item.key} kind={item.kind} items={item.items} />
+        )}
       />
-
-      <FancyBottomSheetModal
-        visible={substituicaoVisible}
-        onClose={() => {
-          if (!isSalvandoSubstituicao) {
-            setSubstituicaoVisible(false);
-          }
-        }}
-        title='Substituir voluntário'
-        closeDisabled={isSalvandoSubstituicao}
-        footer={
-          <FancyButton
-            label='Confirmar'
-            loadingText='Substituindo...'
-            icon={{ library: 'MaterialCommunityIcons', name: 'check', size: 18 }}
-            isLoading={isSalvandoSubstituicao}
-            disabled={!novoMinisterioVoluntarioId || isSalvandoSubstituicao}
-            onPress={() => void handleSubstituir()}
-          />
-        }
-      >
-        <View style={styles.sheetFormWrapper}>
-          <View style={[styles.sheetForm, isSalvandoSubstituicao && styles.sheetFormDisabled]}>
-            <FancyBottomSheetSelect
-              label='Novo voluntário'
-              title='Selecionar substituto'
-              value={novoMinisterioVoluntarioId}
-              onChange={(value: string) => setNovoMinisterioVoluntarioId(String(value || ''))}
-              listItems={substituicaoOptions}
-              disabled={isSalvandoSubstituicao}
-            />
-            <FancyTextInput
-              label='Motivo'
-              value={motivoSubstituicao}
-              disabled={isSalvandoSubstituicao}
-              inputProps={{
-                onChangeText: setMotivoSubstituicao,
-                multiline: true,
-                style: { minHeight: 90, textAlignVertical: 'top' },
-              }}
-            />
-          </View>
-          {isSalvandoSubstituicao ? (
-            <Pressable
-              accessibilityLabel='Substituição em andamento'
-              style={styles.sheetBlockingOverlay}
-              onPress={() => undefined}
-            />
-          ) : null}
-        </View>
-      </FancyBottomSheetModal>
     </>
   );
 }
 
-function EquipeFiltroChip({
-  label,
-  count,
-  color,
-  active,
-  onPress,
-}: {
-  label: string;
-  count: number;
-  color: string;
-  active: boolean;
-  onPress: () => void;
-}) {
-  const activeBg = ColorUtils.withAlpha(color, 0.14);
-  const inactiveBg = ColorUtils.withAlpha(color, 0.06);
-  const inactiveBorder = ColorUtils.withAlpha(color, 0.3);
-  const chipBg = active ? activeBg : inactiveBg;
-  const chipBorder = active ? color : inactiveBorder;
+function GerenciarEscalaLink({ disabled, onPress }: { disabled: boolean; onPress: () => void }) {
+  const { palette, isDark } = useAppTheme();
+  const cardBg = isDark ? palette.backgroundColor2 : palette.backgroundColor3;
 
   return (
     <Pressable
       onPress={onPress}
+      disabled={disabled}
       style={[
-        styles.filterChip,
-        {
-          backgroundColor: chipBg,
-          borderColor: chipBorder,
-        },
+        styles.manageCard,
+        { backgroundColor: cardBg },
+        disabled && styles.manageCardDisabled,
       ]}
     >
-      <FancyText size='extraSmall' type='semiBold' color={color} numberOfLines={1}>
-        {label}
-      </FancyText>
-      <FancyText size='extraSmall' type='bold' color={color}>
-        {count}
-      </FancyText>
+      <View
+        style={[
+          styles.manageIcon,
+          { backgroundColor: ColorUtils.withAlpha(palette.primary, 0.12) },
+        ]}
+      >
+        <DefaultIcons.Custom
+          library='MaterialCommunityIcons'
+          name='calendar-edit'
+          size={19}
+          color={palette.primary}
+        />
+      </View>
+      <View style={styles.manageTextWrap}>
+        <FancyText size='small' type='bold' color={palette.fonts.dark}>
+          Gerenciar escala
+        </FancyText>
+        <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+          Substituir, remover ou preencher vagas
+        </FancyText>
+      </View>
+      <DefaultIcons.Custom
+        library='MaterialCommunityIcons'
+        name='chevron-right'
+        size={20}
+        color={palette.icons.inactive}
+      />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   filtersWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: LIST_GAP,
-    paddingTop: 8,
+    paddingTop: 4,
     paddingBottom: 4,
   },
-  filterChip: {
-    flexGrow: 1,
-    flexBasis: 'auto',
+  manageCard: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 100,
-    borderWidth: 1,
+    gap: 10,
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+  },
+  manageCardDisabled: {
+    opacity: 0.5,
+  },
+  manageIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  manageTextWrap: {
+    flex: 1,
+    gap: 1,
   },
   listContainer: {
     flex: 1,
   },
   listContent: {
-    paddingTop: 8,
+    paddingTop: 16,
     paddingBottom: 24,
-  },
-  columnWrapper: {
-    gap: CARD_GRID_GAP,
-  },
-  sheetForm: {
-    gap: 14,
-  },
-  sheetFormWrapper: {
-    position: 'relative',
-  },
-  sheetFormDisabled: {
-    opacity: 0.72,
-  },
-  sheetBlockingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 16,
-    zIndex: 10,
   },
 });

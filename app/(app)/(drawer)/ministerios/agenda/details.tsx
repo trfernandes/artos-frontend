@@ -166,7 +166,6 @@ export default function MinisterioAgendaDetailsPage() {
   );
 
   const responsavelSetlistVoluntarioId = ocorrenciaAtual?.responsavelSetlistVoluntarioId;
-  const responsavelSetlistNome = ocorrenciaAtual?.responsavelSetlistVoluntario?.nome ?? undefined;
   const isOcorrenciaPassada = isBefore(
     startOfDay(new Date(params.dataOcorrencia)),
     startOfDay(new Date()),
@@ -230,39 +229,13 @@ export default function MinisterioAgendaDetailsPage() {
                 dataOcorrencia={new Date(params.dataOcorrencia)}
                 ministerioId={params.ministerioId}
                 mode={setlistMode}
-                responsavelSetlistNome={
-                  ocorrenciaAtual?.responsavelSetlistVoluntario?.nome ?? null
-                }
+                responsavelSetlistNome={ocorrenciaAtual?.responsavelSetlistVoluntario?.nome ?? null}
                 detailsRoutePath='/ministerios/agenda/setlist/[itemId]'
               />
             </View>
           ),
         });
       }
-    }
-
-    if (isMinisterioLouvor) {
-      tabs.push({
-        title: 'Setlist',
-        icon: {
-          library: 'MaterialCommunityIcons',
-          name: 'playlist-music',
-          size: 20,
-          style: { marginTop: 0 },
-        },
-        content: (
-          <View style={styles.setlistTabGutter}>
-            <EventoSetlistTab
-              eventoId={eventoId}
-              dataOcorrencia={new Date(params.dataOcorrencia)}
-              ministerioId={params.ministerioId}
-              mode={setlistMode}
-              responsavelSetlistNome={responsavelSetlistNome}
-              detailsRoutePath='/ministerios/agenda/setlist/[itemId]'
-            />
-          </View>
-        ),
-      });
     }
 
     return tabs;
@@ -276,7 +249,6 @@ export default function MinisterioAgendaDetailsPage() {
     ocorrenciaAtual,
     params.dataOcorrencia,
     params.ministerioId,
-    responsavelSetlistNome,
     setlistMode,
   ]);
 

@@ -1222,7 +1222,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     paddingHorizontal: 15,
-    paddingTop: 8,
+    paddingTop: 4,
     paddingBottom: 4,
     gap: 12,
   },

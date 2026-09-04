@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
 import { useAuth } from '../../../../../contexts/AuthContext';
@@ -82,6 +83,7 @@ function resolveRouteDate(value?: string | string[]) {
 export default function MinhasEscalasIndexPage() {
   const palette = usePallete();
   const { user, igrejaAtiva } = useAuth();
+  const queryClient = useQueryClient();
   const params = useLocalSearchParams<{
     selectedDate?: string;
     dataOcorrencia?: string;
@@ -416,6 +418,7 @@ export default function MinhasEscalasIndexPage() {
               });
               Toast.show({ type: 'info', text1: 'Ausência registrada.' });
               await loadMonthEscalas();
+              queryClient.invalidateQueries({ queryKey: ['evento-equipe'] });
             } catch {
               Toast.show({ type: 'error', text1: 'Erro ao registrar ausência.' });
             }
@@ -431,6 +434,7 @@ export default function MinhasEscalasIndexPage() {
               });
               Toast.show({ type: 'success', text1: 'Presença confirmada!' });
               await loadMonthEscalas();
+              queryClient.invalidateQueries({ queryKey: ['evento-equipe'] });
             } catch {
               Toast.show({ type: 'error', text1: 'Erro ao confirmar presença.' });
             }
@@ -463,6 +467,7 @@ export default function MinhasEscalasIndexPage() {
         });
         setSubstituicaoPageParams({ visible: false });
         await loadMonthEscalas();
+        queryClient.invalidateQueries({ queryKey: ['evento-equipe'] });
       } catch {
         Toast.show({
           type: 'error',
@@ -497,6 +502,7 @@ export default function MinhasEscalasIndexPage() {
                 type: 'success',
                 text1: 'Substituição aceita com sucesso.',
               });
+              queryClient.invalidateQueries({ queryKey: ['evento-equipe'] });
             },
           },
         ]);
@@ -523,6 +529,7 @@ export default function MinhasEscalasIndexPage() {
                   type: 'success',
                   text1: 'Substituição recusada com sucesso.',
                 });
+                queryClient.invalidateQueries({ queryKey: ['evento-equipe'] });
               },
             },
           ],
