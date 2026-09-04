@@ -32,6 +32,13 @@ Pasta dev é permanente e reutilizada entre features (`node_modules` fica; `npm 
 
 Furos comuns: rodar comando na pasta errada (confirmar `pwd` + branch antes); dois Metros num device (parar um antes); `npm install` esquecido na dev após feature que mexeu em deps.
 
+**Regra dura, causa de incidente real (04/09/2026):** a release só pode estar em `feat/*`
+pelo instante do merge (`feature-merge.ps1` já faz isso sozinho: checkout master → merge →
+checkout master de novo). Se `session-start.ps1` reportar release em `feat/*` fora desse
+instante — sinal de que uma sessão anterior quebrou a regra e deixou WIP lá. Não presumir
+lixo: `git add -A && git commit -m "wip: ..."` na própria branch, `git push`, só então trocar
+pra `master`. E **avisar o usuário** que a regra foi violada de novo, antes de seguir.
+
 ## Expo Router — estrutura de rotas
 
 ```
