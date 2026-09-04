@@ -847,6 +847,7 @@ export default function EventoSetlistTab({
         >
           {renderListActions()}
           <DraggableFlatList
+            key={orderedItems.map((item) => item.id).join('|')}
             data={orderedItems}
             onDragEnd={({ data: nextItems }) => handleDragEnd(nextItems)}
             renderItem={renderItem}
