@@ -13,7 +13,7 @@ import {
   toOpenableMusicUrl,
 } from '../../../utils/musicLinkUtils';
 
-const LIST_GAP = 12;
+const LIST_GAP = 6;
 
 export type SetListItemProps = {
   order: number;

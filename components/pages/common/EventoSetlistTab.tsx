@@ -1227,7 +1227,7 @@ const styles = StyleSheet.create({
   listContent: {
     flexGrow: 1,
     paddingBottom: 18,
-    gap: 12,
+    gap: 6,
   },
   listContentEmpty: {
     paddingBottom: 10,
