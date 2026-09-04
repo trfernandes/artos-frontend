@@ -1215,6 +1215,7 @@ const styles = StyleSheet.create({
   },
   listHeaderDivider: {
     height: StyleSheet.hairlineWidth,
+    marginHorizontal: -10,
     marginBottom: 12,
   },
   statusBadge: {
