@@ -760,42 +760,6 @@ export default function EventoSetlistTab({
             <MaterialCommunityIcons name='swap-vertical' size={16} color={palette.primary} />
           </Pressable>
         )}
-        {reorderMode && (
-          <View style={styles.reorderPillGroup}>
-            <Pressable
-              onPress={cancelReorder}
-              disabled={isReorderingSetlist}
-              accessibilityRole='button'
-              accessibilityLabel='Cancelar reordenação'
-              hitSlop={8}
-              style={[
-                styles.reorderPill,
-                { backgroundColor: palette.error, opacity: isReorderingSetlist ? 0.6 : 1 },
-              ]}
-            >
-              <MaterialCommunityIcons name='close' size={14} color={palette.fonts.light} />
-              <FancyText size='extraSmall' type='semiBold' color={palette.fonts.light}>
-                Cancelar
-              </FancyText>
-            </Pressable>
-            <Pressable
-              onPress={() => void confirmReorder()}
-              disabled={isReorderingSetlist}
-              accessibilityRole='button'
-              accessibilityLabel='Confirmar reordenação'
-              hitSlop={8}
-              style={[
-                styles.reorderPill,
-                { backgroundColor: palette.primary, opacity: isReorderingSetlist ? 0.6 : 1 },
-              ]}
-            >
-              <MaterialCommunityIcons name='check' size={14} color={palette.fonts.light} />
-              <FancyText size='extraSmall' type='semiBold' color={palette.fonts.light}>
-                Confirmar
-              </FancyText>
-            </Pressable>
-          </View>
-        )}
         {SETLIST_CLEAR_ENABLED && (
           <Pressable
             onPress={confirmLimparSetlist}
@@ -915,6 +879,24 @@ export default function EventoSetlistTab({
               </View>
             }
           />
+          {reorderMode && (
+            <View style={styles.reorderFooter}>
+              <FancyButton
+                label='Cancelar'
+                type='contained'
+                containerStyle={[styles.reorderFooterBtn, { backgroundColor: palette.error }]}
+                onPress={cancelReorder}
+                disabled={isReorderingSetlist}
+              />
+              <FancyButton
+                label='Confirmar'
+                type='contained'
+                containerStyle={styles.reorderFooterBtn}
+                isLoading={isReorderingSetlist}
+                onPress={() => void confirmReorder()}
+              />
+            </View>
+          )}
         </View>
       </View>
 
@@ -1241,17 +1223,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  reorderPillGroup: {
+  reorderFooter: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 10,
+    marginTop: 12,
   },
-  reorderPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    height: 32,
-    paddingHorizontal: 12,
-    borderRadius: 16,
+  reorderFooterBtn: {
+    flex: 1,
   },
   railContainer: {
     flex: 1,
