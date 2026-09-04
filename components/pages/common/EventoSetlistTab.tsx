@@ -1233,7 +1233,6 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   headerContainer: {
-    paddingHorizontal: 15,
     paddingTop: 4,
     paddingBottom: 4,
     gap: 12,
@@ -1358,7 +1357,6 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 20,
     borderWidth: StyleSheet.hairlineWidth,
-    marginHorizontal: 15,
     padding: 10,
   },
   addMusicButton: {
