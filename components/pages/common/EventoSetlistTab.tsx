@@ -429,10 +429,8 @@ export default function EventoSetlistTab({
     );
   };
 
-  const handleDragEnd = async (nextItems: ResponseEventoSetlistItemDto[]) => {
+  const persistReorder = async (nextItems: ResponseEventoSetlistItemDto[]) => {
     if (!ministerioId) return;
-
-    setOrderedItems(nextItems);
 
     try {
       await reordenarSetlist({
@@ -448,6 +446,20 @@ export default function EventoSetlistTab({
         text2: getApiErrorMessage(error, 'Não foi possível salvar a nova ordem do setlist.'),
       });
     }
+  };
+
+  const handleDragEnd = (nextItems: ResponseEventoSetlistItemDto[]) => {
+    setOrderedItems(nextItems);
+  };
+
+  const confirmReorder = async () => {
+    await persistReorder(orderedItems);
+    setReorderMode(false);
+  };
+
+  const cancelReorder = () => {
+    setOrderedItems(items);
+    setReorderMode(false);
   };
 
   const handleDeleteItem = async (itemId: string) => {
@@ -496,7 +508,8 @@ export default function EventoSetlistTab({
     nextItems.splice(targetIndex, 0, movedItem);
 
     closeItemActions();
-    await handleDragEnd(nextItems);
+    setOrderedItems(nextItems);
+    await persistReorder(nextItems);
   };
 
   const confirmDeleteItem = (item: ResponseEventoSetlistItemDto) => {
@@ -728,28 +741,58 @@ export default function EventoSetlistTab({
           onPress={() => openItemEditor(null)}
         />
         <View style={styles.listHeaderSpacer} />
-        {orderedItems.length > 1 && (
+        {orderedItems.length > 1 && !reorderMode && (
           <Pressable
-            onPress={() => setReorderMode((prev) => !prev)}
+            onPress={() => setReorderMode(true)}
             accessibilityRole='button'
-            accessibilityLabel={reorderMode ? 'Concluir reordenação' : 'Reordenar músicas'}
+            accessibilityLabel='Reordenar músicas'
             hitSlop={8}
             style={[
               styles.iconOnlyButton,
-              reorderMode
-                ? { backgroundColor: palette.primary, borderColor: palette.primary }
-                : {
-                    backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
-                    borderColor: ColorUtils.withAlpha(palette.primary, 0.24),
-                  },
+              {
+                backgroundColor: ColorUtils.withAlpha(palette.primary, 0.08),
+                borderColor: ColorUtils.withAlpha(palette.primary, 0.24),
+              },
             ]}
           >
-            <MaterialCommunityIcons
-              name={reorderMode ? 'check' : 'swap-vertical'}
-              size={16}
-              color={reorderMode ? palette.fonts.light : palette.primary}
-            />
+            <MaterialCommunityIcons name='swap-vertical' size={16} color={palette.primary} />
           </Pressable>
+        )}
+        {reorderMode && (
+          <View style={styles.reorderPillGroup}>
+            <Pressable
+              onPress={cancelReorder}
+              disabled={isReorderingSetlist}
+              accessibilityRole='button'
+              accessibilityLabel='Cancelar reordenação'
+              hitSlop={8}
+              style={[
+                styles.reorderPill,
+                { backgroundColor: palette.error, opacity: isReorderingSetlist ? 0.6 : 1 },
+              ]}
+            >
+              <MaterialCommunityIcons name='close' size={14} color={palette.fonts.light} />
+              <FancyText size='extraSmall' type='semiBold' color={palette.fonts.light}>
+                Cancelar
+              </FancyText>
+            </Pressable>
+            <Pressable
+              onPress={() => void confirmReorder()}
+              disabled={isReorderingSetlist}
+              accessibilityRole='button'
+              accessibilityLabel='Confirmar reordenação'
+              hitSlop={8}
+              style={[
+                styles.reorderPill,
+                { backgroundColor: palette.primary, opacity: isReorderingSetlist ? 0.6 : 1 },
+              ]}
+            >
+              <MaterialCommunityIcons name='check' size={14} color={palette.fonts.light} />
+              <FancyText size='extraSmall' type='semiBold' color={palette.fonts.light}>
+                Confirmar
+              </FancyText>
+            </Pressable>
+          </View>
         )}
         {SETLIST_CLEAR_ENABLED && orderedItems.length > 0 && (
           <Pressable
@@ -828,9 +871,7 @@ export default function EventoSetlistTab({
           {renderListActions()}
           <DraggableFlatList
             data={orderedItems}
-            onDragEnd={({ data: nextItems }) => {
-              void handleDragEnd(nextItems);
-            }}
+            onDragEnd={({ data: nextItems }) => handleDragEnd(nextItems)}
             renderItem={renderItem}
             keyExtractor={(item) => item.id}
             activationDistance={reorderMode ? 0 : 16}
@@ -1195,6 +1236,18 @@ const styles = StyleSheet.create({
     borderWidth: 0.6,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  reorderPillGroup: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  reorderPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    height: 32,
+    paddingHorizontal: 12,
+    borderRadius: 16,
   },
   railContainer: {
     flex: 1,
