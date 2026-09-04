@@ -765,23 +765,26 @@ export default function EventoSetlistTab({
           <MaterialCommunityIcons name='swap-vertical' size={16} color={palette.primary} />
         </Pressable>
         {SETLIST_CLEAR_ENABLED && (
-          <Pressable
-            onPress={confirmLimparSetlist}
-            disabled={orderedItems.length === 0}
-            accessibilityRole='button'
-            accessibilityLabel='Limpar setlist inteiro'
-            hitSlop={8}
-            style={[
-              styles.iconOnlyButton,
-              {
-                backgroundColor: ColorUtils.withAlpha(palette.error, 0.1),
-                borderColor: ColorUtils.withAlpha(palette.error, 0.24),
-                opacity: orderedItems.length === 0 ? 0.4 : 1,
-              },
-            ]}
-          >
-            <MaterialCommunityIcons name='trash-can-outline' size={16} color={palette.error} />
-          </Pressable>
+          <>
+            <View style={[styles.listHeaderDivider, { backgroundColor: palette.borderCard }]} />
+            <Pressable
+              onPress={confirmLimparSetlist}
+              disabled={reorderMode || orderedItems.length === 0}
+              accessibilityRole='button'
+              accessibilityLabel='Limpar setlist inteiro'
+              hitSlop={8}
+              style={[
+                styles.iconOnlyButton,
+                {
+                  backgroundColor: ColorUtils.withAlpha(palette.error, 0.1),
+                  borderColor: ColorUtils.withAlpha(palette.error, 0.24),
+                  opacity: reorderMode || orderedItems.length === 0 ? 0.4 : 1,
+                },
+              ]}
+            >
+              <MaterialCommunityIcons name='trash-can-outline' size={16} color={palette.error} />
+            </Pressable>
+          </>
         )}
       </View>
     ) : null;
@@ -1228,6 +1231,11 @@ const styles = StyleSheet.create({
     borderWidth: 0.6,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  listHeaderDivider: {
+    width: StyleSheet.hairlineWidth,
+    height: 20,
+    marginHorizontal: 4,
   },
   reorderFooter: {
     flexDirection: 'row',
