@@ -20,26 +20,45 @@ type DashboardEscalasSectionProps = {
   data: ResponseDashboardDto;
 };
 
+type EscalaFuncao = { nome: string; isConfirmado: boolean };
+type ProximaEscalaAgregada = DashboardEscalaItemDto & { funcoes: EscalaFuncao[] };
+
 export default function DashboardEscalasSection({ data }: DashboardEscalasSectionProps) {
   const Pallete = usePallete();
-  const [selectedEscala, setSelectedEscala] = useState<DashboardEscalaItemDto | null>(null);
-  const proximasEscalasUnicas = useMemo(() => {
+  const [selectedEscala, setSelectedEscala] = useState<ProximaEscalaAgregada | null>(null);
+  const proximasEscalasUnicas = useMemo<ProximaEscalaAgregada[]>(() => {
     const escalas = data?.proximasEscalas ?? [];
-    const seen = new Set<string>();
+    const porEvento = new Map<string, ProximaEscalaAgregada>();
 
-    return escalas.filter((escala) => {
-      // Dedupe por evento/data/ministério — escalado em mais de uma função no mesmo
-      // evento não deve gerar cards repetidos em Início.
+    for (const escala of escalas) {
+      // Agrupa por evento/data/ministério — escalado em mais de uma função no mesmo
+      // evento vira um card só, com as funções acumuladas.
       const signature = [
         escala.eventoData,
         escala.eventoNome?.trim().toLowerCase(),
         escala.ministerioNome?.trim().toLowerCase(),
       ].join('|');
 
-      if (seen.has(signature)) return false;
-      seen.add(signature);
-      return true;
-    });
+      const existente = porEvento.get(signature);
+      if (existente) {
+        if (!existente.funcoes.some((f) => f.nome === escala.funcaoNome)) {
+          existente.funcoes.push({ nome: escala.funcaoNome, isConfirmado: escala.isConfirmado });
+        }
+      } else {
+        porEvento.set(signature, {
+          ...escala,
+          funcoes: [{ nome: escala.funcaoNome, isConfirmado: escala.isConfirmado }],
+        });
+      }
+    }
+
+    // Card agregado: funcaoNome = lista concatenada; status confirmado só se todas
+    // as funções estiverem confirmadas (pendente se qualquer uma pendente).
+    return Array.from(porEvento.values()).map((item) => ({
+      ...item,
+      funcaoNome: item.funcoes.map((f) => f.nome).join(', '),
+      isConfirmado: item.funcoes.every((f) => f.isConfirmado),
+    }));
   }, [data?.proximasEscalas]);
 
   return (
@@ -124,7 +143,7 @@ export default function DashboardEscalasSection({ data }: DashboardEscalasSectio
 
       {/* Mini calendário */}
       <DashboardSection title='Calendário'>
-        <DashboardMiniCalendar escalas={data?.proximasEscalas} />
+        <DashboardMiniCalendar escalas={proximasEscalasUnicas} />
       </DashboardSection>
 
       <FancyBottomSheetModal
@@ -170,12 +189,22 @@ export default function DashboardEscalasSection({ data }: DashboardEscalasSectio
               horarioEnsaio={selectedEscala.horarioEnsaio}
               ministerioNome={selectedEscala.ministerioNome}
             />
-            <FancyText size='small' type='semiBold'>
-              {`Função: ${selectedEscala.funcaoNome}`}
-            </FancyText>
-            <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive}>
-              {selectedEscala.isConfirmado ? 'Status: Confirmada' : 'Status: Pendente'}
-            </FancyText>
+            <View style={styles.funcoesList}>
+              {selectedEscala.funcoes.map((funcao) => (
+                <View key={funcao.nome} style={styles.funcaoRow}>
+                  <FancyText size='small' type='semiBold'>
+                    {funcao.nome}
+                  </FancyText>
+                  <FancyText
+                    size='extraSmall'
+                    type='medium'
+                    color={funcao.isConfirmado ? Pallete.confirm : Pallete.warning}
+                  >
+                    {funcao.isConfirmado ? 'Confirmada' : 'Pendente'}
+                  </FancyText>
+                </View>
+              ))}
+            </View>
           </View>
         ) : null}
       </FancyBottomSheetModal>
@@ -198,5 +227,14 @@ const styles = StyleSheet.create({
   },
   sheetContent: {
     gap: 14,
+  },
+  funcoesList: {
+    gap: 8,
+  },
+  funcaoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
   },
 });
