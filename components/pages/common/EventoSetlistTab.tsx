@@ -449,7 +449,9 @@ export default function EventoSetlistTab({
   };
 
   const handleDragEnd = (nextItems: ResponseEventoSetlistItemDto[]) => {
-    setOrderedItems(nextItems);
+    // Handoff entre a posição animada da lib e o novo `data` causa flicker de 1 frame
+    // se o state for atualizado sincronamente. https://github.com/computerjazz/react-native-draggable-flatlist/issues/123
+    requestAnimationFrame(() => setOrderedItems(nextItems));
   };
 
   const confirmReorder = async () => {
