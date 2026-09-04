@@ -107,7 +107,12 @@ function SetListItem({
           />
         ) : null}
         <View style={[styles.dot, { backgroundColor: palette.primary }]}>
-          <FancyText type='bold' size='extraSmall' color={palette.fonts.light} style={styles.dotText}>
+          <FancyText
+            type='bold'
+            size='extraSmall'
+            color={palette.fonts.light}
+            style={styles.dotText}
+          >
             {orderLabel}
           </FancyText>
         </View>
@@ -123,7 +128,10 @@ function SetListItem({
         accessibilityLabel={`Música ${order}, ${name}${musicMetaLabel ? `, ${musicMetaLabel}` : ''}. Toque para ${isEditable ? 'editar' : 'visualizar'}.`}
         style={[
           styles.card,
-          !isLast && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: palette.border },
+          !isLast && {
+            borderBottomWidth: StyleSheet.hairlineWidth,
+            borderBottomColor: palette.border,
+          },
           isActive && { backgroundColor: surfaceBackground, opacity: 0.84 },
         ]}
       >
@@ -167,7 +175,10 @@ function SetListItem({
               hitSlop={8}
               accessibilityRole='button'
               accessibilityLabel='Ouvir música'
-              style={[styles.actionButton, { backgroundColor: ColorUtils.withAlpha(listenColor, 0.08) }]}
+              style={[
+                styles.actionButton,
+                { backgroundColor: ColorUtils.withAlpha(listenColor, 0.08) },
+              ]}
             >
               <MaterialCommunityIcons name={listenIconName} size={18} color={listenColor} />
             </Pressable>
@@ -178,9 +189,16 @@ function SetListItem({
                 hitSlop={8}
                 accessibilityRole='button'
                 accessibilityLabel='Arrastar para reordenar'
-                style={[styles.actionButton, { backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.08) }]}
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.08) },
+                ]}
               >
-                <MaterialCommunityIcons name='drag-horizontal-variant' size={18} color={palette.fonts.inactive} />
+                <MaterialCommunityIcons
+                  name='drag-horizontal-variant'
+                  size={18}
+                  color={palette.fonts.inactive}
+                />
               </Pressable>
             ) : isEditable ? (
               <Pressable
@@ -188,9 +206,16 @@ function SetListItem({
                 hitSlop={8}
                 accessibilityRole='button'
                 accessibilityLabel='Opções da música'
-                style={[styles.actionButton, { backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.08) }]}
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.08) },
+                ]}
               >
-                <MaterialCommunityIcons name='dots-vertical' size={18} color={palette.fonts.inactive} />
+                <MaterialCommunityIcons
+                  name='dots-vertical'
+                  size={18}
+                  color={palette.fonts.inactive}
+                />
               </Pressable>
             ) : (
               <Pressable
@@ -200,7 +225,11 @@ function SetListItem({
                 accessibilityLabel='Ver detalhes da música'
                 style={[styles.actionButton, { backgroundColor: palette.primary }]}
               >
-                <MaterialCommunityIcons name='chevron-right' size={18} color={palette.fonts.light} />
+                <MaterialCommunityIcons
+                  name='chevron-right'
+                  size={18}
+                  color={palette.fonts.light}
+                />
               </Pressable>
             )}
           </View>
@@ -212,7 +241,9 @@ function SetListItem({
             hitSlop={4}
             style={styles.noteToggle}
             accessibilityRole='button'
-            accessibilityLabel={notaExpandida ? 'Ocultar orientação da música' : 'Ver orientação da música'}
+            accessibilityLabel={
+              notaExpandida ? 'Ocultar orientação da música' : 'Ver orientação da música'
+            }
           >
             <MaterialCommunityIcons
               name='note-text-outline'
@@ -231,7 +262,12 @@ function SetListItem({
         ) : null}
         {hasNota && notaExpandida ? (
           <View style={[styles.noteBox, { borderColor: palette.border }]}>
-            <FancyText type='medium' size='small' color={palette.fonts.dark} style={styles.noteText}>
+            <FancyText
+              type='medium'
+              size='small'
+              color={palette.fonts.dark}
+              style={styles.noteText}
+            >
               {trimmedNota}
             </FancyText>
           </View>
@@ -244,7 +280,7 @@ function SetListItem({
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 4,
   },
   railCol: {
     width: 30,
