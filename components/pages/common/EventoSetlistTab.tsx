@@ -453,10 +453,17 @@ export default function EventoSetlistTab({
       });
     } catch (error) {
       setOrderedItems(items);
+      const baseMessage = getApiErrorMessage(
+        error,
+        'Não foi possível salvar a nova ordem do setlist.',
+      );
+      // TODO(debug reorder): remover depois de confirmar a causa raiz do erro em produção.
+      const debugSuffix = ` [DEBUG occ=${dataOcorrenciaIso} enviados=${itemIds.length} ids=${itemIds.join(',')}]`;
       Toast.show({
         type: 'error',
         text1: 'Erro ao reordenar setlist',
-        text2: getApiErrorMessage(error, 'Não foi possível salvar a nova ordem do setlist.'),
+        text2: baseMessage + debugSuffix,
+        visibilityTime: 12000,
       });
     }
   };
