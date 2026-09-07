@@ -1,4 +1,5 @@
 import axios from 'axios';
+import * as Sentry from '@sentry/react-native';
 import { triggerUnauthorized } from '../../core/network/authBridge';
 import { getAuthToken } from '../../core/storage/authTokenStorage';
 
@@ -54,6 +55,28 @@ apiClient.interceptors.response.use(
         setTimeout(() => (isHandling401 = false), 500);
       }
     }
+
+    // Captura erros 5xx e falhas de rede/timeout no Sentry com contexto de endpoint
+    const shouldCapture = (status && status >= 500) || (!error.response && error.code);
+    if (shouldCapture) {
+      Sentry.captureException(error, {
+        tags: {
+          http_status: String(status ?? 'network'),
+          endpoint: requestUrl,
+          method: (error?.config?.method || '').toUpperCase(),
+        },
+        contexts: {
+          api: {
+            url: requestUrl,
+            baseURL: error?.config?.baseURL,
+            status,
+            code: error?.code,
+            message: error?.message,
+          },
+        },
+      });
+    }
+
     return Promise.reject(error);
   },
 );

@@ -7,6 +7,7 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "channel": "development",
       "ios": {
         "simulator": false
       },
@@ -16,6 +17,7 @@
     },
     "staging": {
       "distribution": "internal",
+      "channel": "staging",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://diakonia-backend-staging.onrender.com"
       },
@@ -34,6 +36,7 @@
     },
     "production": {
       "autoIncrement": true,
+      "channel": "production",
       "env": {
         "EAS_GRADLE_CACHE": "1",
         "EXPO_PUBLIC_API_URL": "https://diakonia-backend-virginia.onrender.com",
