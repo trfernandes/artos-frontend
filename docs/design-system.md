@@ -725,3 +725,50 @@ estados positivos/finalizados.
 | Tela                    | Data       | Findings                                                                                                                                            | Resultado          |
 | ------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
 | AgendaDetailsDadosTab   | 2026-08-26 | F1 (chip origem isolado em bloco próprio), F2 (Horário de ensaio com label duplicada), F3 (Template com dropdown inline em vez de trigger+sheet), F4 (ícones todos primary, sem categoria), F5 (header sem fundo próprio) | Todos aprovados e implementados — tsc limpo |
+
+---
+
+# Design System — Substituições (Pedido/Tentativa)
+
+> Escopo: card de acesso em Minhas Escalas, tela do voluntário, tela do líder, fluxo de solicitação,
+> dot no drawer. Wireframe: `trfernandes-atelier` Fluxo 2 (concept + explore Ramo A). Aprovado
+> 2026-09-07. Referência do modelo de dados: ADR-0009 (backend), plano técnico
+> `backend/docs/plans/2026-09-05-plano-tecnico-substituicao-pedido-tentativa.md`.
+
+## Regras de Design Confirmadas
+
+- **[confirmed 2026-09-07]** Card de acesso em Minhas Escalas evolui `PendenciasChip` pro peso
+  visual do `GerenciarEscalaLink` (ícone + título + chevron). Some por completo quando não há
+  pedido nenhum — nunca aparece card vazio.
+- **[confirmed 2026-09-07]** Card de acesso muda pra tom de destaque (`warning` tint) só quando há
+  pendência do próprio usuário («X pedidos esperando você»), com número. Sem pendência própria,
+  fica neutro mesmo havendo pedidos de terceiros em andamento.
+- **[confirmed 2026-09-07]** Aba Pendentes (voluntário e líder) sempre com 2 sub-grupos: o que
+  precisa de ação do usuário agora (destaque) primeiro, o que só está em andamento depois — nunca
+  lista única sem separação.
+- **[confirmed 2026-09-07]** Card de pedido/Tentativa expande a timeline **inline**, sem navegar
+  pra tela separada. Timeline mostra todas as tentativas (aceite, recusa, expiração) em ordem
+  cronológica, mesmo peso visual — recusa/expiração não é "falha" destacada em vermelho.
+- **[confirmed 2026-09-07]** Toda troca é sempre da **mesma função** (quem pede Vocal só recebe
+  candidato/convite de quem também toca Vocal). Todo card de pedido exibe a função como tag ao
+  lado do evento — nunca só o nome do evento, que sozinho lê como "vaga genérica do culto".
+- **[confirmed 2026-09-07]** Tela do líder é separada da do voluntário (sem ações condicionais numa
+  tela só). Lista Pendentes do líder agrupa pedidos de várias pessoas/funções simultaneamente,
+  mesmo componente de card colapsado da tela do voluntário, sub-agrupado por "Aguardando você"
+  (aprovar convite / sem candidato) vs. "Em andamento" (sem ação do líder agora).
+- **[confirmed 2026-09-07]** Fila de candidatos é somente leitura pro líder antes de aprovar — não
+  escolhe manualmente, só aprova ou veta o próximo da fila (ordenada por score de aceite).
+- **[confirmed 2026-09-07]** Estado "ninguém disponível" (fila esgotada) sempre oferece 3 saídas:
+  indicar alguém diretamente, rodar a busca de novo, ou remover a função da escala.
+- **[confirmed 2026-09-07]** Fluxo de solicitação: evento e função vêm fixos do item de escala
+  tocado (contexto, não campo editável) — evita pedido pra função errada. Campo **motivo é
+  obrigatório** (decisão 2026-09-07 — não opcional como no wireframe inicial).
+- **[confirmed 2026-09-07]** Dot de notificação no drawer (padrão `NotificationButton`, sem número)
+  fica à direita do rótulo do item de menu, não colado ao ícone. Some ao abrir a tela de
+  Substituições, não ao resolver a pendência.
+
+## Log de Telas Revisadas
+
+| Tela                                          | Data       | Findings                                                                                                                                                   | Resultado                                             |
+| ---------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| Substituições (acesso, voluntário, líder, drawer, solicitação) | 2026-09-07 | Wireframe com 4→5 seções, 3 rodadas de ajuste (histórico pro líder, badge no drawer, múltiplos pedidos/função, motivo obrigatório) | Protótipos aprovados — implementação é o próximo passo |

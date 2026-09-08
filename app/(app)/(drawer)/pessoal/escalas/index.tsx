@@ -18,22 +18,18 @@ import Toast from 'react-native-toast-message';
 import EventoDetails, {
   EventoDetailsProps,
 } from '../../../../../components/pages/pessoal/escalas/index/EventoDetails';
-import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
 import FancyListEmpty from '../../../../../components/list/FancyListEmpty';
 import EventoAccordeon from '../../../../../components/pages/pessoal/escalas/index/EventoAccordeon';
-import { useEscalaSubstituicoesCrud } from '../../../../../hooks/useEscalaSubstituicoesCrud';
-import SubstituicoesRequestsFrame from '../../../../../components/pages/pessoal/escalas/index/SubstituicoesRequestsFrame';
 import PendenciasChip from '../../../../../components/pages/pessoal/escalas/index/PendenciasChip';
 import FancySeparator from '../../../../../components/FancySeparator';
 import { EscalaItemStatusEnum } from '../../../../../domain/enums/Escala/escala-item-status.enum';
 import { EscalaStatusEnum } from '../../../../../domain/enums/Escala/escala-status.enum';
 import { ResponseEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.response';
-import { EscalaSubstituicaoStatusEnum } from '../../../../../domain/enums/Escala/escala-substituicao-status.enum';
 import { getApiErrorMessage } from '../../../../../domain/api/api-error';
 import { DateUtilsApi } from '../../../../../utils/date_utils';
-import { ResponseEscalaSubstituicaoDto } from '../../../../../domain/dtos/Escala/escala-substituicao.response';
 import { resolveEventoEnsaioInfo } from '../../../../../utils/evento-ensaio';
+import { useSubstituicaoPedidosCrud } from '../../../../../hooks/useSubstituicaoPedidosCrud';
 import { ResponseVoluntarioDto } from '../../../../../domain/dtos/Voluntario/voluntario.response';
 import { TutorialTarget } from '../../../../../components/tutorial/TutorialTarget';
 import { TutorialBanner } from '../../../../../components/tutorial/TutorialBanner';
@@ -127,48 +123,7 @@ export default function MinhasEscalasIndexPage() {
     visible: false,
   });
 
-  const substituicoesParams = useMemo<DynamicQuery>(
-    () => ({
-      where: {
-        conditions: [
-          {
-            path: 'substituto.voluntario.id',
-            operator: Operator.EQUALS,
-            value: { type: ValueType.LITERAL, value: user?.user?.id! },
-          },
-          {
-            path: 'status',
-            operator: Operator.EQUALS,
-            value: {
-              type: ValueType.LITERAL,
-              value: EscalaSubstituicaoStatusEnum.Pendente,
-            },
-          },
-        ],
-      },
-      relations: [
-        'escalaItem',
-        'escalaItem.evento',
-        'escalaItem.funcao',
-        'solicitante',
-        'solicitante.voluntario',
-        'substituto',
-        'substituto.voluntario',
-      ],
-    }),
-    [user?.user?.id],
-  );
-  const {
-    add: addSubstituicao,
-    data: solicitacoesDeSubstituicao,
-    update: updateSubstituicao,
-    isLoadingMutation: isLoadingSubsMut,
-    refetch: refetchSubstituicoes,
-  } = useEscalaSubstituicoesCrud({
-    autoFetch: true,
-    initialParams: substituicoesParams,
-    muteMessages: true,
-  });
+  const { criarPedido } = useSubstituicaoPedidosCrud();
 
   const initialDateFromParams = useMemo(
     () => resolveRouteDate(params.selectedDate ?? params.dataOcorrencia ?? params.dataEvento),
@@ -263,8 +218,7 @@ export default function MinhasEscalasIndexPage() {
   useFocusEffect(
     useCallback(() => {
       loadMonthEscalas();
-      refetchSubstituicoes();
-    }, [loadMonthEscalas, refetchSubstituicoes]),
+    }, [loadMonthEscalas]),
   );
 
   useEffect(() => {
@@ -446,24 +400,19 @@ export default function MinhasEscalasIndexPage() {
   );
 
   const handleConfirmSubstituicao = useCallback(
-    async (escalaItemId: string, solicitanteId: string, substitutoId: string, motivo: string) => {
+    async (escalaItemId: string, motivo: string) => {
       try {
         await updateEscala?.({
           id: escalaItemId,
           data: { status: EscalaItemStatusEnum.SubstituicaoSolicitada },
         });
 
-        await addSubstituicao({
-          escalaItemId: escalaItemId,
-          motivo,
-          solicitanteId: solicitanteId,
-          substitutoId: substitutoId,
-        });
+        await criarPedido({ escalaItemId, motivo });
 
         Toast.show({
           type: 'success',
           text1: 'Solicitação enviada!',
-          text2: 'O substituto foi notificado.',
+          text2: 'Estamos buscando alguém do ministério pra assumir a função.',
         });
         setSubstituicaoPageParams({ visible: false });
         await loadMonthEscalas();
@@ -476,76 +425,16 @@ export default function MinhasEscalasIndexPage() {
         });
       }
     },
-    [updateEscala, addSubstituicao, loadMonthEscalas, setSubstituicaoPageParams],
+    [updateEscala, criarPedido, loadMonthEscalas, setSubstituicaoPageParams, queryClient],
   );
 
-  const handleSolicitacaoRespondida = useCallback(
-    (substituicao: ResponseEscalaSubstituicaoDto, response: 'accept' | 'reject') => {
-      if (response === 'accept') {
-        FancyAlert.alert('Aceitar Substituição', 'Você confirma que irá substituir este serviço?', [
-          {
-            text: 'Não',
-            style: 'destructive',
-          },
-          {
-            text: 'Sim',
-            onPress: async () => {
-              await updateSubstituicao?.({
-                id: substituicao.id!,
-                data: {
-                  status: EscalaSubstituicaoStatusEnum.Aprovada,
-                  dataResposta: DateUtilsApi.dateTimeToApi(new Date()),
-                },
-              });
-
-              Toast.show({
-                type: 'success',
-                text1: 'Substituição aceita com sucesso.',
-              });
-              queryClient.invalidateQueries({ queryKey: ['evento-equipe'] });
-            },
-          },
-        ]);
-      } else if (response === 'reject') {
-        FancyAlert.alert(
-          'Recusar Substituição',
-          'Você confirma que irá recusar esta substituição?',
-          [
-            {
-              text: 'Não',
-              style: 'destructive',
-            },
-            {
-              text: 'Sim',
-              onPress: async () => {
-                await updateSubstituicao?.({
-                  id: substituicao.id!,
-                  data: {
-                    status: EscalaSubstituicaoStatusEnum.Recusada,
-                    dataResposta: DateUtilsApi.dateTimeToApi(new Date()),
-                  },
-                });
-                Toast.show({
-                  type: 'success',
-                  text1: 'Substituição recusada com sucesso.',
-                });
-                queryClient.invalidateQueries({ queryKey: ['evento-equipe'] });
-              },
-            },
-          ],
-        );
-      }
-    },
-    [updateSubstituicao],
-  );
-
-  if (isLoading || isLoadingEscalas || isLoadingSubsMut) return <FancyLoading />;
+  if (isLoading || isLoadingEscalas) return <FancyLoading />;
 
   return (
     <FancyPageView style={styles.container}>
       {tour.showBanner && <TutorialBanner onStart={tour.start} onDismiss={tour.skip} />}
 
-      <PendenciasChip count={solicitacoesDeSubstituicao?.length ?? 0} />
+      <PendenciasChip />
 
       <TutorialTarget
         id='escalas-calendario'
@@ -619,14 +508,7 @@ export default function MinhasEscalasIndexPage() {
             visible={!!substituicaoPageParams.visible}
             dadosEscala={substituicaoPageParams.dadosEscala}
             onClose={() => setSubstituicaoPageParams({ visible: false })}
-            onConfirm={(data) =>
-              handleConfirmSubstituicao(
-                data.escalaItemId,
-                data.solicitanteId,
-                data.substitutoId,
-                data.motivo,
-              )
-            }
+            onConfirm={(data) => handleConfirmSubstituicao(data.escalaItemId, data.motivo)}
           />
         )}
         {eventoPageParams.visible && (

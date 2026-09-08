@@ -76,6 +76,7 @@ export default function FancyDrawerItemHeader(
         >
           {props.title}
         </FancyText>
+        {props.showDot && <View style={[styles.dot, { backgroundColor: palette.warning }]} />}
         {props.subtitle && (
           <FancyText
             size={'small'}
@@ -123,6 +124,13 @@ function createStyles(_palette: ThemePalette) {
     },
     title: {
       flexShrink: 1,
+    },
+    dot: {
+      width: 7,
+      height: 7,
+      borderRadius: 4,
+      marginLeft: 5,
+      alignSelf: 'center',
     },
     subtitle: {
       paddingTop: 0,

@@ -16,6 +16,7 @@ import { getMenuForIgreja } from './MenuData';
 import { ThemePalette } from '../../constants/colors';
 import { usePallete } from '../../hooks/usePallete';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
+import { useSubstituicoesDrawerDot } from '../../hooks/useSubstituicoesDrawerDot';
 
 // Constants.nativeBuildVersion não é confiável com appVersionSource "remote"
 // (fica preso no valor estático do app.json) — Application.nativeBuildVersion
@@ -73,7 +74,19 @@ export default function FancyDrawer(props: FancyDrawerProps) {
     await signOut();
   }, [signOut]);
 
-  const menuSections = useMemo(() => getMenuForIgreja(igrejaAtiva), [igrejaAtiva]);
+  const rawMenuSections = useMemo(() => getMenuForIgreja(igrejaAtiva), [igrejaAtiva]);
+  const showSubstituicoesDot = useSubstituicoesDrawerDot();
+
+  const menuSections = useMemo(
+    () =>
+      rawMenuSections.map((section) => ({
+        ...section,
+        items: section.items.map((item) =>
+          item.title === 'Minhas Escalas' ? { ...item, showDot: showSubstituicoesDot } : item,
+        ),
+      })),
+    [rawMenuSections, showSubstituicoesDot],
+  );
   const appVersionLabel = useMemo(() => getAppVersionLabel(), []);
   const updateLabel = useMemo(() => getUpdateLabel(), []);
 

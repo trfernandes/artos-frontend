@@ -1,180 +1,161 @@
 import { useCallback, useMemo, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
 import FancySegmentedControl from '../../../../../components/fields/FancySegmentedControl';
 import FancyText from '../../../../../components/FancyText';
 import FancyLoading from '../../../../../components/FancyLoading';
 import FancyList from '../../../../../components/list/FancyList';
-import FancyListEmpty, { FancyListEmptyProps } from '../../../../../components/list/FancyListEmpty';
-import { useEscalaSubstituicoesCrud } from '../../../../../hooks/useEscalaSubstituicoesCrud';
+import { FancyListEmptyProps } from '../../../../../components/list/FancyListEmpty';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { usePallete } from '../../../../../hooks/usePallete';
-import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
-import { EscalaSubstituicaoStatusEnum } from '../../../../../domain/enums/Escala/escala-substituicao-status.enum';
-import SubstituicaoRecebidaCard from '../../../../../components/pages/pessoal/escalas/substituicoes/SubstituicaoRecebidaCard';
-import Toast from 'react-native-toast-message';
-import { getApiErrorMessage } from '../../../../../domain/api/api-error';
-import { ResponseEscalaSubstituicaoDto } from '../../../../../domain/dtos/Escala/escala-substituicao.response';
+import { useSubstituicaoPedidosCrud } from '../../../../../hooks/useSubstituicaoPedidosCrud';
+import { SubstituicaoPedidoStatusEnum } from '../../../../../domain/enums/SubstituicaoPedido/substituicao-pedido-status.enum';
+import { PedidoComPendencia } from '../../../../../domain/dtos/SubstituicaoPedido/substituicao-pedido.response';
+import PedidoCard from '../../../../../components/pages/pessoal/escalas/substituicoes/PedidoCard';
+import IndicarVoluntarioModal from '../../../../../components/pages/common/IndicarVoluntarioModal';
+import { FancyAlert } from '../../../../../components/modal/FancyAlert';
+import { markPedidoIdsAsSeen } from '../../../../../domain/utils/substituicoesSeenStorage';
 
 type TabValue = 'pendentes' | 'respondidas' | 'todas';
+
+type ListItem =
+  | { type: 'header'; key: string; label: string }
+  | { type: 'card'; key: string; data: PedidoComPendencia };
 
 const EMPTY_STATE_PROPS: Record<TabValue, FancyListEmptyProps> = {
   pendentes: {
     label: 'Tudo em dia!',
-    helperText: 'Você não tem solicitações pendentes no momento.',
+    helperText: 'Você não tem pedidos de substituição pendentes no momento.',
     icon: { library: 'MaterialCommunityIcons', name: 'check-circle-outline', size: 55 },
     muted: false,
   },
   respondidas: {
     label: 'Sem histórico ainda',
-    helperText: 'Solicitações respondidas aparecerão aqui.',
+    helperText: 'Pedidos já resolvidos ou cancelados aparecerão aqui.',
     icon: { library: 'MaterialCommunityIcons', name: 'clipboard-check-outline', size: 55 },
     muted: false,
   },
   todas: {
-    label: 'Sem solicitações',
-    helperText: 'Suas substituições enviadas e recebidas aparecerão aqui.',
+    label: 'Sem pedidos de substituição',
+    helperText: 'Toque em "Solicitar substituição" numa escala pra começar.',
     icon: { library: 'MaterialCommunityIcons', name: 'clipboard-list-outline', size: 55 },
     muted: false,
   },
 };
 
-const RELATIONS = [
-  'escalaItem',
-  'escalaItem.evento',
-  'escalaItem.funcao',
-  'solicitante',
-  'solicitante.voluntario',
-  'substituto',
-  'substituto.voluntario',
-];
-
 export default function SubstituicoesScreen() {
   const { user } = useAuth();
   const palette = usePallete();
   const [tab, setTab] = useState<TabValue>('pendentes');
-
-  const queryAsSubstituto = useMemo<DynamicQuery>(
-    () => ({
-      where: {
-        conditions: [
-          {
-            path: 'substituto.voluntario.id',
-            operator: Operator.EQUALS,
-            value: { type: ValueType.LITERAL, value: user?.user?.id ?? '' },
-          },
-        ],
-      },
-      relations: RELATIONS,
-    }),
-    [user?.user?.id],
-  );
-
-  const queryAsSolicitante = useMemo<DynamicQuery>(
-    () => ({
-      where: {
-        conditions: [
-          {
-            path: 'solicitante.voluntario.id',
-            operator: Operator.EQUALS,
-            value: { type: ValueType.LITERAL, value: user?.user?.id ?? '' },
-          },
-        ],
-      },
-      relations: RELATIONS,
-    }),
-    [user?.user?.id],
-  );
-
-  const {
-    data: dataAsSubstituto,
-    isLoading: isLoadingSubstituto,
-    update,
-    refetch: refetchSubstituto,
-    isRefetching: isRefetchingSubstituto,
-  } = useEscalaSubstituicoesCrud({ autoFetch: true, initialParams: queryAsSubstituto });
-
-  const {
-    data: dataAsSolicitante,
-    isLoading: isLoadingSolicitante,
-    refetch: refetchSolicitante,
-    isRefetching: isRefetchingSolicitante,
-  } = useEscalaSubstituicoesCrud({ autoFetch: true, initialParams: queryAsSolicitante });
-
-  const handleRefresh = useCallback(() => {
-    refetchSubstituto();
-    refetchSolicitante();
-  }, [refetchSubstituto, refetchSolicitante]);
-  const isRefreshing = isRefetchingSubstituto || isRefetchingSolicitante;
-
-  const allData = useMemo<ResponseEscalaSubstituicaoDto[]>(() => {
-    const seen = new Set<string>();
-    const merged = [...(dataAsSubstituto ?? []), ...(dataAsSolicitante ?? [])];
-    return merged.filter((item) => {
-      if (seen.has(item.id)) return false;
-      seen.add(item.id);
-      return true;
-    });
-  }, [dataAsSubstituto, dataAsSolicitante]);
-
-  const filtered = useMemo(() => {
-    if (tab === 'pendentes')
-      return allData.filter((s) => s.status === EscalaSubstituicaoStatusEnum.Pendente);
-    if (tab === 'respondidas')
-      return allData.filter((s) => s.status !== EscalaSubstituicaoStatusEnum.Pendente);
-    return allData;
-  }, [allData, tab]);
-
-  const pendentesCount = useMemo(
-    () => allData.filter((s) => s.status === EscalaSubstituicaoStatusEnum.Pendente).length,
-    [allData],
-  );
-
   const [actingId, setActingId] = useState<string | null>(null);
+  const [indicarPedido, setIndicarPedido] = useState<PedidoComPendencia | null>(null);
 
-  const handleRespond = async (
-    id: string,
-    status: EscalaSubstituicaoStatusEnum,
-    motivo?: string,
-  ) => {
-    setActingId(id);
+  const {
+    meusPedidos,
+    isLoadingMeusPedidos,
+    isRefetchingMeusPedidos,
+    refetchMeusPedidos,
+    aceitar,
+    recusar,
+    cancelar,
+    indicarVoluntario,
+    buscarNovamente,
+    removerFuncao,
+  } = useSubstituicaoPedidosCrud();
+
+  const userId = user?.user?.id;
+
+  const pendentes = useMemo(
+    () => meusPedidos.filter((p) => p.pedido.status === SubstituicaoPedidoStatusEnum.Aberto),
+    [meusPedidos],
+  );
+  const semCandidato = useMemo(
+    () => meusPedidos.filter((p) => p.pedido.status === SubstituicaoPedidoStatusEnum.SemCandidato),
+    [meusPedidos],
+  );
+  const respondidas = useMemo(
+    () =>
+      meusPedidos.filter(
+        (p) =>
+          p.pedido.status === SubstituicaoPedidoStatusEnum.Resolvido ||
+          p.pedido.status === SubstituicaoPedidoStatusEnum.Cancelado,
+      ),
+    [meusPedidos],
+  );
+
+  const listData = useMemo<ListItem[]>(() => {
+    if (tab === 'respondidas') {
+      return respondidas.map((p) => ({ type: 'card', key: p.pedido.id, data: p }));
+    }
+    if (tab === 'todas') {
+      return meusPedidos.map((p) => ({ type: 'card', key: p.pedido.id, data: p }));
+    }
+
+    const suaVez = [...pendentes, ...semCandidato].filter((p) => p.aguardandoAcaoDoUsuario);
+    const aguardando = [...pendentes, ...semCandidato].filter((p) => !p.aguardandoAcaoDoUsuario);
+
+    const items: ListItem[] = [];
+    if (suaVez.length > 0) {
+      items.push({ type: 'header', key: 'header-sua-vez', label: 'Sua vez' });
+      suaVez.forEach((p) => items.push({ type: 'card', key: p.pedido.id, data: p }));
+    }
+    if (aguardando.length > 0) {
+      items.push({ type: 'header', key: 'header-aguardando', label: 'Aguardando' });
+      aguardando.forEach((p) => items.push({ type: 'card', key: p.pedido.id, data: p }));
+    }
+    return items;
+  }, [tab, pendentes, semCandidato, respondidas, meusPedidos]);
+
+  const pendentesCount = pendentes.length + semCandidato.length;
+
+  useFocusEffect(
+    useCallback(() => {
+      const aguardandoIds = [...pendentes, ...semCandidato]
+        .filter((p) => p.aguardandoAcaoDoUsuario)
+        .map((p) => p.pedido.id);
+      markPedidoIdsAsSeen(aguardandoIds);
+    }, [pendentes, semCandidato]),
+  );
+
+  const runAction = useCallback(async (pedidoId: string, action: () => Promise<unknown>) => {
+    setActingId(pedidoId);
     try {
-      await update?.({
-        id,
-        data: {
-          status,
-          dataResposta: new Date().toISOString(),
-          ...(motivo ? { motivoCancelamento: motivo } : {}),
-        },
-      });
-      Toast.show({
-        type: 'success',
-        text1:
-          status === EscalaSubstituicaoStatusEnum.Aprovada
-            ? 'Substituição aprovada!'
-            : 'Substituição recusada.',
-        position: 'top',
-      });
-    } catch (err) {
-      Toast.show({
-        type: 'error',
-        text1: getApiErrorMessage(err) ?? 'Erro ao responder.',
-        position: 'top',
-      });
+      await action();
     } finally {
       setActingId(null);
     }
-  };
+  }, []);
 
-  const handleAceitar = (id: string) => handleRespond(id, EscalaSubstituicaoStatusEnum.Aprovada);
-  const handleRecusarComMotivo = (id: string, motivo: string) =>
-    handleRespond(id, EscalaSubstituicaoStatusEnum.Recusada, motivo);
-  const handleCancelarComMotivo = (id: string, motivo: string) =>
-    handleRespond(id, EscalaSubstituicaoStatusEnum.Cancelada, motivo);
+  const handleCancelar = useCallback(
+    (pedidoId: string) => {
+      FancyAlert.alert('Cancelar pedido', 'Isso cancela toda a busca por substituto. Confirma?', [
+        { text: 'Voltar', style: 'cancel' },
+        {
+          text: 'Cancelar pedido',
+          style: 'destructive',
+          onPress: () => runAction(pedidoId, () => cancelar({ pedidoId })),
+        },
+      ]);
+    },
+    [cancelar, runAction],
+  );
 
-  // Mutação (aprovar/recusar/cancelar) usa feedback local por card (isActing) — não trocar
-  // a lista inteira por spinner, que dava a sensação de "travado".
-  const isLoading = isLoadingSubstituto || isLoadingSolicitante;
+  const handleRemoverFuncao = useCallback(
+    (pedidoId: string) => {
+      FancyAlert.alert('Remover função da escala', 'A função ficará vaga nessa escala. Confirma?', [
+        { text: 'Voltar', style: 'cancel' },
+        {
+          text: 'Remover',
+          style: 'destructive',
+          onPress: () => runAction(pedidoId, () => removerFuncao(pedidoId)),
+        },
+      ]);
+    },
+    [removerFuncao, runAction],
+  );
+
+  const isLoading = isLoadingMeusPedidos;
 
   return (
     <FancyPageView style={styles.page}>
@@ -196,30 +177,56 @@ export default function SubstituicoesScreen() {
       ) : (
         <FancyList
           containerStyle={styles.listContainer}
-          data={filtered}
-          keyExtractor={(item) => item.id}
-          onRefresh={handleRefresh}
-          refreshing={isRefreshing}
-          renderItem={({ item: sub }) => {
-            const isSubstituto = sub.substituto?.voluntario?.id === user?.user?.id;
-            const isSolicitante = sub.solicitante?.voluntario?.id === user?.user?.id;
-            const isPendente = sub.status === EscalaSubstituicaoStatusEnum.Pendente;
-            const canAct = isSubstituto && isPendente;
+          data={listData}
+          keyExtractor={(item) => item.key}
+          onRefresh={refetchMeusPedidos}
+          refreshing={isRefetchingMeusPedidos}
+          renderItem={({ item }) => {
+            if (item.type === 'header') {
+              return (
+                <View style={styles.sectionHeader}>
+                  <FancyText size='small' type='bold' color={palette.fonts.inactive}>
+                    {item.label.toUpperCase()}
+                  </FancyText>
+                </View>
+              );
+            }
+            const p = item.data;
+            const isSolicitante = p.pedido.solicitante?.voluntario?.id === userId;
             return (
-              <SubstituicaoRecebidaCard
-                substituicao={sub}
-                canAct={canAct}
-                onAceitar={canAct ? handleAceitar : undefined}
-                onRecusar={canAct ? handleRecusarComMotivo : undefined}
-                isActing={actingId === sub.id}
+              <PedidoCard
+                item={p}
                 isSolicitante={isSolicitante}
-                onCancelar={isSolicitante ? handleCancelarComMotivo : undefined}
+                isSuaVez={p.aguardandoAcaoDoUsuario}
+                isActing={actingId === p.pedido.id}
+                onAceitar={() => runAction(p.pedido.id, () => aceitar({ pedidoId: p.pedido.id }))}
+                onRecusar={() => runAction(p.pedido.id, () => recusar(p.pedido.id))}
+                onCancelar={() => handleCancelar(p.pedido.id)}
+                onIndicarVoluntario={() => setIndicarPedido(p)}
+                onBuscarNovamente={() => runAction(p.pedido.id, () => buscarNovamente(p.pedido.id))}
+                onRemoverFuncao={() => handleRemoverFuncao(p.pedido.id)}
               />
             );
           }}
           listEmptyProps={EMPTY_STATE_PROPS[tab]}
         />
       )}
+
+      {indicarPedido ? (
+        <IndicarVoluntarioModal
+          visible={!!indicarPedido}
+          onClose={() => setIndicarPedido(null)}
+          pedido={indicarPedido.pedido}
+          onConfirm={(candidatoMinisterioVoluntarioId) =>
+            runAction(indicarPedido.pedido.id, () =>
+              indicarVoluntario({
+                pedidoId: indicarPedido.pedido.id,
+                candidatoMinisterioVoluntarioId,
+              }),
+            )
+          }
+        />
+      ) : null}
     </FancyPageView>
   );
 }
@@ -232,5 +239,9 @@ const styles = StyleSheet.create({
   listContainer: {
     flex: 1,
     marginTop: 16,
+  },
+  sectionHeader: {
+    paddingTop: 4,
+    paddingBottom: 2,
   },
 });
