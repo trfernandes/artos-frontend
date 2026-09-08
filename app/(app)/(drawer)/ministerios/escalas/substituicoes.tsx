@@ -62,10 +62,11 @@ export default function MinisterioSubstituicoesScreen() {
 
   // Escopo por ministério preservado no client-side pra manter a entrada do drawer
   // por ministério — `pendentesParaLider` traz todos os ministérios que o usuário lidera.
+  // Ministério da vaga vem da função (escalaItem.funcao), não do voluntário.
   const doMinisterio = useMemo(
     () =>
       pendentesParaLider.filter(
-        (p) => p.pedido.escalaItem?.voluntario?.ministerio?.id === ministerioId,
+        (p) => p.pedido.escalaItem?.funcao?.ministerioId === ministerioId,
       ),
     [pendentesParaLider, ministerioId],
   );
