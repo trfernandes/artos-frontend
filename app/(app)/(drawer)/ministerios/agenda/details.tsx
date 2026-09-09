@@ -272,5 +272,5 @@ export default function MinisterioAgendaDetailsPage() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingBottom: 10 },
-  setlistTabGutter: { flex: 1, paddingHorizontal: 15 },
+  setlistTabGutter: { flex: 1 },
 });

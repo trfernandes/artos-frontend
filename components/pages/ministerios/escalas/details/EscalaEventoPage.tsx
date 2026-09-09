@@ -955,7 +955,7 @@ function createStyles(palette: ThemePalette) {
       paddingBottom: 16,
     },
     equipeSection: {
-      paddingHorizontal: 16,
+      paddingHorizontal: 18,
       flex: 1,
     },
     equipeScrollContent: {
@@ -1024,7 +1024,6 @@ function createStyles(palette: ThemePalette) {
       alignItems: 'center',
       minWidth: 0,
       gap: 9,
-      paddingLeft: 6,
     },
     setlistOwnerAvatar: {
       borderRadius: 18,
