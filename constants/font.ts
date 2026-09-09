@@ -11,7 +11,16 @@ export const ITALIC_MEDIUM_FONT = 'MontserratMediumItalic';
 
 const BASE_WIDTH = 390; // iPhone 14/15 standard width as baseline
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const SCREEN_SCALE = SCREEN_WIDTH / BASE_WIDTH;
+// Piso de 0.95: em aparelho estreito (Android ~360px) a fonte encolhia
+// proporcionalmente (360/390 ≈ 0.92) e o app inteiro parecia miúdo. Trava a
+// perda em no máximo ~5% pra manter legibilidade em tela pequena.
+const SCREEN_SCALE = Math.max(SCREEN_WIDTH / BASE_WIDTH, 0.95);
+
+// Ajuste global de tipografia. O corpo do app (token MEDIUM) rodava a 13px num
+// aparelho de referência — abaixo do padrão de iOS (Body 17) e Material 3
+// (Body Large 16). 1.15 leva o corpo pra ~15 e sobe toda a escala na mesma
+// proporção, preservando as razões entre tokens. Afinar por aqui.
+const TYPO_SCALE = 1.15;
 
 // allowFontScaling nativo é ignorado no iOS quando Fabric/New Architecture está
 // ativo (bug conhecido do RN: github.com/facebook/react-native/issues/34990).
@@ -20,7 +29,7 @@ const SCREEN_SCALE = SCREEN_WIDTH / BASE_WIDTH;
 let CLAMPED_FONT_SCALE = Math.min(Math.max(PixelRatio.getFontScale(), 0.85), 1.3);
 
 export function scaledFont(size: number): number {
-  return Math.round(size * SCREEN_SCALE * CLAMPED_FONT_SCALE);
+  return Math.round(size * SCREEN_SCALE * CLAMPED_FONT_SCALE * TYPO_SCALE);
 }
 
 // Piso de 11px — nada abaixo disso é legível sem depender do usuário aumentar a fonte do sistema.
