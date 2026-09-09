@@ -1,4 +1,4 @@
-import { addMonths, endOfMonth, isAfter, isBefore, isSameMonth, startOfMonth } from 'date-fns';
+import { addMonths, endOfMonth, isAfter, isBefore, startOfMonth } from 'date-fns';
 import {
   ResponseDashboardDto,
   DashboardEventoProximoDto,
@@ -79,7 +79,24 @@ function toDateOrNull(value?: string): Date | null {
 }
 
 function isWithinMonth(date: Date, monthBase: Date): boolean {
-  return isSameMonth(date, monthBase);
+  // Compara o mês no fuso do app (APP_TZ), não no fuso local do dispositivo.
+  // Sem isso, uma escala em UTC perto da virada de mês (dia 1 de madrugada,
+  // dia 31 à noite) cai no mês errado dependendo de onde o celular está.
+  const target = getAppDateOnlyKey(date)?.slice(0, 7);
+  const base = getAppDateOnlyKey(monthBase)?.slice(0, 7);
+  return !!target && target === base;
+}
+
+// Só Pendente e Confirmado contam como "escala do mês". Ausente, Substituído e
+// SubstituiçãoSolicitada saem do total — não são mais compromisso ativo da pessoa,
+// e mantê-los inflava o contador de pendentes (total − confirmadas nunca fechava).
+const MONTH_TOTAL_STATUSES = new Set<EscalaItemStatusEnum>([
+  EscalaItemStatusEnum.Pendente,
+  EscalaItemStatusEnum.Confirmado,
+]);
+
+function countsForMonthTotal(item: ResponseEscalaItemDto): boolean {
+  return MONTH_TOTAL_STATUSES.has(item.status as EscalaItemStatusEnum);
 }
 
 function getMinisterioIdFromEscalaItem(item: ResponseEscalaItemDto): string | undefined {
@@ -393,7 +410,7 @@ export class DashboardRepository {
     const [
       rawUserEscalas,
       rawChurchEscalas,
-      ocorrencias,
+      rawOcorrencias,
       ministerios,
       solicitacoes,
       voluntariosIgreja,
@@ -407,8 +424,12 @@ export class DashboardRepository {
     ]);
     const userEscalas = rawUserEscalas.filter(isPublishedEscalaItem);
     const churchEscalas = rawChurchEscalas.filter(isPublishedEscalaItem);
+    // Ocorrência cancelada não conta em lugar nenhum do dashboard (total de
+    // eventos, cards de próximos eventos, stats por ministério).
+    const ocorrencias = rawOcorrencias.filter((item) => item.cancelada !== true);
 
     const monthEscalas = userEscalas.filter((item) => {
+      if (!countsForMonthTotal(item)) return false;
       const date = toDateOrNull(item.dataOcorrencia);
       return date ? isWithinMonth(date, now) : false;
     });
@@ -429,12 +450,15 @@ export class DashboardRepository {
     const escalasConfirmadas = monthEscalas.filter(
       (item) => item.status === EscalaItemStatusEnum.Confirmado,
     ).length;
+    const escalasPendentes = monthEscalas.filter(
+      (item) => item.status === EscalaItemStatusEnum.Pendente,
+    ).length;
 
     const base: ResponseDashboardDto = {
       proximasEscalas,
       totalEscalasMes: monthEscalas.length,
       escalasConfirmadas,
-      escalasPendentes: Math.max(monthEscalas.length - escalasConfirmadas, 0),
+      escalasPendentes,
     };
 
     if (!needsChurchData) return base;
