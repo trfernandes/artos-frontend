@@ -3,23 +3,38 @@ import { Image } from 'expo-image';
 import { ImageUtils } from '../../utils/image_utils';
 import { AppImages } from '../../assets/app_images';
 import DefaultIcons from '../FancyIcons';
+import FancyText from '../FancyText';
 import { usePallete } from '../../hooks/usePallete';
+import { ColorUtils } from '../../utils/color_utils';
 
 export default function FancyImage({
   source,
   disabled = false,
   size = 120,
   style,
+  fallbackName,
 }: {
   source?: ImageSourcePropType;
   disabled?: boolean;
   size?: number;
   style?: StyleProp<ImageStyle>;
+  /**
+   * Nome usado pra montar as iniciais exibidas no lugar do ícone genérico quando
+   * não há foto. Só surte efeito quando `source` é o placeholder de perfil vazio.
+   */
+  fallbackName?: string;
 }) {
   const palette = usePallete();
   const resolvedSource = ImageUtils.normalizeImageSource(source) ?? source;
   const isEmptyProfilePlaceholder =
     source === AppImages.emptyProfile || resolvedSource === AppImages.emptyProfile;
+
+  const initials = (() => {
+    if (!fallbackName) return '';
+    const parts = fallbackName.trim().split(/\s+/);
+    return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase();
+  })();
+  const showInitials = isEmptyProfilePlaceholder && initials.length > 0;
 
   // IMPORTANTE: NUNCA montar/desmontar nem trocar o tipo de elemento nativo no
   // mesmo slot. Alternar <Image> <-> ícone (ou montar/desmontar um deles) faz o
@@ -41,9 +56,11 @@ export default function FancyImage({
           ...(isEmptyProfilePlaceholder ? {} : palette.shadows[200]),
         },
         isEmptyProfilePlaceholder && {
-          backgroundColor: palette.backgroundColor2,
+          backgroundColor: showInitials
+            ? ColorUtils.withAlpha(palette.primary, 0.14)
+            : palette.backgroundColor2,
           borderWidth: Math.max(1, Math.round(size * 0.03)),
-          borderColor: palette.border,
+          borderColor: showInitials ? ColorUtils.withAlpha(palette.primary, 0.14) : palette.border,
         },
         style as any,
         disabled && isEmptyProfilePlaceholder && styles.placeholderDisabled,
@@ -68,9 +85,20 @@ export default function FancyImage({
         color={palette.icons.inactive}
         style={{
           position: 'absolute',
-          opacity: isEmptyProfilePlaceholder ? 1 : 0,
+          opacity: isEmptyProfilePlaceholder && !showInitials ? 1 : 0,
         }}
       />
+      <FancyText
+        type='bold'
+        color={palette.primary}
+        size={Math.max(12, Math.round(size * 0.36))}
+        style={{
+          position: 'absolute',
+          opacity: showInitials ? 1 : 0,
+        }}
+      >
+        {initials}
+      </FancyText>
     </View>
   );
 }

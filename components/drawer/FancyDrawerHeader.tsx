@@ -44,6 +44,7 @@ export default function FancyDrawerHeader() {
                 ? { uri: auth.user?.user?.fotoThumbUrl || auth.user?.user?.fotoUrl || '' }
                 : AppImages.emptyProfile
             }
+            fallbackName={nomeCompleto}
             style={styles.avatar as StyleProp<ImageStyle>}
           />
         </TouchableOpacity>

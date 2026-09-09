@@ -133,6 +133,7 @@ export default function DadosTab({
                     ? { uri: user?.user?.fotoThumbUrl || user?.user?.fotoUrl || '' }
                     : AppImages.emptyProfile
                 }
+                fallbackName={nome}
                 size={72}
                 style={styles.avatar}
               />
