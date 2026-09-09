@@ -5,6 +5,7 @@ import FancyText from '../../../../FancyText';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { ColorUtils } from '../../../../../utils/color_utils';
 import FancyButton from '../../../../buttons/FancyButton';
+import { MEDIUM_LARGE_SIZE_FONT } from '../../../../../constants/font';
 
 type Props = {
   visible: boolean;
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     minHeight: 90,
-    fontSize: 14,
+    fontSize: MEDIUM_LARGE_SIZE_FONT,
   },
   buttons: {
     flexDirection: 'row',

@@ -4,6 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import FancyText from '../../FancyText';
+import { EXTRA_SMALL_SIZE_FONT, MEDIUM_SIZE_FONT } from '../../../constants/font';
 import { usePallete } from '../../../hooks/usePallete';
 import { useAppTheme } from '../../../hooks/useAppTheme';
 import { ColorUtils } from '../../../utils/color_utils';
@@ -316,15 +317,15 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   dot: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1,
   },
   dotText: {
-    fontSize: 9,
+    fontSize: EXTRA_SMALL_SIZE_FONT,
     includeFontPadding: false,
   },
   line: {
@@ -350,16 +351,16 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   title: {
-    fontSize: 13,
-    lineHeight: 17,
+    fontSize: MEDIUM_SIZE_FONT,
+    lineHeight: Math.round(MEDIUM_SIZE_FONT * 1.3),
     includeFontPadding: false,
   },
   subtitle: {
     includeFontPadding: false,
   },
   metaText: {
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: EXTRA_SMALL_SIZE_FONT,
+    lineHeight: Math.round(EXTRA_SMALL_SIZE_FONT * 1.3),
     letterSpacing: 0.2,
     includeFontPadding: false,
     marginTop: 2,

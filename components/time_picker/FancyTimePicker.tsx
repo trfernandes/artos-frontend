@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import FancyText from '../FancyText';
 import { useEffect, useRef, useState } from 'react';
+import { MEDIUM_LARGE_SIZE_FONT, SEMI_LARGE_SIZE_FONT } from '../../constants/font';
 
 export type FancyTimePickerProps = {
   value?: { hour: number; minute: number };
@@ -16,7 +17,7 @@ export type FancyTimePickerProps = {
   containerStyle?: StyleProp<ViewStyle>;
 };
 
-const ITEM_HEIGHT = 30;
+const ITEM_HEIGHT = 40;
 const CONTAINER_HEIGHT = 120;
 const CENTER_OFFSET = (CONTAINER_HEIGHT - ITEM_HEIGHT) / 2;
 
@@ -149,10 +150,10 @@ const styles = StyleSheet.create({
   selected: {
     color: '#007AFF',
     fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: MEDIUM_LARGE_SIZE_FONT,
   },
   colon: {
-    fontSize: 16,
+    fontSize: SEMI_LARGE_SIZE_FONT,
     fontWeight: 'bold',
   },
 });

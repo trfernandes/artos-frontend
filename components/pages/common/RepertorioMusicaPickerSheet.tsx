@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { format, parseISO } from 'date-fns';
+import { EXTRA_SMALL_SIZE_FONT } from '../../../constants/font';
 
 import FancyBottomSheetModal from '../../modal/FancyBottomSheetModal';
 import FancySearchBar from '../../FancySearchBar';
@@ -360,15 +361,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 7,
-    height: 22,
+    height: 26,
     borderRadius: 999,
     borderWidth: 0.6,
     gap: 4,
     maxWidth: '100%',
   },
   badgeText: {
-    fontSize: 10,
-    lineHeight: 12,
+    fontSize: EXTRA_SMALL_SIZE_FONT,
+    lineHeight: Math.round(EXTRA_SMALL_SIZE_FONT * 1.3),
     letterSpacing: 0.3,
     includeFontPadding: false,
   },

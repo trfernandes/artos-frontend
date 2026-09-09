@@ -101,7 +101,7 @@ export default function EscalaParametrizacaoModal({
                     type='semiBold'
                     color={palette.fonts.dark}
                     numberOfLines={2}
-                    style={[styles.gridName, { opacity: 0.8, fontSize: 10, lineHeight: 12 }]}
+                    style={[styles.gridName, { opacity: 0.8 }]}
                   >
                     {getFirstAndLastName(p.name)}
                   </FancyText>

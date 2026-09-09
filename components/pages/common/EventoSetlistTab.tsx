@@ -38,6 +38,7 @@ import { ColorUtils } from '../../../utils/color_utils';
 import { SETLIST_CLEAR_ENABLED } from '../../../utils/featureFlags';
 import DateUtils from '../../../utils/date_utils';
 import { DefaultIconsNames } from '../../../constants/icons';
+import { EXTRA_SMALL_SIZE_FONT } from '../../../constants/font';
 
 const BUSY_MODAL_ID = 'evento-setlist-busy';
 
@@ -1279,14 +1280,14 @@ const styles = StyleSheet.create({
     gap: 1,
   },
   infoLabel: {
-    fontSize: 11,
-    lineHeight: 13,
+    fontSize: EXTRA_SMALL_SIZE_FONT,
+    lineHeight: Math.round(EXTRA_SMALL_SIZE_FONT * 1.3),
     letterSpacing: 0.16,
     includeFontPadding: false,
   },
   infoValue: {
-    fontSize: 11,
-    lineHeight: 13,
+    fontSize: EXTRA_SMALL_SIZE_FONT,
+    lineHeight: Math.round(EXTRA_SMALL_SIZE_FONT * 1.3),
     includeFontPadding: false,
   },
   infoTrailingCircle: {

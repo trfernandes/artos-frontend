@@ -1,6 +1,7 @@
 import { Platform, StyleSheet, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemePalette } from '../../constants/colors';
+import { SMALL_SIZE_FONT } from '../../constants/font';
 import { FancyCard } from '../../components/cards/Horizontal/FancyCard';
 import DefaultIcons from '../../components/FancyIcons';
 import { useState } from 'react';
@@ -284,7 +285,7 @@ function createStyles(Pallete: ThemePalette) {
       alignSelf: 'stretch',
     },
     footerLink: {
-      fontSize: 12,
+      fontSize: SMALL_SIZE_FONT,
     },
     footerLinkContainer: {
       minHeight: 44,

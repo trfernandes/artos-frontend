@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { View } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { LARGE_MEDIUM_SIZE_FONT } from '../../../../../constants/font';
 import FancyBottomSheetModal from '../../../../modal/FancyBottomSheetModal';
 import FancyButton from '../../../../buttons/FancyButton';
 import FancyChips from '../../../../FancyChips';
@@ -148,7 +149,7 @@ export default function EventoFormFuncaoModal({
                           paddingHorizontal: 14,
                           justifyContent: 'center',
                         }}
-                        labelProps={{ style: { fontSize: 15 } }}
+                        labelProps={{ style: { fontSize: LARGE_MEDIUM_SIZE_FONT } }}
                       />
                     );
                   })}

@@ -5,6 +5,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router';
 import FancyText from '../../components/FancyText';
 import FancyButton from '../../components/buttons/FancyButton';
+import { SEMI_LARGE_SIZE_FONT } from '../../constants/font';
 import DefaultIcons from '../../components/FancyIcons';
 import FancyLoading from '../../components/FancyLoading';
 import { ThemePalette } from '../../constants/colors';
@@ -543,7 +544,7 @@ function createStyles(Pallete: ThemePalette) {
       borderColor: Pallete.borderCard,
       borderRadius: 8,
       paddingHorizontal: 16,
-      fontSize: 16,
+      fontSize: SEMI_LARGE_SIZE_FONT,
     },
     modalActions: {
       flexDirection: 'row',

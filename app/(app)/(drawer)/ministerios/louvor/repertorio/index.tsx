@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { EXTRA_SMALL_SIZE_FONT } from '../../../../../../constants/font';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import FancyListPage from '../../../../../../components/pages/base/FancyBaseListPage';
 import FancyLoading from '../../../../../../components/FancyLoading';
@@ -489,7 +490,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 7,
-    height: 22,
+    height: 26,
     borderRadius: 999,
     borderWidth: 0.6,
     gap: 4,
@@ -499,8 +500,8 @@ const styles = StyleSheet.create({
     marginTop: -1,
   },
   musicBadgeText: {
-    fontSize: 10,
-    lineHeight: 12,
+    fontSize: EXTRA_SMALL_SIZE_FONT,
+    lineHeight: Math.round(EXTRA_SMALL_SIZE_FONT * 1.3),
     letterSpacing: 0.3,
     includeFontPadding: false,
   },

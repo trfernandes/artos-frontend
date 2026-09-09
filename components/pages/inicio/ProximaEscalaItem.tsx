@@ -3,6 +3,7 @@ import DefaultIcons from '../../FancyIcons';
 import FancyText from '../../FancyText';
 import FancyButton from '../../buttons/FancyButton';
 import DateUtils from '../../../utils/date_utils';
+import { EXTRA_SMALL_SIZE_FONT } from '../../../constants/font';
 
 export default function ProximaEscalaItem({
   data,
@@ -48,8 +49,8 @@ export default function ProximaEscalaItem({
       <FancyButton
         type='outlined'
         label='Abrir'
-        containerStyle={{ width: 48, height: 22, borderWidth: 1 }}
-        labelStyle={{ fontSize: 9, lineHeight: 12 }}
+        containerStyle={{ width: 56, height: 28, borderWidth: 1 }}
+        labelStyle={{ fontSize: EXTRA_SMALL_SIZE_FONT }}
       />
     </View>
   );
