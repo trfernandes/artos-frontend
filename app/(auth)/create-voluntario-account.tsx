@@ -27,6 +27,11 @@ import { IgrejaRepository } from '../../domain/services/IgrejaRepository';
 import { ResponseConvitePreviewDto } from '../../domain/dtos/Igreja/response-convite-preview.dto';
 import { extractInviteToken } from '../../utils/inviteToken';
 import DefaultIcons from '../../components/FancyIcons';
+import * as WebBrowser from 'expo-web-browser';
+import FancyCheckbox from '../../components/FancyCheckbox';
+import { usePoliticaPrivacidade } from '../../hooks/usePoliticaPrivacidade';
+
+const PRIVACY_POLICY_URL = 'https://diakonia.app.br/privacy-policy/';
 
 function getConviteErrorMessage(error: AxiosError | any): string {
   const data = error?.response?.data;
@@ -129,6 +134,9 @@ export default function CreateVoluntarioAccountPage() {
   });
 
   const senhaValue = useWatch({ control: createForm.control, name: 'senha' });
+  const { data: politicaData } = usePoliticaPrivacidade();
+  const [aceitouPolitica, setAceitouPolitica] = useState(false);
+  const [erroPolitica, setErroPolitica] = useState('');
 
   const handleCancelarConvite = async () => {
     await AsyncStorage.multiRemove(['pendingInvite', 'pendingInviteToken']);
@@ -183,6 +191,14 @@ export default function CreateVoluntarioAccountPage() {
       setCodeError('Valide o código da igreja antes de continuar.');
       return;
     }
+    if (!aceitouPolitica) {
+      setErroPolitica('É preciso aceitar a Política de Privacidade para continuar.');
+      return;
+    }
+    if (!politicaData?.versao) {
+      setErroPolitica('Não foi possível carregar a Política de Privacidade. Tente novamente.');
+      return;
+    }
     try {
       const payload: any = {
         nome: data.nome,
@@ -190,6 +206,7 @@ export default function CreateVoluntarioAccountPage() {
         senha: data.senha,
         // Token já validado (manual ou via link).
         codigoIgreja: conviteToken,
+        politicaVersaoAceita: politicaData?.versao,
       };
 
       let joinFailed = false;
@@ -407,6 +424,24 @@ export default function CreateVoluntarioAccountPage() {
                   />
                 </View>
 
+                <View style={styles.policyArea}>
+                  <FancyCheckbox
+                    label='Li e aceito a Política de Privacidade'
+                    value={aceitouPolitica}
+                    onChangeValue={(value) => {
+                      setAceitouPolitica(value);
+                      if (value) setErroPolitica('');
+                    }}
+                  />
+                  <FancyButton
+                    label='Ver política de privacidade'
+                    type='text'
+                    labelProps={{ size: 'extraSmall' }}
+                    onPress={() => WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)}
+                  />
+                  {!!erroPolitica && <FancyErrorText message={erroPolitica} />}
+                </View>
+
                 <View style={styles.actionsFooter}>
                   <FancyButton
                     label={isLoadingMutation ? 'Confirmando...' : 'Criar conta'}
@@ -518,6 +553,9 @@ const styles = StyleSheet.create({
   },
   passwordField: {
     gap: 8,
+  },
+  policyArea: {
+    gap: 2,
   },
   actionsFooter: {
     paddingTop: 12,

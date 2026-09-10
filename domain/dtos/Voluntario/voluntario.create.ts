@@ -12,4 +12,5 @@ export type CreateVoluntarioDto = {
   fotoUrl: string | null;
   fotoThumbUrl?: string | null;
   codigoIgreja?: string;
+  politicaVersaoAceita: string;
 };
