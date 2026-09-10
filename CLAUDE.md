@@ -268,6 +268,14 @@ Todo item do tracker passa por 7 etapas obrigatórias (ler → grillar → imple
 corrigir → review → atualizar Notion), sem caminho leve. Fonte única do processo é o repo
 `artos-backend`, em `docs/agents/processo-dev.md`.
 
+### Roteiro de teste ao terminar tarefa
+
+Ao terminar qualquer tarefa (feature, melhoria, correção), perguntar ao usuário via
+`AskUserQuestion` se ele quer um roteiro de testes manual pra rodar depois. Não criar isso sem
+perguntar antes — é opcional. Se ele disser que sim: usar a skill `/testing-strategy` pra gerar o
+roteiro e criar uma tarefa nova na base Notion "Tarefas Diakonia" (mesma base do issue tracker)
+com esse roteiro, pra ficar disponível pra rodar depois.
+
 ### Auto-auditoria pós-trabalho autônomo
 
 Depois de uma frente de trabalho longa sem supervisão (sessão em background, Agent/fork, ou
