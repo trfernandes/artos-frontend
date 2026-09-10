@@ -13,10 +13,14 @@ import EventoProximoCard from './EventoProximoCard';
 import MinisterioStatsCard from './MinisterioStatsCard';
 import SolicitacaoCard from './SolicitacaoCard';
 import { router } from 'expo-router';
+import ChecklistOnboardingCard from './ChecklistOnboardingCard';
+import { useChecklistOnboardingLider } from '../../../hooks/useChecklistOnboarding';
 
 export default function DashboardLider() {
   const { user, igrejaAtiva } = useAuth();
   const { data, isLoading, isError, error, hasServerData, refetch } = useDashboard();
+  const ministerioId = data?.ministerioStats?.ministerioId;
+  const { data: checklist } = useChecklistOnboardingLider(ministerioId);
 
   if (isLoading) return <FancyLoading />;
   if (isError && !hasServerData && error) {
@@ -32,6 +36,10 @@ export default function DashboardLider() {
       bottomFade={{ active: true }}
     >
       <DashboardGreeting nome={nomeLider} subtitulo={igrejaAtiva?.nome} />
+
+      {checklist && (
+        <ChecklistOnboardingCard papel='lider' checklist={checklist} ministerioId={ministerioId} />
+      )}
 
       {/* Saúde do Ministério */}
       {data?.ministerioStats && (

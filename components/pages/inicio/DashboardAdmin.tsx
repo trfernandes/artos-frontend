@@ -18,6 +18,8 @@ import { useIgrejaAssinatura } from '../../../hooks/useIgrejaAssinatura';
 import BillingStatusPanel from '../../billing/BillingStatusPanel';
 import BillingNoticeBanner from '../../billing/BillingNoticeBanner';
 import { BILLING_STATUS_VISIBLE } from '../../../domain/utils/billing-platform';
+import ChecklistOnboardingCard from './ChecklistOnboardingCard';
+import { useChecklistOnboardingAdmin } from '../../../hooks/useChecklistOnboarding';
 
 export default function DashboardAdmin() {
   const { user, igrejaAtiva } = useAuth();
@@ -25,6 +27,7 @@ export default function DashboardAdmin() {
   const { data: assinatura, abrirPortalDeAssinatura } = useIgrejaAssinatura({
     igrejaId: igrejaAtiva?.id,
   });
+  const { data: checklist } = useChecklistOnboardingAdmin();
 
   if (isLoading) return <FancyLoading />;
   if (isError && !hasServerData && error) {
@@ -44,6 +47,8 @@ export default function DashboardAdmin() {
       {BILLING_STATUS_VISIBLE && (
         <BillingNoticeBanner assinatura={assinatura} onPress={abrirPortalDeAssinatura} />
       )}
+
+      {checklist && <ChecklistOnboardingCard papel='admin' checklist={checklist} />}
 
       {/* KPIs da Igreja */}
       <DashboardSection title='Visão geral'>
