@@ -28,7 +28,8 @@ export const schema = z
       .number()
       .int('Informe um número inteiro')
       .min(1, 'O número de meses deve ser maior que 1')
-      .max(12, 'O número de meses deve ser menor igual a 12'),
+      .max(12, 'O número de meses deve ser menor igual a 12')
+      .optional(),
     recorrenciaSemanasMes: z.array(z.enum(RecorrenciaSemanaMesEnum)).optional(),
   })
   .superRefine((data, ctx) => {
@@ -152,7 +153,7 @@ export default function EventoRepeticaoInputCustom({ modalProps }: { modalProps?
                 LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                 recorrenciaForm.setValue('recorrencia', v as RecorrenciaEnum);
                 recorrenciaForm.resetField('recorrenciaACadaMeses', {
-                  defaultValue: v === RecorrenciaEnum.Mensal ? 1 : ('' as any),
+                  defaultValue: 1,
                 });
                 recorrenciaForm.resetField('recorrenciaSemanaDias', { defaultValue: [] });
                 recorrenciaForm.resetField('recorrenciaSemanasMes', { defaultValue: [] });

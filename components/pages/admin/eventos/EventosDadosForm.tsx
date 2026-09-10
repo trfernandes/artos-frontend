@@ -5,13 +5,10 @@ import { useFormContext } from 'react-hook-form';
 import ControlledTextInput from '../../../forms/ControlledTextInput';
 import ControlledTextArea from '../../../forms/ControlledTextArea';
 import ControlledColorPicker from '../../../forms/ControlledColorPicker';
-import ControlledDropDown from '../../../forms/ControlledDropDown';
 import EventoDatesInput from './EventoDatesInput';
 import { EventoFormData } from '../../../../domain/schemas/eventoSchema';
 import EventoRepeticaoInputCustom from './EventoRepeticaoInputCustom';
 import { useState } from 'react';
-import { EventoTipoEnumList } from '../../../../domain/enums/Evento/evento-tipo.enum';
-import { EVENTO_TIPO_ENABLED } from '../../../../utils/featureFlags';
 
 interface EventosDadosFormProps {
   onlyView?: boolean;
@@ -33,15 +30,6 @@ export default function EventosDadosForm({
     >
       <FancyFormScrollView contentContainerStyle={styles.fields} {...scrollViewProps}>
         <ControlledTextInput control={control} name='nome' label='Nome' disabled={onlyView} />
-        {EVENTO_TIPO_ENABLED && (
-          <ControlledDropDown
-            control={control}
-            name='tipo'
-            label='Tipo'
-            listItems={EventoTipoEnumList}
-            disabled={onlyView}
-          />
-        )}
         <EventoDatesInput disabled={onlyView} />
         <EventoRepeticaoInput
           disabled={onlyView}
