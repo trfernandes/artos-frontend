@@ -113,7 +113,7 @@ export default function MinisterioEscalasDetailsPage() {
   const [isAdicionarItemManualOpen, setIsAdicionarItemManualOpen] = useState(false);
   const [auditoria, setAuditoria] = useState<any>(null);
   const [isAuditoriaOpen, setIsAuditoriaOpen] = useState(false);
-  const [conflitos, setConflitos] = useState<any>(null);
+  const [conflitos, setConflitos] = useState<ResponseConflitosMultiMinisteriosDto | null>(null);
   const [isConflitosModalOpen, setIsConflitosModalOpen] = useState(false);
   const palette = usePallete();
   const prevStatusRef = useRef<EscalaStatusEnum | undefined>(undefined);
@@ -638,8 +638,9 @@ export default function MinisterioEscalasDetailsPage() {
         igrejaId: igrejaAtiva.id,
         acao: PublicarEscalaAcaoEnum.Publicar,
       });
-      if ((resultado as ResponseConflitosMultiMinisteriosDto)?.temConflito) {
-        setConflitos(resultado);
+      const conflitosResultado = resultado as ResponseConflitosMultiMinisteriosDto;
+      if (conflitosResultado?.temConflito) {
+        setConflitos(conflitosResultado);
         setIsConflitosModalOpen(true);
         return;
       }
@@ -684,8 +685,9 @@ export default function MinisterioEscalasDetailsPage() {
           igrejaId: igrejaAtiva.id,
           acao: PublicarEscalaAcaoEnum.Publicar,
         });
-        if ((resultado as ResponseConflitosMultiMinisteriosDto)?.temConflito) {
-          setConflitos(resultado);
+        const conflitosResultado = resultado as ResponseConflitosMultiMinisteriosDto;
+        if (conflitosResultado?.temConflito) {
+          setConflitos(conflitosResultado);
         } else {
           setConflitos(null);
           setIsConflitosModalOpen(false);
