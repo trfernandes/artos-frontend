@@ -4,14 +4,12 @@ import FancyBottomSheetModal from '../../../../modal/FancyBottomSheetModal';
 import FancyText from '../../../../FancyText';
 import FancyVerticalSpacer from '../../../../FancyVerticalSpacer';
 import FancyButton from '../../../../buttons/FancyButton';
-import { ConflitoBuscaDto, ResponseConflitosMultiMinisteriosDto } from '../../../../../hooks/useDetectarConflitosEscala';
-
 type Acao = 'trocar_voluntario' | 'deixar_vago' | 'perguntar_voluntario';
 
 type Props = {
   visible: boolean;
-  conflitos: ResponseConflitosMultiMinisteriosDto;
-  onResolverConflitoSimples: (acao: Acao, conflito: ConflitoBuscaDto) => Promise<void>;
+  conflitos: any;
+  onResolverConflitoSimples: (acao: Acao, conflito: any) => Promise<void>;
   onPublicarSemResolucao: () => Promise<void>;
   onClose: () => void;
 };
@@ -23,7 +21,7 @@ export default function ResolverConflitosModal({
   onPublicarSemResolucao,
   onClose,
 }: Props) {
-  const [selectedConflict, setSelectedConflict] = useState<ConflitoBuscaDto | null>(null);
+  const [selectedConflict, setSelectedConflict] = useState<any>(null);
   const [selectedAction, setSelectedAction] = useState<Acao | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 

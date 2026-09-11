@@ -38,6 +38,8 @@ import { canManageEventoOcorrencia } from '../../../../../utils/ministerio_permi
 import { combineOccurrenceWithEventTime } from '../../../../../utils/evento-datetime';
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import { UpdateEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.update';
+import { useDetectarConflitosEscala } from '../../../../../hooks/useDetectarConflitosEscala';
+import ResolverConflitosModal from '../../../../../components/pages/ministerios/escalas/details/ResolverConflitosModal';
 
 export type EscalaItemDataType = {
   dataOcorrencia: string;
@@ -106,10 +108,13 @@ export default function MinisterioEscalasDetailsPage() {
   const [isAdicionarItemManualOpen, setIsAdicionarItemManualOpen] = useState(false);
   const [auditoria, setAuditoria] = useState<any>(null);
   const [isAuditoriaOpen, setIsAuditoriaOpen] = useState(false);
+  const [conflitos, setConflitos] = useState<any>(null);
+  const [isConflitosModalOpen, setIsConflitosModalOpen] = useState(false);
   const palette = usePallete();
   const prevStatusRef = useRef<EscalaStatusEnum | undefined>(undefined);
   const { salvarResponsavelSetlist, isSavingResponsavelSetlist } = useEventoSetlistResponsavel();
   const { showLoading, hideLoading } = useLoading();
+  const { data: conflitosDetectados } = useDetectarConflitosEscala(escalaId);
   const canEditSetlistOwner =
     canManageEventoOcorrencia(igrejaAtiva, ministerioId) && viewMode !== 'view';
 
@@ -631,6 +636,17 @@ export default function MinisterioEscalasDetailsPage() {
         onPress: async () => {
           try {
             setIsPublishing(true);
+<<<<<<< Updated upstream
+=======
+            // Se há conflitos detectados, mostra modal
+            if (conflitosDetectados?.temConflito) {
+              setConflitos(conflitosDetectados);
+              setIsConflitosModalOpen(true);
+              setIsPublishing(false);
+              return;
+            }
+            // Se não há conflitos, publica normalmente
+>>>>>>> Stashed changes
             await updateEscala?.({
               id: escalaId,
               data: {
