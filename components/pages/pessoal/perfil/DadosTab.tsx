@@ -100,9 +100,11 @@ function ProfileActionItem({
 export default function DadosTab({
   onChangePasswordButtonPress,
   onDeleteAccountButtonPress,
+  onFeedbackButtonPress,
 }: {
   onChangePasswordButtonPress?: () => void;
   onDeleteAccountButtonPress?: () => void;
+  onFeedbackButtonPress?: () => void;
 }) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
@@ -229,10 +231,7 @@ export default function DadosTab({
               icon={{ library: 'FontAwesome6', name: 'comment-dots', size: 13 }}
               label='Dar feedback'
               description='Compartilhe sugestões e reclamações'
-              onPress={() => {
-                // TODO: Implementar abertura do FeedbackSheet modal
-                // Por enquanto, apenas placeholder
-              }}
+              onPress={onFeedbackButtonPress}
             />
           </View>
         </View>
