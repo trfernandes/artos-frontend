@@ -38,8 +38,6 @@ import { canManageEventoOcorrencia } from '../../../../../utils/ministerio_permi
 import { combineOccurrenceWithEventTime } from '../../../../../utils/evento-datetime';
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import { UpdateEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.update';
-import { useDetectarConflitosEscala, ResponseConflitosMultiMinisteriosDto } from '../../../../../hooks/useDetectarConflitosEscala';
-import ResolverConflitosModal from '../../../../../components/pages/ministerios/escalas/details/ResolverConflitosModal';
 
 export type EscalaItemDataType = {
   dataOcorrencia: string;
@@ -108,13 +106,10 @@ export default function MinisterioEscalasDetailsPage() {
   const [isAdicionarItemManualOpen, setIsAdicionarItemManualOpen] = useState(false);
   const [auditoria, setAuditoria] = useState<any>(null);
   const [isAuditoriaOpen, setIsAuditoriaOpen] = useState(false);
-  const [conflitos, setConflitos] = useState<ResponseConflitosMultiMinisteriosDto | null>(null);
-  const [isConflitosModalOpen, setIsConflitosModalOpen] = useState(false);
   const palette = usePallete();
   const prevStatusRef = useRef<EscalaStatusEnum | undefined>(undefined);
   const { salvarResponsavelSetlist, isSavingResponsavelSetlist } = useEventoSetlistResponsavel();
   const { showLoading, hideLoading } = useLoading();
-  const { detectar } = useDetectarConflitosEscala();
   const canEditSetlistOwner =
     canManageEventoOcorrencia(igrejaAtiva, ministerioId) && viewMode !== 'view';
 
@@ -636,15 +631,6 @@ export default function MinisterioEscalasDetailsPage() {
         onPress: async () => {
           try {
             setIsPublishing(true);
-            // Detectar conflitos primeiro
-            const conflitosDetectados = await detectar(escalaId);
-            if (conflitosDetectados.temConflito) {
-              setConflitos(conflitosDetectados);
-              setIsConflitosModalOpen(true);
-              setIsPublishing(false);
-              return;
-            }
-            // Se não há conflitos, publica normalmente
             await updateEscala?.({
               id: escalaId,
               data: {
@@ -663,7 +649,7 @@ export default function MinisterioEscalasDetailsPage() {
         },
       },
     ]);
-  }, [escalaId, updateEscala, refetchEscala, detectar]);
+  }, [escalaId, updateEscala, refetchEscala]);
 
   const handleGeneratePress = useCallback(() => {
     const escala = escalaData?.[0];
@@ -918,38 +904,6 @@ export default function MinisterioEscalasDetailsPage() {
           dataTermino={DateUtilsApi.dateOnlyFromApi(escalaData[0].dataTermino)}
           itensAtuais={escalaData[0].itens}
           onConfirm={handleAdicionarItemManual}
-        />
-      )}
-
-      {conflitos && (
-        <ResolverConflitosModal
-          visible={isConflitosModalOpen}
-          conflitos={conflitos}
-          onResolverConflitoSimples={async (acao, conflito) => {
-            // TODO: Chamar endpoint de resolver conflito
-            // Por enquanto, apenas fechar o modal
-            setIsConflitosModalOpen(false);
-            Toast.show({
-              type: 'info',
-              text1: `Ação ${acao} selecionada para ${conflito.voluntarioNome}`,
-            });
-          }}
-          onPublicarSemResolucao={async () => {
-            try {
-              setIsPublishing(true);
-              await updateEscala?.({
-                id: escalaId,
-                data: {
-                  status: EscalaStatusEnum.Publicada,
-                },
-              });
-              await refetchEscala();
-              setIsConflitosModalOpen(false);
-            } finally {
-              setIsPublishing(false);
-            }
-          }}
-          onClose={() => setIsConflitosModalOpen(false)}
         />
       )}
     </View>
