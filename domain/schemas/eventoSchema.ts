@@ -37,6 +37,8 @@ export const eventoSchema = z
         minute: z.number().int().min(0).max(59),
       })
       .optional(),
+    restringirMinisterios: z.boolean().optional(),
+    ministeriosIds: z.array(z.string().uuid()).optional(),
   })
   .superRefine((data, ctx) => {
     // Data término > data início
