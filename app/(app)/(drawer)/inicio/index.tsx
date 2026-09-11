@@ -15,8 +15,9 @@ export default function InicioIndex() {
   const { igrejaAtiva } = useAuth();
   const queryClient = useQueryClient();
   const role = igrejaAtiva?.role;
-  const { showPrompt, selectedNota, onSelectNota, onSubmitFeedback, onDismiss } =
-    useFeedbackPrompt(igrejaAtiva?.id || null);
+  const { showPrompt, selectedNota, onSelectNota, onSubmitFeedback, onDismiss } = useFeedbackPrompt(
+    igrejaAtiva?.id || null,
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -39,11 +40,7 @@ export default function InicioIndex() {
   return (
     <FancyPageView>
       {showPrompt && (
-        <FeedbackPrompt
-          onSelect={onSelectNota}
-          onDismiss={onDismiss}
-          isLoading={false}
-        />
+        <FeedbackPrompt onSelect={onSelectNota} onDismiss={onDismiss} isLoading={false} />
       )}
       {renderDashboard()}
       <FeedbackSheet

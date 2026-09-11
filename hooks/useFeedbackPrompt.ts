@@ -57,11 +57,12 @@ export function useFeedbackPrompt(igrejaId: string | null, userCreatedAtDaysAgo:
       const state: FeedbackPromptState = {
         igrejaId: igrejaId!,
         lastShownAt: Date.now(),
-        dismissedCount: (
-          (JSON.parse(
-            (await AsyncStorage.getItem(FEEDBACK_PROMPT_KEY)) || '{}',
-          ) as Partial<FeedbackPromptState>).dismissedCount || 0
-        ) + 1,
+        dismissedCount:
+          ((
+            JSON.parse(
+              (await AsyncStorage.getItem(FEEDBACK_PROMPT_KEY)) || '{}',
+            ) as Partial<FeedbackPromptState>
+          ).dismissedCount || 0) + 1,
       };
       await AsyncStorage.setItem(FEEDBACK_PROMPT_KEY, JSON.stringify(state));
       setShowPrompt(false);

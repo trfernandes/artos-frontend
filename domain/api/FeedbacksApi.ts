@@ -21,15 +21,10 @@ class FeedbacksApiClass extends BaseApi<FeedbackResponse, CreateFeedbackDto, any
     super('feedbacks');
   }
 
-  async createFeedback(
-    dto: CreateFeedbackDto,
-    igrejaId: string,
-  ): Promise<FeedbackResponse> {
-    const response = await apiClient.post<{ data: FeedbackResponse }>(
-      '/feedbacks',
-      dto,
-      { params: { igrejaId } },
-    );
+  async createFeedback(dto: CreateFeedbackDto, igrejaId: string): Promise<FeedbackResponse> {
+    const response = await apiClient.post<{ data: FeedbackResponse }>('/feedbacks', dto, {
+      params: { igrejaId },
+    });
     return response.data.data;
   }
 

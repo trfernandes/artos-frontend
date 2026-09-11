@@ -40,12 +40,7 @@ export default function FeedbackPrompt({
       ]}
     >
       <View style={styles.content}>
-        <FancyText
-          type='bold'
-          size='medium'
-          color={palette.fonts.dark}
-          style={styles.title}
-        >
+        <FancyText type='bold' size='medium' color={palette.fonts.dark} style={styles.title}>
           Como o Diakonia está sendo pra você?
         </FancyText>
 
