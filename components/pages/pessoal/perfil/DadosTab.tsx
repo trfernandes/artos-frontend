@@ -222,6 +222,28 @@ export default function DadosTab({
             color={palette.fonts.inactive}
             style={styles.sectionTitle}
           >
+            Feedback
+          </FancyText>
+          <View style={styles.actionStack}>
+            <ProfileActionItem
+              icon={{ library: 'FontAwesome6', name: 'comment-dots', size: 13 }}
+              label='Dar feedback'
+              description='Compartilhe sugestões e reclamações'
+              onPress={() => {
+                // TODO: Implementar abertura do FeedbackSheet modal
+                // Por enquanto, apenas placeholder
+              }}
+            />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <FancyText
+            size='small'
+            type='bold'
+            color={palette.fonts.inactive}
+            style={styles.sectionTitle}
+          >
             Legal
           </FancyText>
           <View style={styles.actionStack}>
