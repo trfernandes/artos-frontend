@@ -49,7 +49,7 @@ export default function ResolverConflitosModal({
     }
   };
 
-  if (!conflitos.temConflito) {
+  if (!conflitos?.temConflito) {
     return null;
   }
 
