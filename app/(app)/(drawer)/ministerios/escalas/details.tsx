@@ -113,7 +113,6 @@ export default function MinisterioEscalasDetailsPage() {
   const prevStatusRef = useRef<EscalaStatusEnum | undefined>(undefined);
   const { salvarResponsavelSetlist, isSavingResponsavelSetlist } = useEventoSetlistResponsavel();
   const { showLoading, hideLoading } = useLoading();
-  const { data: conflitosDetectados } = useDetectarConflitosEscala(escalaId);
   const canEditSetlistOwner =
     canManageEventoOcorrencia(igrejaAtiva, ministerioId) && viewMode !== 'view';
 
@@ -635,14 +634,6 @@ export default function MinisterioEscalasDetailsPage() {
         onPress: async () => {
           try {
             setIsPublishing(true);
-            // Se há conflitos detectados, mostra modal
-            if (conflitosDetectados?.temConflito) {
-              setConflitos(conflitosDetectados);
-              setIsConflitosModalOpen(true);
-              setIsPublishing(false);
-              return;
-            }
-            // Se não há conflitos, publica normalmente
             await updateEscala?.({
               id: escalaId,
               data: {
