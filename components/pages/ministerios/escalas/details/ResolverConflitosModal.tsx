@@ -8,7 +8,10 @@ import FancySearchSelect from '../../../../fields/FancySearchSelect';
 import FancyChips from '../../../../FancyChips';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { useVoluntariosDoMinisterioCrud } from '../../../../../hooks/useVoluntariosDoMinisterioCrud';
-import { ConflitoMultiMinisteriosType } from '../../../../../domain/dtos/Escala/escala-conflito.dto';
+import {
+  ConflitoMultiMinisteriosType,
+  ResponseConflitosMultiMinisteriosDto,
+} from '../../../../../domain/dtos/Escala/escala-conflito.dto';
 
 type Acao = 'trocar_voluntario' | 'deixar_vago' | 'perguntar_voluntario';
 
@@ -19,7 +22,7 @@ type ResolverExtra = {
 
 type Props = {
   visible: boolean;
-  conflitos: { temConflito: boolean; conflitos: ConflitoMultiMinisteriosType[] } | any;
+  conflitos: ResponseConflitosMultiMinisteriosDto | null;
   ministerioId: string;
   onResolverConflitoSimples: (
     acao: Acao,
@@ -54,11 +57,14 @@ export default function ResolverConflitosModal({
   );
 
   const outrosMinisterios = conflito?.outrosMinisterios ?? [];
+  const precisaEscolherMinisterio = outrosMinisterios.length > 1 && !selectedMinisterioBId;
 
   useEffect(() => {
     setExpandedAction(null);
     setSelectedSubstitutoId(null);
-    setSelectedMinisterioBId(outrosMinisterios.length === 1 ? outrosMinisterios[0].ministerioId : null);
+    setSelectedMinisterioBId(
+      outrosMinisterios.length === 1 ? outrosMinisterios[0].ministerioId : null,
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conflito?.escalaItemId]);
 
@@ -105,7 +111,7 @@ export default function ResolverConflitosModal({
   return (
     <FancyBottomSheetModal
       visible={visible}
-      title="Conflito de Escalas"
+      title='Conflito de Escalas'
       onClose={onClose}
       closeDisabled={isLoading}
     >
@@ -121,7 +127,7 @@ export default function ResolverConflitosModal({
         <FancyVerticalSpacer height={12} />
 
         <FancyButton
-          label="Trocar por outro voluntário"
+          label='Trocar por outro voluntário'
           type={expandedAction === 'trocar_voluntario' ? 'contained' : 'outlined'}
           onPress={() => toggleExpanded('trocar_voluntario')}
           disabled={isLoading}
@@ -130,8 +136,8 @@ export default function ResolverConflitosModal({
         {expandedAction === 'trocar_voluntario' && (
           <View style={styles.panel}>
             <FancySearchSelect
-              label="Substituto"
-              placeholder="Buscar voluntário..."
+              label='Substituto'
+              placeholder='Buscar voluntário...'
               value={selectedSubstitutoId}
               onChange={(value) =>
                 setSelectedSubstitutoId(Array.isArray(value) ? (value[0] ?? null) : value)
@@ -142,8 +148,8 @@ export default function ResolverConflitosModal({
             />
             <FancyVerticalSpacer height={8} />
             <FancyButton
-              label="Confirmar troca"
-              type="contained"
+              label='Confirmar troca'
+              type='contained'
               onPress={handleConfirmarTroca}
               disabled={isLoading || !selectedSubstitutoId}
               isLoading={isLoading}
@@ -154,8 +160,8 @@ export default function ResolverConflitosModal({
         <FancyVerticalSpacer height={8} />
 
         <FancyButton
-          label="Deixar função vazia"
-          type="outlined"
+          label='Deixar função vazia'
+          type='outlined'
           onPress={handleDeixarVago}
           disabled={isLoading}
         />
@@ -163,7 +169,7 @@ export default function ResolverConflitosModal({
         <FancyVerticalSpacer height={8} />
 
         <FancyButton
-          label="Perguntar ao voluntário"
+          label='Perguntar ao voluntário'
           type={expandedAction === 'perguntar_voluntario' ? 'contained' : 'outlined'}
           onPress={() => toggleExpanded('perguntar_voluntario')}
           disabled={isLoading}
@@ -171,7 +177,7 @@ export default function ResolverConflitosModal({
 
         {expandedAction === 'perguntar_voluntario' && (
           <View style={styles.panel}>
-            <FancyText size="extraSmall" color={palette.fonts.inactive}>
+            <FancyText size='extraSmall' color={palette.fonts.inactive}>
               Conflito com:
             </FancyText>
             <FancyVerticalSpacer height={6} />
@@ -188,10 +194,10 @@ export default function ResolverConflitosModal({
             </View>
             <FancyVerticalSpacer height={8} />
             <FancyButton
-              label="Confirmar pergunta"
-              type="contained"
+              label='Confirmar pergunta'
+              type='contained'
               onPress={handleConfirmarPergunta}
-              disabled={isLoading}
+              disabled={isLoading || precisaEscolherMinisterio}
               isLoading={isLoading}
             />
           </View>

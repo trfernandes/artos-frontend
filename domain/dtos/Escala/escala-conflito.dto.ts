@@ -32,7 +32,8 @@ export type ResponseConflitosMultiMinisteriosDto = {
 
 // Resposta de /publicar: quando há conflito, devolve o pacote de conflitos (não publica);
 // quando não há conflito, publica e devolve a escala atualizada.
-export type PublicarEscalaResponse = ResponseConflitosMultiMinisteriosDto | { id: string; [key: string]: any };
+export type PublicarEscalaResponse =
+  ResponseConflitosMultiMinisteriosDto | { id: string; [key: string]: any };
 
 export enum ResolverConflitoAcaoEnum {
   TrocarVoluntario = 'trocar_voluntario',

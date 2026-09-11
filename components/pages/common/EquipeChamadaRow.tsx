@@ -75,7 +75,11 @@ function PessoaBadge({ nome, fotoUrl, isCurrentUser, funcoes, conflito }: Pessoa
     return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase();
   }, [nome]);
 
-  const borderColor = conflito ? palette.error : (isCurrentUser ? palette.primary : ColorUtils.withAlpha(palette.borderCard ?? palette.border, 0.45));
+  const borderColor = conflito
+    ? palette.error
+    : isCurrentUser
+      ? palette.primary
+      : ColorUtils.withAlpha(palette.borderCard ?? palette.border, 0.45);
 
   return (
     <View

@@ -109,7 +109,10 @@ class EscalasApiClass extends BaseApi<
     dto: ResolverConflitoEscalaDto,
   ): Promise<ResponseEscalaDto> {
     try {
-      const response = await apiClient.post(`/${this.resourceName}/${escalaId}/resolver-conflito`, dto);
+      const response = await apiClient.post(
+        `/${this.resourceName}/${escalaId}/resolver-conflito`,
+        dto,
+      );
       return response.data.data;
     } catch (error) {
       console.log(`Erro ao resolver conflito de ${this.resourceName}:`, error);
