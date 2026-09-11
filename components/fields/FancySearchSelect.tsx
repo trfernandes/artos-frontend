@@ -584,7 +584,9 @@ function FancySearchSelectInner<ValueItem>(
         disabled={innerDisabled}
       >
         {(selectedItem || selectedCount > 0) && leadingAvatarText ? (
-          <View style={[styles.leadingAvatar, { backgroundColor: leadingColor ?? palette.primary }]}>
+          <View
+            style={[styles.leadingAvatar, { backgroundColor: leadingColor ?? palette.primary }]}
+          >
             <FancyText type='bold' size='extraSmall' color={palette.fonts.light}>
               {leadingAvatarText}
             </FancyText>

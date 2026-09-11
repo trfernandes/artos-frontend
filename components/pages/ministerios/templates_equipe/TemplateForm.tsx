@@ -44,8 +44,9 @@ export default function TemplateForm({
   const { igrejaAtiva } = useAuth();
   const isMinisterioLouvor = useMemo(
     () =>
-      Number(igrejaAtiva?.ministerios?.find((ministerio) => ministerio.id === ministerioId)?.tipo) ===
-      Number(MinisterioTipoEnum.Louvor),
+      Number(
+        igrejaAtiva?.ministerios?.find((ministerio) => ministerio.id === ministerioId)?.tipo,
+      ) === Number(MinisterioTipoEnum.Louvor),
     [igrejaAtiva?.ministerios, ministerioId],
   );
 

@@ -83,7 +83,9 @@ type FreeAssignment = {
 
 function getPersonColor(palette: ReturnType<typeof usePallete>, seed: string): string {
   const options = palette.team;
-  return options[seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % options.length];
+  return options[
+    seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % options.length
+  ];
 }
 
 function VoluntarioPillPicker({
@@ -118,7 +120,8 @@ function VoluntarioPillPicker({
   }, [nome]);
 
   const searchListItems = useMemo<DropDownItemProps<string>[]>(
-    () => listItems.map((item) => ({ title: item.title, value: item.value, subtitle: item.subtitle })),
+    () =>
+      listItems.map((item) => ({ title: item.title, value: item.value, subtitle: item.subtitle })),
     [listItems],
   );
 
@@ -206,7 +209,10 @@ export default function AdicionarItemManualModal({
   });
 
   const templatesElegiveis = useMemo(
-    () => (templatesList ?? []).filter((t) => (t.funcoes ?? []).some((f) => (f.opcoes ?? []).length > 0)),
+    () =>
+      (templatesList ?? []).filter((t) =>
+        (t.funcoes ?? []).some((f) => (f.opcoes ?? []).length > 0),
+      ),
     [templatesList],
   );
 
@@ -529,7 +535,8 @@ export default function AdicionarItemManualModal({
                       disabled={isSubmitting}
                       onPress={() => {
                         setUsarTemplate(true);
-                        if (!selectedTemplateId) setSelectedTemplateId(templatesElegiveis[0].id ?? null);
+                        if (!selectedTemplateId)
+                          setSelectedTemplateId(templatesElegiveis[0].id ?? null);
                       }}
                       style={[
                         styles.modeCard,
@@ -603,9 +610,7 @@ export default function AdicionarItemManualModal({
                                   nomeById={voluntarioNomeById}
                                   listItems={getVoluntariosListForFuncao(
                                     row.funcaoId,
-                                    new Set(
-                                      Array.from(usedIds).filter((id) => id !== slotValue),
-                                    ),
+                                    new Set(Array.from(usedIds).filter((id) => id !== slotValue)),
                                   )}
                                   onChange={(value) => {
                                     setTemplateSlots((prev) => {

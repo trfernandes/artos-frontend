@@ -4,40 +4,58 @@ Ver [../CLAUDE.md](../CLAUDE.md) pra paths, comandos, git, scope discipline.
 
 ## Estilo de resposta
 
-Toda explicação ou pergunta ao usuário deve explicar conceitos, jargões técnicos, siglas e nomes de serviços que ele pode não conhecer — não assumir familiaridade. Em perguntas via `AskUserQuestion`, especialmente decisões complexas, dar contexto e exemplo concreto em cada opção, não só o rótulo curto.
+Toda explicação ou pergunta ao usuário deve explicar conceitos, jargões técnicos, siglas e nomes de
+serviços que ele pode não conhecer — não assumir familiaridade. Em perguntas via `AskUserQuestion`,
+especialmente decisões complexas, dar contexto e exemplo concreto em cada opção, não só o rótulo
+curto.
 
 ## Estado do trabalho e fluxo de branches
 
-Cada frente de trabalho = 1 tarefa na base Notion **"Tarefas Diakonia"** (`collection://50b40c4b-23c5-4910-8c50-a024e95d881a`). O estado de cada frente (branch, onde parei, próximo passo, falta testar) vive numa seção `## Estado do trabalho` no corpo dessa tarefa — não em arquivo solto nem só no chat. Status `Em andamento` = existe branch dedicada + seção preenchida. Uma branch por frente; feature nunca compartilha branch com hotfix; hotfix sai de `master`. Fluxo completo de interrupção por hotfix: `../CLAUDE.md` (local, só no PC).
+Cada frente de trabalho = 1 tarefa na base Notion **"Tarefas Diakonia"**
+(`collection://50b40c4b-23c5-4910-8c50-a024e95d881a`). O estado de cada frente (branch, onde parei,
+próximo passo, falta testar) vive numa seção `## Estado do trabalho` no corpo dessa tarefa — não em
+arquivo solto nem só no chat. Status `Em andamento` = existe branch dedicada + seção preenchida. Uma
+branch por frente; feature nunca compartilha branch com hotfix; hotfix sai de `master`. Fluxo
+completo de interrupção por hotfix: `../CLAUDE.md` (local, só no PC).
 
 ### Duas worktrees fixas
 
-`eas update` / `eas build` / `eas submit` publicam o **estado do disco** daquela pasta, não uma branch — working tree sujo vaza WIP no bundle. `git status` limpo é pré-requisito de todo OTA/build.
+`eas update` / `eas build` / `eas submit` publicam o **estado do disco** daquela pasta, não uma
+branch — working tree sujo vaza WIP no bundle. `git status` limpo é pré-requisito de todo OTA/build.
 
-| Pasta | Papel | Fica em |
-|---|---|---|
-| `D:\artos\artos_frontend` | **release**: hotfix, `update:prod`, `build`, `submit`, merge de feature pra `master` | `master` ou `hotfix/*` |
-| `D:\artos\artos_frontend_dev` | **dev**: toda feature/melhoria paralela | sempre `feat/*`, **nunca `master`** |
+| Pasta                         | Papel                                                                                | Fica em                             |
+| ----------------------------- | ------------------------------------------------------------------------------------ | ----------------------------------- |
+| `D:\artos\artos_frontend`     | **release**: hotfix, `update:prod`, `build`, `submit`, merge de feature pra `master` | `master` ou `hotfix/*`              |
+| `D:\artos\artos_frontend_dev` | **dev**: toda feature/melhoria paralela                                              | sempre `feat/*`, **nunca `master`** |
 
-Pasta dev é permanente e reutilizada entre features (`node_modules` fica; `npm install` só quando lockfile muda). Uma branch só existe em checkout num worktree por vez — git bloqueia o 2º. Antes de mergear uma feature na release, a dev precisa sair da branch (`git switch --detach origin/master`), senão `git branch -d` falha.
+Pasta dev é permanente e reutilizada entre features (`node_modules` fica; `npm install` só quando
+lockfile muda). Uma branch só existe em checkout num worktree por vez — git bloqueia o 2º. Antes de
+mergear uma feature na release, a dev precisa sair da branch (`git switch --detach origin/master`),
+senão `git branch -d` falha.
 
-`.git` (histórico/refs/remotes) é compartilhado — commit numa pasta aparece na outra na hora. Merge pra `master` leva só commits alcançáveis pela branch; WIP não-commitado da outra pasta nunca vaza.
+`.git` (histórico/refs/remotes) é compartilhado — commit numa pasta aparece na outra na hora. Merge
+pra `master` leva só commits alcançáveis pela branch; WIP não-commitado da outra pasta nunca vaza.
 
 ### Scripts (`scripts/`)
 
-- `session-start.ps1` — reporta estado das 2 worktrees (branch, tree sujo, branch "gone"). Rodar todo início de sessão.
-- `feature-start.ps1 -Slug <nome>` — na pasta dev: `fetch` + `git switch -c feat/<nome> origin/master`, com guards.
-- `feature-merge.ps1 -Slug <nome> [-Next <prox>]` — na pasta release: `checkout master` + `pull` + `merge --no-ff` + `push` + apaga branch local/remota. Aborta se a branch está em checkout na dev.
-- `pre-ota-check.ps1` — na pasta release: bloqueia OTA/build se não estiver em `master`/`hotfix/*` ou se o tree estiver sujo.
+- `session-start.ps1` — reporta estado das 2 worktrees (branch, tree sujo, branch "gone"). Rodar
+  todo início de sessão.
+- `feature-start.ps1 -Slug <nome>` — na pasta dev: `fetch` +
+  `git switch -c feat/<nome> origin/master`, com guards.
+- `feature-merge.ps1 -Slug <nome> [-Next <prox>]` — na pasta release: `checkout master` + `pull` +
+  `merge --no-ff` + `push` + apaga branch local/remota. Aborta se a branch está em checkout na dev.
+- `pre-ota-check.ps1` — na pasta release: bloqueia OTA/build se não estiver em `master`/`hotfix/*`
+  ou se o tree estiver sujo.
 
-Furos comuns: rodar comando na pasta errada (confirmar `pwd` + branch antes); dois Metros num device (parar um antes); `npm install` esquecido na dev após feature que mexeu em deps.
+Furos comuns: rodar comando na pasta errada (confirmar `pwd` + branch antes); dois Metros num device
+(parar um antes); `npm install` esquecido na dev após feature que mexeu em deps.
 
-**Regra dura, causa de incidente real (04/09/2026):** a release só pode estar em `feat/*`
-pelo instante do merge (`feature-merge.ps1` já faz isso sozinho: checkout master → merge →
-checkout master de novo). Se `session-start.ps1` reportar release em `feat/*` fora desse
-instante — sinal de que uma sessão anterior quebrou a regra e deixou WIP lá. Não presumir
-lixo: `git add -A && git commit -m "wip: ..."` na própria branch, `git push`, só então trocar
-pra `master`. E **avisar o usuário** que a regra foi violada de novo, antes de seguir.
+**Regra dura, causa de incidente real (04/09/2026):** a release só pode estar em `feat/*` pelo
+instante do merge (`feature-merge.ps1` já faz isso sozinho: checkout master → merge → checkout
+master de novo). Se `session-start.ps1` reportar release em `feat/*` fora desse instante — sinal de
+que uma sessão anterior quebrou a regra e deixou WIP lá. Não presumir lixo:
+`git add -A && git commit -m "wip: ..."` na própria branch, `git push`, só então trocar pra
+`master`. E **avisar o usuário** que a regra foi violada de novo, antes de seguir.
 
 ## Expo Router — estrutura de rotas
 
@@ -152,8 +170,9 @@ style={{ elevation: 2, shadowOpacity: 0.2 }}
 - Nunca gradiente fora dos 3 tokens permitidos (ver acima)
 - Nunca `marginTop`/`marginBottom` ad-hoc entre seções em FancyPageView — usar `FancyVerticalSpacer`
 - Nunca fundo cinza em card/item (`backgroundColor2`/`backgroundColor3`, ou `FancyCard` sem prop
-  `backgroundColor`, que cai no cinza padrão) — usar tint de cor (`ColorUtils.lightenColor(palette.primary|secondary, ~0.96)`
-  claro / `backgroundColor4` escuro) ou `backgroundColor` neutro puro
+  `backgroundColor`, que cai no cinza padrão) — usar tint de cor
+  (`ColorUtils.lightenColor(palette.primary|secondary, ~0.96)` claro / `backgroundColor4` escuro) ou
+  `backgroundColor` neutro puro
 
 ### Decisões rápidas
 
@@ -273,22 +292,22 @@ corrigir → review → atualizar Notion), sem caminho leve. Fonte única do pro
 Ao terminar qualquer tarefa (feature, melhoria, correção), perguntar ao usuário via
 `AskUserQuestion` se ele quer um roteiro de testes manual pra rodar depois. Não criar isso sem
 perguntar antes — é opcional. Se ele disser que sim: usar a skill `/testing-strategy` pra gerar o
-roteiro e criar uma tarefa nova na base Notion "Tarefas Diakonia" (mesma base do issue tracker)
-com esse roteiro, pra ficar disponível pra rodar depois.
+roteiro e criar uma tarefa nova na base Notion "Tarefas Diakonia" (mesma base do issue tracker) com
+esse roteiro, pra ficar disponível pra rodar depois.
 
 ### Auto-auditoria pós-trabalho autônomo
 
-Depois de uma frente de trabalho longa sem supervisão (sessão em background, Agent/fork, ou
-qualquer trecho onde rodei vários passos sem check-in), antes de dar como pronto: auditar o
-próprio trabalho e listar gaps que não resolvi (edge case não coberto, suposição não validada,
-TODO deixado, teste que só cobre o caminho feliz etc.) — não só reportar o que funcionou. Cada
-gap vira um item na database Tarefas Diakonia (`Tipo: Melhoria` ou `Bug` conforme o caso,
-`Status: Novo`, `Triagem: A Triar`, `Plataforma` conforme este repo), não fica só na resposta do
-chat (perde na compactação). Depois, gap por gap, via `AskUserQuestion` (uma pergunta por vez),
-decidir junto com o usuário se vira issue de verdade, é ignorado, ou é falso positivo — só então
-corrigir.
+Depois de uma frente de trabalho longa sem supervisão (sessão em background, Agent/fork, ou qualquer
+trecho onde rodei vários passos sem check-in), antes de dar como pronto: auditar o próprio trabalho
+e listar gaps que não resolvi (edge case não coberto, suposição não validada, TODO deixado, teste
+que só cobre o caminho feliz etc.) — não só reportar o que funcionou. Cada gap vira um item na
+database Tarefas Diakonia (`Tipo: Melhoria` ou `Bug` conforme o caso, `Status: Novo`,
+`Triagem: A Triar`, `Plataforma` conforme este repo), não fica só na resposta do chat (perde na
+compactação). Depois, gap por gap, via `AskUserQuestion` (uma pergunta por vez), decidir junto com o
+usuário se vira issue de verdade, é ignorado, ou é falso positivo — só então corrigir.
 
 **Atenção**: `eas.json` tem perfil por ambiente — `development`/`staging`/`e2e` apontam pro backend
-de staging, só `production` aponta pro backend de produção. **Nunca** rodar `eas build --profile
-production` ou `eas submit` fora do fluxo de release (código já revisado e em `master`). Ver seção
-"Branches e deploy" do `processo-dev.md` (mesmo repo `artos-backend`) antes de qualquer build/submit.
+de staging, só `production` aponta pro backend de produção. **Nunca** rodar
+`eas build --profile production` ou `eas submit` fora do fluxo de release (código já revisado e em
+`master`). Ver seção "Branches e deploy" do `processo-dev.md` (mesmo repo `artos-backend`) antes de
+qualquer build/submit.
