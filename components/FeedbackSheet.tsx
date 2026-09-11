@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ActivityIndicator, Modal } from 'react-native';
+import { View, StyleSheet, Modal } from 'react-native';
 import FancyText from './FancyText';
 import FancyButton from './buttons/FancyButton';
 import { usePallete } from '../hooks/usePallete';
@@ -13,12 +13,7 @@ interface FeedbackSheetProps {
   onDismiss: () => void;
 }
 
-export default function FeedbackSheet({
-  visible,
-  nota,
-  onSubmit,
-  onDismiss,
-}: FeedbackSheetProps) {
+export default function FeedbackSheet({ visible, nota, onSubmit, onDismiss }: FeedbackSheetProps) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
   const [texto, setTexto] = useState('');
@@ -44,7 +39,9 @@ export default function FeedbackSheet({
     : nota === 'RUIM'
       ? 'O que não está funcionando?'
       : 'Alguma sugestão?';
-  const subtitle = isExcelente ? 'Fico feliz que você esteja curtindo o Diakonia' : 'Seu feedback nos ajuda a melhorar';
+  const subtitle = isExcelente
+    ? 'Fico feliz que você esteja curtindo o Diakonia'
+    : 'Seu feedback nos ajuda a melhorar';
 
   return (
     <Modal visible={visible} transparent animationType='fade' onRequestClose={onDismiss}>
@@ -53,7 +50,12 @@ export default function FeedbackSheet({
           <FancyText type='bold' size='largeMedium' color={palette.fonts.dark} style={styles.title}>
             {title}
           </FancyText>
-          <FancyText type='medium' size='small' color={palette.fonts.inactive} style={styles.subtitle}>
+          <FancyText
+            type='medium'
+            size='small'
+            color={palette.fonts.inactive}
+            style={styles.subtitle}
+          >
             {subtitle}
           </FancyText>
 
@@ -90,12 +92,11 @@ export default function FeedbackSheet({
               />
             )}
             <FancyButton
-              label={isSubmitting ? (
-                <ActivityIndicator color={palette.fonts.light} size='small' />
-              ) : isExcelente ? 'Fechar' : 'Enviar'}
+              label={isExcelente ? 'Fechar' : 'Enviar'}
               type='contained'
               onPress={isExcelente ? onDismiss : handleSubmit}
-              disabled={isSubmitting}
+              isLoading={isSubmitting}
+              disableOnLoading={true}
             />
           </View>
         </View>
