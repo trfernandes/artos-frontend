@@ -38,7 +38,6 @@ import { canManageEventoOcorrencia } from '../../../../../utils/ministerio_permi
 import { combineOccurrenceWithEventTime } from '../../../../../utils/evento-datetime';
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import { UpdateEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.update';
-import { useDetectarConflitosEscala } from '../../../../../hooks/useDetectarConflitosEscala';
 import ResolverConflitosModal from '../../../../../components/pages/ministerios/escalas/details/ResolverConflitosModal';
 
 export type EscalaItemDataType = {
@@ -636,8 +635,6 @@ export default function MinisterioEscalasDetailsPage() {
         onPress: async () => {
           try {
             setIsPublishing(true);
-<<<<<<< Updated upstream
-=======
             // Se há conflitos detectados, mostra modal
             if (conflitosDetectados?.temConflito) {
               setConflitos(conflitosDetectados);
@@ -646,7 +643,6 @@ export default function MinisterioEscalasDetailsPage() {
               return;
             }
             // Se não há conflitos, publica normalmente
->>>>>>> Stashed changes
             await updateEscala?.({
               id: escalaId,
               data: {
