@@ -90,9 +90,7 @@ export default function FeedbackSheet({
               />
             )}
             <FancyButton
-              label={isSubmitting ? (
-                <ActivityIndicator color={palette.fonts.light} size='small' />
-              ) : isExcelente ? 'Fechar' : 'Enviar'}
+              label={isSubmitting ? '' : isExcelente ? 'Fechar' : 'Enviar'}
               type='contained'
               onPress={isExcelente ? onDismiss : handleSubmit}
               disabled={isSubmitting}

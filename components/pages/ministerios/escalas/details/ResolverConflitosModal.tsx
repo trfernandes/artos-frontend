@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { FancyModalDialog } from '../../../../modal/FancyModal';
+import FancyBottomSheetModal from '../../../../modal/FancyBottomSheetModal';
 import FancyText from '../../../../FancyText';
 import FancyVerticalSpacer from '../../../../FancyVerticalSpacer';
 import FancyButton from '../../../../buttons/FancyButton';
-import { usePallete } from '../../../../../hooks/usePallete';
 import { ConflitoBuscaDto, ResponseConflitosMultiMinisteriosDto } from '../../../../../hooks/useDetectarConflitosEscala';
 
 type Acao = 'trocar_voluntario' | 'deixar_vago' | 'perguntar_voluntario';
@@ -24,7 +23,6 @@ export default function ResolverConflitosModal({
   onPublicarSemResolucao,
   onClose,
 }: Props) {
-  const palette = usePallete();
   const [selectedConflict, setSelectedConflict] = useState<ConflitoBuscaDto | null>(null);
   const [selectedAction, setSelectedAction] = useState<Acao | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,7 +34,6 @@ export default function ResolverConflitosModal({
       setIsLoading(true);
       setSelectedAction(acao);
       await onResolverConflitoSimples(acao, selectedConflict);
-      // Reset para próximo conflito
       setSelectedConflict(null);
       setSelectedAction(null);
     } finally {
@@ -54,7 +51,7 @@ export default function ResolverConflitosModal({
     }
   };
 
-  if (!visible || !conflitos.temConflito) {
+  if (!conflitos.temConflito) {
     return null;
   }
 
@@ -62,7 +59,7 @@ export default function ResolverConflitosModal({
   const restantesCount = conflitos.conflitos.length - 1;
 
   return (
-    <FancyModalDialog
+    <FancyBottomSheetModal
       visible={visible}
       title="Conflito de Escalas"
       onClose={onClose}
@@ -79,7 +76,6 @@ export default function ResolverConflitosModal({
 
         <FancyVerticalSpacer height={12} />
 
-        {/* Ação 1: Trocar voluntário */}
         <FancyButton
           label="Trocar por outro voluntário"
           type="outlined"
@@ -89,7 +85,6 @@ export default function ResolverConflitosModal({
 
         <FancyVerticalSpacer height={8} />
 
-        {/* Ação 2: Deixar vago */}
         <FancyButton
           label="Deixar função vazia"
           type="outlined"
@@ -99,7 +94,6 @@ export default function ResolverConflitosModal({
 
         <FancyVerticalSpacer height={8} />
 
-        {/* Ação 3: Perguntar */}
         <FancyButton
           label="Perguntar ao voluntário"
           type="outlined"
@@ -111,7 +105,7 @@ export default function ResolverConflitosModal({
           <>
             <FancyVerticalSpacer height={16} />
             <FancyText style={styles.helperText}>
-              {restantesCount} mais voluntário(s) em conflito será(ão) tratado(s) depois.
+              {restantesCount} mais voluntário(s) em conflito.
             </FancyText>
           </>
         )}
@@ -125,7 +119,7 @@ export default function ResolverConflitosModal({
           disabled={isLoading}
         />
       </View>
-    </FancyModalDialog>
+    </FancyBottomSheetModal>
   );
 }
 
