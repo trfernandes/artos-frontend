@@ -18,9 +18,14 @@ export function useFeedbackPrompt(igrejaId: string | null, userCreatedAtDaysAgo:
   useEffect(() => {
     const checkPrompt = async () => {
       try {
-        // Por enquanto, mostrar prompt sempre (sem validar 15 dias)
-        // TODO: integrar userCreatedAtDaysAgo quando disponível
         if (!igrejaId) {
+          setShowPrompt(false);
+          setIsLoading(false);
+          return;
+        }
+
+        // Só mostra prompt se o usuário tem 15+ dias de uso
+        if (userCreatedAtDaysAgo < 15) {
           setShowPrompt(false);
           setIsLoading(false);
           return;
