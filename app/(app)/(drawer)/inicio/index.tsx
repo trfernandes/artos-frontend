@@ -7,11 +7,16 @@ import DashboardAdmin from '../../../../components/pages/inicio/DashboardAdmin';
 import { useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import FeedbackPrompt from '../../../../components/FeedbackPrompt';
+import FeedbackSheet from '../../../../components/FeedbackSheet';
+import { useFeedbackPrompt } from '../../../../hooks/useFeedbackPrompt';
 
 export default function InicioIndex() {
   const { igrejaAtiva } = useAuth();
   const queryClient = useQueryClient();
   const role = igrejaAtiva?.role;
+  const { showPrompt, selectedNota, onSelectNota, onSubmitFeedback, onDismiss } =
+    useFeedbackPrompt(igrejaAtiva?.id || null);
 
   useFocusEffect(
     useCallback(() => {
@@ -31,5 +36,22 @@ export default function InicioIndex() {
     }
   };
 
-  return <FancyPageView>{renderDashboard()}</FancyPageView>;
+  return (
+    <FancyPageView>
+      {showPrompt && (
+        <FeedbackPrompt
+          onSelect={onSelectNota}
+          onDismiss={onDismiss}
+          isLoading={false}
+        />
+      )}
+      {renderDashboard()}
+      <FeedbackSheet
+        visible={!!selectedNota}
+        nota={selectedNota}
+        onSubmit={onSubmitFeedback}
+        onDismiss={onDismiss}
+      />
+    </FancyPageView>
+  );
 }

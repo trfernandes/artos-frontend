@@ -100,9 +100,11 @@ function ProfileActionItem({
 export default function DadosTab({
   onChangePasswordButtonPress,
   onDeleteAccountButtonPress,
+  onFeedbackButtonPress,
 }: {
   onChangePasswordButtonPress?: () => void;
   onDeleteAccountButtonPress?: () => void;
+  onFeedbackButtonPress?: () => void;
 }) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
@@ -211,6 +213,25 @@ export default function DadosTab({
               description='Remover permanentemente sua conta'
               onPress={onDeleteAccountButtonPress}
               tone='danger'
+            />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <FancyText
+            size='small'
+            type='bold'
+            color={palette.fonts.inactive}
+            style={styles.sectionTitle}
+          >
+            Feedback
+          </FancyText>
+          <View style={styles.actionStack}>
+            <ProfileActionItem
+              icon={{ library: 'FontAwesome6', name: 'comment-dots', size: 13 }}
+              label='Dar feedback / Sugestão'
+              description='Compartilhe sua opinião conosco'
+              onPress={onFeedbackButtonPress}
             />
           </View>
         </View>

@@ -10,14 +10,17 @@ interface FeedbackPromptState {
   dismissedCount: number;
 }
 
-export function useFeedbackPrompt(igrejaId: string | null, userCreatedAtDaysAgo: number) {
+export function useFeedbackPrompt(igrejaId: string | null, userCreatedAtDaysAgo: number = 0) {
   const [showPrompt, setShowPrompt] = useState(false);
+  const [selectedNota, setSelectedNota] = useState<'RUIM' | 'BOM' | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkPrompt = async () => {
       try {
-        if (!igrejaId || userCreatedAtDaysAgo < 15) {
+        // Por enquanto, mostrar prompt sempre (sem validar 15 dias)
+        // TODO: integrar userCreatedAtDaysAgo quando disponível
+        if (!igrejaId) {
           setShowPrompt(false);
           setIsLoading(false);
           return;
@@ -57,8 +60,17 @@ export function useFeedbackPrompt(igrejaId: string | null, userCreatedAtDaysAgo:
       };
       await AsyncStorage.setItem(FEEDBACK_PROMPT_KEY, JSON.stringify(state));
       setShowPrompt(false);
+      setSelectedNota(null);
     } catch (error) {
       console.error('Error storing feedback prompt state:', error);
+    }
+  };
+
+  const handleSelectNota = (nota: 'RUIM' | 'BOM' | 'EXCELENTE') => {
+    if (nota === 'EXCELENTE') {
+      handleSubmitFeedback(nota, '');
+    } else {
+      setSelectedNota(nota);
     }
   };
 
@@ -74,8 +86,10 @@ export function useFeedbackPrompt(igrejaId: string | null, userCreatedAtDaysAgo:
 
   return {
     showPrompt,
+    selectedNota,
     isLoading,
+    onSelectNota: handleSelectNota,
+    onSubmitFeedback: handleSubmitFeedback,
     onDismiss: handlePromptShown,
-    onSubmit: handleSubmitFeedback,
   };
 }
