@@ -69,6 +69,15 @@ export const eventoSchema = z
         });
       }
     }
+
+    // Se restringir ministérios, exige pelo menos 1 selecionado
+    if (data.restringirMinisterios && (!data.ministeriosIds || data.ministeriosIds.length < 1)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['ministeriosIds'],
+        message: 'Selecione ao menos um ministério',
+      });
+    }
   });
 
 export type EventoFormData = z.infer<typeof eventoSchema>;
