@@ -39,6 +39,12 @@ import { combineOccurrenceWithEventTime } from '../../../../../utils/evento-date
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import { UpdateEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.update';
 import ResolverConflitosModal from '../../../../../components/pages/ministerios/escalas/details/ResolverConflitosModal';
+import {
+  ConflitoMultiMinisteriosType,
+  PublicarEscalaAcaoEnum,
+  ResolverConflitoAcaoEnum,
+  ResponseConflitosMultiMinisteriosDto,
+} from '../../../../../domain/dtos/Escala/escala-conflito.dto';
 
 export type EscalaItemDataType = {
   dataOcorrencia: string;
@@ -143,7 +149,6 @@ export default function MinisterioEscalasDetailsPage() {
     data: escalaData,
     isLoading,
     isError,
-    update: updateEscala,
     regenerate: regenerateEscala,
     isRegenerating,
     remove: removeEscala,
@@ -625,29 +630,77 @@ export default function MinisterioEscalasDetailsPage() {
     [removeEscalaItem, refetchEscala],
   );
 
+  const tentarPublicar = useCallback(async () => {
+    if (!igrejaAtiva?.id) return;
+    try {
+      setIsPublishing(true);
+      const resultado = await EscalaRepository.publicar(escalaId, {
+        igrejaId: igrejaAtiva.id,
+        acao: PublicarEscalaAcaoEnum.Publicar,
+      });
+      if ((resultado as ResponseConflitosMultiMinisteriosDto)?.temConflito) {
+        setConflitos(resultado);
+        setIsConflitosModalOpen(true);
+        return;
+      }
+      await refetchEscala();
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Não foi possível publicar.',
+        text2: getApiErrorMessage(error, 'Tente novamente em instantes.'),
+      });
+    } finally {
+      setIsPublishing(false);
+    }
+  }, [escalaId, igrejaAtiva?.id, refetchEscala]);
+
   const handlePublishPress = useCallback(() => {
     FancyAlert.alert('Publicação de escala', 'Deseja realmente publicar esta escala?', [
       { text: 'Não', style: 'cancel' },
       {
         text: 'Sim',
         style: 'destructive',
-        onPress: async () => {
-          try {
-            setIsPublishing(true);
-            await updateEscala?.({
-              id: escalaId,
-              data: {
-                status: EscalaStatusEnum.Publicada,
-              },
-            });
-            await refetchEscala();
-          } finally {
-            setIsPublishing(false);
-          }
-        },
+        onPress: tentarPublicar,
       },
     ]);
-  }, [escalaId, updateEscala, refetchEscala]);
+  }, [tentarPublicar]);
+
+  const handleResolverConflitoSimples = useCallback(
+    async (
+      acao: 'trocar_voluntario' | 'deixar_vago' | 'perguntar_voluntario',
+      conflito: ConflitoMultiMinisteriosType,
+      extra?: { voluntarioSubstitutoId?: string; ministerioBId?: string },
+    ) => {
+      if (!igrejaAtiva?.id) return;
+      try {
+        await EscalaRepository.resolverConflito(escalaId, {
+          acao: acao as unknown as ResolverConflitoAcaoEnum,
+          escalaItemIdConflito: conflito.escalaItemId,
+          ...extra,
+        });
+        // Após resolver 1 conflito, tenta detectar/publicar de novo — pode haver outros restantes.
+        const resultado = await EscalaRepository.publicar(escalaId, {
+          igrejaId: igrejaAtiva.id,
+          acao: PublicarEscalaAcaoEnum.Publicar,
+        });
+        if ((resultado as ResponseConflitosMultiMinisteriosDto)?.temConflito) {
+          setConflitos(resultado);
+        } else {
+          setConflitos(null);
+          setIsConflitosModalOpen(false);
+          await refetchEscala();
+        }
+      } catch (error) {
+        Toast.show({
+          type: 'error',
+          text1: 'Não foi possível resolver o conflito.',
+          text2: getApiErrorMessage(error, 'Tente novamente em instantes.'),
+        });
+      }
+    },
+    [escalaId, igrejaAtiva?.id, refetchEscala],
+  );
 
   const handleGeneratePress = useCallback(() => {
     const escala = escalaData?.[0];
@@ -904,6 +957,17 @@ export default function MinisterioEscalasDetailsPage() {
           onConfirm={handleAdicionarItemManual}
         />
       )}
+
+      <ResolverConflitosModal
+        visible={isConflitosModalOpen}
+        conflitos={conflitos}
+        ministerioId={ministerioId}
+        onResolverConflitoSimples={handleResolverConflitoSimples}
+        onClose={() => {
+          setIsConflitosModalOpen(false);
+          setConflitos(null);
+        }}
+      />
     </View>
   );
 }
