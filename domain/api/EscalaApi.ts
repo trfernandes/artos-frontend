@@ -1,6 +1,11 @@
 import { CreateEscalaDto } from '../dtos/Escala/escala.create';
 import { EscalaParametrizacaoType, ResponseEscalaDto } from '../dtos/Escala/escala.response';
 import { ResponseEscalaValidarNomeDto } from '../dtos/Escala/escala-validar-nome.response';
+import {
+  PublicarEscalaDto,
+  PublicarEscalaResponse,
+  ResolverConflitoEscalaDto,
+} from '../dtos/Escala/escala-conflito.dto';
 import apiClient from './api-client';
 import { BaseApi } from './BaseApi';
 
@@ -87,6 +92,32 @@ class EscalasApiClass extends BaseApi<
       },
     );
     return response.data.data;
+  }
+
+  async publicar(escalaId: string, dto: PublicarEscalaDto): Promise<PublicarEscalaResponse> {
+    try {
+      const response = await apiClient.post(`/${this.resourceName}/${escalaId}/publicar`, dto);
+      return response.data.data;
+    } catch (error) {
+      console.log(`Erro ao publicar ${this.resourceName}:`, error);
+      throw error;
+    }
+  }
+
+  async resolverConflito(
+    escalaId: string,
+    dto: ResolverConflitoEscalaDto,
+  ): Promise<ResponseEscalaDto> {
+    try {
+      const response = await apiClient.post(
+        `/${this.resourceName}/${escalaId}/resolver-conflito`,
+        dto,
+      );
+      return response.data.data;
+    } catch (error) {
+      console.log(`Erro ao resolver conflito de ${this.resourceName}:`, error);
+      throw error;
+    }
   }
 }
 

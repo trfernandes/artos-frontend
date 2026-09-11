@@ -25,6 +25,7 @@ export type PessoaChamadaRow = {
   fotoUrl?: string | null;
   isCurrentUser: boolean;
   funcoes: PessoaFuncaoStatus[];
+  conflito?: string | null; // "Já escalado em [Ministério] neste evento"
 };
 
 export type VagaChamadaRow = {
@@ -65,7 +66,7 @@ function statusColor(palette: ReturnType<typeof usePallete>, status: EscalaItemS
   return palette.warning;
 }
 
-function PessoaBadge({ nome, fotoUrl, isCurrentUser, funcoes }: PessoaChamadaRow) {
+function PessoaBadge({ nome, fotoUrl, isCurrentUser, funcoes, conflito }: PessoaChamadaRow) {
   const { palette, isDark } = useAppTheme();
   const cardBg = isDark ? palette.backgroundColor2 : palette.backgroundColor;
 
@@ -74,19 +75,22 @@ function PessoaBadge({ nome, fotoUrl, isCurrentUser, funcoes }: PessoaChamadaRow
     return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase();
   }, [nome]);
 
+  const borderColor = conflito
+    ? palette.error
+    : isCurrentUser
+      ? palette.primary
+      : ColorUtils.withAlpha(palette.borderCard ?? palette.border, 0.45);
+
   return (
     <View
       style={[
         styles.badge,
         {
           backgroundColor: cardBg,
-          borderColor: ColorUtils.withAlpha(palette.borderCard ?? palette.border, 0.45),
+          borderColor: borderColor,
+          borderWidth: conflito || isCurrentUser ? 1.5 : 0.5,
         },
         { ...palette.shadows[200] },
-        isCurrentUser && {
-          borderColor: palette.primary,
-          borderWidth: 1.5,
-        },
       ]}
     >
       <View style={[styles.ring, { borderColor: ColorUtils.withAlpha(palette.border, 0.6) }]}>
@@ -139,6 +143,17 @@ function PessoaBadge({ nome, fotoUrl, isCurrentUser, funcoes }: PessoaChamadaRow
               </View>
             );
           })}
+          {conflito && (
+            <FancyText
+              type='medium'
+              size='extraSmall'
+              numberOfLines={2}
+              color={palette.error}
+              style={[styles.funcaoText, { marginTop: 4 }]}
+            >
+              {conflito}
+            </FancyText>
+          )}
         </View>
       </View>
     </View>
@@ -216,6 +231,7 @@ export function ChamadaGridRowView({ items }: GridPairRow) {
             fotoUrl={item.fotoUrl}
             isCurrentUser={item.isCurrentUser}
             funcoes={item.funcoes}
+            conflito={item.conflito}
           />
         ),
       )}
