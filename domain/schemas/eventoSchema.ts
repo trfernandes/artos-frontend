@@ -37,6 +37,8 @@ export const eventoSchema = z
         minute: z.number().int().min(0).max(59),
       })
       .optional(),
+    restringirMinisterios: z.boolean().optional(),
+    ministeriosIds: z.array(z.string().uuid()).optional(),
   })
   .superRefine((data, ctx) => {
     // Data término > data início
@@ -66,6 +68,15 @@ export const eventoSchema = z
           message: 'Selecione ao menos um dia da semana',
         });
       }
+    }
+
+    // Se restringir ministérios, exige pelo menos 1 selecionado
+    if (data.restringirMinisterios && (!data.ministeriosIds || data.ministeriosIds.length < 1)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['ministeriosIds'],
+        message: 'Selecione ao menos um ministério',
+      });
     }
   });
 

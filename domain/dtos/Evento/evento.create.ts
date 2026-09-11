@@ -17,4 +17,6 @@ export type CreateEventoDto = {
   recorrenciaSemanasMes?: RecorrenciaSemanaMesEnum[];
   templatePadraoId?: string;
   horarioEnsaioPadrao?: string;
+  restringirMinisterios?: boolean;
+  ministeriosIds?: string[];
 };

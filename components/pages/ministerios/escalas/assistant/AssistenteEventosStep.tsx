@@ -57,7 +57,7 @@ export default function AssistenteEventosStep() {
 
       try {
         if (isMounted) setIsLoadingEventos(true);
-        const resultado = await buscarPorIntervalo({ dataInicio, dataTermino });
+        const resultado = await buscarPorIntervalo({ dataInicio, dataTermino, ministerioId });
 
         if (!isMounted) return;
 

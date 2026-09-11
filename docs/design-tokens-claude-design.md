@@ -1,13 +1,13 @@
 # Tokens Diakonia — pra colar no prompt do Claude Design
 
-> Não é sync automático (app é React Native/Expo, sem build web). Cole este resumo no prompt
-> quando pedir uma tela lá, pra manter a direção visual próxima do app real.
+> Não é sync automático (app é React Native/Expo, sem build web). Cole este resumo no prompt quando
+> pedir uma tela lá, pra manter a direção visual próxima do app real.
 
 ## Contexto do produto
 
-App B2B mobile de gestão de escala voluntária pra igrejas. Público: líder/pastor não-técnico.
-Tom: direto, sem gradiente decorativo, sem enfeite. Ilustrações (quando houver): flat, sem
-personagens, focando na interface/dado, não em pessoas.
+App B2B mobile de gestão de escala voluntária pra igrejas. Público: líder/pastor não-técnico. Tom:
+direto, sem gradiente decorativo, sem enfeite. Ilustrações (quando houver): flat, sem personagens,
+focando na interface/dado, não em pessoas.
 
 ## Cor (light mode)
 
@@ -31,8 +31,8 @@ backgroundColor   #FFFFFF (fundo de tela)
 backgroundColor4  #F7FAFF (tint neutro claro — usar em vez de cinza)
 ```
 
-**Nunca cinza puro em card/item** (`#F2F2F7`/`#F6F6F6` são proibidos como fundo de card) — usar
-tint de cor (`primary`/`secondary` clareado ~96%) ou `backgroundColor4` (azulado bem sutil).
+**Nunca cinza puro em card/item** (`#F2F2F7`/`#F6F6F6` são proibidos como fundo de card) — usar tint
+de cor (`primary`/`secondary` clareado ~96%) ou `backgroundColor4` (azulado bem sutil).
 
 ## Cor (dark mode)
 
@@ -49,8 +49,8 @@ exceto `error` (`#E74C3C` no dark).
 
 ## Tipografia
 
-Família: **Montserrat** (Regular/Medium/SemiBold/Bold + itálicos). Escala fixa em px (baseline
-390px width, ~13px = corpo):
+Família: **Montserrat** (Regular/Medium/SemiBold/Bold + itálicos). Escala fixa em px (baseline 390px
+width, ~13px = corpo):
 
 ```
 extraSmall 11   small 12   medium 13 (corpo padrão)   mediumLarge 14
@@ -75,8 +75,8 @@ Só 3 níveis, nunca `box-shadow` livre:
 
 - Sem gradiente exceto: header de drawer, dashboard, auth (linear `#3B82F6 → #234C90`), onda do
   funil de vendas.
-- Botão primário: `primary` sólido preenchido, `borderRadius` alto (pill-like). Secundário:
-  outline. Terciário: texto/link, sem fundo.
+- Botão primário: `primary` sólido preenchido, `borderRadius` alto (pill-like). Secundário: outline.
+  Terciário: texto/link, sem fundo.
 - Card padrão: `borderRadius: 16-24`, borda fina tintada, sombra nível 100-200, fundo tint de cor
   (nunca cinza).
 - Ações destrutivas: `error` sólido, texto/ícone branco.

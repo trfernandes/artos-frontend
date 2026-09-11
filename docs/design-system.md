@@ -700,10 +700,10 @@ estados positivos/finalizados.
 
 ## Regras de Design Confirmadas
 
-- **[confirmed 2026-08-26]** Chip de origem (`Padrão do evento`/`Aplicado nesta série`/`Ajuste desta
-  ocorrência`) nunca vira `View` própria full-width abaixo do editor — isola visualmente como bloco
-  de rodapé separado. Vira tag inline colada ao lado do valor exibido pelo campo (mesma linha do
-  valor, não linha própria).
+- **[confirmed 2026-08-26]** Chip de origem
+  (`Padrão do evento`/`Aplicado nesta série`/`Ajuste desta ocorrência`) nunca vira `View` própria
+  full-width abaixo do editor — isola visualmente como bloco de rodapé separado. Vira tag inline
+  colada ao lado do valor exibido pelo campo (mesma linha do valor, não linha própria).
 - **[confirmed 2026-08-26]** Campos com trigger próprio mostrando o valor (Nome, Data e horário,
   Local, Descrição, Horário de ensaio, Template) nunca duplicam o rótulo — usar `hideLabel` em
   `OccurrenceFieldSection`, título aparece uma única vez (dentro do próprio trigger).
@@ -722,6 +722,6 @@ estados positivos/finalizados.
 
 ## Log de Telas Revisadas
 
-| Tela                    | Data       | Findings                                                                                                                                            | Resultado          |
-| ------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| AgendaDetailsDadosTab   | 2026-08-26 | F1 (chip origem isolado em bloco próprio), F2 (Horário de ensaio com label duplicada), F3 (Template com dropdown inline em vez de trigger+sheet), F4 (ícones todos primary, sem categoria), F5 (header sem fundo próprio) | Todos aprovados e implementados — tsc limpo |
+| Tela                  | Data       | Findings                                                                                                                                                                                                                  | Resultado                                   |
+| --------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| AgendaDetailsDadosTab | 2026-08-26 | F1 (chip origem isolado em bloco próprio), F2 (Horário de ensaio com label duplicada), F3 (Template com dropdown inline em vez de trigger+sheet), F4 (ícones todos primary, sem categoria), F5 (header sem fundo próprio) | Todos aprovados e implementados — tsc limpo |
