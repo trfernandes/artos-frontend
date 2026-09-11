@@ -9,15 +9,11 @@ import ChangePasswordModal from '../../../../../components/pages/pessoal/perfil/
 import DeleteAccountModal from '../../../../../components/pages/pessoal/perfil/DeleteAccountModal';
 import { ThemePalette } from '../../../../../constants/colors';
 import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
-import FeedbackSheet from '../../../../../components/FeedbackSheet';
-import { useAuth } from '../../../../../contexts/AuthContext';
 
 export default function PerfilIndexPage() {
   const styles = useThemedStyles(createStyles);
-  const { igrejaAtiva } = useAuth();
   const [isChangePasswordModalVisible, setChangePasswordModalVisible] = useState(false);
   const [isDeleteAccountModalVisible, setDeleteAccountModalVisible] = useState(false);
-  const [isFeedbackSheetVisible, setFeedbackSheetVisible] = useState(false);
 
   const TAB_DATA: TabItem[] = [
     {
@@ -27,7 +23,6 @@ export default function PerfilIndexPage() {
         <DadosTab
           onChangePasswordButtonPress={() => setChangePasswordModalVisible(true)}
           onDeleteAccountButtonPress={() => setDeleteAccountModalVisible(true)}
-          onFeedbackButtonPress={() => setFeedbackSheetVisible(true)}
         />
       ),
     },
@@ -55,19 +50,6 @@ export default function PerfilIndexPage() {
           onButton2Press={() => setDeleteAccountModalVisible(false)}
         />
       )}
-      <FeedbackSheet
-        visible={isFeedbackSheetVisible}
-        nota={null}
-        onSubmit={async (texto) => {
-          try {
-            const feedbacksApi = (await import('../../../../../domain/api/FeedbacksApi')).feedbacksApi;
-            await feedbacksApi.createFeedback({ nota: 'BOM', texto }, igrejaAtiva?.id || '');
-          } catch (error) {
-            console.error('Error submitting feedback:', error);
-          }
-        }}
-        onDismiss={() => setFeedbackSheetVisible(false)}
-      />
     </FancyPageView>
   );
 }
