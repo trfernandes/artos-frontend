@@ -313,11 +313,15 @@ export default function IndisponibilidadeIndexPage() {
     if (!userId || !igrejaId) return;
 
     try {
-      await addRegra?.({
+      // Normaliza o resultado: converte null/undefined
+      const normalized = {
         ...result,
+        ministerioId: result.ministerioId || undefined,
+        funcoes: result.funcoes?.length ? result.funcoes : undefined,
         voluntarioId: userId,
         igrejaId,
-      });
+      };
+      await addRegra?.(normalized);
       setShowRegraModal(false);
       setLazyToastOptions({ type: 'success', message: 'Regra criada com sucesso!', show: true });
     } catch (error) {
@@ -752,6 +756,9 @@ export default function IndisponibilidadeIndexPage() {
           }}
           onConfirm={handleConfirmAddRegra}
           initialValues={pendingAddRegra ?? undefined}
+          voluntarioId={userId}
+          igrejaId={igrejaId}
+          regrasExistentes={regras}
         />
       )}
 
@@ -761,6 +768,8 @@ export default function IndisponibilidadeIndexPage() {
           isEditing
           initialValues={{
             tipo: editingRegra.tipo,
+            ministerioId: editingRegra.ministerioId ?? undefined,
+            funcoes: editingRegra.funcoes ?? undefined,
             diasSemana: editingRegra.diasSemana ?? undefined,
             dataInicio: editingRegra.dataInicio ?? undefined,
             dataFim: editingRegra.dataFim ?? undefined,
@@ -770,6 +779,9 @@ export default function IndisponibilidadeIndexPage() {
           }}
           onClose={() => setEditingRegra(null)}
           onConfirm={handleConfirmEditRegra}
+          voluntarioId={userId}
+          igrejaId={igrejaId}
+          regrasExistentes={regras}
         />
       )}
 
