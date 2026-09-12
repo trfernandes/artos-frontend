@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
-import { Animated, Pressable, StyleSheet, View, ScrollView } from 'react-native';
+import { Animated, Pressable, StyleSheet, View } from 'react-native';
 import { useForm, useWatch, useFormState } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
@@ -16,15 +16,20 @@ import FancyText from '../../../FancyText';
 import FancyButton from '../../../buttons/FancyButton';
 import FancySegmentedControl from '../../../fields/FancySegmentedControl';
 import FancyChips from '../../../FancyChips';
+import FancyScrollView from '../../../FancyScrollView';
 import { usePallete } from '../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../hooks/useThemedStyles';
 import { ThemePalette } from '../../../../constants/colors';
 import { ColorUtils } from '../../../../utils/color_utils';
 import { DateUtilsApi } from '../../../../utils/date_utils';
-import { RegraIndisponibilidadeTipo } from '../../../../domain/dtos/RegraIndisponibilidadeVoluntario/regra-indisponibilidade-voluntario.response';
+import {
+  RegraIndisponibilidadeTipo,
+  ResponseRegraIndisponibilidadeVoluntarioDto,
+} from '../../../../domain/dtos/RegraIndisponibilidadeVoluntario/regra-indisponibilidade-voluntario.response';
 import { useMinisteriosCrud } from '../../../../hooks/useMinisteriosCrud';
 import { useMinisterioVoluntarioFuncoesCrud } from '../../../../hooks/useMinisterioVoluntarioFuncoesCrud';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
+import { descreverRegra } from '../../../../domain/utils/regra_indisponibilidade_utils';
 
 const DIAS_NOMES = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const TODOS_DIAS = [0, 1, 2, 3, 4, 5, 6];
@@ -162,10 +167,12 @@ export type AddRegraModalProps = {
   onConfirm: (result: AddRegraModalResult) => Promise<void>;
   initialValues?: Partial<AddRegraModalResult>;
   isEditing?: boolean;
+  editingRegraId?: string;
   voluntarioNome?: string;
   voluntarioId?: string;
   igrejaId?: string;
   regrasExistentes?: Array<{
+    id?: string;
     tipo: RegraIndisponibilidadeTipo;
     ministerioId?: string | null;
     funcoes?: string[] | null;
@@ -178,6 +185,7 @@ export default function AddRegraModal({
   onConfirm,
   initialValues,
   isEditing,
+  editingRegraId,
   voluntarioNome,
   voluntarioId,
   igrejaId,
@@ -314,7 +322,10 @@ export default function AddRegraModal({
   const conflitoDetectado = useMemo(() => {
     if (tipo === 'LIMITE_MENSAL') return null; // LIMITE_MENSAL não usa escopo de função
 
-    return regrasExistentes.find((regra) => {
+    const regraConflitante = regrasExistentes.find((regra) => {
+      // Ignora a regra sendo editada se estamos em modo edição
+      if (isEditing && regra.id === editingRegraId) return false;
+
       if (regra.tipo === 'LIMITE_MENSAL') return false; // ignora limite mensal
 
       // Se ambas bloqueiam tudo (sem ministério)
@@ -338,7 +349,9 @@ export default function AddRegraModal({
 
       return false;
     });
-  }, [ministerioId, funcoes, tipo, regrasExistentes]);
+
+    return regraConflitante;
+  }, [ministerioId, funcoes, tipo, regrasExistentes, isEditing, editingRegraId]);
 
   useEffect(() => {
     if (dataInicio && dataFim && dataFim < dataInicio) {
@@ -475,7 +488,7 @@ export default function AddRegraModal({
               Funções (opcional)
             </FancyText>
             {funcoesList.length > 0 ? (
-              <ScrollView
+              <FancyScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.funcoesScroll}
@@ -503,7 +516,7 @@ export default function AddRegraModal({
                     />
                   );
                 })}
-              </ScrollView>
+              </FancyScrollView>
             ) : isLoadingFuncoes ? (
               <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
                 Carregando funções...
@@ -522,7 +535,7 @@ export default function AddRegraModal({
         {/* ALERTA DE CONFLITO */}
         {conflitoDetectado && (
           <FancyErrorBanner
-            message={`Conflita com outra regra. A regra mais restritiva continua valendo.`}
+            message={`Conflita com "${descreverRegra(conflitoDetectado as ResponseRegraIndisponibilidadeVoluntarioDto)}". Essa regra mais ampla continua valendo.`}
           />
         )}
 

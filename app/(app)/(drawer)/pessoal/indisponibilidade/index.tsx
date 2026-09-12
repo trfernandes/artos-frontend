@@ -800,6 +800,7 @@ export default function IndisponibilidadeIndexPage() {
         <AddRegraModal
           visible={!!editingRegra}
           isEditing
+          editingRegraId={editingRegra.id}
           initialValues={{
             tipo: editingRegra.tipo,
             ministerioId: editingRegra.ministerioId ?? undefined,

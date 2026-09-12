@@ -10,6 +10,7 @@ import DefaultIcons from '../../../FancyIcons';
 import { ResponseRegraIndisponibilidadeVoluntarioDto } from '../../../../domain/dtos/RegraIndisponibilidadeVoluntario/regra-indisponibilidade-voluntario.response';
 import { descreverRegra } from '../../../../domain/utils/regra_indisponibilidade_utils';
 import { DateUtilsApi } from '../../../../utils/date_utils';
+import { useMinisterioFuncoesCrud } from '../../../../hooks/useMinisterioFuncoesCrud';
 
 type RegraComEscopo = ResponseRegraIndisponibilidadeVoluntarioDto & {
   aplicaAoDia: boolean;
@@ -36,6 +37,26 @@ export default function BlockedDayDetailsModal({
 }) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
+
+  // Mapa de todas as funções por ID para lookup
+  const { data: allFuncoes } = useMinisterioFuncoesCrud({
+    autoFetch: true,
+  });
+
+  const funcaoNomeMap = useMemo(() => {
+    const map = new Map<string, string>();
+    if (allFuncoes) {
+      allFuncoes.forEach((f: any) => {
+        map.set(f.id, f.nome);
+      });
+    }
+    return map;
+  }, [allFuncoes]);
+
+  // Helper para resolver nome de função
+  const resolveFuncaoNome = (funcaoId: string): string => {
+    return funcaoNomeMap.get(funcaoId) || 'Função desconhecida';
+  };
 
   const groupedRegras = useMemo(() => {
     if (!selectedDate) return { geral: [], porFuncao: [] };
@@ -124,7 +145,13 @@ export default function BlockedDayDetailsModal({
               Bloqueio geral
             </FancyText>
             {groupedRegras.geral.map((regra) => (
-              <RegraBloqueioItem key={regra.id} regra={regra} palette={palette} styles={styles} />
+              <RegraBloqueioItem
+                key={regra.id}
+                regra={regra}
+                palette={palette}
+                styles={styles}
+                resolveFuncaoNome={resolveFuncaoNome}
+              />
             ))}
           </View>
         )}
@@ -136,7 +163,13 @@ export default function BlockedDayDetailsModal({
               Por função
             </FancyText>
             {groupedRegras.porFuncao.map((regra) => (
-              <RegraBloqueioItem key={regra.id} regra={regra} palette={palette} styles={styles} />
+              <RegraBloqueioItem
+                key={regra.id}
+                regra={regra}
+                palette={palette}
+                styles={styles}
+                resolveFuncaoNome={resolveFuncaoNome}
+              />
             ))}
           </View>
         )}
@@ -155,13 +188,17 @@ function RegraBloqueioItem({
   regra,
   palette,
   styles,
+  resolveFuncaoNome,
 }: {
   regra: RegraComEscopo;
   palette: ReturnType<typeof usePallete>;
   styles: ReturnType<typeof createStyles>;
+  resolveFuncaoNome: (funcaoId: string) => string;
 }) {
   const descricao = descreverRegra(regra);
-  const nomeFuncao = regra.funcoes?.[0] ? `Função: ${regra.funcoes[0]}` : undefined;
+  const nomeFuncao = regra.funcoes?.[0]
+    ? `Função: ${resolveFuncaoNome(regra.funcoes[0])}`
+    : undefined;
 
   return (
     <View style={styles.regraItem}>
@@ -201,10 +238,10 @@ function RegraBloqueioItem({
           <View
             style={[
               styles.selo,
-              { backgroundColor: ColorUtils.withAlpha(palette.fonts.inactive, 0.08) },
+              { backgroundColor: ColorUtils.withAlpha(palette.secondary, 0.12) },
             ]}
           >
-            <FancyText type='semiBold' size='extraSmall' color={palette.fonts.inactive}>
+            <FancyText type='semiBold' size='extraSmall' color={palette.secondary}>
               Coberta
             </FancyText>
           </View>
