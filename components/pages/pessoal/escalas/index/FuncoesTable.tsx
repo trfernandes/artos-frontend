@@ -48,6 +48,8 @@ function FuncaoRow({
   const { isDark } = useAppTheme();
   const { isPendente, isSubstituicaoPendente, canSubstitute } = getActionState(item);
   const statusUi = getVoluntarioStatusChipParams(palette, isDark)[item.status];
+  const nomeSubstituido = item.substituicao?.solicitante?.voluntario?.nome;
+  const isSubstituido = !isSubstituicaoPendente && !!item.substituicaoId && !!nomeSubstituido;
 
   return (
     <View style={[styles.row, !isLast ? styles.rowDivider : null]}>
@@ -66,6 +68,14 @@ function FuncaoRow({
         </FancyText>
         <View style={styles.chipRow}>
           <FancyChips size='small' label={statusUi.label} color={statusUi.color} />
+          {isSubstituido && (
+            <FancyChips
+              size='small'
+              label={`Substituindo ${nomeSubstituido}`}
+              color={palette.warning}
+              icon={{ library: 'FontAwesome6', name: 'repeat', size: 10 }}
+            />
+          )}
         </View>
       </View>
 
@@ -167,6 +177,8 @@ function createStyles(palette: ThemePalette) {
     chipRow: {
       flexDirection: 'row',
       alignItems: 'center',
+      gap: 6,
+      flexWrap: 'wrap',
     },
     actionsRow: {
       flexDirection: 'row',
