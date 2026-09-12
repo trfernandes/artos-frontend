@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { StyleSheet } from 'react-native';
+import { router } from 'expo-router';
 import FancyPageView from '../../../../components/containers/FancyPageView';
 import FancyText from '../../../../components/FancyText';
 import FancyVerticalSpacer from '../../../../components/FancyVerticalSpacer';
@@ -114,6 +115,25 @@ export default function AjudaIndexPage() {
           />
         )}
       </TutorialTarget>
+
+      <FancyVerticalSpacer height={4} />
+
+      <FancyText size='small' type='medium' color={palette.fonts.inactive}>
+        Não achou o que precisava numa jornada guiada?
+      </FancyText>
+
+      <FancyListItemCard
+        onPress={() => router.push('/ajuda/suporte')}
+        title='Ajuda e suporte'
+        subtitle='Perguntas frequentes e fale com a gente'
+        leading={{
+          type: 'icon',
+          icon: { library: 'MaterialCommunityIcons', name: 'lifebuoy', size: 20 },
+          color: palette.terciary,
+          backgroundColor: ColorUtils.withAlpha(palette.terciary, 0.12),
+        }}
+        trailing={{ type: 'chevron', onPress: () => router.push('/ajuda/suporte') }}
+      />
 
       <FancyBottomSheetSelect
         ref={ministerioPickerRef}
