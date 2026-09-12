@@ -64,19 +64,28 @@ function conteudoLider(ministerioId: string): Record<string, PassoConteudo> {
       hint: 'Convide alguém pra entrar no seu ministério — sem isso não dá pra montar escala.',
       ctaLabel: 'Convidar voluntário',
       onPress: () =>
-        router.push({ pathname: '/ministerios/integrantes/add', params: { ministerioId } } as never),
+        router.push({
+          pathname: '/ministerios/integrantes/add',
+          params: { ministerioId },
+        } as never),
     },
     vincular: {
       hint: 'Vincule um voluntário já cadastrado ao seu ministério pra ele poder ser escalado.',
       ctaLabel: 'Vincular voluntário',
       onPress: () =>
-        router.push({ pathname: '/ministerios/integrantes/add', params: { ministerioId } } as never),
+        router.push({
+          pathname: '/ministerios/integrantes/add',
+          params: { ministerioId },
+        } as never),
     },
     atribuir: {
       hint: 'Atribua uma função ao voluntário vinculado, assim ele aparece disponível na escala.',
       ctaLabel: 'Atribuir função',
       onPress: () =>
-        router.push({ pathname: '/ministerios/integrantes/add', params: { ministerioId } } as never),
+        router.push({
+          pathname: '/ministerios/integrantes/add',
+          params: { ministerioId },
+        } as never),
     },
     evento: {
       hint: 'Falta um evento vinculado a este ministério pra gerar a primeira escala. Só o Admin cria eventos — peça pra ele vincular um culto ao seu ministério.',
@@ -106,8 +115,7 @@ export default function ChecklistOnboardingCard({
     return null;
   }
 
-  const conteudo =
-    papel === 'admin' ? CONTEUDO_ADMIN : conteudoLider(ministerioId ?? '');
+  const conteudo = papel === 'admin' ? CONTEUDO_ADMIN : conteudoLider(ministerioId ?? '');
   const passoConteudo = conteudo[proximoPendente.chave];
 
   const tint = ColorUtils.lightenColor(Pallete.primary, 0.96);
@@ -116,12 +124,7 @@ export default function ChecklistOnboardingCard({
     <View style={[styles.card, { backgroundColor: tint, borderColor: Pallete.borderCard }]}>
       <ChecklistOnboardingRing concluidos={concluidos} total={total} />
 
-      <FancyText
-        size='extraSmall'
-        type='bold'
-        color={Pallete.primary}
-        style={styles.eyebrow}
-      >
+      <FancyText size='extraSmall' type='bold' color={Pallete.primary} style={styles.eyebrow}>
         PRÓXIMO PASSO
       </FancyText>
       <FancyText size='medium' type='bold' style={styles.stepName}>
