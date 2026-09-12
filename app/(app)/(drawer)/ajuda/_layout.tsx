@@ -14,6 +14,20 @@ export default function AjudaLayout() {
         name='index'
         options={{ title: 'Ajuda', headerRight: () => <MainHeaderButtons /> }}
       />
+      <Stack.Screen
+        name='suporte'
+        options={{
+          title: 'Ajuda e suporte',
+          header: (props) => <FancyPageHeader leftButton='back' {...props} />,
+        }}
+      />
+      <Stack.Screen
+        name='suporte-form'
+        options={{
+          title: 'Enviar mensagem',
+          header: (props) => <FancyPageHeader leftButton='back' {...props} />,
+        }}
+      />
     </Stack>
   );
 }
