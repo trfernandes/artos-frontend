@@ -448,16 +448,16 @@ export default function MinhasEscalasIndexPage() {
   const handleConfirmSubstituicao = useCallback(
     async (escalaItemId: string, solicitanteId: string, substitutoId: string, motivo: string) => {
       try {
-        await updateEscala?.({
-          id: escalaItemId,
-          data: { status: EscalaItemStatusEnum.SubstituicaoSolicitada },
-        });
-
         await addSubstituicao({
           escalaItemId: escalaItemId,
           motivo,
           solicitanteId: solicitanteId,
           substitutoId: substitutoId,
+        });
+
+        await updateEscala?.({
+          id: escalaItemId,
+          data: { status: EscalaItemStatusEnum.SubstituicaoSolicitada },
         });
 
         Toast.show({
@@ -468,12 +468,9 @@ export default function MinhasEscalasIndexPage() {
         setSubstituicaoPageParams({ visible: false });
         await loadMonthEscalas();
         queryClient.invalidateQueries({ queryKey: ['evento-equipe'] });
-      } catch {
-        Toast.show({
-          type: 'error',
-          text1: 'Erro ao solicitar substituição',
-          text2: 'Tente novamente.',
-        });
+      } catch (error) {
+        const backendMessage = (error as any)?.response?.data?.message;
+        throw new Error(backendMessage || 'Erro ao solicitar substituição. Tente novamente.');
       }
     },
     [updateEscala, addSubstituicao, loadMonthEscalas, setSubstituicaoPageParams],

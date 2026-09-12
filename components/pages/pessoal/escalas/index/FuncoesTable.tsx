@@ -61,16 +61,25 @@ function FuncaoRow({
       </View>
 
       <View style={styles.info}>
-        <FancyText size='small' type='semiBold' style={styles.roleTitle} numberOfLines={1}>
+        <FancyText size='small' type='semiBold' style={styles.roleTitle} numberOfLines={2}>
           {item.funcao?.nome || 'Função'}
         </FancyText>
-        <View style={styles.chipRow}>
-          <FancyChips size='small' label={statusUi.label} color={statusUi.color} />
-        </View>
+        {!isSubstituicaoPendente && (
+          <View style={styles.chipRow}>
+            <FancyChips size='small' label={statusUi.label} color={statusUi.color} />
+          </View>
+        )}
       </View>
 
-      {isSubstituicaoPendente && !readOnly && (
-        <FancyChips size='small' label='Substituição solicitada' color={palette.warning} />
+      {isSubstituicaoPendente && (
+        <FancyChips
+          size='small'
+          label='Aguardando resposta'
+          color={palette.warning}
+          icon={{ library: 'FontAwesome6', name: 'repeat', size: 11 }}
+          style={styles.substituicaoChip}
+          labelProps={{ style: styles.substituicaoChipLabel }}
+        />
       )}
 
       {!isSubstituicaoPendente && !readOnly && (
@@ -167,6 +176,13 @@ function createStyles(palette: ThemePalette) {
     chipRow: {
       flexDirection: 'row',
       alignItems: 'center',
+    },
+    substituicaoChip: {
+      alignSelf: 'center',
+    },
+    substituicaoChipLabel: {
+      lineHeight: 17,
+      includeFontPadding: false,
     },
     actionsRow: {
       flexDirection: 'row',

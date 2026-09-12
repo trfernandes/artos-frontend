@@ -19,6 +19,7 @@ import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 import { ThemePalette } from '../../../../../constants/colors';
 import FancyText from '../../../../FancyText';
 import FancyButton from '../../../../buttons/FancyButton';
+import { ColorUtils } from '../../../../../utils/color_utils';
 
 const schema = z.object({
   eventoId: z.string(),
@@ -96,6 +97,7 @@ export default function SubstituicaoModalPage({
   }, [possiveisSubstitutos]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const form = useForm({
     resolver: zodResolver(schema),
@@ -114,7 +116,12 @@ export default function SubstituicaoModalPage({
         if (isSubmitting) return;
         try {
           setIsSubmitting(true);
+          setSubmitError(null);
           await onConfirm(values);
+        } catch (error) {
+          setSubmitError(
+            error instanceof Error ? error.message : 'Erro ao solicitar substituição.',
+          );
         } finally {
           setIsSubmitting(false);
         }
@@ -205,7 +212,20 @@ export default function SubstituicaoModalPage({
         disabled={isBusy}
         isLoading={isLoading}
         searchPlaceholder='Buscar substituto...'
+        onChange={() => setSubmitError(null)}
       />
+      {submitError && (
+        <View
+          style={[
+            styles.errorBanner,
+            { backgroundColor: ColorUtils.withAlpha(palette.error, 0.12) },
+          ]}
+        >
+          <FancyText size='small' type='medium' style={{ color: palette.error }}>
+            {submitError}
+          </FancyText>
+        </View>
+      )}
       <ControlledTextArea
         control={form.control}
         name='motivo'
@@ -238,6 +258,10 @@ function createStyles(palette: ThemePalette) {
     reasonInput: {
       minHeight: 118,
       textAlignVertical: 'top',
+    },
+    errorBanner: {
+      borderRadius: 10,
+      padding: 10,
     },
     buttons: {
       flexDirection: 'row',
