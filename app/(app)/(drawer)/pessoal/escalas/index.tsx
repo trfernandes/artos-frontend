@@ -539,7 +539,11 @@ export default function MinhasEscalasIndexPage() {
     [updateSubstituicao],
   );
 
-  if (isLoading || isLoadingEscalas || isLoadingSubsMut) return <FancyLoading />;
+  // isLoading (updateEscala) e isLoadingSubsMut são de mutations pontuais que já têm
+  // feedback próprio (isSubmitting do modal, FancyAlert bloqueante). Gatear a página
+  // inteira nelas desmonta modais abertos no meio da mutation (ex: substituição),
+  // fazendo o modal remontar do zero e perder o formulário preenchido.
+  if (isLoadingEscalas) return <FancyLoading />;
 
   return (
     <FancyPageView style={styles.container}>
