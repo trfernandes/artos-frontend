@@ -65,6 +65,8 @@ type Props = {
   isSolicitante?: boolean;
   isSubstituto?: boolean;
   onCancelar?: () => void;
+  /** Substituto está marcado indisponível na data — avisa sem bloquear ação. */
+  avisoIndisponivel?: boolean;
 };
 
 export default function SubstituicaoCardBase({
@@ -76,6 +78,7 @@ export default function SubstituicaoCardBase({
   isSolicitante = false,
   isSubstituto,
   onCancelar,
+  avisoIndisponivel = false,
 }: Props) {
   const palette = usePallete();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -380,6 +383,33 @@ export default function SubstituicaoCardBase({
             )}
           </View>
 
+          {/* AVISO: substituto indisponível na data — não bloqueia, só avisa */}
+          {avisoIndisponivel && isPendente ? (
+            <View
+              style={[
+                styles.avisoIndisponivel,
+                { backgroundColor: ColorUtils.withAlpha(palette.warning, 0.14) },
+              ]}
+            >
+              <DefaultIcons.Custom
+                library='MaterialIcons'
+                name='error-outline'
+                size={16}
+                color={palette.warning}
+              />
+              <FancyText
+                size='extraSmall'
+                type='semiBold'
+                color={palette.warning}
+                style={styles.avisoIndisponivelTexto}
+              >
+                {substitutoEhVoce
+                  ? 'Você está marcado como indisponível nesse dia. Pode aceitar mesmo assim, mas confirme se realmente vai conseguir estar presente.'
+                  : `${substitutoNome} está marcado como indisponível nesse dia.`}
+              </FancyText>
+            </View>
+          ) : null}
+
           {/* BLOCO 3: MOTIVO (só renderiza se existir) */}
           {motivo ? (
             <>
@@ -535,6 +565,17 @@ const styles = StyleSheet.create({
     borderRadius: 13,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  avisoIndisponivel: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    borderRadius: 8,
+    padding: 8,
+  },
+  avisoIndisponivelTexto: {
+    flex: 1,
+    lineHeight: 15,
   },
   blockMotivoRow: {
     flexDirection: 'row',

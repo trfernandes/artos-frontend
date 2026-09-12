@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ResponseEscalaSubstituicaoDto } from '../../../../../domain/dtos/Escala/escala-substituicao.response';
 import SubstituicaoCardBase from '../../../common/SubstituicaoCardBase';
 import RecusarSubstituicaoModal from '../../../common/RecusarSubstituicaoModal';
+import { EscalaSubstituicoesApi } from '../../../../../domain/api/EscalaSubstituicoesApi';
+import { EscalaSubstituicaoStatusEnum } from '../../../../../domain/enums/Escala/escala-substituicao-status.enum';
 
 type Props = {
   substituicao: ResponseEscalaSubstituicaoDto;
@@ -17,6 +19,27 @@ export default function SubstituicaoMinisterioCard({
   isActing,
 }: Props) {
   const [recusarVisible, setRecusarVisible] = useState(false);
+  const [avisoIndisponivel, setAvisoIndisponivel] = useState(false);
+
+  const isPendente = substituicao.status === EscalaSubstituicaoStatusEnum.Pendente;
+
+  useEffect(() => {
+    if (!isPendente) {
+      setAvisoIndisponivel(false);
+      return;
+    }
+    let cancelado = false;
+    EscalaSubstituicoesApi.substitutoIndisponivel(substituicao.id)
+      .then((indisponivel) => {
+        if (!cancelado) setAvisoIndisponivel(indisponivel);
+      })
+      .catch(() => {
+        if (!cancelado) setAvisoIndisponivel(false);
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, [substituicao.id, isPendente]);
 
   const handleConfirmRecusa = async (motivo: string) => {
     setRecusarVisible(false);
@@ -30,6 +53,7 @@ export default function SubstituicaoMinisterioCard({
         canAct
         isSubstituto={false}
         isActing={isActing}
+        avisoIndisponivel={avisoIndisponivel}
         actions={{
           onAceitar: () => onAceitar(substituicao.id),
           onRecusar: () => setRecusarVisible(true),
