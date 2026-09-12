@@ -21,6 +21,30 @@ class EscalaSubstituicoesApiClass extends BaseApi<
     });
     return response.data.data;
   }
+
+  async candidatosStatus(escalaItemId: string): Promise<CandidatoSubstituicaoStatusDto[]> {
+    const response = await apiClient.get(
+      `/${this.resourceName}/itens/${escalaItemId}/candidatos-status`,
+    );
+    return response.data.data;
+  }
+
+  async substitutoIndisponivel(substituicaoId: string): Promise<boolean> {
+    const response = await apiClient.get(
+      `/${this.resourceName}/${substituicaoId}/substituto-indisponivel`,
+    );
+    return response.data.data.indisponivel;
+  }
+}
+
+export interface CandidatoSubstituicaoStatusDto {
+  ministerioVoluntarioId: string;
+  voluntarioId: string;
+  nome: string;
+  fotoUrl: string | null;
+  fotoThumbUrl: string | null;
+  temFuncao: boolean;
+  temDisponibilidade: boolean;
 }
 
 export const EscalaSubstituicoesApi = new EscalaSubstituicoesApiClass();

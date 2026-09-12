@@ -37,6 +37,7 @@ import {
 } from '../../constants/font';
 import DefaultIcons, { CustomIconProps } from '../FancyIcons';
 import { DropDownItemProps } from './FancyDropDownItem';
+import FancyChips from '../FancyChips';
 import { FancyTextInputProps } from './FancyTextInput';
 import { ColorUtils } from '../../utils/color_utils';
 import FancyImage from '../images/FancyImage';
@@ -487,6 +488,18 @@ function FancySearchSelectInner<ValueItem>(
                         {item.subtitle && (
                           <FancyText style={styles.itemSubtitle}>{item.subtitle}</FancyText>
                         )}
+                        {item.tags && item.tags.length > 0 && (
+                          <View style={styles.itemTags}>
+                            {item.tags.map((tag, tagIndex) => (
+                              <FancyChips
+                                key={tagIndex}
+                                label={tag.label}
+                                color={tag.color}
+                                size='small'
+                              />
+                            ))}
+                          </View>
+                        )}
                       </View>
                       {multiSelect ? (
                         <View pointerEvents='none'>
@@ -775,6 +788,12 @@ function createStyles(palette: ThemePalette) {
     itemTextContainer: {
       flex: 1,
       gap: 2,
+    },
+    itemTags: {
+      flexDirection: 'row',
+      gap: 6,
+      flexWrap: 'wrap',
+      marginTop: 4,
     },
     itemText: {
       fontFamily: MEDIUM_FONT,

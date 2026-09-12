@@ -1,9 +1,11 @@
-import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyBottomSheetModal from '../../../../modal/FancyBottomSheetModal';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
-import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
+import {
+  EscalaSubstituicoesApi,
+  CandidatoSubstituicaoStatusDto,
+} from '../../../../../domain/api/EscalaSubstituicoesApi';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -43,57 +45,62 @@ export default function SubstituicaoModalPage({
   onConfirm,
   dadosEscala,
 }: SubstituicaoModalPageProps) {
-  const { user } = useAuth();
+  const palette = usePallete();
+  const [candidatos, setCandidatos] = useState<CandidatoSubstituicaoStatusDto[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const initialParams: DynamicQuery = {
-    where: {
-      conditions: [
-        {
-          path: 'ministerio.id',
-          operator: Operator.EQUALS,
-          value: {
-            type: ValueType.LITERAL,
-            value: dadosEscala.voluntario?.ministerio?.id! || dadosEscala.voluntario?.ministerioId!,
-          },
-        },
-        {
-          path: 'voluntario.id',
-          operator: Operator.NOT_EQUALS,
-          value: { type: ValueType.LITERAL, value: user?.user?.id! },
-        },
-      ],
-    },
-    relations: ['funcoes', 'voluntario'],
-  };
+  useEffect(() => {
+    if (!visible) return;
+    let cancelado = false;
 
-  const { data: possiveisSubstitutos, isLoading } = useMinisterioVoluntariosCrud({
-    initialParams,
-    autoFetch: true,
-  });
+    async function carregarCandidatos() {
+      try {
+        setIsLoading(true);
+        setLoadError(null);
+        const result = await EscalaSubstituicoesApi.candidatosStatus(dadosEscala.id);
+        if (!cancelado) setCandidatos(result);
+      } catch {
+        if (!cancelado) setLoadError('Não foi possível carregar os candidatos.');
+      } finally {
+        if (!cancelado) setIsLoading(false);
+      }
+    }
+
+    carregarCandidatos();
+    return () => {
+      cancelado = true;
+    };
+  }, [visible, dadosEscala.id]);
 
   const possiveisSubstitutosList = useMemo<DropDownItemProps<string>[]>(() => {
-    return possiveisSubstitutos
+    return candidatos
       .map(
-        (minVoluntario) =>
+        (candidato) =>
           ({
-            title: minVoluntario.voluntario?.nome,
+            title: candidato.nome,
             left: {
               type: 'image',
               source:
-                minVoluntario.voluntario?.fotoThumbUrl || minVoluntario.voluntario?.fotoUrl
-                  ? {
-                      uri:
-                        minVoluntario.voluntario.fotoThumbUrl ||
-                        minVoluntario.voluntario.fotoUrl ||
-                        '',
-                    }
+                candidato.fotoThumbUrl || candidato.fotoUrl
+                  ? { uri: candidato.fotoThumbUrl || candidato.fotoUrl || '' }
                   : AppImages.emptyProfile,
             },
-            value: minVoluntario.id,
+            tags: [
+              {
+                label: candidato.temFuncao ? 'Possui função' : 'Sem função',
+                color: candidato.temFuncao ? palette.confirm : palette.error,
+              },
+              {
+                label: candidato.temDisponibilidade ? 'Disponível' : 'Indisponível',
+                color: candidato.temDisponibilidade ? palette.confirm : palette.warning,
+              },
+            ],
+            value: candidato.ministerioVoluntarioId,
           }) as DropDownItemProps<string>,
       )
       .sort((a, b) => a.title.localeCompare(b.title, 'pt-BR', { sensitivity: 'base' }));
-  }, [possiveisSubstitutos]);
+  }, [candidatos, palette]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -133,7 +140,6 @@ export default function SubstituicaoModalPage({
   }, [form.handleSubmit, isSubmitting, onConfirm]);
 
   const isBusy = isLoading || isSubmitting;
-  const palette = usePallete();
   const styles = useThemedStyles(createStyles);
 
   return (
@@ -204,6 +210,7 @@ export default function SubstituicaoModalPage({
         listItems={possiveisSubstitutosList}
         disabled={isBusy}
         isLoading={isLoading}
+        errorMessage={loadError}
         searchPlaceholder='Buscar substituto...'
       />
       <ControlledTextArea
