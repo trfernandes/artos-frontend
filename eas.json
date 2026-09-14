@@ -19,7 +19,8 @@
       "distribution": "internal",
       "channel": "staging",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://diakonia-backend-staging.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://diakonia-backend-staging.onrender.com",
+        "EXPO_PUBLIC_POSTHOG_KEY": "phc_xF3huomoZ6tcVdULRUMMB2j3wCXRCzdS8uSkjEM9sAqe"
       },
       "android": {},
       "ios": {}
@@ -40,7 +41,8 @@
       "env": {
         "EAS_GRADLE_CACHE": "1",
         "EXPO_PUBLIC_API_URL": "https://diakonia-backend-virginia.onrender.com",
-        "EXPO_PUBLIC_SENTRY_DSN": "https://b65799084d172913463973ef37b937b0@o4510567624409088.ingest.us.sentry.io/4510567678279680"
+        "EXPO_PUBLIC_SENTRY_DSN": "https://b65799084d172913463973ef37b937b0@o4510567624409088.ingest.us.sentry.io/4510567678279680",
+        "EXPO_PUBLIC_POSTHOG_KEY": "phc_xF3huomoZ6tcVdULRUMMB2j3wCXRCzdS8uSkjEM9sAqe"
       },
       "android": {},
       "ios": {}

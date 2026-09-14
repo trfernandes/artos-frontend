@@ -28,6 +28,8 @@ import {
 } from '../../../../../contexts/pages/escalas/AssistantContext';
 import Toast from 'react-native-toast-message';
 import { EscalaRepository } from '../../../../../domain/services/EscalaRepository';
+import { usePostHog } from 'posthog-react-native';
+import { AnalyticsEvent, buildEscalaCriadaProps } from '../../../../../core/analytics/events';
 import { Operator, ValueType, Conjunction } from '../../../../../domain/utils/query_utils';
 import {
   CreateEscalaDto,
@@ -152,6 +154,7 @@ function AssistenteWrapper() {
   const { showLoading, hideLoading } = useLoading();
 
   const { generate: generateEscala, isGenerating: isGeneratingEscala } = useEscalasCrud();
+  const posthog = usePostHog();
 
   const journey = useJourney();
   const isJourneyStep = journey.currentStep?.tourId === ESCALA_ASSISTENTE_TOUR_ID;
@@ -363,6 +366,14 @@ function AssistenteWrapper() {
         showLoading('Iniciando geração...');
         const payload = mapEscalaFormToDto(ministerioId, user?.user?.id!, values);
         const resultado = await generateEscala(payload);
+        posthog.capture(
+          AnalyticsEvent.EscalaCriada,
+          buildEscalaCriadaProps({
+            escalaId: resultado.id,
+            ministerioId,
+            qtdItens: resultado.itens?.length ?? 0,
+          }),
+        );
         setResultado(resultado);
         nextStep();
       } catch (error) {

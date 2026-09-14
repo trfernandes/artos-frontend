@@ -37,6 +37,8 @@ import { ResponseIgrejaSolicitacaoDto } from '../../../../../domain/dtos/Igreja/
 import { CreateIgrejaConviteDto } from '../../../../../domain/dtos/Igreja/create-igreja-convite.dto';
 import { IgrejaVoluntarioRoleEnum } from '../../../../../domain/enums/Igreja/voluntario-role.enum';
 import { APP_TZ } from '../../../../../utils/date_utils';
+import { usePostHog } from 'posthog-react-native';
+import { AnalyticsEvent, buildConviteEnviadoProps } from '../../../../../core/analytics/events';
 
 // Helper para determinar status do convite
 function getConviteStatus(convite: ResponseIgrejaConviteDto): ConviteStatusType {
@@ -56,6 +58,7 @@ export default function SolicitacoesConvitesPage() {
   const palette = usePallete();
   const { igrejaAtiva } = useAuth();
   const queryClient = useQueryClient();
+  const posthog = usePostHog();
   const params = useLocalSearchParams<{ tab?: string }>();
   const initialTabIndex = params.tab === 'convites' ? 1 : 0;
 
@@ -157,6 +160,14 @@ export default function SolicitacoesConvitesPage() {
     mutationFn: (dto: CreateIgrejaConviteDto) =>
       IgrejaRepository.criarConvite(igrejaAtiva!.id, dto),
     onSuccess: (novoConvite) => {
+      posthog.capture(
+        AnalyticsEvent.ConviteEnviado,
+        buildConviteEnviadoProps({
+          igrejaId: igrejaAtiva!.id,
+          conviteId: novoConvite.id,
+          autoApprove: novoConvite.autoApprove,
+        }),
+      );
       setConviteGerado(novoConvite);
       setShowNovoConviteModal(false);
       queryClient.invalidateQueries({ queryKey: ['igreja-convites', igrejaAtiva?.id] });
