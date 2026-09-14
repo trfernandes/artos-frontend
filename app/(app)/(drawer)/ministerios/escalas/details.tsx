@@ -38,6 +38,8 @@ import { canManageEventoOcorrencia } from '../../../../../utils/ministerio_permi
 import { combineOccurrenceWithEventTime } from '../../../../../utils/evento-datetime';
 import { useLoading } from '../../../../../contexts/LoadingContext';
 import { UpdateEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.update';
+import { usePostHog } from 'posthog-react-native';
+import { AnalyticsEvent, buildEscalaPublicadaProps } from '../../../../../core/analytics/events';
 import ResolverConflitosModal from '../../../../../components/pages/ministerios/escalas/details/ResolverConflitosModal';
 import {
   ConflitoMultiMinisteriosType,
@@ -144,6 +146,8 @@ export default function MinisterioEscalasDetailsPage() {
     }),
     [escalaId],
   );
+
+  const posthog = usePostHog();
 
   const {
     data: escalaData,
@@ -644,6 +648,13 @@ export default function MinisterioEscalasDetailsPage() {
         setIsConflitosModalOpen(true);
         return;
       }
+      posthog.capture(
+        AnalyticsEvent.EscalaPublicada,
+        buildEscalaPublicadaProps({
+          escalaId,
+          qtdItens: escalaData?.[0]?.itens?.length ?? 0,
+        }),
+      );
       await refetchEscala();
     } catch (error) {
       Toast.show({
@@ -654,7 +665,7 @@ export default function MinisterioEscalasDetailsPage() {
     } finally {
       setIsPublishing(false);
     }
-  }, [escalaId, igrejaAtiva?.id, refetchEscala]);
+  }, [escalaId, igrejaAtiva?.id, refetchEscala, escalaData, posthog]);
 
   const handlePublishPress = useCallback(() => {
     FancyAlert.alert('Publicação de escala', 'Deseja realmente publicar esta escala?', [

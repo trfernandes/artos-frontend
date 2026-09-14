@@ -4,7 +4,10 @@ import { Asset } from 'expo-asset';
 import { SplashScreen, Stack, useNavigationContainerRef } from 'expo-router';
 import { setOptions as setSplashScreenOptions } from 'expo-splash-screen';
 import { AppState, Modal, Platform, StyleSheet, View } from 'react-native';
+import { PostHogProvider } from 'posthog-react-native';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import { AnalyticsIdentityBridge } from '../core/analytics/AnalyticsIdentityBridge';
+import { POSTHOG_API_KEY, POSTHOG_HOST } from '../core/analytics/posthogConfig';
 import { TutorialCatalogProvider } from '../contexts/TutorialCatalogContext';
 import { JourneyProvider, useJourney } from '../contexts/JourneyContext';
 import { LoadingProvider } from '../contexts/LoadingContext';
@@ -90,6 +93,24 @@ const MIN_SPLASH_VISIBLE_MS = 1400;
 // sempre destrava, mesmo que o timing "ideal" acima falhe.
 const MAX_SPLASH_VISIBLE_MS = 4000;
 
+function AnalyticsProvider({ children }: { children: React.ReactNode }) {
+  if (!POSTHOG_API_KEY) {
+    // Sem key configurada (dev/e2e ou key ainda não provisionada): no-op, mesmo
+    // padrão do backend (AnalyticsService) — não bloqueia o boot do app.
+    return <>{children}</>;
+  }
+
+  return (
+    <PostHogProvider
+      apiKey={POSTHOG_API_KEY}
+      options={{ host: POSTHOG_HOST, enableSessionReplay: false }}
+    >
+      <AnalyticsIdentityBridge />
+      {children}
+    </PostHogProvider>
+  );
+}
+
 export default Sentry.wrap(function RootLayout() {
   const [queryClient] = useState(() => createQueryClient());
   const [splashVisible, setSplashVisible] = useState(true);
@@ -133,18 +154,20 @@ export default Sentry.wrap(function RootLayout() {
             <GlobalErrorBoundary>
               <QueryClientProvider client={queryClient}>
                 <AuthProvider>
-                  <TutorialCatalogProvider>
-                    <JourneyProvider>
-                      <ConnectivityProvider>
-                        <LoadingProvider>
-                          <RootLayoutNav
-                            onReady={handleReady}
-                            onNativeSplashHidden={handleNativeSplashHidden}
-                          />
-                        </LoadingProvider>
-                      </ConnectivityProvider>
-                    </JourneyProvider>
-                  </TutorialCatalogProvider>
+                  <AnalyticsProvider>
+                    <TutorialCatalogProvider>
+                      <JourneyProvider>
+                        <ConnectivityProvider>
+                          <LoadingProvider>
+                            <RootLayoutNav
+                              onReady={handleReady}
+                              onNativeSplashHidden={handleNativeSplashHidden}
+                            />
+                          </LoadingProvider>
+                        </ConnectivityProvider>
+                      </JourneyProvider>
+                    </TutorialCatalogProvider>
+                  </AnalyticsProvider>
                 </AuthProvider>
               </QueryClientProvider>
             </GlobalErrorBoundary>

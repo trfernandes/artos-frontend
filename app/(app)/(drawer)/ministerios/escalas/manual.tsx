@@ -25,6 +25,8 @@ import {
   ESCALA_MANUAL_TOUR_STEPS,
   ESCALA_MANUAL_TOUR_TITLE,
 } from '../../../../../components/tutorial/tours/escalasManualTour';
+import { usePostHog } from 'posthog-react-native';
+import { AnalyticsEvent, buildEscalaCriadaProps } from '../../../../../core/analytics/events';
 
 const DUPLICATE_NAME_MESSAGE = 'Já existe uma escala com esse nome neste ministério.';
 
@@ -33,6 +35,7 @@ export default function EscalaManualPage() {
   const { user, igrejaAtiva } = useAuth();
   const { showLoading, hideLoading } = useLoading();
   const { createManual, isCreatingManual } = useEscalasCrud();
+  const posthog = usePostHog();
   const { validateNomeDebounced, isCheckingName } = useEscalaNomeValidator(ministerioId);
   const tour = useScreenTutorial(
     ESCALA_MANUAL_TOUR_ID,
@@ -84,6 +87,14 @@ export default function EscalaManualPage() {
         dataInicio: DateUtilsApi.dateOnlyToApi(values.dataInicio),
         dataTermino: DateUtilsApi.dateOnlyToApi(values.dataTermino),
       });
+      posthog.capture(
+        AnalyticsEvent.EscalaCriada,
+        buildEscalaCriadaProps({
+          escalaId: resultado.id,
+          ministerioId,
+          qtdItens: resultado.itens?.length ?? 0,
+        }),
+      );
 
       router.replace({
         pathname: '/ministerios/escalas/details',

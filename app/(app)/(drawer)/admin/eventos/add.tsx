@@ -15,6 +15,8 @@ import { DefaultIconsNames } from '../../../../../constants/icons';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import Toast from 'react-native-toast-message';
 import { usePallete } from '../../../../../hooks/usePallete';
+import { usePostHog } from 'posthog-react-native';
+import { AnalyticsEvent, buildEventoCriadoProps } from '../../../../../core/analytics/events';
 
 export function getDefaultEventoTimes() {
   const now = new Date();
@@ -50,6 +52,7 @@ export default function EventosAddPage() {
   });
 
   const { add, isError, isLoading, isLoadingMutation } = useEventosCrud();
+  const posthog = usePostHog();
 
   const handleSubmit = async () => {
     form.handleSubmit(
@@ -65,7 +68,15 @@ export default function EventosAddPage() {
             payload.dataFimRecorrencia && DateUtilsApi.dateTimeToApi(payload.dataFimRecorrencia),
           recorrencia: payload.recorrencia || RecorrenciaEnum.Nunca,
         };
-        await add(newEvento);
+        const resultado = await add(newEvento);
+        posthog.capture(
+          AnalyticsEvent.EventoCriado,
+          buildEventoCriadoProps({
+            eventoId: resultado.id,
+            igrejaId: newEvento.igrejaId,
+            tipo: newEvento.recorrencia,
+          }),
+        );
         router.back();
       },
       (errors) => {

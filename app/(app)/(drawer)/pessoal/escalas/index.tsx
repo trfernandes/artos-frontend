@@ -45,6 +45,11 @@ import {
   ESCALAS_VOLUNTARIO_TOUR_TITLE,
 } from '../../../../../components/tutorial/tours/escalasVoluntarioTour';
 import { useJourney } from '../../../../../contexts/JourneyContext';
+import { usePostHog } from 'posthog-react-native';
+import {
+  AnalyticsEvent,
+  buildDisponibilidadeRespondidaProps,
+} from '../../../../../core/analytics/events';
 import { usePallete } from '../../../../../hooks/usePallete';
 
 // Piso do calendário. Sem isso o FancyCalendar trava em "hoje" e a seta de
@@ -95,6 +100,7 @@ export default function MinhasEscalasIndexPage() {
   const [escalasDoUsuario, setEscalasDoUsuario] = useState<ResponseEscalaItemDto[]>([]);
   const [isLoadingEscalas, setIsLoadingEscalas] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const posthog = usePostHog();
   const { update: updateEscala, isLoadingMutation: isLoading } = useEscalaItensCrud({
     muteMessages: true,
   });
@@ -416,6 +422,13 @@ export default function MinhasEscalasIndexPage() {
                 id: escalaItensId,
                 data: { status: EscalaItemStatusEnum.Ausente },
               });
+              posthog.capture(
+                AnalyticsEvent.DisponibilidadeRespondida,
+                buildDisponibilidadeRespondidaProps({
+                  escalaItemId: escalaItensId,
+                  disponivel: false,
+                }),
+              );
               Toast.show({ type: 'info', text1: 'Ausência registrada.' });
               await loadMonthEscalas();
               queryClient.invalidateQueries({ queryKey: ['evento-equipe'] });
@@ -432,6 +445,13 @@ export default function MinhasEscalasIndexPage() {
                 id: escalaItensId,
                 data: { status: EscalaItemStatusEnum.Confirmado },
               });
+              posthog.capture(
+                AnalyticsEvent.DisponibilidadeRespondida,
+                buildDisponibilidadeRespondidaProps({
+                  escalaItemId: escalaItensId,
+                  disponivel: true,
+                }),
+              );
               Toast.show({ type: 'success', text1: 'Presença confirmada!' });
               await loadMonthEscalas();
               queryClient.invalidateQueries({ queryKey: ['evento-equipe'] });
@@ -442,7 +462,7 @@ export default function MinhasEscalasIndexPage() {
         },
       ]);
     },
-    [updateEscala, loadMonthEscalas],
+    [updateEscala, loadMonthEscalas, posthog],
   );
 
   const handleConfirmSubstituicao = useCallback(
