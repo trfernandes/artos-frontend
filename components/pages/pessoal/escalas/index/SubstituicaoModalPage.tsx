@@ -1,18 +1,12 @@
-import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
 import FancyBottomSheetModal from '../../../../modal/FancyBottomSheetModal';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { DropDownItemProps } from '../../../../fields/FancyDropDownItem';
-import { useMinisterioVoluntariosCrud } from '../../../../../hooks/useMinisterioVoluntariosCrud';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import ControlledSearchSelect from '../../../../forms/ControlledSearchSelect';
 import ControlledTextArea from '../../../../forms/ControlledTextArea';
-import { useAuth } from '../../../../../contexts/AuthContext';
 import { ResponseEscalaItemDto } from '../../../../../domain/dtos/Escala/escala-item.response';
-import { AppImages } from '../../../../../assets/app_images';
 import Toast from 'react-native-toast-message';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
@@ -21,9 +15,6 @@ import FancyText from '../../../../FancyText';
 import FancyButton from '../../../../buttons/FancyButton';
 
 const schema = z.object({
-  eventoId: z.string(),
-  solicitanteId: z.string(),
-  substitutoId: z.string('Campo obrigatório'),
   escalaItemId: z.string('Campo obrigatório'),
   motivo: z.string('Campo obrigatório').min(5, 'O motivo deve ter ao menos 5 caracteres'),
 });
@@ -43,68 +34,13 @@ export default function SubstituicaoModalPage({
   onConfirm,
   dadosEscala,
 }: SubstituicaoModalPageProps) {
-  const { user } = useAuth();
-
-  const initialParams: DynamicQuery = {
-    where: {
-      conditions: [
-        {
-          path: 'ministerio.id',
-          operator: Operator.EQUALS,
-          value: {
-            type: ValueType.LITERAL,
-            value: dadosEscala.voluntario?.ministerio?.id! || dadosEscala.voluntario?.ministerioId!,
-          },
-        },
-        {
-          path: 'voluntario.id',
-          operator: Operator.NOT_EQUALS,
-          value: { type: ValueType.LITERAL, value: user?.user?.id! },
-        },
-      ],
-    },
-    relations: ['funcoes', 'voluntario'],
-  };
-
-  const { data: possiveisSubstitutos, isLoading } = useMinisterioVoluntariosCrud({
-    initialParams,
-    autoFetch: true,
-  });
-
-  const possiveisSubstitutosList = useMemo<DropDownItemProps<string>[]>(() => {
-    return possiveisSubstitutos
-      .map(
-        (minVoluntario) =>
-          ({
-            title: minVoluntario.voluntario?.nome,
-            left: {
-              type: 'image',
-              source:
-                minVoluntario.voluntario?.fotoThumbUrl || minVoluntario.voluntario?.fotoUrl
-                  ? {
-                      uri:
-                        minVoluntario.voluntario.fotoThumbUrl ||
-                        minVoluntario.voluntario.fotoUrl ||
-                        '',
-                    }
-                  : AppImages.emptyProfile,
-            },
-            value: minVoluntario.id,
-          }) as DropDownItemProps<string>,
-      )
-      .sort((a, b) => a.title.localeCompare(b.title, 'pt-BR', { sensitivity: 'base' }));
-  }, [possiveisSubstitutos]);
-
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
       escalaItemId: dadosEscala.id,
-      eventoId: dadosEscala.evento?.id,
-      solicitanteId: dadosEscala.voluntario?.id,
       motivo: undefined,
-      substitutoId: undefined,
     },
   });
 
@@ -132,9 +68,9 @@ export default function SubstituicaoModalPage({
     )();
   }, [form.handleSubmit, isSubmitting, onConfirm]);
 
-  const isBusy = isLoading || isSubmitting;
-  const palette = usePallete();
+  const isBusy = isSubmitting;
   const styles = useThemedStyles(createStyles);
+  usePallete();
 
   return (
     <FancyBottomSheetModal
@@ -197,15 +133,10 @@ export default function SubstituicaoModalPage({
           </FancyText>
         </View>
       </View>
-      <ControlledSearchSelect
-        control={form.control}
-        name='substitutoId'
-        label={'Quem será seu substituto?'}
-        listItems={possiveisSubstitutosList}
-        disabled={isBusy}
-        isLoading={isLoading}
-        searchPlaceholder='Buscar substituto...'
-      />
+      <FancyText size='small' type='medium' style={styles.explainer}>
+        Vamos buscar automaticamente alguém do ministério pra assumir essa função — você não precisa
+        escolher quem.
+      </FancyText>
       <ControlledTextArea
         control={form.control}
         name='motivo'
@@ -234,6 +165,9 @@ function createStyles(palette: ThemePalette) {
     },
     infoLabel: {
       opacity: 0.55,
+    },
+    explainer: {
+      opacity: 0.8,
     },
     reasonInput: {
       minHeight: 118,

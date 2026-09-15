@@ -1,7 +1,6 @@
 import { Stack } from 'expo-router';
 import FancyPageHeader from '../../../../../components/header/FancyHeader';
 import MainHeaderButtons from '../../../../../components/header/MainHeaderButtons';
-import SubstituicoesHeaderButton from '../../../../../components/pages/pessoal/escalas/index/SubstituicoesHeaderButton';
 
 export default function EscalasLayout() {
   return (
@@ -15,12 +14,7 @@ export default function EscalasLayout() {
         name='index'
         options={{
           title: 'Minhas Escalas',
-          headerRight: () => (
-            <>
-              <SubstituicoesHeaderButton />
-              <MainHeaderButtons />
-            </>
-          ),
+          headerRight: () => <MainHeaderButtons />,
         }}
       />
       <Stack.Screen

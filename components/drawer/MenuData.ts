@@ -38,6 +38,7 @@ export type DrawerItemData = {
   items?: DrawerItemData[];
   type?: 'RunMethod' | 'GoToRoute';
   onPress?: { type: 'RunMethod'; method: () => void } | { type: 'GoToRoute'; routeName: string };
+  showDot?: boolean;
 };
 
 const sortDrawerItemsByTitle = (items: DrawerItemData[]) =>

@@ -1,141 +1,144 @@
-import { useMemo, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
 import FancySegmentedControl from '../../../../../components/fields/FancySegmentedControl';
+import FancyText from '../../../../../components/FancyText';
 import FancyLoading from '../../../../../components/FancyLoading';
 import FancyList from '../../../../../components/list/FancyList';
 import { FancyListEmptyProps } from '../../../../../components/list/FancyListEmpty';
-import { useEscalaSubstituicoesCrud } from '../../../../../hooks/useEscalaSubstituicoesCrud';
-import { useAuth } from '../../../../../contexts/AuthContext';
-import { DynamicQuery, Operator, ValueType } from '../../../../../domain/utils/query_utils';
-import { EscalaSubstituicaoStatusEnum } from '../../../../../domain/enums/Escala/escala-substituicao-status.enum';
-import SubstituicaoMinisterioCard from '../../../../../components/pages/ministerios/escalas/substituicoes/SubstituicaoMinisterioCard';
-import Toast from 'react-native-toast-message';
-import { getApiErrorMessage } from '../../../../../domain/api/api-error';
+import { usePallete } from '../../../../../hooks/usePallete';
+import { useSubstituicaoPedidosCrud } from '../../../../../hooks/useSubstituicaoPedidosCrud';
+import { SubstituicaoPedidoStatusEnum } from '../../../../../domain/enums/SubstituicaoPedido/substituicao-pedido-status.enum';
+import { PedidoComPendencia } from '../../../../../domain/dtos/SubstituicaoPedido/substituicao-pedido.response';
+import LiderPedidoCard from '../../../../../components/pages/ministerios/escalas/substituicoes/LiderPedidoCard';
+import IndicarVoluntarioModal from '../../../../../components/pages/common/IndicarVoluntarioModal';
+import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 
 type TabValue = 'pendentes' | 'respondidas' | 'todas';
+
+type ListItem =
+  | { type: 'header'; key: string; label: string }
+  | { type: 'card'; key: string; data: PedidoComPendencia };
 
 const EMPTY_STATE_PROPS: Record<TabValue, FancyListEmptyProps> = {
   pendentes: {
     label: 'Tudo em dia!',
-    helperText: 'Não há solicitações pendentes no ministério.',
+    helperText: 'Não há pedidos de substituição pendentes no ministério.',
     icon: { library: 'MaterialCommunityIcons', name: 'check-circle-outline', size: 55 },
     muted: false,
   },
   respondidas: {
     label: 'Sem histórico ainda',
-    helperText: 'Solicitações respondidas aparecerão aqui.',
+    helperText: 'Pedidos resolvidos ou cancelados aparecerão aqui.',
     icon: { library: 'MaterialCommunityIcons', name: 'clipboard-check-outline', size: 55 },
     muted: false,
   },
   todas: {
-    label: 'Sem solicitações',
-    helperText: 'Nenhuma solicitação de substituição no ministério.',
+    label: 'Sem pedidos de substituição',
+    helperText: 'Pedidos de substituição do ministério aparecerão aqui.',
     icon: { library: 'MaterialCommunityIcons', name: 'clipboard-list-outline', size: 55 },
     muted: false,
   },
 };
 
-const RELATIONS = [
-  'escalaItem',
-  'escalaItem.evento',
-  'escalaItem.funcao',
-  'solicitante',
-  'solicitante.voluntario',
-  'substituto',
-  'substituto.voluntario',
-];
-
 export default function MinisterioSubstituicoesScreen() {
   const { ministerioId } = useLocalSearchParams<{ ministerioId: string }>();
-  const { igrejaAtiva } = useAuth();
+  const palette = usePallete();
   const [tab, setTab] = useState<TabValue>('pendentes');
   const [actingId, setActingId] = useState<string | null>(null);
+  const [indicarPedido, setIndicarPedido] = useState<PedidoComPendencia | null>(null);
 
-  const query: DynamicQuery = useMemo(
-    () => ({
-      where: {
-        conditions: [
-          {
-            path: 'escalaItem.escala.ministerioId',
-            operator: Operator.EQUALS,
-            value: { type: ValueType.LITERAL, value: ministerioId ?? '' },
-          },
-        ],
-      },
-      relations: RELATIONS,
-    }),
-    [ministerioId],
+  const {
+    pendentesParaLider,
+    isLoadingPendentesParaLider,
+    isRefetchingPendentesParaLider,
+    refetchPendentesParaLider,
+    gatewayLider,
+    indicarVoluntario,
+    buscarNovamente,
+    removerFuncao,
+  } = useSubstituicaoPedidosCrud();
+
+  // Escopo por ministério preservado no client-side pra manter a entrada do drawer
+  // por ministério — `pendentesParaLider` traz todos os ministérios que o usuário lidera.
+  // Ministério da vaga vem da função (escalaItem.funcao), não do voluntário.
+  const doMinisterio = useMemo(
+    () =>
+      pendentesParaLider.filter(
+        (p) => p.pedido.escalaItem?.funcao?.ministerioId === ministerioId,
+      ),
+    [pendentesParaLider, ministerioId],
   );
 
-  const { data, isLoading, update, refetch, isRefetching } = useEscalaSubstituicoesCrud({
-    autoFetch: true,
-    initialParams: query,
-  });
-
-  const filtered = useMemo(() => {
-    const list = data ?? [];
-    if (tab === 'pendentes')
-      return list.filter((s) => s.status === EscalaSubstituicaoStatusEnum.Pendente);
-    if (tab === 'respondidas')
-      return list.filter(
-        (s) =>
-          s.status === EscalaSubstituicaoStatusEnum.Aprovada ||
-          s.status === EscalaSubstituicaoStatusEnum.Recusada,
-      );
-    return list;
-  }, [data, tab]);
-
-  const pendentesCount = useMemo(
-    () => (data ?? []).filter((s) => s.status === EscalaSubstituicaoStatusEnum.Pendente).length,
-    [data],
+  const pendentes = useMemo(
+    () => doMinisterio.filter((p) => p.pedido.status === SubstituicaoPedidoStatusEnum.Aberto),
+    [doMinisterio],
+  );
+  const semCandidato = useMemo(
+    () => doMinisterio.filter((p) => p.pedido.status === SubstituicaoPedidoStatusEnum.SemCandidato),
+    [doMinisterio],
+  );
+  const respondidas = useMemo(
+    () =>
+      doMinisterio.filter(
+        (p) =>
+          p.pedido.status === SubstituicaoPedidoStatusEnum.Resolvido ||
+          p.pedido.status === SubstituicaoPedidoStatusEnum.Cancelado,
+      ),
+    [doMinisterio],
   );
 
-  const handleAceitar = async (id: string) => {
-    setActingId(id);
+  const listData = useMemo<ListItem[]>(() => {
+    if (tab === 'respondidas') {
+      return respondidas.map((p) => ({ type: 'card', key: p.pedido.id, data: p }));
+    }
+    if (tab === 'todas') {
+      return doMinisterio.map((p) => ({ type: 'card', key: p.pedido.id, data: p }));
+    }
+
+    const ativos = [...pendentes, ...semCandidato];
+    const aguardandoVoce = ativos.filter((p) => p.aguardandoAcaoDoUsuario);
+    const emAndamento = ativos.filter((p) => !p.aguardandoAcaoDoUsuario);
+
+    const items: ListItem[] = [];
+    if (aguardandoVoce.length > 0) {
+      items.push({ type: 'header', key: 'header-aguardando-voce', label: 'Aguardando você' });
+      aguardandoVoce.forEach((p) => items.push({ type: 'card', key: p.pedido.id, data: p }));
+    }
+    if (emAndamento.length > 0) {
+      items.push({ type: 'header', key: 'header-em-andamento', label: 'Em andamento' });
+      emAndamento.forEach((p) => items.push({ type: 'card', key: p.pedido.id, data: p }));
+    }
+    return items;
+  }, [tab, pendentes, semCandidato, respondidas, doMinisterio]);
+
+  const pendentesCount = pendentes.length + semCandidato.length;
+
+  const runAction = useCallback(async (pedidoId: string, action: () => Promise<unknown>) => {
+    setActingId(pedidoId);
     try {
-      await update?.({
-        id,
-        data: {
-          status: EscalaSubstituicaoStatusEnum.Aprovada,
-          dataResposta: new Date().toISOString(),
-        },
-      });
-      Toast.show({ type: 'success', text1: 'Substituição aprovada!', position: 'top' });
-    } catch (err) {
-      Toast.show({
-        type: 'error',
-        text1: getApiErrorMessage(err) ?? 'Erro ao aprovar.',
-        position: 'top',
-      });
+      await action();
     } finally {
       setActingId(null);
     }
-  };
+  }, []);
 
-  const handleRecusar = async (id: string, motivo: string) => {
-    setActingId(id);
-    try {
-      await update?.({
-        id,
-        data: {
-          status: EscalaSubstituicaoStatusEnum.Recusada,
-          dataResposta: new Date().toISOString(),
-          motivoCancelamento: motivo,
+  const handleRemoverFuncao = useCallback(
+    (pedidoId: string) => {
+      FancyAlert.alert('Remover função da escala', 'A função ficará vaga nessa escala. Confirma?', [
+        { text: 'Voltar', style: 'cancel' },
+        {
+          text: 'Remover',
+          style: 'destructive',
+          onPress: () => runAction(pedidoId, () => removerFuncao(pedidoId)),
         },
-      });
-      Toast.show({ type: 'success', text1: 'Substituição recusada.', position: 'top' });
-    } catch (err) {
-      Toast.show({
-        type: 'error',
-        text1: getApiErrorMessage(err) ?? 'Erro ao recusar.',
-        position: 'top',
-      });
-    } finally {
-      setActingId(null);
-    }
-  };
+      ]);
+    },
+    [removerFuncao, runAction],
+  );
+
+  const isLoading = isLoadingPendentesParaLider;
 
   return (
     <FancyPageView style={styles.page}>
@@ -157,21 +160,61 @@ export default function MinisterioSubstituicoesScreen() {
       ) : (
         <FancyList
           containerStyle={styles.listContainer}
-          data={filtered}
-          keyExtractor={(item) => item.id}
-          onRefresh={refetch}
-          refreshing={isRefetching}
-          renderItem={({ item: sub }) => (
-            <SubstituicaoMinisterioCard
-              substituicao={sub}
-              onAceitar={handleAceitar}
-              onRecusar={handleRecusar}
-              isActing={actingId === sub.id}
-            />
-          )}
+          data={listData}
+          keyExtractor={(item) => item.key}
+          onRefresh={refetchPendentesParaLider}
+          refreshing={isRefetchingPendentesParaLider}
+          renderItem={({ item }) => {
+            if (item.type === 'header') {
+              return (
+                <View style={styles.sectionHeader}>
+                  <FancyText size='small' type='bold' color={palette.fonts.inactive}>
+                    {item.label.toUpperCase()}
+                  </FancyText>
+                </View>
+              );
+            }
+            const p = item.data;
+            return (
+              <LiderPedidoCard
+                item={p}
+                isAguardandoGate={p.aguardandoAcaoDoUsuario}
+                isActing={actingId === p.pedido.id}
+                onAprovar={() =>
+                  runAction(p.pedido.id, () =>
+                    gatewayLider({ pedidoId: p.pedido.id, acao: 'aprovar' }),
+                  )
+                }
+                onVetar={() =>
+                  runAction(p.pedido.id, () =>
+                    gatewayLider({ pedidoId: p.pedido.id, acao: 'vetar' }),
+                  )
+                }
+                onIndicarVoluntario={() => setIndicarPedido(p)}
+                onBuscarNovamente={() => runAction(p.pedido.id, () => buscarNovamente(p.pedido.id))}
+                onRemoverFuncao={() => handleRemoverFuncao(p.pedido.id)}
+              />
+            );
+          }}
           listEmptyProps={EMPTY_STATE_PROPS[tab]}
         />
       )}
+
+      {indicarPedido ? (
+        <IndicarVoluntarioModal
+          visible={!!indicarPedido}
+          onClose={() => setIndicarPedido(null)}
+          pedido={indicarPedido.pedido}
+          onConfirm={(candidatoMinisterioVoluntarioId) =>
+            runAction(indicarPedido.pedido.id, () =>
+              indicarVoluntario({
+                pedidoId: indicarPedido.pedido.id,
+                candidatoMinisterioVoluntarioId,
+              }),
+            )
+          }
+        />
+      ) : null}
     </FancyPageView>
   );
 }
@@ -184,5 +227,9 @@ const styles = StyleSheet.create({
   listContainer: {
     flex: 1,
     marginTop: 16,
+  },
+  sectionHeader: {
+    paddingTop: 4,
+    paddingBottom: 2,
   },
 });
