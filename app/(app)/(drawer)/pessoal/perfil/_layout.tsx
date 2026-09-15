@@ -18,6 +18,14 @@ export default function PerfilLayout() {
           header: (props) => <FancyPageHeader leftButton='back' {...props} />,
         }}
       />
+      <Stack.Screen
+        name='politica-privacidade'
+        options={{
+          title: 'Política de Privacidade',
+          headerShown: true,
+          header: (props) => <FancyPageHeader leftButton='back' {...props} />,
+        }}
+      />
     </Stack>
   );
 }

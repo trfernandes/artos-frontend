@@ -4,6 +4,7 @@ import { UpdateVoluntarioDto } from '../dtos/Voluntario/voluntario.update';
 import { BaseApi } from './BaseApi';
 import apiClient from './api-client';
 import { DynamicQuery } from '../utils/query_utils';
+import { ExportacaoDadosDto } from '../dtos/Voluntario/exportacao-dados.dto';
 
 type ApiEnvelope<T> = { data: T };
 
@@ -40,6 +41,27 @@ class VoluntariosApiClass extends BaseApi<
       return response.data.data;
     } catch (error) {
       this.logAxiosError('search', error, query);
+      throw error;
+    }
+  }
+
+  // LGPD (ADR-0009): substitui o antigo DELETE /auth/delete-account (hard delete).
+  // Anonimiza os dados identificáveis mas preserva vínculos de ministério/escala.
+  async excluirContaSelfService(senha: string): Promise<void> {
+    try {
+      await apiClient.post('/voluntarios/me/excluir-conta', { senha });
+    } catch (error) {
+      this.logAxiosError('excluirContaSelfService', error);
+      throw error;
+    }
+  }
+
+  async exportarDados(): Promise<ExportacaoDadosDto> {
+    try {
+      const response = await apiClient.get<ExportacaoDadosDto>('/voluntarios/me/exportar-dados');
+      return response.data;
+    } catch (error) {
+      this.logAxiosError('exportarDados', error);
       throw error;
     }
   }

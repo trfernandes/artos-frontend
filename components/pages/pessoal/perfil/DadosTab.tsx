@@ -1,5 +1,9 @@
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useState } from 'react';
+import { File, Paths } from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import Toast from 'react-native-toast-message';
 import { useAuth } from '../../../../contexts/AuthContext';
 import FancyAvatarImage from '../../../images/FancyImage';
 import FancyText from '../../../FancyText';
@@ -11,9 +15,7 @@ import DefaultIcons, { CustomIconProps } from '../../../FancyIcons';
 import { ThemePalette } from '../../../../constants/colors';
 import { useThemedStyles } from '../../../../hooks/useThemedStyles';
 import { ColorUtils } from '../../../../utils/color_utils';
-import * as WebBrowser from 'expo-web-browser';
-
-const PRIVACY_POLICY_URL = 'https://diakonia.app.br/privacy-policy/';
+import { VoluntariosRepository } from '../../../../domain/services/VoluntariosRepository';
 
 type ProfileActionItemProps = {
   icon: CustomIconProps;
@@ -21,6 +23,7 @@ type ProfileActionItemProps = {
   description: string;
   onPress?: () => void;
   tone?: 'default' | 'danger';
+  loading?: boolean;
 };
 
 function ProfileActionItem({
@@ -29,6 +32,7 @@ function ProfileActionItem({
   description,
   onPress,
   tone = 'default',
+  loading = false,
 }: ProfileActionItemProps) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
@@ -39,6 +43,7 @@ function ProfileActionItem({
   return (
     <TouchableOpacity
       onPress={onPress}
+      disabled={loading}
       activeOpacity={0.72}
       accessibilityRole='button'
       accessibilityLabel={label}
@@ -85,14 +90,18 @@ function ProfileActionItem({
           </FancyText>
         </View>
       </View>
-      <DefaultIcons.Custom
-        library='FontAwesome6'
-        name='chevron-right'
-        size={11}
-        color={
-          tone === 'danger' ? ColorUtils.withAlpha(palette.error, 0.68) : palette.icons.inactive
-        }
-      />
+      {loading ? (
+        <ActivityIndicator size='small' color={palette.icons.inactive} />
+      ) : (
+        <DefaultIcons.Custom
+          library='FontAwesome6'
+          name='chevron-right'
+          size={11}
+          color={
+            tone === 'danger' ? ColorUtils.withAlpha(palette.error, 0.68) : palette.icons.inactive
+          }
+        />
+      )}
     </TouchableOpacity>
   );
 }
@@ -109,10 +118,37 @@ export default function DadosTab({
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
   const { user } = useAuth();
-  const handleOpenPrivacyPolicy = () => WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL);
+  const [isExporting, setIsExporting] = useState(false);
   const nome = user?.user?.nome || 'Usuário';
   const email = user?.user?.email || 'E-mail não informado';
   const handleEditProfile = () => router.push('/pessoal/perfil/edit');
+  const handleOpenPrivacyPolicy = () => router.push('/pessoal/perfil/politica-privacidade');
+
+  const handleExportData = async () => {
+    if (isExporting) return;
+    setIsExporting(true);
+    try {
+      const dados = await VoluntariosRepository.exportarDados();
+      const file = new File(Paths.cache, `dados-diakonia-${user?.user?.id}.json`);
+      if (file.exists) file.delete();
+      file.create();
+      file.write(JSON.stringify(dados, null, 2));
+      const canShare = await Sharing.isAvailableAsync();
+      if (!canShare) {
+        Toast.show({ type: 'error', text1: 'Compartilhamento não disponível neste dispositivo' });
+        return;
+      }
+      await Sharing.shareAsync(file.uri);
+    } catch {
+      Toast.show({
+        type: 'error',
+        text1: 'Erro ao exportar dados',
+        text2: 'Tente novamente.',
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -198,7 +234,7 @@ export default function DadosTab({
             color={palette.fonts.inactive}
             style={styles.sectionTitle}
           >
-            Segurança e conta
+            Segurança
           </FancyText>
           <View style={styles.actionStack}>
             <ProfileActionItem
@@ -206,13 +242,6 @@ export default function DadosTab({
               label='Alterar senha'
               description='Atualize sua senha de acesso'
               onPress={onChangePasswordButtonPress}
-            />
-            <ProfileActionItem
-              icon={{ library: 'FontAwesome6', name: 'user-xmark', size: 13 }}
-              label='Excluir conta'
-              description='Remover permanentemente sua conta'
-              onPress={onDeleteAccountButtonPress}
-              tone='danger'
             />
           </View>
         </View>
@@ -243,7 +272,7 @@ export default function DadosTab({
             color={palette.fonts.inactive}
             style={styles.sectionTitle}
           >
-            Legal
+            Privacidade e dados
           </FancyText>
           <View style={styles.actionStack}>
             <ProfileActionItem
@@ -251,6 +280,20 @@ export default function DadosTab({
               label='Política de Privacidade'
               description='Como coletamos e usamos seus dados'
               onPress={handleOpenPrivacyPolicy}
+            />
+            <ProfileActionItem
+              icon={{ library: 'FontAwesome6', name: 'file-export', size: 13 }}
+              label='Exportar meus dados'
+              description='Baixe uma cópia dos seus dados em JSON'
+              onPress={handleExportData}
+              loading={isExporting}
+            />
+            <ProfileActionItem
+              icon={{ library: 'FontAwesome6', name: 'user-xmark', size: 13 }}
+              label='Excluir conta'
+              description='Remover permanentemente sua conta'
+              onPress={onDeleteAccountButtonPress}
+              tone='danger'
             />
           </View>
         </View>

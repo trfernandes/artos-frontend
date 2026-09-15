@@ -339,8 +339,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return true;
   };
 
+  // LGPD (ADR-0009): usa o endpoint de exclusão self-service (anonimização),
+  // substitui o antigo DELETE /auth/delete-account (hard delete).
   const deleteAccount = async (senha: string) => {
-    await apiClient.delete('/auth/delete-account', { data: { senha } });
+    await apiClient.post('/voluntarios/me/excluir-conta', { senha });
     await signOut('manual');
     return true;
   };
