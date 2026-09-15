@@ -270,11 +270,11 @@ const styles = StyleSheet.create({
     height: 46,
   },
   dateDay: {
-    lineHeight: 19,
+    lineHeight: 22,
     includeFontPadding: false,
   },
   dateMonth: {
-    lineHeight: 11,
+    lineHeight: 14,
     includeFontPadding: false,
     letterSpacing: 0.4,
   },
