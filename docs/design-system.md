@@ -723,5 +723,33 @@ estados positivos/finalizados.
 ## Log de Telas Revisadas
 
 | Tela                  | Data       | Findings                                                                                                                                                                                                                  | Resultado                                   |
-| --------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| --------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
 | AgendaDetailsDadosTab | 2026-08-26 | F1 (chip origem isolado em bloco próprio), F2 (Horário de ensaio com label duplicada), F3 (Template com dropdown inline em vez de trigger+sheet), F4 (ícones todos primary, sem categoria), F5 (header sem fundo próprio) | Todos aprovados e implementados — tsc limpo |
+
+---
+
+# Design System — Onboarding guiado (wizard Admin/Líder)
+
+> Escopo: telas do wizard `FancySteps` do guia automático de onboarding, Admin (6 passos) e Líder
+> (5 passos). Decisão de backend/escopo: ADR-0011 (`backend/docs/adr/0011-onboarding-guiado-admin-lider.md`).
+> Canvas de variantes: 3 opções lado a lado (A/B/C), passo "Ministério" como referência. Aprovado
+> 2026-09-09.
+
+## Regras de Design Confirmadas
+
+- **[confirmed 2026-09-09]** Indicador de progresso do wizard é **texto "Passo N de M" + barra fina**
+  (não pontos tipo stories, não círculos numerados com check) — nomeia o passo atual e ocupa menos
+  altura vertical que as alternativas.
+- **[confirmed 2026-09-09]** Chips de sugestão (Ministério/Função/Evento) ficam em **uma linha só,
+  com scroll horizontal e fade indicando "tem mais"** — não quebram em várias linhas (cresceria o
+  card conforme o catálogo aumenta) e não viram lista vertical de rádio.
+- **[confirmed 2026-09-09]** Passo do wizard **sem card/contêiner próprio** — formulário embutido
+  solto direto no fundo da tela (`backgroundColor`), consistente com o resto do app (nenhuma outra
+  tela usa card pra formulário). Chip selecionado usa `selected`/`primary` pra destaque, não
+  elevação de card.
+
+## Log de Telas Revisadas
+
+| Tela                                | Data       | Findings                                                                 | Resultado                                              |
+| ------------------------------------ | ---------- | ------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Wizard onboarding — passo Ministério | 2026-09-09 | Canvas A (pontos+card+chips wrap) vs B (texto+barra+scroll+sem card) vs C (círculos+lista rádio+card) — usuário escolheu B | Aprovado — implementação é o próximo passo |
