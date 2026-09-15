@@ -13,6 +13,7 @@ import { useSubstituicaoPedidosCrud } from '../../../../../hooks/useSubstituicao
 import { SubstituicaoPedidoStatusEnum } from '../../../../../domain/enums/SubstituicaoPedido/substituicao-pedido-status.enum';
 import { PedidoComPendencia } from '../../../../../domain/dtos/SubstituicaoPedido/substituicao-pedido.response';
 import PedidoCard from '../../../../../components/pages/pessoal/escalas/substituicoes/PedidoCard';
+import AceitarConviteModalPage from '../../../../../components/pages/pessoal/escalas/substituicoes/AceitarConviteModalPage';
 import IndicarVoluntarioModal from '../../../../../components/pages/common/IndicarVoluntarioModal';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import { markPedidoIdsAsSeen } from '../../../../../domain/utils/substituicoesSeenStorage';
@@ -50,6 +51,7 @@ export default function SubstituicoesScreen() {
   const [tab, setTab] = useState<TabValue>('pendentes');
   const [actingId, setActingId] = useState<string | null>(null);
   const [indicarPedido, setIndicarPedido] = useState<PedidoComPendencia | null>(null);
+  const [aceitarPedido, setAceitarPedido] = useState<PedidoComPendencia | null>(null);
 
   const {
     meusPedidos,
@@ -199,7 +201,7 @@ export default function SubstituicoesScreen() {
                 isSolicitante={isSolicitante}
                 isSuaVez={p.aguardandoAcaoDoUsuario}
                 isActing={actingId === p.pedido.id}
-                onAceitar={() => runAction(p.pedido.id, () => aceitar({ pedidoId: p.pedido.id }))}
+                onAceitar={() => setAceitarPedido(p)}
                 onRecusar={() => runAction(p.pedido.id, () => recusar(p.pedido.id))}
                 onCancelar={() => handleCancelar(p.pedido.id)}
                 onIndicarVoluntario={() => setIndicarPedido(p)}
@@ -225,6 +227,20 @@ export default function SubstituicoesScreen() {
               }),
             )
           }
+        />
+      ) : null}
+
+      {aceitarPedido ? (
+        <AceitarConviteModalPage
+          visible={!!aceitarPedido}
+          onClose={() => setAceitarPedido(null)}
+          isSubmitting={actingId === aceitarPedido.pedido.id}
+          onConfirm={async (dataOferecidaEmTroca) => {
+            await runAction(aceitarPedido.pedido.id, () =>
+              aceitar({ pedidoId: aceitarPedido.pedido.id, dataOferecidaEmTroca }),
+            );
+            setAceitarPedido(null);
+          }}
         />
       ) : null}
     </FancyPageView>
