@@ -9,15 +9,30 @@ import FancyModalDialog from '../../components/modal/FancyModalDialog';
 import { usePallete } from '../../hooks/usePallete';
 import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { ColorUtils } from '../../utils/color_utils';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import FancyButton from '../../components/buttons/FancyButton';
 import FancyText from '../../components/FancyText';
+import { QUIZ_VENDAS_BUCKET_COPY, QuizVendasBucket } from '../../constants/quizVendas';
+
+const VALID_BUCKETS: QuizVendasBucket[] = ['SO_FALTA_ORGANIZAR', 'NO_LIMITE', 'SOBRECARREGADO'];
 
 export default function ComecarScreen() {
   const Pallete = usePallete();
   const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
   const [isHelpModalVisible, setIsHelpModalVisible] = useState(false);
+  const params = useLocalSearchParams<{ bucket?: string }>();
+  const bucket = VALID_BUCKETS.includes(params.bucket as QuizVendasBucket)
+    ? (params.bucket as QuizVendasBucket)
+    : undefined;
+  const bucketCopy = bucket ? QUIZ_VENDAS_BUCKET_COPY[bucket] : undefined;
+  const bucketAccent = bucket
+    ? bucket === 'SOBRECARREGADO'
+      ? Pallete.error
+      : bucket === 'NO_LIMITE'
+        ? Pallete.warning
+        : Pallete.confirm
+    : undefined;
 
   return (
     <View style={styles.root}>
@@ -48,6 +63,22 @@ export default function ComecarScreen() {
                 Escolha uma opção. Você pode voltar e trocar depois.
               </FancyText>
             </View>
+
+            {bucketCopy && bucketAccent && (
+              <View style={[styles.dorCard, { backgroundColor: bucketAccent }]}>
+                <FancyText
+                  size='extraSmall'
+                  type='bold'
+                  color={Pallete.fonts.light}
+                  style={styles.dorTag}
+                >
+                  {`SEU DIAGNÓSTICO: ${bucketCopy.tag.toUpperCase()}`}
+                </FancyText>
+                <FancyText size='small' type='medium' color={Pallete.fonts.light}>
+                  {bucketCopy.copy}
+                </FancyText>
+              </View>
+            )}
 
             <View style={styles.cardsContainer}>
               <FancyCard.Image
@@ -251,6 +282,14 @@ function createStyles(Pallete: ThemePalette) {
     },
     cardsContainer: {
       gap: 16,
+    },
+    dorCard: {
+      borderRadius: 18,
+      padding: 14,
+      gap: 4,
+    },
+    dorTag: {
+      letterSpacing: 0.4,
     },
     card: {
       width: '100%',

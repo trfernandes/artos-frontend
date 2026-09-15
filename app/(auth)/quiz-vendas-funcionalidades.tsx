@@ -182,7 +182,9 @@ export default function QuizVendasFuncionalidadesPage() {
           <>
             <FancyButton
               label='Criar minha conta'
-              onPress={() => router.push('/(auth)/create-account')}
+              onPress={() =>
+                router.push({ pathname: '/(auth)/create-account', params: { bucket } })
+              }
               labelStyle={{ color: Pallete.fonts.light }}
               containerStyle={{ backgroundColor: Pallete.terciary }}
             />

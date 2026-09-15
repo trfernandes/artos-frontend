@@ -66,7 +66,7 @@ export function useProtectedRoute() {
     // 2) não logado tentando rota privada → manda pro login (quem já autenticou antes)
     // ou pro quiz de vendas (primeiro contato — expõe a dor antes do cadastro).
     if (!user && !onPublic) {
-      const target = hasAuthenticatedBefore ? '/login' : '/quiz-vendas';
+      const target = hasAuthenticatedBefore ? '/login' : '/quiz-vendas-intro';
       if (pathname !== target) router.replace(target);
       return;
     }
