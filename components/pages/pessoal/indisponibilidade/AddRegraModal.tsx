@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { Animated, Pressable, StyleSheet, View } from 'react-native';
 import { useForm, useWatch, useFormState } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,15 +11,25 @@ import { getApiErrorMessage } from '../../../../domain/api/api-error';
 import ControlledDateInput from '../../../forms/ControlledDateInput';
 import ControlledNumberInput from '../../../forms/ControlledNumberInput';
 import ControlledFancyToggle from '../../../forms/ControlledFancyToggle';
+import ControlledDropDown from '../../../forms/ControlledDropDown';
 import FancyText from '../../../FancyText';
 import FancyButton from '../../../buttons/FancyButton';
 import FancySegmentedControl from '../../../fields/FancySegmentedControl';
+import FancyChips from '../../../FancyChips';
+import FancyScrollView from '../../../FancyScrollView';
 import { usePallete } from '../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../hooks/useThemedStyles';
 import { ThemePalette } from '../../../../constants/colors';
 import { ColorUtils } from '../../../../utils/color_utils';
 import { DateUtilsApi } from '../../../../utils/date_utils';
-import { RegraIndisponibilidadeTipo } from '../../../../domain/dtos/RegraIndisponibilidadeVoluntario/regra-indisponibilidade-voluntario.response';
+import {
+  RegraIndisponibilidadeTipo,
+  ResponseRegraIndisponibilidadeVoluntarioDto,
+} from '../../../../domain/dtos/RegraIndisponibilidadeVoluntario/regra-indisponibilidade-voluntario.response';
+import { useMinisteriosCrud } from '../../../../hooks/useMinisteriosCrud';
+import { useMinisterioVoluntarioFuncoesCrud } from '../../../../hooks/useMinisterioVoluntarioFuncoesCrud';
+import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
+import { descreverRegra } from '../../../../domain/utils/regra_indisponibilidade_utils';
 
 const DIAS_NOMES = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const TODOS_DIAS = [0, 1, 2, 3, 4, 5, 6];
@@ -79,6 +89,8 @@ const chipStyles = StyleSheet.create({
 const schema = z
   .object({
     tipo: z.enum(['DIAS_SEMANA', 'PERIODO', 'LIMITE_MENSAL']),
+    ministerioId: z.string().optional(),
+    funcoes: z.array(z.string()).optional(),
     diasSemana: z.array(z.number()).optional(),
     dataInicio: z.date().nullable().optional(),
     dataFim: z.date().nullable().optional(),
@@ -139,6 +151,8 @@ type FormValues = z.infer<typeof schema>;
 
 export type AddRegraModalResult = {
   tipo: RegraIndisponibilidadeTipo;
+  ministerioId?: string | null;
+  funcoes?: string[];
   diasSemana?: number[];
   dataInicio?: string;
   dataFim?: string;
@@ -153,7 +167,16 @@ export type AddRegraModalProps = {
   onConfirm: (result: AddRegraModalResult) => Promise<void>;
   initialValues?: Partial<AddRegraModalResult>;
   isEditing?: boolean;
+  editingRegraId?: string;
   voluntarioNome?: string;
+  voluntarioId?: string;
+  igrejaId?: string;
+  regrasExistentes?: Array<{
+    id?: string;
+    tipo: RegraIndisponibilidadeTipo;
+    ministerioId?: string | null;
+    funcoes?: string[] | null;
+  }>;
 };
 
 export default function AddRegraModal({
@@ -162,15 +185,25 @@ export default function AddRegraModal({
   onConfirm,
   initialValues,
   isEditing,
+  editingRegraId,
   voluntarioNome,
+  voluntarioId,
+  igrejaId,
+  regrasExistentes = [],
 }: AddRegraModalProps) {
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
 
-  const { control, handleSubmit, setValue, reset } = useForm<FormValues>({
+  const { data: ministeriosData, isLoading: isLoadingMinisteios } = useMinisteriosCrud({
+    autoFetch: true,
+  });
+
+  const { control, handleSubmit, setValue, reset, watch } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       tipo: 'DIAS_SEMANA',
+      ministerioId: undefined,
+      funcoes: [],
       diasSemana: [],
       dataInicio: isEditing ? null : new Date(),
       dataFim: null,
@@ -184,6 +217,8 @@ export default function AddRegraModal({
     if (visible && initialValues) {
       reset({
         tipo: initialValues.tipo ?? 'DIAS_SEMANA',
+        ministerioId: initialValues.ministerioId || undefined,
+        funcoes: initialValues.funcoes ?? [],
         diasSemana: initialValues.diasSemana ?? [],
         dataInicio: initialValues.dataInicio
           ? DateUtilsApi.dateOnlyFromApi(initialValues.dataInicio)
@@ -196,6 +231,8 @@ export default function AddRegraModal({
     } else if (visible && !isEditing) {
       reset({
         tipo: 'DIAS_SEMANA',
+        ministerioId: undefined,
+        funcoes: [],
         diasSemana: [],
         dataInicio: new Date(),
         dataFim: null,
@@ -206,6 +243,8 @@ export default function AddRegraModal({
     } else if (!visible) {
       reset({
         tipo: 'DIAS_SEMANA',
+        ministerioId: undefined,
+        funcoes: [],
         diasSemana: [],
         dataInicio: null,
         dataFim: null,
@@ -217,10 +256,102 @@ export default function AddRegraModal({
   }, [visible, initialValues, isEditing, reset]);
 
   const tipo = useWatch({ control, name: 'tipo' });
+  const ministerioId = useWatch({ control, name: 'ministerioId' });
+  const funcoes = useWatch({ control, name: 'funcoes' }) ?? [];
   const diasSemana = useWatch({ control, name: 'diasSemana' }) ?? [];
   const dataInicio = useWatch({ control, name: 'dataInicio' });
   const dataFim = useWatch({ control, name: 'dataFim' });
   const { errors } = useFormState({ control });
+
+  // Hook para buscar funções que o voluntário exerce no ministério selecionado
+  const { data: ministerioVoluntarioFuncoes, isLoading: isLoadingFuncoes } =
+    useMinisterioVoluntarioFuncoesCrud({
+      autoFetch: Boolean(voluntarioId && igrejaId && ministerioId),
+      initialParams:
+        voluntarioId &&
+        igrejaId &&
+        ministerioId &&
+        ({
+          where: {
+            conditions: [
+              {
+                path: 'ministerioVoluntario.voluntario.id',
+                operator: 'EQUALS' as any,
+                value: { type: 'LITERAL' as any, value: voluntarioId },
+              },
+              {
+                path: 'ministerioVoluntario.ministerio.id',
+                operator: 'EQUALS' as any,
+                value: { type: 'LITERAL' as any, value: ministerioId },
+              },
+            ],
+            conjunction: 'AND' as any,
+          },
+        } as any),
+    });
+
+  const funcoesList = useMemo(() => {
+    return (
+      ministerioVoluntarioFuncoes?.map((mvf) => ({
+        id: mvf.funcaoId,
+        nome: mvf.funcao?.nome ?? 'Função',
+      })) ?? []
+    );
+  }, [ministerioVoluntarioFuncoes]);
+
+  // Dropdown de ministérios
+  const ministeriosList = useMemo<DropDownItemProps<string>[]>(() => {
+    return (
+      ministeriosData?.map((ministerio) => {
+        const logoUrl = ministerio.logoThumbUrl || ministerio.logoUrl;
+        return {
+          title: ministerio.nome,
+          value: ministerio.id,
+          ...(logoUrl && {
+            left: {
+              type: 'image' as const,
+              source: logoUrl,
+            },
+          }),
+        };
+      }) ?? []
+    );
+  }, [ministeriosData]);
+
+  // Lógica de detecção de conflito
+  const conflitoDetectado = useMemo(() => {
+    if (tipo === 'LIMITE_MENSAL') return null; // LIMITE_MENSAL não usa escopo de função
+
+    const regraConflitante = regrasExistentes.find((regra) => {
+      // Ignora a regra sendo editada se estamos em modo edição
+      if (isEditing && regra.id === editingRegraId) return false;
+
+      if (regra.tipo === 'LIMITE_MENSAL') return false; // ignora limite mensal
+
+      // Se ambas bloqueiam tudo (sem ministério)
+      if (!ministerioId && !regra.ministerioId) return true;
+
+      // Se ambas têm o mesmo ministério
+      if (ministerioId && ministerioId === regra.ministerioId) {
+        // Se ambas bloqueiam o ministério inteiro (sem função)
+        if (funcoes.length === 0 && !regra.funcoes?.length) return true;
+
+        // Se uma bloqueia o ministério inteiro, ela cobre a outra
+        if (funcoes.length > 0 && !regra.funcoes?.length) return true;
+        if (funcoes.length === 0 && regra.funcoes?.length) return false;
+
+        // Se ambas têm funções, verifica sobreposição
+        if (funcoes.length > 0 && regra.funcoes?.length) {
+          const overlap = funcoes.some((f) => regra.funcoes?.includes(f));
+          return overlap;
+        }
+      }
+
+      return false;
+    });
+
+    return regraConflitante;
+  }, [ministerioId, funcoes, tipo, regrasExistentes, isEditing, editingRegraId]);
 
   useEffect(() => {
     if (dataInicio && dataFim && dataFim < dataInicio) {
@@ -269,6 +400,12 @@ export default function AddRegraModal({
       result.dataInicio = values.dataInicio
         ? DateUtilsApi.dateOnlyToApi(values.dataInicio)
         : undefined;
+    }
+
+    // Adiciona ministério e funções (opcionais)
+    result.ministerioId = values.ministerioId || undefined;
+    if (values.funcoes?.length) {
+      result.funcoes = values.funcoes;
     }
     result.motivo = values.motivo.trim();
 
@@ -327,6 +464,80 @@ export default function AddRegraModal({
           disabled={isSubmitting}
           onChange={(v) => setValue('tipo', v, { shouldValidate: false })}
         />
+
+        {/* MINISTÉRIO */}
+        <View style={styles.secao}>
+          <ControlledDropDown
+            label='Aplicar a'
+            listItems={ministeriosList}
+            control={control}
+            name='ministerioId'
+            disabled={isSubmitting || isLoadingMinisteios}
+            isLoading={isLoadingMinisteios}
+            placeholder='Sem restrição (bloqueia tudo)'
+          />
+          <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+            Deixe em branco para bloquear em todos os ministérios.
+          </FancyText>
+        </View>
+
+        {/* FUNÇÕES (só aparece se ministério selecionado e tipo != LIMITE_MENSAL) */}
+        {ministerioId && tipo !== 'LIMITE_MENSAL' && (
+          <View style={styles.secao}>
+            <FancyText size='small' type='semiBold' color={palette.fonts.inactive}>
+              Funções (opcional)
+            </FancyText>
+            {funcoesList.length > 0 ? (
+              <FancyScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.funcoesScroll}
+              >
+                {funcoesList.map((funcao) => {
+                  const isSelected = funcoes.includes(funcao.id);
+                  return (
+                    <FancyChips
+                      key={funcao.id}
+                      label={funcao.nome}
+                      color={isSelected ? palette.primary : palette.fonts.inactive}
+                      backgroundColor={
+                        isSelected
+                          ? ColorUtils.withAlpha(palette.primary, 0.15)
+                          : ColorUtils.withAlpha(palette.fonts.inactive, 0.08)
+                      }
+                      onPress={() => {
+                        const next = isSelected
+                          ? funcoes.filter((f) => f !== funcao.id)
+                          : [...funcoes, funcao.id];
+                        setValue('funcoes', next, { shouldValidate: true });
+                      }}
+                      size='small'
+                      outlined={!isSelected}
+                    />
+                  );
+                })}
+              </FancyScrollView>
+            ) : isLoadingFuncoes ? (
+              <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                Carregando funções...
+              </FancyText>
+            ) : (
+              <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+                Nenhuma função encontrada para este ministério.
+              </FancyText>
+            )}
+            <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
+              Deixe em branco para bloquear o ministério inteiro.
+            </FancyText>
+          </View>
+        )}
+
+        {/* ALERTA DE CONFLITO */}
+        {conflitoDetectado && (
+          <FancyErrorBanner
+            message={`Conflita com "${descreverRegra(conflitoDetectado as ResponseRegraIndisponibilidadeVoluntarioDto)}". Essa regra mais ampla continua valendo.`}
+          />
+        )}
 
         {/* DIAS_SEMANA */}
         {tipo === 'DIAS_SEMANA' && (
@@ -485,6 +696,10 @@ function createStyles(palette: ThemePalette) {
       borderWidth: 1.5,
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    funcoesScroll: {
+      gap: 8,
+      paddingRight: 12,
     },
   });
 }

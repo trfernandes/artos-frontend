@@ -15,6 +15,7 @@ import AddPeriodoModal from '../../../../../components/pages/pessoal/indisponibi
 import AddRegraModal, {
   AddRegraModalResult,
 } from '../../../../../components/pages/pessoal/indisponibilidade/AddRegraModal';
+import BlockedDayDetailsModal from '../../../../../components/pages/pessoal/indisponibilidade/BlockedDayDetailsModal';
 import DateUtils, { DateUtilsApi } from '../../../../../utils/date_utils';
 import FancyLoading from '../../../../../components/FancyLoading';
 import { UpsertIndisponibilidadeVoluntarioItemDto } from '../../../../../domain/dtos/IndisponibilidadeVoluntario/upsert-indisponibilidade-voluntario-item.dto';
@@ -67,6 +68,8 @@ export default function IndisponibilidadeIndexPage() {
   });
   const [showPeriodoModal, setShowPeriodoModal] = useState(false);
   const [showRegraModal, setShowRegraModal] = useState(false);
+  const [showBlockedDayModal, setShowBlockedDayModal] = useState(false);
+  const [selectedBlockedDay, setSelectedBlockedDay] = useState<Date | undefined>();
   const [pendingAddRegra, setPendingAddRegra] = useState<AddRegraModalResult | null>(null);
   const [editingRegra, setEditingRegra] =
     useState<ResponseRegraIndisponibilidadeVoluntarioDto | null>(null);
@@ -263,15 +266,46 @@ export default function IndisponibilidadeIndexPage() {
 
   const openDateModal = useCallback(
     (date: Date) => {
-      const registro = data.find((d) => DateUtilsApi.compareDateOnlyFromApi(d.data, date));
-      setModalState({
-        visible: true,
-        date,
-        status: registro ? 'unavailable' : 'available',
-        motivo: registro?.motivo ?? null,
+      // Verifica se há regras que aplicam a este dia
+      const regraAplicavel = regras.some((regra) => {
+        if (regra.tipo === 'DIAS_SEMANA' && regra.diasSemana?.length) {
+          return regra.diasSemana.includes(date.getDay());
+        }
+        if (regra.tipo === 'PERIODO' && regra.dataInicio && regra.dataFim) {
+          const inicio = new Date(regra.dataInicio + 'T00:00:00Z');
+          const fim = new Date(regra.dataFim + 'T00:00:00Z');
+
+          if (regra.recorrente) {
+            const mmddSelecionado = DateUtilsApi.dateOnlyToApi(date).slice(5);
+            const mmddInicio = regra.dataInicio.slice(5);
+            const mmddFim = regra.dataFim.slice(5);
+            const crossYear = mmddInicio > mmddFim;
+            return crossYear
+              ? mmddSelecionado >= mmddInicio || mmddSelecionado <= mmddFim
+              : mmddSelecionado >= mmddInicio && mmddSelecionado <= mmddFim;
+          } else {
+            return date >= inicio && date <= fim;
+          }
+        }
+        return false;
       });
+
+      if (regraAplicavel) {
+        // Abre o modal de detalhes de bloqueio
+        setSelectedBlockedDay(date);
+        setShowBlockedDayModal(true);
+      } else {
+        // Comportamento padrão (editar dia pontual)
+        const registro = data.find((d) => DateUtilsApi.compareDateOnlyFromApi(d.data, date));
+        setModalState({
+          visible: true,
+          date,
+          status: registro ? 'unavailable' : 'available',
+          motivo: registro?.motivo ?? null,
+        });
+      }
     },
-    [data],
+    [data, regras],
   );
 
   const handleConfirmAddPeriodo = async (inicio: Date, fim: Date, motivo: string) => {
@@ -313,11 +347,15 @@ export default function IndisponibilidadeIndexPage() {
     if (!userId || !igrejaId) return;
 
     try {
-      await addRegra?.({
+      // Normaliza o resultado: converte null/undefined
+      const normalized = {
         ...result,
+        ministerioId: result.ministerioId || undefined,
+        funcoes: result.funcoes?.length ? result.funcoes : undefined,
         voluntarioId: userId,
         igrejaId,
-      });
+      };
+      await addRegra?.(normalized);
       setShowRegraModal(false);
       setLazyToastOptions({ type: 'success', message: 'Regra criada com sucesso!', show: true });
     } catch (error) {
@@ -752,6 +790,9 @@ export default function IndisponibilidadeIndexPage() {
           }}
           onConfirm={handleConfirmAddRegra}
           initialValues={pendingAddRegra ?? undefined}
+          voluntarioId={userId}
+          igrejaId={igrejaId}
+          regrasExistentes={regras}
         />
       )}
 
@@ -759,8 +800,11 @@ export default function IndisponibilidadeIndexPage() {
         <AddRegraModal
           visible={!!editingRegra}
           isEditing
+          editingRegraId={editingRegra.id}
           initialValues={{
             tipo: editingRegra.tipo,
+            ministerioId: editingRegra.ministerioId ?? undefined,
+            funcoes: editingRegra.funcoes ?? undefined,
             diasSemana: editingRegra.diasSemana ?? undefined,
             dataInicio: editingRegra.dataInicio ?? undefined,
             dataFim: editingRegra.dataFim ?? undefined,
@@ -770,8 +814,23 @@ export default function IndisponibilidadeIndexPage() {
           }}
           onClose={() => setEditingRegra(null)}
           onConfirm={handleConfirmEditRegra}
+          voluntarioId={userId}
+          igrejaId={igrejaId}
+          regrasExistentes={regras}
         />
       )}
+
+      {/* Modal de detalhes de bloqueio por regra */}
+      <BlockedDayDetailsModal
+        visible={showBlockedDayModal}
+        onClose={() => {
+          setShowBlockedDayModal(false);
+          setSelectedBlockedDay(undefined);
+        }}
+        selectedDate={selectedBlockedDay}
+        regras={regras}
+        indisponibilidadesPontuais={data}
+      />
 
       <TutorialOverlay tour={tour} />
     </View>
