@@ -27,11 +27,10 @@ import { IgrejaRepository } from '../../domain/services/IgrejaRepository';
 import { ResponseConvitePreviewDto } from '../../domain/dtos/Igreja/response-convite-preview.dto';
 import { extractInviteToken } from '../../utils/inviteToken';
 import DefaultIcons from '../../components/FancyIcons';
-import * as WebBrowser from 'expo-web-browser';
 import FancyCheckbox from '../../components/FancyCheckbox';
+import FancyBottomSheetModal from '../../components/modal/FancyBottomSheetModal';
+import FancyLoading from '../../components/FancyLoading';
 import { usePoliticaPrivacidade } from '../../hooks/usePoliticaPrivacidade';
-
-const PRIVACY_POLICY_URL = 'https://diakonia.app.br/privacy-policy/';
 
 function getConviteErrorMessage(error: AxiosError | any): string {
   const data = error?.response?.data;
@@ -134,9 +133,10 @@ export default function CreateVoluntarioAccountPage() {
   });
 
   const senhaValue = useWatch({ control: createForm.control, name: 'senha' });
-  const { data: politicaData } = usePoliticaPrivacidade();
+  const { data: politicaData, isLoading: isLoadingPolitica } = usePoliticaPrivacidade();
   const [aceitouPolitica, setAceitouPolitica] = useState(false);
   const [erroPolitica, setErroPolitica] = useState('');
+  const [politicaModalVisible, setPoliticaModalVisible] = useState(false);
 
   const handleCancelarConvite = async () => {
     await AsyncStorage.multiRemove(['pendingInvite', 'pendingInviteToken']);
@@ -437,7 +437,7 @@ export default function CreateVoluntarioAccountPage() {
                     label='Ver política de privacidade'
                     type='text'
                     labelProps={{ size: 'extraSmall' }}
-                    onPress={() => WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)}
+                    onPress={() => setPoliticaModalVisible(true)}
                   />
                   {!!erroPolitica && <FancyErrorText message={erroPolitica} />}
                 </View>
@@ -455,6 +455,34 @@ export default function CreateVoluntarioAccountPage() {
           </KeyboardAwareScrollView>
         </View>
       </SafeAreaView>
+
+      <FancyBottomSheetModal
+        visible={politicaModalVisible}
+        onClose={() => setPoliticaModalVisible(false)}
+        title='Política de Privacidade'
+      >
+        {isLoadingPolitica || !politicaData ? (
+          <View style={styles.politicaLoading}>
+            <FancyLoading />
+          </View>
+        ) : (
+          <View style={styles.politicaContent}>
+            <FancyText size='extraSmall' type='medium' color={Pallete.fonts.inactive}>
+              Versão vigente: {politicaData.versao}
+            </FancyText>
+            {politicaData.secoes.map((secao) => (
+              <View key={secao.titulo} style={styles.politicaSecao}>
+                <FancyText size='medium' type='bold' color={Pallete.fonts.dark}>
+                  {secao.titulo}
+                </FancyText>
+                <FancyText size='small' color={Pallete.fonts.inactive} style={styles.politicaCorpo}>
+                  {secao.corpo}
+                </FancyText>
+              </View>
+            ))}
+          </View>
+        )}
+      </FancyBottomSheetModal>
 
       {(isLoadingMutation || validatingCode) && (
         <View
@@ -478,6 +506,20 @@ export default function CreateVoluntarioAccountPage() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+  },
+  politicaLoading: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 32,
+  },
+  politicaContent: {
+    gap: 18,
+  },
+  politicaSecao: {
+    gap: 6,
+  },
+  politicaCorpo: {
+    lineHeight: 20,
   },
   safe: {
     flex: 1,

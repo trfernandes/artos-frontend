@@ -1,8 +1,10 @@
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import FancyPageView from '../../../../../components/containers/FancyPageView';
+import FancyScrollView from '../../../../../components/FancyScrollView';
 import FancyText from '../../../../../components/FancyText';
 import FancyLoading from '../../../../../components/FancyLoading';
 import FancyButton from '../../../../../components/buttons/FancyButton';
+import FancyVerticalSpacer from '../../../../../components/FancyVerticalSpacer';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { useThemedStyles } from '../../../../../hooks/useThemedStyles';
 import { usePoliticaPrivacidade } from '../../../../../hooks/usePoliticaPrivacidade';
@@ -30,6 +32,7 @@ export default function PoliticaPrivacidadePage() {
         <FancyText size='small' color={palette.fonts.inactive} style={styles.centerText}>
           Verifique sua conexão e tente novamente.
         </FancyText>
+        <FancyVerticalSpacer height={8} />
         <FancyButton
           label='Tentar novamente'
           onPress={() => refetch()}
@@ -41,7 +44,7 @@ export default function PoliticaPrivacidadePage() {
 
   return (
     <FancyPageView>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <FancyScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
           Versão vigente: {data.versao}
         </FancyText>
@@ -55,7 +58,7 @@ export default function PoliticaPrivacidadePage() {
             </FancyText>
           </View>
         ))}
-      </ScrollView>
+      </FancyScrollView>
     </FancyPageView>
   );
 }
@@ -72,7 +75,6 @@ function createStyles(palette: ThemePalette) {
       textAlign: 'center',
     },
     retryButton: {
-      marginTop: 8,
       minWidth: 160,
     },
     content: {

@@ -9,7 +9,6 @@ import FancyChips from '../../../../FancyChips';
 import FancySeparator from '../../../../FancySeparator';
 import { usePallete } from '../../../../../hooks/usePallete';
 import { ColorUtils } from '../../../../../utils/color_utils';
-import { ThemePalette } from '../../../../../constants/colors';
 import { DateUtilsApi } from '../../../../../utils/date_utils';
 import { PedidoComPendencia } from '../../../../../domain/dtos/SubstituicaoPedido/substituicao-pedido.response';
 import {
@@ -17,19 +16,7 @@ import {
   SubstituicaoPedidoStatusEnumLabel,
 } from '../../../../../domain/enums/SubstituicaoPedido/substituicao-pedido-status.enum';
 import TentativaTimeline from '../../../common/TentativaTimeline';
-
-function getStatusVisual(status: SubstituicaoPedidoStatusEnum, palette: ThemePalette) {
-  switch (status) {
-    case SubstituicaoPedidoStatusEnum.Aberto:
-      return { color: palette.warning, icon: 'schedule' };
-    case SubstituicaoPedidoStatusEnum.Resolvido:
-      return { color: palette.confirm, icon: 'check-circle' };
-    case SubstituicaoPedidoStatusEnum.Cancelado:
-      return { color: palette.fonts.inactive, icon: 'cancel' };
-    case SubstituicaoPedidoStatusEnum.SemCandidato:
-      return { color: palette.error, icon: 'person-off' };
-  }
-}
+import { getStatusVisual } from '../../../common/substituicaoPedidoStatusVisual';
 
 type Props = {
   item: PedidoComPendencia;

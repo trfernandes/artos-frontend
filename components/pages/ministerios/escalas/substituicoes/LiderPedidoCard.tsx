@@ -8,7 +8,6 @@ import FancyButton from '../../../../buttons/FancyButton';
 import FancyChips from '../../../../FancyChips';
 import FancySeparator from '../../../../FancySeparator';
 import { usePallete } from '../../../../../hooks/usePallete';
-import { ThemePalette } from '../../../../../constants/colors';
 import { DateUtilsApi } from '../../../../../utils/date_utils';
 import { PedidoComPendencia } from '../../../../../domain/dtos/SubstituicaoPedido/substituicao-pedido.response';
 import {
@@ -18,19 +17,7 @@ import {
 import { TentativaStatusEnum } from '../../../../../domain/enums/SubstituicaoPedido/tentativa-status.enum';
 import TentativaTimeline from '../../../common/TentativaTimeline';
 import { useFilaDoPedido } from '../../../../../hooks/useSubstituicaoPedidosCrud';
-
-function getStatusVisual(status: SubstituicaoPedidoStatusEnum, palette: ThemePalette) {
-  switch (status) {
-    case SubstituicaoPedidoStatusEnum.Aberto:
-      return { color: palette.warning, icon: 'schedule' };
-    case SubstituicaoPedidoStatusEnum.Resolvido:
-      return { color: palette.confirm, icon: 'check-circle' };
-    case SubstituicaoPedidoStatusEnum.Cancelado:
-      return { color: palette.fonts.inactive, icon: 'cancel' };
-    case SubstituicaoPedidoStatusEnum.SemCandidato:
-      return { color: palette.error, icon: 'person-off' };
-  }
-}
+import { getStatusVisual } from '../../../common/substituicaoPedidoStatusVisual';
 
 function firstAndLast(full?: string) {
   if (!full?.trim()) return '—';

@@ -8,6 +8,7 @@ import { ptBR } from 'date-fns/locale';
 import { useQuery } from '@tanstack/react-query';
 import FancyBottomSheetModal from '../../../../modal/FancyBottomSheetModal';
 import FancyText from '../../../../FancyText';
+import FancyVerticalSpacer from '../../../../FancyVerticalSpacer';
 import FancyButton from '../../../../buttons/FancyButton';
 import ControlledFancyToggle from '../../../../forms/ControlledFancyToggle';
 import ControlledBottomSheetSelect from '../../../../forms/ControlledBottomSheetSelect';
@@ -136,7 +137,8 @@ export default function AceitarConviteModalPage({
       />
 
       {quemTroca ? (
-        <View style={styles.trocaBlock}>
+        <>
+          <FancyVerticalSpacer height={4} />
           {escalasFuturasQuery.isLoading ? (
             <View style={styles.loadingBox}>
               <ActivityIndicator size='large' />
@@ -155,7 +157,7 @@ export default function AceitarConviteModalPage({
               disabled={isSubmitting}
             />
           )}
-        </View>
+        </>
       ) : null}
     </FancyBottomSheetModal>
   );
@@ -165,9 +167,6 @@ function createStyles(palette: ThemePalette) {
   return StyleSheet.create({
     explainer: {
       opacity: 0.8,
-    },
-    trocaBlock: {
-      marginTop: 4,
     },
     loadingBox: {
       alignItems: 'center',
