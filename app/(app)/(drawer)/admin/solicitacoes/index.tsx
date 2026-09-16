@@ -160,7 +160,7 @@ export default function SolicitacoesConvitesPage() {
     mutationFn: (dto: CreateIgrejaConviteDto) =>
       IgrejaRepository.criarConvite(igrejaAtiva!.id, dto),
     onSuccess: (novoConvite) => {
-      posthog.capture(
+      posthog?.capture(
         AnalyticsEvent.ConviteEnviado,
         buildConviteEnviadoProps({
           igrejaId: igrejaAtiva!.id,

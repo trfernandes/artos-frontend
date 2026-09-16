@@ -376,7 +376,7 @@ export default function MinhasEscalasIndexPage() {
                 id: escalaItensId,
                 data: { status: EscalaItemStatusEnum.Ausente },
               });
-              posthog.capture(
+              posthog?.capture(
                 AnalyticsEvent.DisponibilidadeRespondida,
                 buildDisponibilidadeRespondidaProps({
                   escalaItemId: escalaItensId,
@@ -399,7 +399,7 @@ export default function MinhasEscalasIndexPage() {
                 id: escalaItensId,
                 data: { status: EscalaItemStatusEnum.Confirmado },
               });
-              posthog.capture(
+              posthog?.capture(
                 AnalyticsEvent.DisponibilidadeRespondida,
                 buildDisponibilidadeRespondidaProps({
                   escalaItemId: escalaItensId,

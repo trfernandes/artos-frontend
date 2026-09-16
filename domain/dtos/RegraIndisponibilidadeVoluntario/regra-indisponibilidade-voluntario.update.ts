@@ -8,4 +8,6 @@ export type UpdateRegraIndisponibilidadeVoluntarioDto = {
   recorrente?: boolean;
   limiteMensal?: number;
   motivo?: string;
+  ministerioId?: string | null;
+  funcoes?: string[] | null;
 };

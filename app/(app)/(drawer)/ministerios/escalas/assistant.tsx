@@ -366,7 +366,7 @@ function AssistenteWrapper() {
         showLoading('Iniciando geração...');
         const payload = mapEscalaFormToDto(ministerioId, user?.user?.id!, values);
         const resultado = await generateEscala(payload);
-        posthog.capture(
+        posthog?.capture(
           AnalyticsEvent.EscalaCriada,
           buildEscalaCriadaProps({
             escalaId: resultado.id,

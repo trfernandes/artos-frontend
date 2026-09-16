@@ -87,7 +87,7 @@ export default function EscalaManualPage() {
         dataInicio: DateUtilsApi.dateOnlyToApi(values.dataInicio),
         dataTermino: DateUtilsApi.dateOnlyToApi(values.dataTermino),
       });
-      posthog.capture(
+      posthog?.capture(
         AnalyticsEvent.EscalaCriada,
         buildEscalaCriadaProps({
           escalaId: resultado.id,

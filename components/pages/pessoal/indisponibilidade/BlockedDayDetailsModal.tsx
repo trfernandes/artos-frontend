@@ -8,8 +8,10 @@ import { ThemePalette } from '../../../../constants/colors';
 import { ColorUtils } from '../../../../utils/color_utils';
 import DefaultIcons from '../../../FancyIcons';
 import { ResponseRegraIndisponibilidadeVoluntarioDto } from '../../../../domain/dtos/RegraIndisponibilidadeVoluntario/regra-indisponibilidade-voluntario.response';
-import { descreverRegra } from '../../../../domain/utils/regra_indisponibilidade_utils';
-import { DateUtilsApi } from '../../../../utils/date_utils';
+import {
+  descreverRegra,
+  regraAplicaAoDia,
+} from '../../../../domain/utils/regra_indisponibilidade_utils';
 import { useMinisterioFuncoesCrud } from '../../../../hooks/useMinisterioFuncoesCrud';
 
 type RegraComEscopo = ResponseRegraIndisponibilidadeVoluntarioDto & {
@@ -38,9 +40,9 @@ export default function BlockedDayDetailsModal({
   const palette = usePallete();
   const styles = useThemedStyles(createStyles);
 
-  // Mapa de todas as funções por ID para lookup
+  // Mapa de todas as funções por ID para lookup — só busca quando o modal abre
   const { data: allFuncoes } = useMinisterioFuncoesCrud({
-    autoFetch: true,
+    autoFetch: visible,
   });
 
   const funcaoNomeMap = useMemo(() => {
@@ -63,29 +65,7 @@ export default function BlockedDayDetailsModal({
 
     // Verifica regras pontuais primeiro (têm prioridade)
     const regrasAplicaveis = regras
-      .filter((regra) => {
-        // Verifica se a regra aplica ao dia selecionado
-        if (regra.tipo === 'DIAS_SEMANA' && regra.diasSemana?.length) {
-          return regra.diasSemana.includes(selectedDate.getDay());
-        }
-        if (regra.tipo === 'PERIODO' && regra.dataInicio && regra.dataFim) {
-          const inicio = new Date(regra.dataInicio + 'T00:00:00Z');
-          const fim = new Date(regra.dataFim + 'T00:00:00Z');
-
-          if (regra.recorrente) {
-            const mmddSelecionado = DateUtilsApi.dateOnlyToApi(selectedDate).slice(5);
-            const mmddInicio = regra.dataInicio.slice(5);
-            const mmddFim = regra.dataFim.slice(5);
-            const crossYear = mmddInicio > mmddFim;
-            return crossYear
-              ? mmddSelecionado >= mmddInicio || mmddSelecionado <= mmddFim
-              : mmddSelecionado >= mmddInicio && mmddSelecionado <= mmddFim;
-          } else {
-            return selectedDate >= inicio && selectedDate <= fim;
-          }
-        }
-        return false;
-      })
+      .filter((regra) => regraAplicaAoDia(regra, selectedDate))
       .map((regra) => ({
         ...regra,
         aplicaAoDia: true,
@@ -196,8 +176,8 @@ function RegraBloqueioItem({
   resolveFuncaoNome: (funcaoId: string) => string;
 }) {
   const descricao = descreverRegra(regra);
-  const nomeFuncao = regra.funcoes?.[0]
-    ? `Função: ${resolveFuncaoNome(regra.funcoes[0])}`
+  const nomeFuncao = regra.funcoes?.length
+    ? `${regra.funcoes.length > 1 ? 'Funções' : 'Função'}: ${regra.funcoes.map(resolveFuncaoNome).join(', ')}`
     : undefined;
 
   return (

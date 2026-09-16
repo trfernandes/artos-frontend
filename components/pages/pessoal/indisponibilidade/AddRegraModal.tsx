@@ -30,6 +30,7 @@ import { useMinisteriosCrud } from '../../../../hooks/useMinisteriosCrud';
 import { useMinisterioVoluntarioFuncoesCrud } from '../../../../hooks/useMinisterioVoluntarioFuncoesCrud';
 import { DropDownItemProps } from '../../../fields/FancyDropDownItem';
 import { descreverRegra } from '../../../../domain/utils/regra_indisponibilidade_utils';
+import { Operator, ValueType, Conjunction } from '../../../../domain/utils/query_utils';
 
 const DIAS_NOMES = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const TODOS_DIAS = [0, 1, 2, 3, 4, 5, 6];
@@ -276,16 +277,16 @@ export default function AddRegraModal({
             conditions: [
               {
                 path: 'ministerioVoluntario.voluntario.id',
-                operator: 'EQUALS' as any,
-                value: { type: 'LITERAL' as any, value: voluntarioId },
+                operator: Operator.EQUALS,
+                value: { type: ValueType.LITERAL, value: voluntarioId },
               },
               {
                 path: 'ministerioVoluntario.ministerio.id',
-                operator: 'EQUALS' as any,
-                value: { type: 'LITERAL' as any, value: ministerioId },
+                operator: Operator.EQUALS,
+                value: { type: ValueType.LITERAL, value: ministerioId },
               },
             ],
-            conjunction: 'AND' as any,
+            conjunction: Conjunction.AND,
           },
         } as any),
     });
@@ -330,6 +331,10 @@ export default function AddRegraModal({
 
       // Se ambas bloqueiam tudo (sem ministério)
       if (!ministerioId && !regra.ministerioId) return true;
+
+      // Regra existente já bloqueia tudo (sem ministério) — cobre qualquer
+      // regra nova mais específica (com ministério)
+      if (ministerioId && !regra.ministerioId) return true;
 
       // Se ambas têm o mesmo ministério
       if (ministerioId && ministerioId === regra.ministerioId) {
@@ -475,6 +480,7 @@ export default function AddRegraModal({
             disabled={isSubmitting || isLoadingMinisteios}
             isLoading={isLoadingMinisteios}
             placeholder='Sem restrição (bloqueia tudo)'
+            onChange={() => setValue('funcoes', [])}
           />
           <FancyText size='extraSmall' type='medium' color={palette.fonts.inactive}>
             Deixe em branco para bloquear em todos os ministérios.
