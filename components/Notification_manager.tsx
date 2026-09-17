@@ -24,7 +24,7 @@ export function NotificationsManager() {
         lastResponseHandled.current = true;
         const data = lastResponse.notification.request.content.data as any;
         console.log('[Notifications] Cold-start notification:', data);
-        posthog?.capture(
+        posthog.capture(
           AnalyticsEvent.PushAberto,
           buildPushAbertoProps({ tipo: String(data?.tipo ?? 'desconhecido') }),
         );
@@ -62,7 +62,7 @@ export function NotificationsManager() {
       lastResponseHandled.current = true;
       const data = response.notification.request.content.data as any;
       console.log('[Notifications] Clicada, data:', data);
-      posthog?.capture(
+      posthog.capture(
         AnalyticsEvent.PushAberto,
         buildPushAbertoProps({ tipo: String(data?.tipo ?? 'desconhecido') }),
       );

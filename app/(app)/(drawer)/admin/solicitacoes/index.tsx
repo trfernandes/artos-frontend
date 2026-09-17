@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { View, StyleSheet, Share, RefreshControl, Clipboard } from 'react-native';
+import { View, StyleSheet, Share, ScrollView, RefreshControl, Clipboard } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 import { formatInTimeZone } from 'date-fns-tz';
@@ -17,7 +17,6 @@ import FancyTabs, { TabItem } from '../../../../../components/tabs/FancyTabs';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import FancyListEmpty from '../../../../../components/list/FancyListEmpty';
 import FancyModal from '../../../../../components/modal/FancyModal';
-import FancyScrollView from '../../../../../components/FancyScrollView';
 
 // New Components
 import SummaryCards from '../../../../../components/pages/admin/solicitacoes/SummaryCards';
@@ -161,7 +160,7 @@ export default function SolicitacoesConvitesPage() {
     mutationFn: (dto: CreateIgrejaConviteDto) =>
       IgrejaRepository.criarConvite(igrejaAtiva!.id, dto),
     onSuccess: (novoConvite) => {
-      posthog?.capture(
+      posthog.capture(
         AnalyticsEvent.ConviteEnviado,
         buildConviteEnviadoProps({
           igrejaId: igrejaAtiva!.id,
@@ -277,7 +276,7 @@ export default function SolicitacoesConvitesPage() {
   );
 
   const renderSolicitacoesTab = () => (
-    <FancyScrollView
+    <ScrollView
       style={styles.scrollView}
       contentContainerStyle={styles.scrollContent}
       refreshControl={
@@ -305,11 +304,11 @@ export default function SolicitacoesConvitesPage() {
           ))}
         </View>
       )}
-    </FancyScrollView>
+    </ScrollView>
   );
 
   const renderConvitesTab = () => (
-    <FancyScrollView
+    <ScrollView
       style={styles.scrollView}
       contentContainerStyle={styles.scrollContent}
       refreshControl={
@@ -340,7 +339,7 @@ export default function SolicitacoesConvitesPage() {
           ))}
         </View>
       )}
-    </FancyScrollView>
+    </ScrollView>
   );
 
   const tabItems = useMemo<TabItem[]>(

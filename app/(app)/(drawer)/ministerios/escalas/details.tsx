@@ -648,7 +648,7 @@ export default function MinisterioEscalasDetailsPage() {
         setIsConflitosModalOpen(true);
         return;
       }
-      posthog?.capture(
+      posthog.capture(
         AnalyticsEvent.EscalaPublicada,
         buildEscalaPublicadaProps({
           escalaId,

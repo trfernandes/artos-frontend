@@ -46,7 +46,6 @@ import {
   regraChipLabel,
   regraCor,
   expandirRegrasParaCalendario,
-  regraAplicaAoDia,
 } from '../../../../../domain/utils/regra_indisponibilidade_utils';
 
 type ModalState = {
@@ -270,16 +269,36 @@ export default function IndisponibilidadeIndexPage() {
   const openDateModal = useCallback(
     (date: Date) => {
       // Verifica se há regras que aplicam a este dia
-      const regraAplicavel = regras.some((regra) => regraAplicaAoDia(regra, date));
+      const regraAplicavel = regras.some((regra) => {
+        if (regra.tipo === 'DIAS_SEMANA' && regra.diasSemana?.length) {
+          return regra.diasSemana.includes(date.getDay());
+        }
+        if (regra.tipo === 'PERIODO' && regra.dataInicio && regra.dataFim) {
+          const inicio = new Date(regra.dataInicio + 'T00:00:00Z');
+          const fim = new Date(regra.dataFim + 'T00:00:00Z');
 
-      const registro = data.find((d) => DateUtilsApi.compareDateOnlyFromApi(d.data, date));
+          if (regra.recorrente) {
+            const mmddSelecionado = DateUtilsApi.dateOnlyToApi(date).slice(5);
+            const mmddInicio = regra.dataInicio.slice(5);
+            const mmddFim = regra.dataFim.slice(5);
+            const crossYear = mmddInicio > mmddFim;
+            return crossYear
+              ? mmddSelecionado >= mmddInicio || mmddSelecionado <= mmddFim
+              : mmddSelecionado >= mmddInicio && mmddSelecionado <= mmddFim;
+          } else {
+            return date >= inicio && date <= fim;
+          }
+        }
+        return false;
+      });
 
-      if (regraAplicavel && !registro) {
-        // Abre o modal de detalhes de bloqueio (sem indisponibilidade pontual pra editar/remover)
+      if (regraAplicavel) {
+        // Abre o modal de detalhes de bloqueio
         setSelectedBlockedDay(date);
         setShowBlockedDayModal(true);
       } else {
-        // Comportamento padrão (editar/remover dia pontual)
+        // Comportamento padrão (editar dia pontual)
+        const registro = data.find((d) => DateUtilsApi.compareDateOnlyFromApi(d.data, date));
         setModalState({
           visible: true,
           date,
@@ -409,17 +428,7 @@ export default function IndisponibilidadeIndexPage() {
     try {
       await updateRegra?.({
         id,
-        data: {
-          tipo,
-          diasSemana,
-          dataInicio,
-          dataFim,
-          recorrente,
-          limiteMensal,
-          motivo,
-          ministerioId: result.ministerioId || null,
-          funcoes: result.funcoes?.length ? result.funcoes : null,
-        },
+        data: { tipo, diasSemana, dataInicio, dataFim, recorrente, limiteMensal, motivo },
       });
       setEditingRegra(null);
       setLazyToastOptions({

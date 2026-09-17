@@ -69,7 +69,7 @@ export default function EventosAddPage() {
           recorrencia: payload.recorrencia || RecorrenciaEnum.Nunca,
         };
         const resultado = await add(newEvento);
-        posthog?.capture(
+        posthog.capture(
           AnalyticsEvent.EventoCriado,
           buildEventoCriadoProps({
             eventoId: resultado.id,

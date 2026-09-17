@@ -1,6 +1,5 @@
 import { ResponseRegraIndisponibilidadeVoluntarioDto } from '../dtos/RegraIndisponibilidadeVoluntario/regra-indisponibilidade-voluntario.response';
 import { ThemePalette } from '../../constants/colors';
-import { DateUtilsApi } from '../../utils/date_utils';
 
 const DIA_NOMES_PLURAL = [
   'domingos',
@@ -70,31 +69,6 @@ export function regraCor(
   if (regra.tipo === 'DIAS_SEMANA') return palette.secondary;
   if (regra.tipo === 'LIMITE_MENSAL') return palette.warning;
   return palette.secondary;
-}
-
-export function regraAplicaAoDia(
-  regra: ResponseRegraIndisponibilidadeVoluntarioDto,
-  date: Date,
-): boolean {
-  if (regra.tipo === 'DIAS_SEMANA' && regra.diasSemana?.length) {
-    return regra.diasSemana.includes(date.getDay());
-  }
-  if (regra.tipo === 'PERIODO' && regra.dataInicio && regra.dataFim) {
-    const inicio = new Date(regra.dataInicio + 'T00:00:00Z');
-    const fim = new Date(regra.dataFim + 'T00:00:00Z');
-
-    if (regra.recorrente) {
-      const mmddSelecionado = DateUtilsApi.dateOnlyToApi(date).slice(5);
-      const mmddInicio = regra.dataInicio.slice(5);
-      const mmddFim = regra.dataFim.slice(5);
-      const crossYear = mmddInicio > mmddFim;
-      return crossYear
-        ? mmddSelecionado >= mmddInicio || mmddSelecionado <= mmddFim
-        : mmddSelecionado >= mmddInicio && mmddSelecionado <= mmddFim;
-    }
-    return date >= inicio && date <= fim;
-  }
-  return false;
 }
 
 export function expandirRegrasParaCalendario(
