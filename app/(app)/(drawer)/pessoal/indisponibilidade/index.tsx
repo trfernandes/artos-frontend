@@ -115,7 +115,9 @@ export default function IndisponibilidadeIndexPage() {
     const now = new Date();
 
     const qStart = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-    const qEnd = new Date(now.getFullYear(), now.getMonth() + 2, now.getDate());
+    // Dia 0 do mês seguinte = último dia do mês-alvo, não now.getDate() —
+    // senão o último mês exibido corta no dia atual em vez de ir até o fim.
+    const qEnd = new Date(now.getFullYear(), now.getMonth() + 3, 0);
 
     const cStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const cEnd = new Date(qEnd);
