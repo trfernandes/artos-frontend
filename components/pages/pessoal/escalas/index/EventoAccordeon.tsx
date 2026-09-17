@@ -1,4 +1,4 @@
-import { View, StyleSheet, Modal } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useMemo, useState } from 'react';
 import { differenceInCalendarDays, startOfDay } from 'date-fns';
 import { router } from 'expo-router';
@@ -19,6 +19,7 @@ import {
 } from '../../../../../utils/evento-ensaio';
 import { formatAppDateTime } from '../../../../../utils/date_utils';
 import { usePallete } from '../../../../../hooks/usePallete';
+import { useAppTheme } from '../../../../../hooks/useAppTheme';
 
 type EventoAccordeonProps = {
   data: EscalaDoDiaAgrupada;
@@ -35,10 +36,9 @@ export default function EventoAccordeon({
   readOnly = false,
 }: EventoAccordeonProps) {
   const palette = usePallete();
+  const { isDark } = useAppTheme();
   const [isOpeningEvento, setIsOpeningEvento] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-
-  const isDark = palette.backgroundColor === '#121212';
   const eventColor = data.evento?.cor || palette.primary;
   const isLouvor = useMemo(
     () =>
@@ -382,13 +382,11 @@ export default function EventoAccordeon({
         ) : null}
       </View>
 
-      <Modal visible={isOpeningEvento} transparent animationType='none'>
-        <View
-          style={[
-            styles.loadingOverlay,
-            { backgroundColor: ColorUtils.withAlpha('#0F172A', isDark ? 0.44 : 0.18) },
-          ]}
-        >
+      {isOpeningEvento && (
+        // View absoluta em vez de <Modal> nativo: <Modal> concorrendo com o push de
+        // navegação deixava um presentation nativo travado, congelando toque na tela
+        // ao voltar (mesmo padrão de bug corrigido em escalas/index.tsx — ver GlobalModalHost.tsx)
+        <View style={[styles.loadingOverlay, { backgroundColor: palette.overlays.backdrop }]}>
           <View
             style={[
               styles.loadingSurface,
@@ -399,7 +397,7 @@ export default function EventoAccordeon({
             <FancyLoading label='Abrindo evento...' containerStyle={styles.loadingContent} />
           </View>
         </View>
-      </Modal>
+      )}
     </FancyAccordeon>
   );
 }

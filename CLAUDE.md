@@ -311,3 +311,6 @@ de staging, só `production` aponta pro backend de produção. **Nunca** rodar
 `eas build --profile production` ou `eas submit` fora do fluxo de release (código já revisado e em
 `master`). Ver seção "Branches e deploy" do `processo-dev.md` (mesmo repo `artos-backend`) antes de
 qualquer build/submit.
+
+Mapa completo de infra/deploy dos 3 repos (Render, Neon, Cloudflare Pages): ver
+`backend/docs/agents/mapa-infra.md`.

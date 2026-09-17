@@ -12,7 +12,7 @@ import { ThemePalette } from '../../../../../constants/colors';
 import FancyChips from '../../../../../components/FancyChips';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
-import { Modal, Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import { FancyAlert } from '../../../../../components/modal/FancyAlert';
 import FancyBottomSheetModal from '../../../../../components/modal/FancyBottomSheetModal';
 import DefaultIcons from '../../../../../components/FancyIcons';
@@ -343,11 +343,20 @@ export default function MinisterioEscalasIndexPage() {
         },
       }}
     >
-      <Modal visible={isNavigating} transparent animationType='fade'>
-        <View style={[styles.loadingOverlay, { backgroundColor: palette.overlays.backdrop }]}>
+      {isNavigating && (
+        // View absoluta em vez de <Modal> nativo: <Modal> concorrendo com o push de
+        // navegação deixava um presentation nativo travado, congelando toque na lista
+        // ao voltar da tela de detalhes (ver GlobalModalHost.tsx sobre esse padrão de bug no iOS)
+        <View
+          style={[
+            styles.loadingOverlay,
+            StyleSheet.absoluteFillObject,
+            { backgroundColor: palette.overlays.backdrop },
+          ]}
+        >
           <FancyLoading label='Abrindo escala...' containerStyle={{ flex: 0 }} />
         </View>
-      </Modal>
+      )}
 
       <FancyActionSheet
         visible={!!actionsEscala}
